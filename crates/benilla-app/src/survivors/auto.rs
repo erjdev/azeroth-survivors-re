@@ -153,6 +153,9 @@ pub(super) fn drive(
     phase: Res<State<Phase>>,
     mut next: ResMut<NextState<Phase>>,
     mut selection: ResMut<Selection>,
+    renown: Res<super::renown::Renown>,
+    stash: Res<super::stash::Stash>,
+    account: Res<super::account::Account>,
     mut run: ResMut<Run>,
     mut offer: ResMut<Offer>,
     mut rng: ResMut<Rng>,
@@ -179,7 +182,15 @@ pub(super) fn drive(
                 auto.wait = 0.0;
             } else if auto.wait > 2.0 && auto.wait < 3.0 {
                 auto.capture_once(&mut commands, "menu".into());
-            } else if auto.wait > 3.0 && hud::start_run(&mut run, &mut selection) {
+            } else if auto.wait > 3.0
+                && hud::start_run(
+                    &mut run,
+                    &mut selection,
+                    renown.ranks(auto.class),
+                    stash.gear(),
+                    account.bonus_for(auto.class),
+                )
+            {
                 info!(
                     "survivors auto: run begins as {} at {}",
                     run.class.name,

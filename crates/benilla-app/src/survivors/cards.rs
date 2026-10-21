@@ -132,6 +132,10 @@ pub(super) fn rarity(choice: Choice, run: &Run) -> Rarity {
             _ => Rarity::Uncommon,
         },
         Choice::Heal => Rarity::Common,
+        Choice::Jewel(super::campaign::JewelKind::Ring(_)) => Rarity::Uncommon,
+        Choice::Jewel(super::campaign::JewelKind::Trinket(_)) => Rarity::Rare,
+        Choice::Jewel(super::campaign::JewelKind::Amulet(_)) => Rarity::Epic,
+        Choice::Jewel(super::campaign::JewelKind::Legend(_)) => Rarity::Legendary,
     }
 }
 
@@ -173,9 +177,22 @@ pub(super) fn deal_cards(
     spells: Option<Res<crate::ui_action::Spells>>,
     font: Res<HudFont>,
     rows: Query<Entity, With<hud::OfferRow>>,
+    mut titles: Query<&mut Text, With<hud::LevelTitle>>,
+    mut subs: Query<&mut Text, (With<hud::LevelUpSub>, Without<hud::LevelTitle>)>,
 ) {
     if !offer.is_changed() {
         return;
+    }
+    if let Ok(mut title) = titles.single_mut() {
+        **title = if run.trading { "A CHEST" } else { "LEVEL UP" }.into();
+    }
+    if let Ok(mut sub) = subs.single_mut() {
+        **sub = if run.trading {
+            "Upgrade a spell you own"
+        } else {
+            "Choose your power"
+        }
+        .into();
     }
     let Ok(row) = rows.single() else { return };
     commands.entity(row).despawn_related::<Children>();

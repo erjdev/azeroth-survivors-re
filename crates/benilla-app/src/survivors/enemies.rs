@@ -25,6 +25,7 @@ pub(super) struct Enemy {
     pub radius: f32,
     pub xp: u32,
     pub boss: bool,
+    pub elite: bool,
     pub attack_cd: f32,
     pub slow: f32,
     pub slow_t: f32,
@@ -41,6 +42,7 @@ pub(super) struct Dot {
     pub dps: f32,
     pub left: f32,
     pub tick: f32,
+    pub source: &'static str,
 }
 
 /// A corpse playing its death before it fades.
@@ -50,6 +52,7 @@ pub(super) struct Dying(f32);
 #[derive(Resource, Default)]
 pub(super) struct Spawner {
     timer: f32,
+    chest_t: f32,
 }
 
 /// An enemy died here, worth this much.
@@ -58,18 +61,27 @@ pub(super) struct Loot {
     pub pos: Vec3,
     pub xp: u32,
     pub boss: bool,
+    pub elite: bool,
 }
 
 #[derive(Clone, Copy)]
 pub(super) enum GemKind {
     Xp(u32),
     Heal(f32),
+    Gold(u32),
+}
+
+/// A chest standing in the world. Walking into it pays gold and opens a trade of cards.
+#[derive(Component)]
+pub(super) struct Chest {
+    gold: u32,
+    tier: super::campaign::ChestTier,
 }
 
 #[derive(Component)]
 pub(super) struct Gem {
-    kind: GemKind,
-    pulled: bool,
+    pub(super) kind: GemKind,
+    pub(super) pulled: bool,
     speed: f32,
 }
 
@@ -79,6 +91,8 @@ fn look_for(kind: GemKind) -> (u32, f32) {
     match kind {
         // `TurkeyLeg.mdx`.
         GemKind::Heal(_) => (114, 2.5),
+        // The green wisp, smaller than an experience gem, so a coin pile reads apart from XP.
+        GemKind::Gold(_) => (1267, 0.45),
         // `BFD_WispSmallPurple.mdx`.
         GemKind::Xp(xp) if xp >= 20 => (1307, 1.0),
         // `BFD_WispSmallGreen.mdx`.
@@ -100,6 +114,7 @@ fn spawn_enemy(
     pos: Vec3,
     hero: Vec3,
     boss: bool,
+    elite: bool,
 ) {
     let scale = data::hp_scale(run.elapsed);
     let serial = run.guid();
@@ -129,6 +144,7 @@ fn spawn_enemy(
             radius: radius_for(def),
             xp: def.xp,
             boss,
+            elite: elite && !boss,
             attack_cd: 0.5,
             slow: 1.0,
             slow_t: 0.0,
@@ -160,6 +176,7 @@ pub(super) fn spawn_enemies(
     selection: Res<Selection>,
     hero: Query<&Transform, With<Hero>>,
     enemies: Query<&Enemy>,
+    chests: Query<&Chest>,
     world: WorldPoint,
 ) {
     let Ok(h) = hero.single() else { return };
@@ -180,7 +197,7 @@ pub(super) fn spawn_enemies(
             hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 30.0,
             hpos.y,
         );
-        spawn_enemy(&mut commands, &mut run, def, pos, hpos, true);
+        spawn_enemy(&mut commands, &mut run, def, pos, hpos, true, false);
         run.bosses += 1;
         run.banner = Some((format!("{} approaches!", def.name), 4.0));
     }
@@ -198,9 +215,41 @@ pub(super) fn spawn_enemies(
                 hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 26.0,
                 hpos.y,
             );
-            spawn_enemy(&mut commands, &mut run, def, pos, hpos, false);
+            let elite = super::campaign::is_named_elite(selection.map_def().name, def.name);
+            spawn_enemy(&mut commands, &mut run, def, pos, hpos, false, elite);
         }
         run.banner = Some(("They're surrounding you!".into(), 3.0));
+    }
+
+    if !run.stocked {
+        run.stocked = true;
+        for i in 0..3 {
+            let a = i as f32 / 3.0 * std::f32::consts::TAU;
+            let pos = ground(
+                &world,
+                hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 14.0,
+                hpos.y,
+            );
+            spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::A);
+        }
+    }
+
+    spawner.chest_t -= time.delta_secs();
+    if spawner.chest_t <= 0.0 {
+        spawner.chest_t = 45.0;
+        let woods = chests
+            .iter()
+            .filter(|c| c.tier == super::campaign::ChestTier::C)
+            .count();
+        if woods < 3 {
+            let a = rng.range(0.0, std::f32::consts::TAU);
+            let pos = ground(
+                &world,
+                hpos + Vec3::new(a.cos(), 0.0, a.sin()) * rng.range(16.0, 24.0),
+                hpos.y,
+            );
+            spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::C);
+        }
     }
 
     spawner.timer -= time.delta_secs();
@@ -219,8 +268,23 @@ pub(super) fn spawn_enemies(
         let a = rng.range(0.0, std::f32::consts::TAU);
         let r = rng.range(34.0, 42.0);
         let pos = ground(&world, hpos + Vec3::new(a.cos(), 0.0, a.sin()) * r, hpos.y);
-        spawn_enemy(&mut commands, &mut run, def, pos, hpos, false);
+        let elite = super::campaign::is_named_elite(selection.map_def().name, def.name);
+        spawn_enemy(&mut commands, &mut run, def, pos, hpos, false, elite);
     }
+}
+
+fn spawn_chest(
+    commands: &mut Commands,
+    run: &mut Run,
+    pos: Vec3,
+    tier: super::campaign::ChestTier,
+) {
+    let serial = run.guid();
+    let e = units::spawn_object(commands, serial, super::campaign::chest_display(tier), 1.15, pos);
+    commands.entity(e).insert(Chest {
+        gold: super::campaign::chest_gold(tier, run.level),
+        tier,
+    });
 }
 
 /// The chase: straight at the hero, pushed apart from each other, stopped by crowd control, and
@@ -420,7 +484,16 @@ pub(super) fn drop_loot(
     mut gems: Query<&mut Gem>,
 ) {
     let mut count = gems.iter().count();
+    let mut gold = 0u32;
+    let mut gold_at = Vec3::ZERO;
     for d in drops.read() {
+        gold += if d.boss { 10 + run.level / 4 } else { 1 };
+        gold_at = d.pos;
+        if d.boss {
+            spawn_chest(&mut commands, &mut run, d.pos, super::campaign::ChestTier::A);
+        } else if d.elite {
+            spawn_chest(&mut commands, &mut run, d.pos, super::campaign::ChestTier::B);
+        }
         if d.boss || rng.f32() < 0.015 {
             let heal = GemKind::Heal(if d.boss { 1000.0 } else { 30.0 });
             spawn_gem(&mut commands, run.guid(), d.pos + Vec3::X * 0.8, heal);
@@ -435,6 +508,15 @@ pub(super) fn drop_loot(
         }
         spawn_gem(&mut commands, run.guid(), d.pos, GemKind::Xp(d.xp));
         count += 1;
+    }
+    if gold > 0 {
+        if let Some(mut g) = gems.iter_mut().find(|g| matches!(g.kind, GemKind::Gold(_))) {
+            if let GemKind::Gold(n) = &mut g.kind {
+                *n += gold;
+            }
+        } else {
+            spawn_gem(&mut commands, run.guid(), gold_at, GemKind::Gold(gold));
+        }
     }
 }
 
@@ -453,6 +535,7 @@ pub(super) fn collect_gems(
     mut commands: Commands,
     time: Res<Time>,
     mut run: ResMut<Run>,
+    mut stash: ResMut<super::stash::Stash>,
     mut next: ResMut<NextState<Phase>>,
     hero: Query<&Transform, (With<Hero>, Without<Gem>)>,
     mut gems: Query<(Entity, &mut Transform, &mut Gem)>,
@@ -474,16 +557,38 @@ pub(super) fn collect_gems(
             continue;
         }
         if dist < 0.9 {
-            match g.kind {
-                GemKind::Xp(xp) => run.xp += xp as f32 * data::XP_RATE * stats.growth,
-                GemKind::Heal(hp) => run.hp = (run.hp + hp).min(stats.max_hp),
-            }
+            bank_gem(&mut run, &mut stash, &mut next, g.kind, 1.0);
             commands.entity(e).despawn();
             continue;
         }
         g.speed += 30.0 * dt;
         tf.translation += d / dist * (g.speed * dt).min(dist);
     }
+    settle_levels(&mut run, &mut next);
+}
+
+/// A pickup landed. `gold_bonus` is 1 for the hero and 1.1 for a gold-sniffer companion.
+pub(super) fn bank_gem(
+    run: &mut Run,
+    stash: &mut super::stash::Stash,
+    next: &mut NextState<Phase>,
+    kind: GemKind,
+    gold_bonus: f32,
+) {
+    let stats = run.stats();
+    match kind {
+        GemKind::Xp(xp) => run.xp += xp as f32 * data::XP_RATE * stats.growth,
+        GemKind::Heal(hp) => run.hp = (run.hp + hp).min(stats.max_hp),
+        GemKind::Gold(n) => {
+            let n = super::sheet::gold_amount(n, stats.gold_find * gold_bonus);
+            run.gold_found += n;
+            stash.add_gold(n);
+        }
+    }
+    settle_levels(run, next);
+}
+
+fn settle_levels(run: &mut Run, next: &mut NextState<Phase>) {
     while run.xp >= data::xp_to_next(run.level) {
         run.xp -= data::xp_to_next(run.level);
         run.level += 1;
@@ -512,5 +617,41 @@ pub(super) fn still_gems(
     }
     for mut drive in &mut drives {
         drive.set_paused(true);
+    }
+}
+
+/// A chest opens when the hero walks into it. It does not fly in on the magnet.
+pub(super) fn collect_chests(
+    mut commands: Commands,
+    mut run: ResMut<Run>,
+    mut stash: ResMut<super::stash::Stash>,
+    mut next: ResMut<NextState<Phase>>,
+    phase: Res<State<Phase>>,
+    hero: Query<&Transform, (With<Hero>, Without<Chest>)>,
+    chests: Query<(Entity, &Transform, &Chest)>,
+) {
+    let Ok(h) = hero.single() else { return };
+    if run.dead_t.is_some() {
+        return;
+    }
+    for (e, tf, chest) in &chests {
+        if flat(tf.translation - h.translation).length() > 2.2 {
+            continue;
+        }
+        let gold = super::sheet::gold_amount(chest.gold, run.stats().gold_find);
+        run.gold_found += gold;
+        stash.add_gold(gold);
+        run.trades += 1;
+        if *phase.get() == Phase::Playing && run.pending_levels == 0 {
+            run.trading = true;
+            next.set(Phase::LevelUp);
+        }
+        let kind = match chest.tier {
+            super::campaign::ChestTier::C => "Wooden chest",
+            super::campaign::ChestTier::B => "Elite chest",
+            super::campaign::ChestTier::A => "Boss chest",
+        };
+        run.banner = Some((format!("{kind} — {gold} gold"), 3.5));
+        commands.entity(e).despawn();
     }
 }

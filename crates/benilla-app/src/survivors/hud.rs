@@ -72,6 +72,9 @@ pub(super) struct OfferRow;
 #[derive(Component)]
 pub(super) struct LevelUpSub;
 
+#[derive(Component)]
+pub(super) struct LevelTitle;
+
 /// A radial cooldown sweep over one ability icon: `sweep` is the remaining fraction
 /// (1.0 = just cast, 0.0 = ready), drawn by `ui_sweep.wgsl`.
 #[derive(Asset, TypePath, AsBindGroup, Clone)]
@@ -159,12 +162,73 @@ pub(super) struct GameTooltip;
 #[derive(Component)]
 pub(super) struct TipBody;
 
+#[derive(Clone, Copy, PartialEq)]
+pub(super) enum Knob {
+    Master,
+    Effects,
+    Music,
+    Ambience,
+    Sound,
+    MusicOn,
+    View,
+    Grass,
+    Spells,
+    Scale,
+}
+
 #[derive(Component, Clone, Copy, PartialEq)]
 pub(super) enum UiAction {
     Resume,
     MainMenu,
     Quit,
+    OpenSettings,
+    CloseSettings,
+    Adjust(Knob, i8),
+    Toggle(Knob),
 }
+
+/// Settings replaces the pause buttons until Back.
+#[derive(Resource, Default)]
+pub(super) struct PausePage {
+    pub open: bool,
+}
+
+/// Knob clicks, applied by [`apply_settings`] so this screen does not share the cvar lock
+/// with the rest of the client.
+#[derive(Resource, Default)]
+pub(super) struct SettingEdits {
+    adjust: Vec<(Knob, i8)>,
+    toggle: Vec<Knob>,
+}
+
+#[derive(Component)]
+pub(super) struct PauseMain;
+
+#[derive(Component)]
+pub(super) struct SettingsPanel;
+
+#[derive(Component, Clone, Copy)]
+pub(super) struct SettingReadout(Knob);
+
+#[derive(Component)]
+pub(super) struct MeterRoot;
+
+#[derive(Component)]
+pub(super) struct MeterHead;
+
+#[derive(Component)]
+pub(super) struct MeterLine(u8);
+
+#[derive(Component)]
+pub(super) struct MeterName(u8);
+
+#[derive(Component)]
+pub(super) struct MeterValue(u8);
+
+#[derive(Component)]
+pub(super) struct MeterFill(u8);
+
+const METER_ROWS: u8 = 6;
 
 /// The colour a button returns to when not hovered.
 #[derive(Component)]
@@ -177,6 +241,7 @@ pub(super) enum Choice {
     NewPassive(&'static PassiveDef),
     UpPassive(usize),
     Heal,
+    Jewel(super::campaign::JewelKind),
 }
 
 /// The level-up cards on offer.
@@ -603,6 +668,55 @@ pub(super) fn setup_hud(
                             ));
                         });
                 });
+            root.spawn((
+                MeterRoot,
+                Node {
+                    position_type: PositionType::Absolute,
+                    right: Val::Px(16.0),
+                    bottom: Val::Px(28.0),
+                    width: Val::Px(236.0),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(2.0),
+                    padding: UiRect::all(Val::Px(8.0)),
+                    border: UiRect::all(Val::Px(1.0)),
+                    border_radius: BorderRadius::all(Val::Px(4.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgba(0.03, 0.02, 0.01, 0.78)),
+                BorderColor::all(EDGE),
+            ))
+            .with_children(|m| {
+                m.spawn((MeterHead, text(f, "Damage", 13.0, GOLD)));
+                for i in 0..METER_ROWS {
+                    m.spawn((
+                        MeterLine(i),
+                        Node {
+                            width: Val::Percent(100.0),
+                            height: Val::Px(15.0),
+                            justify_content: JustifyContent::SpaceBetween,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        Visibility::Hidden,
+                    ))
+                    .with_children(|line| {
+                        line.spawn((
+                            MeterFill(i),
+                            Node {
+                                position_type: PositionType::Absolute,
+                                left: Val::Px(0.0),
+                                top: Val::Px(0.0),
+                                height: Val::Percent(100.0),
+                                width: Val::Percent(0.0),
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgba(0.85, 0.55, 0.12, 0.4)),
+                        ));
+                        line.spawn((MeterName(i), text(f, "", 12.0, Color::WHITE)));
+                        line.spawn((MeterValue(i), text(f, "", 12.0, GOLD)));
+                    });
+                }
+            });
         });
     commands.insert_resource(map);
 
@@ -695,7 +809,7 @@ pub(super) fn setup_hud(
                 UiTransform::default(),
                 bevy::ui::FocusPolicy::Pass,
             ));
-            root.spawn(centered(f, "LEVEL UP", 52.0, GOLD));
+            root.spawn((LevelTitle, centered(f, "LEVEL UP", 52.0, GOLD)));
             root.spawn((
                 LevelUpSub,
                 centered(f, "Choose your power", 16.0, Color::srgb(0.85, 0.78, 0.6)),
@@ -732,14 +846,84 @@ pub(super) fn setup_hud(
             bevy::ui::FocusPolicy::Pass,
         ))
         .with_children(|root| {
-            root.spawn(centered(f, "Paused", 46.0, GOLD));
-            for (label, action) in [
-                ("Resume", UiAction::Resume),
-                ("Abandon run", UiAction::MainMenu),
-                ("Quit game", UiAction::Quit),
-            ] {
-                root.spawn((
-                    button(action, BUTTON),
+            root.spawn((
+                PauseMain,
+                Node {
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    row_gap: Val::Px(12.0),
+                    ..default()
+                },
+            ))
+            .with_children(|col| {
+                col.spawn(centered(f, "Paused", 46.0, GOLD));
+                for (label, action) in [
+                    ("Resume", UiAction::Resume),
+                    ("Settings", UiAction::OpenSettings),
+                    ("Abandon run", UiAction::MainMenu),
+                    ("Quit game", UiAction::Quit),
+                ] {
+                    col.spawn((
+                        button(action, BUTTON),
+                        Node {
+                            width: Val::Px(240.0),
+                            justify_content: JustifyContent::Center,
+                            padding: UiRect::axes(Val::Px(20.0), Val::Px(8.0)),
+                            border: UiRect::all(Val::Px(2.0)),
+                            border_radius: BorderRadius::all(Val::Px(4.0)),
+                            ..default()
+                        },
+                    ))
+                    .with_children(|b| {
+                        b.spawn(text(f, label, 20.0, Color::WHITE));
+                    });
+                }
+            });
+            root.spawn((
+                SettingsPanel,
+                Node {
+                    display: Display::None,
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    row_gap: Val::Px(14.0),
+                    ..default()
+                },
+            ))
+            .with_children(|col| {
+                col.spawn(centered(f, "Settings", 36.0, GOLD));
+                col.spawn(Node {
+                    column_gap: Val::Px(28.0),
+                    ..default()
+                })
+                .with_children(|row| {
+                    row.spawn(Node {
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(6.0),
+                        ..default()
+                    })
+                    .with_children(|sound| {
+                        sound.spawn(text(f, "Sound", 16.0, GOLD));
+                        for knob in [Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience] {
+                            setting_row(sound, f, knob);
+                        }
+                        for knob in [Knob::Sound, Knob::MusicOn] {
+                            toggle_row(sound, f, knob);
+                        }
+                    });
+                    row.spawn(Node {
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(6.0),
+                        ..default()
+                    })
+                    .with_children(|gfx| {
+                        gfx.spawn(text(f, "Graphics", 16.0, GOLD));
+                        for knob in [Knob::View, Knob::Grass, Knob::Spells, Knob::Scale] {
+                            setting_row(gfx, f, knob);
+                        }
+                    });
+                });
+                col.spawn((
+                    button(UiAction::CloseSettings, BUTTON),
                     Node {
                         width: Val::Px(240.0),
                         justify_content: JustifyContent::Center,
@@ -750,9 +934,9 @@ pub(super) fn setup_hud(
                     },
                 ))
                 .with_children(|b| {
-                    b.spawn(text(f, label, 20.0, Color::WHITE));
+                    b.spawn(text(f, "Back", 20.0, Color::WHITE));
                 });
-            }
+            });
         });
 
     // --- Results. ---
@@ -900,7 +1084,13 @@ pub(super) fn menu_preview(
     );
 }
 
-pub(super) fn start_run(run: &mut Run, selection: &mut Selection) -> bool {
+pub(super) fn start_run(
+    run: &mut Run,
+    selection: &mut Selection,
+    ranks: [u8; 3],
+    gear: [Option<(u8, u8)>; 3],
+    bonus: super::campaign::Bonus,
+) -> bool {
     let (Some(class), Some(&(_, race, _))) = (
         selection.class_def(),
         selection.look.and_then(|i| selection.looks.get(i)),
@@ -914,8 +1104,27 @@ pub(super) fn start_run(run: &mut Run, selection: &mut Selection) -> bool {
         class,
         race,
         next_guid,
+        renown_might: ranks[0],
+        renown_fortitude: ranks[1],
+        renown_celerity: ranks[2],
+        gear,
+        bonus,
         ..Run::default()
     };
+    let mut notes = Vec::new();
+    if ranks.iter().any(|r| *r > 0) {
+        notes.push(format!(
+            "Renown — Might {}, Fortitude {}, Quickness {}",
+            ranks[0], ranks[1], ranks[2]
+        ));
+    }
+    let relics = super::stash::blurb(gear);
+    if !relics.is_empty() {
+        notes.push(relics);
+    }
+    if !notes.is_empty() {
+        run.banner = Some((notes.join("   "), 4.0));
+    }
     run.abilities.push(Owned {
         def: data::ability(class.start),
         level: 1,
@@ -972,8 +1181,12 @@ fn choices_for(run: &Run, rng: &mut Rng) -> Vec<Choice> {
     out
 }
 
-pub(super) fn roll_offer(run: Res<Run>, mut rng: ResMut<Rng>, mut offer: ResMut<Offer>) {
-    offer.choices = choices_for(&run, &mut rng);
+pub(super) fn roll_offer(mut run: ResMut<Run>, mut rng: ResMut<Rng>, mut offer: ResMut<Offer>) {
+    offer.choices = if run.trading {
+        trade_choices(&mut run, &mut rng)
+    } else {
+        choices_for(&run, &mut rng)
+    };
 }
 
 pub(super) fn pick(
@@ -996,15 +1209,65 @@ pub(super) fn pick(
         Choice::NewPassive(p) => run.passives.push((p, 1)),
         Choice::UpPassive(k) => run.passives[k].1 += 1,
         Choice::Heal => run.hp = run.stats().max_hp,
+        Choice::Jewel(kind) => run.worn.equip(kind),
     }
     run.version += 1;
-    run.pending_levels = run.pending_levels.saturating_sub(1);
+    if run.trading {
+        run.trades = run.trades.saturating_sub(1);
+        if run.trades > 0 {
+            offer.choices = trade_choices(run, rng);
+            return;
+        }
+        run.trading = false;
+    } else {
+        run.pending_levels = run.pending_levels.saturating_sub(1);
+    }
     if run.pending_levels > 0 {
         offer.choices = choices_for(run, rng);
+    } else if run.trades > 0 {
+        run.trading = true;
+        offer.choices = trade_choices(run, rng);
     } else {
         offer.choices.clear();
         next.set(Phase::Playing);
     }
+}
+
+fn trade_choices(run: &mut Run, rng: &mut Rng) -> Vec<Choice> {
+    let upgradeable: Vec<usize> = run
+        .abilities
+        .iter()
+        .enumerate()
+        .filter(|(_, o)| o.level < data::MAX_ABILITY_LEVEL)
+        .map(|(i, _)| i)
+        .collect();
+    let luck = super::sheet::luck_percent(run.stats().luck);
+    let rolls = [rng.f32(), rng.f32(), rng.f32()];
+    let picks = [
+        rng.next_u64() as u32,
+        rng.next_u64() as u32,
+        rng.next_u64() as u32,
+    ];
+    super::campaign::trade_cards(&upgradeable, luck, rolls, picks)
+        .into_iter()
+        .map(|card| match card {
+            super::campaign::TradeCard::Upgrade(i) => Choice::Upgrade(i),
+            super::campaign::TradeCard::Ring(i) => Choice::Jewel(super::campaign::JewelKind::Ring(i as u8)),
+            super::campaign::TradeCard::Trinket(i) => {
+                Choice::Jewel(super::campaign::JewelKind::Trinket(i as u8))
+            }
+            super::campaign::TradeCard::Amulet(i) => {
+                Choice::Jewel(super::campaign::JewelKind::Amulet(i as u8))
+            }
+            super::campaign::TradeCard::Legend(i) => {
+                let key = run.abilities[i].def.key;
+                if !run.seen_legends.contains(&key) {
+                    run.seen_legends.push(key);
+                }
+                Choice::Jewel(super::campaign::JewelKind::Legend(key))
+            }
+        })
+        .collect()
 }
 
 pub(super) fn looks_for(
@@ -1031,6 +1294,8 @@ pub(super) fn buttons(
     >,
     mut next: ResMut<NextState<Phase>>,
     mut exit: MessageWriter<AppExit>,
+    mut edits: ResMut<SettingEdits>,
+    mut page: ResMut<PausePage>,
     phase: Res<State<Phase>>,
 ) {
     for (interaction, action, base, mut bg) in &mut presses {
@@ -1042,9 +1307,13 @@ pub(super) fn buttons(
                 match (*action, *phase.get()) {
                     (UiAction::Resume, Phase::Paused) => next.set(Phase::Playing),
                     (UiAction::MainMenu, Phase::Paused | Phase::GameOver) => next.set(Phase::Menu),
-                    (UiAction::Quit, Phase::Paused | Phase::GameOver) => {
+                    (UiAction::Quit, Phase::Paused | Phase::GameOver | Phase::Menu) => {
                         exit.write(AppExit::Success);
                     }
+                    (UiAction::OpenSettings, Phase::Paused) => page.open = true,
+                    (UiAction::CloseSettings, Phase::Paused) => page.open = false,
+                    (UiAction::Adjust(knob, dir), Phase::Paused) => edits.adjust.push((knob, dir)),
+                    (UiAction::Toggle(knob), Phase::Paused) => edits.toggle.push(knob),
                     _ => {}
                 }
             }
@@ -1052,16 +1321,337 @@ pub(super) fn buttons(
     }
 }
 
+pub(super) fn close_settings(mut page: ResMut<PausePage>) {
+    page.open = false;
+}
+
+pub(super) fn apply_settings(
+    mut edits: ResMut<SettingEdits>,
+    mut cvars: ResMut<crate::cvars::Cvars>,
+) {
+    if edits.adjust.is_empty() && edits.toggle.is_empty() {
+        return;
+    }
+    for (knob, dir) in edits.adjust.drain(..) {
+        adjust_knob(&mut cvars, knob, dir);
+    }
+    for knob in edits.toggle.drain(..) {
+        toggle_knob(&mut cvars, knob);
+    }
+}
+
+fn setting_row(ui: &mut ChildSpawnerCommands, f: &Handle<Font>, knob: Knob) {
+    ui.spawn(Node {
+        column_gap: Val::Px(6.0),
+        align_items: AlignItems::Center,
+        ..default()
+    })
+    .with_children(|row| {
+        row.spawn((
+            button(UiAction::Adjust(knob, -1), BUTTON),
+            Node {
+                width: Val::Px(32.0),
+                height: Val::Px(28.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                border: UiRect::all(Val::Px(1.0)),
+                ..default()
+            },
+        ))
+        .with_children(|b| {
+            b.spawn(text(f, "−", 18.0, Color::WHITE));
+        });
+        row.spawn((
+            SettingReadout(knob),
+            Node {
+                width: Val::Px(168.0),
+                ..default()
+            },
+            text(f, "", 14.0, Color::WHITE),
+        ));
+        row.spawn((
+            button(UiAction::Adjust(knob, 1), BUTTON),
+            Node {
+                width: Val::Px(32.0),
+                height: Val::Px(28.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                border: UiRect::all(Val::Px(1.0)),
+                ..default()
+            },
+        ))
+        .with_children(|b| {
+            b.spawn(text(f, "+", 18.0, Color::WHITE));
+        });
+    });
+}
+
+fn toggle_row(ui: &mut ChildSpawnerCommands, f: &Handle<Font>, knob: Knob) {
+    ui.spawn((
+        button(UiAction::Toggle(knob), BUTTON),
+        Node {
+            width: Val::Px(244.0),
+            justify_content: JustifyContent::Center,
+            padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
+            border: UiRect::all(Val::Px(1.0)),
+            ..default()
+        },
+    ))
+    .with_children(|b| {
+        b.spawn((SettingReadout(knob), text(f, "", 14.0, Color::WHITE)));
+    });
+}
+
+pub(super) fn sync_pause_page(
+    page: Res<PausePage>,
+    mut main: Query<&mut Node, With<PauseMain>>,
+    mut settings: Query<&mut Node, (With<SettingsPanel>, Without<PauseMain>)>,
+) {
+    let main_display = if page.open { Display::None } else { Display::Flex };
+    let settings_display = if page.open { Display::Flex } else { Display::None };
+    for mut node in &mut main {
+        if node.display != main_display {
+            node.display = main_display;
+        }
+    }
+    for mut node in &mut settings {
+        if node.display != settings_display {
+            node.display = settings_display;
+        }
+    }
+}
+
+pub(super) fn refresh_settings(
+    cvars: Res<crate::cvars::Cvars>,
+    mut readouts: Query<(&SettingReadout, &mut Text)>,
+) {
+    for (readout, mut text) in &mut readouts {
+        let want = knob_text(&cvars, readout.0);
+        if **text != want {
+            **text = want;
+        }
+    }
+}
+
+fn knob_text(cvars: &crate::cvars::Cvars, knob: Knob) -> String {
+    let pct = |name: &str, fallback: f32| {
+        let v = cvars.num(name).unwrap_or(fallback).clamp(0.0, 1.0);
+        (v * 100.0).round() as i32
+    };
+    match knob {
+        Knob::Master => format!("Master  {}%", pct("MasterVolume", 1.0)),
+        Knob::Effects => format!("Effects  {}%", pct("SoundVolume", 1.0)),
+        Knob::Music => format!("Music  {}%", pct("MusicVolume", 0.4)),
+        Knob::Ambience => format!("Ambience  {}%", pct("AmbienceVolume", 0.6)),
+        Knob::Sound => {
+            let on = cvars.num("MasterSoundEffects").unwrap_or(1.0) != 0.0;
+            format!("Sound  {}", if on { "On" } else { "Off" })
+        }
+        Knob::MusicOn => {
+            let on = cvars.num("EnableMusic").unwrap_or(1.0) != 0.0;
+            format!("Music  {}", if on { "On" } else { "Off" })
+        }
+        Knob::View => {
+            let v = cvars.num("farclip").unwrap_or(350.0).round() as i32;
+            format!("View distance  {v}")
+        }
+        Knob::Grass => {
+            let v = cvars.num("WorldDetail").unwrap_or(1.0).round() as i32;
+            let name = match v {
+                0 => "Low",
+                1 => "Medium",
+                _ => "High",
+            };
+            format!("Grass  {name}")
+        }
+        Knob::Spells => {
+            let v = cvars.num("spellEffectLevel").unwrap_or(2.0).round() as i32;
+            let name = match v {
+                0 => "Low",
+                1 => "Medium",
+                _ => "High",
+            };
+            format!("Spell detail  {name}")
+        }
+        Knob::Scale => {
+            let v = cvars.num("renderScale").unwrap_or(1.0);
+            format!("Render scale  {}%", (v * 100.0).round() as i32)
+        }
+    }
+}
+
+fn adjust_knob(cvars: &mut crate::cvars::Cvars, knob: Knob, dir: i8) {
+    let step_volume = |cvars: &mut crate::cvars::Cvars, name: &str, fallback: f32| {
+        let cur = cvars.num(name).unwrap_or(fallback);
+        let next = ((cur * 10.0).round() + f32::from(dir)).clamp(0.0, 10.0) / 10.0;
+        cvars.set(name, &format!("{next:.1}"));
+    };
+    match knob {
+        Knob::Master => step_volume(cvars, "MasterVolume", 1.0),
+        Knob::Effects => step_volume(cvars, "SoundVolume", 1.0),
+        Knob::Music => step_volume(cvars, "MusicVolume", 0.4),
+        Knob::Ambience => step_volume(cvars, "AmbienceVolume", 0.6),
+        Knob::Sound | Knob::MusicOn => {}
+        Knob::View => {
+            const STEPS: [f32; 6] = [177.0, 250.0, 350.0, 500.0, 650.0, 777.0];
+            step_list(cvars, "farclip", &STEPS, dir, |v| format!("{}", v.round() as i32));
+        }
+        Knob::Grass => step_int(cvars, "WorldDetail", 1, dir, 0, 2),
+        Knob::Spells => step_int(cvars, "spellEffectLevel", 2, dir, 0, 2),
+        Knob::Scale => {
+            const STEPS: [f32; 7] = [0.5, 0.6, 0.75, 1.0, 1.25, 1.5, 2.0];
+            step_list(cvars, "renderScale", &STEPS, dir, |v| format!("{v:.2}"));
+        }
+    }
+}
+
+fn toggle_knob(cvars: &mut crate::cvars::Cvars, knob: Knob) {
+    let name = match knob {
+        Knob::Sound => "MasterSoundEffects",
+        Knob::MusicOn => "EnableMusic",
+        _ => return,
+    };
+    let on = cvars.num(name).unwrap_or(1.0) != 0.0;
+    cvars.set(name, if on { "0" } else { "1" });
+}
+
+fn step_int(cvars: &mut crate::cvars::Cvars, name: &str, fallback: i32, dir: i8, lo: i32, hi: i32) {
+    let cur = cvars.num(name).unwrap_or(fallback as f32).round() as i32;
+    let next = (cur + i32::from(dir)).clamp(lo, hi);
+    cvars.set(name, &next.to_string());
+}
+
+fn step_list(
+    cvars: &mut crate::cvars::Cvars,
+    name: &str,
+    steps: &[f32],
+    dir: i8,
+    fmt: impl Fn(f32) -> String,
+) {
+    let cur = cvars.num(name).unwrap_or(steps[0]);
+    let mut best = 0;
+    for (i, step) in steps.iter().enumerate() {
+        if (step - cur).abs() < (steps[best] - cur).abs() {
+            best = i;
+        }
+    }
+    let next = (best as i32 + i32::from(dir)).clamp(0, steps.len() as i32 - 1) as usize;
+    cvars.set(name, &fmt(steps[next]));
+}
+
+pub(super) fn refresh_meter(
+    phase: Res<State<Phase>>,
+    run: Res<Run>,
+    spells: Option<Res<crate::ui_action::Spells>>,
+    mut root: Query<&mut Visibility, With<MeterRoot>>,
+    mut head: Query<&mut Text, With<MeterHead>>,
+    mut lines: Query<(&MeterLine, &mut Visibility), Without<MeterRoot>>,
+    mut names: Query<(&MeterName, &mut Text), Without<MeterHead>>,
+    mut values: Query<(&MeterValue, &mut Text), (Without<MeterHead>, Without<MeterName>)>,
+    mut fills: Query<(&MeterFill, &mut Node)>,
+) {
+    let show = *phase.get() == Phase::Playing || *phase.get() == Phase::Paused;
+    for mut vis in &mut root {
+        let want = if show {
+            Visibility::Inherited
+        } else {
+            Visibility::Hidden
+        };
+        if *vis != want {
+            *vis = want;
+        }
+    }
+    if !show {
+        return;
+    }
+    let mut rows: Vec<(&str, f64)> = run.damage_sources.clone();
+    rows.sort_by(|a, b| b.1.total_cmp(&a.1));
+    let top = rows.first().map(|r| r.1).unwrap_or(1.0).max(1.0);
+    let dps = run.damage_done / f64::from(run.elapsed.max(1.0));
+    if let Ok(mut t) = head.single_mut() {
+        let want = format!("Damage  {}   {}/s", compact(run.damage_done), compact(dps));
+        if **t != want {
+            **t = want;
+        }
+    }
+    let spells = spells.as_deref();
+    for (line, mut vis) in &mut lines {
+        let on = (line.0 as usize) < rows.len();
+        let want = if on {
+            Visibility::Inherited
+        } else {
+            Visibility::Hidden
+        };
+        if *vis != want {
+            *vis = want;
+        }
+    }
+    for (name, mut text) in &mut names {
+        let Some((key, _)) = rows.get(name.0 as usize) else {
+            continue;
+        };
+        let want = source_name(key, spells);
+        if **text != want {
+            **text = want;
+        }
+    }
+    for (value, mut text) in &mut values {
+        let Some((_, amount)) = rows.get(value.0 as usize) else {
+            continue;
+        };
+        let share = if run.damage_done > 0.0 {
+            amount / run.damage_done * 100.0
+        } else {
+            0.0
+        };
+        let want = format!("{}  {}%", compact(*amount), share.round() as u32);
+        if **text != want {
+            **text = want;
+        }
+    }
+    for (fill, mut node) in &mut fills {
+        let pct = rows
+            .get(fill.0 as usize)
+            .map(|(_, amount)| (*amount / top * 100.0) as f32)
+            .unwrap_or(0.0);
+        node.width = Val::Percent(pct.clamp(0.0, 100.0));
+    }
+}
+
+fn source_name(key: &str, spells: Option<&crate::ui_action::Spells>) -> String {
+    data::ABILITIES
+        .iter()
+        .find(|a| a.key == key)
+        .map(|a| spell_name(spells, a.spell, a.key))
+        .unwrap_or_else(|| key.replace('_', " "))
+}
+
 pub(super) fn keys(
     keys: Res<ButtonInput<KeyCode>>,
     phase: Res<State<Phase>>,
+    renown: Res<super::renown::Renown>,
+    stash: Res<super::stash::Stash>,
+    account: Res<super::account::Account>,
     mut selection: ResMut<Selection>,
     mut run: ResMut<Run>,
     mut next: ResMut<NextState<Phase>>,
 ) {
     match phase.get() {
         Phase::Menu => {
-            if keys.just_pressed(KeyCode::Enter) && start_run(&mut run, &mut selection) {
+            let ranks = selection
+                .class
+                .map(|i| renown.ranks(i))
+                .unwrap_or([0; 3]);
+            let class = selection.class.unwrap_or(0);
+            if keys.just_pressed(KeyCode::Enter)
+                && start_run(
+                    &mut run,
+                    &mut selection,
+                    ranks,
+                    stash.gear(),
+                    account.bonus_for(class),
+                )
+            {
                 next.set(Phase::Playing);
             }
         }
@@ -1211,6 +1801,53 @@ pub(super) fn describe_card(
             desc: "Everything is mastered. Restores all health.".into(),
             ranks: None,
         },
+        Choice::Jewel(kind) => jewel_card(kind, run),
+    }
+}
+
+fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
+    use super::campaign::{JewelKind, AMULET_NAMES, RING_NAMES, TRINKET_NAMES};
+    let (spell, name, tag, desc) = match kind {
+        JewelKind::Ring(i) => (
+            11196u32,
+            RING_NAMES.get(i as usize).copied().unwrap_or("Ring").to_string(),
+            "Ring",
+            "Worn for this run. A second ring fills the other hand.",
+        ),
+        JewelKind::Trinket(i) => (
+            11810u32,
+            TRINKET_NAMES.get(i as usize).copied().unwrap_or("Trinket").to_string(),
+            "Trinket",
+            "Worn for this run. Two trinkets can be carried.",
+        ),
+        JewelKind::Amulet(i) => (
+            19383u32,
+            AMULET_NAMES.get(i as usize).copied().unwrap_or("Amulet").to_string(),
+            "Amulet",
+            "Worn for this run. One amulet.",
+        ),
+        JewelKind::Legend(key) => {
+            let spell = run
+                .abilities
+                .iter()
+                .find(|o| o.def.key == key)
+                .map(|o| o.def.spell)
+                .unwrap_or(0);
+            (
+                spell,
+                super::campaign::legendary_amulet(key),
+                "Legendary amulet",
+                "Seen once dealt, whether or not you take it. One legendary amulet for this run.",
+            )
+        }
+    };
+    CardText {
+        spell,
+        name,
+        tag: tag.into(),
+        tag_color: GOLD,
+        desc: desc.into(),
+        ranks: None,
     }
 }
 
@@ -1221,6 +1858,8 @@ pub(super) fn refresh_hud(
     phase: Res<State<Phase>>,
     mut run: ResMut<Run>,
     selection: Res<Selection>,
+    renown: Res<super::renown::Renown>,
+    stash: Res<super::stash::Stash>,
     font: Res<HudFont>,
     mut texts: ParamSet<(
         Query<&mut Text, With<LevelText>>,
@@ -1255,7 +1894,7 @@ pub(super) fn refresh_hud(
     }
     let kills = run.kills;
     if let Ok(mut t) = texts.p2().single_mut() {
-        **t = format!("Kills {kills}");
+        **t = format!("Kills {kills}    Gold {}", stash.gold);
     }
     let banner = match run.banner.as_mut() {
         Some((msg, t)) => {
@@ -1292,10 +1931,12 @@ pub(super) fn refresh_hud(
         **t = title;
     }
     let summary = format!(
-        "{} {} in {}   —   press Enter to play again",
+        "{} {} in {}   —   {} marks   —   {} gold   —   press Enter to play again",
         crate::char_select::race_name(run.race),
         run.class.name,
         selection.map_def().name,
+        renown.last_earned,
+        run.gold_found,
     );
     if let Ok(mut t) = texts.p5().single_mut() {
         if **t != summary {
@@ -1728,7 +2369,7 @@ fn cast_at(def: &'static AbilityDef, level: u8, stats: &Stats) -> Cast {
     Cast {
         dmg: def.damage * mult,
         dot: def.dot * mult,
-        count: o.count(),
+        count: o.count(stats),
         radius: o.radius(stats),
         duration: o.duration(),
         cooldown: o.cooldown(stats),

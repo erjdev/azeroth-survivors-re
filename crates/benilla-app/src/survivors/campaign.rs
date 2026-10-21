@@ -1,0 +1,1025 @@
+//! Campaign rules that do not depend on a running world: zone order, gear quality, cloaks,
+//! jewelry limits, and the talent skeleton. The menus read these; they do not restate them.
+
+/// Talent experience for one point.
+pub(super) const XP_PER_TALENT: u32 = 100;
+/// Points a character can hold, matching a vanilla tree.
+pub(super) const TALENT_CAP: u32 = 51;
+/// Six nodes in a tree, five ranks each, so one tree can reach the 30-point milestone.
+/// A character still cannot spend more than [`TALENT_CAP`] points across all three.
+pub(super) const NODES_PER_TREE: usize = 6;
+pub(super) const NODE_RANKS: [u8; NODES_PER_TREE] = [5, 5, 5, 5, 5, 5];
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(super) enum Quality {
+    Poor,
+    Common,
+    Uncommon,
+    Rare,
+    Epic,
+    Legendary,
+}
+
+/// One zone on the path. `map` matches [`super::data::MapDef::name`].
+pub(super) struct Zone {
+    pub name: &'static str,
+    pub map: &'static str,
+    /// Talent level required, in addition to clearing the previous zone.
+    pub talent: u32,
+    pub elites: &'static [&'static str],
+    pub boss: &'static str,
+}
+
+pub(super) static ZONES: &[Zone] = &[
+    Zone {
+        name: "Elwynn Forest",
+        map: "Elwynn Forest",
+        talent: 0,
+        elites: &["Defias Bandit", "Kobold Miner"],
+        boss: "Hogger",
+    },
+    Zone {
+        name: "Westfall",
+        map: "Westfall",
+        talent: 5,
+        elites: &["Defias Highwayman", "Harvest Watcher"],
+        boss: "Vultros",
+    },
+    Zone {
+        name: "Duskwood",
+        map: "Duskwood",
+        talent: 10,
+        elites: &["Skeletal Warrior", "Nightbane Worgen"],
+        boss: "Nefaru",
+    },
+    Zone {
+        name: "Stranglethorn",
+        map: "Gurubashi Arena",
+        talent: 18,
+        elites: &["Skullsplitter Berserker", "Bloodsail Raider"],
+        boss: "Hakkar",
+    },
+    Zone {
+        name: "Arathi Highlands",
+        map: "Arathi Highlands",
+        talent: 28,
+        elites: &["Boulderfist Ogre", "Syndicate Highwayman"],
+        boss: "Or'Kalar",
+    },
+    Zone {
+        name: "Western Plaguelands",
+        map: "Western Plaguelands",
+        talent: 38,
+        elites: &["Skeletal Flayer", "Scarlet Knight"],
+        boss: "Araj the Summoner",
+    },
+    Zone {
+        name: "Naxxramas",
+        map: "Naxxramas",
+        talent: 48,
+        elites: &["Necro Knight", "Plague Slime"],
+        boss: "Kel'Thuzad",
+    },
+];
+
+/// Gear slot order. A two-handed weapon occupies the off-hand slot.
+pub(super) const SLOTS: [&str; 10] = [
+    "Helm",
+    "Shoulders",
+    "Chest",
+    "Waist",
+    "Legs",
+    "Feet",
+    "Wrist",
+    "Hands",
+    "Main Hand",
+    "Off Hand",
+];
+
+/// Which zone index drops each of the ten base pieces.
+const SLOT_ZONE: [usize; 10] = [0, 0, 1, 1, 2, 2, 3, 3, 4, 5];
+
+/// Quality of each base slot, rising with the zone that drops it.
+const SLOT_QUALITY: [Quality; 10] = [
+    Quality::Poor,
+    Quality::Poor,
+    Quality::Poor,
+    Quality::Poor,
+    Quality::Common,
+    Quality::Common,
+    Quality::Uncommon,
+    Quality::Uncommon,
+    Quality::Rare,
+    Quality::Epic,
+];
+
+/// True when the weapon in the main-hand slot is two-handed and the off-hand stays empty.
+pub(super) fn two_handed(class: usize) -> bool {
+    matches!(class, 2 | 4 | 6 | 7 | 8)
+}
+
+pub(super) fn zone_index(map_name: &str) -> Option<usize> {
+    ZONES.iter().position(|z| z.map == map_name)
+}
+
+/// A zone opens when the previous one is cleared on this class and this character's talent
+/// level meets the gate. Elwynn needs neither.
+pub(super) fn zone_open(index: usize, talent_level: u32, clears: &[bool]) -> bool {
+    let Some(zone) = ZONES.get(index) else {
+        return false;
+    };
+    if talent_level < zone.talent {
+        return false;
+    }
+    index == 0 || clears.get(index - 1).copied().unwrap_or(false)
+}
+
+pub(super) fn slot_zone(slot: usize) -> Option<usize> {
+    SLOT_ZONE.get(slot).copied()
+}
+
+pub(super) fn slot_quality(slot: usize) -> Option<Quality> {
+    SLOT_QUALITY.get(slot).copied()
+}
+
+/// Flat and percent bonuses one piece of a quality contributes. Each step keeps the previous
+/// lines and adds the next, at higher numbers.
+#[derive(Clone, Copy, Default, Debug)]
+pub(super) struct Bonus {
+    pub armor: f32,
+    pub might: f32,
+    pub crit: f32,
+    pub multistrike: f32,
+    pub speed: f32,
+    pub leech: f32,
+    pub area: f32,
+    /// Added to the baseline double crit, so 0.25 makes a crit deal 2.25x.
+    pub crit_damage: f32,
+    pub reduction: f32,
+    pub cooldown: f32,
+    pub gold: f32,
+    pub growth: f32,
+    pub luck: f32,
+    pub targets: u32,
+}
+
+impl Bonus {
+    pub(super) fn add(&mut self, other: Self) {
+        self.armor += other.armor;
+        self.might += other.might;
+        self.crit += other.crit;
+        self.multistrike += other.multistrike;
+        self.speed += other.speed;
+        self.leech += other.leech;
+        self.area += other.area;
+        self.crit_damage += other.crit_damage;
+        self.reduction += other.reduction;
+        self.cooldown += other.cooldown;
+        self.gold += other.gold;
+        self.growth += other.growth;
+        self.luck += other.luck;
+        self.targets += other.targets;
+    }
+}
+
+pub(super) fn quality_bonus(quality: Quality) -> Bonus {
+    match quality {
+        Quality::Poor => Bonus {
+            armor: 4.0,
+            ..Bonus::default()
+        },
+        Quality::Common => Bonus {
+            armor: 6.0,
+            might: 0.02,
+            crit: 0.01,
+            ..Bonus::default()
+        },
+        Quality::Uncommon => Bonus {
+            armor: 8.0,
+            might: 0.03,
+            crit: 0.02,
+            multistrike: 0.03,
+            ..Bonus::default()
+        },
+        Quality::Rare => Bonus {
+            armor: 10.0,
+            might: 0.04,
+            crit: 0.03,
+            multistrike: 0.04,
+            speed: 0.02,
+            ..Bonus::default()
+        },
+        Quality::Epic => Bonus {
+            armor: 14.0,
+            might: 0.06,
+            crit: 0.04,
+            multistrike: 0.06,
+            speed: 0.03,
+            leech: 0.01,
+            area: 0.04,
+            ..Bonus::default()
+        },
+        Quality::Legendary => Bonus {
+            armor: 18.0,
+            might: 0.08,
+            crit: 0.05,
+            multistrike: 0.08,
+            speed: 0.04,
+            leech: 0.02,
+            area: 0.06,
+            crit_damage: 0.25,
+            ..Bonus::default()
+        },
+    }
+}
+
+/// Ten base pieces together.
+pub(super) fn set_bonus() -> Bonus {
+    Bonus {
+        might: 0.10,
+        crit: 0.05,
+        ..Bonus::default()
+    }
+}
+
+/// Cloak power. A legendary cloak is the account reward for nine epic class cloaks.
+pub(super) fn cloak_bonus(quality: Quality) -> Bonus {
+    match quality {
+        Quality::Uncommon => Bonus {
+            might: 0.04,
+            speed: 0.03,
+            ..Bonus::default()
+        },
+        Quality::Rare => Bonus {
+            might: 0.08,
+            reduction: 0.05,
+            multistrike: 0.05,
+            ..Bonus::default()
+        },
+        Quality::Epic => Bonus {
+            might: 0.12,
+            reduction: 0.08,
+            multistrike: 0.08,
+            leech: 0.02,
+            ..Bonus::default()
+        },
+        Quality::Legendary => Bonus {
+            might: 0.20,
+            reduction: 0.10,
+            multistrike: 0.15,
+            leech: 0.03,
+            crit_damage: 0.50,
+            targets: 1,
+            ..Bonus::default()
+        },
+        Quality::Poor | Quality::Common => Bonus::default(),
+    }
+}
+
+#[derive(Clone, Copy, Default)]
+pub(super) struct Feats {
+    pub talent_max: bool,
+    pub raid: bool,
+    pub collection: bool,
+    pub amulets: bool,
+}
+
+impl Feats {
+    fn count(self) -> usize {
+        [self.talent_max, self.raid, self.collection, self.amulets]
+            .into_iter()
+            .filter(|f| *f)
+            .count()
+    }
+}
+
+/// Cloak rarity from feats completed in any order. The raid feat never yields only an uncommon.
+pub(super) fn cloak_quality(feats: Feats) -> Option<Quality> {
+    match feats.count() {
+        0 => None,
+        4 => Some(Quality::Epic),
+        n if n >= 2 || feats.raid => Some(Quality::Rare),
+        _ => Some(Quality::Uncommon),
+    }
+}
+
+pub(super) fn legendary_cloak(epic_cloaks: usize) -> bool {
+    epic_cloaks >= 9
+}
+
+/// Sum of owned base pieces, the legendary weapon when it replaces the rare main hand, the set,
+/// and a cloak.
+pub(super) fn equipped_bonus(
+    owned: &[bool],
+    legendary_weapon: bool,
+    cloak: Option<Quality>,
+    lock_offhand: bool,
+) -> Bonus {
+    let mut total = Bonus::default();
+    let mut filled = 0u32;
+    for slot in 0..10 {
+        if slot == 8 && legendary_weapon {
+            total.add(quality_bonus(Quality::Legendary));
+            filled += 1;
+            continue;
+        }
+        if lock_offhand && slot == 9 {
+            continue;
+        }
+        if !owned.get(slot).copied().unwrap_or(false) {
+            continue;
+        }
+        if let Some(q) = slot_quality(slot) {
+            total.add(quality_bonus(q));
+            filled += 1;
+        }
+    }
+    if filled >= 10 {
+        total.add(set_bonus());
+    }
+    if let Some(q) = cloak {
+        total.add(cloak_bonus(q));
+    }
+    total
+}
+
+pub(super) const RINGS: usize = 9;
+pub(super) const TRINKETS: usize = 13;
+pub(super) const AMULETS: usize = 17;
+pub(super) const RINGS_WORN: usize = 2;
+pub(super) const TRINKETS_WORN: usize = 2;
+pub(super) const AMULETS_WORN: usize = 1;
+
+pub(super) static RING_NAMES: [&str; RINGS] = [
+    "Band of the Unicorn",
+    "Seal of Wrynn",
+    "Ring of the Moon",
+    "Magni's Will",
+    "Ring of Protection",
+    "Don Mauricio's Band",
+    "Ring of Fortitude",
+    "Band of Rumination",
+    "Ring of the Fallen",
+];
+
+pub(super) static TRINKET_NAMES: [&str; TRINKETS] = [
+    "Rune of the Guard Captain",
+    "Smotts' Compass",
+    "Defender of the Timbermaw",
+    "Ramstein's Lightning Bolts",
+    "Mark of the Champion",
+    "Talisman of Ephemeral Power",
+    "Zandalarian Hero Medallion",
+    "Eye of the Beast",
+    "Briarwood Reed",
+    "Drakefang Talisman",
+    "Royal Seal of Eldre'Thalas",
+    "Mindtap Talisman",
+    "Neltharion's Tear",
+];
+
+pub(super) static AMULET_NAMES: [&str; AMULETS] = [
+    "Amulet of the Redeemed",
+    "Medallion of Grand Marshal Morris",
+    "Pendant of the Fallen Dragon",
+    "Mark of Fordring",
+    "Onyxia Tooth Pendant",
+    "Prestor's Talisman",
+    "The Eye of Hakkar",
+    "Amulet of the Darkmoon",
+    "Choker of the Fire Lord",
+    "Gem of Nerubis",
+    "Pendant of the Qiraji Guardian",
+    "Amulet of Vek'nilash",
+    "Sadist's Collar",
+    "Stormrage's Talisman",
+    "The Burrower's Shell",
+    "Talisman of Ascendance",
+    "Master Dragonslayer's Medallion",
+];
+
+/// One legendary amulet exists per primary ability. Seeing the card counts, whether or not it
+/// was taken.
+pub(super) fn legendary_amulet(ability_key: &str) -> String {
+    format!("Amulet of {ability_key}")
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(super) enum ChestTier {
+    C,
+    B,
+    A,
+}
+
+/// `GameObjectDisplayInfo` 10, 11 and 12: the wooden chest ladder.
+pub(super) fn chest_display(tier: ChestTier) -> u32 {
+    match tier {
+        ChestTier::C => super::stash::CHEST_DISPLAY,
+        ChestTier::B => 11,
+        ChestTier::A => 12,
+    }
+}
+
+pub(super) fn chest_gold(tier: ChestTier, level: u32) -> u32 {
+    let base = 18 + level / 3;
+    match tier {
+        ChestTier::C => base,
+        ChestTier::B => base + 14,
+        ChestTier::A => base + 30,
+    }
+}
+
+pub(super) fn is_named_elite(map_name: &str, foe_name: &str) -> bool {
+    zone_index(map_name)
+        .and_then(|i| ZONES.get(i))
+        .is_some_and(|z| z.elites.contains(&foe_name))
+}
+
+/// Chance a chest card is jewelry instead of an ability upgrade. Luck raises it.
+pub(super) fn jewel_chance(luck_percent: f32) -> f32 {
+    (0.08 + luck_percent.max(0.0) / 100.0 * 0.42).min(0.50)
+}
+
+/// Among jewelry cards, the share that is a legendary amulet for an owned ability.
+pub(super) fn legend_share(luck_percent: f32) -> f32 {
+    (luck_percent.max(0.0) / 100.0 * 0.25).min(0.25)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum TradeCard {
+    Upgrade(usize),
+    Ring(usize),
+    Trinket(usize),
+    Amulet(usize),
+    /// Index into the upgradeable-ability list, which is also the owned-ability index when that
+    /// list is the upgradeable set.
+    Legend(usize),
+}
+
+/// Three chest cards. `rolls[i]` below [`jewel_chance`] turns that card into jewelry. `picks`
+/// chooses which upgrade or which catalog piece.
+pub(super) fn trade_cards(
+    upgradeable: &[usize],
+    luck_percent: f32,
+    rolls: [f32; 3],
+    picks: [u32; 3],
+) -> [TradeCard; 3] {
+    let chance = jewel_chance(luck_percent);
+    let legend = (legend_share(luck_percent) * 100.0) as u32;
+    let catalog = RINGS + TRINKETS + AMULETS;
+    std::array::from_fn(|i| {
+        let jewel = rolls[i] < chance;
+        if jewel || upgradeable.is_empty() {
+            let n = picks[i];
+            if !upgradeable.is_empty() && n % 100 < legend {
+                TradeCard::Legend(upgradeable[n as usize % upgradeable.len()])
+            } else {
+                let slot = n as usize % catalog;
+                if slot < RINGS {
+                    TradeCard::Ring(slot)
+                } else if slot < RINGS + TRINKETS {
+                    TradeCard::Trinket(slot - RINGS)
+                } else {
+                    TradeCard::Amulet(slot - RINGS - TRINKETS)
+                }
+            }
+        } else {
+            TradeCard::Upgrade(upgradeable[picks[i] as usize % upgradeable.len()])
+        }
+    })
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum JewelKind {
+    Ring(u8),
+    Trinket(u8),
+    Amulet(u8),
+    Legend(&'static str),
+}
+
+/// Jewelry worn for one run: two rings, two trinkets, one amulet, one legendary amulet.
+#[derive(Clone, Copy, Default)]
+pub(super) struct Worn {
+    rings: [Option<u8>; RINGS_WORN],
+    trinkets: [Option<u8>; TRINKETS_WORN],
+    amulet: Option<u8>,
+    legend: Option<&'static str>,
+}
+
+impl Worn {
+    pub(super) fn equip(&mut self, kind: JewelKind) {
+        match kind {
+            JewelKind::Ring(i) => fill(&mut self.rings, i),
+            JewelKind::Trinket(i) => fill(&mut self.trinkets, i),
+            JewelKind::Amulet(i) => self.amulet = Some(i),
+            JewelKind::Legend(key) => self.legend = Some(key),
+        }
+    }
+
+    pub(super) fn bonus(&self) -> Bonus {
+        let mut total = Bonus::default();
+        for i in self.rings.into_iter().flatten() {
+            total.add(ring_bonus(i));
+        }
+        for i in self.trinkets.into_iter().flatten() {
+            total.add(trinket_bonus(i));
+        }
+        if let Some(i) = self.amulet {
+            total.add(amulet_bonus(i));
+        }
+        if self.legend.is_some() {
+            total.add(Bonus {
+                might: 0.05,
+                crit_damage: 0.15,
+                targets: 1,
+                ..Bonus::default()
+            });
+        }
+        total
+    }
+}
+
+fn fill(slots: &mut [Option<u8>], index: u8) {
+    if let Some(empty) = slots.iter_mut().find(|s| s.is_none()) {
+        *empty = Some(index);
+    } else if let Some(first) = slots.first_mut() {
+        *first = Some(index);
+    }
+}
+
+fn ring_bonus(index: u8) -> Bonus {
+    Bonus {
+        might: 0.02 + 0.005 * f32::from(index % 3),
+        crit: if index % 2 == 0 { 0.01 } else { 0.0 },
+        speed: if index % 2 == 1 { 0.02 } else { 0.0 },
+        ..Bonus::default()
+    }
+}
+
+fn trinket_bonus(index: u8) -> Bonus {
+    match index % 3 {
+        0 => Bonus {
+            cooldown: 0.03,
+            ..Bonus::default()
+        },
+        1 => Bonus {
+            multistrike: 0.04,
+            ..Bonus::default()
+        },
+        _ => Bonus {
+            leech: 0.015,
+            area: 0.03,
+            ..Bonus::default()
+        },
+    }
+}
+
+fn amulet_bonus(index: u8) -> Bonus {
+    match index % 4 {
+        0 => Bonus {
+            reduction: 0.03,
+            ..Bonus::default()
+        },
+        1 => Bonus {
+            gold: 0.10,
+            ..Bonus::default()
+        },
+        2 => Bonus {
+            growth: 0.08,
+            ..Bonus::default()
+        },
+        _ => Bonus {
+            luck: 4.0,
+            ..Bonus::default()
+        },
+    }
+}
+
+pub(super) fn talent_level(xp: u32) -> u32 {
+    (xp / XP_PER_TALENT).min(TALENT_CAP)
+}
+
+/// Points still unspent. Spent points cannot exceed the level.
+pub(super) fn unspent_talents(xp: u32, spent: u32) -> u32 {
+    talent_level(xp).saturating_sub(spent)
+}
+
+/// Points already spent in one tree.
+pub(super) fn points_in_tree(ranks: &[u8], tree: usize) -> u32 {
+    let start = tree * NODES_PER_TREE;
+    ranks
+        .iter()
+        .skip(start)
+        .take(NODES_PER_TREE)
+        .map(|n| u32::from(*n))
+        .sum()
+}
+
+/// A node can be raised when its row is open, it is not full, and a point remains.
+/// Row 0 is open. Each later row opens after 5 more points spent in that same tree.
+pub(super) fn can_learn(ranks: &[u8], node: usize, unspent: u32) -> bool {
+    if unspent == 0 || node >= NODES_PER_TREE * 3 {
+        return false;
+    }
+    let row = node % NODES_PER_TREE;
+    let max = NODE_RANKS[row];
+    if ranks.get(node).copied().unwrap_or(0) >= max {
+        return false;
+    }
+    points_in_tree(ranks, node / NODES_PER_TREE) >= (row as u32) * 5
+}
+
+/// One rank of a node. The three trees lean damage, spell, and survival.
+fn node_rank_bonus(node: usize) -> Bonus {
+    let row = node % NODES_PER_TREE;
+    match node / NODES_PER_TREE {
+        0 => match row {
+            0 => Bonus { might: 0.02, ..Bonus::default() },
+            1 => Bonus { crit: 0.01, ..Bonus::default() },
+            2 => Bonus { multistrike: 0.03, ..Bonus::default() },
+            3 => Bonus { reduction: 0.015, ..Bonus::default() },
+            _ => Bonus { targets: 1, ..Bonus::default() },
+        },
+        1 => match row {
+            0 => Bonus { cooldown: 0.02, ..Bonus::default() },
+            1 => Bonus { crit_damage: 0.05, ..Bonus::default() },
+            2 => Bonus { area: 0.04, ..Bonus::default() },
+            3 => Bonus { armor: 2.0, ..Bonus::default() },
+            _ => Bonus { might: 0.08, ..Bonus::default() },
+        },
+        _ => match row {
+            0 => Bonus { leech: 0.008, ..Bonus::default() },
+            1 => Bonus { speed: 0.02, ..Bonus::default() },
+            2 => Bonus { gold: 0.04, ..Bonus::default() },
+            3 => Bonus { growth: 0.04, ..Bonus::default() },
+            _ => Bonus { luck: 4.0, ..Bonus::default() },
+        },
+    }
+}
+
+fn scale_bonus(bonus: Bonus, rank: u8) -> Bonus {
+    let r = f32::from(rank);
+    Bonus {
+        armor: bonus.armor * r,
+        might: bonus.might * r,
+        crit: bonus.crit * r,
+        multistrike: bonus.multistrike * r,
+        speed: bonus.speed * r,
+        leech: bonus.leech * r,
+        area: bonus.area * r,
+        crit_damage: bonus.crit_damage * r,
+        reduction: bonus.reduction * r,
+        cooldown: bonus.cooldown * r,
+        gold: bonus.gold * r,
+        growth: bonus.growth * r,
+        luck: bonus.luck * r,
+        targets: bonus.targets * u32::from(rank),
+    }
+}
+
+/// Spent talents plus the 10, 20, and 30 point milestones in each tree.
+/// Those milestones are what start to change how spells play.
+pub(super) fn talent_bonus(ranks: &[u8]) -> Bonus {
+    let mut total = Bonus::default();
+    for node in 0..NODES_PER_TREE * 3 {
+        let rank = ranks.get(node).copied().unwrap_or(0);
+        if rank > 0 {
+            total.add(scale_bonus(node_rank_bonus(node), rank));
+        }
+    }
+    for tree in 0..3 {
+        let points = points_in_tree(ranks, tree);
+        if points >= 10 {
+            total.add(Bonus { might: 0.04, ..Bonus::default() });
+        }
+        if points >= 20 {
+            total.add(Bonus { multistrike: 0.10, ..Bonus::default() });
+        }
+        if points >= 30 {
+            total.add(Bonus { targets: 1, ..Bonus::default() });
+        }
+    }
+    total
+}
+
+/// Milestone titles. Paladin uses the names from the talent tab; other classes use the tree.
+pub(super) fn milestone_name(class: usize, tree: usize, at: u32) -> String {
+    const PALADIN: [[&str; 3]; 3] = [
+        ["Divine Favor", "Daybreak", "Light's Grace"],
+        ["Hallowed Ground", "Ardent Defender", "Hammer of the Righteous"],
+        ["Seal of Command", "The Art of War", "Divine Storm"],
+    ];
+    let tier = match at {
+        10 => 0,
+        20 => 1,
+        _ => 2,
+    };
+    if class == 1 {
+        return PALADIN[tree.min(2)][tier].to_string();
+    }
+    let tree_name = TREES.get(class).map(|t| t[tree.min(2)]).unwrap_or("Tree");
+    format!("{tree_name} {at}")
+}
+
+/// Real tree names, three per class, in [`super::data::CLASSES`] order.
+pub(super) static TREES: [[&str; 3]; 9] = [
+    ["Arms", "Fury", "Protection"],
+    ["Holy", "Protection", "Retribution"],
+    ["Beast Mastery", "Marksmanship", "Survival"],
+    ["Assassination", "Combat", "Subtlety"],
+    ["Discipline", "Holy", "Shadow"],
+    ["Elemental", "Enhancement", "Restoration"],
+    ["Arcane", "Fire", "Frost"],
+    ["Affliction", "Demonology", "Destruction"],
+    ["Balance", "Feral Combat", "Restoration"],
+];
+
+/// Real item names. Each row is the ten base pieces then the legendary weapon, in class order.
+pub(super) static GEAR_NAMES: [[&str; 11]; 9] = [
+    [
+        "Field Plate Helmet",
+        "Field Plate Pauldrons",
+        "Field Plate Armor",
+        "Field Plate Girdle",
+        "Field Plate Leggings",
+        "Field Plate Boots",
+        "Field Plate Bracers",
+        "Field Plate Gauntlets",
+        "Whirlwind Axe",
+        "Skullflame Shield",
+        "Thunderfury, Blessed Blade of the Windseeker",
+    ],
+    [
+        "Lightforge Helm",
+        "Lightforge Spaulders",
+        "Lightforge Breastplate",
+        "Lightforge Belt",
+        "Lightforge Legplates",
+        "Lightforge Boots",
+        "Lightforge Bracers",
+        "Lightforge Gauntlets",
+        "Quel'Serrar",
+        "Aegis of the Scarlet Commander",
+        "Corrupted Ashbringer",
+    ],
+    [
+        "Beaststalker's Cap",
+        "Beaststalker's Mantle",
+        "Beaststalker's Tunic",
+        "Beaststalker's Belt",
+        "Beaststalker's Pants",
+        "Beaststalker's Boots",
+        "Beaststalker's Bindings",
+        "Beaststalker's Gloves",
+        "Blackcrow",
+        "Ancient Sinew Wrapped Lamina",
+        "Rhok'delar, Longbow of the Ancient Keepers",
+    ],
+    [
+        "Shadowcraft Cap",
+        "Shadowcraft Spaulders",
+        "Shadowcraft Tunic",
+        "Shadowcraft Belt",
+        "Shadowcraft Pants",
+        "Shadowcraft Boots",
+        "Shadowcraft Bracers",
+        "Shadowcraft Gloves",
+        "Shadowblade",
+        "Core Hound Tooth",
+        "Death's Sting",
+    ],
+    [
+        "Devout Crown",
+        "Devout Mantle",
+        "Devout Robe",
+        "Devout Belt",
+        "Devout Skirt",
+        "Devout Sandals",
+        "Devout Bracers",
+        "Devout Gloves",
+        "Anathema",
+        "Drakefang Talisman",
+        "Atiesh, Greatstaff of the Guardian",
+    ],
+    [
+        "Coif of Elements",
+        "Pauldrons of Elements",
+        "Vest of Elements",
+        "Cord of Elements",
+        "Kilt of Elements",
+        "Boots of Elements",
+        "Bindings of Elements",
+        "Gauntlets of Elements",
+        "Fist of Omokk",
+        "Drakefang Talisman",
+        "Sulfuras, Hand of Ragnaros",
+    ],
+    [
+        "Magister's Crown",
+        "Magister's Mantle",
+        "Magister's Robes",
+        "Magister's Belt",
+        "Magister's Leggings",
+        "Magister's Boots",
+        "Magister's Bindings",
+        "Magister's Gloves",
+        "Staff of Dominance",
+        "Drakefang Talisman",
+        "Atiesh, Greatstaff of the Guardian",
+    ],
+    [
+        "Deathmist Mask",
+        "Deathmist Mantle",
+        "Deathmist Robe",
+        "Deathmist Belt",
+        "Deathmist Leggings",
+        "Deathmist Sandals",
+        "Deathmist Bracers",
+        "Deathmist Wraps",
+        "Staff of the Shadow Flame",
+        "Drakefang Talisman",
+        "Atiesh, Greatstaff of the Guardian",
+    ],
+    [
+        "Wildheart Cowl",
+        "Wildheart Spaulders",
+        "Wildheart Vest",
+        "Wildheart Belt",
+        "Wildheart Kilt",
+        "Wildheart Boots",
+        "Wildheart Bracers",
+        "Wildheart Gloves",
+        "Wushoolay's Poker",
+        "Drakefang Talisman",
+        "Atiesh, Greatstaff of the Guardian",
+    ],
+];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn zones_open_in_order_and_honor_the_talent_gate() {
+        let none = [false; 7];
+        assert!(zone_open(0, 0, &none));
+        assert!(!zone_open(1, 5, &none));
+        let mut clears = none;
+        clears[0] = true;
+        assert!(!zone_open(1, 4, &clears));
+        assert!(zone_open(1, 5, &clears));
+        assert!(!zone_open(6, 48, &clears));
+        clears = [true; 7];
+        assert!(zone_open(6, 48, &clears));
+        assert!(!zone_open(6, 47, &clears));
+    }
+
+    #[test]
+    fn qualities_add_a_stat_line_at_each_step() {
+        let poor = quality_bonus(Quality::Poor);
+        assert!(poor.armor > 0.0 && poor.might == 0.0);
+        let common = quality_bonus(Quality::Common);
+        assert!(common.might > 0.0 && common.multistrike == 0.0);
+        let uncommon = quality_bonus(Quality::Uncommon);
+        assert!(uncommon.multistrike > 0.0 && uncommon.speed == 0.0);
+        let rare = quality_bonus(Quality::Rare);
+        assert!(rare.speed > 0.0 && rare.leech == 0.0);
+        let epic = quality_bonus(Quality::Epic);
+        assert!(epic.leech > 0.0 && epic.crit_damage == 0.0);
+        let legend = quality_bonus(Quality::Legendary);
+        assert!(legend.crit_damage > 0.0);
+        assert!(legend.might > epic.might);
+    }
+
+    #[test]
+    fn a_full_set_and_a_legendary_weapon_change_the_total() {
+        let ten = [true; 10];
+        let plain = equipped_bonus(&ten, false, None, false);
+        let with_weapon = equipped_bonus(&ten, true, None, false);
+        assert!(with_weapon.crit_damage > plain.crit_damage);
+        assert!(plain.might > quality_bonus(Quality::Poor).might * 4.0);
+        let nine = {
+            let mut g = ten;
+            g[9] = false;
+            g
+        };
+        assert!(equipped_bonus(&nine, false, None, false).might < plain.might);
+        let locked = equipped_bonus(&ten, false, None, true);
+        assert!(locked.armor < plain.armor);
+    }
+
+    #[test]
+    fn cloaks_follow_feats_in_any_order() {
+        assert_eq!(cloak_quality(Feats::default()), None);
+        assert_eq!(
+            cloak_quality(Feats {
+                talent_max: true,
+                ..Feats::default()
+            }),
+            Some(Quality::Uncommon)
+        );
+        assert_eq!(
+            cloak_quality(Feats {
+                raid: true,
+                ..Feats::default()
+            }),
+            Some(Quality::Rare)
+        );
+        assert_eq!(
+            cloak_quality(Feats {
+                collection: true,
+                amulets: true,
+                ..Feats::default()
+            }),
+            Some(Quality::Rare)
+        );
+        assert_eq!(
+            cloak_quality(Feats {
+                talent_max: true,
+                raid: true,
+                collection: true,
+                amulets: true,
+            }),
+            Some(Quality::Epic)
+        );
+        assert!(!legendary_cloak(8));
+        assert!(legendary_cloak(9));
+    }
+
+    #[test]
+    fn a_row_opens_after_five_points_and_milestones_change_the_sheet() {
+        let mut ranks = vec![0u8; 15];
+        assert!(can_learn(&ranks, 0, 1));
+        assert!(!can_learn(&ranks, 1, 1));
+        ranks[0] = 5;
+        assert!(can_learn(&ranks, 1, 1));
+        assert!(!can_learn(&ranks, 2, 1));
+        assert!(!can_learn(&ranks, 0, 1));
+        let trained = talent_bonus(&ranks);
+        assert!(trained.might > 0.0);
+        ranks[0] = 5;
+        ranks[1] = 5;
+        let ten = talent_bonus(&ranks);
+        assert!(ten.might > trained.might);
+        let mut deep = vec![0u8; NODES_PER_TREE * 3];
+        for rank in &mut deep[..NODES_PER_TREE] {
+            *rank = 5;
+        }
+        assert_eq!(points_in_tree(&deep, 0), 30);
+        assert!(talent_bonus(&deep).targets >= 1);
+        assert!(talent_bonus(&deep).multistrike > 0.0);
+        assert_eq!(milestone_name(1, 0, 10), "Divine Favor");
+        assert_eq!(milestone_name(1, 2, 30), "Divine Storm");
+        assert_eq!(talent_level(5100), 51);
+        assert_eq!(unspent_talents(250, 2), 0);
+        assert_eq!(unspent_talents(250, 1), 1);
+    }
+
+    #[test]
+    fn catalogs_have_the_agreed_counts() {
+        assert_eq!(ZONES[0].name, "Elwynn Forest");
+        assert_eq!(ZONES[0].boss, "Hogger");
+        assert!(!ZONES[0].elites.is_empty());
+        assert_eq!(ZONES.last().unwrap().boss, "Kel'Thuzad");
+        assert_eq!(RING_NAMES.len(), RINGS);
+        assert_eq!(TRINKET_NAMES.len(), TRINKETS);
+        assert_eq!(AMULET_NAMES.len(), AMULETS);
+        assert_eq!((RINGS_WORN, TRINKETS_WORN, AMULETS_WORN), (2, 2, 1));
+        assert_eq!(GEAR_NAMES.len(), 9);
+        assert_eq!(TREES.len(), 9);
+        assert!(GEAR_NAMES.iter().all(|row| row.len() == 11));
+        assert!(two_handed(6));
+        assert!(!two_handed(0));
+        assert_eq!(legendary_amulet("Heroic Strike"), "Amulet of Heroic Strike");
+    }
+
+    #[test]
+    fn chest_tiers_pay_more_and_use_the_chest_ladder() {
+        assert!(chest_gold(ChestTier::C, 9) < chest_gold(ChestTier::B, 9));
+        assert!(chest_gold(ChestTier::B, 9) < chest_gold(ChestTier::A, 9));
+        assert_eq!(
+            (chest_display(ChestTier::C), chest_display(ChestTier::B), chest_display(ChestTier::A)),
+            (10, 11, 12)
+        );
+        assert!(is_named_elite("Elwynn Forest", "Defias Bandit"));
+        assert!(!is_named_elite("Elwynn Forest", "Young Wolf"));
+    }
+
+    #[test]
+    fn luck_turns_a_chest_card_into_jewelry_and_can_offer_a_legend() {
+        let owned = [0usize, 2];
+        let plain = trade_cards(&owned, 0.0, [0.9, 0.9, 0.9], [1, 0, 2]);
+        assert!(plain.iter().all(|c| matches!(c, TradeCard::Upgrade(_))));
+        let jewel = trade_cards(&owned, 0.0, [0.0, 0.9, 0.9], [0, 0, 0]);
+        assert_eq!(jewel[0], TradeCard::Ring(0));
+        let legend = trade_cards(&owned, 100.0, [0.0, 0.9, 0.9], [0, 0, 0]);
+        assert_eq!(legend[0], TradeCard::Legend(0));
+        let mut worn = Worn::default();
+        worn.equip(JewelKind::Ring(0));
+        worn.equip(JewelKind::Ring(1));
+        worn.equip(JewelKind::Ring(4));
+        assert!(worn.bonus().might > 0.0);
+        assert_eq!(worn.rings[0], Some(4));
+        assert_eq!(worn.rings[1], Some(1));
+    }
+}

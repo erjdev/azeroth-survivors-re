@@ -387,7 +387,8 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
     if run.immune_t > 0.0 || run.dead_t.is_some() {
         return 0.0;
     }
-    let mut dmg = (raw - run.stats().armor).max(1.0);
+    let stats = run.stats();
+    let mut dmg = super::sheet::mitigate(raw, stats.armor, stats.reduction);
     if run.shield_t > 0.0 && run.shield > 0.0 {
         let absorbed = dmg.min(run.shield);
         run.shield -= absorbed;

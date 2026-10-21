@@ -16,7 +16,13 @@ echo "== rustup target"
 rustup target add wasm32-unknown-unknown
 
 echo "== wasm-bindgen-cli (pinned to Cargo.lock)"
-want=$(awk '/^name = "wasm-bindgen"$/{getline; sub(/version = /,""); gsub(/"/,""); print; exit}' Cargo.lock)
+# Cargo.lock may be CRLF on a Windows checkout; a bare `$` then misses the pin and
+# an empty version compares equal to "not installed", so the install is skipped.
+want=$(awk '{sub(/\r/,"")} /^name = "wasm-bindgen"$/{getline; sub(/\r/,""); sub(/version = /,""); gsub(/"/,""); print; exit}' Cargo.lock)
+if [ -z "${want}" ]; then
+  echo "could not read the wasm-bindgen version from Cargo.lock" >&2
+  exit 1
+fi
 have=$(wasm-bindgen --version 2>/dev/null | awk '{print $2}' || true)
 if [ "${have}" != "${want}" ]; then
   cargo install wasm-bindgen-cli --version "${want}" --locked --force

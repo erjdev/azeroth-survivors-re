@@ -24,6 +24,8 @@ pub(super) struct Hit {
     pub splash: f32,
     pub crit: bool,
     pub color: u32,
+    /// Ability key, or `"Thorns"` for contact reflect. The meter groups on this.
+    pub source: &'static str,
 }
 
 impl Hit {
@@ -39,6 +41,7 @@ impl Hit {
             splash: 0.0,
             crit,
             color: COLOR_MELEE,
+            source: "Thorns",
         }
     }
 }
@@ -61,6 +64,7 @@ pub(super) struct GroundArea {
     mark: u32,
     /// The spell whose impact plays on each enemy a tick hits, 0 for none.
     impact: u32,
+    source: &'static str,
 }
 
 #[derive(Component)]
@@ -72,6 +76,7 @@ pub(super) struct Totem {
     left: f32,
     tick: f32,
     pulse: bool,
+    source: &'static str,
 }
 
 #[derive(Clone, Copy)]
@@ -122,6 +127,7 @@ fn hit_for(def: &AbilityDef, p: &Params, target: Entity, damage: f32, crit: bool
         } else {
             COLOR_SPELL
         },
+        source: def.key,
     }
 }
 
@@ -139,9 +145,9 @@ fn schedule(
     }
 }
 
-fn roll(rng: &mut Rng, crit: f32, dmg: f32) -> (f32, bool) {
+fn roll(rng: &mut Rng, crit: f32, crit_damage: f32, dmg: f32) -> (f32, bool) {
     if rng.f32() < crit {
-        (dmg * 2.0, true)
+        (dmg * crit_damage.max(1.0), true)
     } else {
         (dmg, false)
     }
@@ -243,7 +249,7 @@ pub(super) fn cast_abilities(
         let p = Params {
             dmg: def.damage * mult,
             dot: def.dot * mult,
-            count: o.count() as usize,
+            count: o.count(&stats) as usize,
             radius: o.radius(&stats),
             duration: o.duration(),
             cooldown: o.cooldown(&stats),
@@ -276,7 +282,7 @@ pub(super) fn cast_abilities(
                         fx.cast(me, def.spell, &entities(&targets), None);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -305,7 +311,7 @@ pub(super) fn cast_abilities(
                 } else {
                     fx.cast(me, def.spell, &entities(&targets), None);
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -356,6 +362,7 @@ pub(super) fn cast_abilities(
                             effect: def.effect,
                             mark: def.mark,
                             impact: if def.overhead { def.spell } else { 0 },
+                            source: def.key,
                         });
                         true
                     }
@@ -384,7 +391,7 @@ pub(super) fn cast_abilities(
                     fx.cast(me, def.spell, &entities(&chain), None);
                     for (k, f) in chain.iter().enumerate() {
                         let (dmg, crit) =
-                            roll(&mut rng, stats.crit, p.dmg * 0.85f32.powi(k as i32));
+                            roll(&mut rng, stats.crit, stats.crit_damage, p.dmg * 0.85f32.powi(k as i32));
                         schedule(
                             &mut pending,
                             &mut hits,
@@ -433,7 +440,7 @@ pub(super) fn cast_abilities(
                         fx.impact(f.e, def.spell);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -446,7 +453,7 @@ pub(super) fn cast_abilities(
                 } else {
                     for f in &targets {
                         fx.impact(f.e, 403);
-                        let (dmg, crit) = roll(&mut rng, stats.crit, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -521,6 +528,7 @@ pub(super) fn cast_abilities(
                         left: p.duration,
                         tick: 0.3,
                         pulse: def.key == "magma_totem",
+                        source: def.key,
                     });
                     true
                 } else {
@@ -577,7 +585,7 @@ pub(super) fn tick_areas(
                 if area.impact != 0 && i < 12 {
                     fx.impact(f.e, area.impact);
                 }
-                let (dmg, crit) = roll(&mut rng, stats.crit, area.damage);
+                let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, area.damage);
                 hits.write(Hit {
                     target: f.e,
                     damage: dmg,
@@ -589,6 +597,7 @@ pub(super) fn tick_areas(
                     splash: 0.0,
                     crit,
                     color: COLOR_SPELL,
+                    source: area.source,
                 });
             }
         }
@@ -619,9 +628,10 @@ pub(super) fn tick_areas(
             }
             fx.cast(e, totem.cast, &[], None);
             for f in &targets {
-                let (dmg, crit) = roll(&mut rng, stats.crit, totem.damage);
+                let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
                 hits.write(Hit {
                     color: COLOR_SPELL,
+                    source: totem.source,
                     ..Hit::direct(f.e, dmg, crit)
                 });
             }
@@ -639,7 +649,7 @@ pub(super) fn tick_areas(
                 .and_then(|s| s.catalog.get(totem.cast))
                 .map_or(0.0, |d| d.speed);
             let delay = if speed > 0.0 { dist / speed } else { 0.0 };
-            let (dmg, crit) = roll(&mut rng, stats.crit, totem.damage);
+            let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
             schedule(
                 &mut pending,
                 &mut hits,
@@ -647,6 +657,7 @@ pub(super) fn tick_areas(
                 delay,
                 Hit {
                     color: COLOR_SPELL,
+                    source: totem.source,
                     ..Hit::direct(f.e, dmg, crit)
                 },
             );
@@ -660,6 +671,7 @@ pub(super) fn apply_hits(
     mut commands: Commands,
     time: Res<Time>,
     mut run: ResMut<Run>,
+    mut rng: ResMut<Rng>,
     mut pending: ResMut<PendingHits>,
     mut incoming: MessageReader<Hit>,
     mut enemies: Query<(
@@ -718,6 +730,7 @@ pub(super) fn apply_hits(
                 pos,
                 xp: en.xp,
                 boss: en.boss,
+                elite: en.elite,
             });
             run.kills += 1;
             if en.boss {
@@ -732,6 +745,7 @@ pub(super) fn apply_hits(
         if en.dead {
             continue;
         }
+        let stats = run.stats();
         let mut dmg = h.damage;
         if let Effect::Execute(threshold) = h.effect {
             if !en.boss && en.hp / en.max_hp <= threshold {
@@ -739,12 +753,18 @@ pub(super) fn apply_hits(
             }
         }
         if dmg > 0.0 {
+            let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
+            dmg *= echoes as f32;
             en.hp -= dmg;
-            run.damage_done += f64::from(dmg);
+            run.add_damage(h.source, dmg);
             fx.number(e, dmg, h.crit, h.color);
-            if let Effect::Drain(frac) = h.effect {
-                let max = run.stats().max_hp;
-                run.hp = (run.hp + dmg * frac).min(max);
+            let heal = if let Effect::Drain(frac) = h.effect {
+                dmg * frac
+            } else {
+                0.0
+            } + dmg * stats.leech;
+            if heal > 0.0 {
+                run.hp = (run.hp + heal).min(stats.max_hp);
             }
         }
         if h.dot > 0.0 && h.dot_dur > 0.0 {
@@ -755,6 +775,7 @@ pub(super) fn apply_hits(
                 dps: h.dot,
                 left: h.dot_dur,
                 tick: 1.0,
+                source: h.source,
             });
         }
         let boss = en.boss;
@@ -789,19 +810,25 @@ pub(super) fn apply_hits(
         if en.dead || en.dots.is_empty() {
             continue;
         }
+        let stats = run.stats();
         let mut dealt = 0.0;
         for d in &mut en.dots {
             d.left -= dt;
             d.tick -= dt;
             if d.tick <= 0.0 {
                 d.tick += 1.0;
-                dealt += d.dps;
+                let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
+                let tick = d.dps * echoes as f32;
+                dealt += tick;
+                run.add_damage(d.source, tick);
             }
         }
         en.dots.retain(|d| d.left > 0.0);
         if dealt > 0.0 {
             en.hp -= dealt;
-            run.damage_done += f64::from(dealt);
+            if stats.leech > 0.0 {
+                run.hp = (run.hp + dealt * stats.leech).min(stats.max_hp);
+            }
             fx.number(e, dealt, false, COLOR_SPELL);
             if en.hp <= 0.0 {
                 kill(&mut commands, &mut run, e, tf.translation, &mut en);

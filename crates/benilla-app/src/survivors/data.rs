@@ -1947,6 +1947,54 @@ pub(crate) static MAPS: &[MapDef] = &[
             foe("Kel'Thuzad", 15945, 63, 4.4, 2.1),
         ],
     },
+    MapDef {
+        name: "Arathi Highlands",
+        zone: "Eastern Kingdoms",
+        map: 0,
+        // Open ground on the road toward Stromgarde.
+        center: [-1816.0, -2574.0, 60.0],
+        leash: 140.0,
+        victory: "The highlands keep their peace.",
+        foes: &[
+            foe("Syndicate Highwayman", 2342, 32, 4.4, 1.0),
+            foe("Drywhisker Kobold", 373, 33, 4.0, 0.9),
+            foe("Plains Creeper", 958, 34, 4.2, 1.1),
+            foe("Highland Strider", 3027, 35, 4.8, 1.0),
+            foe("Dabyrie Militia", 4418, 36, 4.2, 1.0),
+            foe("Witherbark Axe Thrower", 10706, 37, 4.4, 1.1),
+            giant("Boulderfist Ogre", 1122, 38, 4.0, 1.4),
+            giant("Rumbling Exile", 11548, 39, 3.6, 1.3),
+        ],
+        bosses: &[
+            foe("Or'Kalar", 10617, 42, 4.6, 2.2),
+            foe("Lord Falconcrest", 383, 43, 4.4, 2.0),
+            giant("Boulderfist Lord", 11549, 45, 4.2, 1.6),
+        ],
+    },
+    MapDef {
+        name: "Western Plaguelands",
+        zone: "Eastern Kingdoms",
+        map: 0,
+        // The fields west of Chillwind.
+        center: [943.0, -1419.0, 64.0],
+        leash: 140.0,
+        victory: "The western fields fall quiet.",
+        foes: &[
+            foe("Skeletal Warrior", 5231, 50, 4.4, 1.1),
+            foe("Skeletal Flayer", 10626, 51, 4.6, 1.2),
+            foe("Plaguebat", 7854, 52, 5.2, 0.9),
+            foe("Scarlet Knight", 4418, 53, 4.4, 1.15),
+            foe("Rotting Cadaver", 1693, 54, 3.8, 1.2),
+            foe("Blighted Zombie", 612, 55, 4.2, 1.1),
+            giant("Flesh Golem", 7864, 56, 3.6, 1.35),
+            giant("Crypt Fiend", 11178, 57, 4.6, 1.1),
+        ],
+        bosses: &[
+            foe("The Hederine Slayer", 10729, 58, 4.8, 2.0),
+            giant("Lord Maldazzar", 16508, 60, 4.4, 1.4),
+            foe("Araj the Summoner", 10427, 61, 4.2, 2.1),
+        ],
+    },
 ];
 
 /// A battleground's horde and bosses with their numbers.

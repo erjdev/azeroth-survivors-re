@@ -43,13 +43,20 @@ const MAX_RENDER_AXIS: u32 = 8192;
 impl Default for RenderScale {
     /// `$WOW_RENDER_SCALE` overrides the default for the session only, never into `config.toml`.
     fn default() -> Self {
-        // Through `webenv` so the browser build has the same lever as `?render_scale=0.75` — the
+        // Through `webenv` so the browser build has the same lever as `?renderscale=0.75` — the
         // one knob that matters there: the world is GPU-bound at a 2560×1600 DPR-scaled canvas on
-        // an iGPU (87 fps → 154 fps at ~40 % of the pixels, measured 2026-08-29).
+        // an iGPU (87 fps → 154 fps at ~40 % of the pixels, measured 2026-08-29). The wasm default
+        // is below 1 because this tab's GPU process is the browser's; a full-DPR world is what
+        // makes the rest of Chrome hitch. The UI stays at the window's own resolution.
+        let fallback = if cfg!(target_arch = "wasm32") {
+            0.6
+        } else {
+            1.0
+        };
         let scale = crate::webenv::var("WOW_RENDER_SCALE")
             .and_then(|v| v.parse::<f32>().ok())
             .filter(|v| v.is_finite())
-            .map_or(1.0, |v| {
+            .map_or(fallback, |v| {
                 v.clamp(*RENDER_SCALE_RANGE.start(), *RENDER_SCALE_RANGE.end())
             });
         Self(scale)

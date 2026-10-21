@@ -9,6 +9,8 @@ use bevy::prelude::*;
 use bevy::ui_render::ui_material::MaterialNode;
 
 use super::hud::{looks_for, rgb, start_run, HudFont, MenuRoot};
+use super::renown::{self, Renown, Track};
+use super::stash::Stash;
 use super::{data, Phase, Rng, Run, Selection};
 use crate::char_select::race_name;
 use crate::glue::art::{class_tc, race_tc, tc_rect, GlueArt, DIM, GOLD, NAME_EDGE};
@@ -45,7 +47,20 @@ pub(super) enum MenuAction {
     Map(usize),
     Randomize,
     Enter,
+    Renown(Track),
+    Relic(usize),
+    Upgrade,
+    Seek,
+    Quit,
 }
+
+/// Gold and the three worn relics.
+#[derive(Component)]
+pub(super) struct StashLine;
+
+/// The marks line above the three rank buttons.
+#[derive(Component)]
+pub(super) struct RenownStatus;
 
 /// On [`MenuRoot`] once the glue art is in and the screen is built.
 #[derive(Component)]
@@ -159,6 +174,115 @@ pub(super) fn build_menu(
         }
         zone_frame(ui, &art, f);
 
+        // Renown sits above the name: marks persist on the class, levels do not.
+        ui.spawn(Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(136.0),
+            width: Val::Percent(100.0),
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            row_gap: Val::Px(4.0),
+            ..default()
+        })
+        .with_children(|c| {
+            outlined_text(
+                c,
+                Node::default(),
+                (),
+                RenownStatus,
+                GlueText {
+                    text: "",
+                    size: 13.0,
+                    color: GOLD,
+                    wrap: false,
+                },
+                f,
+                1.0,
+            );
+            c.spawn(Node {
+                flex_direction: FlexDirection::Row,
+                column_gap: Val::Px(8.0),
+                ..default()
+            })
+            .with_children(|row| {
+                for track in renown::tracks() {
+                    glue_button(
+                        row,
+                        &art,
+                        f,
+                        MenuAction::Renown(track),
+                        track.label(),
+                        118.0,
+                        32.0,
+                        GlueBtnKind::Normal,
+                        1.0,
+                    );
+                }
+            });
+            outlined_text(
+                c,
+                Node::default(),
+                (),
+                StashLine,
+                GlueText {
+                    text: "",
+                    size: 13.0,
+                    color: GOLD,
+                    wrap: false,
+                },
+                f,
+                1.0,
+            );
+            c.spawn(Node {
+                flex_direction: FlexDirection::Row,
+                column_gap: Val::Px(8.0),
+                ..default()
+            })
+            .with_children(|row| {
+                for (slot, label) in [(0, "Relic I"), (1, "Relic II"), (2, "Relic III")] {
+                    glue_button(
+                        row,
+                        &art,
+                        f,
+                        MenuAction::Relic(slot),
+                        label,
+                        118.0,
+                        32.0,
+                        GlueBtnKind::Normal,
+                        1.0,
+                    );
+                }
+            });
+            c.spawn(Node {
+                flex_direction: FlexDirection::Row,
+                column_gap: Val::Px(8.0),
+                ..default()
+            })
+            .with_children(|row| {
+                glue_button(
+                    row,
+                    &art,
+                    f,
+                    MenuAction::Upgrade,
+                    "Upgrade",
+                    118.0,
+                    32.0,
+                    GlueBtnKind::Normal,
+                    1.0,
+                );
+                glue_button(
+                    row,
+                    &art,
+                    f,
+                    MenuAction::Seek,
+                    "Seek relic",
+                    140.0,
+                    32.0,
+                    GlueBtnKind::Normal,
+                    1.0,
+                );
+            });
+        });
         // `CharSelectCharacterName`, GlueFontNormalHuge at BOTTOM (0,100).
         ui.spawn(Node {
             position_type: PositionType::Absolute,
@@ -200,6 +324,25 @@ pub(super) fn build_menu(
                 "Enter World",
                 200.0,
                 60.0,
+                GlueBtnKind::Normal,
+                1.0,
+            );
+        });
+        ui.spawn(Node {
+            position_type: PositionType::Absolute,
+            left: Val::Px(28.0),
+            bottom: Val::Px(30.0),
+            ..default()
+        })
+        .with_children(|c| {
+            glue_button(
+                c,
+                &art,
+                f,
+                MenuAction::Quit,
+                "Quit Game",
+                140.0,
+                40.0,
                 GlueBtnKind::Normal,
                 1.0,
             );
@@ -526,8 +669,12 @@ pub(super) fn menu_clicks(
     creatures: Option<Res<crate::entities::Creatures>>,
     mut selection: ResMut<Selection>,
     mut run: ResMut<Run>,
+    mut renown: ResMut<Renown>,
+    mut stash: ResMut<Stash>,
+    account: Res<super::account::Account>,
     mut rng: ResMut<Rng>,
     mut next: ResMut<NextState<Phase>>,
+    mut exit: MessageWriter<AppExit>,
 ) {
     if *phase.get() != Phase::Menu {
         return;
@@ -556,9 +703,35 @@ pub(super) fn menu_clicks(
             }
         }
         MenuAction::Enter => {
-            if start_run(&mut run, &mut selection) {
+            let ranks = selection
+                .class
+                .map(|i| renown.ranks(i))
+                .unwrap_or([0; 3]);
+            let class = selection.class.unwrap_or(0);
+            if start_run(
+                &mut run,
+                &mut selection,
+                ranks,
+                stash.gear(),
+                account.bonus_for(class),
+            ) {
                 next.set(Phase::Playing);
             }
+        }
+        MenuAction::Renown(track) => {
+            if let Some(i) = selection.class {
+                renown.spend(i, track);
+            }
+        }
+        MenuAction::Relic(slot) => stash.cycle_slot(slot),
+        MenuAction::Upgrade => {
+            stash.upgrade();
+        }
+        MenuAction::Seek => {
+            stash.seek(rng.f32());
+        }
+        MenuAction::Quit => {
+            exit.write(AppExit::Success);
         }
         MenuAction::Randomize => {
             let picks: Vec<(usize, usize)> = all
@@ -609,6 +782,8 @@ pub(super) fn menu_clicks(
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 pub(super) fn refresh_menu_ui(
     selection: Res<Selection>,
+    renown: Res<Renown>,
+    stash: Res<Stash>,
     creatures: Option<Res<crate::entities::Creatures>>,
     art: Res<GlueArt>,
     mut buttons: Query<(
@@ -623,6 +798,8 @@ pub(super) fn refresh_menu_ui(
     mut labels: Query<&mut Visibility, (With<HoverLabel>, Without<MenuAction>)>,
     mut faces: Query<(&RaceFace, &mut ImageNode)>,
     mut name: Query<(&mut Text, &mut TextColor), With<PickName>>,
+    mut renown_line: Query<&mut Text, (With<RenownStatus>, Without<PickName>, Without<StashLine>)>,
+    mut stash_line: Query<&mut Text, (With<StashLine>, Without<PickName>, Without<RenownStatus>)>,
     mut cache: Local<(Option<u32>, bool, Vec<Vec<(u32, u8, u8)>>)>,
 ) {
     let have = creatures.is_some();
@@ -645,7 +822,13 @@ pub(super) fn refresh_menu_ui(
             MenuAction::Sex(s) => cur.is_some_and(|c| c.1 == s),
             MenuAction::Class(i) => selection.class == Some(i),
             MenuAction::Map(i) => selection.map == i,
-            MenuAction::Randomize | MenuAction::Enter => false,
+            MenuAction::Randomize
+            | MenuAction::Enter
+            | MenuAction::Renown(_)
+            | MenuAction::Relic(_)
+            | MenuAction::Upgrade
+            | MenuAction::Seek
+            | MenuAction::Quit => false,
         };
         if let Some(mut lock) = lock {
             if lock.0 != selected {
@@ -653,7 +836,17 @@ pub(super) fn refresh_menu_ui(
             }
         }
         if let Some(mut disabled) = disabled {
-            let off = *action == MenuAction::Enter && cur.is_none();
+            let off = match *action {
+                MenuAction::Enter => cur.is_none(),
+                MenuAction::Renown(track) => {
+                    selection
+                        .class
+                        .is_none_or(|i| !renown.can_spend(i, track))
+                }
+                MenuAction::Upgrade => !stash.can_upgrade(),
+                MenuAction::Seek => !stash.can_seek(),
+                _ => false,
+            };
             if disabled.0 != off {
                 disabled.0 = off;
             }
@@ -721,6 +914,18 @@ pub(super) fn refresh_menu_ui(
         let want = class.map_or(GOLD, |c| rgb(c.color));
         if color.0 != want {
             color.0 = want;
+        }
+    }
+    if let Ok(mut t) = renown_line.single_mut() {
+        let want = renown.status_line(selection.class);
+        if t.0 != want {
+            t.0 = want;
+        }
+    }
+    if let Ok(mut t) = stash_line.single_mut() {
+        let want = stash.line();
+        if t.0 != want {
+            t.0 = want;
         }
     }
 }

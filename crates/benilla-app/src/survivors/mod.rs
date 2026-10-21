@@ -5,8 +5,11 @@
 //! off ([`crate::run_mode::CaptureMode`]).
 
 mod abilities;
+mod account;
 mod auto;
+mod campaign;
 mod cards;
+mod companions;
 mod data;
 mod enemies;
 mod grade;
@@ -14,6 +17,9 @@ mod hero;
 mod hud;
 mod menu;
 mod minimap;
+mod renown;
+mod sheet;
+mod stash;
 mod mobility;
 mod units;
 
@@ -48,6 +54,11 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<abilities::PendingHits>()
             .init_resource::<enemies::Spawner>()
             .init_resource::<hud::Offer>()
+            .init_resource::<renown::Renown>()
+            .init_resource::<stash::Stash>()
+            .init_resource::<account::Account>()
+            .init_resource::<hud::PausePage>()
+            .init_resource::<hud::SettingEdits>()
             .init_resource::<cards::PendingPick>()
             .add_message::<abilities::Hit>()
             .add_message::<enemies::Loot>()
@@ -75,7 +86,9 @@ impl Plugin for SurvivorsPlugin {
                     abilities::apply_hits,
                     enemies::tick_marks,
                     enemies::drop_loot,
+                    companions::herd,
                     enemies::collect_gems,
+                    enemies::collect_chests,
                     hero::hero_vitals,
                 )
                     .chain()
@@ -111,7 +124,19 @@ impl Plugin for SurvivorsPlugin {
                     hud::show_panels,
                 )
                     .chain()
-                    .after(WorldStage::Input),
+                    .after(WorldStage::Input)
+                    .after(enemies::collect_chests),
+            )
+            .add_systems(
+                Update,
+                (
+                    hud::refresh_meter,
+                    hud::sync_pause_page,
+                    hud::refresh_settings,
+                    stash::flush,
+                )
+                    .chain()
+                    .after(hud::show_panels),
             )
             .add_systems(
                 Update,
@@ -130,9 +155,23 @@ impl Plugin for SurvivorsPlugin {
             )
             .add_systems(OnEnter(Phase::Playing), unpause)
             .add_systems(OnEnter(Phase::LevelUp), (pause, hud::roll_offer))
-            .add_systems(OnEnter(Phase::Paused), pause)
-            .add_systems(OnEnter(Phase::GameOver), unpause)
-            .add_systems(OnEnter(Phase::Menu), (unpause, reset_run));
+            .add_systems(OnEnter(Phase::Paused), (pause, hud::close_settings))
+            .add_systems(
+                OnEnter(Phase::GameOver),
+                (unpause, renown::grant, account::settle, stash::flush_now).chain(),
+            )
+            .add_systems(
+                OnEnter(Phase::Menu),
+                (unpause, account::keep_seen, reset_run, stash::flush_now).chain(),
+            )
+            .add_systems(
+                Update,
+                hud::apply_settings.after(crate::cvars::sync_cvars),
+            );
+        // After the saved config, so a default install gets the browser budget and a value the
+        // player already chose (or passed on the URL) is left alone.
+        #[cfg(target_arch = "wasm32")]
+        app.add_systems(Startup, browser_budget.after(crate::cvars::CvarLoad));
         if let Some(auto) = auto::from_env() {
             app.insert_resource(auto)
                 .add_systems(
@@ -142,6 +181,29 @@ impl Plugin for SurvivorsPlugin {
                 .add_systems(Update, auto::plan.before(WorldStage::Input));
         }
     }
+}
+
+/// The browser runs the whole client on the tab thread, and the stock video defaults are what
+/// make Chrome itself hitch: a full-DPR world, 350 yards of terrain, medium grass, and full
+/// spell shards. Applied only while those knobs are still at their defaults, so a saved choice
+/// or a URL override (`?renderscale=`, `?farclip=`, `?worlddetail=`, `?spelleffectlevel=`,
+/// and `?render_scale=` for the render scale) is left alone.
+#[cfg(target_arch = "wasm32")]
+fn browser_budget(mut cvars: ResMut<crate::cvars::Cvars>) {
+    let pinned = |name: &str| {
+        crate::webenv::var(&format!("WOW_{name}")).is_some()
+            || (name.eq_ignore_ascii_case("renderScale")
+                && crate::webenv::var("WOW_RENDER_SCALE").is_some())
+    };
+    let ease = |cvars: &mut crate::cvars::Cvars, name: &str, default: &str, budget: &str| {
+        if !pinned(name) && cvars.get(name) == Some(default) {
+            cvars.set(name, budget);
+        }
+    };
+    ease(&mut cvars, "renderScale", "1", "0.6");
+    ease(&mut cvars, "farclip", "350", "177");
+    ease(&mut cvars, "WorldDetail", "1", "0");
+    ease(&mut cvars, "spellEffectLevel", "2", "1");
 }
 
 /// The screen the mode is on.
@@ -203,11 +265,13 @@ impl Owned {
     }
     pub fn cooldown(&self, stats: &Stats) -> f32 {
         let base = self.def.cooldown * 0.93f32.powi(i32::from(self.level) - 1);
-        (base * (1.0 - stats.haste).max(0.35)).max(0.2)
+        sheet::cooldown_time(base, stats.haste, stats.cooldown)
     }
-    pub fn count(&self) -> u32 {
+    pub fn count(&self, stats: &Stats) -> u32 {
         let extra = [3u8, 5, 7].iter().filter(|&&l| self.level >= l).count() as u32;
-        self.def.count + extra
+        self.def.count
+            + extra
+            + sheet::extra_targets(self.def.kind, self.def.count, stats.targets)
     }
     pub fn radius(&self, stats: &Stats) -> f32 {
         self.def.radius * (1.0 + 0.08 * f32::from(self.level - 1)) * stats.area
@@ -230,6 +294,39 @@ pub(super) struct Stats {
     pub growth: f32,
     pub armor: f32,
     pub crit: f32,
+    /// Fraction of damage dealt returned as health.
+    pub leech: f32,
+    /// Percent of damage ignored after armor, capped when it is applied.
+    pub reduction: f32,
+    /// Crit multiplier. 2 is a double.
+    pub crit_damage: f32,
+    /// Cooldown reduction, separate from haste.
+    pub cooldown: f32,
+    /// Gold multiplier. 1 leaves a drop unchanged.
+    pub gold_find: f32,
+    /// Luck rating. One point is one percent.
+    pub luck: f32,
+    /// Echo rating. 1 is 100% multistrike.
+    pub multistrike: f32,
+    /// Extra targets for a spell that starts as single-target.
+    pub targets: u32,
+}
+
+fn apply_sheet(s: &mut Stats, b: campaign::Bonus) {
+    s.armor += b.armor;
+    s.might += b.might;
+    s.crit += b.crit;
+    s.multistrike += b.multistrike;
+    s.speed *= 1.0 + b.speed;
+    s.leech += b.leech;
+    s.area += b.area;
+    s.crit_damage += b.crit_damage;
+    s.reduction += b.reduction;
+    s.cooldown += b.cooldown;
+    s.gold_find += b.gold;
+    s.growth += b.growth;
+    s.luck += b.luck;
+    s.targets += b.targets;
 }
 
 pub(super) const BASE_HP: f32 = 120.0;
@@ -262,10 +359,34 @@ pub(super) struct Run {
     pub bosses: u32,
     pub rings: u32,
     pub won: bool,
+    /// Chest trades waiting behind the level-up draft.
+    pub trades: u32,
+    /// The cards on screen are a chest trade.
+    pub trading: bool,
+    /// The three area-start chests have been placed.
+    pub stocked: bool,
+    /// Legendary amulet keys whose card was dealt this run.
+    pub seen_legends: Vec<&'static str>,
+    /// Rings, trinkets and amulets worn this run.
+    worn: campaign::Worn,
     /// Seconds since the hero fell, while the death plays out.
     pub dead_t: Option<f32>,
     pub next_guid: u64,
     pub damage_done: f64,
+    /// Damage per ability key, for the meter. "Thorns" is the contact reflect.
+    pub damage_sources: Vec<(&'static str, f64)>,
+    /// Gold picked up this run. The purse itself lives on [`stash::Stash`].
+    pub gold_found: u32,
+    /// Relics worn at the start: catalog index and rank.
+    pub gear: [Option<(u8, u8)>; 3],
+    /// Ranks bought with renown, copied on at the start of the run.
+    pub renown_might: u8,
+    pub renown_fortitude: u8,
+    pub renown_celerity: u8,
+    /// The end-of-run grant has already been paid.
+    pub renown_paid: bool,
+    /// Permanent account bonuses copied on at the start of the run.
+    bonus: campaign::Bonus,
     /// Bumped whenever abilities or passives change, so the HUD rebuilds the icon rows once.
     pub version: u32,
     /// A centre-screen announcement and its seconds left.
@@ -297,9 +418,22 @@ impl Default for Run {
             bosses: 0,
             rings: 0,
             won: false,
+            trades: 0,
+            trading: false,
+            stocked: false,
+            seen_legends: Vec::new(),
+            worn: campaign::Worn::default(),
             dead_t: None,
             next_guid: 1,
             damage_done: 0.0,
+            damage_sources: Vec::new(),
+            gold_found: 0,
+            gear: [None; 3],
+            renown_might: 0,
+            renown_fortitude: 0,
+            renown_celerity: 0,
+            renown_paid: false,
+            bonus: campaign::Bonus::default(),
             version: 0,
             banner: None,
         }
@@ -319,6 +453,14 @@ impl Run {
             growth: 1.0,
             armor: 0.0,
             crit: 0.05,
+            leech: 0.0,
+            reduction: 0.0,
+            crit_damage: 2.0,
+            cooldown: 0.0,
+            gold_find: 1.0,
+            luck: 0.0,
+            multistrike: 0.0,
+            targets: 0,
         };
         // Tanky classes start tougher, cloth starts quicker.
         match self.class.id {
@@ -326,6 +468,11 @@ impl Run {
             7 | 11 | 3 | 4 => s.max_hp += 15.0,
             _ => s.speed += 0.5,
         }
+        s.might += 0.08 * f32::from(self.renown_might);
+        s.max_hp *= 1.0 + 0.10 * f32::from(self.renown_fortitude);
+        s.speed *= 1.0 + 0.05 * f32::from(self.renown_celerity);
+        s.haste += 0.03 * f32::from(self.renown_celerity);
+        stash::apply_gear(&mut s, self.gear);
         for &(p, level) in &self.passives {
             let v = p.per_level * f32::from(level);
             match p.stat {
@@ -341,12 +488,27 @@ impl Run {
                 Stat::Crit => s.crit += v,
             }
         }
+        apply_sheet(&mut s, self.bonus);
+        apply_sheet(&mut s, self.worn.bonus());
         s
     }
 
     pub fn guid(&mut self) -> u64 {
         self.next_guid += 1;
         self.next_guid
+    }
+
+    pub fn add_damage(&mut self, source: &'static str, amount: f32) {
+        if amount <= 0.0 {
+            return;
+        }
+        let n = f64::from(amount);
+        self.damage_done += n;
+        if let Some(row) = self.damage_sources.iter_mut().find(|r| r.0 == source) {
+            row.1 += n;
+        } else {
+            self.damage_sources.push((source, n));
+        }
     }
 }
 
