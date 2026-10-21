@@ -8,6 +8,7 @@ use bevy::prelude::*;
 use super::account::Account;
 use super::campaign::{self, ZONES};
 use super::data::{self, CLASSES};
+use super::rewards::{self, Perk};
 use super::hud::{self, HudFont, MenuRoot};
 use super::{Phase, Selection, Typing};
 
@@ -20,6 +21,7 @@ pub(super) enum Page {
     Heroes,
     Zones,
     Talents,
+    Rewards,
 }
 
 #[derive(Resource)]
@@ -59,6 +61,7 @@ pub(super) enum Act {
     Zone(usize),
     Learn(usize),
     Respec,
+    Reward(u8),
 }
 
 pub(super) fn input(
@@ -69,10 +72,17 @@ pub(super) fn input(
     mut account: ResMut<Account>,
     mut selection: ResMut<Selection>,
     phase: Res<State<Phase>>,
+    mut granted: Local<bool>,
 ) {
     if *phase.get() != Phase::Menu {
         typing.0 = false;
         return;
+    }
+    if !*granted {
+        if account.grant_new() {
+            account.save();
+        }
+        *granted = true;
     }
     if selection.character.is_none() {
         let id = account
@@ -122,7 +132,31 @@ pub(super) fn input(
                     armory.note = "Talents refunded".into();
                 }
             }
+            Act::Reward(code) => armory.note = buy_reward(&mut account, code).into(),
         }
+    }
+}
+
+fn buy_reward(account: &mut Account, code: u8) -> &'static str {
+    let result = match code {
+        0 => account.buy_perk(Perk::SecondThoughts),
+        1 => account.buy_perk(Perk::Skip),
+        2 => account.buy_perk(Perk::Veterans),
+        3 => account.buy_perk(Perk::Banish),
+        4 => account.buy_perk(Perk::OpeningHand),
+        5 => account.buy_perk(Perk::KeenEye),
+        6 => account.buy_leash(),
+        7 => account.buy_paws(),
+        8 => account.buy_instinct(1),
+        9 => account.buy_instinct(2),
+        10 => account.buy_instinct(3),
+        11 => account.buy_second(),
+        12 => account.reset_perks(),
+        _ => Err("Unknown reward"),
+    };
+    match result {
+        Ok(()) => "Bought",
+        Err(reason) => reason,
     }
 }
 
@@ -290,7 +324,7 @@ pub(super) fn refresh(
                     top: Val::Px(8.0),
                     left: Val::Px(280.0),
                     width: Val::Px(700.0),
-                    height: Val::Px(196.0),
+                    height: Val::Px(250.0),
                     flex_direction: FlexDirection::Column,
                     padding: UiRect::all(Val::Px(6.0)),
                     overflow: Overflow::clip(),
@@ -329,6 +363,13 @@ pub(super) fn refresh(
                     Act::Page(Page::Talents),
                     armory.page == Page::Talents,
                 );
+                chip(
+                    row,
+                    &font,
+                    "Rewards",
+                    Act::Page(Page::Rewards),
+                    armory.page == Page::Rewards,
+                );
             });
         let note = if armory.note.is_empty() {
             "Pick a hero, then a zone. Appearance stays on the class screen."
@@ -340,6 +381,7 @@ pub(super) fn refresh(
             Page::Heroes => heroes(panel, &font, &armory, &account, &selection),
             Page::Zones => zones(panel, &font, &account, &selection),
             Page::Talents => talents(panel, &font, &account, &selection),
+            Page::Rewards => rewards_page(panel, &font, &account),
         }
     });
 }
@@ -496,6 +538,78 @@ fn talents(
         });
 }
 
+fn rewards_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
+    let earned = rewards::points_of(account.earned_ids());
+    let have = rewards::earned_count(account.earned_ids());
+    panel.spawn(hud::text_bundle(
+        font,
+        format!(
+            "{} to spend  ·  {earned} earned  ·  {have} of {}  ·  {} resets",
+            account.unspent(),
+            rewards::catalog_len(),
+            account.resets_left()
+        ),
+        13.0,
+        Color::WHITE,
+    ));
+    if let Some(next) = account.next_locked() {
+        panel.spawn(hud::text_bundle(font, next, 13.0, GOLD));
+    }
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        })
+        .with_children(|row| {
+            for (code, perk) in rewards::PERKS.into_iter().enumerate() {
+                let rank = account.perks.rank(perk);
+                let label = match rewards::perk_cost(perk, rank) {
+                    Some(cost) => format!("{} {rank} · {cost}", rewards::perk_name(perk)),
+                    None => format!("{} {rank} max", rewards::perk_name(perk)),
+                };
+                chip(row, font, &label, Act::Reward(code as u8), false);
+            }
+        });
+    let leash = pet_label("Long Leash", account.pets.leash, 3);
+    let paws = pet_label("Quick Paws", account.pets.paws, 3);
+    let second = if account.pets.owned >= 2 {
+        "Second companion max".to_string()
+    } else {
+        "Second companion · 40".to_string()
+    };
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        })
+        .with_children(|row| {
+            chip(row, font, &leash, Act::Reward(6), false);
+            chip(row, font, &paws, Act::Reward(7), false);
+            chip(row, font, "Gold-sniffer · 30", Act::Reward(8), false);
+            chip(row, font, "Wisp-herder · 30", Act::Reward(9), false);
+            chip(row, font, "Rune-hound · 30", Act::Reward(10), false);
+            chip(row, font, &second, Act::Reward(11), false);
+            chip(
+                row,
+                font,
+                &format!("Reset perks ({})", account.resets_left()),
+                Act::Reward(12),
+                false,
+            );
+        });
+}
+
+fn pet_label(name: &str, rank: u8, max: u8) -> String {
+    if rank >= max {
+        format!("{name} {rank} max")
+    } else {
+        let cost = [15, 25, 35][usize::from(rank)];
+        format!("{name} {rank} · {cost}")
+    }
+}
+
 fn field_label(text: &str, focused: bool) -> String {
     let shown = if text.is_empty() { "name" } else { text };
     if focused {
@@ -510,7 +624,23 @@ fn signature(armory: &Armory, account: &Account, selection: &Selection) -> u64 {
         Page::Heroes => 1,
         Page::Zones => 2,
         Page::Talents => 3,
+        Page::Rewards => 4,
     };
+    n = fold(n, u64::from(account.unspent()));
+    n = fold(n, account.earned_ids().len() as u64);
+    n = fold(n, u64::from(account.resets_left()));
+    let perks = account.perks;
+    n = fold(n, u64::from(perks.second_thoughts));
+    n = fold(n, u64::from(perks.skip));
+    n = fold(n, u64::from(perks.veterans));
+    n = fold(n, u64::from(perks.banish));
+    n = fold(n, u64::from(perks.opening_hand));
+    n = fold(n, u64::from(perks.keen_eye));
+    n = fold(n, u64::from(account.pets.owned));
+    n = fold(n, u64::from(account.pets.leash));
+    n = fold(n, u64::from(account.pets.paws));
+    n = fold(n, u64::from(account.pets.instinct[0]));
+    n = fold(n, u64::from(account.pets.instinct[1]));
     n = fold(n, u64::from(armory.focus));
     n = fold(n, armory.draft_class as u64);
     n = fold(n, hash_str(&armory.draft_first));

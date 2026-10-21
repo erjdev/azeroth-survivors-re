@@ -487,8 +487,9 @@ pub(super) fn trade_cards(
     luck_percent: f32,
     rolls: [f32; 3],
     picks: [u32; 3],
+    extra_jewel: f32,
 ) -> [TradeCard; 3] {
-    let chance = jewel_chance(luck_percent);
+    let chance = (jewel_chance(luck_percent) + extra_jewel.max(0.0)).min(0.75);
     let legend = (legend_share(luck_percent) * 100.0) as u32;
     let catalog = RINGS + TRINKETS + AMULETS;
     std::array::from_fn(|i| {
@@ -1043,11 +1044,15 @@ mod tests {
     #[test]
     fn luck_turns_a_chest_card_into_jewelry_and_can_offer_a_legend() {
         let owned = [0usize, 2];
-        let plain = trade_cards(&owned, 0.0, [0.9, 0.9, 0.9], [1, 0, 2]);
+        let plain = trade_cards(&owned, 0.0, [0.9, 0.9, 0.9], [1, 0, 2], 0.0);
         assert!(plain.iter().all(|c| matches!(c, TradeCard::Upgrade(_))));
-        let jewel = trade_cards(&owned, 0.0, [0.0, 0.9, 0.9], [0, 0, 0]);
+        let jewel = trade_cards(&owned, 0.0, [0.0, 0.9, 0.9], [0, 0, 0], 0.0);
         assert_eq!(jewel[0], TradeCard::Ring(0));
-        let legend = trade_cards(&owned, 100.0, [0.0, 0.9, 0.9], [0, 0, 0]);
+        let legend = trade_cards(&owned, 100.0, [0.0, 0.9, 0.9], [0, 0, 0], 0.0);
+        let missed = trade_cards(&owned, 0.0, [0.10, 0.9, 0.9], [0, 0, 0], 0.0);
+        let eyed = trade_cards(&owned, 0.0, [0.10, 0.9, 0.9], [0, 0, 0], 0.05);
+        assert!(matches!(missed[0], TradeCard::Upgrade(_)));
+        assert!(!matches!(eyed[0], TradeCard::Upgrade(_)));
         assert_eq!(legend[0], TradeCard::Legend(0));
         let mut worn = Worn::default();
         worn.equip(JewelKind::Ring(0));

@@ -187,12 +187,26 @@ pub(super) fn deal_cards(
         **title = if run.trading { "A CHEST" } else { "LEVEL UP" }.into();
     }
     if let Ok(mut sub) = subs.single_mut() {
-        **sub = if run.trading {
-            "Upgrade a spell you own"
+        let mut line = if run.trading {
+            "Upgrade a spell you own".to_string()
         } else {
-            "Choose your power"
+            "Choose your power".to_string()
+        };
+        let mut hints = Vec::new();
+        if !run.trading && run.rerolls > 0 {
+            hints.push(format!("R reroll {}", run.rerolls));
         }
-        .into();
+        if run.can_skip {
+            hints.push("T skip".into());
+        }
+        if run.banishes > 0 {
+            hints.push(format!("B banish {}", run.banishes));
+        }
+        if !hints.is_empty() {
+            line.push_str("  ·  ");
+            line.push_str(&hints.join("  "));
+        }
+        **sub = line;
     }
     let Ok(row) = rows.single() else { return };
     commands.entity(row).despawn_related::<Children>();
@@ -526,20 +540,49 @@ pub(super) fn choose_card(
     phase: Res<State<Phase>>,
     keys: Res<ButtonInput<KeyCode>>,
     cards: Query<(&Card, &Interaction), Changed<Interaction>>,
-    offer: Res<Offer>,
+    mut offer: ResMut<Offer>,
     mut pending: ResMut<PendingPick>,
+    mut run: ResMut<Run>,
+    mut rng: ResMut<Rng>,
+    mut stash: ResMut<super::stash::Stash>,
+    mut next: ResMut<NextState<Phase>>,
 ) {
     if *phase.get() != Phase::LevelUp || pending.0.is_some() {
         return;
+    }
+    if keys.just_pressed(KeyCode::KeyR) && hud::reroll(&mut run, &mut offer, &mut rng) {
+        return;
+    }
+    if keys.just_pressed(KeyCode::KeyT)
+        && hud::skip_hand(&mut run, &mut offer, &mut rng, &mut stash, &mut next)
+    {
+        return;
+    }
+    if keys.just_pressed(KeyCode::KeyB) {
+        run.banish_armed = run.banishes > 0;
+        if run.banish_armed {
+            run.banner = Some(("Banish a card: press its number".into(), 2.5));
+        }
+        return;
+    }
+    let digits = [
+        KeyCode::Digit1,
+        KeyCode::Digit2,
+        KeyCode::Digit3,
+        KeyCode::Digit4,
+    ];
+    if run.banish_armed {
+        for (i, key) in digits.into_iter().enumerate() {
+            if keys.just_pressed(key) && hud::banish_card(&mut run, &mut offer, &mut rng, i) {
+                return;
+            }
+        }
     }
     let mut pick = cards
         .iter()
         .find(|(c, i)| **i == Interaction::Pressed && c.t >= DEAL_SECS)
         .map(|(c, _)| c.index);
-    for (i, key) in [KeyCode::Digit1, KeyCode::Digit2, KeyCode::Digit3]
-        .into_iter()
-        .enumerate()
-    {
+    for (i, key) in digits.into_iter().enumerate() {
         if keys.just_pressed(key) {
             pick = Some(i);
         }

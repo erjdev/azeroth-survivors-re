@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 use super::campaign::{self, Bonus, Feats, Quality, TALENT_CAP};
 use super::data;
+use super::rewards::{self, Perk, PerkRanks};
 use crate::local_state;
 
 const FILE: &str = "benilla-config/survivors-account.txt";
@@ -58,6 +59,13 @@ pub(super) struct Account {
     pub characters: Vec<Character>,
     pub classes: Vec<ClassProgress>,
     pub pets: PetRanks,
+    pub perks: PerkRanks,
+    earned: Vec<u16>,
+    spent: u32,
+    perk_spent: u32,
+    resets: u8,
+    pub runs: u32,
+    pub wins: u32,
     dirty: bool,
 }
 
@@ -74,13 +82,7 @@ impl Account {
             .filter(|p| p.is_file())
             .and_then(|p| local_state::read_to_string(&p).ok())
             .unwrap_or_default();
-        parse(&text).unwrap_or_else(|_| Self {
-            next_id: 1,
-            characters: Vec::new(),
-            classes: vec![ClassProgress::default(); data::CLASSES.len()],
-            pets: PetRanks::default(),
-            dirty: false,
-        })
+        parse(&text).unwrap_or_else(|_| empty())
     }
 
     pub fn save(&mut self) {
@@ -300,6 +302,178 @@ impl Account {
         }
         epics >= 9
     }
+
+    pub fn unspent(&self) -> u32 {
+        rewards::points_of(&self.earned).saturating_sub(self.spent)
+    }
+
+    pub fn earned_ids(&self) -> &[u16] {
+        &self.earned
+    }
+
+    pub fn resets_left(&self) -> u8 {
+        self.resets
+    }
+
+    pub fn next_locked(&self) -> Option<String> {
+        rewards::next_locked(&self.snapshot(), &self.earned)
+    }
+
+    /// Pays any achievement the account now meets. A second call pays nothing new.
+    pub fn grant_new(&mut self) -> bool {
+        let found = rewards::fresh(&self.snapshot(), &self.earned);
+        if found.is_empty() {
+            return false;
+        }
+        for (id, _) in found {
+            self.earned.push(id);
+        }
+        self.dirty = true;
+        true
+    }
+
+    pub fn buy_perk(&mut self, perk: Perk) -> Result<(), &'static str> {
+        let Some(cost) = rewards::perk_cost(perk, self.perks.rank(perk)) else {
+            return Err("Max rank");
+        };
+        self.pay(cost)?;
+        self.perks.raise(perk);
+        self.perk_spent += cost;
+        self.save();
+        Ok(())
+    }
+
+    pub fn buy_leash(&mut self) -> Result<(), &'static str> {
+        self.raise_pet(true)
+    }
+
+    pub fn buy_paws(&mut self) -> Result<(), &'static str> {
+        self.raise_pet(false)
+    }
+
+    pub fn buy_second(&mut self) -> Result<(), &'static str> {
+        if self.pets.owned >= 2 {
+            return Err("Max rank");
+        }
+        self.pay(40)?;
+        self.pets.owned = 2;
+        self.save();
+        Ok(())
+    }
+
+    /// Puts this instinct on the first companion who does not have one, else the first companion.
+    pub fn buy_instinct(&mut self, kind: u8) -> Result<(), &'static str> {
+        let kind = kind.clamp(1, 3);
+        let slot = if self.pets.instinct[0] == 0 {
+            0
+        } else if self.pets.owned > 1 && self.pets.instinct[1] == 0 {
+            1
+        } else {
+            0
+        };
+        if self.pets.instinct[slot] == kind {
+            return Err("Already learned");
+        }
+        self.pay(30)?;
+        self.pets.instinct[slot] = kind;
+        self.save();
+        Ok(())
+    }
+
+    /// Refunds perk points and leaves companion ranks. Two resets are kept on the account.
+    pub fn reset_perks(&mut self) -> Result<(), &'static str> {
+        if self.resets == 0 {
+            return Err("No perk resets left");
+        }
+        if self.perk_spent == 0 {
+            return Err("No perk points to take back");
+        }
+        self.spent = self.spent.saturating_sub(self.perk_spent);
+        self.perk_spent = 0;
+        self.perks = PerkRanks::default();
+        self.resets -= 1;
+        self.dirty = true;
+        self.save();
+        Ok(())
+    }
+
+    fn pay(&mut self, cost: u32) -> Result<(), &'static str> {
+        if self.unspent() < cost {
+            return Err("Not enough achievement points");
+        }
+        self.spent += cost;
+        self.dirty = true;
+        Ok(())
+    }
+
+    fn raise_pet(&mut self, leash: bool) -> Result<(), &'static str> {
+        let rank = if leash { self.pets.leash } else { self.pets.paws };
+        if rank >= 3 {
+            return Err("Max rank");
+        }
+        let cost = [15, 25, 35][usize::from(rank)];
+        self.pay(cost)?;
+        if leash {
+            self.pets.leash += 1;
+        } else {
+            self.pets.paws += 1;
+        }
+        self.save();
+        Ok(())
+    }
+
+    fn snapshot(&self) -> rewards::Snapshot {
+        let mut snap = rewards::Snapshot::default();
+        let mut epics = 0u32;
+        for (i, class) in self.classes.iter().enumerate().take(9) {
+            let n = snap.clears[i].len().min(class.clears.len());
+            snap.clears[i][..n].copy_from_slice(&class.clears[..n]);
+            let gear = class.gear.iter().filter(|g| **g).count() as u32;
+            snap.pieces += gear;
+            if class.gear.iter().all(|g| *g) {
+                snap.full_sets += 1;
+            }
+            snap.legends += class.seen.len() as u32;
+            let talent_max = self.characters.iter().any(|c| {
+                c.class == i && campaign::talent_level(c.talent_xp) >= TALENT_CAP
+            });
+            snap.talent_cap[i] = talent_max;
+            let feats = Feats {
+                talent_max,
+                raid: class.clears.last().copied().unwrap_or(false),
+                collection: class.gear.iter().all(|g| *g),
+                amulets: class.seen.len() >= data::ABILITIES.len(),
+            };
+            if campaign::cloak_quality(feats).is_some() {
+                snap.any_cloak = true;
+            }
+            if campaign::cloak_quality(feats) == Some(Quality::Epic) {
+                epics += 1;
+            }
+        }
+        snap.epic_cloaks = epics;
+        snap.legendary_cloak = campaign::legendary_cloak(epics as usize);
+        snap.runs = self.runs;
+        snap.wins = self.wins;
+        snap
+    }
+}
+
+fn empty() -> Account {
+    Account {
+        next_id: 1,
+        characters: Vec::new(),
+        classes: vec![ClassProgress::default(); data::CLASSES.len()],
+        pets: PetRanks::default(),
+        perks: PerkRanks::default(),
+        earned: Vec::new(),
+        spent: 0,
+        perk_spent: 0,
+        resets: 2,
+        runs: 0,
+        wins: 0,
+        dirty: false,
+    }
 }
 
 /// Experience toward the next talent point, from how far the run got.
@@ -357,6 +531,24 @@ fn encode(account: &Account) -> String {
         account.pets.look[0],
         account.pets.look[1],
     ));
+    out.push_str(&format!(
+        "meta {} {} {} {} {}\n",
+        account.runs, account.wins, account.spent, account.perk_spent, account.resets
+    ));
+    let perks = account.perks;
+    out.push_str(&format!(
+        "perk {} {} {} {} {} {}\n",
+        perks.second_thoughts, perks.skip, perks.veterans, perks.banish, perks.opening_hand, perks.keen_eye
+    ));
+    if !account.earned.is_empty() {
+        let ids = account
+            .earned
+            .iter()
+            .map(|id| id.to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+        out.push_str(&format!("earn {ids}\n"));
+    }
     out
 }
 
@@ -369,13 +561,7 @@ fn unescape(s: &str) -> String {
 }
 
 fn parse(text: &str) -> Result<Account, ()> {
-    let mut account = Account {
-        next_id: 1,
-        characters: Vec::new(),
-        classes: vec![ClassProgress::default(); data::CLASSES.len()],
-        pets: PetRanks::default(),
-        dirty: false,
-    };
+    let mut account = empty();
     for line in text.lines() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
@@ -444,6 +630,36 @@ fn parse(text: &str) -> Result<Account, ()> {
                     look: [n[5], n[6]],
                 };
             }
+            Some("meta") => {
+                account.runs = parts.next().unwrap_or("0").parse().unwrap_or(0);
+                account.wins = parts.next().unwrap_or("0").parse().unwrap_or(0);
+                account.spent = parts.next().unwrap_or("0").parse().unwrap_or(0);
+                account.perk_spent = parts.next().unwrap_or("0").parse().unwrap_or(0);
+                account.resets = parts.next().unwrap_or("2").parse().unwrap_or(2);
+            }
+            Some("perk") => {
+                let mut n = [0u8; 6];
+                for slot in &mut n {
+                    *slot = parts.next().unwrap_or("0").parse().unwrap_or(0);
+                }
+                account.perks = PerkRanks {
+                    second_thoughts: n[0].min(3),
+                    skip: n[1].min(1),
+                    veterans: n[2].min(2),
+                    banish: n[3].min(3),
+                    opening_hand: n[4].min(1),
+                    keen_eye: n[5].min(2),
+                };
+            }
+            Some("earn") => {
+                if let Some(list) = parts.next() {
+                    for id in list.split(',') {
+                        if let Ok(id) = id.parse() {
+                            account.earned.push(id);
+                        }
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -460,6 +676,7 @@ pub(super) fn keep_seen(
         return;
     };
     account.remember_amulets(class, &run.seen_legends);
+    account.grant_new();
     account.save();
 }
 
@@ -474,13 +691,28 @@ pub(super) fn settle(
         return;
     };
     let id = account.ensure(class);
-    account.add_talent_xp(id, talent_xp_for(run.level, run.kills, run.won));
+    account.runs = account.runs.saturating_add(1);
+    if run.won {
+        account.wins = account.wins.saturating_add(1);
+    }
+    let mine = account.character(id).map(|c| c.talent_xp).unwrap_or(0);
+    let best = account
+        .characters
+        .iter()
+        .map(|c| c.talent_xp)
+        .max()
+        .unwrap_or(0);
+    let xp = talent_xp_for(run.level, run.kills, run.won);
+    let xp = ((xp as f32) * rewards::veteran_multiplier(account.perks.veterans, mine, best)).round()
+        as u32;
+    account.add_talent_xp(id, xp);
     account.remember_amulets(class, &run.seen_legends);
     if run.won {
         if let Some(zone) = campaign::zone_index(selection.map_def().name) {
             account.grant_zone(class, zone);
         }
     }
+    account.grant_new();
     account.save();
 }
 
@@ -518,13 +750,7 @@ pets 2 3 1 1 2 0 1
 
     #[test]
     fn a_cleared_zone_keeps_its_pieces_and_opens_the_next() {
-        let mut account = Account {
-            next_id: 1,
-            characters: Vec::new(),
-            classes: vec![ClassProgress::default(); data::CLASSES.len()],
-            pets: PetRanks::default(),
-            dirty: false,
-        };
+        let mut account = empty();
         let id = account.ensure(0);
         account.grant_zone(0, 0);
         account.see_amulet(0, "Amulet of Heroic Strike");
@@ -546,13 +772,7 @@ pets 2 3 1 1 2 0 1
 
     #[test]
     fn the_raid_grants_the_legendary_weapon() {
-        let mut account = Account {
-            next_id: 1,
-            characters: Vec::new(),
-            classes: vec![ClassProgress::default(); data::CLASSES.len()],
-            pets: PetRanks::default(),
-            dirty: false,
-        };
+        let mut account = empty();
         account.grant_zone(0, campaign::ZONES.len() - 1);
         assert!(account.classes[0].legendary_weapon);
         let id = account.ensure(0);
@@ -572,13 +792,7 @@ pets 2 3 1 1 2 0 1
 
     #[test]
     fn a_named_hero_keeps_their_own_talents() {
-        let mut account = Account {
-            next_id: 1,
-            characters: Vec::new(),
-            classes: vec![ClassProgress::default(); data::CLASSES.len()],
-            pets: PetRanks::default(),
-            dirty: false,
-        };
+        let mut account = empty();
         assert!(account.create(" ", "Wrynn", 1).is_none());
         let anduin = account.create("Anduin", "Wrynn", 1).unwrap();
         let uther = account.create("Uther", "Lightbringer", 1).unwrap();
@@ -587,5 +801,31 @@ pets 2 3 1 1 2 0 1
         let anduin_might = account.bonus_picked(1, Some(anduin)).might;
         let uther_might = account.bonus_picked(1, Some(uther)).might;
         assert!(anduin_might > uther_might);
+    }
+
+    #[test]
+    fn achievement_points_buy_a_perk_and_a_reset_keeps_the_companion() {
+        let mut account = empty();
+        for zone in 0..campaign::ZONES.len() {
+            account.grant_zone(0, zone);
+        }
+        assert!(account.grant_new());
+        assert!(account.unspent() >= 30);
+        assert!(account.buy_perk(Perk::SecondThoughts).is_ok());
+        assert_eq!(account.perks.second_thoughts, 1);
+        assert!(account.buy_leash().is_ok());
+        assert_eq!(account.pets.leash, 1);
+        let after = account.unspent();
+        assert!(account.reset_perks().is_ok());
+        assert_eq!(account.perks.second_thoughts, 0);
+        assert_eq!(account.pets.leash, 1);
+        assert_eq!(account.resets_left(), 1);
+        assert!(account.unspent() > after);
+        assert!(!account.grant_new());
+        let text = encode(&account);
+        let loaded = parse(&text).unwrap();
+        assert_eq!(loaded.pets.leash, 1);
+        assert_eq!(loaded.resets_left(), 1);
+        assert!(!loaded.earned_ids().is_empty());
     }
 }

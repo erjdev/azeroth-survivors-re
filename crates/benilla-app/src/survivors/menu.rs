@@ -726,6 +726,7 @@ pub(super) fn menu_clicks(
                 stash.gear(),
                 account.bonus_picked(class, hero),
             ) {
+                run.apply_perks(account.perks);
                 next.set(Phase::Playing);
             }
         }

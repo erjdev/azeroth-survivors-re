@@ -19,6 +19,7 @@ mod hud;
 mod menu;
 mod minimap;
 mod renown;
+mod rewards;
 mod sheet;
 mod stash;
 mod mobility;
@@ -402,6 +403,21 @@ pub(super) struct Run {
     pub version: u32,
     /// A centre-screen announcement and its seconds left.
     pub banner: Option<(String, f32)>,
+    /// Free level-up redraws left this run (Second Thoughts).
+    pub rerolls: u8,
+    /// Cards that can still be banished this run.
+    pub banishes: u8,
+    pub banish_armed: bool,
+    /// Opening Hand: the first level-up deals four cards.
+    pub opening_hand: bool,
+    /// Skip: pass a hand for gold.
+    pub can_skip: bool,
+    /// Keen Eye rank, copied on at the start.
+    pub keen_eye: u8,
+    /// Boss-chest trades that still receive Keen Eye.
+    pub boss_trades: u32,
+    /// Level-up hands dealt this run.
+    pub drafts: u32,
 }
 
 impl Default for Run {
@@ -447,11 +463,27 @@ impl Default for Run {
             bonus: campaign::Bonus::default(),
             version: 0,
             banner: None,
+            rerolls: 0,
+            banishes: 0,
+            banish_armed: false,
+            opening_hand: false,
+            can_skip: false,
+            keen_eye: 0,
+            boss_trades: 0,
+            drafts: 0,
         }
     }
 }
 
 impl Run {
+    pub(in crate::survivors) fn apply_perks(&mut self, perks: rewards::PerkRanks) {
+        self.rerolls = perks.second_thoughts;
+        self.banishes = perks.banish;
+        self.opening_hand = perks.opening_hand > 0;
+        self.can_skip = perks.skip > 0;
+        self.keen_eye = perks.keen_eye;
+    }
+
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
             might: 1.0,

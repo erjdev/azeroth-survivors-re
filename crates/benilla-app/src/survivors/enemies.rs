@@ -641,6 +641,9 @@ pub(super) fn collect_chests(
         let gold = super::sheet::gold_amount(chest.gold, run.stats().gold_find);
         run.gold_found += gold;
         stash.add_gold(gold);
+        if chest.tier == super::campaign::ChestTier::A {
+            run.boss_trades += 1;
+        }
         run.trades += 1;
         if *phase.get() == Phase::Playing && run.pending_levels == 0 {
             run.trading = true;

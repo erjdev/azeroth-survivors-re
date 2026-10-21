@@ -191,6 +191,7 @@ pub(super) fn drive(
                     account.bonus_for(auto.class),
                 )
             {
+                run.apply_perks(account.perks);
                 info!(
                     "survivors auto: run begins as {} at {}",
                     run.class.name,

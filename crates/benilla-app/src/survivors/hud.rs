@@ -1135,7 +1135,7 @@ pub(super) fn start_run(
     true
 }
 
-fn choices_for(run: &Run, rng: &mut Rng) -> Vec<Choice> {
+fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
     let mut pool: Vec<(Choice, f32)> = Vec::new();
     for (i, o) in run.abilities.iter().enumerate() {
         if o.level < data::MAX_ABILITY_LEVEL {
@@ -1161,8 +1161,8 @@ fn choices_for(run: &Run, rng: &mut Rng) -> Vec<Choice> {
             }
         }
     }
-    let mut out = Vec::with_capacity(3);
-    while out.len() < 3 && !pool.is_empty() {
+    let mut out = Vec::with_capacity(n);
+    while out.len() < n && !pool.is_empty() {
         let total: f32 = pool.iter().map(|(_, w)| w).sum();
         let mut pick = rng.f32() * total;
         let mut idx = pool.len() - 1;
@@ -1183,10 +1183,83 @@ fn choices_for(run: &Run, rng: &mut Rng) -> Vec<Choice> {
 
 pub(super) fn roll_offer(mut run: ResMut<Run>, mut rng: ResMut<Rng>, mut offer: ResMut<Offer>) {
     offer.choices = if run.trading {
-        trade_choices(&mut run, &mut rng)
+        deal_trade(&mut run, &mut rng)
     } else {
-        choices_for(&run, &mut rng)
+        deal_level(&mut run, &mut rng)
     };
+}
+
+fn deal_level(run: &mut Run, rng: &mut Rng) -> Vec<Choice> {
+    let n = super::rewards::hand_size(run.opening_hand, run.drafts);
+    run.drafts += 1;
+    choices_for(run, rng, n)
+}
+
+fn deal_trade(run: &mut Run, rng: &mut Rng) -> Vec<Choice> {
+    let extra = if run.boss_trades > 0 {
+        run.boss_trades -= 1;
+        super::rewards::keen_jewel_bonus(run.keen_eye)
+    } else {
+        0.0
+    };
+    trade_choices(run, rng, extra)
+}
+
+/// Redraw a level-up hand. Chest trades are not redrawn.
+pub(super) fn reroll(run: &mut Run, offer: &mut Offer, rng: &mut Rng) -> bool {
+    if run.trading || run.rerolls == 0 {
+        return false;
+    }
+    run.rerolls -= 1;
+    let n = offer.choices.len().clamp(3, 4);
+    offer.choices = choices_for(run, rng, n);
+    true
+}
+
+/// Pass the hand and take gold instead.
+pub(super) fn skip_hand(
+    run: &mut Run,
+    offer: &mut Offer,
+    rng: &mut Rng,
+    stash: &mut super::stash::Stash,
+    next: &mut NextState<Phase>,
+) -> bool {
+    if !run.can_skip {
+        return false;
+    }
+    let gold = super::sheet::gold_amount(super::rewards::skip_gold(run.level), run.stats().gold_find);
+    run.gold_found += gold;
+    stash.add_gold(gold);
+    run.banner = Some((format!("Skipped the hand for {gold} gold"), 2.5));
+    if run.trading {
+        run.trades = run.trades.saturating_sub(1);
+        if run.trades == 0 {
+            run.trading = false;
+        }
+    } else {
+        run.pending_levels = run.pending_levels.saturating_sub(1);
+    }
+    advance(run, offer, rng, next);
+    true
+}
+
+/// Throw out one card and draw a replacement.
+pub(super) fn banish_card(run: &mut Run, offer: &mut Offer, rng: &mut Rng, index: usize) -> bool {
+    if run.banishes == 0 || index >= offer.choices.len() {
+        return false;
+    }
+    offer.choices.remove(index);
+    let replacement = if run.trading {
+        trade_choices(run, rng, 0.0).into_iter().next()
+    } else {
+        choices_for(run, rng, 1).into_iter().next()
+    };
+    if let Some(card) = replacement {
+        offer.choices.push(card);
+    }
+    run.banishes -= 1;
+    run.banish_armed = false;
+    true
 }
 
 pub(super) fn pick(
@@ -1214,26 +1287,28 @@ pub(super) fn pick(
     run.version += 1;
     if run.trading {
         run.trades = run.trades.saturating_sub(1);
-        if run.trades > 0 {
-            offer.choices = trade_choices(run, rng);
-            return;
+        if run.trades == 0 {
+            run.trading = false;
         }
-        run.trading = false;
     } else {
         run.pending_levels = run.pending_levels.saturating_sub(1);
     }
+    advance(run, offer, rng, next);
+}
+
+fn advance(run: &mut Run, offer: &mut Offer, rng: &mut Rng, next: &mut NextState<Phase>) {
     if run.pending_levels > 0 {
-        offer.choices = choices_for(run, rng);
+        offer.choices = deal_level(run, rng);
     } else if run.trades > 0 {
         run.trading = true;
-        offer.choices = trade_choices(run, rng);
+        offer.choices = deal_trade(run, rng);
     } else {
         offer.choices.clear();
         next.set(Phase::Playing);
     }
 }
 
-fn trade_choices(run: &mut Run, rng: &mut Rng) -> Vec<Choice> {
+fn trade_choices(run: &mut Run, rng: &mut Rng, extra: f32) -> Vec<Choice> {
     let upgradeable: Vec<usize> = run
         .abilities
         .iter()
@@ -1248,7 +1323,7 @@ fn trade_choices(run: &mut Run, rng: &mut Rng) -> Vec<Choice> {
         rng.next_u64() as u32,
         rng.next_u64() as u32,
     ];
-    super::campaign::trade_cards(&upgradeable, luck, rolls, picks)
+    super::campaign::trade_cards(&upgradeable, luck, rolls, picks, extra)
         .into_iter()
         .map(|card| match card {
             super::campaign::TradeCard::Upgrade(i) => Choice::Upgrade(i),
@@ -1655,6 +1730,7 @@ pub(super) fn keys(
                     account.bonus_picked(class, hero),
                 )
             {
+                run.apply_perks(account.perks);
                 next.set(Phase::Playing);
             }
         }
