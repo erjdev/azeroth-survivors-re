@@ -1,0 +1,214 @@
+# Survivors — the Armory
+
+The pictures in `docs/intentions/` are the long-term game. The first draft proved the rules
+and stored them. It did not become that game. A player still lands on the glue character
+screen with a text panel over it. This file is the spec for what replaces that, and the
+order to build it in. The pictures win when this file and the code disagree.
+
+The in-run game stays: waves, level-up cards, chests, gold, the stat sheet, renown, and the
+current enemy counts. The Armory is the account, opened before a run and closed with Done.
+
+## What the draft already keeps
+
+These stay, and later phases read them instead of inventing a second copy.
+
+- One stat sheet. Damage reduction after armor, capped. Cooldown reduction stacks with haste
+  by multiplication and has a floor. Luck is one rating. Extra targets apply only to a
+  single-target bolt, strike, or melee. Gold and experience are percent bonuses. A positive
+  gold drop never rounds to zero. Multistrike and leech behave as the sheet says.
+- Named heroes. Talent points live on the hero. Gear, zone clears, and seen legendary amulets
+  live on the class. The save is `benilla-config/survivors-account.txt`.
+- A run still spends a level-up hand, then any chest trades. Chests are not a magnet.
+  Companions walk out, pick up coins and experience wisps, and rest. They do not open chests.
+- Achievement points buy perks and companion ranks. Two perk resets refund perk points and
+  leave companion ranks. The first companion is free.
+- Cloak quality follows feats: talent cap, raid clear, a finished collection, every legendary
+  amulet seen. Nine epic cloaks are the legendary cloak.
+- Restart launches this build again, or a local file named in `survivors-update.txt`. A web
+  address is refused. Nothing is downloaded.
+
+`cargo survivors` (or `scripts\survivors.cmd` from Cursor's terminal) is the native loop.
+`--release` rebuilds the client crate from scratch and is not the daily build.
+
+## The screen
+
+One Armory frame, gold on black, using the client's own glue art and icons. Eight tabs, in
+this order, plus Done:
+
+Character, Collection, Drop Tables, Codex, Talents, Achievements, Rewards.
+
+Rewards shows the unspent achievement points on the tab. The same frame is the front door,
+before a run, and the Armory opened from that door. The glue race and class screen is where
+a hero's body is chosen. It is not the menu.
+
+The front door is three columns.
+
+- Class: the nine classes, the selected class's fantasy in one line, health, the spell it
+  starts with, how many zones are open, and its spell icons.
+- Hero: name, race, sex, a random-name button, the worn equipment as icons, the summed
+  bonuses in one block, and two doors, Armory and Talents. Under that, the race's permanent
+  bonus.
+- Zone: every campaign zone in order. A locked zone says why. The selected zone shows its
+  title and its stakes. Enter World names that zone. Run Options sits beside it. Difficulty
+  is Normal until a second difficulty exists.
+
+Reference: `docs/intentions/survivors_main_menu.png`.
+
+## Zones
+
+The path on the front door is the path in the world. Twelve zones, in this order. Talent
+gates still climb along the path. A zone opens when the previous one is cleared on that
+class and the hero's talent level meets the gate. Elwynn needs neither. Maps that are not
+on this list stay open.
+
+| Zone | Band |
+| --- | --- |
+| Elwynn Forest | Common |
+| Duskwood | Common |
+| Warsong Gulch | Uncommon |
+| Un'Goro Crater | Uncommon |
+| Arathi Basin | Rare |
+| Feralas | Rare |
+| Gurubashi Arena | Epic |
+| Scarlet Monastery | Epic |
+| Alterac Valley | PvP |
+| Blackrock Mountain | PvP |
+| Gates of Ahn'Qiraj | Legendary |
+| Naxxramas | Legendary |
+
+Westfall and Western Plaguelands were the draft's path. They are not this path. Stranglethorn
+in the draft was Gurubashi Arena under another name. Gurubashi stays. The elites and bosses
+already named on a draft zone move to whichever row of this list uses that map. New rows
+need their own map, elites, boss, and drop table before they can be entered.
+
+## Gear
+
+A class collects pieces. It wears one piece in each slot. Slots are helm, shoulders, chest,
+waist, legs, feet, wrist, hands, and main hand. That is nine. The collection is those nine
+slots across six qualities: common, uncommon, rare, epic, PvP, and legendary. 9 × 6 = 54.
+The front door's "26 of 54" is that count.
+
+A piece has a real item name, an icon, a quality, the zone and the creature that drop it,
+and a stat line. Higher quality keeps the lower lines and adds the next, in larger numbers.
+The worn set's lines add together and show under the paper doll. A full worn set of nine
+adds the set bonus on top. A two-handed weapon fills the main hand only. It does not invent
+an off-hand piece. The draft's tenth slot and its poor-through-legendary ladder were a
+stand-in for this grid.
+
+Looks are separate from stats. A collected piece can be worn as gear, shown on the model
+while another piece is worn, or hidden. Only the worn piece adds bonuses.
+
+Reference: `docs/intentions/survivors_character_tab.png`,
+`docs/intentions/survivors_collection_tab.png`.
+
+## Drop tables
+
+Each zone lists the creatures that drop its pieces, the slot, the chance, and how often that
+creature comes. A duplicate roll adds a smaller bonus to the piece the hero already has. It
+does not create a second copy. The table is the source of truth for what a run can award.
+Clearing a zone is not, by itself, the grant.
+
+Elwynn, as the picture has it: Hogger at 3:00 drops the helm, Mother Fang at 6:00 the
+shoulders, Rhahk'Zor at 9:00 the chest, Mr. Smite at 12:00 the waist, Edwin VanCleef at
+16:00 the main hand. Other zones follow the same shape: earlier creatures, then the last
+boss. The names have to exist on that map before the row is real.
+
+Reference: `docs/intentions/survivors_drop_tables_tab.png`.
+
+## Codex
+
+Every ring, trinket, and amulet a chest can offer, as icons. Legendary amulets are per
+class, one for each of that class's spells, and they stay seen once dealt. Rings, trinkets,
+and the shared amulets are offered to every class and last one run. The draft's catalogs
+(9 rings, 13 trinkets, 17 shared amulets, one legendary amulet per ability) are the floor.
+The picture is the ceiling: a grid large enough that a finished account reads well above
+that floor, with unseen icons still drawn. Click an icon to read it.
+
+Luck still biases a chest card toward jewelry, and a boss chest more so with Keen Eye.
+Jewelry is never written into the class collection.
+
+Reference: `docs/intentions/survivors_codex_tab.png`.
+
+## Talents
+
+Three trees per class, vanilla names, 51 points across them. A row opens after 5 points
+already spent in that tree. Milestones at 10, 20, and 30 points in one tree change how
+spells play, and they are reachable, so a tree has enough nodes to hold 30. Ranks are the
+vanilla mix of 5, 3, and 1, not six identical nodes of 5. Click spends, right-click takes
+one back, Reset is free.
+
+Three specs are stored on the hero. The points in the picture (0/11/40, 0/38/13, and an
+empty third) are three saved spreads, not one array with a view on top. The run uses the
+spec that is selected.
+
+Paladin milestones, as named on the picture: Holy — Divine Favor, Daybreak, Light's Grace.
+Protection — Hallowed Ground, Ardent Defender, Hammer of the Righteous. Retribution — Seal
+of Command, The Art of War, Divine Storm. Other classes use their own vanilla trees and
+name the 10, 20, and 30 the same way, as a real talent, not as "{tree} 10".
+
+Talent experience is unchanged: the run pays it from time, kills, bosses, and a win, more
+in a later zone. 100 experience is one point. Veteran's Lessons still raises that for a
+class behind the account's best.
+
+Reference: `docs/intentions/survivors_talent_tab.png`.
+
+## Achievements
+
+Account-wide. The summary shows points earned against the whole catalog, recently earned,
+and five bars: Zones, Classes, Collection, Feats, Lifetime. Each category has its own page.
+A row shows its reward in points and, where it is a count, how far along it is.
+
+The draft's catalog is the start (zone clears, a win on each class, talent cap, pieces,
+the set, legendary amulets, cloaks, runs, wins). It grows when a zone, a piece, or a feat
+from this file exists to be earned. Point totals on the pictures (645 of 1520, 40 of 73)
+describe a finished catalog, not a number to hard-code first.
+
+Reference: `docs/intentions/survivors_achievements_tab_summary.png`,
+`docs/intentions/survivors_achievement_tab_zones.png`.
+
+## Rewards
+
+Perks and companions are bought with the same points. The pages match the pictures.
+
+Perks: Second Thoughts, Skip, Veteran's Lessons, Banish, Opening Hand, Keen Eye. Ranks show
+as pips. The effect text on the picture is the effect in the run. Where the draft used a
+milder number (Veteran's Lessons at 20% a rank, Keen Eye as a jewelry chance), the picture's
+wording wins: a class behind the account's best earns 40% more talent experience, and a
+boss is 10% more likely to drop each piece.
+
+Companions: one free companion, Long Leash, Quick Paws, Gold-sniffer, Wisp-herder,
+Rune-hound, and a second companion with its own instinct. Fetch distance, grasp, rest, and
+the "not a magnet" rule are unchanged. Looks are the critters on the picture, worn from
+this page. Display ids still have to be ids the client actually ships. Snowshoe Rabbit
+stays the default until another id is checked. Tabards are the third rewards page. They
+are account cosmetics. No tabard grants a stat.
+
+Reference: `docs/intentions/survivors_rewards_tab_perks.png`,
+`docs/intentions/survivors_rewards_tab_companions.png`.
+
+## Order of work
+
+The draft built every rule one inch deep. The next work builds one surface to the picture,
+then the data that surface is lying about.
+
+1. **Front door.** The three columns, the tabs, Done, and Enter World, drawn with glue art.
+   Tabs that do not have their phase yet open the draft page for that topic, inside this
+   frame, not a second menu. Enter World uses the zone the door selected. A locked zone
+   does not start.
+2. **Zone path.** Replace the seven-zone list with the twelve above. A zone with no map and
+   no boss is shown and locked, not enterable. Gates stay "previous clear, then talent level".
+3. **Drop tables and the collection grid.** Pieces come from named creatures. The collection
+   becomes nine slots by six qualities. The worn set and the set bonus read that grid.
+4. **Talent trees and three specs.** Replace the six-node skeleton. Specs save separately.
+5. **Codex icons, achievement categories, companion looks, tabards.** Each is a page on the
+   frame from step 1, filled when its catalog is real.
+
+Character appearance (race portraits, sex, skin, face, hair) stays the glue screen reached
+from the hero column. A paper doll in the Armory comes after the worn set is real, because
+a doll with nothing to show is the draft again.
+
+## Out of scope until this file says otherwise
+
+Shrinking the horde. Removing the level-up draft, renown, or the relic stash before gear
+and talents replace what the player spends them on. A download-and-run updater. Inventing
+item icons, creature display ids, or map files that are not in the 1.12.1 client.
