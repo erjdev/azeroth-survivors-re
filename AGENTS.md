@@ -33,6 +33,8 @@ scripts/web-setup.sh        # once per machine: wasm target, wasm-bindgen-cli at
 scripts/web-build.sh        # → web/dist (WebGPU build). WEB_DEBUG=1 keeps symbols for readable stack traces.
 cargo run --release -p wenilla-host -- --www web/dist --data /path/to/WoW/Data --upstream 127.0.0.1
                             # http://127.0.0.1:8090/ — needs a realmd:3724 and mangosd:8085 at --upstream
+cargo survivors         # native survivors on the play profile (incremental). Sets nothing for WOW_DATA.
+cargo survivors-build   # the same build, without launching. Not `cargo build --release`.
 cargo check --target wasm32-unknown-unknown -p wenilla --no-default-features --features webgpu
                             # the wasm build without linking; what check.yml runs
 cargo check --workspace --all-targets      # native (Debian/Ubuntu: libasound2-dev libudev-dev)

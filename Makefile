@@ -25,8 +25,8 @@ start: ## Serve the game at http://127.0.0.1:8090 (run `make build` first)
 	@test -f $(WASM) || { echo "  not built yet — run: make build"; exit 1; }
 	cargo run --release -p wenilla-host -- --www web/dist --data $(DATA)
 
-native: fetch-data ## Build + run the native desktop version
-	WOW_DATA=$(DATA) cargo run --release -p warcraft-survivors
+native: fetch-data ## Build + run the native game (incremental play profile, not --release)
+	WOW_DATA=$(DATA) cargo run --profile play -p warcraft-survivors
 
 clean: ## Remove the fetched game data and wasm build output
 	rm -rf web/dist $(DATA_DIR)

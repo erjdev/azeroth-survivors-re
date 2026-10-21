@@ -3,5 +3,8 @@
 # `release`). Env vars still prefix it: `WOW_USER=<account> WOW_PASS=<password> cargo play`.
 [alias]
 play = "run --profile play -p benilla"
-# `cargo survivors`: Warcraft Survivors, server-less, on the same profile.
+# `cargo survivors`: Warcraft Survivors, server-less, on the play profile.
+# `--release` is the measured build and is not incremental: a one-line edit rebuilds
+# `benilla-app` from scratch. Day-to-day edits use this alias (or `survivors-build`).
 survivors = "run --profile play -p warcraft-survivors"
+survivors-build = "build --profile play -p warcraft-survivors"
