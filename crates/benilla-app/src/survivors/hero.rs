@@ -39,6 +39,9 @@ const FIXED_PITCH: f32 = 61.0 * std::f32::consts::PI / 180.0;
 /// Wheel zoom range, yards from the hero's shoulders.
 const ZOOM_MIN: f32 = 1.5;
 const ZOOM_MAX: f32 = 70.0;
+/// Radians per second the menu camera walks around the hero. A third of the first
+/// pass, which turned the world behind them too quickly.
+const MENU_ORBIT: f32 = 0.2 / 3.0;
 
 /// Whether the camera is locked; `C` toggles it.
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -352,7 +355,7 @@ pub(super) fn place_camera(
         rig.dist = (rig.dist * (1.0 - 0.12 * notches).clamp(0.5, 1.5)).clamp(ZOOM_MIN, ZOOM_MAX);
     }
     let (eye, look) = if *phase.get() == Phase::Menu {
-        rig.orbit += time.delta_secs() * 0.2;
+        rig.orbit += time.delta_secs() * MENU_ORBIT;
         let d = 7.0;
         (
             focus + Vec3::new(rig.orbit.sin() * d, 2.4, rig.orbit.cos() * d),
