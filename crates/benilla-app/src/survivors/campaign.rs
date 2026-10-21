@@ -342,6 +342,28 @@ pub(super) fn legendary_cloak(epic_cloaks: usize) -> bool {
     epic_cloaks >= 9
 }
 
+/// A two-handed weapon fills the off-hand for the set and adds no second piece.
+pub(super) fn set_complete(owned: &[bool], legendary_weapon: bool, lock_offhand: bool) -> bool {
+    let mut filled = 0u32;
+    for slot in 0..10 {
+        if slot == 8 && legendary_weapon {
+            filled += 1;
+            continue;
+        }
+        if lock_offhand && slot == 9 {
+            let main = legendary_weapon || owned.get(8).copied().unwrap_or(false);
+            if main {
+                filled += 1;
+            }
+            continue;
+        }
+        if owned.get(slot).copied().unwrap_or(false) {
+            filled += 1;
+        }
+    }
+    filled >= 10
+}
+
 /// Sum of owned base pieces, the legendary weapon when it replaces the rare main hand, the set,
 /// and a cloak.
 pub(super) fn equipped_bonus(
@@ -351,11 +373,9 @@ pub(super) fn equipped_bonus(
     lock_offhand: bool,
 ) -> Bonus {
     let mut total = Bonus::default();
-    let mut filled = 0u32;
     for slot in 0..10 {
         if slot == 8 && legendary_weapon {
             total.add(quality_bonus(Quality::Legendary));
-            filled += 1;
             continue;
         }
         if lock_offhand && slot == 9 {
@@ -366,10 +386,9 @@ pub(super) fn equipped_bonus(
         }
         if let Some(q) = slot_quality(slot) {
             total.add(quality_bonus(q));
-            filled += 1;
         }
     }
-    if filled >= 10 {
+    if set_complete(owned, legendary_weapon, lock_offhand) {
         total.add(set_bonus());
     }
     if let Some(q) = cloak {
@@ -942,6 +961,16 @@ mod tests {
         assert!(equipped_bonus(&nine, false, None, false).might < plain.might);
         let locked = equipped_bonus(&ten, false, None, true);
         assert!(locked.armor < plain.armor);
+        let mut hands = [true; 10];
+        hands[9] = false;
+        let two_hand = equipped_bonus(&hands, false, None, true);
+        let mut shy = hands;
+        shy[0] = false;
+        let missing = equipped_bonus(&shy, false, None, true);
+        assert!(two_hand.might > missing.might + 0.09);
+        assert!(two_hand.crit > missing.crit + 0.04);
+        assert!(set_complete(&hands, false, true));
+        assert!(!set_complete(&shy, false, true));
     }
 
     #[test]

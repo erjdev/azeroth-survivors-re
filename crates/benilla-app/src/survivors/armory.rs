@@ -687,6 +687,7 @@ fn collection(
     let class_name = CLASSES.get(class).map(|c| c.name).unwrap_or("Hero");
     let mut lines = Vec::new();
     let owned = progress.map(|p| p.gear.iter().filter(|g| **g).count()).unwrap_or(0);
+    let have_weapon = progress.map(|p| p.legendary_weapon).unwrap_or(false);
     lines.push((
         format!("{class_name} collection — {owned} of 10 pieces"),
         GOLD,
@@ -698,7 +699,14 @@ fn collection(
         let quality = campaign::slot_quality(slot)
             .map(campaign::quality_name)
             .unwrap_or("?");
-        let (text, color) = if have {
+        let main_filled = have_weapon || progress.and_then(|p| p.gear.get(8).copied()).unwrap_or(false);
+        let occupied = slot == 9 && campaign::two_handed(class) && main_filled;
+        let (text, color) = if occupied {
+            (
+                format!("{slot_name} — filled by the two-handed weapon"),
+                Color::WHITE,
+            )
+        } else if have {
             (format!("{slot_name} — {item} ({quality})"), Color::WHITE)
         } else {
             (format!("{slot_name} — {item} ({quality}) — not collected"), DIM)
@@ -706,10 +714,12 @@ fn collection(
         lines.push((text, color));
     }
     if campaign::two_handed(class) {
-        lines.push(("The weapon is two-handed, so the off hand stays empty.".into(), DIM));
+        lines.push((
+            "The weapon is two-handed, so the off-hand piece is not worn.".into(),
+            DIM,
+        ));
     }
     let weapon = names.map(|row| row[10]).unwrap_or("Legendary weapon");
-    let have_weapon = progress.map(|p| p.legendary_weapon).unwrap_or(false);
     lines.push(if have_weapon {
         (format!("Legendary weapon — {weapon}"), GOLD)
     } else {
@@ -724,8 +734,9 @@ fn collection(
             });
         }
     }
-    if owned == 10 {
-        lines.push(("Set bonus — all ten pieces are collected.".into(), GOLD));
+    let gear = progress.map(|p| p.gear).unwrap_or([false; 10]);
+    if campaign::set_complete(&gear, have_weapon, campaign::two_handed(class)) {
+        lines.push(("Set bonus — the ten slots are filled.".into(), GOLD));
     }
     scroll(panel, font, &lines);
 }
