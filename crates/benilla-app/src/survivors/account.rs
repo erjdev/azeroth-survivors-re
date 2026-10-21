@@ -319,6 +319,10 @@ impl Account {
         rewards::next_locked(&self.snapshot(), &self.earned)
     }
 
+    pub fn achievement_list(&self) -> Vec<rewards::Listed> {
+        rewards::listed(&self.snapshot(), &self.earned)
+    }
+
     /// Pays any achievement the account now meets. A second call pays nothing new.
     pub fn grant_new(&mut self) -> bool {
         let found = rewards::fresh(&self.snapshot(), &self.earned);
@@ -822,6 +826,9 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.resets_left(), 1);
         assert!(account.unspent() > after);
         assert!(!account.grant_new());
+        let list = account.achievement_list();
+        assert!(list.iter().any(|row| row.earned && row.name.contains("Elwynn")));
+        assert!(list.iter().any(|row| !row.earned));
         let text = encode(&account);
         let loaded = parse(&text).unwrap();
         assert_eq!(loaded.pets.leash, 1);

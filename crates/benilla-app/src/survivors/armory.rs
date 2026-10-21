@@ -22,6 +22,9 @@ pub(super) enum Page {
     Zones,
     Talents,
     Rewards,
+    Collection,
+    Codex,
+    Achievements,
 }
 
 #[derive(Resource)]
@@ -323,8 +326,8 @@ pub(super) fn refresh(
                     position_type: PositionType::Absolute,
                     top: Val::Px(8.0),
                     left: Val::Px(280.0),
-                    width: Val::Px(700.0),
-                    height: Val::Px(250.0),
+                    width: Val::Px(760.0),
+                    height: Val::Px(500.0),
                     flex_direction: FlexDirection::Column,
                     padding: UiRect::all(Val::Px(6.0)),
                     overflow: Overflow::clip(),
@@ -350,6 +353,7 @@ pub(super) fn refresh(
         panel
             .spawn(Node {
                 flex_direction: FlexDirection::Row,
+                flex_wrap: FlexWrap::Wrap,
                 column_gap: Val::Px(4.0),
                 ..default()
             })
@@ -370,6 +374,27 @@ pub(super) fn refresh(
                     Act::Page(Page::Rewards),
                     armory.page == Page::Rewards,
                 );
+                chip(
+                    row,
+                    &font,
+                    "Collection",
+                    Act::Page(Page::Collection),
+                    armory.page == Page::Collection,
+                );
+                chip(
+                    row,
+                    &font,
+                    "Codex",
+                    Act::Page(Page::Codex),
+                    armory.page == Page::Codex,
+                );
+                chip(
+                    row,
+                    &font,
+                    "Achievements",
+                    Act::Page(Page::Achievements),
+                    armory.page == Page::Achievements,
+                );
             });
         let note = if armory.note.is_empty() {
             "Pick a hero, then a zone. Appearance stays on the class screen."
@@ -382,6 +407,9 @@ pub(super) fn refresh(
             Page::Zones => zones(panel, &font, &account, &selection),
             Page::Talents => talents(panel, &font, &account, &selection),
             Page::Rewards => rewards_page(panel, &font, &account),
+            Page::Collection => collection(panel, &font, &account, &selection),
+            Page::Codex => codex(panel, &font, &account, &selection),
+            Page::Achievements => achievements(panel, &font, &account),
         }
     });
 }
@@ -610,6 +638,208 @@ fn pet_label(name: &str, rank: u8, max: u8) -> String {
     }
 }
 
+const DIM: Color = Color::srgb(0.55, 0.5, 0.42);
+
+fn picked_class(account: &Account, selection: &Selection) -> usize {
+    selection
+        .character
+        .and_then(|id| account.character(id).map(|c| c.class))
+        .or(selection.class)
+        .unwrap_or(0)
+        .min(CLASSES.len().saturating_sub(1))
+}
+
+fn scroll(panel: &mut impl ChipParent, font: &Handle<Font>, lines: &[(String, Color)]) {
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Column,
+            height: Val::Px(390.0),
+            overflow: Overflow::scroll_y(),
+            ..default()
+        })
+        .with_children(|col| {
+            for (line, color) in lines {
+                col.spawn(hud::text_bundle(font, line.clone(), 13.0, *color));
+            }
+        });
+}
+
+fn collection(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    account: &Account,
+    selection: &Selection,
+) {
+    let class = picked_class(account, selection);
+    let names = campaign::GEAR_NAMES.get(class);
+    let progress = account.classes.get(class);
+    let class_name = CLASSES.get(class).map(|c| c.name).unwrap_or("Hero");
+    let mut lines = Vec::new();
+    let owned = progress.map(|p| p.gear.iter().filter(|g| **g).count()).unwrap_or(0);
+    lines.push((
+        format!("{class_name} collection — {owned} of 10 pieces"),
+        GOLD,
+    ));
+    for slot in 0..campaign::SLOTS.len() {
+        let have = progress.and_then(|p| p.gear.get(slot).copied()).unwrap_or(false);
+        let slot_name = campaign::SLOTS[slot];
+        let item = names.map(|row| row[slot]).unwrap_or("Unknown");
+        let quality = campaign::slot_quality(slot)
+            .map(campaign::quality_name)
+            .unwrap_or("?");
+        let (text, color) = if have {
+            (format!("{slot_name} — {item} ({quality})"), Color::WHITE)
+        } else {
+            (format!("{slot_name} — {item} ({quality}) — not collected"), DIM)
+        };
+        lines.push((text, color));
+    }
+    if campaign::two_handed(class) {
+        lines.push(("The weapon is two-handed, so the off hand stays empty.".into(), DIM));
+    }
+    let weapon = names.map(|row| row[10]).unwrap_or("Legendary weapon");
+    let have_weapon = progress.map(|p| p.legendary_weapon).unwrap_or(false);
+    lines.push(if have_weapon {
+        (format!("Legendary weapon — {weapon}"), GOLD)
+    } else {
+        (format!("Legendary weapon — {weapon} — the raid"), DIM)
+    });
+    if let Some(id) = selection.character {
+        if account.character(id).is_some_and(|c| c.class == class) {
+            let cloak = campaign::cloak_quality(account.feats(class, id));
+            lines.push(match cloak {
+                Some(q) => (format!("Cloak — {}", campaign::quality_name(q)), GOLD),
+                None => ("Cloak — no feats yet".into(), DIM),
+            });
+        }
+    }
+    if owned == 10 {
+        lines.push(("Set bonus — all ten pieces are collected.".into(), GOLD));
+    }
+    scroll(panel, font, &lines);
+}
+
+fn codex(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    account: &Account,
+    selection: &Selection,
+) {
+    let class_i = picked_class(account, selection);
+    let Some(class) = CLASSES.get(class_i) else {
+        return;
+    };
+    let seen = account
+        .classes
+        .get(class_i)
+        .map(|p| p.seen.as_slice())
+        .unwrap_or(&[]);
+    let mut lines = vec![(
+        format!("{} spells. A legendary amulet is marked when its card is dealt.", class.name),
+        GOLD,
+    )];
+    let mut keys = Vec::new();
+    for key in std::iter::once(class.start).chain(class.pool.iter().copied()) {
+        if !keys.contains(&key) {
+            keys.push(key);
+        }
+    }
+    for key in keys {
+        let def = data::ability(key);
+        let amulet = campaign::legendary_amulet(key);
+        let found = seen.iter().any(|name| name == &amulet);
+        let color = if found { GOLD } else { Color::WHITE };
+        let mark = if found { "amulet seen" } else { "amulet unseen" };
+        lines.push((
+            format!(
+                "{} — {} — {} damage, {}s cooldown — {mark}",
+                spell_title(key),
+                kind_name(def.kind),
+                def.damage,
+                def.cooldown
+            ),
+            color,
+        ));
+    }
+    lines.push((
+        format!(
+            "Rings, worn {}: {}",
+            campaign::RINGS_WORN,
+            campaign::RING_NAMES.join(", ")
+        ),
+        Color::WHITE,
+    ));
+    lines.push((
+        format!(
+            "Trinkets, worn {}: {}",
+            campaign::TRINKETS_WORN,
+            campaign::TRINKET_NAMES.join(", ")
+        ),
+        Color::WHITE,
+    ));
+    lines.push((
+        format!(
+            "Amulets, worn {}: {}",
+            campaign::AMULETS_WORN,
+            campaign::AMULET_NAMES.join(", ")
+        ),
+        Color::WHITE,
+    ));
+    scroll(panel, font, &lines);
+}
+
+fn achievements(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
+    let rows = account.achievement_list();
+    let earned = rows.iter().filter(|row| row.earned).count();
+    let mut lines = vec![(
+        format!("{earned} of {} achievements. Points are spent on the Rewards page.", rows.len()),
+        GOLD,
+    )];
+    for row in rows {
+        let (mark, color) = if row.earned {
+            ("Earned", GOLD)
+        } else {
+            ("Open", DIM)
+        };
+        lines.push((format!("{mark} — {} — {} points", row.name, row.points), color));
+    }
+    scroll(panel, font, &lines);
+}
+
+fn spell_title(key: &str) -> String {
+    key.split('_')
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn kind_name(kind: data::Kind) -> &'static str {
+    match kind {
+        data::Kind::Bolt => "Bolt",
+        data::Kind::Strike => "Strike",
+        data::Kind::Melee => "Melee",
+        data::Kind::Nova => "Nova",
+        data::Kind::Cone => "Cone",
+        data::Kind::Ground => "Ground",
+        data::Kind::GroundSelf => "Ground",
+        data::Kind::Chain => "Chain",
+        data::Kind::Dot => "Damage over time",
+        data::Kind::Aura => "Aura",
+        data::Kind::Orbit => "Orbit",
+        data::Kind::Shield => "Shield",
+        data::Kind::Immune => "Immune",
+        data::Kind::Thorns => "Thorns",
+        data::Kind::Heal => "Heal",
+        data::Kind::Totem => "Totem",
+    }
+}
+
 fn field_label(text: &str, focused: bool) -> String {
     let shown = if text.is_empty() { "name" } else { text };
     if focused {
@@ -625,6 +855,9 @@ fn signature(armory: &Armory, account: &Account, selection: &Selection) -> u64 {
         Page::Zones => 2,
         Page::Talents => 3,
         Page::Rewards => 4,
+        Page::Collection => 5,
+        Page::Codex => 6,
+        Page::Achievements => 7,
     };
     n = fold(n, u64::from(account.unspent()));
     n = fold(n, account.earned_ids().len() as u64);
@@ -658,6 +891,13 @@ fn signature(armory: &Armory, account: &Account, selection: &Selection) -> u64 {
         for rank in hero.talents {
             n = fold(n, u64::from(rank));
         }
+    }
+    for class in &account.classes {
+        for piece in class.gear {
+            n = fold(n, u64::from(piece));
+        }
+        n = fold(n, u64::from(class.legendary_weapon));
+        n = fold(n, class.seen.len() as u64);
     }
     n
 }

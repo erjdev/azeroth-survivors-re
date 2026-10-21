@@ -20,6 +20,17 @@ pub(super) enum Quality {
     Legendary,
 }
 
+pub(super) fn quality_name(quality: Quality) -> &'static str {
+    match quality {
+        Quality::Poor => "Poor",
+        Quality::Common => "Common",
+        Quality::Uncommon => "Uncommon",
+        Quality::Rare => "Rare",
+        Quality::Epic => "Epic",
+        Quality::Legendary => "Legendary",
+    }
+}
+
 /// One zone on the path. `map` matches [`super::data::MapDef::name`].
 pub(super) struct Zone {
     pub name: &'static str,

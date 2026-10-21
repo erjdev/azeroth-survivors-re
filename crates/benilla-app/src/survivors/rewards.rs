@@ -332,6 +332,24 @@ pub(super) fn catalog_len() -> usize {
     catalog().len()
 }
 
+pub(super) struct Listed {
+    pub name: String,
+    pub points: u32,
+    pub earned: bool,
+}
+
+/// Every achievement, earned or still open.
+pub(super) fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
+    catalog()
+        .into_iter()
+        .map(|a| Listed {
+            earned: earned.contains(&a.id) || a.kind.met(snapshot),
+            points: a.points,
+            name: a.name,
+        })
+        .collect()
+}
+
 /// The first achievement still open, for the rewards page.
 pub(super) fn next_locked(snapshot: &Snapshot, earned: &[u16]) -> Option<String> {
     catalog()
