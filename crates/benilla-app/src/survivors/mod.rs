@@ -17,6 +17,7 @@ mod grade;
 mod hero;
 mod hud;
 mod menu;
+mod notes;
 mod minimap;
 mod renown;
 mod rewards;

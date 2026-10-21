@@ -25,6 +25,7 @@ pub(super) enum Page {
     Collection,
     Codex,
     Achievements,
+    Notes,
 }
 
 #[derive(Resource)]
@@ -65,6 +66,8 @@ pub(super) enum Act {
     Learn(usize),
     Respec,
     Reward(u8),
+    Restart,
+    Update,
 }
 
 pub(super) fn input(
@@ -76,6 +79,7 @@ pub(super) fn input(
     mut selection: ResMut<Selection>,
     phase: Res<State<Phase>>,
     mut granted: Local<bool>,
+    mut exit: MessageWriter<AppExit>,
 ) {
     if *phase.get() != Phase::Menu {
         typing.0 = false;
@@ -136,6 +140,11 @@ pub(super) fn input(
                 }
             }
             Act::Reward(code) => armory.note = buy_reward(&mut account, code).into(),
+            Act::Restart => {
+                super::notes::restart_same(&mut exit);
+                armory.note = "Restarting".into();
+            }
+            Act::Update => armory.note = super::notes::restart_configured(&mut exit).into(),
         }
     }
 }
@@ -395,6 +404,7 @@ pub(super) fn refresh(
                     Act::Page(Page::Achievements),
                     armory.page == Page::Achievements,
                 );
+                chip(row, &font, "Notes", Act::Page(Page::Notes), armory.page == Page::Notes);
             });
         let note = if armory.note.is_empty() {
             "Pick a hero, then a zone. Appearance stays on the class screen."
@@ -410,6 +420,7 @@ pub(super) fn refresh(
             Page::Collection => collection(panel, &font, &account, &selection),
             Page::Codex => codex(panel, &font, &account, &selection),
             Page::Achievements => achievements(panel, &font, &account),
+            Page::Notes => notes_page(panel, &font),
         }
     });
 }
@@ -840,6 +851,24 @@ fn kind_name(kind: data::Kind) -> &'static str {
     }
 }
 
+fn notes_page(panel: &mut impl ChipParent, font: &Handle<Font>) {
+    let mut lines: Vec<(String, Color)> = super::notes::NOTES
+        .iter()
+        .map(|line| ((*line).to_string(), Color::WHITE))
+        .collect();
+    lines.insert(0, ("Patch notes".into(), GOLD));
+    scroll(panel, font, &lines);
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            ..default()
+        })
+        .with_children(|row| {
+            chip(row, font, "Restart", Act::Restart, false);
+            chip(row, font, "Update and restart", Act::Update, false);
+        });
+}
+
 fn field_label(text: &str, focused: bool) -> String {
     let shown = if text.is_empty() { "name" } else { text };
     if focused {
@@ -858,6 +887,7 @@ fn signature(armory: &Armory, account: &Account, selection: &Selection) -> u64 {
         Page::Collection => 5,
         Page::Codex => 6,
         Page::Achievements => 7,
+        Page::Notes => 8,
     };
     n = fold(n, u64::from(account.unspent()));
     n = fold(n, account.earned_ids().len() as u64);
