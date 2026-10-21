@@ -134,6 +134,30 @@ pub(super) fn zone_open(index: usize, talent_level: u32, clears: &[bool]) -> boo
     index == 0 || clears.get(index - 1).copied().unwrap_or(false)
 }
 
+/// Maps that are not on the campaign path stay open. A campaign map uses [`zone_open`].
+pub(super) fn map_allowed(map_name: &str, talent_level: u32, clears: &[bool]) -> bool {
+    match zone_index(map_name) {
+        Some(zone) => zone_open(zone, talent_level, clears),
+        None => true,
+    }
+}
+
+/// Why a campaign zone is shut, when it is.
+pub(super) fn zone_lock_reason(index: usize, talent_level: u32, clears: &[bool]) -> Option<String> {
+    if zone_open(index, talent_level, clears) {
+        return None;
+    }
+    let zone = ZONES.get(index)?;
+    if talent_level < zone.talent {
+        return Some(format!("{} needs talent level {}", zone.name, zone.talent));
+    }
+    let prev = ZONES
+        .get(index.wrapping_sub(1))
+        .map(|z| z.name)
+        .unwrap_or("the previous zone");
+    Some(format!("Clear {prev} on this class first"))
+}
+
 pub(super) fn slot_zone(slot: usize) -> Option<usize> {
     SLOT_ZONE.get(slot).copied()
 }
@@ -991,6 +1015,17 @@ mod tests {
         assert!(two_handed(6));
         assert!(!two_handed(0));
         assert_eq!(legendary_amulet("Heroic Strike"), "Amulet of Heroic Strike");
+        assert!(map_allowed("Elwynn Forest", 0, &[false; 7]));
+        assert!(!map_allowed("Westfall", 5, &[false; 7]));
+        let mut cleared = [false; 7];
+        cleared[0] = true;
+        assert!(map_allowed("Westfall", 5, &cleared));
+        assert!(!map_allowed("Westfall", 4, &cleared));
+        assert!(map_allowed("The Barrens", 0, &[false; 7]));
+        assert_eq!(
+            zone_lock_reason(1, 0, &[false; 7]).as_deref(),
+            Some("Westfall needs talent level 5")
+        );
     }
 
     #[test]

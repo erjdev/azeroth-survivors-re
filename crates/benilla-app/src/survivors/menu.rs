@@ -672,6 +672,7 @@ pub(super) fn menu_clicks(
     mut renown: ResMut<Renown>,
     mut stash: ResMut<Stash>,
     account: Res<super::account::Account>,
+    mut armory: ResMut<super::armory::Armory>,
     mut rng: ResMut<Rng>,
     mut next: ResMut<NextState<Phase>>,
     mut exit: MessageWriter<AppExit>,
@@ -697,9 +698,18 @@ pub(super) fn menu_clicks(
     let (race, sex) = (cur.map(|c| c.0), cur.map_or(0, |c| c.1));
     match action {
         MenuAction::Map(i) => {
-            if selection.map != i {
+            let name = data::MAPS.get(i).map(|m| m.name).unwrap_or("");
+            let (level, clears) = super::armory::hero_gate(&account, &selection);
+            if !super::campaign::map_allowed(name, level, &clears) {
+                if let Some(zone) = super::campaign::zone_index(name) {
+                    if let Some(reason) = super::campaign::zone_lock_reason(zone, level, &clears) {
+                        armory.note = reason;
+                    }
+                }
+            } else if selection.map != i {
                 selection.map = i;
                 selection.version += 1;
+                armory.note.clear();
             }
         }
         MenuAction::Enter => {
@@ -708,12 +718,13 @@ pub(super) fn menu_clicks(
                 .map(|i| renown.ranks(i))
                 .unwrap_or([0; 3]);
             let class = selection.class.unwrap_or(0);
+            let hero = selection.character;
             if start_run(
                 &mut run,
                 &mut selection,
                 ranks,
                 stash.gear(),
-                account.bonus_for(class),
+                account.bonus_picked(class, hero),
             ) {
                 next.set(Phase::Playing);
             }

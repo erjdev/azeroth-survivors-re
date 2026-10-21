@@ -5,6 +5,7 @@
 //! off ([`crate::run_mode::CaptureMode`]).
 
 mod abilities;
+mod armory;
 mod account;
 mod auto;
 mod campaign;
@@ -57,6 +58,8 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<renown::Renown>()
             .init_resource::<stash::Stash>()
             .init_resource::<account::Account>()
+            .init_resource::<armory::Armory>()
+            .init_resource::<Typing>()
             .init_resource::<hud::PausePage>()
             .init_resource::<hud::SettingEdits>()
             .init_resource::<cards::PendingPick>()
@@ -107,10 +110,12 @@ impl Plugin for SurvivorsPlugin {
                     hero::follow_map,
                     hud::menu_preview,
                     hud::buttons,
+                    armory::input,
                     hud::keys,
                     hud::refresh_menu,
                     menu::restore_pick,
                     menu::build_menu,
+                    armory::refresh,
                     menu::menu_clicks,
                     menu::refresh_menu_ui.before(crate::glue::GlueVisuals),
                     cards::deal_cards,
@@ -221,10 +226,16 @@ pub(super) enum Phase {
 #[derive(Component)]
 pub(super) struct RunEntity;
 
+/// True while a campaign name field has the keyboard, so Enter does not start the run.
+#[derive(Resource, Default)]
+pub(super) struct Typing(pub bool);
+
 /// The class, look and battleground picked at the menu; the battleground holds for the run.
 #[derive(Resource, Default)]
 pub(super) struct Selection {
     pub class: Option<usize>,
+    /// The named character whose talents, gear and zone gates this run uses.
+    pub character: Option<u32>,
     /// `(display, race, sex)`, one per race and sex the class's trainers come in.
     pub looks: Vec<(u32, u8, u8)>,
     pub look: Option<usize>,

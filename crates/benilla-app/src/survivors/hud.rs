@@ -1632,6 +1632,7 @@ pub(super) fn keys(
     renown: Res<super::renown::Renown>,
     stash: Res<super::stash::Stash>,
     account: Res<super::account::Account>,
+    typing: Res<super::Typing>,
     mut selection: ResMut<Selection>,
     mut run: ResMut<Run>,
     mut next: ResMut<NextState<Phase>>,
@@ -1643,13 +1644,15 @@ pub(super) fn keys(
                 .map(|i| renown.ranks(i))
                 .unwrap_or([0; 3]);
             let class = selection.class.unwrap_or(0);
-            if keys.just_pressed(KeyCode::Enter)
+            let hero = selection.character;
+            if !typing.0
+                && keys.just_pressed(KeyCode::Enter)
                 && start_run(
                     &mut run,
                     &mut selection,
                     ranks,
                     stash.gear(),
-                    account.bonus_for(class),
+                    account.bonus_picked(class, hero),
                 )
             {
                 next.set(Phase::Playing);

@@ -242,6 +242,27 @@ impl Account {
         self.dirty = true;
     }
 
+    /// A named hero. Empty names are refused.
+    pub fn create(&mut self, first: &str, last: &str, class: usize) -> Option<u32> {
+        let first = first.trim();
+        let last = last.trim();
+        if first.is_empty() || last.is_empty() || class >= data::CLASSES.len() {
+            return None;
+        }
+        let id = self.next_id;
+        self.next_id += 1;
+        self.characters.push(Character {
+            id,
+            first: first.to_string(),
+            last: last.to_string(),
+            class,
+            talent_xp: 0,
+            talents: [0; 18],
+        });
+        self.dirty = true;
+        Some(id)
+    }
+
     pub fn bonus_for(&self, class: usize) -> Bonus {
         let id = self
             .characters
@@ -250,6 +271,16 @@ impl Account {
             .map(|c| c.id)
             .unwrap_or(0);
         self.bonus(class, id)
+    }
+
+    /// The picked character's sheet when one is selected, otherwise the class's first hero.
+    pub fn bonus_picked(&self, class: usize, character: Option<u32>) -> Bonus {
+        if let Some(id) = character {
+            if let Some(hero_class) = self.character(id).map(|c| c.class) {
+                return self.bonus(hero_class, id);
+            }
+        }
+        self.bonus_for(class)
     }
 
     fn legendary_ready(&self) -> bool {
@@ -537,5 +568,24 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.character(id).unwrap().talents[0], 0);
         let bonus = account.bonus(0, 1);
         assert!(bonus.crit_damage > 0.0);
+    }
+
+    #[test]
+    fn a_named_hero_keeps_their_own_talents() {
+        let mut account = Account {
+            next_id: 1,
+            characters: Vec::new(),
+            classes: vec![ClassProgress::default(); data::CLASSES.len()],
+            pets: PetRanks::default(),
+            dirty: false,
+        };
+        assert!(account.create(" ", "Wrynn", 1).is_none());
+        let anduin = account.create("Anduin", "Wrynn", 1).unwrap();
+        let uther = account.create("Uther", "Lightbringer", 1).unwrap();
+        account.add_talent_xp(anduin, 500);
+        assert!(account.learn(anduin, 0));
+        let anduin_might = account.bonus_picked(1, Some(anduin)).might;
+        let uther_might = account.bonus_picked(1, Some(uther)).might;
+        assert!(anduin_might > uther_might);
     }
 }
