@@ -34,6 +34,7 @@ pub(super) fn build(
     renown: &Renown,
     stash: &Stash,
     note: &str,
+    talents: Option<&benilla_formats::TalentCatalog>,
 ) {
     header(ui, art, font);
     tabs(ui, art, font, armory.page, account.unspent());
@@ -45,7 +46,7 @@ pub(super) fn build(
         enter_bar(ui, art, font, armory, account, selection);
     } else {
         panel(ui, art, |body| {
-            super::fill_draft(body, font, armory, account, selection, renown, stash)
+            super::fill_draft(body, font, armory, account, selection, renown, stash, talents)
         });
     }
 }
@@ -492,7 +493,7 @@ fn hero_column(
     let bonus = account.bonus_picked(class_i, selection.character);
     line(body, font, &bonus_line(bonus), 12.0, BONUS);
     let spent = hero
-        .map(|c| c.spent())
+        .map(|c| c.active_points())
         .unwrap_or(0);
     body.spawn(Node {
         width: Val::Percent(100.0),

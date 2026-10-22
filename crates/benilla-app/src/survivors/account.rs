@@ -21,6 +21,9 @@ pub(super) struct Character {
     pub spec: u8,
     /// Three specs, each three trees of [`campaign::NODES_PER_TREE`] ranks.
     pub specs: [[u8; campaign::SPEC_LEN]; 3],
+    /// Real `Talent.dbc` ranks for the three specs: tree index, talent id, rank.
+    /// Empty means the skeleton above is what the run still uses.
+    pub dbc: [Vec<(u8, u32, u8)>; 3],
 }
 
 impl Character {
@@ -31,6 +34,47 @@ impl Character {
     pub(super) fn spent(&self) -> u32 {
         self.ranks().iter().map(|n| u32::from(*n)).sum()
     }
+
+    /// Points in each tree of one spec. A spec that has spent on the real tree reports that.
+    pub(super) fn tree_points(&self, spec: usize) -> [u32; 3] {
+        let spec = spec.min(2);
+        let dbc: u32 = self.dbc[spec].iter().map(|entry| u32::from(entry.2)).sum();
+        if dbc > 0 {
+            let mut points = [0u32; 3];
+            for &(tree, _, rank) in &self.dbc[spec] {
+                if tree < 3 {
+                    points[usize::from(tree)] += u32::from(rank);
+                }
+            }
+            points
+        } else {
+            let ranks = &self.specs[spec];
+            [
+                campaign::points_in_tree(ranks, 0),
+                campaign::points_in_tree(ranks, 1),
+                campaign::points_in_tree(ranks, 2),
+            ]
+        }
+    }
+
+    pub(super) fn active_points(&self) -> u32 {
+        self.tree_points(usize::from(self.spec).min(2))
+            .iter()
+            .sum()
+    }
+
+    pub(super) fn dbc_rank(&self, talent: u32) -> u8 {
+        let spec = usize::from(self.spec).min(2);
+        self.dbc[spec]
+            .iter()
+            .find(|entry| entry.1 == talent)
+            .map(|entry| entry.2)
+            .unwrap_or(0)
+    }
+}
+
+fn blank_dbc() -> [Vec<(u8, u32, u8)>; 3] {
+    [Vec::new(), Vec::new(), Vec::new()]
 }
 
 fn blank_specs() -> [[u8; campaign::SPEC_LEN]; 3] {
@@ -147,6 +191,7 @@ impl Account {
             talent_xp: 0,
             spec: 0,
             specs: blank_specs(),
+            dbc: blank_dbc(),
         });
         self.dirty = true;
         id
@@ -232,10 +277,18 @@ impl Account {
             return Bonus::default();
         };
         let pieces = progress.pieces;
-        let talents = self
-            .character(id)
+        let hero = self.character(id);
+        let using_dbc = hero.is_some_and(|c| {
+            c.dbc[usize::from(c.spec).min(2)]
+                .iter()
+                .any(|entry| entry.2 > 0)
+        });
+        let talents = hero
             .map(|c| c.specs[usize::from(c.spec).min(2)])
             .unwrap_or([0; campaign::SPEC_LEN]);
+        let dbc_points = hero
+            .map(|c| c.tree_points(usize::from(c.spec).min(2)))
+            .unwrap_or([0; 3]);
         let cloak = campaign::cloak_quality(self.feats(class, id));
         let mut total = campaign::equipped_bonus(&pieces, cloak);
         if self.legendary_ready() {
@@ -247,7 +300,11 @@ impl Account {
             total.crit_damage += cloak.crit_damage;
             total.targets += cloak.targets;
         }
-        total.add(campaign::talent_bonus(&talents));
+        if using_dbc {
+            total.add(campaign::talent_bonus_spent(dbc_points));
+        } else {
+            total.add(campaign::talent_bonus(&talents));
+        }
         total
     }
 
@@ -305,7 +362,76 @@ impl Account {
         };
         let spec = usize::from(c.spec).min(2);
         c.specs[spec] = [0; campaign::SPEC_LEN];
+        c.dbc[spec].clear();
         self.dirty = true;
+    }
+
+    /// Spend one rank on a `Talent.dbc` talent. The skeleton spread on this spec returns to
+    /// the unspent pool, because the run follows the real tree once it has a point.
+    pub fn learn_talent(
+        &mut self,
+        id: u32,
+        tree: u8,
+        talent: u32,
+        max_rank: u8,
+        row: u8,
+        prereq_met: bool,
+    ) -> bool {
+        let Some(c) = self.characters.iter().find(|c| c.id == id) else {
+            return false;
+        };
+        let spec = usize::from(c.spec).min(2);
+        let rank = c
+            .dbc[spec]
+            .iter()
+            .find(|entry| entry.1 == talent)
+            .map(|entry| entry.2)
+            .unwrap_or(0);
+        let points = c
+            .dbc[spec]
+            .iter()
+            .filter(|entry| entry.0 == tree)
+            .map(|entry| u32::from(entry.2))
+            .sum();
+        let spent = c.dbc[spec].iter().map(|entry| u32::from(entry.2)).sum();
+        let unspent = campaign::unspent_talents(c.talent_xp, spent);
+        if !campaign::can_learn_talent(rank, max_rank, row, points, prereq_met, unspent) {
+            return false;
+        }
+        let Some(c) = self.characters.iter_mut().find(|c| c.id == id) else {
+            return false;
+        };
+        c.specs[spec] = [0; campaign::SPEC_LEN];
+        if let Some(entry) = c.dbc[spec].iter_mut().find(|entry| entry.1 == talent) {
+            entry.2 = entry.2.saturating_add(1);
+        } else {
+            c.dbc[spec].push((tree, talent, 1));
+        }
+        self.dirty = true;
+        true
+    }
+
+    /// Take one rank off a `Talent.dbc` talent. `allowed` is the row and prerequisite check.
+    pub fn unlearn_talent(&mut self, id: u32, talent: u32, allowed: bool) -> bool {
+        if !allowed {
+            return false;
+        }
+        let Some(c) = self.characters.iter_mut().find(|c| c.id == id) else {
+            return false;
+        };
+        let spec = usize::from(c.spec).min(2);
+        let Some(pos) = c.dbc[spec].iter().position(|entry| entry.1 == talent) else {
+            return false;
+        };
+        if c.dbc[spec][pos].2 == 0 {
+            return false;
+        }
+        c.dbc[spec][pos].2 -= 1;
+        if c.dbc[spec][pos].2 == 0 {
+            c.dbc[spec].remove(pos);
+        }
+        self.dirty = true;
+        true
     }
 
     /// A named hero. Empty names are refused.
@@ -325,6 +451,7 @@ impl Account {
             talent_xp: 0,
             spec: 0,
             specs: blank_specs(),
+            dbc: blank_dbc(),
         });
         self.dirty = true;
         Some(id)
@@ -606,6 +733,9 @@ fn encode(account: &Account) -> String {
             escape(&c.first),
             escape(&c.last),
         ));
+        if c.dbc.iter().any(|spec| spec.iter().any(|entry| entry.2 > 0)) {
+            out.push_str(&format!("dbc {} {}\n", c.id, encode_dbc(&c.dbc)));
+        }
     }
     for (i, class) in account.classes.iter().enumerate() {
         let gear = class
@@ -759,6 +889,36 @@ fn read_specs(list: &str) -> (u8, [[u8; campaign::SPEC_LEN]; 3]) {
     (0, specs)
 }
 
+fn encode_dbc(specs: &[Vec<(u8, u32, u8)>; 3]) -> String {
+    specs
+        .iter()
+        .map(|spec| {
+            spec.iter()
+                .filter(|entry| entry.2 > 0)
+                .map(|(tree, id, rank)| format!("{tree}:{id}:{rank}"))
+                .collect::<Vec<_>>()
+                .join(",")
+        })
+        .collect::<Vec<_>>()
+        .join("|")
+}
+
+fn read_dbc(payload: &str) -> [Vec<(u8, u32, u8)>; 3] {
+    let mut specs = blank_dbc();
+    for (spec, group) in payload.split('|').enumerate().take(3) {
+        for entry in group.split(',').filter(|s| !s.is_empty()) {
+            let mut bits = entry.split(':');
+            let tree = bits.next().unwrap_or("0").parse::<u8>().unwrap_or(0).min(2);
+            let id = bits.next().unwrap_or("0").parse::<u32>().unwrap_or(0);
+            let rank = bits.next().unwrap_or("0").parse::<u8>().unwrap_or(0);
+            if id != 0 && rank > 0 {
+                specs[spec].push((tree, id, rank));
+            }
+        }
+    }
+    specs
+}
+
 fn parse(text: &str) -> Result<Account, ()> {
     let mut account = empty();
     for line in text.lines() {
@@ -785,7 +945,15 @@ fn parse(text: &str) -> Result<Account, ()> {
                         talent_xp,
                         spec,
                         specs,
+                        dbc: blank_dbc(),
                     });
+                }
+            }
+            Some("dbc") => {
+                let id: u32 = parts.next().unwrap_or("0").parse().unwrap_or(0);
+                let payload = parts.next().unwrap_or("");
+                if let Some(hero) = account.characters.iter_mut().find(|c| c.id == id) {
+                    hero.dbc = read_dbc(payload);
                 }
             }
             Some("class") => {
@@ -1069,5 +1237,22 @@ pets 2 3 1 1 2 0 1
         let loaded = parse(&encode(&account)).unwrap();
         assert_eq!(loaded.tabard, 1);
         assert_eq!(loaded.pets.look[0], 1);
+    }
+
+    #[test]
+    fn a_real_talent_replaces_the_skeleton_and_survives_a_save() {
+        let mut account = empty();
+        let id = account.ensure(0);
+        account.add_talent_xp(id, 600);
+        assert!(account.learn(id, 0));
+        assert!(account.learn_talent(id, 0, 99, 5, 0, true));
+        assert_eq!(account.character(id).unwrap().ranks()[0], 0);
+        assert_eq!(account.character(id).unwrap().dbc_rank(99), 1);
+        assert!(!account.learn_talent(id, 0, 100, 1, 2, true));
+        assert!(account.bonus(0, id).might > 0.0);
+        let loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.character(id).unwrap().dbc_rank(99), 1);
+        assert!(account.unlearn_talent(id, 99, true));
+        assert_eq!(account.character(id).unwrap().dbc_rank(99), 0);
     }
 }

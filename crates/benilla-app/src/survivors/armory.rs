@@ -28,6 +28,14 @@ pub(super) struct Pointer<'w> {
     mouse: Res<'w, ButtonInput<MouseButton>>,
 }
 
+/// Creature looks and the talent catalog, one system parameter so the menu stays within Bevy's limit.
+#[derive(SystemParam)]
+pub(super) struct MenuBooks<'w> {
+    creatures: Option<Res<'w, crate::entities::Creatures>>,
+    talents: Option<Res<'w, crate::ui_talent::Talents>>,
+    spells: Option<Res<'w, crate::ui_action::Spells>>,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum Page {
     Door,
@@ -120,6 +128,7 @@ pub(super) enum Act {
     WearLook(u8),
     PetSlot(u8),
     Tabard(u8),
+    Talent(u32),
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -136,7 +145,7 @@ pub(super) fn input(
     mut stash: ResMut<Stash>,
     mut rng: ResMut<Rng>,
     mut next: ResMut<NextState<Phase>>,
-    creatures: Option<Res<crate::entities::Creatures>>,
+    books: MenuBooks,
     phase: Res<State<Phase>>,
     mut granted: Local<bool>,
     mut exit: MessageWriter<AppExit>,
@@ -172,15 +181,29 @@ pub(super) fn input(
             if *interaction == Interaction::None {
                 continue;
             }
-            let Act::Learn(node) = act else {
-                continue;
-            };
-            if let Some(id) = selection.character {
-                if account.unlearn(id, *node) {
-                    armory.note.clear();
-                } else {
-                    armory.note = "That point is holding a deeper row open".into();
+            match act {
+                Act::Learn(node) => {
+                    if let Some(id) = selection.character {
+                        if account.unlearn(id, *node) {
+                            armory.note.clear();
+                        } else {
+                            armory.note = "That point is holding a deeper row open".into();
+                        }
+                    }
                 }
+                Act::Talent(talent) => {
+                    if let Some(id) = selection.character {
+                        armory.note = spend_talent(
+                            &mut account,
+                            id,
+                            books.talents.as_deref().map(|t| &t.catalog),
+                            books.spells.as_deref().map(|s| &s.catalog),
+                            *talent,
+                            true,
+                        );
+                    }
+                }
+                _ => {}
             }
         }
     }
@@ -242,7 +265,7 @@ pub(super) fn input(
                 &mut armory,
                 &account,
                 &mut selection,
-                creatures.as_deref(),
+                books.creatures.as_deref(),
                 index,
             ),
             Act::RandomName => random_name(&mut armory, &mut account, &selection, &mut rng),
@@ -291,6 +314,21 @@ pub(super) fn input(
             Act::PetSlot(slot) => armory.pet_slot = slot.min(1),
             Act::WearLook(look) => {
                 account.wear_look(armory.pet_slot, look);
+            }
+            Act::Talent(talent) if pointer.mouse.just_released(MouseButton::Right) => {
+                let _ = talent;
+            }
+            Act::Talent(talent) => {
+                if let Some(id) = selection.character {
+                    armory.note = spend_talent(
+                        &mut account,
+                        id,
+                        books.talents.as_deref().map(|t| &t.catalog),
+                        books.spells.as_deref().map(|s| &s.catalog),
+                        talent,
+                        false,
+                    );
+                }
             }
             Act::Tabard(index) => {
                 account.wear_tabard(index);
@@ -601,6 +639,7 @@ pub(super) fn refresh(
     selection: Res<Selection>,
     renown: Res<Renown>,
     stash: Res<Stash>,
+    talents: Option<Res<crate::ui_talent::Talents>>,
     phase: Res<State<Phase>>,
     mut drawn: Local<Option<u64>>,
     mut root_id: Local<Option<Entity>>,
@@ -675,7 +714,16 @@ pub(super) fn refresh(
     };
     commands.entity(root).with_children(|panel| {
         door::build(
-            panel, &art, &font, &armory, &account, &selection, &renown, &stash, note,
+            panel,
+            &art,
+            &font,
+            &armory,
+            &account,
+            &selection,
+            &renown,
+            &stash,
+            note,
+            talents.as_deref().map(|loaded| &loaded.catalog),
         );
     });
 }
@@ -770,10 +818,11 @@ fn fill_draft(
     selection: &Selection,
     renown: &Renown,
     stash: &Stash,
+    catalog: Option<&benilla_formats::TalentCatalog>,
 ) {
     match armory.page {
         Page::Heroes => heroes(panel, font, armory, account, selection, renown, stash),
-        Page::Talents => talents(panel, font, account, selection),
+        Page::Talents => talents(panel, font, account, selection, catalog),
         Page::Rewards => rewards_page(panel, font, armory, account),
         Page::Collection => collection(panel, font, account, selection),
         Page::Codex => codex(panel, font, account),
@@ -823,11 +872,280 @@ fn drop_tables(
     scroll(panel, font, &lines);
 }
 
+fn class_trees(
+    catalog: &benilla_formats::TalentCatalog,
+    class_id: u8,
+) -> Vec<(String, Vec<benilla_formats::Talent>)> {
+    let mut ids = Vec::new();
+    for race in 1u8..12 {
+        let tabs = catalog.tabs_for_class(race, class_id);
+        if tabs.len() >= 3 {
+            ids = tabs
+                .into_iter()
+                .take(3)
+                .map(|tab| (tab.id, tab.name.clone()))
+                .collect();
+            break;
+        }
+    }
+    ids.into_iter()
+        .map(|(id, name)| (name, catalog.talents_in_tab(id).to_vec()))
+        .collect()
+}
+
+fn dbc_points(hero: &super::account::Character, spec: usize) -> [u32; 3] {
+    let mut points = [0u32; 3];
+    for &(tree, _, rank) in &hero.dbc[spec.min(2)] {
+        if tree < 3 {
+            points[usize::from(tree)] += u32::from(rank);
+        }
+    }
+    points
+}
+
+fn draw_real_talents(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    hero: &super::account::Character,
+    catalog: &benilla_formats::TalentCatalog,
+) -> bool {
+    let class_id = CLASSES.get(hero.class).map(|c| c.id).unwrap_or(1);
+    let trees = class_trees(catalog, class_id);
+    if trees.len() < 3 {
+        return false;
+    }
+    let active = usize::from(hero.spec).min(2);
+    let points = dbc_points(hero, active);
+    let spent: u32 = points.iter().sum();
+    let unspent = campaign::unspent_talents(hero.talent_xp, spent);
+    let level = campaign::talent_level(hero.talent_xp);
+    panel.spawn(hud::text_bundle(
+        font,
+        format!("{unspent} to spend  ·  {spent} of {level} earned spent"),
+        13.0,
+        Color::WHITE,
+    ));
+    if hero.spent() > 0 && spent == 0 {
+        panel.spawn(hud::text_bundle(
+            font,
+            "Spending on this tree returns the old spread to unspent.",
+            12.0,
+            DIM,
+        ));
+    }
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            column_gap: Val::Px(4.0),
+            ..default()
+        })
+        .with_children(|row| {
+            for spec in 0..3u8 {
+                let pts = dbc_points(hero, usize::from(spec));
+                let label = if pts.iter().all(|n| *n == 0) {
+                    format!("Spec {}  Empty", spec + 1)
+                } else {
+                    format!("Spec {}  {}/{}/{}", spec + 1, pts[0], pts[1], pts[2])
+                };
+                chip(row, font, &label, Act::Spec(spec), hero.spec == spec);
+            }
+            chip(row, font, "Reset", Act::Respec, false);
+        });
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            column_gap: Val::Px(12.0),
+            ..default()
+        })
+        .with_children(|row| {
+            for (tree, (name, talents)) in trees.iter().enumerate() {
+                let tree_points = points[tree];
+                row.spawn(Node {
+                    width: Val::Px(160.0),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(2.0),
+                    ..default()
+                })
+                .with_children(|col| {
+                    col.spawn(hud::text_bundle(
+                        font,
+                        format!("{name}  {tree_points}"),
+                        13.0,
+                        GOLD,
+                    ));
+                    for tier in 0..7u32 {
+                        col.spawn(Node {
+                            flex_direction: FlexDirection::Row,
+                            column_gap: Val::Px(2.0),
+                            ..default()
+                        })
+                        .with_children(|line| {
+                            for column in 0..4u32 {
+                                let talent = talents
+                                    .iter()
+                                    .find(|t| t.row == tier && t.col == column);
+                                if let Some(talent) = talent {
+                                    let rank = hero
+                                        .dbc[active]
+                                        .iter()
+                                        .find(|entry| entry.1 == talent.id)
+                                        .map(|entry| entry.2)
+                                        .unwrap_or(0);
+                                    let dim = if rank == 0 { 0.4 } else { 1.0 };
+                                    line.spawn((
+                                        Button,
+                                        Act::Talent(talent.id),
+                                        Node {
+                                            width: Val::Px(28.0),
+                                            height: Val::Px(28.0),
+                                            border: UiRect::all(Val::Px(1.0)),
+                                            ..default()
+                                        },
+                                        BorderColor::all(if rank > 0 { GOLD } else { DIM }),
+                                        ImageNode {
+                                            color: Color::srgba(1.0, 1.0, 1.0, dim),
+                                            ..default()
+                                        },
+                                        hud::SpellIcon(talent.ranks[0]),
+                                        hud::IconDim(dim),
+                                    ));
+                                } else {
+                                    line.spawn(Node {
+                                        width: Val::Px(28.0),
+                                        height: Val::Px(28.0),
+                                        ..default()
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    for at in [10, 20, 30] {
+                        col.spawn(hud::text_bundle(
+                            font,
+                            format!("{at}  {}", campaign::milestone_name(hero.class, tree, at)),
+                            12.0,
+                            if tree_points >= at { GOLD } else { DIM },
+                        ));
+                    }
+                });
+            }
+        });
+    panel.spawn(hud::text_bundle(
+        font,
+        "Click spends a point. Right-click takes one back. Reset clears this spec.",
+        12.0,
+        DIM,
+    ));
+    true
+}
+
+fn talent_ranks_ok(list: &[benilla_formats::Talent], ranks: &[(u32, u8)]) -> bool {
+    let points: u32 = ranks.iter().map(|(_, rank)| u32::from(*rank)).sum();
+    list.iter().all(|talent| {
+        let rank = ranks
+            .iter()
+            .find(|(id, _)| *id == talent.id)
+            .map(|(_, rank)| *rank)
+            .unwrap_or(0);
+        if rank == 0 {
+            return true;
+        }
+        if points < talent.row * 5 {
+            return false;
+        }
+        if talent.prereq_talent == 0 {
+            return true;
+        }
+        let need = talent.prereq_rank as u8 + 1;
+        let have = ranks
+            .iter()
+            .find(|(id, _)| *id == talent.prereq_talent)
+            .map(|(_, rank)| *rank)
+            .unwrap_or(0);
+        have >= need
+    })
+}
+
+fn spend_talent(
+    account: &mut Account,
+    hero: u32,
+    catalog: Option<&benilla_formats::TalentCatalog>,
+    spells: Option<&benilla_formats::SpellCatalog>,
+    talent_id: u32,
+    refund: bool,
+) -> String {
+    let Some(catalog) = catalog else {
+        return "Talents are still loading".into();
+    };
+    let Some(class) = account.character(hero).map(|c| c.class) else {
+        return "Create a hero before spending talents".into();
+    };
+    let class_id = CLASSES.get(class).map(|c| c.id).unwrap_or(1);
+    let trees = class_trees(catalog, class_id);
+    let Some((tree, list)) = trees.iter().enumerate().find_map(|(tree, (_, list))| {
+        list.iter()
+            .any(|t| t.id == talent_id)
+            .then_some((tree, list))
+    }) else {
+        return "That talent is not on this class".into();
+    };
+    let Some(talent) = list.iter().find(|t| t.id == talent_id) else {
+        return "That talent is not on this class".into();
+    };
+    let name = spells
+        .and_then(|spells| spells.get(talent.ranks[0]))
+        .map(|spell| spell.name.clone())
+        .unwrap_or_else(|| "Talent".into());
+    let current = account.character(hero).map(|c| c.dbc_rank(talent_id)).unwrap_or(0);
+    if refund {
+        if current == 0 {
+            return format!("{name} has no point to take back");
+        }
+        let ranks: Vec<(u32, u8)> = list
+            .iter()
+            .map(|t| {
+                let rank = account.character(hero).map(|c| c.dbc_rank(t.id)).unwrap_or(0);
+                let rank = if t.id == talent_id { rank.saturating_sub(1) } else { rank };
+                (t.id, rank)
+            })
+            .collect();
+        if !account.unlearn_talent(hero, talent_id, talent_ranks_ok(list, &ranks)) {
+            return "That point is holding a deeper row open".into();
+        }
+        return format!("{name} rank {}", current - 1);
+    }
+    let prereq_met = if talent.prereq_talent == 0 {
+        true
+    } else {
+        let need = talent.prereq_rank as u8 + 1;
+        account
+            .character(hero)
+            .map(|c| c.dbc_rank(talent.prereq_talent) >= need)
+            .unwrap_or(false)
+    };
+    if account.learn_talent(
+        hero,
+        tree as u8,
+        talent_id,
+        talent.max_rank() as u8,
+        talent.row as u8,
+        prereq_met,
+    ) {
+        format!("{name} rank {}", current + 1)
+    } else if !prereq_met {
+        "That talent's prerequisite is missing".into()
+    } else {
+        "That talent is shut or the points are spent".into()
+    }
+}
+
 fn talents(
     panel: &mut impl ChipParent,
     font: &Handle<Font>,
     account: &Account,
     selection: &Selection,
+    catalog: Option<&benilla_formats::TalentCatalog>,
 ) {
     let Some(id) = selection.character else {
         panel.spawn(hud::text_bundle(
@@ -841,6 +1159,11 @@ fn talents(
     let Some(hero) = account.character(id) else {
         return;
     };
+    if let Some(catalog) = catalog {
+        if draw_real_talents(panel, font, hero, catalog) {
+            return;
+        }
+    }
     let spent = hero.spent();
     let unspent = campaign::unspent_talents(hero.talent_xp, spent);
     let level = campaign::talent_level(hero.talent_xp);
@@ -1709,6 +2032,15 @@ fn signature(
     n = fold(n, u64::from(account.pets.look[0]));
     n = fold(n, u64::from(account.pets.look[1]));
     n = fold(n, u64::from(account.tabard));
+    for hero in &account.characters {
+        for spec in &hero.dbc {
+            for &(tree, id, rank) in spec {
+                n = fold(n, u64::from(tree));
+                n = fold(n, u64::from(id));
+                n = fold(n, u64::from(rank));
+            }
+        }
+    }
     n = fold(n, u64::from(armory.achieve));
     n = fold(n, u64::from(armory.reward_page));
     n = fold(n, u64::from(armory.pet_slot));

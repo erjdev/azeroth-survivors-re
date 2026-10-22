@@ -947,6 +947,53 @@ fn scale_bonus(bonus: Bonus, rank: u8) -> Bonus {
     }
 }
 
+/// A real `Talent.dbc` node can take a point when its row is open, its prerequisite is met,
+/// it is not full, and a point remains.
+pub(super) fn can_learn_talent(
+    rank: u8,
+    max_rank: u8,
+    row: u8,
+    tree_points: u32,
+    prereq_met: bool,
+    unspent: u32,
+) -> bool {
+    unspent > 0 && rank < max_rank && tree_points >= u32::from(row) * 5 && prereq_met
+}
+
+/// Points already spent in the three trees, without the skeleton's per-node lines.
+/// The 10, 20, and 30 milestones are unchanged.
+pub(super) fn talent_bonus_spent(trees: [u32; 3]) -> Bonus {
+    let mut total = Bonus::default();
+    for points in trees {
+        if points == 0 {
+            continue;
+        }
+        total.add(Bonus {
+            might: 0.01 * points as f32,
+            ..Bonus::default()
+        });
+        if points >= 10 {
+            total.add(Bonus {
+                might: 0.04,
+                ..Bonus::default()
+            });
+        }
+        if points >= 20 {
+            total.add(Bonus {
+                multistrike: 0.10,
+                ..Bonus::default()
+            });
+        }
+        if points >= 30 {
+            total.add(Bonus {
+                targets: 1,
+                ..Bonus::default()
+            });
+        }
+    }
+    total
+}
+
 /// Spent talents plus the 10, 20, and 30 point milestones in each tree.
 /// Those milestones are what start to change how spells play.
 pub(super) fn talent_bonus(ranks: &[u8]) -> Bonus {
@@ -1340,6 +1387,13 @@ mod tests {
         assert_eq!(milestone_name(1, 0, 10), "Divine Favor");
         assert_eq!(milestone_name(1, 2, 30), "Divine Storm");
         assert_eq!(milestone_name(0, 0, 30), "Mortal Strike");
+        assert!(can_learn_talent(0, 5, 0, 0, true, 1));
+        assert!(!can_learn_talent(0, 5, 1, 4, true, 1));
+        assert!(can_learn_talent(0, 5, 1, 5, true, 1));
+        assert!(!can_learn_talent(0, 5, 0, 0, false, 1));
+        let deep = talent_bonus_spent([30, 0, 0]);
+        assert!(deep.targets >= 1);
+        assert!(deep.might > 0.3);
         assert!(!milestone_name(0, 0, 10).ends_with(" 10"));
         assert_eq!(talent_level(5100), 51);
         assert_eq!(unspent_talents(250, 2), 0);
