@@ -25,7 +25,7 @@ pub(super) struct Character {
 pub(super) struct ClassProgress {
     pub gear: [bool; 10],
     pub legendary_weapon: bool,
-    pub clears: [bool; 7],
+    pub clears: [bool; campaign::CLEAR_COUNT],
     /// Legendary amulet names whose card has been dealt.
     pub seen: Vec<String>,
 }
@@ -586,6 +586,24 @@ fn unescape(s: &str) -> String {
     s.replace('_', " ")
 }
 
+/// Seven bits are the draft path: Elwynn, Westfall, Duskwood, Stranglethorn, Arathi Highlands,
+/// Western Plaguelands, Naxxramas. Westfall, the Highlands, and the Plaguelands left the path.
+/// A longer string is the twelve-zone path, one bit per row.
+fn read_clears(bits: &str) -> [bool; campaign::CLEAR_COUNT] {
+    let mut clears = [false; campaign::CLEAR_COUNT];
+    if bits.len() == 7 {
+        let on = |i: usize| bits.as_bytes().get(i).copied() == Some(b'1');
+        for (from, to) in [(0usize, 0usize), (2, 1), (3, 6), (6, 11)] {
+            clears[to] = on(from);
+        }
+    } else {
+        for (i, ch) in bits.chars().enumerate().take(clears.len()) {
+            clears[i] = ch == '1';
+        }
+    }
+    clears
+}
+
 fn parse(text: &str) -> Result<Account, ()> {
     let mut account = empty();
     for line in text.lines() {
@@ -629,9 +647,7 @@ fn parse(text: &str) -> Result<Account, ()> {
                         progress.gear[i] = ch == '1';
                     }
                     progress.legendary_weapon = legendary;
-                    for (i, ch) in clears.chars().enumerate().take(7) {
-                        progress.clears[i] = ch == '1';
-                    }
+                    progress.clears = read_clears(clears);
                 }
             }
             Some("seen") => {
@@ -764,6 +780,12 @@ pets 2 3 1 1 2 0 1
         assert!(account.classes[0].gear[0]);
         assert!(account.classes[0].clears[0]);
         assert!(!account.classes[0].clears[1]);
+        let moved = parse("class 0 0000000000 0 1010001\nclass 1 0000000000 0 1001000\n").unwrap();
+        assert!(moved.classes[0].clears[0] && moved.classes[0].clears[1]);
+        assert!(moved.classes[0].clears[11]);
+        assert!(!moved.classes[0].clears[6]);
+        assert!(moved.classes[1].clears[0] && moved.classes[1].clears[6]);
+        assert!(!moved.classes[1].clears[1]);
         assert_eq!(account.classes[0].seen, vec!["Amulet of Heroic Strike".to_string()]);
         let again = parse(&encode(&account)).unwrap();
         assert_eq!(account.pets.owned, 2);

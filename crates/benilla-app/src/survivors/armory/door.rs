@@ -41,8 +41,8 @@ pub(super) fn build(
         line(ui, font, note, 13.0, GOLD);
     }
     if armory.page == Page::Door {
-        columns(ui, art, font, account, selection);
-        enter_bar(ui, art, font, account, selection);
+        columns(ui, art, font, armory, account, selection);
+        enter_bar(ui, art, font, armory, account, selection);
     } else {
         panel(ui, art, |body| {
             super::fill_draft(body, font, armory, account, selection, renown, stash)
@@ -199,6 +199,7 @@ fn columns(
     ui: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
+    armory: &Armory,
     account: &Account,
     selection: &Selection,
 ) {
@@ -217,7 +218,7 @@ fn columns(
         panel(row, art, |body| {
             hero_column(body, art, font, account, selection)
         });
-        panel(row, art, |body| zone_column(body, font, account, selection));
+        panel(row, art, |body| zone_column(body, font, armory, account, selection));
     });
 }
 
@@ -555,17 +556,26 @@ fn door_button(
     });
 }
 
+fn shown_zone<'a>(armory: &Armory, selection: &Selection) -> Option<(usize, &'a campaign::Zone)> {
+    let index = armory.picked.or_else(|| {
+        let name = selection.map_def().name;
+        ZONES.iter().position(|z| z.map == name)
+    })?;
+    ZONES.get(index).map(|zone| (index, zone))
+}
+
 fn zone_column(
     body: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
+    armory: &Armory,
     account: &Account,
     selection: &Selection,
 ) {
     heading(body, font, "Zone");
     let (level, clears) = super::hero_gate(account, selection);
-    let map_name = selection.map_def().name;
+    let shown = shown_zone(armory, selection).map(|(index, _)| index);
     for (index, zone) in ZONES.iter().enumerate() {
-        let on = zone.map == map_name;
+        let on = shown == Some(index);
         let reason = campaign::zone_lock_reason(index, level, &clears);
         body.spawn((
             Act::Zone(index),
@@ -590,7 +600,7 @@ fn zone_column(
             }
         });
     }
-    if let Some((index, zone)) = ZONES.iter().enumerate().find(|(_, z)| z.map == map_name) {
+    if let Some((index, zone)) = shown_zone(armory, selection) {
         line(body, font, zone.name, 16.0, GOLD);
         if zone.name != zone.map {
             line(body, font, zone.map, 12.0, DIM);
@@ -598,14 +608,15 @@ fn zone_column(
         if let Some(reason) = campaign::zone_lock_reason(index, level, &clears) {
             line(body, font, &reason, 13.0, Color::srgb(0.9, 0.45, 0.35));
         }
-        let elites = zone.elites.join(", ");
-        line(
-            body,
-            font,
-            &format!("{}. {elites}.", zone.boss),
-            13.0,
-            Color::WHITE,
-        );
+        if !zone.boss.is_empty() {
+            let elites = zone.elites.join(", ");
+            let stakes = if elites.is_empty() {
+                format!("{}.", zone.boss)
+            } else {
+                format!("{}. {elites}.", zone.boss)
+            };
+            line(body, font, &stakes, 13.0, Color::WHITE);
+        }
         if let Some(map) = data::MAPS.iter().find(|m| m.name == zone.map) {
             if !map.victory.is_empty() {
                 line(body, font, map.victory, 12.0, DIM);
@@ -631,10 +642,11 @@ fn enter_bar(
     ui: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
+    armory: &Armory,
     account: &Account,
     selection: &Selection,
 ) {
-    let (title, under) = enter_copy(account, selection);
+    let (title, under) = enter_copy(armory, account, selection);
     ui.spawn(Node {
         width: Val::Percent(100.0),
         flex_direction: FlexDirection::Row,
@@ -686,14 +698,19 @@ fn enter_bar(
     });
 }
 
-fn enter_copy(account: &Account, selection: &Selection) -> (String, String) {
+fn enter_copy(armory: &Armory, account: &Account, selection: &Selection) -> (String, String) {
     let (level, clears) = super::hero_gate(account, selection);
-    let map = selection.map_def();
-    if let Some((index, zone)) = ZONES.iter().enumerate().find(|(_, z)| z.map == map.name) {
-        let under = campaign::zone_lock_reason(index, level, &clears)
-            .unwrap_or_else(|| format!("{} is the last fight.", zone.boss));
+    if let Some((index, zone)) = shown_zone(armory, selection) {
+        let under = campaign::zone_lock_reason(index, level, &clears).unwrap_or_else(|| {
+            if zone.boss.is_empty() {
+                String::new()
+            } else {
+                format!("{} is the last fight.", zone.boss)
+            }
+        });
         (format!("Enter {}", zone.name), under)
     } else {
+        let map = selection.map_def();
         (format!("Enter {}", map.name), map.victory.to_string())
     }
 }

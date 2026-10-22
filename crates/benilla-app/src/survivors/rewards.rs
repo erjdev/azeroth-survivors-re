@@ -1,7 +1,7 @@
 //! Achievement points and the perk tree. Points are earned once for the whole account.
 //! Perks and companion ranks spend them. Two perk resets refund perk points and leave companions.
 
-use super::campaign::ZONES;
+use super::campaign::{self, ZONES};
 use super::data;
 
 /// Ranks bought on the rewards screen. The number is the rank, and the effect is the rank.
@@ -121,7 +121,7 @@ pub(super) fn hand_size(opening: bool, drafts: u32) -> usize {
 
 /// What the account has done, gathered by the save before it checks achievements.
 pub(super) struct Snapshot {
-    pub clears: [[bool; 7]; 9],
+    pub clears: [[bool; campaign::CLEAR_COUNT]; 9],
     pub pieces: u32,
     pub full_sets: u32,
     pub legends: u32,
@@ -136,7 +136,7 @@ pub(super) struct Snapshot {
 impl Default for Snapshot {
     fn default() -> Self {
         Self {
-            clears: [[false; 7]; 9],
+            clears: [[false; campaign::CLEAR_COUNT]; 9],
             pieces: 0,
             full_sets: 0,
             legends: 0,
@@ -195,17 +195,16 @@ impl Kind {
 }
 
 fn catalog() -> Vec<Achievement> {
-    let zone_points = [10, 10, 15, 15, 15, 20, 30];
     let mut out = Vec::new();
     for (i, zone) in ZONES.iter().enumerate() {
         out.push(Achievement {
-            id: 1 + i as u16,
+            id: zone.into_id,
             name: format!("Into {}", zone.name),
-            points: zone_points.get(i).copied().unwrap_or(10),
+            points: zone.points,
             kind: Kind::ZoneAny(i),
         });
         out.push(Achievement {
-            id: 11 + i as u16,
+            id: zone.champ_id,
             name: format!("Champion of {}", zone.name),
             points: 25,
             kind: Kind::ZoneAll(i),

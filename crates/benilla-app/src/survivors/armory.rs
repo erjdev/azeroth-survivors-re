@@ -42,6 +42,8 @@ pub(super) struct Armory {
     draft_first: String,
     draft_last: String,
     draft_class: usize,
+    /// The campaign row the door is showing. None follows the selected battleground.
+    pub(super) picked: Option<usize>,
     pub note: String,
 }
 
@@ -53,8 +55,17 @@ impl Default for Armory {
             draft_first: "Adventurer".into(),
             draft_last: "Stormwind".into(),
             draft_class: 0,
+            picked: None,
             note: String::new(),
         }
+    }
+}
+
+impl Armory {
+    /// The row Enter World must honor while the door is up. Other pages start the battleground
+    /// the look screen selected.
+    pub(super) fn entered_zone(&self) -> Option<usize> {
+        if self.page == Page::Door { self.picked } else { None }
     }
 }
 
@@ -344,25 +355,38 @@ fn pick_hero(selection: &mut Selection, account: &Account, id: u32) -> bool {
 
 fn pick_zone(armory: &mut Armory, account: &Account, selection: &mut Selection, index: usize) {
     let (level, clears) = hero_gate(account, selection);
-    let Some(map_name) = ZONES.get(index).map(|z| z.map) else {
+    let Some(zone) = ZONES.get(index) else {
         return;
     };
-    let Some(map) = data::MAPS.iter().position(|m| m.name == map_name) else {
-        armory.note = format!("{map_name} is not on a battleground");
-        return;
-    };
-    if selection.map != map {
-        selection.map = map;
-        selection.version += 1;
+    armory.picked = Some(index);
+    if let Some(map) = data::MAPS.iter().position(|m| m.name == zone.map) {
+        if selection.map != map {
+            selection.map = map;
+            selection.version += 1;
+        }
     }
     armory.note = campaign::zone_lock_reason(index, level, &clears).unwrap_or_default();
 }
 
 /// Why Enter World must refuse the selected battleground. An open zone, and any map that is not
 /// on the campaign path, returns nothing.
-pub(super) fn enter_refused(account: &Account, selection: &Selection) -> Option<String> {
-    let name = selection.map_def().name;
+pub(super) fn enter_refused(
+    account: &Account,
+    selection: &Selection,
+    picked: Option<usize>,
+) -> Option<String> {
     let (level, clears) = hero_gate(account, selection);
+    if let Some(index) = picked {
+        if let Some(reason) = campaign::zone_lock_reason(index, level, &clears) {
+            return Some(reason);
+        }
+        if let Some(zone) = ZONES.get(index) {
+            if selection.map_def().name != zone.map {
+                return Some(format!("{} is not on a battleground", zone.name));
+            }
+        }
+    }
+    let name = selection.map_def().name;
     if campaign::map_allowed(name, level, &clears) {
         return None;
     }
@@ -455,7 +479,7 @@ fn try_enter(
     stash: &Stash,
     next: &mut NextState<Phase>,
 ) {
-    if let Some(reason) = enter_refused(account, selection) {
+    if let Some(reason) = enter_refused(account, selection, armory.entered_zone()) {
         armory.note = reason;
         return;
     }
@@ -476,7 +500,10 @@ fn try_enter(
     }
 }
 
-pub(super) fn hero_gate(account: &Account, selection: &Selection) -> (u32, [bool; 7]) {
+pub(super) fn hero_gate(
+    account: &Account,
+    selection: &Selection,
+) -> (u32, [bool; campaign::CLEAR_COUNT]) {
     let hero = selection.character.and_then(|id| account.character(id));
     let class = hero.map(|c| c.class).or(selection.class).unwrap_or(0);
     let level = hero
@@ -486,7 +513,7 @@ pub(super) fn hero_gate(account: &Account, selection: &Selection) -> (u32, [bool
         .classes
         .get(class)
         .map(|p| p.clears)
-        .unwrap_or([false; 7]);
+        .unwrap_or([false; campaign::CLEAR_COUNT]);
     (level, clears)
 }
 
@@ -1139,6 +1166,7 @@ fn signature(
     n = fold(n, u64::from(account.pets.paws));
     n = fold(n, u64::from(account.pets.instinct[0]));
     n = fold(n, u64::from(account.pets.instinct[1]));
+    n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
     n = fold(n, armory.draft_class as u64);
     n = fold(n, hash_str(&armory.draft_first));
@@ -1208,13 +1236,23 @@ mod tests {
             .position(|m| m.name == "Elwynn Forest")
             .unwrap();
         selection.map = elwynn;
-        assert!(enter_refused(&account, &selection).is_none());
+        assert!(enter_refused(&account, &selection, None).is_none());
         let duskwood = data::MAPS
             .iter()
             .position(|m| m.name == "Duskwood")
             .unwrap();
         selection.map = duskwood;
-        assert!(enter_refused(&account, &selection).is_some());
+        assert!(enter_refused(&account, &selection, None).is_some());
+        let warsong = super::super::campaign::ZONES
+            .iter()
+            .position(|z| z.name == "Warsong Gulch")
+            .unwrap();
+        selection.map = elwynn;
+        let reason = enter_refused(&account, &selection, Some(warsong));
+        assert_eq!(
+            reason.as_deref(),
+            Some("Warsong Gulch has no map and no boss yet")
+        );
     }
 }
 

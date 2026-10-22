@@ -779,11 +779,12 @@ pub(super) fn menu_clicks(
             } else if selection.map != i {
                 selection.map = i;
                 selection.version += 1;
+                armory.picked = super::campaign::zone_index(name);
                 armory.note.clear();
             }
         }
         MenuAction::Enter => {
-            if let Some(reason) = super::armory::enter_refused(&account, &selection) {
+            if let Some(reason) = super::armory::enter_refused(&account, &selection, None) {
                 armory.note = reason;
             } else {
                 let ranks = selection.class.map(|i| renown.ranks(i)).unwrap_or([0; 3]);

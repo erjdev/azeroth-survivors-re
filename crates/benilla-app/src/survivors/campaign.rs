@@ -31,15 +31,25 @@ pub(super) fn quality_name(quality: Quality) -> &'static str {
     }
 }
 
-/// One zone on the path. `map` matches [`super::data::MapDef::name`].
+/// One zone on the path. `map` matches [`super::data::MapDef::name`] when the battleground exists.
 pub(super) struct Zone {
     pub name: &'static str,
     pub map: &'static str,
-    /// Talent level required, in addition to clearing the previous zone.
+    /// Talent level required, in addition to clearing the previous zone that can be entered.
     pub talent: u32,
     pub elites: &'static [&'static str],
     pub boss: &'static str,
+    /// A carried row can be entered. A new row stays shut until it has a drop table.
+    pub ready: bool,
+    /// Stable achievement ids. Westfall, Arathi Highlands, and the Plaguelands kept theirs when
+    /// they left the path, so a new row does not inherit an old earn.
+    pub into_id: u16,
+    pub champ_id: u16,
+    pub points: u32,
 }
+
+/// How many clear flags a class stores, one per row of [`ZONES`].
+pub(super) const CLEAR_COUNT: usize = 12;
 
 pub(super) static ZONES: &[Zone] = &[
     Zone {
@@ -48,41 +58,120 @@ pub(super) static ZONES: &[Zone] = &[
         talent: 0,
         elites: &["Defias Bandit", "Kobold Miner"],
         boss: "Hogger",
-    },
-    Zone {
-        name: "Westfall",
-        map: "Westfall",
-        talent: 5,
-        elites: &["Defias Highwayman", "Harvest Watcher"],
-        boss: "Vultros",
+        ready: true,
+        into_id: 1,
+        champ_id: 11,
+        points: 10,
     },
     Zone {
         name: "Duskwood",
         map: "Duskwood",
-        talent: 10,
+        talent: 5,
         elites: &["Skeletal Warrior", "Nightbane Worgen"],
         boss: "Nefaru",
+        ready: true,
+        into_id: 3,
+        champ_id: 13,
+        points: 10,
     },
     Zone {
-        name: "Stranglethorn",
+        name: "Warsong Gulch",
+        map: "Warsong Gulch",
+        talent: 8,
+        elites: &[],
+        boss: "",
+        ready: false,
+        into_id: 70,
+        champ_id: 90,
+        points: 15,
+    },
+    Zone {
+        name: "Un'Goro Crater",
+        map: "Fire Plume Ridge",
+        talent: 12,
+        elites: &["Devilsaur", "Stegodon"],
+        boss: "King Mosh",
+        ready: false,
+        into_id: 71,
+        champ_id: 91,
+        points: 15,
+    },
+    Zone {
+        name: "Arathi Basin",
+        map: "Arathi Basin",
+        talent: 16,
+        elites: &[],
+        boss: "",
+        ready: false,
+        into_id: 72,
+        champ_id: 92,
+        points: 15,
+    },
+    Zone {
+        name: "Feralas",
+        map: "Feralas",
+        talent: 20,
+        elites: &[],
+        boss: "",
+        ready: false,
+        into_id: 73,
+        champ_id: 93,
+        points: 15,
+    },
+    Zone {
+        name: "Gurubashi Arena",
         map: "Gurubashi Arena",
-        talent: 18,
+        talent: 24,
         elites: &["Skullsplitter Berserker", "Bloodsail Raider"],
         boss: "Hakkar",
+        ready: true,
+        into_id: 4,
+        champ_id: 14,
+        points: 20,
     },
     Zone {
-        name: "Arathi Highlands",
-        map: "Arathi Highlands",
+        name: "Scarlet Monastery",
+        map: "Scarlet Monastery",
         talent: 28,
-        elites: &["Boulderfist Ogre", "Syndicate Highwayman"],
-        boss: "Or'Kalar",
+        elites: &[],
+        boss: "",
+        ready: false,
+        into_id: 74,
+        champ_id: 94,
+        points: 20,
     },
     Zone {
-        name: "Western Plaguelands",
-        map: "Western Plaguelands",
-        talent: 38,
-        elites: &["Skeletal Flayer", "Scarlet Knight"],
-        boss: "Araj the Summoner",
+        name: "Alterac Valley",
+        map: "Alterac Valley",
+        talent: 32,
+        elites: &[],
+        boss: "",
+        ready: false,
+        into_id: 75,
+        champ_id: 95,
+        points: 20,
+    },
+    Zone {
+        name: "Blackrock Mountain",
+        map: "Blackrock Mountain",
+        talent: 36,
+        elites: &[],
+        boss: "",
+        ready: false,
+        into_id: 76,
+        champ_id: 96,
+        points: 20,
+    },
+    Zone {
+        name: "Gates of Ahn'Qiraj",
+        map: "Gates of Ahn'Qiraj",
+        talent: 42,
+        elites: &["Qiraji Gladiator", "Anubisath Sentinel"],
+        boss: "Ossirian the Unscarred",
+        ready: false,
+        into_id: 77,
+        champ_id: 97,
+        points: 30,
     },
     Zone {
         name: "Naxxramas",
@@ -90,6 +179,10 @@ pub(super) static ZONES: &[Zone] = &[
         talent: 48,
         elites: &["Necro Knight", "Plague Slime"],
         boss: "Kel'Thuzad",
+        ready: true,
+        into_id: 7,
+        champ_id: 17,
+        points: 30,
     },
 ];
 
@@ -107,8 +200,9 @@ pub(super) const SLOTS: [&str; 10] = [
     "Off Hand",
 ];
 
-/// Which zone index drops each of the ten base pieces.
-const SLOT_ZONE: [usize; 10] = [0, 0, 1, 1, 2, 2, 3, 3, 4, 5];
+/// Which zone index drops each of the ten base pieces. The four zones that can be entered
+/// still hand these out; the collection grid replaces this ladder.
+const SLOT_ZONE: [usize; 10] = [0, 0, 1, 1, 6, 6, 6, 11, 11, 11];
 
 /// Quality of each base slot, rising with the zone that drops it.
 const SLOT_QUALITY: [Quality; 10] = [
@@ -133,16 +227,39 @@ pub(super) fn zone_index(map_name: &str) -> Option<usize> {
     ZONES.iter().position(|z| z.map == map_name)
 }
 
-/// A zone opens when the previous one is cleared on this class and this character's talent
-/// level meets the gate. Elwynn needs neither.
+/// Why a row cannot be entered yet, apart from the talent gate and the previous clear.
+fn content_lock(zone: &Zone) -> Option<String> {
+    let map = super::data::MAPS.iter().any(|m| m.name == zone.map);
+    let boss = !zone.boss.is_empty();
+    if zone.ready && map && boss {
+        return None;
+    }
+    Some(match (map, boss) {
+        (false, false) => format!("{} has no map and no boss yet", zone.name),
+        (false, _) => format!("{} has no map yet", zone.name),
+        (_, false) => format!("{} has no boss yet", zone.name),
+        _ => format!("{} has no drop table yet", zone.name),
+    })
+}
+
+/// The nearest earlier row that can actually be entered. A locked row does not block the path.
+fn previous_ready(index: usize) -> Option<usize> {
+    (0..index).rev().find(|&i| ZONES.get(i).is_some_and(|z| content_lock(z).is_none()))
+}
+
+/// A zone opens when it can be entered, the previous enterable zone is cleared on this class,
+/// and this character's talent level meets the gate. Elwynn needs neither clear nor talent.
 pub(super) fn zone_open(index: usize, talent_level: u32, clears: &[bool]) -> bool {
     let Some(zone) = ZONES.get(index) else {
         return false;
     };
-    if talent_level < zone.talent {
+    if content_lock(zone).is_some() || talent_level < zone.talent {
         return false;
     }
-    index == 0 || clears.get(index - 1).copied().unwrap_or(false)
+    match previous_ready(index) {
+        None => true,
+        Some(prev) => clears.get(prev).copied().unwrap_or(false),
+    }
 }
 
 /// Maps that are not on the campaign path stay open. A campaign map uses [`zone_open`].
@@ -159,11 +276,14 @@ pub(super) fn zone_lock_reason(index: usize, talent_level: u32, clears: &[bool])
         return None;
     }
     let zone = ZONES.get(index)?;
+    if let Some(reason) = content_lock(zone) {
+        return Some(reason);
+    }
     if talent_level < zone.talent {
         return Some(format!("{} needs talent level {}", zone.name, zone.talent));
     }
-    let prev = ZONES
-        .get(index.wrapping_sub(1))
+    let prev = previous_ready(index)
+        .and_then(|i| ZONES.get(i))
         .map(|z| z.name)
         .unwrap_or("the previous zone");
     Some(format!("Clear {prev} on this class first"))
@@ -916,17 +1036,22 @@ mod tests {
 
     #[test]
     fn zones_open_in_order_and_honor_the_talent_gate() {
-        let none = [false; 7];
+        let none = [false; CLEAR_COUNT];
         assert!(zone_open(0, 0, &none));
         assert!(!zone_open(1, 5, &none));
         let mut clears = none;
         clears[0] = true;
         assert!(!zone_open(1, 4, &clears));
         assert!(zone_open(1, 5, &clears));
-        assert!(!zone_open(6, 48, &clears));
-        clears = [true; 7];
-        assert!(zone_open(6, 48, &clears));
-        assert!(!zone_open(6, 47, &clears));
+        assert!(!zone_open(6, 24, &clears));
+        clears[1] = true;
+        assert!(zone_open(6, 24, &clears));
+        assert!(!zone_open(6, 23, &clears));
+        assert!(!zone_open(2, 51, &[true; CLEAR_COUNT]));
+        assert!(!zone_open(11, 48, &clears));
+        clears[6] = true;
+        assert!(zone_open(11, 48, &clears));
+        assert!(!zone_open(11, 47, &clears));
     }
 
     #[test]
@@ -1042,10 +1167,15 @@ mod tests {
 
     #[test]
     fn catalogs_have_the_agreed_counts() {
+        assert_eq!(ZONES.len(), CLEAR_COUNT);
         assert_eq!(ZONES[0].name, "Elwynn Forest");
         assert_eq!(ZONES[0].boss, "Hogger");
         assert!(!ZONES[0].elites.is_empty());
+        assert_eq!(ZONES[6].name, "Gurubashi Arena");
+        assert_eq!(ZONES[6].boss, "Hakkar");
+        assert_eq!(ZONES.last().unwrap().name, "Naxxramas");
         assert_eq!(ZONES.last().unwrap().boss, "Kel'Thuzad");
+        assert!(ZONES.iter().all(|z| z.name != "Westfall" && z.name != "Western Plaguelands"));
         assert_eq!(RING_NAMES.len(), RINGS);
         assert_eq!(TRINKET_NAMES.len(), TRINKETS);
         assert_eq!(AMULET_NAMES.len(), AMULETS);
@@ -1056,16 +1186,28 @@ mod tests {
         assert!(two_handed(6));
         assert!(!two_handed(0));
         assert_eq!(legendary_amulet("Heroic Strike"), "Amulet of Heroic Strike");
-        assert!(map_allowed("Elwynn Forest", 0, &[false; 7]));
-        assert!(!map_allowed("Westfall", 5, &[false; 7]));
-        let mut cleared = [false; 7];
+        assert!(map_allowed("Elwynn Forest", 0, &[false; CLEAR_COUNT]));
+        assert!(map_allowed("Westfall", 0, &[false; CLEAR_COUNT]));
+        assert!(!map_allowed("Duskwood", 5, &[false; CLEAR_COUNT]));
+        let mut cleared = [false; CLEAR_COUNT];
         cleared[0] = true;
-        assert!(map_allowed("Westfall", 5, &cleared));
-        assert!(!map_allowed("Westfall", 4, &cleared));
-        assert!(map_allowed("The Barrens", 0, &[false; 7]));
+        assert!(map_allowed("Duskwood", 5, &cleared));
+        assert!(!map_allowed("Duskwood", 4, &cleared));
+        assert!(map_allowed("The Barrens", 0, &[false; CLEAR_COUNT]));
+        assert!(!map_allowed("Warsong Gulch", 60, &[true; CLEAR_COUNT]));
+        assert!(!map_allowed("Fire Plume Ridge", 60, &[true; CLEAR_COUNT]));
+        assert!(!map_allowed("Gates of Ahn'Qiraj", 60, &[true; CLEAR_COUNT]));
         assert_eq!(
-            zone_lock_reason(1, 0, &[false; 7]).as_deref(),
-            Some("Westfall needs talent level 5")
+            zone_lock_reason(1, 0, &[false; CLEAR_COUNT]).as_deref(),
+            Some("Duskwood needs talent level 5")
+        );
+        assert_eq!(
+            zone_lock_reason(2, 60, &[true; CLEAR_COUNT]).as_deref(),
+            Some("Warsong Gulch has no map and no boss yet")
+        );
+        assert_eq!(
+            zone_lock_reason(3, 60, &[true; CLEAR_COUNT]).as_deref(),
+            Some("Un'Goro Crater has no drop table yet")
         );
     }
 

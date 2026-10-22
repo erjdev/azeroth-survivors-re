@@ -1722,7 +1722,9 @@ pub(super) fn keys(
             let class = selection.class.unwrap_or(0);
             let hero = selection.character;
             if !typing.0 && keys.just_pressed(KeyCode::Enter) {
-                if let Some(reason) = super::armory::enter_refused(&account, &selection) {
+                if let Some(reason) =
+                    super::armory::enter_refused(&account, &selection, armory.entered_zone())
+                {
                     armory.note = reason;
                 } else if start_run(
                     &mut run,
