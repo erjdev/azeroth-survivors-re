@@ -1,5 +1,7 @@
-//! The campaign panel on the glue menu: named heroes, the gated zone path, and spending talent
-//! points. Appearance stays on the race and class screen beside it.
+//! The Armory: the front door before a run, and the draft pages a tab opens inside that frame.
+//! Appearance stays on the glue race and class screen, reached from the hero column.
+
+mod door;
 
 use bevy::ecs::hierarchy::ChildOf;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
@@ -8,24 +10,28 @@ use bevy::prelude::*;
 use super::account::Account;
 use super::campaign::{self, ZONES};
 use super::data::{self, CLASSES};
-use super::rewards::{self, Perk};
 use super::hud::{self, HudFont, MenuRoot};
-use super::{Phase, Selection, Typing};
+use super::renown::{self, Renown};
+use super::rewards::{self, Perk};
+use super::stash::Stash;
+use super::{Phase, Rng, Run, Selection, Typing};
+use crate::glue::art::GlueArt;
+use crate::glue::GlueClicks;
 
-const PANEL: Color = Color::srgba(0.05, 0.04, 0.03, 0.92);
-const EDGE: Color = Color::srgb(0.45, 0.36, 0.16);
 const GOLD: Color = Color::srgb(1.0, 0.82, 0.0);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum Page {
+    Door,
     Heroes,
-    Zones,
     Talents,
     Rewards,
     Collection,
     Codex,
     Achievements,
     Notes,
+    DropTables,
+    Look,
 }
 
 #[derive(Resource)]
@@ -42,7 +48,7 @@ pub(super) struct Armory {
 impl Default for Armory {
     fn default() -> Self {
         Self {
-            page: Page::Heroes,
+            page: Page::Door,
             focus: 0,
             draft_first: "Adventurer".into(),
             draft_last: "Stormwind".into(),
@@ -68,15 +74,34 @@ pub(super) enum Act {
     Reward(u8),
     Restart,
     Update,
+    PickClass(usize),
+    RandomName,
+    Look,
+    Enter,
+    RunOptions,
+    Options,
+    Quit,
+    Renown(u8),
+    Relic(usize),
+    Upgrade,
+    Seek,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn input(
-    mut clicks: Query<(&Interaction, &Act), Changed<Interaction>>,
+    clicks: Res<GlueClicks>,
+    acts: Query<(Entity, &Act)>,
     keys: Res<ButtonInput<KeyCode>>,
     mut typing: ResMut<Typing>,
     mut armory: ResMut<Armory>,
     mut account: ResMut<Account>,
     mut selection: ResMut<Selection>,
+    mut run: ResMut<Run>,
+    mut renown: ResMut<Renown>,
+    mut stash: ResMut<Stash>,
+    mut rng: ResMut<Rng>,
+    mut next: ResMut<NextState<Phase>>,
+    creatures: Option<Res<crate::entities::Creatures>>,
     phase: Res<State<Phase>>,
     mut granted: Local<bool>,
     mut exit: MessageWriter<AppExit>,
@@ -92,26 +117,30 @@ pub(super) fn input(
         *granted = true;
     }
     if selection.character.is_none() {
-        let id = account
+        selection.character = account
             .characters
             .iter()
             .find(|c| selection.class == Some(c.class))
-            .or(account.characters.first())
             .map(|c| c.id);
-        selection.character = id;
     }
-    typing.0 = armory.focus != 0;
-    if typing.0 && keys.just_pressed(KeyCode::Enter) {
+    typing.0 = armory.focus != 0 && armory.page == Page::Heroes;
+    if !typing.0 && keys.just_pressed(KeyCode::Escape) && armory.page != Page::Door {
+        armory.page = Page::Door;
+        armory.focus = 0;
+    } else if typing.0 && keys.just_pressed(KeyCode::Enter) {
         armory.focus = 0;
     } else if typing.0 {
         type_name(&keys, &mut armory);
     }
-    for (interaction, act) in &mut clicks {
-        if *interaction != Interaction::Pressed {
+    for (entity, act) in &acts {
+        if !clicks.hit(entity) {
             continue;
         }
         match act.clone() {
-            Act::Page(page) => armory.page = page,
+            Act::Page(page) => {
+                armory.page = page;
+                armory.focus = 0;
+            }
             Act::Focus(slot) => armory.focus = slot,
             Act::Class => {
                 armory.draft_class = (armory.draft_class + 1) % CLASSES.len();
@@ -120,10 +149,13 @@ pub(super) fn input(
             Act::Pick(id) => {
                 let needs_look = pick_hero(&mut selection, &account, id);
                 if needs_look {
-                    armory.note = "Pick this hero's appearance on the class screen".into();
+                    armory.note = "Open Look to choose this hero's appearance.".into();
                 }
             }
-            Act::Zone(index) => pick_zone(&mut armory, &account, &mut selection, index),
+            Act::Zone(index) => {
+                pick_zone(&mut armory, &account, &mut selection, index);
+                super::menu::save_pick(&selection);
+            }
             Act::Learn(node) => {
                 if let Some(id) = selection.character {
                     if !account.learn(id, node) {
@@ -145,6 +177,47 @@ pub(super) fn input(
                 armory.note = "Restarting".into();
             }
             Act::Update => armory.note = super::notes::restart_configured(&mut exit).into(),
+            Act::PickClass(index) => pick_class(
+                &mut armory,
+                &account,
+                &mut selection,
+                creatures.as_deref(),
+                index,
+            ),
+            Act::RandomName => random_name(&mut armory, &mut account, &selection, &mut rng),
+            Act::Look => {
+                armory.page = Page::Look;
+                armory.focus = 0;
+            }
+            Act::Enter => try_enter(
+                &mut armory,
+                &account,
+                &mut selection,
+                &mut run,
+                &renown,
+                &stash,
+                &mut next,
+            ),
+            Act::RunOptions => armory.note = "Difficulty is Normal.".into(),
+            Act::Options => armory.page = Page::Notes,
+            Act::Quit => {
+                exit.write(AppExit::Success);
+            }
+            Act::Renown(index) => {
+                if let Some(class) = selection.class {
+                    let track = renown::tracks().get(usize::from(index)).copied();
+                    if let Some(track) = track {
+                        renown.spend(class, track);
+                    }
+                }
+            }
+            Act::Relic(slot) => stash.cycle_slot(slot),
+            Act::Upgrade => {
+                stash.upgrade();
+            }
+            Act::Seek => {
+                stash.seek(rng.f32());
+            }
         }
     }
 }
@@ -242,7 +315,7 @@ fn create_hero(armory: &mut Armory, account: &mut Account, selection: &mut Selec
                 armory.draft_first.trim(),
                 armory.draft_last.trim(),
                 if needs_look {
-                    ". Pick their appearance on the class screen"
+                    ". Open Look for their appearance"
                 } else {
                     ""
                 }
@@ -271,10 +344,6 @@ fn pick_hero(selection: &mut Selection, account: &Account, id: u32) -> bool {
 
 fn pick_zone(armory: &mut Armory, account: &Account, selection: &mut Selection, index: usize) {
     let (level, clears) = hero_gate(account, selection);
-    if let Some(reason) = campaign::zone_lock_reason(index, level, &clears) {
-        armory.note = reason;
-        return;
-    }
     let Some(map_name) = ZONES.get(index).map(|z| z.map) else {
         return;
     };
@@ -286,17 +355,130 @@ fn pick_zone(armory: &mut Armory, account: &Account, selection: &mut Selection, 
         selection.map = map;
         selection.version += 1;
     }
+    armory.note = campaign::zone_lock_reason(index, level, &clears).unwrap_or_default();
+}
+
+/// Why Enter World must refuse the selected battleground. An open zone, and any map that is not
+/// on the campaign path, returns nothing.
+pub(super) fn enter_refused(account: &Account, selection: &Selection) -> Option<String> {
+    let name = selection.map_def().name;
+    let (level, clears) = hero_gate(account, selection);
+    if campaign::map_allowed(name, level, &clears) {
+        return None;
+    }
+    campaign::zone_index(name)
+        .and_then(|index| campaign::zone_lock_reason(index, level, &clears))
+        .or_else(|| Some(format!("{name} is locked")))
+}
+
+fn pick_class(
+    armory: &mut Armory,
+    account: &Account,
+    selection: &mut Selection,
+    creatures: Option<&crate::entities::Creatures>,
+    index: usize,
+) {
+    let Some(creatures) = creatures else {
+        armory.note = "The client data is still loading.".into();
+        return;
+    };
+    super::menu::choose_class(selection, creatures, index);
+    selection.character = account
+        .characters
+        .iter()
+        .find(|c| c.class == index)
+        .map(|c| c.id);
+    selection.version += 1;
+    armory.draft_class = index;
     armory.note.clear();
+    super::menu::save_pick(selection);
+}
+
+fn random_name(armory: &mut Armory, account: &mut Account, selection: &Selection, rng: &mut Rng) {
+    let (first, last) = name_pair(rng);
+    if let Some(id) = selection.character {
+        if account
+            .character(id)
+            .is_some_and(|c| selection.class == Some(c.class))
+            && account.rename(id, &first, &last)
+        {
+            armory.note.clear();
+            return;
+        }
+    }
+    armory.draft_first = first;
+    armory.draft_last = last;
+    armory.draft_class = selection.class.unwrap_or(armory.draft_class);
+    armory.note = "That name is ready on the Character tab.".into();
+}
+
+fn name_pair(rng: &mut Rng) -> (String, String) {
+    const GIVEN: &[&str] = &[
+        "Aryn", "Bram", "Cora", "Dain", "Elyn", "Fael", "Gorr", "Hale", "Ira", "Jorn", "Kael",
+        "Lira", "Morn", "Nyla", "Orin", "Pyra", "Quinn", "Rook", "Sera", "Tarn", "Una", "Venn",
+        "Wynn", "Yara",
+    ];
+    const FAMILY: &[&str] = &[
+        "Ashfall",
+        "Blackwood",
+        "Cairn",
+        "Dawnforge",
+        "Evenstar",
+        "Frost",
+        "Goldleaf",
+        "Hearth",
+        "Ironbrow",
+        "Keen",
+        "Lightward",
+        "Marsh",
+        "North",
+        "Oak",
+        "Pine",
+        "River",
+        "Stone",
+        "Thorn",
+        "Underhill",
+        "Vale",
+    ];
+    (
+        GIVEN[rng.index(GIVEN.len())].to_string(),
+        FAMILY[rng.index(FAMILY.len())].to_string(),
+    )
+}
+
+fn try_enter(
+    armory: &mut Armory,
+    account: &Account,
+    selection: &mut Selection,
+    run: &mut Run,
+    renown: &Renown,
+    stash: &Stash,
+    next: &mut NextState<Phase>,
+) {
+    if let Some(reason) = enter_refused(account, selection) {
+        armory.note = reason;
+        return;
+    }
+    let ranks = selection.class.map(|i| renown.ranks(i)).unwrap_or([0; 3]);
+    let class = selection.class.unwrap_or(0);
+    let hero = selection.character;
+    if super::hud::start_run(
+        run,
+        selection,
+        ranks,
+        stash.gear(),
+        account.bonus_picked(class, hero),
+    ) {
+        run.apply_perks(account.perks);
+        next.set(Phase::Playing);
+    } else {
+        armory.note = "Pick a class and a look before entering.".into();
+    }
 }
 
 pub(super) fn hero_gate(account: &Account, selection: &Selection) -> (u32, [bool; 7]) {
-    let hero = selection
-        .character
-        .and_then(|id| account.character(id));
-    let class = hero
-        .map(|c| c.class)
-        .or(selection.class)
-        .unwrap_or(0);
+    let hero = selection.character.and_then(|id| account.character(id));
+    let class = hero.map(|c| c.class).or(selection.class).unwrap_or(0);
     let level = hero
         .map(|c| campaign::talent_level(c.talent_xp))
         .unwrap_or(0);
@@ -308,24 +490,56 @@ pub(super) fn hero_gate(account: &Account, selection: &Selection) -> (u32, [bool
     (level, clears)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn refresh(
     mut commands: Commands,
     menus: Query<Entity, (With<MenuRoot>, With<super::menu::MenuBuilt>)>,
-    roots: Query<Entity, With<ArmoryRoot>>,
+    mut roots: Query<&mut Node, With<ArmoryRoot>>,
+    mut looks: Query<&mut Node, (With<super::menu::LookScreen>, Without<ArmoryRoot>)>,
     font: Res<HudFont>,
+    art: Res<GlueArt>,
     armory: Res<Armory>,
     account: Res<Account>,
     selection: Res<Selection>,
+    renown: Res<Renown>,
+    stash: Res<Stash>,
     phase: Res<State<Phase>>,
-    mut drawn: Local<u64>,
+    mut drawn: Local<Option<u64>>,
+    mut root_id: Local<Option<Entity>>,
 ) {
     if *phase.get() != Phase::Menu {
+        return;
+    }
+    let show_door = armory.page != Page::Look;
+    if let Ok(mut look) = looks.single_mut() {
+        let display = if show_door {
+            Display::None
+        } else {
+            Display::Flex
+        };
+        if look.display != display {
+            look.display = display;
+        }
+    }
+    if let Ok(mut node) = roots.single_mut() {
+        let display = if show_door {
+            Display::Flex
+        } else {
+            Display::None
+        };
+        if node.display != display {
+            node.display = display;
+        }
+    }
+    let sig = signature(&armory, &account, &selection, &renown, &stash);
+    if *drawn == Some(sig) {
         return;
     }
     let Ok(menu) = menus.single() else {
         return;
     };
-    let root = if let Ok(root) = roots.single() {
+    *drawn = Some(sig);
+    let root = if let Some(root) = *root_id {
         root
     } else {
         let root = commands
@@ -333,95 +547,38 @@ pub(super) fn refresh(
                 ArmoryRoot,
                 Node {
                     position_type: PositionType::Absolute,
-                    top: Val::Px(8.0),
-                    left: Val::Px(280.0),
-                    width: Val::Px(760.0),
-                    height: Val::Px(500.0),
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
                     flex_direction: FlexDirection::Column,
-                    padding: UiRect::all(Val::Px(6.0)),
-                    overflow: Overflow::clip(),
-                    border: UiRect::all(Val::Px(1.0)),
+                    padding: UiRect::all(Val::Px(16.0)),
+                    display: if show_door {
+                        Display::Flex
+                    } else {
+                        Display::None
+                    },
                     ..default()
                 },
-                BackgroundColor(PANEL),
-                BorderColor::all(EDGE),
-                GlobalZIndex(450),
+                BackgroundColor(Color::srgba(0.02, 0.015, 0.01, 0.62)),
             ))
             .id();
         commands.entity(menu).add_child(root);
+        *root_id = Some(root);
         root
     };
-    let sig = signature(&armory, &account, &selection);
-    if *drawn == sig {
+    if armory.page == Page::Look {
         return;
     }
-    *drawn = sig;
     commands.entity(root).despawn_related::<Children>();
     let font = font.0.clone();
+    let note = if armory.note.is_empty() && armory.page != Page::Door {
+        "Pick a hero, then a zone. Appearance is on Look."
+    } else {
+        armory.note.as_str()
+    };
     commands.entity(root).with_children(|panel| {
-        panel
-            .spawn(Node {
-                flex_direction: FlexDirection::Row,
-                flex_wrap: FlexWrap::Wrap,
-                column_gap: Val::Px(4.0),
-                ..default()
-            })
-            .with_children(|row| {
-                chip(row, &font, "Heroes", Act::Page(Page::Heroes), armory.page == Page::Heroes);
-                chip(row, &font, "Zones", Act::Page(Page::Zones), armory.page == Page::Zones);
-                chip(
-                    row,
-                    &font,
-                    "Talents",
-                    Act::Page(Page::Talents),
-                    armory.page == Page::Talents,
-                );
-                chip(
-                    row,
-                    &font,
-                    "Rewards",
-                    Act::Page(Page::Rewards),
-                    armory.page == Page::Rewards,
-                );
-                chip(
-                    row,
-                    &font,
-                    "Collection",
-                    Act::Page(Page::Collection),
-                    armory.page == Page::Collection,
-                );
-                chip(
-                    row,
-                    &font,
-                    "Codex",
-                    Act::Page(Page::Codex),
-                    armory.page == Page::Codex,
-                );
-                chip(
-                    row,
-                    &font,
-                    "Achievements",
-                    Act::Page(Page::Achievements),
-                    armory.page == Page::Achievements,
-                );
-                chip(row, &font, "Notes", Act::Page(Page::Notes), armory.page == Page::Notes);
-            });
-        let note = if armory.note.is_empty() {
-            "Pick a hero, then a zone. Appearance stays on the class screen."
-        } else {
-            armory.note.as_str()
-        };
-        panel.spawn(hud::text_bundle(&font, note, 13.0, GOLD));
-        match armory.page {
-            Page::Heroes => heroes(panel, &font, &armory, &account, &selection),
-            Page::Zones => zones(panel, &font, &account, &selection),
-            Page::Talents => talents(panel, &font, &account, &selection),
-            Page::Rewards => rewards_page(panel, &font, &account),
-            Page::Collection => collection(panel, &font, &account, &selection),
-            Page::Codex => codex(panel, &font, &account, &selection),
-            Page::Achievements => achievements(panel, &font, &account),
-            Page::Notes => notes_page(panel, &font),
-        }
+        door::build(
+            panel, &art, &font, &armory, &account, &selection, &renown, &stash, note,
+        );
     });
 }
 
@@ -431,6 +588,8 @@ fn heroes(
     armory: &Armory,
     account: &Account,
     selection: &Selection,
+    renown: &Renown,
+    stash: &Stash,
 ) {
     panel
         .spawn(Node {
@@ -440,12 +599,7 @@ fn heroes(
         })
         .with_children(|row| {
             if account.characters.is_empty() {
-                row.spawn(hud::text_bundle(
-                    font,
-                    "No heroes yet",
-                    13.0,
-                    Color::WHITE,
-                ));
+                row.spawn(hud::text_bundle(font, "No heroes yet", 13.0, Color::WHITE));
             }
             for hero in account.characters.iter().take(8) {
                 let on = selection.character == Some(hero.id);
@@ -475,16 +629,14 @@ fn heroes(
             chip(row, font, &last, Act::Focus(2), armory.focus == 2);
             chip(row, font, class, Act::Class, false);
             chip(row, font, "Create", Act::Create, false);
+            chip(row, font, "Appearance", Act::Look, false);
         });
-}
-
-fn zones(
-    panel: &mut impl ChipParent,
-    font: &Handle<Font>,
-    account: &Account,
-    selection: &Selection,
-) {
-    let (level, clears) = hero_gate(account, selection);
+    panel.spawn(hud::text_bundle(
+        font,
+        renown.status_line(selection.class),
+        13.0,
+        Color::WHITE,
+    ));
     panel
         .spawn(Node {
             flex_direction: FlexDirection::Row,
@@ -492,19 +644,60 @@ fn zones(
             ..default()
         })
         .with_children(|row| {
-            for (index, zone) in ZONES.iter().enumerate() {
-                let open = campaign::zone_open(index, level, &clears);
-                let label = if open {
-                    zone.name.to_string()
-                } else {
-                    format!("{} (locked)", zone.name)
-                };
-                let on = data::MAPS
-                    .get(selection.map)
-                    .is_some_and(|m| m.name == zone.map);
-                chip(row, font, &label, Act::Zone(index), on);
+            for (index, track) in renown::tracks().into_iter().enumerate() {
+                chip(row, font, track.label(), Act::Renown(index as u8), false);
             }
         });
+    panel.spawn(hud::text_bundle(font, stash.line(), 13.0, GOLD));
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        })
+        .with_children(|row| {
+            for (slot, label) in [(0, "Relic I"), (1, "Relic II"), (2, "Relic III")] {
+                chip(row, font, label, Act::Relic(slot), false);
+            }
+            chip(row, font, "Upgrade", Act::Upgrade, false);
+            chip(row, font, "Seek relic", Act::Seek, false);
+        });
+}
+
+fn fill_draft(
+    panel: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+    selection: &Selection,
+    renown: &Renown,
+    stash: &Stash,
+) {
+    match armory.page {
+        Page::Heroes => heroes(panel, font, armory, account, selection, renown, stash),
+        Page::Talents => talents(panel, font, account, selection),
+        Page::Rewards => rewards_page(panel, font, account),
+        Page::Collection => collection(panel, font, account, selection),
+        Page::Codex => codex(panel, font, account, selection),
+        Page::Achievements => achievements(panel, font, account),
+        Page::Notes => notes_page(panel, font),
+        Page::DropTables => drop_tables(panel, font),
+        Page::Door | Page::Look => {}
+    }
+}
+
+fn drop_tables(panel: &mut impl ChipParent, font: &Handle<Font>) {
+    scroll(
+        panel,
+        font,
+        &[
+            ("Drop tables are not listed yet.".into(), GOLD),
+            (
+                "A piece comes from a named creature. Clearing the zone does not, by itself, grant it.".into(),
+                Color::WHITE,
+            ),
+        ],
+    );
 }
 
 fn talents(
@@ -686,20 +879,27 @@ fn collection(
     let progress = account.classes.get(class);
     let class_name = CLASSES.get(class).map(|c| c.name).unwrap_or("Hero");
     let mut lines = Vec::new();
-    let owned = progress.map(|p| p.gear.iter().filter(|g| **g).count()).unwrap_or(0);
+    let owned = progress
+        .map(|p| p.gear.iter().filter(|g| **g).count())
+        .unwrap_or(0);
     let have_weapon = progress.map(|p| p.legendary_weapon).unwrap_or(false);
     lines.push((
         format!("{class_name} collection — {owned} of 10 pieces"),
         GOLD,
     ));
     for slot in 0..campaign::SLOTS.len() {
-        let have = progress.and_then(|p| p.gear.get(slot).copied()).unwrap_or(false);
+        let have = progress
+            .and_then(|p| p.gear.get(slot).copied())
+            .unwrap_or(false);
         let slot_name = campaign::SLOTS[slot];
         let item = names.map(|row| row[slot]).unwrap_or("Unknown");
         let quality = campaign::slot_quality(slot)
             .map(campaign::quality_name)
             .unwrap_or("?");
-        let main_filled = have_weapon || progress.and_then(|p| p.gear.get(8).copied()).unwrap_or(false);
+        let main_filled = have_weapon
+            || progress
+                .and_then(|p| p.gear.get(8).copied())
+                .unwrap_or(false);
         let occupied = slot == 9 && campaign::two_handed(class) && main_filled;
         let (text, color) = if occupied {
             (
@@ -709,7 +909,10 @@ fn collection(
         } else if have {
             (format!("{slot_name} — {item} ({quality})"), Color::WHITE)
         } else {
-            (format!("{slot_name} — {item} ({quality}) — not collected"), DIM)
+            (
+                format!("{slot_name} — {item} ({quality}) — not collected"),
+                DIM,
+            )
         };
         lines.push((text, color));
     }
@@ -757,7 +960,10 @@ fn codex(
         .map(|p| p.seen.as_slice())
         .unwrap_or(&[]);
     let mut lines = vec![(
-        format!("{} spells. A legendary amulet is marked when its card is dealt.", class.name),
+        format!(
+            "{} spells. A legendary amulet is marked when its card is dealt.",
+            class.name
+        ),
         GOLD,
     )];
     let mut keys = Vec::new();
@@ -771,7 +977,11 @@ fn codex(
         let amulet = campaign::legendary_amulet(key);
         let found = seen.iter().any(|name| name == &amulet);
         let color = if found { GOLD } else { Color::WHITE };
-        let mark = if found { "amulet seen" } else { "amulet unseen" };
+        let mark = if found {
+            "amulet seen"
+        } else {
+            "amulet unseen"
+        };
         lines.push((
             format!(
                 "{} — {} — {} damage, {}s cooldown — {mark}",
@@ -814,7 +1024,10 @@ fn achievements(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Acco
     let rows = account.achievement_list();
     let earned = rows.iter().filter(|row| row.earned).count();
     let mut lines = vec![(
-        format!("{earned} of {} achievements. Points are spent on the Rewards page.", rows.len()),
+        format!(
+            "{earned} of {} achievements. Points are spent on the Rewards page.",
+            rows.len()
+        ),
         GOLD,
     )];
     for row in rows {
@@ -823,7 +1036,10 @@ fn achievements(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Acco
         } else {
             ("Open", DIM)
         };
-        lines.push((format!("{mark} — {} — {} points", row.name, row.points), color));
+        lines.push((
+            format!("{mark} — {} — {} points", row.name, row.points),
+            color,
+        ));
     }
     scroll(panel, font, &lines);
 }
@@ -889,16 +1105,24 @@ fn field_label(text: &str, focused: bool) -> String {
     }
 }
 
-fn signature(armory: &Armory, account: &Account, selection: &Selection) -> u64 {
+fn signature(
+    armory: &Armory,
+    account: &Account,
+    selection: &Selection,
+    renown: &Renown,
+    stash: &Stash,
+) -> u64 {
     let mut n = match armory.page {
+        Page::Door => 0,
         Page::Heroes => 1,
-        Page::Zones => 2,
         Page::Talents => 3,
         Page::Rewards => 4,
         Page::Collection => 5,
         Page::Codex => 6,
         Page::Achievements => 7,
         Page::Notes => 8,
+        Page::DropTables => 9,
+        Page::Look => 10,
     };
     n = fold(n, u64::from(account.unspent()));
     n = fold(n, account.earned_ids().len() as u64);
@@ -939,7 +1163,13 @@ fn signature(armory: &Armory, account: &Account, selection: &Selection) -> u64 {
         }
         n = fold(n, u64::from(class.legendary_weapon));
         n = fold(n, class.seen.len() as u64);
+        for cleared in class.clears {
+            n = fold(n, u64::from(cleared));
+        }
     }
+    n = fold(n, hash_str(&renown.status_line(selection.class)));
+    n = fold(n, hash_str(&stash.line()));
+    n = fold(n, selection.look.unwrap_or(0) as u64);
     n
 }
 
@@ -959,6 +1189,32 @@ trait ChipParent {
 impl ChipParent for RelatedSpawnerCommands<'_, ChildOf> {
     fn spawn<B: Bundle>(&mut self, bundle: B) -> EntityCommands<'_> {
         RelatedSpawnerCommands::spawn(self, bundle)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::account;
+    use super::super::data;
+    use super::super::Selection;
+    use super::enter_refused;
+
+    #[test]
+    fn a_locked_zone_does_not_start() {
+        let account = account::blank();
+        let mut selection = Selection::default();
+        let elwynn = data::MAPS
+            .iter()
+            .position(|m| m.name == "Elwynn Forest")
+            .unwrap();
+        selection.map = elwynn;
+        assert!(enter_refused(&account, &selection).is_none());
+        let duskwood = data::MAPS
+            .iter()
+            .position(|m| m.name == "Duskwood")
+            .unwrap();
+        selection.map = duskwood;
+        assert!(enter_refused(&account, &selection).is_some());
     }
 }
 

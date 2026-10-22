@@ -265,6 +265,23 @@ impl Account {
         Some(id)
     }
 
+    /// Replaces a hero's name. Empty names are refused.
+    pub fn rename(&mut self, id: u32, first: &str, last: &str) -> bool {
+        let first = first.trim();
+        let last = last.trim();
+        if first.is_empty() || last.is_empty() {
+            return false;
+        }
+        let Some(hero) = self.characters.iter_mut().find(|c| c.id == id) else {
+            return false;
+        };
+        hero.first = first.to_string();
+        hero.last = last.to_string();
+        self.dirty = true;
+        self.save();
+        true
+    }
+
     pub fn bonus_for(&self, class: usize) -> Bonus {
         let id = self
             .characters
@@ -461,6 +478,11 @@ impl Account {
         snap.wins = self.wins;
         snap
     }
+}
+
+#[cfg(test)]
+pub(super) fn blank() -> Account {
+    empty()
 }
 
 fn empty() -> Account {

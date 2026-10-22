@@ -1708,6 +1708,7 @@ pub(super) fn keys(
     stash: Res<super::stash::Stash>,
     account: Res<super::account::Account>,
     typing: Res<super::Typing>,
+    mut armory: ResMut<super::armory::Armory>,
     mut selection: ResMut<Selection>,
     mut run: ResMut<Run>,
     mut next: ResMut<NextState<Phase>>,
@@ -1720,18 +1721,19 @@ pub(super) fn keys(
                 .unwrap_or([0; 3]);
             let class = selection.class.unwrap_or(0);
             let hero = selection.character;
-            if !typing.0
-                && keys.just_pressed(KeyCode::Enter)
-                && start_run(
+            if !typing.0 && keys.just_pressed(KeyCode::Enter) {
+                if let Some(reason) = super::armory::enter_refused(&account, &selection) {
+                    armory.note = reason;
+                } else if start_run(
                     &mut run,
                     &mut selection,
                     ranks,
                     stash.gear(),
                     account.bonus_picked(class, hero),
-                )
-            {
-                run.apply_perks(account.perks);
-                next.set(Phase::Playing);
+                ) {
+                    run.apply_perks(account.perks);
+                    next.set(Phase::Playing);
+                }
             }
         }
         Phase::Playing => {

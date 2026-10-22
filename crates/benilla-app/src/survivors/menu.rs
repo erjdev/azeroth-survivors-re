@@ -1,6 +1,5 @@
-//! The run's pick screen, laid out like the 1.12 character create and select glue screens and built
-//! from their own widgets and art ([`crate::glue`]): the race, gender and class tower on the left,
-//! the zone list in the character-select frame on the right, Enter World at the bottom.
+//! The glue race and class screen, where a hero's body is chosen. The Armory front door is the
+//! menu; this screen is reached from the hero column.
 //!
 //! The survivors HUD lays out on the 768-unit canvas through `UiScale`, so every glue builder here
 //! takes a unit scale.
@@ -8,6 +7,7 @@
 use bevy::prelude::*;
 use bevy::ui_render::ui_material::MaterialNode;
 
+use super::armory::{Act, Page};
 use super::hud::{looks_for, rgb, start_run, HudFont, MenuRoot};
 use super::renown::{self, Renown, Track};
 use super::stash::Stash;
@@ -66,6 +66,10 @@ pub(super) struct RenownStatus;
 #[derive(Component)]
 pub(super) struct MenuBuilt;
 
+/// The race and class screen. Hidden until the hero column opens it.
+#[derive(Component)]
+pub(super) struct LookScreen;
+
 /// A race button's face, re-cropped to the picked gender.
 #[derive(Component)]
 pub(super) struct RaceFace(u8);
@@ -79,7 +83,7 @@ fn pick_path() -> Option<std::path::PathBuf> {
     crate::local_state::home().map(|h| h.join("survivors-pick.txt"))
 }
 
-fn save_pick(sel: &Selection) {
+pub(super) fn save_pick(sel: &Selection) {
     let (Some(class), Some(&(_, race, sex))) = (sel.class, sel.look.and_then(|i| sel.looks.get(i)))
     else {
         return;
@@ -104,26 +108,62 @@ pub(super) fn restore_pick(
         return;
     };
     *done = true;
-    let Some(text) = pick_path().and_then(|p| crate::local_state::read_to_string(&p).ok()) else {
-        return;
-    };
-    let v: Vec<usize> = text
-        .split_whitespace()
-        .filter_map(|t| t.parse().ok())
-        .collect();
-    let [class, race, sex, map] = v[..] else {
-        return;
-    };
-    if map < data::MAPS.len() {
-        selection.map = map;
-        selection.stage = map;
-        selection.version += 1;
-    }
-    if class < data::CLASSES.len() {
-        let all = all_looks(creatures);
-        if let Some(l) = find(&all[class], Some(race as u8), Some(sex as u8)) {
-            set(&mut selection, &all, class, l);
+    let all = all_looks(creatures);
+    let mut restored = false;
+    if let Some(text) = pick_path().and_then(|p| crate::local_state::read_to_string(&p).ok()) {
+        let v: Vec<usize> = text
+            .split_whitespace()
+            .filter_map(|t| t.parse().ok())
+            .collect();
+        if let Ok([class, race, sex, map]) = <[usize; 4]>::try_from(v) {
+            restored = true;
+            if map < data::MAPS.len() {
+                selection.map = map;
+                selection.stage = map;
+                selection.version += 1;
+            }
+            if class < data::CLASSES.len() {
+                if let Some(l) = find(&all[class], Some(race as u8), Some(sex as u8)) {
+                    set(&mut selection, &all, class, l);
+                }
+            }
         }
+    }
+    if !restored {
+        if let Some(index) = data::MAPS.iter().position(|m| m.name == "Elwynn Forest") {
+            selection.map = index;
+            selection.stage = index;
+            selection.version += 1;
+        }
+    }
+    if selection.class.is_none() {
+        if let Some(l) = all.first().and_then(|looks| find(looks, None, None)) {
+            set(&mut selection, &all, 0, l);
+        }
+    }
+}
+
+/// Keeps the current race and sex when the class has that body.
+pub(super) fn choose_class(
+    selection: &mut Selection,
+    creatures: &crate::entities::Creatures,
+    class: usize,
+) {
+    let all = all_looks(creatures);
+    let cur = selection
+        .look
+        .and_then(|i| selection.looks.get(i))
+        .map(|&(_, r, s)| (r, s));
+    let (race, sex) = (cur.map(|c| c.0), cur.map_or(0, |c| c.1));
+    let Some(looks) = all.get(class) else {
+        return;
+    };
+    let look = find(looks, race, Some(sex))
+        .or_else(|| find(looks, race, None))
+        .or_else(|| find(looks, None, Some(sex)))
+        .or_else(|| find(looks, None, None));
+    if let Some(look) = look {
+        set(selection, &all, class, look);
     }
 }
 
@@ -163,189 +203,219 @@ pub(super) fn build_menu(
     art.ensure_loaded(&mut assets, &mut images, &mut add_mats);
     let f = &font.0;
     commands.entity(root).insert(MenuBuilt).with_children(|ui| {
-        tower(ui, &art, f);
-        // `CharacterCreateWoWLogo`, 256×128 at TOPLEFT (3,-7), after the tower so it draws over
-        // the border art, as the create screen orders it.
-        if let Some(logo) = &art.logo {
-            ui.spawn((
-                ImageNode::new(logo.clone()),
-                abs(1.0, 3.0, 7.0, 256.0, 128.0),
-            ));
-        }
-        zone_frame(ui, &art, f);
+        ui.spawn((
+            LookScreen,
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                display: Display::None,
+                ..default()
+            },
+        ))
+        .with_children(|ui| {
+            tower(ui, &art, f);
+            // `CharacterCreateWoWLogo`, 256×128 at TOPLEFT (3,-7), after the tower so it draws over
+            // the border art, as the create screen orders it.
+            if let Some(logo) = &art.logo {
+                ui.spawn((
+                    ImageNode::new(logo.clone()),
+                    abs(1.0, 3.0, 7.0, 256.0, 128.0),
+                ));
+            }
+            zone_frame(ui, &art, f);
 
-        // Renown sits above the name: marks persist on the class, levels do not.
-        ui.spawn(Node {
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(136.0),
-            width: Val::Percent(100.0),
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            row_gap: Val::Px(4.0),
-            ..default()
-        })
-        .with_children(|c| {
-            outlined_text(
-                c,
-                Node::default(),
-                (),
-                RenownStatus,
-                GlueText {
-                    text: "",
-                    size: 13.0,
-                    color: GOLD,
-                    wrap: false,
-                },
-                f,
-                1.0,
-            );
-            c.spawn(Node {
-                flex_direction: FlexDirection::Row,
-                column_gap: Val::Px(8.0),
+            // Renown sits above the name: marks persist on the class, levels do not.
+            ui.spawn(Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(136.0),
+                width: Val::Percent(100.0),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(4.0),
                 ..default()
             })
-            .with_children(|row| {
-                for track in renown::tracks() {
+            .with_children(|c| {
+                outlined_text(
+                    c,
+                    Node::default(),
+                    (),
+                    RenownStatus,
+                    GlueText {
+                        text: "",
+                        size: 13.0,
+                        color: GOLD,
+                        wrap: false,
+                    },
+                    f,
+                    1.0,
+                );
+                c.spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    column_gap: Val::Px(8.0),
+                    ..default()
+                })
+                .with_children(|row| {
+                    for track in renown::tracks() {
+                        glue_button(
+                            row,
+                            &art,
+                            f,
+                            MenuAction::Renown(track),
+                            track.label(),
+                            118.0,
+                            32.0,
+                            GlueBtnKind::Normal,
+                            1.0,
+                        );
+                    }
+                });
+                outlined_text(
+                    c,
+                    Node::default(),
+                    (),
+                    StashLine,
+                    GlueText {
+                        text: "",
+                        size: 13.0,
+                        color: GOLD,
+                        wrap: false,
+                    },
+                    f,
+                    1.0,
+                );
+                c.spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    column_gap: Val::Px(8.0),
+                    ..default()
+                })
+                .with_children(|row| {
+                    for (slot, label) in [(0, "Relic I"), (1, "Relic II"), (2, "Relic III")] {
+                        glue_button(
+                            row,
+                            &art,
+                            f,
+                            MenuAction::Relic(slot),
+                            label,
+                            118.0,
+                            32.0,
+                            GlueBtnKind::Normal,
+                            1.0,
+                        );
+                    }
+                });
+                c.spawn(Node {
+                    flex_direction: FlexDirection::Row,
+                    column_gap: Val::Px(8.0),
+                    ..default()
+                })
+                .with_children(|row| {
                     glue_button(
                         row,
                         &art,
                         f,
-                        MenuAction::Renown(track),
-                        track.label(),
+                        MenuAction::Upgrade,
+                        "Upgrade",
                         118.0,
                         32.0,
                         GlueBtnKind::Normal,
                         1.0,
                     );
-                }
-            });
-            outlined_text(
-                c,
-                Node::default(),
-                (),
-                StashLine,
-                GlueText {
-                    text: "",
-                    size: 13.0,
-                    color: GOLD,
-                    wrap: false,
-                },
-                f,
-                1.0,
-            );
-            c.spawn(Node {
-                flex_direction: FlexDirection::Row,
-                column_gap: Val::Px(8.0),
-                ..default()
-            })
-            .with_children(|row| {
-                for (slot, label) in [(0, "Relic I"), (1, "Relic II"), (2, "Relic III")] {
                     glue_button(
                         row,
                         &art,
                         f,
-                        MenuAction::Relic(slot),
-                        label,
-                        118.0,
+                        MenuAction::Seek,
+                        "Seek relic",
+                        140.0,
                         32.0,
                         GlueBtnKind::Normal,
                         1.0,
                     );
-                }
+                });
             });
-            c.spawn(Node {
-                flex_direction: FlexDirection::Row,
-                column_gap: Val::Px(8.0),
+            // `CharSelectCharacterName`, GlueFontNormalHuge at BOTTOM (0,100).
+            ui.spawn(Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(100.0),
+                width: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
                 ..default()
             })
-            .with_children(|row| {
+            .with_children(|c| {
+                outlined_text(
+                    c,
+                    Node::default(),
+                    (),
+                    PickName,
+                    GlueText {
+                        text: "",
+                        size: 22.0,
+                        color: GOLD,
+                        wrap: false,
+                    },
+                    f,
+                    1.0,
+                );
+            });
+            // `CharSelectEnterWorldButton`, 200×60 at BOTTOM (0,30).
+            ui.spawn(Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(30.0),
+                width: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                ..default()
+            })
+            .with_children(|c| {
                 glue_button(
-                    row,
+                    c,
                     &art,
                     f,
-                    MenuAction::Upgrade,
-                    "Upgrade",
-                    118.0,
-                    32.0,
+                    MenuAction::Enter,
+                    "Enter World",
+                    200.0,
+                    60.0,
                     GlueBtnKind::Normal,
                     1.0,
                 );
+            });
+            ui.spawn(Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(28.0),
+                bottom: Val::Px(30.0),
+                ..default()
+            })
+            .with_children(|c| {
                 glue_button(
-                    row,
+                    c,
                     &art,
                     f,
-                    MenuAction::Seek,
-                    "Seek relic",
+                    MenuAction::Quit,
+                    "Quit Game",
                     140.0,
-                    32.0,
+                    40.0,
                     GlueBtnKind::Normal,
                     1.0,
                 );
             });
-        });
-        // `CharSelectCharacterName`, GlueFontNormalHuge at BOTTOM (0,100).
-        ui.spawn(Node {
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(100.0),
-            width: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
-            ..default()
-        })
-        .with_children(|c| {
-            outlined_text(
-                c,
-                Node::default(),
-                (),
-                PickName,
-                GlueText {
-                    text: "",
-                    size: 22.0,
-                    color: GOLD,
-                    wrap: false,
-                },
-                f,
-                1.0,
-            );
-        });
-        // `CharSelectEnterWorldButton`, 200×60 at BOTTOM (0,30).
-        ui.spawn(Node {
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(30.0),
-            width: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
-            ..default()
-        })
-        .with_children(|c| {
-            glue_button(
-                c,
-                &art,
-                f,
-                MenuAction::Enter,
-                "Enter World",
-                200.0,
-                60.0,
-                GlueBtnKind::Normal,
-                1.0,
-            );
-        });
-        ui.spawn(Node {
-            position_type: PositionType::Absolute,
-            left: Val::Px(28.0),
-            bottom: Val::Px(30.0),
-            ..default()
-        })
-        .with_children(|c| {
-            glue_button(
-                c,
-                &art,
-                f,
-                MenuAction::Quit,
-                "Quit Game",
-                140.0,
-                40.0,
-                GlueBtnKind::Normal,
-                1.0,
-            );
+            ui.spawn(Node {
+                position_type: PositionType::Absolute,
+                right: Val::Px(24.0),
+                top: Val::Px(16.0),
+                ..default()
+            })
+            .with_children(|c| {
+                glue_button(
+                    c,
+                    &art,
+                    f,
+                    Act::Page(Page::Door),
+                    "Done",
+                    90.0,
+                    32.0,
+                    GlueBtnKind::Small,
+                    1.0,
+                );
+            });
         });
     });
 }
@@ -713,21 +783,22 @@ pub(super) fn menu_clicks(
             }
         }
         MenuAction::Enter => {
-            let ranks = selection
-                .class
-                .map(|i| renown.ranks(i))
-                .unwrap_or([0; 3]);
-            let class = selection.class.unwrap_or(0);
-            let hero = selection.character;
-            if start_run(
-                &mut run,
-                &mut selection,
-                ranks,
-                stash.gear(),
-                account.bonus_picked(class, hero),
-            ) {
-                run.apply_perks(account.perks);
-                next.set(Phase::Playing);
+            if let Some(reason) = super::armory::enter_refused(&account, &selection) {
+                armory.note = reason;
+            } else {
+                let ranks = selection.class.map(|i| renown.ranks(i)).unwrap_or([0; 3]);
+                let class = selection.class.unwrap_or(0);
+                let hero = selection.character;
+                if start_run(
+                    &mut run,
+                    &mut selection,
+                    ranks,
+                    stash.gear(),
+                    account.bonus_picked(class, hero),
+                ) {
+                    run.apply_perks(account.perks);
+                    next.set(Phase::Playing);
+                }
             }
         }
         MenuAction::Renown(track) => {
@@ -851,9 +922,7 @@ pub(super) fn refresh_menu_ui(
             let off = match *action {
                 MenuAction::Enter => cur.is_none(),
                 MenuAction::Renown(track) => {
-                    selection
-                        .class
-                        .is_none_or(|i| !renown.can_spend(i, track))
+                    selection.class.is_none_or(|i| !renown.can_spend(i, track))
                 }
                 MenuAction::Upgrade => !stash.can_upgrade(),
                 MenuAction::Seek => !stash.can_seek(),
