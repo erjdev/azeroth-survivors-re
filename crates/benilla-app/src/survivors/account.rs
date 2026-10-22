@@ -17,8 +17,24 @@ pub(super) struct Character {
     /// Index into [`data::CLASSES`].
     pub class: usize,
     pub talent_xp: u32,
-    /// Fifteen nodes: five per tree.
-    pub talents: [u8; 18],
+    /// Which of the three saved specs the run uses.
+    pub spec: u8,
+    /// Three specs, each three trees of [`campaign::NODES_PER_TREE`] ranks.
+    pub specs: [[u8; campaign::SPEC_LEN]; 3],
+}
+
+impl Character {
+    pub(super) fn ranks(&self) -> &[u8] {
+        &self.specs[usize::from(self.spec).min(2)]
+    }
+
+    pub(super) fn spent(&self) -> u32 {
+        self.ranks().iter().map(|n| u32::from(*n)).sum()
+    }
+}
+
+fn blank_specs() -> [[u8; campaign::SPEC_LEN]; 3] {
+    [[0; campaign::SPEC_LEN]; 3]
 }
 
 #[derive(Clone, Debug)]
@@ -127,7 +143,8 @@ impl Account {
             last: name.into(),
             class,
             talent_xp: 0,
-            talents: [0; 18],
+            spec: 0,
+            specs: blank_specs(),
         });
         self.dirty = true;
         id
@@ -213,7 +230,10 @@ impl Account {
             return Bonus::default();
         };
         let pieces = progress.pieces;
-        let talents = self.character(id).map(|c| c.talents).unwrap_or([0; 18]);
+        let talents = self
+            .character(id)
+            .map(|c| c.specs[usize::from(c.spec).min(2)])
+            .unwrap_or([0; campaign::SPEC_LEN]);
         let cloak = campaign::cloak_quality(self.feats(class, id));
         let mut total = campaign::equipped_bonus(&pieces, cloak);
         if self.legendary_ready() {
@@ -229,31 +249,60 @@ impl Account {
         total
     }
 
-    /// Spend one talent point. A row stays shut until this tree holds 5 points for each step down.
+    /// Spend one talent point on the selected spec. A row stays shut until this tree holds
+    /// 5 points for each step down.
     pub fn learn(&mut self, id: u32, node: usize) -> bool {
         let Some(c) = self.characters.iter().find(|c| c.id == id) else {
             return false;
         };
-        let spent = c.talents.iter().map(|n| u32::from(*n)).sum();
+        let spec = usize::from(c.spec).min(2);
+        let ranks = c.specs[spec];
+        let spent = ranks.iter().map(|n| u32::from(*n)).sum();
         let unspent = campaign::unspent_talents(c.talent_xp, spent);
-        let ranks = c.talents;
         if !campaign::can_learn(&ranks, node, unspent) {
             return false;
         }
         let Some(c) = self.characters.iter_mut().find(|c| c.id == id) else {
             return false;
         };
-        c.talents[node] = c.talents[node].saturating_add(1);
+        c.specs[spec][node] = c.specs[spec][node].saturating_add(1);
         self.dirty = true;
         true
     }
 
-    /// Respecs are free. Points return to the unspent pool.
+    /// Take one rank back. A point that is holding a deeper row open stays put.
+    pub fn unlearn(&mut self, id: u32, node: usize) -> bool {
+        let Some(c) = self.characters.iter().find(|c| c.id == id) else {
+            return false;
+        };
+        let spec = usize::from(c.spec).min(2);
+        if !campaign::can_unlearn(&c.specs[spec], node) {
+            return false;
+        }
+        let Some(c) = self.characters.iter_mut().find(|c| c.id == id) else {
+            return false;
+        };
+        c.specs[spec][node] = c.specs[spec][node].saturating_sub(1);
+        self.dirty = true;
+        true
+    }
+
+    /// The run uses this spec. The other two keep their points.
+    pub fn select_spec(&mut self, id: u32, spec: u8) {
+        let Some(c) = self.characters.iter_mut().find(|c| c.id == id) else {
+            return;
+        };
+        c.spec = spec.min(2);
+        self.dirty = true;
+    }
+
+    /// Reset is free and clears only the selected spec. Points return to the unspent pool.
     pub fn respec(&mut self, id: u32) {
         let Some(c) = self.characters.iter_mut().find(|c| c.id == id) else {
             return;
         };
-        c.talents = [0; 18];
+        let spec = usize::from(c.spec).min(2);
+        c.specs[spec] = [0; campaign::SPEC_LEN];
         self.dirty = true;
     }
 
@@ -272,7 +321,8 @@ impl Account {
             last: last.to_string(),
             class,
             talent_xp: 0,
-            talents: [0; 18],
+            spec: 0,
+            specs: blank_specs(),
         });
         self.dirty = true;
         Some(id)
@@ -523,12 +573,7 @@ fn encode(account: &Account) -> String {
     let mut out = String::from("# survivors account: characters, then one class block each\n");
     out.push_str(&format!("next {}\n", account.next_id));
     for c in &account.characters {
-        let talents = c
-            .talents
-            .iter()
-            .map(|n| n.to_string())
-            .collect::<Vec<_>>()
-            .join(",");
+        let talents = encode_specs(c);
         out.push_str(&format!(
             "who {} {} {} {} {} {talents}\n",
             c.id,
@@ -642,6 +687,54 @@ fn read_clears(bits: &str) -> [bool; campaign::CLEAR_COUNT] {
     clears
 }
 
+fn encode_specs(c: &Character) -> String {
+    let groups = c
+        .specs
+        .iter()
+        .map(|spec| {
+            spec.iter()
+                .map(|n| n.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        })
+        .collect::<Vec<_>>()
+        .join("|");
+    format!("{}|{groups}", c.spec.min(2))
+}
+
+/// A save with `|` is three specs. A bare comma list is the old eighteen ranks, copied into
+/// spec 0's first six nodes of each tree and clamped to the new rank caps.
+fn read_specs(list: &str) -> (u8, [[u8; campaign::SPEC_LEN]; 3]) {
+    let mut specs = blank_specs();
+    if list.contains('|') {
+        let mut parts = list.split('|');
+        let spec = parts
+            .next()
+            .unwrap_or("0")
+            .parse::<u8>()
+            .unwrap_or(0)
+            .min(2);
+        for (i, group) in parts.enumerate().take(3) {
+            for (n, rank) in group.split(',').enumerate().take(campaign::SPEC_LEN) {
+                let parsed = rank.parse::<u8>().unwrap_or(0);
+                specs[i][n] = parsed.min(campaign::node_max(n));
+            }
+        }
+        return (spec, specs);
+    }
+    let mut old = [0u8; 18];
+    for (i, n) in list.split(',').enumerate().take(18) {
+        old[i] = n.parse().unwrap_or(0);
+    }
+    for tree in 0..3 {
+        for node in 0..6 {
+            let dest = tree * campaign::NODES_PER_TREE + node;
+            specs[0][dest] = old[tree * 6 + node].min(campaign::node_max(dest));
+        }
+    }
+    (0, specs)
+}
+
 fn parse(text: &str) -> Result<Account, ()> {
     let mut account = empty();
     for line in text.lines() {
@@ -658,12 +751,7 @@ fn parse(text: &str) -> Result<Account, ()> {
                 let talent_xp: u32 = parts.next().ok_or(())?.parse().map_err(|_| ())?;
                 let first = unescape(parts.next().ok_or(())?);
                 let last = unescape(parts.next().ok_or(())?);
-                let mut talents = [0u8; 18];
-                if let Some(list) = parts.next() {
-                    for (i, n) in list.split(',').enumerate().take(18) {
-                        talents[i] = n.parse().unwrap_or(0);
-                    }
-                }
+                let (spec, specs) = read_specs(parts.next().unwrap_or(""));
                 if class < data::CLASSES.len() {
                     account.characters.push(Character {
                         id,
@@ -671,7 +759,8 @@ fn parse(text: &str) -> Result<Account, ()> {
                         last,
                         class,
                         talent_xp,
-                        talents,
+                        spec,
+                        specs,
                     });
                 }
             }
@@ -812,6 +901,8 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.characters[0].first, "Anduin");
         assert_eq!(account.characters[0].last, "Wrynn");
         assert_eq!(account.characters[0].talent_xp, 250);
+        assert_eq!(account.characters[0].ranks()[0], 1);
+        assert_eq!(account.characters[0].spec, 0);
         assert_eq!(account.classes[0].pieces[0], 1);
         assert!(account.classes[0].clears[0]);
         assert!(!account.classes[0].clears[1]);
@@ -823,6 +914,8 @@ pets 2 3 1 1 2 0 1
         assert!(!moved.classes[1].clears[1]);
         assert_eq!(account.classes[0].seen, vec!["Amulet of Heroic Strike".to_string()]);
         let again = parse(&encode(&account)).unwrap();
+        assert_eq!(again.characters[0].ranks()[0], 1);
+        assert_eq!(again.characters[0].spec, 0);
         assert_eq!(account.pets.owned, 2);
         assert_eq!(account.pets.leash, 3);
         assert_eq!(account.pets.instinct, [1, 2]);
@@ -869,14 +962,24 @@ pets 2 3 1 1 2 0 1
         let id = account.ensure(0);
         account.add_talent_xp(id, 600);
         assert!(account.learn(id, 0));
-        assert!(!account.learn(id, 1));
-        for _ in 0..4 {
+        assert!(account.learn(id, 1));
+        assert!(!account.learn(id, 2));
+        for _ in 0..3 {
             assert!(account.learn(id, 0));
         }
-        assert!(account.learn(id, 1));
+        assert!(account.learn(id, 2));
         assert!(account.bonus(0, id).might > 0.0);
+        account.select_spec(id, 1);
+        assert_eq!(account.character(id).unwrap().ranks()[0], 0);
+        assert!(account.learn(id, 0));
+        account.select_spec(id, 0);
+        assert_eq!(account.character(id).unwrap().ranks()[0], 4);
         account.respec(id);
-        assert_eq!(account.character(id).unwrap().talents[0], 0);
+        assert_eq!(account.character(id).unwrap().ranks()[0], 0);
+        account.select_spec(id, 1);
+        assert_eq!(account.character(id).unwrap().ranks()[0], 1);
+        assert!(account.unlearn(id, 0));
+        assert_eq!(account.character(id).unwrap().ranks()[0], 0);
         let bonus = account.bonus(0, 1);
         assert!(bonus.crit_damage > 0.0);
     }

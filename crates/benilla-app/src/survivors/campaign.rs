@@ -5,10 +5,15 @@
 pub(super) const XP_PER_TALENT: u32 = 100;
 /// Points a character can hold, matching a vanilla tree.
 pub(super) const TALENT_CAP: u32 = 51;
-/// Six nodes in a tree, five ranks each, so one tree can reach the 30-point milestone.
-/// A character still cannot spend more than [`TALENT_CAP`] points across all three.
-pub(super) const NODES_PER_TREE: usize = 6;
-pub(super) const NODE_RANKS: [u8; NODES_PER_TREE] = [5, 5, 5, 5, 5, 5];
+/// Fourteen nodes in a tree. Ranks are the vanilla mix of 5, 3, and 1, and a full tree holds
+/// more than 30 so the last row can open. A character still cannot spend more than
+/// [`TALENT_CAP`] points across all three trees.
+pub(super) const NODES_PER_TREE: usize = 14;
+pub(super) const SPEC_COUNT: usize = 3;
+pub(super) const SPEC_LEN: usize = NODES_PER_TREE * SPEC_COUNT;
+/// Row of each node inside one tree. Row `n` opens after `n * 5` points already spent there.
+pub(super) const NODE_ROW: [u8; NODES_PER_TREE] = [0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6];
+pub(super) const NODE_RANKS: [u8; NODES_PER_TREE] = [5, 5, 5, 3, 3, 1, 5, 5, 1, 3, 1, 1, 5, 1];
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(super) enum Quality {
@@ -840,23 +845,51 @@ pub(super) fn points_in_tree(ranks: &[u8], tree: usize) -> u32 {
         .sum()
 }
 
+pub(super) fn node_row(node: usize) -> u8 {
+    NODE_ROW.get(node % NODES_PER_TREE).copied().unwrap_or(0)
+}
+
+pub(super) fn node_max(node: usize) -> u8 {
+    NODE_RANKS.get(node % NODES_PER_TREE).copied().unwrap_or(1)
+}
+
 /// A node can be raised when its row is open, it is not full, and a point remains.
 /// Row 0 is open. Each later row opens after 5 more points spent in that same tree.
 pub(super) fn can_learn(ranks: &[u8], node: usize, unspent: u32) -> bool {
-    if unspent == 0 || node >= NODES_PER_TREE * 3 {
+    if unspent == 0 || node >= SPEC_LEN {
         return false;
     }
-    let row = node % NODES_PER_TREE;
-    let max = NODE_RANKS[row];
-    if ranks.get(node).copied().unwrap_or(0) >= max {
+    if ranks.get(node).copied().unwrap_or(0) >= node_max(node) {
         return false;
     }
-    points_in_tree(ranks, node / NODES_PER_TREE) >= (row as u32) * 5
+    points_in_tree(ranks, node / NODES_PER_TREE) >= u32::from(node_row(node)) * 5
+}
+
+/// One rank comes back when the node has one and every remaining rank still meets its row.
+pub(super) fn can_unlearn(ranks: &[u8], node: usize) -> bool {
+    let rank = ranks.get(node).copied().unwrap_or(0);
+    if rank == 0 || node >= SPEC_LEN {
+        return false;
+    }
+    let mut next = ranks.to_vec();
+    next[node] = rank - 1;
+    (0..SPEC_LEN).all(|i| {
+        next.get(i).copied().unwrap_or(0) == 0
+            || points_in_tree(&next, i / NODES_PER_TREE) >= u32::from(node_row(i)) * 5
+    })
 }
 
 /// One rank of a node. The three trees lean damage, spell, and survival.
+/// Nodes past the sixth add a small amount of might; the 10, 20, and 30 milestones
+/// are what change how spells play.
 fn node_rank_bonus(node: usize) -> Bonus {
     let row = node % NODES_PER_TREE;
+    if row >= 6 {
+        return Bonus {
+            might: 0.01,
+            ..Bonus::default()
+        };
+    }
     match node / NODES_PER_TREE {
         0 => match row {
             0 => Bonus { might: 0.02, ..Bonus::default() },
@@ -906,7 +939,7 @@ fn scale_bonus(bonus: Bonus, rank: u8) -> Bonus {
 /// Those milestones are what start to change how spells play.
 pub(super) fn talent_bonus(ranks: &[u8]) -> Bonus {
     let mut total = Bonus::default();
-    for node in 0..NODES_PER_TREE * 3 {
+    for node in 0..SPEC_LEN {
         let rank = ranks.get(node).copied().unwrap_or(0);
         if rank > 0 {
             total.add(scale_bonus(node_rank_bonus(node), rank));
@@ -927,23 +960,79 @@ pub(super) fn talent_bonus(ranks: &[u8]) -> Bonus {
     total
 }
 
-/// Milestone titles. Paladin uses the names from the talent tab; other classes use the tree.
-pub(super) fn milestone_name(class: usize, tree: usize, at: u32) -> String {
-    const PALADIN: [[&str; 3]; 3] = [
+/// The 10, 20, and 30 point talents. Paladin uses the names from the talent-tab picture.
+/// Every other class uses a talent that exists on that vanilla tree.
+const MILESTONES: [[[&str; 3]; 3]; 9] = [
+    [
+        ["Deep Wounds", "Sweeping Strikes", "Mortal Strike"],
+        ["Piercing Howl", "Death Wish", "Bloodthirst"],
+        ["Last Stand", "Concussion Blow", "Shield Slam"],
+    ],
+    [
         ["Divine Favor", "Daybreak", "Light's Grace"],
         ["Hallowed Ground", "Ardent Defender", "Hammer of the Righteous"],
         ["Seal of Command", "The Art of War", "Divine Storm"],
-    ];
+    ],
+    [
+        ["Unleashed Fury", "Frenzy", "Bestial Wrath"],
+        ["Efficiency", "Mortal Shots", "Trueshot Aura"],
+        ["Monster Slaying", "Surefooted", "Wyvern Sting"],
+    ],
+    [
+        ["Malice", "Lethality", "Cold Blood"],
+        ["Improved Sinister Strike", "Blade Flurry", "Adrenaline Rush"],
+        ["Master of Deception", "Preparation", "Premeditation"],
+    ],
+    [
+        ["Unbreakable Will", "Mental Agility", "Power Infusion"],
+        ["Holy Specialization", "Spiritual Guidance", "Lightwell"],
+        ["Shadow Affinity", "Shadow Weaving", "Shadowform"],
+    ],
+    [
+        ["Convection", "Elemental Focus", "Elemental Mastery"],
+        ["Ancestral Knowledge", "Elemental Weapons", "Stormstrike"],
+        ["Improved Healing Wave", "Nature's Swiftness", "Mana Tide Totem"],
+    ],
+    [
+        ["Arcane Focus", "Presence of Mind", "Arcane Power"],
+        ["Improved Fireball", "Critical Mass", "Combustion"],
+        ["Improved Frostbolt", "Ice Shards", "Ice Barrier"],
+    ],
+    [
+        ["Improved Corruption", "Nightfall", "Siphon Life"],
+        ["Improved Healthstone", "Demonic Sacrifice", "Soul Link"],
+        ["Improved Shadow Bolt", "Ruin", "Conflagrate"],
+    ],
+    [
+        ["Nature's Grasp", "Improved Moonfire", "Moonkin Form"],
+        ["Ferocity", "Heart of the Wild", "Leader of the Pack"],
+        ["Improved Healing Touch", "Nature's Swiftness", "Swiftmend"],
+    ],
+];
+
+/// Milestone title for `at` points in one tree. `at` is 10, 20, or 30.
+pub(super) fn milestone_name(class: usize, tree: usize, at: u32) -> &'static str {
     let tier = match at {
         10 => 0,
         20 => 1,
         _ => 2,
     };
-    if class == 1 {
-        return PALADIN[tree.min(2)][tier].to_string();
-    }
-    let tree_name = TREES.get(class).map(|t| t[tree.min(2)]).unwrap_or("Tree");
-    format!("{tree_name} {at}")
+    MILESTONES
+        .get(class)
+        .and_then(|trees| trees.get(tree.min(2)))
+        .map(|names| names[tier])
+        .unwrap_or("Talent")
+}
+
+/// The node that stands for the 10, 20, or 30 point line: the first node of that row.
+pub(super) fn milestone_node(at: u32) -> Option<usize> {
+    let row = match at {
+        10 => 2,
+        20 => 4,
+        30 => 6,
+        _ => return None,
+    };
+    NODE_ROW.iter().position(|r| *r == row)
 }
 
 /// Real tree names, three per class, in [`super::data::CLASSES`] order.
@@ -1210,28 +1299,36 @@ mod tests {
 
     #[test]
     fn a_row_opens_after_five_points_and_milestones_change_the_sheet() {
-        let mut ranks = vec![0u8; 15];
+        let mut ranks = vec![0u8; SPEC_LEN];
         assert!(can_learn(&ranks, 0, 1));
-        assert!(!can_learn(&ranks, 1, 1));
-        ranks[0] = 5;
         assert!(can_learn(&ranks, 1, 1));
         assert!(!can_learn(&ranks, 2, 1));
+        ranks[0] = 5;
+        assert!(can_learn(&ranks, 2, 1));
+        assert!(!can_learn(&ranks, 4, 1));
         assert!(!can_learn(&ranks, 0, 1));
         let trained = talent_bonus(&ranks);
         assert!(trained.might > 0.0);
-        ranks[0] = 5;
-        ranks[1] = 5;
+        ranks[2] = 5;
         let ten = talent_bonus(&ranks);
         assert!(ten.might > trained.might);
-        let mut deep = vec![0u8; NODES_PER_TREE * 3];
-        for rank in &mut deep[..NODES_PER_TREE] {
-            *rank = 5;
+        let mut deep = vec![0u8; SPEC_LEN];
+        for node in 0..NODES_PER_TREE {
+            deep[node] = NODE_RANKS[node];
         }
-        assert_eq!(points_in_tree(&deep, 0), 30);
+        assert!(points_in_tree(&deep, 0) >= 30);
         assert!(talent_bonus(&deep).targets >= 1);
         assert!(talent_bonus(&deep).multistrike > 0.0);
+        assert!(can_unlearn(&deep, 0));
+        let mut tight = vec![0u8; SPEC_LEN];
+        tight[0] = 4;
+        tight[2] = 1;
+        assert!(!can_unlearn(&tight, 0));
+        assert!(can_unlearn(&tight, 2));
         assert_eq!(milestone_name(1, 0, 10), "Divine Favor");
         assert_eq!(milestone_name(1, 2, 30), "Divine Storm");
+        assert_eq!(milestone_name(0, 0, 30), "Mortal Strike");
+        assert!(!milestone_name(0, 0, 10).ends_with(" 10"));
         assert_eq!(talent_level(5100), 51);
         assert_eq!(unspent_talents(250, 2), 0);
         assert_eq!(unspent_talents(250, 1), 1);

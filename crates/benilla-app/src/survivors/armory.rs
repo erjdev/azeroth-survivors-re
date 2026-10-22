@@ -5,6 +5,7 @@ mod door;
 
 use bevy::ecs::hierarchy::ChildOf;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
+use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
 
 use super::account::Account;
@@ -19,6 +20,13 @@ use crate::glue::art::GlueArt;
 use crate::glue::GlueClicks;
 
 const GOLD: Color = Color::srgb(1.0, 0.82, 0.0);
+
+/// Clicks and the mouse button, one system parameter so the menu system stays within Bevy's limit.
+#[derive(SystemParam)]
+pub(super) struct Pointer<'w> {
+    clicks: Res<'w, GlueClicks>,
+    mouse: Res<'w, ButtonInput<MouseButton>>,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum Page {
@@ -81,6 +89,7 @@ pub(super) enum Act {
     Create,
     Zone(usize),
     Learn(usize),
+    Spec(u8),
     Respec,
     Reward(u8),
     Restart,
@@ -100,8 +109,8 @@ pub(super) enum Act {
 
 #[allow(clippy::too_many_arguments)]
 pub(super) fn input(
-    clicks: Res<GlueClicks>,
-    acts: Query<(Entity, &Act)>,
+    pointer: Pointer,
+    acts: Query<(Entity, &Act, &Interaction)>,
     keys: Res<ButtonInput<KeyCode>>,
     mut typing: ResMut<Typing>,
     mut armory: ResMut<Armory>,
@@ -143,8 +152,25 @@ pub(super) fn input(
     } else if typing.0 {
         type_name(&keys, &mut armory);
     }
-    for (entity, act) in &acts {
-        if !clicks.hit(entity) {
+    if pointer.mouse.just_released(MouseButton::Right) {
+        for (_, act, interaction) in &acts {
+            if *interaction == Interaction::None {
+                continue;
+            }
+            let Act::Learn(node) = act else {
+                continue;
+            };
+            if let Some(id) = selection.character {
+                if account.unlearn(id, *node) {
+                    armory.note.clear();
+                } else {
+                    armory.note = "That point is holding a deeper row open".into();
+                }
+            }
+        }
+    }
+    for (entity, act, _) in &acts {
+        if !pointer.clicks.hit(entity) {
             continue;
         }
         match act.clone() {
@@ -167,6 +193,9 @@ pub(super) fn input(
                 pick_zone(&mut armory, &account, &mut selection, index);
                 super::menu::save_pick(&selection);
             }
+            Act::Learn(node) if pointer.mouse.just_released(MouseButton::Right) => {
+                let _ = node;
+            }
             Act::Learn(node) => {
                 if let Some(id) = selection.character {
                     if !account.learn(id, node) {
@@ -174,6 +203,12 @@ pub(super) fn input(
                     } else {
                         armory.note.clear();
                     }
+                }
+            }
+            Act::Spec(spec) => {
+                if let Some(id) = selection.character {
+                    account.select_spec(id, spec);
+                    armory.note.clear();
                 }
             }
             Act::Respec => {
@@ -770,56 +805,109 @@ fn talents(
     let Some(hero) = account.character(id) else {
         return;
     };
-    let spent: u32 = hero.talents.iter().map(|n| u32::from(*n)).sum();
+    let spent = hero.spent();
     let unspent = campaign::unspent_talents(hero.talent_xp, spent);
     let level = campaign::talent_level(hero.talent_xp);
     panel.spawn(hud::text_bundle(
         font,
-        format!("{unspent} unspent  ·  talent level {level}"),
+        format!("{unspent} to spend  ·  {spent} of {level} earned spent"),
         13.0,
         Color::WHITE,
     ));
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            column_gap: Val::Px(4.0),
+            ..default()
+        })
+        .with_children(|row| {
+            for spec in 0..campaign::SPEC_COUNT as u8 {
+                let ranks = &hero.specs[usize::from(spec)];
+                let points: [u32; 3] = [
+                    campaign::points_in_tree(ranks, 0),
+                    campaign::points_in_tree(ranks, 1),
+                    campaign::points_in_tree(ranks, 2),
+                ];
+                let label = if points.iter().all(|n| *n == 0) {
+                    format!("Spec {}  Empty", spec + 1)
+                } else {
+                    format!("Spec {}  {}/{}/{}", spec + 1, points[0], points[1], points[2])
+                };
+                chip(row, font, &label, Act::Spec(spec), hero.spec == spec);
+            }
+            chip(row, font, "Reset", Act::Respec, false);
+        });
     let trees = campaign::TREES
         .get(hero.class)
         .copied()
         .unwrap_or(["Tree", "Tree", "Tree"]);
+    let active = hero.ranks();
     panel
         .spawn(Node {
             flex_direction: FlexDirection::Row,
-            column_gap: Val::Px(8.0),
+            column_gap: Val::Px(12.0),
             ..default()
         })
         .with_children(|row| {
             for (tree, name) in trees.iter().enumerate() {
+                let points = campaign::points_in_tree(active, tree);
                 row.spawn(Node {
+                    width: Val::Px(240.0),
                     flex_direction: FlexDirection::Column,
                     ..default()
                 })
                 .with_children(|col| {
-                    col.spawn(hud::text_bundle(font, *name, 13.0, GOLD));
-                    for node in 0..campaign::NODES_PER_TREE {
-                        let id_node = tree * campaign::NODES_PER_TREE + node;
-                        let rank = hero.talents.get(id_node).copied().unwrap_or(0);
-                        let max = campaign::NODE_RANKS[node];
-                        chip(
-                            col,
+                    col.spawn(hud::text_bundle(
+                        font,
+                        format!("{name}  {points}"),
+                        13.0,
+                        GOLD,
+                    ));
+                    col.spawn(Node {
+                        flex_direction: FlexDirection::Row,
+                        flex_wrap: FlexWrap::Wrap,
+                        ..default()
+                    })
+                    .with_children(|grid| {
+                        for node in 0..campaign::NODES_PER_TREE {
+                            let id_node = tree * campaign::NODES_PER_TREE + node;
+                            let rank = active.get(id_node).copied().unwrap_or(0);
+                            let max = campaign::NODE_RANKS[node];
+                            let label = milestone_label(hero.class, tree, node, rank, max);
+                            chip(grid, font, &label, Act::Learn(id_node), rank > 0);
+                        }
+                    });
+                    for at in [10, 20, 30] {
+                        let reached = points >= at;
+                        col.spawn(hud::text_bundle(
                             font,
-                            &format!("Rank {rank}/{max}"),
-                            Act::Learn(id_node),
-                            false,
-                        );
+                            format!("{at}  {}", campaign::milestone_name(hero.class, tree, at)),
+                            12.0,
+                            if reached { GOLD } else { DIM },
+                        ));
                     }
                 });
             }
         });
-    panel
-        .spawn(Node {
-            flex_direction: FlexDirection::Row,
-            ..default()
-        })
-        .with_children(|row| {
-            chip(row, font, "Respec", Act::Respec, false);
-        });
+    panel.spawn(hud::text_bundle(
+        font,
+        "Click spends a point. Right-click takes one back. Reset clears this spec.",
+        12.0,
+        DIM,
+    ));
+}
+
+fn milestone_label(class: usize, tree: usize, node: usize, rank: u8, max: u8) -> String {
+    for at in [10, 20, 30] {
+        if campaign::milestone_node(at) == Some(node) {
+            return format!(
+                "{} {rank}/{max}",
+                campaign::milestone_name(class, tree, at)
+            );
+        }
+    }
+    format!("Rank {rank}/{max}")
 }
 
 fn rewards_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
@@ -1195,10 +1283,13 @@ fn signature(
         n = fold(n, u64::from(hero.id));
         n = fold(n, hero.class as u64);
         n = fold(n, u64::from(hero.talent_xp));
+        n = fold(n, u64::from(hero.spec));
         n = fold(n, hash_str(&hero.first));
         n = fold(n, hash_str(&hero.last));
-        for rank in hero.talents {
-            n = fold(n, u64::from(rank));
+        for spec in hero.specs {
+            for rank in spec {
+                n = fold(n, u64::from(rank));
+            }
         }
     }
     for class in &account.classes {

@@ -492,7 +492,7 @@ fn hero_column(
     let bonus = account.bonus_picked(class_i, selection.character);
     line(body, font, &bonus_line(bonus), 12.0, BONUS);
     let spent = hero
-        .map(|c| c.talents.iter().map(|n| u32::from(*n)).sum::<u32>())
+        .map(|c| c.spent())
         .unwrap_or(0);
     body.spawn(Node {
         width: Val::Percent(100.0),
