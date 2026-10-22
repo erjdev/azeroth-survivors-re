@@ -53,6 +53,12 @@ pub(super) struct Armory {
     /// The campaign row the door is showing. None follows the selected battleground.
     pub(super) picked: Option<usize>,
     pub note: String,
+    /// 0 summary, then Zones, Classes, Collection, Feats, Lifetime.
+    achieve: u8,
+    /// 0 perks, 1 companions, 2 tabards.
+    reward_page: u8,
+    /// Which companion the Looks row dresses.
+    pet_slot: u8,
 }
 
 impl Default for Armory {
@@ -65,6 +71,9 @@ impl Default for Armory {
             draft_class: 0,
             picked: None,
             note: String::new(),
+            achieve: 0,
+            reward_page: 0,
+            pet_slot: 0,
         }
     }
 }
@@ -105,6 +114,12 @@ pub(super) enum Act {
     Relic(usize),
     Upgrade,
     Seek,
+    Codex(u16),
+    Achieve(u8),
+    RewardPage(u8),
+    WearLook(u8),
+    PetSlot(u8),
+    Tabard(u8),
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -263,6 +278,27 @@ pub(super) fn input(
             }
             Act::Seek => {
                 stash.seek(rng.f32());
+            }
+            Act::Codex(id) => armory.note = codex_text(&account, id),
+            Act::Achieve(page) => {
+                armory.achieve = page.min(5);
+                armory.page = Page::Achievements;
+            }
+            Act::RewardPage(page) => {
+                armory.reward_page = page.min(2);
+                armory.page = Page::Rewards;
+            }
+            Act::PetSlot(slot) => armory.pet_slot = slot.min(1),
+            Act::WearLook(look) => {
+                account.wear_look(armory.pet_slot, look);
+            }
+            Act::Tabard(index) => {
+                account.wear_tabard(index);
+                armory.note = if account.tabard == 0 {
+                    "No tabard. A tabard grants no stat.".into()
+                } else {
+                    "Tabard worn. A tabard grants no stat.".into()
+                };
             }
         }
     }
@@ -738,10 +774,10 @@ fn fill_draft(
     match armory.page {
         Page::Heroes => heroes(panel, font, armory, account, selection, renown, stash),
         Page::Talents => talents(panel, font, account, selection),
-        Page::Rewards => rewards_page(panel, font, account),
+        Page::Rewards => rewards_page(panel, font, armory, account),
         Page::Collection => collection(panel, font, account, selection),
-        Page::Codex => codex(panel, font, account, selection),
-        Page::Achievements => achievements(panel, font, account),
+        Page::Codex => codex(panel, font, account),
+        Page::Achievements => achievements(panel, font, armory, account),
         Page::Notes => notes_page(panel, font),
         Page::DropTables => drop_tables(panel, font, account, selection),
         Page::Door | Page::Look => {}
@@ -910,22 +946,26 @@ fn milestone_label(class: usize, tree: usize, node: usize, rank: u8, max: u8) ->
     format!("Rank {rank}/{max}")
 }
 
-fn rewards_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
+fn rewards_page(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+) {
     let earned = rewards::points_of(account.earned_ids());
     let have = rewards::earned_count(account.earned_ids());
     panel.spawn(hud::text_bundle(
         font,
         format!(
-            "{} to spend  ·  {earned} earned  ·  {have} of {}  ·  {} resets",
+            "{} to spend  ·  {earned} earned  ·  {have} of {}",
             account.unspent(),
-            rewards::catalog_len(),
-            account.resets_left()
+            rewards::catalog_len()
         ),
         13.0,
         Color::WHITE,
     ));
     if let Some(next) = account.next_locked() {
-        panel.spawn(hud::text_bundle(font, next, 13.0, GOLD));
+        panel.spawn(hud::text_bundle(font, next, 12.0, GOLD));
     }
     panel
         .spawn(Node {
@@ -934,15 +974,75 @@ fn rewards_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Acco
             ..default()
         })
         .with_children(|row| {
-            for (code, perk) in rewards::PERKS.into_iter().enumerate() {
-                let rank = account.perks.rank(perk);
-                let label = match rewards::perk_cost(perk, rank) {
-                    Some(cost) => format!("{} {rank} · {cost}", rewards::perk_name(perk)),
-                    None => format!("{} {rank} max", rewards::perk_name(perk)),
-                };
-                chip(row, font, &label, Act::Reward(code as u8), false);
+            for (i, name) in ["Perks", "Companions", "Tabards"].iter().enumerate() {
+                chip(
+                    row,
+                    font,
+                    name,
+                    Act::RewardPage(i as u8),
+                    armory.reward_page == i as u8,
+                );
             }
         });
+    match armory.reward_page {
+        1 => companion_page(panel, font, armory, account),
+        2 => tabard_page(panel, font, account),
+        _ => perk_page(panel, font, account),
+    }
+}
+
+fn perk_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
+    for (code, perk) in rewards::PERKS.into_iter().enumerate() {
+        let rank = account.perks.rank(perk);
+        let label = match rewards::perk_cost(perk, rank) {
+            Some(cost) => format!("{} {rank} · {cost}", rewards::perk_name(perk)),
+            None => format!("{} {rank} max", rewards::perk_name(perk)),
+        };
+        panel
+            .spawn(Node {
+                flex_direction: FlexDirection::Row,
+                align_items: AlignItems::Center,
+                column_gap: Val::Px(8.0),
+                ..default()
+            })
+            .with_children(|row| {
+                chip(row, font, &label, Act::Reward(code as u8), false);
+                row.spawn(hud::text_bundle(
+                    font,
+                    rewards::perk_effect(perk),
+                    12.0,
+                    DIM,
+                ));
+            });
+    }
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            ..default()
+        })
+        .with_children(|row| {
+            chip(
+                row,
+                font,
+                &format!("Reset perks ({})", account.resets_left()),
+                Act::Reward(12),
+                false,
+            );
+        });
+}
+
+fn companion_page(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+) {
+    panel.spawn(hud::text_bundle(
+        font,
+        "Companions fetch coins and experience, then rest. They are not a magnet.",
+        12.0,
+        DIM,
+    ));
     let leash = pet_label("Long Leash", account.pets.leash, 3);
     let paws = pet_label("Quick Paws", account.pets.paws, 3);
     let second = if account.pets.owned >= 2 {
@@ -963,14 +1063,94 @@ fn rewards_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Acco
             chip(row, font, "Wisp-herder · 30", Act::Reward(9), false);
             chip(row, font, "Rune-hound · 30", Act::Reward(10), false);
             chip(row, font, &second, Act::Reward(11), false);
+        });
+    let first = super::companions::LOOKS
+        .get(usize::from(account.pets.look[0]))
+        .map(|(name, _)| *name)
+        .unwrap_or("Snowshoe Rabbit");
+    let second_look = super::companions::LOOKS
+        .get(usize::from(account.pets.look[1]))
+        .map(|(name, _)| *name)
+        .unwrap_or("Snowshoe Rabbit");
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        })
+        .with_children(|row| {
             chip(
                 row,
                 font,
-                &format!("Reset perks ({})", account.resets_left()),
-                Act::Reward(12),
-                false,
+                &format!("First companion: {first}"),
+                Act::PetSlot(0),
+                armory.pet_slot == 0,
+            );
+            chip(
+                row,
+                font,
+                &format!("Second companion: {second_look}"),
+                Act::PetSlot(1),
+                armory.pet_slot == 1,
             );
         });
+    panel.spawn(hud::text_bundle(
+        font,
+        "Pick a companion, then a look. Snowshoe Rabbit is the default.",
+        12.0,
+        DIM,
+    ));
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        })
+        .with_children(|row| {
+            let worn = account.pets.look[usize::from(armory.pet_slot)];
+            for (index, (name, _)) in super::companions::LOOKS.iter().enumerate() {
+                chip(
+                    row,
+                    font,
+                    name,
+                    Act::WearLook(index as u8),
+                    worn == index as u8,
+                );
+            }
+        });
+}
+
+fn tabard_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
+    panel.spawn(hud::text_bundle(
+        font,
+        "Tabards are account cosmetics. No tabard grants a stat.",
+        13.0,
+        Color::WHITE,
+    ));
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        })
+        .with_children(|row| {
+            chip(row, font, "None", Act::Tabard(0), account.tabard == 0);
+            for (index, tabard) in campaign::TABARDS.iter().enumerate() {
+                let worn = account.tabard == index as u8 + 1;
+                chip(row, font, tabard.name, Act::Tabard(index as u8 + 1), worn);
+            }
+        });
+    let checked = campaign::TABARDS
+        .iter()
+        .map(|tabard| format!("{} ({})", tabard.name, tabard.display))
+        .collect::<Vec<_>>()
+        .join(", ");
+    panel.spawn(hud::text_bundle(
+        font,
+        format!("Checked against the client: {checked}."),
+        12.0,
+        DIM,
+    ));
 }
 
 fn pet_label(name: &str, rank: u8, max: u8) -> String {
@@ -1075,104 +1255,360 @@ fn collection(
     scroll(panel, font, &lines);
 }
 
-fn codex(
+fn codex(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
+    panel.spawn(hud::text_bundle(
+        font,
+        "Legendary amulets. Each class has one for every spell. Click an icon to read it.",
+        13.0,
+        GOLD,
+    ));
+    for (class_i, class) in CLASSES.iter().enumerate() {
+        let keys = class_keys(class);
+        let seen = account
+            .classes
+            .get(class_i)
+            .map(|p| p.seen.as_slice())
+            .unwrap_or(&[]);
+        let found = keys
+            .iter()
+            .filter(|key| seen.iter().any(|name| name == &campaign::legendary_amulet(key)))
+            .count();
+        panel.spawn(hud::text_bundle(
+            font,
+            format!("{}  {found}/{}", class.name, keys.len()),
+            13.0,
+            Color::WHITE,
+        ));
+        panel
+            .spawn(Node {
+                flex_direction: FlexDirection::Row,
+                flex_wrap: FlexWrap::Wrap,
+                column_gap: Val::Px(3.0),
+                row_gap: Val::Px(3.0),
+                ..default()
+            })
+            .with_children(|row| {
+                for (slot, key) in keys.iter().enumerate() {
+                    let seen_one = seen.iter().any(|name| name == &campaign::legendary_amulet(key));
+                    let dim = if seen_one { 1.0 } else { 0.35 };
+                    row.spawn((
+                        Button,
+                        Act::Codex(codex_legend(class_i, slot)),
+                        Node {
+                            width: Val::Px(28.0),
+                            height: Val::Px(28.0),
+                            border: UiRect::all(Val::Px(1.0)),
+                            ..default()
+                        },
+                        BorderColor::all(if seen_one { GOLD } else { DIM }),
+                        ImageNode {
+                            color: Color::srgba(1.0, 1.0, 1.0, dim),
+                            ..default()
+                        },
+                        hud::SpellIcon(data::ability(key).spell),
+                        hud::IconDim(dim),
+                    ));
+                }
+            });
+    }
+    panel.spawn(hud::text_bundle(
+        font,
+        "Rings, trinkets, and amulets are offered to every class and last one run.",
+        13.0,
+        GOLD,
+    ));
+    jewel_row(panel, font, "Rings", &campaign::RING_NAMES, 2);
+    jewel_row(panel, font, "Trinkets", &campaign::TRINKET_NAMES, 3);
+    jewel_row(panel, font, "Amulets", &campaign::AMULET_NAMES, 4);
+}
+
+fn jewel_row(
     panel: &mut impl ChipParent,
     font: &Handle<Font>,
-    account: &Account,
-    selection: &Selection,
+    title: &str,
+    names: &[&str],
+    kind: u8,
 ) {
-    let class_i = picked_class(account, selection);
-    let Some(class) = CLASSES.get(class_i) else {
-        return;
+    panel.spawn(hud::text_bundle(
+        font,
+        format!("{title}  {}/{}", names.len(), names.len()),
+        13.0,
+        Color::WHITE,
+    ));
+    panel
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        })
+        .with_children(|row| {
+            for (index, name) in names.iter().enumerate() {
+                chip(row, font, name, Act::Codex(codex_jewel(kind, index)), false);
+            }
+        });
+}
+
+fn achievements(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+) {
+    let rows = account.achievement_list();
+    let earned_n = rows.iter().filter(|row| row.earned).count();
+    let earned_pts: u32 = rows.iter().filter(|row| row.earned).map(|row| row.points).sum();
+    let total_pts: u32 = rows.iter().map(|row| row.points).sum();
+    let names = [
+        "Summary",
+        "Zones",
+        "Classes",
+        "Collection",
+        "Feats",
+        "Lifetime",
+    ];
+    panel
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            flex_direction: FlexDirection::Row,
+            column_gap: Val::Px(12.0),
+            ..default()
+        })
+        .with_children(|row| {
+            row.spawn(Node {
+                width: Val::Px(168.0),
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(2.0),
+                ..default()
+            })
+            .with_children(|nav| {
+                nav.spawn(hud::text_bundle(
+                    font,
+                    format!("{earned_pts} of {total_pts}"),
+                    16.0,
+                    GOLD,
+                ));
+                nav.spawn(hud::text_bundle(
+                    font,
+                    format!("{earned_n} of {} earned", rows.len()),
+                    12.0,
+                    DIM,
+                ));
+                for (index, name) in names.iter().enumerate() {
+                    let label = if index == 0 {
+                        (*name).to_string()
+                    } else {
+                        let (have, total, _, _) = category_counts(&rows, index as u8);
+                        format!("{name}  {have}/{total}")
+                    };
+                    chip(
+                        nav,
+                        font,
+                        &label,
+                        Act::Achieve(index as u8),
+                        armory.achieve == index as u8,
+                    );
+                    if index > 0 {
+                        let (_, _, pts, all) = category_counts(&rows, index as u8);
+                        meter(nav, if all == 0 { 0.0 } else { pts as f32 / all as f32 });
+                    }
+                }
+            });
+            row.spawn(Node {
+                flex_grow: 1.0,
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(2.0),
+                ..default()
+            })
+            .with_children(|body| {
+                if armory.achieve == 0 {
+                    achievement_summary(body, font, account, &rows);
+                } else if let Some(category) = category_of(armory.achieve) {
+                    for entry in rows.iter().filter(|row| row.category == category) {
+                        let progress = entry
+                            .progress
+                            .map(|(have, need)| format!("  {have}/{need}"))
+                            .unwrap_or_default();
+                        let (mark, color) = if entry.earned {
+                            ("Earned", GOLD)
+                        } else {
+                            ("Open", Color::WHITE)
+                        };
+                        body.spawn(hud::text_bundle(
+                            font,
+                            format!("{mark} — {} — {} points{progress}", entry.name, entry.points),
+                            13.0,
+                            color,
+                        ));
+                    }
+                }
+            });
+        });
+}
+
+fn achievement_summary(
+    body: &mut impl ChipParent,
+    font: &Handle<Font>,
+    account: &Account,
+    rows: &[rewards::Listed],
+) {
+    body.spawn(hud::text_bundle(font, "Recently earned", 13.0, GOLD));
+    let mut recent = 0;
+    for id in account.earned_ids().iter().rev() {
+        let Some(row) = rows.iter().find(|row| row.id == *id) else {
+            continue;
+        };
+        body.spawn(hud::text_bundle(
+            font,
+            format!("{} — {} points", row.name, row.points),
+            13.0,
+            Color::WHITE,
+        ));
+        recent += 1;
+        if recent == 4 {
+            break;
+        }
+    }
+    if recent == 0 {
+        body.spawn(hud::text_bundle(font, "None yet.", 13.0, DIM));
+    }
+    body.spawn(hud::text_bundle(font, "Almost there", 13.0, GOLD));
+    let mut close: Vec<_> = rows
+        .iter()
+        .filter(|row| !row.earned && row.progress.is_some())
+        .collect();
+    close.sort_by(|a, b| {
+        let (ah, an) = a.progress.unwrap_or((0, 1));
+        let (bh, bn) = b.progress.unwrap_or((0, 1));
+        let af = ah as f32 / an.max(1) as f32;
+        let bf = bh as f32 / bn.max(1) as f32;
+        bf.partial_cmp(&af).unwrap_or(std::cmp::Ordering::Equal)
+    });
+    if close.is_empty() {
+        body.spawn(hud::text_bundle(font, "Nothing in progress.", 13.0, DIM));
+    }
+    for row in close.into_iter().take(4) {
+        let (have, need) = row.progress.unwrap_or((0, 1));
+        body.spawn(hud::text_bundle(
+            font,
+            format!("{} — {} points  {have}/{need}", row.name, row.points),
+            13.0,
+            Color::WHITE,
+        ));
+    }
+}
+
+fn category_of(page: u8) -> Option<rewards::Category> {
+    match page {
+        1 => Some(rewards::Category::Zones),
+        2 => Some(rewards::Category::Classes),
+        3 => Some(rewards::Category::Collection),
+        4 => Some(rewards::Category::Feats),
+        5 => Some(rewards::Category::Lifetime),
+        _ => None,
+    }
+}
+
+fn category_counts(rows: &[rewards::Listed], page: u8) -> (usize, usize, u32, u32) {
+    let Some(category) = category_of(page) else {
+        return (0, 0, 0, 0);
     };
-    let seen = account
-        .classes
-        .get(class_i)
-        .map(|p| p.seen.as_slice())
-        .unwrap_or(&[]);
-    let mut lines = vec![(
-        format!(
-            "{} spells. A legendary amulet is marked when its card is dealt.",
-            class.name
-        ),
-        GOLD,
-    )];
+    let mine: Vec<_> = rows.iter().filter(|row| row.category == category).collect();
+    let have = mine.iter().filter(|row| row.earned).count();
+    let pts = mine.iter().filter(|row| row.earned).map(|row| row.points).sum();
+    let all = mine.iter().map(|row| row.points).sum();
+    (have, mine.len(), pts, all)
+}
+
+fn meter(parent: &mut impl ChipParent, fraction: f32) {
+    parent
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Px(4.0),
+                margin: UiRect::bottom(Val::Px(4.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.2, 0.16, 0.08, 0.9)),
+        ))
+        .with_children(|bar| {
+            bar.spawn((
+                Node {
+                    width: Val::Percent((fraction.clamp(0.0, 1.0) * 100.0).max(0.0)),
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+                BackgroundColor(GOLD),
+            ));
+        });
+}
+
+fn class_keys(class: &data::ClassDef) -> Vec<&'static str> {
     let mut keys = Vec::new();
     for key in std::iter::once(class.start).chain(class.pool.iter().copied()) {
         if !keys.contains(&key) {
             keys.push(key);
         }
     }
-    for key in keys {
-        let def = data::ability(key);
-        let amulet = campaign::legendary_amulet(key);
-        let found = seen.iter().any(|name| name == &amulet);
-        let color = if found { GOLD } else { Color::WHITE };
-        let mark = if found {
-            "amulet seen"
-        } else {
-            "amulet unseen"
-        };
-        lines.push((
+    keys
+}
+
+fn codex_legend(class: usize, slot: usize) -> u16 {
+    (1u16 << 12) | ((class as u16) << 6) | ((slot as u16) & 0x3f)
+}
+
+fn codex_jewel(kind: u8, index: usize) -> u16 {
+    (u16::from(kind) << 12) | ((index as u16) & 0x0fff)
+}
+
+fn codex_text(account: &Account, id: u16) -> String {
+    let kind = id >> 12;
+    let index = usize::from(id & 0x0fff);
+    match kind {
+        1 => {
+            let class_i = index >> 6;
+            let slot = index & 0x3f;
+            let Some(class) = CLASSES.get(class_i) else {
+                return "Unknown spell".into();
+            };
+            let keys = class_keys(class);
+            let Some(key) = keys.get(slot).copied() else {
+                return "Unknown spell".into();
+            };
+            let def = data::ability(key);
+            let amulet = campaign::legendary_amulet(key);
+            let seen = account
+                .classes
+                .get(class_i)
+                .is_some_and(|progress| progress.seen.iter().any(|name| name == &amulet));
+            let mark = if seen { "seen" } else { "not seen yet" };
             format!(
-                "{} — {} — {} damage, {}s cooldown — {mark}",
+                "{amulet} — {} — {} — {} damage, {}s cooldown — {mark}",
                 spell_title(key),
                 kind_name(def.kind),
                 def.damage,
                 def.cooldown
-            ),
-            color,
-        ));
+            )
+        }
+        2 => jewel_text("Ring", campaign::RING_NAMES.get(index).copied(), "Two rings can be worn this run."),
+        3 => jewel_text(
+            "Trinket",
+            campaign::TRINKET_NAMES.get(index).copied(),
+            "Two trinkets can be worn this run.",
+        ),
+        4 => jewel_text(
+            "Amulet",
+            campaign::AMULET_NAMES.get(index).copied(),
+            "One amulet can be worn this run. It is not written into the collection.",
+        ),
+        _ => "Unknown entry".into(),
     }
-    lines.push((
-        format!(
-            "Rings, worn {}: {}",
-            campaign::RINGS_WORN,
-            campaign::RING_NAMES.join(", ")
-        ),
-        Color::WHITE,
-    ));
-    lines.push((
-        format!(
-            "Trinkets, worn {}: {}",
-            campaign::TRINKETS_WORN,
-            campaign::TRINKET_NAMES.join(", ")
-        ),
-        Color::WHITE,
-    ));
-    lines.push((
-        format!(
-            "Amulets, worn {}: {}",
-            campaign::AMULETS_WORN,
-            campaign::AMULET_NAMES.join(", ")
-        ),
-        Color::WHITE,
-    ));
-    scroll(panel, font, &lines);
 }
 
-fn achievements(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
-    let rows = account.achievement_list();
-    let earned = rows.iter().filter(|row| row.earned).count();
-    let mut lines = vec![(
-        format!(
-            "{earned} of {} achievements. Points are spent on the Rewards page.",
-            rows.len()
-        ),
-        GOLD,
-    )];
-    for row in rows {
-        let (mark, color) = if row.earned {
-            ("Earned", GOLD)
-        } else {
-            ("Open", DIM)
-        };
-        lines.push((
-            format!("{mark} — {} — {} points", row.name, row.points),
-            color,
-        ));
-    }
-    scroll(panel, font, &lines);
+fn jewel_text(kind: &str, name: Option<&str>, rule: &str) -> String {
+    format!(
+        "{kind} — {} — {rule}",
+        name.unwrap_or("Unknown")
+    )
 }
 
 fn spell_title(key: &str) -> String {
@@ -1270,6 +1706,12 @@ fn signature(
     n = fold(n, u64::from(account.pets.paws));
     n = fold(n, u64::from(account.pets.instinct[0]));
     n = fold(n, u64::from(account.pets.instinct[1]));
+    n = fold(n, u64::from(account.pets.look[0]));
+    n = fold(n, u64::from(account.pets.look[1]));
+    n = fold(n, u64::from(account.tabard));
+    n = fold(n, u64::from(armory.achieve));
+    n = fold(n, u64::from(armory.reward_page));
+    n = fold(n, u64::from(armory.pet_slot));
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
     n = fold(n, armory.draft_class as u64);

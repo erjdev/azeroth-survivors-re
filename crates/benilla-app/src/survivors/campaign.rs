@@ -607,6 +607,18 @@ pub(super) static TRINKET_NAMES: [&str; TRINKETS] = [
     "Neltharion's Tear",
 ];
 
+/// Account cosmetics. Display ids are `ItemDisplayInfo` rows the 1.12.1 client ships.
+/// None of them adds a stat.
+pub(super) struct Tabard {
+    pub name: &'static str,
+    pub display: u32,
+}
+
+pub(super) static TABARDS: &[Tabard] = &[Tabard {
+    name: "Guild Tabard",
+    display: 20621,
+}];
+
 pub(super) static AMULET_NAMES: [&str; AMULETS] = [
     "Amulet of the Redeemed",
     "Medallion of Grand Marshal Morris",

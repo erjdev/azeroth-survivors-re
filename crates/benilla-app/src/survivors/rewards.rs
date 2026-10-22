@@ -109,9 +109,20 @@ pub(super) fn veteran_multiplier(rank: u8, mine: u32, best: u32) -> f32 {
     }
 }
 
-/// Added to a boss chest's jewelry chance. Rank 2 is the 10% from the rewards screen.
-pub(super) fn keen_jewel_bonus(rank: u8) -> f32 {
+/// Added to a boss's chance to drop each piece. Rank 2 is 10%.
+pub(super) fn keen_drop_bonus(rank: u8) -> f32 {
     0.05 * f32::from(rank.min(2))
+}
+
+pub(super) fn perk_effect(perk: Perk) -> &'static str {
+    match perk {
+        Perk::SecondThoughts => "Redraw a level-up hand. The first rank is one redraw, the third is three.",
+        Perk::Skip => "Pass a hand and take gold instead.",
+        Perk::Veterans => "A class behind the account's best earns 20% more talent experience a rank.",
+        Perk::Banish => "Throw out one card and draw another.",
+        Perk::OpeningHand => "The first level-up of a run deals four cards.",
+        Perk::KeenEye => "A boss is 5% more likely to drop each piece, a rank. Two ranks is 10%.",
+    }
 }
 
 /// Cards in a level-up hand. The first hand of a run is four when Opening Hand is owned.
@@ -148,6 +159,15 @@ impl Default for Snapshot {
             wins: 0,
         }
     }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(super) enum Category {
+    Zones,
+    Classes,
+    Collection,
+    Feats,
+    Lifetime,
 }
 
 enum Kind {
@@ -190,6 +210,34 @@ impl Kind {
             Kind::LegendaryCloak => snap.legendary_cloak,
             Kind::Wins(n) => snap.wins >= n,
             Kind::Runs(n) => snap.runs >= n,
+        }
+    }
+
+    fn category(&self) -> Category {
+        match self {
+            Kind::ZoneAny(_) | Kind::ZoneAll(_) => Category::Zones,
+            Kind::ClassClear(_) | Kind::TalentCap(_) => Category::Classes,
+            Kind::Pieces(_) | Kind::FullSet | Kind::Legends(_) => Category::Collection,
+            Kind::AnyCloak | Kind::EpicCloak | Kind::LegendaryCloak => Category::Feats,
+            Kind::Wins(_) | Kind::Runs(_) => Category::Lifetime,
+        }
+    }
+
+    fn progress(&self, snap: &Snapshot) -> Option<(u32, u32)> {
+        match *self {
+            Kind::ZoneAll(z) => {
+                let have = snap
+                    .clears
+                    .iter()
+                    .filter(|c| c.get(z).copied().unwrap_or(false))
+                    .count() as u32;
+                Some((have, 9))
+            }
+            Kind::Pieces(n) => Some((snap.pieces.min(n), n)),
+            Kind::Legends(n) => Some((snap.legends.min(n), n)),
+            Kind::Wins(n) => Some((snap.wins.min(n), n)),
+            Kind::Runs(n) => Some((snap.runs.min(n), n)),
+            _ => None,
         }
     }
 }
@@ -332,9 +380,12 @@ pub(super) fn catalog_len() -> usize {
 }
 
 pub(super) struct Listed {
+    pub id: u16,
     pub name: String,
     pub points: u32,
     pub earned: bool,
+    pub category: Category,
+    pub progress: Option<(u32, u32)>,
 }
 
 /// Every achievement, earned or still open.
@@ -342,9 +393,12 @@ pub(super) fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
     catalog()
         .into_iter()
         .map(|a| Listed {
+            id: a.id,
             earned: earned.contains(&a.id) || a.kind.met(snapshot),
             points: a.points,
             name: a.name,
+            category: a.kind.category(),
+            progress: a.kind.progress(snapshot),
         })
         .collect()
 }
@@ -386,10 +440,26 @@ mod tests {
         assert_eq!(veteran_multiplier(2, 100, 500), 1.4);
         assert_eq!(veteran_multiplier(2, 500, 500), 1.0);
         assert_eq!(veteran_multiplier(0, 0, 500), 1.0);
-        assert!((keen_jewel_bonus(2) - 0.10).abs() < 0.001);
+        assert!((keen_drop_bonus(2) - 0.10).abs() < 0.001);
         assert_eq!(hand_size(true, 0), 4);
         assert_eq!(hand_size(true, 1), 3);
         assert_eq!(skip_gold(3), 11);
         assert!(catalog_len() > 40);
+    }
+
+    #[test]
+    fn a_champion_row_counts_classes_and_keeps_its_category() {
+        let mut snap = Snapshot::default();
+        snap.clears[0][0] = true;
+        snap.clears[2][0] = true;
+        let rows = listed(&snap, &[]);
+        let champ = rows
+            .iter()
+            .find(|r| r.name == "Champion of Elwynn Forest")
+            .expect("elwynn champion");
+        assert_eq!(champ.category, Category::Zones);
+        assert_eq!(champ.progress, Some((2, 9)));
+        assert!(!champ.earned);
+        assert!(rows.iter().any(|r| r.category == Category::Lifetime));
     }
 }

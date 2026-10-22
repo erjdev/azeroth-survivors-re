@@ -115,6 +115,9 @@ pub(super) struct OverStat(usize);
 /// An icon slot filled from the spell's `SpellIcon` once the client data is up.
 #[derive(Component)]
 pub(super) struct SpellIcon(pub(super) u32);
+/// How bright [`fill_icons`] leaves the slot. Unseen codex entries stay drawn, darker.
+#[derive(Component)]
+pub(super) struct IconDim(pub(super) f32);
 #[derive(Component)]
 pub(super) struct IconDone;
 
@@ -1196,13 +1199,10 @@ fn deal_level(run: &mut Run, rng: &mut Rng) -> Vec<Choice> {
 }
 
 fn deal_trade(run: &mut Run, rng: &mut Rng) -> Vec<Choice> {
-    let extra = if run.boss_trades > 0 {
+    if run.boss_trades > 0 {
         run.boss_trades -= 1;
-        super::rewards::keen_jewel_bonus(run.keen_eye)
-    } else {
-        0.0
-    };
-    trade_choices(run, rng, extra)
+    }
+    trade_choices(run, rng, 0.0)
 }
 
 /// Redraw a level-up hand. Chest trades are not redrawn.
@@ -2099,7 +2099,7 @@ pub(super) fn refresh_hud(
 /// Fill icon slots from `SpellIcon.dbc` once the client data and the asset reader are up.
 pub(super) fn fill_icons(
     mut commands: Commands,
-    mut slots: Query<(Entity, &mut ImageNode, &SpellIcon), Without<IconDone>>,
+    mut slots: Query<(Entity, &mut ImageNode, &SpellIcon, Option<&IconDim>), Without<IconDone>>,
     spells: Option<Res<crate::ui_action::Spells>>,
     mut assets: Option<ResMut<benilla_assets::WorldAssets>>,
     mut images: ResMut<Assets<Image>>,
@@ -2108,7 +2108,7 @@ pub(super) fn fill_icons(
     let (Some(spells), Some(assets)) = (spells.as_deref(), assets.as_deref_mut()) else {
         return;
     };
-    for (e, mut img, icon) in &mut slots {
+    for (e, mut img, icon, dim) in &mut slots {
         let handle = match cache.get(&icon.0) {
             Some(h) => Some(h.clone()),
             None => {
@@ -2126,7 +2126,8 @@ pub(super) fn fill_icons(
         };
         if let Some(h) = handle {
             img.image = h;
-            img.color = Color::WHITE;
+            let alpha = dim.map(|d| d.0).unwrap_or(1.0).clamp(0.0, 1.0);
+            img.color = Color::srgba(1.0, 1.0, 1.0, alpha);
         }
         commands.entity(e).insert(IconDone);
     }

@@ -94,6 +94,8 @@ pub(super) struct Account {
     resets: u8,
     pub runs: u32,
     pub wins: u32,
+    /// 0 is no tabard. 1 is the first checked cosmetic in [`campaign::TABARDS`].
+    pub tabard: u8,
     dirty: bool,
 }
 
@@ -464,6 +466,27 @@ impl Account {
         Ok(())
     }
 
+    /// Wear one of the checked critter looks. An unknown index leaves the slot as it was.
+    pub fn wear_look(&mut self, slot: u8, look: u8) {
+        let slot = usize::from(slot);
+        if slot > 1 || usize::from(look) >= super::companions::LOOKS.len() {
+            return;
+        }
+        self.pets.look[slot] = look;
+        self.dirty = true;
+        self.save();
+    }
+
+    /// Wear an account tabard, or clear it with 0. A tabard adds nothing to the sheet.
+    pub fn wear_tabard(&mut self, index: u8) {
+        if index > 0 && campaign::TABARDS.get(usize::from(index - 1)).is_none() {
+            return;
+        }
+        self.tabard = index;
+        self.dirty = true;
+        self.save();
+    }
+
     /// Refunds perk points and leaves companion ranks. Two resets are kept on the account.
     pub fn reset_perks(&mut self) -> Result<(), &'static str> {
         if self.resets == 0 {
@@ -560,6 +583,7 @@ fn empty() -> Account {
         resets: 2,
         runs: 0,
         wins: 0,
+        tabard: 0,
         dirty: false,
     }
 }
@@ -614,8 +638,8 @@ fn encode(account: &Account) -> String {
         account.pets.look[1],
     ));
     out.push_str(&format!(
-        "meta {} {} {} {} {}\n",
-        account.runs, account.wins, account.spent, account.perk_spent, account.resets
+        "meta {} {} {} {} {} {}\n",
+        account.runs, account.wins, account.spent, account.perk_spent, account.resets, account.tabard
     ));
     let perks = account.perks;
     out.push_str(&format!(
@@ -802,6 +826,7 @@ fn parse(text: &str) -> Result<Account, ()> {
                 account.spent = parts.next().unwrap_or("0").parse().unwrap_or(0);
                 account.perk_spent = parts.next().unwrap_or("0").parse().unwrap_or(0);
                 account.resets = parts.next().unwrap_or("2").parse().unwrap_or(2);
+                account.tabard = parts.next().unwrap_or("0").parse().unwrap_or(0);
             }
             Some("perk") => {
                 let mut n = [0u8; 6];
@@ -1024,5 +1049,25 @@ pets 2 3 1 1 2 0 1
         assert_eq!(loaded.pets.leash, 1);
         assert_eq!(loaded.resets_left(), 1);
         assert!(!loaded.earned_ids().is_empty());
+    }
+
+    #[test]
+    fn a_tabard_and_a_look_do_not_change_the_sheet() {
+        let mut account = empty();
+        let id = account.ensure(0);
+        let before = account.bonus(0, id).might;
+        account.wear_tabard(1);
+        assert_eq!(account.tabard, 1);
+        assert_eq!(campaign::TABARDS[0].display, 20621);
+        assert_eq!(account.bonus(0, id).might, before);
+        account.wear_tabard(9);
+        assert_eq!(account.tabard, 1);
+        account.wear_look(0, 1);
+        assert_eq!(account.pets.look[0], 1);
+        account.wear_look(0, 99);
+        assert_eq!(account.pets.look[0], 1);
+        let loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.tabard, 1);
+        assert_eq!(loaded.pets.look[0], 1);
     }
 }
