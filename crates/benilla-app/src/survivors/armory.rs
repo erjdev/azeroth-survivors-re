@@ -708,23 +708,48 @@ fn fill_draft(
         Page::Codex => codex(panel, font, account, selection),
         Page::Achievements => achievements(panel, font, account),
         Page::Notes => notes_page(panel, font),
-        Page::DropTables => drop_tables(panel, font),
+        Page::DropTables => drop_tables(panel, font, account, selection),
         Page::Door | Page::Look => {}
     }
 }
 
-fn drop_tables(panel: &mut impl ChipParent, font: &Handle<Font>) {
-    scroll(
-        panel,
-        font,
-        &[
-            ("Drop tables are not listed yet.".into(), GOLD),
-            (
-                "A piece comes from a named creature. Clearing the zone does not, by itself, grant it.".into(),
+fn drop_tables(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    account: &Account,
+    selection: &Selection,
+) {
+    let class = picked_class(account, selection);
+    let mut lines = vec![(
+        "A piece comes from a named creature. Clearing the zone does not, by itself, grant it."
+            .into(),
+        Color::WHITE,
+    )];
+    for (index, zone) in campaign::ZONES.iter().enumerate() {
+        lines.push((zone.name.to_string(), GOLD));
+        let rows: Vec<_> = campaign::DROPS.iter().filter(|row| row.zone == index).collect();
+        if rows.is_empty() {
+            lines.push((
+                "No drop table yet. The creature has to exist on this map.".into(),
+                DIM,
+            ));
+            continue;
+        }
+        for row in rows {
+            let item = campaign::piece_name(class, row.slot, row.band).unwrap_or("unnamed");
+            let slot = campaign::SLOTS.get(row.slot).copied().unwrap_or("Piece");
+            let band = campaign::BANDS_NAMED.get(row.band).copied().unwrap_or("");
+            let minute = row.at_secs / 60;
+            lines.push((
+                format!(
+                    "{slot} — {item} ({band}) — {} at {minute}:00 — {}%",
+                    row.creature, row.chance
+                ),
                 Color::WHITE,
-            ),
-        ],
-    );
+            ));
+        }
+    }
+    scroll(panel, font, &lines);
 }
 
 fn talents(
@@ -902,59 +927,45 @@ fn collection(
     selection: &Selection,
 ) {
     let class = picked_class(account, selection);
-    let names = campaign::GEAR_NAMES.get(class);
     let progress = account.classes.get(class);
+    let pieces = progress.map(|p| p.pieces).unwrap_or([0; campaign::PIECES]);
     let class_name = CLASSES.get(class).map(|c| c.name).unwrap_or("Hero");
-    let mut lines = Vec::new();
-    let owned = progress
-        .map(|p| p.gear.iter().filter(|g| **g).count())
-        .unwrap_or(0);
-    let have_weapon = progress.map(|p| p.legendary_weapon).unwrap_or(false);
-    lines.push((
-        format!("{class_name} collection — {owned} of 10 pieces"),
+    let owned = campaign::owned_pieces(&pieces);
+    let mut lines = vec![(
+        format!(
+            "{class_name} collection — {owned} of {} pieces",
+            campaign::PIECES
+        ),
         GOLD,
-    ));
-    for slot in 0..campaign::SLOTS.len() {
-        let have = progress
-            .and_then(|p| p.gear.get(slot).copied())
-            .unwrap_or(false);
-        let slot_name = campaign::SLOTS[slot];
-        let item = names.map(|row| row[slot]).unwrap_or("Unknown");
-        let quality = campaign::slot_quality(slot)
-            .map(campaign::quality_name)
-            .unwrap_or("?");
-        let main_filled = have_weapon
-            || progress
-                .and_then(|p| p.gear.get(8).copied())
-                .unwrap_or(false);
-        let occupied = slot == 9 && campaign::two_handed(class) && main_filled;
-        let (text, color) = if occupied {
-            (
-                format!("{slot_name} — filled by the two-handed weapon"),
-                Color::WHITE,
-            )
-        } else if have {
-            (format!("{slot_name} — {item} ({quality})"), Color::WHITE)
-        } else {
-            (
-                format!("{slot_name} — {item} ({quality}) — not collected"),
-                DIM,
-            )
-        };
-        lines.push((text, color));
+    )];
+    for band in 0..campaign::BANDS {
+        let label = campaign::BANDS_NAMED[band];
+        let have = (0..campaign::GRID_SLOTS)
+            .filter(|slot| pieces.get(band * campaign::GRID_SLOTS + slot).copied().unwrap_or(0) > 0)
+            .count();
+        lines.push((format!("{label}  {have} of {}", campaign::GRID_SLOTS), GOLD));
+        for slot in 0..campaign::GRID_SLOTS {
+            let slot_name = campaign::SLOTS[slot];
+            let stacks = pieces
+                .get(band * campaign::GRID_SLOTS + slot)
+                .copied()
+                .unwrap_or(0);
+            let Some(item) = campaign::piece_name(class, slot, band) else {
+                lines.push((format!("{slot_name} — not listed yet"), DIM));
+                continue;
+            };
+            if stacks == 0 {
+                lines.push((format!("{slot_name} — {item} — not collected"), DIM));
+            } else if stacks == 1 {
+                lines.push((format!("{slot_name} — {item}"), Color::WHITE));
+            } else {
+                lines.push((
+                    format!("{slot_name} — {item} — duplicate bonus"),
+                    Color::WHITE,
+                ));
+            }
+        }
     }
-    if campaign::two_handed(class) {
-        lines.push((
-            "The weapon is two-handed, so the off-hand piece is not worn.".into(),
-            DIM,
-        ));
-    }
-    let weapon = names.map(|row| row[10]).unwrap_or("Legendary weapon");
-    lines.push(if have_weapon {
-        (format!("Legendary weapon — {weapon}"), GOLD)
-    } else {
-        (format!("Legendary weapon — {weapon} — the raid"), DIM)
-    });
     if let Some(id) = selection.character {
         if account.character(id).is_some_and(|c| c.class == class) {
             let cloak = campaign::cloak_quality(account.feats(class, id));
@@ -964,9 +975,14 @@ fn collection(
             });
         }
     }
-    let gear = progress.map(|p| p.gear).unwrap_or([false; 10]);
-    if campaign::set_complete(&gear, have_weapon, campaign::two_handed(class)) {
-        lines.push(("Set bonus — the ten slots are filled.".into(), GOLD));
+    if campaign::set_complete(&pieces) {
+        lines.push(("Set bonus — the nine worn slots are filled.".into(), GOLD));
+    }
+    if campaign::two_handed(class) {
+        lines.push((
+            "The weapon is two-handed. It fills the main hand only.".into(),
+            DIM,
+        ));
     }
     scroll(panel, font, &lines);
 }
@@ -1186,7 +1202,7 @@ fn signature(
         }
     }
     for class in &account.classes {
-        for piece in class.gear {
+        for piece in class.pieces {
             n = fold(n, u64::from(piece));
         }
         n = fold(n, u64::from(class.legendary_weapon));

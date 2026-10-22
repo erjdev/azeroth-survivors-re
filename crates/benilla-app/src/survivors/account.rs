@@ -21,13 +21,25 @@ pub(super) struct Character {
     pub talents: [u8; 18],
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub(super) struct ClassProgress {
-    pub gear: [bool; 10],
+    /// Stacks in the nine-by-six grid. Zero is not owned. A second stack is a duplicate bonus.
+    pub pieces: [u8; campaign::PIECES],
     pub legendary_weapon: bool,
     pub clears: [bool; campaign::CLEAR_COUNT],
     /// Legendary amulet names whose card has been dealt.
     pub seen: Vec<String>,
+}
+
+impl Default for ClassProgress {
+    fn default() -> Self {
+        Self {
+            pieces: [0; campaign::PIECES],
+            legendary_weapon: false,
+            clears: [false; campaign::CLEAR_COUNT],
+            seen: Vec::new(),
+        }
+    }
 }
 
 /// Companion ranks bought from the rewards screen. One companion follows until a second is bought.
@@ -137,17 +149,24 @@ impl Account {
         if let Some(flag) = progress.clears.get_mut(zone) {
             *flag = true;
         }
-        for slot in 0..campaign::SLOTS.len() {
-            if campaign::slot_zone(slot) == Some(zone) {
-                if let Some(piece) = progress.gear.get_mut(slot) {
-                    *piece = true;
-                }
-            }
-        }
-        if zone + 1 == campaign::ZONES.len() {
-            progress.legendary_weapon = true;
-        }
         self.dirty = true;
+    }
+
+    /// One roll of a creature's drop. A copy the class already has raises that piece's bonus.
+    pub fn collect_drop(&mut self, class: usize, zone: usize, creature: &str) -> Option<&'static str> {
+        let row = campaign::drop_for(zone, creature)?;
+        let name = campaign::piece_name(class, row.slot, row.band)?;
+        let index = campaign::piece_index(row.band, row.slot)?;
+        let progress = self.classes.get_mut(class)?;
+        progress.pieces[index] = progress.pieces[index].saturating_add(1).min(4);
+        progress.legendary_weapon = progress
+            .pieces
+            .get(5 * campaign::GRID_SLOTS + 8)
+            .copied()
+            .unwrap_or(0)
+            > 0;
+        self.dirty = true;
+        Some(name)
     }
 
     pub fn remember_amulets(&mut self, class: usize, keys: &[&str]) {
@@ -175,7 +194,7 @@ impl Account {
         let raid = progress
             .and_then(|p| p.clears.last().copied())
             .unwrap_or(false);
-        let collection = progress.map(|p| p.gear.iter().all(|g| *g)).unwrap_or(false);
+        let collection = progress.map(|p| campaign::set_complete(&p.pieces)).unwrap_or(false);
         let amulets = progress
             .map(|p| p.seen.len() >= data::ABILITIES.len())
             .unwrap_or(false);
@@ -193,16 +212,10 @@ impl Account {
         let Some(progress) = self.classes.get(class) else {
             return Bonus::default();
         };
-        let gear = progress.gear;
-        let legendary_weapon = progress.legendary_weapon;
+        let pieces = progress.pieces;
         let talents = self.character(id).map(|c| c.talents).unwrap_or([0; 18]);
         let cloak = campaign::cloak_quality(self.feats(class, id));
-        let mut total = campaign::equipped_bonus(
-            &gear,
-            legendary_weapon,
-            cloak,
-            campaign::two_handed(class) || (legendary_weapon && matches!(class, 1 | 5)),
-        );
+        let mut total = campaign::equipped_bonus(&pieces, cloak);
         if self.legendary_ready() {
             let cloak = campaign::cloak_bonus(Quality::Legendary);
             total.might += cloak.might;
@@ -449,9 +462,8 @@ impl Account {
         for (i, class) in self.classes.iter().enumerate().take(9) {
             let n = snap.clears[i].len().min(class.clears.len());
             snap.clears[i][..n].copy_from_slice(&class.clears[..n]);
-            let gear = class.gear.iter().filter(|g| **g).count() as u32;
-            snap.pieces += gear;
-            if class.gear.iter().all(|g| *g) {
+            snap.pieces += campaign::owned_pieces(&class.pieces) as u32;
+            if campaign::set_complete(&class.pieces) {
                 snap.full_sets += 1;
             }
             snap.legends += class.seen.len() as u32;
@@ -462,7 +474,7 @@ impl Account {
             let feats = Feats {
                 talent_max,
                 raid: class.clears.last().copied().unwrap_or(false),
-                collection: class.gear.iter().all(|g| *g),
+                collection: campaign::set_complete(&class.pieces),
                 amulets: class.seen.len() >= data::ABILITIES.len(),
             };
             if campaign::cloak_quality(feats).is_some() {
@@ -528,11 +540,10 @@ fn encode(account: &Account) -> String {
     }
     for (i, class) in account.classes.iter().enumerate() {
         let gear = class
-            .gear
+            .pieces
             .iter()
-            .map(|g| if *g { "1" } else { "0" })
-            .collect::<Vec<_>>()
-            .join("");
+            .map(|n| char::from(b'0' + (*n).min(9)))
+            .collect::<String>();
         let clears = class
             .clears
             .iter()
@@ -589,6 +600,33 @@ fn unescape(s: &str) -> String {
 /// Seven bits are the draft path: Elwynn, Westfall, Duskwood, Stranglethorn, Arathi Highlands,
 /// Western Plaguelands, Naxxramas. Westfall, the Highlands, and the Plaguelands left the path.
 /// A longer string is the twelve-zone path, one bit per row.
+/// Ten bits are the draft's slots. A longer string is the 54-piece grid, one digit of stacks each.
+/// The draft's off-hand bit is not a piece. Its legendary flag is the legendary main hand.
+fn read_pieces(progress: &mut ClassProgress, bits: &str, legendary: bool) {
+    if bits.len() <= 10 {
+        for (slot, ch) in bits.chars().enumerate().take(campaign::GRID_SLOTS) {
+            if ch == '1' {
+                progress.pieces[slot] = 1;
+            }
+        }
+        if legendary {
+            if let Some(index) = campaign::piece_index(5, 8) {
+                progress.pieces[index] = 1;
+            }
+        }
+    } else {
+        for (i, ch) in bits.chars().enumerate().take(progress.pieces.len()) {
+            progress.pieces[i] = ch.to_digit(10).unwrap_or(0) as u8;
+        }
+    }
+    progress.legendary_weapon = progress
+        .pieces
+        .get(5 * campaign::GRID_SLOTS + 8)
+        .copied()
+        .unwrap_or(0)
+        > 0;
+}
+
 fn read_clears(bits: &str) -> [bool; campaign::CLEAR_COUNT] {
     let mut clears = [false; campaign::CLEAR_COUNT];
     if bits.len() == 7 {
@@ -643,10 +681,7 @@ fn parse(text: &str) -> Result<Account, ()> {
                 let legendary = parts.next().unwrap_or("0") == "1";
                 let clears = parts.next().unwrap_or("");
                 if let Some(progress) = account.classes.get_mut(index) {
-                    for (i, ch) in gear.chars().enumerate().take(10) {
-                        progress.gear[i] = ch == '1';
-                    }
-                    progress.legendary_weapon = legendary;
+                    read_pieces(progress, gear, legendary);
                     progress.clears = read_clears(clears);
                 }
             }
@@ -777,7 +812,7 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.characters[0].first, "Anduin");
         assert_eq!(account.characters[0].last, "Wrynn");
         assert_eq!(account.characters[0].talent_xp, 250);
-        assert!(account.classes[0].gear[0]);
+        assert_eq!(account.classes[0].pieces[0], 1);
         assert!(account.classes[0].clears[0]);
         assert!(!account.classes[0].clears[1]);
         let moved = parse("class 0 0000000000 0 1010001\nclass 1 0000000000 0 1001000\n").unwrap();
@@ -793,7 +828,7 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.pets.instinct, [1, 2]);
         assert_eq!(again.characters[0].last, "Wrynn");
         assert_eq!(again.pets.owned, 2);
-        assert!(again.classes[0].gear[1]);
+        assert_eq!(again.classes[0].pieces[1], 1);
     }
 
     #[test]
@@ -803,8 +838,11 @@ pets 2 3 1 1 2 0 1
         account.grant_zone(0, 0);
         account.see_amulet(0, "Amulet of Heroic Strike");
         assert_eq!(account.classes[0].seen.len(), 1);
-        assert!(account.classes[0].gear[0] && account.classes[0].gear[1]);
-        assert!(!account.classes[0].gear[2]);
+        assert!(account.classes[0].pieces.iter().all(|n| *n == 0));
+        assert_eq!(account.collect_drop(0, 0, "Hogger"), Some("Field Plate Helmet"));
+        assert_eq!(account.classes[0].pieces[0], 1);
+        account.collect_drop(0, 0, "Hogger");
+        assert_eq!(account.classes[0].pieces[0], 2);
         assert!(campaign::zone_open(
             1,
             campaign::talent_level(account.character(id).unwrap().talent_xp),
@@ -822,6 +860,11 @@ pets 2 3 1 1 2 0 1
     fn the_raid_grants_the_legendary_weapon() {
         let mut account = empty();
         account.grant_zone(0, campaign::ZONES.len() - 1);
+        assert!(!account.classes[0].legendary_weapon);
+        assert_eq!(
+            account.collect_drop(0, campaign::ZONES.len() - 1, "Kel'Thuzad"),
+            Some("Thunderfury, Blessed Blade of the Windseeker")
+        );
         assert!(account.classes[0].legendary_weapon);
         let id = account.ensure(0);
         account.add_talent_xp(id, 600);

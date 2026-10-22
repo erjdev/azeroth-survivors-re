@@ -200,25 +200,7 @@ pub(super) const SLOTS: [&str; 10] = [
     "Off Hand",
 ];
 
-/// Which zone index drops each of the ten base pieces. The four zones that can be entered
-/// still hand these out; the collection grid replaces this ladder.
-const SLOT_ZONE: [usize; 10] = [0, 0, 1, 1, 6, 6, 6, 11, 11, 11];
-
-/// Quality of each base slot, rising with the zone that drops it.
-const SLOT_QUALITY: [Quality; 10] = [
-    Quality::Poor,
-    Quality::Poor,
-    Quality::Poor,
-    Quality::Poor,
-    Quality::Common,
-    Quality::Common,
-    Quality::Uncommon,
-    Quality::Uncommon,
-    Quality::Rare,
-    Quality::Epic,
-];
-
-/// True when the weapon in the main-hand slot is two-handed and the off-hand stays empty.
+/// True when the weapon in the main-hand slot is two-handed. It fills that slot only.
 pub(super) fn two_handed(class: usize) -> bool {
     matches!(class, 2 | 4 | 6 | 7 | 8)
 }
@@ -287,14 +269,6 @@ pub(super) fn zone_lock_reason(index: usize, talent_level: u32, clears: &[bool])
         .map(|z| z.name)
         .unwrap_or("the previous zone");
     Some(format!("Clear {prev} on this class first"))
-}
-
-pub(super) fn slot_zone(slot: usize) -> Option<usize> {
-    SLOT_ZONE.get(slot).copied()
-}
-
-pub(super) fn slot_quality(slot: usize) -> Option<Quality> {
-    SLOT_QUALITY.get(slot).copied()
 }
 
 /// Flat and percent bonuses one piece of a quality contributes. Each step keeps the previous
@@ -462,53 +436,129 @@ pub(super) fn legendary_cloak(epic_cloaks: usize) -> bool {
     epic_cloaks >= 9
 }
 
-/// A two-handed weapon fills the off-hand for the set and adds no second piece.
-pub(super) fn set_complete(owned: &[bool], legendary_weapon: bool, lock_offhand: bool) -> bool {
-    let mut filled = 0u32;
-    for slot in 0..10 {
-        if slot == 8 && legendary_weapon {
-            filled += 1;
-            continue;
-        }
-        if lock_offhand && slot == 9 {
-            let main = legendary_weapon || owned.get(8).copied().unwrap_or(false);
-            if main {
-                filled += 1;
-            }
-            continue;
-        }
-        if owned.get(slot).copied().unwrap_or(false) {
-            filled += 1;
-        }
-    }
-    filled >= 10
+/// Nine slots by six qualities. The tenth slot of the draft was the off-hand stand-in.
+pub(super) const GRID_SLOTS: usize = 9;
+pub(super) const BANDS: usize = 6;
+pub(super) const PIECES: usize = GRID_SLOTS * BANDS;
+
+pub(super) const BANDS_NAMED: [&str; BANDS] =
+    ["Common", "Uncommon", "Rare", "Epic", "PvP", "Legendary"];
+
+/// One creature's roll. The piece's name depends on the class; the creature has to be on the map.
+pub(super) struct DropRow {
+    pub zone: usize,
+    pub slot: usize,
+    pub band: usize,
+    pub creature: &'static str,
+    pub at_secs: u32,
+    pub chance: u8,
 }
 
-/// Sum of owned base pieces, the legendary weapon when it replaces the rare main hand, the set,
-/// and a cloak.
-pub(super) fn equipped_bonus(
-    owned: &[bool],
-    legendary_weapon: bool,
-    cloak: Option<Quality>,
-    lock_offhand: bool,
-) -> Bonus {
-    let mut total = Bonus::default();
-    for slot in 0..10 {
-        if slot == 8 && legendary_weapon {
-            total.add(quality_bonus(Quality::Legendary));
-            continue;
-        }
-        if lock_offhand && slot == 9 {
-            continue;
-        }
-        if !owned.get(slot).copied().unwrap_or(false) {
-            continue;
-        }
-        if let Some(q) = slot_quality(slot) {
-            total.add(quality_bonus(q));
+pub(super) static DROPS: &[DropRow] = &[
+    DropRow { zone: 0, slot: 0, band: 0, creature: "Hogger", at_secs: 180, chance: 60 },
+    DropRow { zone: 0, slot: 1, band: 0, creature: "Mother Fang", at_secs: 360, chance: 60 },
+    DropRow { zone: 0, slot: 2, band: 0, creature: "Narg the Taskmaster", at_secs: 540, chance: 60 },
+    DropRow { zone: 0, slot: 3, band: 0, creature: "Thuros Lightfingers", at_secs: 720, chance: 60 },
+    DropRow { zone: 0, slot: 8, band: 0, creature: "Fedfennel", at_secs: 960, chance: 60 },
+    DropRow { zone: 1, slot: 7, band: 0, creature: "Lupos", at_secs: 180, chance: 60 },
+    DropRow { zone: 1, slot: 6, band: 0, creature: "Naraxis", at_secs: 360, chance: 60 },
+    DropRow { zone: 1, slot: 4, band: 0, creature: "Fenros", at_secs: 540, chance: 60 },
+    DropRow { zone: 1, slot: 5, band: 0, creature: "Nefaru", at_secs: 960, chance: 60 },
+    DropRow { zone: 11, slot: 8, band: 5, creature: "Kel'Thuzad", at_secs: 960, chance: 60 },
+];
+
+pub(super) fn piece_index(band: usize, slot: usize) -> Option<usize> {
+    (band < BANDS && slot < GRID_SLOTS).then_some(band * GRID_SLOTS + slot)
+}
+
+/// A real item name, or nothing when that cell has no verified piece.
+pub(super) fn piece_name(class: usize, slot: usize, band: usize) -> Option<&'static str> {
+    let row = GEAR_NAMES.get(class)?;
+    if band == 0 && slot < GRID_SLOTS {
+        return Some(row[slot]);
+    }
+    if band == 5 && slot == 8 {
+        return Some(row[10]);
+    }
+    None
+}
+
+pub(super) fn drop_for(zone: usize, creature: &str) -> Option<&'static DropRow> {
+    DROPS.iter().find(|row| row.zone == zone && row.creature == creature)
+}
+
+/// The strongest owned copy in a slot: `(band, stacks)`.
+pub(super) fn best_piece(pieces: &[u8], slot: usize) -> Option<(usize, u8)> {
+    (0..BANDS).rev().find_map(|band| {
+        let n = pieces.get(band * GRID_SLOTS + slot).copied().unwrap_or(0);
+        (n > 0).then_some((band, n))
+    })
+}
+
+pub(super) fn owned_pieces(pieces: &[u8]) -> usize {
+    pieces.iter().filter(|n| **n > 0).count()
+}
+
+/// Nine worn pieces. A two-handed weapon does not add an off-hand cell.
+pub(super) fn set_complete(pieces: &[u8]) -> bool {
+    (0..GRID_SLOTS).all(|slot| best_piece(pieces, slot).is_some())
+}
+
+fn band_bonus(band: usize) -> Bonus {
+    match band {
+        0 => quality_bonus(Quality::Common),
+        1 => quality_bonus(Quality::Uncommon),
+        2 => quality_bonus(Quality::Rare),
+        3 => quality_bonus(Quality::Epic),
+        4 => Bonus {
+            armor: 16.0,
+            might: 0.07,
+            crit: 0.045,
+            multistrike: 0.07,
+            speed: 0.035,
+            leech: 0.015,
+            area: 0.05,
+            reduction: 0.03,
+            ..Bonus::default()
+        },
+        _ => {
+            let mut bonus = quality_bonus(Quality::Legendary);
+            bonus.reduction = 0.04;
+            bonus
         }
     }
-    if set_complete(owned, legendary_weapon, lock_offhand) {
+}
+
+fn scaled(bonus: Bonus, scale: f32) -> Bonus {
+    Bonus {
+        armor: bonus.armor * scale,
+        might: bonus.might * scale,
+        crit: bonus.crit * scale,
+        multistrike: bonus.multistrike * scale,
+        speed: bonus.speed * scale,
+        leech: bonus.leech * scale,
+        area: bonus.area * scale,
+        crit_damage: bonus.crit_damage * scale,
+        reduction: bonus.reduction * scale,
+        cooldown: bonus.cooldown * scale,
+        gold: bonus.gold * scale,
+        growth: bonus.growth * scale,
+        luck: bonus.luck * scale,
+        targets: bonus.targets,
+    }
+}
+
+/// The worn piece in each slot, plus a quarter of its lines for each extra copy, the set, and a cloak.
+pub(super) fn equipped_bonus(pieces: &[u8], cloak: Option<Quality>) -> Bonus {
+    let mut total = Bonus::default();
+    for slot in 0..GRID_SLOTS {
+        let Some((band, stacks)) = best_piece(pieces, slot) else {
+            continue;
+        };
+        let extra = f32::from(stacks.saturating_sub(1).min(3)) * 0.25;
+        total.add(scaled(band_bonus(band), 1.0 + extra));
+    }
+    if set_complete(pieces) {
         total.add(set_bonus());
     }
     if let Some(q) = cloak {
@@ -1073,29 +1123,51 @@ mod tests {
 
     #[test]
     fn a_full_set_and_a_legendary_weapon_change_the_total() {
-        let ten = [true; 10];
-        let plain = equipped_bonus(&ten, false, None, false);
-        let with_weapon = equipped_bonus(&ten, true, None, false);
+        let mut pieces = [0u8; PIECES];
+        for slot in 0..GRID_SLOTS {
+            pieces[slot] = 1;
+        }
+        let plain = equipped_bonus(&pieces, None);
+        assert!(plain.might > quality_bonus(Quality::Common).might * 4.0);
+        assert!(set_complete(&pieces));
+        pieces[0] = 0;
+        let missing = equipped_bonus(&pieces, None);
+        assert!(plain.might > missing.might);
+        assert!(!set_complete(&pieces));
+        pieces[0] = 1;
+        pieces[8] = 0;
+        pieces[5 * GRID_SLOTS + 8] = 1;
+        let with_weapon = equipped_bonus(&pieces, None);
         assert!(with_weapon.crit_damage > plain.crit_damage);
-        assert!(plain.might > quality_bonus(Quality::Poor).might * 4.0);
-        let nine = {
-            let mut g = ten;
-            g[9] = false;
-            g
-        };
-        assert!(equipped_bonus(&nine, false, None, false).might < plain.might);
-        let locked = equipped_bonus(&ten, false, None, true);
-        assert!(locked.armor < plain.armor);
-        let mut hands = [true; 10];
-        hands[9] = false;
-        let two_hand = equipped_bonus(&hands, false, None, true);
-        let mut shy = hands;
-        shy[0] = false;
-        let missing = equipped_bonus(&shy, false, None, true);
-        assert!(two_hand.might > missing.might + 0.09);
-        assert!(two_hand.crit > missing.crit + 0.04);
-        assert!(set_complete(&hands, false, true));
-        assert!(!set_complete(&shy, false, true));
+        let mut one = [0u8; PIECES];
+        one[0] = 1;
+        let single = equipped_bonus(&one, None);
+        one[0] = 2;
+        assert!(equipped_bonus(&one, None).armor > single.armor);
+    }
+
+    #[test]
+    fn drops_name_a_creature_on_that_map() {
+        assert_eq!(PIECES, 54);
+        assert_eq!(DROPS.len(), 10);
+        for row in DROPS {
+            let zone = &ZONES[row.zone];
+            let map = super::super::data::MAPS
+                .iter()
+                .position(|m| m.name == zone.map)
+                .unwrap();
+            let roster = super::super::data::roster(map);
+            assert!(
+                roster.enemies.iter().chain(roster.bosses.iter()).any(|e| e.name == row.creature),
+                "{} is not on {}",
+                row.creature,
+                zone.map
+            );
+            assert!(piece_name(1, row.slot, row.band).is_some());
+        }
+        assert!(DROPS.iter().all(|row| row.creature != "Rhahk'Zor" && row.creature != "Edwin VanCleef"));
+        assert!(drop_for(0, "Hogger").is_some());
+        assert!(drop_for(0, "Rhahk'Zor").is_none());
     }
 
     #[test]

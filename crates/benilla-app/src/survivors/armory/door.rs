@@ -480,7 +480,7 @@ fn hero_column(
     });
     heading(body, font, "Equipment");
     let owned = gear_lines(body, font, account, class_i);
-    let total = campaign::SLOTS.len();
+    let total = campaign::PIECES;
     line(
         body,
         font,
@@ -721,43 +721,31 @@ fn gear_lines(
     account: &Account,
     class: usize,
 ) -> usize {
-    let progress = account.classes.get(class);
-    let gear = progress.map(|p| p.gear).unwrap_or([false; 10]);
-    let weapon = progress.map(|p| p.legendary_weapon).unwrap_or(false);
-    let names = campaign::GEAR_NAMES.get(class);
-    let two_hand = campaign::two_handed(class);
-    let mut owned = 0;
-    for slot in 0..campaign::SLOTS.len() {
-        let have = gear.get(slot).copied().unwrap_or(false);
-        let item = names.map(|row| row[slot]).unwrap_or("Unknown");
-        let main_filled = weapon || gear.get(8).copied().unwrap_or(false);
-        let occupied = slot == 9 && two_hand && main_filled;
-        let (text, color) = if occupied {
-            (
-                format!(
-                    "{} — filled by the two-handed weapon",
-                    campaign::SLOTS[slot]
-                ),
-                DIM,
-            )
-        } else if have {
-            owned += 1;
-            let quality = campaign::slot_quality(slot)
-                .map(quality_color)
-                .unwrap_or(Color::WHITE);
-            (format!("{} — {item}", campaign::SLOTS[slot]), quality)
+    let pieces = account
+        .classes
+        .get(class)
+        .map(|p| p.pieces)
+        .unwrap_or([0; campaign::PIECES]);
+    let owned = campaign::owned_pieces(&pieces);
+    for slot in 0..campaign::GRID_SLOTS {
+        let slot_name = campaign::SLOTS[slot];
+        let (text, color) = if let Some((band, stacks)) = campaign::best_piece(&pieces, slot) {
+            let item = campaign::piece_name(class, slot, band).unwrap_or(slot_name);
+            let extra = if stacks > 1 { " +" } else { "" };
+            (format!("{slot_name} — {item}{extra}"), band_color(band))
         } else {
-            (format!("{} — {item}", campaign::SLOTS[slot]), DIM)
+            (format!("{slot_name} — empty"), DIM)
         };
         line(body, font, &text, 12.0, color);
     }
-    if let Some(weapon_name) = names.map(|row| row[10]) {
-        let (text, color) = if weapon {
-            (format!("Legendary weapon — {weapon_name}"), GOLD)
-        } else {
-            (format!("Legendary weapon — {weapon_name}"), DIM)
-        };
-        line(body, font, &text, 12.0, color);
+    if campaign::two_handed(class) {
+        line(
+            body,
+            font,
+            "A two-handed weapon fills the main hand only.",
+            11.0,
+            DIM,
+        );
     }
     owned
 }
@@ -933,14 +921,14 @@ fn sex_name(sex: u8) -> &'static str {
     }
 }
 
-fn quality_color(quality: campaign::Quality) -> Color {
-    match quality {
-        campaign::Quality::Poor => hud::rgb(0x9d9d9d),
-        campaign::Quality::Common => Color::WHITE,
-        campaign::Quality::Uncommon => hud::rgb(0x1eff00),
-        campaign::Quality::Rare => hud::rgb(0x0070dd),
-        campaign::Quality::Epic => hud::rgb(0xa335ee),
-        campaign::Quality::Legendary => hud::rgb(0xff8000),
+fn band_color(band: usize) -> Color {
+    match band {
+        0 => Color::WHITE,
+        1 => hud::rgb(0x1eff00),
+        2 => hud::rgb(0x0070dd),
+        3 => hud::rgb(0xa335ee),
+        4 => hud::rgb(0xc9a227),
+        _ => hud::rgb(0xff8000),
     }
 }
 

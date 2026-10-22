@@ -672,6 +672,8 @@ pub(super) fn apply_hits(
     time: Res<Time>,
     mut run: ResMut<Run>,
     mut rng: ResMut<Rng>,
+    mut account: ResMut<super::account::Account>,
+    selection: Res<super::Selection>,
     mut pending: ResMut<PendingHits>,
     mut incoming: MessageReader<Hit>,
     mut enemies: Query<(
@@ -720,23 +722,41 @@ pub(super) fn apply_hits(
         all.push(Hit { splash: 0.0, ..h });
     }
 
-    let mut kill =
-        |commands: &mut Commands, run: &mut Run, e: Entity, pos: Vec3, en: &mut Enemy| {
-            en.dead = true;
-            en.hp = 0.0;
-            en.dots.clear();
-            enemies::mark_dying(commands, e);
-            loot.write(Loot {
-                pos,
-                xp: en.xp,
-                boss: en.boss,
-                elite: en.elite,
-            });
-            run.kills += 1;
-            if en.boss {
-                run.banner = Some((format!("{} is slain!", en.def.name), 3.0));
+    let mut kill = |commands: &mut Commands,
+                     run: &mut Run,
+                     account: &mut super::account::Account,
+                     rng: &mut Rng,
+                     e: Entity,
+                     pos: Vec3,
+                     en: &mut Enemy| {
+        en.dead = true;
+        en.hp = 0.0;
+        en.dots.clear();
+        enemies::mark_dying(commands, e);
+        loot.write(Loot {
+            pos,
+            xp: en.xp,
+            boss: en.boss,
+            elite: en.elite,
+        });
+        run.kills += 1;
+        let mut dropped = false;
+        if let Some(class) = selection.class {
+            if let Some(zone) = super::campaign::zone_index(selection.map_def().name) {
+                if let Some(row) = super::campaign::drop_for(zone, en.def.name) {
+                    if rng.f32() < f32::from(row.chance) / 100.0 {
+                    if let Some(item) = account.collect_drop(class, zone, en.def.name) {
+                        run.banner = Some((format!("{item} collected"), 4.0));
+                        dropped = true;
+                    }
+                }
+                }
             }
-        };
+        }
+        if en.boss && !dropped {
+            run.banner = Some((format!("{} is slain!", en.def.name), 3.0));
+        }
+    };
 
     for h in all {
         let Ok((e, guid, tf, mut en, mut store, mut marks)) = enemies.get_mut(h.target) else {
@@ -798,7 +818,7 @@ pub(super) fn apply_hits(
             marks.add(h.mark, h.mark_dur);
         }
         if en.hp <= 0.0 {
-            kill(&mut commands, &mut run, e, tf.translation, &mut en);
+            kill(&mut commands, &mut run, &mut account, &mut rng, e, tf.translation, &mut en);
             units::kill_unit(&mut store);
             marks.clear();
         }
@@ -831,7 +851,7 @@ pub(super) fn apply_hits(
             }
             fx.number(e, dealt, false, COLOR_SPELL);
             if en.hp <= 0.0 {
-                kill(&mut commands, &mut run, e, tf.translation, &mut en);
+                kill(&mut commands, &mut run, &mut account, &mut rng, e, tf.translation, &mut en);
                 units::kill_unit(&mut store);
                 marks.clear();
                 marks.flush(e, guid.0, &mut store, &mut fields);
