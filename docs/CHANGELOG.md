@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Validation baseline
+
+Normalized formatter drift in 22 files, simplified two core test setups, and named the
+arena-scout candidate structure. No gameplay or visual changes.
+
+**Validation:** workspace formatting, 45 core tests and arena-scout Clippy pass. The full lint gate advances into the app
+and exposes remaining unused-code, query-type and test-layout lints; the full gate is not
+green. The earlier terrain-only diagnosis was incomplete because the gate prints a log tail.
+
 ## 2026-10-24 — Drop Tables browser
 
 Replaced the text list with zone browsing, encounter/item rows, collection counts and shared

@@ -497,3 +497,14 @@ worn loadout, including red replacement losses and a neutral no-change state. Ne
 hover text uses green as well. Validate every choice family at compact and wide sizes;
 current live evidence covers level-up cards at 1440×900, with jewelry replacement covered
 by rules tests. This does not change balance or imply missing item effects are implemented.
+
+### Integration checkpoint — 2026-10-24
+
+Workspace formatting now passes after normalizing the full formatter report (22 files,
+not only the terrain imports visible in the gate’s last 30 lines). Two core-test loops
+and arena-scout’s nested tuple were cleaned up. The workspace Clippy gate reaches the app
+but remains failing: unused companion/renown/stash code; complex Bevy query signatures in
+appearance, preview, companions, grading, HUD and webbridge; a stale HUD doc comment;
+a Copy clone; derivable renown default; and test placement/initializer/boolean lints.
+Resolve these without globally weakening warnings, then run the remaining gate chain.
+No workspace-test, no-install, player-test or live server round-trip success is implied.

@@ -86,12 +86,10 @@ mod tests {
     fn missing_floor_or_unsupported_footprint_cannot_produce_a_spawn() {
         assert!(choose(Vec3::ZERO, 30., Vec3::ZERO, 0., 20., 1., |_| None).is_none());
         // Only the nominal ring has support: all bodies would overhang its edge.
-        assert!(
-            choose(Vec3::ZERO, 30., Vec3::ZERO, 0., 20., 1., |p| {
-                ((flat(p).length() - 20.).abs() < 0.01).then_some(0.)
-            })
-            .is_none()
-        );
+        assert!(choose(Vec3::ZERO, 30., Vec3::ZERO, 0., 20., 1., |p| {
+            ((flat(p).length() - 20.).abs() < 0.01).then_some(0.)
+        })
+        .is_none());
     }
     #[test]
     fn rejected_direction_can_retry_on_supported_ground() {

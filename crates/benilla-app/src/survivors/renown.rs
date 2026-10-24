@@ -112,9 +112,9 @@ impl Renown {
     }
 
     pub fn ranks(&self, class: usize) -> [u8; 3] {
-        self.classes.get(class).map_or([0; 3], |c| {
-            [c.might, c.fortitude, c.celerity]
-        })
+        self.classes
+            .get(class)
+            .map_or([0; 3], |c| [c.might, c.fortitude, c.celerity])
     }
 
     pub fn unspent(&self, class: usize) -> u32 {
@@ -126,9 +126,9 @@ impl Renown {
     }
 
     pub fn can_spend(&self, class: usize, track: Track) -> bool {
-        self.classes.get(class).is_some_and(|c| {
-            c.rank(track) < MAX_RANK && c.unspent >= rank_cost(c.rank(track))
-        })
+        self.classes
+            .get(class)
+            .is_some_and(|c| c.rank(track) < MAX_RANK && c.unspent >= rank_cost(c.rank(track)))
     }
 
     /// Spend the next rank's price on `track`. A full rank or a short purse does nothing.
@@ -192,7 +192,9 @@ fn parse(text: &str) -> Vec<ClassRenown> {
             break;
         };
         slot += 1;
-        let mut n = line.split_whitespace().filter_map(|w| w.parse::<u32>().ok());
+        let mut n = line
+            .split_whitespace()
+            .filter_map(|w| w.parse::<u32>().ok());
         *c = ClassRenown {
             unspent: n.next().unwrap_or(0),
             might: n.next().unwrap_or(0).min(u32::from(MAX_RANK)) as u8,

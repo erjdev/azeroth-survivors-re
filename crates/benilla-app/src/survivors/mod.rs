@@ -11,25 +11,25 @@ mod armory;
 mod auto;
 mod camera;
 mod cards;
+#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+mod collision_probe;
 mod companions;
 mod enemies;
-mod grade;
-mod gear_icons;
-mod gear_body;
-mod gear_template;
 mod floor;
+mod gear_body;
+mod gear_icons;
+mod gear_template;
+mod grade;
 mod hero;
 mod hud;
-mod menu;
 mod look_catalog;
+mod menu;
 mod minimap;
 mod mobility;
 mod notes;
 mod renown;
 #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
 mod screenshots;
-#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
-mod collision_probe;
 mod spawn;
 mod stash;
 mod tuning;
@@ -58,7 +58,11 @@ impl Plugin for SurvivorsPlugin {
     fn build(&self, app: &mut App) {
         // Present before `OnEnter(InWorld)`, where the UI lifecycle decides not to load FrameXML.
         app.insert_resource(crate::run_mode::CaptureMode)
-            .add_plugins((grade::plugin, tuning::plugin, crate::entities::survivors_look::plugin))
+            .add_plugins((
+                grade::plugin,
+                tuning::plugin,
+                crate::entities::survivors_look::plugin,
+            ))
             .init_state::<Phase>()
             .init_resource::<Rng>()
             .init_resource::<Selection>()

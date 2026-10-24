@@ -3,9 +3,9 @@
 
 use bevy::prelude::*;
 
-use super::floor::Floor;
 use super::account::PetRanks;
 use super::enemies::{self, Gem, GemKind};
+use super::floor::Floor;
 use super::hero::Hero;
 use super::units::{self, flat, yaw_toward};
 use super::{Phase, Run};
@@ -150,7 +150,13 @@ pub(super) fn herd(
         if seen[slot] {
             continue;
         }
-        spawn_fetcher(&mut commands, &mut run, hero_tf.translation, slot as u8, ranks);
+        spawn_fetcher(
+            &mut commands,
+            &mut run,
+            hero_tf.translation,
+            slot as u8,
+            ranks,
+        );
     }
 
     let dt = time.delta_secs();
@@ -160,15 +166,34 @@ pub(super) fn herd(
         if usize::from(pet.slot) >= want {
             continue;
         }
-        let plan = trip(magnet, ranks.leash, ranks.paws, ranks.instinct[pet.slot as usize]);
+        let plan = trip(
+            magnet,
+            ranks.leash,
+            ranks.paws,
+            ranks.instinct[pet.slot as usize],
+        );
         if pet.rest > 0.0 {
             pet.rest = (pet.rest - dt).max(0.0);
-            step_toward(&mut tf, &mut mv, follow_at(hero_pos, pet.slot), plan.speed, dt, &world);
+            step_toward(
+                &mut tf,
+                &mut mv,
+                follow_at(hero_pos, pet.slot),
+                plan.speed,
+                dt,
+                &world,
+            );
             continue;
         }
         let rows = gem_rows(&gems, hero_pos, tf.translation);
         let Some(pick) = choose(&rows, &plan) else {
-            step_toward(&mut tf, &mut mv, follow_at(hero_pos, pet.slot), plan.speed, dt, &world);
+            step_toward(
+                &mut tf,
+                &mut mv,
+                follow_at(hero_pos, pet.slot),
+                plan.speed,
+                dt,
+                &world,
+            );
             continue;
         };
         let Some(gem_pos) = rows.iter().find(|row| row.0 == pick).map(|row| row.4) else {

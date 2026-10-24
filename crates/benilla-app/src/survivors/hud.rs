@@ -1199,7 +1199,8 @@ pub(super) fn skip_hand(
     if !run.can_skip {
         return false;
     }
-    let gold = super::sheet::gold_amount(super::rewards::skip_gold(run.level), run.stats().gold_find);
+    let gold =
+        super::sheet::gold_amount(super::rewards::skip_gold(run.level), run.stats().gold_find);
     run.gold_found += gold;
     stash.add_gold(gold);
     run.banner = Some((format!("Skipped the hand for {gold} gold"), 2.5));
@@ -1299,7 +1300,9 @@ fn trade_choices(run: &mut Run, rng: &mut Rng, extra: f32) -> Vec<Choice> {
         .into_iter()
         .map(|card| match card {
             super::campaign::TradeCard::Upgrade(i) => Choice::Upgrade(i),
-            super::campaign::TradeCard::Ring(i) => Choice::Jewel(super::campaign::JewelKind::Ring(i as u8)),
+            super::campaign::TradeCard::Ring(i) => {
+                Choice::Jewel(super::campaign::JewelKind::Ring(i as u8))
+            }
             super::campaign::TradeCard::Trinket(i) => {
                 Choice::Jewel(super::campaign::JewelKind::Trinket(i as u8))
             }
@@ -1450,8 +1453,16 @@ pub(super) fn sync_pause_page(
     mut main: Query<&mut Node, With<PauseMain>>,
     mut settings: Query<&mut Node, (With<SettingsPanel>, Without<PauseMain>)>,
 ) {
-    let main_display = if page.open { Display::None } else { Display::Flex };
-    let settings_display = if page.open { Display::Flex } else { Display::None };
+    let main_display = if page.open {
+        Display::None
+    } else {
+        Display::Flex
+    };
+    let settings_display = if page.open {
+        Display::Flex
+    } else {
+        Display::None
+    };
     for mut node in &mut main {
         if node.display != main_display {
             node.display = main_display;
@@ -1546,7 +1557,9 @@ fn adjust_knob(cvars: &mut crate::cvars::Cvars, knob: Knob, dir: i8) {
         Knob::Sound | Knob::MusicOn | Knob::AutoPush => {}
         Knob::View => {
             const STEPS: [f32; 6] = [177.0, 250.0, 350.0, 500.0, 650.0, 777.0];
-            step_list(cvars, "farclip", &STEPS, dir, |v| format!("{}", v.round() as i32));
+            step_list(cvars, "farclip", &STEPS, dir, |v| {
+                format!("{}", v.round() as i32)
+            });
         }
         Knob::Grass => step_int(cvars, "WorldDetail", 1, dir, 0, 2),
         Knob::Spells => step_int(cvars, "spellEffectLevel", 2, dir, 0, 2),
@@ -1692,10 +1705,7 @@ pub(super) fn keys(
 ) {
     match phase.get() {
         Phase::Menu => {
-            let ranks = selection
-                .class
-                .map(|i| renown.ranks(i))
-                .unwrap_or([0; 3]);
+            let ranks = selection.class.map(|i| renown.ranks(i)).unwrap_or([0; 3]);
             let class = selection.class.unwrap_or(0);
             let hero = selection.character;
             if !typing.0 && keys.just_pressed(KeyCode::Enter) {
@@ -1871,19 +1881,31 @@ fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
     let (spell, name, tag, desc) = match kind {
         JewelKind::Ring(i) => (
             11196u32,
-            RING_NAMES.get(i as usize).copied().unwrap_or("Ring").to_string(),
+            RING_NAMES
+                .get(i as usize)
+                .copied()
+                .unwrap_or("Ring")
+                .to_string(),
             "Ring",
             "Worn for this run. A second ring fills the other hand.",
         ),
         JewelKind::Trinket(i) => (
             11810u32,
-            TRINKET_NAMES.get(i as usize).copied().unwrap_or("Trinket").to_string(),
+            TRINKET_NAMES
+                .get(i as usize)
+                .copied()
+                .unwrap_or("Trinket")
+                .to_string(),
             "Trinket",
             "Worn for this run. Two trinkets can be carried.",
         ),
         JewelKind::Amulet(i) => (
             19383u32,
-            AMULET_NAMES.get(i as usize).copied().unwrap_or("Amulet").to_string(),
+            AMULET_NAMES
+                .get(i as usize)
+                .copied()
+                .unwrap_or("Amulet")
+                .to_string(),
             "Amulet",
             "Worn for this run. One amulet.",
         ),

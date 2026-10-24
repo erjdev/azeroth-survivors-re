@@ -1,7 +1,7 @@
 //! The hero: its body, WASD movement over the terrain, the top-down camera, and its health.
 
-use benilla_world::view::WorldCamera;
 use benilla_world::collision::WorldCollision;
+use benilla_world::view::WorldCamera;
 use bevy::input::mouse::{AccumulatedMouseMotion, MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 

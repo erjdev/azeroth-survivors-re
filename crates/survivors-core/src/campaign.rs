@@ -1629,9 +1629,7 @@ mod tests {
     #[test]
     fn a_full_set_and_a_legendary_weapon_change_the_total() {
         let mut pieces = [0u8; PIECES];
-        for slot in 0..GRID_SLOTS {
-            pieces[slot] = 1;
-        }
+        pieces[..GRID_SLOTS].fill(1);
         let plain = equipped_bonus(&pieces, None);
         assert!(plain.might > quality_bonus(Quality::Common).might * 4.0);
         assert!(set_complete(&pieces));
@@ -1754,9 +1752,7 @@ mod tests {
         let ten = talent_bonus(&ranks);
         assert!(ten.might > trained.might);
         let mut deep = vec![0u8; SPEC_LEN];
-        for node in 0..NODES_PER_TREE {
-            deep[node] = NODE_RANKS[node];
-        }
+        deep[..NODES_PER_TREE].copy_from_slice(&NODE_RANKS[..NODES_PER_TREE]);
         assert!(points_in_tree(&deep, 0) >= 30);
         assert!(talent_bonus(&deep).targets >= 1);
         assert!(talent_bonus(&deep).multistrike > 0.0);
