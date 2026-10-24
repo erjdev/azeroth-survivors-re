@@ -3,6 +3,7 @@
 
 mod character;
 pub(super) use character::subject as character_subject;
+mod codex_page;
 mod collection;
 mod door;
 mod drop_page;
@@ -78,6 +79,7 @@ pub(super) struct Armory {
     pet_slot: u8,
     piece: usize,
     drop_zone: usize,
+    codex_entry: Option<u16>,
 }
 
 impl Default for Armory {
@@ -95,6 +97,7 @@ impl Default for Armory {
             pet_slot: 0,
             piece: 0,
             drop_zone: 0,
+            codex_entry: None,
         }
     }
 }
@@ -384,7 +387,7 @@ pub(super) fn input(
             Act::Seek => {
                 stash.seek(rng.f32());
             }
-            Act::Codex(id) => armory.note = codex_text(&account, id),
+            Act::Codex(id) => armory.codex_entry = Some(id),
             Act::Achieve(page) => {
                 armory.achieve = page.min(5);
                 armory.page = Page::Achievements;
@@ -970,7 +973,7 @@ fn fill_draft(
         Page::Talents => talents(panel, font, account, selection, catalog),
         Page::Rewards => rewards_page(panel, font, armory, account),
         Page::Collection => {}
-        Page::Codex => codex(panel, font, account),
+        Page::Codex => {}
         Page::Achievements => achievements(panel, font, armory, account),
         Page::Notes => notes_page(panel, font),
         Page::DropTables => {}
@@ -1723,110 +1726,6 @@ fn scroll(panel: &mut impl ChipParent, font: &Handle<Font>, lines: &[(String, Co
         });
 }
 
-fn codex(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
-    panel.spawn(hud::text_bundle(
-        font,
-        "Legendary amulets. Each class has one for every spell. Click an icon to read it.",
-        13.0,
-        GOLD,
-    ));
-    for (class_i, class) in CLASSES.iter().enumerate() {
-        let keys = class.ability_keys();
-        let seen = account
-            .classes
-            .get(class_i)
-            .map(|p| p.seen.as_slice())
-            .unwrap_or(&[]);
-        let (found, _) = account.legendary_progress(class_i);
-        panel.spawn(hud::text_bundle(
-            font,
-            format!("{}  {found}/{}", class.name, keys.len()),
-            13.0,
-            Color::WHITE,
-        ));
-        panel
-            .spawn(Node {
-                flex_direction: FlexDirection::Row,
-                flex_wrap: FlexWrap::Wrap,
-                column_gap: Val::Px(3.0),
-                row_gap: Val::Px(3.0),
-                ..default()
-            })
-            .with_children(|row| {
-                for (slot, key) in keys.iter().enumerate() {
-                    let seen_one = seen
-                        .iter()
-                        .any(|name| name == &campaign::legendary_amulet(key));
-                    let dim = if seen_one { 1.0 } else { 0.35 };
-                    row.spawn((
-                        Button,
-                        Act::Codex(codex_legend(class_i, slot)),
-                        Node {
-                            width: Val::Px(28.0),
-                            height: Val::Px(28.0),
-                            border: UiRect::all(Val::Px(1.0)),
-                            ..default()
-                        },
-                        BorderColor::all(if seen_one { GOLD } else { DIM }),
-                        ImageNode {
-                            color: Color::srgba(1.0, 1.0, 1.0, dim),
-                            ..default()
-                        },
-                        hud::SpellIcon(data::ability(key).spell),
-                        hud::IconDim(dim),
-                    ));
-                }
-            });
-    }
-    panel.spawn(hud::text_bundle(
-        font,
-        "Rings, trinkets, and amulets are offered to every class and last one run.",
-        13.0,
-        GOLD,
-    ));
-    jewel_row(panel, font, account, "Rings", &campaign::RING_NAMES, 2);
-    jewel_row(
-        panel,
-        font,
-        account,
-        "Trinkets",
-        &campaign::TRINKET_NAMES,
-        3,
-    );
-    jewel_row(panel, font, account, "Amulets", &campaign::AMULET_NAMES, 4);
-}
-
-fn jewel_row(
-    panel: &mut impl ChipParent,
-    font: &Handle<Font>,
-    account: &Account,
-    title: &str,
-    names: &[&str],
-    kind: u8,
-) {
-    panel.spawn(hud::text_bundle(
-        font,
-        format!(
-            "{title}  {}/{}",
-            account.shared_jewel_progress(kind).0,
-            names.len()
-        ),
-        13.0,
-        Color::WHITE,
-    ));
-    panel
-        .spawn(Node {
-            flex_direction: FlexDirection::Row,
-            flex_wrap: FlexWrap::Wrap,
-            ..default()
-        })
-        .with_children(|row| {
-            for (index, name) in names.iter().enumerate() {
-                chip(row, font, name, Act::Codex(codex_jewel(kind, index)), false);
-            }
-        });
-}
-
 fn achievements(
     panel: &mut impl ChipParent,
     font: &Handle<Font>,
@@ -2211,6 +2110,7 @@ fn signature(
     n = fold(n, u64::from(armory.pet_slot));
     n = fold(n, armory.piece as u64);
     n = fold(n, armory.drop_zone as u64);
+    n = fold(n, u64::from(armory.codex_entry.unwrap_or(0)));
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
     n = fold(n, armory.draft_class as u64);

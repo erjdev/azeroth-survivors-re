@@ -38,7 +38,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-24-drop-tables/keen-eye-720.jpg" alt="Drop Tables: Zone browser, encounter sources and shared item details; missing content remains."><br>Zone browser, encounter sources and shared item details; missing content remains.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-24/codex.jpg" alt="Codex: Spell and item reference view; footer spacing still needs cleanup."><br>Spell and item reference view; footer spacing still needs cleanup.</td>
+    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-24-codex-discovery/codex-layout-720.jpg" alt="Codex: Proportional catalog/details panes at 720p; jewelry artwork and scroll retention remain unfinished."><br>Proportional catalog/details panes at 720p; jewelry artwork and scroll retention remain unfinished.</td>
     <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-24/talents.jpg" alt="Talents: Warrior tree presentation; this image does not imply every talent effect is implemented."><br>Warrior tree presentation; this image does not imply every talent effect is implemented.</td>
   </tr>
   <tr>

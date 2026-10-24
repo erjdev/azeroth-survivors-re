@@ -40,7 +40,7 @@ pub(super) fn build(
 ) {
     header(ui, art, font);
     tabs(ui, art, font, armory.page, account.unspent());
-    if !note.is_empty() {
+    if !note.is_empty() && armory.page != Page::Codex {
         line(ui, font, note, 13.0, GOLD);
     }
     if armory.page == Page::Door {
@@ -54,6 +54,8 @@ pub(super) fn build(
         );
     } else if armory.page == Page::Collection {
         super::collection::build(ui, art, font, armory, account, selection, layout);
+    } else if armory.page == Page::Codex {
+        super::codex_page::build(ui, font, armory, account, selection, layout);
     } else if armory.page == Page::DropTables {
         super::drop_page::build(ui, art, font, armory, account, selection, layout);
     } else {

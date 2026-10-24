@@ -643,3 +643,18 @@ still need live validation. The empty Codex correctly showed zero shared discove
 but its shared amulet row clips below the viewport at 720p. The reference icon grid,
 selected-entry details and responsive layout remain open. Card screenshots are in
 `docs/images/screenshots/2026-10-24-codex-discovery/`.
+
+
+### Codex layout checkpoint — 2026-10-24
+
+Replaced the draft page with a 74/26 catalog/detail split using the existing scrollable
+Armory columns. Class labels sit beside wrapping spell rows and use catalog class colors;
+all three shared categories and the account-wide discovered total/bar belong to the
+scrollable catalog. Selection has its own state instead of reusing another tab's status
+message. Shared detail text reports offered/unoffered state. Library check, app Clippy
+and native build pass (1m08s). A live 720p check reached all shared categories and the
+footer by scrolling, then selected Onyxia Tooth Pendant and verified its unseen details.
+Selection currently resets catalog scrolling; preserve that offset in the next pass.
+Jewelry artwork, amulet/spell badges,
+selected-icon treatment and detailed effect descriptions remain open. This is a layout
+checkpoint, not completion of the reference Codex.

@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Codex layout
+
+The catalog and selected-entry details now use proportional, independently scrolling panes.
+Class rows use class colors and the footer totals discoveries across heroes. Shared entries
+show whether they have been offered. Jewelry artwork and legendary amulet badges remain
+unfinished; the current rows retain names and spell icons.
+
+**Validation:** app library check, Clippy and native build passed (1m08s).
+[720p capture](images/screenshots/2026-10-24-codex-discovery/codex-layout-720.jpg) verifies
+amulet selection/details and reachable footer. Selection still resets catalog scrolling.
+
 ## 2026-10-24 — Shared Codex discovery
 
 Rings, trinkets and shared amulets now keep account-wide discovery when their cards are
