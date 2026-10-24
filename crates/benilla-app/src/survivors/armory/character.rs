@@ -306,11 +306,13 @@ mod tests {
         let b = account.create("Second", "Hero", 0).unwrap();
         account.set_body(a, (1, 0));
         account.set_body(b, (3, 0));
-        let mut selection = Selection::default();
-        selection.class = Some(0);
-        selection.character = Some(a);
-        selection.looks = vec![(100, 1, 0), (101, 1, 1)];
-        selection.look = Some(0);
+        let mut selection = Selection {
+            class: Some(0),
+            character: Some(a),
+            looks: vec![(100, 1, 0), (101, 1, 1)],
+            look: Some(0),
+            ..default()
+        };
         assert!(!choose_body(&mut selection, &mut account, 3, 1));
         assert!(choose_body(&mut selection, &mut account, 1, 1));
         assert_eq!(selection.look, Some(1));

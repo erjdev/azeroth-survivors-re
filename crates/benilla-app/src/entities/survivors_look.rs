@@ -10,6 +10,8 @@ impl super::Creatures {
 
 use bevy::prelude::*;
 
+type FeatureStamp = std::collections::HashMap<Entity, (Option<u32>, Option<u32>)>;
+
 pub(crate) fn plugin(app: &mut App) {
     app.add_systems(Update, refresh_features.before(super::EntityVisualsSet));
 }
@@ -24,7 +26,7 @@ fn refresh_features(
         &super::Equipment,
         &mut super::equipment::AppliedEquipment,
     )>,
-    mut previous: Local<std::collections::HashMap<Entity, (Option<u32>, Option<u32>)>>,
+    mut previous: Local<FeatureStamp>,
 ) {
     previous.retain(|entity, _| units.contains(*entity));
     for (entity, store, live, mut applied) in &mut units {

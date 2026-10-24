@@ -1684,13 +1684,11 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.classes[0].pieces[0], 1);
         account.collect_drop(0, 0, "Hogger");
         assert_eq!(account.classes[0].pieces[0], 1);
-        assert!(
-            campaign::zone_open(
-                1,
-                campaign::talent_level(account.character(id).unwrap().talent_xp),
-                &account.classes[0].clears,
-            ) == false
-        );
+        assert!(!campaign::zone_open(
+            1,
+            campaign::talent_level(account.character(id).unwrap().talent_xp),
+            &account.classes[0].clears,
+        ));
         account.add_talent_xp(id, 500);
         assert!(campaign::zone_open(
             1,

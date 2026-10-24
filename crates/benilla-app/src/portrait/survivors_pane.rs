@@ -2,7 +2,13 @@
 use super::{BoothPanes, InspectBooth, PortraitImages, PortraitSource, INSPECT_SLOT};
 use bevy::input::ButtonState;
 use bevy::prelude::*;
+
 use bevy::window::{PrimaryWindow, WindowEvent};
+
+type RigidAttachmentFilter = (
+    Without<super::BoothCam>,
+    Without<benilla_world::rig_palette::RigPart>,
+);
 
 #[derive(Component)]
 pub(crate) struct ModelPane;
@@ -163,13 +169,7 @@ fn fit_equipment(
     creatures: Option<Res<crate::entities::Creatures>>,
     entities: Query<&crate::net::NetEntity>,
     children: Query<&Children>,
-    parts: Query<
-        (&bevy::camera::primitives::Aabb, &GlobalTransform),
-        (
-            Without<super::BoothCam>,
-            Without<benilla_world::rig_palette::RigPart>,
-        ),
-    >,
+    parts: Query<(&bevy::camera::primitives::Aabb, &GlobalTransform), RigidAttachmentFilter>,
     mut cameras: Query<(&super::BoothCam, &mut Transform, &mut GlobalTransform)>,
 ) {
     if nodes.is_empty() {

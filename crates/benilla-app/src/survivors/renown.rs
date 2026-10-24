@@ -32,7 +32,7 @@ impl Track {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 struct ClassRenown {
     unspent: u32,
     might: u8,
@@ -54,17 +54,6 @@ impl ClassRenown {
             Track::Might => self.might = rank,
             Track::Fortitude => self.fortitude = rank,
             Track::Celerity => self.celerity = rank,
-        }
-    }
-}
-
-impl Default for ClassRenown {
-    fn default() -> Self {
-        Self {
-            unspent: 0,
-            might: 0,
-            fortitude: 0,
-            celerity: 0,
         }
     }
 }
@@ -117,10 +106,12 @@ impl Renown {
             .map_or([0; 3], |c| [c.might, c.fortitude, c.celerity])
     }
 
+    #[cfg(test)]
     pub fn unspent(&self, class: usize) -> u32 {
         self.classes.get(class).map_or(0, |c| c.unspent)
     }
 
+    #[cfg(test)]
     pub fn rank(&self, class: usize, track: Track) -> u8 {
         self.classes.get(class).map_or(0, |c| c.rank(track))
     }

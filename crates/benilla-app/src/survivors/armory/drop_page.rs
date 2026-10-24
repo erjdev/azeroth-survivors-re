@@ -129,8 +129,10 @@ mod tests {
     fn every_zone_exposes_only_its_catalog_sources_without_run_selection_actions() {
         for zone in 0..campaign::ZONES.len() {
             let mut world = World::new();
-            let mut armory = Armory::default();
-            armory.drop_zone = zone;
+            let armory = Armory {
+                drop_zone: zone,
+                ..default()
+            };
             world.commands().spawn(Node::default()).with_children(|ui| {
                 build(
                     ui,

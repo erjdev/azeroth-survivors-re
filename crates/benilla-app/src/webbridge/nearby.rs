@@ -1,10 +1,13 @@
 //! Select cheap borrowed candidates before constructing bridge payloads.
 
+type Ranked<T> = (f32, T);
+type Selection<T> = (Vec<Ranked<T>>, Option<Ranked<T>>);
+
 pub(super) fn select<T: Copy>(
     units: impl IntoIterator<Item = (f32, bool, T)>,
     radius2: f32,
     limit: usize,
-) -> (Vec<(f32, T)>, Option<(f32, T)>) {
+) -> Selection<T> {
     let mut candidates = Vec::new();
     let mut target = None;
     for (order, (distance2, is_target, unit)) in units.into_iter().enumerate() {

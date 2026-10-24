@@ -10,9 +10,6 @@ use super::Stats;
 
 pub(super) const MAX_RELIC_RANK: u8 = 3;
 pub(super) const SEEK_COST: u32 = 75;
-/// `GameObjectDisplayInfo` 10: the wooden chest worn chests use in 1.12.
-pub(super) const CHEST_DISPLAY: u32 = survivors_core::CHEST_DISPLAY;
-
 struct Relic {
     id: &'static str,
     name: &'static str,
@@ -84,7 +81,8 @@ const RELICS: &[Relic] = &[
 ];
 
 /// What a chest pays. `roll` in `[0, 1)`: under 0.45, a relic that can still grow.
-pub(super) fn roll_chest(roll: f32, level: u32, ranks: &[u8]) -> (u32, Option<usize>) {
+#[cfg(test)]
+fn roll_chest(roll: f32, level: u32, ranks: &[u8]) -> (u32, Option<usize>) {
     let gold = 18 + level / 3;
     if roll >= 0.45 {
         return (gold + 12, None);

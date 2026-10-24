@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use benilla_ui::script::nameplate;
 use benilla_world::view::WorldCamera;
 use bevy::prelude::*;
+type MeterValueFilter = (Without<MeterHead>, Without<MeterName>);
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
 use bevy::ui_render::ui_material::{MaterialNode, UiMaterial};
@@ -1612,7 +1613,7 @@ pub(super) fn refresh_meter(
     mut head: Query<&mut Text, With<MeterHead>>,
     mut lines: Query<(&MeterLine, &mut Visibility), Without<MeterRoot>>,
     mut names: Query<(&MeterName, &mut Text), Without<MeterHead>>,
-    mut values: Query<(&MeterValue, &mut Text), (Without<MeterHead>, Without<MeterName>)>,
+    mut values: Query<(&MeterValue, &mut Text), MeterValueFilter>,
     mut fills: Query<(&MeterFill, &mut Node)>,
 ) {
     let show = *phase.get() == Phase::Playing || *phase.get() == Phase::Paused;
@@ -2369,8 +2370,6 @@ impl TipLine {
         self
     }
 }
-
-/// A number as the tooltips print it: whole when near enough, else to one decimal.
 
 /// The results screen's tiles and its line under the title.
 #[allow(clippy::type_complexity)]

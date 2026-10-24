@@ -21,6 +21,9 @@ pub(super) static LOOKS: &[(&str, u32)] = &[
 ];
 
 const BASE_LEASH: f32 = 25.0;
+type PickupQuery<'w, 's> =
+    Query<'w, 's, (Entity, &'static Transform, &'static Gem), (Without<Hero>, Without<Fetcher>)>;
+
 const MAX_LEASH: f32 = 55.0;
 const BASE_SPEED: f32 = 9.0;
 const BASE_REST: f32 = 2.0;
@@ -30,6 +33,13 @@ pub(super) enum Drop {
     Gold,
     Xp,
     Heal,
+    #[cfg_attr(
+        not(test),
+        expect(
+            dead_code,
+            reason = "Rune collection rules precede rune pickup spawning"
+        )
+    )]
     Rune,
 }
 
@@ -126,7 +136,7 @@ pub(super) fn herd(
     world: Floor,
     hero: Query<&Transform, (With<Hero>, Without<Fetcher>)>,
     mut pets: Query<(Entity, &mut Transform, &mut MovementState, &mut Fetcher), Without<Hero>>,
-    gems: Query<(Entity, &Transform, &Gem), (Without<Hero>, Without<Fetcher>)>,
+    gems: PickupQuery<'_, '_>,
 ) {
     let Ok(hero_tf) = hero.single() else { return };
     if run.dead_t.is_some() {
@@ -146,8 +156,8 @@ pub(super) fn herd(
     for e in doomed {
         commands.entity(e).despawn();
     }
-    for slot in 0..want {
-        if seen[slot] {
+    for (slot, present) in seen.iter().enumerate().take(want) {
+        if *present {
             continue;
         }
         spawn_fetcher(
@@ -228,7 +238,7 @@ pub(super) fn herd(
 }
 
 fn gem_rows(
-    gems: &Query<(Entity, &Transform, &Gem), (Without<Hero>, Without<Fetcher>)>,
+    gems: &PickupQuery<'_, '_>,
     hero: Vec3,
     pet: Vec3,
 ) -> Vec<(usize, Drop, f32, f32, Vec3)> {

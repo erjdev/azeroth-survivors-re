@@ -500,11 +500,12 @@ by rules tests. This does not change balance or imply missing item effects are i
 
 ### Integration checkpoint — 2026-10-24
 
-Workspace formatting now passes after normalizing the full formatter report (22 files,
-not only the terrain imports visible in the gate’s last 30 lines). Two core-test loops
-and arena-scout’s nested tuple were cleaned up. The workspace Clippy gate reaches the app
-but remains failing: unused companion/renown/stash code; complex Bevy query signatures in
-appearance, preview, companions, grading, HUD and webbridge; a stale HUD doc comment;
-a Copy clone; derivable renown default; and test placement/initializer/boolean lints.
-Resolve these without globally weakening warnings, then run the remaining gate chain.
+Workspace formatting and `cargo clippy --workspace --all-targets -- -D warnings` now pass.
+The cleanup names repeated Bevy query/bridge types, limits renown accessors and the legacy
+chest helper to tests, removes an unused chest-display alias, and corrects stale comments,
+Copy usage, defaults, test initializers and test-module placement. Rune pickup rules retain
+a narrowly scoped dead-code expectation because actual rune spawning remains incomplete.
+
+The full gate has advanced to workspace tests using checkout-local `wow-data/Data`; that
+stage is still in progress, with no pass claimed. The optional addon corpus is absent.
 No workspace-test, no-install, player-test or live server round-trip success is implied.

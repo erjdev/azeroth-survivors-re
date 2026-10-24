@@ -8,9 +8,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 Normalized formatter drift in 22 files, simplified two core test setups, and named the
 arena-scout candidate structure. No gameplay or visual changes.
 
-**Validation:** workspace formatting, 45 core tests and arena-scout Clippy pass. The full lint gate advances into the app
-and exposes remaining unused-code, query-type and test-layout lints; the full gate is not
-green. The earlier terrain-only diagnosis was incomplete because the gate prints a log tail.
+Named repeated Bevy query shapes, restricted test-only helpers to test builds, and cleaned
+up test initializers and placement. The reserved rune pickup rule keeps a specific warning
+expectation until its spawning exists; no global warning suppression was added.
+
+**Validation:** workspace formatting and workspace/all-target Clippy with warnings denied
+now pass. The full workspace test stage has started but has no completed result yet.
+The optional addon corpus is absent. Earlier core validation passed 45 tests. The earlier
+terrain-only diagnosis was incomplete because the gate prints a log tail.
 
 ## 2026-10-24 — Drop Tables browser
 

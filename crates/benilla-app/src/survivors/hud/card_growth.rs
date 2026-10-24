@@ -45,7 +45,7 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, 
         )],
         Choice::Jewel(kind) => {
             let before = run.worn.bonus();
-            let mut after = run.worn.clone();
+            let mut after = run.worn;
             after.equip(kind);
             jewelry_changes(before, after.bonus())
         }

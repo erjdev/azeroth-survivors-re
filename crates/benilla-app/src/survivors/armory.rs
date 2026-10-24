@@ -2275,6 +2275,35 @@ impl ChipParent for RelatedSpawnerCommands<'_, ChildOf> {
     }
 }
 
+fn chip(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, act: Act, on: bool) {
+    let color = if on {
+        hud::rgb(0xc9a227)
+    } else {
+        Color::srgba(0.16, 0.13, 0.09, 0.95)
+    };
+    let ink = if on { Color::BLACK } else { Color::WHITE };
+    parent
+        .spawn((
+            Button,
+            act,
+            Node {
+                height: Val::Px(22.0),
+                margin: UiRect::new(Val::Px(0.0), Val::Px(4.0), Val::Px(2.0), Val::Px(0.0)),
+                padding: UiRect::horizontal(Val::Px(6.0)),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(color),
+        ))
+        .with_children(|b| {
+            let mut label = b.spawn(hud::text_bundle(font, label, 13.0, ink));
+            if on {
+                label.remove::<TextShadow>();
+            }
+        });
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::account;
@@ -2308,13 +2337,17 @@ mod tests {
     #[test]
     fn locked_selection_survives_opening_an_armory_tab() {
         let account = account::blank();
-        let mut selection = Selection::default();
-        selection.map = data::MAPS
-            .iter()
-            .position(|m| m.name == "Elwynn Forest")
-            .unwrap();
-        let mut armory = super::Armory::default();
-        armory.picked = Some(2);
+        let selection = Selection {
+            map: data::MAPS
+                .iter()
+                .position(|m| m.name == "Elwynn Forest")
+                .unwrap(),
+            ..Default::default()
+        };
+        let mut armory = super::Armory {
+            picked: Some(2),
+            ..Default::default()
+        };
         for page in [
             super::Page::Door,
             super::Page::Heroes,
@@ -2358,33 +2391,4 @@ mod tests {
             Some("Warsong Gulch has no map and no boss yet")
         );
     }
-}
-
-fn chip(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, act: Act, on: bool) {
-    let color = if on {
-        hud::rgb(0xc9a227)
-    } else {
-        Color::srgba(0.16, 0.13, 0.09, 0.95)
-    };
-    let ink = if on { Color::BLACK } else { Color::WHITE };
-    parent
-        .spawn((
-            Button,
-            act,
-            Node {
-                height: Val::Px(22.0),
-                margin: UiRect::new(Val::Px(0.0), Val::Px(4.0), Val::Px(2.0), Val::Px(0.0)),
-                padding: UiRect::horizontal(Val::Px(6.0)),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            BackgroundColor(color),
-        ))
-        .with_children(|b| {
-            let mut label = b.spawn(hud::text_bundle(font, label, 13.0, ink));
-            if on {
-                label.remove::<TextShadow>();
-            }
-        });
 }
