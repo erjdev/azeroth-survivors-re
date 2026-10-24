@@ -4,7 +4,7 @@ use benilla_formats::{Chain, MapTiles};
 use glam::{Quat, Vec3};
 use std::collections::HashSet;
 
-fn placement(rotation: [f32; 3]) -> Quat {
+pub(super) fn placement(rotation: [f32; 3]) -> Quat {
     // Same MODF transform as benilla-assets::coords::placement_rotation, before
     // its Bevy basis conjugation. Keep this audit independent of the renderer.
     use std::f32::consts::{FRAC_PI_2, PI};

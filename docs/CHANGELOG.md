@@ -14,7 +14,8 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 - **World:** movement sweeps against world geometry, nearby-floor placement for interiors,
   terrain-following mobility on gentle slopes, and a saved camera push-in option with
   smooth zoom restoration. Missing campaign content
-  stays locked. Live Elwynn tree probes now distinguish source hulls from streamed collision.
+  stays locked. Source-versus-live Elwynn probes expose offset canopy hulls; the reported
+  tree-collision issue still needs visual reproduction.
 - **Development:** incremental native builds, an engine-independent rules crate, live tuning
   and layout reloads, plus opt-in F12 screenshots. Failed replacement launches keep the
   current game open; validation shutdown avoids contacting the terminated macOS app.

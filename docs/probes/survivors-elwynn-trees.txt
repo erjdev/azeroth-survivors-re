@@ -10,3 +10,5 @@ tree-599354 -9513.619 102.8457 58.4897
 tree-12576 -9532.73 148.94531 60.039783
 tree-210509 -9588.844 117.171875 59.071415
 open-spawn -9548.5 115 60
+# A source-hull surface sample for canopy placement 12580, away from its clear origin.
+canopy-12580-surface -9520.363 100.507454 59.04477

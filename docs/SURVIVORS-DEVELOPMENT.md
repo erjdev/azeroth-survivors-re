@@ -218,6 +218,14 @@ queries to distinguish source-hull tests from live streaming evidence, then repr
 walking and mobility at the reported tree. Unloaded points or a mismatched map invalidate
 that point's result. This is collision evidence, not a navigation/pathfinding test.
 
+The source doodad audit also emits `SOURCE RAY` and `SOURCE SLICE` for tree origins within
+50 yards of the requested point. Rays cross the origin from four directions at one yard
+above ADT terrain; they test only that placement's transformed hull. Slices at one yard
+above the placement origin expose offset geometry and provide a surface sample for the
+live point file. Neither a slice bounding box nor a clear origin crossing identifies the
+visible trunk by itself. Compare identical ray heights; runtime floors may include props
+or buildings that the source terrain query excludes.
+
 ## Following feature milestones
 
 Read [CHANGELOG.md](CHANGELOG.md) for grouped feature summaries and validation limits.
