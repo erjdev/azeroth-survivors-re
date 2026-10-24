@@ -64,6 +64,20 @@ Evaluate development-only dynamic linking only after a timing baseline, keeping 
 the distributable build. Compiler caches can complement Cargo for clean/CI builds but do
 not replace retained incremental artifacts.
 
+### Outdoor collision-source probe
+
+Run `cargo run -p survivors-audit -- wow-data/Data --doodads 0 -9548.5 115 60`
+to inspect outdoor placements around the Elwynn start. The read-only probe lists unique
+placement IDs, model paths, positions, rotations, scales and source hull triangle counts,
+then groups counts by model. It reads only the explicit data directory. Missing models or
+unreadable existing tiles fail the command instead of silently reporting partial success.
+
+Coverage is placement origins within 200 horizontal yards in the surrounding 3×3 existing
+ADT tiles; it excludes WMO props and distant-origin geometry overlapping that area. A
+nonempty hull establishes source geometry only. Verify runtime transforms, collider attachment,
+body sweeps and tile reload separately before claiming a collision fix. Empty parsed hulls
+must be investigated rather than automatically replacing the whole render mesh with a collider.
+
 ## Reload content without recompiling
 
 The first live surface is `crates/survivors-core/tuning.txt`, a deliberately small key/value

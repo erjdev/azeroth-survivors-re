@@ -3,6 +3,7 @@ use anyhow::{bail, Context, Result};
 use benilla_formats::{load_creature_catalog, load_map_catalog, open_chain, MapTiles};
 use survivors_core::{campaign, data, encounters};
 
+mod doodads;
 mod floor;
 
 fn main() -> Result<()> {
@@ -16,8 +17,8 @@ fn main() -> Result<()> {
         return talents(&mut chain);
     }
     if !rest.is_empty() {
-        if rest.len() != 5 || rest[0] != "--floor" {
-            bail!("usage: survivors-audit <Data> [--talents | --floor <map> <x> <y> <z>]");
+        if rest.len() != 5 || (rest[0] != "--floor" && rest[0] != "--doodads") {
+            bail!("usage: survivors-audit <Data> [--talents | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
         }
         let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
         let mut point = [0.0_f32; 3];
@@ -27,7 +28,11 @@ fn main() -> Result<()> {
                 bail!("coordinates must be finite");
             }
         }
-        return floor::probe(&mut chain, map, point);
+        return if rest[0] == "--doodads" {
+            doodads::probe(&mut chain, map, point)
+        } else {
+            floor::probe(&mut chain, map, point)
+        };
     }
     let maps = load_map_catalog(&mut chain)?;
     let creatures = load_creature_catalog(&mut chain)?;
