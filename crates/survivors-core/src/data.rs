@@ -21,6 +21,19 @@ pub struct ClassDef {
     pub sheath: u8,
 }
 
+impl ClassDef {
+    /// The class's actual spell catalog, in offer/display order, with the starter once.
+    pub fn ability_keys(&self) -> Vec<&'static str> {
+        let mut keys = Vec::new();
+        for key in std::iter::once(self.start).chain(self.pool.iter().copied()) {
+            if !keys.contains(&key) {
+                keys.push(key);
+            }
+        }
+        keys
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Kind {
     /// A missile at the nearest enemies (or instant if the spell has no speed).

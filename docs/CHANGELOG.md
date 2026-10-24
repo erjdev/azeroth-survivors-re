@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Class Codex completion
+
+Class amulet completion now uses that class’s actual spell catalog for the Codex, cloaks
+and achievement totals. Duplicate save rows no longer inflate progress. Unknown legacy
+names are preserved but do not count. Recognized legacy names are normalized to restore
+ability-key underscores after reload. Shared jewelry discovery and the Codex layout remain open.
+
+**Validation:** 45 core and 71 Survivors app tests pass, including all-class completion,
+legacy save reload and duplicate-count protection. Formatting and workspace Clippy pass;
+the full gate is still running.
+
 ## 2026-10-24 — Portrait input during loading
 
 Portrait rotation now stops under the loading cover and cancels held gestures. OS window

@@ -309,13 +309,33 @@ impl Account {
     }
 
     pub fn see_amulet(&mut self, class: usize, name: &str) {
+        let name = canonical_amulet_name(class, name);
         let Some(progress) = self.classes.get_mut(class) else {
             return;
         };
-        if !progress.seen.iter().any(|s| s == name) {
-            progress.seen.push(name.to_string());
+        if !progress.seen.contains(&name) {
+            progress.seen.push(name);
             self.dirty = true;
         }
+    }
+
+    /// Count catalog entries, never raw save rows: duplicates and foreign names earn nothing.
+    pub fn legendary_progress(&self, class: usize) -> (usize, usize) {
+        let Some(def) = data::CLASSES.get(class) else {
+            return (0, 0);
+        };
+        let keys = def.ability_keys();
+        let found = self.classes.get(class).map_or(0, |progress| {
+            keys.iter()
+                .filter(|key| progress.seen.contains(&campaign::legendary_amulet(key)))
+                .count()
+        });
+        (found, keys.len())
+    }
+
+    fn legendary_complete(&self, class: usize) -> bool {
+        let (found, total) = self.legendary_progress(class);
+        total > 0 && found == total
     }
 
     pub fn feats(&self, class: usize, id: u32) -> Feats {
@@ -330,9 +350,7 @@ impl Account {
         let collection = progress
             .map(|p| campaign::set_complete(&p.pieces))
             .unwrap_or(false);
-        let amulets = progress
-            .map(|p| p.seen.len() >= data::ABILITIES.len())
-            .unwrap_or(false);
+        let amulets = self.legendary_complete(class);
         Feats {
             talent_max,
             raid,
@@ -772,7 +790,7 @@ impl Account {
             if campaign::set_complete(&class.pieces) {
                 snap.full_sets += 1;
             }
-            snap.legends += class.seen.len() as u32;
+            snap.legends += self.legendary_progress(i).0 as u32;
             let talent_max = self
                 .characters
                 .iter()
@@ -782,7 +800,7 @@ impl Account {
                 talent_max,
                 raid: class.clears.last().copied().unwrap_or(false),
                 collection: campaign::set_complete(&class.pieces),
-                amulets: class.seen.len() >= data::ABILITIES.len(),
+                amulets: self.legendary_complete(i),
             };
             if campaign::cloak_quality(feats).is_some() {
                 snap.any_cloak = true;
@@ -912,6 +930,19 @@ fn encode(account: &Account) -> String {
         out.push_str(&format!("earn {ids}\n"));
     }
     out
+}
+
+/// Legacy saves encode spaces as underscores, including the underscores inside ability keys.
+/// Resolve only known class entries; retain unknown names for forward compatibility.
+fn canonical_amulet_name(class: usize, name: &str) -> String {
+    let normalized = name.replace('_', " ").to_ascii_lowercase();
+    data::CLASSES
+        .get(class)
+        .into_iter()
+        .flat_map(|class| class.ability_keys())
+        .map(campaign::legendary_amulet)
+        .find(|candidate| candidate.replace('_', " ").to_ascii_lowercase() == normalized)
+        .unwrap_or_else(|| name.to_owned())
 }
 
 fn escape(s: &str) -> String {
@@ -1138,9 +1169,10 @@ fn parse(text: &str) -> Result<Account, ()> {
             }
             Some("seen") => {
                 let index: usize = parts.next().ok_or(())?.parse().map_err(|_| ())?;
-                let name = unescape(&parts.collect::<Vec<_>>().join(" "));
+                let name =
+                    canonical_amulet_name(index, &unescape(&parts.collect::<Vec<_>>().join(" ")));
                 if let Some(progress) = account.classes.get_mut(index) {
-                    if !name.is_empty() {
+                    if !name.is_empty() && !progress.seen.contains(&name) {
                         progress.seen.push(name);
                     }
                 }
@@ -1656,7 +1688,7 @@ pets 2 3 1 1 2 0 1
         assert!(!moved.classes[1].clears[1]);
         assert_eq!(
             account.classes[0].seen,
-            vec!["Amulet of Heroic Strike".to_string()]
+            vec!["Amulet of heroic_strike".to_string()]
         );
         let again = parse(&encode(&account)).unwrap();
         assert_eq!(again.characters[0].ranks()[0], 1);
@@ -1667,6 +1699,51 @@ pets 2 3 1 1 2 0 1
         assert_eq!(again.characters[0].last, "Wrynn");
         assert_eq!(again.pets.owned, 2);
         assert_eq!(again.classes[0].pieces[1], 1);
+    }
+
+    #[test]
+    fn class_amulet_completion_matches_its_own_catalog_and_survives_reload() {
+        for (class, def) in data::CLASSES.iter().enumerate() {
+            let mut account = empty();
+            let hero = account.ensure(class);
+            let keys = def.ability_keys();
+            assert!(!keys.is_empty());
+            for key in &keys[..keys.len() - 1] {
+                account.remember_amulets(class, &[*key]);
+            }
+            assert!(
+                !account.feats(class, hero).amulets,
+                "{} missing final amulet",
+                def.name
+            );
+            account.remember_amulets(class, &keys);
+            assert!(account.feats(class, hero).amulets, "{} complete", def.name);
+            assert_eq!(account.legendary_progress(class), (keys.len(), keys.len()));
+            assert_eq!(account.snapshot().legends, keys.len() as u32);
+            let reloaded = parse(&encode(&account)).unwrap();
+            assert!(reloaded.feats(class, hero).amulets);
+            assert_eq!(reloaded.snapshot().legends, keys.len() as u32);
+        }
+    }
+
+    #[test]
+    fn duplicate_and_foreign_discoveries_cannot_inflate_rewards() {
+        let name = campaign::legendary_amulet(data::CLASSES[0].start);
+        let mut text = String::new();
+        for _ in 0..data::ABILITIES.len() {
+            text.push_str(&format!("seen 0 {}\n", escape(&name)));
+        }
+        text.push_str("seen 0 Amulet_of_a_nonexistent_spell\n");
+        let account = parse(&text).unwrap();
+        assert_eq!(
+            account.classes[0].seen.len(),
+            2,
+            "retain unknown legacy names, deduplicate rows"
+        );
+        assert_eq!(account.legendary_progress(0).0, 1);
+        assert_eq!(account.snapshot().legends, 1);
+        assert!(!account.feats(0, 0).amulets);
+        assert!(!account.legendary_complete(usize::MAX));
     }
 
     #[test]

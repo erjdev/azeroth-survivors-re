@@ -1731,19 +1731,13 @@ fn codex(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
         GOLD,
     ));
     for (class_i, class) in CLASSES.iter().enumerate() {
-        let keys = class_keys(class);
+        let keys = class.ability_keys();
         let seen = account
             .classes
             .get(class_i)
             .map(|p| p.seen.as_slice())
             .unwrap_or(&[]);
-        let found = keys
-            .iter()
-            .filter(|key| {
-                seen.iter()
-                    .any(|name| name == &campaign::legendary_amulet(key))
-            })
-            .count();
+        let (found, _) = account.legendary_progress(class_i);
         panel.spawn(hud::text_bundle(
             font,
             format!("{}  {found}/{}", class.name, keys.len()),
@@ -2033,16 +2027,6 @@ fn meter(parent: &mut impl ChipParent, fraction: f32) {
         });
 }
 
-fn class_keys(class: &data::ClassDef) -> Vec<&'static str> {
-    let mut keys = Vec::new();
-    for key in std::iter::once(class.start).chain(class.pool.iter().copied()) {
-        if !keys.contains(&key) {
-            keys.push(key);
-        }
-    }
-    keys
-}
-
 fn codex_legend(class: usize, slot: usize) -> u16 {
     (1u16 << 12) | ((class as u16) << 6) | ((slot as u16) & 0x3f)
 }
@@ -2061,7 +2045,7 @@ fn codex_text(account: &Account, id: u16) -> String {
             let Some(class) = CLASSES.get(class_i) else {
                 return "Unknown spell".into();
             };
-            let keys = class_keys(class);
+            let keys = class.ability_keys();
             let Some(key) = keys.get(slot).copied() else {
                 return "Unknown spell".into();
             };

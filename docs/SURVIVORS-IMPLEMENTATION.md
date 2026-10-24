@@ -576,3 +576,16 @@ Formatting and workspace Clippy pass. The full gate passed the cover audit, then
 at `launcher_shape`: the standalone example omitted `mlua-sys`. The example now includes
 all three patches and uses the confirmed fork URLs consistently. Both launcher-shape tests
 pass against the saved example. Continue the full gate; live interaction remains unverified.
+
+### Class Codex correctness checkpoint — 2026-10-24
+
+The visible legendary grid, cloak requirements and achievement snapshot now share
+`ClassDef::ability_keys()`, a unique start/pool catalog. Counting recognized catalog entries
+prevents duplicate or foreign names from inflating progress. Save parsing deduplicates
+seen rows while retaining unknown legacy names for compatibility. The new reload test
+exposed the legacy underscore/space encoding collision; recognized names are normalized
+against the class catalog to restore canonical ability keys. Regression coverage
+checks all nine classes before/after the final discovery, save reload and inflated input.
+The 45 core and 71 Survivors app tests pass, as do formatting and workspace Clippy.
+The full gate is still running. Shared jewelry
+discovery, icons, details and the responsive Codex layout are still unfinished.
