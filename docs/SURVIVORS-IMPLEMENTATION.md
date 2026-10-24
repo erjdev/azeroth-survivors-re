@@ -178,6 +178,14 @@ or raising caption layers did not resolve the broader issue. Model dragging now 
 ordered window events so short gestures are retained. Short/reverse drags and rejection of
 presses outside the preview passed live at 1280×720; sensitivity follows preview width.
 
+Drop Tables now has a proportional zone browser and encounter/item rows alongside shared
+appearance, equipment and item details. Browsing does not change the run destination.
+Source counts and entries come from DROPS; unimplemented tables remain explicit. Native
+build and 72 focused tests passed, including all twelve views’ source/action wiring.
+Live 1280×720 checks covered Elwynn/Duskwood, source selection, missing-content state and
+returning to the unchanged run destination. Displayed rates are labeled base chances;
+showing the effective Keen Eye rate and the wider layout/content matrix remain open.
+
 ## Phase 4 — all twelve zones and gear content
 
 Complete the ordered path in SURVIVORS.md. For each zone, verify terrain/map coordinates,

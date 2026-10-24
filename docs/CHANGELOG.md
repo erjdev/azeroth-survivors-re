@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Drop Tables browser
+
+Replaced the text list with zone browsing, encounter/item rows, collection counts and shared
+appearance, equipment and item-detail controls. Browsing leaves the run destination intact.
+Missing tables are labeled explicitly; drop rates remain labeled as base chances.
+
+**Validation:** native build and 72 focused tests passed. Live 1280×720 checks covered
+Elwynn/Duskwood sources, item selection, missing content and the unchanged run destination.
+The full resolution matrix and missing content remain open. Existing terrain formatting
+still blocks the repository gate.
+
+![Drop Tables at 1280×720](images/screenshots/2026-10-24-drop-tables/drop-tables-720.jpg)
+
 ## 2026-10-24 — Shared Collection appearance
 
 Collection now shares Character’s faction portraits and race/sex controls, with class

@@ -54,6 +54,8 @@ pub(super) fn build(
         );
     } else if armory.page == Page::Collection {
         super::collection::build(ui, art, font, armory, account, selection, layout);
+    } else if armory.page == Page::DropTables {
+        super::drop_page::build(ui, art, font, armory, account, selection, layout);
     } else {
         panel(ui, art, |body| {
             super::fill_draft(

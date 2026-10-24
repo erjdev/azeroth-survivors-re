@@ -5,6 +5,7 @@ mod character;
 pub(super) use character::subject as character_subject;
 mod collection;
 mod door;
+mod drop_page;
 mod talent_page;
 pub(super) use talent_page::fill_art as fill_talent_art;
 
@@ -76,6 +77,7 @@ pub(super) struct Armory {
     /// Which companion the Looks row dresses.
     pet_slot: u8,
     piece: usize,
+    drop_zone: usize,
 }
 
 impl Default for Armory {
@@ -92,6 +94,7 @@ impl Default for Armory {
             reward_page: 0,
             pet_slot: 0,
             piece: 0,
+            drop_zone: 0,
         }
     }
 }
@@ -121,6 +124,7 @@ pub(super) enum Act {
     Class,
     Create,
     Zone(usize),
+    BrowseDrops(usize),
     Learn(usize),
     Spec(u8),
     Respec,
@@ -305,6 +309,7 @@ pub(super) fn input(
                     armory.note = "Open Look to choose this hero's appearance.".into();
                 }
             }
+            Act::BrowseDrops(index) => armory.drop_zone = index.min(ZONES.len() - 1),
             Act::Zone(index) => {
                 pick_zone(&mut armory, &account, &mut selection, index);
                 super::menu::save_pick(&selection);
@@ -968,51 +973,9 @@ fn fill_draft(
         Page::Codex => codex(panel, font, account),
         Page::Achievements => achievements(panel, font, armory, account),
         Page::Notes => notes_page(panel, font),
-        Page::DropTables => drop_tables(panel, font, account, selection),
+        Page::DropTables => {}
         Page::Door | Page::Look => {}
     }
-}
-
-fn drop_tables(
-    panel: &mut impl ChipParent,
-    font: &Handle<Font>,
-    account: &Account,
-    selection: &Selection,
-) {
-    let class = picked_class(account, selection);
-    let mut lines = vec![(
-        "A piece comes from a named creature. Clearing the zone does not, by itself, grant it."
-            .into(),
-        Color::WHITE,
-    )];
-    for (index, zone) in campaign::ZONES.iter().enumerate() {
-        lines.push((zone.name.to_string(), GOLD));
-        let rows: Vec<_> = campaign::DROPS
-            .iter()
-            .filter(|row| row.zone == index)
-            .collect();
-        if rows.is_empty() {
-            lines.push((
-                "No drop table yet. The creature has to exist on this map.".into(),
-                DIM,
-            ));
-            continue;
-        }
-        for row in rows {
-            let item = campaign::piece_name(class, row.slot, row.band).unwrap_or("unnamed");
-            let slot = campaign::SLOTS.get(row.slot).copied().unwrap_or("Piece");
-            let band = campaign::BANDS_NAMED.get(row.band).copied().unwrap_or("");
-            let minute = row.at_secs / 60;
-            lines.push((
-                format!(
-                    "{slot} — {item} ({band}) — {} at {minute}:00 — {}%",
-                    row.creature, row.chance
-                ),
-                Color::WHITE,
-            ));
-        }
-    }
-    scroll(panel, font, &lines);
 }
 
 fn class_trees(
@@ -2251,6 +2214,7 @@ fn signature(
     n = fold(n, u64::from(armory.reward_page));
     n = fold(n, u64::from(armory.pet_slot));
     n = fold(n, armory.piece as u64);
+    n = fold(n, armory.drop_zone as u64);
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
     n = fold(n, armory.draft_class as u64);
