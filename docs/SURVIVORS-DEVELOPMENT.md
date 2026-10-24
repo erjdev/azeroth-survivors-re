@@ -157,3 +157,13 @@ product. No third-party implementation or decompilation is needed.
 - [Cargo profile and incremental settings](https://doc.rust-lang.org/cargo/reference/profiles.html)
 - [Cargo build timing reports](https://doc.rust-lang.org/cargo/reference/timings.html)
 - [Bevy 0.18 asset loading and hot reloading](https://docs.rs/bevy/0.18.1/bevy/asset/index.html)
+
+## Native validation shutdown
+
+The temporary `Survivors Checkout Validation.app` lives under
+`target/survivors-validation/` and uses isolated checkout data and saves. When closing
+it through native UI automation, obtain the live window controls, close the window,
+and then check the running-app inventory or process exit. Do not request accessibility
+state, screenshots, or focus through the old app handle after exit: contacting that
+terminated app can produce Finder’s “application is not open anymore” dialog.
+Reacquire the app handle only when intentionally launching the next validation run.
