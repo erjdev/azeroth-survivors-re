@@ -205,31 +205,34 @@ end
         assert!(parse_localize_overrides("function Localize()\n\tK = \"v\";\n").is_empty());
     }
 
-    /// Three keys whose base and patched text differ. Skips without client data.
+    /// Compare the parser with Lua execution, so both empty enUS patches and enGB
+    /// overrides are checked against the installed scripts rather than one locale's text.
     #[test]
-    fn the_real_chain_patches_the_login_refusals_and_the_realm_suffixes() {
+    fn the_real_chain_matches_locale_script_execution() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::open_chain(&data).expect("open chain");
-
         let base = chain.read_file(GLUE_STRINGS).expect("GlueStrings.lua");
-        let base = parse_glue_strings(&String::from_utf8_lossy(&base));
+        let patch = chain
+            .read_file(GLUE_LOCALIZATION)
+            .expect("GlueLocalization.lua");
+        let script = benilla_ui::script::UiScript::new().unwrap();
+        script.run(&String::from_utf8_lossy(&base)).unwrap();
+        script.run(&String::from_utf8_lossy(&patch)).unwrap();
+        script.run("Localize()").unwrap();
+        let expected = script.eval::<std::collections::HashMap<String, String>>(
+            "local strings = {} for k, v in pairs(getfenv(0)) do \
+             if type(k) == 'string' and type(v) == 'string' then strings[k] = v end end return strings",
+        ).unwrap();
         let table = table_from_chain(&mut chain);
-
-        for key in ["AUTH_BANNED", "LOGIN_UNKNOWN_ACCOUNT", "PVP_PARENTHESES"] {
-            let before = base.get(key).expect("key in the base file").as_str();
-            let after = table.get(key).expect("key in the patched table");
-            assert_ne!(before, after, "{key} was not patched by Localize()");
-        }
-
-        // The enGB patch drops the parentheses: `CharSelectRealmName` reads "Realm PVP".
-        assert_eq!(
-            base.get("PVP_PARENTHESES").map(String::as_str),
-            Some("(PVP)")
-        );
-        assert_eq!(table.get("PVP_PARENTHESES"), Some("PVP"));
-
-        // The patch overwrites keys; it does not replace the table.
-        assert!(table.get("FACTION_INFO_HORDE").is_some(), "base lost");
+        let base = parse_glue_strings(&String::from_utf8_lossy(&base));
         assert!(base.len() > 100 && table.0.len() >= base.len());
+        for key in base.keys().chain(table.0.keys()) {
+            assert_eq!(
+                table.get(key),
+                expected.get(key).map(String::as_str),
+                "{key}"
+            );
+        }
+        assert!(table.get("FACTION_INFO_HORDE").is_some(), "base lost");
     }
 }

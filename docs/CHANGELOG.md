@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Locale-aware validation
+
+Corrected UK-only test assumptions for US client data. Glue strings are checked against
+Lua execution, both clock formats are tested, and the verified US locale symbol is recorded
+in the API reference without allowing arbitrary locale globals. Gameplay is unchanged.
+
+**Validation:** 15 focused tests and the workspace test rebuild pass. The full gate passes
+formatting, Clippy and the app unit suite, then stops at the loading-cover input audit:
+portrait window events and browser wakeup types need explicit handling/classification.
+Later gate stages remain unverified.
+
 ## 2026-10-24 — Loading and development integration
 
 Added a loading-cover warmup draw for ability cooldown overlays. Moved native tuning/layout

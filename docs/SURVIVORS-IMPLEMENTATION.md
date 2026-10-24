@@ -349,6 +349,14 @@ perks change the described run behavior; companions fetch coins/wisps without op
 chests or behaving like a magnet. All cosmetics use verified displays. Totals reconcile
 across tabs, saves and achievements; locked rows explain requirements.
 
+Current Codex audit: class cloak/achievement checks incorrectly compare raw seen-name counts
+with the entire ability catalog. Count unique, recognized legendary amulets from that class’s
+start/pool instead, and share the same catalog with the visible grid. Duplicate or foreign
+save entries must never advance completion. Shared jewelry rows currently display full
+counts without discovery tracking; persist account-wide discovery when cards are dealt,
+including abandoned runs, while keeping the jewelry’s effects run-only. Replace the text
+chips with verified icons and a responsive selected-item detail pane.
+
 ## Phase 7 — integration and visual acceptance
 
 Finish the shared frame and all reference layouts, including Done, Run Options, zone title
@@ -539,3 +547,16 @@ Workspace/all-target Clippy with warnings denied and formatting pass. The native
 four dev-only reexports and the unfulfilled rune dead-code expectation. Clean those up
 without suppressing player warnings globally. Full player tests and a live shader-warmup
 trace remain unverified; these focused checks do not establish a green full gate.
+
+### Locale integration checkpoint — 2026-10-24
+
+The three locale-dependent checks now pass against checkout-local enUS assets (15 focused
+tests total). Glue parsing is compared with actual Lua execution of the installed scripts;
+tooltip tests exercise both 12-hour and 24-hour modes. The reference adds only the verified
+`LOCALE_enUS` symbol, with provenance and generator support; a negative test rejects an
+invented locale global. The previous documentation-link gate passed. The full gate rerun
+passed formatting, Clippy and the app unit suite, then failed `cover_input_wall`: the
+portrait reads ordered `WindowEvent` input, and the browser bridge names
+`EventLoopProxyWrapper` / `WinitUserEvent`. The latter sends only WakeUp; the portrait
+consumes cursor/button events, so ensure loading-cover behavior is enforced before adding
+its verdict. Later gate stages remain unverified.

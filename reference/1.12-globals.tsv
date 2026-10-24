@@ -4,6 +4,7 @@
 # Also every name that corpus defines but the capture lacks, as type `lod`: the
 # twelve Blizzard_* addons are LoadOnDemand, so a live dump misses them unless
 # their windows were opened.
+# Includes LOCALE_enUS, verified in the enUS 1.12.1 FrameXML Localization.lua.
 # name	type	origin(lua|engine|framexml)
 ABANDON_PET	string	framexml
 ABANDON_QUEST	string	framexml
@@ -10914,6 +10915,7 @@ LFGQuery	function	engine
 LFG_LABEL	string	framexml
 LIGHTYELLOW_FONT_COLOR_CODE	string	framexml
 LOCALE_enGB	boolean	framexml
+LOCALE_enUS	boolean	framexml
 LOCATION_COLON	string	framexml
 LOCK	string	framexml
 LOCKED	string	framexml
