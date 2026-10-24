@@ -47,6 +47,8 @@ pub(super) fn build(
         enter_bar(ui, art, font, armory, account, selection);
     } else if armory.page == Page::Talents {
         super::talent_page::build(ui, font, account, selection, talents);
+    } else if armory.page == Page::Heroes {
+        super::character::build(ui, font, armory, account, selection, renown, stash, layout);
     } else if armory.page == Page::Collection {
         super::collection::build(ui, font, armory, account, selection, layout);
     } else {

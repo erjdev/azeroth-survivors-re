@@ -1,6 +1,7 @@
 //! The Armory: the front door before a run, and the draft pages a tab opens inside that frame.
 //! Appearance stays on the glue race and class screen, reached from the hero column.
 
+mod character;
 mod collection;
 mod door;
 mod talent_page;
@@ -829,6 +830,7 @@ fn heroes(
         .spawn(Node {
             flex_direction: FlexDirection::Row,
             margin: UiRect::top(Val::Px(4.0)),
+            flex_wrap: FlexWrap::Wrap,
             ..default()
         })
         .with_children(|row| {

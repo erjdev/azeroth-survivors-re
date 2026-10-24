@@ -31,7 +31,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 <table>
   <tr>
     <td width="50%"><strong>Front door</strong><br><img src="docs/images/screenshots/2026-10-24/front-door.jpg" alt="Front door: Class, hero and twelve intended destinations; incomplete content is visibly locked."><br>Class, hero and twelve intended destinations; incomplete content is visibly locked.</td>
-    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24/character.jpg" alt="Character: Current legacy character controls; the intended paper-doll layout is unfinished."><br>Current legacy character controls; the intended paper-doll layout is unfinished.</td>
+    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24-character/character.jpg" alt="Character: Equipment, bonuses and item details; the model viewer and inline appearance editor remain unfinished."><br>Equipment, bonuses and item details; the model viewer and inline appearance editor remain unfinished.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-24/collection.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>

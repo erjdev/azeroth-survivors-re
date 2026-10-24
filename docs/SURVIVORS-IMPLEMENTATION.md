@@ -131,6 +131,11 @@ with the intention images; compilation alone does not establish visual completio
 Apply the responsive-layout contract below to every surface, including the combat HUD
 and draft cards, rather than treating these two resolutions as fixed design canvases.
 
+Current Character checkpoint: proportional scroll columns now expose worn equipment,
+summed equipment bonuses and shared item/look actions alongside existing hero controls.
+An empty account and slot inspection were checked at 1440×900. This does not satisfy the
+paper-doll, inline feature editor, populated-account or multi-resolution acceptance above.
+
 ## Phase 4 — all twelve zones and gear content
 
 Complete the ordered path in SURVIVORS.md. For each zone, verify terrain/map coordinates,

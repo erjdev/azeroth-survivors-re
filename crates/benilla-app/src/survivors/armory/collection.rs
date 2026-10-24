@@ -48,7 +48,7 @@ fn text(
     ui.spawn(hud::text_bundle(font, value, size, color));
 }
 
-fn column(
+pub(super) fn column(
     ui: &mut ChildSpawnerCommands,
     weight: f32,
     layout: &Layout,
@@ -170,7 +170,7 @@ pub(super) fn build(
         });
 }
 
-fn equipment(
+pub(super) fn equipment(
     ui: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
     account: &Account,
@@ -351,7 +351,7 @@ fn grid(
     }
 }
 
-fn detail(
+pub(super) fn detail(
     ui: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
     armory: &Armory,
