@@ -1911,11 +1911,13 @@ pub static MAPS: &[MapDef] = &[
     },
     MapDef {
         name: "Naxxramas",
-        zone: "Eastern Plaguelands",
-        map: 0,
-        // Plaguewood, under the necropolis.
-        center: [3010.0, -3790.0, 124.0],
-        leash: 80.0,
+        zone: "Naxxramas",
+        map: 533,
+        // Stratholme Raid WMO group 19. Floor probe: all 2821 one-yard samples
+        // within the 30-yard disk have a nearby walking surface. This is not
+        // traversal evidence: the campaign content gate remains closed.
+        center: [3271.151, -3328.7507, 292.59506],
+        leash: 30.0,
         victory: "Kel'Thuzad's necropolis falls dark.",
         foes: &[
             foe("Scourge Soldier", 5231, 55, 4.4, 1.15),

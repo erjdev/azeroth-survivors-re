@@ -209,7 +209,7 @@ pub static ZONES: &[Zone] = &[
         talent: 48,
         elites: &["Necro Knight", "Plague Slime"],
         boss: "Kel'Thuzad",
-        ready: true,
+        ready: false,
         into_id: 7,
         champ_id: 17,
         points: 30,
@@ -272,6 +272,7 @@ fn content_lock(zone: &Zone) -> Option<String> {
         (false, false) => format!("{} has no map and no boss yet", zone.name),
         (false, _) => format!("{} has no map yet", zone.name),
         (_, false) => format!("{} has no boss yet", zone.name),
+        _ if scheduled && !zone.ready => format!("{} world content is not ready", zone.name),
         _ => format!("{} has no drop table yet", zone.name),
     })
 }
@@ -1490,7 +1491,7 @@ mod tests {
         assert!(!zone_open(11, 48, &clears));
         assert_eq!(
             zone_lock_reason(11, 48, &clears).as_deref(),
-            Some("Naxxramas world location is not ready")
+            Some("Naxxramas world content is not ready")
         );
         clears[10] = true;
         assert!(!zone_open(11, 48, &clears));
@@ -1744,12 +1745,20 @@ mod tests {
     }
 
     #[test]
-    fn an_outdoor_placeholder_cannot_open_an_instanced_raid() {
+    fn an_instanced_raid_requires_its_world_and_completed_content() {
+        let wrong_world = Zone {
+            map: "Elwynn Forest",
+            ..ZONES[11]
+        };
+        assert_eq!(
+            content_lock(&wrong_world).as_deref(),
+            Some("Naxxramas world location is not ready")
+        );
         assert_eq!(required_map_id("Naxxramas"), Some(533));
         assert!(!map_allowed("Naxxramas", 51, &[true; CLEAR_COUNT]));
         assert_eq!(
             zone_lock_reason(11, 51, &[true; CLEAR_COUNT]).as_deref(),
-            Some("Naxxramas world location is not ready")
+            Some("Naxxramas world content is not ready")
         );
         assert!(map_allowed("Elwynn Forest", 0, &[false; CLEAR_COUNT]));
     }

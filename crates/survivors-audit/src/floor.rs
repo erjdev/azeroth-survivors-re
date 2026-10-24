@@ -115,6 +115,18 @@ pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
             .count();
         println!("WMO floor ring r={radius}: {count}/64 samples within runtime height window");
     }
+    let (mut covered, mut samples) = (0, 0);
+    for x in -30..=30 {
+        for y in -30..=30 {
+            if x * x + y * y > 900 {
+                continue;
+            }
+            samples += 1;
+            let p = point + Vec3::new(x as f32, y as f32, 0.);
+            covered += usize::from(nearby_floor(&triangles, p).is_some());
+        }
+    }
+    println!("WMO floor disk r=30 at one-yard spacing: {covered}/{samples} samples within runtime height window");
     println!("Scope: walking faces of complete WMO groups referenced by the start ADT. Excludes doodads, neighbouring-only placements, walls, connectivity, camera visibility and rendered identity. Ring samples are not proof of a traversable disk.");
     Ok(())
 }

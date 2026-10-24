@@ -64,10 +64,12 @@ fn main() -> Result<()> {
             Ok(benilla_formats::terrain_height_at(&mesh.chunks, map.center))
         })();
         match surface {
-            Ok(Some(height)) => println!(
-                "TERRAIN: {} · map {} · start z {:.2} · terrain z {:.2}",
-                zone.name, map.map, map.center[2], height
-            ),
+            Ok(Some(height)) if (map.center[2] - 8.0..=map.center[2] + 2.0).contains(&height) => {
+                println!(
+                    "TERRAIN: {} · map {} · start z {:.2} · terrain z {:.2}",
+                    zone.name, map.map, map.center[2], height
+                )
+            }
             other => {
                 // Indoor WMO floors require a separate geometry check, not an invented ADT height.
                 println!("NEEDS FLOOR VALIDATION: {} · {other:?}", zone.name);

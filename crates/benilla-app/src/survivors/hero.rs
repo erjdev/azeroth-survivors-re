@@ -1,7 +1,7 @@
 //! The hero: its body, WASD movement over the terrain, the top-down camera, and its health.
 
 use benilla_world::view::WorldCamera;
-use benilla_world::world_point::WorldPoint;
+use benilla_world::collision::WorldCollision;
 use bevy::input::mouse::{AccumulatedMouseMotion, MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 
@@ -329,7 +329,7 @@ pub(super) fn place_camera(
     motion: Res<AccumulatedMouseMotion>,
     keys: Res<ButtonInput<KeyCode>>,
     player: Res<crate::player::Player>,
-    world: WorldPoint,
+    world: WorldCollision,
     hero: Query<&Transform, (With<Hero>, Without<WorldCamera>)>,
     mut cams: Query<&mut Transform, With<WorldCamera>>,
 ) {
@@ -373,13 +373,10 @@ pub(super) fn place_camera(
         let (sy, cy) = rig.yaw.sin_cos();
         let (sp, cp) = rig.pitch.sin_cos();
         let look = focus + Vec3::Y * 1.4;
-        let mut eye = look + Vec3::new(cp * sy, sp, cp * cy) * rig.dist;
-        // Never under the ground: a low tilt on a slope would bury the lens.
-        if let Some(h) = world.terrain_height_under(eye) {
-            eye.y = eye.y.max(h + 0.6);
-        }
+        let eye = look + Vec3::new(cp * sy, sp, cp * cy) * rig.dist;
         (eye, look)
     };
+    let eye = super::floor::camera_eye(&world, look, eye);
     let placed = Transform::from_translation(eye).looking_at(look, Vec3::Y);
     for mut cam in &mut cams {
         *cam = placed;

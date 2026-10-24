@@ -27,6 +27,20 @@ impl Floor<'_, '_> {
     }
 }
 
+/// Keep the camera's sphere inside the visible room, along its requested boom.
+/// Geometry can shorten the boom without changing the player's preferred zoom.
+pub(super) fn camera_eye(collision: &WorldCollision, look: Vec3, desired: Vec3) -> Vec3 {
+    let arm = desired - look;
+    let length = arm.length();
+    if length <= f32::EPSILON {
+        return desired;
+    }
+    match collision.cast_camera(look, arm, false) {
+        Some(distance) => look + arm / length * (distance - 0.05).clamp(length.min(0.01), length),
+        None => desired,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -70,6 +84,29 @@ mod tests {
         app.world_mut()
             .run_system_once(move |floor: Floor| floor.height(Vec3::Y * y))
             .unwrap()
+    }
+
+    #[test]
+    fn camera_stays_below_a_ceiling_and_keeps_clear_booms_unchanged() {
+        let mut app = fixture(&[0., 4.]);
+        let eye = app
+            .world_mut()
+            .run_system_once(|collision: WorldCollision| {
+                camera_eye(&collision, Vec3::Y * 1.4, Vec3::Y * 20.)
+            })
+            .unwrap();
+        assert!(
+            eye.y > 3.5 && eye.y < 3.75,
+            "camera {eye:?} must fit below ceiling"
+        );
+        let desired = Vec3::new(2., 2., 0.);
+        let clear = app
+            .world_mut()
+            .run_system_once(move |collision: WorldCollision| {
+                camera_eye(&collision, Vec3::Y * 1.4, desired)
+            })
+            .unwrap();
+        assert_eq!(clear, desired);
     }
 
     #[test]
