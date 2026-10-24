@@ -78,19 +78,31 @@ pub(super) struct RaceFace(u8);
 pub(super) struct PickName;
 
 /// The saved pick, `benilla-config/survivors-pick.txt` (`localStorage` on the page):
-/// `class race sex map`, restored at the menu so a reload keeps the last hero and zone.
+/// `class race sex map hero_id`; legacy four-field picks still load.
 fn pick_path() -> Option<std::path::PathBuf> {
     crate::local_state::home().map(|h| h.join("survivors-pick.txt"))
 }
 
 pub(super) fn save_pick(sel: &Selection) {
-    let (Some(class), Some(&(_, race, sex))) = (sel.class, sel.look.and_then(|i| sel.looks.get(i)))
-    else {
+    let Some(class) = sel.class else {
         return;
     };
+    let (race, sex) = sel
+        .look
+        .and_then(|i| sel.looks.get(i))
+        .map(|&(_, race, sex)| (race, sex))
+        .unwrap_or((0, 0));
+    let pick = survivors_core::selection::SavedPick {
+        class,
+        race,
+        sex,
+        map: sel.map,
+        hero: sel.character,
+    };
     if let Some(path) = pick_path() {
-        let _ =
-            crate::local_state::write_atomic(&path, &format!("{class} {race} {sex} {}", sel.map));
+        if let Err(error) = crate::local_state::write_atomic(&path, &pick.encode()) {
+            warn!("survivors: selection save failed: {error}");
+        }
     }
 }
 
@@ -99,6 +111,7 @@ pub(super) fn save_pick(sel: &Selection) {
 pub(super) fn restore_pick(
     creatures: Option<Res<crate::entities::Creatures>>,
     mut selection: ResMut<Selection>,
+    account: Res<super::account::Account>,
     mut done: Local<bool>,
 ) {
     if *done {
@@ -111,22 +124,22 @@ pub(super) fn restore_pick(
     let all = all_looks(creatures);
     let mut restored = false;
     if let Some(text) = pick_path().and_then(|p| crate::local_state::read_to_string(&p).ok()) {
-        let v: Vec<usize> = text
-            .split_whitespace()
-            .filter_map(|t| t.parse().ok())
-            .collect();
-        if let Ok([class, race, sex, map]) = <[usize; 4]>::try_from(v) {
+        if let Some(pick) = survivors_core::selection::SavedPick::parse(&text) {
             restored = true;
-            if map < data::MAPS.len() {
-                selection.map = map;
-                selection.stage = map;
-                selection.version += 1;
+            selection.map = pick.map;
+            selection.stage = pick.map;
+            selection.version += 1;
+            let race = (pick.race > 0).then_some(pick.race);
+            if let Some(look) = find(&all[pick.class], race, Some(pick.sex))
+                .or_else(|| find(&all[pick.class], None, None))
+            {
+                set(&mut selection, &all, pick.class, look);
             }
-            if class < data::CLASSES.len() {
-                if let Some(l) = find(&all[class], Some(race as u8), Some(sex as u8)) {
-                    set(&mut selection, &all, class, l);
-                }
-            }
+            selection.character = pick.hero.filter(|id| {
+                account
+                    .character(*id)
+                    .is_some_and(|hero| hero.class == pick.class)
+            });
         }
     }
     if !restored {

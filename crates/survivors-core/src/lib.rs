@@ -8,5 +8,6 @@ pub mod data;
 pub mod encounters;
 pub mod equipment;
 pub mod rewards;
+pub mod selection;
 pub mod sheet;
 pub mod tuning;

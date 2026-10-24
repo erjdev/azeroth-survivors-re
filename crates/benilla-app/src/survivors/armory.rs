@@ -498,6 +498,7 @@ fn pick_hero(selection: &mut Selection, account: &Account, id: u32) -> bool {
     }
     selection.character = Some(id);
     selection.version += 1;
+    super::menu::save_pick(selection);
     needs_look
 }
 
