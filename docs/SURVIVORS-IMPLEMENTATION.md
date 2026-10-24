@@ -636,6 +636,10 @@ unchanged. Shared Codex counts now reflect saved discovery rather than catalog s
 
 Regression tests cover cross-class deduplication, invalid indices, save reload, unshown
 candidates and unchanged class equipment. The workspace rebuild and 73 Survivors tests
-pass, as does workspace Clippy. A native build is running;
-live offering, skipping, banishing, abandonment and restart still need validation. The
-reference icon grid, selected-entry details and screenshots remain open.
+pass, as does workspace Clippy. The native play build passed (3m05s). An isolated
+1280×720 live run verified green new-spell, talent and chest upgrade previews; the reached
+chest offered spells, so jewelry offering, skipping, banishing, abandonment and restart
+still need live validation. The empty Codex correctly showed zero shared discoveries,
+but its shared amulet row clips below the viewport at 720p. The reference icon grid,
+selected-entry details and responsive layout remain open. Card screenshots are in
+`docs/images/screenshots/2026-10-24-codex-discovery/`.

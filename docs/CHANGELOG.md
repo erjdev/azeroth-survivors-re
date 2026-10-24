@@ -11,7 +11,10 @@ no longer count. Shared rows show discovered totals instead of always showing co
 Jewelry effects remain run-only; old saves begin with no shared discoveries recorded.
 
 **Validation:** workspace test rebuild, 73 Survivors tests and workspace Clippy pass.
-A native build is running. The icon/detail layout and live capture remain unfinished.
+The native build passed. A 1280×720 live run confirms green level-up and chest scaling
+previews ([level up](images/screenshots/2026-10-24-codex-discovery/level-up-720.jpg),
+[chest](images/screenshots/2026-10-24-codex-discovery/chest-720.jpg)). Jewelry offer/restart
+validation and the Codex icon/detail layout remain unfinished; shared amulets clip at 720p.
 
 ## 2026-10-24 — Validation follow-up
 
