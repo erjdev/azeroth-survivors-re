@@ -766,53 +766,6 @@ pub(super) fn setup_hud(
             bevy::ui::FocusPolicy::Pass,
         ))
         .with_children(|root| {
-            // The slow golden burst behind everything.
-            root.spawn((
-                super::cards::Rays,
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Px(1400.0),
-                    height: Val::Px(1400.0),
-                    left: Val::Percent(50.0),
-                    top: Val::Percent(50.0),
-                    margin: UiRect::new(
-                        Val::Px(-700.0),
-                        Val::Px(0.0),
-                        Val::Px(-700.0),
-                        Val::Px(0.0),
-                    ),
-                    ..default()
-                },
-                BackgroundGradient(vec![
-                    Gradient::Conic(ConicGradient::new(
-                        UiPosition::CENTER,
-                        (0..24)
-                            .map(|i| {
-                                let a = i as f32 / 24.0 * std::f32::consts::TAU;
-                                let on = i % 2 == 0;
-                                AngularColorStop::new(
-                                    if on {
-                                        Color::srgba(1.0, 0.8, 0.3, 0.07)
-                                    } else {
-                                        Color::srgba(1.0, 0.8, 0.3, 0.0)
-                                    },
-                                    a,
-                                )
-                            })
-                            .collect(),
-                    )),
-                    Gradient::Radial(RadialGradient::new(
-                        UiPosition::CENTER,
-                        RadialGradientShape::ClosestSide,
-                        vec![
-                            ColorStop::percent(Color::srgba(1.0, 0.75, 0.25, 0.22), 0.0),
-                            ColorStop::percent(Color::srgba(0.0, 0.0, 0.0, 0.0), 100.0),
-                        ],
-                    )),
-                ]),
-                UiTransform::default(),
-                bevy::ui::FocusPolicy::Pass,
-            ));
             root.spawn((LevelTitle, centered(f, "LEVEL UP", 52.0, GOLD)));
             root.spawn((
                 LevelUpSub,

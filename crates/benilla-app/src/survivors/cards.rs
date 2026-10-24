@@ -158,10 +158,6 @@ pub(super) struct CardGlow;
 #[derive(Component)]
 pub(super) struct CardShine(usize);
 
-/// The radiant burst behind the row, turning slowly.
-#[derive(Component)]
-pub(super) struct Rays;
-
 /// The pending pick: the card bursts, then the choice applies.
 #[derive(Resource, Default)]
 pub(super) struct PendingPick(Option<(usize, f32)>);
@@ -449,7 +445,6 @@ pub(super) fn animate_cards(
         &mut Visibility,
     )>,
     mut shines: Query<(&CardShine, &mut BackgroundGradient)>,
-    mut rays: Query<&mut UiTransform, (With<Rays>, Without<Card>)>,
     mut pending: ResMut<PendingPick>,
     mut run: ResMut<Run>,
     mut offer: ResMut<Offer>,
@@ -462,10 +457,6 @@ pub(super) fn animate_cards(
     }
     let dt = time.delta_secs().min(0.05);
     let now = time.elapsed_secs();
-    for mut r in &mut rays {
-        r.rotation = Rot2::radians(now * 0.12);
-        r.scale = Vec2::splat(1.0 + 0.03 * (now * 1.7).sin());
-    }
     let chosen = pending.0.map(|(i, _)| i);
     let mut shine_at = [None::<f32>; 4];
     for (mut card, interaction, cursor, mut tf, mut shadow, mut vis) in &mut cards {
