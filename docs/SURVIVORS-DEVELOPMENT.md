@@ -106,9 +106,12 @@ one), embedded game defaults, and a separate read-only game-data location. The d
 contains no Rust compiler, build cache or developer watcher. Player saves/settings remain in
 the existing local-state folder and must survive an executable replacement.
 
-The present Restart button starts the current binary or a user-named local binary. It does
-not check a release server, download updates or verify them. It must not be advertised as
-a completed updater.
+The present Restart button starts the current binary; Restart local build uses the local
+path in `survivors-update.txt`, falling back to the current binary when no path is configured.
+A failed launch leaves the working game open and reports the error. A successful process
+spawn does not prove the replacement reaches a healthy game window; health checks and rollback
+belong to the updater work below. These controls do not check a release server, download
+updates or verify them, and must not be advertised as a completed updater.
 
 Proposed player flow: Check for updates → version and release notes → Update and restart.
 The game finishes/saves safely before replacement, and permits declining or deferring the

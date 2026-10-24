@@ -297,8 +297,7 @@ pub(super) fn input(
             }
             Act::Reward(code) => armory.note = buy_reward(&mut account, code).into(),
             Act::Restart => {
-                super::notes::restart_same(&mut exit);
-                armory.note = "Restarting".into();
+                armory.note = super::notes::restart_same(&mut exit).into();
             }
             Act::Update => armory.note = super::notes::restart_configured(&mut exit).into(),
             Act::PickClass(index) => pick_class(
@@ -2005,7 +2004,7 @@ fn notes_page(panel: &mut impl ChipParent, font: &Handle<Font>) {
         })
         .with_children(|row| {
             chip(row, font, "Restart", Act::Restart, false);
-            chip(row, font, "Update and restart", Act::Update, false);
+            chip(row, font, "Restart local build", Act::Update, false);
         });
 }
 
