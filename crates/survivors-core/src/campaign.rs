@@ -1008,6 +1008,14 @@ pub fn node_max(node: usize) -> u8 {
     NODE_RANKS.get(node % NODES_PER_TREE).copied().unwrap_or(1)
 }
 
+fn points_before_row(ranks: &[u8], node: usize) -> u32 {
+    let tree = node / NODES_PER_TREE;
+    (tree * NODES_PER_TREE..(tree + 1) * NODES_PER_TREE)
+        .filter(|&other| node_row(other) < node_row(node))
+        .map(|other| u32::from(ranks.get(other).copied().unwrap_or(0)))
+        .sum()
+}
+
 /// A node can be raised when its row is open, it is not full, and a point remains.
 /// Row 0 is open. Each later row opens after 5 more points spent in that same tree.
 pub fn can_learn(ranks: &[u8], node: usize, unspent: u32) -> bool {
@@ -1017,7 +1025,7 @@ pub fn can_learn(ranks: &[u8], node: usize, unspent: u32) -> bool {
     if ranks.get(node).copied().unwrap_or(0) >= node_max(node) {
         return false;
     }
-    points_in_tree(ranks, node / NODES_PER_TREE) >= u32::from(node_row(node)) * 5
+    points_before_row(ranks, node) >= u32::from(node_row(node)) * 5
 }
 
 /// One rank comes back when the node has one and every remaining rank still meets its row.
@@ -1030,7 +1038,7 @@ pub fn can_unlearn(ranks: &[u8], node: usize) -> bool {
     next[node] = rank - 1;
     (0..SPEC_LEN).all(|i| {
         next.get(i).copied().unwrap_or(0) == 0
-            || points_in_tree(&next, i / NODES_PER_TREE) >= u32::from(node_row(i)) * 5
+            || points_before_row(&next, i) >= u32::from(node_row(i)) * 5
     })
 }
 
@@ -1698,6 +1706,25 @@ mod tests {
         );
         assert!(!legendary_cloak(8));
         assert!(legendary_cloak(9));
+    }
+
+    #[test]
+    fn legacy_refunds_preserve_support_from_earlier_rows() {
+        let mut ranks = [0; SPEC_LEN];
+        ranks[0] = 5;
+        ranks[2] = 5;
+        ranks[4] = 1;
+        assert!(!can_unlearn(&ranks, 0));
+        assert!(!can_unlearn(&ranks, 2));
+        assert!(can_unlearn(&ranks, 4));
+        ranks[0] = 4;
+        assert!(!can_learn(&ranks, 2, 1));
+        assert!(!can_learn(&ranks, 4, 1));
+        ranks[NODES_PER_TREE] = 5;
+        assert!(
+            !can_learn(&ranks, 4, 1),
+            "another tree cannot supply row support"
+        );
     }
 
     #[test]

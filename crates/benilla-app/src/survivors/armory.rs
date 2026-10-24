@@ -1099,30 +1099,21 @@ fn draw_real_talents(
 }
 
 fn talent_ranks_ok(list: &[benilla_formats::Talent], ranks: &[(u32, u8)]) -> bool {
-    let points: u32 = ranks.iter().map(|(_, rank)| u32::from(*rank)).sum();
-    list.iter().all(|talent| {
-        let rank = ranks
-            .iter()
-            .find(|(id, _)| *id == talent.id)
-            .map(|(_, rank)| *rank)
-            .unwrap_or(0);
-        if rank == 0 {
-            return true;
-        }
-        if points < talent.row * 5 {
-            return false;
-        }
-        if talent.prereq_talent == 0 {
-            return true;
-        }
-        let need = talent.prereq_rank as u8 + 1;
-        let have = ranks
-            .iter()
-            .find(|(id, _)| *id == talent.prereq_talent)
-            .map(|(_, rank)| *rank)
-            .unwrap_or(0);
-        have >= need
-    })
+    let nodes: Vec<_> = list
+        .iter()
+        .map(|talent| survivors_core::talents::RankedTalent {
+            id: talent.id,
+            row: talent.row,
+            max_rank: talent.max_rank() as u8,
+            rank: ranks
+                .iter()
+                .find(|(id, _)| *id == talent.id)
+                .map_or(0, |(_, rank)| *rank),
+            prerequisite: (talent.prereq_talent != 0)
+                .then_some((talent.prereq_talent, talent.prereq_rank.saturating_add(1))),
+        })
+        .collect();
+    survivors_core::talents::valid_tree(&nodes)
 }
 
 fn spend_talent(
@@ -1192,6 +1183,29 @@ fn spend_talent(
             .map(|c| c.dbc_rank(talent.prereq_talent) >= need)
             .unwrap_or(false)
     };
+    let proposed: Vec<_> = list
+        .iter()
+        .map(|entry| {
+            let rank = account
+                .character(hero)
+                .map_or(0, |hero| hero.dbc_rank(entry.id));
+            (
+                entry.id,
+                if entry.id == talent_id {
+                    rank.saturating_add(1)
+                } else {
+                    rank
+                },
+            )
+        })
+        .collect();
+    if !talent_ranks_ok(list, &proposed) {
+        return if !prereq_met {
+            "That talent's prerequisite is missing".into()
+        } else {
+            "That talent needs more points in earlier rows or is already full".into()
+        };
+    }
     if account.learn_talent(
         hero,
         tree as u8,
@@ -2145,6 +2159,29 @@ mod tests {
     use super::super::data;
     use super::super::Selection;
     use super::enter_refused;
+
+    #[test]
+    fn dbc_refunds_require_earlier_rows_and_the_full_prerequisite_rank() {
+        let node = |id, row| benilla_formats::Talent {
+            id,
+            tab: 1,
+            row,
+            col: 0,
+            ranks: [1, 2, 3, 4, 5],
+            prereq_talent: 0,
+            prereq_rank: 0,
+            required_spell: 0,
+            exceptional: false,
+        };
+        let mut list = vec![node(1, 0), node(2, 0), node(3, 1), node(4, 2)];
+        assert!(super::talent_ranks_ok(&list, &[(1, 5), (3, 5), (4, 1)]));
+        assert!(!super::talent_ranks_ok(&list, &[(1, 4), (3, 5), (4, 1)]));
+        assert!(super::talent_ranks_ok(&list, &[(1, 5), (3, 4)]));
+        list[2].prereq_talent = 1;
+        list[2].prereq_rank = 4; // DBC rank 4 means all five ranks are required.
+        assert!(super::talent_ranks_ok(&list, &[(1, 5), (2, 5), (3, 1)]));
+        assert!(!super::talent_ranks_ok(&list, &[(1, 4), (2, 5), (3, 1)]));
+    }
 
     #[test]
     fn locked_selection_survives_opening_an_armory_tab() {

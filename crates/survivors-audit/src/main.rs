@@ -12,9 +12,12 @@ fn main() -> Result<()> {
         .context("usage: survivors-audit <explicit WoW Data directory>")?;
     let rest: Vec<_> = args.collect();
     let mut chain = open_chain(std::path::Path::new(&path))?;
+    if rest.len() == 1 && rest[0] == "--talents" {
+        return talents(&mut chain);
+    }
     if !rest.is_empty() {
         if rest.len() != 5 || rest[0] != "--floor" {
-            bail!("usage: survivors-audit <Data> [--floor <map> <x> <y> <z>]");
+            bail!("usage: survivors-audit <Data> [--talents | --floor <map> <x> <y> <z>]");
         }
         let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
         let mut point = [0.0_f32; 3];
@@ -117,6 +120,42 @@ fn main() -> Result<()> {
     println!("Scope: map rows, start terrain, roster model files, item names and drop coverage.\nNot proof of traversal, name/model identity, item icons/appearances, talents, UI or raid-set completion.");
     if gaps > 0 {
         bail!("{gaps} content audit gaps remain");
+    }
+    Ok(())
+}
+
+/// Inspect real tab ordering and named ranks before mapping Survivors effects to DBC nodes.
+fn talents(chain: &mut benilla_formats::Chain) -> Result<()> {
+    let talents = benilla_formats::load_talent_catalog(chain)?;
+    let spells = benilla_formats::load_spell_catalog(chain)?;
+    let mut gaps = 0;
+    for (class_index, class) in data::CLASSES.iter().enumerate() {
+        let tabs = (1..12)
+            .map(|race| talents.tabs_for_class(race, class.id))
+            .find(|tabs| tabs.len() == 3)
+            .context("class has no three-tree talent catalog")?;
+        for (index, tab) in tabs.iter().enumerate() {
+            let expected = campaign::TREES[class_index][index];
+            println!(
+                "TREE: {} · index {} · tab {} · {} · expected {}",
+                class.name, index, tab.id, tab.name, expected
+            );
+            if tab.name != expected {
+                gaps += 1;
+            }
+            for talent in talents.talents_in_tab(tab.id) {
+                let name = spells
+                    .get(talent.ranks[0])
+                    .map(|spell| spell.name.as_str())
+                    .unwrap_or("MISSING SPELL");
+                println!("  NODE: {} · row {} · column {} · {} ranks · {} · spells {:?} · prerequisite {}:{}",
+                    talent.id, talent.row, talent.col, talent.max_rank(), name, talent.ranks,
+                    talent.prereq_talent, talent.prereq_rank);
+            }
+        }
+    }
+    if gaps > 0 {
+        bail!("{gaps} talent tab positions differ from Survivors tree order");
     }
     Ok(())
 }

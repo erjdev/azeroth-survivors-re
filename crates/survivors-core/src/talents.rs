@@ -1,5 +1,44 @@
 //! Survivors-specific milestone effects, independent of engine spell visuals and DBC ranks.
 
+/// One catalog node and its proposed rank, for validating a single talent tree.
+#[derive(Clone, Copy, Debug)]
+pub struct RankedTalent {
+    pub id: u32,
+    pub row: u32,
+    pub max_rank: u8,
+    pub rank: u8,
+    /// Required rank is one-based; DBC's zero-based prerequisite rank is converted by the adapter.
+    pub prerequisite: Option<(u32, u32)>,
+}
+
+/// Validate the result of a spend or refund. Only earlier rows support a row gate;
+/// neither that row's own ranks nor points in deeper rows can hold it open.
+pub fn valid_tree(nodes: &[RankedTalent]) -> bool {
+    nodes.iter().enumerate().all(|(index, node)| {
+        if nodes[..index].iter().any(|other| other.id == node.id) || node.rank > node.max_rank {
+            return false;
+        }
+        if node.rank == 0 {
+            return true;
+        }
+        let earlier: u32 = nodes
+            .iter()
+            .filter(|other| other.row < node.row)
+            .map(|other| u32::from(other.rank))
+            .sum();
+        if earlier < node.row.saturating_mul(5) {
+            return false;
+        }
+        node.prerequisite.is_none_or(|(id, required)| {
+            required > 0
+                && id != node.id
+                && nodes
+                    .iter()
+                    .any(|other| other.id == id && u32::from(other.rank) >= required)
+        })
+    })
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Milestones {
     pub class: usize,
@@ -107,6 +146,51 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn node(id: u32, row: u32, rank: u8) -> RankedTalent {
+        RankedTalent {
+            id,
+            row,
+            rank,
+            max_rank: 5,
+            prerequisite: None,
+        }
+    }
+
+    #[test]
+    fn refund_cannot_use_deeper_points_to_support_their_own_row() {
+        let mut nodes = [node(1, 0, 5), node(2, 1, 5), node(3, 2, 1)];
+        assert!(valid_tree(&nodes));
+        nodes[0].rank = 4;
+        assert!(!valid_tree(&nodes));
+        // Eleven total points still do not unlock row two with only five below it.
+        let invalid = [node(1, 0, 5), node(2, 2, 5), node(3, 2, 1)];
+        assert!(!valid_tree(&invalid));
+        // Remove the deepest rank first, then refund surplus earlier-row points.
+        nodes[0].rank = 5;
+        nodes[2].rank = 0;
+        nodes[1].rank = 4;
+        assert!(valid_tree(&nodes));
+    }
+
+    #[test]
+    fn prerequisite_rank_and_catalog_caps_survive_refunds() {
+        let mut nodes = [node(1, 0, 5), node(2, 0, 5), node(3, 1, 1)];
+        nodes[2].max_rank = 1;
+        nodes[2].prerequisite = Some((1, 5));
+        assert!(valid_tree(&nodes));
+        nodes[0].rank = 4;
+        assert!(
+            !valid_tree(&nodes),
+            "enough row points cannot replace a prerequisite"
+        );
+        nodes[0].rank = 5;
+        nodes[2].rank = 2;
+        assert!(!valid_tree(&nodes));
+        nodes[2].rank = 0;
+        nodes[0].rank = 4;
+        assert!(valid_tree(&nodes));
+    }
 
     #[test]
     fn each_paladin_milestone_opens_at_its_threshold() {

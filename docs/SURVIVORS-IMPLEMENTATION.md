@@ -168,6 +168,12 @@ awards read one catalog, including Keen Eye. Verify each world location against 
 
 ## Phase 5 — talents that change play
 
+Audit the installed catalog with
+`cargo run -p survivors-audit -- "$PWD/wow-data/Data" --talents` before assigning effects
+to real talent IDs. The audit reports each class's native tab order, node IDs, row/column,
+rank spells and prerequisites, and rejects an order that differs from Survivors' three
+tree identities. Use an explicit checkout data path; never discover another installed game.
+
 Keep three real named class trees and three saved specs. Define explicit supported talent
 and milestone effects against Survivors abilities. Use vanilla rank patterns and row
 requirements while following the named Survivors milestone design. Implement each effect
@@ -196,7 +202,10 @@ the same explicit behavior contract and combat integration.
 Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
 threshold tests and representative combat tests prove those behaviors. Switching specs
 changes the next run without losing either spread. Free reset and right-click refund keep
-all dependency constraints valid. No points leak across heroes.
+all dependency constraints valid. A row requires five points per tier in strictly earlier
+rows of the same tree, after the proposed edit; its own ranks and deeper ranks cannot
+support it. Preserve the full prerequisite rank (DBC stores that rank zero-based), and
+validate both proposed spends and refunds against the catalog. No points leak across heroes.
 
 ## Phase 6 — codex, achievements and rewards
 
