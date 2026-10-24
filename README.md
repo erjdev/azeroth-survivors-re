@@ -1,25 +1,68 @@
-<img width="1920" height="1080" alt="brag" src="https://github.com/user-attachments/assets/fa574bb6-7bd4-4e78-8b72-14c58e3c716e" />
-
 <div align="center">
 
 # Azeroth Survivors
 
-**A free fan-made WoW roguelike by [Aethus](https://wow.aethus.pl/), run locally on a
-from-scratch WoW 1.12.1 client engine (Rust + [Bevy](https://bevy.org)).**
+**An independent WoW survival-game implementation on a from-scratch WoW 1.12.1
+client engine (Rust + Bevy), inspired by [Aethus’s Azeroth Survivors](https://wow.aethus.pl/).**
 
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-blue.svg)](LICENSE-MIT)
 
 </div>
 
-> **Not an original project.** *Azeroth Survivors* is a free, fan-made WoW roguelike by
-> **Aethus** — play the original in the browser at **[wow.aethus.pl](https://wow.aethus.pl/)**
-> ([r/wowservers announcement](https://www.reddit.com/r/wowservers/comments/1x0yidl/azeroth_survivors_roguelike_wow_singleplayer_game/)
-> · [Discord](https://discord.gg/UzxaZuSAk)). This repository is a from-source local build of the
-> game, running on the [benilla](#how-its-built) / [wenilla](#how-its-built) engine, for personal use.
+This repository implements the design in [our intentions](docs/intentions/) and
+[the Survivors specification](docs/SURVIVORS.md) on the benilla/wenilla engine. It is
+inspired by Aethus’s game; it is not a build of that game's source code. Implementation
+is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks the intended
+scope, including content and screens that are not complete yet.
 
 Pick a class and a battleground, then survive: WASD to move, your abilities cast themselves,
 enemies swarm in waves, you level up and pick upgrades, and a boss shows up every couple of
 minutes. **No server, no login, no account** — fully offline and self-contained.
+
+## Interface gallery
+
+Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**
+(2880 × 1800 Retina render, UI scale 1.171875), exported to 1440 × 900 JPEGs.
+These show the current implementation, including unfinished pages; they are not the
+[intended designs](docs/intentions/) or proof of responsiveness at every resolution.
+See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to refresh them.
+
+<table>
+  <tr>
+    <td width="50%"><strong>Front door</strong><br><img src="docs/screenshots/current-front-door.jpg" alt="Front door: Class, hero and twelve intended destinations; incomplete content is visibly locked."><br>Class, hero and twelve intended destinations; incomplete content is visibly locked.</td>
+    <td width="50%"><strong>Character</strong><br><img src="docs/screenshots/current-character.jpg" alt="Character: Current legacy character controls; the intended paper-doll layout is unfinished."><br>Current legacy character controls; the intended paper-doll layout is unfinished.</td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/screenshots/current-collection.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
+    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/screenshots/current-drop-tables.jpg" alt="Drop Tables: Current text view; missing content and layout work remain."><br>Current text view; missing content and layout work remain.</td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Codex</strong><br><img src="docs/screenshots/current-codex.jpg" alt="Codex: Spell and item reference view; footer spacing still needs cleanup."><br>Spell and item reference view; footer spacing still needs cleanup.</td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/screenshots/current-talents.jpg" alt="Talents: Warrior tree presentation; this image does not imply every talent effect is implemented."><br>Warrior tree presentation; this image does not imply every talent effect is implemented.</td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Achievements</strong><br><img src="docs/screenshots/current-achievements.jpg" alt="Achievements: Achievement categories and account summary."><br>Achievement categories and account summary.</td>
+    <td width="50%"><strong>Rewards</strong><br><img src="docs/screenshots/current-rewards.jpg" alt="Rewards: Current reward list and cosmetic categories."><br>Current reward list and cosmetic categories.</td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Appearance</strong><br><img src="docs/screenshots/current-appearance.jpg" alt="Appearance: Legacy appearance picker; overlapping controls and old zone choices still need replacement."><br>Legacy appearance picker; overlapping controls and old zone choices still need replacement.</td>
+    <td width="50%"><strong>Run Options</strong><br><img src="docs/screenshots/current-run-options.jpg" alt="Run Options: Currently displays a difficulty notice, not a dedicated options dialog."><br>Currently displays a difficulty notice, not a dedicated options dialog.</td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Combat HUD</strong><br><img src="docs/screenshots/current-combat.jpg" alt="Combat HUD: Elwynn at run start: health, experience, minimap, abilities and damage meter."><br>Elwynn at run start: health, experience, minimap, abilities and damage meter.</td>
+    <td width="50%"><strong>Level-up cards</strong><br><img src="docs/screenshots/current-level-up.jpg" alt="Level-up cards: Responsive upgrade choices; background rays still need visual correction."><br>Responsive upgrade choices; background rays still need visual correction.</td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Pause</strong><br><img src="docs/screenshots/current-pause.jpg" alt="Pause: Resume, settings, abandon and quit controls."><br>Resume, settings, abandon and quit controls.</td>
+    <td width="50%"><strong>Settings</strong><br><img src="docs/screenshots/current-settings.jpg" alt="Settings: Sound, graphics and the persisted auto-push camera toggle."><br>Sound, graphics and the persisted auto-push camera toggle.</td>
+  </tr>
+</table>
+
+Current victory/defeat results, reward claims, equipped appearances and responsive
+viewport variants still need fresh captures. Earlier screenshots below are historical.
+
+<details>
+<summary>Earlier checkout captures</summary>
 
 <table>
   <tr>
@@ -32,12 +75,14 @@ minutes. **No server, no login, no account** — fully offline and self-containe
   </tr>
 </table>
 
+</details>
+
 ### In this build
 
-- **A character-create pick screen** built from the client's own glue art: eight races, both
-  genders, every class the race can be, and **sixteen zones**, from the starting zones to
-  Naxxramas and the Gates of Ahn'Qiraj. Each zone fights with its own creatures and bosses, taken
-  from the zone's real spawns. Your pick is remembered across reloads.
+- **A three-column front door and Armory** using client glue art, with character appearance,
+  collection, talents and progression screens. The intended campaign lists **twelve zones**;
+  destinations with missing world, encounter or drop content remain visibly locked. These
+  screens are under development, and the full campaign is not yet playable.
 - **Level-up cards** that deal in, tilt toward the cursor and lift on hover. Their WoW item-quality
   colour says how strong a pick is, and each card lists exactly what changes, like
   `Damage 20 » 26` or `Targets 2 » 3`.
@@ -123,8 +168,8 @@ The survivors mode is `crates/benilla-app/src/survivors/`, running on two upstre
 
 ## Legal
 
-*Azeroth Survivors* is a free fan game by **Aethus**, not affiliated with or endorsed by
-Blizzard Entertainment, and it ships no Blizzard game files. The screenshots in `docs/screenshots/`
+This independent fan project is inspired by **Aethus’s Azeroth Survivors**. It is not
+affiliated with or endorsed by Blizzard Entertainment and ships no Blizzard game files. The screenshots in `docs/screenshots/`
 show World of Warcraft art rendered from a user-supplied client; that art is © Blizzard
 Entertainment. World of Warcraft is a trademark of Blizzard Entertainment, Inc. The engine code in
 this repository is licensed under

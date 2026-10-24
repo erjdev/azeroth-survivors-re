@@ -189,3 +189,12 @@ action-and-observation calls. Clear the handle immediately. Poll
 post-close inventory can still report true while shutdown finishes. Do not use
 `getApp` as an exit check, since it can launch the app again. If checking for an
 OS dialog, inspect Finder separately after confirming exit.
+
+## README captures
+
+For native development builds, set `WOW_SURVIVORS_UI_SHOTS` to an explicit output
+directory and press F12 on the desired screen. Each press saves the rendered primary
+window to a new `ui-NNNN.png`, including UI; existing numbered files are skipped. The log
+records logical/physical viewport sizes and UI scale. Check that the file was actually
+written and inspect it before using it in the README. This capture path does not enable
+autoplay, change saves or tune gameplay. Use an isolated `BENILLA_HOME` for fixture accounts.

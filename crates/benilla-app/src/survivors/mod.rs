@@ -21,6 +21,8 @@ mod minimap;
 mod mobility;
 mod notes;
 mod renown;
+#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+mod screenshots;
 mod spawn;
 mod stash;
 mod tuning;
@@ -186,6 +188,8 @@ impl Plugin for SurvivorsPlugin {
         // player already chose (or passed on the URL) is left alone.
         #[cfg(target_arch = "wasm32")]
         app.add_systems(Startup, browser_budget.after(crate::cvars::CvarLoad));
+        #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+        app.add_plugins(screenshots::plugin);
         if let Some(auto) = auto::from_env() {
             app.insert_resource(auto)
                 .add_systems(
