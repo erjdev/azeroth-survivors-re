@@ -87,10 +87,13 @@ impl Default for Armory {
 }
 
 impl Armory {
-    /// The row Enter World must honor while the door is up. Other pages start the battleground
-    /// the look screen selected.
+    /// Keep the selected campaign row authoritative when opening another Armory tab.
     pub(super) fn entered_zone(&self) -> Option<usize> {
-        if self.page == Page::Door { self.picked } else { None }
+        if self.page == Page::Look {
+            None
+        } else {
+            self.picked
+        }
     }
 }
 
@@ -2107,6 +2110,32 @@ mod tests {
     use super::super::data;
     use super::super::Selection;
     use super::enter_refused;
+
+    #[test]
+    fn locked_selection_survives_opening_an_armory_tab() {
+        let account = account::blank();
+        let mut selection = Selection::default();
+        selection.map = data::MAPS
+            .iter()
+            .position(|m| m.name == "Elwynn Forest")
+            .unwrap();
+        let mut armory = super::Armory::default();
+        armory.picked = Some(2);
+        for page in [
+            super::Page::Door,
+            super::Page::Heroes,
+            super::Page::Collection,
+            super::Page::DropTables,
+            super::Page::Codex,
+            super::Page::Talents,
+            super::Page::Achievements,
+            super::Page::Rewards,
+            super::Page::Notes,
+        ] {
+            armory.page = page;
+            assert!(enter_refused(&account, &selection, armory.entered_zone()).is_some());
+        }
+    }
 
     #[test]
     fn a_locked_zone_does_not_start() {

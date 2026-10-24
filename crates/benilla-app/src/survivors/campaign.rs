@@ -40,7 +40,7 @@ pub(super) fn quality_name(quality: Quality) -> &'static str {
 pub(super) struct Zone {
     pub name: &'static str,
     pub map: &'static str,
-    /// Talent level required, in addition to clearing the previous zone that can be entered.
+    /// Talent level required, in addition to clearing the preceding campaign zone.
     pub talent: u32,
     pub elites: &'static [&'static str],
     pub boss: &'static str,
@@ -229,12 +229,7 @@ fn content_lock(zone: &Zone) -> Option<String> {
     })
 }
 
-/// The nearest earlier row that can actually be entered. A locked row does not block the path.
-fn previous_ready(index: usize) -> Option<usize> {
-    (0..index).rev().find(|&i| ZONES.get(i).is_some_and(|z| content_lock(z).is_none()))
-}
-
-/// A zone opens when it can be entered, the previous enterable zone is cleared on this class,
+/// A zone opens when it can be entered, the preceding campaign zone is cleared on this class,
 /// and this character's talent level meets the gate. Elwynn needs neither clear nor talent.
 pub(super) fn zone_open(index: usize, talent_level: u32, clears: &[bool]) -> bool {
     let Some(zone) = ZONES.get(index) else {
@@ -243,7 +238,7 @@ pub(super) fn zone_open(index: usize, talent_level: u32, clears: &[bool]) -> boo
     if content_lock(zone).is_some() || talent_level < zone.talent {
         return false;
     }
-    match previous_ready(index) {
+    match index.checked_sub(1) {
         None => true,
         Some(prev) => clears.get(prev).copied().unwrap_or(false),
     }
@@ -269,7 +264,8 @@ pub(super) fn zone_lock_reason(index: usize, talent_level: u32, clears: &[bool])
     if talent_level < zone.talent {
         return Some(format!("{} needs talent level {}", zone.name, zone.talent));
     }
-    let prev = previous_ready(index)
+    let prev = index
+        .checked_sub(1)
         .and_then(|i| ZONES.get(i))
         .map(|z| z.name)
         .unwrap_or("the previous zone");
@@ -1243,11 +1239,23 @@ mod tests {
         assert!(zone_open(1, 5, &clears));
         assert!(!zone_open(6, 24, &clears));
         clears[1] = true;
+        assert!(!zone_open(6, 24, &clears));
+        assert_eq!(
+            zone_lock_reason(6, 24, &clears).as_deref(),
+            Some("Clear Feralas on this class first")
+        );
+        clears[5] = true;
         assert!(zone_open(6, 24, &clears));
         assert!(!zone_open(6, 23, &clears));
         assert!(!zone_open(2, 51, &[true; CLEAR_COUNT]));
         assert!(!zone_open(11, 48, &clears));
         clears[6] = true;
+        assert!(!zone_open(11, 48, &clears));
+        assert_eq!(
+            zone_lock_reason(11, 48, &clears).as_deref(),
+            Some("Clear Gates of Ahn'Qiraj on this class first")
+        );
+        clears[10] = true;
         assert!(zone_open(11, 48, &clears));
         assert!(!zone_open(11, 47, &clears));
     }
