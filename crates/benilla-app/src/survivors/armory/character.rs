@@ -15,6 +15,7 @@ pub(super) fn build(
     renown: &Renown,
     stash: &Stash,
     layout: &Layout,
+    features: Option<&super::super::appearance::Options>,
 ) {
     let class = super::picked_class(account, selection);
     let hero = selection.character.and_then(|id| account.character(id));
@@ -90,6 +91,9 @@ pub(super) fn build(
                 },
             );
             collection::column(row, layout.right_width, layout, |body| {
+                if let Some(features) = features {
+                    feature_controls(body, font, features, layout);
+                }
                 collection::detail(body, font, armory, account, selection, layout);
             });
         });
@@ -227,4 +231,48 @@ mod tests {
         selection.class = Some(1);
         assert!(!choose_body(&mut selection, &mut account, 1, 0));
     }
+}
+
+fn feature_controls(
+    body: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    features: &super::super::appearance::Options,
+    layout: &Layout,
+) {
+    body.spawn(hud::text_bundle(font, "Features", layout.title_size, GOLD));
+    for i in 0..5 {
+        if features.counts[i] < 2 {
+            continue;
+        }
+        body.spawn(hud::text_bundle(
+            font,
+            features.labels[i],
+            layout.body_size,
+            GOLD,
+        ));
+        body.spawn(Node {
+            width: Val::Percent(100.0),
+            flex_wrap: FlexWrap::Wrap,
+            column_gap: Val::Px(layout.gap),
+            align_items: AlignItems::Center,
+            ..default()
+        })
+        .with_children(|row| {
+            super::chip(row, font, "<", super::Act::Feature(i, -1), false);
+            row.spawn(hud::text_bundle(
+                font,
+                format!("{} / {}", features.values[i] + 1, features.counts[i]),
+                layout.body_size,
+                GOLD,
+            ));
+            super::chip(row, font, ">", super::Act::Feature(i, 1), false);
+        });
+    }
+    super::chip(
+        body,
+        font,
+        "Randomize features",
+        super::Act::RandomFeatures,
+        false,
+    );
 }

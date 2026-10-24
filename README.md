@@ -31,7 +31,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 <table>
   <tr>
     <td width="50%"><strong>Front door</strong><br><img src="docs/images/screenshots/2026-10-24/front-door.jpg" alt="Front door: Class, hero and twelve intended destinations; incomplete content is visibly locked."><br>Class, hero and twelve intended destinations; incomplete content is visibly locked.</td>
-    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24-dressed/character.jpg" alt="Character: Selected armor and weapon on a seeded validation account; cosmetics remain independent of bonuses. Full appearance editing remains unfinished."><br>Selected armor and weapon on a seeded validation account; cosmetics remain independent of bonuses. Full appearance editing remains unfinished.</td>
+    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24-dressed/character.jpg" alt="Character: Selected armor and weapon on a seeded validation account; cosmetics remain independent of bonuses. Feature controls are shown below."><br>Selected armor and weapon on a seeded validation account; cosmetics remain independent of bonuses. Feature controls are shown below.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-24-gear-icons/collection.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
@@ -46,7 +46,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
     <td width="50%"><strong>Rewards</strong><br><img src="docs/images/screenshots/2026-10-24/rewards.jpg" alt="Rewards: Current reward list and cosmetic categories."><br>Current reward list and cosmetic categories.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Appearance</strong><br><img src="docs/images/screenshots/2026-10-24/appearance.jpg" alt="Appearance: Legacy appearance picker; overlapping controls and old zone choices still need replacement."><br>Legacy appearance picker; overlapping controls and old zone choices still need replacement.</td>
+    <td width="50%"><strong>Appearance</strong><br><img src="docs/images/screenshots/2026-10-24-character-features/character-720.jpg" alt="Appearance: Per-hero race, sex and feature editing with live preview; shown at 1280×720."><br>Per-hero race, sex and feature editing with live preview; shown at 1280×720.</td>
     <td width="50%"><strong>Run Options</strong><br><img src="docs/images/screenshots/2026-10-24/run-options.jpg" alt="Run Options: Currently displays a difficulty notice, not a dedicated options dialog."><br>Currently displays a difficulty notice, not a dedicated options dialog.</td>
   </tr>
   <tr>

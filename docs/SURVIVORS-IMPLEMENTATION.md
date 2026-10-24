@@ -149,8 +149,12 @@ keep the equipment resolver awake until ready. Weapon poses, other races, sexes 
 ranged attachments still need visual checks. Turn buttons work. Character now exposes class-valid race and sex choices beside the
 loadout, persisted per named hero through the existing body model. Missing sexes now
 use another verified trainer preset of the same race; every existing class race resolves
-both sexes against the local DBC/model data without changing its preferred presets. Skin, face, hair,
-drag input and the multi-resolution acceptance above remain unfinished.
+both sexes against the local DBC/model data without changing its preferred presets. Skin, face, hair
+and race-specific features now have bounded dials and randomization, persisted per hero.
+Feature descriptor changes refresh the stock compositor and preview. Native build and 70
+focused tests passed; live edits, switching heroes and restart persistence were checked at
+1440×900 and 1280×720. Portrait race buttons, drag input and the broader multi-resolution
+acceptance remain unfinished. Investigate occasional dark button text after a Character rebuild.
 
 ## Phase 4 — all twelve zones and gear content
 

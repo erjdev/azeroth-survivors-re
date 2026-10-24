@@ -39,6 +39,7 @@ pub(super) struct Pointer<'w> {
 #[derive(SystemParam)]
 pub(super) struct MenuBooks<'w> {
     creatures: Option<Res<'w, crate::entities::Creatures>>,
+    bodies: Option<Res<'w, crate::entities::CharCreate>>,
     talents: Option<Res<'w, crate::ui_talent::Talents>>,
     spells: Option<Res<'w, crate::ui_action::Spells>>,
 }
@@ -114,6 +115,8 @@ pub(super) enum Act {
     Page(Page),
     Pick(u32),
     Body(u8, u8),
+    Feature(usize, i8),
+    RandomFeatures,
     Focus(u8),
     Class,
     Create,
@@ -259,6 +262,30 @@ pub(super) fn input(
                 let class = picked_class(&account, &selection);
                 if account.show_piece(class, slot, look) {
                     account.save();
+                }
+            }
+            Act::Feature(_, _) | Act::RandomFeatures => {
+                if let (Some(creatures), Some(bodies)) =
+                    (books.creatures.as_deref(), books.bodies.as_deref())
+                {
+                    if let Some(options) =
+                        super::appearance::options(&selection, &account, creatures, &bodies.0)
+                    {
+                        let values = match act {
+                            Act::Feature(dial, direction) => {
+                                super::appearance::step(&options, *dial, *direction)
+                            }
+                            _ => Some(std::array::from_fn(|i| {
+                                rng.index(usize::from(options.counts[i]).max(1)) as u8
+                            })),
+                        };
+                        if let (Some(id), Some(values)) = (selection.character, values) {
+                            if account.set_features(id, values) {
+                                account.save();
+                                selection.version += 1;
+                            }
+                        }
+                    }
                 }
             }
             Act::Body(race, sex) => {
@@ -684,6 +711,8 @@ pub(super) struct ArmoryArt<'w> {
     font: Res<'w, HudFont>,
     art: Res<'w, GlueArt>,
     layout: Res<'w, super::tuning::UiLayout>,
+    creatures: Option<Res<'w, crate::entities::Creatures>>,
+    bodies: Option<Res<'w, crate::entities::CharCreate>>,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -728,7 +757,10 @@ pub(super) fn refresh(
         }
     }
     let sig = (
-        signature(&armory, &account, &selection, &renown, &stash),
+        fold(
+            signature(&armory, &account, &selection, &renown, &stash),
+            u64::from(assets.creatures.is_some() && assets.bodies.is_some()),
+        ),
         assets.layout.version,
     );
     if *drawn == Some(sig) {
@@ -795,6 +827,14 @@ pub(super) fn refresh(
             note,
             talents.as_deref().map(|loaded| &loaded.catalog),
             &assets.layout.value,
+            assets
+                .creatures
+                .as_deref()
+                .zip(assets.bodies.as_deref())
+                .and_then(|(creatures, bodies)| {
+                    super::appearance::options(&selection, &account, creatures, &bodies.0)
+                })
+                .as_ref(),
         );
     });
 }

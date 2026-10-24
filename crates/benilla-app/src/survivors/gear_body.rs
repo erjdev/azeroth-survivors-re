@@ -65,16 +65,33 @@ pub(super) fn sync(
         entries[target] = visual.item_id;
         ranged |= target == 17;
     }
-    let bytes = u32::from(look.skin)
-        | u32::from(look.face) << 8
-        | u32::from(look.hair_style) << 16
-        | u32::from(look.hair_color) << 24;
+    let custom = selection
+        .character
+        .and_then(|id| account.character(id))
+        .filter(|hero| hero.class == class && hero.body == Some((race, sex)))
+        .and_then(|hero| hero.features);
+    let [skin, face, hair_style, hair_color, facial_hair] = custom
+        .zip(bodies.0.ranges(race, sex))
+        .map(|(values, ranges)| {
+            super::appearance::bounded(values, super::appearance::counts(ranges))
+        })
+        .unwrap_or([
+            look.skin,
+            look.face,
+            look.hair_style,
+            look.hair_color,
+            look.facial_hair,
+        ]);
+    let bytes = u32::from(skin)
+        | u32::from(face) << 8
+        | u32::from(hair_style) << 16
+        | u32::from(hair_color) << 24;
     let mut fields = vec![
         (2, 0x19),
         (DISPLAY, display),
         (132, display),
         (PLAYER_BYTES, bytes),
-        (PLAYER_BYTES_2, u32::from(look.facial_hair)),
+        (PLAYER_BYTES_2, u32::from(facial_hair)),
         (164, if ranged { 2 } else { 1 }),
     ];
     fields.extend(

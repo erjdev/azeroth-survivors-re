@@ -19,6 +19,7 @@ pub(super) struct Character {
     pub talent_xp: u32,
     /// Selected race and sex; absent in legacy saves until a body is chosen.
     pub body: Option<(u8, u8)>,
+    pub features: Option<[u8; 5]>,
     /// Which of the three saved specs the run uses.
     pub spec: u8,
     /// Three specs, each three trees of [`campaign::NODES_PER_TREE`] ranks.
@@ -196,6 +197,7 @@ impl Account {
             specs: blank_specs(),
             dbc: blank_dbc(),
             body: None,
+            features: None,
         });
         self.dirty = true;
         id
@@ -212,6 +214,19 @@ impl Account {
             return false;
         }
         hero.body = Some(body);
+        hero.features = None;
+        self.dirty = true;
+        true
+    }
+
+    pub fn set_features(&mut self, id: u32, values: [u8; 5]) -> bool {
+        let Some(hero) = self.characters.iter_mut().find(|c| c.id == id) else {
+            return false;
+        };
+        if hero.body.is_none() || hero.features == Some(values) {
+            return false;
+        }
+        hero.features = Some(values);
         self.dirty = true;
         true
     }
@@ -513,6 +528,7 @@ impl Account {
             specs: blank_specs(),
             dbc: blank_dbc(),
             body: None,
+            features: None,
         });
         self.dirty = true;
         Some(id)
@@ -821,6 +837,12 @@ fn encode(account: &Account) -> String {
         ));
         if let Some((race, sex)) = c.body {
             out.push_str(&format!("body {} {race} {sex}\n", c.id));
+            if let Some([skin, face, hair, color, facial]) = c.features {
+                out.push_str(&format!(
+                    "features {} {race} {sex} {skin} {face} {hair} {color} {facial}\n",
+                    c.id
+                ));
+            }
         }
         if c.dbc
             .iter()
@@ -1027,6 +1049,7 @@ fn parse(text: &str) -> Result<Account, ()> {
     let mut account = empty();
     let mut equipment_rows = Vec::new();
     let mut body_rows = Vec::new();
+    let mut feature_rows = Vec::new();
     for line in text.lines() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
@@ -1053,7 +1076,26 @@ fn parse(text: &str) -> Result<Account, ()> {
                         specs,
                         dbc: blank_dbc(),
                         body: None,
+                        features: None,
                     });
+                }
+            }
+            Some("features") => {
+                let values: Vec<_> = parts.collect();
+                if values.len() == 8 {
+                    if let (Ok(id), Ok(values)) = (
+                        values[0].parse::<u32>(),
+                        values[1..]
+                            .iter()
+                            .map(|v| v.parse::<u8>())
+                            .collect::<Result<Vec<_>, _>>(),
+                    ) {
+                        feature_rows.push((
+                            id,
+                            (values[0], values[1]),
+                            [values[2], values[3], values[4], values[5], values[6]],
+                        ));
+                    }
                 }
             }
             Some("body") => {
@@ -1155,6 +1197,15 @@ fn parse(text: &str) -> Result<Account, ()> {
             hero.body = Some(body);
         }
     }
+    for (id, body, values) in feature_rows {
+        if let Some(hero) = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == id && hero.body == Some(body))
+        {
+            hero.features = Some(values);
+        }
+    }
     for (index, progress) in account.classes.iter_mut().enumerate() {
         progress.equipment = if let Some((_, worn, looks)) =
             equipment_rows.iter().rev().find(|row| row.0 == index)
@@ -1248,6 +1299,31 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn custom_features_round_trip_by_hero_and_body_with_legacy_defaults() {
+        let mut account = empty();
+        let a = account.create("First", "Hero", 0).unwrap();
+        let b = account.create("Second", "Hero", 0).unwrap();
+        assert!(!account.set_features(a, [1; 5]));
+        account.set_body(a, (1, 0));
+        account.set_body(b, (1, 0));
+        assert!(account.set_features(a, [1, 2, 3, 4, 5]));
+        let text = encode(&account);
+        let reordered = text.lines().rev().collect::<Vec<_>>().join("\n");
+        let restored = parse(&reordered).unwrap();
+        assert_eq!(
+            restored.character(a).unwrap().features,
+            Some([1, 2, 3, 4, 5])
+        );
+        assert_eq!(restored.character(b).unwrap().features, None);
+        account.set_body(a, (1, 1));
+        assert_eq!(account.character(a).unwrap().features, None);
+        let invalid = parse("features 1 3 0 1 2 3 4 5\nfeatures 1 1 0 999 2 3 4 5\nbody 1 1 0\nwho 1 0 0 Old Hero\n").unwrap();
+        assert_eq!(invalid.character(1).unwrap().features, None);
+        let legacy = parse("who 1 0 0 Old Hero\n").unwrap();
+        assert_eq!(legacy.character(1).unwrap().features, None);
+    }
+
     #[test]
     fn character_bodies_round_trip_and_validate_independent_of_row_order() {
         let mut account = super::empty();

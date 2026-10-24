@@ -6,6 +6,7 @@
 
 mod abilities;
 mod account;
+mod appearance;
 mod armory;
 mod auto;
 mod camera;
@@ -57,7 +58,7 @@ impl Plugin for SurvivorsPlugin {
     fn build(&self, app: &mut App) {
         // Present before `OnEnter(InWorld)`, where the UI lifecycle decides not to load FrameXML.
         app.insert_resource(crate::run_mode::CaptureMode)
-            .add_plugins((grade::plugin, tuning::plugin))
+            .add_plugins((grade::plugin, tuning::plugin, crate::entities::survivors_look::plugin))
             .init_state::<Phase>()
             .init_resource::<Rng>()
             .init_resource::<Selection>()
