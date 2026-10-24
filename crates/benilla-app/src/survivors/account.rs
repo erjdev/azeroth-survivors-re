@@ -133,6 +133,7 @@ pub(super) struct Account {
     pub next_id: u32,
     pub characters: Vec<Character>,
     pub classes: Vec<ClassProgress>,
+    seen_jewels: Vec<String>,
     pub pets: PetRanks,
     pub perks: PerkRanks,
     earned: Vec<u16>,
@@ -336,6 +337,50 @@ impl Account {
     fn legendary_complete(&self, class: usize) -> bool {
         let (found, total) = self.legendary_progress(class);
         total > 0 && found == total
+    }
+
+    /// Discovery belongs to the account; this never equips jewelry or changes run stats.
+    pub fn remember_jewelry(
+        &mut self,
+        class: usize,
+        items: impl IntoIterator<Item = campaign::JewelKind>,
+    ) {
+        for item in items {
+            let (kind, index) = match item {
+                campaign::JewelKind::Ring(i) => (2, i),
+                campaign::JewelKind::Trinket(i) => (3, i),
+                campaign::JewelKind::Amulet(i) => (4, i),
+                campaign::JewelKind::Legend(key) => {
+                    if data::CLASSES
+                        .get(class)
+                        .is_some_and(|c| c.ability_keys().contains(&key))
+                    {
+                        self.remember_amulets(class, &[key]);
+                    }
+                    continue;
+                }
+            };
+            if let Some(key) = shared_jewel_key(kind, usize::from(index)) {
+                if !self.seen_jewels.contains(&key) {
+                    self.seen_jewels.push(key);
+                    self.dirty = true;
+                }
+            }
+        }
+    }
+
+    pub fn shared_jewel_seen(&self, kind: u8, index: usize) -> bool {
+        shared_jewel_key(kind, index).is_some_and(|key| self.seen_jewels.contains(&key))
+    }
+
+    pub fn shared_jewel_progress(&self, kind: u8) -> (usize, usize) {
+        let names = shared_jewel_names(kind);
+        (
+            (0..names.len())
+                .filter(|&i| self.shared_jewel_seen(kind, i))
+                .count(),
+            names.len(),
+        )
     }
 
     pub fn feats(&self, class: usize, id: u32) -> Feats {
@@ -827,6 +872,7 @@ pub(super) fn empty() -> Account {
         next_id: 1,
         characters: Vec::new(),
         classes: vec![ClassProgress::default(); data::CLASSES.len()],
+        seen_jewels: Vec::new(),
         pets: PetRanks::default(),
         perks: PerkRanks::default(),
         earned: Vec::new(),
@@ -891,6 +937,9 @@ fn encode(account: &Account) -> String {
             out.push_str(&format!("seen {i} {}\n", escape(name)));
         }
     }
+    for key in &account.seen_jewels {
+        out.push_str(&format!("jewel_seen {key}\n"));
+    }
     out.push_str(&format!(
         "pets {} {} {} {} {} {} {}\n",
         account.pets.owned,
@@ -930,6 +979,27 @@ fn encode(account: &Account) -> String {
         out.push_str(&format!("earn {ids}\n"));
     }
     out
+}
+
+fn shared_jewel_names(kind: u8) -> &'static [&'static str] {
+    match kind {
+        2 => &campaign::RING_NAMES,
+        3 => &campaign::TRINKET_NAMES,
+        4 => &campaign::AMULET_NAMES,
+        _ => &[],
+    }
+}
+
+fn shared_jewel_key(kind: u8, index: usize) -> Option<String> {
+    let family = match kind {
+        2 => "ring",
+        3 => "trinket",
+        4 => "amulet",
+        _ => return None,
+    };
+    shared_jewel_names(kind)
+        .get(index)
+        .map(|name| format!("{family}:{name}"))
 }
 
 /// Legacy saves encode spaces as underscores, including the underscores inside ability keys.
@@ -1177,6 +1247,16 @@ fn parse(text: &str) -> Result<Account, ()> {
                     }
                 }
             }
+            Some("jewel_seen") => {
+                let key = parts.collect::<Vec<_>>().join(" ");
+                if key
+                    .split_once(':')
+                    .is_some_and(|(family, name)| !family.is_empty() && !name.is_empty())
+                    && !account.seen_jewels.contains(&key)
+                {
+                    account.seen_jewels.push(key);
+                }
+            }
             Some("pets") => {
                 let mut n = [0u8; 7];
                 for slot in &mut n {
@@ -1250,16 +1330,8 @@ fn parse(text: &str) -> Result<Account, ()> {
     Ok(account)
 }
 
-/// Keeps legendary amulets that were dealt, when a run is abandoned back to the menu.
-pub(super) fn keep_seen(
-    mut account: ResMut<Account>,
-    selection: Res<super::Selection>,
-    run: Res<super::Run>,
-) {
-    let Some(class) = selection.class else {
-        return;
-    };
-    account.remember_amulets(class, &run.seen_legends);
+/// Retry any pending discovery save when returning to the menu.
+pub(super) fn flush_discoveries(mut account: ResMut<Account>) {
     account.grant_new();
     account.save();
 }
@@ -1319,7 +1391,6 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
     let xp = ((xp as f32) * rewards::veteran_multiplier(account.perks.veterans, mine, best)).round()
         as u32;
     account.add_talent_xp(id, xp);
-    account.remember_amulets(class, &run.seen_legends);
     if run.won {
         if let Some(zone) = campaign::zone_index(selection.map_def().name) {
             account.grant_zone(class, zone);
@@ -1699,6 +1770,57 @@ pets 2 3 1 1 2 0 1
         assert_eq!(again.characters[0].last, "Wrynn");
         assert_eq!(again.pets.owned, 2);
         assert_eq!(again.classes[0].pieces[1], 1);
+    }
+
+    #[test]
+    fn shared_jewelry_discovery_is_unique_account_wide_and_survives_reload() {
+        use campaign::JewelKind::{Amulet, Ring, Trinket};
+        let mut account = empty();
+        assert_eq!(
+            account.shared_jewel_progress(2),
+            (0, campaign::RING_NAMES.len())
+        );
+        account.remember_jewelry(0, [Ring(0), Trinket(1), Amulet(2)]);
+        account.remember_jewelry(1, [Ring(0), Ring(1), Trinket(1)]);
+        account.remember_jewelry(0, [Ring(u8::MAX), Amulet(u8::MAX)]);
+        assert_eq!(account.seen_jewels.len(), 4);
+        let restored = parse(&encode(&account)).unwrap();
+        assert_eq!(restored.shared_jewel_progress(2).0, 2);
+        assert_eq!(restored.shared_jewel_progress(3).0, 1);
+        assert_eq!(restored.shared_jewel_progress(4).0, 1);
+        assert!(restored
+            .classes
+            .iter()
+            .all(|class| class.pieces.iter().all(|&p| p == 0)));
+        assert_eq!(restored.runs, 0, "offering a card does not settle a run");
+        assert!(restored.classes.iter().all(|class| class.seen.is_empty()));
+        let mut restored = restored;
+        restored.remember_jewelry(8, [Ring(0)]);
+        assert_eq!(restored.seen_jewels.len(), 4);
+    }
+
+    #[test]
+    fn only_presented_legends_and_valid_shared_entries_advance_discovery() {
+        use campaign::JewelKind::{Legend, Ring};
+        let mut account = empty();
+        let keys = data::CLASSES[0].ability_keys();
+        // A banish may roll several candidates but presents only the retained card.
+        let candidates = [Legend(keys[0]), Legend(keys[1]), Ring(0)];
+        account.remember_jewelry(0, candidates.into_iter().take(1));
+        assert_eq!(account.legendary_progress(0).0, 1);
+        assert!(!account.classes[0]
+            .seen
+            .contains(&campaign::legendary_amulet(keys[1])));
+        assert_eq!(account.shared_jewel_progress(2).0, 0);
+        account.remember_jewelry(0, [Legend("not_a_spell")]);
+        assert_eq!(account.legendary_progress(0).0, 1);
+        let serialized = encode(&account);
+        let noisy = format!(
+            "{serialized}{serialized}jewel_seen ring:Unknown future item\njewel_seen malformed\n"
+        );
+        let reloaded = parse(&noisy).unwrap();
+        assert_eq!(reloaded.legendary_progress(0).0, 1);
+        assert_eq!(reloaded.shared_jewel_progress(2).0, 0);
     }
 
     #[test]

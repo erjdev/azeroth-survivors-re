@@ -169,6 +169,7 @@ pub(super) fn deal_cards(
     mut commands: Commands,
     offer: Res<Offer>,
     run: Res<Run>,
+    mut account: ResMut<super::account::Account>,
     spells: Option<Res<crate::ui_action::Spells>>,
     font: Res<HudFont>,
     mut rows: Query<(Entity, &mut ScrollPosition), With<hud::OfferRow>>,
@@ -206,6 +207,21 @@ pub(super) fn deal_cards(
     let Ok((row, mut scroll)) = rows.single_mut() else {
         return;
     };
+    // Record the actual hand being built, never discarded random candidates (e.g. banish).
+    if let Some(class) = super::data::CLASSES
+        .iter()
+        .position(|class| class.id == run.class.id)
+    {
+        account.remember_jewelry(
+            class,
+            offer.choices().iter().filter_map(|choice| match choice {
+                Choice::Jewel(item) => Some(*item),
+                _ => None,
+            }),
+        );
+        account.grant_new();
+        account.save();
+    }
     scroll.0 = Vec2::ZERO;
     commands.entity(row).despawn_related::<Children>();
     let f = &font.0;

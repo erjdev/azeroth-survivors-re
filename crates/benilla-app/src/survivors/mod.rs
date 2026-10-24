@@ -196,7 +196,13 @@ impl Plugin for SurvivorsPlugin {
             )
             .add_systems(
                 OnEnter(Phase::Menu),
-                (unpause, account::keep_seen, reset_run, stash::flush_now).chain(),
+                (
+                    unpause,
+                    account::flush_discoveries,
+                    reset_run,
+                    stash::flush_now,
+                )
+                    .chain(),
             )
             .add_systems(Update, hud::apply_settings.after(crate::cvars::sync_cvars));
         // After the saved config, so a default install gets the browser budget and a value the
@@ -405,8 +411,6 @@ pub(super) struct Run {
     pub trading: bool,
     /// The three area-start chests have been placed.
     pub stocked: bool,
-    /// Legendary amulet keys whose card was dealt this run.
-    pub seen_legends: Vec<&'static str>,
     /// Rings, trinkets and amulets worn this run.
     worn: campaign::Worn,
     /// Seconds since the hero fell, while the death plays out.
@@ -481,7 +485,6 @@ impl Default for Run {
             trades: 0,
             trading: false,
             stocked: false,
-            seen_legends: Vec::new(),
             worn: campaign::Worn::default(),
             dead_t: None,
             next_guid: 1,

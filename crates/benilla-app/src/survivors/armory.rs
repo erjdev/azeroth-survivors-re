@@ -1784,21 +1784,33 @@ fn codex(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
         13.0,
         GOLD,
     ));
-    jewel_row(panel, font, "Rings", &campaign::RING_NAMES, 2);
-    jewel_row(panel, font, "Trinkets", &campaign::TRINKET_NAMES, 3);
-    jewel_row(panel, font, "Amulets", &campaign::AMULET_NAMES, 4);
+    jewel_row(panel, font, account, "Rings", &campaign::RING_NAMES, 2);
+    jewel_row(
+        panel,
+        font,
+        account,
+        "Trinkets",
+        &campaign::TRINKET_NAMES,
+        3,
+    );
+    jewel_row(panel, font, account, "Amulets", &campaign::AMULET_NAMES, 4);
 }
 
 fn jewel_row(
     panel: &mut impl ChipParent,
     font: &Handle<Font>,
+    account: &Account,
     title: &str,
     names: &[&str],
     kind: u8,
 ) {
     panel.spawn(hud::text_bundle(
         font,
-        format!("{title}  {}/{}", names.len(), names.len()),
+        format!(
+            "{title}  {}/{}",
+            account.shared_jewel_progress(kind).0,
+            names.len()
+        ),
         13.0,
         Color::WHITE,
     ));

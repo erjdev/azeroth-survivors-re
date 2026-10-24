@@ -1312,9 +1312,6 @@ fn trade_choices(run: &mut Run, rng: &mut Rng, extra: f32) -> Vec<Choice> {
             }
             super::campaign::TradeCard::Legend(i) => {
                 let key = run.abilities[i].def.key;
-                if !run.seen_legends.contains(&key) {
-                    run.seen_legends.push(key);
-                }
                 Choice::Jewel(super::campaign::JewelKind::Legend(key))
             }
         })

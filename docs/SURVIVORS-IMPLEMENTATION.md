@@ -623,3 +623,19 @@ across 143 suites. Four failing targets remain:
 The optional addon corpus is absent. The no-install, documentation, render-pass and player
 stages of the full gate remain unverified for this checkpoint. This aggregate run establishes
 all current workspace test failures, not a green release gate.
+
+### Shared discovery checkpoint — 2026-10-24
+
+Discovery now records the displayed hand in `cards::deal_cards`, once the card row exists,
+and saves before a choice is required. Candidate generation no longer writes a run-level
+legendary journal. Only presented legendary entries from the run class advance its Codex;
+shared jewelry uses account-wide family/name keys in `jewel_seen` lines. Missing lines in
+old saves mean undiscovered, and unknown future names are retained without counting them.
+Returning to the menu retries any pending save. Equipment and run-only worn jewelry are
+unchanged. Shared Codex counts now reflect saved discovery rather than catalog size.
+
+Regression tests cover cross-class deduplication, invalid indices, save reload, unshown
+candidates and unchanged class equipment. The workspace rebuild and 73 Survivors tests
+pass, as does workspace Clippy. A native build is running;
+live offering, skipping, banishing, abandonment and restart still need validation. The
+reference icon grid, selected-entry details and screenshots remain open.

@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Shared Codex discovery
+
+Rings, trinkets and shared amulets now keep account-wide discovery when their cards are
+dealt. Legendary discovery follows the actual hand too, so discarded banish candidates
+no longer count. Shared rows show discovered totals instead of always showing completion.
+Jewelry effects remain run-only; old saves begin with no shared discoveries recorded.
+
+**Validation:** workspace test rebuild, 73 Survivors tests and workspace Clippy pass.
+A native build is running. The icon/detail layout and live capture remain unfinished.
+
 ## 2026-10-24 — Validation follow-up
 
 Corrected another US-locale test assumption while retaining checks for base string tables
