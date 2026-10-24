@@ -3,6 +3,31 @@
 
 /// Talent experience for one point.
 pub(super) const XP_PER_TALENT: u32 = 100;
+/// Initial campaign tuning: one XP per ten survived seconds, ten per defeated boss,
+/// and ten percent more per later zone. The original level/kill/win award is retained.
+pub(super) fn talent_award(
+    level: u32,
+    kills: u32,
+    elapsed: f32,
+    bosses: u32,
+    won: bool,
+    zone: Option<usize>,
+) -> u32 {
+    let survival = if elapsed.is_finite() {
+        (elapsed.max(0.0) / 10.0) as u32
+    } else {
+        0
+    };
+    let base = level
+        .saturating_mul(2)
+        .saturating_add(kills / 10)
+        .saturating_add(if won { 40 } else { 8 })
+        .saturating_add(survival)
+        .saturating_add(bosses.saturating_mul(10));
+    let scale = 100 + zone.unwrap_or(0).min(CLEAR_COUNT - 1) as u64 * 10;
+    (u64::from(base) * scale / 100).min(u64::from(u32::MAX)) as u32
+}
+
 /// Points a character can hold, matching a vanilla tree.
 pub(super) const TALENT_CAP: u32 = 51;
 /// Fourteen nodes in a tree. Ranks are the vanilla mix of 5, 3, and 1, and a full tree holds
@@ -218,7 +243,11 @@ pub(super) fn zone_index(map_name: &str) -> Option<usize> {
 fn content_lock(zone: &Zone) -> Option<String> {
     let map = super::data::MAPS.iter().any(|m| m.name == zone.map);
     let boss = !zone.boss.is_empty();
-    if zone.ready && map && boss {
+    let scheduled = super::data::MAPS
+        .iter()
+        .position(|m| m.name == zone.map)
+        .is_some_and(super::encounters::ready);
+    if zone.ready && map && boss && scheduled {
         return None;
     }
     Some(match (map, boss) {
@@ -456,16 +485,86 @@ pub(super) struct DropRow {
 }
 
 pub(super) static DROPS: &[DropRow] = &[
-    DropRow { zone: 0, slot: 0, band: 0, creature: "Hogger", at_secs: 180, chance: 60 },
-    DropRow { zone: 0, slot: 1, band: 0, creature: "Mother Fang", at_secs: 360, chance: 60 },
-    DropRow { zone: 0, slot: 2, band: 0, creature: "Narg the Taskmaster", at_secs: 540, chance: 60 },
-    DropRow { zone: 0, slot: 3, band: 0, creature: "Thuros Lightfingers", at_secs: 720, chance: 60 },
-    DropRow { zone: 0, slot: 8, band: 0, creature: "Fedfennel", at_secs: 960, chance: 60 },
-    DropRow { zone: 1, slot: 7, band: 0, creature: "Lupos", at_secs: 180, chance: 60 },
-    DropRow { zone: 1, slot: 6, band: 0, creature: "Naraxis", at_secs: 360, chance: 60 },
-    DropRow { zone: 1, slot: 4, band: 0, creature: "Fenros", at_secs: 540, chance: 60 },
-    DropRow { zone: 1, slot: 5, band: 0, creature: "Nefaru", at_secs: 960, chance: 60 },
-    DropRow { zone: 11, slot: 8, band: 5, creature: "Kel'Thuzad", at_secs: 960, chance: 60 },
+    DropRow {
+        zone: 0,
+        slot: 0,
+        band: 0,
+        creature: "Hogger",
+        at_secs: 180,
+        chance: 60,
+    },
+    DropRow {
+        zone: 0,
+        slot: 1,
+        band: 0,
+        creature: "Mother Fang",
+        at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 0,
+        slot: 2,
+        band: 0,
+        creature: "Narg the Taskmaster",
+        at_secs: 540,
+        chance: 60,
+    },
+    DropRow {
+        zone: 0,
+        slot: 3,
+        band: 0,
+        creature: "Thuros Lightfingers",
+        at_secs: 720,
+        chance: 60,
+    },
+    DropRow {
+        zone: 0,
+        slot: 8,
+        band: 0,
+        creature: "Fedfennel",
+        at_secs: 960,
+        chance: 60,
+    },
+    DropRow {
+        zone: 1,
+        slot: 7,
+        band: 0,
+        creature: "Lupos",
+        at_secs: 180,
+        chance: 60,
+    },
+    DropRow {
+        zone: 1,
+        slot: 6,
+        band: 0,
+        creature: "Naraxis",
+        at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 1,
+        slot: 4,
+        band: 0,
+        creature: "Fenros",
+        at_secs: 540,
+        chance: 60,
+    },
+    DropRow {
+        zone: 1,
+        slot: 5,
+        band: 0,
+        creature: "Nefaru",
+        at_secs: 960,
+        chance: 60,
+    },
+    DropRow {
+        zone: 11,
+        slot: 8,
+        band: 5,
+        creature: "Kel'Thuzad",
+        at_secs: 960,
+        chance: 60,
+    },
 ];
 
 pub(super) fn piece_index(band: usize, slot: usize) -> Option<usize> {
@@ -485,7 +584,9 @@ pub(super) fn piece_name(class: usize, slot: usize, band: usize) -> Option<&'sta
 }
 
 pub(super) fn drop_for(zone: usize, creature: &str) -> Option<&'static DropRow> {
-    DROPS.iter().find(|row| row.zone == zone && row.creature == creature)
+    DROPS
+        .iter()
+        .find(|row| row.zone == zone && row.creature == creature)
 }
 
 /// The strongest owned copy in a slot: `(band, stacks)`.
@@ -900,25 +1001,70 @@ fn node_rank_bonus(node: usize) -> Bonus {
     }
     match node / NODES_PER_TREE {
         0 => match row {
-            0 => Bonus { might: 0.02, ..Bonus::default() },
-            1 => Bonus { crit: 0.01, ..Bonus::default() },
-            2 => Bonus { multistrike: 0.03, ..Bonus::default() },
-            3 => Bonus { reduction: 0.015, ..Bonus::default() },
-            _ => Bonus { targets: 1, ..Bonus::default() },
+            0 => Bonus {
+                might: 0.02,
+                ..Bonus::default()
+            },
+            1 => Bonus {
+                crit: 0.01,
+                ..Bonus::default()
+            },
+            2 => Bonus {
+                multistrike: 0.03,
+                ..Bonus::default()
+            },
+            3 => Bonus {
+                reduction: 0.015,
+                ..Bonus::default()
+            },
+            _ => Bonus {
+                targets: 1,
+                ..Bonus::default()
+            },
         },
         1 => match row {
-            0 => Bonus { cooldown: 0.02, ..Bonus::default() },
-            1 => Bonus { crit_damage: 0.05, ..Bonus::default() },
-            2 => Bonus { area: 0.04, ..Bonus::default() },
-            3 => Bonus { armor: 2.0, ..Bonus::default() },
-            _ => Bonus { might: 0.08, ..Bonus::default() },
+            0 => Bonus {
+                cooldown: 0.02,
+                ..Bonus::default()
+            },
+            1 => Bonus {
+                crit_damage: 0.05,
+                ..Bonus::default()
+            },
+            2 => Bonus {
+                area: 0.04,
+                ..Bonus::default()
+            },
+            3 => Bonus {
+                armor: 2.0,
+                ..Bonus::default()
+            },
+            _ => Bonus {
+                might: 0.08,
+                ..Bonus::default()
+            },
         },
         _ => match row {
-            0 => Bonus { leech: 0.008, ..Bonus::default() },
-            1 => Bonus { speed: 0.02, ..Bonus::default() },
-            2 => Bonus { gold: 0.04, ..Bonus::default() },
-            3 => Bonus { growth: 0.04, ..Bonus::default() },
-            _ => Bonus { luck: 4.0, ..Bonus::default() },
+            0 => Bonus {
+                leech: 0.008,
+                ..Bonus::default()
+            },
+            1 => Bonus {
+                speed: 0.02,
+                ..Bonus::default()
+            },
+            2 => Bonus {
+                gold: 0.04,
+                ..Bonus::default()
+            },
+            3 => Bonus {
+                growth: 0.04,
+                ..Bonus::default()
+            },
+            _ => Bonus {
+                luck: 4.0,
+                ..Bonus::default()
+            },
         },
     }
 }
@@ -1003,13 +1149,22 @@ pub(super) fn talent_bonus(ranks: &[u8]) -> Bonus {
     for tree in 0..3 {
         let points = points_in_tree(ranks, tree);
         if points >= 10 {
-            total.add(Bonus { might: 0.04, ..Bonus::default() });
+            total.add(Bonus {
+                might: 0.04,
+                ..Bonus::default()
+            });
         }
         if points >= 20 {
-            total.add(Bonus { multistrike: 0.10, ..Bonus::default() });
+            total.add(Bonus {
+                multistrike: 0.10,
+                ..Bonus::default()
+            });
         }
         if points >= 30 {
-            total.add(Bonus { targets: 1, ..Bonus::default() });
+            total.add(Bonus {
+                targets: 1,
+                ..Bonus::default()
+            });
         }
     }
     total
@@ -1025,7 +1180,11 @@ const MILESTONES: [[[&str; 3]; 3]; 9] = [
     ],
     [
         ["Divine Favor", "Daybreak", "Light's Grace"],
-        ["Hallowed Ground", "Ardent Defender", "Hammer of the Righteous"],
+        [
+            "Hallowed Ground",
+            "Ardent Defender",
+            "Hammer of the Righteous",
+        ],
         ["Seal of Command", "The Art of War", "Divine Storm"],
     ],
     [
@@ -1035,7 +1194,11 @@ const MILESTONES: [[[&str; 3]; 3]; 9] = [
     ],
     [
         ["Malice", "Lethality", "Cold Blood"],
-        ["Improved Sinister Strike", "Blade Flurry", "Adrenaline Rush"],
+        [
+            "Improved Sinister Strike",
+            "Blade Flurry",
+            "Adrenaline Rush",
+        ],
         ["Master of Deception", "Preparation", "Premeditation"],
     ],
     [
@@ -1046,7 +1209,11 @@ const MILESTONES: [[[&str; 3]; 3]; 9] = [
     [
         ["Convection", "Elemental Focus", "Elemental Mastery"],
         ["Ancestral Knowledge", "Elemental Weapons", "Stormstrike"],
-        ["Improved Healing Wave", "Nature's Swiftness", "Mana Tide Totem"],
+        [
+            "Improved Healing Wave",
+            "Nature's Swiftness",
+            "Mana Tide Totem",
+        ],
     ],
     [
         ["Arcane Focus", "Presence of Mind", "Arcane Power"],
@@ -1229,6 +1396,29 @@ mod tests {
     use super::*;
 
     #[test]
+    fn talent_experience_rewards_time_kills_defeated_bosses_and_later_zones() {
+        let base = talent_award(1, 0, 0.0, 0, false, Some(0));
+        assert_eq!(base, 10);
+        assert_eq!(talent_award(1, 0, 60.0, 0, false, Some(0)), base + 6);
+        assert_eq!(talent_award(1, 10, 0.0, 0, false, Some(0)), base + 1);
+        assert_eq!(talent_award(1, 0, 0.0, 1, false, Some(0)), base + 10);
+        assert_eq!(talent_award(1, 0, 0.0, 0, true, Some(0)), base + 32);
+        assert_eq!(talent_award(1, 0, 0.0, 0, false, Some(1)), 11);
+        assert_eq!(
+            talent_award(
+                u32::MAX,
+                u32::MAX,
+                f32::MAX,
+                u32::MAX,
+                true,
+                Some(usize::MAX)
+            ),
+            u32::MAX
+        );
+        assert_eq!(talent_award(1, 0, f32::NAN, 0, false, None), base);
+    }
+
+    #[test]
     fn zones_open_in_order_and_honor_the_talent_gate() {
         let none = [false; CLEAR_COUNT];
         assert!(zone_open(0, 0, &none));
@@ -1242,10 +1432,10 @@ mod tests {
         assert!(!zone_open(6, 24, &clears));
         assert_eq!(
             zone_lock_reason(6, 24, &clears).as_deref(),
-            Some("Clear Feralas on this class first")
+            Some("Gurubashi Arena has no drop table yet")
         );
         clears[5] = true;
-        assert!(zone_open(6, 24, &clears));
+        assert!(!zone_open(6, 24, &clears));
         assert!(!zone_open(6, 23, &clears));
         assert!(!zone_open(2, 51, &[true; CLEAR_COUNT]));
         assert!(!zone_open(11, 48, &clears));
@@ -1314,14 +1504,20 @@ mod tests {
                 .unwrap();
             let roster = super::super::data::roster(map);
             assert!(
-                roster.enemies.iter().chain(roster.bosses.iter()).any(|e| e.name == row.creature),
+                roster
+                    .enemies
+                    .iter()
+                    .chain(roster.bosses.iter())
+                    .any(|e| e.name == row.creature),
                 "{} is not on {}",
                 row.creature,
                 zone.map
             );
             assert!(piece_name(1, row.slot, row.band).is_some());
         }
-        assert!(DROPS.iter().all(|row| row.creature != "Rhahk'Zor" && row.creature != "Edwin VanCleef"));
+        assert!(DROPS
+            .iter()
+            .all(|row| row.creature != "Rhahk'Zor" && row.creature != "Edwin VanCleef"));
         assert!(drop_for(0, "Hogger").is_some());
         assert!(drop_for(0, "Rhahk'Zor").is_none());
     }
@@ -1418,7 +1614,9 @@ mod tests {
         assert_eq!(ZONES[6].boss, "Hakkar");
         assert_eq!(ZONES.last().unwrap().name, "Naxxramas");
         assert_eq!(ZONES.last().unwrap().boss, "Kel'Thuzad");
-        assert!(ZONES.iter().all(|z| z.name != "Westfall" && z.name != "Western Plaguelands"));
+        assert!(ZONES
+            .iter()
+            .all(|z| z.name != "Westfall" && z.name != "Western Plaguelands"));
         assert_eq!(RING_NAMES.len(), RINGS);
         assert_eq!(TRINKET_NAMES.len(), TRINKETS);
         assert_eq!(AMULET_NAMES.len(), AMULETS);
@@ -1459,7 +1657,11 @@ mod tests {
         assert!(chest_gold(ChestTier::C, 9) < chest_gold(ChestTier::B, 9));
         assert!(chest_gold(ChestTier::B, 9) < chest_gold(ChestTier::A, 9));
         assert_eq!(
-            (chest_display(ChestTier::C), chest_display(ChestTier::B), chest_display(ChestTier::A)),
+            (
+                chest_display(ChestTier::C),
+                chest_display(ChestTier::B),
+                chest_display(ChestTier::A)
+            ),
             (10, 11, 12)
         );
         assert!(is_named_elite("Elwynn Forest", "Defias Bandit"));

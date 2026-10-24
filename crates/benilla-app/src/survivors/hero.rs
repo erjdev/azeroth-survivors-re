@@ -404,6 +404,7 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
 /// The clock, regeneration, the timed buffs and their visuals, death and victory.
 pub(super) fn hero_vitals(
     time: Res<Time>,
+    selection: Res<Selection>,
     mut run: ResMut<Run>,
     mut next: ResMut<NextState<Phase>>,
     mut hero: Query<(Entity, &Guid, &mut ObjectStore, &mut Marks), With<Hero>>,
@@ -465,7 +466,7 @@ pub(super) fn hero_vitals(
         units::kill_unit(&mut store);
         marks.clear();
         marks.flush(entity, guid.0, &mut store, &mut fields);
-    } else if run.elapsed >= data::VICTORY_SECS {
+    } else if super::encounters::won(selection.map, run.elapsed, run.bosses_defeated) {
         run.won = true;
         // A last flourish before the results.
         fx.cast(entity, 642, &[entity], None);

@@ -58,9 +58,7 @@ impl Character {
     }
 
     pub(super) fn active_points(&self) -> u32 {
-        self.tree_points(usize::from(self.spec).min(2))
-            .iter()
-            .sum()
+        self.tree_points(usize::from(self.spec).min(2)).iter().sum()
     }
 
     pub(super) fn dbc_rank(&self, talent: u32) -> u8 {
@@ -166,8 +164,9 @@ impl Account {
         let Some(home) = local_state::home() else {
             return;
         };
-        let _ = local_state::write_atomic(&home.join(FILE), &encode(self));
-        self.dirty = false;
+        if local_state::write_atomic(&home.join(FILE), &encode(self)).is_ok() {
+            self.dirty = false;
+        }
     }
 
     pub fn character(&self, id: u32) -> Option<&Character> {
@@ -202,7 +201,7 @@ impl Account {
             return;
         };
         let cap_xp = TALENT_CAP * campaign::XP_PER_TALENT;
-        c.talent_xp = (c.talent_xp + xp).min(cap_xp);
+        c.talent_xp = c.talent_xp.saturating_add(xp).min(cap_xp);
         self.dirty = true;
     }
 
@@ -217,7 +216,12 @@ impl Account {
     }
 
     /// One roll of a creature's drop. A copy the class already has raises that piece's bonus.
-    pub fn collect_drop(&mut self, class: usize, zone: usize, creature: &str) -> Option<&'static str> {
+    pub fn collect_drop(
+        &mut self,
+        class: usize,
+        zone: usize,
+        creature: &str,
+    ) -> Option<&'static str> {
         let row = campaign::drop_for(zone, creature)?;
         let name = campaign::piece_name(class, row.slot, row.band)?;
         let index = campaign::piece_index(row.band, row.slot)?;
@@ -258,7 +262,9 @@ impl Account {
         let raid = progress
             .and_then(|p| p.clears.last().copied())
             .unwrap_or(false);
-        let collection = progress.map(|p| campaign::set_complete(&p.pieces)).unwrap_or(false);
+        let collection = progress
+            .map(|p| campaign::set_complete(&p.pieces))
+            .unwrap_or(false);
         let amulets = progress
             .map(|p| p.seen.len() >= data::ABILITIES.len())
             .unwrap_or(false);
@@ -381,14 +387,12 @@ impl Account {
             return false;
         };
         let spec = usize::from(c.spec).min(2);
-        let rank = c
-            .dbc[spec]
+        let rank = c.dbc[spec]
             .iter()
             .find(|entry| entry.1 == talent)
             .map(|entry| entry.2)
             .unwrap_or(0);
-        let points = c
-            .dbc[spec]
+        let points = c.dbc[spec]
             .iter()
             .filter(|entry| entry.0 == tree)
             .map(|entry| u32::from(entry.2))
@@ -503,9 +507,10 @@ impl Account {
                 .filter(|c| c.class == class)
                 .map(|c| c.id)
                 .collect();
-            if ids.iter().any(|id| {
-                campaign::cloak_quality(self.feats(class, *id)) == Some(Quality::Epic)
-            }) {
+            if ids
+                .iter()
+                .any(|id| campaign::cloak_quality(self.feats(class, *id)) == Some(Quality::Epic))
+            {
                 epics += 1;
             }
         }
@@ -641,7 +646,11 @@ impl Account {
     }
 
     fn raise_pet(&mut self, leash: bool) -> Result<(), &'static str> {
-        let rank = if leash { self.pets.leash } else { self.pets.paws };
+        let rank = if leash {
+            self.pets.leash
+        } else {
+            self.pets.paws
+        };
         if rank >= 3 {
             return Err("Max rank");
         }
@@ -667,9 +676,10 @@ impl Account {
                 snap.full_sets += 1;
             }
             snap.legends += class.seen.len() as u32;
-            let talent_max = self.characters.iter().any(|c| {
-                c.class == i && campaign::talent_level(c.talent_xp) >= TALENT_CAP
-            });
+            let talent_max = self
+                .characters
+                .iter()
+                .any(|c| c.class == i && campaign::talent_level(c.talent_xp) >= TALENT_CAP);
             snap.talent_cap[i] = talent_max;
             let feats = Feats {
                 talent_max,
@@ -715,11 +725,6 @@ fn empty() -> Account {
     }
 }
 
-/// Experience toward the next talent point, from how far the run got.
-pub(super) fn talent_xp_for(level: u32, kills: u32, won: bool) -> u32 {
-    level.saturating_mul(2) + kills / 10 + if won { 40 } else { 8 }
-}
-
 fn encode(account: &Account) -> String {
     let mut out = String::from("# survivors account: characters, then one class block each\n");
     out.push_str(&format!("next {}\n", account.next_id));
@@ -733,7 +738,10 @@ fn encode(account: &Account) -> String {
             escape(&c.first),
             escape(&c.last),
         ));
-        if c.dbc.iter().any(|spec| spec.iter().any(|entry| entry.2 > 0)) {
+        if c.dbc
+            .iter()
+            .any(|spec| spec.iter().any(|entry| entry.2 > 0))
+        {
             out.push_str(&format!("dbc {} {}\n", c.id, encode_dbc(&c.dbc)));
         }
     }
@@ -769,12 +777,22 @@ fn encode(account: &Account) -> String {
     ));
     out.push_str(&format!(
         "meta {} {} {} {} {} {}\n",
-        account.runs, account.wins, account.spent, account.perk_spent, account.resets, account.tabard
+        account.runs,
+        account.wins,
+        account.spent,
+        account.perk_spent,
+        account.resets,
+        account.tabard
     ));
     let perks = account.perks;
     out.push_str(&format!(
         "perk {} {} {} {} {} {}\n",
-        perks.second_thoughts, perks.skip, perks.veterans, perks.banish, perks.opening_hand, perks.keen_eye
+        perks.second_thoughts,
+        perks.skip,
+        perks.veterans,
+        perks.banish,
+        perks.opening_hand,
+        perks.keen_eye
     ));
     if !account.earned.is_empty() {
         let ids = account
@@ -1044,24 +1062,53 @@ pub(super) fn keep_seen(
 pub(super) fn settle(
     mut account: ResMut<Account>,
     selection: Res<super::Selection>,
-    run: Res<super::Run>,
+    mut run: ResMut<super::Run>,
 ) {
-    let Some(class) = selection.class else {
+    settle_run(&mut account, &selection, &mut run);
+    account.save();
+}
+
+/// Apply a run once, independently of disk I/O so retries can flush without paying again.
+fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut super::Run) {
+    if run.account_paid {
+        return;
+    }
+    let Some(class) = selection.class.filter(|&class| class < data::CLASSES.len()) else {
         return;
     };
-    let id = account.ensure(class);
+    let id = selection
+        .character
+        .filter(|&id| {
+            account
+                .character(id)
+                .is_some_and(|hero| hero.class == class)
+        })
+        .unwrap_or_else(|| account.ensure(class));
     account.runs = account.runs.saturating_add(1);
     if run.won {
         account.wins = account.wins.saturating_add(1);
     }
-    let mine = account.character(id).map(|c| c.talent_xp).unwrap_or(0);
+    let mine = account
+        .characters
+        .iter()
+        .filter(|c| c.class == class)
+        .map(|c| c.talent_xp)
+        .max()
+        .unwrap_or(0);
     let best = account
         .characters
         .iter()
         .map(|c| c.talent_xp)
         .max()
         .unwrap_or(0);
-    let xp = talent_xp_for(run.level, run.kills, run.won);
+    let xp = campaign::talent_award(
+        run.level,
+        run.kills,
+        run.elapsed,
+        run.bosses_defeated,
+        run.won,
+        campaign::zone_index(selection.map_def().name),
+    );
     let xp = ((xp as f32) * rewards::veteran_multiplier(account.perks.veterans, mine, best)).round()
         as u32;
     account.add_talent_xp(id, xp);
@@ -1072,12 +1119,98 @@ pub(super) fn settle(
         }
     }
     account.grant_new();
-    account.save();
+    run.account_paid = true;
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn settlement_rewards_the_selected_hero_once_and_survives_reload() {
+        let mut account = empty();
+        let first = account.create("First", "Warrior", 0).unwrap();
+        let second = account.create("Second", "Warrior", 0).unwrap();
+        let selection = super::super::Selection {
+            class: Some(0),
+            character: Some(second),
+            map: data::MAPS
+                .iter()
+                .position(|map| map.name == "Elwynn Forest")
+                .unwrap(),
+            ..Default::default()
+        };
+        let mut run = super::super::Run {
+            level: 8,
+            kills: 100,
+            won: true,
+            ..Default::default()
+        };
+        settle_run(&mut account, &selection, &mut run);
+        let xp = campaign::talent_award(8, 100, 0.0, 0, true, Some(0));
+        assert_eq!(account.character(first).unwrap().talent_xp, 0);
+        assert_eq!(account.character(second).unwrap().talent_xp, xp);
+        assert!(account.classes[0].clears[0]);
+        let saved = encode(&account);
+        settle_run(&mut account, &selection, &mut run);
+        assert_eq!(encode(&account), saved);
+        let loaded = parse(&saved).unwrap();
+        assert_eq!(loaded.character(second).unwrap().talent_xp, xp);
+        assert_eq!((loaded.runs, loaded.wins), (1, 1));
+    }
+
+    #[test]
+    fn settlement_rejects_foreign_and_stale_hero_references() {
+        for selected in [Some(1), Some(u32::MAX), None] {
+            let mut account = empty();
+            let foreign = account.create("Other", "Class", 1).unwrap();
+            let selection = super::super::Selection {
+                class: Some(0),
+                character: selected,
+                ..Default::default()
+            };
+            let mut run = super::super::Run::default();
+            settle_run(&mut account, &selection, &mut run);
+            assert_eq!(account.character(foreign).unwrap().talent_xp, 0);
+            assert_eq!(
+                account
+                    .characters
+                    .iter()
+                    .find(|c| c.class == 0)
+                    .unwrap()
+                    .talent_xp,
+                campaign::talent_award(1, 0, 0.0, 0, false, Some(0))
+            );
+        }
+    }
+
+    #[test]
+    fn settlement_without_a_valid_class_does_not_consume_the_award() {
+        let mut account = empty();
+        let mut run = super::super::Run::default();
+        for class in [None, Some(usize::MAX)] {
+            let selection = super::super::Selection {
+                class,
+                ..Default::default()
+            };
+            settle_run(&mut account, &selection, &mut run);
+            assert!(!run.account_paid);
+            assert_eq!(account.runs, 0);
+            assert!(account.characters.is_empty());
+        }
+    }
+
+    #[test]
+    fn talent_awards_saturate_before_capping() {
+        let mut account = empty();
+        let id = account.ensure(0);
+        account.add_talent_xp(id, 1);
+        account.add_talent_xp(id, u32::MAX);
+        assert_eq!(
+            account.character(id).unwrap().talent_xp,
+            TALENT_CAP * campaign::XP_PER_TALENT
+        );
+    }
 
     #[test]
     fn a_comment_does_not_drop_the_first_character() {
@@ -1105,7 +1238,10 @@ pets 2 3 1 1 2 0 1
         assert!(!moved.classes[0].clears[6]);
         assert!(moved.classes[1].clears[0] && moved.classes[1].clears[6]);
         assert!(!moved.classes[1].clears[1]);
-        assert_eq!(account.classes[0].seen, vec!["Amulet of Heroic Strike".to_string()]);
+        assert_eq!(
+            account.classes[0].seen,
+            vec!["Amulet of Heroic Strike".to_string()]
+        );
         let again = parse(&encode(&account)).unwrap();
         assert_eq!(again.characters[0].ranks()[0], 1);
         assert_eq!(again.characters[0].spec, 0);
@@ -1125,15 +1261,20 @@ pets 2 3 1 1 2 0 1
         account.see_amulet(0, "Amulet of Heroic Strike");
         assert_eq!(account.classes[0].seen.len(), 1);
         assert!(account.classes[0].pieces.iter().all(|n| *n == 0));
-        assert_eq!(account.collect_drop(0, 0, "Hogger"), Some("Field Plate Helmet"));
+        assert_eq!(
+            account.collect_drop(0, 0, "Hogger"),
+            Some("Field Plate Helmet")
+        );
         assert_eq!(account.classes[0].pieces[0], 1);
         account.collect_drop(0, 0, "Hogger");
         assert_eq!(account.classes[0].pieces[0], 2);
-        assert!(campaign::zone_open(
-            1,
-            campaign::talent_level(account.character(id).unwrap().talent_xp),
-            &account.classes[0].clears,
-        ) == false);
+        assert!(
+            campaign::zone_open(
+                1,
+                campaign::talent_level(account.character(id).unwrap().talent_xp),
+                &account.classes[0].clears,
+            ) == false
+        );
         account.add_talent_xp(id, 500);
         assert!(campaign::zone_open(
             1,
@@ -1210,7 +1351,9 @@ pets 2 3 1 1 2 0 1
         assert!(account.unspent() > after);
         assert!(!account.grant_new());
         let list = account.achievement_list();
-        assert!(list.iter().any(|row| row.earned && row.name.contains("Elwynn")));
+        assert!(list
+            .iter()
+            .any(|row| row.earned && row.name.contains("Elwynn")));
         assert!(list.iter().any(|row| !row.earned));
         let text = encode(&account);
         let loaded = parse(&text).unwrap();

@@ -5,25 +5,26 @@
 //! off ([`crate::run_mode::CaptureMode`]).
 
 mod abilities;
-mod armory;
 mod account;
+mod armory;
 mod auto;
 mod campaign;
 mod cards;
 mod companions;
 mod data;
+mod encounters;
 mod enemies;
 mod grade;
 mod hero;
 mod hud;
 mod menu;
-mod notes;
 mod minimap;
+mod mobility;
+mod notes;
 mod renown;
 mod rewards;
 mod sheet;
 mod stash;
-mod mobility;
 mod units;
 
 use benilla_world::schedule::WorldStage;
@@ -171,10 +172,7 @@ impl Plugin for SurvivorsPlugin {
                 OnEnter(Phase::Menu),
                 (unpause, account::keep_seen, reset_run, stash::flush_now).chain(),
             )
-            .add_systems(
-                Update,
-                hud::apply_settings.after(crate::cvars::sync_cvars),
-            );
+            .add_systems(Update, hud::apply_settings.after(crate::cvars::sync_cvars));
         // After the saved config, so a default install gets the browser budget and a value the
         // player already chose (or passed on the URL) is left alone.
         #[cfg(target_arch = "wasm32")]
@@ -282,9 +280,7 @@ impl Owned {
     }
     pub fn count(&self, stats: &Stats) -> u32 {
         let extra = [3u8, 5, 7].iter().filter(|&&l| self.level >= l).count() as u32;
-        self.def.count
-            + extra
-            + sheet::extra_targets(self.def.kind, self.def.count, stats.targets)
+        self.def.count + extra + sheet::extra_targets(self.def.kind, self.def.count, stats.targets)
     }
     pub fn radius(&self, stats: &Stats) -> f32 {
         self.def.radius * (1.0 + 0.08 * f32::from(self.level - 1)) * stats.area
@@ -370,6 +366,8 @@ pub(super) struct Run {
     mobile: mobility::MobilityState,
     pub pending_levels: u32,
     pub bosses: u32,
+    /// Bosses killed, separately from the number already spawned.
+    pub bosses_defeated: u32,
     pub rings: u32,
     pub won: bool,
     /// Chest trades waiting behind the level-up draft.
@@ -398,6 +396,8 @@ pub(super) struct Run {
     pub renown_celerity: u8,
     /// The end-of-run grant has already been paid.
     pub renown_paid: bool,
+    /// Account rewards have been applied; a save retry must not pay them again.
+    pub account_paid: bool,
     /// Permanent account bonuses copied on at the start of the run.
     bonus: campaign::Bonus,
     /// Bumped whenever abilities or passives change, so the HUD rebuilds the icon rows once.
@@ -444,6 +444,7 @@ impl Default for Run {
             mobile: mobility::MobilityState::default(),
             pending_levels: 0,
             bosses: 0,
+            bosses_defeated: 0,
             rings: 0,
             won: false,
             trades: 0,
@@ -461,6 +462,7 @@ impl Default for Run {
             renown_fortitude: 0,
             renown_celerity: 0,
             renown_paid: false,
+            account_paid: false,
             bonus: campaign::Bonus::default(),
             version: 0,
             banner: None,

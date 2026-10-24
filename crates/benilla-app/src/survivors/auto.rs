@@ -213,7 +213,8 @@ pub(super) fn drive(
                         o.level = data::MAX_ABILITY_LEVEL;
                     }
                     run.elapsed = data::VICTORY_SECS * 2.0 / 3.0;
-                    run.bosses = 3;
+                    // Catch up the encounter schedule; skipped bosses must not block victory.
+                    run.bosses = 0;
                     run.rings = 4;
                 }
                 next.set(Phase::Playing);

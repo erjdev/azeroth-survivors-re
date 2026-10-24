@@ -390,8 +390,12 @@ pub(super) fn cast_abilities(
                     }
                     fx.cast(me, def.spell, &entities(&chain), None);
                     for (k, f) in chain.iter().enumerate() {
-                        let (dmg, crit) =
-                            roll(&mut rng, stats.crit, stats.crit_damage, p.dmg * 0.85f32.powi(k as i32));
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            stats.crit,
+                            stats.crit_damage,
+                            p.dmg * 0.85f32.powi(k as i32),
+                        );
                         schedule(
                             &mut pending,
                             &mut hits,
@@ -723,12 +727,12 @@ pub(super) fn apply_hits(
     }
 
     let mut kill = |commands: &mut Commands,
-                     run: &mut Run,
-                     account: &mut super::account::Account,
-                     rng: &mut Rng,
-                     e: Entity,
-                     pos: Vec3,
-                     en: &mut Enemy| {
+                    run: &mut Run,
+                    account: &mut super::account::Account,
+                    rng: &mut Rng,
+                    e: Entity,
+                    pos: Vec3,
+                    en: &mut Enemy| {
         en.dead = true;
         en.hp = 0.0;
         en.dots.clear();
@@ -740,6 +744,9 @@ pub(super) fn apply_hits(
             elite: en.elite,
         });
         run.kills += 1;
+        if en.boss {
+            run.bosses_defeated = run.bosses_defeated.saturating_add(1);
+        }
         let mut dropped = false;
         if let Some(class) = selection.class {
             if let Some(zone) = super::campaign::zone_index(selection.map_def().name) {
@@ -749,11 +756,11 @@ pub(super) fn apply_hits(
                         chance = (chance + super::rewards::keen_drop_bonus(run.keen_eye)).min(1.0);
                     }
                     if rng.f32() < chance {
-                    if let Some(item) = account.collect_drop(class, zone, en.def.name) {
-                        run.banner = Some((format!("{item} collected"), 4.0));
-                        dropped = true;
+                        if let Some(item) = account.collect_drop(class, zone, en.def.name) {
+                            run.banner = Some((format!("{item} collected"), 4.0));
+                            dropped = true;
+                        }
                     }
-                }
                 }
             }
         }
@@ -822,7 +829,15 @@ pub(super) fn apply_hits(
             marks.add(h.mark, h.mark_dur);
         }
         if en.hp <= 0.0 {
-            kill(&mut commands, &mut run, &mut account, &mut rng, e, tf.translation, &mut en);
+            kill(
+                &mut commands,
+                &mut run,
+                &mut account,
+                &mut rng,
+                e,
+                tf.translation,
+                &mut en,
+            );
             units::kill_unit(&mut store);
             marks.clear();
         }
@@ -855,7 +870,15 @@ pub(super) fn apply_hits(
             }
             fx.number(e, dealt, false, COLOR_SPELL);
             if en.hp <= 0.0 {
-                kill(&mut commands, &mut run, &mut account, &mut rng, e, tf.translation, &mut en);
+                kill(
+                    &mut commands,
+                    &mut run,
+                    &mut account,
+                    &mut rng,
+                    e,
+                    tf.translation,
+                    &mut en,
+                );
                 units::kill_unit(&mut store);
                 marks.clear();
                 marks.flush(e, guid.0, &mut store, &mut fields);

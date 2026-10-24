@@ -188,9 +188,7 @@ pub(super) fn spawn_enemies(
     let roster = data::roster(selection.map);
     let pool = data::wave_pool(elapsed, roster.enemies.len());
 
-    let due_bosses = ((elapsed / data::BOSS_EVERY_SECS) as u32).min(roster.bosses.len() as u32);
-    while run.bosses < due_bosses {
-        let def = &roster.bosses[run.bosses as usize];
+    while let Some(def) = super::encounters::next(selection.map, run.bosses, elapsed) {
         let a = rng.range(0.0, std::f32::consts::TAU);
         let pos = ground(
             &world,
@@ -280,7 +278,13 @@ fn spawn_chest(
     tier: super::campaign::ChestTier,
 ) {
     let serial = run.guid();
-    let e = units::spawn_object(commands, serial, super::campaign::chest_display(tier), 1.15, pos);
+    let e = units::spawn_object(
+        commands,
+        serial,
+        super::campaign::chest_display(tier),
+        1.15,
+        pos,
+    );
     commands.entity(e).insert(Chest {
         gold: super::campaign::chest_gold(tier, run.level),
         tier,
@@ -490,9 +494,19 @@ pub(super) fn drop_loot(
         gold += if d.boss { 10 + run.level / 4 } else { 1 };
         gold_at = d.pos;
         if d.boss {
-            spawn_chest(&mut commands, &mut run, d.pos, super::campaign::ChestTier::A);
+            spawn_chest(
+                &mut commands,
+                &mut run,
+                d.pos,
+                super::campaign::ChestTier::A,
+            );
         } else if d.elite {
-            spawn_chest(&mut commands, &mut run, d.pos, super::campaign::ChestTier::B);
+            spawn_chest(
+                &mut commands,
+                &mut run,
+                d.pos,
+                super::campaign::ChestTier::B,
+            );
         }
         if d.boss || rng.f32() < 0.015 {
             let heal = GemKind::Heal(if d.boss { 1000.0 } else { 30.0 });

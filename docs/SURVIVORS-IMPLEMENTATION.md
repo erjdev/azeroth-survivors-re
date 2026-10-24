@@ -72,7 +72,10 @@ map require verified substitutions documented in the catalog, not invented asset
 Unspecified balance coefficients are implementation decisions: centralize and document
 them, test monotonicity/caps, and distinguish them from numbers explicitly specified by the
 references. Talent XP must eventually incorporate survival time, kills, defeated bosses,
-win, later-zone scaling and Veteran's Lessons. Spawned bosses are not defeated bosses.
+win, later-zone scaling and Veteran's Lessons. Spawned bosses are not defeated bosses. Initial tuning retains the level × 2, kills / 10
+and win 40 (loss 8) base, adds one XP per ten survived seconds and ten per defeated
+boss, then adds 10% per later campaign zone. The award is capped by the hero's 51-point
+limit. Catch-up compares the best hero of the class with the best hero of the account.
 
 ## Phase 1 — progression integrity
 
