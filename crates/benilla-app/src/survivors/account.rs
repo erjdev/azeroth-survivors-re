@@ -81,7 +81,7 @@ fn blank_specs() -> [[u8; campaign::SPEC_LEN]; 3] {
 
 #[derive(Clone, Debug)]
 pub(super) struct ClassProgress {
-    /// Stacks in the nine-by-six grid. Zero is not owned. A second stack is a duplicate bonus.
+    /// Ownership in the nine-by-six grid: zero is unseen, one is collected.
     pub pieces: [u8; campaign::PIECES],
     pub equipment: super::equipment::Equipment,
     pub legendary_weapon: bool,
@@ -217,7 +217,7 @@ impl Account {
         self.dirty = true;
     }
 
-    /// One roll of a creature's drop. A copy the class already has raises that piece's bonus.
+    /// A first drop unlocks the piece. Duplicates change neither equipment nor stats.
     pub fn collect_drop(
         &mut self,
         class: usize,
@@ -228,9 +228,11 @@ impl Account {
         let name = campaign::piece_name(class, row.slot, row.band)?;
         let index = campaign::piece_index(row.band, row.slot)?;
         let progress = self.classes.get_mut(class)?;
-        let first_copy = progress.pieces[index] == 0;
-        progress.pieces[index] = progress.pieces[index].saturating_add(1).min(4);
-        if first_copy && progress.equipment.worn[row.slot].is_none() {
+        if progress.pieces[index] > 0 {
+            return None;
+        }
+        progress.pieces[index] = 1;
+        if progress.equipment.worn[row.slot].is_none() {
             progress
                 .equipment
                 .wear(&progress.pieces, row.slot, Some(row.band as u8));
@@ -779,7 +781,7 @@ fn encode(account: &Account) -> String {
         let gear = class
             .pieces
             .iter()
-            .map(|n| char::from(b'0' + (*n).min(9)))
+            .map(|n| char::from(b'0' + (*n).min(1)))
             .collect::<String>();
         let clears = class
             .clears
@@ -849,7 +851,7 @@ fn unescape(s: &str) -> String {
 /// Seven bits are the draft path: Elwynn, Westfall, Duskwood, Stranglethorn, Arathi Highlands,
 /// Western Plaguelands, Naxxramas. Westfall, the Highlands, and the Plaguelands left the path.
 /// A longer string is the twelve-zone path, one bit per row.
-/// Ten bits are the draft's slots. A longer string is the 54-piece grid, one digit of stacks each.
+/// Ten bits are the draft's slots. A longer string is the 54-piece grid, one ownership digit each (legacy stack counts become one).
 /// The draft's off-hand bit is not a piece. Its legendary flag is the legendary main hand.
 fn read_pieces(progress: &mut ClassProgress, bits: &str, legendary: bool) {
     if bits.len() <= 10 {
@@ -865,7 +867,7 @@ fn read_pieces(progress: &mut ClassProgress, bits: &str, legendary: bool) {
         }
     } else {
         for (i, ch) in bits.chars().enumerate().take(progress.pieces.len()) {
-            progress.pieces[i] = ch.to_digit(10).unwrap_or(0) as u8;
+            progress.pieces[i] = ch.to_digit(10).unwrap_or(0).min(1) as u8;
         }
     }
     progress.legendary_weapon = progress
@@ -1178,6 +1180,26 @@ mod tests {
     use super::*;
 
     #[test]
+    fn duplicate_drops_and_legacy_stack_counts_never_add_power() {
+        let mut account = empty();
+        let hero = account.ensure(0);
+        assert!(account.collect_drop(0, 0, "Hogger").is_some());
+        let saved = encode(&account);
+        let armor = account.bonus(0, hero).armor;
+        assert!(account.collect_drop(0, 0, "Hogger").is_none());
+        assert_eq!(encode(&account), saved);
+        assert_eq!(account.bonus(0, hero).armor, armor);
+        let legacy = format!(
+            "class 0 9{} 0 000000000000\n",
+            "0".repeat(campaign::PIECES - 1)
+        );
+        let mut loaded = parse(&legacy).unwrap();
+        let loaded_hero = loaded.ensure(0);
+        assert_eq!(loaded.classes[0].pieces[0], 1);
+        assert_eq!(loaded.bonus(0, loaded_hero).armor, armor);
+    }
+
+    #[test]
     fn equipment_rows_are_validated_after_ownership_regardless_of_order() {
         let account =
             parse("equipment 0 100000000 100000000\nclass 0 1000000000 0 0000000\n").unwrap();
@@ -1364,7 +1386,7 @@ pets 2 3 1 1 2 0 1
         );
         assert_eq!(account.classes[0].pieces[0], 1);
         account.collect_drop(0, 0, "Hogger");
-        assert_eq!(account.classes[0].pieces[0], 2);
+        assert_eq!(account.classes[0].pieces[0], 1);
         assert!(
             campaign::zone_open(
                 1,

@@ -737,10 +737,9 @@ fn gear_lines(
         .unwrap_or([0; campaign::PIECES]);
     for slot in 0..campaign::GRID_SLOTS {
         let slot_name = campaign::SLOTS[slot];
-        let (text, color) = if let Some((band, stacks)) = campaign::best_piece(&worn, slot) {
+        let (text, color) = if let Some((band, _)) = campaign::best_piece(&worn, slot) {
             let item = campaign::piece_name(class, slot, band).unwrap_or(slot_name);
-            let extra = if stacks > 1 { " +" } else { "" };
-            (format!("{slot_name} — {item}{extra}"), band_color(band))
+            (format!("{slot_name} — {item}"), band_color(band))
         } else {
             (format!("{slot_name} — empty"), DIM)
         };

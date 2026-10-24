@@ -631,34 +631,14 @@ fn band_bonus(band: usize) -> Bonus {
     }
 }
 
-fn scaled(bonus: Bonus, scale: f32) -> Bonus {
-    Bonus {
-        armor: bonus.armor * scale,
-        might: bonus.might * scale,
-        crit: bonus.crit * scale,
-        multistrike: bonus.multistrike * scale,
-        speed: bonus.speed * scale,
-        leech: bonus.leech * scale,
-        area: bonus.area * scale,
-        crit_damage: bonus.crit_damage * scale,
-        reduction: bonus.reduction * scale,
-        cooldown: bonus.cooldown * scale,
-        gold: bonus.gold * scale,
-        growth: bonus.growth * scale,
-        luck: bonus.luck * scale,
-        targets: bonus.targets,
-    }
-}
-
-/// The worn piece in each slot, plus a quarter of its lines for each extra copy, the set, and a cloak.
+/// One selected piece per slot, its quality's stats, the worn set, and a cloak.
 pub(super) fn equipped_bonus(pieces: &[u8], cloak: Option<Quality>) -> Bonus {
     let mut total = Bonus::default();
     for slot in 0..GRID_SLOTS {
-        let Some((band, stacks)) = best_piece(pieces, slot) else {
+        let Some((band, _)) = best_piece(pieces, slot) else {
             continue;
         };
-        let extra = f32::from(stacks.saturating_sub(1).min(3)) * 0.25;
-        total.add(scaled(band_bonus(band), 1.0 + extra));
+        total.add(band_bonus(band));
     }
     if set_complete(pieces) {
         total.add(set_bonus());
@@ -1489,7 +1469,7 @@ mod tests {
         one[0] = 1;
         let single = equipped_bonus(&one, None);
         one[0] = 2;
-        assert!(equipped_bonus(&one, None).armor > single.armor);
+        assert_eq!(equipped_bonus(&one, None).armor, single.armor);
     }
 
     #[test]
