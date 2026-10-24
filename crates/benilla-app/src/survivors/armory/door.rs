@@ -53,7 +53,7 @@ pub(super) fn build(
             ui, art, font, armory, account, selection, renown, stash, layout, features,
         );
     } else if armory.page == Page::Collection {
-        super::collection::build(ui, font, armory, account, selection, layout);
+        super::collection::build(ui, art, font, armory, account, selection, layout);
     } else {
         panel(ui, art, |body| {
             super::fill_draft(

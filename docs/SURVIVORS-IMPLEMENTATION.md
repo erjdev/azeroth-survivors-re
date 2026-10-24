@@ -131,6 +131,10 @@ with the intention images; compilation alone does not establish visual completio
 Apply the responsive-layout contract below to every surface, including the combat HUD
 and draft cards, rather than treating these two resolutions as fixed design canvases.
 
+Collection shares Character’s inline faction portraits and race/sex controls. Live
+1280×720 edits carried through to the Character model, with all nine empty equipment
+slots visible. The full account/resolution matrix remains outstanding.
+
 Collection cells now render verified artwork with dim unowned pieces and corner E/L badges.
 Owned icons, combined badges and legendary selection passed at 1440×900; unowned artwork
 passed at 1280×720. Missing-item entries share dimmed icons, and rarity rows list zones

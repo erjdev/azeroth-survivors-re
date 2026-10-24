@@ -141,7 +141,7 @@ pub(super) fn choose_body(
     true
 }
 
-fn body_controls(
+pub(super) fn body_controls(
     body: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,

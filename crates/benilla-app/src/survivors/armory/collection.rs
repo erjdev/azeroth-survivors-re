@@ -2,6 +2,7 @@
 
 use super::super::equipment::Look;
 use super::{campaign, chip, hud, picked_class, Account, Act, Armory, Selection, GOLD};
+use crate::glue::art::GlueArt;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 use bevy::ui::RelativeCursorPosition;
@@ -89,6 +90,7 @@ pub(super) fn column(
 
 pub(super) fn build(
     panel: &mut ChildSpawnerCommands,
+    art: &GlueArt,
     font: &Handle<Font>,
     armory: &Armory,
     account: &Account,
@@ -119,8 +121,7 @@ pub(super) fn build(
         })
         .with_children(|row| {
             column(row, layout.left_width, layout, |body| {
-                text(body, font, "Appearance", layout.title_size, GOLD);
-                chip(body, font, "Choose appearance", Act::Look, false);
+                super::character::body_controls(body, art, font, account, selection, layout);
                 equipment(body, font, armory, account, selection, layout)
             });
             column(
@@ -687,6 +688,7 @@ mod tests {
                     .with_children(|panel| {
                         build(
                             panel,
+                            &GlueArt::default(),
                             &Handle::default(),
                             &Armory::default(),
                             &account,

@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Shared Collection appearance
+
+Collection now shares Character’s faction portraits and race/sex controls, with class
+restrictions and per-hero saving. Equipment remains directly below the controls.
+
+**Validation:** native build and 71 focused tests passed. Live 1280×720 checks covered
+race/sex changes, the matching Character model, and visibility of all nine empty slots.
+The broader resolution/account matrix remains open; existing terrain formatting still
+blocks the repository gate.
+
+![Collection appearance at 1280×720](images/screenshots/2026-10-24-collection-appearance/collection-720.jpg)
+
 ## 2026-10-24 — Collection artwork
 
 Collection cells now show implemented item artwork, dim unowned pieces, and keep E/L badges
