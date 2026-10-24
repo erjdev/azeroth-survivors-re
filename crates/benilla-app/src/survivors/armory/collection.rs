@@ -119,6 +119,8 @@ pub(super) fn build(
         })
         .with_children(|row| {
             column(row, layout.left_width, layout, |body| {
+                text(body, font, "Appearance", layout.title_size, GOLD);
+                chip(body, font, "Choose appearance", Act::Look, false);
                 equipment(body, font, account, selection, layout)
             });
             column(
@@ -177,8 +179,6 @@ pub(super) fn equipment(
     selection: &Selection,
     layout: &Layout,
 ) {
-    text(ui, font, "Appearance", layout.title_size, GOLD);
-    chip(ui, font, "Choose appearance", Act::Look, false);
     text(ui, font, "Equipment", layout.title_size, GOLD);
     let class = picked_class(account, selection);
     let progress = &account.classes[class];

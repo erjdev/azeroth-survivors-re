@@ -59,7 +59,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
   </tr>
 </table>
 
-Character comparisons: [large weapon](docs/images/screenshots/2026-10-24-equipment-framing/weapon-appearance.jpg) · [1280×720](docs/images/screenshots/2026-10-24-equipment-framing/character-720.jpg).
+Character comparisons: [inline race/sex controls](docs/images/screenshots/2026-10-24-character-appearance/character.jpg) · [large weapon](docs/images/screenshots/2026-10-24-equipment-framing/weapon-appearance.jpg) · [1280×720](docs/images/screenshots/2026-10-24-equipment-framing/character-720.jpg).
 
 Current victory/defeat results, reward claims, equipped appearances and responsive
 viewport variants still need fresh captures. Earlier screenshots below are historical.

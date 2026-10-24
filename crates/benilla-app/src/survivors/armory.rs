@@ -113,6 +113,7 @@ pub(super) struct ArmoryRoot;
 pub(super) enum Act {
     Page(Page),
     Pick(u32),
+    Body(u8, u8),
     Focus(u8),
     Class,
     Create,
@@ -258,6 +259,13 @@ pub(super) fn input(
                 let class = picked_class(&account, &selection);
                 if account.show_piece(class, slot, look) {
                     account.save();
+                }
+            }
+            Act::Body(race, sex) => {
+                if character::choose_body(&mut selection, &mut account, race, sex) {
+                    account.save();
+                    super::menu::save_pick(&selection);
+                    armory.note.clear();
                 }
             }
             Act::Focus(slot) => armory.focus = slot,
@@ -770,7 +778,7 @@ pub(super) fn refresh(
     let font = assets.font.0.clone();
     let note =
         if armory.note.is_empty() && armory.page != Page::Door && armory.page != Page::Talents {
-            "Pick a hero, then a zone. Appearance is on Look."
+            "Pick a hero, then a zone. Customize your hero on Character."
         } else {
             armory.note.as_str()
         };

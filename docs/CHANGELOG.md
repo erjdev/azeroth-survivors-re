@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Character appearance controls
+
+Race and sex can now be selected above Character equipment, with choices from the current
+class's available bodies. The preview updates immediately and each named hero saves its own
+choice. Skin, face, hair and portrait-style race buttons remain unfinished.
+
+**Validation:** native build and 66 Survivors/preview tests passed. Human male → female →
+night elf, switching between two heroes and restart persistence checked live at 1440×900. The current catalog
+has incomplete race/sex coverage; unavailable bodies are not offered. Existing terrain
+formatting errors still block the full repository gate.
+
+![Inline Character appearance, 1440×900](images/screenshots/2026-10-24-character-appearance/character.jpg)
+
 ## 2026-10-24 — Readable upgrade benefits
 
 Level-up and chest choices show stat changes in green. New spells and passives preview

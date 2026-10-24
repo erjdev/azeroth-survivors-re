@@ -146,8 +146,9 @@ rigid attachment bounds using proportional padding; Thunderfury framing was chec
 1440×900 and 1280×720, rotation at 1440×900 and a fixed uncached axe replacement at
 1280×720. Pending local attachment loads
 keep the equipment resolver awake until ready. Weapon poses, other races, sexes and
-ranged attachments still need visual checks. Turn buttons work; drag input, inline feature
-editing and the multi-resolution acceptance above remain unfinished.
+ranged attachments still need visual checks. Turn buttons work. Character now exposes class-valid race and sex choices beside the
+loadout, persisted per named hero through the existing body model. Skin, face, hair,
+drag input and the multi-resolution acceptance above remain unfinished.
 
 ## Phase 4 — all twelve zones and gear content
 
