@@ -116,7 +116,7 @@ impl Plugin for SurvivorsPlugin {
                     hud::refresh_menu,
                     menu::restore_pick,
                     menu::build_menu,
-                    armory::refresh,
+                    (armory::refresh, armory::scroll_collection).chain(),
                     menu::menu_clicks,
                     menu::refresh_menu_ui.before(crate::glue::GlueVisuals),
                     cards::deal_cards,

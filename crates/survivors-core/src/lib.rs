@@ -7,6 +7,7 @@ pub mod campaign;
 pub mod data;
 pub mod encounters;
 pub mod equipment;
+pub mod layout;
 pub mod rewards;
 pub mod selection;
 pub mod sheet;

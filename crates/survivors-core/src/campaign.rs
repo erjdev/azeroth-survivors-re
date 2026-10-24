@@ -216,7 +216,8 @@ pub static ZONES: &[Zone] = &[
     },
 ];
 
-/// Gear slot order. A two-handed weapon occupies the off-hand slot.
+/// Legacy slot labels, including off hand. The collection uses only the first `GRID_SLOTS`.
+/// A two-handed weapon occupies main hand only.
 pub const SLOTS: [&str; 10] = [
     "Helm",
     "Shoulders",

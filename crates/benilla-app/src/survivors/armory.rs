@@ -4,6 +4,8 @@
 mod collection;
 mod door;
 
+pub(super) use collection::scroll as scroll_collection;
+
 use bevy::ecs::hierarchy::ChildOf;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::ecs::system::SystemParam;
@@ -666,14 +668,20 @@ pub(super) fn hero_gate(
     (level, clears)
 }
 
+#[derive(SystemParam)]
+pub(super) struct ArmoryArt<'w> {
+    font: Res<'w, HudFont>,
+    art: Res<'w, GlueArt>,
+    layout: Res<'w, super::tuning::UiLayout>,
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn refresh(
     mut commands: Commands,
     menus: Query<Entity, (With<MenuRoot>, With<super::menu::MenuBuilt>)>,
     mut roots: Query<&mut Node, With<ArmoryRoot>>,
     mut looks: Query<&mut Node, (With<super::menu::LookScreen>, Without<ArmoryRoot>)>,
-    font: Res<HudFont>,
-    art: Res<GlueArt>,
+    assets: ArmoryArt,
     armory: Res<Armory>,
     account: Res<Account>,
     selection: Res<Selection>,
@@ -681,7 +689,7 @@ pub(super) fn refresh(
     stash: Res<Stash>,
     talents: Option<Res<crate::ui_talent::Talents>>,
     phase: Res<State<Phase>>,
-    mut drawn: Local<Option<u64>>,
+    mut drawn: Local<Option<(u64, u64)>>,
     mut root_id: Local<Option<Entity>>,
 ) {
     if *phase.get() != Phase::Menu {
@@ -708,7 +716,10 @@ pub(super) fn refresh(
             node.display = display;
         }
     }
-    let sig = signature(&armory, &account, &selection, &renown, &stash);
+    let sig = (
+        signature(&armory, &account, &selection, &renown, &stash),
+        assets.layout.version,
+    );
     if *drawn == Some(sig) {
         return;
     }
@@ -746,7 +757,7 @@ pub(super) fn refresh(
         return;
     }
     commands.entity(root).despawn_related::<Children>();
-    let font = font.0.clone();
+    let font = assets.font.0.clone();
     let note = if armory.note.is_empty() && armory.page != Page::Door {
         "Pick a hero, then a zone. Appearance is on Look."
     } else {
@@ -755,7 +766,7 @@ pub(super) fn refresh(
     commands.entity(root).with_children(|panel| {
         door::build(
             panel,
-            &art,
+            &assets.art,
             &font,
             &armory,
             &account,
@@ -764,6 +775,7 @@ pub(super) fn refresh(
             &stash,
             note,
             talents.as_deref().map(|loaded| &loaded.catalog),
+            &assets.layout.value,
         );
     });
 }
@@ -864,7 +876,7 @@ fn fill_draft(
         Page::Heroes => heroes(panel, font, armory, account, selection, renown, stash),
         Page::Talents => talents(panel, font, account, selection, catalog),
         Page::Rewards => rewards_page(panel, font, armory, account),
-        Page::Collection => collection::build(panel, font, armory, account, selection),
+        Page::Collection => {}
         Page::Codex => codex(panel, font, account),
         Page::Achievements => achievements(panel, font, armory, account),
         Page::Notes => notes_page(panel, font),

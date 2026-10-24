@@ -74,6 +74,18 @@ the running configuration must remain intact. Start a new run after reloading to
 current configuration survives run reset. These live checks remain required even when the
 parser tests pass.
 
+The Collection layout is a second live surface, `crates/survivors-core/ui.txt`. Its seven
+required keys control the left/right column proportions, column gap, panel padding, body
+and title text sizes, and grid cell height. Values are bounded and finite; a complete valid
+snapshot redraws the page without restarting or losing its selected item. Invalid, duplicate,
+unknown or missing fields retain the prior layout. Columns scroll independently with the
+mouse wheel. Packaged builds embed the defaults and do not poll this file.
+
+Validate a visible text-size or cell-height edit while the Collection page is open, then
+try an incomplete file and an invalid value and confirm the prior layout survives. Restore
+the defaults before committing. Check the page at both supported viewport sizes; scroll
+long equipment, source and detail content instead of letting it cross the frame.
+
 Expand this pattern to typed, versioned catalogs for item stats, quality progressions,
 raid sets, talents, drop schedules, enemy curves and UI theme/layout values. Validate a
 whole new snapshot before publishing it; show actionable errors; preserve the previous

@@ -35,6 +35,7 @@ pub(super) fn build(
     stash: &Stash,
     note: &str,
     talents: Option<&benilla_formats::TalentCatalog>,
+    layout: &survivors_core::layout::Layout,
 ) {
     header(ui, art, font);
     tabs(ui, art, font, armory.page, account.unspent());
@@ -44,6 +45,8 @@ pub(super) fn build(
     if armory.page == Page::Door {
         columns(ui, art, font, armory, account, selection);
         enter_bar(ui, art, font, armory, account, selection);
+    } else if armory.page == Page::Collection {
+        super::collection::build(ui, font, armory, account, selection, layout);
     } else {
         panel(ui, art, |body| {
             super::fill_draft(
