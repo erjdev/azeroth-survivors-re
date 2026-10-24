@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use std::collections::HashMap;
 
 #[derive(Component)]
-pub(super) struct GearIcon(pub u32);
+pub(super) struct GearIcon(pub u32, pub Color);
 #[derive(Component)]
 pub(super) struct Filled;
 
@@ -18,7 +18,7 @@ pub(super) fn spawn(
         return;
     };
     ui.spawn((
-        GearIcon(visual.display_id),
+        GearIcon(visual.display_id, Color::WHITE),
         ImageNode {
             color: Color::NONE,
             ..default()
@@ -30,6 +30,42 @@ pub(super) fn spawn(
             ..default()
         },
     ));
+}
+
+/// Collection cells retain dim artwork for unowned pieces; absent content has no invented icon.
+pub(super) fn spawn_cell(
+    ui: &mut ChildSpawnerCommands,
+    class: usize,
+    slot: usize,
+    band: usize,
+    size: f32,
+    owned: bool,
+) -> bool {
+    let Some(visual) = survivors_core::gear_visuals::piece(class, slot, band) else {
+        return false;
+    };
+    ui.spawn((
+        GearIcon(
+            visual.display_id,
+            if owned {
+                Color::WHITE
+            } else {
+                Color::srgba(0.3, 0.3, 0.3, 0.65)
+            },
+        ),
+        ImageNode {
+            color: Color::NONE,
+            ..default()
+        },
+        Node {
+            width: Val::Px(size),
+            max_width: Val::Percent(90.0),
+            aspect_ratio: Some(1.0),
+            flex_shrink: 0.0,
+            ..default()
+        },
+    ));
+    true
 }
 
 pub(super) fn fill(
@@ -52,7 +88,7 @@ pub(super) fn fill(
         });
         if let Some(handle) = handle {
             image.image = handle;
-            image.color = Color::WHITE;
+            image.color = icon.1;
         }
         commands.entity(entity).insert(Filled);
     }

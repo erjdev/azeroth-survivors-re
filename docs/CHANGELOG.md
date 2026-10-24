@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Collection artwork
+
+Collection cells now show implemented item artwork, dim unowned pieces, and keep E/L badges
+in the corner. Content without verified artwork retains a placeholder.
+
+**Validation:** native build and 71 focused tests passed. Live checks covered owned icons,
+combined E/L badges and legendary selection at 1440×900, plus unowned artwork at 1280×720.
+Existing terrain formatting still blocks the full repository check.
+
+![Collection artwork](images/screenshots/2026-10-24-collection-icons/collection.jpg)
+[Unowned pieces at 1280×720](images/screenshots/2026-10-24-collection-icons/unowned-720.jpg)
+
 ## 2026-10-24 — Equipment rows
 
 Character and Collection now show equipped item icons beside rarity-colored names, with

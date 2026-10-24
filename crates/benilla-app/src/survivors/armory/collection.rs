@@ -333,18 +333,6 @@ fn grid(
                 let owned = progress.pieces[index] > 0;
                 let equipped = progress.equipment.worn[slot] == Some(band as u8);
                 let shown = progress.equipment.looks[slot] == Look::Piece(band as u8);
-                let mark = format!(
-                    "{}{}{}",
-                    if equipped { "E" } else { "" },
-                    if shown { "L" } else { "" },
-                    if equipped || shown {
-                        ""
-                    } else if owned {
-                        "•"
-                    } else {
-                        "?"
-                    }
-                );
                 row.spawn((
                     Button,
                     Act::InspectPiece(index),
@@ -368,22 +356,50 @@ fn grid(
                     BackgroundColor(Color::srgb(0.07, 0.06, 0.04)),
                 ))
                 .with_children(|cell| {
-                    cell.spawn((
-                        hud::text_bundle(
-                            font,
-                            mark,
-                            layout.body_size,
-                            if owned { Color::WHITE } else { DIM },
-                        ),
-                        Node {
-                            width: Val::Percent(100.0),
-                            height: Val::Px(layout.body_size * 1.4),
-                            flex_shrink: 0.0,
-                            ..default()
-                        },
-                        TextLayout::new_with_justify(Justify::Center),
-                        ZIndex(1),
-                    ));
+                    let has_icon = super::super::gear_icons::spawn_cell(
+                        cell,
+                        class,
+                        slot,
+                        band,
+                        layout.cell_height * 0.86,
+                        owned,
+                    );
+                    if !owned || !has_icon {
+                        cell.spawn((
+                            hud::text_bundle(
+                                font,
+                                if owned { "•" } else { "?" },
+                                layout.body_size,
+                                DIM,
+                            ),
+                            Node {
+                                position_type: PositionType::Absolute,
+                                ..default()
+                            },
+                            ZIndex(1),
+                        ));
+                    }
+                    if equipped || shown {
+                        let mark = match (equipped, shown) {
+                            (true, true) => "EL",
+                            (true, false) => "E",
+                            _ => "L",
+                        };
+                        cell.spawn((
+                            hud::text_bundle(font, mark, layout.body_size * 0.8, Color::BLACK),
+                            Node {
+                                position_type: PositionType::Absolute,
+                                right: Val::Px(0.0),
+                                top: Val::Px(0.0),
+                                padding: UiRect::horizontal(Val::Px(2.0)),
+                                border_radius: BorderRadius::all(Val::Px(layout.body_size)),
+                                ..default()
+                            },
+                            BackgroundColor(GOLD),
+                            ZIndex(2),
+                        ))
+                        .remove::<TextShadow>();
+                    }
                 });
             }
         });
