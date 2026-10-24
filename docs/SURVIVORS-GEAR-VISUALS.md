@@ -27,5 +27,8 @@ Validation checks all mapped display rows and icon files in the explicit 1.12.1 
 chain. Live checks on a seeded human male account cover plate armor, hidden helmet/chest,
 and a Thunderfury appearance over an equipped Whirlwind Axe, including world entry.
 Other races, sexes, ranged weapons and the complete catalog still need visual checks.
-Oversized weapon framing and poses remain open; icon availability alone does not establish
-correct armor textures or attachments.
+The Survivors preview fits rigid attachment bounds while retaining the authored body camera
+as its closest view. Thunderfury and Whirlwind Axe were checked at 1440×900 and 1280×720,
+with a fixed first-load appearance replacement at 1280×720. Pending attachment loads retry until the
+renderer records them ready. Weapon poses remain open; icon availability alone does not
+establish correct armor textures or attachments.

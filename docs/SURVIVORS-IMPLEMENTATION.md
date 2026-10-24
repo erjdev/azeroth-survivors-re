@@ -141,8 +141,11 @@ The [gear visual catalog](SURVIVORS-GEAR-VISUALS.md) maps 91 distinct existing i
 to vanilla identities and supplies item-detail icons; Atiesh variants and missing rarity
 cells remain unresolved. At 1440×900, a seeded human male account verified plate armor,
 helmet/chest hiding, weapon appearance independent of equipped bonuses, and world entry.
-Native build, 44 core tests and 60 Survivors tests passed. Oversized weapons can clip at
-the preview edge; framing and weapon poses need further work. Other races, sexes and
+Native build, 44 core tests and 62 Survivors/preview tests passed. The preview now fits
+rigid attachment bounds using proportional padding; Thunderfury framing was checked at
+1440×900 and 1280×720, rotation at 1440×900 and a fixed uncached axe replacement at
+1280×720. Pending local attachment loads
+keep the equipment resolver awake until ready. Weapon poses, other races, sexes and
 ranged attachments still need visual checks. Turn buttons work; drag input, inline feature
 editing and the multi-resolution acceptance above remain unfinished.
 

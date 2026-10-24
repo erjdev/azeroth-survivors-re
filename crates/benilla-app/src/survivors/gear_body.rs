@@ -18,7 +18,14 @@ pub(super) fn sync(
     creatures: Option<Res<Creatures>>,
     bodies: Option<Res<CharCreate>>,
     mut items: ResMut<crate::items::Items>,
-    mut heroes: Query<(&mut NetEntity, &mut ObjectStore), With<Hero>>,
+    mut heroes: Query<
+        (
+            &mut NetEntity,
+            &mut ObjectStore,
+            Option<&crate::entities::DressKey>,
+        ),
+        With<Hero>,
+    >,
 ) {
     let (Some(class), Some((preset, race, sex))) = (
         selection.class,
@@ -76,7 +83,7 @@ pub(super) fn sync(
             .enumerate()
             .map(|(i, &entry)| (VISIBLE_ENTRY + 12 * i as u16, entry)),
     );
-    for (mut net, mut store) in &mut heroes {
+    for (mut net, mut store, dress) in &mut heroes {
         // Local GUIDs retain their existing identity; renderer dispatch uses EntityKind.
         if net.kind != EntityKind::Player {
             net.kind = EntityKind::Player;
@@ -89,6 +96,11 @@ pub(super) fn sync(
             .any(|&(field, value)| !store.0.raw_fields().any(|pair| pair == (field, value)))
         {
             store.0.merge(ObjectFields::from_pairs(&fields));
+        } else if dress.is_some_and(|d| !d.held_ready) {
+            // Local templates arrive before their model assets. Keep the descriptor-driven
+            // resolver awake until it records ready attachments; there is no server update
+            // to wake it when a newly selected appearance finishes loading.
+            store.set_changed();
         }
     }
 }

@@ -6,15 +6,20 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 ## 2026-10-24 — Dressed heroes and independent cosmetics
 
 Selected armor and weapons now dress the world hero and Character preview. Hidden pieces
-and appearance overrides leave equipped bonuses unchanged. Large-weapon preview framing
-and the broader race/sex/weapon matrix remain unfinished.
+and appearance overrides leave equipped bonuses unchanged. The preview backs away to fit
+large attachments; newly loaded weapon appearances refresh without a second click.
+Weapon poses and the broader race/sex/weapon matrix remain unfinished.
 
-**Validation:** native build, 44 core tests and 60 Survivors tests passed. A seeded account
-at 1440×900 verified plate armor, hiding helmet/chest, independent weapon appearance and
-world entry. Repository checks still stop on two pre-existing terrain formatting errors.
+**Validation:** native build, 44 core tests and 62 Survivors/preview tests passed. Seeded
+accounts verified plate armor, hiding helmet/chest, independent weapon appearance and
+world entry; weapon framing checked at 1280×720 and 1440×900, with the fixed first-load
+replacement verified at 1280×720.
+Repository checks still stop on two pre-existing terrain formatting errors.
 
 ![Dressed Character preview](images/screenshots/2026-10-24-dressed/character.jpg)
-[Hidden helmet comparison](images/screenshots/2026-10-24-dressed/hidden-helm.jpg)
+[Hidden helmet](images/screenshots/2026-10-24-dressed/hidden-helm.jpg) ·
+[Large weapon](images/screenshots/2026-10-24-equipment-framing/weapon-appearance.jpg) ·
+[1280×720 layout](images/screenshots/2026-10-24-equipment-framing/character-720.jpg)
 
 ## 2026-10-24 — Item visual identities
 
