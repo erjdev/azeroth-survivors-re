@@ -158,6 +158,7 @@ impl Plugin for SurvivorsPlugin {
                 Update,
                 (
                     hud::apply_ui_scale,
+                    cards::scroll_hand,
                     hud::fill_art,
                     hud::xp_hover,
                     hud::icon_tooltip,

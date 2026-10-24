@@ -354,6 +354,9 @@ pub(super) fn place_camera(
     // Multiplicative, so a notch moves as far by eye close in as far out; all the way down to an
     // over-the-shoulder view.
     for w in wheel.read() {
+        if *phase.get() == Phase::LevelUp {
+            continue;
+        }
         let notches = match w.unit {
             MouseScrollUnit::Line => w.y,
             MouseScrollUnit::Pixel => w.y * 0.02,

@@ -17,7 +17,6 @@ pub(super) const RARE: Color = Color::srgb(0.0, 0.439, 0.867);
 pub(super) const EPIC: Color = Color::srgb(0.639, 0.208, 0.933);
 pub(super) const LEGENDARY: Color = Color::srgb(1.0, 0.502, 0.0);
 
-const CARD_W: f32 = 236.0;
 const CARD_H: f32 = 330.0;
 /// Seconds between one card landing and the next.
 const DEAL_STAGGER: f32 = 0.09;
@@ -176,7 +175,7 @@ pub(super) fn deal_cards(
     run: Res<Run>,
     spells: Option<Res<crate::ui_action::Spells>>,
     font: Res<HudFont>,
-    rows: Query<Entity, With<hud::OfferRow>>,
+    mut rows: Query<(Entity, &mut ScrollPosition), With<hud::OfferRow>>,
     mut titles: Query<&mut Text, With<hud::LevelTitle>>,
     mut subs: Query<&mut Text, (With<hud::LevelUpSub>, Without<hud::LevelTitle>)>,
 ) {
@@ -208,7 +207,10 @@ pub(super) fn deal_cards(
         }
         **sub = line;
     }
-    let Ok(row) = rows.single() else { return };
+    let Ok((row, mut scroll)) = rows.single_mut() else {
+        return;
+    };
+    scroll.0 = Vec2::ZERO;
     commands.entity(row).despawn_related::<Children>();
     let f = &font.0;
     commands.entity(row).with_children(|row| {
@@ -229,8 +231,12 @@ pub(super) fn deal_cards(
                 Interaction::default(),
                 RelativeCursorPosition::default(),
                 Node {
-                    width: Val::Px(CARD_W),
-                    height: Val::Px(CARD_H),
+                    flex_basis: Val::Percent(22.0),
+                    flex_grow: 1.0,
+                    flex_shrink: 0.0,
+                    min_width: Val::Px(200.0),
+                    max_width: Val::Px(280.0),
+                    min_height: Val::Px(CARD_H),
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
                     padding: UiRect::new(
@@ -599,5 +605,27 @@ pub(super) fn choose_card(
     }
     if let Some(i) = pick.filter(|&i| i < offer.len()) {
         pending.0 = Some((i, 0.0));
+    }
+}
+
+/// Keep wrapped hands reachable without reducing text or hit targets below readable sizes.
+pub(super) fn scroll_hand(
+    phase: Res<State<Phase>>,
+    mut wheel: MessageReader<bevy::input::mouse::MouseWheel>,
+    mut rows: Query<(&ComputedNode, &mut ScrollPosition), With<hud::OfferRow>>,
+) {
+    let delta: f32 = wheel
+        .read()
+        .map(|event| match event.unit {
+            bevy::input::mouse::MouseScrollUnit::Line => event.y * 32.0,
+            bevy::input::mouse::MouseScrollUnit::Pixel => event.y,
+        })
+        .sum();
+    if *phase.get() != Phase::LevelUp {
+        return;
+    }
+    for (node, mut scroll) in &mut rows {
+        let maximum = ((node.content_size.y - node.size.y) * node.inverse_scale_factor).max(0.0);
+        scroll.0.y = (scroll.0.y - delta).clamp(0.0, maximum);
     }
 }

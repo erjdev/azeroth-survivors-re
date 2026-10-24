@@ -820,14 +820,29 @@ pub(super) fn setup_hud(
             ));
             root.spawn((
                 OfferRow,
+                ScrollPosition::default(),
                 Node {
+                    width: Val::Percent(94.0),
+                    max_width: Val::Px(1280.0),
+                    max_height: Val::Percent(70.0),
+                    flex_shrink: 1.0,
+                    flex_wrap: FlexWrap::Wrap,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Stretch,
                     column_gap: Val::Px(22.0),
-                    // Room for a hovered card's lift.
-                    margin: UiRect::new(Val::ZERO, Val::ZERO, Val::Px(28.0), Val::Px(16.0)),
+                    row_gap: Val::Px(36.0),
+                    overflow: Overflow::scroll_y(),
+                    // Reserve space inside the scrollport for hover, tilt and pick motion.
+                    padding: UiRect::axes(Val::Px(24.0), Val::Px(40.0)),
                     ..default()
                 },
             ));
-            root.spawn(centered(f, "Click a card, or press 1, 2 or 3", 14.0, DIM));
+            root.spawn(centered(
+                f,
+                "Click a card or press its number · Scroll to see more",
+                14.0,
+                DIM,
+            ));
         });
 
     // --- Pause. ---
