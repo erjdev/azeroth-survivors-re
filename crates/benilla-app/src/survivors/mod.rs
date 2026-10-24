@@ -14,6 +14,8 @@ mod companions;
 mod enemies;
 mod grade;
 mod gear_icons;
+mod gear_body;
+mod gear_template;
 mod floor;
 mod hero;
 mod hud;
@@ -71,6 +73,7 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<armory::Armory>()
             .add_plugins(crate::portrait::survivors_pane::SurvivorsPanePlugin)
             .add_systems(Update, armory::character_subject.after(hud::menu_preview))
+            .add_systems(PreUpdate, gear_body::sync)
             .init_resource::<Typing>()
             .init_resource::<hud::PausePage>()
             .init_resource::<hud::SettingEdits>()

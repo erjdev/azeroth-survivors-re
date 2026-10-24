@@ -31,7 +31,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 <table>
   <tr>
     <td width="50%"><strong>Front door</strong><br><img src="docs/images/screenshots/2026-10-24/front-door.jpg" alt="Front door: Class, hero and twelve intended destinations; incomplete content is visibly locked."><br>Class, hero and twelve intended destinations; incomplete content is visibly locked.</td>
-    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24-preview/character.jpg" alt="Character: Equipment, bonuses and a turnable current-hero preview; selected gear dressing and inline features remain unfinished."><br>Equipment, bonuses and a turnable current-hero preview; selected gear dressing and inline features remain unfinished.</td>
+    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24-dressed/character.jpg" alt="Character: Selected armor and weapon on a seeded validation account; cosmetics remain independent of bonuses. Full appearance editing remains unfinished."><br>Selected armor and weapon on a seeded validation account; cosmetics remain independent of bonuses. Full appearance editing remains unfinished.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-24-gear-icons/collection.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>

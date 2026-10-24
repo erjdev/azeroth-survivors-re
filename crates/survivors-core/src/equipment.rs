@@ -63,6 +63,18 @@ impl Equipment {
         selected
     }
 
+    /// Cosmetic choices resolve only to owned pieces, independently of combat equipment.
+    pub fn visible_bands(&self, pieces: &[u8]) -> [Option<u8>; GRID_SLOTS] {
+        std::array::from_fn(|slot| {
+            let band = match self.looks[slot] {
+                Look::Worn => self.worn[slot],
+                Look::Hidden => None,
+                Look::Piece(band) => Some(band),
+            };
+            band.filter(|&band| Self::owns(pieces, slot, band))
+        })
+    }
+
     pub fn encode(&self) -> (String, String) {
         let worn = self
             .worn
@@ -107,6 +119,27 @@ impl Equipment {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn visible_loadout_obeys_ownership_and_never_changes_power() {
+        let mut pieces = [0; PIECES];
+        pieces[0] = 1;
+        pieces[GRID_SLOTS] = 1;
+        let mut gear = Equipment::legacy(&pieces);
+        let combat = gear.worn_pieces(&pieces);
+        assert_eq!(gear.visible_bands(&pieces)[0], Some(1));
+        gear.show(&pieces, 0, Look::Piece(0));
+        assert_eq!(gear.visible_bands(&pieces)[0], Some(0));
+        assert_eq!(gear.worn_pieces(&pieces), combat);
+        gear.show(&pieces, 0, Look::Hidden);
+        assert_eq!(gear.visible_bands(&pieces)[0], None);
+        assert_eq!(gear.worn_pieces(&pieces), combat);
+        gear.looks[0] = Look::Piece(5);
+        assert_eq!(gear.visible_bands(&pieces)[0], None);
+        gear.looks[0] = Look::Worn;
+        pieces[GRID_SLOTS] = 0;
+        assert_eq!(gear.visible_bands(&pieces)[0], None);
+    }
 
     #[test]
     fn choosing_weaker_gear_and_appearance_are_independent() {

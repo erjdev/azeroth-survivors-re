@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Dressed heroes and independent cosmetics
+
+Selected armor and weapons now dress the world hero and Character preview. Hidden pieces
+and appearance overrides leave equipped bonuses unchanged. Large-weapon preview framing
+and the broader race/sex/weapon matrix remain unfinished.
+
+**Validation:** native build, 44 core tests and 60 Survivors tests passed. A seeded account
+at 1440×900 verified plate armor, hiding helmet/chest, independent weapon appearance and
+world entry. Repository checks still stop on two pre-existing terrain formatting errors.
+
+![Dressed Character preview](images/screenshots/2026-10-24-dressed/character.jpg)
+[Hidden helmet comparison](images/screenshots/2026-10-24-dressed/hidden-helm.jpg)
+
 ## 2026-10-24 — Item visual identities
 
 Collection and Character item details now show verified vanilla icons. Added 91 named
