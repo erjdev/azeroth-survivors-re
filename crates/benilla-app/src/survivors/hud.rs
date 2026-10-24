@@ -1,6 +1,8 @@
 //! The mode's screens, in bevy_ui since FrameXML is off: the class and hero pick, the in-run HUD,
 //! the level-up cards, pause, and the results.
 
+pub(super) mod card_growth;
+
 use std::collections::HashMap;
 
 use benilla_ui::script::nameplate;
@@ -1786,7 +1788,7 @@ pub(super) fn describe_card(
                 name: spell_name(spells, def.spell, def.key),
                 tag: "New spell".into(),
                 tag_color: new,
-                desc: format!("{}.", ability_body(def, &c)),
+                desc: ability_body(def, &c),
                 ranks: Some((0, data::MAX_ABILITY_LEVEL)),
             }
         }
@@ -2658,7 +2660,7 @@ fn ability_tip(
     if o.level < data::MAX_ABILITY_LEVEL {
         let next = cast_at(def, o.level + 1, stats, milestones);
         lines.push(TipLine::new("Next rank:", Color::WHITE));
-        lines.push(TipLine::new(next_rank(def, &now, &next), GOLD));
+        lines.push(TipLine::new(next_rank(def, &now, &next), card_growth::GAIN));
     } else {
         lines.push(TipLine::new("Highest rank", DIM));
     }
@@ -2728,7 +2730,7 @@ fn passive_tip(p: &PassiveDef, level: u8, stats: &Stats) -> Vec<TipLine> {
         lines.push(TipLine::new("Next rank:", Color::WHITE));
         lines.push(TipLine::new(
             passive_text(p.stat, p.per_level * f32::from(level + 1)),
-            GOLD,
+            card_growth::GAIN,
         ));
     } else {
         lines.push(TipLine::new("Highest rank", DIM));

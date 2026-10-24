@@ -1,0 +1,200 @@
+//! Choice benefits use the same cast parameters and jewelry rules as applying the choice.
+use super::*;
+
+pub(super) const GAIN: Color = Color::srgb(0.3, 1.0, 0.3);
+const LOSS: Color = Color::srgb(1.0, 0.4, 0.35);
+
+pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, Color)> {
+    let stats = run.stats();
+    match choice {
+        Choice::NewAbility(def) => {
+            let a = cast_at(def, 1, &stats, run.milestones);
+            let b = cast_at(def, 2, &stats, run.milestones);
+            vec![(format!("Next rank\n{}", ability_changes(def, &a, &b)), GAIN)]
+        }
+        Choice::Upgrade(i) => {
+            let o = &run.abilities[i];
+            let a = cast_at(o.def, o.level, &stats, run.milestones);
+            let b = cast_at(o.def, o.level + 1, &stats, run.milestones);
+            vec![(ability_changes(o.def, &a, &b), GAIN)]
+        }
+        Choice::NewPassive(p) => vec![(
+            format!(
+                "{}\nNext rank: {} » {}",
+                passive_text(p.stat, p.per_level),
+                passive_value(p.stat, p.per_level),
+                passive_value(p.stat, 2.0 * p.per_level)
+            ),
+            GAIN,
+        )],
+        Choice::UpPassive(i) => {
+            let (p, rank) = run.passives[i];
+            vec![(
+                format!(
+                    "{}\n{} » {}",
+                    stat_label(p.stat),
+                    passive_value(p.stat, p.per_level * f32::from(rank)),
+                    passive_value(p.stat, p.per_level * f32::from(rank + 1))
+                ),
+                GAIN,
+            )]
+        }
+        Choice::Heal => vec![(
+            format!("Health {} » {}", num(run.hp), num(stats.max_hp)),
+            GAIN,
+        )],
+        Choice::Jewel(kind) => {
+            let before = run.worn.bonus();
+            let mut after = run.worn.clone();
+            after.equip(kind);
+            jewelry_changes(before, after.bonus())
+        }
+    }
+}
+
+fn passive_value(stat: Stat, value: f32) -> String {
+    match stat {
+        Stat::Regen | Stat::Armor => num(value),
+        _ => pct(value),
+    }
+}
+
+fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
+    let mut lines = Vec::new();
+    let mut change = |label: &str, old: f32, new: f32, unit: &str| {
+        if (new - old).abs() > 0.001 {
+            let (old, new) = if num(old) == num(new) {
+                (format!("{old:.2}"), format!("{new:.2}"))
+            } else {
+                (num(old), num(new))
+            };
+            lines.push(format!("{label} {old}{unit} » {new}{unit}"));
+        }
+    };
+    if def.kind != Kind::Immune && def.kind != Kind::Dot {
+        let label = match def.kind {
+            Kind::Heal => "Healing",
+            Kind::Shield => "Absorb",
+            _ => "Damage",
+        };
+        change(label, a.dmg, b.dmg, "");
+    }
+    if a.dot > 0.0 || b.dot > 0.0 {
+        change("Damage / sec", a.dot, b.dot, "");
+    }
+    change("Cooldown", a.cooldown, b.cooldown, "s");
+    if matches!(
+        def.kind,
+        Kind::Bolt | Kind::Strike | Kind::Melee | Kind::Dot | Kind::Chain | Kind::Orbit
+    ) {
+        change(
+            if def.kind == Kind::Chain {
+                "Jumps"
+            } else {
+                "Targets"
+            },
+            a.count as f32,
+            b.count as f32,
+            "",
+        );
+    }
+    change("Radius", a.radius, b.radius, " yd");
+    change("Duration", a.duration, b.duration, "s");
+    if lines.is_empty() {
+        "No numerical change at current bonuses".into()
+    } else {
+        lines.join("\n")
+    }
+}
+
+fn jewelry_changes(
+    a: super::super::campaign::Bonus,
+    b: super::super::campaign::Bonus,
+) -> Vec<(String, Color)> {
+    let mut lines = Vec::new();
+    // Compare the complete jewelry loadout, so a full slot exposes replacement losses.
+    for (label, old, new, percent) in [
+        ("Health", a.health, b.health, false),
+        ("Pickup range", a.pickup, b.pickup, true),
+        ("Armor", a.armor, b.armor, false),
+        ("Damage", a.might, b.might, true),
+        ("Critical chance", a.crit, b.crit, true),
+        ("Multistrike", a.multistrike, b.multistrike, true),
+        ("Movement speed", a.speed, b.speed, true),
+        ("Leech", a.leech, b.leech, true),
+        ("Area", a.area, b.area, true),
+        ("Critical damage", a.crit_damage, b.crit_damage, true),
+        ("Damage reduction", a.reduction, b.reduction, true),
+        ("Cooldown reduction", a.cooldown, b.cooldown, true),
+        ("Gold", a.gold, b.gold, true),
+        ("Experience", a.growth, b.growth, true),
+        ("Luck", a.luck, b.luck, false),
+        (
+            "Direct-attack targets",
+            a.targets as f32,
+            b.targets as f32,
+            false,
+        ),
+    ] {
+        if (new - old).abs() > 0.0001 {
+            let fmt = |v| if percent { pct(v) } else { num(v) };
+            lines.push((
+                format!("{label} bonus {} » {}", fmt(old), fmt(new)),
+                if new > old { GAIN } else { LOSS },
+            ));
+        }
+    }
+    if lines.is_empty() {
+        lines.push(("No change to current jewelry bonuses".into(), DIM));
+    }
+    lines
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn fast_ability_cooldown_changes_keep_enough_precision() {
+        let def = data::ability("sweeping_strikes");
+        let stats = Run::default().stats();
+        let milestones = survivors_core::talents::Milestones::default();
+        let a = cast_at(def, 1, &stats, milestones);
+        let b = cast_at(def, 2, &stats, milestones);
+        assert!(ability_changes(def, &a, &b).contains("Cooldown 0.60s » 0.56s"));
+    }
+
+    #[test]
+    fn full_jewelry_slots_report_losses_as_well_as_gains() {
+        use crate::survivors::campaign::{JewelKind, Worn};
+        let mut worn = Worn::default();
+        worn.equip(JewelKind::Ring(0));
+        worn.equip(JewelKind::Ring(2));
+        let old = worn.bonus();
+        worn.equip(JewelKind::Ring(1));
+        let lines = jewelry_changes(old, worn.bonus());
+        assert!(lines
+            .iter()
+            .any(|(s, c)| s.contains("Critical chance") && *c == LOSS));
+        assert!(lines
+            .iter()
+            .any(|(s, c)| s.contains("Movement speed") && *c == GAIN));
+    }
+    #[test]
+    fn area_upgrades_never_claim_extra_locations_and_defenses_use_their_own_labels() {
+        let stats = Run::default().stats();
+        let milestones = survivors_core::talents::Milestones::default();
+        for key in ["frost_nova", "power_word_shield"] {
+            let def = data::ability(key);
+            let a = cast_at(def, 2, &stats, milestones);
+            let b = cast_at(def, 3, &stats, milestones);
+            let text = ability_changes(def, &a, &b);
+            assert!(!text.contains("Targets"), "{key}: {text}");
+            if def.kind == Kind::Shield {
+                assert!(text.contains("Absorb"));
+            }
+            if def.kind == Kind::Heal {
+                assert!(text.contains("Healing"));
+            }
+        }
+    }
+}

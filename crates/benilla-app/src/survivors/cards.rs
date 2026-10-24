@@ -385,12 +385,20 @@ pub(super) fn deal_cards(
                         ColorStop::percent(rc.with_alpha(0.0), 100.0),
                     ])),
                 ));
-                c.spawn(hud::centered_bundle(
-                    f,
-                    card.desc,
-                    14.0,
-                    Color::srgb(0.92, 0.9, 0.84),
-                ));
+                if !matches!(
+                    choice,
+                    Choice::Upgrade(_) | Choice::NewPassive(_) | Choice::UpPassive(_)
+                ) {
+                    c.spawn(hud::centered_bundle(
+                        f,
+                        card.desc,
+                        14.0,
+                        Color::srgb(0.92, 0.9, 0.84),
+                    ));
+                }
+                for (line, color) in hud::card_growth::describe(choice, &run) {
+                    c.spawn(hud::centered_bundle(f, line, 14.0, color));
+                }
                 // The landing shine, a bright band that crosses once.
                 c.spawn((
                     CardShine(i),

@@ -51,7 +51,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
   </tr>
   <tr>
     <td width="50%"><strong>Combat HUD</strong><br><img src="docs/images/screenshots/2026-10-24/combat.jpg" alt="Combat HUD: Elwynn at run start: health, experience, minimap, abilities and damage meter."><br>Elwynn at run start: health, experience, minimap, abilities and damage meter.</td>
-    <td width="50%"><strong>Level-up cards</strong><br><img src="docs/images/screenshots/2026-10-24/level-up.jpg" alt="Level-up cards: Responsive upgrade choices with card-local shine and rarity glow."><br>Responsive upgrade choices with card-local shine and rarity glow.</td>
+    <td width="50%"><strong>Level-up cards</strong><br><img src="docs/images/screenshots/2026-10-24-upgrade-benefits/level-up.jpg" alt="Level-up cards: Green scaling and next-rank previews; captured at 1440×900."><br>Green scaling and next-rank previews; captured at 1440×900.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Pause</strong><br><img src="docs/images/screenshots/2026-10-24/pause.jpg" alt="Pause: Resume, settings, abandon and quit controls."><br>Resume, settings, abandon and quit controls.</td>

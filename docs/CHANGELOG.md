@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Readable upgrade benefits
+
+Level-up and chest choices show stat changes in green. New spells and passives preview
+their next rank; jewelry compares the resulting loadout, with replacement losses in red.
+Next-rank tooltips use the same green. Gameplay values are unchanged.
+
+**Validation:** native build and 65 Survivors/preview tests passed, including replacement
+losses and area/defensive labels. Live level-up cards checked at 1440×900; jewelry comparison
+is covered by rules tests, not yet a live chest screenshot. Existing terrain formatting
+errors still block the repository-wide gate.
+
+![Green upgrade and next-rank previews, 1440×900](images/screenshots/2026-10-24-upgrade-benefits/level-up.jpg)
+
 ## 2026-10-24 — Dressed heroes and independent cosmetics
 
 Selected armor and weapons now dress the world hero and Character preview. Hidden pieces

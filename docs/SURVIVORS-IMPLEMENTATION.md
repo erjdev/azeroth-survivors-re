@@ -449,3 +449,12 @@ and refresh them when the corresponding interface materially changes. Existing R
 do not establish coverage of missing screens. Review every image for clipping, sheen leakage,
 readability and obsolete controls before calling the gallery complete. Unimplemented surfaces
 remain pending rather than receiving misleading screenshots.
+
+### Upgrade readability checkpoint
+
+Level-up/chest cards show green before/after scaling values from the casting parameters;
+new abilities and passives also preview their next rank. Jewelry compares the resulting
+worn loadout, including red replacement losses and a neutral no-change state. Next-rank
+hover text uses green as well. Validate every choice family at compact and wide sizes;
+current live evidence covers level-up cards at 1440×900, with jewelry replacement covered
+by rules tests. This does not change balance or imply missing item effects are implemented.
