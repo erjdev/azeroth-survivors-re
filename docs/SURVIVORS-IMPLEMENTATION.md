@@ -168,7 +168,7 @@ awards read one catalog, including Keen Eye. Verify each world location against 
 
 ## Phase 5 — talents that change play
 
-Audit the installed catalog with
+Audit the checkout’s configured data catalog with
 `cargo run -p survivors-audit -- "$PWD/wow-data/Data" --talents` before assigning effects
 to real talent IDs. The audit reports each class's native tab order, node IDs, row/column,
 rank spells and prerequisites, and rejects an order that differs from Survivors' three
@@ -186,7 +186,7 @@ through shared combat/stat calculations, not tooltip-only prose. Paladin's named
 are the first vertical slice; then cover every class. Surface effects and selected spec
 on the door and run sheet. Preserve migration from the skeleton arrays.
 
-Individual Paladin stat talents use audited DBC node IDs and vanilla rank caps. Their
+Individual Paladin talents use audited DBC node IDs and vanilla rank caps. Their
 listed effect replaces the provisional +1% damage per spent rank; it does not stack on top
 of that placeholder. All spent ranks still count toward tree milestones. These are explicit
 Survivors conversions: there is no mana resource or separate parry/miss roll in this mode.
@@ -203,6 +203,19 @@ Survivors conversions: there is no mana resource or separate parry/miss roll in 
 | 1403 | Deflection | 5 | +1 percentage point damage reduction |
 | 1411 | Conviction | 5 | +1 percentage point critical chance |
 | 1634 | Pursuit of Justice | 2 | +4% movement speed |
+| 1631 | Improved Judgement | 2 | Judgement cooldown shortened by 10% |
+| 1521 | Improved Hammer of Justice | 3 | Hammer of Justice cooldown shortened by 10% |
+| 1627 | Holy Power | 5 | Holy Shock +2 percentage points critical chance |
+| 1435 | Consecration | 1 | Consecration +20% damage |
+| 1502 | Holy Shock | 1 | Holy Shock +25% damage |
+
+Spell-specific cooldown reductions add within that node and multiply with the ability's
+normal cooldown and milestone modifier. Spell damage multiplies with ordinary damage
+and milestones; critical chance adds and is capped by shared combat parameters. These
+nodes improve abilities already available in the class pool; they do not grant an extra
+ability slot or bypass level-up acquisition. They never add area targets or extra healing
+triggers. Snapshot ranks with the selected hero/spec so edits cannot alter an active run.
+
 
 Use the selected spec's ranks in both the account sheet and run-start snapshot. Reset
 removes only that spec's effects. A talent detail line must distinguish these implemented

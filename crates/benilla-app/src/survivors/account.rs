@@ -532,7 +532,12 @@ impl Account {
             points: hero
                 .map(|hero| hero.tree_points(usize::from(hero.spec)))
                 .unwrap_or([0; 3]),
+            ..Default::default()
         }
+        .with_ranks(
+            hero.map(|hero| hero.dbc[usize::from(hero.spec)].as_slice())
+                .unwrap_or(&[]),
+        )
     }
 
     pub fn bonus_for(&self, class: usize) -> Bonus {
@@ -1269,6 +1274,69 @@ mod tests {
             [10, 0, 0]
         );
         assert_eq!(snapshot.points, [0, 0, 20]);
+    }
+
+    #[test]
+    fn spell_training_snapshot_is_selected_persistent_and_independent_of_later_edits() {
+        let mut account = empty();
+        let first = account.ensure(1);
+        let second = account.create("Uther", "Lightbringer", 1).unwrap();
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == second)
+            .unwrap();
+        hero.dbc[0] = vec![(2, 1631, 2)];
+        hero.dbc[1] = vec![(1, 1521, 3)];
+        hero.spec = 1;
+        let snapshot = account.milestones_picked(1, Some(second));
+        assert!((snapshot.cast("hammer_of_justice").cooldown - 0.7).abs() < 0.00001);
+        assert_eq!(snapshot.cast("judgement").cooldown, 1.0);
+        assert_eq!(
+            account
+                .milestones_picked(1, Some(first))
+                .cast("hammer_of_justice")
+                .cooldown,
+            1.0
+        );
+        assert_eq!(
+            account
+                .milestones_picked(0, Some(second))
+                .cast("hammer_of_justice")
+                .cooldown,
+            1.0
+        );
+        assert_eq!(
+            parse(&encode(&account))
+                .unwrap()
+                .milestones_picked(1, Some(second)),
+            snapshot
+        );
+        account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == second)
+            .unwrap()
+            .spec = 0;
+        let switched = account.milestones_picked(1, Some(second));
+        assert!((switched.cast("judgement").cooldown - 0.8).abs() < 0.00001);
+        assert_eq!(switched.cast("hammer_of_justice").cooldown, 1.0);
+        account.respec(second);
+        assert_eq!(
+            account
+                .milestones_picked(1, Some(second))
+                .cast("judgement")
+                .cooldown,
+            1.0
+        );
+        account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == second)
+            .unwrap()
+            .spec = 1;
+        assert_eq!(account.milestones_picked(1, Some(second)), snapshot);
+        assert!((snapshot.cast("hammer_of_justice").cooldown - 0.7).abs() < 0.00001);
     }
 
     #[test]

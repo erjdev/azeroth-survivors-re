@@ -1,4 +1,4 @@
-//! Survivors-specific milestone effects, independent of engine spell visuals and DBC ranks.
+//! Survivors talent effects and dependency rules, independent of engine spell visuals.
 
 /// One catalog node and its proposed rank, for validating a single talent tree.
 #[derive(Clone, Copy, Debug)]
@@ -43,6 +43,8 @@ pub fn valid_tree(nodes: &[RankedTalent]) -> bool {
 pub struct Milestones {
     pub class: usize,
     pub points: [u32; 3],
+    /// Bounded selected-spec ranks in PALADIN_TALENTS order; not a save format.
+    pub training: [u8; PALADIN_TALENTS.len()],
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -75,6 +77,15 @@ impl Default for CastEffect {
 }
 
 impl Milestones {
+    pub fn with_ranks(mut self, ranks: &[(u8, u32, u8)]) -> Self {
+        if self.class == 1 {
+            for (index, node) in PALADIN_TALENTS.iter().enumerate() {
+                self.training[index] = bounded_rank(node, ranks);
+            }
+        }
+        self
+    }
+
     fn paladin(self, tree: usize, threshold: u32) -> bool {
         self.class == 1 && self.points[tree] >= threshold
     }
@@ -110,6 +121,19 @@ impl Milestones {
                 }
             }
             _ => {}
+        }
+        if self.class == 1 {
+            for (index, node) in PALADIN_TALENTS.iter().enumerate() {
+                let value = node.per_rank * f32::from(self.training[index].min(node.max_rank));
+                match node.stat {
+                    TalentStat::SpellDamage(spell) if spell == key => effect.damage *= 1.0 + value,
+                    TalentStat::SpellCooldown(spell) if spell == key => {
+                        effect.cooldown *= 1.0 - value
+                    }
+                    TalentStat::SpellCrit(spell) if spell == key => effect.crit += value,
+                    _ => {}
+                }
+            }
         }
         effect
     }
@@ -199,6 +223,7 @@ mod tests {
                 let mut before = Milestones {
                     class: 1,
                     points: [0; 3],
+                    ..Default::default()
                 };
                 before.points[tree] = threshold - 1;
                 let mut after = before;
@@ -224,6 +249,7 @@ mod tests {
             let m = Milestones {
                 class,
                 points: [51; 3],
+                ..Default::default()
             };
             for key in [
                 "holy_shock",
@@ -238,6 +264,7 @@ mod tests {
         let m = Milestones {
             class: 1,
             points: [51; 3],
+            ..Default::default()
         };
         assert_eq!(m.cast("fireball"), CastEffect::default());
         assert_eq!(m.cast("consecration").extra_targets, 0);
@@ -248,6 +275,7 @@ mod tests {
         let m = Milestones {
             class: 1,
             points: [0, 20, 0],
+            ..Default::default()
         };
         assert_eq!(m.incoming(10.0, 100.0, 100.0), 10.0);
         assert_eq!(m.incoming(20.0, 45.0, 100.0), 18.0);
@@ -255,10 +283,10 @@ mod tests {
     }
 }
 
-/// A supported individual stat talent. The listed bonus replaces the temporary 1% damage
+/// A supported individual talent. The listed bonus replaces the temporary 1% damage
 /// per point for this node; tree milestones continue to count all spent points.
 #[derive(Clone, Copy, Debug)]
-pub struct StatTalent {
+pub struct TalentDefinition {
     pub id: u32,
     pub max_rank: u8,
     pub name: &'static str,
@@ -275,10 +303,13 @@ pub enum TalentStat {
     Crit,
     Reduction,
     Speed,
+    SpellDamage(&'static str),
+    SpellCooldown(&'static str),
+    SpellCrit(&'static str),
 }
 
-pub const PALADIN_STATS: &[StatTalent] = &[
-    StatTalent {
+pub const PALADIN_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
         id: 1450,
         max_rank: 5,
         name: "Divine Strength",
@@ -286,7 +317,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Damage,
         per_rank: 0.02,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1449,
         max_rank: 5,
         name: "Divine Intellect",
@@ -294,7 +325,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Cooldown,
         per_rank: 0.01,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1422,
         max_rank: 5,
         name: "Improved Devotion Aura",
@@ -302,7 +333,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Armor,
         per_rank: 8.0,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1630,
         max_rank: 3,
         name: "Precision",
@@ -310,7 +341,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Crit,
         per_rank: 0.01,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1423,
         max_rank: 5,
         name: "Toughness",
@@ -318,7 +349,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Armor,
         per_rank: 6.0,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1629,
         max_rank: 5,
         name: "Anticipation",
@@ -326,7 +357,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Reduction,
         per_rank: 0.01,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1401,
         max_rank: 5,
         name: "Improved Blessing of Might",
@@ -334,7 +365,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Damage,
         per_rank: 0.02,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1403,
         max_rank: 5,
         name: "Deflection",
@@ -342,7 +373,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Reduction,
         per_rank: 0.01,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1411,
         max_rank: 5,
         name: "Conviction",
@@ -350,7 +381,7 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Crit,
         per_rank: 0.01,
     },
-    StatTalent {
+    TalentDefinition {
         id: 1634,
         max_rank: 2,
         name: "Pursuit of Justice",
@@ -358,11 +389,51 @@ pub const PALADIN_STATS: &[StatTalent] = &[
         stat: TalentStat::Speed,
         per_rank: 0.04,
     },
+    TalentDefinition {
+        id: 1631,
+        max_rank: 2,
+        name: "Improved Judgement",
+        description: "Judgement: 10% shorter cooldown per rank",
+        stat: TalentStat::SpellCooldown("judgement"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 1521,
+        max_rank: 3,
+        name: "Improved Hammer of Justice",
+        description: "Hammer of Justice: 10% shorter cooldown per rank",
+        stat: TalentStat::SpellCooldown("hammer_of_justice"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 1627,
+        max_rank: 5,
+        name: "Holy Power",
+        description: "Holy Shock: +2% critical chance per rank",
+        stat: TalentStat::SpellCrit("holy_shock"),
+        per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 1435,
+        max_rank: 1,
+        name: "Consecration",
+        description: "Consecration: +20% damage",
+        stat: TalentStat::SpellDamage("consecration"),
+        per_rank: 0.2,
+    },
+    TalentDefinition {
+        id: 1502,
+        max_rank: 1,
+        name: "Holy Shock",
+        description: "Holy Shock: +25% damage",
+        stat: TalentStat::SpellDamage("holy_shock"),
+        per_rank: 0.25,
+    },
 ];
 
-pub fn stat_talent(class: usize, id: u32) -> Option<&'static StatTalent> {
+pub fn talent_definition(class: usize, id: u32) -> Option<&'static TalentDefinition> {
     (class == 1)
-        .then(|| PALADIN_STATS.iter().find(|node| node.id == id))
+        .then(|| PALADIN_TALENTS.iter().find(|node| node.id == id))
         .flatten()
 }
 
@@ -373,14 +444,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
     if class != 1 {
         return bonus;
     }
-    for node in PALADIN_STATS {
-        let rank = ranks
-            .iter()
-            .filter(|(_, id, _)| *id == node.id)
-            .map(|(_, _, rank)| *rank)
-            .max()
-            .unwrap_or(0)
-            .min(node.max_rank);
+    for node in PALADIN_TALENTS {
+        let rank = bounded_rank(node, ranks);
         let value = node.per_rank * f32::from(rank);
         bonus.might -= 0.01 * f32::from(rank);
         match node.stat {
@@ -390,6 +455,9 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::Crit => bonus.crit += value,
             TalentStat::Reduction => bonus.reduction += value,
             TalentStat::Speed => bonus.speed += value,
+            TalentStat::SpellDamage(_)
+            | TalentStat::SpellCooldown(_)
+            | TalentStat::SpellCrit(_) => {}
         }
     }
     bonus
@@ -401,7 +469,7 @@ mod stat_talent_tests {
 
     #[test]
     fn each_named_stat_talent_replaces_its_generic_damage_at_every_rank() {
-        for node in PALADIN_STATS {
+        for node in PALADIN_TALENTS {
             for rank in 0..=node.max_rank {
                 let mut total = crate::campaign::Bonus {
                     might: 0.01 * f32::from(rank),
@@ -416,6 +484,12 @@ mod stat_talent_tests {
                     TalentStat::Crit => total.crit,
                     TalentStat::Reduction => total.reduction,
                     TalentStat::Speed => total.speed,
+                    TalentStat::SpellDamage(_)
+                    | TalentStat::SpellCooldown(_)
+                    | TalentStat::SpellCrit(_) => {
+                        assert!(total.might.abs() < 0.00001);
+                        continue;
+                    }
                 };
                 assert!(
                     (actual - value).abs() < 0.00001,
@@ -430,6 +504,69 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn spell_training_changes_only_its_spell_and_composes_with_milestones() {
+        for node in PALADIN_TALENTS {
+            let key = match node.stat {
+                TalentStat::SpellDamage(key)
+                | TalentStat::SpellCooldown(key)
+                | TalentStat::SpellCrit(key) => key,
+                _ => continue,
+            };
+            for rank in 0..=node.max_rank {
+                let base = Milestones {
+                    class: 1,
+                    points: [30; 3],
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(0, node.id, rank)]);
+                let before = base.cast(key);
+                let after = trained.cast(key);
+                let value = node.per_rank * f32::from(rank);
+                match node.stat {
+                    TalentStat::SpellDamage(_) => {
+                        assert!((after.damage - before.damage * (1.0 + value)).abs() < 0.00001)
+                    }
+                    TalentStat::SpellCooldown(_) => {
+                        assert!((after.cooldown - before.cooldown * (1.0 - value)).abs() < 0.00001)
+                    }
+                    TalentStat::SpellCrit(_) => {
+                        assert!((after.crit - before.crit - value).abs() < 0.00001)
+                    }
+                    _ => unreachable!(),
+                }
+                for other in [
+                    "judgement",
+                    "holy_shock",
+                    "hammer_of_justice",
+                    "consecration",
+                    "fireball",
+                ] {
+                    if other != key {
+                        assert_eq!(trained.cast(other), base.cast(other));
+                    }
+                }
+                assert_eq!(after.extra_targets, before.extra_targets);
+                assert_eq!(after.heal_fraction, before.heal_fraction);
+                let outsider = Milestones {
+                    class: 0,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, node.id, rank)]);
+                assert_eq!(outsider.cast(key), CastEffect::default());
+            }
+            let base = Milestones {
+                class: 1,
+                ..Default::default()
+            };
+            assert_eq!(
+                base.with_ranks(&[(0, node.id, 255), (0, node.id, 1)])
+                    .cast(key),
+                base.with_ranks(&[(0, node.id, node.max_rank)]).cast(key)
+            );
+        }
+    }
+
+    #[test]
     fn unsupported_classes_and_nodes_receive_no_invented_adjustment() {
         assert_eq!(stat_adjustment(0, &[(0, 1422, 5)]).armor, 0.0);
         assert_eq!(stat_adjustment(1, &[(0, 999999, 5)]).might, 0.0);
@@ -438,4 +575,14 @@ mod stat_talent_tests {
             40.0
         );
     }
+}
+
+fn bounded_rank(node: &TalentDefinition, ranks: &[(u8, u32, u8)]) -> u8 {
+    ranks
+        .iter()
+        .filter(|(_, id, _)| *id == node.id)
+        .map(|(_, _, rank)| *rank)
+        .max()
+        .unwrap_or(0)
+        .min(node.max_rank)
 }

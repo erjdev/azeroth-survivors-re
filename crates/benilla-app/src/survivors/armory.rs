@@ -1008,7 +1008,7 @@ pub(super) fn talent_details(
         .and_then(|spells| spells.catalog.get(node.spell))
         .map(|spell| spell.name.as_str())
         .unwrap_or("Talent");
-    let effect = survivors_core::talents::stat_talent(node.class, node.id)
+    let effect = survivors_core::talents::talent_definition(node.class, node.id)
         .map(|node| node.description)
         .unwrap_or("Individual effect pending; currently +1% damage per rank.");
     let value = format!("{name}  {}/{} — Survivors: {effect}", node.rank, node.max);

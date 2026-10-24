@@ -158,9 +158,11 @@ fn talents(chain: &mut benilla_formats::Chain) -> Result<()> {
                     .get(talent.ranks[0])
                     .map(|spell| spell.name.as_str())
                     .unwrap_or("MISSING SPELL");
-                if let Some(effect) = survivors_core::talents::stat_talent(class_index, talent.id) {
+                if let Some(effect) =
+                    survivors_core::talents::talent_definition(class_index, talent.id)
+                {
                     if name != effect.name || talent.max_rank() != u32::from(effect.max_rank) {
-                        println!("STAT TALENT MISMATCH: {} / {}", talent.id, name);
+                        println!("TALENT MISMATCH: {} / {}", talent.id, name);
                         gaps += 1;
                     }
                 }
@@ -170,7 +172,7 @@ fn talents(chain: &mut benilla_formats::Chain) -> Result<()> {
             }
         }
     }
-    for effect in survivors_core::talents::PALADIN_STATS {
+    for effect in survivors_core::talents::PALADIN_TALENTS {
         let present = talents
             .tabs_for_class(1, data::CLASSES[1].id)
             .iter()
@@ -181,7 +183,7 @@ fn talents(chain: &mut benilla_formats::Chain) -> Result<()> {
                     .any(|node| node.id == effect.id)
             });
         if !present {
-            println!("MISSING STAT TALENT: {} / {}", effect.id, effect.name);
+            println!("MISSING SUPPORTED TALENT: {} / {}", effect.id, effect.name);
             gaps += 1;
         }
     }

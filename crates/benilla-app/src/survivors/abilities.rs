@@ -974,6 +974,7 @@ mod milestone_tests {
         let talents = Milestones {
             class: 1,
             points: [0, 0, 30],
+            ..Default::default()
         };
         let p = Params::new(&owned, &stats, talents);
         let hits = storm_hits(
@@ -992,12 +993,53 @@ mod milestone_tests {
     }
 
     #[test]
+    fn individual_spell_training_reaches_shared_combat_parameters() {
+        let run = Run::default();
+        let stats = run.stats();
+        let base = Milestones {
+            class: 1,
+            points: [30; 3],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (2, 1631, 2),
+            (1, 1521, 3),
+            (0, 1627, 5),
+            (0, 1435, 1),
+            (0, 1502, 1),
+        ]);
+        for (key, damage, cooldown, crit) in [
+            ("judgement", 1.0, 0.8, 0.0),
+            ("hammer_of_justice", 1.0, 0.7, 0.0),
+            ("consecration", 1.2, 1.0, 0.0),
+            ("holy_shock", 1.25, 1.0, 0.1),
+        ] {
+            let owned = super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 1,
+                cd: 0.0,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+            assert!(
+                (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                "{key}"
+            );
+            assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+            assert_eq!(after.count, before.count);
+            assert_eq!(after.radius, before.radius);
+        }
+    }
+
+    #[test]
     fn paladin_cast_numbers_and_once_per_cast_benefits_reach_combat() {
         let mut run = Run::default();
         let stats = run.stats();
         let holy = Milestones {
             class: 1,
             points: [30, 0, 0],
+            ..Default::default()
         };
         let shock = super::super::Owned {
             def: super::super::data::ability("holy_shock"),
@@ -1027,6 +1069,7 @@ mod milestone_tests {
         let ret = Milestones {
             class: 1,
             points: [0, 0, 30],
+            ..Default::default()
         };
         finish_milestone_cast(&mut run, ret.cast("judgement"), 100.0);
         assert_eq!(run.abilities[0].cd, 0.0);
@@ -1038,6 +1081,7 @@ mod milestone_tests {
         run.milestones = Milestones {
             class: 1,
             points: [0, 20, 0],
+            ..Default::default()
         };
         run.hp = run.stats().max_hp * 0.2;
         run.shield_t = 5.0;
