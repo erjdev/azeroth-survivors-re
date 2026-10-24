@@ -131,7 +131,10 @@ with the intention images; compilation alone does not establish visual completio
 Apply the responsive-layout contract below to every surface, including the combat HUD
 and draft cards, rather than treating these two resolutions as fixed design canvases.
 
-Current Character checkpoint: proportional scroll columns now expose worn equipment,
+Current Character checkpoint: equipment rows now include runtime item icons, selected-item
+highlights and aligned empty slots, shared with Collection. Live 1440×900 checks covered
+all nine icons, selection/details and unequip/re-equip; the native build and 71 focused tests passed.
+Proportional scroll columns expose worn equipment,
 summed equipment bonuses and shared item/look actions alongside existing hero controls.
 Named heroes now persist independent race/sex choices, with legacy migration and invalid-save
 coverage in the 57-test Survivors suite. Live multi-hero switching still needs verification.

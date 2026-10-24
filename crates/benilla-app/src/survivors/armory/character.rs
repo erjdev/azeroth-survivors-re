@@ -40,7 +40,7 @@ pub(super) fn build(
         .with_children(|row| {
             collection::column(row, layout.left_width, layout, |body| {
                 body_controls(body, art, font, account, selection, layout);
-                collection::equipment(body, font, account, selection, layout);
+                collection::equipment(body, font, armory, account, selection, layout);
             });
             collection::column(
                 row,

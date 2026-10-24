@@ -121,7 +121,7 @@ pub(super) fn build(
             column(row, layout.left_width, layout, |body| {
                 text(body, font, "Appearance", layout.title_size, GOLD);
                 chip(body, font, "Choose appearance", Act::Look, false);
-                equipment(body, font, account, selection, layout)
+                equipment(body, font, armory, account, selection, layout)
             });
             column(
                 row,
@@ -175,6 +175,7 @@ pub(super) fn build(
 pub(super) fn equipment(
     ui: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
+    armory: &Armory,
     account: &Account,
     selection: &Selection,
     layout: &Layout,
@@ -192,22 +193,60 @@ pub(super) fn equipment(
             .and_then(|band| campaign::piece_name(class, slot, band))
             .unwrap_or("Empty");
         let color = band.map(super::door::band_color).unwrap_or(DIM);
+        let index = band.unwrap_or(0) * campaign::GRID_SLOTS + slot;
+        let selected = armory.piece == index;
         ui.spawn((
             Button,
-            Act::InspectPiece(band.unwrap_or(0) * campaign::GRID_SLOTS + slot),
+            Act::InspectPiece(index),
             Node {
                 width: Val::Percent(100.0),
-                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                column_gap: Val::Px(layout.gap),
                 flex_shrink: 0.0,
                 padding: UiRect::all(Val::Px(4.0)),
                 border: UiRect::all(Val::Px(1.0)),
                 ..default()
             },
-            BorderColor::all(Color::srgb(0.20, 0.17, 0.09)),
+            BorderColor::all(if selected {
+                GOLD
+            } else {
+                Color::srgb(0.20, 0.17, 0.09)
+            }),
+            BackgroundColor(if selected {
+                Color::srgb(0.15, 0.11, 0.045)
+            } else {
+                Color::NONE
+            }),
         ))
         .with_children(|entry| {
-            text(entry, font, *label, layout.body_size - 2.0, DIM);
-            text(entry, font, name, layout.body_size, color);
+            let size = layout.body_size * 2.4;
+            if let Some(band) = band {
+                super::super::gear_icons::spawn(entry, class, slot, band, size);
+            } else {
+                entry.spawn((
+                    Node {
+                        width: Val::Px(size),
+                        height: Val::Px(size),
+                        flex_shrink: 0.0,
+                        border: UiRect::all(Val::Px(1.0)),
+                        ..default()
+                    },
+                    BorderColor::all(Color::srgb(0.20, 0.17, 0.09)),
+                    BackgroundColor(Color::srgb(0.025, 0.02, 0.01)),
+                ));
+            }
+            entry
+                .spawn(Node {
+                    flex_direction: FlexDirection::Column,
+                    flex_grow: 1.0,
+                    flex_basis: Val::Px(0.0),
+                    min_width: Val::Px(0.0),
+                    ..default()
+                })
+                .with_children(|labels| {
+                    text(labels, font, *label, layout.body_size - 2.0, DIM);
+                    text(labels, font, name, layout.body_size, color);
+                });
         });
     }
     text(ui, font, "Equipment bonuses", layout.title_size, GOLD);

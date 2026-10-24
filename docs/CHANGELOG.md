@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Equipment rows
+
+Character and Collection now show equipped item icons beside rarity-colored names, with
+an explicit selection highlight and aligned empty slots. Icon sizes follow the UI text scale.
+
+**Validation:** native build and 71 focused tests passed. Live 1440×900 checks covered
+all nine equipped icons, selection/details, unequip/re-equip and the shared Collection rows.
+Existing terrain formatting still blocks the full repository check.
+
+![Equipment rows and dressed preview](images/screenshots/2026-10-24-equipment-rows/character.jpg)
+
 ## 2026-10-24 — Character appearance controls
 
 Race and sex can now be selected above Character equipment. The preview updates immediately
