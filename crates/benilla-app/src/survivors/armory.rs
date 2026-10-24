@@ -2,6 +2,7 @@
 //! Appearance stays on the glue race and class screen, reached from the hero column.
 
 mod character;
+pub(super) use character::subject as character_subject;
 mod collection;
 mod door;
 mod talent_page;

@@ -52,6 +52,7 @@ use booth::{
     BoothBillboardSpec, BoothEffects, BoothInstance, BoothMotion, BoothPart, BoothRider,
 };
 mod dressup;
+pub(crate) mod survivors_pane;
 pub(crate) use dressup::{DressUpBake, DressUpLook, DressUpPreview};
 mod glue_booth;
 pub(crate) use glue_booth::{

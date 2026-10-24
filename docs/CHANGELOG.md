@@ -6,11 +6,12 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 ## 2026-10-24 — Character loadout layout
 
 Character now has proportional, independently scrollable equipment, hero and item-detail
-columns. Slot inspection and appearance choices share Collection's existing loadout state.
-Native build passed; empty equipment and slot inspection checked at 1440×900. The dressed
-model, inline features, populated-account checks and resolution matrix remain unfinished.
+columns, plus a full-body current-hero preview with turn buttons. Slot inspection and
+appearance choices share Collection's loadout state. Native build passed; framing, turn
+buttons and tab transitions checked at 1440×900. Drag validation, selected-gear dressing,
+inline features, populated-account checks and the resolution matrix remain unfinished.
 
-![Character loadout](images/screenshots/2026-10-24-character/character.jpg)
+![Character preview](images/screenshots/2026-10-24-preview/character.jpg)
 
 ## 2026-10-24 — Armory, progression and world interaction
 

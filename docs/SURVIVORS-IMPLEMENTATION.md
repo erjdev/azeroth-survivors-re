@@ -133,8 +133,11 @@ and draft cards, rather than treating these two resolutions as fixed design canv
 
 Current Character checkpoint: proportional scroll columns now expose worn equipment,
 summed equipment bonuses and shared item/look actions alongside existing hero controls.
-An empty account and slot inspection were checked at 1440×900. This does not satisfy the
-paper-doll, inline feature editor, populated-account or multi-resolution acceptance above.
+The current hero is mirrored through the full-body renderer; framing, turn buttons and
+leaving the tab were checked at 1440×900. The hero still uses its preset trainer appearance:
+selected gear and cosmetic overrides must drive both the world body and this preview.
+Drag input needs further validation. This does not satisfy the fully dressed paper-doll,
+inline feature editor, populated-account or multi-resolution acceptance above.
 
 ## Phase 4 — all twelve zones and gear content
 
