@@ -1734,6 +1734,7 @@ pub(super) fn keys(
                     account.bonus_picked(class, hero),
                 ) {
                     run.apply_perks(account.perks);
+                    run.milestones = account.milestones_picked(class, hero);
                     next.set(Phase::Playing);
                 }
             }
@@ -1795,7 +1796,7 @@ pub(super) fn describe_card(
     match choice {
         Choice::NewAbility(def) => {
             let stats = run.stats();
-            let c = cast_at(def, 1, &stats);
+            let c = cast_at(def, 1, &stats, run.milestones);
             CardText {
                 spell: def.spell,
                 name: spell_name(spells, def.spell, def.key),
@@ -1810,8 +1811,8 @@ pub(super) fn describe_card(
             let next = o.level + 1;
             let stats = run.stats();
             let (a, b) = (
-                cast_at(o.def, o.level, &stats),
-                cast_at(o.def, next, &stats),
+                cast_at(o.def, o.level, &stats, run.milestones),
+                cast_at(o.def, next, &stats, run.milestones),
             );
             // What actually changes, as before → after.
             let mut lines = Vec::new();
@@ -2434,30 +2435,23 @@ fn pct(v: f32) -> String {
 
 /// The numbers an ability casts with at a level, as [`super::abilities::cast_abilities`] takes
 /// them from [`Owned`].
-struct Cast {
-    dmg: f32,
-    dot: f32,
-    count: u32,
-    radius: f32,
-    duration: f32,
-    cooldown: f32,
-}
+type Cast = super::abilities::Params;
 
-fn cast_at(def: &'static AbilityDef, level: u8, stats: &Stats) -> Cast {
-    let o = Owned {
-        def,
-        level,
-        cd: 0.0,
-    };
-    let mult = o.damage_mult() * stats.might;
-    Cast {
-        dmg: def.damage * mult,
-        dot: def.dot * mult,
-        count: o.count(stats),
-        radius: o.radius(stats),
-        duration: o.duration(),
-        cooldown: o.cooldown(stats),
-    }
+fn cast_at(
+    def: &'static AbilityDef,
+    level: u8,
+    stats: &Stats,
+    milestones: survivors_core::talents::Milestones,
+) -> Cast {
+    Cast::new(
+        &Owned {
+            def,
+            level,
+            cd: 0.0,
+        },
+        stats,
+        milestones,
+    )
 }
 
 fn effect_text(effect: Effect) -> Option<String> {
@@ -2611,11 +2605,12 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast) -> String {
 
 fn ability_tip(
     o: &Owned,
+    milestones: survivors_core::talents::Milestones,
     stats: &Stats,
     spells: Option<&crate::ui_action::Spells>,
 ) -> Vec<TipLine> {
     let def = o.def;
-    let now = cast_at(def, o.level, stats);
+    let now = cast_at(def, o.level, stats, milestones);
     let mut lines = vec![
         TipLine::new(spell_name(spells, def.spell, def.key), Color::WHITE)
             .header()
@@ -2638,6 +2633,29 @@ fn ability_tip(
             .right(format!("{} sec cooldown", num(now.cooldown)), Color::WHITE),
     );
     lines.push(TipLine::new(ability_body(def, &now), GOLD));
+    let effect = milestones.cast(def.key);
+    if effect.heal_fraction > 0.0 {
+        lines.push(TipLine::new(
+            "Daybreak: heals 3% maximum health once per cast.",
+            GOLD,
+        ));
+    }
+    if effect.wrath_advance > 0.0 {
+        lines.push(TipLine::new(
+            "The Art of War: advances Hammer of Wrath by 1 second.",
+            GOLD,
+        ));
+    }
+    if effect.storm_fraction > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Divine Storm: {} damage within {} yd of you once per cast.",
+                num(now.dmg * effect.storm_fraction),
+                num(6.0 * stats.area)
+            ),
+            GOLD,
+        ));
+    }
     if !matches!(
         def.kind,
         Kind::Shield | Kind::Immune | Kind::Heal | Kind::Dot
@@ -2645,13 +2663,13 @@ fn ability_tip(
         lines.push(TipLine::new(
             format!(
                 "{} chance to critically strike for double damage",
-                pct(stats.crit)
+                pct(now.crit)
             ),
             DIM,
         ));
     }
     if o.level < data::MAX_ABILITY_LEVEL {
-        let next = cast_at(def, o.level + 1, stats);
+        let next = cast_at(def, o.level + 1, stats, milestones);
         lines.push(TipLine::new("Next rank:", Color::WHITE));
         lines.push(TipLine::new(next_rank(def, &now, &next), GOLD));
     } else {
@@ -2857,7 +2875,7 @@ pub(super) fn icon_tooltip(
         TipFor::Ability(i) => run
             .abilities
             .get(i)
-            .map(|o| ability_tip(o, &stats, spells.as_deref())),
+            .map(|o| ability_tip(o, run.milestones, &stats, spells.as_deref())),
         TipFor::Passive(i) => run
             .passives
             .get(i)

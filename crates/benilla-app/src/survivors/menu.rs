@@ -811,6 +811,7 @@ pub(super) fn menu_clicks(
                     account.bonus_picked(class, hero),
                 ) {
                     run.apply_perks(account.perks);
+                    run.milestones = account.milestones_picked(class, hero);
                     next.set(Phase::Playing);
                 }
             }

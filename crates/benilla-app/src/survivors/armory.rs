@@ -1075,7 +1075,13 @@ fn draw_real_talents(
                     for at in [10, 20, 30] {
                         col.spawn(hud::text_bundle(
                             font,
-                            format!("{at}  {}", campaign::milestone_name(hero.class, tree, at)),
+                            format!(
+                                "{at}  {}{}",
+                                campaign::milestone_name(hero.class, tree, at),
+                                survivors_core::talents::description(hero.class, tree, at)
+                                    .map(|effect| format!("\n{effect}"))
+                                    .unwrap_or_default()
+                            ),
                             12.0,
                             if tree_points >= at { GOLD } else { DIM },
                         ));
@@ -1309,7 +1315,13 @@ fn talents(
                         let reached = points >= at;
                         col.spawn(hud::text_bundle(
                             font,
-                            format!("{at}  {}", campaign::milestone_name(hero.class, tree, at)),
+                            format!(
+                                "{at}  {}{}",
+                                campaign::milestone_name(hero.class, tree, at),
+                                survivors_core::talents::description(hero.class, tree, at)
+                                    .map(|effect| format!("\n{effect}"))
+                                    .unwrap_or_default()
+                            ),
                             12.0,
                             if reached { GOLD } else { DIM },
                         ));

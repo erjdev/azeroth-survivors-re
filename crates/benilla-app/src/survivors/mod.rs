@@ -403,6 +403,7 @@ pub(super) struct Run {
     pub account_paid: bool,
     /// Permanent account bonuses copied on at the start of the run.
     bonus: campaign::Bonus,
+    milestones: survivors_core::talents::Milestones,
     /// Bumped whenever abilities or passives change, so the HUD rebuilds the icon rows once.
     pub version: u32,
     /// A centre-screen announcement and its seconds left.
@@ -468,6 +469,7 @@ impl Default for Run {
             renown_paid: false,
             account_paid: false,
             bonus: campaign::Bonus::default(),
+            milestones: survivors_core::talents::Milestones::default(),
             version: 0,
             banner: None,
             rerolls: 0,

@@ -175,6 +175,24 @@ through shared combat/stat calculations, not tooltip-only prose. Paladin's named
 are the first vertical slice; then cover every class. Surface effects and selected spec
 on the door and run sheet. Preserve migration from the skeleton arrays.
 
+Paladin milestone balance uses the following explicit Survivors behavior. These are custom
+survival-mode effects, not claims about the original MMO spells. Existing per-point/stat
+bonuses remain the baseline; named milestone behavior is additional. Snapshot tree points
+from the selected hero/spec at run start, including legacy spreads. A cast benefit occurs
+only on a successful cast and once regardless of how many targets that cast hits.
+
+| Tree | 10 points | 20 points | 30 points |
+| --- | --- | --- | --- |
+| Holy | Divine Favor: Holy Shock gains 20 percentage points of critical chance | Daybreak: Holy Shock restores 3% maximum health, capped at full health | Light's Grace: Holy Shock cooldown multiplied by 0.8 |
+| Protection | Hallowed Ground: Consecration radius and duration multiplied by 1.25 | Ardent Defender: reduce the portion of damage below 35% health by 20%, after shields, including hits crossing that threshold | Hammer of the Righteous: Hammer of Justice gains two direct targets |
+| Retribution | Seal of Command: Judgement damage multiplied by 1.25 | The Art of War: Judgement advances an owned Hammer of Wrath cooldown by one second, never below zero | Divine Storm: each Judgement cast releases one hero-centered six-yard area dealing 50% of its modified damage, without critical strikes or recursive procs |
+
+Area bonuses scale Divine Storm's radius; extra targets cannot duplicate its location or
+Daybreak healing. Combat and spell tooltips must use shared cast parameters. Verify the
+thresholds, mitigation across the threshold, healing cap, cooldown floor, class isolation,
+spec selection and persistence. Remaining individual talent nodes and other classes require
+the same explicit behavior contract and combat integration.
+
 Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
 threshold tests and representative combat tests prove those behaviors. Switching specs
 changes the next run without losing either spread. Free reset and right-click refund keep

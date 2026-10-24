@@ -510,6 +510,25 @@ impl Account {
         true
     }
 
+    /// Snapshot the selected hero's active spec for the next run, without sharing effects
+    /// across heroes or changing an already-running game when the account is edited.
+    pub fn milestones_picked(
+        &self,
+        class: usize,
+        id: Option<u32>,
+    ) -> survivors_core::talents::Milestones {
+        let hero = match id {
+            Some(id) => self.character(id).filter(|hero| hero.class == class),
+            None => self.characters.iter().find(|hero| hero.class == class),
+        };
+        survivors_core::talents::Milestones {
+            class,
+            points: hero
+                .map(|hero| hero.tree_points(usize::from(hero.spec)))
+                .unwrap_or([0; 3]),
+        }
+    }
+
     pub fn bonus_for(&self, class: usize) -> Bonus {
         let id = self
             .characters
@@ -1178,6 +1197,39 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn milestone_snapshot_uses_the_selected_hero_and_spec_and_survives_save() {
+        let mut account = empty();
+        let first = account.ensure(1);
+        let second = account.create("Uther", "Lightbringer", 1).unwrap();
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == second)
+            .unwrap();
+        hero.dbc[0] = vec![(0, 99, 5), (0, 100, 5)];
+        hero.dbc[1] = vec![(2, 101, 5), (2, 102, 5), (2, 103, 5), (2, 104, 5)];
+        hero.spec = 1;
+        let snapshot = account.milestones_picked(1, Some(second));
+        assert_eq!(snapshot.points, [0, 0, 20]);
+        assert_eq!(account.milestones_picked(1, Some(first)).points, [0; 3]);
+        assert_eq!(account.milestones_picked(0, Some(second)).points, [0; 3]);
+        let saved = encode(&account);
+        let loaded = parse(&saved).unwrap();
+        assert_eq!(loaded.milestones_picked(1, Some(second)), snapshot);
+        account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == second)
+            .unwrap()
+            .spec = 0;
+        assert_eq!(
+            account.milestones_picked(1, Some(second)).points,
+            [10, 0, 0]
+        );
+        assert_eq!(snapshot.points, [0, 0, 20]);
+    }
 
     #[test]
     fn duplicate_drops_and_legacy_stack_counts_never_add_power() {

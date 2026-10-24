@@ -399,6 +399,7 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
         run.shield -= absorbed;
         dmg -= absorbed;
     }
+    dmg = run.milestones.incoming(dmg, run.hp, stats.max_hp);
     run.hp -= dmg;
     dmg
 }

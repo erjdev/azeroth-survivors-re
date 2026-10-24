@@ -89,13 +89,34 @@ struct Foe {
 }
 
 /// The numbers one cast uses, from the ability's level and the hero's stats.
-struct Params {
-    dmg: f32,
-    dot: f32,
-    count: usize,
-    radius: f32,
-    duration: f32,
-    cooldown: f32,
+pub(super) struct Params {
+    pub dmg: f32,
+    pub dot: f32,
+    pub count: usize,
+    pub radius: f32,
+    pub duration: f32,
+    pub cooldown: f32,
+    pub crit: f32,
+}
+
+impl Params {
+    pub fn new(
+        o: &super::Owned,
+        stats: &super::Stats,
+        milestones: survivors_core::talents::Milestones,
+    ) -> Self {
+        let effect = milestones.cast(o.def.key);
+        let mult = o.damage_mult() * stats.might * effect.damage;
+        Self {
+            dmg: o.def.damage * mult,
+            dot: o.def.dot * mult,
+            count: o.count(stats) as usize + effect.extra_targets,
+            radius: o.radius(stats) * effect.radius,
+            duration: o.duration() * effect.duration,
+            cooldown: o.cooldown(stats) * effect.cooldown,
+            crit: (stats.crit + effect.crit).min(1.0),
+        }
+    }
 }
 
 fn mark_secs(def: &AbilityDef, duration: f32) -> f32 {
@@ -245,15 +266,9 @@ pub(super) fn cast_abilities(
         }
         let o = &run.abilities[i];
         let def = o.def;
-        let mult = o.damage_mult() * stats.might;
-        let p = Params {
-            dmg: def.damage * mult,
-            dot: def.dot * mult,
-            count: o.count(&stats) as usize,
-            radius: o.radius(&stats),
-            duration: o.duration(),
-            cooldown: o.cooldown(&stats),
-        };
+        let milestone = run.milestones.cast(def.key);
+        let p = Params::new(o, &stats, run.milestones);
+        let crit_chance = p.crit;
         let speed = speed_of(def.spell);
         let fired = match def.kind {
             Kind::Bolt | Kind::Strike | Kind::Melee => {
@@ -282,7 +297,7 @@ pub(super) fn cast_abilities(
                         fx.cast(me, def.spell, &entities(&targets), None);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, crit_chance, stats.crit_damage, p.dmg);
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -311,7 +326,7 @@ pub(super) fn cast_abilities(
                 } else {
                     fx.cast(me, def.spell, &entities(&targets), None);
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, crit_chance, stats.crit_damage, p.dmg);
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -392,7 +407,7 @@ pub(super) fn cast_abilities(
                     for (k, f) in chain.iter().enumerate() {
                         let (dmg, crit) = roll(
                             &mut rng,
-                            stats.crit,
+                            crit_chance,
                             stats.crit_damage,
                             p.dmg * 0.85f32.powi(k as i32),
                         );
@@ -444,7 +459,7 @@ pub(super) fn cast_abilities(
                         fx.impact(f.e, def.spell);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, crit_chance, stats.crit_damage, p.dmg);
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -457,7 +472,7 @@ pub(super) fn cast_abilities(
                 } else {
                     for f in &targets {
                         fx.impact(f.e, 403);
-                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, crit_chance, stats.crit_damage, p.dmg);
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -541,7 +556,50 @@ pub(super) fn cast_abilities(
             }
         };
         run.abilities[i].cd = if fired { p.cooldown } else { 0.2 };
+        if fired {
+            let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
+            if healed > 0.0 {
+                fx.number(me, healed, false, COLOR_HEAL);
+            }
+            if milestone.storm_fraction > 0.0 {
+                // One hero-centered area per Judgement cast, independent of +target.
+                for hit in storm_hits(&foes, hpos, stats.area, p.dmg * milestone.storm_fraction) {
+                    fx.impact(hit.target, 2812);
+                    hits.write(hit);
+                }
+            }
+        }
     }
+}
+
+fn storm_hits(foes: &[Foe], center: Vec3, area: f32, damage: f32) -> Vec<Hit> {
+    around(foes, center, 6.0 * area)
+        .into_iter()
+        .map(|foe| {
+            let mut hit = Hit::direct(foe.e, damage, false);
+            hit.source = "divine_storm";
+            hit.color = COLOR_SPELL;
+            hit
+        })
+        .collect()
+}
+
+/// Once per successful cast, not once per hit or extra target.
+fn finish_milestone_cast(
+    run: &mut Run,
+    effect: survivors_core::talents::CastEffect,
+    max_hp: f32,
+) -> f32 {
+    let healed = (max_hp * effect.heal_fraction).min((max_hp - run.hp).max(0.0));
+    run.hp += healed;
+    if effect.wrath_advance > 0.0 {
+        for owned in &mut run.abilities {
+            if owned.def.key == "hammer_of_wrath" {
+                owned.cd = (owned.cd - effect.wrath_advance).max(0.0);
+            }
+        }
+    }
+    healed
 }
 
 /// Ground areas tick, and totems fight, until they run out.
@@ -884,5 +942,114 @@ pub(super) fn apply_hits(
                 marks.flush(e, guid.0, &mut store, &mut fields);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod milestone_tests {
+    use super::*;
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn divine_storm_hits_one_hero_centered_area_even_with_extra_targets() {
+        let mut world = World::new();
+        let foes: Vec<Foe> = [2.0, 5.0, 10.0]
+            .into_iter()
+            .map(|x| Foe {
+                e: world.spawn_empty().id(),
+                pos: Vec3::X * x,
+                hp: 100.0,
+                dist: x,
+                radius: 0.5,
+            })
+            .collect();
+        let run = Run::default();
+        let mut stats = run.stats();
+        stats.targets = 10;
+        let owned = super::super::Owned {
+            def: super::super::data::ability("judgement"),
+            level: 1,
+            cd: 0.0,
+        };
+        let talents = Milestones {
+            class: 1,
+            points: [0, 0, 30],
+        };
+        let p = Params::new(&owned, &stats, talents);
+        let hits = storm_hits(
+            &foes,
+            Vec3::ZERO,
+            1.0,
+            p.dmg * talents.cast("judgement").storm_fraction,
+        );
+        assert_eq!(hits.len(), 2);
+        assert_eq!(hits[0].target, foes[0].e);
+        assert_eq!(hits[1].target, foes[1].e);
+        assert!(hits
+            .iter()
+            .all(|hit| hit.source == "divine_storm" && hit.splash == 0.0 && !hit.crit));
+        assert_eq!(storm_hits(&foes, Vec3::ZERO, 2.0, p.dmg).len(), 3);
+    }
+
+    #[test]
+    fn paladin_cast_numbers_and_once_per_cast_benefits_reach_combat() {
+        let mut run = Run::default();
+        let stats = run.stats();
+        let holy = Milestones {
+            class: 1,
+            points: [30, 0, 0],
+        };
+        let shock = super::super::Owned {
+            def: super::super::data::ability("holy_shock"),
+            level: 1,
+            cd: 0.0,
+        };
+        let base = Params::new(&shock, &stats, Milestones::default());
+        let trained = Params::new(&shock, &stats, holy);
+        assert!((trained.crit - base.crit - 0.2).abs() < 0.001);
+        assert!((trained.cooldown - base.cooldown * 0.8).abs() < 0.001);
+        run.hp = 80.0;
+        assert_eq!(
+            finish_milestone_cast(&mut run, holy.cast("holy_shock"), 100.0),
+            3.0
+        );
+        run.hp = 99.0;
+        assert_eq!(
+            finish_milestone_cast(&mut run, holy.cast("holy_shock"), 100.0),
+            1.0
+        );
+        assert_eq!(run.hp, 100.0);
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("hammer_of_wrath"),
+            level: 1,
+            cd: 0.4,
+        });
+        let ret = Milestones {
+            class: 1,
+            points: [0, 0, 30],
+        };
+        finish_milestone_cast(&mut run, ret.cast("judgement"), 100.0);
+        assert_eq!(run.abilities[0].cd, 0.0);
+    }
+
+    #[test]
+    fn ardent_defender_applies_after_absorption_and_preserves_immunity() {
+        let mut run = Run::default();
+        run.milestones = Milestones {
+            class: 1,
+            points: [0, 20, 0],
+        };
+        run.hp = run.stats().max_hp * 0.2;
+        run.shield_t = 5.0;
+        run.shield = 10.0;
+        let expected = run.milestones.incoming(
+            super::super::sheet::mitigate(30.0, run.stats().armor, run.stats().reduction) - 10.0,
+            run.hp,
+            run.stats().max_hp,
+        );
+        assert!((hero::hurt_hero(&mut run, 30.0) - expected).abs() < 0.001);
+        assert_eq!(run.shield, 0.0);
+        run.immune_t = 1.0;
+        assert_eq!(hero::hurt_hero(&mut run, 30.0), 0.0);
     }
 }
