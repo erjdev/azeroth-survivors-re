@@ -8,6 +8,9 @@ order to build it in. The pictures win when this file and the code disagree.
 The in-run game stays: waves, level-up cards, chests, gold, the stat sheet, renown, and the
 current enemy counts. The Armory is the account, opened before a run and closed with Done.
 
+The implementation phases, architecture, validation requirements and acceptance criteria are
+in [the implementation contract](SURVIVORS-IMPLEMENTATION.md).
+
 ## What the draft already keeps
 
 These stay, and later phases read them instead of inventing a second copy.
