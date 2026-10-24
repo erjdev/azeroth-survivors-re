@@ -174,6 +174,11 @@ to real talent IDs. The audit reports each class's native tab order, node IDs, r
 rank spells and prerequisites, and rejects an order that differs from Survivors' three
 tree identities. Use an explicit checkout data path; never discover another installed game.
 
+The Talents page uses three illustrated tree panels and a separate spec/details sidebar.
+Load each tree’s four background tiles from the explicitly configured client data. Display
+rank counters, prerequisite connections, and 10/20/30 milestone rows; keep all controls
+reachable at 1280×720 and 1920×1080, including after spending or refunding a rank.
+
 Keep three real named class trees and three saved specs. Define explicit supported talent
 and milestone effects against Survivors abilities. Use vanilla rank patterns and row
 requirements while following the named Survivors milestone design. Implement each effect

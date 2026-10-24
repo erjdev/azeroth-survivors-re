@@ -3,6 +3,8 @@
 
 mod collection;
 mod door;
+mod talent_page;
+pub(super) use talent_page::fill_art as fill_talent_art;
 
 pub(super) use collection::scroll as scroll_collection;
 
@@ -755,13 +757,21 @@ pub(super) fn refresh(
     if armory.page == Page::Look {
         return;
     }
+    commands
+        .entity(root)
+        .insert(BackgroundColor(if armory.page == Page::Talents {
+            Color::srgb(0.012, 0.01, 0.006)
+        } else {
+            Color::srgba(0.02, 0.015, 0.01, 0.62)
+        }));
     commands.entity(root).despawn_related::<Children>();
     let font = assets.font.0.clone();
-    let note = if armory.note.is_empty() && armory.page != Page::Door {
-        "Pick a hero, then a zone. Appearance is on Look."
-    } else {
-        armory.note.as_str()
-    };
+    let note =
+        if armory.note.is_empty() && armory.page != Page::Door && armory.page != Page::Talents {
+            "Pick a hero, then a zone. Appearance is on Look."
+        } else {
+            armory.note.as_str()
+        };
     commands.entity(root).with_children(|panel| {
         door::build(
             panel,
@@ -967,6 +977,7 @@ pub(super) struct TalentInfo {
     spell: u32,
     rank: u8,
     max: u8,
+    milestone: Option<(usize, u32)>,
 }
 
 /// Update the detail line without rebuilding the tree under the pointer.
@@ -978,6 +989,20 @@ pub(super) fn talent_details(
     let Some((_, node)) = nodes.iter().find(|(state, _)| **state != Interaction::None) else {
         return;
     };
+    if let Some((tree, at)) = node.milestone {
+        let effect = survivors_core::talents::description(node.class, tree, at)
+            .unwrap_or("Individual milestone effect pending; provisional tree stat bonuses apply.");
+        let value = format!(
+            "{} · {at} points\n{effect}",
+            campaign::milestone_name(node.class, tree, at)
+        );
+        for mut text in &mut detail {
+            if **text != value {
+                **text = value.clone();
+            }
+        }
+        return;
+    }
     let name = spells
         .as_deref()
         .and_then(|spells| spells.catalog.get(node.spell))
@@ -1100,6 +1125,7 @@ fn draw_real_talents(
                                             spell: talent.ranks[0],
                                             rank,
                                             max: talent.max_rank() as u8,
+                                            milestone: None,
                                         },
                                         Node {
                                             width: Val::Px(28.0),

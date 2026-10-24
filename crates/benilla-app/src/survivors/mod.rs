@@ -122,6 +122,7 @@ impl Plugin for SurvivorsPlugin {
                         armory::refresh,
                         armory::scroll_collection,
                         armory::talent_details,
+                        armory::fill_talent_art,
                     )
                         .chain(),
                     menu::menu_clicks,

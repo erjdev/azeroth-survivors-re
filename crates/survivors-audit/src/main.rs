@@ -143,6 +143,16 @@ fn talents(chain: &mut benilla_formats::Chain) -> Result<()> {
             if tab.name != expected {
                 gaps += 1;
             }
+            for tile in ["TopLeft", "TopRight", "BottomLeft", "BottomRight"] {
+                let path = format!("Interface\\TalentFrame\\{}-{tile}.blp", tab.background);
+                match benilla_formats::read_texture_rgba(chain, &path) {
+                    Ok((width, height, _)) => println!("  ART: {path} · {width}x{height}"),
+                    Err(error) => {
+                        println!("MISSING TALENT ART: {path} · {error}");
+                        gaps += 1;
+                    }
+                }
+            }
             for talent in talents.talents_in_tab(tab.id) {
                 let name = spells
                     .get(talent.ranks[0])
