@@ -628,6 +628,7 @@ dependencies = [
  "serde_json",
  "sha1 0.10.6",
  "smithay-clipboard",
+ "survivors-core",
  "symphonia",
  "toml",
  "wasm-bindgen",
@@ -6539,6 +6540,10 @@ dependencies = [
  "rustversion",
  "syn 2.0.117",
 ]
+
+[[package]]
+name = "survivors-core"
+version = "0.2.0"
 
 [[package]]
 name = "svg_fmt"

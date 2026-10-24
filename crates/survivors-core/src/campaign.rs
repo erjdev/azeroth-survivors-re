@@ -2,10 +2,10 @@
 //! jewelry limits, and the talent skeleton. The menus read these; they do not restate them.
 
 /// Talent experience for one point.
-pub(super) const XP_PER_TALENT: u32 = 100;
+pub const XP_PER_TALENT: u32 = 100;
 /// Initial campaign tuning: one XP per ten survived seconds, ten per defeated boss,
 /// and ten percent more per later zone. The original level/kill/win award is retained.
-pub(super) fn talent_award(
+pub fn talent_award(
     level: u32,
     kills: u32,
     elapsed: f32,
@@ -29,19 +29,19 @@ pub(super) fn talent_award(
 }
 
 /// Points a character can hold, matching a vanilla tree.
-pub(super) const TALENT_CAP: u32 = 51;
+pub const TALENT_CAP: u32 = 51;
 /// Fourteen nodes in a tree. Ranks are the vanilla mix of 5, 3, and 1, and a full tree holds
 /// more than 30 so the last row can open. A character still cannot spend more than
 /// [`TALENT_CAP`] points across all three trees.
-pub(super) const NODES_PER_TREE: usize = 14;
-pub(super) const SPEC_COUNT: usize = 3;
-pub(super) const SPEC_LEN: usize = NODES_PER_TREE * SPEC_COUNT;
+pub const NODES_PER_TREE: usize = 14;
+pub const SPEC_COUNT: usize = 3;
+pub const SPEC_LEN: usize = NODES_PER_TREE * SPEC_COUNT;
 /// Row of each node inside one tree. Row `n` opens after `n * 5` points already spent there.
-pub(super) const NODE_ROW: [u8; NODES_PER_TREE] = [0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6];
-pub(super) const NODE_RANKS: [u8; NODES_PER_TREE] = [5, 5, 5, 3, 3, 1, 5, 5, 1, 3, 1, 1, 5, 1];
+pub const NODE_ROW: [u8; NODES_PER_TREE] = [0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6];
+pub const NODE_RANKS: [u8; NODES_PER_TREE] = [5, 5, 5, 3, 3, 1, 5, 5, 1, 3, 1, 1, 5, 1];
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(super) enum Quality {
+pub enum Quality {
     Poor,
     Common,
     Uncommon,
@@ -50,7 +50,7 @@ pub(super) enum Quality {
     Legendary,
 }
 
-pub(super) fn quality_name(quality: Quality) -> &'static str {
+pub fn quality_name(quality: Quality) -> &'static str {
     match quality {
         Quality::Poor => "Poor",
         Quality::Common => "Common",
@@ -62,7 +62,7 @@ pub(super) fn quality_name(quality: Quality) -> &'static str {
 }
 
 /// One zone on the path. `map` matches [`super::data::MapDef::name`] when the battleground exists.
-pub(super) struct Zone {
+pub struct Zone {
     pub name: &'static str,
     pub map: &'static str,
     /// Talent level required, in addition to clearing the preceding campaign zone.
@@ -79,9 +79,9 @@ pub(super) struct Zone {
 }
 
 /// How many clear flags a class stores, one per row of [`ZONES`].
-pub(super) const CLEAR_COUNT: usize = 12;
+pub const CLEAR_COUNT: usize = 12;
 
-pub(super) static ZONES: &[Zone] = &[
+pub static ZONES: &[Zone] = &[
     Zone {
         name: "Elwynn Forest",
         map: "Elwynn Forest",
@@ -217,7 +217,7 @@ pub(super) static ZONES: &[Zone] = &[
 ];
 
 /// Gear slot order. A two-handed weapon occupies the off-hand slot.
-pub(super) const SLOTS: [&str; 10] = [
+pub const SLOTS: [&str; 10] = [
     "Helm",
     "Shoulders",
     "Chest",
@@ -231,11 +231,11 @@ pub(super) const SLOTS: [&str; 10] = [
 ];
 
 /// True when the weapon in the main-hand slot is two-handed. It fills that slot only.
-pub(super) fn two_handed(class: usize) -> bool {
+pub fn two_handed(class: usize) -> bool {
     matches!(class, 2 | 4 | 6 | 7 | 8)
 }
 
-pub(super) fn zone_index(map_name: &str) -> Option<usize> {
+pub fn zone_index(map_name: &str) -> Option<usize> {
     ZONES.iter().position(|z| z.map == map_name)
 }
 
@@ -260,7 +260,7 @@ fn content_lock(zone: &Zone) -> Option<String> {
 
 /// A zone opens when it can be entered, the preceding campaign zone is cleared on this class,
 /// and this character's talent level meets the gate. Elwynn needs neither clear nor talent.
-pub(super) fn zone_open(index: usize, talent_level: u32, clears: &[bool]) -> bool {
+pub fn zone_open(index: usize, talent_level: u32, clears: &[bool]) -> bool {
     let Some(zone) = ZONES.get(index) else {
         return false;
     };
@@ -274,7 +274,7 @@ pub(super) fn zone_open(index: usize, talent_level: u32, clears: &[bool]) -> boo
 }
 
 /// Maps that are not on the campaign path stay open. A campaign map uses [`zone_open`].
-pub(super) fn map_allowed(map_name: &str, talent_level: u32, clears: &[bool]) -> bool {
+pub fn map_allowed(map_name: &str, talent_level: u32, clears: &[bool]) -> bool {
     match zone_index(map_name) {
         Some(zone) => zone_open(zone, talent_level, clears),
         None => true,
@@ -282,7 +282,7 @@ pub(super) fn map_allowed(map_name: &str, talent_level: u32, clears: &[bool]) ->
 }
 
 /// Why a campaign zone is shut, when it is.
-pub(super) fn zone_lock_reason(index: usize, talent_level: u32, clears: &[bool]) -> Option<String> {
+pub fn zone_lock_reason(index: usize, talent_level: u32, clears: &[bool]) -> Option<String> {
     if zone_open(index, talent_level, clears) {
         return None;
     }
@@ -304,7 +304,7 @@ pub(super) fn zone_lock_reason(index: usize, talent_level: u32, clears: &[bool])
 /// Flat and percent bonuses one piece of a quality contributes. Each step keeps the previous
 /// lines and adds the next, at higher numbers.
 #[derive(Clone, Copy, Default, Debug)]
-pub(super) struct Bonus {
+pub struct Bonus {
     pub armor: f32,
     pub might: f32,
     pub crit: f32,
@@ -323,7 +323,7 @@ pub(super) struct Bonus {
 }
 
 impl Bonus {
-    pub(super) fn add(&mut self, other: Self) {
+    pub fn add(&mut self, other: Self) {
         self.armor += other.armor;
         self.might += other.might;
         self.crit += other.crit;
@@ -341,7 +341,7 @@ impl Bonus {
     }
 }
 
-pub(super) fn quality_bonus(quality: Quality) -> Bonus {
+pub fn quality_bonus(quality: Quality) -> Bonus {
     match quality {
         Quality::Poor => Bonus {
             armor: 4.0,
@@ -393,7 +393,7 @@ pub(super) fn quality_bonus(quality: Quality) -> Bonus {
 }
 
 /// Ten base pieces together.
-pub(super) fn set_bonus() -> Bonus {
+pub fn set_bonus() -> Bonus {
     Bonus {
         might: 0.10,
         crit: 0.05,
@@ -402,7 +402,7 @@ pub(super) fn set_bonus() -> Bonus {
 }
 
 /// Cloak power. A legendary cloak is the account reward for nine epic class cloaks.
-pub(super) fn cloak_bonus(quality: Quality) -> Bonus {
+pub fn cloak_bonus(quality: Quality) -> Bonus {
     match quality {
         Quality::Uncommon => Bonus {
             might: 0.04,
@@ -436,7 +436,7 @@ pub(super) fn cloak_bonus(quality: Quality) -> Bonus {
 }
 
 #[derive(Clone, Copy, Default)]
-pub(super) struct Feats {
+pub struct Feats {
     pub talent_max: bool,
     pub raid: bool,
     pub collection: bool,
@@ -453,7 +453,7 @@ impl Feats {
 }
 
 /// Cloak rarity from feats completed in any order. The raid feat never yields only an uncommon.
-pub(super) fn cloak_quality(feats: Feats) -> Option<Quality> {
+pub fn cloak_quality(feats: Feats) -> Option<Quality> {
     match feats.count() {
         0 => None,
         4 => Some(Quality::Epic),
@@ -462,20 +462,19 @@ pub(super) fn cloak_quality(feats: Feats) -> Option<Quality> {
     }
 }
 
-pub(super) fn legendary_cloak(epic_cloaks: usize) -> bool {
+pub fn legendary_cloak(epic_cloaks: usize) -> bool {
     epic_cloaks >= 9
 }
 
 /// Nine slots by six qualities. The tenth slot of the draft was the off-hand stand-in.
-pub(super) const GRID_SLOTS: usize = 9;
-pub(super) const BANDS: usize = 6;
-pub(super) const PIECES: usize = GRID_SLOTS * BANDS;
+pub const GRID_SLOTS: usize = 9;
+pub const BANDS: usize = 6;
+pub const PIECES: usize = GRID_SLOTS * BANDS;
 
-pub(super) const BANDS_NAMED: [&str; BANDS] =
-    ["Common", "Uncommon", "Rare", "Epic", "PvP", "Legendary"];
+pub const BANDS_NAMED: [&str; BANDS] = ["Common", "Uncommon", "Rare", "Epic", "PvP", "Legendary"];
 
 /// One creature's roll. The piece's name depends on the class; the creature has to be on the map.
-pub(super) struct DropRow {
+pub struct DropRow {
     pub zone: usize,
     pub slot: usize,
     pub band: usize,
@@ -484,7 +483,7 @@ pub(super) struct DropRow {
     pub chance: u8,
 }
 
-pub(super) static DROPS: &[DropRow] = &[
+pub static DROPS: &[DropRow] = &[
     DropRow {
         zone: 0,
         slot: 0,
@@ -567,12 +566,12 @@ pub(super) static DROPS: &[DropRow] = &[
     },
 ];
 
-pub(super) fn piece_index(band: usize, slot: usize) -> Option<usize> {
+pub fn piece_index(band: usize, slot: usize) -> Option<usize> {
     (band < BANDS && slot < GRID_SLOTS).then_some(band * GRID_SLOTS + slot)
 }
 
 /// A real item name, or nothing when that cell has no verified piece.
-pub(super) fn piece_name(class: usize, slot: usize, band: usize) -> Option<&'static str> {
+pub fn piece_name(class: usize, slot: usize, band: usize) -> Option<&'static str> {
     let row = GEAR_NAMES.get(class)?;
     if band == 0 && slot < GRID_SLOTS {
         return Some(row[slot]);
@@ -583,26 +582,26 @@ pub(super) fn piece_name(class: usize, slot: usize, band: usize) -> Option<&'sta
     None
 }
 
-pub(super) fn drop_for(zone: usize, creature: &str) -> Option<&'static DropRow> {
+pub fn drop_for(zone: usize, creature: &str) -> Option<&'static DropRow> {
     DROPS
         .iter()
         .find(|row| row.zone == zone && row.creature == creature)
 }
 
 /// The strongest owned copy in a slot: `(band, stacks)`.
-pub(super) fn best_piece(pieces: &[u8], slot: usize) -> Option<(usize, u8)> {
+pub fn best_piece(pieces: &[u8], slot: usize) -> Option<(usize, u8)> {
     (0..BANDS).rev().find_map(|band| {
         let n = pieces.get(band * GRID_SLOTS + slot).copied().unwrap_or(0);
         (n > 0).then_some((band, n))
     })
 }
 
-pub(super) fn owned_pieces(pieces: &[u8]) -> usize {
+pub fn owned_pieces(pieces: &[u8]) -> usize {
     pieces.iter().filter(|n| **n > 0).count()
 }
 
 /// Nine worn pieces. A two-handed weapon does not add an off-hand cell.
-pub(super) fn set_complete(pieces: &[u8]) -> bool {
+pub fn set_complete(pieces: &[u8]) -> bool {
     (0..GRID_SLOTS).all(|slot| best_piece(pieces, slot).is_some())
 }
 
@@ -632,7 +631,7 @@ fn band_bonus(band: usize) -> Bonus {
 }
 
 /// One selected piece per slot, its quality's stats, the worn set, and a cloak.
-pub(super) fn equipped_bonus(pieces: &[u8], cloak: Option<Quality>) -> Bonus {
+pub fn equipped_bonus(pieces: &[u8], cloak: Option<Quality>) -> Bonus {
     let mut total = Bonus::default();
     for slot in 0..GRID_SLOTS {
         let Some((band, _)) = best_piece(pieces, slot) else {
@@ -649,14 +648,14 @@ pub(super) fn equipped_bonus(pieces: &[u8], cloak: Option<Quality>) -> Bonus {
     total
 }
 
-pub(super) const RINGS: usize = 9;
-pub(super) const TRINKETS: usize = 13;
-pub(super) const AMULETS: usize = 17;
-pub(super) const RINGS_WORN: usize = 2;
-pub(super) const TRINKETS_WORN: usize = 2;
-pub(super) const AMULETS_WORN: usize = 1;
+pub const RINGS: usize = 9;
+pub const TRINKETS: usize = 13;
+pub const AMULETS: usize = 17;
+pub const RINGS_WORN: usize = 2;
+pub const TRINKETS_WORN: usize = 2;
+pub const AMULETS_WORN: usize = 1;
 
-pub(super) static RING_NAMES: [&str; RINGS] = [
+pub static RING_NAMES: [&str; RINGS] = [
     "Band of the Unicorn",
     "Seal of Wrynn",
     "Ring of the Moon",
@@ -668,7 +667,7 @@ pub(super) static RING_NAMES: [&str; RINGS] = [
     "Ring of the Fallen",
 ];
 
-pub(super) static TRINKET_NAMES: [&str; TRINKETS] = [
+pub static TRINKET_NAMES: [&str; TRINKETS] = [
     "Rune of the Guard Captain",
     "Smotts' Compass",
     "Defender of the Timbermaw",
@@ -686,17 +685,17 @@ pub(super) static TRINKET_NAMES: [&str; TRINKETS] = [
 
 /// Account cosmetics. Display ids are `ItemDisplayInfo` rows the 1.12.1 client ships.
 /// None of them adds a stat.
-pub(super) struct Tabard {
+pub struct Tabard {
     pub name: &'static str,
     pub display: u32,
 }
 
-pub(super) static TABARDS: &[Tabard] = &[Tabard {
+pub static TABARDS: &[Tabard] = &[Tabard {
     name: "Guild Tabard",
     display: 20621,
 }];
 
-pub(super) static AMULET_NAMES: [&str; AMULETS] = [
+pub static AMULET_NAMES: [&str; AMULETS] = [
     "Amulet of the Redeemed",
     "Medallion of Grand Marshal Morris",
     "Pendant of the Fallen Dragon",
@@ -718,27 +717,27 @@ pub(super) static AMULET_NAMES: [&str; AMULETS] = [
 
 /// One legendary amulet exists per primary ability. Seeing the card counts, whether or not it
 /// was taken.
-pub(super) fn legendary_amulet(ability_key: &str) -> String {
+pub fn legendary_amulet(ability_key: &str) -> String {
     format!("Amulet of {ability_key}")
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(super) enum ChestTier {
+pub enum ChestTier {
     C,
     B,
     A,
 }
 
 /// `GameObjectDisplayInfo` 10, 11 and 12: the wooden chest ladder.
-pub(super) fn chest_display(tier: ChestTier) -> u32 {
+pub fn chest_display(tier: ChestTier) -> u32 {
     match tier {
-        ChestTier::C => super::stash::CHEST_DISPLAY,
+        ChestTier::C => crate::CHEST_DISPLAY,
         ChestTier::B => 11,
         ChestTier::A => 12,
     }
 }
 
-pub(super) fn chest_gold(tier: ChestTier, level: u32) -> u32 {
+pub fn chest_gold(tier: ChestTier, level: u32) -> u32 {
     let base = 18 + level / 3;
     match tier {
         ChestTier::C => base,
@@ -747,24 +746,24 @@ pub(super) fn chest_gold(tier: ChestTier, level: u32) -> u32 {
     }
 }
 
-pub(super) fn is_named_elite(map_name: &str, foe_name: &str) -> bool {
+pub fn is_named_elite(map_name: &str, foe_name: &str) -> bool {
     zone_index(map_name)
         .and_then(|i| ZONES.get(i))
         .is_some_and(|z| z.elites.contains(&foe_name))
 }
 
 /// Chance a chest card is jewelry instead of an ability upgrade. Luck raises it.
-pub(super) fn jewel_chance(luck_percent: f32) -> f32 {
+pub fn jewel_chance(luck_percent: f32) -> f32 {
     (0.08 + luck_percent.max(0.0) / 100.0 * 0.42).min(0.50)
 }
 
 /// Among jewelry cards, the share that is a legendary amulet for an owned ability.
-pub(super) fn legend_share(luck_percent: f32) -> f32 {
+pub fn legend_share(luck_percent: f32) -> f32 {
     (luck_percent.max(0.0) / 100.0 * 0.25).min(0.25)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum TradeCard {
+pub enum TradeCard {
     Upgrade(usize),
     Ring(usize),
     Trinket(usize),
@@ -776,7 +775,7 @@ pub(super) enum TradeCard {
 
 /// Three chest cards. `rolls[i]` below [`jewel_chance`] turns that card into jewelry. `picks`
 /// chooses which upgrade or which catalog piece.
-pub(super) fn trade_cards(
+pub fn trade_cards(
     upgradeable: &[usize],
     luck_percent: f32,
     rolls: [f32; 3],
@@ -809,7 +808,7 @@ pub(super) fn trade_cards(
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum JewelKind {
+pub enum JewelKind {
     Ring(u8),
     Trinket(u8),
     Amulet(u8),
@@ -818,7 +817,7 @@ pub(super) enum JewelKind {
 
 /// Jewelry worn for one run: two rings, two trinkets, one amulet, one legendary amulet.
 #[derive(Clone, Copy, Default)]
-pub(super) struct Worn {
+pub struct Worn {
     rings: [Option<u8>; RINGS_WORN],
     trinkets: [Option<u8>; TRINKETS_WORN],
     amulet: Option<u8>,
@@ -826,7 +825,7 @@ pub(super) struct Worn {
 }
 
 impl Worn {
-    pub(super) fn equip(&mut self, kind: JewelKind) {
+    pub fn equip(&mut self, kind: JewelKind) {
         match kind {
             JewelKind::Ring(i) => fill(&mut self.rings, i),
             JewelKind::Trinket(i) => fill(&mut self.trinkets, i),
@@ -835,7 +834,7 @@ impl Worn {
         }
     }
 
-    pub(super) fn bonus(&self) -> Bonus {
+    pub fn bonus(&self) -> Bonus {
         let mut total = Bonus::default();
         for i in self.rings.into_iter().flatten() {
             total.add(ring_bonus(i));
@@ -869,7 +868,7 @@ fn fill(slots: &mut [Option<u8>], index: u8) {
 fn ring_bonus(index: u8) -> Bonus {
     Bonus {
         might: 0.02 + 0.005 * f32::from(index % 3),
-        crit: if index % 2 == 0 { 0.01 } else { 0.0 },
+        crit: if index.is_multiple_of(2) { 0.01 } else { 0.0 },
         speed: if index % 2 == 1 { 0.02 } else { 0.0 },
         ..Bonus::default()
     }
@@ -914,17 +913,17 @@ fn amulet_bonus(index: u8) -> Bonus {
     }
 }
 
-pub(super) fn talent_level(xp: u32) -> u32 {
+pub fn talent_level(xp: u32) -> u32 {
     (xp / XP_PER_TALENT).min(TALENT_CAP)
 }
 
 /// Points still unspent. Spent points cannot exceed the level.
-pub(super) fn unspent_talents(xp: u32, spent: u32) -> u32 {
+pub fn unspent_talents(xp: u32, spent: u32) -> u32 {
     talent_level(xp).saturating_sub(spent)
 }
 
 /// Points already spent in one tree.
-pub(super) fn points_in_tree(ranks: &[u8], tree: usize) -> u32 {
+pub fn points_in_tree(ranks: &[u8], tree: usize) -> u32 {
     let start = tree * NODES_PER_TREE;
     ranks
         .iter()
@@ -934,17 +933,17 @@ pub(super) fn points_in_tree(ranks: &[u8], tree: usize) -> u32 {
         .sum()
 }
 
-pub(super) fn node_row(node: usize) -> u8 {
+pub fn node_row(node: usize) -> u8 {
     NODE_ROW.get(node % NODES_PER_TREE).copied().unwrap_or(0)
 }
 
-pub(super) fn node_max(node: usize) -> u8 {
+pub fn node_max(node: usize) -> u8 {
     NODE_RANKS.get(node % NODES_PER_TREE).copied().unwrap_or(1)
 }
 
 /// A node can be raised when its row is open, it is not full, and a point remains.
 /// Row 0 is open. Each later row opens after 5 more points spent in that same tree.
-pub(super) fn can_learn(ranks: &[u8], node: usize, unspent: u32) -> bool {
+pub fn can_learn(ranks: &[u8], node: usize, unspent: u32) -> bool {
     if unspent == 0 || node >= SPEC_LEN {
         return false;
     }
@@ -955,7 +954,7 @@ pub(super) fn can_learn(ranks: &[u8], node: usize, unspent: u32) -> bool {
 }
 
 /// One rank comes back when the node has one and every remaining rank still meets its row.
-pub(super) fn can_unlearn(ranks: &[u8], node: usize) -> bool {
+pub fn can_unlearn(ranks: &[u8], node: usize) -> bool {
     let rank = ranks.get(node).copied().unwrap_or(0);
     if rank == 0 || node >= SPEC_LEN {
         return false;
@@ -1071,7 +1070,7 @@ fn scale_bonus(bonus: Bonus, rank: u8) -> Bonus {
 
 /// A real `Talent.dbc` node can take a point when its row is open, its prerequisite is met,
 /// it is not full, and a point remains.
-pub(super) fn can_learn_talent(
+pub fn can_learn_talent(
     rank: u8,
     max_rank: u8,
     row: u8,
@@ -1084,7 +1083,7 @@ pub(super) fn can_learn_talent(
 
 /// Points already spent in the three trees, without the skeleton's per-node lines.
 /// The 10, 20, and 30 milestones are unchanged.
-pub(super) fn talent_bonus_spent(trees: [u32; 3]) -> Bonus {
+pub fn talent_bonus_spent(trees: [u32; 3]) -> Bonus {
     let mut total = Bonus::default();
     for points in trees {
         if points == 0 {
@@ -1118,7 +1117,7 @@ pub(super) fn talent_bonus_spent(trees: [u32; 3]) -> Bonus {
 
 /// Spent talents plus the 10, 20, and 30 point milestones in each tree.
 /// Those milestones are what start to change how spells play.
-pub(super) fn talent_bonus(ranks: &[u8]) -> Bonus {
+pub fn talent_bonus(ranks: &[u8]) -> Bonus {
     let mut total = Bonus::default();
     for node in 0..SPEC_LEN {
         let rank = ranks.get(node).copied().unwrap_or(0);
@@ -1213,7 +1212,7 @@ const MILESTONES: [[[&str; 3]; 3]; 9] = [
 ];
 
 /// Milestone title for `at` points in one tree. `at` is 10, 20, or 30.
-pub(super) fn milestone_name(class: usize, tree: usize, at: u32) -> &'static str {
+pub fn milestone_name(class: usize, tree: usize, at: u32) -> &'static str {
     let tier = match at {
         10 => 0,
         20 => 1,
@@ -1227,7 +1226,7 @@ pub(super) fn milestone_name(class: usize, tree: usize, at: u32) -> &'static str
 }
 
 /// The node that stands for the 10, 20, or 30 point line: the first node of that row.
-pub(super) fn milestone_node(at: u32) -> Option<usize> {
+pub fn milestone_node(at: u32) -> Option<usize> {
     let row = match at {
         10 => 2,
         20 => 4,
@@ -1238,7 +1237,7 @@ pub(super) fn milestone_node(at: u32) -> Option<usize> {
 }
 
 /// Real tree names, three per class, in [`super::data::CLASSES`] order.
-pub(super) static TREES: [[&str; 3]; 9] = [
+pub static TREES: [[&str; 3]; 9] = [
     ["Arms", "Fury", "Protection"],
     ["Holy", "Protection", "Retribution"],
     ["Beast Mastery", "Marksmanship", "Survival"],
@@ -1251,7 +1250,7 @@ pub(super) static TREES: [[&str; 3]; 9] = [
 ];
 
 /// Real item names. Each row is the ten base pieces then the legendary weapon, in class order.
-pub(super) static GEAR_NAMES: [[&str; 11]; 9] = [
+pub static GEAR_NAMES: [[&str; 11]; 9] = [
     [
         "Field Plate Helmet",
         "Field Plate Pauldrons",

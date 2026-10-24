@@ -8,13 +8,9 @@ mod abilities;
 mod account;
 mod armory;
 mod auto;
-mod campaign;
 mod cards;
 mod companions;
-mod data;
-mod encounters;
 mod enemies;
-mod equipment;
 mod grade;
 mod hero;
 mod hud;
@@ -23,10 +19,11 @@ mod minimap;
 mod mobility;
 mod notes;
 mod renown;
-mod rewards;
-mod sheet;
 mod stash;
+mod tuning;
 mod units;
+
+pub(crate) use survivors_core::{campaign, data, encounters, equipment, rewards, sheet};
 
 use benilla_world::schedule::WorldStage;
 use bevy::prelude::*;
@@ -49,7 +46,7 @@ impl Plugin for SurvivorsPlugin {
     fn build(&self, app: &mut App) {
         // Present before `OnEnter(InWorld)`, where the UI lifecycle decides not to load FrameXML.
         app.insert_resource(crate::run_mode::CaptureMode)
-            .add_plugins(grade::plugin)
+            .add_plugins((grade::plugin, tuning::plugin))
             .init_state::<Phase>()
             .init_resource::<Rng>()
             .init_resource::<Selection>()
@@ -346,6 +343,7 @@ pub(super) const BASE_MAGNET: f32 = 4.5;
 /// One run's state.
 #[derive(Resource)]
 pub(super) struct Run {
+    tuning: survivors_core::tuning::Tuning,
     pub class: &'static ClassDef,
     pub race: u8,
     pub elapsed: f32,
@@ -425,6 +423,7 @@ pub(super) struct Run {
 impl Default for Run {
     fn default() -> Self {
         Self {
+            tuning: survivors_core::tuning::Tuning::default(),
             class: &data::CLASSES[0],
             race: 0,
             elapsed: 0.0,
@@ -537,6 +536,10 @@ impl Run {
         }
         apply_sheet(&mut s, self.bonus);
         apply_sheet(&mut s, self.worn.bonus());
+        s.might *= self.tuning.damage;
+        s.speed *= self.tuning.movement;
+        s.growth *= self.tuning.experience;
+        s.magnet *= self.tuning.pickup;
         s
     }
 

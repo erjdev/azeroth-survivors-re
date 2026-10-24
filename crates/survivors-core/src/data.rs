@@ -3,9 +3,9 @@
 
 /// A weapon on the hero's virtual item slots: `(slot, display, class, subclass, material, inv,
 /// sheath)`, the creature form of `UNIT_VIRTUAL_ITEM_SLOT_DISPLAY` and `_INFO`.
-pub(crate) type Weapon = (u16, u32, u8, u8, u8, u8, u8);
+pub type Weapon = (u16, u32, u8, u8, u8, u8, u8);
 
-pub(crate) struct ClassDef {
+pub struct ClassDef {
     pub id: u8,
     pub name: &'static str,
     /// `RAID_CLASS_COLORS`, 0xRRGGBB.
@@ -22,7 +22,7 @@ pub(crate) struct ClassDef {
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub(crate) enum Kind {
+pub enum Kind {
     /// A missile at the nearest enemies (or instant if the spell has no speed).
     Bolt,
     /// An instant hit on the nearest enemies in range.
@@ -58,7 +58,7 @@ pub(crate) enum Kind {
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub(crate) enum Effect {
+pub enum Effect {
     None,
     /// Speed multiplier for seconds.
     Slow(f32, f32),
@@ -73,7 +73,7 @@ pub(crate) enum Effect {
     Execute(f32),
 }
 
-pub(crate) struct AbilityDef {
+pub struct AbilityDef {
     pub key: &'static str,
     pub spell: u32,
     pub kind: Kind,
@@ -122,7 +122,7 @@ macro_rules! ability {
     };
 }
 
-pub(crate) static ABILITIES: &[AbilityDef] = &[
+pub static ABILITIES: &[AbilityDef] = &[
     // --- Mage ---
     ability!(
         "frostbolt",
@@ -878,20 +878,20 @@ pub(crate) static ABILITIES: &[AbilityDef] = &[
     ),
 ];
 
-pub(crate) fn ability(key: &str) -> &'static AbilityDef {
+pub fn ability(key: &str) -> &'static AbilityDef {
     ABILITIES
         .iter()
         .find(|a| a.key == key)
         .unwrap_or_else(|| panic!("survivors: no ability {key:?}"))
 }
 
-pub(crate) const MAX_ABILITY_LEVEL: u8 = 8;
-pub(crate) const MAX_PASSIVE_LEVEL: u8 = 5;
-pub(crate) const MAX_ABILITIES: usize = 6;
-pub(crate) const MAX_PASSIVES: usize = 6;
+pub const MAX_ABILITY_LEVEL: u8 = 8;
+pub const MAX_PASSIVE_LEVEL: u8 = 5;
+pub const MAX_ABILITIES: usize = 6;
+pub const MAX_PASSIVES: usize = 6;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub(crate) enum Stat {
+pub enum Stat {
     Might,
     MaxHp,
     Speed,
@@ -904,7 +904,7 @@ pub(crate) enum Stat {
     Crit,
 }
 
-pub(crate) struct PassiveDef {
+pub struct PassiveDef {
     pub key: &'static str,
     pub name: &'static str,
     /// Icon source, and a state visual on the hero where the spell has one.
@@ -913,7 +913,7 @@ pub(crate) struct PassiveDef {
     pub per_level: f32,
 }
 
-pub(crate) static PASSIVES: &[PassiveDef] = &[
+pub static PASSIVES: &[PassiveDef] = &[
     PassiveDef {
         key: "might",
         name: "Blessing of Might",
@@ -986,7 +986,7 @@ pub(crate) static PASSIVES: &[PassiveDef] = &[
     },
 ];
 
-pub(crate) static CLASSES: &[ClassDef] = &[
+pub static CLASSES: &[ClassDef] = &[
     ClassDef {
         id: 1,
         name: "Warrior",
@@ -1200,7 +1200,7 @@ pub(crate) static CLASSES: &[ClassDef] = &[
 ];
 
 #[derive(Clone, Copy)]
-pub(crate) struct EnemyDef {
+pub struct EnemyDef {
     pub name: &'static str,
     pub display: u32,
     pub hp: f32,
@@ -1236,7 +1236,7 @@ const fn en(
 }
 
 /// The Barrens, roughly in the order a character meets them.
-pub(crate) static ENEMIES: &[EnemyDef] = &[
+pub static ENEMIES: &[EnemyDef] = &[
     en("Fleeting Plainstrider", 1284, 8.0, 3.6, 2.0, 1, 10),
     en("Zhevra Runner", 6087, 10.0, 4.4, 2.0, 1, 11),
     en("Razormane Quilboar", 1218, 16.0, 3.4, 3.0, 2, 12),
@@ -1278,7 +1278,7 @@ const fn huge(def: EnemyDef) -> EnemyDef {
     }
 }
 
-pub(crate) static BOSSES: &[EnemyDef] = &[
+pub static BOSSES: &[EnemyDef] = &[
     EnemyDef {
         scale: 1.6,
         ..en("Echeyakee", 1934, 700.0, 5.2, 20.0, 60, 16)
@@ -1306,19 +1306,19 @@ pub(crate) static BOSSES: &[EnemyDef] = &[
 ];
 
 /// Survive this long to win.
-pub(crate) const VICTORY_SECS: f32 = 900.0;
+pub const VICTORY_SECS: f32 = 900.0;
 /// A boss every two and a quarter minutes, the last of six at 13:30, a fight before the bell.
-pub(crate) const BOSS_EVERY_SECS: f32 = 135.0;
+pub const BOSS_EVERY_SECS: f32 = 135.0;
 /// Experience per gem: every level of the curve comes at the run's pace.
-pub(crate) const XP_RATE: f32 = 2.0;
+pub const XP_RATE: f32 = 2.0;
 
 /// How far through the run, 0 at the start and 1 at [`VICTORY_SECS`].
-pub(crate) fn progress(elapsed: f32) -> f32 {
+pub fn progress(elapsed: f32) -> f32 {
     (elapsed / VICTORY_SECS).max(0.0)
 }
 
 /// The pool of roster indices at a point in the run, from a roster `tiers` long.
-pub(crate) fn wave_pool(elapsed: f32, tiers: usize) -> [usize; 3] {
+pub fn wave_pool(elapsed: f32, tiers: usize) -> [usize; 3] {
     // The roster spread over thirty steps of the run, the last three from step 28: on The
     // Barrens' thirty tiers, one newer every step.
     let step = (progress(elapsed) * 30.0) as usize;
@@ -1328,22 +1328,22 @@ pub(crate) fn wave_pool(elapsed: f32, tiers: usize) -> [usize; 3] {
 }
 
 /// How many enemies the spawner keeps alive at a point in the run.
-pub(crate) fn target_alive(elapsed: f32) -> usize {
+pub fn target_alive(elapsed: f32) -> usize {
     ((14.0 + progress(elapsed) * 225.0) as usize).min(220)
 }
 
 /// Enemy health grows on top of the tiers, so a late kill takes several spells.
-pub(crate) fn hp_scale(elapsed: f32) -> f32 {
+pub fn hp_scale(elapsed: f32) -> f32 {
     1.0 + progress(elapsed) * 0.75
 }
 
 /// Enemy damage grows the same way.
-pub(crate) fn damage_scale(elapsed: f32) -> f32 {
+pub fn damage_scale(elapsed: f32) -> f32 {
     1.0 + progress(elapsed) * 0.9
 }
 
 /// The experience to go from `level` to the next: Vampire Survivors' curve, cheap early.
-pub(crate) fn xp_to_next(level: u32) -> f32 {
+pub fn xp_to_next(level: u32) -> f32 {
     let l = level as f32;
     if level < 20 {
         5.0 + (l - 1.0) * 10.0
@@ -1356,7 +1356,7 @@ pub(crate) fn xp_to_next(level: u32) -> f32 {
 
 /// A creature on a battleground's roster: who it is, its pace and its size. Its health, damage
 /// and experience come from its place on the roster, read off The Barrens' tuned ladder.
-pub(crate) struct Foe {
+pub struct Foe {
     name: &'static str,
     display: u32,
     level: u32,
@@ -1386,7 +1386,7 @@ const fn giant(name: &'static str, display: u32, level: u32, speed: f32, scale: 
 }
 
 /// Where a run is fought.
-pub(crate) struct MapDef {
+pub struct MapDef {
     pub name: &'static str,
     /// The zone or continent under the name on the menu.
     pub zone: &'static str,
@@ -1404,7 +1404,7 @@ pub(crate) struct MapDef {
     bosses: &'static [Foe],
 }
 
-pub(crate) static MAPS: &[MapDef] = &[
+pub static MAPS: &[MapDef] = &[
     MapDef {
         name: "The Barrens",
         zone: "Kalimdor",
@@ -1998,7 +1998,7 @@ pub(crate) static MAPS: &[MapDef] = &[
 ];
 
 /// A battleground's horde and bosses with their numbers.
-pub(crate) struct Roster {
+pub struct Roster {
     pub enemies: Vec<EnemyDef>,
     pub bosses: Vec<EnemyDef>,
 }
@@ -2021,7 +2021,7 @@ static ROSTERS: std::sync::LazyLock<Vec<Roster>> = std::sync::LazyLock::new(|| {
         .collect()
 });
 
-pub(crate) fn roster(map: usize) -> &'static Roster {
+pub fn roster(map: usize) -> &'static Roster {
     &ROSTERS[map.min(ROSTERS.len() - 1)]
 }
 

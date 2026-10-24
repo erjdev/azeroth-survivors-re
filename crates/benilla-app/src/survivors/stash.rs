@@ -11,7 +11,7 @@ use super::Stats;
 pub(super) const MAX_RELIC_RANK: u8 = 3;
 pub(super) const SEEK_COST: u32 = 75;
 /// `GameObjectDisplayInfo` 10: the wooden chest worn chests use in 1.12.
-pub(super) const CHEST_DISPLAY: u32 = 10;
+pub(super) const CHEST_DISPLAY: u32 = survivors_core::CHEST_DISPLAY;
 
 struct Relic {
     id: &'static str,

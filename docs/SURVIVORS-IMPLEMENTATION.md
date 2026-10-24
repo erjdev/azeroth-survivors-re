@@ -22,16 +22,16 @@ wasm uses the same rules with the existing web entry and platform persistence se
 | Responsibility | Implementation seam |
 | --- | --- |
 | Mode state, run resources, stat assembly | `survivors/mod.rs` |
-| Class abilities, map/creature catalogs | `survivors/data.rs` |
-| Campaign gates, pieces, drop rows, talent rules | `survivors/campaign.rs` |
+| Class abilities, map/creature catalogs | `survivors-core/src/data.rs` |
+| Campaign gates, pieces, drop rows, talent rules | `survivors-core/src/campaign.rs` |
 | Named heroes, class progress, saves, settlement | `survivors/account.rs` |
 | Armory actions and pages | `survivors/armory.rs`, `survivors/armory/door.rs` |
 | Glue appearance and selected hero | `survivors/menu.rs`, `survivors/hero.rs` |
 | Enemy timing, movement, pickups | `survivors/enemies.rs` |
 | Combat and death awards | `survivors/abilities.rs` |
 | Drafts, temporary jewelry, pause/results | `survivors/cards.rs`, `survivors/hud.rs` |
-| Achievement/perk catalog and companions | `survivors/rewards.rs`, `survivors/companions.rs` |
-| Formula boundaries | `survivors/sheet.rs` |
+| Achievement/perk catalog and companions | `survivors-core/src/rewards.rs`, `survivors/companions.rs` |
+| Formula boundaries | `survivors-core/src/sheet.rs` |
 
 ## Existing foundations and remaining gaps
 
@@ -197,3 +197,14 @@ mechanics or unavailable rendering evidence remain open requirements; they are n
 to mark the full goal complete. Progress check-ins should name completed behavior, evidence,
 and the next unresolved dependency. Commit coherent verified pieces on the implementation
 branch as the user requested.
+
+## Development and distribution requirements
+
+The user's additional requirement is fast iteration with as much hot reloading as practical,
+and a distributable executable that can offer future updates. These are part of completion,
+not optional follow-ups. Follow [development and distribution](SURVIVORS-DEVELOPMENT.md):
+measure warm rebuilds, keep engine compilation cached, isolate pure game rules, grow validated
+live data/UI reloads, and implement a prompted authenticated updater once its release channel
+and signing configuration are defined. A no-op build, pure-rule test, live tuning edit and
+packaged restart/update/rollback each need their own evidence. Do not claim arbitrary Rust
+hot reloading from asset watching or claim self-updating from the existing local restart.

@@ -52,7 +52,7 @@ fn schedule(map: usize) -> &'static [Scheduled] {
 }
 
 /// A campaign table is enterable only when every advertised drop has a scheduled boss.
-pub(super) fn ready(map: usize) -> bool {
+pub fn ready(map: usize) -> bool {
     let Some(zone) = data::MAPS
         .get(map)
         .and_then(|map| campaign::zone_index(map.name))
@@ -77,7 +77,7 @@ pub(super) fn ready(map: usize) -> bool {
 }
 
 /// The next scheduled boss, or the existing arena cadence for maps without campaign drops.
-pub(super) fn next(map: usize, spawned: u32, elapsed: f32) -> Option<&'static data::EnemyDef> {
+pub fn next(map: usize, spawned: u32, elapsed: f32) -> Option<&'static data::EnemyDef> {
     let rows = schedule(map);
     if rows.is_empty() {
         let at = (spawned.saturating_add(1) as f32) * data::BOSS_EVERY_SECS;
@@ -90,7 +90,7 @@ pub(super) fn next(map: usize, spawned: u32, elapsed: f32) -> Option<&'static da
 }
 
 /// Campaign victory waits for all scheduled bosses to die; arena runs keep their timer.
-pub(super) fn won(map: usize, elapsed: f32, defeated: u32) -> bool {
+pub fn won(map: usize, elapsed: f32, defeated: u32) -> bool {
     let rows = schedule(map);
     let last = rows.last().map(|(_, at)| *at as f32).unwrap_or(0.0);
     elapsed >= last.max(data::VICTORY_SECS) && defeated as usize >= rows.len()

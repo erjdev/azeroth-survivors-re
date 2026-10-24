@@ -3,7 +3,7 @@
 use super::campaign::{self, BANDS, GRID_SLOTS, PIECES};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub(super) enum Look {
+pub enum Look {
     #[default]
     Worn,
     Hidden,
@@ -11,7 +11,7 @@ pub(super) enum Look {
 }
 
 #[derive(Clone, Debug, Default)]
-pub(super) struct Equipment {
+pub struct Equipment {
     pub worn: [Option<u8>; GRID_SLOTS],
     pub looks: [Look; GRID_SLOTS],
 }

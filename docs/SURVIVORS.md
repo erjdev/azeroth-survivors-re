@@ -220,5 +220,6 @@ a doll with nothing to show is the draft again.
 ## Out of scope until this file says otherwise
 
 Shrinking the horde. Removing the level-up draft, renown, or the relic stash before gear
-and talents replace what the player spends them on. A download-and-run updater. Inventing
+and talents replace what the player spends them on. An unverified download-and-run updater. The prompted, authenticated update design is in
+[development and distribution](SURVIVORS-DEVELOPMENT.md). Inventing
 item icons, creature display ids, or map files that are not in the 1.12.1 client.

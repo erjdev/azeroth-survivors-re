@@ -76,6 +76,12 @@ That runs `cargo survivors`: the `play` profile, release optimizations with incr
 
 The script points `WOW_DATA` at `wow-data\Data` when that folder is already there. The program it produces is `target\play\warcraft-survivors.exe`. Closing the window does not throw the build away; the next launch compiles only if the source changed.
 
+Use `cargo survivors-rules` for the engine-independent rule tests. Native development builds
+also reload `crates/survivors-core/tuning.txt` while running, so damage, movement, experience
+and pickup multipliers can be adjusted without a Rust build. See
+[development and distribution](docs/SURVIVORS-DEVELOPMENT.md) for cache boundaries, live
+tuning validation, and the planned prompted updater.
+
 Run `make` (or `make help`) to list every target.
 
 ## Controls

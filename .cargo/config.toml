@@ -8,3 +8,6 @@ play = "run --profile play -p benilla"
 # `benilla-app` from scratch. Day-to-day edits use this alias (or `survivors-build`).
 survivors = "run --profile play -p warcraft-survivors"
 survivors-build = "build --profile play -p warcraft-survivors"
+
+# Pure rules use a tiny persistent cache, independent of an ongoing native engine build.
+survivors-rules = "test -p survivors-core --target-dir target/survivors-rules"

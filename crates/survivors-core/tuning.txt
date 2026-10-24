@@ -1,0 +1,6 @@
+# Native development builds reload this file without recompiling Rust.
+# Multipliers apply to the current run. Each value must be finite and between 0.1 and 10.
+damage = 1.0
+movement = 1.0
+experience = 1.0
+pickup = 1.0

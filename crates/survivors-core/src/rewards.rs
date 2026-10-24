@@ -6,7 +6,7 @@ use super::data;
 
 /// Ranks bought on the rewards screen. The number is the rank, and the effect is the rank.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub(super) struct PerkRanks {
+pub struct PerkRanks {
     /// Free redraws of a level-up hand. Rank 1 is one, rank 3 is three.
     pub second_thoughts: u8,
     /// Pass a hand and take gold instead.
@@ -22,7 +22,7 @@ pub(super) struct PerkRanks {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum Perk {
+pub enum Perk {
     SecondThoughts,
     Skip,
     Veterans,
@@ -63,7 +63,7 @@ const BANISH: [u32; 3] = [15, 25, 40];
 const OPENING: [u32; 1] = [25];
 const KEEN: [u32; 2] = [20, 35];
 
-pub(super) fn perk_cost(perk: Perk, rank: u8) -> Option<u32> {
+pub fn perk_cost(perk: Perk, rank: u8) -> Option<u32> {
     let table: &[u32] = match perk {
         Perk::SecondThoughts => &THOUGHTS,
         Perk::Skip => &SKIP,
@@ -75,7 +75,7 @@ pub(super) fn perk_cost(perk: Perk, rank: u8) -> Option<u32> {
     table.get(usize::from(rank)).copied()
 }
 
-pub(super) fn perk_name(perk: Perk) -> &'static str {
+pub fn perk_name(perk: Perk) -> &'static str {
     match perk {
         Perk::SecondThoughts => "Second Thoughts",
         Perk::Skip => "Skip",
@@ -86,7 +86,7 @@ pub(super) fn perk_name(perk: Perk) -> &'static str {
     }
 }
 
-pub(super) const PERKS: [Perk; 6] = [
+pub const PERKS: [Perk; 6] = [
     Perk::SecondThoughts,
     Perk::Skip,
     Perk::Veterans,
@@ -96,12 +96,12 @@ pub(super) const PERKS: [Perk; 6] = [
 ];
 
 /// Gold offered for passing a hand, before gold find.
-pub(super) fn skip_gold(level: u32) -> u32 {
+pub fn skip_gold(level: u32) -> u32 {
     8 + level
 }
 
 /// Talent experience multiplier. The account's best character is the measuring stick.
-pub(super) fn veteran_multiplier(rank: u8, mine: u32, best: u32) -> f32 {
+pub fn veteran_multiplier(rank: u8, mine: u32, best: u32) -> f32 {
     if rank == 0 || mine >= best {
         1.0
     } else {
@@ -110,15 +110,19 @@ pub(super) fn veteran_multiplier(rank: u8, mine: u32, best: u32) -> f32 {
 }
 
 /// Added to a boss's chance to drop each piece. Rank 2 is 10%.
-pub(super) fn keen_drop_bonus(rank: u8) -> f32 {
+pub fn keen_drop_bonus(rank: u8) -> f32 {
     0.05 * f32::from(rank.min(2))
 }
 
-pub(super) fn perk_effect(perk: Perk) -> &'static str {
+pub fn perk_effect(perk: Perk) -> &'static str {
     match perk {
-        Perk::SecondThoughts => "Redraw a level-up hand. The first rank is one redraw, the third is three.",
+        Perk::SecondThoughts => {
+            "Redraw a level-up hand. The first rank is one redraw, the third is three."
+        }
         Perk::Skip => "Pass a hand and take gold instead.",
-        Perk::Veterans => "A class behind the account's best earns 20% more talent experience a rank.",
+        Perk::Veterans => {
+            "A class behind the account's best earns 20% more talent experience a rank."
+        }
         Perk::Banish => "Throw out one card and draw another.",
         Perk::OpeningHand => "The first level-up of a run deals four cards.",
         Perk::KeenEye => "A boss is 5% more likely to drop each piece, a rank. Two ranks is 10%.",
@@ -126,12 +130,16 @@ pub(super) fn perk_effect(perk: Perk) -> &'static str {
 }
 
 /// Cards in a level-up hand. The first hand of a run is four when Opening Hand is owned.
-pub(super) fn hand_size(opening: bool, drafts: u32) -> usize {
-    if opening && drafts == 0 { 4 } else { 3 }
+pub fn hand_size(opening: bool, drafts: u32) -> usize {
+    if opening && drafts == 0 {
+        4
+    } else {
+        3
+    }
 }
 
 /// What the account has done, gathered by the save before it checks achievements.
-pub(super) struct Snapshot {
+pub struct Snapshot {
     pub clears: [[bool; campaign::CLEAR_COUNT]; 9],
     pub pieces: u32,
     pub full_sets: u32,
@@ -162,7 +170,7 @@ impl Default for Snapshot {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(super) enum Category {
+pub enum Category {
     Zones,
     Classes,
     Collection,
@@ -195,8 +203,14 @@ struct Achievement {
 impl Kind {
     fn met(&self, snap: &Snapshot) -> bool {
         match *self {
-            Kind::ZoneAny(z) => snap.clears.iter().any(|c| c.get(z).copied().unwrap_or(false)),
-            Kind::ZoneAll(z) => snap.clears.iter().all(|c| c.get(z).copied().unwrap_or(false)),
+            Kind::ZoneAny(z) => snap
+                .clears
+                .iter()
+                .any(|c| c.get(z).copied().unwrap_or(false)),
+            Kind::ZoneAll(z) => snap
+                .clears
+                .iter()
+                .all(|c| c.get(z).copied().unwrap_or(false)),
             Kind::ClassClear(c) => snap
                 .clears
                 .get(c)
@@ -354,7 +368,7 @@ fn catalog() -> Vec<Achievement> {
 }
 
 /// Achievements newly met. Already-paid ids are skipped, so a second pass pays nothing.
-pub(super) fn fresh(snapshot: &Snapshot, earned: &[u16]) -> Vec<(u16, u32)> {
+pub fn fresh(snapshot: &Snapshot, earned: &[u16]) -> Vec<(u16, u32)> {
     catalog()
         .into_iter()
         .filter(|a| !earned.contains(&a.id) && a.kind.met(snapshot))
@@ -362,7 +376,7 @@ pub(super) fn fresh(snapshot: &Snapshot, earned: &[u16]) -> Vec<(u16, u32)> {
         .collect()
 }
 
-pub(super) fn points_of(earned: &[u16]) -> u32 {
+pub fn points_of(earned: &[u16]) -> u32 {
     let cat = catalog();
     earned
         .iter()
@@ -370,16 +384,19 @@ pub(super) fn points_of(earned: &[u16]) -> u32 {
         .sum()
 }
 
-pub(super) fn earned_count(earned: &[u16]) -> usize {
+pub fn earned_count(earned: &[u16]) -> usize {
     let cat = catalog();
-    earned.iter().filter(|id| cat.iter().any(|a| a.id == **id)).count()
+    earned
+        .iter()
+        .filter(|id| cat.iter().any(|a| a.id == **id))
+        .count()
 }
 
-pub(super) fn catalog_len() -> usize {
+pub fn catalog_len() -> usize {
     catalog().len()
 }
 
-pub(super) struct Listed {
+pub struct Listed {
     pub id: u16,
     pub name: String,
     pub points: u32,
@@ -389,7 +406,7 @@ pub(super) struct Listed {
 }
 
 /// Every achievement, earned or still open.
-pub(super) fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
+pub fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
     catalog()
         .into_iter()
         .map(|a| Listed {
@@ -404,7 +421,7 @@ pub(super) fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
 }
 
 /// The first achievement still open, for the rewards page.
-pub(super) fn next_locked(snapshot: &Snapshot, earned: &[u16]) -> Option<String> {
+pub fn next_locked(snapshot: &Snapshot, earned: &[u16]) -> Option<String> {
     catalog()
         .into_iter()
         .find(|a| !earned.contains(&a.id) && !a.kind.met(snapshot))
@@ -428,7 +445,9 @@ mod tests {
         for row in &mut snap.clears {
             row[0] = true;
         }
-        assert!(fresh(&snap, &[1, 21]).iter().any(|(id, pts)| *id == 11 && *pts == 25));
+        assert!(fresh(&snap, &[1, 21])
+            .iter()
+            .any(|(id, pts)| *id == 11 && *pts == 25));
     }
 
     #[test]
