@@ -136,6 +136,87 @@ mod tests {
     }
 
     #[test]
+    fn authored_elwynn_tree_hulls_block_survivors_from_both_sides() {
+        // Explicit data only: never discover an installed game for this regression.
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {
+            eprintln!("SKIP authored Elwynn hull test: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        for model in [
+            "canopylesstree01",
+            "elwynntreecanopy01",
+            "elwynntreecanopy02",
+            "elwynntreecanopy03",
+            "elwynntreecanopy04",
+            "elwynntreemid01",
+        ] {
+            let path = format!("World/azeroth/elwynn/passivedoodads/trees/{model}.m2");
+            let hull = benilla_formats::load_m2_collision_hull(&mut chain, &path).unwrap();
+            assert!(!hull.is_empty(), "{model} has no usable source hull");
+            // Bake the same coordinate basis as the streamer's welded static hulls.
+            let vertices = hull
+                .positions
+                .iter()
+                .map(|p| benilla_assets::coords::wow_to_bevy(*p))
+                .collect();
+            let indices = hull.indices.as_chunks::<3>().0.to_vec();
+            let mut app = fixture(&[0.]);
+            // Mobility requires supported destinations even after the tree unloads.
+            for mut transform in app
+                .world_mut()
+                .query::<&mut Transform>()
+                .iter_mut(app.world_mut())
+            {
+                transform.scale = Vec3::splat(10.0);
+            }
+            let tree = app
+                .world_mut()
+                .spawn((
+                    RigidBody::Static,
+                    Collider::trimesh(vertices, indices),
+                    Transform::default(),
+                ))
+                .id();
+            app.update();
+            app.update();
+            for axis in [Vec3::X, Vec3::NEG_X, Vec3::Z, Vec3::NEG_Z] {
+                let from = axis * 12.0;
+                let desired = -from;
+                let (walk, dash) = app
+                    .world_mut()
+                    .run_system_once(move |floor: Floor| {
+                        (
+                            floor.slide(from, desired, 0.6),
+                            floor.travel(from, desired, 0.6),
+                        )
+                    })
+                    .unwrap();
+                assert!(
+                    walk.distance(desired) > 0.5,
+                    "{model}: walk crossed trunk from {from:?}: {walk:?}"
+                );
+                assert!(
+                    dash.dot(axis) > 0.0,
+                    "{model}: mobility crossed trunk from {from:?}: {dash:?}"
+                );
+            }
+            app.world_mut().despawn(tree);
+            app.update();
+            let clear = app
+                .world_mut()
+                .run_system_once(|floor: Floor| {
+                    floor.travel(Vec3::X * 12.0, Vec3::NEG_X * 12.0, 0.6)
+                })
+                .unwrap();
+            assert!(
+                (clear.x + 12.0).abs() < 0.01,
+                "removed hull must stop blocking: {clear:?}"
+            );
+        }
+    }
+
+    #[test]
     fn walking_slides_along_a_wall_and_mobility_cannot_cross_it() {
         let mut app = fixture(&[0.]);
         app.world_mut().spawn((
