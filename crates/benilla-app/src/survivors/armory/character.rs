@@ -233,6 +233,9 @@ mod tests {
     }
 }
 
+#[derive(Component)]
+pub(in crate::survivors) struct FeatureValue(pub usize);
+
 fn feature_controls(
     body: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
@@ -259,11 +262,14 @@ fn feature_controls(
         })
         .with_children(|row| {
             super::chip(row, font, "<", super::Act::Feature(i, -1), false);
-            row.spawn(hud::text_bundle(
-                font,
-                format!("{} / {}", features.values[i] + 1, features.counts[i]),
-                layout.body_size,
-                GOLD,
+            row.spawn((
+                FeatureValue(i),
+                hud::text_bundle(
+                    font,
+                    format!("{} / {}", features.values[i] + 1, features.counts[i]),
+                    layout.body_size,
+                    GOLD,
+                ),
             ));
             super::chip(row, font, ">", super::Act::Feature(i, 1), false);
         });

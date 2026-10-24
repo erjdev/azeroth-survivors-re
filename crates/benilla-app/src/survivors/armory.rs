@@ -282,7 +282,6 @@ pub(super) fn input(
                         if let (Some(id), Some(values)) = (selection.character, values) {
                             if account.set_features(id, values) {
                                 account.save();
-                                selection.version += 1;
                             }
                         }
                     }
@@ -731,6 +730,7 @@ pub(super) fn refresh(
     phase: Res<State<Phase>>,
     mut drawn: Local<Option<(u64, u64)>>,
     mut root_id: Local<Option<Entity>>,
+    mut feature_values: Query<(&character::FeatureValue, &mut Text)>,
 ) {
     if *phase.get() != Phase::Menu {
         return;
@@ -754,6 +754,27 @@ pub(super) fn refresh(
         };
         if node.display != display {
             node.display = display;
+        }
+    }
+    let features = assets
+        .creatures
+        .as_deref()
+        .zip(assets.bodies.as_deref())
+        .and_then(|(creatures, bodies)| {
+            super::appearance::options(&selection, &account, creatures, &bodies.0)
+        });
+    // Features change the compositor and these counters, not the layout. Keep the
+    // tree (and its focus, scrolling and preview) alive while the player edits.
+    if let Some(features) = &features {
+        for (dial, mut text) in &mut feature_values {
+            let value = format!(
+                "{} / {}",
+                features.values[dial.0] + 1,
+                features.counts[dial.0]
+            );
+            if text.0 != value {
+                text.0 = value;
+            }
         }
     }
     let sig = (
@@ -827,14 +848,7 @@ pub(super) fn refresh(
             note,
             talents.as_deref().map(|loaded| &loaded.catalog),
             &assets.layout.value,
-            assets
-                .creatures
-                .as_deref()
-                .zip(assets.bodies.as_deref())
-                .and_then(|(creatures, bodies)| {
-                    super::appearance::options(&selection, &account, creatures, &bodies.0)
-                })
-                .as_ref(),
+            features.as_ref(),
         );
     });
 }

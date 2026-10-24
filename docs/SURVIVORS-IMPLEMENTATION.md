@@ -154,7 +154,10 @@ and race-specific features now have bounded dials and randomization, persisted p
 Feature descriptor changes refresh the stock compositor and preview. Native build and 70
 focused tests passed; live edits, switching heroes and restart persistence were checked at
 1440×900 and 1280×720. Portrait race buttons, drag input and the broader multi-resolution
-acceptance remain unfinished. Investigate occasional dark button text after a Character rebuild.
+acceptance remain unfinished. Feature-only edits update counters in place, preserving the
+Character tree, scroll state and preview. Transient dark or missing
+button glyphs still appear after UI actions, even without a full rebuild; removing shadows
+or raising caption layers did not resolve the broader issue. Dragging the model also still needs correction (turn buttons work).
 
 ## Phase 4 — all twelve zones and gear content
 

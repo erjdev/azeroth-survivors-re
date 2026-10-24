@@ -10,13 +10,16 @@ and each named hero saves its own choice. Every race in each class's existing ca
 offers both sexes, filling missing bodies with verified same-race trainer presets while
 preserving previous appearances. Skin, face, hair and race-specific features now have live
 controls and randomization, saved independently for each hero. Portrait-style race buttons
-remain unfinished.
+remain unfinished. Feature edits update the counters and model in place, preserving the
+Character screen and preview rotation.
 
 **Validation:** native build and 70 focused tests passed, including local DBC
 identities and readable model files for every body. Live 1440×900 checks covered human,
 night elf, newly available female orc/dwarf warriors, separate heroes and restart persistence.
 Feature edits, hero switching and restart persistence also passed at 1440×900 / 1280×720.
-The full race/class/gear visual matrix remains pending. Existing terrain formatting errors
+Repeated feature edits and retained preview rotation were checked at 1280×720. Transient
+missing button glyphs and model dragging remain open, along with the full race/class/gear
+visual matrix. Existing terrain formatting errors
 still block the repository gate.
 
 ![Character feature editor, 1280×720](images/screenshots/2026-10-24-character-features/character-720.jpg)
