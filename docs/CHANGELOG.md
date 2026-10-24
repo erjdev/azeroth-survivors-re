@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Portrait input during loading
+
+Portrait rotation now stops under the loading cover and cancels held gestures. OS window
+events remain available, including close requests. Added the missing input-audit decisions
+for the portrait and browser heartbeat.
+
+**Validation:** workspace test rebuild and nine focused portrait/loading-cover checks pass.
+Formatting and workspace Clippy also pass. The full test gate is still running; no fresh
+live interaction capture was taken.
+
 ## 2026-10-24 — Locale-aware validation
 
 Corrected UK-only test assumptions for US client data. Glue strings are checked against

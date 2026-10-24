@@ -40,6 +40,7 @@ impl Plugin for SurvivorsPanePlugin {
 
 fn feed(
     subject: Res<ModelSubject>,
+    loading: Res<crate::loading_screen::LoadingScreen>,
     images: Res<PortraitImages>,
     mut panes: ResMut<BoothPanes>,
     mut inspect: ResMut<InspectBooth>,
@@ -92,6 +93,11 @@ fn feed(
             image.image = target.clone();
         }
     }
+    // WindowEvent also carries OS lifecycle messages, so the global cover cannot
+    // clear that mixed stream. Drop only this consumer’s pending gestures.
+    if !drag.accept_input(loading.covering(), &mut events) {
+        return;
+    }
     let angle = yaw.get_or_insert(0.61);
     for (entity, turn) in &turns {
         if clicks.hit(entity) {
@@ -142,6 +148,16 @@ struct DragState {
     held: bool,
 }
 impl DragState {
+    fn accept_input(&mut self, covered: bool, events: &mut MessageReader<WindowEvent>) -> bool {
+        if covered {
+            *self = Self::default();
+            events.clear();
+            false
+        } else {
+            true
+        }
+    }
+
     fn move_to(&mut self, x: Option<f32>, inside: bool) -> f32 {
         let delta = if self.held {
             self.x
@@ -244,6 +260,56 @@ mod tests {
         assert!(drag.move_to(Some(-0.8), false) < 0.0);
         drag.button(false);
         assert_eq!(drag.move_to(Some(0.0), true), 0.0);
+    }
+
+    #[test]
+    fn loading_discards_portrait_gestures_without_consuming_os_events() {
+        use bevy::ecs::system::SystemState;
+        use bevy::window::{CursorMoved, WindowCloseRequested};
+        let mut world = World::new();
+        world.init_resource::<Messages<WindowEvent>>();
+        let window = world.spawn_empty().id();
+        let mut reader = SystemState::<MessageReader<WindowEvent>>::new(&mut world);
+        let mut os_reader = world.resource::<Messages<WindowEvent>>().get_cursor();
+        let mut drag = DragState::default();
+        drag.move_to(Some(0.0), true);
+        drag.button(true);
+        world.resource_mut::<Messages<WindowEvent>>().write_batch([
+            WindowEvent::CursorMoved(CursorMoved {
+                window,
+                position: Vec2::new(100.0, 20.0),
+                delta: Some(Vec2::X),
+            }),
+            WindowEvent::WindowCloseRequested(WindowCloseRequested { window }),
+        ]);
+        {
+            let mut events = reader.get_mut(&mut world);
+            assert!(!drag.accept_input(true, &mut events));
+            assert_eq!(
+                events.read().count(),
+                0,
+                "no delayed drag after the cover drops"
+            );
+        }
+        let messages = world.resource::<Messages<WindowEvent>>();
+        assert!(os_reader
+            .read(messages)
+            .any(|e| matches!(e, WindowEvent::WindowCloseRequested(_))));
+        {
+            let mut events = reader.get_mut(&mut world);
+            assert!(drag.accept_input(false, &mut events));
+            assert_eq!(events.read().count(), 0);
+        }
+        assert_eq!(
+            drag.move_to(Some(0.5), true),
+            0.0,
+            "old held gesture must not resume"
+        );
+        drag.button(true);
+        assert!(
+            drag.move_to(Some(0.6), true) > 0.0,
+            "a fresh gesture still works"
+        );
     }
 
     #[test]

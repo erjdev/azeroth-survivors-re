@@ -355,7 +355,10 @@ start/pool instead, and share the same catalog with the visible grid. Duplicate 
 save entries must never advance completion. Shared jewelry rows currently display full
 counts without discovery tracking; persist account-wide discovery when cards are dealt,
 including abandoned runs, while keeping the jewelry’s effects run-only. Replace the text
-chips with verified icons and a responsive selected-item detail pane.
+chips with verified icons and a responsive selected-item detail pane. Match the reference’s
+class-colored labels, amulet artwork with small spell badges, shared jewelry rows and
+bottom discovery total/bar. Keep counts tied to implemented offers rather than copying
+the screenshot’s larger catalog totals.
 
 ## Phase 7 — integration and visual acceptance
 
@@ -560,3 +563,14 @@ portrait reads ordered `WindowEvent` input, and the browser bridge names
 `EventLoopProxyWrapper` / `WinitUserEvent`. The latter sends only WakeUp; the portrait
 consumes cursor/button events, so ensure loading-cover behavior is enforced before adding
 its verdict. Later gate stages remain unverified.
+
+### Loading-cover checkpoint — 2026-10-24
+
+The portrait now clears its own ordered-event reader and resets held drag state while the
+loading cover is active, before either drag or rotation-button handling. The mixed window
+event stream stays available to OS close/focus/lifecycle readers. The cover audit explicitly
+classifies this consumer rule and the browser’s WakeUp-only heartbeat. A regression test
+checks discarded gestures, preservation of the close request and fresh dragging afterward.
+The workspace test rebuild and nine focused checks pass, including the input audit.
+Formatting and workspace Clippy pass. The full test gate is still running; live interaction
+validation remains outstanding.

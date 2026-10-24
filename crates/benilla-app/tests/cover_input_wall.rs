@@ -76,6 +76,15 @@ const VERDICTS: &[(&str, Verdict)] = &[
              window would warp it back in. Draining it would blind the gate to its own signal.",
         ),
     ),
+    (
+        "WindowEvent",
+        Open(
+            "mixed OS/input stream: the Survivors portrait's DragState::accept_input clears \
+             its own reader and cancels held gestures while LoadingScreen covers; globally \
+             draining it would discard close/focus/lifecycle events for other readers",
+        ),
+    ),
+    ("WinitUserEvent", Open("browser heartbeat sends only WakeUp to keep hidden-tab updates running during loading")),
     // ── Not input at all ────────────────────────────────────────────────────────────────────
     ("ButtonState", Plumbing),
     // Cursor outputs benilla writes; nothing arrives through them.
@@ -85,6 +94,7 @@ const VERDICTS: &[(&str, Verdict)] = &[
     ("CustomCursorImage", Plumbing),
     ("InputPlugin", Plumbing),
     ("WinitPlugin", Plumbing),
+    ("EventLoopProxyWrapper", Plumbing),
     ("InputSystems", Plumbing),
     ("Key", Plumbing),
     ("KeyCode", Plumbing),
