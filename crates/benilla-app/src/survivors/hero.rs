@@ -22,7 +22,7 @@ pub(super) struct Hero {
 }
 
 /// The body radius enemies stop at.
-pub(super) const HERO_RADIUS: f32 = 0.7;
+pub(crate) const HERO_RADIUS: f32 = 0.7;
 
 /// The hop's initial upward speed and the gravity that brings it back down — the reference
 /// `CMovement` jump seed and gravity (`player/state.rs`'s `JUMP_SPEED` / `GRAVITY`).
@@ -153,7 +153,7 @@ pub(super) fn aim_cursor(
     windows: Query<&Window, With<bevy::window::PrimaryWindow>>,
     cams: Query<(&Camera, &Transform), With<WorldCamera>>,
     hero: Query<&Transform, (With<Hero>, Without<WorldCamera>)>,
-    world: super::floor::Floor,
+    world: super::Floor,
     mut aim: ResMut<AimPoint>,
 ) {
     let point = (|| {
@@ -196,7 +196,7 @@ pub(super) fn drive_hero(
     selection: Res<Selection>,
     rig: Res<CamRig>,
     aim: Res<AimPoint>,
-    world: super::floor::Floor,
+    world: super::Floor,
     auto: Option<Res<super::auto::Auto>>,
     mut player: ResMut<crate::player::Player>,
     mut hero: Query<(&mut Transform, &mut MovementState, &mut Hero)>,

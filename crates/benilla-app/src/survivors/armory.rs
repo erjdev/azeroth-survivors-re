@@ -714,7 +714,7 @@ pub(super) fn hero_gate(
 pub(super) struct ArmoryArt<'w> {
     font: Res<'w, HudFont>,
     art: Res<'w, GlueArt>,
-    layout: Res<'w, super::tuning::UiLayout>,
+    layout: Res<'w, super::UiLayout>,
     creatures: Option<Res<'w, crate::entities::Creatures>>,
     bodies: Option<Res<'w, crate::entities::CharCreate>>,
 }

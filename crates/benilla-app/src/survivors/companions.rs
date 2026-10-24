@@ -5,9 +5,9 @@ use bevy::prelude::*;
 
 use super::account::PetRanks;
 use super::enemies::{self, Gem, GemKind};
-use super::floor::Floor;
 use super::hero::Hero;
 use super::units::{self, flat, yaw_toward};
+use super::Floor;
 use super::{Phase, Run};
 use crate::creature_anim::{move_flags, MovementState};
 

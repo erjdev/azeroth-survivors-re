@@ -522,3 +522,20 @@ green; no-install, player-test and live server round-trip success are not establ
 Reusing the exact test executable avoids a redundant package-only rebuild caused by different
 workspace feature unification. The diagnostic package-only rebuild was canceled deliberately;
 the original full workspace test process completed normally with failure status.
+
+The checkout-local patch chain confirms the locale mismatch: GlueLocalization.lua has an
+empty `Localize()` and FrameXML Localization.lua declares `LOCALE_enUS`, without setting
+24-hour time. The current tests/reference explicitly assume enGB. Add coverage for both
+locales while retaining the checks on actual overrides, tooltip refresh and unexpected globals.
+
+The warmup and dev-boundary failures are now repaired: cooldown UI draws a tiny real
+material node under the entry cover, and native instruments live in
+`capture/survivors_tools` behind `DevProbesPlugin`. The rebuilt workspace test binaries
+pass 69 Survivors tests, five pipeline-warm tests and five run-mode tests. Runtime layout
+resources and packaged defaults remain in gameplay; the watchers and probes are dev-only.
+
+Workspace/all-target Clippy with warnings denied and formatting pass. The native
+`warcraft-survivors --no-default-features` check passes with five existing-site warnings:
+four dev-only reexports and the unfulfilled rune dead-code expectation. Clean those up
+without suppressing player warnings globally. Full player tests and a live shader-warmup
+trace remain unverified; these focused checks do not establish a green full gate.

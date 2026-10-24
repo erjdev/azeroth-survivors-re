@@ -86,7 +86,9 @@ finite multipliers from 0.1 to 10. Native builds with the `dev` feature poll it 
 second using real time, including while paused. Valid edits apply to the current run;
 invalid or incomplete edits retain the last good settings and log the reason. Oversized or
 unreadable files are ignored.
-There is no file polling in wasm or player builds. Packaged defaults are embedded so the
+The native polling, F12 screenshot capture and collision probe are registered through
+`dev::DevProbesPlugin` from `capture/survivors_tools`; gameplay owns only the runtime
+resources. There is no file polling in wasm or player builds. Packaged defaults are embedded so the
 executable does not require a source checkout or loose tuning file.
 
 Validation: boot the native development game using the repository-local downloaded data,

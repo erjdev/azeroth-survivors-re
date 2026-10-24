@@ -81,9 +81,9 @@ pub(super) struct LevelTitle;
 /// A radial cooldown sweep over one ability icon: `sweep` is the remaining fraction
 /// (1.0 = just cast, 0.0 = ready), drawn by `ui_sweep.wgsl`.
 #[derive(Asset, TypePath, AsBindGroup, Clone)]
-pub(super) struct SweepUiMaterial {
+pub(crate) struct SweepUiMaterial {
     #[uniform(0)]
-    pub(super) sweep: f32,
+    pub(crate) sweep: f32,
 }
 
 impl UiMaterial for SweepUiMaterial {
@@ -1024,7 +1024,7 @@ pub(super) fn menu_preview(
     selection: Res<Selection>,
     mut run: ResMut<Run>,
     heroes: Query<Entity, With<Hero>>,
-    world: super::floor::Floor,
+    world: super::Floor,
     mut shown: Local<Option<(usize, u32, usize)>>,
 ) {
     if *phase.get() != Phase::Menu {

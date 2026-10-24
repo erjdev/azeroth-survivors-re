@@ -50,7 +50,7 @@ fn probe(
     mut probe: ResMut<Probe>,
     progress: Res<WorldLoadProgress>,
     loading: Res<crate::loading_screen::LoadingScreen>,
-    floor: super::floor::Floor,
+    floor: crate::survivors::Floor,
 ) {
     if probe.done {
         return;
@@ -75,8 +75,8 @@ fn probe(
             };
             let start = Vec3::new(start.x, height, start.z);
             let desired = start + direction * 12.0;
-            let slide = floor.slide(start, desired, super::hero::HERO_RADIUS);
-            let travel = floor.travel(start, desired, super::hero::HERO_RADIUS);
+            let slide = floor.slide(start, desired, crate::survivors::HERO_RADIUS);
+            let travel = floor.travel(start, desired, crate::survivors::HERO_RADIUS);
             let clear = floor.line_clear(start, desired);
             info!("survivors collision probe: {label} direction {direction:?}, start {start:?}, slide advance {:.3}, travel advance {:.3}, requested 12, line clear {clear}", (slide - start).dot(direction), (travel - start).dot(direction));
         }

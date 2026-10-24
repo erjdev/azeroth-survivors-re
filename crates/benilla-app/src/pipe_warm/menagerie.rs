@@ -30,6 +30,8 @@ use super::WarmRig;
 /// `WowModelMaterial` keys, warmed with the model cross.
 #[derive(SystemParam)]
 pub(super) struct WarmLanes<'w> {
+    /// Only registered in Survivors; absent in the network client.
+    sweeps: Option<ResMut<'w, Assets<crate::survivors::SweepUiMaterial>>>,
     celestial: ResMut<'w, Assets<CelestialMaterial>>,
     stars: ResMut<'w, Assets<StarMaterial>>,
     clouds: ResMut<'w, Assets<CloudMaterial>>,
@@ -560,6 +562,23 @@ pub(super) fn spawn_menagerie(
     ));
     count += 1;
 
+    // Same default UI camera and material as the ability HUD. A real, nonzero node
+    // queues the shader under the loading cover; WarmRig owns its cleanup.
+    if let Some(sweeps) = lanes.sweeps.as_mut() {
+        commands.spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                width: px(2.0),
+                height: px(2.0),
+                ..default()
+            },
+            MaterialNode(sweeps.add(crate::survivors::SweepUiMaterial { sweep: 0.5 })),
+            GlobalZIndex(0),
+            Visibility::Visible,
+            WarmRig,
+        ));
+        count += 1;
+    }
     count
 }
 

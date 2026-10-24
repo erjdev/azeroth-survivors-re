@@ -13,7 +13,7 @@ const STEP_UP: f32 = 2.0;
 const DROP: f32 = 8.0;
 
 #[derive(SystemParam)]
-pub(super) struct Floor<'w, 's> {
+pub(crate) struct Floor<'w, 's> {
     collision: WorldCollision<'w, 's>,
 }
 
@@ -318,7 +318,7 @@ mod tests {
                 let at = app
                     .world_mut()
                     .run_system_once(move |floor: Floor| {
-                        floor.travel(Vec3::ZERO, expected, super::super::hero::HERO_RADIUS)
+                        floor.travel(Vec3::ZERO, expected, super::super::HERO_RADIUS)
                     })
                     .unwrap();
                 assert!(

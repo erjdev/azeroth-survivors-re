@@ -11,8 +11,6 @@ mod armory;
 mod auto;
 mod camera;
 mod cards;
-#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
-mod collision_probe;
 mod companions;
 mod enemies;
 mod floor;
@@ -28,12 +26,15 @@ mod minimap;
 mod mobility;
 mod notes;
 mod renown;
-#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
-mod screenshots;
 mod spawn;
 mod stash;
 mod tuning;
 mod units;
+
+pub(crate) use floor::Floor;
+pub(crate) use hero::HERO_RADIUS;
+pub(crate) use hud::SweepUiMaterial;
+pub(crate) use tuning::UiLayout;
 
 pub(crate) use survivors_core::{campaign, data, encounters, equipment, rewards, sheet};
 
@@ -202,8 +203,6 @@ impl Plugin for SurvivorsPlugin {
         // player already chose (or passed on the URL) is left alone.
         #[cfg(target_arch = "wasm32")]
         app.add_systems(Startup, browser_budget.after(crate::cvars::CvarLoad));
-        #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
-        app.add_plugins((screenshots::plugin, collision_probe::plugin));
         if let Some(auto) = auto::from_env() {
             app.insert_resource(auto)
                 .add_systems(
@@ -374,7 +373,7 @@ pub(super) const BASE_MAGNET: f32 = 4.5;
 /// One run's state.
 #[derive(Resource)]
 pub(super) struct Run {
-    tuning: survivors_core::tuning::Tuning,
+    pub(crate) tuning: survivors_core::tuning::Tuning,
     pub class: &'static ClassDef,
     pub race: u8,
     pub elapsed: f32,

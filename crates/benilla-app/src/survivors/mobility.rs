@@ -4,9 +4,9 @@
 use bevy::prelude::*;
 
 use super::enemies::Enemy;
-use super::floor::Floor;
 use super::hero::{self, Hero};
 use super::units::{flat, Fx};
+use super::Floor;
 use super::{Phase, Run};
 
 pub(super) const LEARN_LEVEL: u32 = 5;
@@ -221,7 +221,7 @@ pub(super) fn cast_mobility(
             // To the cursor, or as far as the spell reaches toward it.
             let far = cursor.map_or(yd, |a| flat(a - pos).length().min(yd));
             tf.rotation = Quat::from_rotation_y(super::units::yaw_toward(toward));
-            tf.translation = world.travel(pos, leash(pos + toward * far), hero::HERO_RADIUS);
+            tf.translation = world.travel(pos, leash(pos + toward * far), super::HERO_RADIUS);
         }
         Move::Charge(yd) => {
             // The enemy in reach nearest the cursor (or the hero, with none).
@@ -242,7 +242,7 @@ pub(super) fn cast_mobility(
                     pos + toward * yd * 0.5
                 }
             };
-            let to = world.travel(pos, leash(desired), hero::HERO_RADIUS);
+            let to = world.travel(pos, leash(desired), super::HERO_RADIUS);
             tf.translation = to;
             let reached = target
                 .filter(|(_, at, _)| hero::reach(to, *at) <= 2.0 && world.line_clear(to, *at));

@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Loading and development integration
+
+Added a loading-cover warmup draw for ability cooldown overlays. Moved native tuning/layout
+reload, F12 captures and collision probes behind the existing development-only entry point;
+player builds retain embedded defaults.
+
+**Validation:** workspace test rebuild, 79 focused tests, formatting and workspace Clippy
+pass. The player-only check passes with five warnings (four unused imports and an
+unfulfilled rune lint expectation). The three remaining locale failures are confirmed enGB
+test/reference assumptions against this checkout’s enUS assets. No UI layout changed.
+
 ## 2026-10-24 — Validation baseline
 
 Normalized formatter drift in 22 files, simplified two core test setups, and named the
