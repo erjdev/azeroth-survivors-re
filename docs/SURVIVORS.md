@@ -57,6 +57,18 @@ The front door is three columns.
 
 Reference: `docs/intentions/survivors_main_menu.png`.
 
+The reference composition must scale proportionally across reasonable resolutions and aspect
+ratios, with readable minimum sizes and deliberate reflow/scrolling. Fixed-pixel placement at
+one resolution is not completion. Card sheen stays inside its card. Every interface surface
+needs an actual checkout screenshot in the README gallery. The detailed acceptance matrix is
+in [the implementation contract](SURVIVORS-IMPLEMENTATION.md#responsive-interface-and-bounded-effects).
+
+World readability includes localized see-through scenery around the hero, independently
+selectable red enemy and green player/friendly silhouettes behind objects, and a separate
+“Auto-push camera in” setting for solid cave/instance boundaries. Solid tree trunks must block
+movement; route finding around obstacles is separate from collision. See the
+[camera and collision requirements](SURVIVORS-IMPLEMENTATION.md#camera-visibility-silhouettes-and-solid-world-push-in).
+
 ## Zones
 
 The path on the front door is the path in the world. Twelve zones, in this order. Talent

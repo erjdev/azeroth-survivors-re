@@ -167,3 +167,11 @@ and then check the running-app inventory or process exit. Do not request accessi
 state, screenshots, or focus through the old app handle after exit: contacting that
 terminated app can produce Finder’s “application is not open anymore” dialog.
 Reacquire the app handle only when intentionally launching the next validation run.
+
+Treat the close action as the last operation on that handle, including in combined
+action-and-observation calls. Clear the handle immediately. Poll
+`cua.listApps({emit: false})` for bundle ID
+`local.survivors.checkout-validation` until `isRunning` is false; an immediate
+post-close inventory can still report true while shutdown finishes. Do not use
+`getApp` as an exit check, since it can launch the app again. If checking for an
+OS dialog, inspect Finder separately after confirming exit.

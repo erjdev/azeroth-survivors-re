@@ -128,6 +128,8 @@ Acceptance: every owned cell can be inspected and equipped; worn and cosmetic ch
 appear on the paper doll and in a run; tooltips remain inside the viewport. Test empty,
 partial and full accounts at 1280×720 and 1920×1080 plus UI scaling. Compare screenshots
 with the intention images; compilation alone does not establish visual completion.
+Apply the responsive-layout contract below to every surface, including the combat HUD
+and draft cards, rather than treating these two resolutions as fixed design canvases.
 
 ## Phase 4 — all twelve zones and gear content
 
@@ -156,6 +158,20 @@ supported destination. Charge can stun only a reached target with a clear solid-
 of sight; enemy contact damage likewise requires a clear line. Validate walls, tangential
 movement, outdoor slopes, stairs and indoor combat. This collision layer is not route finding,
 and vertical jump ceilings need a separate acceptance check.
+
+Audit Elwynn tree trunks specifically: visible trunks must block heroes, enemies, companions
+and mobility sweeps. Trace missing collision through source model collision, transforms,
+streaming registration and the body-query filter; do not assume visible foliage triangles
+are a suitable solid collider. Where source trunk collision is absent, author a conservative
+trunk proxy without making the whole canopy impassable. Verify contact from several sides,
+sliding, tile unload/reload and representative tree variants. Missing tree collision is an
+open defect even when walls already pass collision tests.
+
+Navigation is a separate requirement: choose a navmesh or equivalent walkable-route solution
+after auditing the collision data. Actors must route around trunks and walls, traverse valid
+stairs/doorways, respect disconnected floors, and recover when streamed routes change. A
+navmesh does not repair a missing movement collider; a movement sweep does not prove routing.
+Do not mark a zone ready from floor probes alone.
 
 Connect item ids to names/icons/displays from available catalogs. Fill all 54
 cells for each of nine classes with verified content. Content readiness is derived from
@@ -290,6 +306,9 @@ land gates before landing a PR. Record actual results and limitations in commit/
 not a claim of passing from code inspection. No auto-merge or deployment is part of this
 implementation task.
 
+Complete the responsive UI, bounded card effects, camera visibility options and README
+screenshot gallery specified below as part of visual acceptance.
+
 ## Evidence and completion
 
 Each phase needs rule tests, save migration coverage where applicable, and an integration
@@ -333,3 +352,82 @@ Item detail and combat must read the same slot-specific formula. Complete icon-b
 three-column composition and actual appearance rendering, then validate against the reference
 screen with the repository-local data. Record test and build evidence in commit messages;
 compilation and formula tests do not replace rendered acceptance.
+
+
+## Responsive interface and bounded effects
+
+Preserve the composition, hierarchy and relative proportions in `docs/intentions/` across
+reasonable screen sizes. Use viewport-relative panel sizes, proportional columns, anchors,
+and shared UI scaling instead of a single fixed-pixel canvas. Ratios need minimum readable
+text and usable hit areas, sensible maximum widths, and bounded spacing; shrinking every
+pixel indefinitely is not acceptable. At narrower widths, use deliberate reflow or scrolling
+while retaining the reference hierarchy. Keep tooltips, dialogs and essential actions inside
+the usable viewport. Pointer hit regions must track the rendered layout.
+
+Cover the front door, every Armory tab, appearance, Run Options/settings, combat HUD,
+level-up cards, pause and results. Recompute on live window resize and display-scale changes;
+support windowed and fullscreen modes. Validate at least 1280×720 and 1920×1080 (16:9),
+1280×800 (16:10), 1280×1024 (5:4), 2560×1080 (ultrawide), and 3840×2160 with an appropriate
+readable UI scale. Also check high-DPI scaling and long text/full collections. Treat these as
+acceptance targets, not claims of current support. Report unavailable native sizes as
+unverified; a window clamped by macOS does not establish the requested framebuffer size.
+
+The level-up card sheen currently appears to extend outside the card. Investigate shader
+coordinates, effect bounds, clipping and scaling. Clip sheen to each card's intended shape
+and rounded corners; intentional outer glow must be a separate bounded effect. Test every
+rarity, hovered/selected cards, the full animation cycle, live resizing and non-default UI
+scales. No sheen may wash across neighboring cards, backdrop, text panels or the screen.
+
+## Camera visibility, silhouettes and solid-world push-in
+
+Use separate policies for foliage visibility, body collision and solid-world camera collision.
+A canopy obscuring the hero is not by itself a reason to collapse the camera boom. The
+single-ray visual-geometry push-in prototype is not the intended foliage solution and does
+not establish visual acceptance.
+
+Provide a localized see-through/cutaway effect in obstructing scenery around the character,
+large enough to reveal nearby enemies and friendlies as well as the hero. Preserve scenery
+outside this region, with soft edges and stable transitions as the hero/camera moves. The
+mask must follow the projected character and remain appropriately sized across zoom levels,
+aspect ratios and UI scales. Support retained static geometry and ordinary/merged entity
+rendering; an entity-only effect misses much of the scenery. Do not change body solidity or
+remove whole trees to achieve visibility. Verify alpha-cutout foliage as well as opaque
+occluders, and ensure the reveal does not flicker when geometry is culled or streamed.
+
+Add persisted visibility filters for occluded players/friendlies and enemies, independently
+selectable (including both off). Render occluded entities as plain-color silhouettes: enemies
+red, players/friendlies green. Show only the occluded portions through scenery, retain normal
+rendering for visible portions, and classify by allegiance rather than mesh type. Use a depth-aware
+shader/pass or equivalent renderer implementation; respect spawn/despawn and normal entity
+visibility rules. Expose the controls in settings with immediate visual feedback. Verify
+mixed groups behind one obstacle and that each filter affects only its intended group.
+
+Add an explicit persisted “Auto-push camera in” option for solid-world obstructions. When
+enabled, caves, instance walls/ceilings and other solid boundaries must constrain the camera
+so its near plane does not stick outside the interior. Preserve the user's requested zoom,
+then smoothly restore it when clear, without oscillation, clipping or abrupt popping. Do not
+treat heroes or enemies as camera obstacles. Keep this control independent of the foliage
+cutaway and silhouette filters. Disabling it disables automatic boom adjustment, not actor
+collision or the independently enabled visibility effects.
+
+Validate dense Elwynn trees, clear outdoor terrain, cave entrances, narrow interiors,
+ceilings, corners and layered rooms separately. Check hero and nearby combat readability,
+body blocking, camera clipping, zoom restoration, filter persistence and combinations, streamed
+tile changes, frame rate and stability. Floor probes or a readable hero alone cannot establish
+all of these behaviors.
+
+## README interface screenshot gallery
+
+Export real screenshots of the implemented checkout UI to `docs/screenshots/` and embed them
+in README with descriptive captions and alt text. Cover the front door/zone selection,
+appearance, Character, Collection/item detail, Drop Tables, Codex, Talents, Achievements,
+Rewards, Run Options/settings (including visibility controls), combat HUD, level-up cards,
+pause and results. Include representative narrow/wide layouts and foliage cutaway/occluded
+silhouettes once implemented. Capture with isolated validation saves and checkout-local data.
+
+Show the actual interface, not intention mockups or fabricated finished states. Record capture
+viewport/UI scale in captions or a gallery index, keep images reasonably compressed and legible,
+and refresh them when the corresponding interface materially changes. Existing README images
+do not establish coverage of missing screens. Review every image for clipping, sheen leakage,
+readability and obsolete controls before calling the gallery complete. Unimplemented surfaces
+remain pending rather than receiving misleading screenshots.
