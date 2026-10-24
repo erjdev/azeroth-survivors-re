@@ -216,23 +216,38 @@ pub(super) fn build(
             for drop in missing {
                 let index = drop.band * campaign::GRID_SLOTS + drop.slot;
                 let name = campaign::piece_name(class, drop.slot, drop.band).unwrap();
-                list.spawn(Node {
-                    width: Val::Percent(48.0),
-                    ..default()
-                })
+                list.spawn((
+                    Button,
+                    Act::InspectPiece(index),
+                    Node {
+                        width: Val::Percent(48.0),
+                        min_width: Val::Px(0.0),
+                        flex_direction: FlexDirection::Column,
+                        padding: UiRect::all(Val::Px(6.0)),
+                        border: UiRect::all(Val::Px(1.0)),
+                        ..default()
+                    },
+                    BorderColor::all(if selected == index { GOLD } else { Color::NONE }),
+                    BackgroundColor(Color::srgba(0.10, 0.08, 0.04, 0.9)),
+                ))
                 .with_children(|entry| {
-                    chip(
-                        entry,
+                    entry.spawn(hud::text_bundle(
                         font,
-                        &format!(
-                            "{name} · {} · {} · {}%",
+                        name,
+                        14.0,
+                        super::door::band_color(drop.band),
+                    ));
+                    entry.spawn(hud::text_bundle(
+                        font,
+                        format!(
+                            "{} · {} · {}%",
                             drop.creature,
                             campaign::ZONES[drop.zone].name,
                             drop.chance
                         ),
-                        Act::InspectPiece(index),
-                        selected == index,
-                    );
+                        12.0,
+                        GOLD,
+                    ));
                 });
             }
         });
