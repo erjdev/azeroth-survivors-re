@@ -153,8 +153,11 @@ both sexes against the local DBC/model data without changing its preferred prese
 and race-specific features now have bounded dials and randomization, persisted per hero.
 Feature descriptor changes refresh the stock compositor and preview. Native build and 71
 focused tests passed; live edits, switching heroes and restart persistence were checked at
-1440×900 and 1280×720. Portrait race buttons and the broader multi-resolution
-acceptance remain unfinished. Feature-only edits update counters in place, preserving the
+1440×900 and 1280×720. Race portraits now use the runtime atlas, grouped by faction,
+with selected-sex artwork and unavailable class races dimmed and inert. Live portrait/sex
+selection and disabled Paladin choices passed at 1280×720. Broader multi-resolution
+acceptance remains unfinished. A newly created Paladin showed no feature controls; creation-time feature readiness
+still needs correction. Feature-only edits update counters in place, preserving the
 Character tree, scroll state and preview. Transient dark or missing
 button glyphs still appear after UI actions, even without a full rebuild; removing shadows
 or raising caption layers did not resolve the broader issue. Model dragging now consumes

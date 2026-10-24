@@ -50,7 +50,7 @@ pub(super) fn build(
         super::talent_page::build(ui, font, account, selection, talents);
     } else if armory.page == Page::Heroes {
         super::character::build(
-            ui, font, armory, account, selection, renown, stash, layout, features,
+            ui, art, font, armory, account, selection, renown, stash, layout, features,
         );
     } else if armory.page == Page::Collection {
         super::collection::build(ui, font, armory, account, selection, layout);

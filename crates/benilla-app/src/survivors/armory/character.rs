@@ -1,5 +1,6 @@
 //! Character loadout uses the same equipment and appearance actions as Collection.
 use super::{collection, hud, Account, Armory, Renown, Selection, Stash, GOLD};
+use crate::glue::art::{race_tc, tc_rect, GlueArt};
 use crate::portrait::survivors_pane::{ModelPane, ModelSubject, ModelTurn};
 use bevy::prelude::*;
 use survivors_core::layout::Layout;
@@ -7,6 +8,7 @@ use survivors_core::layout::Layout;
 #[allow(clippy::too_many_arguments)]
 pub(super) fn build(
     panel: &mut ChildSpawnerCommands,
+    art: &GlueArt,
     font: &Handle<Font>,
     armory: &Armory,
     account: &Account,
@@ -37,7 +39,7 @@ pub(super) fn build(
         })
         .with_children(|row| {
             collection::column(row, layout.left_width, layout, |body| {
-                body_controls(body, font, account, selection, layout);
+                body_controls(body, art, font, account, selection, layout);
                 collection::equipment(body, font, account, selection, layout);
             });
             collection::column(
@@ -141,6 +143,7 @@ pub(super) fn choose_body(
 
 fn body_controls(
     body: &mut ChildSpawnerCommands,
+    art: &GlueArt,
     font: &Handle<Font>,
     account: &Account,
     selection: &Selection,
@@ -165,26 +168,48 @@ fn body_controls(
     ));
     body.spawn(Node {
         width: Val::Percent(100.0),
-        flex_wrap: FlexWrap::Wrap,
         column_gap: Val::Px(layout.gap),
-        row_gap: Val::Px(layout.gap),
         ..default()
     })
     .with_children(|row| {
-        let mut races = Vec::new();
-        for &(_, r, s) in &selection.looks {
-            if s == sex && !races.contains(&r) {
-                races.push(r);
-                super::chip(
-                    row,
-                    font,
-                    crate::char_select::race_name(r),
-                    super::Act::Body(r, sex),
-                    r == race,
-                );
-            }
+        for (label, races, color) in [
+            ("Alliance", [1, 3, 4, 7], Color::srgb(0.35, 0.60, 0.95)),
+            ("Horde", [2, 5, 6, 8], Color::srgb(0.95, 0.30, 0.22)),
+        ] {
+            row.spawn(Node {
+                flex_basis: Val::Px(0.0),
+                flex_grow: 1.0,
+                min_width: Val::Px(0.0),
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(layout.gap * 0.5),
+                ..default()
+            })
+            .with_children(|faction| {
+                faction.spawn(hud::text_bundle(font, label, layout.body_size, color));
+                faction
+                    .spawn(Node {
+                        width: Val::Percent(100.0),
+                        column_gap: Val::Px(layout.gap * 0.25),
+                        ..default()
+                    })
+                    .with_children(|icons| {
+                        for r in races {
+                            let available = selection
+                                .looks
+                                .iter()
+                                .any(|&(_, candidate, s)| candidate == r && s == sex);
+                            race_portrait(icons, art, font, r, sex, r == race, available, layout);
+                        }
+                    });
+            });
         }
     });
+    body.spawn(hud::text_bundle(
+        font,
+        crate::char_select::race_name(race),
+        layout.body_size,
+        GOLD,
+    ));
     body.spawn(Node {
         flex_wrap: FlexWrap::Wrap,
         column_gap: Val::Px(layout.gap),
@@ -199,6 +224,73 @@ fn body_controls(
             {
                 super::chip(row, font, name, super::Act::Body(race, s), s == sex);
             }
+        }
+    });
+}
+
+/// Runtime atlas art stays in the player's data; unavailable class races remain visible but inert.
+#[allow(clippy::too_many_arguments)]
+fn race_portrait(
+    row: &mut ChildSpawnerCommands,
+    art: &GlueArt,
+    font: &Handle<Font>,
+    race: u8,
+    sex: u8,
+    selected: bool,
+    available: bool,
+    layout: &Layout,
+) {
+    let mut button = row.spawn((
+        Node {
+            flex_basis: Val::Px(0.0),
+            flex_grow: 1.0,
+            min_width: Val::Px(0.0),
+            aspect_ratio: Some(1.0),
+            border: UiRect::all(Val::Px(if selected { 2.0 } else { 1.0 })),
+            ..default()
+        },
+        BorderColor::all(if selected {
+            GOLD
+        } else {
+            Color::srgb(0.22, 0.19, 0.12)
+        }),
+        BackgroundColor(Color::srgb(0.06, 0.05, 0.03)),
+        Name::new(crate::char_select::race_name(race)),
+    ));
+    if available {
+        button.insert((Button, super::Act::Body(race, sex)));
+    }
+    button.with_children(|button| {
+        if let Some(((image, size), tc)) = art.races.as_ref().zip(race_tc(race, sex)) {
+            button.spawn((
+                ImageNode {
+                    image: image.clone(),
+                    rect: Some(tc_rect(*size, tc)),
+                    color: if available {
+                        Color::WHITE
+                    } else {
+                        Color::srgba(0.35, 0.35, 0.35, 0.55)
+                    },
+                    ..default()
+                },
+                Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+            ));
+        } else {
+            // Keep the selection usable when the optional atlas is missing.
+            button.spawn(hud::text_bundle(
+                font,
+                crate::char_select::race_name(race),
+                layout.body_size * 0.7,
+                if available {
+                    GOLD
+                } else {
+                    Color::srgb(0.3, 0.3, 0.3)
+                },
+            ));
         }
     });
 }

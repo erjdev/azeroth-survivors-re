@@ -9,8 +9,8 @@ Race and sex can now be selected above Character equipment. The preview updates 
 and each named hero saves its own choice. Every race in each class's existing catalog now
 offers both sexes, filling missing bodies with verified same-race trainer presets while
 preserving previous appearances. Skin, face, hair and race-specific features now have live
-controls and randomization, saved independently for each hero. Portrait-style race buttons
-remain unfinished. Feature edits update the counters and model in place, preserving the
+controls and randomization, saved independently for each hero. Race portraits are grouped
+by faction, follow the selected sex, and dim unavailable class choices. Feature edits update the counters and model in place, preserving the
 Character screen and preview rotation. Short mouse drags now rotate the model reliably,
 with sensitivity proportional to the preview width.
 
@@ -24,8 +24,10 @@ visual matrix. Existing terrain formatting errors
 still block the repository gate.
 
 Short/reverse drags and rejection of presses outside the preview passed live at 1280×720.
+Portrait selection, sex changes and disabled Paladin races also passed at 1280×720.
+Feature controls were absent immediately after creating a new Paladin; this remains tracked.
 
-![Character feature editor, 1280×720](images/screenshots/2026-10-24-character-features/character-720.jpg)
+![Character race portraits, 1280×720](images/screenshots/2026-10-24-character-features/character-portraits.jpg)
 [Independent hero appearance](images/screenshots/2026-10-24-character-appearance/character.jpg)
 · [Drag rotation](images/screenshots/2026-10-24-character-features/character-drag.jpg)
 
