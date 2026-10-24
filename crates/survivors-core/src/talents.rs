@@ -131,6 +131,10 @@ impl Milestones {
                         effect.cooldown *= 1.0 - value
                     }
                     TalentStat::SpellCrit(spell) if spell == key => effect.crit += value,
+                    TalentStat::SpellDuration(spell) if spell == key => {
+                        effect.duration *= 1.0 + value
+                    }
+                    TalentStat::SpellHeal(spell) if spell == key => effect.heal_fraction += value,
                     _ => {}
                 }
             }
@@ -306,6 +310,8 @@ pub enum TalentStat {
     SpellDamage(&'static str),
     SpellCooldown(&'static str),
     SpellCrit(&'static str),
+    SpellDuration(&'static str),
+    SpellHeal(&'static str),
 }
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
@@ -429,6 +435,38 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::SpellDamage("holy_shock"),
         per_rank: 0.25,
     },
+    TalentDefinition {
+        id: 1444,
+        max_rank: 3,
+        name: "Healing Light",
+        description: "Holy Shock heals 1% maximum health per rank once per cast",
+        stat: TalentStat::SpellHeal("holy_shock"),
+        per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 1443,
+        max_rank: 2,
+        name: "Improved Lay on Hands",
+        description: "Divine Shield heals 5% maximum health per rank once per cast",
+        stat: TalentStat::SpellHeal("divine_shield"),
+        per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 1425,
+        max_rank: 2,
+        name: "Guardian's Favor",
+        description: "Divine Shield: +15% duration per rank",
+        stat: TalentStat::SpellDuration("divine_shield"),
+        per_rank: 0.15,
+    },
+    TalentDefinition {
+        id: 1421,
+        max_rank: 5,
+        name: "Redoubt",
+        description: "Divine Shield: 3% shorter cooldown per rank",
+        stat: TalentStat::SpellCooldown("divine_shield"),
+        per_rank: 0.03,
+    },
 ];
 
 pub fn talent_definition(class: usize, id: u32) -> Option<&'static TalentDefinition> {
@@ -457,7 +495,9 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::Speed => bonus.speed += value,
             TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
-            | TalentStat::SpellCrit(_) => {}
+            | TalentStat::SpellCrit(_)
+            | TalentStat::SpellDuration(_)
+            | TalentStat::SpellHeal(_) => {}
         }
     }
     bonus
@@ -486,7 +526,9 @@ mod stat_talent_tests {
                     TalentStat::Speed => total.speed,
                     TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
-                    | TalentStat::SpellCrit(_) => {
+                    | TalentStat::SpellCrit(_)
+                    | TalentStat::SpellDuration(_)
+                    | TalentStat::SpellHeal(_) => {
                         assert!(total.might.abs() < 0.00001);
                         continue;
                     }
@@ -509,7 +551,9 @@ mod stat_talent_tests {
             let key = match node.stat {
                 TalentStat::SpellDamage(key)
                 | TalentStat::SpellCooldown(key)
-                | TalentStat::SpellCrit(key) => key,
+                | TalentStat::SpellCrit(key)
+                | TalentStat::SpellDuration(key)
+                | TalentStat::SpellHeal(key) => key,
                 _ => continue,
             };
             for rank in 0..=node.max_rank {
@@ -532,6 +576,12 @@ mod stat_talent_tests {
                     TalentStat::SpellCrit(_) => {
                         assert!((after.crit - before.crit - value).abs() < 0.00001)
                     }
+                    TalentStat::SpellDuration(_) => {
+                        assert!((after.duration - before.duration * (1.0 + value)).abs() < 0.00001)
+                    }
+                    TalentStat::SpellHeal(_) => assert!(
+                        (after.heal_fraction - before.heal_fraction - value).abs() < 0.00001
+                    ),
                     _ => unreachable!(),
                 }
                 for other in [
@@ -540,13 +590,16 @@ mod stat_talent_tests {
                     "hammer_of_justice",
                     "consecration",
                     "fireball",
+                    "divine_shield",
                 ] {
                     if other != key {
                         assert_eq!(trained.cast(other), base.cast(other));
                     }
                 }
                 assert_eq!(after.extra_targets, before.extra_targets);
-                assert_eq!(after.heal_fraction, before.heal_fraction);
+                if !matches!(node.stat, TalentStat::SpellHeal(_)) {
+                    assert_eq!(after.heal_fraction, before.heal_fraction);
+                }
                 let outsider = Milestones {
                     class: 0,
                     ..Default::default()

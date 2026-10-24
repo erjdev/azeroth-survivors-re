@@ -208,6 +208,19 @@ Survivors conversions: there is no mana resource or separate parry/miss roll in 
 | 1627 | Holy Power | 5 | Holy Shock +2 percentage points critical chance |
 | 1435 | Consecration | 1 | Consecration +20% damage |
 | 1502 | Holy Shock | 1 | Holy Shock +25% damage |
+| 1444 | Healing Light | 3 | Holy Shock heals 1% maximum health once per successful cast |
+| 1443 | Improved Lay on Hands | 2 | Divine Shield heals 5% maximum health once per successful cast |
+| 1425 | Guardian's Favor | 2 | Divine Shield +15% duration |
+| 1421 | Redoubt | 5 | Divine Shield cooldown shortened by 3% |
+
+Healing Light adds to Daybreak's 3% healing, and can heal before Daybreak is unlocked.
+Improved Lay on Hands is a Survivors conversion onto Divine Shield because Lay on Hands
+is not in the eight-ability class pool. Guardian's Favor and Redoubt improve that same
+survival window rather than adding absent block or blessing mechanics. Healing occurs
+only after a successful cast, once per cast regardless of target count, and cannot exceed
+maximum health. Divine Shield still requires a nearby enemy before it casts. Its duration
+modifier affects actual invulnerability; shield absorption is a separate mechanic.
+
 
 Spell-specific cooldown reductions add within that node and multiply with the ability's
 normal cooldown and milestone modifier. Spell damage multiplies with ordinary damage

@@ -993,6 +993,62 @@ mod milestone_tests {
     }
 
     #[test]
+    fn trained_healing_caps_once_per_cast_and_shield_duration_reaches_combat() {
+        let mut run = Run::default();
+        let mut stats = run.stats();
+        stats.targets = 20;
+        let base = Milestones {
+            class: 1,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 1444, 3), (0, 1443, 2), (1, 1425, 2), (1, 1421, 5)]);
+        run.hp = 50.0;
+        assert!(
+            (finish_milestone_cast(&mut run, trained.cast("holy_shock"), 100.0) - 3.0).abs()
+                < 0.001
+        );
+        let with_daybreak = Milestones {
+            points: [20, 0, 0],
+            ..trained
+        };
+        assert!(
+            (finish_milestone_cast(&mut run, with_daybreak.cast("holy_shock"), 100.0) - 6.0).abs()
+                < 0.001
+        );
+        assert!((run.hp - 59.0).abs() < 0.001);
+        assert!(
+            (finish_milestone_cast(&mut run, trained.cast("divine_shield"), 100.0) - 10.0).abs()
+                < 0.001
+        );
+        run.hp = 99.0;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("divine_shield"), 100.0),
+            1.0
+        );
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("divine_shield"), 100.0),
+            0.0
+        );
+        let shield = super::super::Owned {
+            def: super::super::data::ability("divine_shield"),
+            level: 1,
+            cd: 0.0,
+        };
+        let before = Params::new(&shield, &stats, base);
+        let after = Params::new(&shield, &stats, trained);
+        assert!((after.duration - before.duration * 1.3).abs() < 0.001);
+        assert!((after.cooldown - before.cooldown * 0.85).abs() < 0.001);
+        assert_eq!(after.dmg, before.dmg);
+        assert_eq!(trained.cast("divine_shield").extra_targets, 0);
+        assert_eq!(
+            trained.cast("holy_shock").heal_fraction,
+            base.with_ranks(&[(0, 1444, 3)])
+                .cast("holy_shock")
+                .heal_fraction
+        );
+    }
+
+    #[test]
     fn individual_spell_training_reaches_shared_combat_parameters() {
         let run = Run::default();
         let stats = run.stats();

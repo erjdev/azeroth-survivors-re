@@ -2636,7 +2636,10 @@ fn ability_tip(
     let effect = milestones.cast(def.key);
     if effect.heal_fraction > 0.0 {
         lines.push(TipLine::new(
-            "Daybreak: heals 3% maximum health once per cast.",
+            format!(
+                "Heals {} maximum health once per successful cast.",
+                pct(effect.heal_fraction)
+            ),
             GOLD,
         ));
     }
@@ -2971,5 +2974,42 @@ pub(super) fn show_panels(
     }
     for root in &mut roots.p4() {
         set(root, p == Phase::GameOver);
+    }
+}
+
+#[cfg(test)]
+mod talent_tooltip_tests {
+    use super::*;
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn healing_tooltip_uses_combined_cast_effects_for_each_spell() {
+        let stats = Run::default().stats();
+        let trained = Milestones {
+            class: 1,
+            points: [20, 0, 0],
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 1444, 3), (0, 1443, 2)]);
+        for (key, expected) in [("holy_shock", "6%"), ("divine_shield", "10%")] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.0,
+            };
+            let lines = ability_tip(&owned, trained, &stats, None);
+            let healing: Vec<_> = lines
+                .iter()
+                .filter(|line| line.left.starts_with("Heals "))
+                .collect();
+            assert_eq!(healing.len(), 1);
+            assert_eq!(
+                healing[0].left,
+                format!("Heals {expected} maximum health once per successful cast.")
+            );
+            assert!(!ability_tip(&owned, Milestones::default(), &stats, None)
+                .iter()
+                .any(|line| line.left.starts_with("Heals ")));
+        }
     }
 }
