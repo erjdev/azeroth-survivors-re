@@ -394,23 +394,33 @@ pub(super) fn deal_cards(
                     CardShine(i),
                     Node {
                         position_type: PositionType::Absolute,
-                        top: Val::Px(-40.0),
-                        bottom: Val::Px(-40.0),
-                        width: Val::Px(70.0),
-                        left: Val::Px(-120.0),
+                        top: Val::Px(0.0),
+                        bottom: Val::Px(0.0),
+                        left: Val::Px(0.0),
+                        right: Val::Px(0.0),
+                        border_radius: BorderRadius::all(Val::Px(8.0)),
                         ..default()
                     },
-                    BackgroundGradient::from(LinearGradient::to_right(vec![
-                        ColorStop::percent(Color::srgba(1.0, 1.0, 1.0, 0.0), 0.0),
-                        ColorStop::percent(Color::srgba(1.0, 0.97, 0.85, 0.28), 50.0),
-                        ColorStop::percent(Color::srgba(1.0, 1.0, 1.0, 0.0), 100.0),
-                    ])),
-                    UiTransform::from_rotation(Rot2::degrees(18.0)),
+                    landing_sheen(0.0),
                     bevy::ui::FocusPolicy::Pass,
                 ));
             });
         }
     });
+}
+
+// Animate stops inside a rounded card-sized surface, not an oversized rotated quad.
+// Percent stops preserve the sweep when the card is resized or transformed.
+fn landing_sheen(progress: f32) -> BackgroundGradient {
+    let center = -25.0 + progress * 150.0;
+    BackgroundGradient::from(LinearGradient::new(
+        108.0_f32.to_radians(),
+        vec![
+            ColorStop::percent(Color::srgba(1.0, 0.97, 0.85, 0.0), center - 20.0),
+            ColorStop::percent(Color::srgba(1.0, 0.97, 0.85, 0.28), center),
+            ColorStop::percent(Color::srgba(1.0, 0.97, 0.85, 0.0), center + 20.0),
+        ],
+    ))
 }
 
 fn ease_out_back(t: f32) -> f32 {
@@ -432,7 +442,7 @@ pub(super) fn animate_cards(
         &mut BoxShadow,
         &mut Visibility,
     )>,
-    mut shines: Query<(&CardShine, &mut Node)>,
+    mut shines: Query<(&CardShine, &mut BackgroundGradient)>,
     mut rays: Query<&mut UiTransform, (With<Rays>, Without<Card>)>,
     mut pending: ResMut<PendingPick>,
     mut run: ResMut<Run>,
@@ -518,12 +528,12 @@ pub(super) fn animate_cards(
             shine_at[card.index] = Some(card.t);
         }
     }
-    for (shine, mut node) in &mut shines {
+    for (shine, mut gradient) in &mut shines {
         let Some(t) = shine_at.get(shine.0).copied().flatten() else {
             continue;
         };
         let u = ((t - DEAL_SECS * 0.6) / 0.5).clamp(0.0, 1.0);
-        node.left = Val::Px(-120.0 + u * (CARD_W + 200.0));
+        *gradient = landing_sheen(u);
     }
     if let Some((i, t)) = pending.0.as_mut() {
         *t += dt;
