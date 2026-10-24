@@ -400,7 +400,7 @@ pub(super) fn move_enemies(
         // Under Fade the horde has lost the hero: it mills where it stands.
         let lost = run.mobile.vanish_t > 0.0 && !e.boss;
         let held = e.stun_t > 0.0 || e.root_t > 0.0 || lost;
-        let contact = dist <= HERO_RADIUS + e.radius + 0.35;
+        let contact = dist <= HERO_RADIUS + e.radius + 0.35 && world.line_clear(pos, hpos);
         let mut step = Vec3::ZERO;
         let mut speed = 0.0;
         if !held && !hero_down {
@@ -420,6 +420,7 @@ pub(super) fn move_enemies(
         }
         let shove = push.get(&ent).copied().unwrap_or_default();
         let mut next = pos + step * dt + shove * (dt * 8.0).min(0.5);
+        next = world.slide(pos, next, e.radius);
         next = ground(&world, next, pos.y);
         tf.translation = next;
         if speed > 0.0 {

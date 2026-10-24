@@ -267,10 +267,13 @@ pub(super) fn drive_hero(
             if off.length() > map.leash * 2.0 {
                 // Just entered another battleground: start at its centre.
                 pos = center;
-            } else if off.length() > map.leash {
-                let held = center + off.normalize() * map.leash;
-                pos.x = held.x;
-                pos.z = held.z;
+            } else {
+                if off.length() > map.leash {
+                    let held = center + off.normalize() * map.leash;
+                    pos.x = held.x;
+                    pos.z = held.z;
+                }
+                pos = world.slide(tf.translation, pos, HERO_RADIUS);
             }
             // Jump height is relative to the floor, not the input to the next floor probe.
             let feet = pos - Vec3::Y * hm.air;

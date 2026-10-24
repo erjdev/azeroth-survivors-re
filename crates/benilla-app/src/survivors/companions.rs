@@ -252,7 +252,7 @@ fn step_toward(
         return;
     }
     let step = (speed * dt).min(dist);
-    pos += delta / dist * step;
+    pos = world.slide(pos, pos + delta / dist * step, 0.35);
     if let Some(h) = world.height(pos) {
         pos.y = h;
     }

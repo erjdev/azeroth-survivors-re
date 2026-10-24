@@ -1,8 +1,10 @@
 //! Floors near a survivor's feet, including WMO interiors and bridges.
 //!
 //! A bounded probe preserves the authored/current height while geometry streams and avoids
-//! selecting terrain far below an interior. This is grounding, not wall collision or pathfinding.
+//! selecting terrain far below an interior. Body sweeps handle walls; route finding is separate.
 
+use avian3d::character_controller::move_and_slide::{MoveAndSlideConfig, MoveAndSlideHitResponse};
+use avian3d::prelude::Collider;
 use benilla_world::collision::WorldCollision;
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
@@ -16,6 +18,53 @@ pub(super) struct Floor<'w, 's> {
 }
 
 impl Floor<'_, '_> {
+    /// Sweep the Survivors body horizontally, sliding along room geometry. Body radius is
+    /// shared with horde separation; the capsule's cylindrical section is one yard tall.
+    pub fn slide(&self, feet: Vec3, desired: Vec3, radius: f32) -> Vec3 {
+        let movement = super::units::flat(desired - feet);
+        if movement.length_squared() <= 1e-10 {
+            return feet;
+        }
+        let lift = Vec3::Y * (radius + 0.5 + 0.03);
+        let body = Collider::capsule(radius, 1.0);
+        let result = self.collision.slide_body(
+            &body,
+            feet + lift,
+            movement,
+            std::time::Duration::from_secs(1),
+            &MoveAndSlideConfig::default(),
+            |_| MoveAndSlideHitResponse::Accept,
+        );
+        result.position - lift
+    }
+
+    /// A straight mobility sweep stops at the first obstacle instead of sliding around it.
+    pub fn travel(&self, feet: Vec3, desired: Vec3, radius: f32) -> Vec3 {
+        let movement = super::units::flat(desired - feet);
+        let length = movement.length();
+        if length <= f32::EPSILON {
+            return feet;
+        }
+        let body = Collider::capsule(radius, 1.0);
+        let lift = Vec3::Y * (radius + 0.5 + 0.03);
+        let at = match self.collision.cast_body(&body, feet + lift, movement, 0.02) {
+            Some(hit) => feet + movement / length * (hit.distance - 0.02).clamp(0.0, length),
+            None => feet + movement,
+        };
+        self.height(at).map_or(feet, |y| Vec3::new(at.x, y, at.z))
+    }
+
+    /// Solid-world line of sight at one yard above the feet, for contact effects.
+    pub fn line_clear(&self, from: Vec3, to: Vec3) -> bool {
+        let ray = to - from;
+        let Ok(direction) = Dir3::new(ray) else {
+            return true;
+        };
+        self.collision
+            .ray_body(from + Vec3::Y, direction, ray.length())
+            .is_none()
+    }
+
     /// The nearest body-collidable floor within two yards above/eight below the feet.
     /// Callers keep their last/authored height when the geometry is not available.
     pub fn height(&self, feet: Vec3) -> Option<f32> {
@@ -84,6 +133,61 @@ mod tests {
         app.world_mut()
             .run_system_once(move |floor: Floor| floor.height(Vec3::Y * y))
             .unwrap()
+    }
+
+    #[test]
+    fn walking_slides_along_a_wall_and_mobility_cannot_cross_it() {
+        let mut app = fixture(&[0.]);
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::trimesh(
+                vec![
+                    Vec3::new(2., 0., -5.),
+                    Vec3::new(2., 4., -5.),
+                    Vec3::new(2., 4., 5.),
+                    Vec3::new(2., 0., 5.),
+                ],
+                vec![[0, 2, 1], [0, 3, 2]],
+            ),
+            Transform::default(),
+        ));
+        app.update();
+        let (slide, travel) = app
+            .world_mut()
+            .run_system_once(|floor: Floor| {
+                (
+                    floor.slide(Vec3::ZERO, Vec3::new(10., 0., 4.), 0.6),
+                    floor.travel(Vec3::ZERO, Vec3::new(10., 0., 0.), 0.6),
+                )
+            })
+            .unwrap();
+        assert!(slide.x < 1.41 && slide.x > 1.0, "{slide:?}");
+        assert!(
+            slide.z > 3.5,
+            "wall must permit tangential movement: {slide:?}"
+        );
+        assert!(travel.x < 1.41 && travel.x > 1.0, "{travel:?}");
+        assert!(travel.z.abs() < 0.001);
+        let clear = app
+            .world_mut()
+            .run_system_once(|floor: Floor| {
+                floor.line_clear(Vec3::new(1.4, 0., 0.), Vec3::new(3., 0., 0.))
+            })
+            .unwrap();
+        assert!(
+            !clear,
+            "a close charge target behind the wall must not receive its stun"
+        );
+    }
+
+    #[test]
+    fn mobility_requires_a_supported_destination() {
+        let mut app = fixture(&[0.]);
+        let at = app
+            .world_mut()
+            .run_system_once(|floor: Floor| floor.travel(Vec3::ZERO, Vec3::new(20., 0., 0.), 0.6))
+            .unwrap();
+        assert_eq!(at, Vec3::ZERO);
     }
 
     #[test]

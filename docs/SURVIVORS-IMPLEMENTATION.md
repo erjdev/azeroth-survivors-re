@@ -149,6 +149,14 @@ initial chests and surrounding waves are planned as complete batches before coun
 A missing streamed floor must neither consume an encounter nor duplicate part of a batch.
 These checks do not prove line of sight or a walkable route through walls.
 
+Horizontal movement sweeps a capsule against body collision and slides along obstacles;
+Survivors uses its existing separation radius with a one-yard cylindrical section and a
+0.03-yard floor clearance. Blink and Charge stop along their straight path and require a
+supported destination. Charge can stun only a reached target with a clear solid-world line
+of sight; enemy contact damage likewise requires a clear line. Validate walls, tangential
+movement, outdoor slopes, stairs and indoor combat. This collision layer is not route finding,
+and vertical jump ceilings need a separate acceptance check.
+
 Connect item ids to names/icons/displays from available catalogs. Fill all 54
 cells for each of nine classes with verified content. Content readiness is derived from
 these dependencies rather than a trusted boolean. Never unlock a label with no world.

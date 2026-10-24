@@ -215,16 +215,13 @@ pub(super) fn cast_mobility(
             p
         }
     };
-    let ground = |p: Vec3| world.height(p).unwrap_or(p.y);
     match def.kind {
         Move::Blink(yd) => {
             fx.cast(me, def.spell, &[me], None);
             // To the cursor, or as far as the spell reaches toward it.
             let far = cursor.map_or(yd, |a| flat(a - pos).length().min(yd));
             tf.rotation = Quat::from_rotation_y(super::units::yaw_toward(toward));
-            let mut to = leash(pos + toward * far);
-            to.y = ground(to);
-            tf.translation = to;
+            tf.translation = world.travel(pos, leash(pos + toward * far), hero::HERO_RADIUS);
         }
         Move::Charge(yd) => {
             // The enemy in reach nearest the cursor (or the hero, with none).
@@ -234,25 +231,29 @@ pub(super) fn cast_mobility(
                 .filter(|(_, t, e)| !e.dead && hero::reach(pos, t.translation) <= yd)
                 .map(|(e, t, _)| (e, t.translation, hero::reach(mark, t.translation)))
                 .min_by(|a, b| a.2.total_cmp(&b.2));
-            let to = match target {
-                Some((e, at, _)) => {
-                    if let Ok((_, _, mut en)) = enemies.get_mut(e) {
-                        en.stun_t = en.stun_t.max(def.secs);
-                    }
+            let desired = match target {
+                Some((_, at, _)) => {
                     let dir = flat(at - pos).normalize_or(facing);
                     tf.rotation = Quat::from_rotation_y(super::units::yaw_toward(dir));
-                    fx.cast(me, def.spell, &[e], None);
                     at - dir * 1.5
                 }
                 None => {
-                    fx.cast(me, def.spell, &[me], None);
                     tf.rotation = Quat::from_rotation_y(super::units::yaw_toward(toward));
                     pos + toward * yd * 0.5
                 }
             };
-            let mut to = leash(to);
-            to.y = ground(to);
+            let to = world.travel(pos, leash(desired), hero::HERO_RADIUS);
             tf.translation = to;
+            let reached = target
+                .filter(|(_, at, _)| hero::reach(to, *at) <= 2.0 && world.line_clear(to, *at));
+            if let Some((e, _, _)) = reached {
+                if let Ok((_, _, mut en)) = enemies.get_mut(e) {
+                    en.stun_t = en.stun_t.max(def.secs);
+                }
+                fx.cast(me, def.spell, &[e], None);
+            } else {
+                fx.cast(me, def.spell, &[me], None);
+            }
         }
         Move::Haste(x) => {
             fx.cast(me, def.spell, &[me], None);
