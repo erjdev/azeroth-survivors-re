@@ -140,6 +140,7 @@ impl Plugin for SurvivorsPlugin {
                     (
                         armory::refresh,
                         armory::scroll_collection,
+                        armory::codex_details,
                         armory::talent_details,
                         armory::fill_talent_art,
                     )

@@ -658,3 +658,11 @@ Selection currently resets catalog scrolling; preserve that offset in the next p
 Jewelry artwork, amulet/spell badges,
 selected-icon treatment and detailed effect descriptions remain open. This is a layout
 checkpoint, not completion of the reference Codex.
+
+
+### Codex browsing follow-up — 2026-10-24
+
+Codex selection now updates a marked detail text node without rebuilding the catalog.
+A live 720p check scrolled to the footer, selected Onyxia Tooth Pendant and then The Eye
+of Hakkar, and verified both detail changes with the catalog/footer unmoved. The native
+play build passed (1m56s). Workspace test compilation and all 73 Survivors tests pass.

@@ -3,6 +3,12 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Codex browsing
+
+Selecting an entry updates the details text in place, preserving the catalog's scroll
+position. Native build and a live 720p check with two amulet selections pass.
+Workspace test compilation and all 73 Survivors tests pass.
+
 ## 2026-10-24 — Codex layout
 
 The catalog and selected-entry details now use proportional, independently scrolling panes.

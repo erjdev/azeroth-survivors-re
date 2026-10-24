@@ -4,6 +4,7 @@
 mod character;
 pub(super) use character::subject as character_subject;
 mod codex_page;
+pub(super) use codex_page::refresh_details as codex_details;
 mod collection;
 mod door;
 mod drop_page;
@@ -2110,7 +2111,7 @@ fn signature(
     n = fold(n, u64::from(armory.pet_slot));
     n = fold(n, armory.piece as u64);
     n = fold(n, armory.drop_zone as u64);
-    n = fold(n, u64::from(armory.codex_entry.unwrap_or(0)));
+    // Codex selection updates its detail text in place, preserving catalog scrolling.
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
     n = fold(n, armory.draft_class as u64);
