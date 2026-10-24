@@ -13,8 +13,11 @@ up test initializers and placement. The reserved rune pickup rule keeps a specif
 expectation until its spawning exists; no global warning suppression was added.
 
 **Validation:** workspace formatting and workspace/all-target Clippy with warnings denied
-now pass. The full workspace test stage has started but has no completed result yet.
-The optional addon corpus is absent. Earlier core validation passed 45 tests. The earlier
+now pass. The workspace run reached the app suite: 4,294 passed, six failed and ten were
+ignored. The mock-network failure passes with loopback permission outside the sandbox;
+five failures reproduce (material warmup, dev boundary, two localization checks and the
+minimap clock format). Later gate stages have not run. The optional addon corpus is absent.
+Earlier core validation passed 45 tests. The earlier
 terrain-only diagnosis was incomplete because the gate prints a log tail.
 
 ## 2026-10-24 — Drop Tables browser

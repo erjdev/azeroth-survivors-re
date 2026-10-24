@@ -506,6 +506,19 @@ chest helper to tests, removes an unused chest-display alias, and corrects stale
 Copy usage, defaults, test initializers and test-module placement. Rune pickup rules retain
 a narrowly scoped dead-code expectation because actual rune spawning remains incomplete.
 
-The full gate has advanced to workspace tests using checkout-local `wow-data/Data`; that
-stage is still in progress, with no pass claimed. The optional addon corpus is absent.
-No workspace-test, no-install, player-test or live server round-trip success is implied.
+The full gate used checkout-local `wow-data/Data` and stopped at the app suite: 4,294
+passed, six failed, ten ignored. The empty-account mock-network test passes outside the
+sandbox with loopback permission. Five failures reproduce in the exact compiled binary:
+
+- `pipe_warm::menagerie`: `SweepUiMaterial` has no loading-cover warmup contributor.
+- `run_mode`: Survivors hot-reload modules directly reference the dev feature boundary.
+- `glue_strings`: local English AUTH_BANNED text is unchanged by Localize.
+- `ui_script::minimap_tests`: time tooltip returns `9:07 PM`, expected `21:07`.
+- `ui_script::surface_gate`: the loaded UI exposes `LOCALE_enUS`.
+
+Fix the two Survivors integration failures; investigate the locale/reference assumptions
+without weakening tests. The optional addon corpus is absent. The workspace gate is not
+green; no-install, player-test and live server round-trip success are not established.
+Reusing the exact test executable avoids a redundant package-only rebuild caused by different
+workspace feature unification. The diagnostic package-only rebuild was canceled deliberately;
+the original full workspace test process completed normally with failure status.
