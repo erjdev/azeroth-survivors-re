@@ -6542,6 +6542,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "survivors-audit"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "benilla-formats",
+ "survivors-core",
+]
+
+[[package]]
 name = "survivors-core"
 version = "0.2.0"
 

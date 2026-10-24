@@ -209,24 +209,21 @@ and signing configuration are defined. A no-op build, pure-rule test, live tunin
 packaged restart/update/rollback each need their own evidence. Do not claim arbitrary Rust
 hot reloading from asset watching or claim self-updating from the existing local restart.
 
-## Implementation evidence — gear quality correction
+## Gear profiles and collection acceptance details
 
-The ordinary quality ladder now adds exactly one stat line at each step and increases all
-existing lines. Gloves have a separate health/pickup/area/reduction/damage profile using the
-user's example as initial balance values; these are not claims about vanilla item stats.
-Health and pickup bonuses feed the run sheet and the Armory detail, whose percent values
-now retain one decimal place. Tests cover exact line counts, monotonic prior lines, selected
-lower-quality equipment, duplicate immunity and invalid indices. Other slots still use the
-initial generic profile pending their complete item catalogs. Poor gloves are formula-only
-until poor-tier collection/source handling is added. Raid epics and build-specific set
-bonuses remain open work; this correction does not substitute for those tiers.
+Each ordinary quality step adds exactly one stat line and increases all existing lines.
+Gloves use health/pickup/area/reduction/damage as their initial stat identity. The user's
+example coefficients are initial tuning, not claims about vanilla item stats. Other slots
+need their own profiles in the complete item catalog. Poor and raid tiers need explicit
+collection identities and obtainable sources; formulas alone do not complete a tier.
 
-The collection draft now shows owned counts per row, explicit equipped/appearance markers,
-a completion bar, and selectable missing-item sources filtered by the chosen hero's open
-zones. Item detail and combat use `piece_bonus`. This is still a draft: icon-backed cells,
-three-column composition, actual appearance rendering and screenshot validation are open.
-Validation for this checkpoint: 28 core tests and core clippy pass; 27 application Survivors
-tests pass including health/pickup propagation; final application check passes. The play
-build is running, and the fresh data download remains in progress. The previous checkpoint's
-play build passed in 2m56s. Repository gates still fail at pre-existing workspace formatting;
-no wasm target is installed.
+Health and pickup bonuses must reach the run sheet and item details. Keep meaningful
+fractional percentages visible. Cover exact line counts, monotonic prior lines, lower-quality
+selection, duplicate immunity, invalid indices and application-level stat propagation.
+
+The collection must show owned counts by row, equipped and appearance markers, completion
+progress, and selectable missing-item sources filtered by the chosen hero's open zones.
+Item detail and combat must read the same slot-specific formula. Complete icon-backed cells,
+three-column composition and actual appearance rendering, then validate against the reference
+screen with the repository-local data. Record test and build evidence in commit messages;
+compilation and formula tests do not replace rendered acceptance.

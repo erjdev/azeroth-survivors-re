@@ -33,7 +33,14 @@ cargo survivors-rules
 cargo survivors-build
 WOW_DATA="$PWD/wow-data/Data" cargo survivors
 cargo test -p benilla-app --lib survivors:: --no-default-features
+cargo run -p survivors-audit -- "$PWD/wow-data/Data"
 ```
+
+The content auditor requires an explicit data directory and never discovers another install.
+It checks campaign map rows, terrain under start coordinates, roster model files, item names
+and drop coverage. A nonzero exit reports unresolved content. Indoor WMO floor checks,
+traversability, actual appearance identity and rendered UI validation remain separate work;
+the auditor's output is not a claim that a whole zone or screen is finished.
 
 Measure cold bootstrap, warm no-op build, launcher-only edit, rule edit and UI-system edit
 separately. Use `cargo build --profile play -p warcraft-survivors --timings` and preserve
