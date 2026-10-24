@@ -20,6 +20,7 @@ mod floor;
 mod hero;
 mod hud;
 mod menu;
+mod look_catalog;
 mod minimap;
 mod mobility;
 mod notes;

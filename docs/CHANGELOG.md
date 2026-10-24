@@ -5,16 +5,19 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 ## 2026-10-24 — Character appearance controls
 
-Race and sex can now be selected above Character equipment, with choices from the current
-class's available bodies. The preview updates immediately and each named hero saves its own
-choice. Skin, face, hair and portrait-style race buttons remain unfinished.
+Race and sex can now be selected above Character equipment. The preview updates immediately
+and each named hero saves its own choice. Every race in each class's existing catalog now
+offers both sexes, filling missing bodies with verified same-race trainer presets while
+preserving previous appearances. Skin, face, hair and portrait-style race buttons remain unfinished.
 
-**Validation:** native build and 66 Survivors/preview tests passed. Human male → female →
-night elf, switching between two heroes and restart persistence checked live at 1440×900. The current catalog
-has incomplete race/sex coverage; unavailable bodies are not offered. Existing terrain
-formatting errors still block the full repository gate.
+**Validation:** native build and 67 Survivors/preview tests passed, including local DBC
+identities and readable model files for every body. Live 1440×900 checks covered human,
+night elf, newly available female orc/dwarf warriors, separate heroes and restart persistence.
+The full race/class/gear visual matrix remains pending. Existing terrain formatting errors
+still block the repository gate.
 
-![Inline Character appearance, 1440×900](images/screenshots/2026-10-24-character-appearance/character.jpg)
+![Inline Character appearance, 1440×900](images/screenshots/2026-10-24-character-appearance/orc.jpg)
+[Independent hero appearance](images/screenshots/2026-10-24-character-appearance/character.jpg)
 
 ## 2026-10-24 — Readable upgrade benefits
 

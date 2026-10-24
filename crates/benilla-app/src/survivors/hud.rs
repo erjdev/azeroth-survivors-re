@@ -1321,16 +1321,7 @@ pub(super) fn looks_for(
     class: &data::ClassDef,
     creatures: &crate::entities::Creatures,
 ) -> Vec<(u32, u8, u8)> {
-    let mut out: Vec<(u32, u8, u8)> = Vec::new();
-    for &d in class.looks {
-        if let Some((race, sex)) = creatures.display_race_sex(d) {
-            if !out.iter().any(|&(_, r, s)| r == race && s == sex) {
-                out.push((d, race, sex));
-            }
-        }
-    }
-    out.sort_by_key(|&(_, r, s)| (r, s));
-    out
+    super::look_catalog::resolve(class, |display| creatures.display_race_sex(display))
 }
 
 #[allow(clippy::too_many_arguments)]

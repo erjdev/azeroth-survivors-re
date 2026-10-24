@@ -147,7 +147,9 @@ rigid attachment bounds using proportional padding; Thunderfury framing was chec
 1280×720. Pending local attachment loads
 keep the equipment resolver awake until ready. Weapon poses, other races, sexes and
 ranged attachments still need visual checks. Turn buttons work. Character now exposes class-valid race and sex choices beside the
-loadout, persisted per named hero through the existing body model. Skin, face, hair,
+loadout, persisted per named hero through the existing body model. Missing sexes now
+use another verified trainer preset of the same race; every existing class race resolves
+both sexes against the local DBC/model data without changing its preferred presets. Skin, face, hair,
 drag input and the multi-resolution acceptance above remain unfinished.
 
 ## Phase 4 — all twelve zones and gear content
