@@ -217,3 +217,23 @@ whole model lacks collision; the authored trunk can be offset from that origin. 
 queries to distinguish source-hull tests from live streaming evidence, then reproduce actual
 walking and mobility at the reported tree. Unloaded points or a mismatched map invalidate
 that point's result. This is collision evidence, not a navigation/pathfinding test.
+
+## Following feature milestones
+
+Read [CHANGELOG.md](CHANGELOG.md) for grouped feature summaries and validation limits.
+Keep new entries short; add screenshots under `docs/images/screenshots/<milestone>/`
+without overwriting earlier milestones. Commit and push coherent checkpoints to `origin`
+when working on a feature branch.
+
+To follow the current implementation on another checkout:
+
+```bash
+git fetch origin
+git switch codex/survivors-long-term
+git pull --ff-only
+cargo survivors-build
+```
+
+A first build compiles dependencies; subsequent builds reuse the local `target/` cache.
+Game data and build artifacts are not in Git. Use `scripts/fetch-data.sh` when needed,
+then launch with `WOW_DATA="$PWD/wow-data/Data" cargo survivors` on macOS/Linux.

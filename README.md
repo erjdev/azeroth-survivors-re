@@ -14,6 +14,7 @@ This repository implements the design in [our intentions](docs/intentions/) and
 inspired by Aethus’s game; it is not a build of that game's source code. Implementation
 is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks the intended
 scope, including content and screens that are not complete yet.
+Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
 Pick a class and a battleground, then survive: WASD to move, your abilities cast themselves,
 enemies swarm in waves, you level up and pick upgrades, and a boss shows up every couple of
@@ -29,32 +30,32 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 
 <table>
   <tr>
-    <td width="50%"><strong>Front door</strong><br><img src="docs/screenshots/current-front-door.jpg" alt="Front door: Class, hero and twelve intended destinations; incomplete content is visibly locked."><br>Class, hero and twelve intended destinations; incomplete content is visibly locked.</td>
-    <td width="50%"><strong>Character</strong><br><img src="docs/screenshots/current-character.jpg" alt="Character: Current legacy character controls; the intended paper-doll layout is unfinished."><br>Current legacy character controls; the intended paper-doll layout is unfinished.</td>
+    <td width="50%"><strong>Front door</strong><br><img src="docs/images/screenshots/2026-10-24/front-door.jpg" alt="Front door: Class, hero and twelve intended destinations; incomplete content is visibly locked."><br>Class, hero and twelve intended destinations; incomplete content is visibly locked.</td>
+    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24/character.jpg" alt="Character: Current legacy character controls; the intended paper-doll layout is unfinished."><br>Current legacy character controls; the intended paper-doll layout is unfinished.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/screenshots/current-collection.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
-    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/screenshots/current-drop-tables.jpg" alt="Drop Tables: Current text view; missing content and layout work remain."><br>Current text view; missing content and layout work remain.</td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-24/collection.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
+    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-24/drop-tables.jpg" alt="Drop Tables: Current text view; missing content and layout work remain."><br>Current text view; missing content and layout work remain.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Codex</strong><br><img src="docs/screenshots/current-codex.jpg" alt="Codex: Spell and item reference view; footer spacing still needs cleanup."><br>Spell and item reference view; footer spacing still needs cleanup.</td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/screenshots/current-talents.jpg" alt="Talents: Warrior tree presentation; this image does not imply every talent effect is implemented."><br>Warrior tree presentation; this image does not imply every talent effect is implemented.</td>
+    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-24/codex.jpg" alt="Codex: Spell and item reference view; footer spacing still needs cleanup."><br>Spell and item reference view; footer spacing still needs cleanup.</td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-24/talents.jpg" alt="Talents: Warrior tree presentation; this image does not imply every talent effect is implemented."><br>Warrior tree presentation; this image does not imply every talent effect is implemented.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Achievements</strong><br><img src="docs/screenshots/current-achievements.jpg" alt="Achievements: Achievement categories and account summary."><br>Achievement categories and account summary.</td>
-    <td width="50%"><strong>Rewards</strong><br><img src="docs/screenshots/current-rewards.jpg" alt="Rewards: Current reward list and cosmetic categories."><br>Current reward list and cosmetic categories.</td>
+    <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-24/achievements.jpg" alt="Achievements: Achievement categories and account summary."><br>Achievement categories and account summary.</td>
+    <td width="50%"><strong>Rewards</strong><br><img src="docs/images/screenshots/2026-10-24/rewards.jpg" alt="Rewards: Current reward list and cosmetic categories."><br>Current reward list and cosmetic categories.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Appearance</strong><br><img src="docs/screenshots/current-appearance.jpg" alt="Appearance: Legacy appearance picker; overlapping controls and old zone choices still need replacement."><br>Legacy appearance picker; overlapping controls and old zone choices still need replacement.</td>
-    <td width="50%"><strong>Run Options</strong><br><img src="docs/screenshots/current-run-options.jpg" alt="Run Options: Currently displays a difficulty notice, not a dedicated options dialog."><br>Currently displays a difficulty notice, not a dedicated options dialog.</td>
+    <td width="50%"><strong>Appearance</strong><br><img src="docs/images/screenshots/2026-10-24/appearance.jpg" alt="Appearance: Legacy appearance picker; overlapping controls and old zone choices still need replacement."><br>Legacy appearance picker; overlapping controls and old zone choices still need replacement.</td>
+    <td width="50%"><strong>Run Options</strong><br><img src="docs/images/screenshots/2026-10-24/run-options.jpg" alt="Run Options: Currently displays a difficulty notice, not a dedicated options dialog."><br>Currently displays a difficulty notice, not a dedicated options dialog.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Combat HUD</strong><br><img src="docs/screenshots/current-combat.jpg" alt="Combat HUD: Elwynn at run start: health, experience, minimap, abilities and damage meter."><br>Elwynn at run start: health, experience, minimap, abilities and damage meter.</td>
-    <td width="50%"><strong>Level-up cards</strong><br><img src="docs/screenshots/current-level-up.jpg" alt="Level-up cards: Responsive upgrade choices with card-local shine and rarity glow."><br>Responsive upgrade choices with card-local shine and rarity glow.</td>
+    <td width="50%"><strong>Combat HUD</strong><br><img src="docs/images/screenshots/2026-10-24/combat.jpg" alt="Combat HUD: Elwynn at run start: health, experience, minimap, abilities and damage meter."><br>Elwynn at run start: health, experience, minimap, abilities and damage meter.</td>
+    <td width="50%"><strong>Level-up cards</strong><br><img src="docs/images/screenshots/2026-10-24/level-up.jpg" alt="Level-up cards: Responsive upgrade choices with card-local shine and rarity glow."><br>Responsive upgrade choices with card-local shine and rarity glow.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Pause</strong><br><img src="docs/screenshots/current-pause.jpg" alt="Pause: Resume, settings, abandon and quit controls."><br>Resume, settings, abandon and quit controls.</td>
-    <td width="50%"><strong>Settings</strong><br><img src="docs/screenshots/current-settings.jpg" alt="Settings: Sound, graphics and the persisted auto-push camera toggle."><br>Sound, graphics and the persisted auto-push camera toggle.</td>
+    <td width="50%"><strong>Pause</strong><br><img src="docs/images/screenshots/2026-10-24/pause.jpg" alt="Pause: Resume, settings, abandon and quit controls."><br>Resume, settings, abandon and quit controls.</td>
+    <td width="50%"><strong>Settings</strong><br><img src="docs/images/screenshots/2026-10-24/settings.jpg" alt="Settings: Sound, graphics and the persisted auto-push camera toggle."><br>Sound, graphics and the persisted auto-push camera toggle.</td>
   </tr>
 </table>
 
@@ -66,12 +67,12 @@ viewport variants still need fresh captures. Earlier screenshots below are histo
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/menu.jpg" alt="The pick screen: race, gender and class on the left, sixteen zones on the right, the hero in between"></td>
-    <td width="50%"><img src="docs/screenshots/combat.jpg" alt="A Mage holding off Elwynn Forest's wolves with frost, fire and arcane"></td>
+    <td width="50%"><img src="docs/images/screenshots/legacy/menu.jpg" alt="The pick screen: race, gender and class on the left, sixteen zones on the right, the hero in between"></td>
+    <td width="50%"><img src="docs/images/screenshots/legacy/combat.jpg" alt="A Mage holding off Elwynn Forest's wolves with frost, fire and arcane"></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/level-up.jpg" alt="Level up: three spell cards, coloured by rarity, each showing exactly what its next rank changes"></td>
-    <td><img src="docs/screenshots/results.jpg" alt="The results screen after a death in Redridge Mountains"></td>
+    <td><img src="docs/images/screenshots/legacy/level-up.jpg" alt="Level up: three spell cards, coloured by rarity, each showing exactly what its next rank changes"></td>
+    <td><img src="docs/images/screenshots/legacy/results.jpg" alt="The results screen after a death in Redridge Mountains"></td>
   </tr>
 </table>
 
@@ -95,7 +96,7 @@ viewport variants still need fresh captures. Earlier screenshots below are histo
 ## Play it
 
 ```bash
-git clone https://github.com/OutThisLife/azeroth-survivors-re
+git clone https://github.com/erjdev/azeroth-survivors-re
 cd azeroth-survivors-re
 make build     # fetch game data + install toolchain + build the wasm (~5.5 GB download)
 make start     # → open http://127.0.0.1:8090/
@@ -169,7 +170,7 @@ The survivors mode is `crates/benilla-app/src/survivors/`, running on two upstre
 ## Legal
 
 This independent fan project is inspired by **Aethus’s Azeroth Survivors**. It is not
-affiliated with or endorsed by Blizzard Entertainment and ships no Blizzard game files. The screenshots in `docs/screenshots/`
+affiliated with or endorsed by Blizzard Entertainment and ships no Blizzard game files. The screenshots in `docs/images/screenshots/`
 show World of Warcraft art rendered from a user-supplied client; that art is © Blizzard
 Entertainment. World of Warcraft is a trademark of Blizzard Entertainment, Inc. The engine code in
 this repository is licensed under

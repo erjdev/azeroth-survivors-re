@@ -418,7 +418,7 @@ all of these behaviors.
 
 ## README interface screenshot gallery
 
-Export real screenshots of the implemented checkout UI to `docs/screenshots/` and embed them
+Export real screenshots of the implemented checkout UI to `docs/images/screenshots/<milestone>/` and embed them
 in README with descriptive captions and alt text. Cover the front door/zone selection,
 appearance, Character, Collection/item detail, Drop Tables, Codex, Talents, Achievements,
 Rewards, Run Options/settings (including visibility controls), combat HUD, level-up cards,
