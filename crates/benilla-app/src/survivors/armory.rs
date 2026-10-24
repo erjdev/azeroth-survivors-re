@@ -777,9 +777,23 @@ pub(super) fn refresh(
             }
         }
     }
+    // Body reconciliation can finish after creation has already drawn the page.
+    // Rebuild when controls become available or their shape changes, not on dial edits.
+    let feature_layout = features.as_ref().map_or(0, |features| {
+        features
+            .counts
+            .iter()
+            .zip(features.labels)
+            .fold(1, |n, (count, label)| {
+                fold(fold(n, u64::from(*count)), hash_str(label))
+            })
+    });
     let sig = (
         fold(
-            signature(&armory, &account, &selection, &renown, &stash),
+            fold(
+                signature(&armory, &account, &selection, &renown, &stash),
+                feature_layout,
+            ),
             u64::from(assets.creatures.is_some() && assets.bodies.is_some()),
         ),
         assets.layout.version,

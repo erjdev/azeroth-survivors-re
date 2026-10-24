@@ -25,7 +25,8 @@ still block the repository gate.
 
 Short/reverse drags and rejection of presses outside the preview passed live at 1280×720.
 Portrait selection, sex changes and disabled Paladin races also passed at 1280×720.
-Feature controls were absent immediately after creating a new Paladin; this remains tracked.
+Feature controls now appear when a new hero’s body becomes ready; creation, immediate hair
+edits and retained preview rotation passed live at 1280×720.
 
 ![Character race portraits, 1280×720](images/screenshots/2026-10-24-character-features/character-portraits.jpg)
 [Independent hero appearance](images/screenshots/2026-10-24-character-appearance/character.jpg)

@@ -156,8 +156,9 @@ focused tests passed; live edits, switching heroes and restart persistence were 
 1440×900 and 1280×720. Race portraits now use the runtime atlas, grouped by faction,
 with selected-sex artwork and unavailable class races dimmed and inert. Live portrait/sex
 selection and disabled Paladin choices passed at 1280×720. Broader multi-resolution
-acceptance remains unfinished. A newly created Paladin showed no feature controls; creation-time feature readiness
-still needs correction. Feature-only edits update counters in place, preserving the
+acceptance remains unfinished. Creation-time feature readiness now participates in the page refresh signature, while
+ordinary dial values do not. A newly created Paladin exposed all five controls immediately;
+hair edits retained preview rotation in live 1280×720 validation. Feature-only edits update counters in place, preserving the
 Character tree, scroll state and preview. Transient dark or missing
 button glyphs still appear after UI actions, even without a full rebuild; removing shadows
 or raising caption layers did not resolve the broader issue. Model dragging now consumes
