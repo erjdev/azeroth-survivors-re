@@ -133,7 +133,9 @@ and draft cards, rather than treating these two resolutions as fixed design canv
 
 Collection cells now render verified artwork with dim unowned pieces and corner E/L badges.
 Owned icons, combined badges and legendary selection passed at 1440×900; unowned artwork
-passed at 1280×720. Missing content remains a placeholder, pending phase 4.
+passed at 1280×720. Missing-item entries share dimmed icons, and rarity rows list zones
+from implemented drops. Clicking a source icon selected its matching grid cell and details
+at 1280×720. Missing content remains a placeholder, pending phase 4.
 
 Current Character checkpoint: equipment rows now include runtime item icons, selected-item
 highlights and aligned empty slots, shared with Collection. Live 1440×900 checks covered

@@ -327,6 +327,16 @@ fn grid(
                     layout.body_size - 2.0,
                     DIM,
                 );
+                let mut zones = Vec::new();
+                for drop in campaign::DROPS.iter().filter(|drop| drop.band == band) {
+                    let name = campaign::ZONES[drop.zone].name;
+                    if !zones.contains(&name) {
+                        zones.push(name);
+                    }
+                }
+                if !zones.is_empty() {
+                    text(label, font, zones.join(" · "), layout.body_size - 3.0, DIM);
+                }
             });
             for slot in 0..campaign::GRID_SLOTS {
                 let index = band * campaign::GRID_SLOTS + slot;
@@ -591,7 +601,8 @@ fn missing(
                 Node {
                     width: Val::Percent(48.0),
                     min_width: Val::Px(0.0),
-                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(layout.gap),
                     padding: UiRect::all(Val::Px(4.0)),
                     border: UiRect::all(Val::Px(1.0)),
                     ..default()
@@ -603,25 +614,50 @@ fn missing(
                 }),
             ))
             .with_children(|entry| {
-                text(
-                    entry,
-                    font,
-                    campaign::piece_name(class, drop.slot, drop.band).unwrap(),
-                    layout.body_size,
-                    super::door::band_color(drop.band),
-                );
-                text(
-                    entry,
-                    font,
-                    format!(
-                        "{} · {} · {}%",
-                        drop.creature,
-                        campaign::ZONES[drop.zone].name,
-                        drop.chance
-                    ),
-                    layout.body_size - 2.0,
-                    DIM,
-                );
+                let size = layout.body_size * 2.5;
+                entry
+                    .spawn(Node {
+                        width: Val::Px(size),
+                        height: Val::Px(size),
+                        flex_shrink: 0.0,
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..default()
+                    })
+                    .with_children(|icon| {
+                        super::super::gear_icons::spawn_cell(
+                            icon, class, drop.slot, drop.band, size, false,
+                        );
+                    });
+                entry
+                    .spawn(Node {
+                        flex_direction: FlexDirection::Column,
+                        flex_grow: 1.0,
+                        flex_basis: Val::Px(0.0),
+                        min_width: Val::Px(0.0),
+                        ..default()
+                    })
+                    .with_children(|labels| {
+                        text(
+                            labels,
+                            font,
+                            campaign::piece_name(class, drop.slot, drop.band).unwrap(),
+                            layout.body_size,
+                            super::door::band_color(drop.band),
+                        );
+                        text(
+                            labels,
+                            font,
+                            format!(
+                                "{} · {} · {}%",
+                                drop.creature,
+                                campaign::ZONES[drop.zone].name,
+                                drop.chance
+                            ),
+                            layout.body_size - 2.0,
+                            DIM,
+                        );
+                    });
             });
         }
     });
