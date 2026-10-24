@@ -83,6 +83,7 @@ fn blank_specs() -> [[u8; campaign::SPEC_LEN]; 3] {
 pub(super) struct ClassProgress {
     /// Stacks in the nine-by-six grid. Zero is not owned. A second stack is a duplicate bonus.
     pub pieces: [u8; campaign::PIECES],
+    pub equipment: super::equipment::Equipment,
     pub legendary_weapon: bool,
     pub clears: [bool; campaign::CLEAR_COUNT],
     /// Legendary amulet names whose card has been dealt.
@@ -93,6 +94,7 @@ impl Default for ClassProgress {
     fn default() -> Self {
         Self {
             pieces: [0; campaign::PIECES],
+            equipment: super::equipment::Equipment::default(),
             legendary_weapon: false,
             clears: [false; campaign::CLEAR_COUNT],
             seen: Vec::new(),
@@ -226,7 +228,13 @@ impl Account {
         let name = campaign::piece_name(class, row.slot, row.band)?;
         let index = campaign::piece_index(row.band, row.slot)?;
         let progress = self.classes.get_mut(class)?;
+        let first_copy = progress.pieces[index] == 0;
         progress.pieces[index] = progress.pieces[index].saturating_add(1).min(4);
+        if first_copy && progress.equipment.worn[row.slot].is_none() {
+            progress
+                .equipment
+                .wear(&progress.pieces, row.slot, Some(row.band as u8));
+        }
         progress.legendary_weapon = progress
             .pieces
             .get(5 * campaign::GRID_SLOTS + 8)
@@ -235,6 +243,28 @@ impl Account {
             > 0;
         self.dirty = true;
         Some(name)
+    }
+
+    pub fn wear_piece(&mut self, class: usize, slot: usize, band: Option<u8>) -> bool {
+        let Some(progress) = self.classes.get_mut(class) else {
+            return false;
+        };
+        if !progress.equipment.wear(&progress.pieces, slot, band) {
+            return false;
+        }
+        self.dirty = true;
+        true
+    }
+
+    pub fn show_piece(&mut self, class: usize, slot: usize, look: super::equipment::Look) -> bool {
+        let Some(progress) = self.classes.get_mut(class) else {
+            return false;
+        };
+        if !progress.equipment.show(&progress.pieces, slot, look) {
+            return false;
+        }
+        self.dirty = true;
+        true
     }
 
     pub fn remember_amulets(&mut self, class: usize, keys: &[&str]) {
@@ -282,7 +312,7 @@ impl Account {
         let Some(progress) = self.classes.get(class) else {
             return Bonus::default();
         };
-        let pieces = progress.pieces;
+        let pieces = progress.equipment.worn_pieces(&progress.pieces);
         let hero = self.character(id);
         let using_dbc = hero.is_some_and(|c| {
             c.dbc[usize::from(c.spec).min(2)]
@@ -761,6 +791,8 @@ fn encode(account: &Account) -> String {
             "class {i} {gear} {} {clears}\n",
             if class.legendary_weapon { 1 } else { 0 }
         ));
+        let (worn, looks) = class.equipment.encode();
+        out.push_str(&format!("equipment {i} {worn} {looks}\n"));
         for name in &class.seen {
             out.push_str(&format!("seen {i} {}\n", escape(name)));
         }
@@ -939,6 +971,7 @@ fn read_dbc(payload: &str) -> [Vec<(u8, u32, u8)>; 3] {
 
 fn parse(text: &str) -> Result<Account, ()> {
     let mut account = empty();
+    let mut equipment_rows = Vec::new();
     for line in text.lines() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
@@ -982,6 +1015,15 @@ fn parse(text: &str) -> Result<Account, ()> {
                 if let Some(progress) = account.classes.get_mut(index) {
                     read_pieces(progress, gear, legendary);
                     progress.clears = read_clears(clears);
+                }
+            }
+            Some("equipment") => {
+                if let Some(index) = parts.next().and_then(|value| value.parse::<usize>().ok()) {
+                    equipment_rows.push((
+                        index,
+                        parts.next().unwrap_or("").to_string(),
+                        parts.next().unwrap_or("").to_string(),
+                    ));
                 }
             }
             Some("seen") => {
@@ -1039,6 +1081,15 @@ fn parse(text: &str) -> Result<Account, ()> {
             }
             _ => {}
         }
+    }
+    for (index, progress) in account.classes.iter_mut().enumerate() {
+        progress.equipment = if let Some((_, worn, looks)) =
+            equipment_rows.iter().rev().find(|row| row.0 == index)
+        {
+            super::equipment::Equipment::decode(worn, looks, &progress.pieces)
+        } else {
+            super::equipment::Equipment::legacy(&progress.pieces)
+        };
     }
     Ok(account)
 }
@@ -1125,6 +1176,52 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn equipment_rows_are_validated_after_ownership_regardless_of_order() {
+        let account =
+            parse("equipment 0 100000000 100000000\nclass 0 1000000000 0 0000000\n").unwrap();
+        assert_eq!(account.classes[0].equipment.worn[0], Some(0));
+        assert_eq!(
+            account.classes[0].equipment.looks[0],
+            super::super::equipment::Look::Hidden
+        );
+        let invalid =
+            parse("equipment 0 600000000 700000000\nclass 0 1000000000 0 0000000\n").unwrap();
+        assert_eq!(invalid.classes[0].equipment.worn[0], None);
+        assert_eq!(
+            invalid.classes[0].equipment.looks[0],
+            super::super::equipment::Look::Worn
+        );
+    }
+
+    #[test]
+    fn legacy_equipment_migrates_once_and_explicit_empty_slots_survive_reload() {
+        let mut account = parse("class 0 1111111110 0 0000000\n").unwrap();
+        assert_eq!(
+            account.classes[0].equipment.worn,
+            [Some(0); campaign::GRID_SLOTS]
+        );
+        let id = account.ensure(0);
+        let before = account.bonus(0, id).might;
+        assert!(account.wear_piece(0, 0, None));
+        assert!(account.bonus(0, id).might < before);
+        assert!(account.show_piece(0, 0, super::super::equipment::Look::Hidden));
+        let again = parse(&encode(&account)).unwrap();
+        assert_eq!(again.classes[0].equipment.worn[0], None);
+        assert_eq!(
+            again.classes[0].equipment.looks[0],
+            super::super::equipment::Look::Hidden
+        );
+        assert_eq!(
+            again.classes[1].equipment.worn,
+            [None; campaign::GRID_SLOTS]
+        );
+        assert_eq!(again.classes[0].pieces[0], 1);
+        // A duplicate must not undo an explicit unequip.
+        account.collect_drop(0, 0, "Hogger");
+        assert_eq!(account.classes[0].equipment.worn[0], None);
+    }
 
     #[test]
     fn settlement_rewards_the_selected_hero_once_and_survives_reload() {

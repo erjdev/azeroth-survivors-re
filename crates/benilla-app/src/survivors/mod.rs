@@ -14,6 +14,7 @@ mod companions;
 mod data;
 mod encounters;
 mod enemies;
+mod equipment;
 mod grade;
 mod hero;
 mod hud;

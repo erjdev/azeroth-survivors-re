@@ -1,6 +1,7 @@
 //! The Armory: the front door before a run, and the draft pages a tab opens inside that frame.
 //! Appearance stays on the glue race and class screen, reached from the hero column.
 
+mod collection;
 mod door;
 
 use bevy::ecs::hierarchy::ChildOf;
@@ -67,6 +68,7 @@ pub(super) struct Armory {
     reward_page: u8,
     /// Which companion the Looks row dresses.
     pet_slot: u8,
+    piece: usize,
 }
 
 impl Default for Armory {
@@ -82,6 +84,7 @@ impl Default for Armory {
             achieve: 0,
             reward_page: 0,
             pet_slot: 0,
+            piece: 0,
         }
     }
 }
@@ -132,6 +135,9 @@ pub(super) enum Act {
     PetSlot(u8),
     Tabard(u8),
     Talent(u32),
+    InspectPiece(usize),
+    WearPiece(usize, Option<u8>),
+    ShowPiece(usize, super::equipment::Look),
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -185,6 +191,22 @@ pub(super) fn input(
                 continue;
             }
             match act {
+                Act::InspectPiece(index) => {
+                    let class = picked_class(&account, &selection);
+                    let slot = index % campaign::GRID_SLOTS;
+                    let band = (index / campaign::GRID_SLOTS) as u8;
+                    if keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight) {
+                        account.show_piece(class, slot, super::equipment::Look::Piece(band));
+                    } else {
+                        let worn = account.classes[class].equipment.worn[slot];
+                        account.wear_piece(
+                            class,
+                            slot,
+                            if worn == Some(band) { None } else { Some(band) },
+                        );
+                    }
+                    account.save();
+                }
                 Act::Learn(node) => {
                     if let Some(id) = selection.character {
                         if account.unlearn(id, *node) {
@@ -218,6 +240,19 @@ pub(super) fn input(
             Act::Page(page) => {
                 armory.page = page;
                 armory.focus = 0;
+            }
+            Act::InspectPiece(index) => armory.piece = index.min(campaign::PIECES - 1),
+            Act::WearPiece(slot, band) => {
+                let class = picked_class(&account, &selection);
+                if account.wear_piece(class, slot, band) {
+                    account.save();
+                }
+            }
+            Act::ShowPiece(slot, look) => {
+                let class = picked_class(&account, &selection);
+                if account.show_piece(class, slot, look) {
+                    account.save();
+                }
             }
             Act::Focus(slot) => armory.focus = slot,
             Act::Class => {
@@ -827,7 +862,7 @@ fn fill_draft(
         Page::Heroes => heroes(panel, font, armory, account, selection, renown, stash),
         Page::Talents => talents(panel, font, account, selection, catalog),
         Page::Rewards => rewards_page(panel, font, armory, account),
-        Page::Collection => collection(panel, font, account, selection),
+        Page::Collection => collection::build(panel, font, armory, account, selection),
         Page::Codex => codex(panel, font, account),
         Page::Achievements => achievements(panel, font, armory, account),
         Page::Notes => notes_page(panel, font),
@@ -850,7 +885,10 @@ fn drop_tables(
     )];
     for (index, zone) in campaign::ZONES.iter().enumerate() {
         lines.push((zone.name.to_string(), GOLD));
-        let rows: Vec<_> = campaign::DROPS.iter().filter(|row| row.zone == index).collect();
+        let rows: Vec<_> = campaign::DROPS
+            .iter()
+            .filter(|row| row.zone == index)
+            .collect();
         if rows.is_empty() {
             lines.push((
                 "No drop table yet. The creature has to exist on this map.".into(),
@@ -985,12 +1023,10 @@ fn draw_real_talents(
                         })
                         .with_children(|line| {
                             for column in 0..4u32 {
-                                let talent = talents
-                                    .iter()
-                                    .find(|t| t.row == tier && t.col == column);
+                                let talent =
+                                    talents.iter().find(|t| t.row == tier && t.col == column);
                                 if let Some(talent) = talent {
-                                    let rank = hero
-                                        .dbc[active]
+                                    let rank = hero.dbc[active]
                                         .iter()
                                         .find(|entry| entry.1 == talent.id)
                                         .map(|entry| entry.2)
@@ -1100,7 +1136,10 @@ fn spend_talent(
         .and_then(|spells| spells.get(talent.ranks[0]))
         .map(|spell| spell.name.clone())
         .unwrap_or_else(|| "Talent".into());
-    let current = account.character(hero).map(|c| c.dbc_rank(talent_id)).unwrap_or(0);
+    let current = account
+        .character(hero)
+        .map(|c| c.dbc_rank(talent_id))
+        .unwrap_or(0);
     if refund {
         if current == 0 {
             return format!("{name} has no point to take back");
@@ -1108,8 +1147,15 @@ fn spend_talent(
         let ranks: Vec<(u32, u8)> = list
             .iter()
             .map(|t| {
-                let rank = account.character(hero).map(|c| c.dbc_rank(t.id)).unwrap_or(0);
-                let rank = if t.id == talent_id { rank.saturating_sub(1) } else { rank };
+                let rank = account
+                    .character(hero)
+                    .map(|c| c.dbc_rank(t.id))
+                    .unwrap_or(0);
+                let rank = if t.id == talent_id {
+                    rank.saturating_sub(1)
+                } else {
+                    rank
+                };
                 (t.id, rank)
             })
             .collect();
@@ -1194,7 +1240,13 @@ fn talents(
                 let label = if points.iter().all(|n| *n == 0) {
                     format!("Spec {}  Empty", spec + 1)
                 } else {
-                    format!("Spec {}  {}/{}/{}", spec + 1, points[0], points[1], points[2])
+                    format!(
+                        "Spec {}  {}/{}/{}",
+                        spec + 1,
+                        points[0],
+                        points[1],
+                        points[2]
+                    )
                 };
                 chip(row, font, &label, Act::Spec(spec), hero.spec == spec);
             }
@@ -1263,10 +1315,7 @@ fn talents(
 fn milestone_label(class: usize, tree: usize, node: usize, rank: u8, max: u8) -> String {
     for at in [10, 20, 30] {
         if campaign::milestone_node(at) == Some(node) {
-            return format!(
-                "{} {rank}/{max}",
-                campaign::milestone_name(class, tree, at)
-            );
+            return format!("{} {rank}/{max}", campaign::milestone_name(class, tree, at));
         }
     }
     format!("Rank {rank}/{max}")
@@ -1514,73 +1563,6 @@ fn scroll(panel: &mut impl ChipParent, font: &Handle<Font>, lines: &[(String, Co
         });
 }
 
-fn collection(
-    panel: &mut impl ChipParent,
-    font: &Handle<Font>,
-    account: &Account,
-    selection: &Selection,
-) {
-    let class = picked_class(account, selection);
-    let progress = account.classes.get(class);
-    let pieces = progress.map(|p| p.pieces).unwrap_or([0; campaign::PIECES]);
-    let class_name = CLASSES.get(class).map(|c| c.name).unwrap_or("Hero");
-    let owned = campaign::owned_pieces(&pieces);
-    let mut lines = vec![(
-        format!(
-            "{class_name} collection — {owned} of {} pieces",
-            campaign::PIECES
-        ),
-        GOLD,
-    )];
-    for band in 0..campaign::BANDS {
-        let label = campaign::BANDS_NAMED[band];
-        let have = (0..campaign::GRID_SLOTS)
-            .filter(|slot| pieces.get(band * campaign::GRID_SLOTS + slot).copied().unwrap_or(0) > 0)
-            .count();
-        lines.push((format!("{label}  {have} of {}", campaign::GRID_SLOTS), GOLD));
-        for slot in 0..campaign::GRID_SLOTS {
-            let slot_name = campaign::SLOTS[slot];
-            let stacks = pieces
-                .get(band * campaign::GRID_SLOTS + slot)
-                .copied()
-                .unwrap_or(0);
-            let Some(item) = campaign::piece_name(class, slot, band) else {
-                lines.push((format!("{slot_name} — not listed yet"), DIM));
-                continue;
-            };
-            if stacks == 0 {
-                lines.push((format!("{slot_name} — {item} — not collected"), DIM));
-            } else if stacks == 1 {
-                lines.push((format!("{slot_name} — {item}"), Color::WHITE));
-            } else {
-                lines.push((
-                    format!("{slot_name} — {item} — duplicate bonus"),
-                    Color::WHITE,
-                ));
-            }
-        }
-    }
-    if let Some(id) = selection.character {
-        if account.character(id).is_some_and(|c| c.class == class) {
-            let cloak = campaign::cloak_quality(account.feats(class, id));
-            lines.push(match cloak {
-                Some(q) => (format!("Cloak — {}", campaign::quality_name(q)), GOLD),
-                None => ("Cloak — no feats yet".into(), DIM),
-            });
-        }
-    }
-    if campaign::set_complete(&pieces) {
-        lines.push(("Set bonus — the nine worn slots are filled.".into(), GOLD));
-    }
-    if campaign::two_handed(class) {
-        lines.push((
-            "The weapon is two-handed. It fills the main hand only.".into(),
-            DIM,
-        ));
-    }
-    scroll(panel, font, &lines);
-}
-
 fn codex(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
     panel.spawn(hud::text_bundle(
         font,
@@ -1597,7 +1579,10 @@ fn codex(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
             .unwrap_or(&[]);
         let found = keys
             .iter()
-            .filter(|key| seen.iter().any(|name| name == &campaign::legendary_amulet(key)))
+            .filter(|key| {
+                seen.iter()
+                    .any(|name| name == &campaign::legendary_amulet(key))
+            })
             .count();
         panel.spawn(hud::text_bundle(
             font,
@@ -1615,7 +1600,9 @@ fn codex(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
             })
             .with_children(|row| {
                 for (slot, key) in keys.iter().enumerate() {
-                    let seen_one = seen.iter().any(|name| name == &campaign::legendary_amulet(key));
+                    let seen_one = seen
+                        .iter()
+                        .any(|name| name == &campaign::legendary_amulet(key));
                     let dim = if seen_one { 1.0 } else { 0.35 };
                     row.spawn((
                         Button,
@@ -1682,7 +1669,11 @@ fn achievements(
 ) {
     let rows = account.achievement_list();
     let earned_n = rows.iter().filter(|row| row.earned).count();
-    let earned_pts: u32 = rows.iter().filter(|row| row.earned).map(|row| row.points).sum();
+    let earned_pts: u32 = rows
+        .iter()
+        .filter(|row| row.earned)
+        .map(|row| row.points)
+        .sum();
     let total_pts: u32 = rows.iter().map(|row| row.points).sum();
     let names = [
         "Summary",
@@ -1735,7 +1726,14 @@ fn achievements(
                     );
                     if index > 0 {
                         let (_, _, pts, all) = category_counts(&rows, index as u8);
-                        meter(nav, if all == 0 { 0.0 } else { pts as f32 / all as f32 });
+                        meter(
+                            nav,
+                            if all == 0 {
+                                0.0
+                            } else {
+                                pts as f32 / all as f32
+                            },
+                        );
                     }
                 }
             });
@@ -1761,7 +1759,10 @@ fn achievements(
                         };
                         body.spawn(hud::text_bundle(
                             font,
-                            format!("{mark} — {} — {} points{progress}", entry.name, entry.points),
+                            format!(
+                                "{mark} — {} — {} points{progress}",
+                                entry.name, entry.points
+                            ),
                             13.0,
                             color,
                         ));
@@ -1840,7 +1841,11 @@ fn category_counts(rows: &[rewards::Listed], page: u8) -> (usize, usize, u32, u3
     };
     let mine: Vec<_> = rows.iter().filter(|row| row.category == category).collect();
     let have = mine.iter().filter(|row| row.earned).count();
-    let pts = mine.iter().filter(|row| row.earned).map(|row| row.points).sum();
+    let pts = mine
+        .iter()
+        .filter(|row| row.earned)
+        .map(|row| row.points)
+        .sum();
     let all = mine.iter().map(|row| row.points).sum();
     (have, mine.len(), pts, all)
 }
@@ -1915,7 +1920,11 @@ fn codex_text(account: &Account, id: u16) -> String {
                 def.cooldown
             )
         }
-        2 => jewel_text("Ring", campaign::RING_NAMES.get(index).copied(), "Two rings can be worn this run."),
+        2 => jewel_text(
+            "Ring",
+            campaign::RING_NAMES.get(index).copied(),
+            "Two rings can be worn this run.",
+        ),
         3 => jewel_text(
             "Trinket",
             campaign::TRINKET_NAMES.get(index).copied(),
@@ -1931,10 +1940,7 @@ fn codex_text(account: &Account, id: u16) -> String {
 }
 
 fn jewel_text(kind: &str, name: Option<&str>, rule: &str) -> String {
-    format!(
-        "{kind} — {} — {rule}",
-        name.unwrap_or("Unknown")
-    )
+    format!("{kind} — {} — {rule}", name.unwrap_or("Unknown"))
 }
 
 fn spell_title(key: &str) -> String {
@@ -2047,6 +2053,7 @@ fn signature(
     n = fold(n, u64::from(armory.achieve));
     n = fold(n, u64::from(armory.reward_page));
     n = fold(n, u64::from(armory.pet_slot));
+    n = fold(n, armory.piece as u64);
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
     n = fold(n, armory.draft_class as u64);
@@ -2070,6 +2077,9 @@ fn signature(
         }
     }
     for class in &account.classes {
+        let (worn, looks) = class.equipment.encode();
+        n = fold(n, hash_str(&worn));
+        n = fold(n, hash_str(&looks));
         for piece in class.pieces {
             n = fold(n, u64::from(piece));
         }

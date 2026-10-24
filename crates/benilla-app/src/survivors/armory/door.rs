@@ -46,7 +46,9 @@ pub(super) fn build(
         enter_bar(ui, art, font, armory, account, selection);
     } else {
         panel(ui, art, |body| {
-            super::fill_draft(body, font, armory, account, selection, renown, stash, talents)
+            super::fill_draft(
+                body, font, armory, account, selection, renown, stash, talents,
+            )
         });
     }
 }
@@ -219,7 +221,9 @@ fn columns(
         panel(row, art, |body| {
             hero_column(body, art, font, account, selection)
         });
-        panel(row, art, |body| zone_column(body, font, armory, account, selection));
+        panel(row, art, |body| {
+            zone_column(body, font, armory, account, selection)
+        });
     });
 }
 
@@ -492,9 +496,7 @@ fn hero_column(
     bar(body, owned as f32 / total as f32);
     let bonus = account.bonus_picked(class_i, selection.character);
     line(body, font, &bonus_line(bonus), 12.0, BONUS);
-    let spent = hero
-        .map(|c| c.active_points())
-        .unwrap_or(0);
+    let spent = hero.map(|c| c.active_points()).unwrap_or(0);
     body.spawn(Node {
         width: Val::Percent(100.0),
         flex_direction: FlexDirection::Row,
@@ -728,9 +730,14 @@ fn gear_lines(
         .map(|p| p.pieces)
         .unwrap_or([0; campaign::PIECES]);
     let owned = campaign::owned_pieces(&pieces);
+    let worn = account
+        .classes
+        .get(class)
+        .map(|p| p.equipment.worn_pieces(&p.pieces))
+        .unwrap_or([0; campaign::PIECES]);
     for slot in 0..campaign::GRID_SLOTS {
         let slot_name = campaign::SLOTS[slot];
-        let (text, color) = if let Some((band, stacks)) = campaign::best_piece(&pieces, slot) {
+        let (text, color) = if let Some((band, stacks)) = campaign::best_piece(&worn, slot) {
             let item = campaign::piece_name(class, slot, band).unwrap_or(slot_name);
             let extra = if stacks > 1 { " +" } else { "" };
             (format!("{slot_name} — {item}{extra}"), band_color(band))
@@ -922,7 +929,7 @@ fn sex_name(sex: u8) -> &'static str {
     }
 }
 
-fn band_color(band: usize) -> Color {
+pub(super) fn band_color(band: usize) -> Color {
     match band {
         0 => Color::WHITE,
         1 => hud::rgb(0x1eff00),
@@ -933,7 +940,7 @@ fn band_color(band: usize) -> Color {
     }
 }
 
-fn bonus_line(bonus: campaign::Bonus) -> String {
+pub(super) fn bonus_line(bonus: campaign::Bonus) -> String {
     let mut parts = Vec::new();
     let pct = |v: f32| format!("{:+.0}%", v * 100.0);
     if bonus.armor.abs() > 0.01 {
