@@ -11,4 +11,7 @@ workspace = true
 [dependencies]
 anyhow.workspace = true
 benilla-formats = { path = "../benilla-formats", default-features = false }
+benilla-wmo = { path = "../benilla-wmo" }
 survivors-core = { path = "../survivors-core" }
+
+glam = "0.31"

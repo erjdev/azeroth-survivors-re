@@ -6547,6 +6547,8 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "benilla-formats",
+ "benilla-wmo",
+ "glam 0.31.1",
  "survivors-core",
 ]
 

@@ -3,15 +3,29 @@ use anyhow::{bail, Context, Result};
 use benilla_formats::{load_creature_catalog, load_map_catalog, open_chain, MapTiles};
 use survivors_core::{campaign, data, encounters};
 
+mod floor;
+
 fn main() -> Result<()> {
     let mut args = std::env::args_os().skip(1);
     let path = args
         .next()
         .context("usage: survivors-audit <explicit WoW Data directory>")?;
-    if args.next().is_some() {
-        bail!("expected exactly one data directory");
-    }
+    let rest: Vec<_> = args.collect();
     let mut chain = open_chain(std::path::Path::new(&path))?;
+    if !rest.is_empty() {
+        if rest.len() != 5 || rest[0] != "--floor" {
+            bail!("usage: survivors-audit <Data> [--floor <map> <x> <y> <z>]");
+        }
+        let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
+        let mut point = [0.0_f32; 3];
+        for (value, arg) in point.iter_mut().zip(&rest[2..]) {
+            *value = arg.to_str().context("coordinate must be UTF-8")?.parse()?;
+            if !value.is_finite() {
+                bail!("coordinates must be finite");
+            }
+        }
+        return floor::probe(&mut chain, map, point);
+    }
     let maps = load_map_catalog(&mut chain)?;
     let creatures = load_creature_catalog(&mut chain)?;
     let mut gaps = 0;
@@ -23,14 +37,7 @@ fn main() -> Result<()> {
         };
         let map = &data::MAPS[index];
         // Map.dbc in the 1.12.1 patch chain identifies these instanced destinations.
-        let expected_map = match zone.name {
-            "Alterac Valley" => Some(30),
-            "Scarlet Monastery" => Some(189),
-            "Warsong Gulch" => Some(489),
-            "Arathi Basin" => Some(529),
-            "Naxxramas" => Some(533),
-            _ => None,
-        };
+        let expected_map = campaign::required_map_id(zone.name);
         if let Some(expected) = expected_map.filter(|expected| *expected != map.map) {
             println!(
                 "WRONG DESTINATION: {} · configured map {} · expected {} ({:?})",

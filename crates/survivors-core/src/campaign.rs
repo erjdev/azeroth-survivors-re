@@ -240,9 +240,26 @@ pub fn zone_index(map_name: &str) -> Option<usize> {
     ZONES.iter().position(|z| z.map == map_name)
 }
 
+/// Instanced campaign destinations identified by Map.dbc in the 1.12.1 data.
+/// A matching label on a different world is not the intended destination.
+pub fn required_map_id(zone_name: &str) -> Option<u32> {
+    match zone_name {
+        "Alterac Valley" => Some(30),
+        "Scarlet Monastery" => Some(189),
+        "Warsong Gulch" => Some(489),
+        "Arathi Basin" => Some(529),
+        "Naxxramas" => Some(533),
+        _ => None,
+    }
+}
+
 /// Why a row cannot be entered yet, apart from the talent gate and the previous clear.
 fn content_lock(zone: &Zone) -> Option<String> {
-    let map = super::data::MAPS.iter().any(|m| m.name == zone.map);
+    let destination = super::data::MAPS.iter().find(|m| m.name == zone.map);
+    if destination.is_some_and(|map| required_map_id(zone.name).is_some_and(|id| map.map != id)) {
+        return Some(format!("{} world location is not ready", zone.name));
+    }
+    let map = destination.is_some();
     let boss = !zone.boss.is_empty();
     let scheduled = super::data::MAPS
         .iter()
@@ -1473,10 +1490,10 @@ mod tests {
         assert!(!zone_open(11, 48, &clears));
         assert_eq!(
             zone_lock_reason(11, 48, &clears).as_deref(),
-            Some("Clear Gates of Ahn'Qiraj on this class first")
+            Some("Naxxramas world location is not ready")
         );
         clears[10] = true;
-        assert!(zone_open(11, 48, &clears));
+        assert!(!zone_open(11, 48, &clears));
         assert!(!zone_open(11, 47, &clears));
     }
 
@@ -1724,6 +1741,17 @@ mod tests {
         assert_eq!(talent_level(5100), 51);
         assert_eq!(unspent_talents(250, 2), 0);
         assert_eq!(unspent_talents(250, 1), 1);
+    }
+
+    #[test]
+    fn an_outdoor_placeholder_cannot_open_an_instanced_raid() {
+        assert_eq!(required_map_id("Naxxramas"), Some(533));
+        assert!(!map_allowed("Naxxramas", 51, &[true; CLEAR_COUNT]));
+        assert_eq!(
+            zone_lock_reason(11, 51, &[true; CLEAR_COUNT]).as_deref(),
+            Some("Naxxramas world location is not ready")
+        );
+        assert!(map_allowed("Elwynn Forest", 0, &[false; CLEAR_COUNT]));
     }
 
     #[test]
