@@ -20,6 +20,7 @@ mod minimap;
 mod mobility;
 mod notes;
 mod renown;
+mod spawn;
 mod stash;
 mod tuning;
 mod units;

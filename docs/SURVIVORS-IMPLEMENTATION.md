@@ -141,6 +141,14 @@ slopes and layered interior fixtures separately. Bounded grounding is not wall c
 spawn placement, pathfinding, or proof of indoor camera visibility; those need their own
 traversability checks before a zone can become ready.
 
+Spawn candidates must fit their body radius inside the arena and have support under the
+center and four footprint edges. Clamping a ring near the boundary must not place a monster
+on the hero: require at least six yards, or body radius plus two yards if larger. Retry
+other directions when support is missing. Scheduled bosses remain pending until spawned;
+initial chests and surrounding waves are planned as complete batches before counters advance.
+A missing streamed floor must neither consume an encounter nor duplicate part of a batch.
+These checks do not prove line of sight or a walkable route through walls.
+
 Connect item ids to names/icons/displays from available catalogs. Fill all 54
 cells for each of nine classes with verified content. Content readiness is derived from
 these dependencies rather than a trusted boolean. Never unlock a label with no world.

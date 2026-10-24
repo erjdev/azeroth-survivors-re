@@ -188,65 +188,71 @@ pub(super) fn spawn_enemies(
     let roster = data::roster(selection.map);
     let pool = data::wave_pool(elapsed, roster.enemies.len());
 
+    let map = selection.map_def();
     while let Some(def) = super::encounters::next(selection.map, run.bosses, elapsed) {
         let a = rng.range(0.0, std::f32::consts::TAU);
-        let pos = ground(
-            &world,
-            hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 30.0,
-            hpos.y,
-        );
+        let Some(pos) = super::spawn::point(&world, map, hpos, a, 30.0, radius_for(def)) else {
+            // The same scheduled boss remains pending until its floor is available.
+            break;
+        };
         spawn_enemy(&mut commands, &mut run, def, pos, hpos, true, false);
         run.bosses += 1;
         run.banner = Some((format!("{} approaches!", def.name), 4.0));
     }
 
-    // Half way between bosses, a closing ring of the moment's weakest.
+    // Plan a complete ring before spawning any of it, so a retry cannot duplicate half a wave.
     let due_rings = ((elapsed + data::BOSS_EVERY_SECS / 2.0) / data::BOSS_EVERY_SECS) as u32;
     if run.rings < due_rings {
-        run.rings = due_rings;
         let def = &roster.enemies[pool[0]];
         let n = 28 + (data::progress(elapsed) * 60.0) as usize;
-        for i in 0..n {
-            let a = i as f32 / n as f32 * std::f32::consts::TAU;
-            let pos = ground(
-                &world,
-                hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 26.0,
-                hpos.y,
-            );
-            let elite = super::campaign::is_named_elite(selection.map_def().name, def.name);
-            spawn_enemy(&mut commands, &mut run, def, pos, hpos, false, elite);
+        let positions: Option<Vec<_>> = (0..n)
+            .map(|i| {
+                let a = i as f32 / n as f32 * std::f32::consts::TAU;
+                super::spawn::point(&world, map, hpos, a, 26.0, radius_for(def))
+            })
+            .collect();
+        if let Some(positions) = positions {
+            for pos in positions {
+                let elite = super::campaign::is_named_elite(map.name, def.name);
+                spawn_enemy(&mut commands, &mut run, def, pos, hpos, false, elite);
+            }
+            run.rings = due_rings;
+            run.banner = Some(("They're surrounding you!".into(), 3.0));
         }
-        run.banner = Some(("They're surrounding you!".into(), 3.0));
     }
 
     if !run.stocked {
-        run.stocked = true;
-        for i in 0..3 {
-            let a = i as f32 / 3.0 * std::f32::consts::TAU;
-            let pos = ground(
-                &world,
-                hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 14.0,
-                hpos.y,
-            );
-            spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::A);
+        let positions: Option<Vec<_>> = (0..3)
+            .map(|i| {
+                let a = i as f32 / 3.0 * std::f32::consts::TAU;
+                super::spawn::point(&world, map, hpos, a, 14.0, 1.0)
+            })
+            .collect();
+        if let Some(positions) = positions {
+            for pos in positions {
+                spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::A);
+            }
+            run.stocked = true;
         }
     }
 
     spawner.chest_t -= time.delta_secs();
     if spawner.chest_t <= 0.0 {
-        spawner.chest_t = 45.0;
         let woods = chests
             .iter()
             .filter(|c| c.tier == super::campaign::ChestTier::C)
             .count();
-        if woods < 3 {
+        if woods >= 3 {
+            spawner.chest_t = 45.0;
+        } else {
             let a = rng.range(0.0, std::f32::consts::TAU);
-            let pos = ground(
-                &world,
-                hpos + Vec3::new(a.cos(), 0.0, a.sin()) * rng.range(16.0, 24.0),
-                hpos.y,
-            );
-            spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::C);
+            let distance = rng.range(16.0, 24.0);
+            if let Some(pos) = super::spawn::point(&world, map, hpos, a, distance, 1.0) {
+                spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::C);
+                spawner.chest_t = 45.0;
+            } else {
+                spawner.chest_t = 0.5;
+            }
         }
     }
 
@@ -265,7 +271,9 @@ pub(super) fn spawn_enemies(
         let def = &roster.enemies[pool[rng.index(pool.len())]];
         let a = rng.range(0.0, std::f32::consts::TAU);
         let r = rng.range(34.0, 42.0);
-        let pos = ground(&world, hpos + Vec3::new(a.cos(), 0.0, a.sin()) * r, hpos.y);
+        let Some(pos) = super::spawn::point(&world, map, hpos, a, r, radius_for(def)) else {
+            continue;
+        };
         let elite = super::campaign::is_named_elite(selection.map_def().name, def.name);
         spawn_enemy(&mut commands, &mut run, def, pos, hpos, false, elite);
     }
@@ -670,5 +678,100 @@ pub(super) fn collect_chests(
         };
         run.banner = Some((format!("{kind} — {gold} gold"), 3.5));
         commands.entity(e).despawn();
+    }
+}
+#[cfg(test)]
+mod spawn_tests {
+    use super::*;
+    use avian3d::prelude::*;
+    use benilla_world::collision::MoverTraceExclusions;
+    use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn streaming_floor_defers_bosses_and_initial_chests_without_losing_or_duplicating_them() {
+        let mut app = App::new();
+        app.add_plugins((
+            MinimalPlugins,
+            TransformPlugin,
+            AssetPlugin::default(),
+            bevy::scene::ScenePlugin,
+            PhysicsPlugins::new(PostUpdate),
+        ));
+        app.init_asset::<Mesh>();
+        app.init_resource::<MoverTraceExclusions>();
+        app.init_resource::<Run>();
+        app.init_resource::<Rng>();
+        app.init_resource::<Spawner>();
+        let map = data::MAPS
+            .iter()
+            .position(|m| m.name == "Elwynn Forest")
+            .unwrap();
+        let center = super::super::hero::arena(&data::MAPS[map]);
+        app.insert_resource(Selection {
+            map,
+            stage: map,
+            ..default()
+        });
+        app.world_mut().resource_mut::<Run>().elapsed = 10_000.;
+        app.world_mut().spawn((
+            Hero { vy: 0., air: 0. },
+            Transform::from_translation(center),
+        ));
+        app.finish();
+        app.cleanup();
+        app.update();
+        app.world_mut().run_system_once(spawn_enemies).unwrap();
+        let run = app.world().resource::<Run>();
+        assert_eq!(run.bosses, 0);
+        assert_eq!(run.rings, 0);
+        assert!(!run.stocked);
+        assert_eq!(
+            app.world_mut().query::<&Enemy>().iter(app.world()).count(),
+            0
+        );
+        assert_eq!(
+            app.world_mut().query::<&Chest>().iter(app.world()).count(),
+            0
+        );
+
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::trimesh(
+                vec![
+                    Vec3::new(-200., 0., -200.),
+                    Vec3::new(200., 0., -200.),
+                    Vec3::new(200., 0., 200.),
+                    Vec3::new(-200., 0., 200.),
+                ],
+                vec![[0, 2, 1], [0, 3, 2]],
+            ),
+            Transform::from_translation(center),
+        ));
+        app.update();
+        app.world_mut().run_system_once(spawn_enemies).unwrap();
+        let bosses = app.world().resource::<Run>().bosses;
+        assert!(bosses > 0);
+        assert!(app.world().resource::<Run>().stocked);
+        assert!(super::super::encounters::next(map, bosses, 10_000.).is_none());
+        for _ in 0..3 {
+            app.world_mut().run_system_once(spawn_enemies).unwrap();
+        }
+        assert_eq!(app.world().resource::<Run>().bosses, bosses);
+        assert_eq!(
+            app.world_mut()
+                .query::<&Enemy>()
+                .iter(app.world())
+                .filter(|e| e.boss)
+                .count(),
+            bosses as usize
+        );
+        assert_eq!(
+            app.world_mut()
+                .query::<&Chest>()
+                .iter(app.world())
+                .filter(|c| c.tier == super::super::campaign::ChestTier::A)
+                .count(),
+            3
+        );
     }
 }
