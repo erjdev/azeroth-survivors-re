@@ -198,3 +198,22 @@ window to a new `ui-NNNN.png`, including UI; existing numbered files are skipped
 records logical/physical viewport sizes and UI scale. Check that the file was actually
 written and inspect it before using it in the README. This capture path does not enable
 autoplay, change saves or tune gameplay. Use an isolated `BENILLA_HOME` for fixture accounts.
+
+## Streamed collision probes
+
+Native development builds accept `WOW_SURVIVORS_COLLISION_PROBE=/absolute/path/points.txt`.
+The repeatable Elwynn points are in
+`docs/probes/survivors-elwynn-trees.txt` (map 0).
+Each non-comment line contains `label wow_x wow_y wow_z`; obtain positions from the source
+placement audit, and load the matching map near those points. After the loading cover clears,
+all geometry backlogs settle and sixty more frames pass, the probe logs four horizontal
+12-yard queries per point using the same capsule radius and floor helpers as the hero.
+It does not move the hero, change the save, add colliders or alter the world.
+
+Compare `slide advance`, `travel advance` and `line clear` with a nearby open-space control.
+A short advance alone does not identify the blocker: terrain, walls and neighboring trees
+can also intersect the sweep. A clear path through a placement origin does not prove its
+whole model lacks collision; the authored trunk can be offset from that origin. Use these
+queries to distinguish source-hull tests from live streaming evidence, then reproduce actual
+walking and mobility at the reported tree. Unloaded points or a mismatched map invalidate
+that point's result. This is collision evidence, not a navigation/pathfinding test.

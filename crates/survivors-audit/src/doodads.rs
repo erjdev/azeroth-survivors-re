@@ -22,6 +22,17 @@ pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
             let model = d.model.to_ascii_lowercase();
             if !models.contains_key(&model) {
                 let hull = benilla_formats::load_m2_collision_hull(chain, &model)?;
+                let mut min = [f32::INFINITY; 3];
+                let mut max = [f32::NEG_INFINITY; 3];
+                for vertex in &hull.positions {
+                    for axis in 0..3 {
+                        min[axis] = min[axis].min(vertex[axis]);
+                        max[axis] = max[axis].max(vertex[axis]);
+                    }
+                }
+                if !hull.positions.is_empty() {
+                    println!("LOCAL HULL {model}: min {min:?}, max {max:?}; model-local coordinates before placement rotation and scale");
+                }
                 models.insert(model.clone(), (hull.triangle_count(), 0usize));
             }
             let (triangles, count) = models.get_mut(&model).unwrap();

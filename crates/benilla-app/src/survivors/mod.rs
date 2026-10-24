@@ -23,6 +23,8 @@ mod notes;
 mod renown;
 #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
 mod screenshots;
+#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+mod collision_probe;
 mod spawn;
 mod stash;
 mod tuning;
@@ -189,7 +191,7 @@ impl Plugin for SurvivorsPlugin {
         #[cfg(target_arch = "wasm32")]
         app.add_systems(Startup, browser_budget.after(crate::cvars::CvarLoad));
         #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
-        app.add_plugins(screenshots::plugin);
+        app.add_plugins((screenshots::plugin, collision_probe::plugin));
         if let Some(auto) = auto::from_env() {
             app.insert_resource(auto)
                 .add_systems(
