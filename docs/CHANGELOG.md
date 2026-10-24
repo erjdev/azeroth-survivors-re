@@ -6,8 +6,10 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 ## 2026-10-24 — Character loadout layout
 
 Character now has proportional, independently scrollable equipment, hero and item-detail
-columns, plus a full-body current-hero preview with turn buttons. Slot inspection and
-appearance choices share Collection's loadout state. Native build passed; framing, turn
+columns, plus a full-body current-hero preview with turn buttons. Named heroes retain their
+own race and sex; older saves migrate their existing choice. Slot inspection and
+appearance choices share Collection's loadout state. Native build and 57 Survivors tests
+passed; framing, turn
 buttons and tab transitions checked at 1440×900. Drag validation, selected-gear dressing,
 inline features, populated-account checks and the resolution matrix remain unfinished.
 

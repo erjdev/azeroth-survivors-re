@@ -133,6 +133,8 @@ and draft cards, rather than treating these two resolutions as fixed design canv
 
 Current Character checkpoint: proportional scroll columns now expose worn equipment,
 summed equipment bonuses and shared item/look actions alongside existing hero controls.
+Named heroes now persist independent race/sex choices, with legacy migration and invalid-save
+coverage in the 57-test Survivors suite. Live multi-hero switching still needs verification.
 The current hero is mirrored through the full-body renderer; framing, turn buttons and
 leaving the tab were checked at 1440×900. The hero still uses its preset trainer appearance:
 selected gear and cosmetic overrides must drive both the world body and this preview.

@@ -133,7 +133,7 @@ impl Plugin for SurvivorsPlugin {
                         armory::fill_talent_art,
                     )
                         .chain(),
-                    menu::menu_clicks,
+                    (menu::menu_clicks, menu::sync_hero_look).chain(),
                     menu::refresh_menu_ui.before(crate::glue::GlueVisuals),
                     cards::deal_cards,
                     cards::choose_card,

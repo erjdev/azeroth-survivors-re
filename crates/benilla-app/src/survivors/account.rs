@@ -17,6 +17,8 @@ pub(super) struct Character {
     /// Index into [`data::CLASSES`].
     pub class: usize,
     pub talent_xp: u32,
+    /// Selected race and sex; absent in legacy saves until a body is chosen.
+    pub body: Option<(u8, u8)>,
     /// Which of the three saved specs the run uses.
     pub spec: u8,
     /// Three specs, each three trees of [`campaign::NODES_PER_TREE`] ranks.
@@ -193,9 +195,25 @@ impl Account {
             spec: 0,
             specs: blank_specs(),
             dbc: blank_dbc(),
+            body: None,
         });
         self.dirty = true;
         id
+    }
+
+    pub fn set_body(&mut self, id: u32, body: (u8, u8)) -> bool {
+        if !(1..=8).contains(&body.0) || body.1 > 1 {
+            return false;
+        }
+        let Some(hero) = self.characters.iter_mut().find(|c| c.id == id) else {
+            return false;
+        };
+        if hero.body == Some(body) {
+            return false;
+        }
+        hero.body = Some(body);
+        self.dirty = true;
+        true
     }
 
     pub fn add_talent_xp(&mut self, id: u32, xp: u32) {
@@ -494,6 +512,7 @@ impl Account {
             spec: 0,
             specs: blank_specs(),
             dbc: blank_dbc(),
+            body: None,
         });
         self.dirty = true;
         Some(id)
@@ -769,7 +788,7 @@ pub(super) fn blank() -> Account {
     empty()
 }
 
-fn empty() -> Account {
+pub(super) fn empty() -> Account {
     Account {
         next_id: 1,
         characters: Vec::new(),
@@ -800,6 +819,9 @@ fn encode(account: &Account) -> String {
             escape(&c.first),
             escape(&c.last),
         ));
+        if let Some((race, sex)) = c.body {
+            out.push_str(&format!("body {} {race} {sex}\n", c.id));
+        }
         if c.dbc
             .iter()
             .any(|spec| spec.iter().any(|entry| entry.2 > 0))
@@ -1004,6 +1026,7 @@ fn read_dbc(payload: &str) -> [Vec<(u8, u32, u8)>; 3] {
 fn parse(text: &str) -> Result<Account, ()> {
     let mut account = empty();
     let mut equipment_rows = Vec::new();
+    let mut body_rows = Vec::new();
     for line in text.lines() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
@@ -1029,7 +1052,20 @@ fn parse(text: &str) -> Result<Account, ()> {
                         spec,
                         specs,
                         dbc: blank_dbc(),
+                        body: None,
                     });
+                }
+            }
+            Some("body") => {
+                let values: Vec<_> = parts.collect();
+                if let [id, race, sex] = values.as_slice() {
+                    if let (Ok(id), Ok(race), Ok(sex)) =
+                        (id.parse::<u32>(), race.parse::<u8>(), sex.parse::<u8>())
+                    {
+                        if (1..=8).contains(&race) && sex <= 1 {
+                            body_rows.push((id, (race, sex)));
+                        }
+                    }
                 }
             }
             Some("dbc") => {
@@ -1112,6 +1148,11 @@ fn parse(text: &str) -> Result<Account, ()> {
                 }
             }
             _ => {}
+        }
+    }
+    for (id, body) in body_rows {
+        if let Some(hero) = account.characters.iter_mut().find(|hero| hero.id == id) {
+            hero.body = Some(body);
         }
     }
     for (index, progress) in account.classes.iter_mut().enumerate() {
@@ -1207,6 +1248,26 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn character_bodies_round_trip_and_validate_independent_of_row_order() {
+        let mut account = super::empty();
+        let a = account.create("One", "Hero", 0).unwrap();
+        let b = account.create("Two", "Hero", 0).unwrap();
+        assert!(account.set_body(a, (1, 1)));
+        assert!(account.set_body(b, (3, 0)));
+        assert!(!account.set_body(a, (0, 1)));
+        assert!(!account.set_body(a, (1, 2)));
+        let text = super::encode(&account);
+        let body_rows = text.lines().filter(|l| l.starts_with("body "));
+        let other_rows = text.lines().filter(|l| !l.starts_with("body "));
+        let reordered = body_rows.chain(other_rows).collect::<Vec<_>>().join("\n");
+        let restored = super::parse(&reordered).unwrap();
+        assert_eq!(restored.character(a).unwrap().body, Some((1, 1)));
+        assert_eq!(restored.character(b).unwrap().body, Some((3, 0)));
+        let old = super::parse("who 1 0 0 Old Hero\nbody 1 255 0\nbody 1 1 2\n").unwrap();
+        assert_eq!(old.character(1).unwrap().body, None);
+    }
+
     use super::*;
 
     #[test]

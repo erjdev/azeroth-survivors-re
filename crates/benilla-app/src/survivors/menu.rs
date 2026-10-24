@@ -4,6 +4,9 @@
 //! The survivors HUD lays out on the 768-unit canvas through `UiScale`, so every glue builder here
 //! takes a unit scale.
 
+mod hero_look;
+pub(super) use hero_look::sync as sync_hero_look;
+
 use bevy::prelude::*;
 use bevy::ui_render::ui_material::MaterialNode;
 
