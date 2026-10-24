@@ -98,6 +98,14 @@ adds the set bonus on top. A two-handed weapon fills the main hand only. It does
 an off-hand piece. The draft's tenth slot and its poor-through-legendary ladder were a
 stand-in for this grid.
 
+Quality progression increases the existing stat lines and adds another line at each step.
+The user's examples are illustrative tuning: poor gloves may start with health; common adds
+pickup range; uncommon adds area; rare adds damage reduction; epic adds damage. Each step
+also strengthens the earlier lines. A raid epic is a separate progression tier beyond an
+ordinary epic, with an additional stat and raid set bonuses that support specific builds.
+The catalog must represent those tiers explicitly; the existing six-band grid is a foundation,
+not a reason to collapse raid epics into ordinary epics. Final coefficients are tuning data.
+
 Looks are separate from stats. A collected piece can be worn as gear, shown on the model
 while another piece is worn, or hidden. Only the worn piece adds bonuses.
 
@@ -107,8 +115,7 @@ Reference: `docs/intentions/survivors_character_tab.png`,
 ## Drop tables
 
 Each zone lists the creatures that drop its pieces, the slot, the chance, and how often that
-creature comes. A duplicate roll adds a smaller bonus to the piece the hero already has. It
-does not create a second copy. The table is the source of truth for what a run can award.
+creature comes. A duplicate roll adds nothing: no extra copy and no stat increase. The table is the source of truth for what a run can award.
 Clearing a zone is not, by itself, the grant.
 
 Elwynn, as the picture has it: Hogger at 3:00 drops the helm, Mother Fang at 6:00 the

@@ -63,11 +63,20 @@ One hundred talent experience earns one point, capped at 51. Each hero stores th
 independent specs. Tree rows require earlier-row investment; refunds must not strand
 higher rows or prerequisite talents. Milestones at 10/20/30 must change actual abilities.
 
-The screenshots and prose conflict on duplicate bonuses and the breadth of extra targets.
-Those two decisions need user resolution; independent work can proceed. Until resolved,
-retain existing mechanics rather than silently change balance. Screenshot sample totals
-are illustrative, never fabricated progress. Item/creature names pictured on a different
-map require verified substitutions documented in the catalog, not invented assets.
+The user resolved the reference conflicts: duplicates add no power, and +target affects
+single-target attacks only, never extra AoE locations. Quality strengthens existing stat
+lines and adds a new stat line at each step. Raid epics need a tier beyond ordinary epics,
+an additional stat, and build-oriented set bonuses. The glove numbers given by the user
+are illustrative, not final universal coefficients. Preserve poor-to-epic progression and
+represent raid epics explicitly while extending the existing six-band collection model.
+
+Screenshot sample totals are illustrative, never fabricated progress. Item/creature names
+pictured on a different map require verified substitutions documented in the catalog.
+
+Use only this checkout for game-data discovery. Do not inspect or use any installed
+Azeroth Survivors application as a source. Fetch the separate data through this repository's
+`scripts/fetch-data.sh` into gitignored `wow-data/Data`, and pass that exact path via
+`WOW_DATA` for validation. Keep validation scratch files under `target/`.
 
 Unspecified balance coefficients are implementation decisions: centralize and document
 them, test monotonicity/caps, and distinguish them from numbers explicitly specified by the
@@ -103,8 +112,7 @@ save references, preserve old heroes/specs/achievements, and retain dirty state 
 failed write. Keep saves under the existing local-state resolver.
 
 Acceptance: choosing a lower-quality piece changes combat and displayed totals; owning a
-stronger piece alone does not. Unequipping removes its stats and a full-set bonus. Duplicate
-handling follows the resolved rule. Cosmetic changes never alter stats. Class isolation,
+stronger piece alone does not. Unequipping removes its stats and a full-set bonus. Duplicates never increase power. Cosmetic changes never alter stats. Class isolation,
 legacy migration, malformed references and round trips have regression tests.
 
 ## Phase 3 — collection and character surfaces
