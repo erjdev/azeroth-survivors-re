@@ -254,3 +254,188 @@ mod tests {
         assert_eq!(m.incoming(20.0, 20.0, 100.0), 16.0);
     }
 }
+
+/// A supported individual stat talent. The listed bonus replaces the temporary 1% damage
+/// per point for this node; tree milestones continue to count all spent points.
+#[derive(Clone, Copy, Debug)]
+pub struct StatTalent {
+    pub id: u32,
+    pub max_rank: u8,
+    pub name: &'static str,
+    pub description: &'static str,
+    pub stat: TalentStat,
+    pub per_rank: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum TalentStat {
+    Damage,
+    Cooldown,
+    Armor,
+    Crit,
+    Reduction,
+    Speed,
+}
+
+pub const PALADIN_STATS: &[StatTalent] = &[
+    StatTalent {
+        id: 1450,
+        max_rank: 5,
+        name: "Divine Strength",
+        description: "+2% damage per rank",
+        stat: TalentStat::Damage,
+        per_rank: 0.02,
+    },
+    StatTalent {
+        id: 1449,
+        max_rank: 5,
+        name: "Divine Intellect",
+        description: "+1% cooldown reduction per rank",
+        stat: TalentStat::Cooldown,
+        per_rank: 0.01,
+    },
+    StatTalent {
+        id: 1422,
+        max_rank: 5,
+        name: "Improved Devotion Aura",
+        description: "+8 armor per rank",
+        stat: TalentStat::Armor,
+        per_rank: 8.0,
+    },
+    StatTalent {
+        id: 1630,
+        max_rank: 3,
+        name: "Precision",
+        description: "+1% critical chance per rank",
+        stat: TalentStat::Crit,
+        per_rank: 0.01,
+    },
+    StatTalent {
+        id: 1423,
+        max_rank: 5,
+        name: "Toughness",
+        description: "+6 armor per rank",
+        stat: TalentStat::Armor,
+        per_rank: 6.0,
+    },
+    StatTalent {
+        id: 1629,
+        max_rank: 5,
+        name: "Anticipation",
+        description: "+1% damage reduction per rank",
+        stat: TalentStat::Reduction,
+        per_rank: 0.01,
+    },
+    StatTalent {
+        id: 1401,
+        max_rank: 5,
+        name: "Improved Blessing of Might",
+        description: "+2% damage per rank",
+        stat: TalentStat::Damage,
+        per_rank: 0.02,
+    },
+    StatTalent {
+        id: 1403,
+        max_rank: 5,
+        name: "Deflection",
+        description: "+1% damage reduction per rank",
+        stat: TalentStat::Reduction,
+        per_rank: 0.01,
+    },
+    StatTalent {
+        id: 1411,
+        max_rank: 5,
+        name: "Conviction",
+        description: "+1% critical chance per rank",
+        stat: TalentStat::Crit,
+        per_rank: 0.01,
+    },
+    StatTalent {
+        id: 1634,
+        max_rank: 2,
+        name: "Pursuit of Justice",
+        description: "+4% movement speed per rank",
+        stat: TalentStat::Speed,
+        per_rank: 0.04,
+    },
+];
+
+pub fn stat_talent(class: usize, id: u32) -> Option<&'static StatTalent> {
+    (class == 1)
+        .then(|| PALADIN_STATS.iter().find(|node| node.id == id))
+        .flatten()
+}
+
+/// Convert active saved DBC ranks into stat adjustments. Unknown nodes retain their
+/// temporary baseline; never guess an effect from a spell name or localization.
+pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign::Bonus {
+    let mut bonus = crate::campaign::Bonus::default();
+    if class != 1 {
+        return bonus;
+    }
+    for node in PALADIN_STATS {
+        let rank = ranks
+            .iter()
+            .filter(|(_, id, _)| *id == node.id)
+            .map(|(_, _, rank)| *rank)
+            .max()
+            .unwrap_or(0)
+            .min(node.max_rank);
+        let value = node.per_rank * f32::from(rank);
+        bonus.might -= 0.01 * f32::from(rank);
+        match node.stat {
+            TalentStat::Damage => bonus.might += value,
+            TalentStat::Cooldown => bonus.cooldown += value,
+            TalentStat::Armor => bonus.armor += value,
+            TalentStat::Crit => bonus.crit += value,
+            TalentStat::Reduction => bonus.reduction += value,
+            TalentStat::Speed => bonus.speed += value,
+        }
+    }
+    bonus
+}
+
+#[cfg(test)]
+mod stat_talent_tests {
+    use super::*;
+
+    #[test]
+    fn each_named_stat_talent_replaces_its_generic_damage_at_every_rank() {
+        for node in PALADIN_STATS {
+            for rank in 0..=node.max_rank {
+                let mut total = crate::campaign::Bonus {
+                    might: 0.01 * f32::from(rank),
+                    ..Default::default()
+                };
+                total.add(stat_adjustment(1, &[(0, node.id, rank)]));
+                let value = node.per_rank * f32::from(rank);
+                let actual = match node.stat {
+                    TalentStat::Damage => total.might,
+                    TalentStat::Cooldown => total.cooldown,
+                    TalentStat::Armor => total.armor,
+                    TalentStat::Crit => total.crit,
+                    TalentStat::Reduction => total.reduction,
+                    TalentStat::Speed => total.speed,
+                };
+                assert!(
+                    (actual - value).abs() < 0.00001,
+                    "{} rank {rank}",
+                    node.name
+                );
+                if !matches!(node.stat, TalentStat::Damage) {
+                    assert!(total.might.abs() < 0.00001);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn unsupported_classes_and_nodes_receive_no_invented_adjustment() {
+        assert_eq!(stat_adjustment(0, &[(0, 1422, 5)]).armor, 0.0);
+        assert_eq!(stat_adjustment(1, &[(0, 999999, 5)]).might, 0.0);
+        assert_eq!(
+            stat_adjustment(1, &[(0, 1422, 255), (0, 1422, 5)]).armor,
+            40.0
+        );
+    }
+}

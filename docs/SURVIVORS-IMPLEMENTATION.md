@@ -181,6 +181,30 @@ through shared combat/stat calculations, not tooltip-only prose. Paladin's named
 are the first vertical slice; then cover every class. Surface effects and selected spec
 on the door and run sheet. Preserve migration from the skeleton arrays.
 
+Individual Paladin stat talents use audited DBC node IDs and vanilla rank caps. Their
+listed effect replaces the provisional +1% damage per spent rank; it does not stack on top
+of that placeholder. All spent ranks still count toward tree milestones. These are explicit
+Survivors conversions: there is no mana resource or separate parry/miss roll in this mode.
+
+| Talent ID | Name | Ranks | Survivors effect per rank |
+| --- | --- | --- | --- |
+| 1450 | Divine Strength | 5 | +2% damage |
+| 1449 | Divine Intellect | 5 | +1% cooldown reduction |
+| 1422 | Improved Devotion Aura | 5 | +8 armor |
+| 1630 | Precision | 3 | +1 percentage point critical chance |
+| 1423 | Toughness | 5 | +6 armor |
+| 1629 | Anticipation | 5 | +1 percentage point damage reduction |
+| 1401 | Improved Blessing of Might | 5 | +2% damage |
+| 1403 | Deflection | 5 | +1 percentage point damage reduction |
+| 1411 | Conviction | 5 | +1 percentage point critical chance |
+| 1634 | Pursuit of Justice | 2 | +4% movement speed |
+
+Use the selected spec's ranks in both the account sheet and run-start snapshot. Reset
+removes only that spec's effects. A talent detail line must distinguish these implemented
+conversions from nodes whose individual effects still need implementation; do not display
+vanilla spell prose as if mana, parry or other absent mechanics were functional. The catalog
+audit must reject mismatched IDs, names or rank caps for supported nodes.
+
 Paladin milestone balance uses the following explicit Survivors behavior. These are custom
 survival-mode effects, not claims about the original MMO spells. Existing per-point/stat
 bonuses remain the baseline; named milestone behavior is additional. Snapshot tree points

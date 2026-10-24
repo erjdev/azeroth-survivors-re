@@ -148,14 +148,37 @@ fn talents(chain: &mut benilla_formats::Chain) -> Result<()> {
                     .get(talent.ranks[0])
                     .map(|spell| spell.name.as_str())
                     .unwrap_or("MISSING SPELL");
+                if let Some(effect) = survivors_core::talents::stat_talent(class_index, talent.id) {
+                    if name != effect.name || talent.max_rank() != u32::from(effect.max_rank) {
+                        println!("STAT TALENT MISMATCH: {} / {}", talent.id, name);
+                        gaps += 1;
+                    }
+                }
                 println!("  NODE: {} · row {} · column {} · {} ranks · {} · spells {:?} · prerequisite {}:{}",
                     talent.id, talent.row, talent.col, talent.max_rank(), name, talent.ranks,
                     talent.prereq_talent, talent.prereq_rank);
             }
         }
     }
+    for effect in survivors_core::talents::PALADIN_STATS {
+        let present = talents
+            .tabs_for_class(1, data::CLASSES[1].id)
+            .iter()
+            .any(|tab| {
+                talents
+                    .talents_in_tab(tab.id)
+                    .iter()
+                    .any(|node| node.id == effect.id)
+            });
+        if !present {
+            println!("MISSING STAT TALENT: {} / {}", effect.id, effect.name);
+            gaps += 1;
+        }
+    }
     if gaps > 0 {
-        bail!("{gaps} talent tab positions differ from Survivors tree order");
+        bail!(
+            "{gaps} talent catalog identities, ranks or tree positions differ from Survivors rules"
+        );
     }
     Ok(())
 }

@@ -340,6 +340,12 @@ impl Account {
         }
         if using_dbc {
             total.add(campaign::talent_bonus_spent(dbc_points));
+            if let Some(hero) = hero.filter(|hero| hero.class == class) {
+                total.add(survivors_core::talents::stat_adjustment(
+                    class,
+                    &hero.dbc[usize::from(hero.spec).min(2)],
+                ));
+            }
         } else {
             total.add(campaign::talent_bonus(&talents));
         }
@@ -1197,6 +1203,40 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn named_stat_talents_change_the_selected_sheet_and_survive_spec_switches() {
+        let mut account = empty();
+        let id = account.ensure(1);
+        let other = account.create("Other", "Paladin", 1).unwrap();
+        let baseline = account.bonus(1, id);
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == id)
+            .unwrap();
+        hero.talent_xp = 1000;
+        hero.dbc[0] = vec![(1, 1423, 5)]; // Toughness: armor, not generic damage.
+        hero.dbc[1] = vec![(0, 1450, 5)]; // Divine Strength: damage.
+        let armor = account.bonus(1, id);
+        assert_eq!(armor.armor - baseline.armor, 30.0);
+        assert!((armor.might - baseline.might).abs() < 0.00001);
+        assert_eq!(account.bonus(1, other).armor, baseline.armor);
+        let mut run = super::super::Run::default();
+        let base_sheet = run.stats();
+        run.bonus = armor;
+        assert_eq!(run.stats().armor - base_sheet.armor, armor.armor);
+        account.select_spec(id, 1);
+        let strength = account.bonus(1, id);
+        assert_eq!(strength.armor, baseline.armor);
+        assert!((strength.might - baseline.might - 0.10).abs() < 0.00001);
+        let loaded = parse(&encode(&account)).unwrap();
+        assert!((loaded.bonus(1, id).might - strength.might).abs() < 0.00001);
+        account.respec(id);
+        assert_eq!(account.bonus(1, id).might, baseline.might);
+        account.select_spec(id, 0);
+        assert_eq!(account.bonus(1, id).armor, armor.armor);
+    }
 
     #[test]
     fn milestone_snapshot_uses_the_selected_hero_and_spec_and_survives_save() {

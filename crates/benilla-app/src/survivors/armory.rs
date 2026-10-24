@@ -957,6 +957,43 @@ fn dbc_points(hero: &super::account::Character, spec: usize) -> [u32; 3] {
     points
 }
 
+#[derive(Component)]
+pub(super) struct TalentDetail;
+
+#[derive(Component)]
+pub(super) struct TalentInfo {
+    class: usize,
+    id: u32,
+    spell: u32,
+    rank: u8,
+    max: u8,
+}
+
+/// Update the detail line without rebuilding the tree under the pointer.
+pub(super) fn talent_details(
+    nodes: Query<(&Interaction, &TalentInfo)>,
+    mut detail: Query<&mut Text, With<TalentDetail>>,
+    spells: Option<Res<crate::ui_action::Spells>>,
+) {
+    let Some((_, node)) = nodes.iter().find(|(state, _)| **state != Interaction::None) else {
+        return;
+    };
+    let name = spells
+        .as_deref()
+        .and_then(|spells| spells.catalog.get(node.spell))
+        .map(|spell| spell.name.as_str())
+        .unwrap_or("Talent");
+    let effect = survivors_core::talents::stat_talent(node.class, node.id)
+        .map(|node| node.description)
+        .unwrap_or("Individual effect pending; currently +1% damage per rank.");
+    let value = format!("{name}  {}/{} — Survivors: {effect}", node.rank, node.max);
+    for mut text in &mut detail {
+        if **text != value {
+            **text = value.clone();
+        }
+    }
+}
+
 fn draw_real_talents(
     panel: &mut impl ChipParent,
     font: &Handle<Font>,
@@ -968,6 +1005,15 @@ fn draw_real_talents(
     if trees.len() < 3 {
         return false;
     }
+    panel.spawn((
+        TalentDetail,
+        hud::text_bundle(
+            font,
+            "Hover a talent to inspect its rank and current Survivors effect.",
+            13.0,
+            Color::WHITE,
+        ),
+    ));
     let active = usize::from(hero.spec).min(2);
     let points = dbc_points(hero, active);
     let spent: u32 = points.iter().sum();
@@ -1048,6 +1094,13 @@ fn draw_real_talents(
                                     line.spawn((
                                         Button,
                                         Act::Talent(talent.id),
+                                        TalentInfo {
+                                            class: hero.class,
+                                            id: talent.id,
+                                            spell: talent.ranks[0],
+                                            rank,
+                                            max: talent.max_rank() as u8,
+                                        },
                                         Node {
                                             width: Val::Px(28.0),
                                             height: Val::Px(28.0),
