@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Validation follow-up
+
+Corrected another US-locale test assumption while retaining checks for base string tables
+and wrapped localization assignments. The audit now identifies duplicated Survivors UI
+labels that need installed-string lookups. The complete workspace run finished with
+7,917 passed, five failed and 18 ignored across 143 reported suites. Remaining failures:
+reference strings, UI VM dependencies, web assets and the world API boundary. The full
+repository gate is not green; the optional addon corpus is absent.
+
 ## 2026-10-24 — Class Codex completion
 
 Class amulet completion now uses that class’s actual spell catalog for the Codex, cloaks

@@ -589,3 +589,38 @@ checks all nine classes before/after the final discovery, save reload and inflat
 The 45 core and 71 Survivors app tests pass, as do formatting and workspace Clippy.
 The full gate is still running. Shared jewelry
 discovery, icons, details and the responsive Codex layout are still unfinished.
+
+### Discovery and localization audit — 2026-10-24
+
+Shared discovery must observe the presented `Offer`, not all random candidates. Currently
+`banish_card` calls `trade_choices` and keeps only its first card, but `trade_choices` records
+every generated legendary candidate in `Run.seen_legends`. Record only displayed jewelry,
+persist it when offered (before selection/abandon), and keep equipment effects run-only.
+Regression cases must cover skipped offers, banish replacement, unshown candidates,
+cross-class shared discovery, duplicate offers and restart.
+
+The full gate passed launcher validation and reached `reference_strings`. Its assumption
+that each localization patch contains sentences is invalid for enUS. Base tables still
+must contribute; an independent fixture now verifies parsing inside `Localize()` and
+accepting an empty patch. The fixture passes. The real audit now exposes 29 Survivors
+literals duplicating shipped keys across seven files: account, armory, armory/door,
+appearance, hud, menu and armory/character. Resolve these from the installed string tables
+without adding a blanket exemption.
+
+The completed workspace `--no-fail-fast` run reports 7,917 passed, five failed and 18 ignored
+across 143 suites. Four failing targets remain:
+
+- `reference_strings`: the 29 duplicated Survivors literals above.
+- `ui_script_wall`: 42 gameplay-classified files name UiScript, ceiling 40. The new
+  glue-string oracle is test-only but lives in a gameplay file; separate test placement
+  from genuine gameplay dependencies before changing the boundary.
+- `web_assets` (two failures): absent `crates/wenilla-realm/templates/play.html` and a
+  missing `#fs` control in `web/index.html`. Reconcile these with this fork’s actual web
+  delivery surface rather than inventing an unused realm template.
+- `world_api_wall`: 108 unpublished engine items, ceiling 107. Identify the new dependency
+  and either remove it or publish the intentional API with its rationale.
+
+The optional addon corpus is absent. The no-install, documentation, render-pass and player
+stages of the full gate remain unverified for this checkpoint. This aggregate run establishes
+all current workspace test failures, not a green release gate.
+
