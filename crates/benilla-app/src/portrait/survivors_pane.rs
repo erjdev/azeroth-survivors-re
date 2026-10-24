@@ -1,7 +1,8 @@
 //! Survivors' Bevy UI bridge to the existing full-body inspect renderer.
 use super::{BoothPanes, InspectBooth, PortraitImages, PortraitSource, INSPECT_SLOT};
+use bevy::input::ButtonState;
 use bevy::prelude::*;
-use bevy::ui::RelativeCursorPosition;
+use bevy::window::{PrimaryWindow, WindowEvent};
 
 #[derive(Component)]
 pub(crate) struct ModelPane;
@@ -36,28 +37,38 @@ fn feed(
     images: Res<PortraitImages>,
     mut panes: ResMut<BoothPanes>,
     mut inspect: ResMut<InspectBooth>,
-    mut nodes: Query<(&ComputedNode, &RelativeCursorPosition, &mut ImageNode), With<ModelPane>>,
-    mouse: Res<ButtonInput<MouseButton>>,
+    mut nodes: Query<
+        (
+            &ComputedNode,
+            &UiGlobalTransform,
+            Option<&CalculatedClip>,
+            &mut ImageNode,
+        ),
+        With<ModelPane>,
+    >,
+    windows: Query<(Entity, &Window), With<PrimaryWindow>>,
+    mut events: MessageReader<WindowEvent>,
     clicks: Res<crate::glue::GlueClicks>,
     turns: Query<(Entity, &ModelTurn)>,
-    mut previous: Local<Option<f32>>,
-    mut dragging: Local<bool>,
+    mut drag: Local<DragState>,
     mut yaw: Local<Option<f32>>,
     mut owned: Local<bool>,
 ) {
-    let Ok((node, cursor, mut image)) = nodes.single_mut() else {
+    let Ok((node, transform, clip, mut image)) = nodes.single_mut() else {
         if *owned {
             inspect.unit = None;
             panes.0.remove(INSPECT_SLOT);
             *owned = false;
         }
-        *dragging = false;
+        *drag = DragState::default();
+        events.clear();
         return;
     };
     if node.size.x <= 0.0 || node.size.y <= 0.0 {
         inspect.unit = None;
         panes.0.remove(INSPECT_SLOT);
-        *dragging = false;
+        *drag = DragState::default();
+        events.clear();
         return;
     }
     *owned = true;
@@ -81,23 +92,65 @@ fn feed(
             *angle += turn.0;
         }
     }
-    let x = cursor.normalized.map(|p| p.x);
-    if mouse.just_pressed(MouseButton::Left) {
-        *dragging = cursor.cursor_over;
-        *previous = x;
-    }
-    if *dragging {
-        if let (Some(last), Some(now)) = (*previous, x) {
-            *angle += (now - last) * std::f32::consts::TAU;
+    // Consume the ordered stream: a complete short drag can arrive in one frame,
+    // when ButtonInput and RelativeCursorPosition retain only its final state.
+    if let Ok((window_entity, window)) = windows.single() {
+        for event in events.read() {
+            match event {
+                WindowEvent::CursorMoved(event) if event.window == window_entity => {
+                    let point = event.position * window.scale_factor();
+                    let x = node.normalize_point(*transform, point).map(|p| p.x);
+                    let inside = node.contains_point(*transform, point)
+                        && clip.is_none_or(|c| c.clip.contains(point));
+                    *angle += drag.move_to(x, inside);
+                }
+                WindowEvent::MouseButtonInput(event)
+                    if event.window == window_entity && event.button == MouseButton::Left =>
+                {
+                    drag.button(event.state == ButtonState::Pressed);
+                }
+                WindowEvent::WindowFocused(event)
+                    if event.window == window_entity && !event.focused =>
+                {
+                    *drag = DragState::default();
+                }
+                WindowEvent::CursorLeft(event) if event.window == window_entity => {
+                    *drag = DragState::default();
+                }
+                _ => {}
+            }
         }
-        *previous = x;
-    }
-    if !mouse.pressed(MouseButton::Left) {
-        *dragging = false;
-        *previous = None;
+    } else {
+        events.clear();
+        *drag = DragState::default();
     }
     *angle = angle.rem_euclid(std::f32::consts::TAU);
     inspect.yaw = *angle;
+}
+
+/// Movement is measured in pane widths, independent of resolution and display scale.
+#[derive(Default)]
+struct DragState {
+    x: Option<f32>,
+    inside: bool,
+    held: bool,
+}
+impl DragState {
+    fn move_to(&mut self, x: Option<f32>, inside: bool) -> f32 {
+        let delta = if self.held {
+            self.x
+                .zip(x)
+                .map_or(0.0, |(old, new)| (new - old) * std::f32::consts::TAU)
+        } else {
+            0.0
+        };
+        self.x = x;
+        self.inside = inside;
+        delta
+    }
+    fn button(&mut self, pressed: bool) {
+        self.held = pressed && self.inside && self.x.is_some();
+    }
 }
 
 /// Keep the authored body composition, backing away only when rigid equipment needs room.
@@ -173,6 +226,25 @@ fn required_retreat(point: Vec3, clip: Mat4) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn survivors_drag_keeps_short_gestures_and_rejects_outside_presses() {
+        let mut drag = DragState::default();
+        assert_eq!(drag.move_to(Some(0.0), true), 0.0);
+        drag.button(true);
+        let delta = drag.move_to(Some(0.25), true);
+        drag.button(false);
+        assert!((delta - std::f32::consts::FRAC_PI_2).abs() < 0.0001);
+        assert_eq!(drag.move_to(Some(0.4), true), 0.0);
+        drag.move_to(Some(0.8), false);
+        drag.button(true);
+        assert_eq!(drag.move_to(Some(0.1), true), 0.0);
+        drag.button(false);
+        drag.button(true);
+        assert!(drag.move_to(Some(-0.8), false) < 0.0);
+        drag.button(false);
+        assert_eq!(drag.move_to(Some(0.0), true), 0.0);
+    }
 
     #[test]
     fn equipment_corners_fit_across_aspects_and_depths() {

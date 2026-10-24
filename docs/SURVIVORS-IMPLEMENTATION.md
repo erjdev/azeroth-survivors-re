@@ -151,13 +151,15 @@ loadout, persisted per named hero through the existing body model. Missing sexes
 use another verified trainer preset of the same race; every existing class race resolves
 both sexes against the local DBC/model data without changing its preferred presets. Skin, face, hair
 and race-specific features now have bounded dials and randomization, persisted per hero.
-Feature descriptor changes refresh the stock compositor and preview. Native build and 70
+Feature descriptor changes refresh the stock compositor and preview. Native build and 71
 focused tests passed; live edits, switching heroes and restart persistence were checked at
-1440×900 and 1280×720. Portrait race buttons, drag input and the broader multi-resolution
+1440×900 and 1280×720. Portrait race buttons and the broader multi-resolution
 acceptance remain unfinished. Feature-only edits update counters in place, preserving the
 Character tree, scroll state and preview. Transient dark or missing
 button glyphs still appear after UI actions, even without a full rebuild; removing shadows
-or raising caption layers did not resolve the broader issue. Dragging the model also still needs correction (turn buttons work).
+or raising caption layers did not resolve the broader issue. Model dragging now consumes
+ordered window events so short gestures are retained. Short/reverse drags and rejection of
+presses outside the preview passed live at 1280×720; sensitivity follows preview width.
 
 ## Phase 4 — all twelve zones and gear content
 

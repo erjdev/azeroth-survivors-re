@@ -2,7 +2,6 @@
 use super::{collection, hud, Account, Armory, Renown, Selection, Stash, GOLD};
 use crate::portrait::survivors_pane::{ModelPane, ModelSubject, ModelTurn};
 use bevy::prelude::*;
-use bevy::ui::RelativeCursorPosition;
 use survivors_core::layout::Layout;
 
 #[allow(clippy::too_many_arguments)]
@@ -48,7 +47,6 @@ pub(super) fn build(
                 |body| {
                     body.spawn((
                         ModelPane,
-                        RelativeCursorPosition::default(),
                         ImageNode::default(),
                         Node {
                             width: Val::Auto,

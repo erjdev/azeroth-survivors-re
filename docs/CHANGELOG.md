@@ -11,19 +11,23 @@ offers both sexes, filling missing bodies with verified same-race trainer preset
 preserving previous appearances. Skin, face, hair and race-specific features now have live
 controls and randomization, saved independently for each hero. Portrait-style race buttons
 remain unfinished. Feature edits update the counters and model in place, preserving the
-Character screen and preview rotation.
+Character screen and preview rotation. Short mouse drags now rotate the model reliably,
+with sensitivity proportional to the preview width.
 
-**Validation:** native build and 70 focused tests passed, including local DBC
+**Validation:** native build and 71 focused tests passed, including local DBC
 identities and readable model files for every body. Live 1440×900 checks covered human,
 night elf, newly available female orc/dwarf warriors, separate heroes and restart persistence.
 Feature edits, hero switching and restart persistence also passed at 1440×900 / 1280×720.
 Repeated feature edits and retained preview rotation were checked at 1280×720. Transient
-missing button glyphs and model dragging remain open, along with the full race/class/gear
+missing button glyphs remain open, along with the full race/class/gear
 visual matrix. Existing terrain formatting errors
 still block the repository gate.
 
+Short/reverse drags and rejection of presses outside the preview passed live at 1280×720.
+
 ![Character feature editor, 1280×720](images/screenshots/2026-10-24-character-features/character-720.jpg)
 [Independent hero appearance](images/screenshots/2026-10-24-character-appearance/character.jpg)
+· [Drag rotation](images/screenshots/2026-10-24-character-features/character-drag.jpg)
 
 ## 2026-10-24 — Readable upgrade benefits
 
