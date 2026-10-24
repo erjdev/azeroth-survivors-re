@@ -468,6 +468,7 @@ fn create_hero(armory: &mut Armory, account: &mut Account, selection: &mut Selec
     match account.create(&armory.draft_first, &armory.draft_last, armory.draft_class) {
         Some(id) => {
             let needs_look = pick_hero(selection, account, id);
+            account.save();
             armory.note = format!(
                 "Created {} {}{}",
                 armory.draft_first.trim(),
@@ -2198,6 +2199,9 @@ fn chip(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, act: Act
             BackgroundColor(color),
         ))
         .with_children(|b| {
-            b.spawn(hud::text_bundle(font, label, 13.0, ink));
+            let mut label = b.spawn(hud::text_bundle(font, label, 13.0, ink));
+            if on {
+                label.remove::<TextShadow>();
+            }
         });
 }
