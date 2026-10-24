@@ -744,7 +744,7 @@ pub static TRINKET_NAMES: [&str; TRINKETS] = [
     "Zandalarian Hero Medallion",
     "Eye of the Beast",
     "Briarwood Reed",
-    "Drakefang Talisman",
+    "Drake Fang Talisman",
     "Royal Seal of Eldre'Thalas",
     "Mindtap Talisman",
     "Neltharion's Tear",
@@ -1335,7 +1335,7 @@ pub static GEAR_NAMES: [[&str; 11]; 9] = [
         "Field Plate Girdle",
         "Field Plate Leggings",
         "Field Plate Boots",
-        "Field Plate Bracers",
+        "Field Plate Vambraces",
         "Field Plate Gauntlets",
         "Whirlwind Axe",
         "Skullflame Shield",
@@ -1390,7 +1390,7 @@ pub static GEAR_NAMES: [[&str; 11]; 9] = [
         "Devout Bracers",
         "Devout Gloves",
         "Anathema",
-        "Drakefang Talisman",
+        "Drake Fang Talisman",
         "Atiesh, Greatstaff of the Guardian",
     ],
     [
@@ -1403,7 +1403,7 @@ pub static GEAR_NAMES: [[&str; 11]; 9] = [
         "Bindings of Elements",
         "Gauntlets of Elements",
         "Fist of Omokk",
-        "Drakefang Talisman",
+        "Drake Fang Talisman",
         "Sulfuras, Hand of Ragnaros",
     ],
     [
@@ -1416,7 +1416,7 @@ pub static GEAR_NAMES: [[&str; 11]; 9] = [
         "Magister's Bindings",
         "Magister's Gloves",
         "Staff of Dominance",
-        "Drakefang Talisman",
+        "Drake Fang Talisman",
         "Atiesh, Greatstaff of the Guardian",
     ],
     [
@@ -1429,7 +1429,7 @@ pub static GEAR_NAMES: [[&str; 11]; 9] = [
         "Deathmist Bracers",
         "Deathmist Wraps",
         "Staff of the Shadow Flame",
-        "Drakefang Talisman",
+        "Drake Fang Talisman",
         "Atiesh, Greatstaff of the Guardian",
     ],
     [
@@ -1442,7 +1442,7 @@ pub static GEAR_NAMES: [[&str; 11]; 9] = [
         "Wildheart Bracers",
         "Wildheart Gloves",
         "Wushoolay's Poker",
-        "Drakefang Talisman",
+        "Drake Fang Talisman",
         "Atiesh, Greatstaff of the Guardian",
     ],
 ];

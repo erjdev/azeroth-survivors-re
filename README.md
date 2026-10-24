@@ -34,7 +34,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
     <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24-preview/character.jpg" alt="Character: Equipment, bonuses and a turnable current-hero preview; selected gear dressing and inline features remain unfinished."><br>Equipment, bonuses and a turnable current-hero preview; selected gear dressing and inline features remain unfinished.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-24/collection.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-24-gear-icons/collection.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-24/drop-tables.jpg" alt="Drop Tables: Current text view; missing content and layout work remain."><br>Current text view; missing content and layout work remain.</td>
   </tr>
   <tr>

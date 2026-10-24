@@ -138,6 +138,9 @@ coverage in the 57-test Survivors suite. Live multi-hero switching still needs v
 The current hero is mirrored through the full-body renderer; framing, turn buttons and
 leaving the tab were checked at 1440×900. The hero still uses its preset trainer appearance:
 selected gear and cosmetic overrides must drive both the world body and this preview.
+The [gear visual catalog](SURVIVORS-GEAR-VISUALS.md) now maps 91 distinct existing item
+names to vanilla identities and supplies item-detail icons. Data-backed checks cover
+display rows and icon bytes; Atiesh variants and missing rarity cells remain unresolved.
 Drag input needs further validation. This does not satisfy the fully dressed paper-doll,
 inline feature editor, populated-account or multi-resolution acceptance above.
 

@@ -13,6 +13,7 @@ mod cards;
 mod companions;
 mod enemies;
 mod grade;
+mod gear_icons;
 mod floor;
 mod hero;
 mod hud;
@@ -140,7 +141,7 @@ impl Plugin for SurvivorsPlugin {
                     cards::animate_cards,
                     hud::refresh_hud,
                     hud::refresh_results,
-                    hud::fill_icons,
+                    (hud::fill_icons, gear_icons::fill).chain(),
                     hud::update_cooldown_sweeps,
                     hud::refresh_mobility,
                     hud::show_panels,

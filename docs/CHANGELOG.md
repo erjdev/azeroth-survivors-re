@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Item visual identities
+
+Collection and Character item details now show verified vanilla icons. Added 91 named
+item mappings and corrected two item labels without changing saves. Atiesh variants and
+unnamed rarity cells remain unresolved; dressing the hero in selected gear is still pending.
+
+**Validation:** native build, 43 core tests and 58 Survivors tests passed, including local
+DBC/icon availability. Helmet → axe → unresolved-item switching checked at 1440×900.
+
+![Collection item detail](images/screenshots/2026-10-24-gear-icons/collection.jpg)
+
 ## 2026-10-24 — Character loadout layout
 
 Character now has proportional, independently scrollable equipment, hero and item-detail

@@ -366,6 +366,7 @@ pub(super) fn detail(
     let band = selected / campaign::GRID_SLOTS;
     let name = campaign::piece_name(class, slot, band);
     let owned = progress.pieces[selected] > 0;
+    super::super::gear_icons::spawn(ui, class, slot, band, layout.title_size * 3.0);
     text(
         ui,
         font,
