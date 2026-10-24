@@ -183,8 +183,10 @@ appearance, equipment and item details. Browsing does not change the run destina
 Source counts and entries come from DROPS; unimplemented tables remain explicit. Native
 build and 72 focused tests passed, including all twelve views’ source/action wiring.
 Live 1280×720 checks covered Elwynn/Duskwood, source selection, missing-content state and
-returning to the unchanged run destination. Displayed rates are labeled base chances;
-showing the effective Keen Eye rate and the wider layout/content matrix remain open.
+returning to the unchanged run destination. Drop Tables, Collection sources and item details now show effective Keen Eye rates using
+the same capped probability function as combat. Boss eligibility comes from the encounter
+schedule, not the zone-summary boss name. Live rank-two labels (70% from 60% base) fit
+at 1280×720. The wider layout/content matrix remains open.
 
 ## Phase 4 — all twelve zones and gear content
 

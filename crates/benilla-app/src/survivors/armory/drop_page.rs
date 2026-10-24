@@ -19,6 +19,21 @@ fn label(
     ui.spawn(hud::text_bundle(font, text, size, color));
 }
 
+/// Keep source labels consistent across Drop Tables, Collection and item details.
+pub(super) fn chance_label(drop: &campaign::DropRow, account: &Account) -> String {
+    let chance = campaign::drop_chance(
+        drop.chance,
+        super::super::encounters::drop_is_boss(drop),
+        account.perks.keen_eye,
+    );
+    let percent = (chance * 100.0).round() as u8;
+    if percent > drop.chance {
+        format!("{percent}% ({}% base + Keen Eye)", drop.chance)
+    } else {
+        format!("{percent}%")
+    }
+}
+
 pub(super) fn build(
     ui: &mut ChildSpawnerCommands,
     art: &GlueArt,
@@ -66,7 +81,7 @@ pub(super) fn build(
         collection::column(row, (100.0-layout.left_width-layout.right_width)*0.70, layout, |body| {
             let zone = &campaign::ZONES[armory.drop_zone];
             label(body, font, zone.name, layout.title_size, GOLD);
-            label(body, font, "Each piece rolls independently. Duplicates add no stats. Chances below are base values; Keen Eye improves boss rolls.", layout.body_size, DIM);
+            label(body, font, "Each piece rolls independently. Duplicates add no stats. Chances include your Keen Eye bonus for scheduled bosses.", layout.body_size, DIM);
             let rows: Vec<_> = campaign::DROPS.iter().filter(|d| d.zone == armory.drop_zone).collect();
             if rows.is_empty() {
                 label(body, font, "This zone has no implemented drop table yet.", layout.body_size, DIM);
@@ -83,9 +98,9 @@ pub(super) fn build(
                     super::super::gear_icons::spawn_cell(entry, class, drop.slot, drop.band, layout.body_size*3.0, owned);
                     entry.spawn(Node { flex_direction: FlexDirection::Column, flex_grow: 1.0, min_width: Val::Px(0.0), ..default() }).with_children(|text| {
                         label(text, font, drop.creature, layout.body_size, GOLD);
-                        label(text, font, format!("{}:{:02}{}", drop.at_secs/60, drop.at_secs%60, if drop.creature == zone.boss { " · final boss" } else { "" }), layout.body_size-2.0, DIM);
+                        label(text, font, format!("{}:{:02}{}", drop.at_secs/60, drop.at_secs%60, if super::super::encounters::drop_is_boss(drop) { " · boss" } else { "" }), layout.body_size-2.0, DIM);
                         label(text, font, campaign::piece_name(class, drop.slot, drop.band).unwrap_or("Item content pending"), layout.body_size, door::band_color(drop.band));
-                        label(text, font, format!("{}% base · {}", drop.chance, campaign::SLOTS[drop.slot]), layout.body_size-2.0, DIM);
+                        label(text, font, format!("{} · {}", chance_label(drop, account), campaign::SLOTS[drop.slot]), layout.body_size-2.0, DIM);
                         label(text, font, if owned { "Collected" } else { "Not collected" }, layout.body_size-2.0, if owned { GREEN } else { DIM });
                     });
                 });
@@ -98,6 +113,17 @@ pub(super) fn build(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn source_labels_include_the_accounts_effective_keen_eye_rate() {
+        let mut account = super::super::super::account::blank();
+        let source = &campaign::DROPS[0];
+        assert_eq!(chance_label(source, &account), "60%");
+        account.perks.keen_eye = 1;
+        assert_eq!(chance_label(source, &account), "65% (60% base + Keen Eye)");
+        account.perks.keen_eye = 2;
+        assert_eq!(chance_label(source, &account), "70% (60% base + Keen Eye)");
+    }
 
     #[test]
     fn every_zone_exposes_only_its_catalog_sources_without_run_selection_actions() {

@@ -7,14 +7,19 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 Replaced the text list with zone browsing, encounter/item rows, collection counts and shared
 appearance, equipment and item-detail controls. Browsing leaves the run destination intact.
-Missing tables are labeled explicitly; drop rates remain labeled as base chances.
+Missing tables are labeled explicitly. Drop Tables, Collection sources and item details
+now include Keen Eye using combat’s shared chance calculation. Scheduled encounters are
+labeled as bosses rather than deriving a final-boss claim from the zone-summary name.
 
 **Validation:** native build and 72 focused tests passed. Live 1280×720 checks covered
 Elwynn/Duskwood sources, item selection, missing content and the unchanged run destination.
 The full resolution matrix and missing content remain open. Existing terrain formatting
 still blocks the repository gate.
 
-![Drop Tables at 1280×720](images/screenshots/2026-10-24-drop-tables/drop-tables-720.jpg)
+Keen Eye follow-up: native build, 45 core tests and 73 focused app tests passed; live rank-two Drop Tables and Collection labels
+showed 70% from a 60% base at 1280×720. Combat odds are unchanged.
+
+![Drop Tables at 1280×720](images/screenshots/2026-10-24-drop-tables/keen-eye-720.jpg)
 
 ## 2026-10-24 — Shared Collection appearance
 

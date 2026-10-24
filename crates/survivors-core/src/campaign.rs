@@ -600,6 +600,17 @@ pub fn piece_name(class: usize, slot: usize, band: usize) -> Option<&'static str
     None
 }
 
+/// Probability used by combat and source previews. Keen Eye only modifies boss rolls.
+pub fn drop_chance(base: u8, boss: bool, keen_eye: u8) -> f32 {
+    (f32::from(base) / 100.0
+        + if boss {
+            crate::rewards::keen_drop_bonus(keen_eye)
+        } else {
+            0.0
+        })
+    .clamp(0.0, 1.0)
+}
+
 pub fn drop_for(zone: usize, creature: &str) -> Option<&'static DropRow> {
     DROPS
         .iter()

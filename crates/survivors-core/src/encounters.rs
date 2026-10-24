@@ -51,6 +51,16 @@ fn schedule(map: usize) -> &'static [Scheduled] {
     SCHEDULES.get(map).map(Vec::as_slice).unwrap_or(&[])
 }
 
+/// Whether this source resolves to the scheduled boss that combat actually spawns.
+pub fn drop_is_boss(drop: &campaign::DropRow) -> bool {
+    data::MAPS.iter().enumerate().any(|(map, def)| {
+        campaign::zone_index(def.name) == Some(drop.zone)
+            && schedule(map)
+                .iter()
+                .any(|(enemy, at)| enemy.name == drop.creature && *at == drop.at_secs)
+    })
+}
+
 /// A campaign table is enterable only when every advertised drop has a scheduled boss.
 pub fn ready(map: usize) -> bool {
     let Some(zone) = data::MAPS
@@ -99,6 +109,33 @@ pub fn won(map: usize, elapsed: f32, defeated: u32) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scheduled_sources_use_the_same_capped_boss_probability_as_combat() {
+        for drop in campaign::DROPS
+            .iter()
+            .filter(|d| d.zone == 0 || d.zone == 1)
+        {
+            assert!(drop_is_boss(drop), "{}", drop.creature);
+            for (rank, expected) in [(0, 0.60), (1, 0.65), (2, 0.70), (255, 0.70)] {
+                assert!(
+                    (campaign::drop_chance(drop.chance, drop_is_boss(drop), rank) - expected).abs()
+                        < 0.00001
+                );
+            }
+        }
+        assert_eq!(campaign::drop_chance(60, false, 2), 0.60);
+        assert_eq!(campaign::drop_chance(98, true, 2), 1.0);
+        let missing = campaign::DropRow {
+            zone: 0,
+            slot: 0,
+            band: 0,
+            creature: "Unscheduled",
+            at_secs: 180,
+            chance: 60,
+        };
+        assert!(!drop_is_boss(&missing));
+    }
 
     fn elwynn() -> usize {
         data::MAPS

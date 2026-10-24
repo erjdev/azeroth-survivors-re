@@ -809,10 +809,7 @@ pub(super) fn apply_hits(
         if let Some(class) = selection.class {
             if let Some(zone) = super::campaign::zone_index(selection.map_def().name) {
                 if let Some(row) = super::campaign::drop_for(zone, en.def.name) {
-                    let mut chance = f32::from(row.chance) / 100.0;
-                    if en.boss {
-                        chance = (chance + super::rewards::keen_drop_bonus(run.keen_eye)).min(1.0);
-                    }
+                    let chance = super::campaign::drop_chance(row.chance, en.boss, run.keen_eye);
                     if rng.f32() < chance {
                         if let Some(item) = account.collect_drop(class, zone, en.def.name) {
                             run.banner = Some((format!("{item} collected"), 4.0));

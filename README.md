@@ -35,7 +35,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
   </tr>
   <tr>
     <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-24-collection-appearance/collection-720.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
-    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-24-drop-tables/drop-tables-720.jpg" alt="Drop Tables: Zone browser, encounter sources and shared item details; missing content remains."><br>Zone browser, encounter sources and shared item details; missing content remains.</td>
+    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-24-drop-tables/keen-eye-720.jpg" alt="Drop Tables: Zone browser, encounter sources and shared item details; missing content remains."><br>Zone browser, encounter sources and shared item details; missing content remains.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-24/codex.jpg" alt="Codex: Spell and item reference view; footer spacing still needs cleanup."><br>Spell and item reference view; footer spacing still needs cleanup.</td>

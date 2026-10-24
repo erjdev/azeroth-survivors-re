@@ -481,7 +481,11 @@ pub(super) fn detail(
         text(
             ui,
             font,
-            format!("{} · {}% base chance", drop.creature, drop.chance),
+            format!(
+                "{} · {} chance",
+                drop.creature,
+                super::drop_page::chance_label(drop, account)
+            ),
             layout.body_size,
             GOLD,
         );
@@ -650,10 +654,10 @@ fn missing(
                             labels,
                             font,
                             format!(
-                                "{} · {} · {}%",
+                                "{} · {} · {}",
                                 drop.creature,
                                 campaign::ZONES[drop.zone].name,
-                                drop.chance
+                                super::drop_page::chance_label(drop, account)
                             ),
                             layout.body_size - 2.0,
                             DIM,
