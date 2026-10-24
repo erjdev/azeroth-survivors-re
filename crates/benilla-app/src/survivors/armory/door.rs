@@ -941,7 +941,13 @@ pub(super) fn band_color(band: usize) -> Color {
 
 pub(super) fn bonus_line(bonus: campaign::Bonus) -> String {
     let mut parts = Vec::new();
-    let pct = |v: f32| format!("{:+.0}%", v * 100.0);
+    let pct = |v: f32| format!("{:+.1}%", v * 100.0);
+    if bonus.health.abs() > 0.01 {
+        parts.push(format!("{:+.0} health", bonus.health));
+    }
+    if bonus.pickup.abs() > 0.0001 {
+        parts.push(format!("{} pickup range", pct(bonus.pickup)));
+    }
     if bonus.armor.abs() > 0.01 {
         parts.push(format!("{:+.0} armor", bonus.armor));
     }

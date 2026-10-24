@@ -320,6 +320,8 @@ pub(super) struct Stats {
 }
 
 fn apply_sheet(s: &mut Stats, b: campaign::Bonus) {
+    s.max_hp += b.health;
+    s.magnet *= 1.0 + b.pickup;
     s.armor += b.armor;
     s.might += b.might;
     s.crit += b.crit;
@@ -627,4 +629,23 @@ fn reset_run(
     *spawner = enemies::Spawner::default();
     // The preview hero is respawned for the look still picked.
     selection.version += 1;
+}
+
+#[cfg(test)]
+mod stat_tests {
+    use super::*;
+
+    #[test]
+    fn equipment_health_and_pickup_reach_the_run_sheet() {
+        let mut run = Run::default();
+        let base = run.stats();
+        run.bonus = campaign::piece_bonus(0, 7);
+        let equipped = run.stats();
+        assert!((equipped.max_hp - base.max_hp - 10.0).abs() < 0.001);
+        assert!((equipped.magnet - base.magnet * 1.12).abs() < 0.001);
+        assert_eq!(equipped.might, base.might);
+        run.bonus = campaign::Bonus::default();
+        assert_eq!(run.stats().max_hp, base.max_hp);
+        assert_eq!(run.stats().magnet, base.magnet);
+    }
 }

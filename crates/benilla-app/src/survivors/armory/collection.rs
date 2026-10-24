@@ -49,6 +49,11 @@ pub(super) fn build(
                     ..default()
                 })
                 .with_children(|row| {
+                    let found = progress.pieces
+                        [quality * campaign::GRID_SLOTS..(quality + 1) * campaign::GRID_SLOTS]
+                        .iter()
+                        .filter(|count| **count > 0)
+                        .count();
                     row.spawn((Node {
                         width: Val::Px(100.0),
                         ..default()
@@ -56,7 +61,11 @@ pub(super) fn build(
                         .with_children(|label| {
                             label.spawn(hud::text_bundle(
                                 font,
-                                campaign::BANDS_NAMED[quality],
+                                format!(
+                                    "{} {found}/{}",
+                                    campaign::BANDS_NAMED[quality],
+                                    campaign::GRID_SLOTS
+                                ),
                                 14.0,
                                 super::door::band_color(quality),
                             ));
@@ -66,10 +75,13 @@ pub(super) fn build(
                         let owned = progress.pieces[index] > 0;
                         let equipped =
                             progress.equipment.worn[equipment_slot] == Some(quality as u8);
+                        let shown =
+                            progress.equipment.looks[equipment_slot] == Look::Piece(quality as u8);
                         let label = format!(
-                            "{}{}{}",
+                            "{}{}{}{}",
                             campaign::SLOTS[equipment_slot],
                             if equipped { " · E" } else { "" },
+                            if shown { " · L" } else { "" },
                             if owned { "" } else { " ?" }
                         );
                         chip(
@@ -125,11 +137,9 @@ pub(super) fn build(
         ));
     }
     if campaign::piece_name(class, slot, band).is_some() {
-        let mut piece = [0; campaign::PIECES];
-        piece[selected] = progress.pieces[selected].max(1);
         panel.spawn(hud::text_bundle(
             font,
-            super::door::bonus_line(campaign::equipped_bonus(&piece, None)),
+            super::door::bonus_line(campaign::piece_bonus(band, slot)),
             14.0,
             Color::srgb(0.45, 0.9, 0.4),
         ));
@@ -174,9 +184,81 @@ pub(super) fn build(
                 }
             });
     }
+    let (level, clears) = super::hero_gate(account, selection);
+    let missing: Vec<_> = campaign::DROPS
+        .iter()
+        .filter(|drop| {
+            campaign::zone_open(drop.zone, level, &clears)
+                && campaign::piece_index(drop.band, drop.slot)
+                    .is_some_and(|index| progress.pieces[index] == 0)
+                && campaign::piece_name(class, drop.slot, drop.band).is_some()
+        })
+        .collect();
     panel.spawn(hud::text_bundle(
         font,
-        "Only worn pieces add bonuses. Appearance choices never change your stats.",
+        format!(
+            "Still to find in your open zones — {} sources",
+            missing.len()
+        ),
+        16.0,
+        GOLD,
+    ));
+    panel
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            flex_direction: FlexDirection::Row,
+            flex_wrap: FlexWrap::Wrap,
+            column_gap: Val::Px(8.0),
+            row_gap: Val::Px(4.0),
+            ..default()
+        })
+        .with_children(|list| {
+            for drop in missing {
+                let index = drop.band * campaign::GRID_SLOTS + drop.slot;
+                let name = campaign::piece_name(class, drop.slot, drop.band).unwrap();
+                list.spawn(Node {
+                    width: Val::Percent(48.0),
+                    ..default()
+                })
+                .with_children(|entry| {
+                    chip(
+                        entry,
+                        font,
+                        &format!(
+                            "{name} · {} · {} · {}%",
+                            drop.creature,
+                            campaign::ZONES[drop.zone].name,
+                            drop.chance
+                        ),
+                        Act::InspectPiece(index),
+                        selected == index,
+                    );
+                });
+            }
+        });
+    panel
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Px(8.0),
+            ..default()
+        })
+        .insert(BackgroundColor(Color::srgb(0.10, 0.08, 0.04)))
+        .with_children(|bar| {
+            bar.spawn((
+                Node {
+                    width: Val::Percent(
+                        100.0 * campaign::owned_pieces(&progress.pieces) as f32
+                            / campaign::PIECES as f32,
+                    ),
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+                BackgroundColor(GOLD),
+            ));
+        });
+    panel.spawn(hud::text_bundle(
+        font,
+        "E: equipped · L: shown as a look. Only worn pieces add bonuses.",
         13.0,
         Color::WHITE,
     ));

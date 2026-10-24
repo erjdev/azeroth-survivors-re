@@ -305,6 +305,10 @@ pub fn zone_lock_reason(index: usize, talent_level: u32, clears: &[bool]) -> Opt
 /// lines and adds the next, at higher numbers.
 #[derive(Clone, Copy, Default, Debug)]
 pub struct Bonus {
+    /// Flat maximum health.
+    pub health: f32,
+    /// Fractional pickup-radius increase.
+    pub pickup: f32,
     pub armor: f32,
     pub might: f32,
     pub crit: f32,
@@ -324,6 +328,8 @@ pub struct Bonus {
 
 impl Bonus {
     pub fn add(&mut self, other: Self) {
+        self.health += other.health;
+        self.pickup += other.pickup;
         self.armor += other.armor;
         self.might += other.might;
         self.crit += other.crit;
@@ -350,14 +356,12 @@ pub fn quality_bonus(quality: Quality) -> Bonus {
         Quality::Common => Bonus {
             armor: 6.0,
             might: 0.02,
-            crit: 0.01,
             ..Bonus::default()
         },
         Quality::Uncommon => Bonus {
             armor: 8.0,
             might: 0.03,
             crit: 0.02,
-            multistrike: 0.03,
             ..Bonus::default()
         },
         Quality::Rare => Bonus {
@@ -365,7 +369,6 @@ pub fn quality_bonus(quality: Quality) -> Bonus {
             might: 0.04,
             crit: 0.03,
             multistrike: 0.04,
-            speed: 0.02,
             ..Bonus::default()
         },
         Quality::Epic => Bonus {
@@ -374,8 +377,6 @@ pub fn quality_bonus(quality: Quality) -> Bonus {
             crit: 0.04,
             multistrike: 0.06,
             speed: 0.03,
-            leech: 0.01,
-            area: 0.04,
             ..Bonus::default()
         },
         Quality::Legendary => Bonus {
@@ -384,8 +385,6 @@ pub fn quality_bonus(quality: Quality) -> Bonus {
             crit: 0.05,
             multistrike: 0.08,
             speed: 0.04,
-            leech: 0.02,
-            area: 0.06,
             crit_damage: 0.25,
             ..Bonus::default()
         },
@@ -617,8 +616,6 @@ fn band_bonus(band: usize) -> Bonus {
             crit: 0.045,
             multistrike: 0.07,
             speed: 0.035,
-            leech: 0.015,
-            area: 0.05,
             reduction: 0.03,
             ..Bonus::default()
         },
@@ -630,6 +627,57 @@ fn band_bonus(band: usize) -> Bonus {
     }
 }
 
+/// Initial glove tuning follows the health/pickup/area/reduction/damage progression.
+/// These coefficients are game balance data, not the original WoW item's stats.
+pub fn glove_bonus(quality: Quality) -> Bonus {
+    let (health, pickup, area, reduction, might, crit_damage) = match quality {
+        Quality::Poor => (8.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        Quality::Common => (10.0, 0.12, 0.0, 0.0, 0.0, 0.0),
+        Quality::Uncommon => (13.0, 0.14, 0.03, 0.0, 0.0, 0.0),
+        Quality::Rare => (17.0, 0.195, 0.052, 0.012, 0.0, 0.0),
+        Quality::Epic => (25.0, 0.521, 0.091, 0.029, 0.019, 0.0),
+        Quality::Legendary => (35.0, 0.65, 0.12, 0.04, 0.03, 0.25),
+    };
+    Bonus {
+        health,
+        pickup,
+        area,
+        reduction,
+        might,
+        crit_damage,
+        ..Bonus::default()
+    }
+}
+
+/// Slot-specific stats shared by the item detail and the equipped combat sheet.
+pub fn piece_bonus(band: usize, slot: usize) -> Bonus {
+    if slot >= GRID_SLOTS || band >= BANDS {
+        return Bonus::default();
+    }
+    if slot == 7 {
+        let quality = match band {
+            0 => Quality::Common,
+            1 => Quality::Uncommon,
+            2 => Quality::Rare,
+            3 | 4 => Quality::Epic,
+            _ => Quality::Legendary,
+        };
+        let mut bonus = glove_bonus(quality);
+        if band == 4 {
+            bonus.health = 30.0;
+            bonus.pickup = 0.58;
+            bonus.area = 0.105;
+            bonus.reduction = 0.035;
+            bonus.might = 0.025;
+            bonus.cooldown = 0.01;
+        } else if band == 5 {
+            bonus.cooldown = 0.02;
+        }
+        return bonus;
+    }
+    band_bonus(band)
+}
+
 /// One selected piece per slot, its quality's stats, the worn set, and a cloak.
 pub fn equipped_bonus(pieces: &[u8], cloak: Option<Quality>) -> Bonus {
     let mut total = Bonus::default();
@@ -637,7 +685,7 @@ pub fn equipped_bonus(pieces: &[u8], cloak: Option<Quality>) -> Bonus {
         let Some((band, _)) = best_piece(pieces, slot) else {
             continue;
         };
-        total.add(band_bonus(band));
+        total.add(piece_bonus(band, slot));
     }
     if set_complete(pieces) {
         total.add(set_bonus());
@@ -1051,6 +1099,8 @@ fn node_rank_bonus(node: usize) -> Bonus {
 fn scale_bonus(bonus: Bonus, rank: u8) -> Bonus {
     let r = f32::from(rank);
     Bonus {
+        health: bonus.health * r,
+        pickup: bonus.pickup * r,
         armor: bonus.armor * r,
         might: bonus.might * r,
         crit: bonus.crit * r,
@@ -1430,20 +1480,112 @@ mod tests {
     }
 
     #[test]
-    fn qualities_add_a_stat_line_at_each_step() {
-        let poor = quality_bonus(Quality::Poor);
-        assert!(poor.armor > 0.0 && poor.might == 0.0);
-        let common = quality_bonus(Quality::Common);
-        assert!(common.might > 0.0 && common.multistrike == 0.0);
-        let uncommon = quality_bonus(Quality::Uncommon);
-        assert!(uncommon.multistrike > 0.0 && uncommon.speed == 0.0);
-        let rare = quality_bonus(Quality::Rare);
-        assert!(rare.speed > 0.0 && rare.leech == 0.0);
-        let epic = quality_bonus(Quality::Epic);
-        assert!(epic.leech > 0.0 && epic.crit_damage == 0.0);
-        let legend = quality_bonus(Quality::Legendary);
-        assert!(legend.crit_damage > 0.0);
-        assert!(legend.might > epic.might);
+    fn qualities_add_exactly_one_stat_line_and_strengthen_previous_lines() {
+        let qualities = [
+            Quality::Poor,
+            Quality::Common,
+            Quality::Uncommon,
+            Quality::Rare,
+            Quality::Epic,
+            Quality::Legendary,
+        ];
+        let mut previous = [0.0; 6];
+        for (step, quality) in qualities.into_iter().enumerate() {
+            let b = quality_bonus(quality);
+            let lines = [
+                b.armor,
+                b.might,
+                b.crit,
+                b.multistrike,
+                b.speed,
+                b.crit_damage,
+            ];
+            assert_eq!(lines.iter().filter(|v| **v > 0.0).count(), step + 1);
+            for index in 0..step {
+                assert!(lines[index] > previous[index]);
+            }
+            assert_eq!(b.leech + b.area + b.reduction + b.health + b.pickup, 0.0);
+            previous = lines;
+        }
+    }
+
+    #[test]
+    fn collection_bands_keep_prior_stats_and_add_one_line_per_step() {
+        for slot in 0..GRID_SLOTS {
+            let mut previous = [0.0; 16];
+            for band in 0..BANDS {
+                let b = piece_bonus(band, slot);
+                let lines = [
+                    b.health,
+                    b.pickup,
+                    b.armor,
+                    b.might,
+                    b.crit,
+                    b.multistrike,
+                    b.speed,
+                    b.leech,
+                    b.area,
+                    b.crit_damage,
+                    b.reduction,
+                    b.cooldown,
+                    b.gold,
+                    b.growth,
+                    b.luck,
+                    b.targets as f32,
+                ];
+                assert_eq!(lines.iter().filter(|v| **v > 0.0).count(), band + 2);
+                for (old, new) in previous.iter().zip(lines) {
+                    if *old > 0.0 {
+                        assert!(new > *old, "slot {slot}, band {band}");
+                    }
+                }
+                previous = lines;
+            }
+        }
+    }
+
+    #[test]
+    fn gloves_preserve_their_stat_identity_and_only_the_worn_copy_counts() {
+        let qualities = [
+            Quality::Poor,
+            Quality::Common,
+            Quality::Uncommon,
+            Quality::Rare,
+            Quality::Epic,
+            Quality::Legendary,
+        ];
+        let mut previous = [0.0; 6];
+        for (step, quality) in qualities.into_iter().enumerate() {
+            let b = glove_bonus(quality);
+            let lines = [
+                b.health,
+                b.pickup,
+                b.area,
+                b.reduction,
+                b.might,
+                b.crit_damage,
+            ];
+            assert_eq!(lines.iter().filter(|v| **v > 0.0).count(), step + 1);
+            for index in 0..step {
+                assert!(lines[index] > previous[index]);
+            }
+            assert_eq!(b.armor + b.crit + b.multistrike + b.speed + b.leech, 0.0);
+            previous = lines;
+        }
+        let mut owned = [0; PIECES];
+        owned[7] = 1;
+        owned[3 * GRID_SLOTS + 7] = 99; // Legacy duplicate count cannot affect power.
+        let mut gear = super::super::equipment::Equipment::legacy(&owned);
+        let epic = equipped_bonus(&gear.worn_pieces(&owned), None);
+        assert_eq!(epic.health, 25.0);
+        assert_eq!(epic.pickup, 0.521);
+        gear.wear(&owned, 7, Some(0));
+        let common = equipped_bonus(&gear.worn_pieces(&owned), None);
+        assert_eq!(common.health, 10.0);
+        assert_eq!(common.pickup, 0.12);
+        assert_eq!(common.might + common.area + common.reduction, 0.0);
+        assert_eq!(piece_bonus(BANDS, 7).health, 0.0);
+        assert_eq!(piece_bonus(0, GRID_SLOTS).armor, 0.0);
     }
 
     #[test]
