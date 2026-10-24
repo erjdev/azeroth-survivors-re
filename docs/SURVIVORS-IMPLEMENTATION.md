@@ -133,7 +133,15 @@ with the intention images; compilation alone does not establish visual completio
 
 Complete the ordered path in SURVIVORS.md. For each zone, verify terrain/map coordinates,
 creature displays, named encounter roster, schedule, boss, slot/band drops and class item
-mapping. Connect item ids to names/icons/displays from available catalogs. Fill all 54
+mapping. Use body-collision floors for heroes, enemies, companions and mobility destinations, including
+WMO interiors and bridges. A local grounding probe starts two yards above the feet and ends
+eight yards below; it must hold the current/authored height when no floor is available rather
+than snap to distant terrain. Jump height stays relative to those feet. Validate outdoor
+slopes and layered interior fixtures separately. Bounded grounding is not wall collision,
+spawn placement, pathfinding, or proof of indoor camera visibility; those need their own
+traversability checks before a zone can become ready.
+
+Connect item ids to names/icons/displays from available catalogs. Fill all 54
 cells for each of nine classes with verified content. Content readiness is derived from
 these dependencies rather than a trusted boolean. Never unlock a label with no world.
 

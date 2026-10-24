@@ -1051,7 +1051,7 @@ pub(super) fn menu_preview(
     selection: Res<Selection>,
     mut run: ResMut<Run>,
     heroes: Query<Entity, With<Hero>>,
-    world: benilla_world::world_point::WorldPoint,
+    world: super::floor::Floor,
     mut shown: Local<Option<(usize, u32, usize)>>,
 ) {
     if *phase.get() != Phase::Menu {
@@ -1072,7 +1072,7 @@ pub(super) fn menu_preview(
         return;
     };
     let mut pos = hero::arena(selection.stage_def());
-    if let Some(h) = world.terrain_height_under(pos) {
+    if let Some(h) = world.height(pos) {
         pos.y = h;
     }
     let serial = run.guid();

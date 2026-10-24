@@ -12,6 +12,7 @@ mod cards;
 mod companions;
 mod enemies;
 mod grade;
+mod floor;
 mod hero;
 mod hud;
 mod menu;

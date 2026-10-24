@@ -1,9 +1,9 @@
 //! Companions fetch coins and experience wisps. They run a trip, sweep what is under their
 //! paws, then rest. They are not a second magnet, and they leave chests where they stand.
 
-use benilla_world::world_point::WorldPoint;
 use bevy::prelude::*;
 
+use super::floor::Floor;
 use super::account::PetRanks;
 use super::enemies::{self, Gem, GemKind};
 use super::hero::Hero;
@@ -123,7 +123,7 @@ pub(super) fn herd(
     account: Res<super::account::Account>,
     mut stash: ResMut<super::stash::Stash>,
     mut next: ResMut<NextState<Phase>>,
-    world: WorldPoint,
+    world: Floor,
     hero: Query<&Transform, (With<Hero>, Without<Fetcher>)>,
     mut pets: Query<(Entity, &mut Transform, &mut MovementState, &mut Fetcher), Without<Hero>>,
     gems: Query<(Entity, &Transform, &Gem), (Without<Hero>, Without<Fetcher>)>,
@@ -241,7 +241,7 @@ fn step_toward(
     goal: Vec3,
     speed: f32,
     dt: f32,
-    world: &WorldPoint,
+    world: &Floor,
 ) {
     let mut pos = tf.translation;
     let delta = flat(goal - pos);
@@ -253,7 +253,7 @@ fn step_toward(
     }
     let step = (speed * dt).min(dist);
     pos += delta / dist * step;
-    if let Some(h) = world.terrain_height_under(pos) {
+    if let Some(h) = world.height(pos) {
         pos.y = h;
     }
     tf.translation = pos;

@@ -4,9 +4,9 @@
 use std::collections::HashMap;
 
 use benilla_world::rig_anim::GlobalSeqDrive;
-use benilla_world::world_point::WorldPoint;
 use bevy::prelude::*;
 
+use super::floor::Floor;
 use super::abilities::Hit;
 use super::data::{self, EnemyDef};
 use super::hero::{self, Hero, HERO_RADIUS};
@@ -160,8 +160,8 @@ fn spawn_enemy(
     ));
 }
 
-fn ground(world: &WorldPoint, mut p: Vec3, fallback: f32) -> Vec3 {
-    p.y = world.terrain_height_under(p).unwrap_or(fallback);
+fn ground(world: &Floor, mut p: Vec3, fallback: f32) -> Vec3 {
+    p.y = world.height(p).unwrap_or(fallback);
     p
 }
 
@@ -177,7 +177,7 @@ pub(super) fn spawn_enemies(
     hero: Query<&Transform, With<Hero>>,
     enemies: Query<&Enemy>,
     chests: Query<&Chest>,
-    world: WorldPoint,
+    world: Floor,
 ) {
     let Ok(h) = hero.single() else { return };
     if run.dead_t.is_some() {
@@ -297,7 +297,7 @@ fn spawn_chest(
 pub(super) fn move_enemies(
     time: Res<Time>,
     mut run: ResMut<Run>,
-    world: WorldPoint,
+    world: Floor,
     hero: Query<(Entity, &Transform), (With<Hero>, Without<Enemy>)>,
     mut enemies: Query<(Entity, &mut Transform, &mut Enemy, &mut MovementState), Without<Hero>>,
     mut fx: Fx,

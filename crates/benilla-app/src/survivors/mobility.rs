@@ -3,11 +3,11 @@
 
 use bevy::prelude::*;
 
+use super::floor::Floor;
 use super::enemies::Enemy;
 use super::hero::{self, Hero};
 use super::units::{flat, Fx};
 use super::{Phase, Run};
-use benilla_world::world_point::WorldPoint;
 
 pub(super) const LEARN_LEVEL: u32 = 5;
 pub(super) const KEY: KeyCode = KeyCode::KeyF;
@@ -176,7 +176,7 @@ pub(super) fn cast_mobility(
     keys: Res<ButtonInput<KeyCode>>,
     phase: Res<State<Phase>>,
     mut run: ResMut<Run>,
-    world: WorldPoint,
+    world: Floor,
     mut hero: Query<(Entity, &mut Transform), With<Hero>>,
     mut enemies: Query<(Entity, &Transform, &mut Enemy), Without<Hero>>,
     selection: Res<super::Selection>,
@@ -215,7 +215,7 @@ pub(super) fn cast_mobility(
             p
         }
     };
-    let ground = |p: Vec3| world.terrain_height_under(p).unwrap_or(p.y);
+    let ground = |p: Vec3| world.height(p).unwrap_or(p.y);
     match def.kind {
         Move::Blink(yd) => {
             fx.cast(me, def.spell, &[me], None);

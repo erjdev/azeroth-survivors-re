@@ -153,7 +153,7 @@ pub(super) fn aim_cursor(
     windows: Query<&Window, With<bevy::window::PrimaryWindow>>,
     cams: Query<(&Camera, &Transform), With<WorldCamera>>,
     hero: Query<&Transform, (With<Hero>, Without<WorldCamera>)>,
-    world: WorldPoint,
+    world: super::floor::Floor,
     mut aim: ResMut<AimPoint>,
 ) {
     let point = (|| {
@@ -174,7 +174,7 @@ pub(super) fn aim_cursor(
             }
             let p = ray.origin + *ray.direction * t;
             at = Some(p);
-            match world.terrain_height_under(p) {
+            match world.height(p) {
                 Some(h) if (h - y).abs() > 0.05 => y = h,
                 _ => break,
             }
@@ -196,7 +196,7 @@ pub(super) fn drive_hero(
     selection: Res<Selection>,
     rig: Res<CamRig>,
     aim: Res<AimPoint>,
-    world: WorldPoint,
+    world: super::floor::Floor,
     auto: Option<Res<super::auto::Auto>>,
     mut player: ResMut<crate::player::Player>,
     mut hero: Query<(&mut Transform, &mut MovementState, &mut Hero)>,
@@ -272,7 +272,9 @@ pub(super) fn drive_hero(
                 pos.x = held.x;
                 pos.z = held.z;
             }
-            let ground = world.terrain_height_under(pos).unwrap_or(pos.y);
+            // Jump height is relative to the floor, not the input to the next floor probe.
+            let feet = pos - Vec3::Y * hm.air;
+            let ground = world.height(feet).unwrap_or(feet.y);
             let playing = *phase.get() == Phase::Playing && run.dead_t.is_none();
             // Space hops: lift off the terrain, then gravity brings the hero back down.
             if playing && keys.just_pressed(KeyCode::Space) && hm.vy == 0.0 && hm.air == 0.0 {
@@ -303,7 +305,7 @@ pub(super) fn drive_hero(
         }
         Err(_) => {
             let mut p = arena(selection.stage_def());
-            if let Some(h) = world.terrain_height_under(p) {
+            if let Some(h) = world.height(p) {
                 p.y = h;
             }
             p
