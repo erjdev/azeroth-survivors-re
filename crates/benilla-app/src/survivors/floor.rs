@@ -47,11 +47,45 @@ impl Floor<'_, '_> {
         }
         let body = Collider::capsule(radius, 1.0);
         let lift = Vec3::Y * (radius + 0.5 + 0.03);
-        let at = match self.collision.cast_body(&body, feet + lift, movement, 0.02) {
-            Some(hit) => feet + movement / length * (hit.distance - 0.02).clamp(0.0, length),
-            None => feet + movement,
-        };
-        self.height(at).map_or(feet, |y| Vec3::new(at.x, y, at.z))
+        // Preserve the airborne sweep: grounding its first segment would turn a jump
+        // into an artificial steep descent and cancel otherwise valid mobility.
+        if self
+            .height(feet)
+            .is_some_and(|ground| (feet.y - ground).abs() > 0.1)
+        {
+            let at = match self.collision.cast_body(&body, feet + lift, movement, 0.02) {
+                Some(hit) => feet + movement / length * (hit.distance - 0.02).clamp(0.0, length),
+                None => feet + movement,
+            };
+            return self.height(at).map_or(feet, |y| Vec3::new(at.x, y, at.z));
+        }
+        // Follow gentle terrain in short straight segments. A single horizontal sweep
+        // intersects uphill ground long before the intended destination.
+        let direction = movement / length;
+        let steps = (length / 0.25).ceil() as usize;
+        let mut at = feet;
+        for step in 1..=steps {
+            let horizontal = feet + direction * (length * step as f32 / steps as f32);
+            let Some(y) = self.height(Vec3::new(horizontal.x, at.y, horizontal.z)) else {
+                return feet;
+            };
+            let next = Vec3::new(horizontal.x, y, horizontal.z);
+            let segment = next - at;
+            let horizontal_length = super::units::flat(segment).length();
+            // Do not turn a floor probe onto a low wall into a climb over that wall.
+            if segment.y.abs() > horizontal_length * 0.75 {
+                return at;
+            }
+            if let Some(hit) = self.collision.cast_body(&body, at + lift, segment, 0.02) {
+                let distance = segment.length();
+                let stopped = at + segment / distance * (hit.distance - 0.02).clamp(0.0, distance);
+                return self
+                    .height(stopped)
+                    .map_or(at, |y| Vec3::new(stopped.x, y, stopped.z));
+            }
+            at = next;
+        }
+        at
     }
 
     /// Solid-world line of sight at one yard above the feet, for contact effects.
@@ -259,6 +293,66 @@ mod tests {
             !clear,
             "a close charge target behind the wall must not receive its stun"
         );
+    }
+
+    #[test]
+    fn mobility_follows_gentle_slopes_in_both_directions() {
+        for slope in [-0.2_f32, -0.1, 0.1, 0.2] {
+            let mut app = fixture(&[]);
+            app.world_mut().spawn((
+                RigidBody::Static,
+                Collider::trimesh(
+                    vec![
+                        Vec3::new(-20., -20. * slope, -5.),
+                        Vec3::new(20., 20. * slope, -5.),
+                        Vec3::new(20., 20. * slope, 5.),
+                        Vec3::new(-20., -20. * slope, 5.),
+                    ],
+                    vec![[0, 2, 1], [0, 3, 2]],
+                ),
+                Transform::default(),
+            ));
+            app.update();
+            for sign in [-1., 1.] {
+                let expected = Vec3::new(sign * 12., sign * 12. * slope, 0.);
+                let at = app
+                    .world_mut()
+                    .run_system_once(move |floor: Floor| {
+                        floor.travel(Vec3::ZERO, expected, super::super::hero::HERO_RADIUS)
+                    })
+                    .unwrap();
+                assert!(
+                    at.distance(expected) < 0.02,
+                    "slope {slope}, expected {expected:?}, got {at:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn mobility_does_not_climb_a_low_wall() {
+        let mut app = fixture(&[0.]);
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::cuboid(0.5, 1.0, 8.0),
+            Transform::from_xyz(2.0, 0.5, 0.0),
+        ));
+        app.update();
+        let at = app
+            .world_mut()
+            .run_system_once(|floor: Floor| floor.travel(Vec3::ZERO, Vec3::new(4., 0., 0.), 0.7))
+            .unwrap();
+        assert!(at.x < 1.1 && at.y.abs() < 0.02, "{at:?}");
+    }
+
+    #[test]
+    fn airborne_mobility_keeps_its_supported_landing() {
+        let mut app = fixture(&[0.]);
+        let at = app
+            .world_mut()
+            .run_system_once(|floor: Floor| floor.travel(Vec3::Y, Vec3::new(4., 1., 0.), 0.7))
+            .unwrap();
+        assert!(at.distance(Vec3::new(4., 0., 0.)) < 0.02, "{at:?}");
     }
 
     #[test]
