@@ -173,6 +173,7 @@ pub(super) enum Knob {
     Ambience,
     Sound,
     MusicOn,
+    AutoPush,
     View,
     Grass,
     Spells,
@@ -923,6 +924,7 @@ pub(super) fn setup_hud(
                         for knob in [Knob::View, Knob::Grass, Knob::Spells, Knob::Scale] {
                             setting_row(gfx, f, knob);
                         }
+                        toggle_row(gfx, f, Knob::AutoPush);
                     });
                 });
                 col.spawn((
@@ -1402,6 +1404,7 @@ pub(super) fn close_settings(mut page: ResMut<PausePage>) {
 
 pub(super) fn apply_settings(
     mut edits: ResMut<SettingEdits>,
+    mut camera: ResMut<super::camera::CameraSettings>,
     mut cvars: ResMut<crate::cvars::Cvars>,
 ) {
     if edits.adjust.is_empty() && edits.toggle.is_empty() {
@@ -1411,7 +1414,11 @@ pub(super) fn apply_settings(
         adjust_knob(&mut cvars, knob, dir);
     }
     for knob in edits.toggle.drain(..) {
-        toggle_knob(&mut cvars, knob);
+        if knob == Knob::AutoPush {
+            camera.toggle();
+        } else {
+            toggle_knob(&mut cvars, knob);
+        }
     }
 }
 
@@ -1498,10 +1505,18 @@ pub(super) fn sync_pause_page(
 
 pub(super) fn refresh_settings(
     cvars: Res<crate::cvars::Cvars>,
+    camera: Res<super::camera::CameraSettings>,
     mut readouts: Query<(&SettingReadout, &mut Text)>,
 ) {
     for (readout, mut text) in &mut readouts {
-        let want = knob_text(&cvars, readout.0);
+        let want = if readout.0 == Knob::AutoPush {
+            format!(
+                "Auto-push camera in  {}",
+                if camera.auto_push { "On" } else { "Off" }
+            )
+        } else {
+            knob_text(&cvars, readout.0)
+        };
         if **text != want {
             **text = want;
         }
@@ -1514,6 +1529,7 @@ fn knob_text(cvars: &crate::cvars::Cvars, knob: Knob) -> String {
         (v * 100.0).round() as i32
     };
     match knob {
+        Knob::AutoPush => unreachable!("camera preference is not a CVar"),
         Knob::Master => format!("Master  {}%", pct("MasterVolume", 1.0)),
         Knob::Effects => format!("Effects  {}%", pct("SoundVolume", 1.0)),
         Knob::Music => format!("Music  {}%", pct("MusicVolume", 0.4)),
@@ -1566,7 +1582,7 @@ fn adjust_knob(cvars: &mut crate::cvars::Cvars, knob: Knob, dir: i8) {
         Knob::Effects => step_volume(cvars, "SoundVolume", 1.0),
         Knob::Music => step_volume(cvars, "MusicVolume", 0.4),
         Knob::Ambience => step_volume(cvars, "AmbienceVolume", 0.6),
-        Knob::Sound | Knob::MusicOn => {}
+        Knob::Sound | Knob::MusicOn | Knob::AutoPush => {}
         Knob::View => {
             const STEPS: [f32; 6] = [177.0, 250.0, 350.0, 500.0, 650.0, 777.0];
             step_list(cvars, "farclip", &STEPS, dir, |v| format!("{}", v.round() as i32));

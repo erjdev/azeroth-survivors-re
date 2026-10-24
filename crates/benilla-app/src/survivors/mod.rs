@@ -8,6 +8,7 @@ mod abilities;
 mod account;
 mod armory;
 mod auto;
+mod camera;
 mod cards;
 mod companions;
 mod enemies;
@@ -54,6 +55,7 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<Selection>()
             .init_resource::<Run>()
             .init_resource::<hero::CamRig>()
+            .init_resource::<camera::CameraSettings>()
             .init_resource::<hero::AimPoint>()
             .init_resource::<abilities::PendingHits>()
             .init_resource::<enemies::Spawner>()
