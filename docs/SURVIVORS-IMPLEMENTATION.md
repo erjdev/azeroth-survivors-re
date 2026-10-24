@@ -572,5 +572,7 @@ event stream stays available to OS close/focus/lifecycle readers. The cover audi
 classifies this consumer rule and the browser’s WakeUp-only heartbeat. A regression test
 checks discarded gestures, preservation of the close request and fresh dragging afterward.
 The workspace test rebuild and nine focused checks pass, including the input audit.
-Formatting and workspace Clippy pass. The full test gate is still running; live interaction
-validation remains outstanding.
+Formatting and workspace Clippy pass. The full gate passed the cover audit, then stopped
+at `launcher_shape`: the standalone example omitted `mlua-sys`. The example now includes
+all three patches and uses the confirmed fork URLs consistently. Both launcher-shape tests
+pass against the saved example. Continue the full gate; live interaction remains unverified.

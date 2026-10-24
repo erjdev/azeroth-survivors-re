@@ -10,8 +10,9 @@ events remain available, including close requests. Added the missing input-audit
 for the portrait and browser heartbeat.
 
 **Validation:** workspace test rebuild and nine focused portrait/loading-cover checks pass.
-Formatting and workspace Clippy also pass. The full test gate is still running; no fresh
-live interaction capture was taken.
+Formatting and workspace Clippy also pass. The full gate passed the cover audit, then
+found a stale launcher example; its missing Lua patch and fork URLs are corrected, with
+both launcher checks passing. Later gate stages and live interaction remain unverified.
 
 ## 2026-10-24 — Locale-aware validation
 
