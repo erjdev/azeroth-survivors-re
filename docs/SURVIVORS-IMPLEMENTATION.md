@@ -1979,3 +1979,27 @@ WOW_DATA="$PWD/wow-data/Data" WOW_SURVIVORS_FLOOR_BENCH=1 \
 No timing threshold is asserted on shared CI hardware. The normal collision assertions
 still run before the probe. All 121 Survivors app tests with checkout data and workspace
 Clippy pass; the new probe is test-only and does not change the native executable.
+
+### Survivors sweep-and-slide optimization — 2026-10-25
+
+Survivors walking now resolves contact planes from successive body sweeps instead of
+collecting all nearby contact faces after each hit. It retains the shared one-sided
+body cast, 0.01-yard skin, four-pass limit, steep-wall flattening and final grounded
+overlap guard. Blocking planes accumulate so a slide cannot undo an earlier wall.
+This lives entirely in Survivors; upstream client movement is unchanged.
+
+All 15 floor tests pass, including a new two-wall corner that must permit tangential
+progress and reject penetration on repeated steps. Actual Elwynn canopy, Warsong stump,
+Un'Goro tree and Feralas root cases remain covered. Feralas's grounded crossing ends
+at Bevy `(135.10509, 56.806805, 4239.2686)`, with terrain/root checks at every step.
+
+The same opt-in workload measured 220-body movement p50 **2.994 ms**, p95 **5.772 ms**,
+max **5.861 ms**, versus baseline 4.241/9.800/10.041 ms. Advancing steps increased from
+77,564 to 78,625 of 132,000; the improvement is not from immobilizing more bodies.
+For 60 bodies, p95 fell from 2.267 to 1.332 ms. These are controlled test-profile
+measurements, not live FPS evidence. Live horde/rendering/streaming profiles, broader
+route coverage and Feralas gameplay acceptance remain open.
+
+Validation: all 122 Survivors app tests with checkout data, workspace Clippy, formatting,
+render-pass lint and diff whitespace checks pass. Native incremental build: 19.00 seconds;
+workspace test compilation: 2 minutes 38 seconds. No live gameplay performance claim is made.

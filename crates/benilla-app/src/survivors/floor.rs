@@ -3,7 +3,7 @@
 //! A bounded probe preserves the authored/current height while geometry streams and avoids
 //! selecting terrain far below an interior. Body sweeps handle walls; route finding is separate.
 
-use avian3d::character_controller::move_and_slide::{MoveAndSlideConfig, MoveAndSlideHitResponse};
+use avian3d::character_controller::move_and_slide::MoveAndSlide;
 use avian3d::prelude::{Collider, SpatialQuery};
 use benilla_world::collision::WorldCollision;
 use bevy::ecs::system::SystemParam;
@@ -44,24 +44,7 @@ impl Floor<'_, '_> {
         }
         let lift = Vec3::Y * (radius + 0.5 + 0.03 + slope_lift);
         let body = Collider::capsule(radius, 1.0);
-        let result = self.collision.slide_body(
-            &body,
-            feet + lift,
-            movement,
-            std::time::Duration::from_secs(1),
-            &MoveAndSlideConfig::default(),
-            |hit| {
-                // Steep hulls are walls: climbing their normal and then grounding
-                // would push the capsule into the widening base of a tree.
-                if hit.normal.y < 0.5 {
-                    if let Ok(wall) = Dir3::new(super::units::flat(**hit.normal)) {
-                        *hit.normal = wall;
-                    }
-                }
-                MoveAndSlideHitResponse::Accept
-            },
-        );
-        let at = result.position - lift;
+        let at = self.sweep_slide(&body, feet + lift, movement) - lift;
         // Grounding changes both the foot height and the capsule's slope clearance.
         // Validate that final pose too: a clear sweep alone can end inside a widening
         // root when the actor subsequently snaps onto the floor beneath its center.
@@ -79,6 +62,38 @@ impl Floor<'_, '_> {
             {
                 return feet;
             }
+        }
+        at
+    }
+
+    /// Resolve the planes actually reached by successive sweeps. A second wall is
+    /// found by sweeping the projected remainder, without gathering every nearby face.
+    fn sweep_slide(&self, body: &Collider, mut at: Vec3, mut movement: Vec3) -> Vec3 {
+        let mut planes = [Dir3::Y; 4];
+        for i in 0..planes.len() {
+            let Ok((direction, distance)) = Dir3::new_and_length(movement) else {
+                break;
+            };
+            if distance < 0.0001 {
+                break;
+            }
+            let Some(hit) = self.collision.cast_body(body, at, movement, 0.01) else {
+                return at + movement;
+            };
+            let travel = hit.distance.clamp(0.0, distance);
+            at += direction * travel;
+            movement *= 1.0 - travel / distance;
+            // Steep hulls remain walls; do not climb into a widening tree base.
+            let normal = if hit.normal1.y < 0.5 {
+                super::units::flat(hit.normal1)
+            } else {
+                hit.normal1
+            };
+            let Ok(normal) = Dir3::new(normal) else {
+                break;
+            };
+            planes[i] = normal;
+            movement = MoveAndSlide::project_velocity(movement, &planes[..=i]);
         }
         at
     }
@@ -894,6 +909,38 @@ mod tests {
         assert!(
             !clear,
             "a close charge target behind the wall must not receive its stun"
+        );
+    }
+
+    #[test]
+    fn walking_slides_into_a_two_wall_corner_without_crossing_either_face() {
+        let mut app = fixture(&[0.]);
+        for (size, center) in [
+            (Vec3::new(0.2, 4., 10.), Vec3::new(2.1, 2., 0.)),
+            (Vec3::new(10., 4., 0.2), Vec3::new(0., 2., 3.1)),
+        ] {
+            app.world_mut().spawn((
+                RigidBody::Static,
+                Collider::cuboid(size.x, size.y, size.z),
+                Transform::from_translation(center),
+            ));
+        }
+        app.update();
+        let at = app
+            .world_mut()
+            .run_system_once(|floor: Floor| {
+                let mut at = Vec3::ZERO;
+                for _ in 0..60 {
+                    at = floor.slide(at, at + Vec3::new(0.3, 0., 0.3), 0.6);
+                    at.y = floor.height(at).unwrap();
+                    assert!(at.x < 1.41 && at.z < 2.41, "crossed corner: {at:?}");
+                }
+                at
+            })
+            .unwrap();
+        assert!(
+            at.x > 1.3 && at.z > 2.3,
+            "failed to slide to corner: {at:?}"
         );
     }
 

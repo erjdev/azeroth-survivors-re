@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Faster horde collision
+
+Survivors now slides along planes found by successive sweeps, avoiding repeated nearby-face
+collection. The 220-body Feralas probe fell from 9.80 to 5.77 ms p95 (about 41%), with
+more advancing steps and passing root, slope and two-wall corner checks. All 122
+Survivors app tests pass; the native incremental build took 19 seconds. Live horde
+profiling and broader world acceptance remain open.
+
 ## 2026-10-25 — Horde collision profiling
 
 Added a repeatable, opt-in Feralas collision timing probe at up to 220 bodies. It exposes
