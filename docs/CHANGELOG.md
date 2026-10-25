@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Feralas world and encounter foundation
+
+Added a provisional Feralas arena, 15 verified enemy identities and nine timed bosses.
+Its drop schedule covers all Rare slots and waits for the final boss before victory.
+Terrain sampling found a dry supported candidate; Feralas remains locked pending full
+world, camera, combat and reward validation. Existing saved map indices are preserved.
+Native build, 73 core tests, 119 app tests, Clippy and formatting pass; Feralas model
+files resolve. The full content audit still reports 476 unfinished-content gaps.
+
 ## 2026-10-25 — Rare weapon identities
 
 Added nine verified class weapon identities, completing the Rare tier's nine slots.

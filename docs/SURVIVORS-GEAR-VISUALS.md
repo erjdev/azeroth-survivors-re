@@ -111,7 +111,8 @@ All 72 items were selected from the same pinned templates by `itemset`; each set
 exactly one item per armor slot and has the assigned class's `AllowableClass` mask.
 `crates/survivors-core/src/gear_upgrades/rare.rs` records only names and visual metadata.
 Chest inventory type 20 remains a robe, including Earthfury and Cenarion vestments.
-Rare weapons are listed below; Rare acquisition sources and live body rendering remain open.
+Rare weapons are listed below. All Rare slots now have authored Feralas encounter sources;
+Feralas stays world-locked, and live acquisition and body rendering remain open.
 Collection naming does not award pieces or unlock zones.
 
 ## Rare weapon catalog
@@ -135,8 +136,9 @@ two-handed choices do not create an off-hand cell or a new talent requirement.
 | Warlock | Sorcerous Dagger | 18878 | 31337 | 21 | 15 | 1 | 3 |
 | Druid | Finkle's Lava Dredger | 18803 | 31265 | 17 | 5 | 1 | 1 |
 
-This completes all nine Rare identities per class. Actual acquisition sources and live
-weapon attachment/pose checks remain open; names alone do not establish obtainability.
+This completes all nine Rare identities per class. Skarr the Unbreakable at 16:00 is the
+authored weapon source in Feralas; that zone remains world-locked. Live acquisition and
+weapon attachment/pose checks remain open; the source table does not establish obtainability.
 
 ## Class-specific Atiesh
 

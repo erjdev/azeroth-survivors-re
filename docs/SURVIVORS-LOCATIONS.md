@@ -373,3 +373,65 @@ routes, and validate camera occlusion from the starting view and arena edges. Th
 scheduled bosses and rewards still require a complete live run. The log contains frame
 hitches around one second and stall samples; no panic/error lines were found. Performance
 acceptance remains open. This short combat check is not zone approval.
+
+## Feralas provisional arena and source table — 2026-10-25
+
+The same pinned MaNGOS Zero [creature templates](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_template.sql) and [placements](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature.sql) establish these map-1 identities.
+Representative placements prove membership in the wider Feralas region, not that all
+creatures normally share the proposed arena. Dire Maul outdoor-arena rares are explicitly
+included as authored Feralas encounters; they are not taken from instance map 429.
+
+| Creature | Entry | Display | Placement GUID | x, y, z |
+| --- | --- | --- | --- | --- |
+| Longtooth Runner | 5286 | 165 | 50802 | -4184.84, -740.034, -34.2743 |
+| Ironfur Bear | 5268 | 3201 | 50643 | -4189.08, -784.331, -40.3838 |
+| Woodpaw Mongrel | 5249 | 8598 | 50382 | -4745.8, 620.225, 45.5468 |
+| Gordunni Ogre | 5229 | 597 | 50168 | -3552.33, 220.407, 149.381 |
+| Gordunni Brute | 5232 | 11554 | 50186 | -3531.52, 224.624, 149.388 |
+| Woodpaw Trapper | 5251 | 10796 | 50423 | -4871.36, 99.1926, 87.5937 |
+| Feral Scar Yeti | 5292 | 3207 | 50968 | -5091.67, 1558.33, 53.6518 |
+| Gordunni Warlock | 5240 | 11560 | 50291 | -5715.53, 1178.7, 66.6073 |
+| Frayfeather Hippogryph | 5300 | 3210 | 51143 | -5184.62, 1624.39, 77.3243 |
+| Woodpaw Mystic | 5254 | 10794 | 50481 | -5027.9, 71.1246, 120.282 |
+| Woodpaw Reaver | 5255 | 10795 | 50525 | -4803.16, 881.535, 143.113 |
+| Rage Scar Yeti | 5296 | 3220 | 51025 | -3873.59, 1618.23, 136.71 |
+| Gordunni Mauler | 5234 | 11557 | 50219 | -5078.35, 1220.73, 51.696 |
+| Woodpaw Alpha | 5258 | 10793 | 50561 | -4805.34, 873.073, 143.113 |
+| Wandering Forest Walker | 7584 | 9592 | 50797 | -3432.24, 2382.82, 43.9324 |
+| Snarler | 5356 | 780 | 51683 | -4200, -133.828, 56.2126 |
+| Old Grizzlegut | 5352 | 706 | 51839 | -5120.65, 1308.87, 37.6403 |
+| Diamond Head | 5345 | 1817 | 51843 | -4748.69, 2897.92, -39.7154 |
+| Qirot | 5350 | 11142 | 51681 | -5435.75, 114.241, 28.2281 |
+| Arash-ethis | 5349 | 7569 | 51844 | -3525.88, 2328.92, 63.964 |
+| Antilus the Soarer | 5347 | 10889 | 51840 | -5802.39, 1577.41, 73.785 |
+| Mushgog | 11447 | 14382 | 590013 | -3755.33, 1094.43, 131.969 |
+| The Razza | 11497 | 10807 | 590014 | -3755.33, 1094.43, 131.969 |
+| Skarr the Unbreakable | 11498 | 10169 | 590015 | -3755.33, 1094.43, 131.969 |
+
+A two-yard-grid terrain survey at Snarler’s placement `[-4200, -133.828]`, radius 50,
+found 1961/1961 supported samples, zero wet/impassable/greater-than-45-degree samples,
+and heights 54.973–61.482. The center floor query is 55.826717; the provisional map uses
+55.827. This measures ADT/MCLQ only, not between-sample hazards, props, route connectivity,
+camera or combat. Comparisons at Old Grizzlegut, Arash-ethis and Qirot were rejected:
+194, 405 and 1475 steep samples respectively; Qirot also had three wet samples.
+
+| Time | Encounter | Rare slot | Base drop chance |
+| --- | --- | --- | --- |
+| 3:00 | Snarler | Helm | 60% |
+| 4:30 | Old Grizzlegut | Shoulders | 60% |
+| 6:00 | Diamond Head | Chest | 60% |
+| 7:30 | Qirot | Waist | 60% |
+| 9:00 | Arash-ethis | Legs | 60% |
+| 10:30 | Antilus the Soarer | Feet | 60% |
+| 12:00 | Mushgog | Wrist | 60% |
+| 14:00 | The Razza | Hands | 60% |
+| 16:00 | Skarr the Unbreakable | Main Hand | 60% |
+
+Times, rewards, speed/scale and boss promotion are Survivors tuning. Creature minimum
+levels and first model IDs come from the templates; health/damage/XP use the existing
+Survivors ladder. Final victory waits for 16 minutes and nine defeated bosses. All nine
+Rare cells resolve for every class. No vanilla loot or creature AI is imported.
+
+The map is appended to preserve saved map indices. Feralas remains `ready: false` and
+reports world content is not ready, even on a fully progressed account. Prop collision,
+camera, traversal, streaming, combat pacing, live rewards and screenshots remain open.

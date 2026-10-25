@@ -2037,6 +2037,43 @@ pub static MAPS: &[MapDef] = &[
             foe("Araj the Summoner", 10427, 61, 4.2, 2.1),
         ],
     },
+    MapDef {
+        name: "Feralas",
+        zone: "Kalimdor",
+        map: 1,
+        // Provisional dry terrain disk at a verified Snarler placement; campaign stays locked.
+        center: [-4200.0, -133.828, 55.827],
+        leash: 50.0,
+        victory: "The wilds of Feralas fall quiet.",
+        foes: &[
+            foe("Longtooth Runner", 165, 40, 4.4, 1.0),
+            foe("Ironfur Bear", 3201, 41, 4.4, 1.0),
+            foe("Woodpaw Mongrel", 8598, 40, 4.4, 1.0),
+            foe("Gordunni Ogre", 597, 40, 4.4, 1.0),
+            foe("Gordunni Brute", 11554, 42, 4.4, 1.0),
+            foe("Woodpaw Trapper", 10796, 41, 4.4, 1.0),
+            foe("Feral Scar Yeti", 3207, 43, 4.4, 1.0),
+            foe("Gordunni Warlock", 11560, 43, 4.4, 1.0),
+            foe("Frayfeather Hippogryph", 3210, 43, 4.4, 1.0),
+            foe("Woodpaw Mystic", 10794, 42, 4.4, 1.0),
+            foe("Woodpaw Reaver", 10795, 42, 4.4, 1.0),
+            foe("Rage Scar Yeti", 3220, 46, 4.4, 1.0),
+            foe("Gordunni Mauler", 11557, 43, 4.4, 1.0),
+            foe("Woodpaw Alpha", 10793, 43, 4.4, 1.0),
+            foe("Wandering Forest Walker", 9592, 44, 4.4, 1.0),
+        ],
+        bosses: &[
+            foe("Snarler", 780, 42, 4.8, 1.8),
+            foe("Old Grizzlegut", 706, 43, 4.8, 1.8),
+            foe("Diamond Head", 1817, 45, 4.8, 1.8),
+            foe("Qirot", 11142, 47, 4.8, 1.8),
+            foe("Arash-ethis", 7569, 49, 4.8, 1.8),
+            foe("Antilus the Soarer", 10889, 48, 4.8, 1.8),
+            foe("Mushgog", 14382, 60, 4.8, 1.8),
+            foe("The Razza", 10807, 60, 4.8, 1.8),
+            foe("Skarr the Unbreakable", 10169, 58, 4.8, 1.8),
+        ],
+    },
 ];
 
 /// A battleground's horde and bosses with their numbers.

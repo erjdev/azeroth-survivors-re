@@ -1880,3 +1880,25 @@ Validation: native play build 12.86 seconds, workspace test compilation 20.38 se
 reads include all nine new weapons. Workspace Clippy, formatting and render-pass lint
 pass. The README distinguishes the earlier eight-piece Rare screenshot from the current
 nine-piece catalog; no new live weapon-rendering evidence is claimed.
+
+### Feralas world and encounter foundation — 2026-10-25
+
+Appended Feralas to the map registry, preserving every existing persisted map index.
+Pinned templates/placements supply 15 enemy and nine boss identities; the source table
+and terrain evidence are in [locations](SURVIVORS-LOCATIONS.md#feralas-provisional-arena-and-source-table--2026-10-25).
+The 50-yard Snarler-area candidate passes sampled terrain support, water and slope checks.
+This is provisional world geometry evidence, not complete arena acceptance.
+
+The nine authored encounters provide every Rare slot at 60% base chance, from Snarler at
+3:00 to Skarr the Unbreakable at 16:00. The drop UI and scheduler share these rows. Victory
+requires all nine defeats; fully progressed heroes still receive the world-not-ready lock.
+The roster uses the existing health/damage/XP ladder and provisional speed/scale tuning.
+Live enemy behavior, camera/props, traversability, streaming, reward delivery and balance
+remain incomplete. No campaign unlock or new save layout is included.
+
+Validation: native build 20.49 seconds; workspace test compilation 2 minutes 28 seconds;
+73 core tests and 119 Survivors app tests with explicit checkout data pass. Workspace
+Clippy, formatting and render-pass lint pass. The rebuilt content audit resolves all
+Feralas creature model files and agrees on its 55.83 start/terrain height, but exits with
+476 overall gaps: five absent maps, two missing schedules, Naxxramas floor validation,
+and 26 unnamed plus 26 unsourced cells per class. This is not a green full-content gate.
