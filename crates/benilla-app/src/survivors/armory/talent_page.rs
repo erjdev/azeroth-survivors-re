@@ -391,7 +391,7 @@ pub(super) fn build(
                     button(specs, font, format!("Spec {}\n{spread}", spec+1), Act::Spec(spec), hero.spec == spec);
                 }
             });
-            super::typography::heading(side, font, "Talent Points", 22.0, GOLD);
+            super::typography::section(side, font, "Talent Points", 22.0, GOLD);
             text(side, font, format!("{unspent} to spend"), 25.0, GOLD);
             text(side, font, format!("{spent} of {earned} earned spent · 51 at most"), 12.0, DIM);
             text(side, font, "Runs award talent experience for time survived, kills, bosses and victory. Later zones pay more. Respecs are free.", 12.0, DIM);

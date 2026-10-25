@@ -315,7 +315,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
     <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-25-armory-headings/character-1280.jpg" alt="Character: Equipped item icons, selection details and dressed preview on a seeded validation account, shown at 1280×720."><br>Equipped item icons, selection details and dressed preview on a seeded validation account, shown at 1280×720.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-25-armory-controls/collection-1280.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-25-section-dividers/collection-1280.jpg" alt="Collection: Slot and rarity catalog, item details and equipment controls on a validation account."><br>Slot and rarity catalog, item details and equipment controls on a validation account.</td>
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-25-armory-headings/drops-1280.jpg" alt="Drop Tables: Zone browser, encounter sources and shared item details; missing content remains."><br>Zone browser, encounter sources and shared item details; missing content remains.</td>
   </tr>
   <tr>
@@ -323,8 +323,8 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
     <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-25-armory-headings/talents-1280.jpg" alt="Talents: Warrior tree presentation; this image does not imply every talent effect is implemented."><br>Warrior tree presentation; this image does not imply every talent effect is implemented.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-25-armory-headings/achievements-1280.jpg" alt="Achievements: Illustrated achievement cards, account points and progress."><br>Illustrated achievement cards, account points and progress.</td>
-    <td width="50%"><strong>Rewards</strong><br><img src="docs/images/screenshots/2026-10-25-perk-layout/pending-1280.jpg" alt="Rewards: Compact reward perks with rank controls, a pending purchase and Confirm/Undo."><br>Compact reward perks with rank controls, a pending purchase and Confirm/Undo.</td>
+    <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-25-section-dividers/achievements-1280.jpg" alt="Achievements: Illustrated achievement cards, account points and progress."><br>Illustrated achievement cards, account points and progress.</td>
+    <td width="50%"><strong>Rewards</strong><br><img src="docs/images/screenshots/2026-10-25-section-dividers/rewards-1280.jpg" alt="Rewards: Compact reward perks with rank controls and centered section headings."><br>Compact reward perks with rank controls and centered section headings.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Appearance</strong><br><img src="docs/images/screenshots/2026-10-24-character-features/character-portraits.jpg" alt="Appearance: Per-hero race, sex and feature editing with live preview; shown at 1280×720."><br>Per-hero race, sex and feature editing with live preview; shown at 1280×720.</td>

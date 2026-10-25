@@ -74,7 +74,7 @@ pub(super) fn build(
         overflow: Overflow::scroll_y(), align_content: AlignContent::Start, ..default()
     })).with_children(|row| {
         frame(row, 190.0, 1.0, |side| {
-            super::typography::heading(side, font, "Rewards", 22.0, GOLD);
+            super::typography::section(side, font, "Rewards", 22.0, GOLD);
             text(side, font, format!("{} points to spend", account.unspent()), 22.0, GOLD);
             let earned = rewards::points_of(account.earned_ids());
             text(side, font, format!("{earned} earned · {} spent", earned.saturating_sub(account.unspent())), 12.0, DIM);
@@ -93,7 +93,7 @@ pub(super) fn build(
                     chip(slot, font, name, Act::RewardPage(i as u8), armory.reward_page == i as u8);
                 });
             }
-            super::typography::heading(side, font, "Reset", 18.0, GOLD);
+            super::typography::section(side, font, "Reset", 18.0, GOLD);
             text(side, font, format!("Refund every point spent on perks. Companion purchases and tabards are kept. Resets remaining: {}.", account.resets_left()), 12.0, DIM);
             side.spawn(Node::default()).with_children(|slot| chip(slot, font, "Reset perks", Act::Reward(12), false));
             remove_pending(side, font, armory, 12);
@@ -101,7 +101,7 @@ pub(super) fn build(
             if let Some(next) = account.next_locked() { text(side, font, next, 12.0, GOLD); }
         });
         frame(row, 540.0, 4.0, |body| {
-            super::typography::heading(body, font, match armory.reward_page { 1 => "Companions", 2 => "Tabards", _ => "Perks" }, 22.0, GOLD);
+            super::typography::section(body, font, match armory.reward_page { 1 => "Companions", 2 => "Tabards", _ => "Perks" }, 22.0, GOLD);
             match armory.reward_page {
                 1 => super::companion_page(body, font, armory, account),
                 2 => tabards(body, font, account),
@@ -425,10 +425,7 @@ pub(super) fn companions(
             });
         }
     });
-    panel.spawn((
-        hud::text_bundle(font, "Looks", 18.0, GOLD),
-        super::typography::DisplayHeading,
-    ));
+    super::typography::section(panel, font, "Looks", 18.0, GOLD);
 }
 
 /// Cosmetic choices act on the selected slot; they never choose an instinct destination.

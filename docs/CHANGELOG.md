@@ -3,6 +3,26 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Armory section framing
+
+Major Armory section headings are now centered between flexible gold divider
+lines that fade toward the panel edges, matching the intention references.
+Item-source labels and equipment totals retain their existing alignment.
+
+![Collection section framing](images/screenshots/2026-10-25-section-dividers/collection-1280.jpg)
+
+![Achievements heading and summary](images/screenshots/2026-10-25-section-dividers/achievements-1280.jpg)
+
+![Rewards section dividers](images/screenshots/2026-10-25-section-dividers/rewards-1280.jpg)
+
+![Compact Talent Points panel](images/screenshots/2026-10-25-section-dividers/talents-640.jpg)
+
+Verified wide Collection, Achievements and Rewards, page switching, and the
+scrolled 640×720 talent panel live. Native build, workspace Clippy, formatting
+and render-pass lint pass. Gameplay is unchanged. Currency/category rails,
+remaining texture buttons, portrait badges and other page-specific details still
+need reference alignment.
+
 ## 2026-10-25 — Compact reward perks
 
 Perk cards now group rank markers beside their names and put cost and +/− controls

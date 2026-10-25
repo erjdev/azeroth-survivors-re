@@ -165,7 +165,7 @@ pub(super) fn build(
         ))
         .with_children(|row| {
             super::reward_page::frame(row, 190.0, 1.0, |side| {
-                super::typography::heading(side, font, "Achievements", 22.0, GOLD);
+                super::typography::section(side, font, "Achievements", 22.0, GOLD);
                 side.spawn(Node {
                     width: Val::Percent(100.0),
                     justify_content: JustifyContent::Center,
@@ -245,7 +245,7 @@ pub(super) fn build(
                 );
             });
             super::reward_page::frame(row, 540.0, 4.0, |body| {
-                super::typography::heading(body, font, NAMES[selected], 22.0, GOLD);
+                super::typography::section(body, font, NAMES[selected], 22.0, GOLD);
                 if selected == 0 {
                     summary(body, font, account, &rows);
                 } else {

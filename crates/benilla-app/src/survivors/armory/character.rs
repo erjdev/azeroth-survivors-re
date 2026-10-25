@@ -135,7 +135,7 @@ fn hero_panel(
         });
     }
     if managing {
-        super::typography::heading(body, font, "Heroes", layout.title_size, GOLD);
+        super::typography::section(body, font, "Heroes", layout.title_size, GOLD);
         super::heroes(body, font, armory, account, selection, renown, stash);
         return;
     }
@@ -270,7 +270,7 @@ pub(super) fn body_controls(
     let Some((_, race, sex)) = current else {
         return;
     };
-    super::typography::heading(body, font, "Appearance", layout.title_size, GOLD);
+    super::typography::section(body, font, "Appearance", layout.title_size, GOLD);
     body.spawn(Node {
         width: Val::Percent(100.0),
         column_gap: Val::Px(layout.gap),
@@ -439,7 +439,7 @@ fn feature_controls(
     features: &super::super::appearance::Options,
     layout: &Layout,
 ) {
-    super::typography::heading(body, font, "Features", layout.title_size, GOLD);
+    super::typography::section(body, font, "Features", layout.title_size, GOLD);
     for i in 0..5 {
         if features.counts[i] < 2 {
             continue;

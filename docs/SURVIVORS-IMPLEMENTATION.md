@@ -18,6 +18,12 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Major Armory sections now have centered headings and flexible, fading gold
+rules. Wide Collection/Achievements/Rewards and compact Talent Points were
+verified live with four inline screenshots. This completes the shared section
+framing pass; currency/category rails, remaining texture buttons, portrait
+badges and page-specific details still need reference alignment.
+
 Reward perks now use compact reference-style cards with name-adjacent rank
 markers and cost/+/− controls at right. Disabled max-rank/unaffordable purchases,
 pending-rank removal and point restoration passed live checks at 1280×720;

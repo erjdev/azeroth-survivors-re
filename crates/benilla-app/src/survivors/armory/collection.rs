@@ -319,7 +319,7 @@ pub(super) fn equipment(
     selection: &Selection,
     layout: &Layout,
 ) {
-    super::typography::heading(ui, font, "Equipment", layout.title_size, GOLD);
+    super::typography::section(ui, font, "Equipment", layout.title_size, GOLD);
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
     for (slot, label) in campaign::SLOTS
@@ -408,7 +408,7 @@ fn grid(
     layout: &Layout,
     compact: bool,
 ) {
-    super::typography::heading(ui, font, "Collection Log", layout.title_size, GOLD);
+    super::typography::section(ui, font, "Collection Log", layout.title_size, GOLD);
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
     if !compact {
