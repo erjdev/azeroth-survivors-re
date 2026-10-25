@@ -7,6 +7,16 @@ completed changes. Each phase must pass its acceptance criteria before it is cal
 
 ## Current priority — starter interface first (2026-10-25)
 
+Talent responsiveness checkpoint: tree and spec/detail panels use proportional
+growth with a 240-unit preferred basis and 200-unit minimum width, wrapping into
+additional rows as available width falls. The page owns vertical scrolling instead
+of each nested panel; talent detail text already persists after pointer exit, so
+the last inspected node can be read after scrolling to a wrapped detail panel.
+Workspace Clippy, formatting, render-pass lint and the native build (21 seconds)
+pass. Rendered 16:9/4:3/narrow comparisons, icon/label fit, wheel behavior and
+scroll-position behavior after spending/refunding or switching specs remain to be
+verified. No new screenshot or responsive visual acceptance is claimed.
+
 Preview fixture checkpoint: `scripts/survivors-ui-fixture.py` now copies checked-in
 synthetic fresh/partial/collected saves into new isolated state directories and
 prints a direct-page launch command. Existing directories and symlink destinations

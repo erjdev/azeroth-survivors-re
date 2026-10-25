@@ -47,10 +47,9 @@ fn panel(ui: &mut ChildSpawnerCommands, weight: f32, body: impl FnOnce(&mut Chil
     ui.spawn((
         Node {
             flex_grow: weight,
-            flex_basis: Val::Px(0.0),
-            min_width: Val::Px(0.0),
-            height: Val::Percent(100.0),
-            min_height: Val::Px(0.0),
+            flex_basis: Val::Px(240.0),
+            min_width: Val::Px(200.0),
+            min_height: Val::Px(440.0),
             overflow: Overflow::clip(),
             border: UiRect::all(Val::Px(1.0)),
             border_radius: BorderRadius::all(Val::Px(6.0)),
@@ -61,21 +60,14 @@ fn panel(ui: &mut ChildSpawnerCommands, weight: f32, body: impl FnOnce(&mut Chil
     ))
     .with_children(|frame| {
         frame
-            .spawn((
-                super::collection::CollectionScroll,
-                RelativeCursorPosition::default(),
-                ScrollPosition::default(),
-                Node {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    min_height: Val::Px(0.0),
-                    padding: UiRect::all(Val::Px(10.0)),
-                    flex_direction: FlexDirection::Column,
-                    row_gap: Val::Px(6.0),
-                    overflow: Overflow::scroll_y(),
-                    ..default()
-                },
-            ))
+            .spawn(Node {
+                width: Val::Percent(100.0),
+                min_height: Val::Px(0.0),
+                padding: UiRect::all(Val::Px(10.0)),
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(6.0),
+                ..default()
+            })
             .with_children(body);
     });
 }
@@ -192,7 +184,12 @@ pub(super) fn build(
         13.0,
         DIM,
     );
-    ui.spawn(Node { width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(0.0), column_gap: Val::Px(10.0), ..default() })
+    // Wrapping keeps the four-column talent grids readable on narrower aspect ratios.
+    // Only this outer surface scrolls, so a wheel event cannot move two nested panels.
+    ui.spawn((super::collection::CollectionScroll, RelativeCursorPosition::default(), ScrollPosition::default(),
+        Node { width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(0.0),
+            flex_wrap: FlexWrap::Wrap, align_content: AlignContent::Start,
+            column_gap: Val::Px(10.0), row_gap: Val::Px(10.0), overflow: Overflow::scroll_y(), ..default() }))
     .with_children(|row| {
         for (tree, (name, nodes)) in trees.iter().enumerate() {
             panel(row, 1.0, |col| {

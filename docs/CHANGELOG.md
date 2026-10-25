@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Talent panel reflow
+
+Talent trees and the spec/detail panel now wrap at narrower widths instead of
+shrinking indefinitely into one row. One page-level scroll area keeps wrapped
+panels reachable without nested wheel scrolling. Workspace Clippy, formatting,
+render-pass lint and the native build pass (21 seconds). Rendered wrapping,
+interaction and screenshot checks remain pending.
+
 ## 2026-10-25 — Isolated UI account fixtures
 
 Added fresh, partial and fully collected synthetic accounts for repeatable UI
