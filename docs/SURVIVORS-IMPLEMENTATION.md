@@ -601,6 +601,25 @@ remain pending rather than receiving misleading screenshots.
 
 ### Upgrade readability checkpoint
 
+**Updated requirement — inline comparisons (pending implementation).** Upgrade changes
+belong inside the descriptive sentence, replacing the separate comparison summary below it.
+For example: `Deal 20 » 43 damage to all enemies within 5yd » 7yd of the player.`
+Render the complete `20 » 43 damage` and `5yd » 7yd` spans in green, including both values,
+the arrow and units/stat wording. Keep surrounding prose in its normal description color;
+do not color the whole sentence or duplicate the comparison in a footer.
+
+Apply this presentation consistently to ability, passive, item and other selectable upgrade
+cards in level-up/chest flows. Preserve next-rank previews for newly offered abilities/items,
+with an explicit next-rank label so prospective growth is not mistaken for the immediate
+reward. Compare the same effective before/after values used by gameplay, including current
+talents, rarity and equipment; retain truthful red replacement losses and neutral no-change
+states. Use mixed-color text spans that wrap as one paragraph, not separate fixed-position
+labels. Verify multiple changing values, unchanged values, units, long descriptions, and
+wrapping at the required resolutions. Capture new inline previews for README milestones.
+
+The following describes the previous implementation and evidence, which does **not** satisfy
+the new inline requirement:
+
 Level-up/chest cards show green before/after scaling values from the casting parameters;
 new abilities and passives also preview their next rank. Jewelry compares the resulting
 worn loadout, including red replacement losses and a neutral no-change state. Next-rank

@@ -63,6 +63,12 @@ one resolution is not completion. Card sheen stays inside its card. Every interf
 needs an actual checkout screenshot in the README gallery. The detailed acceptance matrix is
 in [the implementation contract](SURVIVORS-IMPLEMENTATION.md#responsive-interface-and-bounded-effects).
 
+Upgrade cards show changes inline in their description: `Deal 20 » 43 damage to all enemies
+within 5yd » 7yd of the player.` Both values, the arrow and their units/stat wording are green;
+surrounding prose keeps its normal color. This replaces a separate change summary below the
+description. See [upgrade readability](SURVIVORS-IMPLEMENTATION.md#upgrade-readability-checkpoint)
+for scope and acceptance requirements.
+
 World readability includes localized see-through scenery around the hero, independently
 selectable red enemy and green player/friendly silhouettes behind objects, and a separate
 “Auto-push camera in” setting for solid cave/instance boundaries. Solid tree trunks must block

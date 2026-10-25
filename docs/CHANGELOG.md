@@ -3,6 +3,12 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Inline upgrade presentation planned
+
+Updated the design contract: embed green before/after values, arrows and units directly in
+card descriptions, replacing the separate change summary. Implementation and fresh screenshots
+are pending; existing summary-style cards are not acceptance evidence for this requirement.
+
 ## 2026-10-24 — Card lighting stays on the card
 
 Removed the oversized animated rarity shadow that left a hard rectangular edge across
