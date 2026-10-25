@@ -1299,3 +1299,15 @@ This narrows investigation to surface orientation/terrain-height interactions at
 location; it does not yet prove a rendered trunk penetration. Compare rendered placement
 and per-step height against its hull before changing the shared one-sided collision policy.
 Native build passed (10.61 seconds on the final probe revision); full gates were not rerun.
+
+The authored-tree regression now also follows 96 quarter-yard grounded walking steps for
+each of six tree variants from four directions. It checks that the capsule responds to
+the hull and ray-checks every resulting center segment for solid-face crossings. Passing
+the tree's center plane
+is not itself penetration: the canopyless variant can slide around its trunk with over
+three yards of lateral movement. This fixture uses level terrain and unrotated source
+hulls, so it cannot settle the placed-tree 12580 terrain interaction or rendered alignment.
+
+Validation: workspace test compilation and 105 focused Survivors tests pass, including
+all 2,304 repeated-walking segments. Center-ray checks do not prove clearance of every
+capsule edge or rendered surface; full workspace gates were not rerun.

@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Repeated tree-walking regression
+
+Extended the six-variant Elwynn hull regression to 2,304 grounded movement segments.
+Each approach must respond to the hull; independent center-ray checks reject solid-face
+crossings while allowing sliding around trunks. Workspace test compilation and all 105
+focused Survivors tests pass. The rotated placement/terrain reproduction remains open.
+
 ## 2026-10-24 — Surface-aligned collision diagnostics
 
 Added repeated walking queries and saved reproducible tree-surface points. Canopy tree

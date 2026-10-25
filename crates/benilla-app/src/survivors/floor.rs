@@ -234,6 +234,31 @@ mod tests {
                     dash.dot(axis) > 0.0,
                     "{model}: mobility crossed trunk from {from:?}: {dash:?}"
                 );
+                let deflected = app
+                    .world_mut()
+                    .run_system_once(move |floor: Floor| {
+                        let mut at = from;
+                        let mut deflected = false;
+                        for _ in 0..96 {
+                            let wanted = at - axis * 0.25;
+                            let mut next = floor.slide(at, wanted, 0.6);
+                            deflected |= super::super::units::flat(next - wanted).length() > 0.001;
+                            next.y = floor.height(next).unwrap_or(next.y);
+                            assert!(
+                                floor.line_clear(at, next),
+                                "walking center crossed a hull face: {at:?} -> {next:?}"
+                            );
+                            at = next;
+                        }
+                        deflected
+                    })
+                    .unwrap();
+                // Walking can slide around even a thin trunk. Check that it responds
+                // to the hull, and independently ray-check every resulting segment.
+                assert!(
+                    deflected,
+                    "{model}: repeated grounded walking ignored trunk from {from:?}"
+                );
             }
             app.world_mut().despawn(tree);
             app.update();
