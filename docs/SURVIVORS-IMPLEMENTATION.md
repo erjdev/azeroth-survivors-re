@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Tabard presentation checkpoint: replaced the plain name buttons and
+client display-ID text with illustrated cosmetic tiles using the Companion Looks
+reference. Keep the verified one-tabard catalog, immediate account persistence,
+and a clear None/Remove choice. Live wide/narrow selection, unchanged points and
+restart persistence are captured in the changelog. Additional tabards require
+verified client mappings; character-model previews remain open.
+
 Achievement presentation checkpoint: replaced plain rows with the intention's
 points badge, category rail, recently earned cards, five category progress bars,
 and counted achievement cards. Descriptions derive from the same catalog variants

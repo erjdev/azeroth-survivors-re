@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Tabard cosmetic gallery
+
+Tabards now use illustrated selection tiles based on the Companion Looks reference,
+with clear **Worn**, **Wear**, and **Remove tabard** states. Removed client display IDs
+from the player-facing page. Selection stays immediate, account-wide and stat-free.
+
+![Guild Tabard selected without spending points](images/screenshots/2026-10-25-tabards/worn-1280.jpg)
+
+![Removing a tabard in the narrow layout](images/screenshots/2026-10-25-tabards/removed-640.jpg)
+
+![The worn selection persists after restart at 640×720](images/screenshots/2026-10-25-tabards/restart-640.jpg)
+
+An isolated account verified Wear/Remove save changes, unchanged reward balance,
+narrow scrolling and restart persistence. The catalog still contains one verified
+tabard; more cosmetics and character-model previews remain open. Validation: 179
+Survivors app tests, native build, workspace test compilation, Clippy, formatting
+and render-pass lint pass.
+
 ## 2026-10-25 — Illustrated achievement cards and progress
 
 Rebuilt Achievements around the [summary](intentions/survivors_achievements_tab_summary.png)

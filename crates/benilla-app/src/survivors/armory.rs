@@ -1718,39 +1718,6 @@ fn instinct_name(kind: u8) -> &'static str {
     }
 }
 
-fn tabard_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
-    panel.spawn(hud::text_bundle(
-        font,
-        "Tabards are account cosmetics. No tabard grants a stat.",
-        13.0,
-        Color::WHITE,
-    ));
-    panel
-        .spawn(Node {
-            flex_direction: FlexDirection::Row,
-            flex_wrap: FlexWrap::Wrap,
-            ..default()
-        })
-        .with_children(|row| {
-            chip(row, font, "None", Act::Tabard(0), account.tabard == 0);
-            for (index, tabard) in campaign::TABARDS.iter().enumerate() {
-                let worn = account.tabard == index as u8 + 1;
-                chip(row, font, tabard.name, Act::Tabard(index as u8 + 1), worn);
-            }
-        });
-    let checked = campaign::TABARDS
-        .iter()
-        .map(|tabard| format!("{} ({})", tabard.name, tabard.display))
-        .collect::<Vec<_>>()
-        .join(", ");
-    panel.spawn(hud::text_bundle(
-        font,
-        format!("Checked against the client: {checked}."),
-        12.0,
-        DIM,
-    ));
-}
-
 const DIM: Color = Color::srgb(0.55, 0.5, 0.42);
 
 fn picked_class(account: &Account, selection: &Selection) -> usize {

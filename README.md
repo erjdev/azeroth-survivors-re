@@ -55,6 +55,11 @@ These achievements are visible placeholders; their criteria will be defined late
 
 ![Companion catalog with placeholder achievement gates](docs/images/screenshots/2026-10-25-placeholder-feats/locked-looks-1280.jpg)
 
+Tabards now show illustrated Wear/Remove choices, with immediate account-wide saving.
+The current catalog contains one verified Guild Tabard.
+
+![Tabard cosmetic selection](docs/images/screenshots/2026-10-25-tabards/worn-1280.jpg)
+
 Rewards purchases now preview before **Confirm**, with **Undo** to discard pending
 changes. Confirmed purchases persist; unconfirmed choices are discarded on app close.
 
