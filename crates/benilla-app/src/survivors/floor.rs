@@ -4,7 +4,7 @@
 //! selecting terrain far below an interior. Body sweeps handle walls; route finding is separate.
 
 use avian3d::character_controller::move_and_slide::{MoveAndSlideConfig, MoveAndSlideHitResponse};
-use avian3d::prelude::Collider;
+use avian3d::prelude::{Collider, SpatialQuery};
 use benilla_world::collision::WorldCollision;
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
@@ -15,17 +15,34 @@ const DROP: f32 = 8.0;
 #[derive(SystemParam)]
 pub(crate) struct Floor<'w, 's> {
     collision: WorldCollision<'w, 's>,
+    spatial: SpatialQuery<'w, 's>,
 }
 
 impl Floor<'_, '_> {
     /// Sweep the Survivors body horizontally, sliding along room geometry. Body radius is
     /// shared with horde separation; the capsule's cylindrical section is one yard tall.
     pub fn slide(&self, feet: Vec3, desired: Vec3, radius: f32) -> Vec3 {
-        let movement = super::units::flat(desired - feet);
+        let mut movement = super::units::flat(desired - feet);
         if movement.length_squared() <= 1e-10 {
             return feet;
         }
-        let lift = Vec3::Y * (radius + 0.5 + 0.03);
+        // Grounded steps follow gentle terrain before sweeping. A horizontal capsule
+        // repeatedly grounded at its center can otherwise wedge against rising ground.
+        let mut slope_lift = 0.0_f32;
+        let grounded = self.ground(feet).filter(|(y, _)| (feet.y - y).abs() < 0.1);
+        if let Some((_, normal_y)) = grounded {
+            // The rounded base needs slope clearance; center floor height alone embeds
+            // its uphill side. For a plane with normal n, the vertical offset is r/n.y.
+            slope_lift = radius * (normal_y.recip() - 1.0);
+            if let Some((next, next_normal_y)) = self.ground(feet + movement) {
+                let rise = next - feet.y;
+                if rise.abs() <= movement.length() * 0.75 {
+                    movement.y = rise;
+                    slope_lift = slope_lift.max(radius * (next_normal_y.recip() - 1.0));
+                }
+            }
+        }
+        let lift = Vec3::Y * (radius + 0.5 + 0.03 + slope_lift);
         let body = Collider::capsule(radius, 1.0);
         let result = self.collision.slide_body(
             &body,
@@ -44,7 +61,26 @@ impl Floor<'_, '_> {
                 MoveAndSlideHitResponse::Accept
             },
         );
-        result.position - lift
+        let at = result.position - lift;
+        // Grounding changes both the foot height and the capsule's slope clearance.
+        // Validate that final pose too: a clear sweep alone can end inside a widening
+        // root when the actor subsequently snaps onto the floor beneath its center.
+        if let Some((y, normal_y)) = self.ground(at).filter(|_| grounded.is_some()) {
+            let center = Vec3::new(at.x, y + radius / normal_y + 0.5 + 0.03, at.z);
+            if !self
+                .spatial
+                .shape_intersections(
+                    &Collider::capsule((radius - 0.02).max(0.01), 1.0),
+                    center,
+                    Quat::IDENTITY,
+                    &WorldCollision::body_filter(),
+                )
+                .is_empty()
+            {
+                return feet;
+            }
+        }
+        at
     }
 
     /// A straight mobility sweep stops at the first obstacle instead of sliding around it.
@@ -111,11 +147,29 @@ impl Floor<'_, '_> {
     /// The nearest body-collidable floor within two yards above/eight below the feet.
     /// Callers keep their last/authored height when the geometry is not available.
     pub fn height(&self, feet: Vec3) -> Option<f32> {
+        self.ground(feet).map(|(height, _)| height)
+    }
+
+    fn ground(&self, feet: Vec3) -> Option<(f32, f32)> {
         let origin = feet + Vec3::Y * STEP_UP;
-        self.collision
-            .ray_body(origin, Dir3::NEG_Y, STEP_UP + DROP)
-            .filter(|hit| hit.normal.y > 0.5)
-            .map(|hit| origin.y - hit.distance)
+        if let Some(hit) = self.collision.ray_body(origin, Dir3::NEG_Y, STEP_UP + DROP) {
+            return (hit.normal.y > 0.5).then_some((origin.y - hit.distance, hit.normal.y));
+        }
+        // A ray exactly on a shared triangle edge can miss both faces. Probe one
+        // centimetre to either side and project the hit plane back onto the feet.
+        [Vec3::X, Vec3::NEG_X, Vec3::Z, Vec3::NEG_Z]
+            .into_iter()
+            .find_map(|axis| {
+                let offset = axis * 0.01;
+                let hit = self
+                    .collision
+                    .ray_body(origin + offset, Dir3::NEG_Y, STEP_UP + DROP)?;
+                if hit.normal.y <= 0.5 {
+                    return None;
+                }
+                let height = origin.y - hit.distance + hit.normal.dot(offset) / hit.normal.y;
+                (height >= feet.y - DROP && height <= origin.y).then_some((height, hit.normal.y))
+            })
     }
 }
 
@@ -511,8 +565,10 @@ mod tests {
             clear.distance(desired) < 0.02,
             "removed root still blocks: {clear:?}"
         );
-        app.world_mut()
-            .spawn((RigidBody::Static, collider, Transform::default()));
+        let root = app
+            .world_mut()
+            .spawn((RigidBody::Static, collider, Transform::default()))
+            .id();
         app.update();
         let (ray, reloaded) = check(&mut app);
         assert!(ray.is_some());
@@ -520,6 +576,70 @@ mod tests {
             reloaded.distance(stopped) < 0.02,
             "reloaded hull changed contact"
         );
+        let (x, y) = tiles.tile_at(point[0], point[1]);
+        let tile = benilla_formats::load_tile_mesh(&mut chain, directory, x, y).unwrap();
+        for chunk in &tile.chunks {
+            app.world_mut().spawn((
+                RigidBody::Static,
+                Collider::trimesh(
+                    chunk.positions.iter().map(|p| wow_to_bevy(*p)).collect(),
+                    chunk.indices.as_chunks::<3>().0.to_vec(),
+                ),
+                Transform::default(),
+            ));
+        }
+        app.update();
+        let ground = benilla_formats::terrain_height_at(&tile.chunks, point).unwrap();
+        let grounded = Vec3::new(start.x, ground, start.z);
+        let walked = app
+            .world_mut()
+            .run_system_once(move |floor: Floor, spatial: SpatialQuery| {
+                let radius = super::super::HERO_RADIUS;
+                let mut at = grounded;
+                for step in 0..220 {
+                    let mut next = floor.slide(at, at + Vec3::Z * 0.25, radius);
+                    // Match actors: a root face can be the nearest downward hit without
+                    // being a walkable floor. Retain the swept height in that case.
+                    next.y = floor.height(next).unwrap_or(next.y);
+                    let wow = benilla_assets::coords::bevy_to_wow(next);
+                    let terrain = tile
+                        .chunks
+                        .iter()
+                        .find_map(|chunk| {
+                            chunk.indices.as_chunks::<3>().0.iter().find_map(|tri| {
+                                let face = tri.map(|i| chunk.positions[i as usize]);
+                                benilla_formats::triangle_z_at(&face, wow[0], wow[1])
+                            })
+                        })
+                        .expect("Feralas path stays on emitted terrain geometry");
+                    assert!(
+                        next.y >= terrain - 0.02,
+                        "Feralas terrain penetration at step {step}: {next:?}, floor {terrain}"
+                    );
+                    assert!(
+                        !spatial
+                            .shape_intersections(
+                                &Collider::capsule(radius - 0.02, 1.0),
+                                next + Vec3::Y
+                                    * (radius / floor.ground(next).map_or(1.0, |(_, ny)| ny)
+                                        + 0.5
+                                        + 0.03),
+                                Quat::IDENTITY,
+                                &WorldCollision::body_filter(),
+                            )
+                            .contains(&root),
+                        "Feralas root penetration at step {step}: {at:?} -> {next:?}"
+                    );
+                    at = next;
+                }
+                at
+            })
+            .unwrap();
+        assert!(
+            walked.z > grounded.z + 30.,
+            "grounded capsule stalled before reaching the root: {walked:?}"
+        );
+        eprintln!("Feralas grounded root walk: {grounded:?} -> {walked:?}");
     }
 
     #[test]
@@ -708,7 +828,7 @@ mod tests {
     }
 
     #[test]
-    fn mobility_follows_gentle_slopes_in_both_directions() {
+    fn walking_and_mobility_follow_gentle_slopes_in_both_directions() {
         for slope in [-0.2_f32, -0.1, 0.1, 0.2] {
             let mut app = fixture(&[]);
             app.world_mut().spawn((
@@ -727,15 +847,31 @@ mod tests {
             app.update();
             for sign in [-1., 1.] {
                 let expected = Vec3::new(sign * 12., sign * 12. * slope, 0.);
-                let at = app
+                let (at, walked) = app
                     .world_mut()
                     .run_system_once(move |floor: Floor| {
-                        floor.travel(Vec3::ZERO, expected, super::super::HERO_RADIUS)
+                        let mut walked = Vec3::ZERO;
+                        for _ in 0..48 {
+                            walked = floor.slide(
+                                walked,
+                                walked + Vec3::X * sign * 0.25,
+                                super::super::HERO_RADIUS,
+                            );
+                            walked.y = floor.height(walked).unwrap();
+                        }
+                        (
+                            floor.travel(Vec3::ZERO, expected, super::super::HERO_RADIUS),
+                            walked,
+                        )
                     })
                     .unwrap();
                 assert!(
                     at.distance(expected) < 0.02,
                     "slope {slope}, expected {expected:?}, got {at:?}"
+                );
+                assert!(
+                    walked.distance(expected) < 0.02,
+                    "walk slope {slope}, expected {expected:?}, got {walked:?}"
                 );
             }
         }
@@ -755,6 +891,24 @@ mod tests {
             .run_system_once(|floor: Floor| floor.travel(Vec3::ZERO, Vec3::new(4., 0., 0.), 0.7))
             .unwrap();
         assert!(at.x < 1.1 && at.y.abs() < 0.02, "{at:?}");
+    }
+
+    #[test]
+    fn airborne_walking_does_not_validate_a_grounded_body_below_it() {
+        let mut app = fixture(&[0.]);
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::cuboid(0.5, 1.0, 8.0),
+            Transform::from_xyz(2.0, 0.5, 0.0),
+        ));
+        app.update();
+        let at = app
+            .world_mut()
+            .run_system_once(|floor: Floor| {
+                floor.slide(Vec3::new(0., 1.5, 0.), Vec3::new(1.5, 1.5, 0.), 0.7)
+            })
+            .unwrap();
+        assert!(at.distance(Vec3::new(1.5, 1.5, 0.)) < 0.02, "{at:?}");
     }
 
     #[test]

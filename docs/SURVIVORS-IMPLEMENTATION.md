@@ -1922,3 +1922,25 @@ Validation: workspace test compilation 2 minutes 6 seconds; all 120 Survivors ap
 with explicit checkout data pass, including the placed Feralas root. Workspace Clippy,
 formatting, render-pass lint and diff whitespace checks pass. The preview used the prior
 verified native build; this checkpoint changes tests and evidence, not runtime behavior.
+
+### Grounded terrain and root traversal — 2026-10-25
+
+Extending the Feralas placement test with its actual terrain exposed three movement
+problems: horizontal sweeps stalled on rising ground, exact shared-edge floor rays
+could miss, and post-sweep grounding could place the capsule inside a widening root.
+Grounded walking now follows gentle slopes with rounded-base clearance, retries missed
+floor rays one centimetre away, and rejects a final grounded pose that overlaps solid
+geometry. Airborne walking retains its actual elevated sweep.
+
+The 220-step Feralas regression checks emitted terrain height and root overlap at every
+step, and requires at least 30 yards of progress before contact. The observed path ends
+39.24 yards ahead of the start, beside placement 245515. Synthetic uphill/downhill
+walking, wall sliding, and airborne clearance provide adjacent coverage. This is still
+a controlled geometry test: stream-driven registration, live horde performance of the
+additional overlap query, routes, gameplay camera behavior and encounters remain open.
+Feralas remains locked.
+
+Validation: all 121 Survivors app tests pass with explicit checkout data. Workspace test
+compilation took 2 minutes 53 seconds; the incremental native play build took 49.93 seconds.
+Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass. No gameplay screenshot was
+used as proof of capsule contact; the numeric geometry regression provides that evidence.

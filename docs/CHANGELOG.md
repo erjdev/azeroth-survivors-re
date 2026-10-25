@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Grounded movement across slopes and roots
+
+Walking follows gentle terrain without wedging, recovers missed floor probes at triangle
+edges, and rejects ground adjustments that put the character inside a root. The actual
+Feralas terrain/root test now advances 39 yards before contact without penetration;
+airborne clearance and existing collision checks pass. Native incremental build: 50 seconds;
+121 Survivors app tests with checkout data pass. Live horde performance and full Feralas
+world acceptance remain open; the arena stays locked.
+
 ## 2026-10-25 — Feralas geometry checkpoint
 
 Added a [candidate world view](images/screenshots/2026-10-25-feralas-candidate/world-preview-720.png)
