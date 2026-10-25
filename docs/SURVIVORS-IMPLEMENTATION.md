@@ -18,6 +18,14 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Talent saved-build live checkpoint verified at 1280×720 with an isolated Warrior
+and Mage: distinct Warrior specs (Arms 3/Fury 2), Mage spec 3 (Frost 1), selected-spec
+restoration across hero switches and restart, and resetting only the active Warrior
+spec. Save-file readback preserves Warrior spec 1 and Mage spec 3 after the reset.
+Screenshots are inline in the changelog. Still open: all-class combat acceptance,
+deep prerequisite/refund interaction checks, narrow per-spec scroll live validation,
+and clearing stale Talent action messages when navigating to Character.
+
 Character responsive checkpoint verified at 1280×720, 640×720 and 640×900:
 below 1100 UI units, stack a proportional square hero preview, appearance/features,
 equipment and item details in one scroll surface. Character, Collection and Drop
@@ -25,8 +33,8 @@ Tables retain separate offsets. Wide screens retain the intention's
 appearance/model/features composition. Live body/feature edits, Warrior/Mage
 switching, tab return and restart persistence passed with an isolated account.
 Saved appearances no longer trigger the obsolete “Open Look” prompt. Actual captures
-are inline in the changelog. Final typography, wide-column scrolling and per-hero/spec
-Talent restoration remain separate acceptance.
+are inline in the changelog. Final typography, wide-column scrolling remain separate acceptance; the Talent checkpoint above
+records the verified two-hero/spec persistence scope.
 
 Drop Tables responsive checkpoint verified at 1280×720 and 640×720: below 1100 UI units, wrap zone
 choices and stack sources, item details and equipment in one scroll surface.

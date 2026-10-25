@@ -3,6 +3,34 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Saved Talent builds: live acceptance
+
+Verified the [Talent interface](intentions/survivors_talent_tab.png) with an isolated
+Warrior/Mage account at 1280×720. Warrior specs retain distinct Arms/Fury allocations;
+Mage uses its own third spec. Both heroes restore their selected build after an app
+restart. Resetting Warrior spec 2 refunds its points without clearing spec 1 or Mage's
+saved build. Save-file readback agrees with the interface. This is a validation
+checkpoint, with no gameplay or balance changes.
+
+![Warrior first build: three Arms points](images/screenshots/2026-10-25-talent-specs/warrior-spec1.jpg)
+
+![Warrior second build: two Fury points](images/screenshots/2026-10-25-talent-specs/warrior-spec2.jpg)
+
+![Mage third build: one Frost point](images/screenshots/2026-10-25-talent-specs/mage-spec3.jpg)
+
+![Mage selected build restored after restart](images/screenshots/2026-10-25-talent-specs/mage-restarted.jpg)
+
+![Warrior selected build restored after switching back](images/screenshots/2026-10-25-talent-specs/warrior-restored.jpg)
+
+![Reset affects only Warrior's second spec](images/screenshots/2026-10-25-talent-specs/reset-spec2.jpg)
+
+![First spec remains usable after resetting the second](images/screenshots/2026-10-25-talent-specs/spec1-after-reset.jpg)
+
+All-class combat effects and deeper prerequisite/refund behavior still need their
+own acceptance. A visual issue remains: Talent action messages carry into Character
+when changing pages. Narrow per-spec scroll restoration has automated coverage but
+was not exercised in this wide-screen session.
+
 ## 2026-10-25 — Responsive Character and saved appearances
 
 Character now stacks its proportional hero preview, appearance controls, equipment
