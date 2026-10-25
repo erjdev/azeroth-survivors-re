@@ -2671,6 +2671,16 @@ fn ability_tip(
             ));
         }
     }
+    let frostbite = milestones.frostbite_chance(def.key, now.dmg);
+    if frostbite > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Frostbite: {} chance on frost damage to freeze for 5 sec (bosses: 1.5 sec).",
+                pct(frostbite)
+            ),
+            card_growth::GAIN,
+        ));
+    }
     let ignite = milestones.ignite(def.key, 1.0, true);
     if ignite > 0.0 {
         lines.push(TipLine::new(
@@ -3024,6 +3034,38 @@ pub(super) fn show_panels(
 mod talent_tooltip_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn frostbite_tooltip_is_green_and_only_shown_for_trained_frost_spells() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = mage.with_ranks(&[(2, 38, 3)]);
+        let stats = Run::default().stats();
+        for (key, shown) in [
+            ("fireball", false),
+            ("frostbolt", true),
+            ("blizzard", true),
+            ("arcane_missiles", false),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            let tip = ability_tip(&owned, trained, &stats, None);
+            let line = tip.iter().find(|line| line.left.starts_with("Frostbite:"));
+            assert_eq!(line.is_some(), shown);
+            if let Some(line) = line {
+                assert!(line.left.contains("15%"));
+                assert_eq!(line.color, card_growth::GAIN);
+            }
+            assert!(!ability_tip(&owned, mage, &stats, None)
+                .iter()
+                .any(|line| line.left.starts_with("Frostbite:")));
+        }
+    }
 
     #[test]
     fn ignite_tooltip_is_green_and_only_shown_for_trained_fire_spells() {

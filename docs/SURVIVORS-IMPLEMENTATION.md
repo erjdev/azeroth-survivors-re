@@ -2608,3 +2608,24 @@ play build (22.12 seconds), workspace test compilation, Clippy, formatting, rend
 lint and diff whitespace checks pass. A fresh CUA session again loaded the seeded Mage
 menu but coordinate clicks returned `noWindowsAvailable`; no new talent-page screenshot
 or live combat acceptance is claimed. Closed via AX and restored the normal launcher.
+
+
+### Mage Frostbite implementation checkpoint
+
+DBC node 38 now has three functional ranks: 5% freeze chance per rank on positive,
+finite Mage frost damage. This Survivors conversion includes Frostbolt, Frost Nova,
+Cone of Cold and Blizzard ground-area hits; unrelated spells and periodic burns do
+not qualify. Successful procs root ordinary enemies for 5 seconds and bosses for
+1.5 seconds, preserving any longer root. Damage does not break this root under the
+existing Survivors control rules. The proc consumes randomness only on eligible hits.
+Talent previews and affected spell tooltips show the trained chance in green.
+
+Mage now has 18 functional individual nodes. Shatter's conditional critical bonus,
+remaining nodes, distinct frozen-state semantics, balance and live visual acceptance
+remain unfinished. Frostbite currently uses the existing root movement control.
+
+Validation: 82 core and 147 Survivors app tests pass, including rank caps, class/source
+restrictions, invalid damage, ordinary/boss root duration, longer-root preservation and
+green trained-only tooltips. Workspace test compilation, explicit-data DBC talent audit,
+Clippy, formatting, render-pass lint and diff checks pass. Native play build: 20.88 seconds.
+No live combat or new screenshot evidence was collected for this checkpoint.

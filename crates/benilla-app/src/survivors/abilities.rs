@@ -799,6 +799,10 @@ fn refresh_ignite(dots: &mut Vec<enemies::Dot>, added: f32) {
     }
 }
 
+fn apply_frostbite(en: &mut enemies::Enemy) {
+    en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
+}
+
 fn apply_secondary_control(
     en: &mut Enemy,
     milestones: survivors_core::talents::Milestones,
@@ -958,6 +962,10 @@ pub(super) fn apply_hits(
                 tick: 1.0,
                 source: h.source,
             });
+        }
+        let freeze_chance = run.milestones.frostbite_chance(h.source, h.damage);
+        if freeze_chance > 0.0 && rng.f32() < freeze_chance {
+            apply_frostbite(&mut en);
         }
         let boss = en.boss;
         apply_secondary_control(&mut en, run.milestones, h.source);
@@ -1268,7 +1276,7 @@ mod milestone_tests {
     }
 
     #[test]
-    fn hunter_secondary_control_preserves_longer_effects_and_other_state() {
+    fn talent_control_preserves_longer_effects_and_other_state() {
         let trained = Milestones {
             class: 2,
             ..Default::default()
@@ -1296,6 +1304,13 @@ mod milestone_tests {
                 dots: Vec::new(),
                 dead: false,
             };
+            apply_frostbite(&mut enemy);
+            assert_eq!(enemy.root_t, if boss { 1.5 } else { 5. });
+            enemy.root_t = 8.;
+            apply_frostbite(&mut enemy);
+            assert_eq!(enemy.root_t, 8.);
+            assert_eq!((enemy.slow, enemy.slow_t, enemy.hp), (0.4, 8., 100.));
+            enemy.root_t = 0.;
             apply_secondary_control(&mut enemy, trained, "concussive_shot");
             assert_eq!(enemy.stun_t, if boss { 0.3 } else { 1. });
             apply_secondary_control(&mut enemy, trained, "serpent_sting");

@@ -333,6 +333,15 @@ impl Milestones {
         damage * self.trained_value(TalentStat::CriticalBurn)
     }
 
+    /// Survivors conversion: each damaging Mage frost hit can freeze for five seconds.
+    /// Periodic burns and other classes never trigger this proc.
+    pub fn frostbite_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 6 || !damage.is_finite() || damage <= 0.0 || !MAGE_FROST.contains(&key) {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::Frostbite)
+    }
+
     /// Ardent Defender reduces the portion of a blow below 35% health, including a
     /// blow crossing that threshold. A large hit cannot skip the protection entirely.
     pub fn incoming(self, damage: f32, hp: f32, max_hp: f32) -> f32 {
@@ -662,6 +671,7 @@ pub enum TalentStat {
     CritDamage,
     CriticalBleed,
     CriticalBurn,
+    Frostbite,
     EnrageDamage,
     BloodCrazeHealing,
     FlurryHaste,
@@ -711,6 +721,7 @@ impl TalentDefinition {
             TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
+            TalentStat::Frostbite => (100.0, "% chance to freeze on frost damage"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
@@ -1307,6 +1318,15 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 38,
+        max_rank: 3,
+        name: "Frostbite",
+        description: "Frost damage has a 5% chance per rank to freeze for 5 sec (bosses: 1.5 sec; Survivors conversion)",
+        stat: TalentStat::Frostbite,
+        per_rank: 0.05,
+    },
+
+    TalentDefinition {
         id: 34,
         max_rank: 5,
         name: "Ignite",
@@ -1484,6 +1504,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::FlurryHaste
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
+            | TalentStat::Frostbite
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
@@ -1938,6 +1959,7 @@ mod stat_talent_tests {
                     | TalentStat::FlurryHaste
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn
+                    | TalentStat::Frostbite
                     | TalentStat::SpellGroupDamage(_)
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
@@ -2039,6 +2061,35 @@ mod stat_talent_tests {
                 base.with_ranks(&[(0, node.id, node.max_rank)]).cast(key)
             );
         }
+    }
+
+    #[test]
+    fn frostbite_requires_positive_mage_frost_damage_and_caps_ranks() {
+        for rank in 0..=4 {
+            let trained = Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 38, rank)]);
+            for key in MAGE_FROST {
+                assert!(
+                    (trained.frostbite_chance(key, 10.) - 0.05 * f32::from(rank.min(3))).abs()
+                        < 0.00001
+                );
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(trained.frostbite_chance(key, damage), 0.);
+                }
+            }
+            for key in ["fireball", "Ignite", "frostbite", "volley"] {
+                assert_eq!(trained.frostbite_chance(key, 10.), 0.);
+            }
+        }
+        assert_eq!(
+            Milestones::default()
+                .with_ranks(&[(2, 38, 3)])
+                .frostbite_chance("frostbolt", 10.),
+            0.
+        );
     }
 
     #[test]

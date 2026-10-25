@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage Frostbite
+
+Frost damage can now freeze enemies with a rank-scaled chance. Boss roots are shorter,
+longer roots are preserved, and trained spell tooltips show the chance in green.
+82 core and 147 app tests, DBC audit, Clippy and native build pass (21 seconds).
+Shatter and live visual verification remain open.
+
 ## 2026-10-25 — Mage Ignite
 
 Critical fire hits now build one Ignite burn, carrying unpaid damage into refreshes
