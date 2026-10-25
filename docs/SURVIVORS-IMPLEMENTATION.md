@@ -18,6 +18,15 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Starter equipment/responsive checkpoint verified at 1280×720 and 640×720:
+worn-item icons use verified equipment display identities with quality borders;
+empty slots remain labeled. Slot selection opens the worn piece in Collection.
+Below 1100 UI units, Class/Hero/Zone stack in a shared scroll surface with an
+independent session offset; entry controls stay outside the scroll. Live shoulders
+inspection, lower-zone reachability and Collection/Escape scroll restoration passed.
+Still open against the main-menu intention: hero portrait, illustrated zone rows,
+decorative typography, racial bonuses and wider viewport acceptance.
+
 Talent saved-build live checkpoint verified at 1280×720 with an isolated Warrior
 and Mage: distinct Warrior specs (Arms 3/Fury 2), Mage spec 3 (Frost 1), selected-spec
 restoration across hero switches and restart, and resetting only the active Warrior

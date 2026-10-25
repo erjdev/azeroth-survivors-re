@@ -19,6 +19,7 @@ pub(in crate::survivors) enum CompactScroll {
     Collection,
     Drops,
     Character,
+    Starter,
 }
 
 pub(in crate::survivors) fn remember_scroll(
@@ -31,6 +32,7 @@ pub(in crate::survivors) fn remember_scroll(
                 CompactScroll::Collection => &mut armory.collection_scroll,
                 CompactScroll::Drops => &mut armory.drop_scroll,
                 CompactScroll::Character => &mut armory.character_scroll,
+                CompactScroll::Starter => &mut armory.starter_scroll,
             };
             if *saved != position.0 {
                 *saved = position.0;

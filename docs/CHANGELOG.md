@@ -3,6 +3,29 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter equipment strip and narrow layout
+
+The starter replaces nine equipment text rows with worn-item icons, quality borders
+and labeled empty slots, closer to the [main-menu reference](intentions/survivors_main_menu.png).
+Selecting a slot opens its worn piece in Collection for names, stats and equipment
+controls. Below 1100 UI units, Class, Hero and Zone stack in one scrollable surface;
+the entry controls remain visible. Starter scrolling survives a Collection round trip.
+
+![Wide starter with worn equipment icons](images/screenshots/2026-10-25-starter-equipment/starter-1280.jpg)
+
+![Selecting shoulders opens the correct worn item](images/screenshots/2026-10-25-starter-equipment/inspect-shoulders.jpg)
+
+![Stacked starter at 640×720](images/screenshots/2026-10-25-starter-equipment/starter-640.jpg)
+
+![Scrolling reaches the complete zone list](images/screenshots/2026-10-25-starter-equipment/zones-640.jpg)
+
+![Zone position retained after Collection and Escape](images/screenshots/2026-10-25-starter-equipment/zone-scroll-restored.jpg)
+
+Live checks used an isolated Warrior account at 1280×720 and 640×720. Validation:
+181 Survivors app tests without default features, native build, workspace Clippy,
+formatting and render-pass lint pass. The reference's hero portrait, illustrated
+zone rows, decorative typography and racial bonuses remain separate work.
+
 ## 2026-10-25 — Starter finale follows the encounter schedule
 
 The starter now names the actual final boss and scheduled time: Elwynn shows

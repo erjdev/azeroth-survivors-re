@@ -16,9 +16,12 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
-The starter shows the selected zone's scheduled finale and retains progression locks.
+The starter shows worn equipment icons that open Collection details, the selected
+zone's scheduled finale and progression locks. Narrow screens stack the three sections.
 
-![Starter with Elwynn's scheduled finale](docs/images/screenshots/2026-10-25-starter-finale/elwynn-finale.jpg)
+![Starter equipment strip](docs/images/screenshots/2026-10-25-starter-equipment/starter-1280.jpg)
+
+![Responsive starter at 640×720](docs/images/screenshots/2026-10-25-starter-equipment/starter-640.jpg)
 
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an

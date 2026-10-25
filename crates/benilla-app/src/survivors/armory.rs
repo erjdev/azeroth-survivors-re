@@ -158,6 +158,7 @@ pub(super) struct Armory {
     drop_zone: usize,
     drop_scroll: Vec2,
     character_scroll: Vec2,
+    starter_scroll: Vec2,
     codex_entry: Option<u16>,
 }
 
@@ -183,6 +184,7 @@ impl Default for Armory {
             drop_zone: 0,
             drop_scroll: Vec2::ZERO,
             character_scroll: Vec2::ZERO,
+            starter_scroll: Vec2::ZERO,
             codex_entry: None,
         }
     }
@@ -250,6 +252,7 @@ pub(super) enum Act {
     Tabard(u8),
     Talent(u32),
     InspectPiece(usize),
+    OpenEquipment(usize),
     WearPiece(usize, Option<u8>),
     ShowPiece(usize, super::equipment::Look),
 }
@@ -363,6 +366,13 @@ pub(super) fn input(
                 armory.focus = 0;
             }
             Act::InspectPiece(index) => armory.piece = index.min(campaign::PIECES - 1),
+            Act::OpenEquipment(slot) => {
+                let class = picked_class(&account, &selection);
+                let slot = slot.min(campaign::GRID_SLOTS - 1);
+                let band = account.classes[class].equipment.worn[slot].unwrap_or(0);
+                armory.piece = usize::from(band) * campaign::GRID_SLOTS + slot;
+                armory.open_page(Page::Collection);
+            }
             Act::WearPiece(slot, band) => {
                 let class = picked_class(&account, &selection);
                 if account.wear_piece(class, slot, band) {
@@ -955,7 +965,7 @@ pub(super) fn refresh(
                 compact_collection
                     && matches!(
                         armory.page,
-                        Page::Collection | Page::DropTables | Page::Heroes
+                        Page::Collection | Page::DropTables | Page::Heroes | Page::Door
                     ),
             ),
         ),

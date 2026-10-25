@@ -50,7 +50,15 @@ pub(super) fn build(
         line(ui, font, note, 13.0, GOLD);
     }
     if armory.page == Page::Door {
-        columns(ui, art, font, armory, account, selection);
+        columns(
+            ui,
+            art,
+            font,
+            armory,
+            account,
+            selection,
+            compact_collection,
+        );
         enter_bar(ui, art, font, armory, account, selection);
     } else if armory.page == Page::Talents {
         super::talent_page::build(ui, font, account, selection, talents, talent_scroll);
@@ -97,7 +105,7 @@ pub(super) fn build(
             compact_collection,
         );
     } else {
-        panel(ui, art, |body| {
+        panel(ui, art, false, |body| {
             super::fill_draft(
                 body, font, armory, account, selection, renown, stash, talents,
             )
@@ -376,23 +384,43 @@ fn columns(
     armory: &Armory,
     account: &Account,
     selection: &Selection,
+    compact: bool,
 ) {
-    ui.spawn(Node {
+    let mut content = ui.spawn(Node {
         width: Val::Percent(100.0),
         flex_grow: 1.0,
+        flex_basis: Val::Px(0.0),
         min_height: Val::Px(0.0),
-        flex_direction: FlexDirection::Row,
+        flex_direction: if compact {
+            FlexDirection::Column
+        } else {
+            FlexDirection::Row
+        },
+        overflow: if compact {
+            Overflow::scroll_y()
+        } else {
+            Overflow::visible()
+        },
+        row_gap: Val::Px(8.0),
         column_gap: Val::Px(8.0),
         ..default()
-    })
-    .with_children(|row| {
-        panel(row, art, |body| {
+    });
+    if compact {
+        content.insert((
+            super::collection::CollectionScroll,
+            super::collection::CompactScroll::Starter,
+            bevy::ui::RelativeCursorPosition::default(),
+            ScrollPosition(armory.starter_scroll),
+        ));
+    }
+    content.with_children(|row| {
+        panel(row, art, compact, |body| {
             class_column(body, art, font, account, selection)
         });
-        panel(row, art, |body| {
+        panel(row, art, compact, |body| {
             hero_column(body, art, font, account, selection)
         });
-        panel(row, art, |body| {
+        panel(row, art, compact, |body| {
             zone_column(body, font, armory, account, selection)
         });
     });
@@ -401,13 +429,19 @@ fn columns(
 fn panel(
     parent: &mut ChildSpawnerCommands,
     art: &GlueArt,
+    compact: bool,
     body: impl FnOnce(&mut ChildSpawnerCommands),
 ) {
     parent
         .spawn(Node {
-            flex_grow: 1.0,
-            flex_basis: Val::Px(0.0),
-            height: Val::Percent(100.0),
+            flex_grow: if compact { 0.0 } else { 1.0 },
+            flex_shrink: 0.0,
+            flex_basis: if compact { Val::Auto } else { Val::Px(0.0) },
+            height: if compact {
+                Val::Auto
+            } else {
+                Val::Percent(100.0)
+            },
             min_height: Val::Px(0.0),
             ..default()
         })
@@ -443,10 +477,18 @@ fn panel(
             frame
                 .spawn(Node {
                     width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
+                    height: if compact {
+                        Val::Auto
+                    } else {
+                        Val::Percent(100.0)
+                    },
                     flex_direction: FlexDirection::Column,
                     padding: UiRect::all(Val::Px(14.0)),
-                    overflow: Overflow::scroll_y(),
+                    overflow: if compact {
+                        Overflow::visible()
+                    } else {
+                        Overflow::scroll_y()
+                    },
                     row_gap: Val::Px(4.0),
                     ..default()
                 })
@@ -914,16 +956,57 @@ fn gear_lines(
         .get(class)
         .map(|p| p.equipment.worn_pieces(&p.pieces))
         .unwrap_or([0; campaign::PIECES]);
-    for slot in 0..campaign::GRID_SLOTS {
-        let slot_name = campaign::SLOTS[slot];
-        let (text, color) = if let Some((band, _)) = campaign::best_piece(&worn, slot) {
-            let item = campaign::piece_name(class, slot, band).unwrap_or(slot_name);
-            (format!("{slot_name} — {item}"), band_color(band))
-        } else {
-            (format!("{slot_name} — empty"), DIM)
-        };
-        line(body, font, &text, 12.0, color);
-    }
+    body.spawn(Node {
+        width: Val::Percent(100.0),
+        flex_wrap: FlexWrap::Wrap,
+        column_gap: Val::Px(3.0),
+        row_gap: Val::Px(5.0),
+        ..default()
+    })
+    .with_children(|row| {
+        for slot in 0..campaign::GRID_SLOTS {
+            let band = campaign::best_piece(&worn, slot).map(|(band, _)| band);
+            row.spawn((
+                Button,
+                Act::OpenEquipment(slot),
+                Node {
+                    flex_basis: Val::Percent(9.0),
+                    flex_grow: 1.0,
+                    min_width: Val::Px(36.0),
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(2.0)),
+                    border: UiRect::all(Val::Px(1.0)),
+                    row_gap: Val::Px(3.0),
+                    ..default()
+                },
+                BorderColor::all(band.map(band_color).unwrap_or(DIM)),
+                BackgroundColor(Color::srgb(0.025, 0.02, 0.01)),
+            ))
+            .with_children(|cell| {
+                if let Some(band) = band {
+                    super::super::gear_icons::spawn(cell, class, slot, band, 30.0);
+                } else {
+                    cell.spawn(Node {
+                        width: Val::Px(30.0),
+                        height: Val::Px(30.0),
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..default()
+                    })
+                    .with_children(|empty| line(empty, font, "—", 12.0, DIM));
+                }
+                line(cell, font, campaign::SLOTS[slot], 9.0, DIM);
+            });
+        }
+    });
+    line(
+        body,
+        font,
+        "Select a slot to inspect its gear in Collection.",
+        11.0,
+        DIM,
+    );
     if campaign::two_handed(class) {
         line(
             body,
