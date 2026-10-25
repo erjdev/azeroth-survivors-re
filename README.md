@@ -102,6 +102,10 @@ pending world acceptance; this older capture predates those source labels.
 [Human male armor preview](docs/images/screenshots/2026-10-25-rare-armor/character-720.png)
 is a visual checkpoint, not complete race/sex or attachment acceptance.
 
+Catalog coverage: every class now has all **54 collection cells named and mapped**.
+This completes identity coverage, not acquisition or gameplay acceptance: missing drop
+sources, live appearance checks and raid-set mechanics remain tracked in the plan.
+
 Epic identity milestone: this capture shows 37 of 54 named cells; the subsequent Legendary
 armor addition brings every class to 45 of 54. This isolated
 Warrior account seeds the Wrath set and Ashkandi to inspect equipped names and bonuses;

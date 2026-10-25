@@ -120,7 +120,7 @@ pub fn named(name: &str) -> Option<GearVisual> {
 }
 
 pub fn piece(class: usize, slot: usize, band: usize) -> Option<GearVisual> {
-    if matches!(band, 1..=3) || (band == 5 && slot < 8) {
+    if matches!(band, 1..=4) || (band == 5 && slot < 8) {
         return super::gear_upgrades::piece(class, slot, band).map(|(_, visual)| visual);
     }
     let name = super::campaign::piece_name(class, slot, band)?;
@@ -153,8 +153,8 @@ mod tests {
     #[test]
     fn absent_and_ambiguous_items_never_borrow_a_visual() {
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
-        assert_eq!(piece(0, 8, 4), None);
-        assert_eq!(piece(0, 0, 4), None);
+        assert_eq!(piece(0, 8, 6), None);
+        assert_eq!(piece(0, 0, 6), None);
         assert_eq!(piece(99, 0, 0), None);
         assert_eq!(piece(0, 9, 0), None);
     }
@@ -175,7 +175,7 @@ mod tests {
             );
             assert_eq!((visual.material, visual.sheath), (2, 2));
             assert_ne!(piece(class, 8, 0), Some(visual));
-            assert_eq!(piece(class, 7, 4), None);
+            assert_eq!(piece(class, 7, 6), None);
         }
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
     }
@@ -275,6 +275,42 @@ mod tests {
         assert_eq!(items.len(), 72);
         assert_eq!(piece(9, 0, 5), None);
         assert_eq!(piece(0, 9, 5), None);
+    }
+
+    #[test]
+    fn every_class_has_54_named_and_mapped_collection_cells() {
+        for class in 0..crate::data::CLASSES.len() {
+            let mut items = std::collections::HashSet::new();
+            for band in 0..crate::campaign::BANDS {
+                for slot in 0..crate::campaign::GRID_SLOTS {
+                    assert!(crate::campaign::piece_name(class, slot, band).is_some());
+                    let visual = piece(class, slot, band).unwrap();
+                    assert!(
+                        items.insert((band, visual.item_id)),
+                        "duplicate class {class} band {band} item {}",
+                        visual.item_id
+                    );
+                    if band == 4 && slot < 8 {
+                        assert_eq!(
+                            (visual.item_class, visual.subclass),
+                            (4, [4, 4, 3, 2, 1, 3, 1, 1, 2][class])
+                        );
+                        assert!(
+                            visual.inventory_type == [1, 3, 5, 6, 7, 8, 9, 10][slot]
+                                || (slot == 2 && visual.inventory_type == 20)
+                        );
+                    }
+                }
+            }
+            assert_eq!(items.len(), 54);
+            let weapon = piece(class, 8, 4).unwrap();
+            assert_eq!(weapon.item_class, 2);
+            assert_eq!(
+                weapon.inventory_type,
+                [17, 17, 26, 13, 13, 13, 13, 17, 17][class]
+            );
+            assert_eq!(weapon.subclass, [8, 5, 18, 15, 4, 4, 15, 10, 5][class]);
+        }
     }
 
     #[test]

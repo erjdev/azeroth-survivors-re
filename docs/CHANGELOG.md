@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Complete collection identity catalog
+
+Added the 81 PvP class/slot identities, completing all 54 named and mapped cells per
+class. All 76 core and 126 app tests pass, including local display/icon reads; native
+incremental build took 13 seconds. Acquisition remains incomplete (26 cells per class
+lack drops), and full appearance/set-build validation remains open. The new menu capture
+is pending because the Mac is locked; existing README screenshots remain historical.
+
 ## 2026-10-25 — Legendary armor identities
 
 Added 72 verified class armor identities, bringing each collection to 45 of 54 named

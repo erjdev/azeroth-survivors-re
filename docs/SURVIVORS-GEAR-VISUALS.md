@@ -58,7 +58,7 @@ templates above, selected by `itemset` and mapped by `InventoryType` to the eigh
 slots (robe type 20 occupies chest). The checked-in identity table is
 `crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
 
-Each class now has 45 named collection cells; the nine PvP cells are still unnamed. All nine uncommon
+Each class now has all 54 collection cells named and mapped. All nine uncommon
 cells now list authored Un'Goro boss sources; that zone remains
 world-locked pending arena acceptance. Naming these pieces does not grant ownership, unlock zones or add raid
 bonuses. Live race/sex rendering and complete source acceptance remain open.
@@ -275,3 +275,49 @@ subclass/inventory slot. Names, display IDs, material and sheath fields are stor
 The existing Legendary numerical progression remains authoritative. No source schedule,
 collection ownership, new raid-epic variant or build-oriented set power is added by this
 identity mapping. Acquisition and live all-class/race/sex appearance acceptance remain open.
+
+## PvP identity catalog and full grid coverage
+
+Band four completes all 54 named/mapped cells per class (486 class/slot/quality cells).
+The six rank-set armor slots are supplemented by compatible waist and wrist pieces.
+This is an authored, faction-independent Survivors catalog: source honor/reputation
+requirements, faction restrictions, vanilla stats and set powers are not imported.
+Names and exact entry/display/attachment metadata come from the same pinned templates;
+explicit IDs disambiguate reputation items with several level variants.
+
+| Class | Six-piece rank-set ID | Waist entry | Wrist entry | Weapon entry |
+| --- | --- | --- | --- | --- |
+| Warrior | 384 | 20041 | 19578 | 18876 |
+| Paladin | 402 | 20042 | 19578 | 18867 |
+| Hunter | 395 | 20043 | 19582 | 18836 |
+| Rogue | 394 | 20045 | 19587 | 18838 |
+| Priest | 389 | 20047 | 19595 | 23454 |
+| Shaman | 386 | 20195 | 19582 | 23464 |
+| Mage | 388 | 20047 | 19595 | 23451 |
+| Warlock | 392 | 20047 | 19595 | 18873 |
+| Druid | 397 | 20046 | 19587 | 23455 |
+
+The rank sets use Field Marshal/Marshal appearances, with Warlord/General mail for
+Shaman. Waist entries are the level-58 Highlander girdles (Defiler mail for Shaman);
+wrist entries are the level-60 Berserker, Windtalker, Forest Stalker and Dryad pieces.
+All source class masks permit their assigned class, and armor subclasses/inventory
+slots match. These 81 cells use 74 source items: compatible belts/bracers are shared
+across classes, while each class has nine distinct PvP entries.
+
+| Class | PvP weapon | Entry | Display | Inventory | Subclass | Material | Sheath |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Warrior | Grand Marshal's Claymore | 18876 | 31996 | 17 | 8 | 1 | 1 |
+| Paladin | Grand Marshal's Battle Hammer | 18867 | 31954 | 17 | 5 | 2 | 1 |
+| Hunter | Grand Marshal's Repeater | 18836 | 31757 | 26 | 18 | 2 | 0 |
+| Rogue | Grand Marshal's Dirk | 18838 | 31379 | 13 | 15 | 1 | 3 |
+| Priest | Grand Marshal's Warhammer | 23454 | 36064 | 13 | 4 | 2 | 3 |
+| Shaman | High Warlord's Battle Mace | 23464 | 36078 | 13 | 4 | 2 | 3 |
+| Mage | Grand Marshal's Mageblade | 23451 | 36045 | 13 | 15 | 1 | 3 |
+| Warlock | Grand Marshal's Stave | 18873 | 31764 | 17 | 10 | 2 | 2 |
+| Druid | Grand Marshal's Demolisher | 23455 | 36065 | 17 | 5 | 2 | 1 |
+
+Full-grid coverage counts class/slot/quality cells, not globally unique item art.
+Warlock Common and Uncommon armor already share Deathmist identities; that mapping is
+preserved, with quality still selecting its own power. The tests require every valid
+cell to resolve and each quality within a class to contain nine distinct items.
+PvP acquisition schedules and live equipment/appearance acceptance remain open.

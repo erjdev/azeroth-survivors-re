@@ -3,6 +3,7 @@
 use crate::gear_visuals::GearVisual;
 mod epic;
 mod legendary;
+mod pvp;
 mod rare;
 
 type Item = (&'static str, u32, u32, u8, u8, u8, i32, u8);
@@ -16,6 +17,8 @@ pub(crate) fn piece(class: usize, slot: usize, band: usize) -> Option<(&'static 
             2 => rare::ARMOR.get(class)?.get(slot)?,
             3 if slot == 8 => epic::WEAPONS.get(class)?,
             3 => epic::ARMOR.get(class)?.get(slot)?,
+            4 if slot == 8 => pvp::WEAPONS.get(class)?,
+            4 => pvp::ARMOR.get(class)?.get(slot)?,
             5 => legendary::ARMOR.get(class)?.get(slot)?,
             _ => return None,
         };

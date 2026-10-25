@@ -2105,3 +2105,27 @@ checks pass. The full content audit still exits nonzero with 323 gaps: nine unna
 26 unsourced cells per class plus existing world/schedule gaps. No new live visual
 acceptance is claimed; the README labels the older Epic screenshot's historical count.
 Workspace Clippy also passes.
+
+### Complete PvP identity tier and collection mapping — 2026-10-25
+
+Added 81 PvP class/slot cells from 74 distinct pinned vanilla item identities: six-piece
+rank sets, compatible waist/wrist pieces and nine weapons. All nine classes now have
+54 named and mapped cells (486 total). Exact provenance and authored faction-independent
+assignments are in [gear visuals](SURVIVORS-GEAR-VISUALS.md). Vanilla honor/reputation
+requirements, stats and set powers are not imported. Numeric save slots remain stable;
+this catalog grants neither ownership nor acquisition sources. Existing Warlock Common
+and Uncommon Deathmist appearances remain shared; uniqueness is checked within each tier.
+
+Validation: 76 core and 126 Survivors app tests pass, including every mapped display/icon
+read using checkout data. Native incremental build took 12.81 seconds, workspace test
+compilation 21.86 seconds and workspace Clippy 17.10 seconds. Formatting and render-pass
+lint pass. Full content audit remains nonzero with 242 gaps: 26 unsourced cells per class
+and eight world/schedule gaps. These checks do not prove live appearance correctness.
+
+An isolated seeded Warrior fixture with 54 owned cells and PvP equipment reached the
+menu loading-complete log. Screenshot/interaction acceptance is pending: CUA reports the
+Mac locked and automatic unlock paused after physical input. No new image or visual
+acceptance is claimed. The launcher was restored to its normal configuration for future
+launches; the already-running fixture has not been closed through UI while locked.
+All-class/race/sex appearance checks, acquisition schedules and raid-epic/set mechanics
+remain required before completion.
