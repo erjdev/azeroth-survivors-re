@@ -2681,3 +2681,30 @@ parameters, actual Blizzard tick effects and green inline strength/duration comp
 DBC talent audit, workspace test compilation, Clippy, formatting, render-pass lint and
 diff checks pass. Native play build: 13.85 seconds. No new live combat or screenshot
 acceptance is claimed for this checkpoint.
+
+
+### Mage UI verification and direct-close persistence repair
+
+Native coordinate input worked again for this session. Verified the Mage talent page
+at 1440×900 and 1280×720, refund/spend feedback for Shatter and Improved Blizzard,
+Ignite in an independent second spec, and Frostbite/Permafrost previews. Six captures
+are linked in the README under `docs/images/screenshots/2026-10-25-mage-talents/`.
+Permafrost's preview now compares both strength and duration rather than leaving its
+second benefit as a generic per-rank description.
+
+The initial live run exposed a persistence gap: Permafrost was refunded from 3 to 2
+on screen, but closing the OS window directly from Talents left rank 3 on disk.
+Armory input now flushes dirty account edits at the end of its menu update; a clean
+account does no disk I/O, and failed writes remain dirty for retry. This covers menu
+edits without relying on a later run, page transition or explicit Done action.
+
+Reproduction after the fix: refunded Permafrost to 2 at 720p, inspected the immediate
+saved rank, closed via the window's close button, relaunched and reopened Talents.
+Permafrost remained 2/3 with 25 Frost points; the independent Fire spec retained 10
+points. `reloaded-spec-720.png` records that state. The isolated validation account
+and launch wrapper were used; the normal wrapper was restored after closure.
+
+Validation: 85 core and 150 app tests, workspace test compilation, Clippy, formatting,
+render-pass lint and diff checks pass. Native build: 42.56 seconds. These are menu
+layout/persistence checks, not combat, frame-time or full responsive-matrix acceptance.
+Remaining class talents, other interface states and campaign/world acceptance remain open.

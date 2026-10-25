@@ -735,6 +735,14 @@ impl TalentDefinition {
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
         let rank = rank.min(self.max_rank);
+        if self.stat == TalentStat::Permafrost {
+            let strength = |r| (self.per_rank * f32::from(r) * 100.0).round() as u32;
+            return if rank == self.max_rank {
+                format!("This talent: {} percentage points stronger slows; {rank} sec added duration (maximum rank)", strength(rank))
+            } else {
+                format!("This talent: {} » {} percentage points stronger slows; {rank} » {} sec added duration next rank", strength(rank), strength(rank + 1), rank + 1)
+            };
+        }
         let (scale, unit) = match self.stat {
             TalentStat::Armor => (1.0, " armor"),
             TalentStat::SpellShield(_) => (100.0, "% maximum health absorbed per cast"),
@@ -2131,6 +2139,16 @@ mod stat_talent_tests {
                 base.with_ranks(&[(0, node.id, node.max_rank)]).cast(key)
             );
         }
+    }
+
+    #[test]
+    fn permafrost_preview_compares_both_benefits_and_caps_the_rank() {
+        let node = talent_definition(6, 65).unwrap();
+        assert_eq!(node.rank_preview(2), "This talent: 6 » 9 percentage points stronger slows; 2 » 3 sec added duration next rank");
+        assert_eq!(
+            node.rank_preview(255),
+            "This talent: 9 percentage points stronger slows; 3 sec added duration (maximum rank)"
+        );
     }
 
     #[test]

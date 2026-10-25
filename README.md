@@ -162,6 +162,19 @@ remaining nodes, pets and milestones are unfinished.
 [Independent second spec](docs/images/screenshots/2026-10-25-hunter-talents/spec-two-720.jpg) ·
 [Narrow talent layout](docs/images/screenshots/2026-10-25-hunter-talents/mortal-shots-1024.jpg)
 
+Mage talent milestone: green rank previews at 1440×900 and 1280×720. Permafrost
+compares both slow strength and duration. Refunding a rank, closing directly from
+Talents, and relaunching preserves the edit; the separate Fire spec stays intact.
+These captures verify the UI, not live combat or completion of every Mage talent.
+
+![Permafrost strength and duration preview at 720p](docs/images/screenshots/2026-10-25-mage-talents/permafrost-720.png)
+
+[Shatter](docs/images/screenshots/2026-10-25-mage-talents/shatter-preview.png) ·
+[Improved Blizzard](docs/images/screenshots/2026-10-25-mage-talents/blizzard-preview.png) ·
+[Ignite in spec two](docs/images/screenshots/2026-10-25-mage-talents/ignite-spec-two.png) ·
+[Frostbite](docs/images/screenshots/2026-10-25-mage-talents/frostbite-720.png) ·
+[Allocation after relaunch](docs/images/screenshots/2026-10-25-mage-talents/reloaded-spec-720.png)
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**

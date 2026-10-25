@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Armory save fix and Mage UI milestone
+
+Armory edits now save immediately, fixing lost talent changes when closing the window
+directly from Talents. Permafrost previews compare both strength and duration.
+Verified refund/spend, independent specs and close/relaunch persistence; added
+[Mage milestone screenshots](images/screenshots/2026-10-25-mage-talents/permafrost-720.png) to the README.
+85 core and 150 app tests, Clippy and native build pass; live combat verification remains open.
+
 ## 2026-10-25 — Mage frost slows
 
 Permafrost strengthens and extends frost slows; Improved Blizzard adds slow strength.

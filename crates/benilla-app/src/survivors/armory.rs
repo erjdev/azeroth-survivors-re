@@ -426,6 +426,9 @@ pub(super) fn input(
             }
         }
     }
+    // Persist edits even when the OS closes the window directly from an Armory page.
+    // Clean accounts perform no disk I/O; failed writes remain dirty for retry.
+    account.save();
 }
 
 fn buy_reward(account: &mut Account, code: u8) -> &'static str {
