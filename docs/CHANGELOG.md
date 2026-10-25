@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Reliable name typing
+
+Starter renaming and character creation now process keyboard events in order.
+Rapid letters, repeated keys and Backspace no longer collapse into one frame's
+unordered key set; capitalization comes from OS text. Tab switches fields before
+the next character, and Enter finishes editing without starting a run.
+
+![Rapid typing saved Leena correctly](images/screenshots/2026-10-25-ordered-names/starter-1280.jpg)
+
+![Anna Moon created through the same input path](images/screenshots/2026-10-25-ordered-names/created-1280.jpg)
+
+Verified both flows live at 1280×720. Two regressions cover same-batch ordering,
+repeated letters/deletion, Tab/Enter, release events, filtering and the 16-character
+limit. Native build, workspace Clippy, formatting and render-pass lint pass.
+This fixes input reliability; the reference's field styling and typography remain open.
+
 ## 2026-10-25 — Starter name editing
 
 The starter Hero panel now supports an explicit name draft with Save/Cancel,

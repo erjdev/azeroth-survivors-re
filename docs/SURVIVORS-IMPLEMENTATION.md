@@ -21,9 +21,10 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 Starter manual naming now uses a hero-bound draft with Save/Cancel, Enter/Escape
 and Tab. Live checks cover blank rejection, save/cancel, Enter isolation,
 640×720 layout and restart persistence; screenshots are inline in the changelog.
-Immediate follow-up: replace the shared key-state name input with ordered text
-events, since rapid typing can drop/reorder characters. Reference typography and
-control styling remain open.
+The shared name handler now uses ordered keyboard events: rapid repeated letters,
+Backspace, Tab and Enter passed both regression and live starter/creation checks.
+OS text supplies capitalization; the existing ASCII name filter and 16-character
+limit remain. Reference typography and control styling remain open.
 
 Talent headings now resolve specialization artwork through the installed
 TalentTab → SpellIcon catalogs, with points aligned opposite the name. Missing

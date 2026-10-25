@@ -16,6 +16,7 @@ mod reward_draft;
 mod reward_page;
 pub(super) use reward_page::remember_scroll as remember_reward_scroll;
 mod name_edit;
+mod name_input;
 mod talent_heading;
 pub(super) use talent_heading::fill as fill_talent_headings;
 mod talent_page;
@@ -270,7 +271,10 @@ pub(super) enum Act {
 pub(super) fn input(
     pointer: Pointer,
     acts: Query<(Entity, &Act, &Interaction)>,
-    keys: Res<ButtonInput<KeyCode>>,
+    keyboard: (
+        Res<ButtonInput<KeyCode>>,
+        MessageReader<bevy::input::keyboard::KeyboardInput>,
+    ),
     mut typing: ResMut<Typing>,
     mut armory: ResMut<Armory>,
     mut account: ResMut<Account>,
@@ -285,8 +289,10 @@ pub(super) fn input(
     mut granted: Local<bool>,
     mut exit: MessageWriter<AppExit>,
 ) {
+    let (keys, mut keyboard) = keyboard;
     if *phase.get() != Phase::Menu {
         typing.0 = false;
+        keyboard.clear();
         return;
     }
     if !*granted {
@@ -311,28 +317,19 @@ pub(super) fn input(
         armory.focus = 0;
     }
     typing.0 = armory.focus != 0 && (armory.page == Page::Heroes || armory.rename.is_some());
-    if armory.rename.is_some() && keys.just_pressed(KeyCode::Escape) {
-        armory.rename = None;
-        armory.focus = 0;
-        armory.note.clear();
-        // Consume the edit shortcut for the rest of this frame.
-        typing.0 = true;
-    } else if armory.rename.is_some() && keys.just_pressed(KeyCode::Enter) {
-        save_name(&mut armory, &mut account, &selection);
-        typing.0 = true;
-    } else if armory.rename.is_some() && keys.just_pressed(KeyCode::Tab) {
-        armory.focus = if armory.focus == 3 { 4 } else { 3 };
-    } else if !typing.0 && keys.just_pressed(KeyCode::Escape) && armory.page != Page::Door {
+    for event in keyboard.read() {
+        if typing.0 {
+            name_input::feed(event, &mut armory, &mut account, &selection);
+        }
+    }
+    // Keep Typing set for the whole frame, including the Enter that finishes an edit.
+    if !typing.0 && keys.just_pressed(KeyCode::Escape) && armory.page != Page::Door {
         if armory.page == Page::Heroes && armory.manage_heroes {
             armory.manage_heroes = false;
         } else {
             armory.open_page(Page::Door);
         }
         armory.focus = 0;
-    } else if typing.0 && keys.just_pressed(KeyCode::Enter) {
-        armory.focus = 0;
-    } else if typing.0 {
-        type_name(&keys, &mut armory);
     }
     if pointer.mouse.just_released(MouseButton::Right) {
         for (_, act, interaction) in &acts {
@@ -639,77 +636,6 @@ fn buy_reward(account: &mut Account, code: u8) -> Result<(), &'static str> {
         12 => account.reset_perks(),
         _ => Err("Unknown reward"),
     }
-}
-
-fn type_name(keys: &ButtonInput<KeyCode>, armory: &mut Armory) {
-    let field = match armory.focus {
-        1 => &mut armory.draft_first,
-        2 => &mut armory.draft_last,
-        3 | 4 => {
-            let Some(draft) = armory.rename.as_mut() else {
-                return;
-            };
-            if armory.focus == 3 {
-                &mut draft.first
-            } else {
-                &mut draft.last
-            }
-        }
-        _ => return,
-    };
-    if keys.just_pressed(KeyCode::Backspace) {
-        field.pop();
-        return;
-    }
-    let shift = keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight);
-    for key in keys.get_just_pressed() {
-        let Some(ch) = letter(*key, shift) else {
-            continue;
-        };
-        if field.chars().count() < 16 {
-            field.push(ch);
-        }
-    }
-}
-
-fn letter(key: KeyCode, shift: bool) -> Option<char> {
-    let lower = match key {
-        KeyCode::KeyA => 'a',
-        KeyCode::KeyB => 'b',
-        KeyCode::KeyC => 'c',
-        KeyCode::KeyD => 'd',
-        KeyCode::KeyE => 'e',
-        KeyCode::KeyF => 'f',
-        KeyCode::KeyG => 'g',
-        KeyCode::KeyH => 'h',
-        KeyCode::KeyI => 'i',
-        KeyCode::KeyJ => 'j',
-        KeyCode::KeyK => 'k',
-        KeyCode::KeyL => 'l',
-        KeyCode::KeyM => 'm',
-        KeyCode::KeyN => 'n',
-        KeyCode::KeyO => 'o',
-        KeyCode::KeyP => 'p',
-        KeyCode::KeyQ => 'q',
-        KeyCode::KeyR => 'r',
-        KeyCode::KeyS => 's',
-        KeyCode::KeyT => 't',
-        KeyCode::KeyU => 'u',
-        KeyCode::KeyV => 'v',
-        KeyCode::KeyW => 'w',
-        KeyCode::KeyX => 'x',
-        KeyCode::KeyY => 'y',
-        KeyCode::KeyZ => 'z',
-        KeyCode::Space => ' ',
-        KeyCode::Minus => '-',
-        KeyCode::Quote => '\'',
-        _ => return None,
-    };
-    Some(if shift && lower.is_ascii_alphabetic() {
-        lower.to_ascii_uppercase()
-    } else {
-        lower
-    })
 }
 
 fn create_hero(armory: &mut Armory, account: &mut Account, selection: &mut Selection) {
