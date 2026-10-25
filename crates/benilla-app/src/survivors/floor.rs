@@ -439,6 +439,90 @@ mod tests {
     }
 
     #[test]
+    fn placed_feralas_root_blocks_the_candidate_crossing_and_unregisters() {
+        use benilla_assets::coords::{placement_rotation, wow_to_bevy};
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {
+            eprintln!("SKIP Feralas placement test: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        let maps = benilla_formats::load_map_catalog(&mut chain).unwrap();
+        let directory = maps.directory(1).unwrap();
+        let tiles = benilla_formats::MapTiles::load(&mut chain, directory).unwrap();
+        let point = [-4200.0, -133.828, 55.827];
+        let mut placement = None;
+        for (x, y) in tiles.existing_in_radius(point[0], point[1], 1) {
+            let tile = benilla_formats::load_tile_mesh(&mut chain, directory, x, y).unwrap();
+            if let Some(found) = tile.doodads.into_iter().find(|d| d.unique_id == 245515) {
+                placement = Some(found);
+                break;
+            }
+        }
+        let d = placement.expect("documented Feralas root placement");
+        assert!(d.model.to_ascii_lowercase().contains("feralastreeroots02"));
+        let hull = benilla_formats::load_m2_collision_hull(&mut chain, &d.model).unwrap();
+        assert_eq!(hull.triangle_count(), 60);
+        let transform = Transform {
+            translation: wow_to_bevy(d.position),
+            rotation: placement_rotation(d.rotation),
+            scale: Vec3::splat(d.scale),
+        };
+        let vertices = hull
+            .positions
+            .iter()
+            .map(|p| transform.transform_point(wow_to_bevy(*p)))
+            .collect();
+        let collider = Collider::trimesh(vertices, hull.indices.as_chunks::<3>().0.to_vec());
+        let mut app = fixture(&[]);
+        let root = app
+            .world_mut()
+            .spawn((RigidBody::Static, collider.clone(), Transform::default()))
+            .id();
+        app.update();
+        app.update();
+        let start = wow_to_bevy(point);
+        // Fixed-height capsule sweeps isolate this placement from terrain. The source ray
+        // is one yard above the feet, at the documented 38.137535-yard negative-WoW-X hit.
+        let feet = start - Vec3::Y;
+        let desired = feet + Vec3::Z * 55.;
+        let check = |app: &mut App| {
+            app.world_mut()
+                .run_system_once(move |floor: Floor| {
+                    let ray = floor.collision.ray_body(start, Dir3::Z, 55.);
+                    (
+                        ray.map(|h| h.distance),
+                        floor.slide(feet, desired, super::super::HERO_RADIUS),
+                    )
+                })
+                .unwrap()
+        };
+        let (ray, stopped) = check(&mut app);
+        assert!((ray.expect("registered hull ray") - 38.137535).abs() < 0.02);
+        assert!(
+            stopped.distance(desired) > 1.,
+            "capsule crossed root: {stopped:?}"
+        );
+        assert!(stopped.z > feet.z, "capsule made no approach: {stopped:?}");
+        app.world_mut().despawn(root);
+        app.update();
+        let (ray, clear) = check(&mut app);
+        assert!(ray.is_none());
+        assert!(
+            clear.distance(desired) < 0.02,
+            "removed root still blocks: {clear:?}"
+        );
+        app.world_mut()
+            .spawn((RigidBody::Static, collider, Transform::default()));
+        app.update();
+        let (ray, reloaded) = check(&mut app);
+        assert!(ray.is_some());
+        assert!(
+            reloaded.distance(stopped) < 0.02,
+            "reloaded hull changed contact"
+        );
+    }
+
+    #[test]
     fn placed_ungoro_tree_keeps_candidate_clear_and_blocks_the_hull_crossing() {
         use benilla_assets::coords::{placement_rotation, wow_to_bevy};
         let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {

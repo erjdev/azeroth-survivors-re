@@ -70,6 +70,12 @@ The zone remains world-locked while arena validation continues.
 
 [King Mosh item detail](docs/images/screenshots/2026-10-25-ungoro-drops/final-item-720.png)
 
+Feralas candidate: a terrain-supported forest corridor with nearby root and tree hulls.
+This free-camera preview establishes rendered geometry, not gameplay-camera or traversal
+acceptance; the zone remains locked.
+
+![Feralas candidate world preview at 720p](docs/images/screenshots/2026-10-25-feralas-candidate/world-preview-720.png)
+
 Collection content milestone: the uncommon armor row now has real item identities for
 all nine classes. Hunter item details and pending-source messaging were checked at
 1280×720 and 1024×720. Slot headings are centered and separated at both sizes.

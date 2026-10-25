@@ -435,3 +435,33 @@ Rare cells resolve for every class. No vanilla loot or creature AI is imported.
 The map is appended to preserve saved map indices. Feralas remains `ready: false` and
 reports world content is not ready, even on a fully progressed account. Prop collision,
 camera, traversal, streaming, combat pacing, live rewards and screenshots remain open.
+
+### Feralas candidate prop and visual inspection — 2026-10-25
+
+The [1280×720 world preview](images/screenshots/2026-10-25-feralas-candidate/world-preview-720.png)
+uses `WOW_MAP=1`, `WOW_WORLDVIEW_AT=-4200,-133.828,55.827` and isolated preview state.
+The initial free-camera view shows supported ground through a forest corridor, large
+trunks and canopy at the sides, and surface roots. It is not a Survivors follow-camera
+or actor traversal test. The viewer was closed and the validation launcher restored.
+
+The 200-yard-origin doodad probe finds these nearby authored collision hulls:
+
+| Placement | Model suffix | Origin distance | Horizontal AABB distance | Hull triangles |
+| --- | --- | --- | --- | --- |
+| 245514 | feralastreeroots01.mdx | 25.1 | 13.581 | 78 |
+| 244410 | feralastree03.mdx | 47.5 | 27.238 | 30 |
+| 245518 | kalidarbush02.mdx | 35.4 | 28.674 | 4 |
+| 244159 | feralastree04.mdx | 81.5 | 28.954 | 369 |
+| 245516 | feralastreeroots02.mdx | 45.4 | 32.800 | 60 |
+| 245515 | feralastreeroots02.mdx | 39.6 | 37.100 | 60 |
+
+AABBs are conservative bounds, not occupancy. The large tree with an origin outside
+the arena still overlaps its footprint: an origin-only clearance rule is insufficient.
+At the candidate height, the negative-WoW-X source ray hits root 245515 at 38.137535 yards.
+Its placement is `[-4239.0977,-127.80469,53.789024]`, rotation `[-2,282.7598,-21]`,
+scale `0.5839844`. Other cardinal rays find no hull within 120 yards in positive X/Y,
+and a negative-Y hit at 76.98257 yards. These are one-sided rays, not capsule or route proofs.
+
+Grounded root traversal, streamed collider registration, complete arena connectivity,
+camera push-in/cutaway and live enemy movement remain acceptance requirements. The
+terrain-only screen is insufficient to open Feralas.

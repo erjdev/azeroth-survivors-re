@@ -1902,3 +1902,23 @@ Clippy, formatting and render-pass lint pass. The rebuilt content audit resolves
 Feralas creature model files and agrees on its 55.83 start/terrain height, but exits with
 476 overall gaps: five absent maps, two missing schedules, Naxxramas floor validation,
 and 26 unnamed plus 26 unsourced cells per class. This is not a green full-content gate.
+
+### Feralas rendered candidate and root collision — 2026-10-25
+
+The initial 1280×720 free-camera view confirms a forest corridor with visible roots and
+large nearby trunks/canopy. A screenshot is linked from the README. The doodad survey
+identifies nearby root/tree hulls, including a large tree whose origin is outside the
+arena but whose bounds overlap it. Details and exact placements are recorded in
+[locations](SURVIVORS-LOCATIONS.md#feralas-candidate-prop-and-visual-inspection--2026-10-25).
+
+The new placed-root regression loads actual ADT placement 245515 and its 60-triangle hull,
+applies the real rotation/scale, and reproduces the negative-WoW-X source ray. Capsule
+sweeps, explicit collider removal and re-registration test collision lifecycle in isolation
+from terrain. This does not cover stream-driven registration or grounded traversal.
+No readiness flag changed; the next acceptance work remains grounded actors, routes,
+gameplay camera visibility and live Feralas fights/rewards.
+
+Validation: workspace test compilation 2 minutes 6 seconds; all 120 Survivors app tests
+with explicit checkout data pass, including the placed Feralas root. Workspace Clippy,
+formatting, render-pass lint and diff whitespace checks pass. The preview used the prior
+verified native build; this checkpoint changes tests and evidence, not runtime behavior.

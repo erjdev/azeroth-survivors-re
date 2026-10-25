@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Feralas geometry checkpoint
+
+Added a [candidate world view](images/screenshots/2026-10-25-feralas-candidate/world-preview-720.png)
+to the README and identified nearby root/tree collision hulls. A placed-root regression
+covers capsule contact and collider removal/reload. Grounded traversal, gameplay camera
+behavior and live encounters remain open; Feralas stays locked.
+All 120 Survivors app tests with checkout data, workspace Clippy, formatting and
+render-pass lint pass.
+
 ## 2026-10-25 — Feralas world and encounter foundation
 
 Added a provisional Feralas arena, 15 verified enemy identities and nine timed bosses.
