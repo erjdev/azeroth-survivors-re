@@ -48,10 +48,12 @@ look remains independent of its instinct; narrow layout and restart persistence 
 
 ![Companion appearance tiles](docs/images/screenshots/2026-10-25-companion-looks/second-squirrel-1280.jpg)
 
-The Companion catalog now has eleven looks. New accounts unlock Westfall Chicken
-with Veteran; existing saves retain access. Panda Cub and Sapphiron remain pending.
+The Companion catalog now lists thirteen looks. New accounts unlock Westfall Chicken
+with Veteran; existing saves retain access. Panda Cub and Sapphiron are locked behind
+**Deathless Hour** and **no u**.
+These achievements are visible placeholders; their criteria will be defined later.
 
-![Expanded Companion catalog](docs/images/screenshots/2026-10-25-companion-catalog/catalog-1280.jpg)
+![Companion catalog with placeholder achievement gates](docs/images/screenshots/2026-10-25-placeholder-feats/locked-looks-1280.jpg)
 
 Rewards purchases now preview before **Confirm**, with **Undo** to discard pending
 changes. Confirmed purchases persist; unconfirmed choices are discarded on app close.

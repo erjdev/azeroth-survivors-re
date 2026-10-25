@@ -24,9 +24,10 @@ before applying it; Undo discards the batch. Navigation retains pending choices,
 run entry requires Confirm/Undo, and closing the app discards unconfirmed choices.
 Cosmetic selections remain immediate. Per-card removal controls remain open.
 
-User clarification: add Deathless Hour and no u as visible placeholder achievements
-with no satisfiable criterion. Panda Cub and Sapphiron remain locked behind those
-entries until future criteria are implemented; do not infer rules from the names.
+User clarification implemented: Deathless Hour and no u are visible placeholder
+achievements with no satisfiable criterion or points. Panda Cub and Sapphiron remain
+locked behind those entries until future criteria are implemented; rules are not
+inferred from their names.
 
 
 Rewards scroll checkpoint: session offsets are tracked independently for the three
@@ -3352,3 +3353,20 @@ are embedded in CHANGELOG and README. Tests cover reset preview/Undo, atomic sta
 batch rejection, preserved intervening changes, insufficient points and duplicate
 confirmation. 177 Survivors tests, native build, workspace test compilation, Clippy,
 formatting and render-pass lint pass. Per-card minus controls remain open.
+
+### Placeholder achievement gates — 2026-10-25
+
+Per the user's clarification, Deathless Hour (54) and no u (55) are visible under
+Feats with “Criteria pending”, no progress target, no points and an always-false
+completion predicate. Saved IDs cannot turn placeholders into earned achievements
+or selectable looks. Existing achievement IDs and look indices are unchanged.
+Panda Cub (look 11, display 10990) and Sapphiron (look 12, display 16033) extend the
+catalog; their tiles name the unavailable achievements. Icons and models resolve
+from the local 1.12.1 patch chain. Sapphiron uses the FrostWurm boss display mapping;
+companion-scale and animation validation are required before enabling its future gate.
+
+Live checks verified both placeholder looks refuse selection, Feats lists both as
+criteria pending, and all thirteen tiles fit after 640×720 reflow. Three inline
+captures accompany the changelog. 97 core tests and 178 Survivors app tests pass,
+as do the native build, workspace test compilation, Clippy, formatting and
+render-pass lint. Achievement-page typography/layout remains a separate UI task.

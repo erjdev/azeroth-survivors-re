@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Placeholder feats and locked Companion looks
+
+Added **Deathless Hour** and **no u** under Feats, marked “Criteria pending”. As
+requested, neither can currently be earned or award points. Panda Cub and Sapphiron
+now appear in the [reference's Companion catalog](intentions/survivors_rewards_tab_companions.png),
+locked behind those entries. Existing saves and selection indices remain compatible.
+
+![Placeholder achievements under Feats](images/screenshots/2026-10-25-placeholder-feats/feats-1280.jpg)
+
+![Panda Cub and Sapphiron remain locked](images/screenshots/2026-10-25-placeholder-feats/locked-looks-1280.jpg)
+
+![All thirteen looks reflow at 640×720](images/screenshots/2026-10-25-placeholder-feats/locked-looks-640.jpg)
+
+Live checks confirmed both locked tiles reject selection. Model/icon mappings resolve
+from local data; Sapphiron's companion scale and animations still need validation
+before its future unlock can be enabled. Achievement-page styling remains unfinished.
+Validation: 97 core tests, 178 Survivors app tests, native build, workspace test
+compilation, Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Confirm and Undo reward purchases
 
 Perk/Companion purchases and perk resets now preview together, following the

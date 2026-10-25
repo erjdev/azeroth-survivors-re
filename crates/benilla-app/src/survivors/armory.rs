@@ -1864,17 +1864,23 @@ fn achievements(
                             .progress
                             .map(|(have, need)| format!("  {have}/{need}"))
                             .unwrap_or_default();
-                        let (mark, color) = if entry.earned {
+                        let (mark, color) = if !entry.available {
+                            ("Criteria pending", DIM)
+                        } else if entry.earned {
                             ("Earned", GOLD)
                         } else {
                             ("Open", Color::WHITE)
                         };
                         body.spawn(hud::text_bundle(
                             font,
-                            format!(
-                                "{mark} — {} — {} points{progress}",
-                                entry.name, entry.points
-                            ),
+                            if entry.available {
+                                format!(
+                                    "{mark} — {} — {} points{progress}",
+                                    entry.name, entry.points
+                                )
+                            } else {
+                                format!("{mark} — {}", entry.name)
+                            },
                             13.0,
                             color,
                         ));

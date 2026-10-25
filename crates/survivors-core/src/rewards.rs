@@ -253,7 +253,11 @@ pub enum Category {
     Lifetime,
 }
 
+pub const DEATHLESS_HOUR: u16 = 54;
+pub const NO_U: u16 = 55;
+
 enum Kind {
+    Placeholder,
     ZoneAny(usize),
     ZoneAll(usize),
     ClassClear(usize),
@@ -278,6 +282,7 @@ struct Achievement {
 impl Kind {
     fn met(&self, snap: &Snapshot) -> bool {
         match *self {
+            Kind::Placeholder => false,
             Kind::ZoneAny(z) => snap
                 .clears
                 .iter()
@@ -307,7 +312,9 @@ impl Kind {
             Kind::ZoneAny(_) | Kind::ZoneAll(_) => Category::Zones,
             Kind::ClassClear(_) | Kind::TalentCap(_) => Category::Classes,
             Kind::Pieces(_) | Kind::FullSet | Kind::Legends(_) => Category::Collection,
-            Kind::AnyCloak | Kind::EpicCloak | Kind::LegendaryCloak => Category::Feats,
+            Kind::AnyCloak | Kind::EpicCloak | Kind::LegendaryCloak | Kind::Placeholder => {
+                Category::Feats
+            }
             Kind::Wins(_) | Kind::Runs(_) => Category::Lifetime,
         }
     }
@@ -439,7 +446,22 @@ fn catalog() -> Vec<Achievement> {
         points: 15,
         kind: Kind::Runs(100),
     });
+    for (id, name) in [(DEATHLESS_HOUR, "Deathless Hour"), (NO_U, "no u")] {
+        out.push(Achievement {
+            id,
+            name: name.into(),
+            points: 0,
+            kind: Kind::Placeholder,
+        });
+    }
     out
+}
+
+/// Placeholder achievements cannot grant rewards, including from preexisting save IDs.
+pub fn available(id: u16) -> bool {
+    catalog()
+        .iter()
+        .any(|a| a.id == id && !matches!(a.kind, Kind::Placeholder))
 }
 
 /// Achievements newly met. Already-paid ids are skipped, so a second pass pays nothing.
@@ -463,7 +485,10 @@ pub fn earned_count(earned: &[u16]) -> usize {
     let cat = catalog();
     earned
         .iter()
-        .filter(|id| cat.iter().any(|a| a.id == **id))
+        .filter(|id| {
+            cat.iter()
+                .any(|a| a.id == **id && !matches!(a.kind, Kind::Placeholder))
+        })
         .count()
 }
 
@@ -476,6 +501,7 @@ pub struct Listed {
     pub name: String,
     pub points: u32,
     pub earned: bool,
+    pub available: bool,
     pub category: Category,
     pub progress: Option<(u32, u32)>,
 }
@@ -486,7 +512,9 @@ pub fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
         .into_iter()
         .map(|a| Listed {
             id: a.id,
-            earned: earned.contains(&a.id) || a.kind.met(snapshot),
+            earned: !matches!(a.kind, Kind::Placeholder)
+                && (earned.contains(&a.id) || a.kind.met(snapshot)),
+            available: !matches!(a.kind, Kind::Placeholder),
             points: a.points,
             name: a.name,
             category: a.kind.category(),
@@ -499,13 +527,42 @@ pub fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
 pub fn next_locked(snapshot: &Snapshot, earned: &[u16]) -> Option<String> {
     catalog()
         .into_iter()
-        .find(|a| !earned.contains(&a.id) && !a.kind.met(snapshot))
+        .find(|a| {
+            !matches!(a.kind, Kind::Placeholder) && !earned.contains(&a.id) && !a.kind.met(snapshot)
+        })
         .map(|a| format!("{} — {} points", a.name, a.points))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn planned_achievements_never_complete_or_award_points() {
+        let snap = Snapshot {
+            runs: u32::MAX,
+            wins: u32::MAX,
+            legendary_cloak: true,
+            ..Snapshot::default()
+        };
+        let ids = [DEATHLESS_HOUR, NO_U];
+        for id in ids {
+            assert!(!available(id));
+            assert!(!fresh(&snap, &[]).iter().any(|(found, _)| *found == id));
+            let row = listed(&snap, &ids)
+                .into_iter()
+                .find(|row| row.id == id)
+                .unwrap();
+            assert!(!row.earned);
+            assert!(!row.available);
+            assert_eq!(row.progress, None);
+        }
+        assert_eq!(points_of(&ids), 0);
+        assert_eq!(earned_count(&ids), 0);
+        let catalog = catalog();
+        let mut unique = std::collections::HashSet::new();
+        assert!(catalog.iter().all(|entry| unique.insert(entry.id)));
+    }
 
     #[test]
     fn previews_show_next_effect_once_and_stop_at_the_cap() {

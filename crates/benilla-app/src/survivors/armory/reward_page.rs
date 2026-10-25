@@ -382,7 +382,7 @@ pub(super) fn looks(
                             } else if unlocked {
                                 "Wear"
                             } else {
-                                "Veteran · 100 runs"
+                                look.locked_label
                             },
                             12.0,
                             if selected {

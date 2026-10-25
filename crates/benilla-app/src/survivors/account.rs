@@ -762,8 +762,13 @@ impl Account {
     }
 
     pub fn look_unlocked(&self, look: u8) -> bool {
-        usize::from(look) < super::companions::LOOKS.len()
-            && (look != 2 || self.pets.legacy_chicken || self.earned.contains(&65))
+        let Some(entry) = super::companions::LOOKS.get(usize::from(look)) else {
+            return false;
+        };
+        (look == 2 && self.pets.legacy_chicken)
+            || entry
+                .achievement
+                .is_none_or(|id| rewards::available(id) && self.earned.contains(&id))
     }
 
     /// Wear one of the checked critter looks. An unknown index leaves the slot as it was.
@@ -2331,6 +2336,22 @@ pets 2 3 1 1 2 0 1
         assert_eq!(poor.unspent(), 0);
         poor.pets.owned = 0;
         assert_eq!(poor.instinct_target(), None);
+    }
+
+    #[test]
+    fn placeholder_companion_looks_stay_locked_even_with_saved_achievement_ids() {
+        let mut account = empty();
+        account
+            .earned
+            .extend([rewards::DEATHLESS_HOUR, rewards::NO_U]);
+        for look in [11, 12] {
+            assert!(!account.look_unlocked(look));
+            account.wear_look(0, look);
+            assert_eq!(account.pets.look[0], 0);
+        }
+        let restored = parse(&encode(&account)).unwrap();
+        assert!(!restored.look_unlocked(11));
+        assert!(!restored.look_unlocked(12));
     }
 
     #[test]
