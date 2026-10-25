@@ -61,8 +61,9 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 
 [Warrior talent-effect milestone at 720p](docs/images/screenshots/2026-10-24-warrior-talents/talents-720.jpg).
 Twelve Warrior nodes plus the
-[Arms](docs/images/screenshots/2026-10-24-warrior-talents/arms-milestones-720.jpg) and
-[Fury](docs/images/screenshots/2026-10-24-warrior-talents/fury-milestones-720.jpg) milestones
+[Arms](docs/images/screenshots/2026-10-24-warrior-talents/arms-milestones-720.jpg),
+[Fury](docs/images/screenshots/2026-10-24-warrior-talents/fury-milestones-720.jpg) and
+[Protection](docs/images/screenshots/2026-10-24-warrior-talents/protection-milestones-720.jpg) milestones
 have implemented effects; the complete class talent pass remains underway.
 
 

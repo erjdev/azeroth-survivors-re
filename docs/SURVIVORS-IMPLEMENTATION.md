@@ -351,7 +351,7 @@ active bleed. Ticks cannot crit or recursively apply the bleed; they retain the 
 DoT multistrike/leech rules and appear under Deep Wounds in the damage meter. The six-effect
 DoT cap still applies. Damage-over-time now processes every due whole-second tick within
 its remaining duration, including the final tick across a long frame; it never ticks beyond
-expiry. Individual Deep Wounds node ranks and the Fury/Protection milestones remain pending.
+expiry. Individual Deep Wounds node ranks and the Fury/Protection milestones are specified below.
 These coefficients are provisional Survivors balance, not original MMO behavior.
 
 Warrior Fury milestones use these explicit Survivors conversions:
@@ -368,7 +368,23 @@ its incoming penalty multiplies raw damage before normal mitigation and shield a
 while immunity still prevents damage. Other reflection buffs do not trigger the penalty.
 Bloodthirst heals per cast, not per target, echo, or kill; Execute still needs a valid target.
 Individual talent ranks and the existing baseline tree bonuses compose with these effects.
-Protection milestones remain pending.
+Protection milestones are specified below.
+
+Warrior Protection milestones use these explicit Survivors conversions:
+
+| Points | Milestone | Behavior |
+| --- | --- | --- |
+| 10 | Last Stand | A successful Retaliation cast heals 10% maximum health once, capped at full health |
+| 20 | Concussion Blow | Heroic Strike stuns each struck target for one second; bosses for 0.3 seconds |
+| 30 | Shield Slam | A successful Heroic Strike cast grants an absorb of 3% maximum health for three seconds, once per cast |
+
+Concussion Blow preserves a longer existing stun. Shield Slam does not multiply with target
+count or stack absorption. It replenishes an equal/weaker active shield or replaces an
+expired shield; it neither weakens nor extends a stronger active shield. Normal shield
+absorption and the HUD use the same existing shield state. Last Stand composes with Fury's
+Retaliation damage/risk. All nine Warrior milestone behaviors are implemented, but full
+manual build validation and remaining individual talent effects are still required.
+Coefficients are provisional Survivors balance rather than original MMO behavior.
 
 Paladin milestone balance uses the following explicit Survivors behavior. These are custom
 survival-mode effects, not claims about the original MMO spells. Existing per-point/stat
@@ -810,3 +826,13 @@ healing caps, absorption, immunity, expiry and an unrelated reflection buff.
 Native build, workspace test compilation, 83 Survivors tests and 49 core tests pass.
 Live 720p validation confirms the Death Wish benefit and penalty remain readable; the
 changelog links the screenshot. Full manual Fury combat validation remains outstanding.
+
+
+### Protection milestone checkpoint — 2026-10-24
+
+Last Stand, Concussion Blow and Shield Slam now use shared cast, hit and absorption paths.
+Core tests cover thresholds, class isolation, boss duration and mixed Fury/Protection
+allocation. App tests cover capped healing, extra-target cast parameters, shield refresh,
+absorption and preservation of stronger defenses. Native build, workspace test compilation,
+84 Survivors tests and 50 core tests pass. Live Shield Slam details fit at 720p; the changelog
+links the screenshot. Full manual Protection combat validation remains outstanding.

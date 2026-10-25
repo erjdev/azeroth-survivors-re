@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Protection milestones
+
+Last Stand heals on Retaliation, Concussion Blow adds a brief Heroic Strike stun, and
+Shield Slam grants a small absorb once per Heroic Strike cast. Healing caps at maximum
+health; absorbs do not stack or refresh a stronger shield. All nine Warrior milestone
+behaviors are implemented; remaining talents and manual combat validation are unfinished.
+
+[Protection details at 720p](images/screenshots/2026-10-24-warrior-talents/protection-milestones-720.jpg).
+**Validation:** native build, workspace test compilation, 84 Survivors tests and 50 core
+tests pass. Live 720p description verified. Coefficients remain provisional.
+
 ## 2026-10-24 — Fury milestones
 
 Piercing Howl adds a slow to Demoralizing Shout. Death Wish boosts Retaliation with an

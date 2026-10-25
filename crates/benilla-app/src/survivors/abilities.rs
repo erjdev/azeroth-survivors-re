@@ -596,6 +596,12 @@ fn finish_milestone_cast(
 ) -> f32 {
     let healed = (max_hp * effect.heal_fraction).min((max_hp - run.hp).max(0.0));
     run.hp += healed;
+    let absorb = max_hp * effect.shield_fraction;
+    if absorb > 0.0 && (run.shield_t <= 0.0 || absorb >= run.shield) {
+        // Refresh this small absorb without stacking or extending a stronger existing shield.
+        run.shield = absorb;
+        run.shield_t = effect.shield_seconds;
+    }
     if effect.wrath_advance > 0.0 {
         for owned in &mut run.abilities {
             if owned.def.key == "hammer_of_wrath" {
@@ -894,6 +900,7 @@ pub(super) fn apply_hits(
             });
         }
         let boss = en.boss;
+        en.stun_t = en.stun_t.max(run.milestones.secondary_stun(h.source, boss));
         if let Some((speed, duration)) = run.milestones.secondary_slow(h.source, boss) {
             en.slow = if en.slow_t > 0.0 {
                 en.slow.min(speed)
@@ -981,6 +988,47 @@ mod milestone_tests {
     use super::*;
     use crate::survivors::{campaign, data, Owned, Stats};
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn protection_healing_and_shields_apply_once_and_preserve_stronger_defenses() {
+        let mut run = Run::default();
+        run.milestones = Milestones {
+            class: 0,
+            points: [0, 0, 30],
+            ..Default::default()
+        };
+        let last_stand = run.milestones.cast("retaliation");
+        run.hp = 50.0;
+        assert_eq!(finish_milestone_cast(&mut run, last_stand, 100.0), 10.0);
+        run.hp = 99.0;
+        assert_eq!(finish_milestone_cast(&mut run, last_stand, 100.0), 1.0);
+        assert_eq!(finish_milestone_cast(&mut run, last_stand, 100.0), 0.0);
+
+        let shield_slam = run.milestones.cast("heroic_strike");
+        let mut stats = run.stats();
+        stats.targets = 10;
+        let owned = Owned {
+            def: data::ability("heroic_strike"),
+            level: 1,
+            cd: 0.0,
+        };
+        assert!(Params::new(&owned, &stats, run.milestones).count > 1);
+        finish_milestone_cast(&mut run, shield_slam, 100.0);
+        assert_eq!(run.shield, 3.0);
+        assert_eq!(run.shield_t, 3.0);
+        finish_milestone_cast(&mut run, shield_slam, 100.0);
+        assert_eq!(run.shield, 3.0, "no stacking");
+        let expected = super::super::sheet::mitigate(10.0, stats.armor, stats.reduction) - 3.0;
+        assert!((hero::hurt_hero(&mut run, 10.0) - expected).abs() < 0.00001);
+        assert_eq!(run.shield, 0.0);
+        run.shield = 20.0;
+        run.shield_t = 1.0;
+        finish_milestone_cast(&mut run, shield_slam, 100.0);
+        assert_eq!((run.shield, run.shield_t), (20.0, 1.0));
+        run.shield_t = 0.0;
+        finish_milestone_cast(&mut run, shield_slam, 100.0);
+        assert_eq!((run.shield, run.shield_t), (3.0, 3.0));
+    }
 
     #[test]
     fn fury_casts_and_damage_tradeoff_reach_combat() {

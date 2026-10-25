@@ -56,6 +56,8 @@ pub struct CastEffect {
     pub crit: f32,
     pub extra_targets: usize,
     pub heal_fraction: f32,
+    pub shield_fraction: f32,
+    pub shield_seconds: f32,
     pub wrath_advance: f32,
     pub storm_fraction: f32,
 }
@@ -70,6 +72,8 @@ impl Default for CastEffect {
             crit: 0.0,
             extra_targets: 0,
             heal_fraction: 0.0,
+            shield_fraction: 0.0,
+            shield_seconds: 0.0,
             wrath_advance: 0.0,
             storm_fraction: 0.0,
         }
@@ -92,8 +96,17 @@ impl Milestones {
     pub fn cast(self, key: &str) -> CastEffect {
         let mut effect = CastEffect::default();
         match key {
-            "retaliation" if self.class == 0 && self.points[1] >= 20 => {
-                effect.damage = 1.30;
+            "retaliation" if self.class == 0 => {
+                if self.points[1] >= 20 {
+                    effect.damage = 1.30;
+                }
+                if self.points[2] >= 10 {
+                    effect.heal_fraction = 0.10;
+                }
+            }
+            "heroic_strike" if self.class == 0 && self.points[2] >= 30 => {
+                effect.shield_fraction = 0.03;
+                effect.shield_seconds = 3.0;
             }
             "execute" if self.class == 0 && self.points[1] >= 30 => {
                 effect.heal_fraction = 0.03;
@@ -160,6 +173,18 @@ impl Milestones {
             .then_some((if boss { 0.75 } else { 0.5 }, 3.0))
     }
 
+    pub fn secondary_stun(self, key: &str, boss: bool) -> f32 {
+        if self.class == 0 && self.points[2] >= 20 && key == "heroic_strike" {
+            if boss {
+                0.3
+            } else {
+                1.0
+            }
+        } else {
+            0.0
+        }
+    }
+
     /// Death Wish's risk applies only during the actual Retaliation buff.
     pub fn retaliation_risk(self, active: bool) -> f32 {
         if self.class == 0 && self.points[1] >= 20 && active {
@@ -205,6 +230,9 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
             (1, 10) => Some("Demoralizing Shout also slows enemies by 50% for 3 seconds (bosses: 25%)"),
             (1, 20) => Some("Retaliation: +30% reflected damage; take 10% more damage while active"),
             (1, 30) => Some("Execute heals 3% maximum health once per successful cast"),
+            (2, 10) => Some("Retaliation heals 10% maximum health once per successful cast"),
+            (2, 20) => Some("Heroic Strike stuns for 1 second (bosses: 0.3 seconds)"),
+            (2, 30) => Some("Heroic Strike grants a 3% maximum-health absorb for 3 seconds, once per cast; does not stack"),
             _ => None,
         };
     }
@@ -272,6 +300,38 @@ mod tests {
         nodes[2].rank = 0;
         nodes[0].rank = 4;
         assert!(valid_tree(&nodes));
+    }
+
+    #[test]
+    fn protection_thresholds_and_foreign_classes_are_isolated() {
+        let at = |points| Milestones {
+            class: 0,
+            points: [0, 0, points],
+            ..Default::default()
+        };
+        assert_eq!(at(9).cast("retaliation").heal_fraction, 0.0);
+        assert_eq!(at(10).cast("retaliation").heal_fraction, 0.1);
+        assert_eq!(at(19).secondary_stun("heroic_strike", false), 0.0);
+        assert_eq!(at(20).secondary_stun("heroic_strike", false), 1.0);
+        assert_eq!(at(20).secondary_stun("heroic_strike", true), 0.3);
+        assert_eq!(at(30).secondary_stun("cleave", false), 0.0);
+        assert_eq!(at(29).cast("heroic_strike").shield_fraction, 0.0);
+        assert_eq!(at(30).cast("heroic_strike").shield_fraction, 0.03);
+        assert_eq!(at(30).cast("heroic_strike").shield_seconds, 3.0);
+        assert_eq!(at(30).cast("cleave").shield_fraction, 0.0);
+        let other = Milestones { class: 1, ..at(30) };
+        assert_eq!(other.cast("retaliation"), CastEffect::default());
+        assert_eq!(other.cast("heroic_strike"), CastEffect::default());
+        assert_eq!(other.secondary_stun("heroic_strike", false), 0.0);
+        let mixed = Milestones {
+            points: [0, 20, 10],
+            ..at(0)
+        };
+        assert_eq!(mixed.cast("retaliation").damage, 1.3);
+        assert_eq!(mixed.cast("retaliation").heal_fraction, 0.1);
+        for threshold in [10, 20, 30] {
+            assert!(description(0, 2, threshold).is_some());
+        }
     }
 
     #[test]
