@@ -1184,3 +1184,19 @@ remain open.
 
 Validation: native build, workspace test compilation, 56 core tests, 99 focused Survivors
 tests and the local talent-data audit pass. Full workspace gates were not rerun.
+
+
+### Reactive talent HUD checkpoint — 2026-10-24
+
+The green status area beneath the clock now lists Enrage damage, Flurry haste and Blood
+Craze healing rate with their remaining seconds. Multiple active talents occupy separate
+lines, with no text for inactive, expired or untrained effects or a dead hero. Blood Craze
+shows percent maximum health per second, matching its six-second healing calculation.
+This extends the existing text HUD; dedicated buff icons/artwork remain open.
+
+Native build, workspace test compilation and 100 focused Survivors tests pass. Live
+1280×720 checks with an isolated 30-point Fury spec confirmed all three lines during a
+level-up pause, Blood Craze alone during combat, Flurry alone during combat, and clearing
+after expiry. README/changelog link gameplay captures of Flurry and the cleared HUD.
+The overlay dims underlying HUD text as before. Larger/smaller viewport acceptance and
+full manual combat validation remain open; the launch wrapper was restored after closing.

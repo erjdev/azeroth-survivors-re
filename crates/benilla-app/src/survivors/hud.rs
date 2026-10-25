@@ -51,7 +51,7 @@ pub(super) struct LevelText;
 #[derive(Component)]
 pub(super) struct TimerText;
 #[derive(Component)]
-pub(super) struct EnrageText;
+pub(super) struct ReactiveBuffText;
 #[derive(Component)]
 pub(super) struct KillText;
 #[derive(Component)]
@@ -583,7 +583,7 @@ pub(super) fn setup_hud(
                         line.spawn((LevelText, text(f, "Level 1", 14.0, GOLD)));
                         line.spawn((KillText, text(f, "Kills 0", 14.0, Color::WHITE)));
                     });
-                    col.spawn((EnrageText, centered(f, "", 14.0, card_growth::GAIN)));
+                    col.spawn((ReactiveBuffText, centered(f, "", 14.0, card_growth::GAIN)));
                 });
                 // The minimap cluster's column.
                 row.spawn(Node {
@@ -1783,16 +1783,14 @@ pub(super) fn describe_card(
 ) -> CardText {
     let new = Color::srgb(0.3, 1.0, 0.3);
     match choice {
-        Choice::NewAbility(def) => {
-            CardText {
-                spell: def.spell,
-                name: spell_name(spells, def.spell, def.key),
-                tag: "New spell".into(),
-                tag_color: new,
-                intro: String::new(),
-                ranks: Some((0, data::MAX_ABILITY_LEVEL)),
-            }
-        }
+        Choice::NewAbility(def) => CardText {
+            spell: def.spell,
+            name: spell_name(spells, def.spell, def.key),
+            tag: "New spell".into(),
+            tag_color: new,
+            intro: String::new(),
+            ranks: Some((0, data::MAX_ABILITY_LEVEL)),
+        },
         Choice::Upgrade(k) => {
             let o = &run.abilities[k];
             let next = o.level + 1;
@@ -1894,16 +1892,68 @@ fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
     }
 }
 
-fn enrage_status(run: &Run) -> String {
-    let bonus = run.milestones.enrage_damage(run.enrage_t > 0.0) - 1.0;
-    if bonus <= 0.0 || run.dead_t.is_some() || run.hp <= 0.0 {
-        String::new()
-    } else {
-        format!(
+fn reactive_buff_status(run: &Run) -> String {
+    if run.dead_t.is_some() || run.hp <= 0.0 {
+        return String::new();
+    }
+    let mut active = Vec::new();
+    let enrage = run.milestones.enrage_damage(run.enrage_t > 0.0) - 1.0;
+    if enrage > 0.0 {
+        active.push(format!(
             "Enrage +{:.0}% damage ({:.0}s)",
-            bonus * 100.0,
+            enrage * 100.0,
             run.enrage_t.ceil()
-        )
+        ));
+    }
+    let flurry = run.milestones.flurry_haste(run.flurry_t > 0.0);
+    if flurry > 0.0 {
+        active.push(format!(
+            "Flurry +{:.0}% haste ({:.0}s)",
+            flurry * 100.0,
+            run.flurry_t.ceil()
+        ));
+    }
+    let healing = run.milestones.blood_craze_fraction();
+    if healing > 0.0 && run.blood_craze_t > 0.0 {
+        active.push(format!(
+            "Blood Craze +{:.2}% health/sec ({:.0}s)",
+            healing * 100.0 / 6.0,
+            run.blood_craze_t.ceil()
+        ));
+    }
+    active.join("\n")
+}
+
+#[cfg(test)]
+mod reactive_buff_tests {
+    use super::*;
+
+    #[test]
+    fn active_talents_show_effects_and_remaining_seconds_only_while_alive() {
+        let mut run = Run::default();
+        run.milestones = survivors_core::talents::Milestones::default().with_ranks(&[
+            (1, 155, 5),
+            (1, 156, 5),
+            (1, 661, 3),
+        ]);
+        assert!(reactive_buff_status(&run).is_empty());
+        run.enrage_t = 3.2;
+        run.flurry_t = 2.1;
+        run.blood_craze_t = 5.1;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Enrage +20% damage (4s)\nFlurry +25% haste (3s)\nBlood Craze +0.50% health/sec (6s)"
+        );
+        run.flurry_t = 0.;
+        assert!(!reactive_buff_status(&run).contains("Flurry"));
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 10.;
+        run.dead_t = Some(0.);
+        assert!(reactive_buff_status(&run).is_empty());
+        run.dead_t = None;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
     }
 }
 
@@ -1925,7 +1975,7 @@ pub(super) fn refresh_hud(
         Query<&mut Text, With<OverTitle>>,
         Query<&mut Text, With<OverStats>>,
         Query<&mut Text, With<XpText>>,
-        Query<&mut Text, With<EnrageText>>,
+        Query<&mut Text, With<ReactiveBuffText>>,
     )>,
     mut xp_fill: Query<&mut Node, With<XpFill>>,
     rows: Query<(Entity, Has<AbilityRow>), Or<(With<AbilityRow>, With<PassiveRow>)>>,
@@ -1950,7 +2000,7 @@ pub(super) fn refresh_hud(
         **t = format!("{:02}:{:02}", secs / 60, secs % 60);
     }
     if let Ok(mut text) = texts.p7().single_mut() {
-        let next = enrage_status(&run);
+        let next = reactive_buff_status(&run);
         if text.0 != next {
             text.0 = next;
         }
@@ -2433,7 +2483,10 @@ fn cast_at(
 
 /// Plain tooltips share the card's prose and effective values.
 fn ability_body(def: &AbilityDef, c: &Cast) -> String {
-    inline::ability(def, c, c).into_iter().map(|(text, _)| text).collect()
+    inline::ability(def, c, c)
+        .into_iter()
+        .map(|(text, _)| text)
+        .collect()
 }
 
 /// What the next rank changes, at the current stats.

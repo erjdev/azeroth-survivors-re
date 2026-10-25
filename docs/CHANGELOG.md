@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Reactive talent HUD
+
+Enrage, Flurry and Blood Craze now show green effect values and remaining seconds beneath
+the clock. Lines disappear on expiry or death. Live 720p checks verified activation,
+multiple active effects and clearing; screenshots show [active Flurry](images/screenshots/2026-10-24-reactive-buffs/flurry-720.jpg)
+and the [cleared HUD](images/screenshots/2026-10-24-reactive-buffs/expired-720.jpg).
+
+Native build, workspace test compilation and 100 focused Survivors tests pass. Dedicated
+buff icons, broader viewport checks and full combat acceptance remain open.
+
 ## 2026-10-24 — Flurry training
 
 Direct Warrior criticals can now trigger a three-second Flurry haste bonus. Further

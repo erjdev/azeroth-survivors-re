@@ -69,6 +69,8 @@ have implemented effects; the complete class talent pass remains underway.
 
 [Piercing Howl node](docs/images/screenshots/2026-10-24-warrior-talents/piercing-howl-node-720.jpg) · [Concussion Blow node](docs/images/screenshots/2026-10-24-warrior-talents/concussion-blow-node-720.jpg).
 
+Reactive talent status: [active Flurry at 720p](docs/images/screenshots/2026-10-24-reactive-buffs/flurry-720.jpg) · [cleared after expiry](docs/images/screenshots/2026-10-24-reactive-buffs/expired-720.jpg). Enrage, Flurry and Blood Craze show their effect values and remaining seconds; dedicated icons remain pending.
+
 [Active Enrage HUD at 720p](docs/images/screenshots/2026-10-24-warrior-talents/enrage-hud-720.jpg): green damage bonus and remaining seconds, verified through front-door entry with a trained Fury spec.
 [Trained shout card](docs/images/screenshots/2026-10-24-warrior-talents/trained-shout-card-720.jpg): current duration and green next-rank comparison include the selected talents.
 
