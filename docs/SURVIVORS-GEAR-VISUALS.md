@@ -58,10 +58,9 @@ templates above, selected by `itemset` and mapped by `InventoryType` to the eigh
 slots (robe type 20 occupies chest). The checked-in identity table is
 `crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
 
-Each class now has 19 named collection cells; 35 are still unnamed. Six uncommon armor
-cells now list the authored Un'Goro boss sources; that zone remains
-world-locked pending arena acceptance. Wrist, hands and weapons still show **Source not yet
-available**. Naming these pieces does not grant ownership, unlock zones or add raid
+Each class now has 19 named collection cells; 35 are still unnamed. All nine uncommon
+cells now list authored Un'Goro boss sources; that zone remains
+world-locked pending arena acceptance. Naming these pieces does not grant ownership, unlock zones or add raid
 bonuses. Live race/sex rendering and complete source acceptance remain open.
 
 ## Uncommon weapon catalog
@@ -85,7 +84,8 @@ crossbow attaches as ranged equipment, and two-handed weapons add no off-hand ce
 | Warlock | Rod of the Ogre Magi | 18534 | 30870 | 17 | 10 | 2 | 2 |
 | Druid | Unyielding Maul | 18531 | 30867 | 17 | 5 | 6 | 1 |
 
-Source assignment and live body/attachment rendering remain open for these nine weapons.
+All nine weapons list U'cha at 15:00 in the authored Un'Goro schedule. Live reward delivery
+and body/attachment rendering remain open for these weapons.
 Their numerical power still comes from the existing uncommon quality rules.
 
 ## Class-specific Atiesh

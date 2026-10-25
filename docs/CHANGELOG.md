@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Complete uncommon source table
+
+Clutchmother Zavas, Gruff and U'cha now supply uncommon wrists, hands and weapons at
+4:30, 7:30 and 15:00. All nine slots have named sources for every class. Victory requires
+all nine scheduled bosses and the 16-minute clock. Un'Goro stays locked pending world
+acceptance; live encounters, rewards and balancing remain open.
+Native build, 71 core tests, 118 Survivors app tests with checkout data, formatting,
+workspace Clippy and render-pass lint pass.
+
 ## 2026-10-25 — Uncommon weapons
 
 Added nine verified weapon identities, completing the uncommon tier's nine slots for

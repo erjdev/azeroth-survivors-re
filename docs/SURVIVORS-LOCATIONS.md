@@ -324,23 +324,26 @@ remains locked pending its complete placement and content acceptance.
 
 The pinned MaNGOS Zero [creature templates](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_template.sql)
 and [placements](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature.sql)
-confirm the six existing roster bosses. All representative placements below are on map 1
+confirm the nine roster bosses. All representative placements below are on map 1
 inside Un'Goro; they establish zone membership, not a spawn at the proposed arena center.
 
 | Creature | Entry | Display | Placement GUID | Placement x, y | Survivors time | Uncommon slot |
 | --- | --- | --- | --- | --- | --- | --- |
 | Ravasaur Matriarch | 6581 | 11319 | 24433 | -7593.43, -1773.54 | 3:00 | Helm |
+| Clutchmother Zavas | 6582 | 11084 | 24434 | -8072.02, -1269.65 | 4:30 | Wrist |
 | Uhk'loc | 6585 | 8129 | 24438 | -6278.97, -2000.4 | 6:00 | Shoulders |
+| Gruff | 6583 | 10932 | 24435 | -7829.1, -874.524 | 7:30 | Hands |
 | Blazerunner | 9376 | 1204 | 24430 | -7183.41, -1294.81 | 9:00 | Chest |
 | Baron Charr | 14461 | 14517 | 590000 | -7153.77, -1085.68 | 12:00 | Waist |
 | Tyrant Devilsaur | 6500 | 5240 | 23745 | -7464.14, -1321.6 | 14:00 | Legs |
+| U'cha | 9622 | 8844 | 24254 | -6276.53, -1987.97 | 15:00 | Main Hand |
 | King Mosh | 6584 | 5305 | 24437 | -6854.36, -772.935 | 16:00 | Feet |
 
 Times, slots and 60% base chances are authored Survivors tuning, not imported vanilla
-loot. Every class resolves these six cells to its uncommon armor identities. Combat
+loot. Every class resolves these nine cells to its uncommon armor and weapon identities. Combat
 scheduling, boss-only Keen Eye chances and collection/drop-page sources share the same
-rows. Victory waits until 16:00 and all six bosses are defeated. Duplicate rolls retain
-the existing no-additional-power rule. Wrist, hands and weapons still need sources.
+rows. Victory waits until 16:00 and all nine bosses are defeated. Duplicate rolls retain
+the existing no-additional-power rule. All nine uncommon slots now have sources in this table.
 
 The zone remains locked with **world content is not ready**, including on an otherwise
 fully progressed hero. The rejected summit coordinates remain configured until the

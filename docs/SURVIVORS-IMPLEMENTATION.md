@@ -1804,3 +1804,25 @@ Validation: native play build 11.76 seconds; workspace test compilation 59.93 se
 71 core tests and 118 Survivors app tests with explicit checkout data pass, including
 mapped display/icon reads. Workspace Clippy, scoped formatting and render-pass lint pass.
 No live attachment or collection screenshot is claimed for the new weapons yet.
+
+
+### Complete uncommon source table — 2026-10-25
+
+Added three named encounters to the existing Un'Goro schedule: Clutchmother Zavas at 4:30
+(wrists), Gruff at 7:30 (hands), and U'cha at 15:00 (weapon). Pinned creature templates and
+map-1 placements verify their identities, models and Un'Goro membership; the complete
+[source table](SURVIVORS-LOCATIONS.md#ungoro-encounter-identity-and-source-table--2026-10-25)
+records entries, displays, GUIDs and coordinates. Times, boss status, combat levels/scales,
+60% base chances and slot assignments are authored Survivors tuning.
+
+All nine uncommon cells per class now have a source. Scheduling and preview probabilities
+still share the drop rows, and victory now waits for nine defeats and 16:00. Core coverage
+checks every time boundary, all nine slots exactly once, name/visual resolution for all
+classes and the retained world lock. Duplicate/no-extra-power rules are unchanged.
+This completes table coverage, not actual zone obtainability: arena acceptance, live
+boss/reward runs and tuning remain open. No new zone unlock or save migration is included.
+
+Validation: native play build 21.83 seconds; workspace test compilation 1 minute 56 seconds;
+71 core tests and 118 Survivors app tests with explicit checkout data pass. Workspace
+Clippy, formatting, render-pass lint and diff whitespace checks pass. These checks do not
+replace live nine-boss/reward validation or the outstanding full-workspace gate failures.

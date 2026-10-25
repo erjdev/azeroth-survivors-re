@@ -1555,10 +1555,13 @@ pub static MAPS: &[MapDef] = &[
         ],
         bosses: &[
             foe("Ravasaur Matriarch", 11319, 56, 5.6, 1.55),
+            foe("Clutchmother Zavas", 11084, 56, 5.2, 1.4),
             foe("Uhk'loc", 8129, 59, 4.8, 2.4),
+            foe("Gruff", 10932, 59, 4.4, 2.2),
             foe("Blazerunner", 1204, 57, 4.6, 1.8),
             foe("Baron Charr", 14517, 58, 4.6, 1.95),
             giant("Tyrant Devilsaur", 5240, 60, 5.0, 1.0),
+            foe("U'cha", 8844, 60, 4.8, 2.6),
             giant("King Mosh", 5305, 61, 5.0, 1.2),
         ],
     },

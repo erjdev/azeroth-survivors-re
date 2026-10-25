@@ -186,13 +186,23 @@ mod tests {
     }
 
     #[test]
-    fn ungoro_drops_follow_six_bosses_but_do_not_unlock_unverified_world_content() {
+    fn ungoro_drops_follow_nine_bosses_but_do_not_unlock_unverified_world_content() {
         let map = data::MAPS
             .iter()
             .position(|m| m.name == "Fire Plume Ridge")
             .unwrap();
         assert!(ready(map));
-        assert_eq!(schedule(map).len(), 6);
+        let mut slots: Vec<_> = campaign::DROPS
+            .iter()
+            .filter(|row| row.zone == 3)
+            .map(|row| {
+                assert_eq!(row.band, 1);
+                row.slot
+            })
+            .collect();
+        slots.sort_unstable();
+        assert_eq!(slots, (0..campaign::GRID_SLOTS).collect::<Vec<_>>());
+        assert_eq!(schedule(map).len(), 9);
         for (index, row) in campaign::DROPS.iter().filter(|d| d.zone == 3).enumerate() {
             assert!(next(map, index as u32, row.at_secs as f32 - 0.01).is_none());
             assert_eq!(
@@ -205,10 +215,10 @@ mod tests {
                 assert!(crate::gear_visuals::piece(class, row.slot, row.band).is_some());
             }
         }
-        assert!(next(map, 6, 10_000.0).is_none());
-        assert!(!won(map, 959.0, 6));
-        assert!(!won(map, 960.0, 5));
-        assert!(won(map, 960.0, 6));
+        assert!(next(map, 9, 10_000.0).is_none());
+        assert!(!won(map, 959.0, 9));
+        assert!(!won(map, 960.0, 8));
+        assert!(won(map, 960.0, 9));
         assert!(!campaign::zone_open(3, 51, &[true; campaign::CLEAR_COUNT]));
         assert_eq!(
             campaign::zone_lock_reason(3, 51, &[true; campaign::CLEAR_COUNT]).as_deref(),

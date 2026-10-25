@@ -584,10 +584,26 @@ pub static DROPS: &[DropRow] = &[
     },
     DropRow {
         zone: 3,
+        slot: 6,
+        band: 1,
+        creature: "Clutchmother Zavas",
+        at_secs: 270,
+        chance: 60,
+    },
+    DropRow {
+        zone: 3,
         slot: 1,
         band: 1,
         creature: "Uhk'loc",
         at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 3,
+        slot: 7,
+        band: 1,
+        creature: "Gruff",
+        at_secs: 450,
         chance: 60,
     },
     DropRow {
@@ -612,6 +628,14 @@ pub static DROPS: &[DropRow] = &[
         band: 1,
         creature: "Tyrant Devilsaur",
         at_secs: 840,
+        chance: 60,
+    },
+    DropRow {
+        zone: 3,
+        slot: 8,
+        band: 1,
+        creature: "U'cha",
+        at_secs: 900,
         chance: 60,
     },
     DropRow {
@@ -1733,7 +1757,7 @@ mod tests {
     #[test]
     fn drops_name_a_creature_on_that_map() {
         assert_eq!(PIECES, 54);
-        assert_eq!(DROPS.len(), 16);
+        assert_eq!(DROPS.len(), 19);
         for row in DROPS {
             let zone = &ZONES[row.zone];
             let map = super::super::data::MAPS
