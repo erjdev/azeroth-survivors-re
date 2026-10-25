@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Hunter control talents
+
+Scatter Shot and Wyvern Sting add brief shot stuns; Entrapment roots enemies hit by
+Explosive Trap. Boss durations are reduced and longer active controls are preserved.
+Ability tooltips show both durations. Hunter now has sixteen individual effects; remaining
+class work and live control validation remain open. Native build, 66 core tests, 115
+Survivors app tests, catalog audit, Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Hunter Marksmanship milestones
 
 Efficiency shortens shot cooldowns; Mortal Shots adds direct critical damage; Trueshot Aura

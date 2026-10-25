@@ -234,13 +234,18 @@ impl Milestones {
         (duration > 0.).then_some((if boss { 0.75 } else { 0.5 }, duration))
     }
 
-    pub fn secondary_stun(self, key: &str, boss: bool) -> f32 {
-        if self.class != 0 || key != "heroic_strike" {
-            return 0.;
-        }
-        let duration = if self.points[2] >= 20 { 1.0 } else { 0.0 }
-            + self.trained_value(TalentStat::SecondaryStunDuration("heroic_strike"));
+    pub fn secondary_stun(self, key: &'static str, boss: bool) -> f32 {
+        let milestone = if self.class == 0 && key == "heroic_strike" && self.points[2] >= 20 {
+            1.0
+        } else {
+            0.0
+        };
+        let duration = milestone + self.trained_value(TalentStat::SecondaryStunDuration(key));
         duration * if boss { 0.3 } else { 1.0 }
+    }
+
+    pub fn secondary_root(self, key: &'static str, boss: bool) -> f32 {
+        self.trained_value(TalentStat::SecondaryRootDuration(key)) * if boss { 0.3 } else { 1.0 }
     }
 
     /// Survivors Enrage: health damage refreshes a four-second damage bonus.
@@ -647,6 +652,7 @@ pub enum TalentStat {
     FlurryHaste,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
+    SecondaryRootDuration(&'static str),
     Reduction,
     Speed,
     SpellGroupDamage(&'static [&'static str]),
@@ -672,6 +678,7 @@ impl TalentDefinition {
             TalentStat::SpellShieldDuration(_) => (1.0, " s added shield duration"),
             TalentStat::SecondarySlowDuration(_) => (1.0, " s added slow duration"),
             TalentStat::SecondaryStunDuration(_) => (1.0, " s added stun duration"),
+            TalentStat::SecondaryRootDuration(_) => (1.0, " s added root duration"),
             TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
                 (100.0, "% damage")
             }
@@ -1139,6 +1146,30 @@ const HUNTER_SHOTS: &[&str] = &[
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 1353,
+        max_rank: 1,
+        name: "Scatter Shot",
+        description: "Concussive Shot also stuns for 1 sec (bosses: 0.3 sec; Survivors conversion)",
+        stat: TalentStat::SecondaryStunDuration("concussive_shot"),
+        per_rank: 1.0,
+    },
+    TalentDefinition {
+        id: 1304,
+        max_rank: 5,
+        name: "Entrapment",
+        description: "Explosive Trap hits add 0.4 sec of root per rank (bosses: 30% duration; Survivors conversion)",
+        stat: TalentStat::SecondaryRootDuration("explosive_trap"),
+        per_rank: 0.4,
+    },
+    TalentDefinition {
+        id: 1325,
+        max_rank: 1,
+        name: "Wyvern Sting",
+        description: "Serpent Sting also stuns for 1.5 sec (bosses: 0.45 sec; Survivors conversion)",
+        stat: TalentStat::SecondaryStunDuration("serpent_sting"),
+        per_rank: 1.5,
+    },
+    TalentDefinition {
         id: 1344,
         max_rank: 5,
         name: "Lethal Shots",
@@ -1277,6 +1308,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::Speed => bonus.speed += value,
             TalentStat::SecondarySlowDuration(_)
             | TalentStat::SecondaryStunDuration(_)
+            | TalentStat::SecondaryRootDuration(_)
             | TalentStat::EnrageDamage
             | TalentStat::BloodCrazeHealing
             | TalentStat::FlurryHaste
@@ -1546,6 +1578,42 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn hunter_control_training_is_bounded_source_specific_and_boss_scaled() {
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(1, 1353, 1), (2, 1304, 5), (2, 1325, 1)]);
+        assert_eq!(trained.secondary_stun("concussive_shot", false), 1.);
+        assert_eq!(trained.secondary_stun("concussive_shot", true), 0.3);
+        assert_eq!(trained.secondary_stun("serpent_sting", false), 1.5);
+        assert!((trained.secondary_stun("serpent_sting", true) - 0.45).abs() < 0.00001);
+        for rank in 0..=5 {
+            let roots = base.with_ranks(&[(2, 1304, rank)]);
+            assert_eq!(
+                roots.secondary_root("explosive_trap", false),
+                0.4 * f32::from(rank)
+            );
+            assert!(
+                (roots.secondary_root("explosive_trap", true) - 0.12 * f32::from(rank)).abs()
+                    < 0.00001
+            );
+        }
+        for key in ["multi_shot", "volley", "heroic_strike", "fireball"] {
+            assert_eq!(trained.secondary_stun(key, false), 0.);
+            assert_eq!(trained.secondary_root(key, false), 0.);
+        }
+        assert_eq!(trained.with_ranks(&[]), base);
+        assert_eq!(
+            base.with_ranks(&[(1, 1353, 255), (2, 1304, 255), (2, 1325, 255)]),
+            trained
+        );
+        let other = Milestones::default().with_ranks(&[(1, 1353, 1), (2, 1304, 5), (2, 1325, 1)]);
+        assert_eq!(other.secondary_stun("serpent_sting", false), 0.);
+        assert_eq!(other.secondary_root("explosive_trap", false), 0.);
+    }
+
+    #[test]
     fn hunter_shot_groups_compose_without_affecting_other_abilities() {
         let base = Milestones {
             class: 2,
@@ -1693,6 +1761,7 @@ mod stat_talent_tests {
                     TalentStat::Speed => total.speed,
                     TalentStat::SecondarySlowDuration(_)
                     | TalentStat::SecondaryStunDuration(_)
+                    | TalentStat::SecondaryRootDuration(_)
                     | TalentStat::EnrageDamage
                     | TalentStat::BloodCrazeHealing
                     | TalentStat::FlurryHaste

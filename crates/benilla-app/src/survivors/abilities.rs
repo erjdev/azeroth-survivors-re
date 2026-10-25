@@ -771,6 +771,24 @@ fn refresh_deep_wounds(dots: &mut Vec<enemies::Dot>, total: f32) {
     }
 }
 
+fn apply_secondary_control(
+    en: &mut Enemy,
+    milestones: survivors_core::talents::Milestones,
+    source: &'static str,
+) {
+    let boss = en.boss;
+    en.stun_t = en.stun_t.max(milestones.secondary_stun(source, boss));
+    en.root_t = en.root_t.max(milestones.secondary_root(source, boss));
+    if let Some((speed, duration)) = milestones.secondary_slow(source, boss) {
+        en.slow = if en.slow_t > 0.0 {
+            en.slow.min(speed)
+        } else {
+            speed
+        };
+        en.slow_t = en.slow_t.max(duration);
+    }
+}
+
 pub(super) fn apply_hits(
     mut commands: Commands,
     time: Res<Time>,
@@ -910,15 +928,7 @@ pub(super) fn apply_hits(
             });
         }
         let boss = en.boss;
-        en.stun_t = en.stun_t.max(run.milestones.secondary_stun(h.source, boss));
-        if let Some((speed, duration)) = run.milestones.secondary_slow(h.source, boss) {
-            en.slow = if en.slow_t > 0.0 {
-                en.slow.min(speed)
-            } else {
-                speed
-            };
-            en.slow_t = en.slow_t.max(duration);
-        }
+        apply_secondary_control(&mut en, run.milestones, h.source);
         match h.effect {
             Effect::Slow(m, t) => {
                 let m = if boss { m.max(0.75) } else { m };
@@ -1223,6 +1233,57 @@ mod milestone_tests {
             talents.critical_bleed(dots[0].source, dots[0].dps, true),
             0.
         );
+    }
+
+    #[test]
+    fn hunter_secondary_control_preserves_longer_effects_and_other_state() {
+        let trained = Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 1353, 1), (2, 1304, 5), (2, 1325, 1)]);
+        for boss in [false, true] {
+            let mut enemy = Enemy {
+                def: &data::roster(0).enemies[0],
+                hp: 100.,
+                max_hp: 100.,
+                speed: 3.,
+                damage: 5.,
+                radius: 0.6,
+                xp: 1,
+                boss,
+                elite: false,
+                attack_cd: 0.,
+                slow: 0.4,
+                slow_t: 8.,
+                root_t: 0.,
+                stun_t: 0.,
+                fear_t: 0.,
+                weaken: 1.,
+                weaken_t: 0.,
+                dots: Vec::new(),
+                dead: false,
+            };
+            apply_secondary_control(&mut enemy, trained, "concussive_shot");
+            assert_eq!(enemy.stun_t, if boss { 0.3 } else { 1. });
+            apply_secondary_control(&mut enemy, trained, "serpent_sting");
+            assert!((enemy.stun_t - if boss { 0.45 } else { 1.5 }).abs() < 0.00001);
+            apply_secondary_control(&mut enemy, trained, "explosive_trap");
+            assert!((enemy.root_t - if boss { 0.6 } else { 2. }).abs() < 0.00001);
+            enemy.stun_t = 4.;
+            enemy.root_t = 5.;
+            for source in [
+                "concussive_shot",
+                "serpent_sting",
+                "explosive_trap",
+                "volley",
+            ] {
+                apply_secondary_control(&mut enemy, trained, source);
+            }
+            assert_eq!((enemy.stun_t, enemy.root_t), (4., 5.));
+            assert_eq!((enemy.slow, enemy.slow_t), (0.4, 8.));
+            assert_eq!(enemy.hp, 100.);
+        }
     }
 
     #[test]

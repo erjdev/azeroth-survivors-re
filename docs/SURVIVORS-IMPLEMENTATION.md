@@ -1605,3 +1605,31 @@ UI/combat validation and final balance remain open.
 
 Validation: 65 core tests, 113 Survivors app tests, native build, workspace test compilation,
 Clippy, formatting and render-pass lint pass. No new live milestone screenshot is claimed.
+
+
+### Hunter control training
+
+Three audited nodes bring Hunter to sixteen individual effects. These are explicit,
+deterministic Survivors conversions, not the original chance-based/disorient/sleep rules.
+
+| Node | Ranks | Behavior |
+| --- | --- | --- |
+| 1353 Scatter Shot | 1 | Concussive Shot also stuns for 1 second; bosses for 0.3 seconds |
+| 1304 Entrapment | 5 | Explosive Trap hits root for 0.4 seconds per rank; bosses receive 30% duration |
+| 1325 Wyvern Sting | 1 | Serpent Sting also stuns for 1.5 seconds; bosses for 0.45 seconds |
+
+The normal hit path applies these controls alongside the spell's existing damage, periodic
+payload and slow. Existing longer stun/root timers win; refreshing does not add durations.
+Periodic damage ticks do not invoke this control path. Area hit pulses can refresh their
+root, but the talent creates no additional trap locations or targets. Boss control scaling
+is applied once. Reset clears the trained effects for subsequent snapshots; unowned spells
+are not granted. Individual node previews show seconds, and ability tooltips show ordinary
+and boss durations (including 0.45 seconds without rounding it to 0.5).
+
+Regression coverage includes source/class isolation, caps, reset, each Entrapment rank,
+ordinary/boss enemy timer application, preservation of stronger existing controls/slow,
+and tooltip duration agreement. Live control visuals, full-class balance, remaining
+Hunter nodes, pets and six other milestones remain open.
+
+Validation: 66 core tests, 115 Survivors app tests, native build, workspace test compilation,
+explicit-data talent audit, Clippy, formatting and render-pass lint pass.

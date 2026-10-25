@@ -2604,6 +2604,28 @@ fn ability_tip(
             .right(format!("{} sec cooldown", num(now.cooldown)), Color::WHITE),
     );
     lines.push(TipLine::new(ability_body(def, &now), GOLD));
+    for (verb, duration, boss_duration) in [
+        (
+            "stuns",
+            milestones.secondary_stun(def.key, false),
+            milestones.secondary_stun(def.key, true),
+        ),
+        (
+            "roots",
+            milestones.secondary_root(def.key, false),
+            milestones.secondary_root(def.key, true),
+        ),
+    ] {
+        if duration > 0. {
+            lines.push(TipLine::new(
+                format!(
+                    "Also {verb} for {} sec (bosses: {boss_duration:.2} sec).",
+                    num(duration)
+                ),
+                card_growth::GAIN,
+            ));
+        }
+    }
     let effect = milestones.cast(def.key);
     if effect.heal_fraction > 0.0 {
         lines.push(TipLine::new(
@@ -2950,6 +2972,39 @@ pub(super) fn show_panels(
 mod talent_tooltip_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn hunter_control_tooltips_show_ordinary_and_boss_durations() {
+        let trained = Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 1353, 1), (2, 1304, 5), (2, 1325, 1)]);
+        let stats = Run::default().stats();
+        for (key, text) in [
+            (
+                "concussive_shot",
+                "Also stuns for 1 sec (bosses: 0.30 sec).",
+            ),
+            (
+                "serpent_sting",
+                "Also stuns for 1.5 sec (bosses: 0.45 sec).",
+            ),
+            ("explosive_trap", "Also roots for 2 sec (bosses: 0.60 sec)."),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            assert!(ability_tip(&owned, trained, &stats, None)
+                .iter()
+                .any(|line| line.left == text));
+            assert!(!ability_tip(&owned, trained.with_ranks(&[]), &stats, None)
+                .iter()
+                .any(|line| line.left == text));
+        }
+    }
 
     #[test]
     fn critical_tooltip_matches_effective_chance_and_damage() {
