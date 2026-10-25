@@ -251,6 +251,93 @@ mod tests {
     }
 
     #[test]
+    fn placed_warsong_stump_blocks_the_candidate_crossing_and_unregisters() {
+        use benilla_assets::coords::{placement_rotation, wow_to_bevy};
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {
+            eprintln!("SKIP Warsong placement test: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        let maps = benilla_formats::load_map_catalog(&mut chain).unwrap();
+        let directory = maps.directory(489).unwrap();
+        let tiles = benilla_formats::MapTiles::load(&mut chain, directory).unwrap();
+        let point = [1244.792, 1468.750, 310.296];
+        let mut placement = None;
+        for (x, y) in tiles.existing_in_radius(point[0], point[1], 1) {
+            let tile = benilla_formats::load_tile_mesh(&mut chain, directory, x, y).unwrap();
+            if let Some(found) = tile.doodads.into_iter().find(|d| d.unique_id == 596699) {
+                placement = Some(found);
+                break;
+            }
+        }
+        let d = placement.expect("documented Warsong stump placement");
+        assert!(d
+            .model
+            .to_ascii_lowercase()
+            .contains("ashenvaletreestump02"));
+        let hull = benilla_formats::load_m2_collision_hull(&mut chain, &d.model).unwrap();
+        assert_eq!(hull.triangle_count(), 24);
+        let transform = Transform {
+            translation: wow_to_bevy(d.position),
+            rotation: placement_rotation(d.rotation),
+            scale: Vec3::splat(d.scale),
+        };
+        let vertices = hull
+            .positions
+            .iter()
+            .map(|p| transform.transform_point(wow_to_bevy(*p)))
+            .collect();
+        let collider = Collider::trimesh(vertices, hull.indices.as_chunks::<3>().0.to_vec());
+        let mut app = fixture(&[]);
+        let stump = app
+            .world_mut()
+            .spawn((RigidBody::Static, collider.clone(), Transform::default()))
+            .id();
+        app.update();
+        app.update();
+        let start = wow_to_bevy(point);
+        // Fixed-height capsule sweeps isolate this placement from terrain. The source ray
+        // is one yard above the feet, at the documented 8.898-yard negative-WoW-Y hit.
+        let feet = start - Vec3::Y;
+        let desired = feet + Vec3::X * 24.;
+        let check = |app: &mut App| {
+            app.world_mut()
+                .run_system_once(move |floor: Floor| {
+                    let ray = floor.collision.ray_body(start, Dir3::X, 24.);
+                    (
+                        ray.map(|h| h.distance),
+                        floor.slide(feet, desired, super::super::HERO_RADIUS),
+                    )
+                })
+                .unwrap()
+        };
+        let (ray, stopped) = check(&mut app);
+        assert!((ray.expect("registered hull ray") - 8.898).abs() < 0.02);
+        assert!(
+            stopped.distance(desired) > 1.,
+            "capsule crossed stump: {stopped:?}"
+        );
+        assert!(stopped.x > feet.x, "capsule made no approach: {stopped:?}");
+        app.world_mut().despawn(stump);
+        app.update();
+        let (ray, clear) = check(&mut app);
+        assert!(ray.is_none());
+        assert!(
+            clear.distance(desired) < 0.02,
+            "removed stump still blocks: {clear:?}"
+        );
+        app.world_mut()
+            .spawn((RigidBody::Static, collider, Transform::default()));
+        app.update();
+        let (ray, reloaded) = check(&mut app);
+        assert!(ray.is_some());
+        assert!(
+            reloaded.distance(stopped) < 0.02,
+            "reloaded hull changed contact"
+        );
+    }
+
+    #[test]
     fn walking_slides_along_a_wall_and_mobility_cannot_cross_it() {
         let mut app = fixture(&[0.]);
         app.world_mut().spawn((

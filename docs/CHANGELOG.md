@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Placed obstacle regression
+
+Added a real-data Warsong stump regression covering player-capsule contact and collider
+removal/re-registration. It reproduces the documented ray hit using the actual placement.
+[Evidence and limits](SURVIVORS-LOCATIONS.md#placed-stump-capsule-regression).
+Workspace test compilation and 87 focused Survivors tests pass with checkout data.
+Live streamed collision and navigation remain pending; this is validation, not a collision fix.
+
 ## 2026-10-24 — Developer instance preview
 
 The development launcher can now open the engine's world viewer with `--world-preview`.

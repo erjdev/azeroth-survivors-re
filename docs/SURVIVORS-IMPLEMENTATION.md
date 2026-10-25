@@ -930,3 +930,13 @@ passed at 1280×720; the README and changelog link the captured milestone. Repro
 in the [location report](SURVIVORS-LOCATIONS.md#developer-instance-preview).
 This corrects the earlier missing-map-override claim: `WOW_MAP` already existed.
 Capsule contact/sliding, routing, tile reload and gameplay camera acceptance remain open.
+
+
+### Placed obstacle contact checkpoint — 2026-10-24
+
+Added a data-backed headless regression for Warsong stump 596699, using its actual ADT
+placement and the player's capsule radius. The source ray and body sweep are checked before
+removal, after removal and after re-registration. This tests the same `Floor::slide` used by
+player movement; it does not substitute for streamed-world traversal or Elwynn reproduction.
+See [fixture scope](SURVIVORS-LOCATIONS.md#placed-stump-capsule-regression).
+Workspace test compilation and all 87 focused Survivors tests pass with explicit checkout data.

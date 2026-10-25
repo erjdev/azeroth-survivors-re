@@ -207,3 +207,19 @@ and the [720p capture](images/screenshots/2026-10-24-world-preview/warsong-720.j
 shows Warsong terrain, structures and stump obstacles. This verifies instance rendering,
 not player capsule contact, sliding, navigation, combat or gameplay camera behavior.
 Those acceptance checks remain outstanding; Warsong remains locked in the campaign.
+
+
+## Placed stump capsule regression
+
+`survivors::floor::tests::placed_warsong_stump_blocks_the_candidate_crossing_and_unregisters`
+loads placement 596699 directly from the local Warsong ADTs, checks its model identity and
+24 hull triangles, and bakes its actual rotation, translation and scale with the engine's
+coordinate helpers. In a headless physics world, the body ray reproduces the 8.898-yard
+source hit (within 0.02 yards), and the Survivors hero capsule cannot complete the same
+24-yard crossing. Removing the collider clears both the ray and crossing; registering it
+again restores the same capsule result within 0.02 yards.
+
+The fixture deliberately isolates the hull at a fixed height. It exercises `Floor::slide`
+and the engine collision query, not the async streamer, terrain-following movement,
+route finding or a live player. It therefore narrows the remaining investigation without
+closing the reported Elwynn collision issue or claiming Warsong traversal acceptance.
