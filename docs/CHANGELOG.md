@@ -8,8 +8,9 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 The foliage reveal now follows camera zoom, perspective and aspect ratio, occupying 35%
 of the shorter viewport side. Its center shares the camera's shoulder-height focus.
 Native macOS build, workspace Clippy and 61 core tests pass, including projection checks
-at near/default/far zoom and landscape/portrait aspects. Live zoom/resize screenshots
-remain pending; the previous foliage captures document the earlier fixed-radius version.
+at near/default/far zoom and landscape/portrait aspects. Live retained-renderer 720p on/off and farther-zoom captures now appear in the README;
+the hero and nearby enemies remain visible through the canopy. Resize, other renderer
+zoom checks and the broader visibility matrix remain pending.
 
 ## 2026-10-25 — Foliage visibility cutaway
 

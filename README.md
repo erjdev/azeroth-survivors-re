@@ -32,6 +32,14 @@ This trunk blocks the observed approach but obscures the hero; broader collision
 Scenery cutaway now reveals the hero and nearby combat through foliage, with a saved toggle
 independent of camera auto-push. Initial 720p validation, with temporary XP tuning:
 
+The viewport-scaled reveal also stays centered after zooming farther out (1280×720,
+retained renderer). [Same-camera on](docs/images/screenshots/2026-10-25-cutaway-sizing/on.jpg) /
+[off](docs/images/screenshots/2026-10-25-cutaway-sizing/off.jpg).
+
+![Viewport-scaled reveal after zooming out](docs/images/screenshots/2026-10-25-cutaway-sizing/farther-zoom.jpg)
+
+Earlier fixed-radius validation:
+
 ![Foliage cutaway during combat](docs/images/screenshots/2026-10-25-cutaway/retained-gameplay.jpg)
 
 Same paused scene: [cutaway on](docs/images/screenshots/2026-10-25-cutaway/retained-on.jpg) /

@@ -1409,3 +1409,14 @@ aspects and invalid projections. Native macOS build and workspace Clippy pass. T
 mathematical and compile validation: live zoom/resize evidence, visual size judgment and
 the remaining visibility acceptance items above are still pending. Existing screenshots
 show the preceding fixed-radius implementation and are not evidence for this sizing change.
+
+Live follow-up: at 1280×720 in the retained renderer, toggling cutaway at the same paused
+canopy view removes/restores the obstruction. After wheel zoom-out, the hero and nearby
+wolves remain visible inside the centered aperture, with the feathered edge visible.
+[Farther-zoom capture](images/screenshots/2026-10-25-cutaway-sizing/farther-zoom.jpg);
+[on](images/screenshots/2026-10-25-cutaway-sizing/on.jpg) /
+[off](images/screenshots/2026-10-25-cutaway-sizing/off.jpg).
+No shader errors or panics appeared in the validation log. Exact camera distances were
+not instrumented, so these captures do not prove endpoint coverage or the precise 35%
+ratio. Resize, ordinary-renderer zoom and the wider matrix remain open. Isolated save,
+XP multiplier 0.1 and auto-push Off were used; launcher and tuning overrides were restored.
