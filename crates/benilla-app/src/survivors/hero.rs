@@ -402,6 +402,9 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
         return 0.0;
     }
     let stats = run.stats();
+    let retaliation =
+        run.thorns_t > 0.0 && run.thorns_spell == super::data::ability("retaliation").spell;
+    let raw = raw * run.milestones.retaliation_risk(retaliation);
     let mut dmg = super::sheet::mitigate(raw, stats.armor, stats.reduction);
     if run.shield_t > 0.0 && run.shield > 0.0 {
         let absorbed = dmg.min(run.shield);

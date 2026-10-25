@@ -92,6 +92,12 @@ impl Milestones {
     pub fn cast(self, key: &str) -> CastEffect {
         let mut effect = CastEffect::default();
         match key {
+            "retaliation" if self.class == 0 && self.points[1] >= 20 => {
+                effect.damage = 1.30;
+            }
+            "execute" if self.class == 0 && self.points[1] >= 30 => {
+                effect.heal_fraction = 0.03;
+            }
             "sweeping_strikes" if self.class == 0 && self.points[0] >= 20 => {
                 effect.radius = 1.30;
             }
@@ -148,6 +154,21 @@ impl Milestones {
         effect
     }
 
+    /// Piercing Howl supplements, rather than replaces, the shout's damage weakening.
+    pub fn secondary_slow(self, key: &str, boss: bool) -> Option<(f32, f32)> {
+        (self.class == 0 && self.points[1] >= 10 && key == "demoralizing_shout")
+            .then_some((if boss { 0.75 } else { 0.5 }, 3.0))
+    }
+
+    /// Death Wish's risk applies only during the actual Retaliation buff.
+    pub fn retaliation_risk(self, active: bool) -> f32 {
+        if self.class == 0 && self.points[1] >= 20 && active {
+            1.10
+        } else {
+            1.0
+        }
+    }
+
     /// Deep Wounds snapshots 12% of a critical direct attack over three seconds.
     /// Called before execute and echo expansion; ticks cannot trigger more bleeds.
     pub fn critical_bleed(self, key: &str, damage: f32, critical: bool) -> f32 {
@@ -181,6 +202,9 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
             (0, 10) => Some("Direct attack criticals bleed for 12% damage over 3 seconds; refreshes, does not stack"),
             (0, 20) => Some("Sweeping Strikes: +30% radius"),
             (0, 30) => Some("Mortal Strike: +25% damage"),
+            (1, 10) => Some("Demoralizing Shout also slows enemies by 50% for 3 seconds (bosses: 25%)"),
+            (1, 20) => Some("Retaliation: +30% reflected damage; take 10% more damage while active"),
+            (1, 30) => Some("Execute heals 3% maximum health once per successful cast"),
             _ => None,
         };
     }
@@ -248,6 +272,40 @@ mod tests {
         nodes[2].rank = 0;
         nodes[0].rank = 4;
         assert!(valid_tree(&nodes));
+    }
+
+    #[test]
+    fn fury_thresholds_preserve_shout_targeting_and_limit_retaliation_risk() {
+        let at = |points| Milestones {
+            class: 0,
+            points: [0, points, 0],
+            ..Default::default()
+        };
+        assert_eq!(at(9).secondary_slow("demoralizing_shout", false), None);
+        assert_eq!(
+            at(10).secondary_slow("demoralizing_shout", false),
+            Some((0.5, 3.0))
+        );
+        assert_eq!(
+            at(10).secondary_slow("demoralizing_shout", true),
+            Some((0.75, 3.0))
+        );
+        assert_eq!(at(30).secondary_slow("thunder_clap", false), None);
+        assert_eq!(at(30).cast("demoralizing_shout").extra_targets, 0);
+        assert_eq!(at(19).cast("retaliation").damage, 1.0);
+        assert_eq!(at(20).cast("retaliation").damage, 1.3);
+        assert_eq!(at(19).retaliation_risk(true), 1.0);
+        assert_eq!(at(20).retaliation_risk(true), 1.1);
+        assert_eq!(at(30).retaliation_risk(false), 1.0);
+        assert_eq!(at(29).cast("execute").heal_fraction, 0.0);
+        assert_eq!(at(30).cast("execute").heal_fraction, 0.03);
+        let other = Milestones { class: 1, ..at(30) };
+        assert_eq!(other.secondary_slow("demoralizing_shout", false), None);
+        assert_eq!(other.retaliation_risk(true), 1.0);
+        assert_eq!(other.cast("execute"), CastEffect::default());
+        for threshold in [10, 20, 30] {
+            assert!(description(0, 1, threshold).is_some());
+        }
     }
 
     #[test]

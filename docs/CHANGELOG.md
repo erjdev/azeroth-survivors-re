@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Fury milestones
+
+Piercing Howl adds a slow to Demoralizing Shout. Death Wish boosts Retaliation with an
+incoming-damage tradeoff while active. Bloodthirst heals once per successful Execute cast.
+The implementation plan records the provisional coefficients and how these compose with
+existing effects.
+
+[Fury details at 720p](images/screenshots/2026-10-24-warrior-talents/fury-milestones-720.jpg).
+**Validation:** native build, workspace test compilation, 83 Survivors tests and 49 core
+tests pass; the Death Wish description fits at 720p. A full manual Fury encounter is still
+unverified. Protection milestones and remaining individual talents are unfinished.
+
 ## 2026-10-24 — Arms milestones and reliable DoT ticks
 
 Warrior Arms now gains Deep Wounds at 10 points, a larger Sweeping Strikes aura at 20,

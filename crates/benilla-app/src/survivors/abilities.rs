@@ -894,6 +894,14 @@ pub(super) fn apply_hits(
             });
         }
         let boss = en.boss;
+        if let Some((speed, duration)) = run.milestones.secondary_slow(h.source, boss) {
+            en.slow = if en.slow_t > 0.0 {
+                en.slow.min(speed)
+            } else {
+                speed
+            };
+            en.slow_t = en.slow_t.max(duration);
+        }
         match h.effect {
             Effect::Slow(m, t) => {
                 let m = if boss { m.max(0.75) } else { m };
@@ -973,6 +981,52 @@ mod milestone_tests {
     use super::*;
     use crate::survivors::{campaign, data, Owned, Stats};
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn fury_casts_and_damage_tradeoff_reach_combat() {
+        let mut run = Run::default();
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        run.milestones = Milestones {
+            points: [0, 30, 0],
+            ..base
+        };
+        let owned = Owned {
+            def: data::ability("retaliation"),
+            level: 1,
+            cd: 0.0,
+        };
+        let original = Params::new(&owned, &run.stats(), base);
+        let enhanced = Params::new(&owned, &run.stats(), run.milestones);
+        assert!((enhanced.dmg - original.dmg * 1.3).abs() < 0.00001);
+        assert_eq!(enhanced.duration, original.duration);
+        let effect = run.milestones.cast("execute");
+        run.hp = 50.0;
+        assert_eq!(finish_milestone_cast(&mut run, effect, 100.0), 3.0);
+        run.hp = 99.0;
+        assert_eq!(finish_milestone_cast(&mut run, effect, 100.0), 1.0);
+        assert_eq!(finish_milestone_cast(&mut run, effect, 100.0), 0.0);
+
+        run.thorns_t = 5.0;
+        run.thorns_spell = data::ability("retaliation").spell;
+        run.shield_t = 5.0;
+        run.shield = 10.0;
+        let expected =
+            super::super::sheet::mitigate(20.0 * 1.1, run.stats().armor, run.stats().reduction)
+                - 10.0;
+        assert!((hero::hurt_hero(&mut run, 20.0) - expected).abs() < 0.00001);
+        run.immune_t = 1.0;
+        assert_eq!(hero::hurt_hero(&mut run, 20.0), 0.0);
+        run.immune_t = 0.0;
+        run.thorns_t = 0.0;
+        let plain = super::super::sheet::mitigate(20.0, run.stats().armor, run.stats().reduction);
+        assert_eq!(hero::hurt_hero(&mut run, 20.0), plain);
+        run.thorns_t = 5.0;
+        run.thorns_spell = 0;
+        assert_eq!(hero::hurt_hero(&mut run, 20.0), plain);
+    }
 
     #[test]
     fn damage_over_time_delivers_all_ticks_across_frame_sizes() {

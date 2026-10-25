@@ -354,6 +354,22 @@ its remaining duration, including the final tick across a long frame; it never t
 expiry. Individual Deep Wounds node ranks and the Fury/Protection milestones remain pending.
 These coefficients are provisional Survivors balance, not original MMO behavior.
 
+Warrior Fury milestones use these explicit Survivors conversions:
+
+| Points | Milestone | Behavior |
+| --- | --- | --- |
+| 10 | Piercing Howl | Demoralizing Shout also slows movement by 50% for three seconds; bosses by 25% |
+| 20 | Death Wish | Retaliation reflects 30% more damage; incoming damage increases by 10% only while that buff is active |
+| 30 | Bloodthirst | A successful Execute cast heals 3% maximum health once, capped at full health |
+
+Piercing Howl preserves the shout's existing damage weakening, keeps any stronger active
+slow, and does not create extra areas. Death Wish snapshots the reflected damage at cast;
+its incoming penalty multiplies raw damage before normal mitigation and shield absorption,
+while immunity still prevents damage. Other reflection buffs do not trigger the penalty.
+Bloodthirst heals per cast, not per target, echo, or kill; Execute still needs a valid target.
+Individual talent ranks and the existing baseline tree bonuses compose with these effects.
+Protection milestones remain pending.
+
 Paladin milestone balance uses the following explicit Survivors behavior. These are custom
 survival-mode effects, not claims about the original MMO spells. Existing per-point/stat
 bonuses remain the baseline; named milestone behavior is additional. Snapshot tree points
@@ -784,3 +800,13 @@ preserved tick timing, multiple frame sizes, expiration and cast/rank compositio
 Native build, workspace test compilation, 82 Survivors tests and 48 core tests pass.
 The Deep Wounds description fits in the live 720p sidebar; screenshot is in the changelog.
 This is not proof of a full manual Arms encounter or the full Phase 5 acceptance criteria.
+
+
+### Fury milestone checkpoint — 2026-10-24
+
+All three Fury milestones now use the documented combat paths. Core tests cover thresholds,
+class isolation, boss slowing and inactive-buff risk. App tests cover reflected cast damage,
+healing caps, absorption, immunity, expiry and an unrelated reflection buff.
+Native build, workspace test compilation, 83 Survivors tests and 49 core tests pass.
+Live 720p validation confirms the Death Wish benefit and penalty remain readable; the
+changelog links the screenshot. Full manual Fury combat validation remains outstanding.
