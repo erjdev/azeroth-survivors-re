@@ -62,8 +62,9 @@ Pick a class and a battleground, then survive: WASD to move, your abilities cast
 enemies swarm in waves, you level up and pick upgrades, and a boss shows up every couple of
 minutes. **No server, no login, no account** — fully offline and self-contained.
 
-Un'Goro source milestone: six timed uncommon-armor encounters now share their schedule
-with the drop browser. The zone remains world-locked while arena validation continues.
+Un'Goro source milestone: nine timed encounters now cover all uncommon slots and share
+their schedule with the drop browser. The earlier capture below shows the first six.
+The zone remains world-locked while arena validation continues.
 
 ![Un'Goro sources and availability at 720p](docs/images/screenshots/2026-10-25-ungoro-drops/sources-720.png)
 
@@ -76,6 +77,15 @@ all nine classes. Hunter item details and pending-source messaging were checked 
 ![Hunter uncommon armor collection at 720p](docs/images/screenshots/2026-10-25-collection-headings/collection-720.png)
 
 [Narrow collection layout](docs/images/screenshots/2026-10-25-collection-headings/collection-1024.png)
+
+Rare armor milestone: all nine classes now have eight named Rare armor pieces, bringing
+the catalog to 27 of 54 identities per class. This isolated Warrior fixture seeds ownership
+to inspect the UI; Rare sources and weapons remain unfinished.
+
+![Warrior Rare collection and pending source at 720p](docs/images/screenshots/2026-10-25-rare-armor/collection-720.png)
+
+[Human male armor preview](docs/images/screenshots/2026-10-25-rare-armor/character-720.png)
+is a visual checkpoint, not complete race/sex or attachment acceptance.
 
 Hunter talent milestone: Mortal Shots has a green next-rank preview, and spending/resetting
 Spec 2 leaves Spec 1 intact. Verified at 1280×720 and after a live resize to 1024×720;

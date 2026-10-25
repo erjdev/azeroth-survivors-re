@@ -1,15 +1,17 @@
-//! Authored uncommon-tier armor sets and weapons from pinned vanilla item templates.
+//! Authored progression gear from pinned vanilla item templates.
 //! Only visual identity is imported; Survivors owns rarity, power and acquisition rules.
 use crate::gear_visuals::GearVisual;
+mod rare;
 
 type Item = (&'static str, u32, u32, u8, u8, u8, i32, u8);
 
-pub(crate) fn piece(class: usize, slot: usize) -> Option<(&'static str, GearVisual)> {
+pub(crate) fn piece(class: usize, slot: usize, band: usize) -> Option<(&'static str, GearVisual)> {
     let &(name, item_id, display_id, inventory_type, item_class, subclass, material, sheath) =
-        if slot == 8 {
-            WEAPONS.get(class)?
-        } else {
-            ARMOR.get(class)?.get(slot)?
+        match band {
+            1 if slot == 8 => WEAPONS.get(class)?,
+            1 => ARMOR.get(class)?.get(slot)?,
+            2 => rare::ARMOR.get(class)?.get(slot)?,
+            _ => return None,
         };
     Some((
         name,

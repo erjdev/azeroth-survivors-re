@@ -58,7 +58,7 @@ templates above, selected by `itemset` and mapped by `InventoryType` to the eigh
 slots (robe type 20 occupies chest). The checked-in identity table is
 `crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
 
-Each class now has 19 named collection cells; 35 are still unnamed. All nine uncommon
+Each class now has 27 named collection cells; 27 are still unnamed. All nine uncommon
 cells now list authored Un'Goro boss sources; that zone remains
 world-locked pending arena acceptance. Naming these pieces does not grant ownership, unlock zones or add raid
 bonuses. Live race/sex rendering and complete source acceptance remain open.
@@ -87,6 +87,32 @@ crossbow attaches as ranged equipment, and two-handed weapons add no off-hand ce
 All nine weapons list U'cha at 15:00 in the authored Un'Goro schedule. Live reward delivery
 and body/attachment rendering remain open for these weapons.
 Their numerical power still comes from the existing uncommon quality rules.
+
+## Rare armor catalog
+
+Band two uses these eight-piece vanilla sets as an authored Survivors appearance tier.
+Their original epic quality, raid acquisition and set powers are not imported: Survivors
+retains its Rare stat rules. This does not represent the requested additional raid-epic
+tier or implement its build-oriented set bonuses.
+
+| Class | Appearance set | Vanilla item-set ID | Required class mask |
+| --- | --- | --- | --- |
+| Warrior | Might | 209 | 1 |
+| Paladin | Lawbringer | 208 | 2 |
+| Hunter | Giantstalker | 206 | 4 |
+| Rogue | Nightslayer | 204 | 8 |
+| Priest | Prophecy | 202 | 16 |
+| Shaman | Earthfury | 207 | 64 |
+| Mage | Arcanist | 201 | 128 |
+| Warlock | Felheart | 203 | 256 |
+| Druid | Cenarion | 205 | 1024 |
+
+All 72 items were selected from the same pinned templates by `itemset`; each set contains
+exactly one item per armor slot and has the assigned class's `AllowableClass` mask.
+`crates/survivors-core/src/gear_upgrades/rare.rs` records only names and visual metadata.
+Chest inventory type 20 remains a robe, including Earthfury and Cenarion vestments.
+Rare weapons remain unnamed; Rare acquisition sources and live body rendering remain open.
+Collection naming does not award pieces or unlock zones.
 
 ## Class-specific Atiesh
 

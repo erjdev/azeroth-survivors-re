@@ -1840,3 +1840,24 @@ the real collection/equipment/save path without claiming live combat or zone rea
 Validation: workspace test compilation and all 119 Survivors app tests with explicit
 checkout data pass; workspace Clippy, formatting and render-pass lint pass. No runtime
 behavior changed, so no new native play build or screenshot is claimed for this regression.
+
+### Rare armor identities — 2026-10-25
+
+The next eight armor cells per class now resolve to verified names and appearance metadata
+from the pinned item templates. The [rare catalog](SURVIVORS-GEAR-VISUALS.md#rare-armor-catalog)
+records nine sets and their class masks. This is an authored Survivors tier assignment,
+not vanilla stat or raid-loot import. All 72 entries have distinct item IDs, correct armor
+subclasses and slot/robe inventory types. Names and visuals share the same table.
+
+Each class now has 27 of 54 named cells. Rare weapons, actual sources, live appearance
+validation, the remaining bands and explicit raid-epic/set mechanics remain incomplete.
+No ownership, save-slot mapping or world-readiness flag changes with this catalog addition.
+
+Validation: native build 12.75 seconds, workspace test compilation 19.84 seconds; 72 core
+tests and 119 app tests with explicit checkout data pass, including every mapped display
+and readable icon. Workspace Clippy, formatting and render-pass lint pass. A separate
+`rare-armor-state` fixture seeds 27 Warrior pieces and wears eight Rare armor pieces with
+the common axe. At 1280×720, collection icons, Rare helmet stats and missing-source text
+render without overlap; collection and human male preview captures are in the README.
+This is not natural acquisition or complete model/attachment/race/sex acceptance. The
+validation window was closed and its ordinary isolated launcher configuration restored.

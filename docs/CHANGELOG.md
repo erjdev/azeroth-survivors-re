@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rare armor identities
+
+Added 72 verified armor identities across all nine classes, bringing each collection to
+27 of 54 named cells. Rare items use their own icons and appearance metadata; stats remain
+Survivors rules. Rare weapons, acquisition sources and live appearance checks remain open.
+Added [collection](images/screenshots/2026-10-25-rare-armor/collection-720.png) and
+[Warrior preview](images/screenshots/2026-10-25-rare-armor/character-720.png) milestones
+from a seeded validation account. Native build, 72 core tests, 119 app tests with data,
+workspace Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Complete uncommon source table
 
 Clutchmother Zavas, Gruff and U'cha now supply uncommon wrists, hands and weapons at

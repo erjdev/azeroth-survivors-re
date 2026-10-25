@@ -120,8 +120,8 @@ pub fn named(name: &str) -> Option<GearVisual> {
 }
 
 pub fn piece(class: usize, slot: usize, band: usize) -> Option<GearVisual> {
-    if band == 1 {
-        return super::gear_upgrades::piece(class, slot).map(|(_, visual)| visual);
+    if matches!(band, 1 | 2) {
+        return super::gear_upgrades::piece(class, slot, band).map(|(_, visual)| visual);
     }
     let name = super::campaign::piece_name(class, slot, band)?;
     if name == "Atiesh, Greatstaff of the Guardian" {
@@ -154,7 +154,7 @@ mod tests {
     fn absent_and_ambiguous_items_never_borrow_a_visual() {
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
         assert_eq!(piece(0, 8, 2), None);
-        assert_eq!(piece(0, 0, 2), None);
+        assert_eq!(piece(0, 0, 3), None);
         assert_eq!(piece(99, 0, 0), None);
         assert_eq!(piece(0, 9, 0), None);
     }
@@ -178,6 +178,31 @@ mod tests {
             assert_eq!(piece(class, 7, 5), None);
         }
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
+    }
+
+    #[test]
+    fn rare_armor_covers_each_class_without_filling_unknown_weapon_cells() {
+        let mut items = std::collections::HashSet::new();
+        for class in 0..crate::data::CLASSES.len() {
+            let subclass = [4, 4, 3, 2, 1, 3, 1, 1, 2][class];
+            for slot in 0..8 {
+                let visual = piece(class, slot, 2).unwrap();
+                assert!(crate::campaign::piece_name(class, slot, 2).is_some());
+                assert!(items.insert(visual.item_id));
+                assert_eq!((visual.item_class, visual.subclass), (4, subclass));
+                let inventory = [1, 3, 5, 6, 7, 8, 9, 10][slot];
+                assert!(
+                    visual.inventory_type == inventory
+                        || (slot == 2 && visual.inventory_type == 20)
+                );
+                assert_ne!(Some(visual), piece(class, slot, 1));
+            }
+            assert_eq!(piece(class, 8, 2), None);
+            assert_eq!(crate::campaign::piece_name(class, 8, 2), None);
+        }
+        assert_eq!(items.len(), 72);
+        assert_eq!(piece(9, 0, 2), None);
+        assert_eq!(piece(0, 9, 2), None);
     }
 
     #[test]
