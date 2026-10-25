@@ -1275,6 +1275,54 @@ mod milestone_tests {
     }
 
     #[test]
+    fn warrior_shout_and_retaliation_training_compose_without_more_targets() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 0,
+            points: [0, 20, 0],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (1, 165, 1),
+            (2, 150, 2),
+            (1, 161, 5),
+            (2, 151, 3),
+            (2, 143, 2),
+        ]);
+        for level in [1, 4, 8] {
+            for key in ["retaliation", "demoralizing_shout"] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                if key == "retaliation" {
+                    assert!((after.duration - before.duration * 1.3 * 1.25).abs() < 0.0001);
+                    assert_eq!(after.cooldown, before.cooldown);
+                    assert_eq!(trained.retaliation_risk(true), 1.1);
+                    assert_eq!(trained.retaliation_risk(false), 1.0);
+                } else {
+                    assert!(
+                        (after.effect.duration() - before.effect.duration() * 1.5 * 1.3).abs()
+                            < 0.0001
+                    );
+                    assert!((after.cooldown - before.cooldown * 0.8).abs() < 0.0001);
+                    assert_eq!(
+                        trained.secondary_slow(key, false),
+                        base.secondary_slow(key, false)
+                    );
+                }
+                assert_eq!(after.dmg, before.dmg);
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.count, before.count);
+            }
+        }
+        assert_eq!(trained.with_ranks(&[]), base);
+    }
+
+    #[test]
     fn warrior_training_reaches_casts_without_extra_area_locations() {
         let stats = Run::default().stats();
         let base = Milestones {

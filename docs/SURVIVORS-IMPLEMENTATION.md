@@ -1115,3 +1115,19 @@ Workspace test compilation and 96 focused Survivors tests pass. New regressions 
 the mixed-color damage/radius spans, unchanged values, trained duration, cooldown precision,
 passive/healing/absorb units, and red/neutral jewelry replacement semantics. This does not
 clear the previously recorded broad-workspace gate failures.
+
+
+### Warrior utility training checkpoint — 2026-10-24
+
+Twenty-eight Warrior nodes now have explicit effects. Death Wish extends Retaliation by
+25%, including the existing Fury milestone risk while that buff remains active. Improved
+Disarm adds 10% weakening duration per rank to Demoralizing Shout; Improved Taunt reduces
+its cooldown by 10% per rank. Duration bonuses multiply with existing duration training.
+These are Survivors adaptations with provisional balance values, not vanilla spell claims.
+The shout retains one area and its separate slow duration. Generic damage-per-point is
+removed for these named effects through the shared stat adjustment. Remaining nodes,
+fresh talent screenshots and manual combat acceptance remain open.
+
+Validation: native build (22.5 seconds), workspace test compilation, 54 core tests,
+97 focused Survivors tests and the local talent-data audit pass. The suite also caught
+and corrected three stale Codex-page expectations for the single-unit comparison format.

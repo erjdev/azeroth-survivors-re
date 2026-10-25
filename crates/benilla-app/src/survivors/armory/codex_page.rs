@@ -328,10 +328,10 @@ mod tests {
         assert!(effect_text(&armory).is_empty());
         armory.codex_entry = Some(codex_jewel(2, 0));
         let ring = effect_text(&armory);
-        assert!(ring.contains("Damage bonus 0% » 2%"), "{ring}");
-        assert!(ring.contains("Critical chance bonus 0% » 1%"), "{ring}");
+        assert!(ring.contains("Damage bonus 0 » 2%"), "{ring}");
+        assert!(ring.contains("Critical chance bonus 0 » 1%"), "{ring}");
         armory.codex_entry = Some(codex_jewel(4, 0));
-        assert!(effect_text(&armory).contains("Damage reduction bonus 0% » 3%"));
+        assert!(effect_text(&armory).contains("Damage reduction bonus 0 » 3%"));
         armory.codex_entry = Some(codex_jewel(4, campaign::AMULET_NAMES.len()));
         assert!(effect_text(&armory).is_empty());
         armory.codex_entry = Some(codex_legend(0, 0));

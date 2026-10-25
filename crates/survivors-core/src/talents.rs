@@ -771,6 +771,22 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         description: "After losing health to a hit, deal +4% damage per rank for 4 seconds; further hits refresh without stacking",
         stat: TalentStat::EnrageDamage, per_rank: 0.04,
     },
+    TalentDefinition {
+        id: 165, max_rank: 1, name: "Death Wish",
+        description: "Retaliation: +25% duration; also extends the Fury milestone's increased damage taken (Survivors conversion)",
+        stat: TalentStat::SpellDuration("retaliation"), per_rank: 0.25,
+    },
+    TalentDefinition {
+        id: 151, max_rank: 3, name: "Improved Disarm",
+        description: "Demoralizing Shout: +10% weakening duration per rank (Survivors conversion)",
+        stat: TalentStat::SpellDuration("demoralizing_shout"), per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 143, max_rank: 2, name: "Improved Taunt",
+        description: "Demoralizing Shout: 10% shorter cooldown per rank (Survivors conversion)",
+        stat: TalentStat::SpellCooldown("demoralizing_shout"), per_rank: 0.1,
+    },
+
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[

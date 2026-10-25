@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Warrior utility training
+
+Death Wish extends Retaliation, including its active Fury risk. Improved Disarm extends
+Demoralizing Shout's weakening; Improved Taunt shortens its cooldown. These Survivors
+adaptations bring Warrior to 28 supported nodes; values remain provisional.
+
+Native build, workspace test compilation, 54 core tests and 97 focused Survivors tests
+pass; the local talent audit verifies node identities and rank caps. Fresh screenshots and manual combat validation remain pending.
+
 ## 2026-10-24 — Inline green upgrade descriptions
 
 Cards now embed before/after values and units directly in their descriptions, with changes
