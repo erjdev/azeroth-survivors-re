@@ -1437,3 +1437,16 @@ Validation: native macOS build, workspace test compilation, workspace Clippy, fo
 reset/class isolation, the actual combat critical cap and unchanged damage/radius/targets.
 Live talent-panel and combat validation remain pending; no new visual milestone is claimed.
 Full workspace test acceptance remains open.
+
+### Effective critical-hit descriptions — 2026-10-25
+
+Ability tooltips display critical chance and critical damage from the same effective cast
+parameters used in combat, including the 100% chance cap and minimum 100% damage multiplier.
+This replaces the misleading fixed double-damage claim when Impale or equipment adds
+critical damage. Critical-chance passive descriptions state only the chance they change;
+the inline comparison remains green with a single percentage unit. Combat rules are unchanged.
+
+Validation: native macOS build, workspace test compilation, workspace Clippy, formatting,
+render-pass lint and all 12 focused HUD tests pass. Coverage includes effective critical
+chance, baseline/boosted/minimum multipliers and green single-unit passive comparisons.
+Live tooltip validation and the broader acceptance contract remain open.

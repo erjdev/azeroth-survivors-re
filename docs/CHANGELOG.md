@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Accurate critical-hit descriptions
+
+Ability tooltips now show the effective critical damage percentage, including talents and
+gear, instead of always promising double damage. Critical-chance passive cards/tooltips
+now describe chance alone; inline green comparisons still show the unit once. Native build,
+workspace test compilation, Clippy, formatting, render-pass lint and 12 HUD tests pass.
+Live tooltip validation remains open.
+
 ## 2026-10-25 — Warrior strike training
 
 Improved Overpower adds Heroic Strike critical chance; Improved Slam shortens Mortal

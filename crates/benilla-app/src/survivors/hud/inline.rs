@@ -301,10 +301,7 @@ fn passive(stat: Stat, a: f32, b: f32) -> Spans {
             prose!("Reduces every hit you take by ", (a, b, " damage"));
         }
         Stat::Crit => {
-            prose!(
-                "Increases your chance to critically strike for double damage by ",
-                percent
-            );
+            prose!("Increases your critical strike chance by ", percent);
         }
     }
     prose!(".");
@@ -411,6 +408,12 @@ mod tests {
     }
     #[test]
     fn passive_and_defensive_prose_use_their_actual_units() {
+        let crit = passive(Stat::Crit, 0.05, 0.1);
+        assert_eq!(
+            plain(&crit),
+            "Increases your critical strike chance by 5 » 10%."
+        );
+        assert!(crit.contains(&("5 » 10%".into(), card_growth::GAIN)));
         let spans = passive(Stat::Regen, 0.5, 1.);
         assert_eq!(plain(&spans), "Restores 0.5 » 1 health every second.");
         assert!(spans.contains(&("0.5 » 1 health".into(), card_growth::GAIN)));

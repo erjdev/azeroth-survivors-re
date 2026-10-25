@@ -2636,8 +2636,9 @@ fn ability_tip(
     ) {
         lines.push(TipLine::new(
             format!(
-                "{} chance to critically strike for double damage",
-                pct(now.crit)
+                "{} chance to critically strike for {} damage",
+                pct(now.crit),
+                pct(now.crit_damage.max(1.0))
             ),
             DIM,
         ));
@@ -2680,10 +2681,7 @@ fn passive_text(stat: Stat, v: f32) -> String {
         Stat::Magnet => format!("Increases your pickup range by {}.", pct(v)),
         Stat::Growth => format!("Increases the experience you gain by {}.", pct(v)),
         Stat::Armor => format!("Reduces the damage of every hit you take by {}.", num(v)),
-        Stat::Crit => format!(
-            "Increases your chance to critically strike for double damage by {}.",
-            pct(v)
-        ),
+        Stat::Crit => format!("Increases your critical strike chance by {}.", pct(v)),
     }
 }
 
@@ -2952,6 +2950,28 @@ pub(super) fn show_panels(
 mod talent_tooltip_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn critical_tooltip_matches_effective_chance_and_damage() {
+        let mut stats = Run::default().stats();
+        stats.crit = 0.9;
+        let trained = Milestones::default().with_ranks(&[(0, 131, 2)]);
+        let owned = Owned {
+            def: data::ability("heroic_strike"),
+            level: 1,
+            cd: 0.0,
+        };
+        for (multiplier, expected) in [(2.0, "200%"), (2.2, "220%"), (0.5, "100%")] {
+            stats.crit_damage = multiplier;
+            let lines = ability_tip(&owned, trained, &stats, None);
+            assert!(lines.iter().any(|line| line.left
+                == format!("100% chance to critically strike for {expected} damage")));
+        }
+        assert_eq!(
+            passive_text(Stat::Crit, 0.05),
+            "Increases your critical strike chance by 5%."
+        );
+    }
 
     #[test]
     fn effect_description_uses_rank_and_talent_scaled_duration() {
