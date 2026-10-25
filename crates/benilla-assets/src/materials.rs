@@ -20,6 +20,8 @@ use bevy::shader::ShaderRef;
 /// Compile the four WGSL files into the binary under `embedded://benilla_assets/shaders/…`. Call
 /// after Bevy's `AssetPlugin`, whose registry this fills; [`crate::register_asset_loaders`] does.
 pub fn register_shaders(app: &mut App) {
+    #[cfg(feature = "survivors-visibility")]
+    bevy::asset::embedded_asset!(app, "shaders/survivors_cutaway.wgsl");
     bevy::asset::embedded_asset!(app, "shaders/terrain.wgsl");
     bevy::asset::embedded_asset!(app, "shaders/wow_model.wgsl");
     bevy::asset::embedded_asset!(app, "shaders/wdl.wgsl");
@@ -139,6 +141,10 @@ impl MaterialExtension for WowModelExt {
         layout: &MeshVertexBufferLayoutRef,
         key: MaterialExtensionKey<Self>,
     ) -> Result<(), SpecializedMeshPipelineError> {
+        #[cfg(feature = "survivors-visibility")]
+        if let Some(fragment) = descriptor.fragment.as_mut() {
+            fragment.shader_defs.push("SURVIVORS_CUTAWAY".into());
+        }
         // `WOW_RIG_SKIN` skins from the shared buffer's palette. The base layout lacks our joint
         // attributes: rebuild it with Bevy's conditionals (mesh.rs, locations 0-5) plus 10/11.
         if layout.0.contains(crate::ATTRIBUTE_WOW_JOINT_INDEX) {

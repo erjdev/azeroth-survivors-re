@@ -1008,8 +1008,10 @@ mod milestone_tests {
             ..Default::default()
         };
         for hp in [0., -1.] {
-            let mut run = Run::default();
-            run.hp = hp;
+            let mut run = Run {
+                hp,
+                ..Default::default()
+            };
             assert_eq!(finish_milestone_cast(&mut run, effect, 160.), 0.);
             assert_eq!(run.hp, hp);
             assert_eq!(run.shield, 0.);
@@ -1018,10 +1020,12 @@ mod milestone_tests {
 
     #[test]
     fn protection_healing_and_shields_apply_once_and_preserve_stronger_defenses() {
-        let mut run = Run::default();
-        run.milestones = Milestones {
-            class: 0,
-            points: [0, 0, 30],
+        let mut run = Run {
+            milestones: Milestones {
+                class: 0,
+                points: [0, 0, 30],
+                ..Default::default()
+            },
             ..Default::default()
         };
         let last_stand = run.milestones.cast("retaliation");

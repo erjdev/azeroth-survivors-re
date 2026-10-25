@@ -353,7 +353,7 @@ mod tests {
         let maps = benilla_formats::load_map_catalog(&mut chain).unwrap();
         let directory = maps.directory(489).unwrap();
         let tiles = benilla_formats::MapTiles::load(&mut chain, directory).unwrap();
-        let point = [1244.792, 1468.750, 310.296];
+        let point = [1244.792, 1468.75, 310.296];
         let mut placement = None;
         for (x, y) in tiles.existing_in_radius(point[0], point[1], 1) {
             let tile = benilla_formats::load_tile_mesh(&mut chain, directory, x, y).unwrap();

@@ -1,3 +1,6 @@
+#ifdef SURVIVORS_CUTAWAY
+#import "embedded://benilla_assets/shaders/survivors_cutaway.wgsl"::cutaway_keep
+#endif
 // The model pass for M2, WMO and ground-clutter meshes, lit and fogged in gamma space:
 //   M2:           color = clamp01(A + D·I·(4/17)(0.375 + 2μ + 1.875μ²)) × tex × tint, μ = N·L
 //   clutter, WMO: color = clamp(ambient + diffuse·max(N·L, 0)) × tex × tint
@@ -418,6 +421,15 @@ fn vertex(vertex: WowVertex) -> WowVsOut {
 
 @fragment
 fn fragment(in: WowVsOut, @builtin(front_facing) is_front: bool) -> WowFragOut {
+#ifdef SURVIVORS_CUTAWAY
+    let tail = arrayLength(&wow_light.palettes) - 2u;
+    if (m.model_flags.x < 0.5 && m.sun_scale.x < 0.85 && m.clutter_fade.w < 0.5 && m.anim_slots.w < 0.5) {
+        if (!cutaway_keep(in.world_position.xyz, in.position.xy,
+            wow_light.palettes[tail], wow_light.palettes[tail + 1u])) {
+            discard;
+        }
+    }
+#endif
     // The UI model tile's cell clip: the reference gives each `<Model>` pane its widget rect as the
     // viewport; our panes share an atlas, so the tile passes its cell as a mat-anim row
     // (`anim_slots.w`, `[min.x, min.y, max.x, max.y]` in atlas texels) and this is the scissor.

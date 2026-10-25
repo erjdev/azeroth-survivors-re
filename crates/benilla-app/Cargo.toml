@@ -9,6 +9,7 @@ description = "The Bevy app as a library: everything but the build-id stamp, whi
 workspace = true
 
 [features]
+survivors-visibility = ["benilla-assets/survivors-visibility", "benilla-world/survivors-visibility"]
 # `dev` compiles in the instruments; the player build (`scripts/gates.sh`) has no defaults.
 default = ["dev"]
 # The asset, format and world crates default `dev` on, so they come in without it, forwarded here.

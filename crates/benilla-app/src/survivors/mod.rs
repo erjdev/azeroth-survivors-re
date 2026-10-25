@@ -31,6 +31,8 @@ mod spawn;
 mod stash;
 mod tuning;
 mod units;
+#[cfg(feature = "survivors-visibility")]
+mod visibility;
 
 pub(crate) use floor::Floor;
 pub(crate) use hero::HERO_RADIUS;
@@ -58,6 +60,8 @@ pub(crate) struct SurvivorsPlugin;
 
 impl Plugin for SurvivorsPlugin {
     fn build(&self, app: &mut App) {
+        #[cfg(feature = "survivors-visibility")]
+        app.add_plugins(visibility::plugin);
         // Present before `OnEnter(InWorld)`, where the UI lifecycle decides not to load FrameXML.
         app.insert_resource(crate::run_mode::CaptureMode)
             .add_plugins((

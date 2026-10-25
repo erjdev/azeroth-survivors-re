@@ -180,6 +180,7 @@ pub(super) enum Knob {
     Sound,
     MusicOn,
     AutoPush,
+    Cutaway,
     View,
     Grass,
     Spells,
@@ -900,6 +901,9 @@ pub(super) fn setup_hud(
                             setting_row(gfx, f, knob);
                         }
                         toggle_row(gfx, f, Knob::AutoPush);
+                        if cfg!(feature = "survivors-visibility") {
+                            toggle_row(gfx, f, Knob::Cutaway);
+                        }
                     });
                 });
                 col.spawn((
@@ -1414,6 +1418,8 @@ pub(super) fn apply_settings(
     for knob in edits.toggle.drain(..) {
         if knob == Knob::AutoPush {
             camera.toggle();
+        } else if knob == Knob::Cutaway {
+            camera.toggle_cutaway();
         } else {
             toggle_knob(&mut cvars, knob);
         }
@@ -1520,6 +1526,11 @@ pub(super) fn refresh_settings(
                 "Auto-push camera in  {}",
                 if camera.auto_push { "On" } else { "Off" }
             )
+        } else if readout.0 == Knob::Cutaway {
+            format!(
+                "Scenery cutaway  {}",
+                if camera.cutaway { "On" } else { "Off" }
+            )
         } else {
             knob_text(&cvars, readout.0)
         };
@@ -1535,7 +1546,7 @@ fn knob_text(cvars: &crate::cvars::Cvars, knob: Knob) -> String {
         (v * 100.0).round() as i32
     };
     match knob {
-        Knob::AutoPush => unreachable!("camera preference is not a CVar"),
+        Knob::AutoPush | Knob::Cutaway => unreachable!("camera preference is not a CVar"),
         Knob::Master => format!("Master  {}%", pct("MasterVolume", 1.0)),
         Knob::Effects => format!("Effects  {}%", pct("SoundVolume", 1.0)),
         Knob::Music => format!("Music  {}%", pct("MusicVolume", 0.4)),
@@ -1588,7 +1599,7 @@ fn adjust_knob(cvars: &mut crate::cvars::Cvars, knob: Knob, dir: i8) {
         Knob::Effects => step_volume(cvars, "SoundVolume", 1.0),
         Knob::Music => step_volume(cvars, "MusicVolume", 0.4),
         Knob::Ambience => step_volume(cvars, "AmbienceVolume", 0.6),
-        Knob::Sound | Knob::MusicOn | Knob::AutoPush => {}
+        Knob::Sound | Knob::MusicOn | Knob::AutoPush | Knob::Cutaway => {}
         Knob::View => {
             const STEPS: [f32; 6] = [177.0, 250.0, 350.0, 500.0, 650.0, 777.0];
             step_list(cvars, "farclip", &STEPS, dir, |v| {
@@ -1962,12 +1973,14 @@ mod reactive_buff_tests {
 
     #[test]
     fn active_talents_show_effects_and_remaining_seconds_only_while_alive() {
-        let mut run = Run::default();
-        run.milestones = survivors_core::talents::Milestones::default().with_ranks(&[
-            (1, 155, 5),
-            (1, 156, 5),
-            (1, 661, 3),
-        ]);
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones::default().with_ranks(&[
+                (1, 155, 5),
+                (1, 156, 5),
+                (1, 661, 3),
+            ]),
+            ..Default::default()
+        };
         assert!(reactive_buff_status(&run).is_empty());
         run.enrage_t = 3.2;
         run.flurry_t = 2.1;

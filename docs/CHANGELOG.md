@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Foliage visibility cutaway
+
+Added a saved Scenery cutaway option that reveals the hero and nearby combat through
+foliage in both scenery renderers, independently of camera auto-push. Live 720p on/off
+comparisons and restart persistence verified; README screenshots added. Collision is unchanged.
+
+Native build, formatting, workspace Clippy, workspace test compilation and focused suites
+passed: 106 Survivors, 563 world (6 ignored), 103 assets and 59 core tests. Documentation-link and
+render-pass lints also pass. Cleaned up earlier test-style lint failures. Interior visibility,
+colored silhouettes, camera motion/zoom and the wider resolution matrix remain unfinished.
+
+![Foliage reveal](images/screenshots/2026-10-25-cutaway/retained-gameplay.jpg)
+
 ## 2026-10-24 — Cutaway geometry foundation
 
 Added a tested camera-to-hero reveal calculation with a depth-scaled circular footprint,

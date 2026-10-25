@@ -547,8 +547,10 @@ mod reactive_talent_tests {
 
     #[test]
     fn shared_healing_caps_and_never_revives_a_lethal_hit() {
-        let mut run = Run::default();
-        run.hp = 90.;
+        let mut run = Run {
+            hp: 90.,
+            ..Default::default()
+        };
         assert_eq!(run.heal(30., 100.), 10.);
         for invalid in [-1., f32::NAN, f32::INFINITY] {
             assert_eq!(run.heal(invalid, 100.), 0.);
@@ -569,8 +571,10 @@ mod reactive_talent_tests {
 
     #[test]
     fn flurry_changes_cooldowns_refreshes_and_expires() {
-        let mut run = Run::default();
-        run.milestones = Milestones::default().with_ranks(&[(1, 156, 5)]);
+        let mut run = Run {
+            milestones: Milestones::default().with_ranks(&[(1, 156, 5)]),
+            ..Default::default()
+        };
         let owned = super::super::Owned {
             def: data::ability("cleave"),
             level: 1,
@@ -596,10 +600,12 @@ mod reactive_talent_tests {
     #[test]
     fn blood_craze_refreshes_and_heals_only_its_active_time() {
         for steps in [vec![8.0], vec![1.0; 8], vec![0.25; 32]] {
-            let mut run = Run::default();
-            run.milestones = Milestones::default().with_ranks(&[(1, 661, 3)]);
-            run.hp = 60.;
-            run.immune_t = 1.;
+            let mut run = Run {
+                milestones: Milestones::default().with_ranks(&[(1, 661, 3)]),
+                hp: 60.,
+                immune_t: 1.,
+                ..Default::default()
+            };
             hurt_hero(&mut run, 10.);
             assert_eq!(run.blood_craze_t, 0.);
             run.immune_t = 0.;
@@ -638,8 +644,10 @@ mod reactive_talent_tests {
 
     #[test]
     fn enrage_requires_health_damage_refreshes_and_expires() {
-        let mut run = Run::default();
-        run.milestones = Milestones::default().with_ranks(&[(1, 155, 5)]);
+        let mut run = Run {
+            milestones: Milestones::default().with_ranks(&[(1, 155, 5)]),
+            ..Default::default()
+        };
         let base = run.stats().might;
         run.immune_t = 1.;
         assert_eq!(hurt_hero(&mut run, 10.), 0.);

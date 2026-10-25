@@ -1353,7 +1353,7 @@ reveal between camera and hero focus. Radius is specified in yards at the focus 
 scales with depth, with a smooth feather band and a focus-plane clearance. Off-axis scenery,
 geometry behind the camera/hero, disabled and invalid inputs stay visible. Tests cover the
 soft-edge midpoint, rotated/translated camera, depth scaling, hard edge and degenerate focus.
-All 59 core tests pass. This is not yet connected to rendering or player settings.
+All 59 core tests passed at this foundation checkpoint; renderer integration follows below.
 
 Renderer investigation found two load-bearing scenery paths: the retained `static_gx`
 shader and the `WowModelMaterial` shader for ordinary model draws/fade variants. Integration
@@ -1362,3 +1362,37 @@ and depth behavior. Supply the same per-frame camera/hero focus to both, without
 every material bind group each frame. Add persisted cutaway and ally/enemy silhouette
 controls independently of camera auto-push, then validate the recorded tree-contact scene
 and cave/interior cases. No collision changes are implied by this rendering work.
+
+### Scenery cutaway renderer — 2026-10-25
+
+The Survivors launcher enables the `survivors-visibility` feature across app, world and
+assets. A shared 32-byte tail after the fixed-capacity skin palette supplies camera/focus
+to both retained static scenery and ordinary/merged model shaders. A three-yard aperture
+at the hero focus plane uses a 25% feather with ordered coverage; discarded fragments
+leave depth clear for the hero and nearby combat. Actors, UI previews, ground clutter and
+WMO architecture are excluded from this first foliage implementation. Physical colliders
+are unchanged. The saved Scenery cutaway option is independent of Auto-push camera in;
+old settings default to cutaway enabled. Menu/results clear the focus buffer.
+
+Live validation at 1280×720: retained scenery and `WOW_STATIC_GX=0` ordinary model
+rendering both reveal the hero and nearby enemies through an Elwynn canopy; toggling off
+at the same paused camera restores the obstruction. Shader loading produced no errors.
+Settings fit and retain cutaway On/auto-push Off across restart. The original near-side
+trunk approach was mostly beyond the hero, so its unchanged appearance is not an occluded
+trunk test. The canopy captures include alpha-cutout leaves and an opaque branch.
+
+Evidence: [retained gameplay](images/screenshots/2026-10-25-cutaway/retained-gameplay.jpg),
+[ordinary gameplay](images/screenshots/2026-10-25-cutaway/ordinary-gameplay.jpg), and each
+path's on/off pair linked in the README. The captures use an isolated save, temporary
+experience multiplier 0.1 and auto-push Off to isolate the visibility effect. Tuning and
+launcher overrides were restored. No claim about balance or collision follows from these
+captures. Native build, workspace test compilation, 106 Survivors tests, 563 world tests
+(6 ignored), 103 asset tests and 59 core tests passed; final workspace Clippy, formatting, test compilation, the 106 Survivors tests and
+documentation/render-pass lints also pass after test-style cleanup. Full workspace test
+acceptance remains open (the previously recorded five failures were not re-audited here).
+
+Still to validate: camera motion/zoom and minimum useful reveal size, streaming/culling
+transitions, alternate aspect ratios and UI scales, opaque trunk occlusion, and all
+material variants.
+WMO/interior visibility, red/green depth-aware silhouettes and the full resolution matrix
+remain required; this integration does not close those acceptance items.

@@ -804,8 +804,10 @@ mod lethal_pickup_tests {
     #[test]
     fn lethal_hit_blocks_healing_and_level_up_before_death_animation() {
         for kind in [GemKind::Heal(1000.), GemKind::Xp(10000), GemKind::Gold(100)] {
-            let mut run = Run::default();
-            run.hp = 0.;
+            let mut run = Run {
+                hp: 0.,
+                ..Default::default()
+            };
             let mut stash = super::super::stash::Stash::default();
             let mut next = NextState::Unchanged;
             bank_gem(&mut run, &mut stash, &mut next, kind, 1.);

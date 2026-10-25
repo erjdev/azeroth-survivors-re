@@ -316,9 +316,11 @@ mod tests {
 
     #[test]
     fn charge_talents_resolve_for_cast_sweep_and_tooltip() {
-        let mut run = Run::default();
-        run.class = &super::super::data::CLASSES[0];
-        run.milestones = Milestones::default().with_ranks(&[(0, 126, 2), (1, 1543, 2)]);
+        let mut run = Run {
+            class: &super::super::data::CLASSES[0],
+            milestones: Milestones::default().with_ranks(&[(0, 126, 2), (1, 1543, 2)]),
+            ..Default::default()
+        };
         assert!(run.mobility().is_none());
         run.level = LEARN_LEVEL;
         let trained = run.mobility().unwrap();

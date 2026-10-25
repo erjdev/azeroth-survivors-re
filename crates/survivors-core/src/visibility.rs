@@ -1,5 +1,5 @@
 //! Camera-to-hero cutaway geometry. Rendering and collision policy stay separate.
-//! This is the CPU reference for the forthcoming scenery shader, not an enabled effect.
+//! CPU reference for the Survivors scenery shader; actor classification belongs to the renderer.
 
 /// A projected circular reveal region, measured in world yards at the hero's focus plane.
 #[derive(Clone, Copy, Debug)]

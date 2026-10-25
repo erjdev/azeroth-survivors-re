@@ -27,7 +27,19 @@ and [480×720 with wrapped stat tiles](docs/images/screenshots/2026-10-24-result
 Elwynn tree investigation: [approach](docs/images/screenshots/2026-10-24-tree-contact/approach.jpg),
 [forward contact](docs/images/screenshots/2026-10-24-tree-contact/contact.jpg),
 [sidestep](docs/images/screenshots/2026-10-24-tree-contact/side.jpg).
-This trunk blocks the observed approach but obscures the hero; cutaway/silhouette work remains.
+This trunk blocks the observed approach but obscures the hero; broader collision validation remains.
+
+Scenery cutaway now reveals the hero and nearby combat through foliage, with a saved toggle
+independent of camera auto-push. Initial 720p validation, with temporary XP tuning:
+
+![Foliage cutaway during combat](docs/images/screenshots/2026-10-25-cutaway/retained-gameplay.jpg)
+
+Same paused scene: [cutaway on](docs/images/screenshots/2026-10-25-cutaway/retained-on.jpg) /
+[off](docs/images/screenshots/2026-10-25-cutaway/retained-off.jpg).
+The ordinary model renderer also passes: [gameplay](docs/images/screenshots/2026-10-25-cutaway/ordinary-gameplay.jpg),
+[on](docs/images/screenshots/2026-10-25-cutaway/ordinary-on.jpg) /
+[off](docs/images/screenshots/2026-10-25-cutaway/ordinary-off.jpg).
+Interior visibility, colored silhouettes and the full zoom/resolution matrix remain unfinished.
 
 [Fresh run after Play again](docs/images/screenshots/2026-10-24-defeat/replay-720.jpg):
 paused at 00:02 with full health and zero damage, using the same isolated validation setup.
