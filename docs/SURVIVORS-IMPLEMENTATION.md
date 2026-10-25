@@ -610,8 +610,8 @@ do not color the whole sentence or duplicate the comparison in a footer.
 
 Apply this presentation consistently to ability, passive, item and other selectable upgrade
 cards in level-up/chest flows. Preserve next-rank previews for newly offered abilities/items,
-with an explicit next-rank label so prospective growth is not mistaken for the immediate
-reward. Compare the same effective before/after values used by gameplay, including current
+using the existing `Rank X » Y`, `New spell` or `New talent` label beneath the name
+for context. Do not repeat “Next rank” or “New rank” inside the description. Compare the same effective before/after values used by gameplay, including current
 talents, rarity and equipment; retain truthful red replacement losses and neutral no-change
 states. Use mixed-color text spans that wrap as one paragraph, not separate fixed-position
 labels. Verify multiple changing values, unchanged values, units, long descriptions, and
@@ -1098,7 +1098,8 @@ spans. Ability changes live inside the description: damage, radius, count, durat
 cooldown use actual cast parameters; talent-scaled control durations use the cast effect.
 Unchanged values retain normal prose color. Both values, the arrow and relevant units are
 green when changed, with additional precision for small cooldown differences. New abilities
-and passives label their rank-one/rank-two comparison as next-rank growth. Passives and
+and passives show their rank-one/rank-two comparison without repeating the rank label
+inside the description; the existing subtitle supplies that context. Passives and
 health restoration use inline descriptions; jewelry retains red scoped replacement losses
 and neutral duplicate/no-change notices within its paragraph. No separate summary is rendered.
 Plain ability tooltips reuse the same prose implementation.

@@ -6,8 +6,9 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 ## 2026-10-24 — Inline green upgrade descriptions
 
 Cards now embed before/after values and units directly in their descriptions, with changes
-green and surrounding prose neutral. This replaces the separate summary. New choices retain
-a next-rank label; jewelry replacement losses remain red. Tooltips share the ability prose.
+green and surrounding prose neutral. This replaces the separate summary. Rank/new-choice
+context appears only beneath the spell name; jewelry replacement losses remain red. Tooltips
+share the ability prose.
 
 Live captures: [new spell/passive previews](images/screenshots/2026-10-24-inline-upgrades/new-720.jpg),
 [rank-up and area comparisons at 720p](images/screenshots/2026-10-24-inline-upgrades/upgrade-720.jpg),

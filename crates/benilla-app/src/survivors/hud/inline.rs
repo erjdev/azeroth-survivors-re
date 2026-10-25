@@ -322,9 +322,7 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
         Choice::NewAbility(def) => {
             let a = cast_at(def, 1, &stats, run.milestones);
             let b = cast_at(def, 2, &stats, run.milestones);
-            let mut spans = vec![("Next rank: ".into(), PROSE)];
-            spans.extend(ability(def, &a, &b));
-            spans
+            ability(def, &a, &b)
         }
         Choice::Upgrade(i) => {
             let o = &run.abilities[i];
@@ -335,9 +333,7 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
             )
         }
         Choice::NewPassive(p) => {
-            let mut spans = vec![("Next rank: ".into(), PROSE)];
-            spans.extend(passive(p.stat, p.per_level, p.per_level * 2.));
-            spans
+            passive(p.stat, p.per_level, p.per_level * 2.)
         }
         Choice::UpPassive(i) => {
             let (p, rank) = run.passives[i];
@@ -426,8 +422,8 @@ mod tests {
         assert!(spans.contains(&("0.5 » 1 health".into(), card_growth::GAIN)));
         let run = Run::default();
         for (key, prefix) in [
-            ("power_word_shield", "Next rank: Absorbs"),
-            ("rejuvenation", "Next rank: Below 85% health, heals"),
+            ("power_word_shield", "Absorbs"),
+            ("rejuvenation", "Below 85% health, heals"),
         ] {
             let spans = describe(Choice::NewAbility(data::ability(key)), &run);
             assert!(plain(&spans).starts_with(prefix), "{}", plain(&spans));
