@@ -36,6 +36,8 @@ const PITCH_MIN: f32 = 0.18;
 const PITCH_MAX: f32 = 1.45;
 /// The locked view's tilt.
 const FIXED_PITCH: f32 = 61.0 * std::f32::consts::PI / 180.0;
+/// Shared camera/cutaway focus above the hero's grounded origin.
+pub(super) const CAMERA_FOCUS_HEIGHT: f32 = 1.4;
 /// Wheel zoom range, yards from the hero's shoulders.
 const ZOOM_MIN: f32 = 1.5;
 const ZOOM_MAX: f32 = 70.0;
@@ -379,7 +381,7 @@ pub(super) fn place_camera(
         }
         let (sy, cy) = rig.yaw.sin_cos();
         let (sp, cp) = rig.pitch.sin_cos();
-        let look = focus + Vec3::Y * 1.4;
+        let look = focus + Vec3::Y * CAMERA_FOCUS_HEIGHT;
         let eye = look + Vec3::new(cp * sy, sp, cp * cy) * rig.dist;
         (eye, look)
     };

@@ -1,6 +1,35 @@
 //! Camera-to-hero cutaway geometry. Rendering and collision policy stay separate.
 //! CPU reference for the Survivors scenery shader; actor classification belongs to the renderer.
 
+/// World radius whose projected diameter occupies a fraction of the viewport's shorter side.
+/// Uses the actual perspective FOV/aspect and camera-to-focus distance, including camera push-in.
+/// Invalid or unavailable projection data disables the aperture instead of hiding scenery.
+pub fn perspective_radius(
+    distance: f32,
+    vertical_fov: f32,
+    aspect: f32,
+    diameter_fraction: f32,
+) -> f32 {
+    if ![distance, vertical_fov, aspect, diameter_fraction]
+        .into_iter()
+        .all(f32::is_finite)
+        || distance <= 0.0
+        || vertical_fov <= 0.0
+        || vertical_fov >= std::f32::consts::PI
+        || aspect <= 0.0
+        || diameter_fraction <= 0.0
+        || diameter_fraction > 1.0
+    {
+        return 0.0;
+    }
+    let radius = distance * (vertical_fov * 0.5).tan() * aspect.min(1.0) * diameter_fraction;
+    if radius.is_finite() {
+        radius
+    } else {
+        0.0
+    }
+}
+
 /// A projected circular reveal region, measured in world yards at the hero's focus plane.
 #[derive(Clone, Copy, Debug)]
 pub struct Cutaway {
@@ -70,6 +99,41 @@ fn dot(a: [f32; 3], b: [f32; 3]) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reveal_keeps_its_viewport_fraction_across_zoom_fov_and_aspect() {
+        for distance in [1.5, 30.0, 70.0] {
+            for fov in [std::f32::consts::FRAC_PI_4, std::f32::consts::FRAC_PI_2] {
+                for aspect in [16.0 / 9.0, 4.0 / 3.0, 2.0 / 3.0] {
+                    let radius = perspective_radius(distance, fov, aspect, 0.35);
+                    let height = 2.0 * distance * (fov * 0.5).tan();
+                    let shorter_side = height.min(height * aspect);
+                    assert!((2.0 * radius / shorter_side - 0.35).abs() < 0.00001);
+                    let c = Cutaway {
+                        camera: [0.; 3],
+                        focus: [0., 0., distance],
+                        radius,
+                        feather: 0.25,
+                        focus_clearance: 0.5,
+                    };
+                    assert_eq!(c.visibility([radius * 0.3, 0., distance * 0.5]), 0.);
+                    assert_eq!(c.visibility([radius * 0.55, 0., distance * 0.5]), 1.);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn invalid_projection_never_hides_scenery() {
+        for invalid in [0., -1., f32::NAN, f32::INFINITY] {
+            assert_eq!(perspective_radius(invalid, 1., 1., 0.35), 0.);
+            assert_eq!(perspective_radius(30., invalid, 1., 0.35), 0.);
+            assert_eq!(perspective_radius(30., 1., invalid, 0.35), 0.);
+            assert_eq!(perspective_radius(30., 1., 1., invalid), 0.);
+        }
+        assert_eq!(perspective_radius(30., std::f32::consts::PI, 1., 0.35), 0.);
+        assert_eq!(perspective_radius(30., 1., 1., 1.1), 0.);
+    }
 
     fn cutaway() -> Cutaway {
         Cutaway {

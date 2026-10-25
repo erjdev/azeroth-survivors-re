@@ -1396,3 +1396,16 @@ transitions, alternate aspect ratios and UI scales, opaque trunk occlusion, and 
 material variants.
 WMO/interior visibility, red/green depth-aware silhouettes and the full resolution matrix
 remain required; this integration does not close those acceptance items.
+
+### Viewport-scaled cutaway — 2026-10-25
+
+Replaced the initial three-yard radius with a projected diameter of 35% of the shorter
+viewport side. Radius follows the actual camera distance (including push-in), vertical FOV
+and current aspect ratio, after camera/transform updates. Camera and cutaway share their
+1.4-yard focus height. Invalid projection data disables the aperture.
+
+All 61 core tests pass, including near/default/far distances, two FOVs, landscape/portrait
+aspects and invalid projections. Native macOS build and workspace Clippy pass. This is
+mathematical and compile validation: live zoom/resize evidence, visual size judgment and
+the remaining visibility acceptance items above are still pending. Existing screenshots
+show the preceding fixed-radius implementation and are not evidence for this sizing change.

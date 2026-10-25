@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Cutaway scales with the viewport
+
+The foliage reveal now follows camera zoom, perspective and aspect ratio, occupying 35%
+of the shorter viewport side. Its center shares the camera's shoulder-height focus.
+Native macOS build, workspace Clippy and 61 core tests pass, including projection checks
+at near/default/far zoom and landscape/portrait aspects. Live zoom/resize screenshots
+remain pending; the previous foliage captures document the earlier fixed-radius version.
+
 ## 2026-10-25 — Foliage visibility cutaway
 
 Added a saved Scenery cutaway option that reveals the hero and nearby combat through
