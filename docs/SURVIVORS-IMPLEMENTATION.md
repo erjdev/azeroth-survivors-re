@@ -18,6 +18,11 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Shared Armory header checkpoint verified: title, wrapping tabs and selected
+class/collection subtitle follow the references; the starter keeps its game title.
+Collection's duplicate subtitle is removed. The 640-pixel check exposes crowded Collection
+slot labels: narrow Collection pane reflow remains required, independent of the header.
+
 Tabard presentation checkpoint: replaced the plain name buttons and
 client display-ID text with illustrated cosmetic tiles using the Companion Looks
 reference. Keep the verified one-tabard catalog, immediate account persistence,

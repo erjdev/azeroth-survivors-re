@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Shared Armory header
+
+Armory pages now share the reference's left-aligned title, wrapping navigation and
+class-colored collection summary. Removed the duplicate Collection summary and
+generic hero-selection hint. The starter retains its game title.
+
+![Character with the shared Armory header](images/screenshots/2026-10-25-armory-header/character-1280.jpg)
+
+![Collection without a duplicate class summary](images/screenshots/2026-10-25-armory-header/collection-1280.jpg)
+
+![Switching classes updates the collection context](images/screenshots/2026-10-25-armory-header/codex-paladin-1280.jpg)
+
+![Header wraps at 640×720; Collection slot labels still need reflow](images/screenshots/2026-10-25-armory-header/collection-640-open-layout-gap.jpg)
+
+Live checks covered populated Warrior and empty Paladin collections, tab navigation,
+and Done returning to the starter. The narrow capture records an **open Collection
+layout defect**: crowded slot headings and compressed tiles; it is not whole-page
+responsive acceptance. Typography and tab styling still need reference refinement.
+Validation: 182 Survivors app tests, native build, workspace test compilation,
+Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Undo individual pending Rewards
 
 Perk and Companion cards now show pending counts and a minus control that removes

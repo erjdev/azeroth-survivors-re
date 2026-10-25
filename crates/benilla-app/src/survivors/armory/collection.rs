@@ -133,18 +133,6 @@ pub(super) fn build(
 ) {
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
-    text(
-        panel,
-        font,
-        format!(
-            "{} · {} of {} pieces collected · gear and looks are kept per class",
-            super::CLASSES[class].name,
-            campaign::owned_pieces(&progress.pieces),
-            campaign::PIECES
-        ),
-        layout.body_size,
-        GOLD,
-    );
     panel
         .spawn(Node {
             width: Val::Percent(100.0),

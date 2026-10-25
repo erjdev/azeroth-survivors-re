@@ -975,12 +975,7 @@ pub(super) fn refresh(
         }));
     commands.entity(root).despawn_related::<Children>();
     let font = assets.font.0.clone();
-    let note =
-        if armory.note.is_empty() && armory.page != Page::Door && armory.page != Page::Talents {
-            "Pick a hero, then a zone. Customize your hero on Character."
-        } else {
-            armory.note.as_str()
-        };
+    let note = armory.note.as_str();
     commands.entity(root).with_children(|panel| {
         door::build(
             panel,

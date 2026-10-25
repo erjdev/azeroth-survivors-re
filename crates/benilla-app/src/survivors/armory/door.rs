@@ -39,8 +39,12 @@ pub(super) fn build(
     features: Option<&super::super::appearance::Options>,
     talent_scroll: Vec2,
 ) {
-    header(ui, art, font);
-    tabs(ui, art, font, armory.page, account.unspent());
+    if armory.page == Page::Door {
+        header(ui, art, font);
+        tabs(ui, art, font, armory.page, account.unspent());
+    } else {
+        armory_header(ui, art, font, armory, account, selection);
+    }
     if !note.is_empty() && armory.page != Page::Codex {
         line(ui, font, note, 13.0, GOLD);
     }
@@ -70,6 +74,125 @@ pub(super) fn build(
             )
         });
     }
+}
+
+fn armory_header(
+    ui: &mut ChildSpawnerCommands,
+    art: &GlueArt,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+    selection: &Selection,
+) {
+    ui.spawn(Node {
+        width: Val::Percent(100.0),
+        flex_wrap: FlexWrap::Wrap,
+        align_items: AlignItems::Center,
+        column_gap: Val::Px(12.0),
+        row_gap: Val::Px(6.0),
+        ..default()
+    })
+    .with_children(|row| {
+        row.spawn((
+            hud::text_bundle(font, "Armory", 30.0, GOLD),
+            Node {
+                flex_basis: Val::Px(160.0),
+                flex_grow: 1.0,
+                ..default()
+            },
+        ));
+        row.spawn(Node {
+            flex_basis: Val::Px(740.0),
+            flex_grow: 4.0,
+            min_width: Val::Px(0.0),
+            ..default()
+        })
+        .with_children(|navigation| tabs(navigation, art, font, armory.page, account.unspent()));
+    });
+    ui.spawn(Node {
+        width: Val::Percent(100.0),
+        flex_wrap: FlexWrap::Wrap,
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::SpaceBetween,
+        column_gap: Val::Px(12.0),
+        row_gap: Val::Px(4.0),
+        margin: UiRect::bottom(Val::Px(8.0)),
+        ..default()
+    })
+    .with_children(|row| {
+        let class_index = super::picked_class(account, selection);
+        let class = &CLASSES[class_index];
+        let count = account
+            .classes
+            .get(class_index)
+            .map_or(0, |progress| campaign::owned_pieces(&progress.pieces));
+        row.spawn((
+            hud::text_bundle(font, "", 12.0, DIM),
+            Node {
+                flex_basis: Val::Px(360.0),
+                flex_grow: 1.0,
+                min_width: Val::Px(0.0),
+                ..default()
+            },
+        ))
+        .with_children(|subtitle| {
+            for (part, color) in [
+                (
+                    class.name.to_owned(),
+                    Color::srgb_u8(
+                        (class.color >> 16) as u8,
+                        (class.color >> 8) as u8,
+                        class.color as u8,
+                    ),
+                ),
+                (
+                    format!(
+                        " · {count} of {} pieces collected · gear and looks are kept per class",
+                        campaign::PIECES
+                    ),
+                    DIM,
+                ),
+            ] {
+                subtitle.spawn((
+                    TextSpan::new(part),
+                    TextColor(color),
+                    TextFont {
+                        font: font.clone(),
+                        font_size: 12.0,
+                        ..default()
+                    },
+                ));
+            }
+        });
+        row.spawn(Node {
+            column_gap: Val::Px(6.0),
+            ..default()
+        })
+        .with_children(|controls| {
+            glue_button(
+                controls,
+                art,
+                font,
+                Act::Options,
+                "Options",
+                96.0,
+                28.0,
+                GlueBtnKind::Small,
+                1.0,
+            );
+            glue_button(
+                controls,
+                art,
+                font,
+                Act::Quit,
+                "Quit",
+                72.0,
+                28.0,
+                GlueBtnKind::Small,
+                1.0,
+            );
+        });
+    });
 }
 
 fn header(ui: &mut ChildSpawnerCommands, art: &GlueArt, font: &Handle<Font>) {
