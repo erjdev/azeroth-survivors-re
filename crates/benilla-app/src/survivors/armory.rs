@@ -1796,7 +1796,7 @@ fn codex_text(account: &Account, id: u16) -> String {
                 .is_some_and(|progress| progress.seen.iter().any(|name| name == &amulet));
             let mark = if seen { "seen" } else { "not seen yet" };
             format!(
-                "{amulet} — {} — {} — {} damage, {}s cooldown — {mark}",
+                "Amulet of {}\n{} · {} damage, {}s cooldown\n{mark}",
                 spell_title(key),
                 kind_name(def.kind),
                 def.damage,

@@ -28,6 +28,15 @@ on item actions and tab return. A 1280×720 restart confirms the reference's thr
 panes and saved equipment/appearance choices. Typography and item-stat/content
 acceptance remain open.
 
+Codex presentation checkpoint verified at 1280×720 and 640×720: legendary amulets use a verified necklace
+silhouette plus an associated spell badge, shared jewelry aligns with the class rows,
+and selection highlights the catalog cell and shows a larger detail image. The generic
+legendary silhouette is representative art, not a claim that generated amulets have
+vanilla item identities. Distinct legendary artwork and complete catalog expansion
+remain required. Live badge clicks, unseen/shared entries and lower-row selection
+retain the catalog scroll position; actual captures are inline in the changelog.
+Mark of the Champion still lacks verified art.
+
 Tabard presentation checkpoint: replaced the plain name buttons and
 client display-ID text with illustrated cosmetic tiles using the Companion Looks
 reference. Keep the verified one-tabard catalog, immediate account persistence,

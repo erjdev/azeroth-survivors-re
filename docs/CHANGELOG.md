@@ -3,6 +3,32 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Codex jewelry icons and selection
+
+Legendary amulets now read as jewelry with an associated spell badge, following the
+[Codex reference](intentions/survivors_codex_tab.png). Shared jewelry uses aligned
+category/count rows. Selecting an entry highlights its cell and updates a larger
+detail image without rebuilding or resetting the catalog. Legendary titles are
+formatted as spell names instead of exposing internal underscores.
+
+![Catalog with synthetic discovered and undiscovered entries](images/screenshots/2026-10-25-codex-icons/catalog-1280.jpg)
+
+![Legendary selection and spell-specific bonuses](images/screenshots/2026-10-25-codex-icons/legendary-1280.jpg)
+
+![Undiscovered legendary remains dim in the catalog](images/screenshots/2026-10-25-codex-icons/undiscovered-1280.jpg)
+
+![Shared ring selection replaces the legendary badge](images/screenshots/2026-10-25-codex-icons/ring-1280.jpg)
+
+![Lower rows remain selected and scrolled at 640×720](images/screenshots/2026-10-25-codex-icons/lower-selection-640.jpg)
+
+Live checks used an isolated synthetic account with four discoveries, covering badge
+clicks, unseen entries, shared jewelry and narrow scrolling. Legendary amulets share
+one verified necklace silhouette for now; distinct artwork, catalog expansion,
+Mark of the Champion's missing icon and reference typography remain open. These
+captures demonstrate presentation, not completion of content or progression.
+Validation: 183 Survivors app tests, native build, workspace test compilation,
+Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Responsive Collection page
 
 Collection now stacks its log, item details, equipment and missing drops on narrow

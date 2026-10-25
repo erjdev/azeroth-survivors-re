@@ -27,6 +27,11 @@ layout at wider sizes. Item actions and tab return preserve narrow scrolling.
 
 ![Responsive Collection at 640×720](docs/images/screenshots/2026-10-25-collection-responsive/collection-640.jpg)
 
+Codex distinguishes legendary jewelry with spell badges and highlights the selected
+entry, with larger detail art. Discoveries below are synthetic preview data.
+
+![Codex jewelry and spell badges](docs/images/screenshots/2026-10-25-codex-icons/legendary-1280.jpg)
+
 Talent trees now use the available page height, closer to the intention layout.
 
 ![Full-height Talent interface](docs/images/screenshots/2026-10-25-talent-height/talents-1280.jpg)
