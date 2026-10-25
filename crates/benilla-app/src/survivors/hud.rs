@@ -1840,9 +1840,17 @@ pub(super) fn refresh_menu(
     }
 }
 
+/// Art sources stay typed: item display IDs must never be resolved as spell IDs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum CardIcon {
+    Spell(u32),
+    Item(u32),
+    Missing,
+}
+
 /// What a level-up card shows.
 pub(super) struct CardText {
-    pub spell: u32,
+    pub icon: CardIcon,
     pub name: String,
     pub tag: String,
     pub tag_color: Color,
@@ -1859,7 +1867,7 @@ pub(super) fn describe_card(
     let new = Color::srgb(0.3, 1.0, 0.3);
     match choice {
         Choice::NewAbility(def) => CardText {
-            spell: def.spell,
+            icon: CardIcon::Spell(def.spell),
             name: spell_name(spells, def.spell, def.key),
             tag: "New spell".into(),
             tag_color: new,
@@ -1870,7 +1878,7 @@ pub(super) fn describe_card(
             let o = &run.abilities[k];
             let next = o.level + 1;
             CardText {
-                spell: o.def.spell,
+                icon: CardIcon::Spell(o.def.spell),
                 name: spell_name(spells, o.def.spell, o.def.key),
                 tag: format!("Rank {} » {next}", o.level),
                 tag_color: Color::WHITE,
@@ -1879,7 +1887,7 @@ pub(super) fn describe_card(
             }
         }
         Choice::NewPassive(p) => CardText {
-            spell: p.spell,
+            icon: CardIcon::Spell(p.spell),
             name: p.name.into(),
             tag: "New talent".into(),
             tag_color: new,
@@ -1889,7 +1897,7 @@ pub(super) fn describe_card(
         Choice::UpPassive(k) => {
             let (p, level) = run.passives[k];
             CardText {
-                spell: p.spell,
+                icon: CardIcon::Spell(p.spell),
                 name: p.name.into(),
                 tag: format!("Rank {level} » {}", level + 1),
                 tag_color: Color::WHITE,
@@ -1898,7 +1906,7 @@ pub(super) fn describe_card(
             }
         }
         Choice::Heal => CardText {
-            spell: 5720,
+            icon: CardIcon::Spell(5720),
             name: "Healthstone".into(),
             tag: "Restore".into(),
             tag_color: Color::WHITE,
@@ -1911,9 +1919,9 @@ pub(super) fn describe_card(
 
 fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
     use super::campaign::{JewelKind, AMULET_NAMES, RING_NAMES, TRINKET_NAMES};
-    let (spell, name, tag, desc) = match kind {
+    let (icon, name, tag, desc) = match kind {
         JewelKind::Ring(i) => (
-            11196u32,
+            CardIcon::Missing,
             RING_NAMES
                 .get(i as usize)
                 .copied()
@@ -1923,7 +1931,7 @@ fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
             "Worn for this run. A second ring fills the other hand.",
         ),
         JewelKind::Trinket(i) => (
-            11810u32,
+            CardIcon::Missing,
             TRINKET_NAMES
                 .get(i as usize)
                 .copied()
@@ -1933,7 +1941,7 @@ fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
             "Worn for this run. Two trinkets can be carried.",
         ),
         JewelKind::Amulet(i) => (
-            19383u32,
+            CardIcon::Missing,
             AMULET_NAMES
                 .get(i as usize)
                 .copied()
@@ -1943,22 +1951,27 @@ fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
             "Worn for this run. One amulet.",
         ),
         JewelKind::Legend(key) => {
-            let spell = run
+            let icon = run
                 .abilities
                 .iter()
                 .find(|o| o.def.key == key)
-                .map(|o| o.def.spell)
-                .unwrap_or(0);
+                .map(|o| CardIcon::Spell(o.def.spell))
+                .unwrap_or(CardIcon::Missing);
             (
-                spell,
+                icon,
                 super::campaign::legendary_amulet(key),
                 "Legendary amulet",
                 "Seen once dealt, whether or not you take it. One legendary amulet for this run.",
             )
         }
     };
+    let icon = if matches!(kind, JewelKind::Legend(_)) {
+        icon
+    } else {
+        super::jewel_icons::display(&name).map_or(CardIcon::Missing, CardIcon::Item)
+    };
     CardText {
-        spell,
+        icon,
         name,
         tag: tag.into(),
         tag_color: GOLD,
@@ -3105,5 +3118,71 @@ mod talent_tooltip_tests {
                 .iter()
                 .any(|line| line.left.starts_with("Heals ")));
         }
+    }
+}
+
+#[cfg(test)]
+mod card_icon_tests {
+    use super::super::campaign::{JewelKind, AMULET_NAMES, RING_NAMES, TRINKET_NAMES};
+    use super::*;
+
+    #[test]
+    fn chest_jewelry_resolves_item_art_and_keeps_legend_spell_art() {
+        let mut run = Run::default();
+        for (names, kind) in [
+            (
+                RING_NAMES.as_slice(),
+                JewelKind::Ring as fn(u8) -> JewelKind,
+            ),
+            (
+                TRINKET_NAMES.as_slice(),
+                JewelKind::Trinket as fn(u8) -> JewelKind,
+            ),
+            (
+                AMULET_NAMES.as_slice(),
+                JewelKind::Amulet as fn(u8) -> JewelKind,
+            ),
+        ] {
+            for (i, name) in names.iter().enumerate() {
+                let card = describe_card(Choice::Jewel(kind(i as u8)), &run, None);
+                assert_eq!(card.name, *name);
+                if *name == "Mark of the Champion" {
+                    assert_eq!(card.icon, CardIcon::Missing);
+                } else {
+                    assert_eq!(
+                        card.icon,
+                        CardIcon::Item(super::super::jewel_icons::display(name).unwrap())
+                    );
+                }
+            }
+        }
+        for kind in [
+            JewelKind::Ring(255),
+            JewelKind::Trinket(255),
+            JewelKind::Amulet(255),
+        ] {
+            assert_eq!(
+                describe_card(Choice::Jewel(kind), &run, None).icon,
+                CardIcon::Missing
+            );
+        }
+        let def = data::ability("cleave");
+        run.abilities.push(super::super::Owned {
+            def,
+            level: 1,
+            cd: 0.,
+        });
+        assert_eq!(
+            describe_card(Choice::Jewel(JewelKind::Legend("cleave")), &run, None).icon,
+            CardIcon::Spell(def.spell)
+        );
+        assert_eq!(
+            describe_card(Choice::NewAbility(def), &run, None).icon,
+            CardIcon::Spell(def.spell)
+        );
+        assert_eq!(
+            describe_card(Choice::Heal, &run, None).icon,
+            CardIcon::Spell(5720)
+        );
     }
 }

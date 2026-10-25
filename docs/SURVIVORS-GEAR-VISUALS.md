@@ -165,6 +165,9 @@ cover all four display rows and readable icon assets; live staff attachment chec
 Survivors names map to their unique full vanilla name below; saved names stay unchanged.
 Royal Seal variants all share one display. Mark of the Champion has two distinct
 displays (35649 and 35621) and deliberately remains unresolved.
+The Codex and chest choice cards both use these item-display mappings. Legendary amulet
+cards retain their associated spell art; ordinary jewelry never resolves its item ID
+through the spell icon catalog.
 
 | Survivors name | Vanilla entry | Display | Source name when abbreviated |
 | --- | --- | --- | --- |

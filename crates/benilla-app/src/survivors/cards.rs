@@ -333,19 +333,38 @@ pub(super) fn deal_cards(
                     ),
                 ))
                 .with_children(|s| {
-                    s.spawn((
+                    let mut node = s.spawn((
                         Node {
                             width: Val::Percent(100.0),
                             height: Val::Percent(100.0),
                             border_radius: BorderRadius::all(Val::Px(4.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
                             ..default()
                         },
                         ImageNode {
-                            color: Color::srgba(0.0, 0.0, 0.0, 0.6),
+                            color: Color::NONE,
                             ..default()
                         },
-                        SpellIcon(card.spell),
                     ));
+                    match card.icon {
+                        hud::CardIcon::Spell(id) => {
+                            node.insert(SpellIcon(id));
+                        }
+                        hud::CardIcon::Item(display) => {
+                            node.insert(super::gear_icons::GearIcon(display, Color::WHITE));
+                        }
+                        hud::CardIcon::Missing => {
+                            node.remove::<ImageNode>().with_children(|fallback| {
+                                fallback.spawn(hud::text_bundle(
+                                    f,
+                                    "?",
+                                    32.,
+                                    Color::srgb(0.6, 0.6, 0.6),
+                                ));
+                            });
+                        }
+                    }
                 });
                 c.spawn(hud::centered_bundle(
                     f,

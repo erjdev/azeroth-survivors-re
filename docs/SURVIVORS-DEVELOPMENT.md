@@ -247,3 +247,12 @@ cargo survivors-build
 A first build compiles dependencies; subsequent builds reuse the local `target/` cache.
 Game data and build artifacts are not in Git. Use `scripts/fetch-data.sh` when needed,
 then launch with `WOW_DATA="$PWD/wow-data/Data" cargo survivors` on macOS/Linux.
+
+## Hold a chest hand for UI inspection
+
+`WOW_SURVIVORS_AUTO=Warrior:chest WOW_SURVIVORS_MAP="Elwynn Forest" cargo survivors`
+uses the existing accelerated late-run setup (600 simulated seconds and max-rank abilities)
+and stops automatically choosing cards while a chest is open. Pick manually to continue;
+subsequent chest hands also wait. Ordinary level-ups still auto-pick. Use an isolated
+`BENILLA_HOME` and explicit `WOW_DATA` for validation: this mode grants accelerated
+combat/rewards and is not evidence of normal progression or balance.

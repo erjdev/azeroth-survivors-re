@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Correct chest jewelry artwork
+
+Chest jewelry now uses the verified item icons shared with the Codex, replacing generic
+spell art. Added a held-chest inspection mode and [live trinket evidence](images/screenshots/2026-10-25-chest-item-icons/trinkets.png)
+to README. All 131 app tests and Clippy pass. Mark of the Champion's identity remains
+unresolved; reward mechanics and saves are unchanged.
+
 ## 2026-10-25 — Spawn clearance and live Epic rewards
 
 Spawn candidates now reject body overlaps with registered collision geometry and retry

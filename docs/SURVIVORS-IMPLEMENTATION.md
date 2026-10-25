@@ -2234,3 +2234,33 @@ used by the Codex page. The trinket card showed a question-mark icon. Wire chest
 the same item icon catalog and validate their live appearance in a subsequent checkpoint.
 The “no change” bonus line may represent an equivalent replacement and is not by itself
 proof of a missing effect.
+
+### Chest item artwork and repeatable inspection — 2026-10-25
+
+Resolved the chest-art issue observed in Gurubashi. Card descriptions now carry a typed
+spell/item/missing icon source. Ordinary jewelry routes through the same 38 verified
+item displays as the Codex instead of three unrelated generic spell IDs. Legendary
+amulets retain their associated spell icon; ordinary ability/passive/Healthstone cards
+retain spell art. Mark of the Champion remains explicitly unresolved, and invalid item
+indices cannot borrow an unrelated image. No reward, stat, rarity or save change.
+
+Added `WOW_SURVIVORS_AUTO=Warrior:chest` for repeatable UI inspection: it uses the existing
+late-run setup but leaves chest choices to manual input while ordinary level-ups still
+auto-pick. The workflow and isolation requirements are documented in development notes.
+
+Live 1280×720 logical Retina checks show Don Mauricio's Band, Ring of Protection and
+Onyxia Tooth Pendant with distinct item artwork. Selecting the ring updates the next
+hand's bonuses. Further manual selection reaches Talisman of Ephemeral Power and
+Zandalarian Hero Medallion with item artwork; the former no longer shows the question
+mark observed in the prior run. Both milestone screenshots are under
+`docs/images/screenshots/2026-10-25-chest-item-icons/` and linked in README. The run used
+an isolated save and accelerated max-rank abilities, not normal acquisition. No ERROR or
+panic entries appeared. Normal launcher restored and app closed through fresh AX state,
+without querying the closed app.
+
+Validation: all 131 Survivors app tests pass with explicit checkout data, including
+item-vs-spell source routing, missing identities and all shared icon reads. Native build
+took 1m19s; workspace Clippy took 48.96 seconds and passes. Final test compilation after
+the inspection-mode addition took 2m20s. Formatting, render-pass lint and diff whitespace
+checks pass. The full game goal remains incomplete, including Mark of the Champion,
+remaining zone/appearance acceptance and the recorded Gurubashi performance problem.

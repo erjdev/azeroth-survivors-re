@@ -102,6 +102,12 @@ pending world acceptance; this older capture predates those source labels.
 [Human male armor preview](docs/images/screenshots/2026-10-25-rare-armor/character-720.png)
 is a visual checkpoint, not complete race/sex or attachment acceptance.
 
+Chest rewards now use verified item artwork. This isolated accelerated fixture holds
+chest choices for inspection: [rings and amulet](docs/images/screenshots/2026-10-25-chest-item-icons/rings-and-amulet.png),
+then trinkets after manual selections. Mark of the Champion's ambiguous identity remains unresolved.
+
+![Chest trinket item icons](docs/images/screenshots/2026-10-25-chest-item-icons/trinkets.png)
+
 Gurubashi live checkpoint: an isolated accelerated Warrior run starts at 10:00 with
 max-rank abilities. The captured defeat at 10:36 reports six bosses and 409 kills; this
 is not a full-length run or balance acceptance. Slow combat samples remain under investigation.
