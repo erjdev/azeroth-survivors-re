@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Warrior strike training
+
+Improved Overpower adds Heroic Strike critical chance; Improved Slam shortens Mortal
+Strike's cooldown. Both use the selected spec and existing cast rules, with explicit
+Survivors conversion text. They do not grant abilities. Warrior now has 34 supported nodes;
+remaining talents and class completion are still open. Native build, workspace test
+compilation, Clippy, formatting, 62 core tests, 107 Survivors tests and the local talent
+catalog audit pass. Live talent-panel/combat validation remains pending.
+
 ## 2026-10-25 — Cutaway scales with the viewport
 
 The foliage reveal now follows camera zoom, perspective and aspect ratio, occupying 35%

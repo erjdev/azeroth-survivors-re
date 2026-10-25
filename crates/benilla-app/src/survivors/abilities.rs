@@ -1383,6 +1383,32 @@ mod milestone_tests {
     }
 
     #[test]
+    fn warrior_strike_training_reaches_combat_and_caps_critical_chance() {
+        let mut stats = Run::default().stats();
+        stats.crit = 0.9;
+        let base = Milestones::default();
+        let trained = base.with_ranks(&[(0, 131, 2), (1, 168, 5)]);
+        for (key, crit, cooldown) in [
+            ("heroic_strike", 1.0, 1.0),
+            ("mortal_strike", 0.9, 0.75),
+            ("cleave", 0.9, 1.0),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 4,
+                cd: 0.0,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.crit - crit).abs() < 0.00001);
+            assert!((after.cooldown - before.cooldown * cooldown).abs() < 0.00001);
+            assert_eq!(after.dmg, before.dmg);
+            assert_eq!(after.count, before.count);
+            assert_eq!(after.radius, before.radius);
+        }
+    }
+
+    #[test]
     fn legendary_bonuses_are_cast_local_and_do_not_duplicate_areas() {
         let mut run = Run::default();
         run.tuning.damage = 2.0;

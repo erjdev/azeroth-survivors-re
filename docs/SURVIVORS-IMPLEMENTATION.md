@@ -1420,3 +1420,20 @@ No shader errors or panics appeared in the validation log. Exact camera distance
 not instrumented, so these captures do not prove endpoint coverage or the precise 35%
 ratio. Resize, ordinary-renderer zoom and the wider matrix remain open. Isolated save,
 XP multiplier 0.1 and auto-push Off were used; launcher and tuning overrides were restored.
+
+### Warrior strike training — 2026-10-25
+
+Improved Overpower (131, two ranks) adds 10 percentage points of Heroic Strike critical
+chance per rank; the shared combat calculation caps total chance at 100%. Improved Slam
+(168, five ranks) shortens Mortal Strike cooldown by 5% per rank, multiplying with ordinary
+cooldown modifiers. These are explicit provisional Survivors adaptations: there is no
+Overpower dodge trigger or Slam cast bar. Neither grants a spell or changes target counts.
+Both replace their generic per-point damage fallback, follow the selected-spec snapshot,
+and reset with that spec. Local DBC identity/rank auditing covers both; Warrior now has
+34 implemented individual nodes. Remaining nodes and other classes are still required.
+
+Validation: native macOS build, workspace test compilation, workspace Clippy, formatting,
+62 core tests, 107 focused Survivors tests and local talent DBC audit pass. Tests include
+reset/class isolation, the actual combat critical cap and unchanged damage/radius/targets.
+Live talent-panel and combat validation remain pending; no new visual milestone is claimed.
+Full workspace test acceptance remains open.

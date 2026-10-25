@@ -882,6 +882,17 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::SpellCooldown("charge"), per_rank: 0.1,
     },
 
+    TalentDefinition {
+        id: 131, max_rank: 2, name: "Improved Overpower",
+        description: "Heroic Strike: +10 percentage points critical chance per rank (Survivors conversion)",
+        stat: TalentStat::SpellCrit("heroic_strike"), per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 168, max_rank: 5, name: "Improved Slam",
+        description: "Mortal Strike: 5% shorter cooldown per rank (Survivors conversion)",
+        stat: TalentStat::SpellCooldown("mortal_strike"), per_rank: 0.05,
+    },
+
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
@@ -1317,6 +1328,21 @@ mod stat_talent_tests {
                 .blood_craze_fraction(),
             0.03
         );
+    }
+
+    #[test]
+    fn overpower_and_slam_training_is_spell_specific_and_resettable() {
+        let base = Milestones::default();
+        let trained = base.with_ranks(&[(0, 131, 2), (1, 168, 5)]);
+        assert!((trained.cast("heroic_strike").crit - 0.2).abs() < 0.00001);
+        assert!((trained.cast("mortal_strike").cooldown - 0.75).abs() < 0.00001);
+        assert_eq!(trained.cast("cleave"), base.cast("cleave"));
+        assert_eq!(trained.cast("heroic_strike").cooldown, 1.0);
+        assert_eq!(trained.cast("mortal_strike").crit, 0.0);
+        assert_eq!(trained.with_ranks(&[]), base);
+        let other = Milestones { class: 1, ..base }.with_ranks(&[(0, 131, 2), (1, 168, 5)]);
+        assert_eq!(other.cast("heroic_strike"), CastEffect::default());
+        assert_eq!(other.cast("mortal_strike"), CastEffect::default());
     }
 
     #[test]
