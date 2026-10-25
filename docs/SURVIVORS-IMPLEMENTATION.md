@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Talent presentation checkpoint: panels use the available page height, with a readable
+minimum and the existing wrapping/outer scroll. Live Warrior captures at 1280×720
+and 640×720 verify taller trees, spending and lower-panel reachability. Singular
+“1 point” is corrected. Reference icons, typography and artwork black margins remain
+open; see the latest changelog for inline evidence and validation scope.
+
+
 Live Talent validation (2026-10-25): isolated Warrior fixture confirms 800×720
 three-tree-plus-wrapped-detail layout, wheel reachability, spending/reset totals,
 and scroll restoration after reset and a Collection round trip. In-process preview

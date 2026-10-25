@@ -134,6 +134,7 @@ fn panel(ui: &mut ChildSpawnerCommands, weight: f32, body: impl FnOnce(&mut Chil
             flex_grow: weight,
             flex_basis: Val::Px(240.0),
             min_width: Val::Px(200.0),
+            height: Val::Percent(100.0),
             min_height: Val::Px(440.0),
             overflow: Overflow::clip(),
             border: UiRect::all(Val::Px(1.0)),
@@ -279,7 +280,7 @@ pub(super) fn build(
     .with_children(|row| {
         for (tree, (name, nodes)) in trees.iter().enumerate() {
             panel(row, 1.0, |col| {
-                text(col, font, format!("{name}   {} points", points[tree]), 17.0, GOLD);
+                text(col, font, format!("{name}   {} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), 17.0, GOLD);
                 col.spawn((Node { width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(300.0),
                     overflow: Overflow::clip(), border_radius: BorderRadius::all(Val::Px(3.0)), ..default() }, BackgroundColor(Color::BLACK)))
                 .with_children(|grid| {

@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Taller Talent presentation
+
+Talent panels now follow the available page height, giving the illustrated trees
+and seven talent rows more space in line with the
+[Talent reference](intentions/survivors_talent_tab.png). Narrow windows retain wrapping
+and one page-level scroll area. Tree totals now say “1 point” when appropriate.
+
+![Full-height Talent panels at 1280×720](images/screenshots/2026-10-25-talent-height/talents-1280.jpg)
+
+![One spent point and green preview](images/screenshots/2026-10-25-talent-height/one-point-1280.jpg)
+
+![Wrapped lower panels at 640×720](images/screenshots/2026-10-25-talent-height/wrapped-640.jpg)
+
+Verified with an isolated collected Warrior fixture: spending a point, live resizing,
+and scrolling to the lower tree/spec panel. Native build, workspace Clippy, formatting
+and render-pass lint pass. Header/milestone icons, typography and the black margins
+around the tree artwork still differ from the reference; other-class visual checks
+remain open. Captures include the Retina title bar.
+
 ## 2026-10-25 — Responsive Talents live validation
 
 Validated the current native UI with an isolated collected Warrior account, against
