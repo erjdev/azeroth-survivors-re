@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter appearance navigation
+
+The starter's Look button opens Character's appearance controls for the selected
+hero. Escape returns to the starter with the same hero, gear and zone selection.
+The older creation workflow remains separate.
+
+![Look opens Character with the selected hero](images/screenshots/2026-10-25-look-navigation/look-opens-character.jpg)
+
+![Escape returns to the starter](images/screenshots/2026-10-25-look-navigation/return-to-starter.jpg)
+
+Verified the button and return path live at 1280×720 with an isolated Mage save.
+Native build, formatting and diff checks pass. This is a navigation-only change;
+no gameplay rules changed and the gameplay test suites were not rerun.
+
 ## 2026-10-25 — Human racial benefits
 
 Implemented the starter reference's Human rules: Perception grants +15% damage

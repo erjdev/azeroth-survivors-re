@@ -736,7 +736,7 @@ fn hero_column(
                         row,
                         art,
                         font,
-                        Act::Look,
+                        Act::Page(Page::Heroes),
                         "Look",
                         72.0,
                         26.0,

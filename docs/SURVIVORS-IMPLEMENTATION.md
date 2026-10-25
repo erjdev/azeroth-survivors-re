@@ -25,8 +25,9 @@ Core boundary tests and app tests cover stat stacking, legendary damage and
 hero/companion pickups. Human/Gnome switching and 1280×720/640×720 descriptions
 were checked live. Other racial rules, Perception combat feedback and full live
 combat acceptance remain open. Existing per-award gold rounding is retained.
-The starter Look button still reaches the older glue screen; consolidate that
-route with Character's body controls in a subsequent interface checkpoint.
+The starter Look button now opens Character's body controls. Look → Character
+→ Escape was verified live at 1280×720 with the selected Mage retained. The
+older creation workflow remains separate.
 
 Starter portrait checkpoint verified at 1280×720 and 640×720: the selected
 hero's saved body/appearance renders beside their name and race in a proportional
