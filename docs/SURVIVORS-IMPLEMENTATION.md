@@ -666,3 +666,18 @@ Codex selection now updates a marked detail text node without rebuilding the cat
 A live 720p check scrolled to the footer, selected Onyxia Tooth Pendant and then The Eye
 of Hakkar, and verified both detail changes with the catalog/footer unmoved. The native
 play build passed (1m56s). Workspace test compilation and all 73 Survivors tests pass.
+
+
+### Shared jewelry artwork checkpoint — 2026-10-24
+
+The three shared Codex categories now use icon cells backed by the existing ItemDisplayInfo
+loader. The pinned item-template catalog resolves 38 item-to-display mappings; four
+abbreviated labels keep their saved names and map to the full source names documented in
+SURVIVORS-GEAR-VISUALS.md. Royal Seal variants share one display. Mark of the Champion's
+two distinct displays remain unresolved and its selectable cell shows a question mark.
+Icons dim according to saved discovery. Native build (1m44s), workspace test compilation
+and 74 Survivors tests pass with WOW_DATA set to the checkout data chain, including
+all 38 display/icon checks. A live 720p capture verifies the full grid and footer fit;
+Onyxia Tooth Pendant and the unresolved Mark both open the correct details.
+Legendary necklace art with spell badges, selected-cell indication and detailed effects
+remain open, along with live jewelry offer/restart persistence validation.

@@ -20,6 +20,7 @@ mod gear_template;
 mod grade;
 mod hero;
 mod hud;
+mod jewel_icons;
 mod look_catalog;
 mod menu;
 mod minimap;

@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Shared jewelry artwork
+
+Codex rings, trinkets and amulets now use compact icon cells, dimmed until offered.
+Thirty-eight items have verified display mappings from the pinned vanilla catalog. Mark of the Champion
+remains a selectable question mark because its name identifies two different displays.
+**Validation:** native build, workspace test compilation and 74 Survivors tests pass,
+including all mapped icon files in the explicit data chain. The
+[720p capture](images/screenshots/2026-10-24-codex-discovery/codex-jewelry-720.jpg) shows
+the compact grid; mapped and unresolved cells both open their details.
+
 ## 2026-10-24 — Codex browsing
 
 Selecting an entry updates the details text in place, preserving the catalog's scroll

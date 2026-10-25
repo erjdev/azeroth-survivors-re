@@ -32,3 +32,52 @@ as its closest view. Thunderfury and Whirlwind Axe were checked at 1440×900 and
 with a fixed first-load appearance replacement at 1280×720. Pending attachment loads retry until the
 renderer records them ready. Weapon poses remain open; icon availability alone does not
 establish correct armor textures or attachments.
+
+
+## Shared jewelry icons
+
+`survivors::jewel_icons` uses the same pinned item-template source. Four abbreviated
+Survivors names map to their unique full vanilla name below; saved names stay unchanged.
+Royal Seal variants all share one display. Mark of the Champion has two distinct
+displays (35649 and 35621) and deliberately remains unresolved.
+
+| Survivors name | Vanilla entry | Display | Source name when abbreviated |
+| --- | --- | --- | --- |
+| Band of the Unicorn | 7553 | 15422 | — |
+| Seal of Wrynn | 2933 | 9845 | — |
+| Ring of the Moon | 12052 | 9837 | — |
+| Magni's Will | 12548 | 9837 | — |
+| Ring of Protection | 15855 | 26537 | — |
+| Don Mauricio's Band | 22433 | 24022 | Don Mauricio's Band of Domination |
+| Ring of Fortitude | 10739 | 15422 | — |
+| Band of Rumination | 18103 | 24022 | — |
+| Ring of the Fallen | 21709 | 34336 | Ring of the Fallen God |
+| Rune of the Guard Captain | 19120 | 31631 | — |
+| Smotts' Compass | 4130 | 6562 | — |
+| Defender of the Timbermaw | 21326 | 33702 | — |
+| Ramstein's Lightning Bolts | 13515 | 1236 | — |
+| Talisman of Ephemeral Power | 18820 | 31287 | — |
+| Zandalarian Hero Medallion | 19949 | 32431 | — |
+| Eye of the Beast | 13968 | 24784 | — |
+| Briarwood Reed | 12930 | 8232 | — |
+| Drake Fang Talisman | 19406 | 31936 | — |
+| Royal Seal of Eldre'Thalas | 18465, 18466, 18467, 18468, 18469, 18470, 18471, 18472, 18473 | 29712 | — |
+| Mindtap Talisman | 18371 | 30723 | — |
+| Neltharion's Tear | 19379 | 31901 | — |
+| Amulet of the Redeemed | 22327 | 9857 | — |
+| Medallion of Grand Marshal Morris | 13091 | 23717 | — |
+| Pendant of the Fallen Dragon | 19371 | 31889 | — |
+| Mark of Fordring | 15411 | 23716 | — |
+| Onyxia Tooth Pendant | 18404 | 9860 | — |
+| Prestor's Talisman | 19377 | 31899 | Prestor's Talisman of Connivery |
+| The Eye of Hakkar | 19856 | 32297 | — |
+| Amulet of the Darkmoon | 19491 | 32008 | — |
+| Choker of the Fire Lord | 18814 | 1399 | — |
+| Gem of Nerubis | 22937 | 35817 | — |
+| Pendant of the Qiraji Guardian | 21700 | 34204 | — |
+| Amulet of Vek'nilash | 21608 | 34204 | — |
+| Sadist's Collar | 23023 | 35358 | — |
+| Stormrage's Talisman | 23053 | 35359 | Stormrage's Talisman of Seething |
+| The Burrower's Shell | 23558 | 36290 | — |
+| Talisman of Ascendance | 22678 | 24730 | — |
+| Master Dragonslayer's Medallion | 19383 | 31907 | — |

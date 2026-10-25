@@ -1,6 +1,6 @@
 //! The discovered catalog and independently scrollable selected-entry details.
 
-use super::{campaign, chip, codex_jewel, codex_legend, collection, data, hud, picked_class};
+use super::{campaign, codex_jewel, codex_legend, collection, data, hud, picked_class};
 use super::{Account, Act, Armory, Selection, CLASSES, GOLD};
 use bevy::prelude::*;
 use survivors_core::layout::Layout;
@@ -147,13 +147,40 @@ pub(super) fn build(
                     })
                     .with_children(|row| {
                         for (index, name) in names.iter().enumerate() {
-                            chip(
-                                row,
-                                font,
-                                name,
+                            let seen = account.shared_jewel_seen(kind, index);
+                            let tint = if seen {
+                                Color::WHITE
+                            } else {
+                                Color::srgba(0.3, 0.3, 0.3, 0.65)
+                            };
+                            let mut cell = row.spawn((
+                                Button,
                                 Act::Codex(codex_jewel(kind, index)),
-                                account.shared_jewel_seen(kind, index),
-                            );
+                                Node {
+                                    width: Val::Px(layout.body_size * 3.0),
+                                    height: Val::Px(layout.body_size * 3.0),
+                                    margin: UiRect::all(Val::Px(2.0)),
+                                    flex_shrink: 0.0,
+                                    border: UiRect::all(Val::Px(1.0)),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                },
+                                BorderColor::all(if seen { GOLD } else { DIM }),
+                            ));
+                            if let Some(display) = super::super::jewel_icons::display(name) {
+                                cell.insert((
+                                    super::super::gear_icons::GearIcon(display, tint),
+                                    ImageNode {
+                                        color: Color::NONE,
+                                        ..default()
+                                    },
+                                ));
+                            } else {
+                                cell.with_children(|fallback| {
+                                    label(fallback, font, "?", layout.title_size, DIM)
+                                });
+                            }
                         }
                     });
             }
@@ -196,7 +223,7 @@ pub(super) fn build(
     });
 }
 
-const INTRO: &str = "Every ring, trinket and amulet offered to any hero is remembered, even if you do not take it. Dim spell icons have not been offered yet. Select an entry to read it.\n\nShared jewelry lasts one run. Legendary amulets belong to a class and enhance one spell.";
+const INTRO: &str = "Every ring, trinket and amulet offered to any hero is remembered, even if you do not take it. Dim icons have not been offered yet. Select an entry to read it.\n\nShared jewelry lasts one run. Legendary amulets belong to a class and enhance one spell.";
 
 #[derive(Component)]
 pub(in crate::survivors) struct DetailText;
