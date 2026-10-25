@@ -1669,3 +1669,15 @@ Validation: native incremental build (24.22 seconds), workspace test compilation
 core tests and 115 Survivors app tests pass. The slot-identity checks now cover both
 armor tiers for all classes; the local-data icon/display scan traverses every mapped
 collection cell, including the 72 additions. Formatting and render-pass lint pass.
+
+
+### Collection slot-heading spacing — 2026-10-25
+
+Resolved the narrow-grid heading issue found in the uncommon catalog check. Slot headings
+now occupy their full proportional columns, use centered alignment and derive their text
+size from the layout's body size. Live resize from 1024×720 to 1280×720 retains selection
+and separates Shoulders/Chest; Main Hand wraps only where needed. Evidence:
+[1024×720](images/screenshots/2026-10-25-collection-headings/collection-1024.png),
+[1280×720](images/screenshots/2026-10-25-collection-headings/collection-720.png).
+Native play build and formatting pass. This checks the default layout at these two sizes,
+not the full resolution/layout-setting matrix or other Armory pages.

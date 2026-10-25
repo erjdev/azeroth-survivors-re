@@ -291,7 +291,14 @@ fn grid(
                 ..default()
             })
             .with_children(|cell| {
-                text(cell, font, *label, (layout.body_size - 2.0).min(10.0), DIM)
+                cell.spawn((
+                    hud::centered_bundle(font, *label, (layout.body_size * 0.75).min(10.0), DIM),
+                    Node {
+                        width: Val::Percent(100.0),
+                        min_width: Val::Px(0.0),
+                        ..default()
+                    },
+                ));
             });
         }
     });

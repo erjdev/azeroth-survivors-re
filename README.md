@@ -63,11 +63,11 @@ minutes. **No server, no login, no account** — fully offline and self-containe
 
 Collection content milestone: the uncommon armor row now has real item identities for
 all nine classes. Hunter item details and pending-source messaging were checked at
-1280×720 and 1024×720; the narrower grid still needs more spacing between slot headings.
+1280×720 and 1024×720. Slot headings are centered and separated at both sizes.
 
-![Hunter uncommon armor collection at 720p](docs/images/screenshots/2026-10-25-uncommon-armor/hunter-720.png)
+![Hunter uncommon armor collection at 720p](docs/images/screenshots/2026-10-25-collection-headings/collection-720.png)
 
-[Narrow collection layout](docs/images/screenshots/2026-10-25-uncommon-armor/hunter-1024.png)
+[Narrow collection layout](docs/images/screenshots/2026-10-25-collection-headings/collection-1024.png)
 
 Hunter talent milestone: Mortal Shots has a green next-rank preview, and spending/resetting
 Spec 2 leaves Spec 1 intact. Verified at 1280×720 and after a live resize to 1024×720;

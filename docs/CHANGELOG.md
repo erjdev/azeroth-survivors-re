@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Collection heading spacing
+
+Centered slot headings within their proportional columns and adjusted text sizing to
+separate the crowded Shoulders/Chest labels. Verified selection and resizing at
+[1024×720](images/screenshots/2026-10-25-collection-headings/collection-1024.png) and
+[1280×720](images/screenshots/2026-10-25-collection-headings/collection-720.png).
+Native build and formatting pass; README screenshots refreshed.
+
 ## 2026-10-25 — Uncommon armor catalog
 
 Added 72 named armor appearances across all nine classes. Each class now has 18 of 54
