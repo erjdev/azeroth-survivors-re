@@ -18,6 +18,12 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Starter title, section headings and zone names now use runtime-loaded Morpheus;
+body copy keeps the HUD face. Wide/compact rendering, outline alignment, long
+zone names and zone-selection rebuilds passed live checks with three screenshots.
+Remaining typography work includes other Armory pages and buttons; portrait
+badges, outdoor zone art and broader styling still need reference alignment.
+
 Starter class selection now follows the reference's three-by-three wide grid,
 using proportional icon sizing, centered labels and class-colored selection.
 Wide 1280/1100 and compact 640×720 layouts, plus class switching, were verified

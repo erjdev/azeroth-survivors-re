@@ -248,7 +248,7 @@ fn header(ui: &mut ChildSpawnerCommands, art: &GlueArt, font: &Handle<Font>) {
                 justify_content: JustifyContent::Center,
                 ..default()
             },
-            (),
+            super::typography::DisplayHeading,
             (),
             GlueText {
                 text: "Azeroth Survivors",
@@ -951,11 +951,11 @@ fn zone_column(
                 ));
             }
             let color = if reason.is_some() { DIM } else { GOLD };
-            line(
+            display_line(
                 row,
                 font,
                 zone.name,
-                if on { 16.0 } else { 14.0 },
+                if on { 18.0 } else { 16.0 },
                 if on { GOLD } else { color },
             );
             if let Some(reason) = &reason {
@@ -1262,11 +1262,11 @@ fn heading(body: &mut ChildSpawnerCommands, font: &Handle<Font>, text: &str) {
             justify_content: JustifyContent::Center,
             ..default()
         },
-        (),
+        super::typography::DisplayHeading,
         (),
         GlueText {
             text,
-            size: 15.0,
+            size: 18.0,
             color: GOLD,
             wrap: false,
         },
@@ -1283,6 +1283,32 @@ fn line(body: &mut ChildSpawnerCommands, font: &Handle<Font>, text: &str, size: 
             ..default()
         },
         (),
+        (),
+        GlueText {
+            text,
+            size,
+            color,
+            wrap: true,
+        },
+        font,
+        1.0,
+    );
+}
+
+fn display_line(
+    body: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    text: &str,
+    size: f32,
+    color: Color,
+) {
+    outlined_text(
+        body,
+        Node {
+            max_width: Val::Percent(100.0),
+            ..default()
+        },
+        super::typography::DisplayHeading,
         (),
         GlueText {
             text,

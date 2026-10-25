@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter display headings
+
+The starter title, section headings and zone names now use the installed Morpheus
+font, bringing their letterforms closer to the intention screenshot. Descriptions,
+stats and controls retain the readable body face. Fonts remain in the user's game
+data; heading text keeps its existing face until Morpheus loads.
+
+![Starter display headings at 1280×720](images/screenshots/2026-10-25-display-headings/starter-1280.jpg)
+
+![Compact starter headings](images/screenshots/2026-10-25-display-headings/starter-640.jpg)
+
+![Long zone names in the compact list](images/screenshots/2026-10-25-display-headings/zones-640.jpg)
+
+Verified font rendering, outlined glyph alignment, zone-selection rebuilds and
+640×720 fit live. Native build, workspace Clippy, formatting and render-pass lint
+pass. No gameplay rules changed. Other Armory pages, button typography, portrait
+badges and outdoor zone art remain reference-alignment work.
+
 ## 2026-10-25 — Equipment wrapping
 
 Starter equipment slots now share grid columns across wrapped rows. The final
