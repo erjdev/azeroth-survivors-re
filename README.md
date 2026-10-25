@@ -48,6 +48,11 @@ look remains independent of its instinct; narrow layout and restart persistence 
 
 ![Companion appearance tiles](docs/images/screenshots/2026-10-25-companion-looks/second-squirrel-1280.jpg)
 
+The Companion catalog now has eleven looks. New accounts unlock Westfall Chicken
+with Veteran; existing saves retain access. Panda Cub and Sapphiron remain pending.
+
+![Expanded Companion catalog](docs/images/screenshots/2026-10-25-companion-catalog/catalog-1280.jpg)
+
 Scarlet Monastery now draws its authored building minimap, including zoom and enemy
 markers. The candidate zone stays locked pending navigation and full encounter acceptance.
 [Outdoor minimap regression](docs/images/screenshots/2026-10-25-indoor-minimap/elwynn.png)

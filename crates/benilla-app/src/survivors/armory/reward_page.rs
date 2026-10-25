@@ -300,13 +300,6 @@ pub(super) fn looks(
     armory: &Armory,
     account: &Account,
 ) {
-    let icons = [
-        "INV_Box_PetCarrier_01",
-        "INV_Box_PetCarrier_01",
-        "INV_Box_PetCarrier_01",
-        "Spell_Nature_GuardianWard",
-        "INV_Misc_Head_Dragon_Black",
-    ];
     let worn = account.pets.look[usize::from(armory.pet_slot)];
     panel
         .spawn(Node {
@@ -317,8 +310,9 @@ pub(super) fn looks(
             ..default()
         })
         .with_children(|grid| {
-            for (index, (name, _)) in super::super::companions::LOOKS.iter().enumerate() {
+            for (index, look) in super::super::companions::LOOKS.iter().enumerate() {
                 let selected = worn == index as u8;
+                let unlocked = account.look_unlocked(index as u8);
                 grid.spawn((
                     Button,
                     Act::WearLook(index as u8),
@@ -344,7 +338,7 @@ pub(super) fn looks(
                     card.spawn((
                         super::talent_page::Backdrop(format!(
                             "Interface\\Icons\\{}.blp",
-                            icons[index]
+                            look.icon
                         )),
                         ImageNode::default(),
                         Node {
@@ -362,11 +356,23 @@ pub(super) fn looks(
                         ..default()
                     })
                     .with_children(|label| {
-                        text(label, font, *name, 13.0, GOLD);
                         text(
                             label,
                             font,
-                            if selected { "Worn" } else { "Wear" },
+                            look.name,
+                            13.0,
+                            if unlocked { GOLD } else { DIM },
+                        );
+                        text(
+                            label,
+                            font,
+                            if selected {
+                                "Worn"
+                            } else if unlocked {
+                                "Wear"
+                            } else {
+                                "Veteran · 100 runs"
+                            },
                             12.0,
                             if selected {
                                 hud::card_growth::GAIN

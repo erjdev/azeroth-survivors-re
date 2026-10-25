@@ -3,6 +3,30 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Expanded Companion catalog and Veteran unlock
+
+Added six looks from the [Companion reference](intentions/survivors_rewards_tab_companions.png):
+Crimson Macaw, Great Horned Owl, Tree Frog, Sprite Darter, Zergling and Undercity Cockroach.
+Existing selection indices stay stable. Corrected Black Whelpling's missing display
+ID to the local pet-sized black whelpling. Icons remain generic for several critters.
+
+![Eleven looks with Chicken locked before Veteran](images/screenshots/2026-10-25-companion-catalog/catalog-1280.jpg)
+
+![New Crimson Macaw selected](images/screenshots/2026-10-25-companion-catalog/macaw-1280.jpg)
+
+![Expanded catalog at 640×720](images/screenshots/2026-10-25-companion-catalog/catalog-640.jpg)
+
+![Chicken wearable after the synthetic account reaches Veteran](images/screenshots/2026-10-25-companion-catalog/veteran-1280.jpg)
+
+New accounts unlock Westfall Chicken with Veteran (100 runs). Existing saves retain
+prior unrestricted access through a persisted migration flag; this grants no points.
+Live isolated-fixture checks covered blocked selection, Macaw selection, narrow reflow
+and the 100-run achievement unlock. These captures validate menus, not in-world pet
+animation. Panda Cub and Sapphiron await definitions for their pictured achievement gates.
+
+Validation: 174 Survivors tests, native build, workspace test compilation, Clippy,
+formatting and render-pass lint pass.
+
 ## 2026-10-25 — Illustrated Companion appearances
 
 Looks now uses illustrated, wrapping tiles with a gold selection border and green
