@@ -64,6 +64,7 @@ pub struct CastEffect {
     pub duration: f32,
     pub cooldown: f32,
     pub crit: f32,
+    pub crit_damage: f32,
     pub extra_targets: usize,
     pub heal_fraction: f32,
     pub shield_fraction: f32,
@@ -80,6 +81,7 @@ impl Default for CastEffect {
             duration: 1.0,
             cooldown: 1.0,
             crit: 0.0,
+            crit_damage: 0.0,
             extra_targets: 0,
             heal_fraction: 0.0,
             shield_fraction: 0.0,
@@ -159,6 +161,15 @@ impl Milestones {
             for (index, node) in definitions(self.class).iter().enumerate() {
                 let value = node.per_rank * f32::from(self.training[index].min(node.max_rank));
                 match node.stat {
+                    TalentStat::SpellGroupDamage(spells) if spells.contains(&key) => {
+                        effect.damage *= 1.0 + value;
+                    }
+                    TalentStat::SpellGroupCrit(spells) if spells.contains(&key) => {
+                        effect.crit += value
+                    }
+                    TalentStat::SpellGroupCritDamage(spells) if spells.contains(&key) => {
+                        effect.crit_damage += value;
+                    }
                     TalentStat::SpellDamage(spell) if spell == key => effect.damage *= 1.0 + value,
                     TalentStat::SpellCooldown(spell) if spell == key => {
                         effect.cooldown *= 1.0 - value
@@ -579,6 +590,9 @@ pub enum TalentStat {
     SecondaryStunDuration(&'static str),
     Reduction,
     Speed,
+    SpellGroupDamage(&'static [&'static str]),
+    SpellGroupCrit(&'static [&'static str]),
+    SpellGroupCritDamage(&'static [&'static str]),
     SpellDamage(&'static str),
     SpellCooldown(&'static str),
     SpellCrit(&'static str),
@@ -599,10 +613,16 @@ impl TalentDefinition {
             TalentStat::SpellShieldDuration(_) => (1.0, " s added shield duration"),
             TalentStat::SecondarySlowDuration(_) => (1.0, " s added slow duration"),
             TalentStat::SecondaryStunDuration(_) => (1.0, " s added stun duration"),
-            TalentStat::Damage | TalentStat::SpellDamage(_) => (100.0, "% damage"),
+            TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
+                (100.0, "% damage")
+            }
             TalentStat::Cooldown | TalentStat::SpellCooldown(_) => (100.0, "% cooldown reduction"),
-            TalentStat::Crit | TalentStat::SpellCrit(_) => (100.0, "% critical chance"),
-            TalentStat::CritDamage => (100.0, "% critical damage"),
+            TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) => {
+                (100.0, "% critical chance")
+            }
+            TalentStat::CritDamage | TalentStat::SpellGroupCritDamage(_) => {
+                (100.0, "% critical damage")
+            }
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::BloodCrazeHealing => {
                 (100.0, "% maximum health over 6 seconds after health damage")
@@ -1050,7 +1070,47 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
     },
 ];
 
+const HUNTER_SHOTS: &[&str] = &[
+    "arcane_shot",
+    "multi_shot",
+    "serpent_sting",
+    "concussive_shot",
+    "aimed_shot",
+];
+
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1344,
+        max_rank: 5,
+        name: "Lethal Shots",
+        description: "Shots: +1 percentage point critical chance per rank; excludes Volley and traps",
+        stat: TalentStat::SpellGroupCrit(HUNTER_SHOTS),
+        per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 1349,
+        max_rank: 5,
+        name: "Mortal Shots",
+        description: "Shots: +6 percentage points critical damage per rank; excludes Volley and traps (Survivors conversion)",
+        stat: TalentStat::SpellGroupCritDamage(HUNTER_SHOTS),
+        per_rank: 0.06,
+    },
+    TalentDefinition {
+        id: 1347,
+        max_rank: 3,
+        name: "Barrage",
+        description: "Multi-Shot and Volley: +4% damage per rank",
+        stat: TalentStat::SpellGroupDamage(&["multi_shot", "volley"]),
+        per_rank: 0.04,
+    },
+    TalentDefinition {
+        id: 1362,
+        max_rank: 5,
+        name: "Ranged Weapon Specialization",
+        description: "Shots: +1% direct and periodic damage per rank; excludes Volley and traps (Survivors conversion)",
+        stat: TalentStat::SpellGroupDamage(HUNTER_SHOTS),
+        per_rank: 0.01,
+    },
     TalentDefinition {
         id: 1395,
         max_rank: 3,
@@ -1162,6 +1222,9 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::BloodCrazeHealing
             | TalentStat::FlurryHaste
             | TalentStat::CriticalBleed
+            | TalentStat::SpellGroupDamage(_)
+            | TalentStat::SpellGroupCrit(_)
+            | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -1424,6 +1487,63 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn hunter_shot_groups_compose_without_affecting_other_abilities() {
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        for (id, cap) in [(1344, 5), (1349, 5), (1347, 3), (1362, 5)] {
+            for rank in 0..=cap {
+                let trained = base.with_ranks(&[(1, id, rank)]);
+                for key in [
+                    "arcane_shot",
+                    "multi_shot",
+                    "serpent_sting",
+                    "concussive_shot",
+                    "aimed_shot",
+                    "volley",
+                    "explosive_trap",
+                    "fireball",
+                ] {
+                    let shot = HUNTER_SHOTS.contains(&key);
+                    let barrage = matches!(key, "multi_shot" | "volley");
+                    let effect = trained.cast(key);
+                    let value = f32::from(rank);
+                    let expected = CastEffect {
+                        damage: 1.
+                            + if id == 1347 && barrage {
+                                0.04 * value
+                            } else if id == 1362 && shot {
+                                0.01 * value
+                            } else {
+                                0.
+                            },
+                        crit: if id == 1344 && shot { 0.01 * value } else { 0. },
+                        crit_damage: if id == 1349 && shot { 0.06 * value } else { 0. },
+                        ..Default::default()
+                    };
+                    assert_eq!(effect, expected, "node {id} rank {rank}: {key}");
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+            assert_eq!(
+                base.with_ranks(&[(1, id, 255), (1, id, 1)]),
+                base.with_ranks(&[(1, id, cap)])
+            );
+        }
+        let trained = base.with_ranks(&[(1, 1344, 5), (1, 1349, 5), (1, 1347, 3), (1, 1362, 5)]);
+        assert!((trained.cast("multi_shot").damage - 1.176).abs() < 0.00001);
+        for class in [0, 1, 3, 4, 5, 6, 7, 8] {
+            let other = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 1344, 5), (1, 1349, 5), (1, 1347, 3), (1, 1362, 5)]);
+            assert_eq!(other.cast("multi_shot"), CastEffect::default());
+        }
+    }
+
+    #[test]
     fn hunter_training_is_bounded_spell_specific_and_resettable() {
         let base = Milestones {
             class: 2,
@@ -1518,6 +1638,9 @@ mod stat_talent_tests {
                     | TalentStat::BloodCrazeHealing
                     | TalentStat::FlurryHaste
                     | TalentStat::CriticalBleed
+                    | TalentStat::SpellGroupDamage(_)
+                    | TalentStat::SpellGroupCrit(_)
+                    | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
                     | TalentStat::SpellCrit(_)

@@ -123,7 +123,7 @@ impl Params {
                 .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
             cooldown: o.cooldown(stats) * effect.cooldown,
             crit: (stats.crit + effect.crit).min(1.0),
-            crit_damage: stats.crit_damage,
+            crit_damage: stats.crit_damage + effect.crit_damage,
         }
     }
 }
@@ -1223,6 +1223,42 @@ mod milestone_tests {
             talents.critical_bleed(dots[0].source, dots[0].dps, true),
             0.
         );
+    }
+
+    #[test]
+    fn hunter_shot_crit_bonuses_compose_with_gear_and_keep_one_volley_area() {
+        let mut stats = Run::default().stats();
+        stats.crit = 0.98;
+        stats.crit_damage = 2.2;
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(1, 1344, 5), (1, 1349, 5), (1, 1347, 3), (1, 1362, 5)]);
+        for (key, damage, chance, critical_damage) in [
+            ("multi_shot", 1.176, 1., 2.5),
+            ("serpent_sting", 1.05, 1., 2.5),
+            ("volley", 1.12, 0.98, 2.2),
+            ("explosive_trap", 1., 0.98, 2.2),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 3,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.0001, "{key}");
+            assert!((after.dot - before.dot * damage).abs() < 0.0001, "{key}");
+            assert!((after.crit - chance).abs() < 0.00001, "{key}");
+            assert!(
+                (after.crit_damage - critical_damage).abs() < 0.00001,
+                "{key}"
+            );
+            assert_eq!(after.count, before.count);
+            assert_eq!(after.radius, before.radius);
+            assert_eq!(after.duration, before.duration);
+        }
     }
 
     #[test]

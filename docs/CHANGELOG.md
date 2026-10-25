@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Hunter Marksmanship bonuses
+
+Barrage, Lethal Shots, Mortal Shots and Ranged Weapon Specialization now affect explicit
+ability groups. Shot critical bonuses compose with equipment; traps and Volley receive
+no shot-only critical bonus. Barrage improves Volley damage without adding area locations.
+Hunter now has thirteen individual effects; remaining talents, pets and milestones are open.
+Native build, 64 core tests, 111 Survivors tests, catalog audit, Clippy, formatting and
+render-pass lint pass. Live visual acceptance remains open.
+
 ## 2026-10-25 — Hunter training foundation
 
 Nine Hunter talents now affect shots, traps, armor, movement, damage reduction or critical

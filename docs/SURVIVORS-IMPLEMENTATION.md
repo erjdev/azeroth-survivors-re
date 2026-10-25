@@ -1525,3 +1525,29 @@ and final balancing remain open.
 Validation for this checkpoint: 63 core tests, 110 Survivors app tests, native build,
 workspace test compilation, explicit-data talent audit, Clippy, formatting and render-pass
 lint pass. These checks do not prove live talent-page interaction or complete class balance.
+
+
+### Hunter Marksmanship groups
+
+Four more audited nodes bring Hunter to thirteen individual effects. Lethal Shots (1344,
+five ranks) adds one percentage point of critical chance per rank; Mortal Shots (1349,
+five ranks) adds six percentage points to the critical damage multiplier per rank.
+Their explicit shot group is Arcane Shot, Multi-Shot, Serpent Sting, Concussive Shot and
+Aimed Shot. These critical bonuses affect eligible direct hits, not periodic ticks.
+They exclude Volley and Explosive Trap. Mortal Shots is a Survivors conversion: a
+200% critical becomes 230% at five ranks, or 250% with another 20 points from equipment.
+
+Ranged Weapon Specialization (1362, five ranks) adds 1% direct/periodic damage per rank
+to that same group. Barrage (1347, three ranks) adds 4% damage per rank to Multi-Shot and
+Volley. Their damage multipliers compose: maximum Multi-Shot training yields
+`1.05 × 1.12 = 1.176` before other modifiers. Counts, ranges, radii and area locations
+are unchanged. The selected-spec definitions also feed tooltip previews and remove the
+temporary generic damage contribution for these ranks. Remaining Hunter work, including
+pets, other nodes and all milestones, is still open.
+
+Regressions cover every supported rank and affected/unaffected spell, class isolation,
+reset, duplicate/capped saves, critical chance capped at 100%, equipment critical damage,
+and unchanged area targeting. Live visual and full-class acceptance remain unverified.
+
+Validation: native build, workspace test compilation, 64 core tests, 111 Survivors app
+tests, explicit-data talent audit, Clippy, formatting and render-pass lint pass.
