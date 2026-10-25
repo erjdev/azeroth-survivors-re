@@ -2,6 +2,7 @@
 //! the level-up cards, pause, and the results.
 
 pub(super) mod card_growth;
+mod draft;
 pub(super) mod inline;
 
 use std::collections::HashMap;
@@ -1146,6 +1147,10 @@ pub(super) fn start_run(
 }
 
 fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
+    choices_excluding(run, rng, n, &[])
+}
+
+fn choices_excluding(run: &Run, rng: &mut Rng, n: usize, excluded: &[Choice]) -> Vec<Choice> {
     let mut pool: Vec<(Choice, f32)> = Vec::new();
     for (i, o) in run.abilities.iter().enumerate() {
         if o.level < data::MAX_ABILITY_LEVEL {
@@ -1171,6 +1176,7 @@ fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
             }
         }
     }
+    pool.retain(|(card, _)| !excluded.iter().any(|other| draft::same(*card, *other)));
     let mut out = Vec::with_capacity(n);
     while out.len() < n && !pool.is_empty() {
         let total: f32 = pool.iter().map(|(_, w)| w).sum();
@@ -1185,7 +1191,7 @@ fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
         }
         out.push(pool.swap_remove(idx).0);
     }
-    if out.is_empty() {
+    if out.is_empty() && excluded.is_empty() {
         out.push(Choice::Heal);
     }
     out
@@ -1256,15 +1262,28 @@ pub(super) fn banish_card(run: &mut Run, offer: &mut Offer, rng: &mut Rng, index
     if run.banishes == 0 || index >= offer.choices.len() {
         return false;
     }
-    offer.choices.remove(index);
+    let original_rng = rng.0;
     let replacement = if run.trading {
-        trade_choices(run, rng, 0.0).into_iter().next()
+        trade_choices_excluding(run, rng, 0.0, &offer.choices)
+            .into_iter()
+            .next()
     } else {
-        choices_for(run, rng, 1).into_iter().next()
+        choices_excluding(run, rng, 1, &offer.choices)
+            .into_iter()
+            .next()
     };
-    if let Some(card) = replacement {
-        offer.choices.push(card);
-    }
+    // An exhausted roll leaves the hand and charge intact, including a one-card chest.
+    let Some(card) = replacement else {
+        // A free failed attempt must not become repeated free jewelry rolls.
+        rng.0 = original_rng;
+        run.banish_armed = false;
+        run.banner = Some((
+            "No distinct replacement rolled; banish charge kept".into(),
+            2.5,
+        ));
+        return false;
+    };
+    offer.choices[index] = card;
     run.banishes -= 1;
     run.banish_armed = false;
     true
@@ -1323,6 +1342,19 @@ fn advance(run: &mut Run, offer: &mut Offer, rng: &mut Rng, next: &mut NextState
 }
 
 fn trade_choices(run: &mut Run, rng: &mut Rng, extra: f32) -> Vec<Choice> {
+    trade_choices_excluding(run, rng, extra, &[])
+}
+
+fn trade_choices_excluding(
+    run: &mut Run,
+    rng: &mut Rng,
+    extra: f32,
+    excluded: &[Choice],
+) -> Vec<Choice> {
+    let excluded: Vec<_> = excluded
+        .iter()
+        .filter_map(|card| draft::trade(*card, run))
+        .collect();
     let upgradeable: Vec<usize> = run
         .abilities
         .iter()
@@ -1337,7 +1369,7 @@ fn trade_choices(run: &mut Run, rng: &mut Rng, extra: f32) -> Vec<Choice> {
         rng.next_u64() as u32,
         rng.next_u64() as u32,
     ];
-    super::campaign::trade_cards(&upgradeable, luck, rolls, picks, extra)
+    super::campaign::trade_cards_excluding(&upgradeable, luck, rolls, picks, extra, &excluded)
         .into_iter()
         .map(|card| match card {
             super::campaign::TradeCard::Upgrade(i) => Choice::Upgrade(i),

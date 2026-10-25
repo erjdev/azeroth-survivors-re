@@ -1735,3 +1735,25 @@ hand-wide exclusion contract. Live rendering of the reduced chest hand remains t
 Validation: native play build 53.14 seconds; workspace test compilation 3m 23s; 69 core
 and 115 Survivors app tests pass. Core Clippy, scoped formatting, diff whitespace and
 render-pass lint pass. No new live UI screenshot is claimed for this change.
+
+
+### Banish hand exclusions — 2026-10-25
+
+Level and chest replacement now exclude the entire original hand, including the selected
+card. Successful replacements preserve card order and spend one charge. An exhausted
+category keeps the original hand, charge and random state, disarms banish and cannot fall through into
+normal selection on the same number key. This closes the replacement duplicate path
+recorded above. Initial-hand and replacement draws share chest category thresholds;
+exclusions cannot promote an upgrade roll into jewelry.
+
+Regression cases cover varied level-hand seeds, preserving neighboring cards, one-card
+chests with both successful jewelry rolls and exhausted upgrade rolls, invalid indexes,
+fully capped level hands, and sparse owned-ability indexes for legendary exclusions.
+Live keyboard/mouse validation and reduced-hand screenshots remain open.
+
+Failed attempts restore the random state as well as keeping the charge, preventing repeated
+free retries from fishing for jewelry on an unchanged hand; the chest regression checks it.
+
+Final validation: native build 21.88 seconds, workspace test compilation 2m 09s, 70 core
+tests, 118 Survivors app tests with checkout data, workspace Clippy, scoped formatting,
+diff whitespace and render-pass lint pass. The tests include the final RNG restoration.

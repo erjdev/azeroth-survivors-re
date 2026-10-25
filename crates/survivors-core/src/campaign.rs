@@ -910,6 +910,18 @@ pub fn trade_cards(
     picks: [u32; 3],
     extra_jewel: f32,
 ) -> Vec<TradeCard> {
+    trade_cards_excluding(upgradeable, luck_percent, rolls, picks, extra_jewel, &[])
+}
+
+/// Draw with the same category rolls while excluding the current hand during replacement.
+pub fn trade_cards_excluding(
+    upgradeable: &[usize],
+    luck_percent: f32,
+    rolls: [f32; 3],
+    picks: [u32; 3],
+    extra_jewel: f32,
+    excluded: &[TradeCard],
+) -> Vec<TradeCard> {
     let chance = (jewel_chance(luck_percent) + extra_jewel.max(0.0)).min(0.75);
     let legend = (legend_share(luck_percent) * 100.0) as u32;
     let catalog = RINGS + TRINKETS + AMULETS;
@@ -939,7 +951,7 @@ pub fn trade_cards(
                 .map(TradeCard::Upgrade)
                 .collect()
         };
-        pool.retain(|card| !out.contains(card));
+        pool.retain(|card| !out.contains(card) && !excluded.contains(card));
         if !pool.is_empty() {
             out.push(pool[n as usize % pool.len()]);
         }
@@ -1928,6 +1940,21 @@ mod tests {
         );
         assert!(is_named_elite("Elwynn Forest", "Defias Bandit"));
         assert!(!is_named_elite("Elwynn Forest", "Young Wolf"));
+    }
+
+    #[test]
+    fn chest_replacement_excludes_current_upgrades_jewelry_and_legends() {
+        let excluded = [
+            TradeCard::Upgrade(2),
+            TradeCard::Ring(0),
+            TradeCard::Legend(2),
+        ];
+        assert!(trade_cards_excluding(&[2], 0.0, [0.9; 3], [0; 3], 0.0, &excluded).is_empty());
+        let jewels = trade_cards_excluding(&[2], 0.0, [0.0; 3], [0; 3], 0.0, &excluded);
+        assert_eq!(jewels.len(), 3);
+        assert!(jewels.iter().all(|card| !excluded.contains(card)));
+        let legends = trade_cards_excluding(&[2, 5], 100.0, [0.0; 3], [0; 3], 0.0, &excluded);
+        assert_eq!(legends, vec![TradeCard::Legend(5)]);
     }
 
     #[test]

@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Banish replacement safety
+
+Banish now excludes every option in the current hand, including the card being replaced,
+and keeps the replacement in its original position. If no distinct reward rolls, the hand
+and charge are preserved without granting a free reroll. The banish key no longer falls
+through into selecting a card. Native build, 70 core tests, 118 Survivors app tests and
+workspace Clippy pass; live input/visual acceptance remains open.
+
 ## 2026-10-25 — Distinct chest rewards
 
 New chest hands no longer repeat the same spell upgrade or jewelry piece. With fewer

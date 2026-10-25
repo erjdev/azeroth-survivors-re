@@ -606,7 +606,9 @@ pub(super) fn choose_card(
     ];
     if run.banish_armed {
         for (i, key) in digits.into_iter().enumerate() {
-            if keys.just_pressed(key) && hud::banish_card(&mut run, &mut offer, &mut rng, i) {
+            if keys.just_pressed(key) {
+                hud::banish_card(&mut run, &mut offer, &mut rng, i);
+                // An unavailable replacement must not turn this same key into a pick.
                 return;
             }
         }
