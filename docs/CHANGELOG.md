@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Reactive Warrior Enrage
+
+Enrage now grants a four-second damage bonus after a hit removes health. Further hits
+refresh the effect without stacking; immunity and full absorbs cannot trigger it.
+The green talent preview shows the conditional damage increase. Twenty-five Warrior
+nodes now have effects. Dedicated buff presentation and manual combat validation remain open.
+
+Native build, workspace test compilation, 54 core tests, 90 focused Survivors tests and
+the local talent-data audit pass. Live combat and fresh description captures remain pending.
+
+
 ## 2026-10-24 — Warrior absorb talents
 
 Shield Specialization and Shield Slam now strengthen Heroic Strike's absorb; Improved

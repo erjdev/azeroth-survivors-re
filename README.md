@@ -60,7 +60,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 </table>
 
 [Warrior talent-effect milestone at 720p](docs/images/screenshots/2026-10-24-warrior-talents/talents-720.jpg).
-Twenty-four Warrior nodes, including [defensive talents](docs/images/screenshots/2026-10-24-warrior-talents/defensive-talents-720.jpg), plus the
+Twenty-five Warrior nodes, including [defensive talents](docs/images/screenshots/2026-10-24-warrior-talents/defensive-talents-720.jpg), plus the
 [Arms](docs/images/screenshots/2026-10-24-warrior-talents/arms-milestones-720.jpg),
 [Fury](docs/images/screenshots/2026-10-24-warrior-talents/fury-milestones-720.jpg) and
 [Protection](docs/images/screenshots/2026-10-24-warrior-talents/protection-milestones-720.jpg) milestones

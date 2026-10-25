@@ -408,6 +408,7 @@ pub(super) struct Run {
     pub shield: f32,
     pub shield_t: f32,
     pub immune_t: f32,
+    pub enrage_t: f32,
     pub thorns: f32,
     pub thorns_t: f32,
     pub thorns_spell: u32,
@@ -487,6 +488,7 @@ impl Default for Run {
             shield: 0.0,
             shield_t: 0.0,
             immune_t: 0.0,
+            enrage_t: 0.0,
             thorns: 0.0,
             thorns_t: 0.0,
             thorns_spell: 0,
@@ -591,7 +593,11 @@ impl Run {
         }
         apply_sheet(&mut s, self.bonus);
         apply_sheet(&mut s, self.worn.bonus());
-        s.might *= self.tuning.damage;
+        let enrage = self.milestones.enrage_damage(self.enrage_t > 0.0);
+        s.might *= self.tuning.damage * enrage;
+        if let Some((_, bonus)) = s.legendary.as_mut() {
+            bonus.might *= enrage;
+        }
         s.speed *= self.tuning.movement;
         s.growth *= self.tuning.experience;
         s.magnet *= self.tuning.pickup;

@@ -346,6 +346,7 @@ have implementations described below.
 | 1601 | Shield Specialization | 5 | Heroic Strike absorbs +1% maximum health per rank for three seconds |
 | 145 | Improved Shield Block | 3 | Heroic Strike absorb lasts +0.5 seconds per rank; requires an absorb source |
 | 148 | Shield Slam | 1 | Heroic Strike absorbs an additional 3% maximum health |
+| 155 | Enrage | 5 | After health damage from a nonlethal hit, +4% damage per rank for four seconds |
 
 Ranks add within each node; cast multipliers compose with ordinary stats and legendary
 bonuses. Booming Voice changes the actual shout area, never its number of locations.
@@ -1006,3 +1007,22 @@ manual combat acceptance remain open.
 Native build, workspace test compilation, 54 core tests, 89 focused Survivors tests and
 the local talent-data audit pass. Fresh shield-description captures and manual combat
 acceptance remain pending.
+
+
+### Reactive Warrior talent checkpoint — 2026-10-24
+
+Twenty-five Warrior nodes now have effects. Enrage triggers on actual health damage from
+a nonlethal hit, after immunity, mitigation and absorbs. It multiplies damage by
+1 + 4% per rank for four seconds; further qualifying hits refresh without stacking.
+The runtime timer uses the same gameplay clock as the other timed buffs, starts empty
+in a new run, and is not persisted. Its multiplier includes cast-local legendary damage
+while preserving each legendary's spell scope. Existing projectiles/DoTs retain their
+normal snapshot behavior. Green rank text names the conditional bonus explicitly.
+
+This is a Survivors conversion: it does not require an enemy critical-hit system.
+Immune hits, fully absorbed hits, lethal hits and untrained nodes do not activate it.
+Combat tests cover partial absorption, refresh, expiry and the lethal boundary. Dedicated
+buff artwork/indicator, manual combat feel and final balance remain pending.
+
+Native build, workspace test compilation, 54 core tests, 90 focused Survivors tests and
+the local talent-data audit pass. Live combat and fresh description captures remain pending.

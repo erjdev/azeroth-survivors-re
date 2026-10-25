@@ -413,7 +413,21 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
     }
     dmg = run.milestones.incoming(dmg, run.hp, stats.max_hp);
     run.hp -= dmg;
+    if dmg > 0.0 && run.hp > 0.0 && run.milestones.enrage_damage(true) > 1.0 {
+        run.enrage_t = 4.0;
+    }
     dmg
+}
+
+fn advance_buffs(run: &mut Run, dt: f32) {
+    for t in [
+        &mut run.shield_t,
+        &mut run.immune_t,
+        &mut run.thorns_t,
+        &mut run.enrage_t,
+    ] {
+        *t = (*t - dt).max(0.0);
+    }
 }
 
 /// The clock, regeneration, the timed buffs and their visuals, death and victory.
@@ -439,10 +453,7 @@ pub(super) fn hero_vitals(
         return;
     }
     run.elapsed += dt;
-    let r = &mut *run;
-    for t in [&mut r.shield_t, &mut r.immune_t, &mut r.thorns_t] {
-        *t = (*t - dt).max(0.0);
-    }
+    advance_buffs(&mut run, dt);
     let mut heal = stats.regen * dt;
     if run.heal_t > 0.0 {
         heal += run.heal_rate * dt.min(run.heal_t);
@@ -510,4 +521,38 @@ fn gait(look: Vec3, dir: Vec3) -> u32 {
 
 pub(super) fn reach(hero: Vec3, other: Vec3) -> f32 {
     flat(other - hero).length()
+}
+
+#[cfg(test)]
+mod reactive_talent_tests {
+    use super::*;
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn enrage_requires_health_damage_refreshes_and_expires() {
+        let mut run = Run::default();
+        run.milestones = Milestones::default().with_ranks(&[(1, 155, 5)]);
+        let base = run.stats().might;
+        run.immune_t = 1.;
+        assert_eq!(hurt_hero(&mut run, 10.), 0.);
+        assert_eq!(run.enrage_t, 0.);
+        run.immune_t = 0.;
+        run.shield = 20.;
+        run.shield_t = 3.;
+        assert_eq!(hurt_hero(&mut run, 10.), 0.);
+        assert_eq!(run.enrage_t, 0.);
+        assert!(hurt_hero(&mut run, 20.) > 0.);
+        assert_eq!(run.enrage_t, 4.);
+        assert!((run.stats().might - base * 1.2).abs() < 0.00001);
+        advance_buffs(&mut run, 2.);
+        hurt_hero(&mut run, 1.);
+        assert_eq!(run.enrage_t, 4.);
+        assert!((run.stats().might - base * 1.2).abs() < 0.00001);
+        advance_buffs(&mut run, 5.);
+        assert_eq!(run.enrage_t, 0.);
+        assert_eq!(run.stats().might, base);
+        run.hp = 1.;
+        hurt_hero(&mut run, 100.);
+        assert_eq!(run.enrage_t, 0., "lethal damage cannot activate Enrage");
+    }
 }

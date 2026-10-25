@@ -206,6 +206,15 @@ impl Milestones {
         duration * if boss { 0.3 } else { 1.0 }
     }
 
+    /// Survivors Enrage: health damage refreshes a four-second damage bonus.
+    pub fn enrage_damage(self, active: bool) -> f32 {
+        if self.class == 0 && active {
+            1.0 + self.trained_value(TalentStat::EnrageDamage)
+        } else {
+            1.0
+        }
+    }
+
     /// Death Wish's risk applies only during the actual Retaliation buff.
     pub fn retaliation_risk(self, active: bool) -> f32 {
         if self.class == 0 && self.points[1] >= 20 && active {
@@ -517,6 +526,7 @@ pub enum TalentStat {
     Crit,
     CritDamage,
     CriticalBleed,
+    EnrageDamage,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
     Reduction,
@@ -545,6 +555,7 @@ impl TalentDefinition {
             TalentStat::Cooldown | TalentStat::SpellCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::Crit | TalentStat::SpellCrit(_) => (100.0, "% critical chance"),
             TalentStat::CritDamage => (100.0, "% critical damage"),
+            TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
@@ -755,6 +766,11 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         description: "Heroic Strike adds a 3% maximum-health absorb for 3 seconds; adds to other shield talents and milestone",
         stat: TalentStat::SpellShield("heroic_strike"), per_rank: 0.03,
     },
+    TalentDefinition {
+        id: 155, max_rank: 5, name: "Enrage",
+        description: "After losing health to a hit, deal +4% damage per rank for 4 seconds; further hits refresh without stacking",
+        stat: TalentStat::EnrageDamage, per_rank: 0.04,
+    },
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
@@ -942,6 +958,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::Speed => bonus.speed += value,
             TalentStat::SecondarySlowDuration(_)
             | TalentStat::SecondaryStunDuration(_)
+            | TalentStat::EnrageDamage
             | TalentStat::CriticalBleed
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
@@ -1160,6 +1177,7 @@ mod stat_talent_tests {
                     TalentStat::Speed => total.speed,
                     TalentStat::SecondarySlowDuration(_)
                     | TalentStat::SecondaryStunDuration(_)
+                    | TalentStat::EnrageDamage
                     | TalentStat::CriticalBleed
                     | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
