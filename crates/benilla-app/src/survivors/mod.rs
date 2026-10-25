@@ -37,6 +37,7 @@ mod tuning;
 mod units;
 #[cfg(feature = "survivors-visibility")]
 mod visibility;
+mod zone_art;
 
 pub(crate) use floor::Floor;
 pub(crate) use hero::HERO_RADIUS;
@@ -113,6 +114,10 @@ impl Plugin for SurvivorsPlugin {
             .add_systems(Startup, hud::setup_hud)
             .add_systems(Update, hero::daylight)
             .add_systems(
+                PostUpdate,
+                zone_art::crop.after(bevy::ui::UiSystems::Layout),
+            )
+            .add_systems(
                 Update,
                 (
                     hero::aim_cursor,
@@ -174,7 +179,7 @@ impl Plugin for SurvivorsPlugin {
                     cards::animate_cards,
                     hud::refresh_hud,
                     hud::refresh_results,
-                    (hud::fill_icons, gear_icons::fill).chain(),
+                    (hud::fill_icons, gear_icons::fill, zone_art::fill).chain(),
                     hud::update_cooldown_sweeps,
                     hud::refresh_mobility,
                     hud::show_panels,

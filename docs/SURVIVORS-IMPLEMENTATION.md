@@ -18,6 +18,17 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Starter zone artwork checkpoint verified at 1280×720 and 640×720: runtime art,
+responsive cropping and locked banner clicks passed for Warsong/Naxxramas.
+Three captures are inline in the changelog. Use installed Map.dbc → LoadingScreens.dbc artwork
+for instance/battleground rows, cropped to the current row aspect ratio. Keep
+names and lock reasons visible and retain text-only fallback. Continent loading
+screens are shared and do not qualify as distinct outdoor zone illustrations;
+Elwynn, Duskwood, Un'Goro, Feralas, Gurubashi, Gates of Ahn'Qiraj and the undefined
+Blackrock Mountain map still need appropriate zone-specific artwork. Never bundle
+extracted client assets. Loading artwork is a visual aid, not evidence of world
+content readiness.
+
 Human racial checkpoint: the reference's Perception (+15% damage for 10 seconds
 every 30), Human Spirit (+10% run XP) and Diplomacy (+20% gold) now reach the run
 sheet and appear on the starter. First Perception activation is at 30 seconds.

@@ -3,6 +3,26 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Illustrated instance zone rows
+
+Starter rows now show installed loading artwork for Warsong Gulch, Arathi Basin,
+Scarlet Monastery, Alterac Valley and Naxxramas. Artwork follows the map catalogs,
+crops to the row's current shape and stays behind readable names and lock reasons.
+A gold border identifies the selected zone. Outdoor illustrations remain unfinished;
+shared continent loading art is not substituted for distinct zones.
+
+![Starter with instance zone banners](images/screenshots/2026-10-25-zone-art/starter-1280.jpg)
+
+![Artwork clicks select Warsong while retaining its lock](images/screenshots/2026-10-25-zone-art/warsong-selected-1280.jpg)
+
+![Resized banners and Naxxramas selection at 640×720](images/screenshots/2026-10-25-zone-art/naxxramas-selected-640.jpg)
+
+Verified runtime artwork, wide/narrow cropping, lock text and banner clicks at
+1280×720 and 640×720. Native build, workspace Clippy, formatting and render-pass
+lint pass. No gameplay rules changed; gameplay test suites were not rerun.
+Artwork is read from the player's data, not bundled. This does not establish
+world-content readiness or complete the reference's twelve illustrated zones.
+
 ## 2026-10-25 — Starter appearance navigation
 
 The starter's Look button opens Character's appearance controls for the selected

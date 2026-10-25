@@ -855,9 +855,16 @@ fn zone_column(
             Node {
                 width: Val::Percent(100.0),
                 flex_direction: FlexDirection::Column,
-                padding: UiRect::axes(Val::Px(6.0), Val::Px(3.0)),
+                padding: UiRect::axes(Val::Px(6.0), Val::Px(5.0)),
+                border: UiRect::all(Val::Px(1.0)),
+                overflow: Overflow::clip(),
                 ..default()
             },
+            BorderColor::all(if on {
+                GOLD
+            } else {
+                Color::srgba(0.5, 0.4, 0.15, 0.35)
+            }),
             BackgroundColor(if on {
                 Color::srgba(0.85, 0.65, 0.2, 0.28)
             } else {
@@ -865,6 +872,24 @@ fn zone_column(
             }),
         ))
         .with_children(|row| {
+            if let Some(map) = data::MAPS.iter().find(|m| m.name == zone.map && m.map > 1) {
+                row.spawn((
+                    super::super::zone_art::ZoneArt(map.map),
+                    ImageNode {
+                        color: Color::NONE,
+                        ..default()
+                    },
+                    Node {
+                        position_type: PositionType::Absolute,
+                        left: Val::Px(0.0),
+                        top: Val::Px(0.0),
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        ..default()
+                    },
+                    bevy::ui::FocusPolicy::Pass,
+                ));
+            }
             let color = if reason.is_some() { DIM } else { GOLD };
             line(row, font, zone.name, 14.0, color);
             if let Some(reason) = &reason {
