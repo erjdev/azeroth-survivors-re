@@ -69,6 +69,8 @@ have implemented effects; the complete class talent pass remains underway.
 
 [Shout duration talent](docs/images/screenshots/2026-10-24-warrior-talents/shout-duration-720.jpg) · [Green talent rank comparisons at 720p](docs/images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg).
 
+World validation: [Warsong developer preview at 720p](docs/images/screenshots/2026-10-24-world-preview/warsong-720.jpg) · [reproduce the preview](docs/SURVIVORS-LOCATIONS.md#developer-instance-preview). Rendering verified; traversal remains pending.
+
 Upgrade previews at 1280×720: [new spells and next rank](docs/images/screenshots/2026-10-24-codex-discovery/level-up-720.jpg) · [chest upgrades](docs/images/screenshots/2026-10-24-codex-discovery/chest-720.jpg).
 
 Character comparisons: [inline race/sex controls](docs/images/screenshots/2026-10-24-character-appearance/orc.jpg) · [large weapon](docs/images/screenshots/2026-10-24-equipment-framing/weapon-appearance.jpg) · [1280×720](docs/images/screenshots/2026-10-24-equipment-framing/character-720.jpg).

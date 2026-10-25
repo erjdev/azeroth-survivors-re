@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Developer instance preview
+
+The development launcher can now open the engine's world viewer with `--world-preview`.
+Verified Warsong terrain and obstacles in a live 720p render; campaign unlocks are unchanged.
+[Capture](images/screenshots/2026-10-24-world-preview/warsong-720.jpg) ·
+[Launch instructions](SURVIVORS-LOCATIONS.md#developer-instance-preview).
+Native build passes. Player collision, navigation and gameplay camera checks remain pending.
+
 ## 2026-10-24 — Warsong obstacle evidence
 
 Model audits now report transformed collision bounds and rays from the candidate center.

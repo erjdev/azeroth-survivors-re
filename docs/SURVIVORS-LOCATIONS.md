@@ -182,7 +182,28 @@ following terrain. This is a concrete obstacle fixture for runtime slide/route t
 Next acceptance work: load map 489 at the documented center in a dedicated world-validation
 scene, verify renderer identity and floor height, then compare capsule contact and sliding
 against stump 596699 from multiple directions. Verify route finding around it, nearby
-stumps and tile unload/reload before setting arena readiness. The current standalone
-world viewer accepts a coordinate override but does not expose a map override; it cannot
-validate this instance merely by supplying Warsong coordinates on its default world.
+stumps and tile unload/reload before setting arena readiness. The existing engine viewer
+supports both `WOW_MAP` and `WOW_WORLDVIEW_AT`; the Survivors development launcher now
+exposes it with `--world-preview`.
 Campaign map/encounter/reward definitions remain unchanged and Warsong remains locked.
+
+
+## Developer instance preview
+
+Use the incremental development build and a separate validation state directory:
+
+```bash
+WOW_DATA="$PWD/wow-data/Data" \
+BENILLA_HOME="$PWD/target/survivors-validation/world-preview-state" \
+WOW_MAP=489 WOW_WORLDVIEW_AT=1244.792,1468.750,310.296 \
+WOW_UNATTENDED=1 WOW_NOSOUND=1 WOW_WIN=1280x720 \
+cargo survivors -- --world-preview
+```
+
+This starts the engine's free-camera world viewer without campaign progression systems.
+The flag requires the `dev` feature; normal launches still enter Survivors.
+The native build and live launch passed. Runtime logs identify `PVPZone03` (map 489),
+and the [720p capture](images/screenshots/2026-10-24-world-preview/warsong-720.jpg)
+shows Warsong terrain, structures and stump obstacles. This verifies instance rendering,
+not player capsule contact, sliding, navigation, combat or gameplay camera behavior.
+Those acceptance checks remain outstanding; Warsong remains locked in the campaign.

@@ -919,4 +919,14 @@ The model audit now reports world-space hull bounds and center rays. Local data 
 A center ray hits stump 596699 at 8.898 yards; its bounds approach much closer than its
 origin. Use this fixture for runtime collision and route tests; terrain-only clearance is
 insufficient. The location report records exact coordinates, evidence limits and the
-standalone viewer's missing instance-map override. Six audit tests and Clippy pass.
+instance preview instructions below. Six audit tests and Clippy pass.
+
+
+### Instance rendering checkpoint — 2026-10-24
+
+Added development-only `--world-preview` to the Survivors launcher, exposing the existing
+engine viewer's map and coordinate overrides. Native build and live Warsong rendering
+passed at 1280×720; the README and changelog link the captured milestone. Reproduction is
+in the [location report](SURVIVORS-LOCATIONS.md#developer-instance-preview).
+This corrects the earlier missing-map-override claim: `WOW_MAP` already existed.
+Capsule contact/sliding, routing, tile reload and gameplay camera acceptance remain open.
