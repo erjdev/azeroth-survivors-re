@@ -2794,3 +2794,14 @@ The live menu log also records roughly one-second frame hitches during this
 automated inspection. No panic/error was recorded and window closure completed,
 but these captures are not performance acceptance. Investigate the saved local
 stall samples before attributing the hitches to gameplay or UI automation.
+
+### Menu presentation follow-up
+
+[Controlled journal evidence](validation/mage-menu-presentation.md) associates
+the one-second stalls seen in the Winter's Chill screenshots with capture-time
+Metal drawable waits. Forty quiet journal rows had mean frame times
+15.13–16.70 ms; three screenshot calls reproduced 994–1005 ms hitch warnings.
+An earlier quiet interval also had a 359 ms hitch, so no general performance
+clearance is claimed. Performance acceptance must use journal/combat telemetry
+without simultaneous screenshot or accessibility inspection. No runtime change
+was justified; gameplay, traversal and full frame-budget acceptance stay open.

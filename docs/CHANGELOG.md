@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Menu performance evidence
+
+Separated screenshot-associated Metal presentation stalls from quiet menu timing.
+Saved a [controlled frame-journal comparison](validation/mage-menu-presentation.md).
+Performance runs will exclude concurrent UI capture; no runtime fix or combat
+performance clearance is claimed.
+
 ## 2026-10-25 — Winter's Chill
 
 Mage Frost hits can now build a per-enemy critical-chance debuff with five-stack
