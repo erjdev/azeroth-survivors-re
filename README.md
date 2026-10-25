@@ -9,6 +9,9 @@ client engine (Rust + Bevy), inspired by [Aethus’s Azeroth Survivors](https://
 
 </div>
 
+Read the [architecture and roadmap index](docs/INDEX.md) for the current engine overview,
+native Box3D ragdoll plan, 15 Hz simulation target, and longer-term multiplayer direction.
+
 This repository implements the design in [our intentions](docs/intentions/) and
 [the Survivors specification](docs/SURVIVORS.md) on the benilla/wenilla engine. It is
 inspired by Aethus’s game; it is not a build of that game's source code. Implementation

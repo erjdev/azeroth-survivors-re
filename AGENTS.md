@@ -1,5 +1,18 @@
 # Working in this repository
 
+## Survivors architecture entry point
+
+Read [docs/INDEX.md](docs/INDEX.md) before architecture or implementation work, then
+the linked subsystem plan. The current direction is native Box3D elite ragdolls first,
+15 Hz gameplay simulation, and later connected play; WASM is deferred. Distinguish
+implemented behavior, upstream library claims, proposals, and measured acceptance.
+Update the index and affected contracts when those boundaries change.
+
+This checkout may lag the research revision recorded in the index. Reconcile against
+the current `erjdev/azeroth-survivors-re` branch before implementation. The inherited
+realm paths and `Arnesen/wenilla` shipping instructions below describe upstream context;
+they do not establish that this fork contains a realm service or authorize publication.
+
 wenilla is a fork of [samwhosung/benilla](https://github.com/samwhosung/benilla), a from-scratch
 WoW 1.12.1 client in Rust + Bevy, that adds a browser build and a realm service to host it. The
 fork rides on upstream: upstream is merged into `main` as it publishes, and our own work lives
