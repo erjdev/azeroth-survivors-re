@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter class grid
+
+The wide starter now uses the intention screenshot's three-by-three class grid,
+with proportional icon sizing, centered labels and class-colored selection.
+Compact screens keep a wrapping row above the hero panel.
+
+![Three-by-three class grid](images/screenshots/2026-10-25-class-grid/mage-1280.jpg)
+
+![Grid at the 1100-pixel layout boundary](images/screenshots/2026-10-25-class-grid/mage-1100.jpg)
+
+![Compact selection at 640×720](images/screenshots/2026-10-25-class-grid/warrior-640.jpg)
+
+Verified class switching, label centering and fit live at 1280×720, 1100×720 and
+640×720. Native build, workspace Clippy, formatting and render-pass lint pass;
+no gameplay rules changed. Typography and portrait badges remain open. The
+1100-pixel capture also exposes an existing stretched last equipment slot when
+its row wraps; that layout needs a follow-up.
+
 ## 2026-10-25 — Reliable name typing
 
 Starter renaming and character creation now process keyboard events in order.

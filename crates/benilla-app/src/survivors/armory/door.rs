@@ -16,8 +16,8 @@ use crate::char_select::race_name;
 use crate::glue::art::{class_tc, tc_rect, GlueArt, DIM, GOLD, NAME_EDGE};
 use crate::glue::backdrop::{backdrop_border, tiled_bg_node};
 use crate::glue::widgets::{
-    abs, glue_button, outlined_text, outlined_text_centered, overlay, GlueBtnKind, GlueText,
-    Hilight, LockHighlight,
+    glue_button, outlined_text, outlined_text_centered, overlay, GlueBtnKind, GlueText, Hilight,
+    LockHighlight,
 };
 
 const FILL: Color = Color::srgba(0.05, 0.04, 0.02, 0.92);
@@ -415,7 +415,7 @@ fn columns(
     }
     content.with_children(|row| {
         panel(row, art, compact, |body| {
-            class_column(body, art, font, account, selection)
+            class_column(body, art, font, account, selection, compact)
         });
         panel(row, art, compact, |body| {
             hero_column(body, art, font, armory, account, selection)
@@ -502,6 +502,7 @@ fn class_column(
     font: &Handle<Font>,
     account: &Account,
     selection: &Selection,
+    compact: bool,
 ) {
     heading(body, font, "Class");
     let class_i = selection
@@ -509,17 +510,28 @@ fn class_column(
         .unwrap_or(0)
         .min(CLASSES.len().saturating_sub(1));
     body.spawn(Node {
-        width: Val::Percent(100.0),
+        width: Val::Percent(if compact { 100.0 } else { 90.0 }),
+        max_width: if compact { Val::Auto } else { Val::Px(320.0) },
+        align_self: AlignSelf::Center,
+        flex_shrink: 0.0,
         flex_direction: FlexDirection::Row,
         flex_wrap: FlexWrap::Wrap,
         justify_content: JustifyContent::Center,
         column_gap: Val::Px(6.0),
-        row_gap: Val::Px(2.0),
+        row_gap: Val::Px(if compact { 2.0 } else { 10.0 }),
         ..default()
     })
     .with_children(|grid| {
         for (i, class) in CLASSES.iter().enumerate() {
-            class_icon(grid, art, font, i, class, selection.class == Some(i));
+            class_icon(
+                grid,
+                art,
+                font,
+                i,
+                class,
+                selection.class == Some(i),
+                compact,
+            );
         }
     });
     let class = &CLASSES[class_i];
@@ -557,9 +569,15 @@ fn class_icon(
     index: usize,
     class: &ClassDef,
     on: bool,
+    compact: bool,
 ) {
     grid.spawn(Node {
-        width: Val::Px(58.0),
+        width: if compact {
+            Val::Px(58.0)
+        } else {
+            Val::Percent(30.0)
+        },
+        flex_shrink: 0.0,
         flex_direction: FlexDirection::Column,
         align_items: AlignItems::Center,
         ..default()
@@ -570,8 +588,15 @@ fn class_icon(
             Button,
             LockHighlight(on),
             Node {
-                width: Val::Px(48.0),
-                height: Val::Px(48.0),
+                width: if compact {
+                    Val::Px(48.0)
+                } else {
+                    Val::Percent(64.0)
+                },
+                min_width: Val::Px(40.0),
+                max_width: Val::Px(64.0),
+                aspect_ratio: Some(1.0),
+                flex_shrink: 0.0,
                 ..default()
             },
         ))
@@ -579,7 +604,14 @@ fn class_icon(
             if let Some(shadow) = &art.icon_shadow {
                 b.spawn((
                     ImageNode::new(shadow.clone()),
-                    abs(1.0, -6.0, -6.0, 64.0, 64.0),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        left: Val::Percent(-12.5),
+                        top: Val::Percent(-12.5),
+                        width: Val::Percent(133.33),
+                        height: Val::Percent(133.33),
+                        ..default()
+                    },
                 ));
             }
             if let Some((sheet, size)) = &art.classes {
@@ -610,7 +642,8 @@ fn class_icon(
         outlined_text_centered(
             col,
             Node {
-                width: Val::Px(58.0),
+                width: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
                 ..default()
             },
             (),
@@ -618,7 +651,7 @@ fn class_icon(
             GlueText {
                 text: class.name,
                 size: 11.0,
-                color: if on { GOLD } else { DIM },
+                color: if on { hud::rgb(class.color) } else { DIM },
                 wrap: false,
             },
             font,

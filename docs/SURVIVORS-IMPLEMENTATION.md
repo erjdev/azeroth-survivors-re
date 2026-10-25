@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Starter class selection now follows the reference's three-by-three wide grid,
+using proportional icon sizing, centered labels and class-colored selection.
+Wide 1280/1100 and compact 640×720 layouts, plus class switching, were verified
+live with three inline changelog screenshots. Next layout correction: at 1100
+pixels the last equipment slot stretches across its wrapped row. Typography,
+portrait badges and broader starter styling still need reference alignment.
+
 Starter manual naming now uses a hero-bound draft with Save/Cancel, Enter/Escape
 and Tab. Live checks cover blank rejection, save/cancel, Enter isolation,
 640×720 layout and restart persistence; screenshots are inline in the changelog.

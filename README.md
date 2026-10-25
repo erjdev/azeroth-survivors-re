@@ -311,7 +311,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 
 <table>
   <tr>
-    <td width="50%"><strong>Front door</strong><br><img src="docs/images/screenshots/2026-10-25-ordered-names/starter-1280.jpg" alt="Front door: Class, hero and twelve intended destinations; incomplete content is visibly locked."><br>Class, hero and twelve intended destinations; incomplete content is visibly locked.</td>
+    <td width="50%"><strong>Front door</strong><br><img src="docs/images/screenshots/2026-10-25-class-grid/mage-1280.jpg" alt="Front door: Class, hero and twelve intended destinations; incomplete content is visibly locked."><br>Class, hero and twelve intended destinations; incomplete content is visibly locked.</td>
     <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-24-equipment-rows/character.jpg" alt="Character: Equipped item icons, selection details and dressed preview on a seeded validation account, shown at 1440×900."><br>Equipped item icons, selection details and dressed preview on a seeded validation account, shown at 1440×900.</td>
   </tr>
   <tr>
