@@ -59,6 +59,7 @@ impl Request {
 
     fn apply(&self, armory: &mut Armory, typing: &mut Typing, window: &mut Window) {
         armory.page = self.page;
+        armory.manage_heroes = false;
         armory.focus = 0;
         typing.0 = false;
         window.resolution.set(self.width as f32, self.height as f32);

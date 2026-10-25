@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Character preview and hero management
+
+Character now gives the dressed hero a larger central preview with a centered name
+and class. Roster, creation, renown and relic controls move into Manage heroes;
+selecting or creating a hero returns to the preview. Removed the roster's eight-hero
+display limit. 167 Survivors tests, workspace Clippy, formatting, render-pass lint
+and the native build pass. Rendered layout and interaction checks remain pending
+because the Mac was locked; no new screenshot is claimed.
+
 ## 2026-10-25 — Live menu preview controls
 
 Native development builds can now switch production Armory pages and resize the

@@ -192,6 +192,19 @@ legacy migration, malformed references and round trips have regression tests.
 
 ## Phase 3 — collection and character surfaces
 
+Character composition checkpoint (2026-10-25): the name/class now sit inside the
+central column above a larger proportional model pane. The default view no longer
+stacks roster, creation, renown and relic controls below the model; Manage heroes
+opens those controls in the central column. Selection/creation returns to the model,
+and an absent selected hero exposes management automatically. All saved heroes are
+listed rather than only the first eight. Equipment and appearance columns remain
+available, and preview-file navigation resets only the local management view.
+167 Survivors app tests pass following the workspace test build, with Clippy,
+formatting, render-pass lint and a one-minute native build. The direct 1280×720
+Character run could not be inspected because the Mac was locked and was stopped.
+Rendered fit, Manage/Back/Escape interaction, large-roster scrolling and updated
+README screenshots still need verification; this is not visual acceptance.
+
 Build the nine-by-six collection grid with quality headers, owned/unseen states and
 selected-item detail. Use catalog-backed item icons, names, source, chance, stats, worn
 state and appearance controls. Show real collection counts, never 54 named placeholders.

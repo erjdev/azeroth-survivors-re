@@ -352,3 +352,9 @@ still works; edit the file again to request another view. It releases text-entry
 focus but preserves name drafts and account data. Changes wait while a run is
 active and apply when returning to the menu. This opt-in native development tool
 is excluded from player and wasm builds. It does not seed fixture accounts.
+
+The Character page opens on the dressed preview. Use **Manage heroes** for the
+roster, character creation, renown and relic controls, and **Back to character**
+to return. Selecting or creating a hero returns to the preview; an account without
+a selected valid hero shows management automatically. Direct page-preview requests
+reset this local management view without clearing drafts or changing account data.

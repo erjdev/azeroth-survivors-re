@@ -124,6 +124,7 @@ mod preview_tests {
 #[derive(Resource)]
 pub(super) struct Armory {
     page: Page,
+    manage_heroes: bool,
     /// 0 none, 1 first name, 2 last name.
     focus: u8,
     draft_first: String,
@@ -147,6 +148,7 @@ impl Default for Armory {
     fn default() -> Self {
         Self {
             page: Page::initial(),
+            manage_heroes: false,
             focus: 0,
             draft_first: "Adventurer".into(),
             draft_last: "Stormwind".into(),
@@ -180,6 +182,7 @@ pub(super) struct ArmoryRoot;
 #[derive(Component, Clone)]
 pub(super) enum Act {
     Page(Page),
+    ManageHeroes(bool),
     Pick(u32),
     Body(u8, u8),
     Feature(usize, i8),
@@ -256,7 +259,11 @@ pub(super) fn input(
     }
     typing.0 = armory.focus != 0 && armory.page == Page::Heroes;
     if !typing.0 && keys.just_pressed(KeyCode::Escape) && armory.page != Page::Door {
-        armory.page = Page::Door;
+        if armory.page == Page::Heroes && armory.manage_heroes {
+            armory.manage_heroes = false;
+        } else {
+            armory.page = Page::Door;
+        }
         armory.focus = 0;
     } else if typing.0 && keys.just_pressed(KeyCode::Enter) {
         armory.focus = 0;
@@ -318,6 +325,11 @@ pub(super) fn input(
             Act::Page(page) => {
                 armory.page = page;
                 armory.focus = 0;
+                armory.manage_heroes = false;
+            }
+            Act::ManageHeroes(open) => {
+                armory.manage_heroes = open;
+                armory.focus = 0;
             }
             Act::InspectPiece(index) => armory.piece = index.min(campaign::PIECES - 1),
             Act::WearPiece(slot, band) => {
@@ -369,6 +381,8 @@ pub(super) fn input(
             Act::Create => create_hero(&mut armory, &mut account, &mut selection),
             Act::Pick(id) => {
                 let needs_look = pick_hero(&mut selection, &account, id);
+                armory.manage_heroes = false;
+                armory.focus = 0;
                 if needs_look {
                     armory.note = "Open Look to choose this hero's appearance.".into();
                 }
@@ -591,6 +605,7 @@ fn create_hero(armory: &mut Armory, account: &mut Account, selection: &mut Selec
                 }
             );
             armory.focus = 0;
+            armory.manage_heroes = false;
         }
         None => armory.note = "A hero needs a first and last name".into(),
     }
@@ -959,7 +974,7 @@ fn heroes(
             if account.characters.is_empty() {
                 row.spawn(hud::text_bundle(font, "No heroes yet", 13.0, Color::WHITE));
             }
-            for hero in account.characters.iter().take(8) {
+            for hero in &account.characters {
                 let on = selection.character == Some(hero.id);
                 let label = format!(
                     "{} {} — {}",
@@ -2205,6 +2220,7 @@ fn signature(
     // Codex selection updates its detail text in place, preserving catalog scrolling.
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
+    n = fold(n, u64::from(armory.manage_heroes));
     n = fold(n, armory.draft_class as u64);
     n = fold(n, hash_str(&armory.draft_first));
     n = fold(n, hash_str(&armory.draft_last));

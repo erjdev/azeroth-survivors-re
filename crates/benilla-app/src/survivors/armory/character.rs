@@ -23,12 +23,6 @@ pub(super) fn build(
     let name = hero
         .map(|h| format!("{} {}", h.first, h.last))
         .unwrap_or_else(|| "Choose a hero".into());
-    panel.spawn(hud::text_bundle(
-        font,
-        format!("{name} · {}", super::CLASSES[class].name),
-        layout.title_size,
-        GOLD,
-    ));
     panel
         .spawn(Node {
             width: Val::Percent(100.0),
@@ -47,12 +41,44 @@ pub(super) fn build(
                 100.0 - layout.left_width - layout.right_width,
                 layout,
                 |body| {
+                    body.spawn(hud::centered_bundle(font, name, layout.title_size, GOLD));
+                    body.spawn(hud::centered_bundle(
+                        font,
+                        super::CLASSES[class].name,
+                        layout.body_size,
+                        GOLD,
+                    ));
+                    let managing = armory.manage_heroes || hero.is_none();
+                    if hero.is_some() {
+                        body.spawn(Node {
+                            justify_content: JustifyContent::Center,
+                            ..default()
+                        })
+                        .with_children(|row| {
+                            super::chip(
+                                row,
+                                font,
+                                if managing {
+                                    "Back to character"
+                                } else {
+                                    "Manage heroes"
+                                },
+                                super::Act::ManageHeroes(!managing),
+                                managing,
+                            );
+                        });
+                    }
+                    if managing {
+                        body.spawn(hud::text_bundle(font, "Heroes", layout.title_size, GOLD));
+                        super::heroes(body, font, armory, account, selection, renown, stash);
+                        return;
+                    }
                     body.spawn((
                         ModelPane,
                         ImageNode::default(),
                         Node {
                             width: Val::Auto,
-                            height: Val::Percent(60.0),
+                            height: Val::Percent(78.0),
                             max_width: Val::Percent(100.0),
                             aspect_ratio: Some(1.0),
                             align_self: AlignSelf::Center,
@@ -60,7 +86,7 @@ pub(super) fn build(
                             ..default()
                         },
                     ));
-                    body.spawn(hud::text_bundle(
+                    body.spawn(hud::centered_bundle(
                         font,
                         "Drag the hero to turn",
                         layout.body_size,
@@ -68,6 +94,7 @@ pub(super) fn build(
                     ));
                     body.spawn(Node {
                         column_gap: Val::Px(layout.gap),
+                        justify_content: JustifyContent::Center,
                         ..default()
                     })
                     .with_children(|row| {
@@ -86,8 +113,6 @@ pub(super) fn build(
                             });
                         }
                     });
-                    body.spawn(hud::text_bundle(font, "Heroes", layout.title_size, GOLD));
-                    super::heroes(body, font, armory, account, selection, renown, stash);
                 },
             );
             collection::column(row, layout.right_width, layout, |body| {
@@ -105,7 +130,10 @@ pub(in crate::survivors) fn subject(
     heroes: Query<Entity, With<super::super::hero::Hero>>,
     mut subject: ResMut<ModelSubject>,
 ) {
-    subject.0 = if *phase.get() == super::super::Phase::Menu && armory.page == super::Page::Heroes {
+    subject.0 = if *phase.get() == super::super::Phase::Menu
+        && armory.page == super::Page::Heroes
+        && !armory.manage_heroes
+    {
         heroes.single().ok()
     } else {
         None
