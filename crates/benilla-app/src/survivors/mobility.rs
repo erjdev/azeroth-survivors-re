@@ -26,6 +26,7 @@ pub(super) enum Move {
     Scatter(f32),
 }
 
+#[derive(Clone, Copy)]
 pub(super) struct Mobility {
     pub spell: u32,
     pub name: &'static str,
@@ -33,6 +34,16 @@ pub(super) struct Mobility {
     pub cooldown: f32,
     pub secs: f32,
     pub desc: &'static str,
+}
+
+impl Mobility {
+    pub(super) fn description(&self) -> String {
+        if let Move::Charge(range) = self.kind {
+            format!("Charge an enemy within {range:.0} yards, stunning it for {:.1} sec. Without a target, lunge forward.", self.secs)
+        } else {
+            self.desc.to_owned()
+        }
+    }
 }
 
 /// One per class, indexed by class id.
@@ -151,12 +162,30 @@ pub(super) struct MobilityState {
     pub vanish_t: f32,
 }
 
+impl MobilityState {
+    fn advance(&mut self, dt: f32, phase: Phase, loading: bool) {
+        if phase != Phase::Playing || loading {
+            return;
+        }
+        self.cd = (self.cd - dt).max(0.0);
+        self.haste_t = (self.haste_t - dt).max(0.0);
+        self.vanish_t = (self.vanish_t - dt).max(0.0);
+    }
+}
+
 impl Run {
     /// The class's mobility once the hero is level enough.
-    pub(super) fn mobility(&self) -> Option<&'static Mobility> {
-        (self.level >= LEARN_LEVEL)
-            .then(|| for_class(self.class.id))
-            .flatten()
+    pub(super) fn mobility(&self) -> Option<Mobility> {
+        if self.level < LEARN_LEVEL {
+            return None;
+        }
+        let mut def = *for_class(self.class.id)?;
+        if self.class.id == 1 {
+            let effect = self.milestones.cast("charge");
+            def.cooldown *= effect.cooldown;
+            def.secs *= effect.duration;
+        }
+        Some(def)
     }
 
     /// The run speed's multiplier from a haste still running.
@@ -175,6 +204,7 @@ pub(super) fn cast_mobility(
     time: Res<Time>,
     keys: Res<ButtonInput<KeyCode>>,
     phase: Res<State<Phase>>,
+    loading: Res<crate::loading_screen::LoadingScreen>,
     mut run: ResMut<Run>,
     world: Floor,
     mut hero: Query<(Entity, &mut Transform), With<Hero>>,
@@ -183,12 +213,13 @@ pub(super) fn cast_mobility(
     aim: Res<hero::AimPoint>,
     mut fx: Fx,
 ) {
-    let dt = time.delta_secs();
-    let m = &mut run.mobile;
-    m.cd = (m.cd - dt).max(0.0);
-    m.haste_t = (m.haste_t - dt).max(0.0);
-    m.vanish_t = (m.vanish_t - dt).max(0.0);
-    if *phase.get() != Phase::Playing || run.dead_t.is_some() || !keys.just_pressed(KEY) {
+    run.mobile
+        .advance(time.delta_secs(), *phase.get(), loading.covering());
+    if *phase.get() != Phase::Playing
+        || loading.covering()
+        || run.dead_t.is_some()
+        || !keys.just_pressed(KEY)
+    {
         return;
     }
     let Some(def) = run.mobility() else { return };
@@ -276,4 +307,51 @@ pub(super) fn cast_mobility(
         }
     }
     run.mobile.cd = def.cooldown;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn charge_talents_resolve_for_cast_sweep_and_tooltip() {
+        let mut run = Run::default();
+        run.class = &super::super::data::CLASSES[0];
+        run.milestones = Milestones::default().with_ranks(&[(0, 126, 2), (1, 1543, 2)]);
+        assert!(run.mobility().is_none());
+        run.level = LEARN_LEVEL;
+        let trained = run.mobility().unwrap();
+        assert!((trained.cooldown - 6.4).abs() < 0.00001);
+        assert!((trained.secs - 2.1).abs() < 0.00001);
+        assert_eq!(trained.kind, Move::Charge(25.));
+        assert!(trained.description().contains("2.1 sec"));
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert_eq!(run.mobility().unwrap().cooldown, 8.);
+        assert_eq!(run.mobility().unwrap().secs, 1.5);
+        run.class = &super::super::data::CLASSES[1];
+        run.milestones = Milestones::default().with_ranks(&[(0, 126, 2), (1, 1543, 2)]);
+        assert_eq!(run.mobility().unwrap().cooldown, 15.);
+        assert_eq!(run.mobility().unwrap().secs, 5.);
+    }
+
+    #[test]
+    fn mobility_timers_freeze_outside_gameplay_and_during_loading() {
+        let mut state = MobilityState {
+            cd: 8.,
+            haste: 1.8,
+            haste_t: 4.,
+            vanish_t: 3.,
+        };
+        for phase in [Phase::Menu, Phase::Paused, Phase::LevelUp, Phase::GameOver] {
+            state.advance(10., phase, false);
+            assert_eq!((state.cd, state.haste_t, state.vanish_t), (8., 4., 3.));
+        }
+        state.advance(10., Phase::Playing, true);
+        assert_eq!((state.cd, state.haste_t, state.vanish_t), (8., 4., 3.));
+        state.advance(2., Phase::Playing, false);
+        assert_eq!((state.cd, state.haste_t, state.vanish_t), (6., 2., 1.));
+        state.advance(10., Phase::Playing, false);
+        assert_eq!((state.cd, state.haste_t, state.vanish_t), (0., 0., 0.));
+    }
 }

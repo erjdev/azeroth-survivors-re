@@ -1200,3 +1200,23 @@ level-up pause, Blood Craze alone during combat, Flurry alone during combat, and
 after expiry. README/changelog link gameplay captures of Flurry and the cleared HUD.
 The overlay dims underlying HUD text as before. Larger/smaller viewport acceptance and
 full manual combat validation remain open; the launch wrapper was restored after closing.
+
+
+### Charge training and mobility clock checkpoint — 2026-10-24
+
+Improved Charge adds 20% stun duration per rank; Improved Intercept reduces Charge's
+cooldown by 10% per rank. Both have two ranks verified against local DBC identities.
+At maximum training Charge stuns for 2.1 seconds and recharges in 6.4 seconds. These are
+provisional Survivors adaptations. A resolved mobility definition supplies the actual cast,
+HUD cooldown sweep and tooltip, preserving the 25-yard range, level-five unlock, collision
+checks and no-target lunge. Other classes' mobility is unaffected by Warrior ranks.
+Warrior now has 32 explicitly implemented nodes.
+
+Mobility cooldown, speed and vanish timers previously advanced outside gameplay. They now
+freeze on pause, level-up, menu, game over and loading screens; mobility cannot be cast
+behind a loading screen. Tests cover the resolved training/reset/class boundaries and
+all paused clock states. Fresh Charge tooltip captures and manual movement/combat checks
+remain open.
+
+Validation: native build, workspace test compilation, 56 core tests, 102 focused Survivors
+tests and the local talent-data audit pass. Full workspace gates were not rerun.

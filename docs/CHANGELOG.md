@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Charge training and paused mobility
+
+Improved Charge lengthens Charge's stun; Improved Intercept shortens its cooldown. The
+cast, cooldown sweep and tooltip share the trained values. Warrior has 32 supported nodes.
+Mobility cooldowns and active speed/vanish effects now freeze during pause, level-up and
+loading. Values remain provisional; fresh screenshots and manual Charge checks remain open.
+
+Native build, workspace test compilation, 56 core tests, 102 focused Survivors tests and
+the local talent-data audit pass.
+
 ## 2026-10-24 — Reactive talent HUD
 
 Enrage, Flurry and Blood Craze now show green effect values and remaining seconds beneath

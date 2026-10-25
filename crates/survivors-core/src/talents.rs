@@ -871,6 +871,17 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::FlurryHaste, per_rank: 0.05,
     },
 
+    TalentDefinition {
+        id: 126, max_rank: 2, name: "Improved Charge",
+        description: "Charge: +20% stun duration per rank (Survivors conversion)",
+        stat: TalentStat::SpellDuration("charge"), per_rank: 0.2,
+    },
+    TalentDefinition {
+        id: 1543, max_rank: 2, name: "Improved Intercept",
+        description: "Charge: 10% shorter cooldown per rank (Survivors conversion)",
+        stat: TalentStat::SpellCooldown("charge"), per_rank: 0.1,
+    },
+
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
