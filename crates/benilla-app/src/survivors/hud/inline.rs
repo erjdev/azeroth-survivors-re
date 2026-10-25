@@ -222,9 +222,14 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
     match a.effect {
         Effect::None => {}
         Effect::Slow(m, _) => {
+            let next = if let Effect::Slow(next, _) = b.effect {
+                next
+            } else {
+                m
+            };
             prose!(
                 ", slowing them by ",
-                ((1. - m) * 100., (1. - m) * 100., "%"),
+                ((1. - m) * 100., (1. - next) * 100., "%"),
                 " for ",
                 effect_time
             );
@@ -389,6 +394,24 @@ mod tests {
         assert!(spans.contains(&(" to every enemy within ".into(), PROSE)));
         assert!(!plain(&spans).contains("Targets"));
     }
+    #[test]
+    fn frost_slow_strength_and_duration_compare_inline_with_single_units() {
+        let def = data::ability("blizzard");
+        let stats = Run::default().stats();
+        let base = survivors_core::talents::Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(2, 65, 3), (2, 63, 3)]);
+        let spans = ability(
+            def,
+            &cast_at(def, 1, &stats, base),
+            &cast_at(def, 1, &stats, trained),
+        );
+        assert!(spans.contains(&("40 » 79%".into(), card_growth::GAIN)));
+        assert!(spans.contains(&("1.5 » 4.5 sec".into(), card_growth::GAIN)));
+    }
+
     #[test]
     fn trained_duration_and_fast_cooldowns_preserve_effective_values() {
         let stats = Run::default().stats();

@@ -118,10 +118,12 @@ impl Params {
             count: o.count(stats) as usize + effect.extra_targets,
             radius: o.radius(stats) * effect.radius,
             duration: o.duration() * effect.duration,
-            effect: o
-                .def
-                .effect
-                .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
+            effect: milestones.control(
+                o.def.key,
+                o.def
+                    .effect
+                    .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
+            ),
             cooldown: o.cooldown(stats) * effect.cooldown,
             crit: (stats.crit + effect.crit).min(1.0),
             crit_damage: stats.crit_damage + effect.crit_damage,
@@ -1525,6 +1527,8 @@ mod milestone_tests {
                         (1, 33, 3),
                         (2, 73, 5),
                         (2, 67, 5),
+                        (2, 65, 3),
+                        (2, 63, 3),
                     ]),
                     ..Default::default()
                 })
@@ -1564,6 +1568,19 @@ mod milestone_tests {
                     },
                 ))
                 .id();
+            let area_effect = {
+                let run = app.world().resource::<Run>();
+                Params::new(
+                    &super::super::Owned {
+                        def: data::ability(source),
+                        level: 1,
+                        cd: 0.,
+                    },
+                    &run.stats(),
+                    run.milestones,
+                )
+                .effect
+            };
             app.world_mut().spawn((
                 Transform::default(),
                 GroundArea {
@@ -1574,7 +1591,7 @@ mod milestone_tests {
                     left: 3.,
                     every: 1.,
                     next_tick: 0.,
-                    effect: Effect::None,
+                    effect: area_effect,
                     mark: 0,
                     impact: 0,
                     source,
@@ -1591,6 +1608,15 @@ mod milestone_tests {
             assert_eq!(hits[0].crit, critical, "{source}, frozen={frozen}");
             assert_eq!(hits[0].damage, expected, "{source}");
             assert_eq!(hits[0].splash, 0.);
+            assert_eq!(hits[0].effect, area_effect);
+            if source == "blizzard" {
+                let Effect::Slow(speed, seconds) = hits[0].effect else {
+                    panic!("missing Blizzard slow")
+                };
+                assert!((speed - 0.21).abs() < 0.00001);
+                assert!((seconds - 4.5).abs() < 0.00001);
+            }
+
             if low == 0.30 {
                 app.world_mut()
                     .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
@@ -1625,6 +1651,42 @@ mod milestone_tests {
                 assert_eq!(expired.len(), 1);
                 assert!(!expired[0].crit);
             }
+        }
+    }
+
+    #[test]
+    fn frost_slow_training_scales_control_without_extending_ground_area_lifetime() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(2, 65, 3), (2, 63, 3)]);
+        let stats = Run::default().stats();
+        for (key, speed, seconds) in [
+            ("frostbolt", 0.41, 5.75),
+            ("cone_of_cold", 0.41, 6.3),
+            ("blizzard", 0.21, 4.65),
+        ] {
+            let owned = super::super::Owned {
+                def: data::ability(key),
+                level: 2,
+                cd: 0.,
+            };
+            let a = Params::new(&owned, &stats, base);
+            let b = Params::new(&owned, &stats, trained);
+            let Effect::Slow(actual_speed, actual_seconds) = b.effect else {
+                panic!("slow lost")
+            };
+            assert!((actual_speed - speed).abs() < 0.00001, "{key}");
+            assert!((actual_seconds - seconds).abs() < 0.00001, "{key}");
+            assert_eq!(
+                (a.dmg, a.duration, a.cooldown, a.radius),
+                (b.dmg, b.duration, b.cooldown, b.radius)
+            );
+            assert_eq!(
+                hit_for(owned.def, &b, Entity::PLACEHOLDER, b.dmg, false).effect,
+                b.effect
+            );
         }
     }
 

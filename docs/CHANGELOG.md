@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage frost slows
+
+Permafrost strengthens and extends frost slows; Improved Blizzard adds slow strength.
+Shared combat/card values now show slow-strength changes inline with one trailing unit.
+84 core and 150 app tests, DBC audit, Clippy and native build pass (14 seconds).
+Live visual verification remains open.
+
 ## 2026-10-25 — Mage Shatter
 
 Mage spells gain rank-scaled critical chance against frozen enemies, including area

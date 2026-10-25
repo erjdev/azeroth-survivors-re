@@ -355,6 +355,28 @@ impl Milestones {
         self.trained_value(TalentStat::Shatter)
     }
 
+    /// Apply frost slow talents after the ability rank's duration scaling.
+    /// These percentage-point reductions preserve the existing baseline Blizzard slow.
+    pub fn control(self, key: &str, effect: crate::data::Effect) -> crate::data::Effect {
+        use crate::data::Effect;
+        if self.class != 6 || !MAGE_FROST.contains(&key) {
+            return effect;
+        }
+        let Effect::Slow(speed, seconds) = effect else {
+            return effect;
+        };
+        let permafrost = self.trained_value(TalentStat::Permafrost);
+        let blizzard = if key == "blizzard" {
+            self.trained_value(TalentStat::BlizzardSlow)
+        } else {
+            0.0
+        };
+        Effect::Slow(
+            (speed - permafrost - blizzard).max(0.1),
+            seconds + permafrost / 0.03,
+        )
+    }
+
     /// Ardent Defender reduces the portion of a blow below 35% health, including a
     /// blow crossing that threshold. A large hit cannot skip the protection entirely.
     pub fn incoming(self, damage: f32, hp: f32, max_hp: f32) -> f32 {
@@ -686,6 +708,8 @@ pub enum TalentStat {
     CriticalBurn,
     Frostbite,
     Shatter,
+    Permafrost,
+    BlizzardSlow,
     EnrageDamage,
     BloodCrazeHealing,
     FlurryHaste,
@@ -737,6 +761,11 @@ impl TalentDefinition {
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
             TalentStat::Frostbite => (100.0, "% chance to freeze on frost damage"),
             TalentStat::Shatter => (100.0, "% critical chance against frozen enemies"),
+            TalentStat::Permafrost => (
+                100.0,
+                "% stronger frost slows; also +1 sec duration per rank",
+            ),
+            TalentStat::BlizzardSlow => (100.0, "% stronger Blizzard slow"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
@@ -1333,6 +1362,17 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 65, max_rank: 3, name: "Permafrost",
+        description: "Frost slows last 1 sec longer and reduce movement by 3 additional percentage points per rank; does not extend freezes",
+        stat: TalentStat::Permafrost, per_rank: 0.03,
+    },
+    TalentDefinition {
+        id: 63, max_rank: 3, name: "Improved Blizzard",
+        description: "Blizzard reduces movement by 10 additional percentage points per rank; adds to its existing slow (Survivors conversion)",
+        stat: TalentStat::BlizzardSlow, per_rank: 0.10,
+    },
+
+    TalentDefinition {
         id: 67,
         max_rank: 5,
         name: "Shatter",
@@ -1530,6 +1570,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::CriticalBurn
             | TalentStat::Frostbite
             | TalentStat::Shatter
+            | TalentStat::Permafrost
+            | TalentStat::BlizzardSlow
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
@@ -1986,6 +2028,8 @@ mod stat_talent_tests {
                     | TalentStat::CriticalBurn
                     | TalentStat::Frostbite
                     | TalentStat::Shatter
+                    | TalentStat::Permafrost
+                    | TalentStat::BlizzardSlow
                     | TalentStat::SpellGroupDamage(_)
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
@@ -2087,6 +2131,43 @@ mod stat_talent_tests {
                 base.with_ranks(&[(0, node.id, node.max_rank)]).cast(key)
             );
         }
+    }
+
+    #[test]
+    fn frost_slow_talents_compose_without_extending_freezes_or_other_schools() {
+        use crate::data::Effect;
+        for rank in 0..=4 {
+            let mage = Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 65, rank), (2, 63, rank)]);
+            let r = f32::from(rank.min(3));
+            for (key, base, expected) in [
+                ("blizzard", 0.6, 0.6 - 0.13 * r),
+                ("frostbolt", 0.5, 0.5 - 0.03 * r),
+                ("cone_of_cold", 0.5, 0.5 - 0.03 * r),
+            ] {
+                let Effect::Slow(speed, time) = mage.control(key, Effect::Slow(base, 2.)) else {
+                    panic!("slow lost")
+                };
+                assert!((speed - expected).abs() < 0.00001);
+                assert!((time - (2. + r)).abs() < 0.00001);
+            }
+            assert_eq!(
+                mage.control("frost_nova", Effect::Root(2.5)),
+                Effect::Root(2.5)
+            );
+            assert_eq!(
+                mage.control("blast_wave", Effect::Slow(0.6, 2.)),
+                Effect::Slow(0.6, 2.)
+            );
+        }
+        let outsider = Milestones::default().with_ranks(&[(2, 65, 3), (2, 63, 3)]);
+        assert_eq!(
+            outsider.control("blizzard", Effect::Slow(0.6, 2.)),
+            Effect::Slow(0.6, 2.)
+        );
     }
 
     #[test]

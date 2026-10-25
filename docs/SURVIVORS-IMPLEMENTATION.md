@@ -2656,3 +2656,28 @@ rank caps, class/spell exclusions, boss freeze duration, longer-root preservatio
 green trained-only tooltips. DBC talent audit, workspace test compilation, Clippy,
 formatting, render-pass lint and diff checks pass. Native play build: 65 seconds.
 Live combat and screenshot validation remain open.
+
+
+### Mage frost slow talents checkpoint
+
+Permafrost (DBC 65, three ranks) strengthens Frostbolt, Cone of Cold and Blizzard
+slows by 3 percentage points and adds 1 second of slow duration per rank. Added
+seconds apply after ability-rank scaling. Frost Nova/Frostbite freezes and non-frost
+slows are unchanged. Improved Blizzard (DBC 63, three ranks) adds 10 percentage
+points of slow per rank to the existing 40% baseline; this is an explicit Survivors
+conversion rather than replacing the baseline with a talent requirement.
+
+The two effects add together: maximum training makes level-one Blizzard slow by
+79% for 4.5 seconds per tick. The existing boss cap remains 25% slow. Ground-area
+lifetime, damage, radius, cooldown and number of locations are unchanged. Runtime
+casts, area tick payloads, tooltips and cards use the same effective control values.
+Inline comparisons now compare both slow strengths and show each unit once.
+Mage now has 21 functional individual nodes; remaining talents, milestones, balance
+and live visual acceptance remain incomplete.
+
+Validation: 84 core and 150 Survivors app tests pass. Coverage includes rank caps,
+combined control effects, exclusions, level-scaled duration, unchanged combat/area
+parameters, actual Blizzard tick effects and green inline strength/duration comparisons.
+DBC talent audit, workspace test compilation, Clippy, formatting, render-pass lint and
+diff checks pass. Native play build: 13.85 seconds. No new live combat or screenshot
+acceptance is claimed for this checkpoint.
