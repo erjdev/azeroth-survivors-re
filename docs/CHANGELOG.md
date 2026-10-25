@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Cutaway geometry foundation
+
+Added a tested camera-to-hero reveal calculation with a depth-scaled circular footprint,
+soft edge and protection for geometry behind the hero. All 59 core tests pass. This is the
+CPU reference only: shader integration, scenery filtering and visibility controls remain
+unfinished, so there is no visible cutaway effect yet.
+
 ## 2026-10-24 — Live tree contact and visibility
 
 Captured a nearby Elwynn trunk during forward contact and a successful sidestep; links are

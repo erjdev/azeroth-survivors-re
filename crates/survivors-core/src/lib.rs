@@ -14,3 +14,4 @@ pub mod selection;
 pub mod sheet;
 pub mod talents;
 pub mod tuning;
+pub mod visibility;

@@ -1345,3 +1345,20 @@ The trunk visibly obscures the hero/combat, reinforcing the separate cutaway/sil
 requirement. XP tuning was temporarily reduced to 0.1 after early level-up interruptions;
 movement/damage stayed normal and all tuning/launch settings were restored after closing.
 No gameplay or rendering code changed in this visual check.
+
+### Cutaway implementation foundation — 2026-10-24
+
+`survivors-core::visibility::Cutaway` defines the CPU reference for a projected circular
+reveal between camera and hero focus. Radius is specified in yards at the focus plane and
+scales with depth, with a smooth feather band and a focus-plane clearance. Off-axis scenery,
+geometry behind the camera/hero, disabled and invalid inputs stay visible. Tests cover the
+soft-edge midpoint, rotated/translated camera, depth scaling, hard edge and degenerate focus.
+All 59 core tests pass. This is not yet connected to rendering or player settings.
+
+Renderer investigation found two load-bearing scenery paths: the retained `static_gx`
+shader and the `WowModelMaterial` shader for ordinary model draws/fade variants. Integration
+must cover both, keep actor/UI models out of the mask, and preserve alpha-tested foliage
+and depth behavior. Supply the same per-frame camera/hero focus to both, without rebuilding
+every material bind group each frame. Add persisted cutaway and ally/enemy silhouette
+controls independently of camera auto-push, then validate the recorded tree-contact scene
+and cave/interior cases. No collision changes are implied by this rendering work.
