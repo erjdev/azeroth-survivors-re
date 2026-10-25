@@ -23,16 +23,16 @@ and 1702 replace their provisional +1% damage/rank. Eviscerate and Rupture damag
 Rogue-only critical chance and spell damage, and Sinister Strike cooldown use the shared
 cast-effect path. Two new regressions cover isolation, composition, clamping,
 reset and baseline replacement; 104 core tests pass. Live 1280×720 spending,
-refund/reset and descriptions are captured inline. Other Rogue nodes/milestones,
-account-level loaded-build coverage and live combat remain unfinished.
+refund/reset and descriptions are captured inline. An account regression now covers
+save/reload, hero/class isolation, active-spec switching, reset persistence and
+removal of provisional damage for the first-row Rogue builds. Other Rogue
+nodes/milestones and live combat remain unfinished.
 
 The user authorized lore-appropriate racials for all races. All eight now have
 explicit rules in `SURVIVORS.md` and shared core effects applied to the run sheet;
 Human rules remain intact. Timed effects use gameplay time. Two core tests and
 four run-stat tests pass, and wide/compact Orc starter screenshots verify the
 visible descriptions. Extended combat and balance acceptance remains open.
-The talent audit also reconfirmed that Rogue still lacks explicit individual
-node effects; the planned Rogue slice was deferred to implement this racial request.
 
 Companion artwork checkpoint: archive-listed and decoded `Ability_Hunter_Pet_Cat`
 now supplies Quick Paws; `Ability_Hunter_Pet_Owl` supplies Crimson Macaw and Great

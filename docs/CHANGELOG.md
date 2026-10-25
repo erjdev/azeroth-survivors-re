@@ -5,6 +5,11 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 ## 2026-10-25 — First explicit Rogue talents
 
+Save-integrity follow-up: all 38 account tests pass, including a new Rogue
+regression for save/reload, character isolation, spec switching and reset
+persistence. Workspace Clippy, formatting and render-pass lint pass. This is
+coverage only; the UI captures below remain current.
+
 Five audited Rogue talents now replace their provisional damage bonus with real
 spell effects: Improved Eviscerate (+5% damage/rank), Malice (+1% Rogue critical
 chance/rank), Improved Sinister Strike (5% shorter cooldown/rank), Serrated Blades

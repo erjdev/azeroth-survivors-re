@@ -1639,6 +1639,81 @@ mod tests {
     }
 
     #[test]
+    fn rogue_training_survives_save_and_stays_with_hero_and_active_spec() {
+        let mut account = empty();
+        let first = account.ensure(3);
+        let second = account.create("Second", "Rogue", 3).unwrap();
+        let baseline = account.bonus(3, second);
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|h| h.id == second)
+            .unwrap();
+        hero.talent_xp = 1200;
+        // Both builds are legal first-row allocations, independent of deeper row gates.
+        hero.dbc[0] = vec![(0, 276, 3), (0, 270, 5)];
+        hero.dbc[1] = vec![(1, 201, 2)];
+        let assassination = account.milestones_picked(3, Some(second));
+        assert!((assassination.cast("eviscerate").damage - 1.15).abs() < 0.00001);
+        assert!((assassination.cast("sinister_strike").crit - 0.05).abs() < 0.00001);
+        assert_eq!(
+            account
+                .milestones_picked(3, Some(first))
+                .cast("eviscerate")
+                .damage,
+            1.0
+        );
+        assert_eq!(
+            account
+                .milestones_picked(0, Some(second))
+                .cast("eviscerate")
+                .damage,
+            1.0
+        );
+        assert!((account.bonus(3, second).might - baseline.might).abs() < 0.00001);
+        let run = super::super::Run {
+            class: &data::CLASSES[3],
+            milestones: assassination,
+            bonus: account.bonus(3, second),
+            ..Default::default()
+        };
+        account.select_spec(second, 1);
+        let combat = account.milestones_picked(3, Some(second));
+        assert_eq!(combat.cast("eviscerate").damage, 1.0);
+        assert_eq!(combat.cast("eviscerate").crit, 0.0);
+        assert!((combat.cast("sinister_strike").cooldown - 0.9).abs() < 0.00001);
+        assert!((account.bonus(3, second).might - baseline.might).abs() < 0.00001);
+        // Changing the account must not rewrite the snapshot of a run already in progress.
+        assert_eq!(run.milestones, assassination);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.milestones_picked(3, Some(second)), combat);
+        loaded.select_spec(second, 0);
+        assert_eq!(loaded.milestones_picked(3, Some(second)), assassination);
+        loaded.select_spec(second, 2);
+        assert_eq!(
+            loaded
+                .milestones_picked(3, Some(second))
+                .cast("sinister_strike")
+                .cooldown,
+            1.0
+        );
+        loaded.select_spec(second, 1);
+        loaded.respec(second);
+        assert_eq!(
+            loaded
+                .milestones_picked(3, Some(second))
+                .cast("sinister_strike")
+                .cooldown,
+            1.0
+        );
+        loaded.select_spec(second, 0);
+        assert_eq!(loaded.milestones_picked(3, Some(second)), assassination);
+        let reloaded = parse(&encode(&loaded)).unwrap();
+        assert_eq!(reloaded.milestones_picked(3, Some(second)), assassination);
+        assert_eq!(reloaded.character(second).unwrap().dbc[1], Vec::new());
+    }
+
+    #[test]
     fn mage_training_follows_character_spec_save_and_refund() {
         let mut account = empty();
         let first = account.ensure(6);
