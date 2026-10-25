@@ -192,6 +192,12 @@ the zone remains locked pending traversal, camera, complete encounters and balan
 
 ![Warsong Gulch faction-survival gameplay at 720p](docs/images/screenshots/2026-10-25-warsong-roster/survival-720.jpg)
 
+Arathi Basin now has ten faction wave entries and nine Rare boss reward sources.
+This isolated full-pool Mage run verifies early rendering at 720p; the stables-area
+candidate remains locked pending traversal, camera and complete encounter validation.
+
+![Arathi Basin faction-survival gameplay at 720p](docs/images/screenshots/2026-10-25-arathi-roster/survival-720.jpg)
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**

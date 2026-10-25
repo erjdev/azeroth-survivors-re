@@ -702,3 +702,68 @@ All drops use the existing 60% base boss chance and Keen Eye modifier. They shar
 the Uncommon collection cells with Un'Goro, so duplicates from either map grant
 no additional stats and do not alter selected equipment or independent appearances.
 Victory requires all nine bosses defeated and the 16-minute finale reached.
+
+
+### Arathi stables-area survival candidate — 2026-10-25
+
+The old map-art midpoint remains rejected. Pinned spirit-guide placements supplied
+survey anchors only; they are not used as enemies. Terrain disks at two-yard spacing:
+
+| Center x, y | Radius | Supported / total | Wet | Steep >45° |
+| --- | --- | --- | --- | --- |
+| 1200.03, 1171.09 | 50 | 1961 / 1961 | 0 | 5 |
+| 1017.43, 960.61 | 50 | 1961 / 1961 | 317 | 318 |
+| 833, 793 | 50 | 1961 / 1961 | 24 | 70 |
+| 1207.48, 787 | 50 | 1889 / 1961 | 0 | 406 |
+| 1200.03, 1171.09 | 40 | 1257 / 1257 | 0 | 3 |
+| 1220, 1140 | 40 | 1257 / 1257 | 0 | 0 |
+| **1210, 1130** | **40** | **1257 / 1257** | **0** | **0** |
+| 1170, 1130 | 40 | 1257 / 1257 | 20 | 56 |
+
+The selected candidate is map 529 at `[1210, 1130, -54.705]`, one yard above
+measured terrain z=-55.705338. The selected disk has no impassable samples or
+incomplete gradient neighbours. WMO floor probing at z=-55 found no floor at the
+center or in its 30-yard sample disk. These samples exclude walls, connectivity,
+between-sample hazards and runtime camera/collision behavior.
+
+Doodad probing finds rocks and graveyard walls in the disk; terrain clearance does
+not mean an empty arena. Representative obstacles are rock 603104 at
+`[1235.4541, 1134.9443, -57.557987]` and wall 600301 at
+`[1206.6357, 1156.9873, -56.80048]`. Runtime routing around them remains required.
+Reproduce with `survivors-audit <Data> --terrain 529 1210 1130 40`,
+`--floor 529 1210 1130 -55`, and `--doodads 529 1210 1130 -55`.
+
+Faction archetypes use the pinned local MaNGOS Zero template catalog:
+
+| Archetype | Entry | Displays used |
+| --- | --- | --- |
+| Hammerfall Peon | 2618 | 4030 |
+| Stromgarde Troll Hunter | 2583 | 4139 |
+| Hammerfall Grunt | 2619 | 4032 |
+| Stromgarde Defender | 2584 | 4137 |
+| Stromgarde Cavalryman | 2738 | 4145 |
+| Stromgarde Vindicator | 2585 | 4143 |
+| Hammerfall Guardian | 2621 | 4034 |
+| League of Arathor Elite | 15130 | 15280, 15282 |
+| Hammerfall Elite | 15136 | 4034 |
+| Defiler Elite | 15128 | 15284, 15286 |
+
+These identify reusable models, not vanilla map-529 spawns. Bosses and loot are
+explicitly authored Survivors content, with no flag or resource-control objectives:
+
+| Boss | Time | Rare slot | Display |
+| --- | --- | --- | --- |
+| Defiler Farm Raider | 2:00 | Helm | 4032 |
+| Arathor Stable Captain | 4:00 | Shoulders | 4137 |
+| Defiler Mine Overseer | 6:00 | Chest | 4034 |
+| Arathor Lumber Champion | 8:00 | Waist | 4143 |
+| Defiler Blacksmith Champion | 10:00 | Legs | 15284 |
+| Arathor Cavalry Captain | 12:00 | Feet | 4145 |
+| Defiler Siege Commander | 13:30 | Wrist | 15286 |
+| Arathor Field Marshal | 15:00 | Hands | 15282 |
+| Defiler Basin Warmaster | 16:00 | Main Hand | 15284 |
+
+Each source has a 60% base boss chance with the existing Keen Eye modifier.
+Feralas shares these Rare collection cells; duplicate sources add no power.
+The final boss and all preceding bosses gate victory. Normal entry stays locked
+until full spawn, traversal, crowd, camera and encounter acceptance.

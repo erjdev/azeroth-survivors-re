@@ -130,8 +130,8 @@ pub static ZONES: &[Zone] = &[
         name: "Arathi Basin",
         map: "Arathi Basin",
         talent: 16,
-        elites: &[],
-        boss: "",
+        elites: &["Defiler Blacksmith Champion", "Arathor Field Marshal"],
+        boss: "Defiler Basin Warmaster",
         ready: false,
         into_id: 72,
         champ_id: 92,
@@ -502,6 +502,79 @@ pub struct DropRow {
 }
 
 pub static DROPS: &[DropRow] = &[
+    // Arathi is a Rare-tier survival source, independent of PvP objective rules.
+    DropRow {
+        zone: 4,
+        slot: 0,
+        band: 2,
+        creature: "Defiler Farm Raider",
+        at_secs: 120,
+        chance: 60,
+    },
+    DropRow {
+        zone: 4,
+        slot: 1,
+        band: 2,
+        creature: "Arathor Stable Captain",
+        at_secs: 240,
+        chance: 60,
+    },
+    DropRow {
+        zone: 4,
+        slot: 2,
+        band: 2,
+        creature: "Defiler Mine Overseer",
+        at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 4,
+        slot: 3,
+        band: 2,
+        creature: "Arathor Lumber Champion",
+        at_secs: 480,
+        chance: 60,
+    },
+    DropRow {
+        zone: 4,
+        slot: 4,
+        band: 2,
+        creature: "Defiler Blacksmith Champion",
+        at_secs: 600,
+        chance: 60,
+    },
+    DropRow {
+        zone: 4,
+        slot: 5,
+        band: 2,
+        creature: "Arathor Cavalry Captain",
+        at_secs: 720,
+        chance: 60,
+    },
+    DropRow {
+        zone: 4,
+        slot: 6,
+        band: 2,
+        creature: "Defiler Siege Commander",
+        at_secs: 810,
+        chance: 60,
+    },
+    DropRow {
+        zone: 4,
+        slot: 7,
+        band: 2,
+        creature: "Arathor Field Marshal",
+        at_secs: 900,
+        chance: 60,
+    },
+    DropRow {
+        zone: 4,
+        slot: 8,
+        band: 2,
+        creature: "Defiler Basin Warmaster",
+        at_secs: 960,
+        chance: 60,
+    },
     // Authored faction-themed survival sources; Warsong rewards Uncommon gear.
     DropRow {
         zone: 2,
@@ -2038,7 +2111,7 @@ mod tests {
     #[test]
     fn drops_name_a_creature_on_that_map() {
         assert_eq!(PIECES, 54);
-        assert_eq!(DROPS.len(), 54);
+        assert_eq!(DROPS.len(), 63);
         for row in DROPS {
             let zone = &ZONES[row.zone];
             let map = super::super::data::MAPS

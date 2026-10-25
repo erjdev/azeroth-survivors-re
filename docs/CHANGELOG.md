@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Arathi faction-survival candidate
+
+Added a surveyed stables-area arena, ten faction wave entries and nine authored
+bosses with Rare rewards across all slots. Duplicate rewards shared with Feralas
+preserve existing gear. [Live 720p capture](images/screenshots/2026-10-25-arathi-roster/survival-720.jpg)
+is linked in README. 93 core and 159 app tests, Clippy and native build pass
+(22 seconds). Arathi stays locked pending traversal, camera and full encounters;
+the content audit now reports 85 remaining gaps.
+
 ## 2026-10-25 — Warsong faction-survival candidate
 
 Added Warsong's map, ten wave entries, nine authored bosses and Uncommon drops for

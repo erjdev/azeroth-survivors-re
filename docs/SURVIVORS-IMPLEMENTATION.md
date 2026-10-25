@@ -2929,3 +2929,36 @@ hitches and background frames; no performance clearance is claimed. Full boss
 sequence, late crowd routing, attachments and camera acceptance remain open.
 The app exited through its window close control and the validation launcher was
 restored. Local log: `target/survivors-validation/warsong-roster-live.log`.
+
+
+### Arathi faction-survival content — 2026-10-25
+
+Terrain/floor and model-hull surveys found a dry, supported 40-yard candidate near
+the stables, replacing the rejected map-art midpoint. The new map-529 definition
+uses `[1210, 1130, -54.705]`. Ten faction wave entries and nine authored bosses
+share the Rare source schedule, ending with Defiler Basin Warmaster at 16:00.
+The [location evidence](SURVIVORS-LOCATIONS.md#arathi-stables-area-survival-candidate--2026-10-25)
+records rejected candidates, measured support, obstacles, archetype provenance,
+and every boss/source. Appended map ordering preserves saved indices. Normal entry
+remains world-locked; survey support alone is not runtime traversal acceptance.
+
+Tests cover all boss thresholds, finale/victory, slot/class resolution and the
+retained lock. Account coverage checks all nine classes, selected equipment,
+independent appearances, save reload, and Feralas duplicate-source idempotence.
+No PvP-tier source cells are claimed by this Rare-tier map.
+
+Validation: 93 core and 159 Survivors app tests pass, with workspace test
+compilation, Clippy, formatting, render-pass lint and diff checks. Native play
+build: 22.41 seconds. The explicit-data audit finds Arathi's floor at z=-55.71
+and all roster model files. Its expected nonzero result is 85 gaps: two missing
+maps, two floor validations and 81 PvP source cells. Full world acceptance is
+broader than this data audit and remains required before changing `ready`.
+
+Live evidence: an isolated `Mage:all` run rendered map 529, its faction enemies,
+terrain, spells, HUD and minimap at 1280×720. The README capture shows 00:26;
+the run continued through at least 163 game seconds before a normal window-close
+exit. No ERROR or panic appeared in the local log. This artificial full-pool run
+does not validate balance, the complete boss sequence, attachments or traversal.
+Prominent rocks obscure parts of the arena; routing and camera/cutaway acceptance
+remain open. The validation launcher was restored after closing, without querying
+the closed app handle. Local log: `target/survivors-validation/arathi-roster-live.log`.

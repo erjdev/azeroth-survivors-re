@@ -2151,6 +2151,39 @@ pub static MAPS: &[MapDef] = &[
             foe("Warsong Gulch Warmaster", 11871, 44, 4.8, 1.5),
         ],
     },
+    MapDef {
+        name: "Arathi Basin",
+        zone: "Arathi Basin",
+        map: 529,
+        // Dry 40-yard terrain candidate near the stables; runtime acceptance stays gated.
+        center: [1210.0, 1130.0, -54.705],
+        leash: 40.0,
+        victory: "The basin's last assault is broken.",
+        // Reused faction archetypes, with authored survival waves rather than PvP objectives.
+        foes: &[
+            foe("Hammerfall Peon", 4030, 33, 3.6, 1.0),
+            foe("Stromgarde Troll Hunter", 4139, 37, 4.0, 1.0),
+            foe("Hammerfall Grunt", 4032, 34, 4.2, 1.0),
+            foe("Stromgarde Defender", 4137, 38, 4.0, 1.0),
+            foe("Stromgarde Cavalryman", 4145, 36, 4.8, 1.0),
+            foe("Stromgarde Vindicator", 4143, 39, 4.4, 1.0),
+            foe("Hammerfall Guardian", 4034, 50, 4.2, 1.0),
+            foe("League of Arathor Elite", 15280, 40, 4.6, 1.0),
+            foe("Hammerfall Elite", 4034, 55, 4.4, 1.0),
+            foe("Defiler Elite", 15284, 55, 4.6, 1.0),
+        ],
+        bosses: &[
+            foe("Defiler Farm Raider", 4032, 36, 4.2, 1.4),
+            foe("Arathor Stable Captain", 4137, 38, 4.2, 1.4),
+            foe("Defiler Mine Overseer", 4034, 40, 4.0, 1.4),
+            foe("Arathor Lumber Champion", 4143, 42, 4.4, 1.4),
+            foe("Defiler Blacksmith Champion", 15284, 44, 4.2, 1.4),
+            foe("Arathor Cavalry Captain", 4145, 46, 4.8, 1.4),
+            foe("Defiler Siege Commander", 15286, 48, 4.4, 1.4),
+            foe("Arathor Field Marshal", 15282, 50, 4.6, 1.5),
+            foe("Defiler Basin Warmaster", 15284, 52, 4.6, 1.5),
+        ],
+    },
 ];
 
 /// A battleground's horde and bosses with their numbers.
