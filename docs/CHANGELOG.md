@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Grounded tree collision
+
+Fixed a reproduced Un'Goro trunk penetration: steep surfaces now constrain horizontal
+sliding instead of lifting actors before grounding. Added a real placed-tree/terrain
+fixture covering initial clearance, 80 grounded steps and collider removal. Native build,
+workspace test compilation, Clippy, formatting and 109 Survivors tests pass (including
+12 floor tests). Full zone traversal,
+streaming and navigation validation remain open; Un'Goro stays locked.
+
 ## 2026-10-25 — Upgrade comparison units
 
 Upgrade comparisons use one trailing unit: `4 » 3.7 sec`, `5 » 7 yd`.

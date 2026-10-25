@@ -297,3 +297,24 @@ The nearest tree now provides a concrete placed-hull fixture for body-clearance,
 and grounded movement checks. Do not infer an unobstructed arena from the dry terrain
 survey; distant-origin overlapping models and WMO props remain outside this source probe.
 No campaign location, content lock or reward data changed.
+
+### Placed Un'Goro tree capsule fixture
+
+`survivors::floor::tests::placed_ungoro_tree_keeps_candidate_clear_and_blocks_the_hull_crossing`
+loads tree 304715 from the candidate's actual ADT, checks its model and 30-triangle hull,
+and applies the placement's position, rotation and scale. It checks initial player-capsule
+intersection at the terrain-supported candidate center, reproduces the +WoW-Y source ray
+at z=-268, and compares a fixed-height 20-yard capsule crossing before and after collider
+removal. It also loads the ADT's terrain colliders and applies 80 quarter-yard walking
+steps, grounding after each sweep and checking the capsule against the tree (0.02-yard
+intersection tolerance). Before the correction, step 10 penetrated the hull: sliding up
+its angled face followed by grounding moved the capsule inside the base. Steep contact
+normals now constrain horizontal sliding as walls, without the artificial upward motion.
+The grounded path finishes at Bevy `(1607.4258, -270.63077, 7136.2515)` from
+`(1609, -270.4892, 7136)`, remaining outside the trunk throughout.
+
+All 12 floor tests pass with the checkout data, including existing Elwynn variants,
+placed-canopy movement, Warsong stump removal, tangential wall movement and gentle mobility
+slopes. This fixture covers one Un'Goro approach and the starting capsule; other props,
+async streaming, route finding and gameplay-camera behavior remain unverified. The zone
+remains locked pending its complete placement and content acceptance.

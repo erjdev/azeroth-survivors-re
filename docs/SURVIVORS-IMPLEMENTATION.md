@@ -219,7 +219,11 @@ Survivors uses its existing separation radius with a one-yard cylindrical sectio
 supported destination. Charge can stun only a reached target with a clear solid-world line
 of sight; enemy contact damage likewise requires a clear line. Validate walls, tangential
 movement, outdoor slopes, stairs and indoor combat. This collision layer is not route finding,
-and vertical jump ceilings need a separate acceptance check.
+and vertical jump ceilings need a separate acceptance check. Steep contact normals
+must constrain sliding horizontally: allowing a capsule to climb a sloped trunk and then
+snap to the ground can push it inside the hull. The placed Un'Goro tree regression checks
+80 grounded steps for capsule penetration; see [location evidence](SURVIVORS-LOCATIONS.md).
+This does not establish navigation or complete zone readiness.
 
 Audit Elwynn tree trunks specifically: visible trunks must block heroes, enemies, companions
 and mobility sweeps. Trace missing collision through source model collision, transforms,

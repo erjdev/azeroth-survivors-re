@@ -33,7 +33,16 @@ impl Floor<'_, '_> {
             movement,
             std::time::Duration::from_secs(1),
             &MoveAndSlideConfig::default(),
-            |_| MoveAndSlideHitResponse::Accept,
+            |hit| {
+                // Steep hulls are walls: climbing their normal and then grounding
+                // would push the capsule into the widening base of a tree.
+                if hit.normal.y < 0.5 {
+                    if let Ok(wall) = Dir3::new(super::units::flat(**hit.normal)) {
+                        *hit.normal = wall;
+                    }
+                }
+                MoveAndSlideHitResponse::Accept
+            },
         );
         result.position - lift
     }
@@ -426,6 +435,146 @@ mod tests {
         assert!(
             reloaded.distance(stopped) < 0.02,
             "reloaded hull changed contact"
+        );
+    }
+
+    #[test]
+    fn placed_ungoro_tree_keeps_candidate_clear_and_blocks_the_hull_crossing() {
+        use benilla_assets::coords::{placement_rotation, wow_to_bevy};
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {
+            eprintln!("SKIP Un'Goro placement test: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        let tiles = benilla_formats::MapTiles::load(&mut chain, "Kalimdor").unwrap();
+        let point = [-7136., -1609., -268.];
+        let (x, y) = tiles.tile_at(point[0], point[1]);
+        let tile = benilla_formats::load_tile_mesh(&mut chain, "Kalimdor", x, y).unwrap();
+        let d = tile.doodads.iter().find(|d| d.unique_id == 304715).unwrap();
+        assert!(d.model.to_ascii_lowercase().ends_with("feralastree03.mdx"));
+        let hull = benilla_formats::load_m2_collision_hull(&mut chain, &d.model).unwrap();
+        assert_eq!(hull.triangle_count(), 30);
+        let transform = Transform {
+            translation: wow_to_bevy(d.position),
+            rotation: placement_rotation(d.rotation),
+            scale: Vec3::splat(d.scale),
+        };
+        let mut app = fixture(&[]);
+        let tree = app
+            .world_mut()
+            .spawn((
+                RigidBody::Static,
+                Collider::trimesh(
+                    hull.positions
+                        .iter()
+                        .map(|p| transform.transform_point(wow_to_bevy(*p)))
+                        .collect(),
+                    hull.indices.as_chunks::<3>().0.to_vec(),
+                ),
+                Transform::default(),
+            ))
+            .id();
+        app.update();
+        app.update();
+        let radius = super::super::HERO_RADIUS;
+        let ground = benilla_formats::terrain_height_at(&tile.chunks, point).unwrap();
+        let feet = wow_to_bevy([point[0], point[1], ground]);
+        let lift = Vec3::Y * (radius + 0.5 + 0.03);
+        let occupied = app
+            .world_mut()
+            .run_system_once(move |spatial: SpatialQuery| {
+                spatial
+                    .shape_intersections(
+                        &Collider::capsule(radius, 1.0),
+                        feet + lift,
+                        Quat::IDENTITY,
+                        &WorldCollision::body_filter(),
+                    )
+                    .contains(&tree)
+            })
+            .unwrap();
+        assert!(
+            !occupied,
+            "candidate capsule overlaps nearby tree at terrain height"
+        );
+        let ray_start = wow_to_bevy(point);
+        let probe_feet = ray_start - Vec3::Y;
+        let desired = probe_feet + Vec3::NEG_X * 20.;
+        let (ray, stopped) = app
+            .world_mut()
+            .run_system_once(move |floor: Floor| {
+                (
+                    floor
+                        .collision
+                        .ray_body(ray_start, Dir3::NEG_X, 20.)
+                        .map(|h| h.distance),
+                    floor.slide(probe_feet, desired, radius),
+                )
+            })
+            .unwrap();
+        assert!((ray.expect("placed tree must reproduce source ray") - 2.6105921).abs() < 0.02);
+        assert!(
+            stopped.distance(desired) > 1.,
+            "capsule crossed trunk: {stopped:?}"
+        );
+        assert!(
+            stopped.distance(probe_feet) > 0.01,
+            "capsule could not approach trunk"
+        );
+        eprintln!("Un'Goro tree 304715: ground {ground}, ray {ray:?}, capsule {probe_feet:?} -> {stopped:?}");
+        // Match walking: quarter-yard horizontal sweeps, then bounded floor grounding.
+        let mut terrain = Vec::new();
+        for chunk in &tile.chunks {
+            terrain.push(
+                app.world_mut()
+                    .spawn((
+                        RigidBody::Static,
+                        Collider::trimesh(
+                            chunk.positions.iter().map(|p| wow_to_bevy(*p)).collect(),
+                            chunk.indices.as_chunks::<3>().0.to_vec(),
+                        ),
+                        Transform::default(),
+                    ))
+                    .id(),
+            );
+        }
+        app.update();
+        let walked = app
+            .world_mut()
+            .run_system_once(move |floor: Floor, spatial: SpatialQuery| {
+                let mut at = feet;
+                for step in 0..80 {
+                    let mut next = floor.slide(at, at + Vec3::NEG_X * 0.25, radius);
+                    next.y = floor.height(next).unwrap_or(next.y);
+                    assert!(
+                        !spatial
+                            .shape_intersections(
+                                &Collider::capsule(radius - 0.02, 1.0),
+                                next + lift,
+                                Quat::IDENTITY,
+                                &WorldCollision::body_filter(),
+                            )
+                            .contains(&tree),
+                        "tree penetration at step {step}: {at:?} -> {next:?}"
+                    );
+                    at = next;
+                }
+                at
+            })
+            .unwrap();
+        eprintln!("Un'Goro grounded walk: {feet:?} -> {walked:?}");
+        for entity in terrain {
+            app.world_mut().despawn(entity);
+        }
+        app.world_mut().despawn(tree);
+        app.update();
+        let clear = app
+            .world_mut()
+            .run_system_once(move |floor: Floor| floor.slide(probe_feet, desired, radius))
+            .unwrap();
+        assert!(
+            clear.distance(desired) < 0.02,
+            "removed tree still blocks crossing"
         );
     }
 
