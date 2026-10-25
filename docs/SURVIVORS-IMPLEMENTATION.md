@@ -18,6 +18,11 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Mage Frost row gating now has live 1280×720 evidence: blocked supporting refund,
+dependent-first refund returning two points, and rejected spending after the row
+relocks. Three screenshots are inline in the changelog. Named prerequisite chains
+and higher-tier builds remain open; this does not complete the talent audit.
+
 Starter selected-zone details now expand inside the selected row, matching the
 reference's placement. Switching Elwynn/Warsong collapses the old row; available
 and locked states, wrapping and crop updates were verified at 1280×720/640×720.

@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Talent refund acceptance
+
+Verified the Mage Frost tree live at 1280×720: five first-row points unlock the
+second row; spending there prevents a supporting first-row refund. Refunding
+the dependent point first allows the earlier refund and returns both points.
+Trying to buy the now-locked second row leaves ranks and available points intact.
+
+![Supporting refund blocked](images/screenshots/2026-10-25-talent-refunds/supporting-refund-blocked.jpg)
+
+![Dependent-first refunds return two points](images/screenshots/2026-10-25-talent-refunds/dependent-first-refund.jpg)
+
+![Locked row rejects spending](images/screenshots/2026-10-25-talent-refunds/locked-row-spend-blocked.jpg)
+
+This is an acceptance checkpoint using an isolated save and the existing build;
+no game code changed or test suites were rerun. Named prerequisite chains and
+higher-tier builds still need live checks. The illustrated tree remains aligned
+with the talent reference; this checkpoint verifies interactions, not new styling.
+
 ## 2026-10-25 — Zone details expand in place
 
 Selecting a starter zone expands its description inside that row, following the

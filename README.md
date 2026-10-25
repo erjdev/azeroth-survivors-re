@@ -54,7 +54,7 @@ entry, with larger detail art. Discoveries below are synthetic preview data.
 
 Talent trees now use the available page height, closer to the intention layout.
 
-![Full-height Talent interface](docs/images/screenshots/2026-10-25-talent-height/talents-1280.jpg)
+![Talent row protection during refunds](docs/images/screenshots/2026-10-25-talent-refunds/supporting-refund-blocked.jpg)
 
 Saved Talent builds were exercised across Warrior/Mage switching and restart;
 resetting one spec preserves the other builds.
