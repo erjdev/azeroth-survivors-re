@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Illustrated talent milestones
+
+Talent milestone rows now include their matching installed spell icons, following
+the intention screenshot. Earned icons brighten; locked icons dim with their text.
+Selecting the icon still shows the milestone description. Custom milestones
+without a matching vanilla talent retain text-only fallback.
+
+![Mage milestone icons and detail inspection](images/screenshots/2026-10-25-milestone-icons/mage-1280.jpg)
+
+![Milestones at 640×720](images/screenshots/2026-10-25-milestone-icons/mage-640.jpg)
+
+![Scrolled Frost milestones at 640×720](images/screenshots/2026-10-25-milestone-icons/frost-640.jpg)
+
+Verified all nine Mage icons, bright/dim states, icon inspection and narrow
+scrolling live. Native build, workspace Clippy, formatting and render-pass lint
+pass. No gameplay rules changed; gameplay suites were not rerun. Tree-heading
+icons, typography and custom Paladin milestone artwork remain unfinished;
+other classes and missing-art fallback still need live visual acceptance.
+
 ## 2026-10-25 — Named talent prerequisites
 
 Blocked talent purchases and refunds now identify the dependency and required

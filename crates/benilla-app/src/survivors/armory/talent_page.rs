@@ -101,12 +101,46 @@ pub(in crate::survivors) struct Backdrop(pub(super) String);
 #[derive(Component)]
 pub(in crate::survivors) struct BackdropDone;
 
+#[derive(Component)]
+pub(in crate::survivors) struct MilestoneIcon {
+    tab: u32,
+    name: &'static str,
+}
+
 pub(in crate::survivors) fn fill_art(
     mut commands: Commands,
     mut slots: Query<(Entity, &Backdrop, &mut ImageNode), Without<BackdropDone>>,
     mut assets: Option<ResMut<benilla_assets::WorldAssets>>,
     mut images: ResMut<Assets<Image>>,
+    milestones: Query<(Entity, &MilestoneIcon)>,
+    talents: Option<Res<crate::ui_talent::Talents>>,
+    spells: Option<Res<crate::ui_action::Spells>>,
 ) {
+    if let (Some(talents), Some(spells)) = (talents, spells) {
+        for (entity, milestone) in &milestones {
+            let spell = talents
+                .catalog
+                .talents_in_tab(milestone.tab)
+                .iter()
+                .find_map(|talent| {
+                    let id = talent.ranks[0];
+                    spells
+                        .catalog
+                        .get(id)
+                        .filter(|spell| spell.name == milestone.name)
+                        .map(|_| id)
+                });
+            if let Some(spell) = spell {
+                commands
+                    .entity(entity)
+                    .remove::<MilestoneIcon>()
+                    .insert(hud::SpellIcon(spell));
+            } else {
+                // Custom milestones without vanilla talent art keep their readable text only.
+                commands.entity(entity).despawn();
+            }
+        }
+    }
     let Some(assets) = assets.as_deref_mut() else {
         return;
     };
@@ -325,9 +359,18 @@ pub(super) fn build(
                 });
                 for at in [10, 20, 30] {
                     col.spawn((Button, TalentInfo { class: hero.class, id: 0, spell: 0, rank: 0, max: 0, milestone: Some((tree, at)) },
-                        Node { width: Val::Percent(100.0), min_height: Val::Px(22.0), align_items: AlignItems::Center, ..default() }))
-                    .with_children(|line| { text(line, font, format!("{at} points · {}", campaign::milestone_name(hero.class, tree, at)), 12.0,
-                        if points[tree] >= at { ACTIVE } else { DIM }); });
+                        Node { width: Val::Percent(100.0), min_height: Val::Px(22.0), column_gap: Val::Px(6.0), align_items: AlignItems::Center, ..default() }))
+                    .with_children(|line| {
+                        let name = campaign::milestone_name(hero.class, tree, at);
+                        if let Some(node) = nodes.first() {
+                            let dim = if points[tree] >= at { 1.0 } else { 0.4 };
+                            line.spawn((MilestoneIcon { tab: node.tab, name }, hud::IconDim(dim),
+                                ImageNode { color: Color::srgba(1.0, 1.0, 1.0, dim), ..default() },
+                                Node { width: Val::Px(20.0), height: Val::Px(20.0), flex_shrink: 0.0, ..default() }));
+                        }
+                        text(line, font, format!("{at} points · {name}"), 12.0,
+                            if points[tree] >= at { ACTIVE } else { DIM });
+                    });
                 }
             });
         }

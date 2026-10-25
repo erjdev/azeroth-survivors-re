@@ -54,7 +54,7 @@ entry, with larger detail art. Discoveries below are synthetic preview data.
 
 Talent trees now use the available page height, closer to the intention layout.
 
-![Talent refunds explain the named prerequisite](docs/images/screenshots/2026-10-25-talent-prerequisites/named-refund-blocker.jpg)
+![Illustrated talent milestones](docs/images/screenshots/2026-10-25-milestone-icons/mage-1280.jpg)
 
 Saved Talent builds were exercised across Warrior/Mage switching and restart;
 resetting one spec preserves the other builds.
