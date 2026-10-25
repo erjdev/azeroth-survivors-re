@@ -681,3 +681,20 @@ all 38 display/icon checks. A live 720p capture verifies the full grid and foote
 Onyxia Tooth Pendant and the unresolved Mark both open the correct details.
 Legendary necklace art with spell badges, selected-cell indication and detailed effects
 remain open, along with live jewelry offer/restart persistence validation.
+
+
+### Codex effect audit — 2026-10-24
+
+Selected entries now show green bonuses computed by equipping the item into an empty
+`campaign::Worn`, using the same comparison formatter as chest cards. The heading makes
+clear this is the item's standalone bonus; chest cards still compare the actual loadout
+and expose replacement losses. Native build, workspace test compilation and 75 Survivors
+tests pass; live 720p validation confirmed the ring damage/critical-chance values in green.
+
+Mechanics discrepancy: `Worn::bonus` currently grants every legendary amulet global
++5% damage, +15 percentage points of critical damage and +1 direct-attack target,
+regardless of the associated spell. This does not satisfy the intended one-spell
+legendary enhancement. The Codex introduction now describes the implemented scope;
+fix the combat scope and verify single-target/AoE behavior before claiming Phase 6 done.
+Shared jewelry still uses draft index-based bonus tables and needs a deliberate content
+pass, rather than importing vanilla stats or presenting the current draft as balanced.

@@ -107,7 +107,7 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
     }
 }
 
-fn jewelry_changes(
+pub(in crate::survivors) fn jewelry_changes(
     a: super::super::campaign::Bonus,
     b: super::super::campaign::Bonus,
 ) -> Vec<(String, Color)> {

@@ -216,17 +216,21 @@ pub(super) fn build(
         collection::column(panes, 26.0, layout, |details| {
             label(details, font, "Details", layout.title_size, GOLD);
             details.spawn((
-                DetailText,
+                DetailText(false),
                 hud::text_bundle(font, detail_text(armory, account), layout.body_size, DIM),
+            ));
+            details.spawn((
+                DetailText(true),
+                hud::text_bundle(font, effect_text(armory), layout.body_size, GREEN),
             ));
         });
     });
 }
 
-const INTRO: &str = "Every ring, trinket and amulet offered to any hero is remembered, even if you do not take it. Dim icons have not been offered yet. Select an entry to read it.\n\nShared jewelry lasts one run. Legendary amulets belong to a class and enhance one spell.";
+const INTRO: &str = "Every ring, trinket and amulet offered to any hero is remembered, even if you do not take it. Dim icons have not been offered yet. Select an entry to read it.\n\nShared jewelry lasts one run. Legendary amulets are cataloged per spell; their current bonuses apply to the whole build.";
 
 #[derive(Component)]
-pub(in crate::survivors) struct DetailText;
+pub(in crate::survivors) struct DetailText(bool);
 
 fn detail_text(armory: &Armory, account: &Account) -> String {
     armory
@@ -250,19 +254,55 @@ fn detail_text(armory: &Armory, account: &Account) -> String {
         .unwrap_or_else(|| INTRO.into())
 }
 
+fn effect_text(armory: &Armory) -> String {
+    let Some(id) = armory.codex_entry else {
+        return String::new();
+    };
+    let index = usize::from(id & 0x0fff);
+    let kind = match id >> 12 {
+        1 => {
+            let Some(class) = CLASSES.get(index >> 6) else {
+                return String::new();
+            };
+            let keys = class.ability_keys();
+            let Some(key) = keys.get(index & 0x3f) else {
+                return String::new();
+            };
+            campaign::JewelKind::Legend(key)
+        }
+        2 if index < campaign::RING_NAMES.len() => campaign::JewelKind::Ring(index as u8),
+        3 if index < campaign::TRINKET_NAMES.len() => campaign::JewelKind::Trinket(index as u8),
+        4 if index < campaign::AMULET_NAMES.len() => campaign::JewelKind::Amulet(index as u8),
+        _ => return String::new(),
+    };
+    let mut worn = campaign::Worn::default();
+    worn.equip(kind);
+    let lines = hud::card_growth::jewelry_changes(campaign::Bonus::default(), worn.bonus());
+    format!(
+        "Bonuses when worn alone\n{}",
+        lines
+            .into_iter()
+            .map(|(text, _)| text)
+            .collect::<Vec<_>>()
+            .join("\n")
+    )
+}
+
 /// Selection changes text only: keep the catalog entities and their scroll offset alive.
 pub(in crate::survivors) fn refresh_details(
     armory: Res<Armory>,
     account: Res<Account>,
-    mut details: Query<&mut Text, With<DetailText>>,
+    mut details: Query<(&DetailText, &mut Text)>,
 ) {
     if details.is_empty() || (!armory.is_changed() && !account.is_changed()) {
         return;
     }
     let value = detail_text(&armory, &account);
-    for mut text in &mut details {
-        if text.0 != value {
-            text.0.clone_from(&value);
+    let effect = effect_text(&armory);
+    for (kind, mut text) in &mut details {
+        let value = if kind.0 { &effect } else { &value };
+        if text.0 != *value {
+            text.0.clone_from(value);
         }
     }
 }
@@ -272,4 +312,29 @@ fn discovery_total(account: &Account) -> (usize, usize) {
         .map(|class| account.legendary_progress(class))
         .chain((2..=4).map(|kind| account.shared_jewel_progress(kind)))
         .fold((0, 0), |(found, total), (f, t)| (found + f, total + t))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn catalog_effects_use_worn_bonuses_and_reject_invalid_entries() {
+        let mut armory = Armory::default();
+        assert!(effect_text(&armory).is_empty());
+        armory.codex_entry = Some(codex_jewel(2, 0));
+        let ring = effect_text(&armory);
+        assert!(ring.contains("Damage bonus 0% » 2%"), "{ring}");
+        assert!(ring.contains("Critical chance bonus 0% » 1%"), "{ring}");
+        armory.codex_entry = Some(codex_jewel(4, 0));
+        assert!(effect_text(&armory).contains("Damage reduction bonus 0% » 3%"));
+        armory.codex_entry = Some(codex_jewel(4, campaign::AMULET_NAMES.len()));
+        assert!(effect_text(&armory).is_empty());
+        armory.codex_entry = Some(codex_legend(0, 0));
+        let legend = effect_text(&armory);
+        assert!(
+            legend.contains("Direct-attack targets bonus 0 » 1"),
+            "{legend}"
+        );
+    }
 }
