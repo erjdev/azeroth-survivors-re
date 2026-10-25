@@ -2066,6 +2066,7 @@ fn chip(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, act: Act
         on,
         Node {
             min_height: Val::Px(22.0),
+            justify_content: JustifyContent::Center,
             margin: UiRect::new(Val::Px(0.0), Val::Px(4.0), Val::Px(2.0), Val::Px(0.0)),
             padding: UiRect::horizontal(Val::Px(6.0)),
             ..default()

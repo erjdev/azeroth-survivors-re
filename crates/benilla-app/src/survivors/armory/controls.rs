@@ -40,7 +40,6 @@ pub(super) fn button(
             Node {
                 border: UiRect::all(Val::Px(1.0)),
                 border_radius: BorderRadius::all(Val::Px(3.0)),
-                justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..node
             },
@@ -53,6 +52,29 @@ pub(super) fn button(
                 label,
                 13.0,
                 Color::srgb(0.91, 0.78, 0.40),
+            ));
+        });
+}
+
+/// Unavailable actions keep their place without receiving input.
+pub(super) fn disabled(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, node: Node) {
+    parent
+        .spawn((
+            Node {
+                border: UiRect::all(Val::Px(1.0)),
+                border_radius: BorderRadius::all(Val::Px(3.0)),
+                align_items: AlignItems::Center,
+                ..node
+            },
+            BackgroundColor(Color::srgb(0.025, 0.02, 0.01)),
+            BorderColor::all(Color::srgb(0.16, 0.13, 0.06)),
+        ))
+        .with_children(|body| {
+            body.spawn(hud::text_bundle(
+                font,
+                label,
+                13.0,
+                Color::srgb(0.31, 0.28, 0.19),
             ));
         });
 }

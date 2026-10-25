@@ -341,6 +341,7 @@ fn tab_button(
         on,
         Node {
             min_height: Val::Px(28.0),
+            justify_content: JustifyContent::Center,
             max_width: Val::Percent(100.0),
             flex_shrink: 0.0,
             padding: UiRect::horizontal(Val::Px(10.0)),

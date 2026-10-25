@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rewards sidebar
+
+Available points now stand out above full-width category controls. Confirm/Undo
+stay visible and dim when there is no pending purchase; pending changes survive
+category switching. This follows the currency and navigation hierarchy in the
+Rewards intention reference.
+
+![Rewards sidebar at 1280×720](images/screenshots/2026-10-25-reward-rail/rewards-1280.jpg)
+
+![Pending purchase enables Confirm and Undo](images/screenshots/2026-10-25-reward-rail/pending-1280.jpg)
+
+![Rewards sidebar at 640×720](images/screenshots/2026-10-25-reward-rail/rewards-640.jpg)
+
+Verified disabled controls, purchase preview, category switching, Undo and compact
+text fit live. Native build, workspace Clippy, formatting and render-pass lint
+pass. Companion/Tabard card styling and other page-specific reference details
+remain unfinished; costs and effects are unchanged.
+
 ## 2026-10-25 — Armory section framing
 
 Major Armory section headings are now centered between flexible gold divider

@@ -75,24 +75,30 @@ pub(super) fn build(
     })).with_children(|row| {
         frame(row, 190.0, 1.0, |side| {
             super::typography::section(side, font, "Rewards", 22.0, GOLD);
-            text(side, font, format!("{} points to spend", account.unspent()), 22.0, GOLD);
+            side.spawn(Node { flex_wrap: FlexWrap::Wrap, align_items: AlignItems::Baseline, column_gap: Val::Px(6.0), ..default() }).with_children(|currency| {
+                text(currency, font, account.unspent().to_string(), 36.0, GOLD);
+                text(currency, font, "points to spend", 13.0, DIM);
+            });
             let earned = rewards::points_of(account.earned_ids());
             text(side, font, format!("{earned} earned · {} spent", earned.saturating_sub(account.unspent())), 12.0, DIM);
             text(side, font, format!("{} of {} achievements", rewards::earned_count(account.earned_ids()), rewards::catalog_len()), 12.0, DIM);
-            if !armory.reward_draft.is_empty() {
+            let pending = !armory.reward_draft.is_empty();
+            if pending {
                 text(side, font, format!("{} pending {}", armory.reward_draft.codes().len(), if armory.reward_draft.codes().len() == 1 { "change" } else { "changes" }), 13.0, hud::card_growth::GAIN);
-                side.spawn(Node { flex_wrap: FlexWrap::Wrap, ..default() }).with_children(|buttons| {
-                    chip(buttons, font, "Confirm", Act::ConfirmRewards, true);
-                    chip(buttons, font, "Undo", Act::UndoRewards, false);
-                });
-            } else {
-                text(side, font, "No pending changes", 12.0, DIM);
             }
-            for (i, name) in ["Perks", "Companions", "Tabards"].iter().enumerate() {
-                side.spawn(Node { width: Val::Percent(100.0), ..default() }).with_children(|slot| {
-                    chip(slot, font, name, Act::RewardPage(i as u8), armory.reward_page == i as u8);
-                });
-            }
+            side.spawn(Node { flex_wrap: FlexWrap::Wrap, column_gap: Val::Px(4.0), ..default() }).with_children(|buttons| {
+                for (label, act, selected) in [("Confirm", Act::ConfirmRewards, true), ("Undo", Act::UndoRewards, false)] {
+                    let node = Node { min_height: Val::Px(24.0), padding: UiRect::horizontal(Val::Px(7.0)), justify_content: JustifyContent::Center, ..default() };
+                    if pending { super::controls::button(buttons, font, label, act, selected, node); }
+                    else { super::controls::disabled(buttons, font, label, node); }
+                }
+            });
+            side.spawn(Node { width: Val::Percent(100.0), flex_direction: FlexDirection::Column, row_gap: Val::Px(2.0), ..default() }).with_children(|categories| {
+                for (i, name) in ["Perks", "Companions", "Tabards"].iter().enumerate() {
+                    super::controls::button(categories, font, name, Act::RewardPage(i as u8), armory.reward_page == i as u8,
+                        Node { width: Val::Percent(100.0), min_height: Val::Px(28.0), padding: UiRect::horizontal(Val::Px(8.0)), justify_content: JustifyContent::FlexStart, ..default() });
+                }
+            });
             super::typography::section(side, font, "Reset", 18.0, GOLD);
             text(side, font, format!("Refund every point spent on perks. Companion purchases and tabards are kept. Resets remaining: {}.", account.resets_left()), 12.0, DIM);
             side.spawn(Node::default()).with_children(|slot| chip(slot, font, "Reset perks", Act::Reward(12), false));
@@ -329,26 +335,13 @@ fn perk_step(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, label: &str, ac
     let node = Node {
         width: Val::Px(22.0),
         height: Val::Px(22.0),
+        justify_content: JustifyContent::Center,
         ..default()
     };
     if let Some(act) = act {
         super::controls::button(ui, font, label, act, false, node);
     } else {
-        // No Button or Act: unavailable purchases and committed ranks cannot be clicked.
-        ui.spawn((
-            Node {
-                border: UiRect::all(Val::Px(1.0)),
-                border_radius: BorderRadius::all(Val::Px(3.0)),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..node
-            },
-            BackgroundColor(Color::srgb(0.025, 0.02, 0.01)),
-            BorderColor::all(Color::srgb(0.16, 0.13, 0.06)),
-        ))
-        .with_children(|body| {
-            text(body, font, label, 13.0, Color::srgb(0.31, 0.28, 0.19));
-        });
+        super::controls::disabled(ui, font, label, node);
     }
 }
 

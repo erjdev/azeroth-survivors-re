@@ -18,24 +18,30 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Rewards currency/category rail now emphasizes available points and uses full-width
+category buttons. Confirm/Undo remain visible but disabled without a draft.
+Preview, category switching with pending changes, Undo and 1280/640×720 fit
+passed live checks; three screenshots are inline in the changelog. Companion/
+Tabard cards and other page-specific reference details remain unfinished.
+
 Major Armory sections now have centered headings and flexible, fading gold
 rules. Wide Collection/Achievements/Rewards and compact Talent Points were
 verified live with four inline screenshots. This completes the shared section
-framing pass; currency/category rails, remaining texture buttons, portrait
+framing pass; remaining texture buttons, portrait
 badges and page-specific details still need reference alignment.
 
 Reward perks now use compact reference-style cards with name-adjacent rank
 markers and cost/+/− controls at right. Disabled max-rank/unaffordable purchases,
 pending-rank removal and point restoration passed live checks at 1280×720;
 640×720 wrapping was captured after scrolling. Three screenshots are inline in
-the changelog. Currency/category rail, dividers and Companion/Tabard styling
-remain open; no costs or perk effects changed.
+the changelog. Companion/Tabard styling remains open; no costs or perk effects
+changed.
 
 Navigation and shared Armory controls now use gold outlines, burgundy selection
 and hover/pressed feedback. Text-sized tabs wrap; Done only appears inside the
 Armory. Equipment actions, reward preview/Undo, navigation and 1280/640×720 fit
 were checked live. Texture-based starter and Options/Quit controls still need
-alignment, along with section dividers and the other remaining items below.
+alignment, along with the other remaining items below.
 
 Starter title, section headings and zone names now use runtime-loaded Morpheus;
 body copy keeps the HUD face. Wide/compact rendering, outline alignment, long
