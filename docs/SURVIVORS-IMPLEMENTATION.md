@@ -18,6 +18,12 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Navigation and shared Armory controls now use gold outlines, burgundy selection
+and hover/pressed feedback. Text-sized tabs wrap; Done only appears inside the
+Armory. Equipment actions, reward preview/Undo, navigation and 1280/640×720 fit
+were checked live. Texture-based starter and Options/Quit controls still need
+alignment, along with section dividers and the other remaining items below.
+
 Starter title, section headings and zone names now use runtime-loaded Morpheus;
 body copy keeps the HUD face. Wide/compact rendering, outline alignment, long
 zone names and zone-selection rebuilds passed live checks with three screenshots.

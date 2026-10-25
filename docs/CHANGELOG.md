@@ -3,6 +3,26 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Outlined Armory controls
+
+Navigation and shared Armory buttons now use thin gold outlines, a burgundy
+selected state and hover/pressed feedback, following the intention references.
+Tabs size to their labels and wrap; the starter no longer shows a redundant Done
+button. Armory pages retain Done to return to the starter.
+
+![Collection controls at 1280×720](images/screenshots/2026-10-25-armory-controls/collection-1280.jpg)
+
+![Reward preview and confirmation controls](images/screenshots/2026-10-25-armory-controls/rewards-pending-1280.jpg)
+
+![Compact navigation after undoing a reward preview](images/screenshots/2026-10-25-armory-controls/rewards-640.jpg)
+
+![Compact starter navigation](images/screenshots/2026-10-25-armory-controls/starter-640.jpg)
+
+Verified tab navigation, equipment unequip/re-equip, reward preview/Undo, hover
+feedback and 1280/640×720 layouts live. Native build, workspace Clippy, formatting
+and render-pass lint pass. Gameplay rules are unchanged. Texture-based starter
+and Options/Quit controls, section dividers and broader page styling remain open.
+
 ## 2026-10-25 — Armory display headings
 
 The Armory title and primary section headings now share the intention design's

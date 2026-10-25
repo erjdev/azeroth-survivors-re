@@ -42,7 +42,7 @@ pub(super) fn build(
 ) {
     if armory.page == Page::Door {
         header(ui, art, font);
-        tabs(ui, art, font, armory.page, account.unspent());
+        tabs(ui, font, armory.page, account.unspent());
     } else {
         armory_header(ui, art, font, armory, account, selection);
     }
@@ -145,7 +145,7 @@ fn armory_header(
             min_width: Val::Px(0.0),
             ..default()
         })
-        .with_children(|navigation| tabs(navigation, art, font, armory.page, account.unspent()));
+        .with_children(|navigation| tabs(navigation, font, armory.page, account.unspent()));
     });
     ui.spawn(Node {
         width: Val::Percent(100.0),
@@ -294,13 +294,7 @@ fn header(ui: &mut ChildSpawnerCommands, art: &GlueArt, font: &Handle<Font>) {
     });
 }
 
-fn tabs(
-    ui: &mut ChildSpawnerCommands,
-    art: &GlueArt,
-    font: &Handle<Font>,
-    page: Page,
-    unspent: u32,
-) {
+fn tabs(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, page: Page, unspent: u32) {
     let rewards = format!("Rewards ({unspent})");
     let tabs = [
         ("Character", Page::Heroes),
@@ -324,58 +318,35 @@ fn tabs(
     })
     .with_children(|row| {
         for (label, tab) in tabs {
-            tab_button(row, art, font, label, Act::Page(tab), page == tab);
+            tab_button(row, font, label, Act::Page(tab), page == tab);
         }
-        glue_button(
-            row,
-            art,
-            font,
-            Act::Page(Page::Door),
-            "Done",
-            72.0,
-            28.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
+        if page != Page::Door {
+            tab_button(row, font, "Done", Act::Page(Page::Door), false);
+        }
     });
 }
 
 fn tab_button(
     row: &mut ChildSpawnerCommands,
-    art: &GlueArt,
     font: &Handle<Font>,
     label: &str,
     act: Act,
     on: bool,
 ) {
-    let width = (label.len() as f32 * 7.2 + 28.0).clamp(78.0, 168.0);
-    row.spawn(Node {
-        flex_direction: FlexDirection::Column,
-        align_items: AlignItems::Center,
-        ..default()
-    })
-    .with_children(|col| {
-        glue_button(
-            col,
-            art,
-            font,
-            act,
-            label,
-            width,
-            28.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
-        col.spawn((
-            Node {
-                width: Val::Percent(70.0),
-                height: Val::Px(2.0),
-                margin: UiRect::top(Val::Px(2.0)),
-                ..default()
-            },
-            BackgroundColor(if on { GOLD } else { Color::NONE }),
-        ));
-    });
+    super::controls::button(
+        row,
+        font,
+        label,
+        act,
+        on,
+        Node {
+            min_height: Val::Px(28.0),
+            max_width: Val::Percent(100.0),
+            flex_shrink: 0.0,
+            padding: UiRect::horizontal(Val::Px(10.0)),
+            ..default()
+        },
+    );
 }
 
 fn columns(

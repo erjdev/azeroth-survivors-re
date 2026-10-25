@@ -8,6 +8,8 @@ pub(super) use character::subject as character_subject;
 mod codex_page;
 pub(super) use codex_page::refresh_details as codex_details;
 mod collection;
+mod controls;
+pub(super) use controls::style as style_controls;
 mod door;
 mod drop_page;
 #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
@@ -2056,32 +2058,19 @@ impl ChipParent for RelatedSpawnerCommands<'_, ChildOf> {
 }
 
 fn chip(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, act: Act, on: bool) {
-    let color = if on {
-        hud::rgb(0xc9a227)
-    } else {
-        Color::srgba(0.16, 0.13, 0.09, 0.95)
-    };
-    let ink = if on { Color::BLACK } else { Color::WHITE };
-    parent
-        .spawn((
-            Button,
-            act,
-            Node {
-                height: Val::Px(22.0),
-                margin: UiRect::new(Val::Px(0.0), Val::Px(4.0), Val::Px(2.0), Val::Px(0.0)),
-                padding: UiRect::horizontal(Val::Px(6.0)),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            BackgroundColor(color),
-        ))
-        .with_children(|b| {
-            let mut label = b.spawn(hud::text_bundle(font, label, 13.0, ink));
-            if on {
-                label.remove::<TextShadow>();
-            }
-        });
+    controls::button(
+        parent,
+        font,
+        label,
+        act,
+        on,
+        Node {
+            min_height: Val::Px(22.0),
+            margin: UiRect::new(Val::Px(0.0), Val::Px(4.0), Val::Px(2.0), Val::Px(0.0)),
+            padding: UiRect::horizontal(Val::Px(6.0)),
+            ..default()
+        },
+    );
 }
 
 #[cfg(test)]

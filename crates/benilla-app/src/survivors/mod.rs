@@ -167,6 +167,7 @@ impl Plugin for SurvivorsPlugin {
                     (
                         armory::refresh,
                         armory::style_headings,
+                        armory::style_controls,
                         armory::scroll_collection,
                         armory::codex_details,
                         armory::talent_details,
