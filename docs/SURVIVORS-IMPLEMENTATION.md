@@ -1481,3 +1481,12 @@ workspace Clippy, formatting, render-pass lint, five terrain tests, 108 focused 
 tests and nine world-collision tests pass. The format crate also checks without default
 features or `survivors-terrain`. These are scoped tests; full workspace test acceptance,
 live movement/streaming and arena approval remain open.
+
+### Un'Goro candidate visual follow-up — 2026-10-25
+
+The southern location now has a README screenshot from the checkout world viewer and
+source-obstacle measurements in [location evidence](SURVIVORS-LOCATIONS.md). Tree placement
+304715 lies near the proposed center and supplies the next body-clearance/sliding fixture.
+The preview verifies rendering only: no live player, horde, gameplay camera, pathfinding
+or arena-readiness claim follows. Launch overrides were restored; authored coordinates,
+locks and reward definitions remain unchanged.

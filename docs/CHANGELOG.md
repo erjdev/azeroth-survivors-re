@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Un'Goro candidate visual evidence
+
+Added a 720p world-viewer capture to the README and recorded nearby tree-hull probes.
+The southern candidate renders jungle terrain with a large trunk near its center; player
+clearance, grounded traversal and gameplay-camera checks remain open. No runtime errors
+or panics appeared. Validation launch overrides were restored; the zone remains locked.
+
 ## 2026-10-25 — Recover terrain boundary heights
 
 Survivors now checks nearby emitted terrain triangles when the fast height lookup misses.

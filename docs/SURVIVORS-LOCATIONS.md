@@ -272,3 +272,28 @@ from existing triangles. The earlier table records the pre-fix result, not curre
 This makes the southern disk a candidate for collider/obstacle and live-view inspection;
 it does not prove between-sample safety, WMO clearance, connected routes, camera behavior,
 or readiness to unlock Un'Goro. The authored summit location remains unchanged.
+
+
+### Southern candidate rendered scene and obstacles — 2026-10-25
+
+The checkout world viewer launched on map 1 (`Kalimdor`) with
+`WOW_WORLDVIEW_AT=-7136,-1609,-269.4892`, isolated state and a 1280×720 window.
+[Rendered candidate](images/screenshots/2026-10-25-ungoro-candidate/world-preview-720.jpg)
+shows jungle ground, a large nearby trunk and dense canopy. The viewer is an elevated free
+camera, not the Survivors camera or a player traversal test. Its log contains no errors
+or panics. The original launch wrapper was restored after closing the viewer.
+
+The center terrain height is -270.4892. The start-ADT WMO probe found no floor at that XY.
+The surrounding 3×3-ADT doodad probe found placement 304715 (`feralastree03.mdx`) at
+`(-7135.717, -1602.6602, -272.30038)`, scale 0.8144531, 30 hull triangles and an origin
+6.3 horizontal yards from the center. Its conservative horizontal hull AABB is only
+0.497 yards from the center. At raw z=-268, the +Y hull ray hits it after 2.6105921 yards;
+this is a source ray, not capsule clearance. The other rays hit placement 304699 after
+47.00218 yards (-Y), placement 304693 after 35.11947 yards (-X), and nothing within 120
+yards (+X). These directions are raw WoW axes.
+
+Reproduce with `--floor 1 -7136 -1609 -268` and `--doodads 1 -7136 -1609 -268`.
+The nearest tree now provides a concrete placed-hull fixture for body-clearance, sliding
+and grounded movement checks. Do not infer an unobstructed arena from the dry terrain
+survey; distant-origin overlapping models and WMO props remain outside this source probe.
+No campaign location, content lock or reward data changed.
