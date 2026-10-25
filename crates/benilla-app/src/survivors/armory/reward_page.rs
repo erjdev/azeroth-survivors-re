@@ -394,12 +394,15 @@ pub(super) fn companions(
                 10 => vec![("Prioritize and fetch battleground runes. Rune spawning is not yet available.".into(), DIM)],
                 _ => vec![("Travel with ".into(), DIM), (comparison(f32::from(pets.owned.min(2)), 2.0, " companions"), hud::card_growth::GAIN), (", each with its own instinct.".into(), DIM)],
             };
-            grid.spawn((Node { flex_basis: Val::Percent(48.0), flex_grow: 1.0, min_width: Val::Px(0.0), padding: UiRect::all(Val::Px(10.0)), column_gap: Val::Px(10.0), border: UiRect::all(Val::Px(1.0)), ..default() }, BackgroundColor(Color::srgb(0.035, 0.027, 0.014)), BorderColor::all(FRAME))).with_children(|card| {
+            let pending = armory.reward_draft.codes().iter().filter(|&&value| value == code).count();
+            grid.spawn((Node { flex_basis: Val::Percent(48.0), flex_grow: 1.0, min_width: Val::Px(300.0), padding: UiRect::all(Val::Px(8.0)), column_gap: Val::Px(8.0), border: UiRect::all(Val::Px(1.0)), border_radius: BorderRadius::all(Val::Px(4.0)), ..default() }, BackgroundColor(if rank > 0 { Color::srgb(0.14, 0.10, 0.035) } else { Color::srgb(0.025, 0.02, 0.012) }), BorderColor::all(FRAME))).with_children(|card| {
                 card.spawn((super::talent_page::Backdrop(format!("Interface\\Icons\\{icon}.blp")), ImageNode::default(), Node { width: Val::Px(34.0), height: Val::Px(34.0), flex_shrink: 0.0, ..default() }));
-                card.spawn(Node { flex_grow: 1.0, flex_basis: Val::Px(0.0), min_width: Val::Px(0.0), flex_direction: FlexDirection::Column, row_gap: Val::Px(6.0), ..default() }).with_children(|body| {
-                    text(body, font, name, 16.0, GOLD);
-                    body.spawn(Node { column_gap: Val::Px(4.0), ..default() }).with_children(|pips| {
-                        for n in 0..max { pips.spawn((Node { width: Val::Px(7.0), height: Val::Px(7.0), border_radius: BorderRadius::MAX, border: UiRect::all(Val::Px(1.0)), ..default() }, BorderColor::all(FRAME), BackgroundColor(if n < rank { GOLD } else { Color::BLACK }))); }
+                card.spawn(Node { flex_grow: 1.0, flex_basis: Val::Px(0.0), min_width: Val::Px(0.0), flex_direction: FlexDirection::Column, row_gap: Val::Px(4.0), ..default() }).with_children(|body| {
+                    body.spawn(Node { flex_wrap: FlexWrap::Wrap, align_items: AlignItems::Center, column_gap: Val::Px(8.0), row_gap: Val::Px(3.0), ..default() }).with_children(|heading| {
+                        text(heading, font, name, 15.0, GOLD);
+                        heading.spawn(Node { column_gap: Val::Px(4.0), ..default() }).with_children(|pips| {
+                            for n in 0..max { pips.spawn((Node { width: Val::Px(7.0), height: Val::Px(7.0), border_radius: BorderRadius::MAX, border: UiRect::all(Val::Px(1.0)), ..default() }, BorderColor::all(FRAME), BackgroundColor(if n < rank { GOLD } else { Color::BLACK }))); }
+                        });
                     });
                     body.spawn(hud::text_bundle(font, "", 12.0, DIM)).with_children(|line| {
                         for (part, color) in parts { line.spawn((TextSpan::new(part), TextColor(color), TextFont { font: font.clone(), font_size: 12.0, ..default() })); }
@@ -407,13 +410,15 @@ pub(super) fn companions(
                     if (8..=10).contains(&code) {
                         text(body, font, target.map_or_else(|| "Requires a companion".into(), |slot| format!("{} companion · {}", if slot == 0 { "First" } else { "Second" }, if rank == max { "instinct learned".into() } else if current == 0 { "learn instinct".into() } else { format!("replaces {}", super::instinct_name(current)) })), 12.0, DIM);
                     }
-                    remove_pending(body, font, armory, code);
-                    if let Some(cost) = cost {
-                        if !(8..=10).contains(&code) || target.is_some() {
-                            body.spawn(Node::default()).with_children(|buy| chip(buy, font, &format!("Buy · {cost} points"), Act::Reward(code), false));
-                            if account.unspent() < cost { text(body, font, "Not enough points", 12.0, DIM); }
-                        }
-                    } else { text(body, font, if code == 13 { if pets.owned > 0 { "Included" } else { "Unavailable" } } else if (8..=10).contains(&code) { "Learned" } else { "Max rank" }, 12.0, GOLD); }
+                });
+                card.spawn(Node { flex_direction: FlexDirection::Column, align_items: AlignItems::FlexEnd, width: Val::Px(78.0), flex_shrink: 0.0, row_gap: Val::Px(4.0), ..default() }).with_children(|actions| {
+                    text(actions, font, cost.map_or_else(|| if code == 13 { "Included" } else if (8..=10).contains(&code) { "Learned" } else { "Max rank" }.into(), |value| format!("{value} points")), 12.0, DIM);
+                    actions.spawn(Node { column_gap: Val::Px(4.0), ..default() }).with_children(|buttons| {
+                        perk_step(buttons, font, "−", (pending > 0).then_some(Act::RemoveReward(code)));
+                        perk_step(buttons, font, "+", cost.filter(|&value| account.unspent() >= value && (!(8..=10).contains(&code) || target.is_some())).map(|_| Act::Reward(code)));
+                    });
+                    if pending > 0 { text(actions, font, format!("{pending} pending"), 11.0, hud::card_growth::GAIN); }
+                    if cost.is_some_and(|value| account.unspent() < value) { text(actions, font, "Need points", 11.0, DIM); }
                 });
             });
         }

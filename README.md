@@ -76,7 +76,7 @@ Companion cards now show green inline upgrades, rank pips and the destination fo
 instinct purchases. Live purchases and narrow scrolling were checked; the expanded, achievement-gated
 Looks catalog remains unfinished.
 
-![Companion cards and upgrade previews](docs/images/screenshots/2026-10-25-companion-cards/companions-1280.jpg)
+![Companion cards and upgrade previews](docs/images/screenshots/2026-10-25-compact-companions/companions-1280.jpg)
 
 Companion appearances now have illustrated tiles and a green Worn state. Each slot's
 look remains independent of its instinct; narrow layout and restart persistence were checked.

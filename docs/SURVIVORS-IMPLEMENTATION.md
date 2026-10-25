@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Companion upgrade cards now follow the compact Perk structure: inline rank pips,
+right-side cost/+⁄− controls and purchased-state tint. Preview, disabled purchases,
+pending removal/point restoration, compact text fit and appearance switching
+passed live checks; three new inline screenshots preserve the earlier captures.
+Artwork, the final card's full-width stretch and Looks/Tabards grids still need
+reference alignment. No companion cost or effect changed.
+
 Rewards currency/category rail now emphasizes available points and uses full-width
 category buttons. Confirm/Undo remain visible but disabled without a draft.
 Preview, category switching with pending changes, Undo and 1280/640×720 fit

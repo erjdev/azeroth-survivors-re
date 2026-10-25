@@ -3,6 +3,26 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Compact Companion upgrades
+
+Companion cards now place rank markers beside their names and cost/+⁄− controls
+at the right, following the Companion intention screenshot. Purchased ranks use
+a gold-tinted background. Plus is disabled when unavailable or unaffordable;
+minus removes pending upgrades. Green inline scaling and instinct destinations
+remain visible.
+
+![Companion upgrades at 1280×720](images/screenshots/2026-10-25-compact-companions/companions-1280.jpg)
+
+![Pending Long Leash rank and disabled next purchase](images/screenshots/2026-10-25-compact-companions/pending-1280.jpg)
+
+![Scrolled Companion cards at 640×720](images/screenshots/2026-10-25-compact-companions/companions-640.jpg)
+
+Verified preview, disabled purchases, individual removal with point restoration,
+compact text fit, and switching/restoring the first companion's look live. Native
+build, workspace Clippy, formatting and render-pass lint pass. Costs and effects
+are unchanged. Artwork, the final card's full-width stretch, and Looks/Tabards
+grid alignment remain open.
+
 ## 2026-10-25 — Rewards sidebar
 
 Available points now stand out above full-width category controls. Confirm/Undo
