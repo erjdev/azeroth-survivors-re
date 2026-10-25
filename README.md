@@ -37,6 +37,12 @@ purchases and the remaining Rewards pages are still in progress.
 
 ![Rewards sidebar and inline Perk previews](docs/images/screenshots/2026-10-25-reward-previews/perks-1280.jpg)
 
+Companion cards now show green inline upgrades, rank pips and the destination for
+instinct purchases. Live purchases and narrow scrolling were checked; the illustrated
+Looks catalog remains unfinished.
+
+![Companion cards and upgrade previews](docs/images/screenshots/2026-10-25-companion-cards/companions-1280.jpg)
+
 Scarlet Monastery now draws its authored building minimap, including zoom and enemy
 markers. The candidate zone stays locked pending navigation and full encounter acceptance.
 [Outdoor minimap regression](docs/images/screenshots/2026-10-25-indoor-minimap/elwynn.png)

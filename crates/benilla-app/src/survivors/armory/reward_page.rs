@@ -223,6 +223,74 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Account) 
     });
 }
 
+// Values come from the same trip calculation that drives the fetchers.
+fn comparison(current: f32, next: f32, unit: &str) -> String {
+    let number = |value: f32| {
+        format!("{value:.2}")
+            .trim_end_matches('0')
+            .trim_end_matches('.')
+            .to_owned()
+    };
+    if (current - next).abs() < 0.001 {
+        format!("{}{unit}", number(current))
+    } else {
+        format!("{} » {}{unit}", number(current), number(next))
+    }
+}
+
+pub(super) fn companions(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
+    use super::super::companions::trip;
+    panel.spawn(hud::text_bundle(font, "Instincts fill the first companion, then the second. Further purchases replace the first companion's instinct. Appearance selection does not change this order.", 12.0, DIM));
+    panel.spawn(Node { width: Val::Percent(100.0), flex_wrap: FlexWrap::Wrap, column_gap: Val::Px(8.0), row_gap: Val::Px(8.0), ..default() }).with_children(|grid| {
+        for code in [6, 7, 8, 9, 10, 11] {
+            let pets = &account.pets;
+            let target = account.instinct_target();
+            let current = target.map_or(0, |slot| pets.instinct[slot]);
+            let (name, icon, rank, max) = match code {
+                6 => ("Long Leash", "INV_Misc_Spyglass_03", pets.leash.min(3), 3),
+                7 => ("Quick Paws", "Ability_Hunter_BeastSoothe", pets.paws.min(3), 3),
+                8 => ("Gold-sniffer", "INV_Misc_Coin_01", u8::from(current == 1), 1),
+                9 => ("Wisp-herder", "Spell_Nature_WispSplode", u8::from(current == 2), 1),
+                10 => ("Rune-hound", "INV_Misc_Rune_01", u8::from(current == 3), 1),
+                _ => ("Second Companion", "INV_Misc_Bag_10", u8::from(pets.owned >= 2), 1),
+            };
+            let cost = if rank == max { None } else { Some(match code { 6 | 7 => [15, 25, 35][usize::from(rank)], 11 => 40, _ => 30 }) };
+            let now = trip(0.0, pets.leash, pets.paws, current);
+            let next = trip(0.0, if code == 6 { rank.saturating_add(1) } else { pets.leash }, if code == 7 { rank.saturating_add(1) } else { pets.paws }, if (8..=10).contains(&code) { code - 7 } else { current });
+            let parts = match code {
+                6 => vec![("Fetch coins and experience up to ".into(), DIM), (comparison(now.reach, next.reach, " yd"), hud::card_growth::GAIN), (" beyond your pickup radius.".into(), DIM)],
+                7 => vec![("Run ".into(), DIM), (comparison((now.speed / trip(0.0, 0, 0, 0).speed - 1.0) * 100.0, (next.speed / trip(0.0, 0, 0, 0).speed - 1.0) * 100.0, "%"), hud::card_growth::GAIN), (" faster and rest ".into(), DIM), (comparison(now.rest, next.rest, " sec"), hud::card_growth::GAIN), (" between trips.".into(), DIM)],
+                8 => vec![("Prioritize coins, worth ".into(), DIM), (comparison((now.gold_bonus - 1.0) * 100.0, (next.gold_bonus - 1.0) * 100.0, "% more"), hud::card_growth::GAIN), (" when fetched.".into(), DIM)],
+                9 => vec![("Prioritize experience wisps with ".into(), DIM), (comparison(now.wisp_reach / now.reach, next.wisp_reach / next.reach, "× reach"), hud::card_growth::GAIN), (".".into(), DIM)],
+                10 => vec![("Prioritize and fetch battleground runes. Rune spawning is not yet available.".into(), DIM)],
+                _ => vec![("Travel with ".into(), DIM), (comparison(f32::from(pets.owned.min(2)), 2.0, " companions"), hud::card_growth::GAIN), (", each with its own instinct.".into(), DIM)],
+            };
+            grid.spawn((Node { flex_basis: Val::Percent(48.0), flex_grow: 1.0, min_width: Val::Px(0.0), padding: UiRect::all(Val::Px(10.0)), column_gap: Val::Px(10.0), border: UiRect::all(Val::Px(1.0)), ..default() }, BackgroundColor(Color::srgb(0.035, 0.027, 0.014)), BorderColor::all(FRAME))).with_children(|card| {
+                card.spawn((super::talent_page::Backdrop(format!("Interface\\Icons\\{icon}.blp")), ImageNode::default(), Node { width: Val::Px(34.0), height: Val::Px(34.0), flex_shrink: 0.0, ..default() }));
+                card.spawn(Node { flex_grow: 1.0, flex_basis: Val::Px(0.0), min_width: Val::Px(0.0), flex_direction: FlexDirection::Column, row_gap: Val::Px(6.0), ..default() }).with_children(|body| {
+                    text(body, font, name, 16.0, GOLD);
+                    body.spawn(Node { column_gap: Val::Px(4.0), ..default() }).with_children(|pips| {
+                        for n in 0..max { pips.spawn((Node { width: Val::Px(7.0), height: Val::Px(7.0), border_radius: BorderRadius::MAX, border: UiRect::all(Val::Px(1.0)), ..default() }, BorderColor::all(FRAME), BackgroundColor(if n < rank { GOLD } else { Color::BLACK }))); }
+                    });
+                    body.spawn(hud::text_bundle(font, "", 12.0, DIM)).with_children(|line| {
+                        for (part, color) in parts { line.spawn((TextSpan::new(part), TextColor(color), TextFont { font: font.clone(), font_size: 12.0, ..default() })); }
+                    });
+                    if (8..=10).contains(&code) {
+                        text(body, font, target.map_or_else(|| "Requires a companion".into(), |slot| format!("{} companion · {}", if slot == 0 { "First" } else { "Second" }, if rank == max { "instinct learned".into() } else if current == 0 { "learn instinct".into() } else { format!("replaces {}", super::instinct_name(current)) })), 12.0, DIM);
+                    }
+                    if let Some(cost) = cost {
+                        if !(8..=10).contains(&code) || target.is_some() {
+                            body.spawn(Node::default()).with_children(|buy| chip(buy, font, &format!("Buy · {cost} points"), Act::Reward(code), false));
+                            if account.unspent() < cost { text(body, font, "Not enough points", 12.0, DIM); }
+                        }
+                    } else { text(body, font, if (8..=10).contains(&code) { "Learned" } else { "Max rank" }, 12.0, GOLD); }
+                });
+            });
+        }
+    });
+    panel.spawn(hud::text_bundle(font, "Looks", 18.0, GOLD));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

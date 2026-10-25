@@ -3276,3 +3276,15 @@ jump. Workspace test compilation, Clippy, formatting, render-pass lint and diff
 checks pass; native play build took 2m 07s. The preview rendered successfully and
 closed normally. The user's exact building scene and visual fade still need live
 validation; the menu preview is not evidence for that behavior.
+
+### Companion card checkpoint — 2026-10-25
+
+Rewards now presents six companion upgrades/instincts as illustrated two-column cards.
+Range, speed, rest and instinct previews derive from `companions::trip`, with green
+current » next values and one unit. Purchases preserve account semantics and the
+first-empty-slot instinct order independently of Looks selection. Live 1280×720 and
+640×720 checks exercised Quick Paws, the second companion, Gold-sniffer then Wisp-herder;
+inline milestone captures are in the changelog and README. Native build, Clippy,
+formatting and render-pass lint pass. The reference's base Companion card, matching
+icon choices, illustrated expanded Looks catalog and Confirm/Undo staging remain open.
+Rune-hound labels the existing lack of rune spawning; no new gameplay is claimed.
