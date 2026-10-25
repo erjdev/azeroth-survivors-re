@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Real-placement tree fixture
+
+Added tree 12580 with its actual transform and terrain tile to collision regression coverage.
+It reproduces both runtime endpoints without a detected center-ray face crossing. Added
+source winding diagnostics to investigate starts inside open hulls. All 106 focused
+Survivors tests and the audit-tool tests pass. Rendered trunk confirmation remains open;
+no gameplay collision policy changed.
+
 ## 2026-10-24 — Repeated tree-walking regression
 
 Extended the six-variant Elwynn hull regression to 2,304 grounded movement segments.

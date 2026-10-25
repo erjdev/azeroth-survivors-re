@@ -1311,3 +1311,21 @@ hulls, so it cannot settle the placed-tree 12580 terrain interaction or rendered
 Validation: workspace test compilation and 105 focused Survivors tests pass, including
 all 2,304 repeated-walking segments. Center-ray checks do not prove clearance of every
 capsule edge or rendered surface; full workspace gates were not rerun.
+
+Real-placement follow-up loads tree 12580 with its authored rotation/scale and all terrain
+chunks in its tile. Both 48-step paths reproduce the runtime endpoints exactly, and each
+resulting center segment passes the independent one-sided ray check. This rules out a
+streamer-only cause for that particular asymmetry, but does not prove capsule-edge clearance.
+
+The source audit now reports generalized winding at the requested point. At the passing
+start's one-yard center, raw WoW `[-9520.363, 106.507454, 60.379368]`, tree 12580 yields
+`0.760050`; the opposite start `[-9520.363, 94.507454, 60.64867]` yields `-0.066071`.
+This supports an inside/open-hull start hypothesis, not an exact occupancy verdict: closed,
+consistently wound hulls should yield magnitude 1 inside and 0 outside. The new audit test
+covers a closed tetrahedron, reversal, exterior points and an intentionally missing face.
+Do not turn this candidate into a two-sided collision policy change without rendered trunk
+confirmation and an approach that demonstrably starts outside the solid hull.
+
+Validation: workspace test compilation, 106 focused Survivors tests and audit-tool tests
+pass. This fixture adds actual terrain/placement coverage; visual traversal and full gates
+remain open.

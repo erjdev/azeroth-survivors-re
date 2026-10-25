@@ -276,6 +276,73 @@ mod tests {
     }
 
     #[test]
+    fn placed_elwynn_canopy_walks_without_crossing_hull_faces() {
+        use benilla_assets::coords::{placement_rotation, wow_to_bevy};
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {
+            eprintln!("SKIP placed Elwynn test: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        let maps = benilla_formats::load_map_catalog(&mut chain).unwrap();
+        let directory = maps.directory(0).unwrap();
+        let tiles = benilla_formats::MapTiles::load(&mut chain, directory).unwrap();
+        let (x, y) = tiles.tile_at(-9520.363, 100.507454);
+        let tile = benilla_formats::load_tile_mesh(&mut chain, directory, x, y).unwrap();
+        let d = tile.doodads.iter().find(|d| d.unique_id == 12580).unwrap();
+        let hull = benilla_formats::load_m2_collision_hull(&mut chain, &d.model).unwrap();
+        let transform = Transform {
+            translation: wow_to_bevy(d.position),
+            rotation: placement_rotation(d.rotation),
+            scale: Vec3::splat(d.scale),
+        };
+        let mut app = fixture(&[]);
+        for chunk in &tile.chunks {
+            app.world_mut().spawn((
+                RigidBody::Static,
+                Collider::trimesh(
+                    chunk.positions.iter().map(|p| wow_to_bevy(*p)).collect(),
+                    chunk.indices.as_chunks::<3>().0.to_vec(),
+                ),
+                Transform::default(),
+            ));
+        }
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::trimesh(
+                hull.positions
+                    .iter()
+                    .map(|p| transform.transform_point(wow_to_bevy(*p)))
+                    .collect(),
+                hull.indices.as_chunks::<3>().0.to_vec(),
+            ),
+            Transform::default(),
+        ));
+        app.update();
+        app.update();
+        for (start, direction) in [
+            (Vec3::new(-106.507454, 59.379368, 9520.363), Vec3::X),
+            (Vec3::new(-94.507454, 59.64867, 9520.363), Vec3::NEG_X),
+        ] {
+            app.world_mut()
+                .run_system_once(move |floor: Floor| {
+                    let mut at = start;
+                    for step in 0..48 {
+                        let mut next =
+                            floor.slide(at, at + direction * 0.25, super::super::HERO_RADIUS);
+                        next.y = floor.height(next).unwrap_or(next.y);
+                        assert!(
+                            floor.line_clear(at, next),
+                            "placed canopy center crossed face at step {step}: {at:?} -> {next:?}"
+                        );
+                        at = next;
+                    }
+                    eprintln!("placed canopy {direction:?}: {start:?} -> {at:?}");
+                })
+                .unwrap();
+        }
+    }
+
+    #[test]
     fn placed_warsong_stump_blocks_the_candidate_crossing_and_unregisters() {
         use benilla_assets::coords::{placement_rotation, wow_to_bevy};
         let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {

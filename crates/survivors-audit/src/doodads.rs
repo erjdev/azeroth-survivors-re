@@ -49,6 +49,13 @@ pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
                 .map(|p| center + rotation * (Vec3::from_array(*p) * d.scale))
                 .collect();
             if !vertices.is_empty() {
+                // Generalized winding distinguishes starting inside a closed authored hull
+                // from entering it. One-sided movement deliberately allows leaving a hull.
+                let p = Vec3::from_array(point);
+                let winding = winding_number(&vertices, hull.indices.as_chunks::<3>().0, p);
+                if distance < 50.0 && model.contains("\\trees\\") {
+                    println!("SOURCE WINDING {}: {winding:.6} at {point:?}; magnitude near 1 means inside a closed consistently wound hull, near 0 outside; open/inconsistent hulls are inconclusive", d.unique_id);
+                }
                 let min = vertices
                     .iter()
                     .fold(Vec3::splat(f32::INFINITY), |a, b| a.min(*b));
@@ -142,6 +149,21 @@ pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
     Ok(())
 }
 
+fn winding_number(vertices: &[Vec3], triangles: &[[u32; 3]], point: Vec3) -> f32 {
+    triangles
+        .iter()
+        .map(|ids| {
+            let [a, b, c] = ids.map(|i| vertices[i as usize] - point);
+            let denominator = a.length() * b.length() * c.length()
+                + a.dot(b) * c.length()
+                + b.dot(c) * a.length()
+                + c.dot(a) * b.length();
+            2.0 * a.dot(b.cross(c)).atan2(denominator)
+        })
+        .sum::<f32>()
+        / (4.0 * std::f32::consts::PI)
+}
+
 fn horizontal_bounds_distance(point: Vec3, min: Vec3, max: Vec3) -> f32 {
     let nearest = point.clamp(min, max);
     (point.x - nearest.x).hypot(point.y - nearest.y)
@@ -170,6 +192,23 @@ fn ray_triangle(origin: Vec3, direction: Vec3, [a, b, c]: [Vec3; 3]) -> Option<f
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn winding_distinguishes_closed_hull_interior_exterior_and_reversal() {
+        let vertices = [
+            Vec3::new(1., 1., 1.),
+            Vec3::new(-1., -1., 1.),
+            Vec3::new(-1., 1., -1.),
+            Vec3::new(1., -1., -1.),
+        ];
+        let faces = [[0, 2, 1], [0, 1, 3], [0, 3, 2], [1, 2, 3]];
+        let inside = winding_number(&vertices, &faces, Vec3::ZERO);
+        assert!((inside.abs() - 1.).abs() < 1e-5);
+        assert!(winding_number(&vertices, &faces, Vec3::splat(5.)).abs() < 1e-5);
+        let reversed = faces.map(|[a, b, c]| [a, c, b]);
+        assert!((winding_number(&vertices, &reversed, Vec3::ZERO) + inside).abs() < 1e-5);
+        assert!((winding_number(&vertices, &faces[..3], Vec3::ZERO).abs() - 0.75).abs() < 1e-5);
+    }
+
     #[test]
     fn bounds_distance_uses_horizontal_extent_not_origin_or_altitude() {
         let min = Vec3::new(-10., -2., 5.);
