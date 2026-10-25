@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Surface-aligned collision diagnostics
+
+Added repeated walking queries and saved reproducible tree-surface points. Canopy tree
+12580 allows one approach but blocks the reverse; recorded exact starts, height-sample
+failures and lateral movement in [surface evidence](validation/elwynn-tree-surface-queries.txt).
+Native build passes. This is a narrowed reproduction candidate, not a collision fix.
+
 ## 2026-10-24 — Elwynn collision evidence
 
 Audited source hulls and queried twelve nearby tree placements in the streamed world.

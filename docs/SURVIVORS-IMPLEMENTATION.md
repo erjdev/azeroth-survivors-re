@@ -1283,3 +1283,19 @@ placement origins and broad source bounds do not establish exact solid occupancy
 approaches lack a valid starting floor. The next check must align a short repeated movement
 path with a visible/source trunk surface, compare it against the registered hull, and repeat
 after tile reload. No collision fix or navmesh requirement is claimed by these probes.
+
+Surface-aligned follow-up adds 48 quarter-yard walking queries with the same floor-height
+fallback as the hero, reporting lateral drift and missing floor samples. This is a static
+world snapshot, not live input. Reproduce with `WOW_SURVIVORS_COLLISION_PROBE` pointing to
+`docs/validation/elwynn-tree-surface-points.txt`; the points come from the source audit's
+first triangle/plane intersections one yard above each placement origin. Evidence is in
+`validation/elwynn-tree-surface-queries.txt`.
+
+Canopy placement 12580 now has a concrete asymmetric case: from Bevy
+`(-106.507454, 59.379368, 9520.363)` toward +X, repeated walking advances 11.992 yards
+with one missing floor sample. Reverse approach advances only 5.483 yards, with no missing
+floor samples. The -Z approach advances 5.802 yards with 0.435 yards lateral drift.
+This narrows investigation to surface orientation/terrain-height interactions at that exact
+location; it does not yet prove a rendered trunk penetration. Compare rendered placement
+and per-step height against its hull before changing the shared one-sided collision policy.
+Native build passed (10.61 seconds on the final probe revision); full gates were not rerun.

@@ -79,6 +79,21 @@ fn probe(
             let travel = floor.travel(start, desired, crate::survivors::HERO_RADIUS);
             let clear = floor.line_clear(start, desired);
             info!("survivors collision probe: {label} direction {direction:?}, start {start:?}, slide advance {:.3}, travel advance {:.3}, requested 12, line clear {clear}", (slide - start).dot(direction), (travel - start).dot(direction));
+            // Match walking's repeated horizontal sweep followed by a floor clamp. A single
+            // long sweep can hit rising terrain or slide around a thin trunk differently.
+            let mut at = start;
+            let mut missing_floor = 0;
+            for _ in 0..48 {
+                let next = floor.slide(at, at + direction * 0.25, crate::survivors::HERO_RADIUS);
+                let height = floor.height(next).unwrap_or_else(|| {
+                    missing_floor += 1;
+                    next.y
+                });
+                at = Vec3::new(next.x, height, next.z);
+            }
+            let advance = (at - start).dot(direction);
+            let sideways = (at - start).dot(Vec3::new(-direction.z, 0.0, direction.x));
+            info!("survivors collision steps: {label} direction {direction:?}, end {at:?}, advance {advance:.3}, sideways {sideways:.3}, missing floor samples {missing_floor}; 48 quarter-yard attempts, static world snapshot, not live input");
         }
     }
 }
