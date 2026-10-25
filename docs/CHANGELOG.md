@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Foreground performance validation
+
+Corrected the profiling setup: prior unattended/background FPS was not representative
+of attended play. Foreground Gurubashi held about 90 FPS at a chest; six short combat
+samples measured 45–75 FPS. Auto logs now count unfocused/unknown-focus frames; live output, all 134 Survivors
+tests, Clippy and the native build pass.
+The [development guide](SURVIVORS-DEVELOPMENT.md#measure-attended-performance-explicitly)
+documents repeatable foreground measurements. Full performance acceptance remains open.
+
 ## 2026-10-25 — Cache repeated combat-text placement
 
 Frozen damage numbers reuse identical overlap placements. A dense 160-label check keeps

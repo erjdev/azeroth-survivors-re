@@ -47,14 +47,21 @@ struct FrameWindow {
     combat_frames: u32,
     combat_seconds: f64,
     combat_max_ms: f32,
+    unfocused_frames: u32,
+    unknown_focus_frames: u32,
 }
 
 impl FrameWindow {
-    fn record(&mut self, dt: f32, combat: bool) {
+    fn record(&mut self, dt: f32, combat: bool, focused: Option<bool>) {
         if !dt.is_finite() || dt <= 0.0 {
             return;
         }
         self.frames += 1;
+        match focused {
+            Some(false) => self.unfocused_frames += 1,
+            None => self.unknown_focus_frames += 1,
+            Some(true) => {}
+        }
         self.seconds += f64::from(dt);
         if combat {
             self.combat_frames += 1;
@@ -195,6 +202,7 @@ pub(super) fn drive(
     loading: Res<crate::loading_screen::LoadingScreen>,
     heroes: Query<(), With<Hero>>,
     enemies: Query<&Enemy>,
+    window: Query<&Window, With<bevy::window::PrimaryWindow>>,
 ) {
     let dt = time.delta_secs();
     auto.wait += dt;
@@ -202,7 +210,11 @@ pub(super) fn drive(
         auto.sample = FrameWindow::default();
         auto.log_t = 10.0;
     } else {
-        auto.sample.record(dt, *phase.get() == Phase::Playing);
+        auto.sample.record(
+            dt,
+            *phase.get() == Phase::Playing,
+            window.single().ok().map(|w| w.focused),
+        );
     }
     match phase.get() {
         Phase::Menu => {
@@ -300,7 +312,7 @@ pub(super) fn drive(
             .chain(run.passives.iter().map(|(p, l)| format!("{}:{}", p.key, l)))
             .collect();
         info!(
-            "survivors auto: {:?} t={:.0}s fps={fps:.0} alive={alive} level={} hp={:.0} kills={} damage={:.0} sample_secs={:.2} combat_fps={combat_fps} combat_frames={} combat_secs={:.2} combat_max_ms={:.1} build=[{}]",
+            "survivors auto: {:?} t={:.0}s fps={fps:.0} alive={alive} level={} hp={:.0} kills={} damage={:.0} sample_secs={:.2} combat_fps={combat_fps} combat_frames={} combat_secs={:.2} combat_max_ms={:.1} frames={} unfocused_frames={} unknown_focus_frames={} build=[{}]",
             phase.get(),
             run.elapsed,
             run.level,
@@ -311,6 +323,9 @@ pub(super) fn drive(
             sample.combat_frames,
             sample.combat_seconds,
             sample.combat_max_ms,
+            sample.frames,
+            sample.unfocused_frames,
+            sample.unknown_focus_frames,
             build.join(" ")
         );
     }
@@ -335,25 +350,39 @@ mod tests {
     #[test]
     fn combat_fps_excludes_level_up_frames_and_preserves_hitches() {
         let mut sample = FrameWindow::default();
-        sample.record(0.25, true);
-        sample.record(0.25, true);
-        sample.record(1.0, false);
+        sample.record(0.25, true, Some(true));
+        sample.record(0.25, true, Some(true));
+        sample.record(1.0, false, Some(true));
         assert_eq!(sample.frames, 3);
         assert_eq!(sample.seconds, 1.5);
         assert_eq!(sample.combat_fps(), Some(4.0));
         assert_eq!(sample.combat_max_ms, 250.0);
-        sample.record(1.5, true);
+        sample.record(1.5, true, Some(true));
         assert_eq!(sample.combat_fps(), Some(1.5));
         assert_eq!(sample.combat_max_ms, 1500.0);
+    }
+
+    #[test]
+    fn focus_counts_cover_the_whole_sample_and_exclude_invalid_deltas() {
+        let mut sample = FrameWindow::default();
+        sample.record(0.1, true, Some(true));
+        sample.record(0.2, true, Some(false));
+        sample.record(0.3, false, None);
+        sample.record(0.0, false, Some(false));
+        sample.record(f32::NAN, false, None);
+        assert_eq!(sample.frames, 3);
+        assert_eq!(sample.unfocused_frames, 1);
+        assert_eq!(sample.unknown_focus_frames, 1);
+        assert_eq!(sample.combat_frames, 2);
     }
 
     #[test]
     fn windows_without_combat_do_not_report_zero_as_measured_combat_fps() {
         let mut sample = FrameWindow::default();
         for dt in [0., -1., f32::NAN, f32::INFINITY] {
-            sample.record(dt, true);
+            sample.record(dt, true, Some(true));
         }
-        sample.record(0.5, false);
+        sample.record(0.5, false, Some(true));
         assert_eq!(sample.frames, 1);
         assert_eq!(sample.combat_fps(), None);
     }

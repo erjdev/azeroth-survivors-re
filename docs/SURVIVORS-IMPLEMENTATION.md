@@ -2355,3 +2355,40 @@ bonuses are reflected in subsequent comparisons. That short resumed combat windo
 measured 23.4 FPS over 1.54 seconds, with a 267.5 ms hitch, so combat acceptance remains
 open too. No ERROR/panic entries appeared. Closed the app through fresh AX state,
 did not query it after exit, and restored the normal launcher. README links the evidence.
+
+### Foreground performance correction and focus telemetry — 2026-10-25
+
+Revalidated the previous slowdown evidence before changing animation. Unattended runs
+normally open behind the user's work through BgWinPlugin. Its documented macOS
+occlusion throttling makes background FPS unsuitable as attended-performance evidence.
+Earlier CPU observations still identify real redundant work removed by the caches, but
+the reported 7–16 FPS runs must not be treated as normal foreground gameplay benchmarks.
+
+With the same checked-in executable (4e49764), no compilation, WOW_BG=0 and
+WOW_FRAME_PHASES=25, a held Gurubashi chest with 228 enemies stayed at about 90 FPS.
+Across 40 journal samples at 40–80 seconds, median per-window mean frame time was
+11.11 ms, p95 15.54 ms, process CPU/frame 21.73 ms and main-thread CPU/frame 9.02 ms.
+The phase stamps perturb scheduling, so a second run omitted them and used Warrior:late
+to continue combat. Six combat windows measured 74.5, 58.6, 55.2, 72.8, 64.4 and
+45.0 FPS, spanning 1,380 frames and 20.81 seconds of combat across accelerated attempts.
+Their longest recorded frame was 46.4 ms; one sample had 227 live enemies. Neither run
+reported ERROR or panic. These are short, accelerated Warrior probes, not a normal
+balance run, a twelve-zone acceptance pass, or a controlled identical-scene A/B test.
+GPU timing was unavailable. Do not attribute the full FPS difference to either cache.
+
+The automated log now reports total sampled frames, unfocused frames, and frames whose
+window focus was unavailable, accumulated across the whole sample. Invalid/nonpositive
+deltas do not increment any of these counts. A regression covers mixed focus and missing
+window data while preserving the existing combat-only accounting. Focus alone does not
+prove visibility or absence of OS throttling. The development guide now supplies an
+explicit foreground, isolated-save profiling command and explains instrumentation limits.
+No animation behavior was changed: the evidence does not justify that change yet.
+
+Validation: all 134 Survivors app tests pass with checkout data, workspace Clippy passes
+(15.47 seconds), and the native incremental build passes (1m03s). Formatting,
+render-pass lint and diff whitespace checks pass. A final foreground live run on the
+new binary reported 812 frames, zero unfocused frames and zero unknown-focus frames
+over 9.99 seconds; its combat-only interval was 457 frames over 6.01 seconds (76.0 FPS).
+This verifies the new fields reach the log, not broad performance acceptance. The
+validation apps were closed through fresh AX controls without querying after exit,
+and the normal launcher was restored. No ERROR/panic entries appeared.

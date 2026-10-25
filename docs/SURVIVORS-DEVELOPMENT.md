@@ -256,3 +256,37 @@ and stops automatically choosing cards while a chest is open. Pick manually to c
 subsequent chest hands also wait. Ordinary level-ups still auto-pick. Use an isolated
 `BENILLA_HOME` and explicit `WOW_DATA` for validation: this mode grants accelerated
 combat/rewards and is not evidence of normal progression or balance.
+
+## Measure attended performance explicitly
+
+On macOS, unattended probes normally open behind other windows. An occluded or background
+window can be throttled by the OS; those FPS numbers do not establish attended gameplay
+performance. Set `WOW_BG=0`, keep the game visible and focused, and finish compilation
+before recording a comparison. Preserve resolution, display refresh/presentation settings
+and scenario; report crowd counts and actual combat seconds. Accelerated runs are not
+balance or normal-progression evidence.
+
+For a foreground native probe from this checkout on macOS/Linux:
+
+```bash
+cargo survivors-build
+mkdir -p target/survivors-profile
+WOW_DATA="$PWD/wow-data/Data" \
+BENILLA_HOME="$PWD/target/survivors-profile/state" \
+WOW_BG=0 WOW_UNATTENDED=1 WOW_NOSOUND=1 WOW_WIN=1440x900 \
+WOW_SURVIVORS_AUTO=Warrior:late WOW_SURVIVORS_MAP="Gurubashi Arena" \
+WOW_FPS_JOURNAL="$PWD/target/survivors-profile/frames.csv" \
+target/play/warcraft-survivors
+```
+
+Use a fresh isolated state directory for a new acquisition comparison. Replace `:late`
+with `:chest` to hold a chest for paused-scene measurements. The auto log reports frame
+count, unfocused frames and frames whose focus could not be read over the entire sample,
+alongside combat-only FPS and its longest frame. A mixed/unknown focus sample must be
+identified as such; focus alone is not proof that the window was visible or unthrottled.
+
+Use `WOW_FRAME_PHASES=25` only in a separate diagnostic run. It reports frames over 25 ms,
+splits main schedules and world stages, and groups the remaining time as render+present.
+Its exclusive stamps change scheduling, so do not attribute differences between an
+instrumented and uninstrumented run to a game change. Empty GPU columns in the FPS journal
+mean unavailable measurements, not zero GPU cost.
