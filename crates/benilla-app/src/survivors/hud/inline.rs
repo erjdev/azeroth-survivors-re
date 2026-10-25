@@ -201,7 +201,7 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
                 "Drops a totem for ",
                 duration,
                 " that hits the nearest enemy within ",
-                (def.range, def.range, " yd"),
+                (a.range, b.range, " yd"),
                 " for ",
                 damage,
                 " every second"

@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage reach talents
+
+Flame Throwing and Arctic Reach now extend the appropriate targeting ranges or
+Nova/Cone radii. Tooltips use effective range; ground spells retain one location
+and unchanged area size. 86 core and 151 app tests, DBC audit, Clippy and native
+build pass (21 seconds). Live range-boundary verification remains open.
+
 ## 2026-10-25 — Armory save fix and Mage UI milestone
 
 Armory edits now save immediately, fixing lost talent changes when closing the window

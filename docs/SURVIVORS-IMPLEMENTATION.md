@@ -2708,3 +2708,27 @@ Validation: 85 core and 150 app tests, workspace test compilation, Clippy, forma
 render-pass lint and diff checks pass. Native build: 42.56 seconds. These are menu
 layout/persistence checks, not combat, frame-time or full responsive-matrix acceptance.
 Remaining class talents, other interface states and campaign/world acceptance remain open.
+
+
+### Mage targeting range checkpoint
+
+Flame Throwing (DBC 28, two ranks) gives targeted fire spells 10% more targeting
+range per rank, an explicit Survivors conversion. Arctic Reach (DBC 741, two ranks)
+gives Frostbolt and Blizzard 10% more targeting range per rank, and Frost Nova/Cone
+of Cold 10% more radius per rank. The selected-spec cast snapshot now carries range
+separately from radius; runtime selection and tooltip headers consume that same value.
+Other classes and Arcane spells do not inherit these effects.
+
+Fireball splash, Flamestrike area and Blizzard area retain their existing sizes.
+Blizzard/Flamestrike still choose one location; extra-target statistics do not multiply
+locations. Nova/Cone continue their existing area selection with the enlarged radius.
+Mage now has 23 functional individual nodes; remaining nodes, milestones, balancing
+and full live combat acceptance remain incomplete.
+
+Validation: 86 core and 151 Survivors app tests pass. Actual cast-system tests place
+enemies beyond untrained range, then verify trained Fireball/Frostbolt/Nova hits
+and exactly one trained Flamestrike/Blizzard area of unchanged radius. Core checks
+cover caps, reset, exclusions and target-count invariance; tooltip checks cover
+trained fire/frost and unchanged Arcane ranges. Workspace test compilation, explicit-data
+DBC talent audit, Clippy, formatting, render-pass lint and diff checks pass. Native
+play build: 21.28 seconds. Live range-boundary and new screenshot acceptance remain open.

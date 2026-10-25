@@ -61,6 +61,7 @@ impl Default for Milestones {
 pub struct CastEffect {
     pub damage: f32,
     pub radius: f32,
+    pub range: f32,
     pub duration: f32,
     pub cooldown: f32,
     pub crit: f32,
@@ -78,6 +79,7 @@ impl Default for CastEffect {
         Self {
             damage: 1.0,
             radius: 1.0,
+            range: 1.0,
             duration: 1.0,
             cooldown: 1.0,
             crit: 0.0,
@@ -177,6 +179,17 @@ impl Milestones {
             for (index, node) in definitions(self.class).iter().enumerate() {
                 let value = node.per_rank * f32::from(self.training[index].min(node.max_rank));
                 match node.stat {
+                    TalentStat::FlameThrowing if MAGE_FIRE.contains(&key) => {
+                        effect.range *= 1.0 + value
+                    }
+                    TalentStat::ArcticReach => {
+                        if matches!(key, "frostbolt" | "blizzard") {
+                            effect.range *= 1.0 + value;
+                        }
+                        if matches!(key, "frost_nova" | "cone_of_cold") {
+                            effect.radius *= 1.0 + value;
+                        }
+                    }
                     TalentStat::SpellGroupDamage(spells) if spells.contains(&key) => {
                         effect.damage *= 1.0 + value;
                     }
@@ -710,6 +723,8 @@ pub enum TalentStat {
     Shatter,
     Permafrost,
     BlizzardSlow,
+    FlameThrowing,
+    ArcticReach,
     EnrageDamage,
     BloodCrazeHealing,
     FlurryHaste,
@@ -774,6 +789,8 @@ impl TalentDefinition {
                 "% stronger frost slows; also +1 sec duration per rank",
             ),
             TalentStat::BlizzardSlow => (100.0, "% stronger Blizzard slow"),
+            TalentStat::FlameThrowing => (100.0, "% fire spell targeting range"),
+            TalentStat::ArcticReach => (100.0, "% frost targeting range / Nova and Cone radius"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
@@ -1370,6 +1387,17 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 28, max_rank: 2, name: "Flame Throwing",
+        description: "Targeted fire spells: +10% targeting range per rank; does not enlarge their explosions (Survivors conversion)",
+        stat: TalentStat::FlameThrowing, per_rank: 0.10,
+    },
+    TalentDefinition {
+        id: 741, max_rank: 2, name: "Arctic Reach",
+        description: "Frostbolt and Blizzard: +10% targeting range per rank. Frost Nova and Cone of Cold: +10% radius per rank; Blizzard stays one area",
+        stat: TalentStat::ArcticReach, per_rank: 0.10,
+    },
+
+    TalentDefinition {
         id: 65, max_rank: 3, name: "Permafrost",
         description: "Frost slows last 1 sec longer and reduce movement by 3 additional percentage points per rank; does not extend freezes",
         stat: TalentStat::Permafrost, per_rank: 0.03,
@@ -1580,6 +1608,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Shatter
             | TalentStat::Permafrost
             | TalentStat::BlizzardSlow
+            | TalentStat::FlameThrowing
+            | TalentStat::ArcticReach
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
@@ -2038,6 +2068,8 @@ mod stat_talent_tests {
                     | TalentStat::Shatter
                     | TalentStat::Permafrost
                     | TalentStat::BlizzardSlow
+                    | TalentStat::FlameThrowing
+                    | TalentStat::ArcticReach
                     | TalentStat::SpellGroupDamage(_)
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
@@ -2139,6 +2171,46 @@ mod stat_talent_tests {
                 base.with_ranks(&[(0, node.id, node.max_rank)]).cast(key)
             );
         }
+    }
+
+    #[test]
+    fn mage_reach_talents_distinguish_target_range_from_area_radius() {
+        for rank in 0..=3 {
+            let trained = Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 28, rank), (2, 741, rank)]);
+            let mult = 1. + 0.1 * f32::from(rank.min(2));
+            for key in [
+                "fireball",
+                "pyroblast",
+                "fire_blast",
+                "flamestrike",
+                "frostbolt",
+                "blizzard",
+            ] {
+                let cast = trained.cast(key);
+                assert_eq!(cast.range, mult, "{key}");
+                assert_eq!(cast.radius, 1., "{key}");
+                assert_eq!(cast.extra_targets, 0);
+            }
+            for key in ["frost_nova", "cone_of_cold"] {
+                assert_eq!(trained.cast(key).radius, mult);
+                assert_eq!(trained.cast(key).range, 1.);
+            }
+            assert_eq!(trained.cast("arcane_explosion"), CastEffect::default());
+            assert_eq!(
+                trained.with_ranks(&[]).cast("fireball"),
+                CastEffect::default()
+            );
+        }
+        assert_eq!(
+            Milestones::default()
+                .with_ranks(&[(1, 28, 2), (2, 741, 2)])
+                .cast("fireball"),
+            CastEffect::default()
+        );
     }
 
     #[test]

@@ -95,6 +95,7 @@ pub(super) struct Params {
     pub dot: f32,
     pub count: usize,
     pub radius: f32,
+    pub range: f32,
     pub duration: f32,
     pub cooldown: f32,
     pub crit: f32,
@@ -117,6 +118,7 @@ impl Params {
             dot: o.def.dot * mult,
             count: o.count(stats) as usize + effect.extra_targets,
             radius: o.radius(stats) * effect.radius,
+            range: o.def.range * effect.range,
             duration: o.duration() * effect.duration,
             effect: milestones.control(
                 o.def.key,
@@ -288,9 +290,9 @@ pub(super) fn cast_abilities(
         let fired = match def.kind {
             Kind::Bolt | Kind::Strike | Kind::Melee => {
                 let reach = if def.kind == Kind::Melee {
-                    def.range + 0.5
+                    p.range + 0.5
                 } else {
-                    def.range
+                    p.range
                 };
                 let targets = if matches!(
                     def.key,
@@ -370,7 +372,7 @@ pub(super) fn cast_abilities(
                         .filter(|f| f.dist <= p.radius + 4.0)
                         .map(|_| hpos)
                 } else {
-                    densest(&foes, def.range, p.radius)
+                    densest(&foes, p.range, p.radius)
                 };
                 match center {
                     None => false,
@@ -408,7 +410,7 @@ pub(super) fn cast_abilities(
                     }
                 }
             }
-            Kind::Chain => match nearest(&foes, def.range, 1).first().copied() {
+            Kind::Chain => match nearest(&foes, p.range, 1).first().copied() {
                 None => false,
                 Some(first) => {
                     let mut chain = vec![first];
@@ -450,7 +452,7 @@ pub(super) fn cast_abilities(
             Kind::Dot => {
                 let mut pool: Vec<Foe> = foes
                     .iter()
-                    .filter(|f| f.dist <= def.range)
+                    .filter(|f| f.dist <= p.range)
                     .take(p.count * 3)
                     .copied()
                     .collect();
@@ -553,7 +555,7 @@ pub(super) fn cast_abilities(
             Kind::Totem => {
                 if foes
                     .first()
-                    .is_some_and(|f| f.dist <= def.range.max(p.radius) + 6.0)
+                    .is_some_and(|f| f.dist <= p.range.max(p.radius) + 6.0)
                 {
                     fx.cast(me, def.spell, &[], None);
                     let a = rng.range(0.0, std::f32::consts::TAU);
@@ -577,7 +579,7 @@ pub(super) fn cast_abilities(
                     commands.entity(totem).insert(Totem {
                         cast: def.totem.1,
                         damage: p.dmg,
-                        range: def.range,
+                        range: p.range,
                         radius: p.radius,
                         left: p.duration,
                         tick: 0.3,
@@ -1496,7 +1498,7 @@ mod milestone_tests {
     }
 
     #[test]
-    fn mage_area_ticks_apply_school_critical_bonuses_to_actual_hits() {
+    fn mage_hits_apply_trained_critical_control_and_target_range() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
         for (source, low, high, expected, frozen, critical) in [
@@ -1617,6 +1619,9 @@ mod milestone_tests {
                 assert!((seconds - 4.5).abs() < 0.00001);
             }
 
+            if source == "blizzard" && low == 0.0 {
+                verify_mage_reach(&mut app, enemy);
+            }
             if low == 0.30 {
                 app.world_mut()
                     .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
@@ -1650,6 +1655,89 @@ mod milestone_tests {
                     .collect();
                 assert_eq!(expired.len(), 1);
                 assert!(!expired[0].crit);
+            }
+        }
+    }
+
+    fn verify_mage_reach(app: &mut App, enemy: Entity) {
+        use bevy::ecs::system::RunSystemOnce;
+        app.world_mut()
+            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        for key in [
+            "fireball",
+            "flamestrike",
+            "frostbolt",
+            "blizzard",
+            "frost_nova",
+        ] {
+            let def = data::ability(key);
+            let distance = if def.kind == Kind::Nova {
+                def.radius
+            } else {
+                def.range
+            } + 1.;
+            app.world_mut()
+                .get_mut::<Transform>(enemy)
+                .unwrap()
+                .translation = Vec3::X * distance;
+            for trained in [false, true] {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.milestones = if trained {
+                        base.with_ranks(&[(1, 28, 2), (2, 741, 2)])
+                    } else {
+                        base
+                    };
+                    run.abilities = vec![super::super::Owned {
+                        def,
+                        level: 1,
+                        cd: 0.,
+                    }];
+                }
+                let before = app
+                    .world_mut()
+                    .query::<&GroundArea>()
+                    .iter(app.world())
+                    .count();
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                let areas: Vec<_> = app
+                    .world_mut()
+                    .query::<(&GroundArea, &Transform)>()
+                    .iter(app.world())
+                    .collect();
+                if def.kind == Kind::Ground {
+                    assert_eq!(
+                        areas.len(),
+                        before + usize::from(trained),
+                        "{key}, trained={trained}"
+                    );
+                    if trained {
+                        let matching: Vec<_> = areas
+                            .iter()
+                            .filter(|(area, tf)| area.source == key && tf.translation.x == distance)
+                            .collect();
+                        assert_eq!(matching.len(), 1, "one ground location");
+                        assert_eq!(
+                            matching[0].0.radius, def.radius,
+                            "target range must not enlarge the area"
+                        );
+                    }
+                    assert!(hits.is_empty());
+                } else {
+                    assert_eq!(hits.len(), usize::from(trained), "{key}, trained={trained}");
+                    if trained {
+                        assert_eq!(hits[0].target, enemy);
+                    }
+                }
             }
         }
     }

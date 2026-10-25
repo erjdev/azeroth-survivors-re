@@ -2635,7 +2635,7 @@ fn ability_tip(
     let range = match def.kind {
         Kind::Melee => Some("Melee Range".to_string()),
         Kind::Bolt | Kind::Strike | Kind::Chain | Kind::Dot | Kind::Ground | Kind::Totem => {
-            Some(format!("{} yd range", num(def.range)))
+            Some(format!("{} yd range", num(now.range)))
         }
         _ => None,
     };
@@ -3044,6 +3044,35 @@ pub(super) fn show_panels(
 mod talent_tooltip_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn mage_range_tooltips_use_the_same_trained_range_as_targeting() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 28, 2), (2, 741, 2)]);
+        let stats = Run::default().stats();
+        for (key, expected) in [
+            ("fireball", "31.2 yd range"),
+            ("blizzard", "24 yd range"),
+            ("arcane_missiles", "22 yd range"),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            let tip = ability_tip(&owned, mage, &stats, None);
+            assert!(
+                tip.iter().any(|line| line
+                    .right
+                    .as_ref()
+                    .is_some_and(|(text, _)| text == expected)),
+                "{key}"
+            );
+        }
+    }
 
     #[test]
     fn shatter_tooltip_is_green_and_only_shown_for_trained_mage_spells() {
