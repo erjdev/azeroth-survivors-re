@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Arms milestones and reliable DoT ticks
+
+Warrior Arms now gains Deep Wounds at 10 points, a larger Sweeping Strikes aura at 20,
+and stronger Mortal Strike at 30. The bleed refreshes without stacking or postponing its
+next tick. Damage-over-time catches up across long frames and stops at expiry.
+
+[Arms milestone details at 720p](images/screenshots/2026-10-24-warrior-talents/arms-milestones-720.jpg).
+**Validation:** native build, workspace test compilation, 82 Survivors tests and 48 core
+tests pass. Live 720p description checked; a full manual Arms encounter remains unverified.
+Fury/Protection milestones and remaining individual talents are still in progress.
+
 ## 2026-10-24 — Warrior talent effects
 
 Twelve audited Warrior talents now improve specific attacks, shout radius, critical stats,

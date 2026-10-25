@@ -735,6 +735,27 @@ pub(super) fn tick_areas(
 
 /// Land every hit due: damage and its number, the over-time part, crowd control, the marks, and
 /// death with its loot.
+fn refresh_deep_wounds(dots: &mut Vec<enemies::Dot>, total: f32) {
+    if total <= 0.0 {
+        return;
+    }
+    if let Some(dot) = dots.iter_mut().find(|dot| dot.source == "Deep Wounds") {
+        dot.dps = dot.dps.max(total / 3.0);
+        dot.left = 3.0;
+        // Keep the next tick: repeated criticals must not postpone all bleed damage.
+    } else {
+        if dots.len() >= 6 {
+            dots.remove(0);
+        }
+        dots.push(enemies::Dot {
+            dps: total / 3.0,
+            left: 3.0,
+            tick: 1.0,
+            source: "Deep Wounds",
+        });
+    }
+}
+
 pub(super) fn apply_hits(
     mut commands: Commands,
     time: Res<Time>,
@@ -859,6 +880,8 @@ pub(super) fn apply_hits(
                 run.hp = (run.hp + heal).min(stats.max_hp);
             }
         }
+        let bleed = run.milestones.critical_bleed(h.source, h.damage, h.crit);
+        refresh_deep_wounds(&mut en.dots, bleed);
         if h.dot > 0.0 && h.dot_dur > 0.0 {
             if en.dots.len() >= 6 {
                 en.dots.remove(0);
@@ -913,10 +936,7 @@ pub(super) fn apply_hits(
         let stats = run.stats();
         let mut dealt = 0.0;
         for d in &mut en.dots {
-            d.left -= dt;
-            d.tick -= dt;
-            if d.tick <= 0.0 {
-                d.tick += 1.0;
+            for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
                 let tick = d.dps * echoes as f32;
                 dealt += tick;
@@ -953,6 +973,79 @@ mod milestone_tests {
     use super::*;
     use crate::survivors::{campaign, data, Owned, Stats};
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn damage_over_time_delivers_all_ticks_across_frame_sizes() {
+        for frames in [vec![3.5], vec![1.5, 1.5], vec![0.1; 31], vec![1.0; 4]] {
+            let mut dot = enemies::Dot {
+                dps: 4.0,
+                left: 3.0,
+                tick: 1.0,
+                source: "test",
+            };
+            let ticks: u32 = frames.into_iter().map(|dt| dot.advance(dt)).sum();
+            assert_eq!(ticks, 3);
+            assert_eq!(dot.advance(10.0), 0);
+        }
+        let mut dot = enemies::Dot {
+            dps: 4.0,
+            left: 2.5,
+            tick: 1.0,
+            source: "test",
+        };
+        assert_eq!(dot.advance(5.0), 2, "no tick beyond the effect duration");
+    }
+
+    #[test]
+    fn arms_cast_milestones_compose_with_individual_training() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [30, 0, 0],
+            ..base
+        }
+        .with_ranks(&[(0, 133, 1), (0, 135, 1)]);
+        let cast = |key, milestones| {
+            Params::new(
+                &Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.0,
+                },
+                &stats,
+                milestones,
+            )
+        };
+        let sweep = cast("sweeping_strikes", trained);
+        let plain = cast("sweeping_strikes", base);
+        assert!((sweep.dmg - plain.dmg * 1.2).abs() < 0.00001);
+        assert_eq!(sweep.radius, plain.radius * 1.3);
+        assert_eq!(sweep.count, plain.count);
+        assert_eq!(
+            cast("mortal_strike", trained).dmg,
+            cast("mortal_strike", base).dmg * 1.5625
+        );
+    }
+
+    #[test]
+    fn deep_wounds_refreshes_without_stacking_or_postponing_ticks() {
+        let mut dots = Vec::new();
+        refresh_deep_wounds(&mut dots, 12.0);
+        assert_eq!(dots[0].advance(0.5), 0);
+        refresh_deep_wounds(&mut dots, 6.0);
+        assert_eq!(dots.len(), 1);
+        assert_eq!(dots[0].dps, 4.0);
+        assert_eq!(dots[0].tick, 0.5);
+        assert_eq!(dots[0].advance(0.5), 1);
+        refresh_deep_wounds(&mut dots, 24.0);
+        assert_eq!(dots[0].dps, 8.0);
+        assert_eq!(dots[0].advance(4.0), 3);
+        assert_eq!(dots[0].left, 0.0);
+        assert_eq!(dots[0].advance(1.0), 0);
+    }
 
     #[test]
     fn warrior_training_reaches_casts_without_extra_area_locations() {

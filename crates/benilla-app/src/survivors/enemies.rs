@@ -45,6 +45,21 @@ pub(super) struct Dot {
     pub source: &'static str,
 }
 
+impl Dot {
+    /// Count each due one-second tick, including the last at expiry, across long frames.
+    pub(super) fn advance(&mut self, dt: f32) -> u32 {
+        let elapsed = dt.max(0.0).min(self.left.max(0.0));
+        self.left = (self.left - elapsed).max(0.0);
+        self.tick -= elapsed;
+        if self.tick > 0.00001 || elapsed == 0.0 {
+            return 0;
+        }
+        let ticks = (-self.tick + 0.00001).floor() as u32 + 1;
+        self.tick += ticks as f32;
+        ticks
+    }
+}
+
 /// A corpse playing its death before it fades.
 #[derive(Component)]
 pub(super) struct Dying(f32);

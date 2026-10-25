@@ -92,6 +92,12 @@ impl Milestones {
     pub fn cast(self, key: &str) -> CastEffect {
         let mut effect = CastEffect::default();
         match key {
+            "sweeping_strikes" if self.class == 0 && self.points[0] >= 20 => {
+                effect.radius = 1.30;
+            }
+            "mortal_strike" if self.class == 0 && self.points[0] >= 30 => {
+                effect.damage = 1.25;
+            }
             "holy_shock" => {
                 if self.paladin(0, 10) {
                     effect.crit = 0.20;
@@ -142,6 +148,22 @@ impl Milestones {
         effect
     }
 
+    /// Deep Wounds snapshots 12% of a critical direct attack over three seconds.
+    /// Called before execute and echo expansion; ticks cannot trigger more bleeds.
+    pub fn critical_bleed(self, key: &str, damage: f32, critical: bool) -> f32 {
+        if self.class != 0 || self.points[0] < 10 || !critical || !damage.is_finite() {
+            return 0.0;
+        }
+        if matches!(
+            key,
+            "cleave" | "heroic_strike" | "execute" | "mortal_strike"
+        ) {
+            damage.max(0.0) * 0.12
+        } else {
+            0.0
+        }
+    }
+
     /// Ardent Defender reduces the portion of a blow below 35% health, including a
     /// blow crossing that threshold. A large hit cannot skip the protection entirely.
     pub fn incoming(self, damage: f32, hp: f32, max_hp: f32) -> f32 {
@@ -154,6 +176,14 @@ impl Milestones {
 }
 
 pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static str> {
+    if class == 0 {
+        return match (tree, threshold) {
+            (0, 10) => Some("Direct attack criticals bleed for 12% damage over 3 seconds; refreshes, does not stack"),
+            (0, 20) => Some("Sweeping Strikes: +30% radius"),
+            (0, 30) => Some("Mortal Strike: +25% damage"),
+            _ => None,
+        };
+    }
     if class != 1 {
         return None;
     }
@@ -218,6 +248,38 @@ mod tests {
         nodes[2].rank = 0;
         nodes[0].rank = 4;
         assert!(valid_tree(&nodes));
+    }
+
+    #[test]
+    fn arms_milestones_open_at_thresholds_and_keep_one_area() {
+        let at = |points| Milestones {
+            class: 0,
+            points: [points, 0, 0],
+            ..Default::default()
+        };
+        assert_eq!(at(9).critical_bleed("cleave", 100.0, true), 0.0);
+        assert_eq!(at(10).critical_bleed("cleave", 100.0, true), 12.0);
+        assert_eq!(at(19).cast("sweeping_strikes").radius, 1.0);
+        assert_eq!(at(20).cast("sweeping_strikes").radius, 1.3);
+        assert_eq!(at(29).cast("mortal_strike").damage, 1.0);
+        assert_eq!(at(30).cast("mortal_strike").damage, 1.25);
+        assert_eq!(at(30).cast("sweeping_strikes").extra_targets, 0);
+        assert_eq!(at(30).cast("fireball"), CastEffect::default());
+        for (key, damage, crit) in [
+            ("cleave", 100.0, false),
+            ("deep_wounds", 100.0, true),
+            ("Thorns", 100.0, true),
+            ("fireball", 100.0, true),
+            ("cleave", -10.0, true),
+            ("cleave", f32::NAN, true),
+        ] {
+            assert_eq!(at(30).critical_bleed(key, damage, crit), 0.0);
+        }
+        let outsider = Milestones { class: 1, ..at(30) };
+        assert_eq!(outsider.critical_bleed("cleave", 100.0, true), 0.0);
+        for threshold in [10, 20, 30] {
+            assert!(description(0, 0, threshold).is_some());
+        }
     }
 
     #[test]

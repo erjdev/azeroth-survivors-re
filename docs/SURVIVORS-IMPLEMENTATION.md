@@ -336,6 +336,24 @@ Damage talents improve already-acquired abilities rather than granting free abil
 The data audit now checks every supported class catalog for missing nodes as well as
 wrong names and rank limits. Save format remains unchanged.
 
+Warrior Arms milestones now have these explicit Survivors effects in addition to the
+existing baseline tree stat bonuses:
+
+| Points | Milestone | Behavior |
+| --- | --- | --- |
+| 10 | Deep Wounds | Critical Cleave, Heroic Strike, Execute and Mortal Strike hits bleed for 12% of their pre-execute/echo hit damage over three seconds |
+| 20 | Sweeping Strikes | Sweeping Strikes aura radius multiplied by 1.30; no additional areas |
+| 30 | Mortal Strike | Mortal Strike damage multiplied by 1.25 |
+
+Deep Wounds snapshots its damage, keeps one bleed per enemy, and refreshes to three seconds
+while retaining the stronger DPS and next tick time. A weaker critical cannot weaken the
+active bleed. Ticks cannot crit or recursively apply the bleed; they retain the existing
+DoT multistrike/leech rules and appear under Deep Wounds in the damage meter. The six-effect
+DoT cap still applies. Damage-over-time now processes every due whole-second tick within
+its remaining duration, including the final tick across a long frame; it never ticks beyond
+expiry. Individual Deep Wounds node ranks and the Fury/Protection milestones remain pending.
+These coefficients are provisional Survivors balance, not original MMO behavior.
+
 Paladin milestone balance uses the following explicit Survivors behavior. These are custom
 survival-mode effects, not claims about the original MMO spells. Existing per-point/stat
 bonuses remain the baseline; named milestone behavior is additional. Snapshot tree points
@@ -754,3 +772,15 @@ Native build, workspace test compilation, 79 Survivors tests and 47 core tests p
 The configured 1.12.1 talent audit passes for all supported IDs, names and rank caps.
 Live 720p Heroic Strike and Booming Voice details fit; the changelog links the capture.
 Remaining class nodes and named milestones are still Phase 5 requirements.
+
+
+### Arms milestone checkpoint — 2026-10-24
+
+Deep Wounds, Sweeping Strikes and Mortal Strike now have their documented 10/20/30-point
+behaviors. The hit handler applies the bleed from the original critical hit, and shared
+DoT processing catches up due ticks without extending effects beyond expiry. Core tests
+check thresholds and excluded damage sources; app tests check refresh/no stacking,
+preserved tick timing, multiple frame sizes, expiration and cast/rank composition.
+Native build, workspace test compilation, 82 Survivors tests and 48 core tests pass.
+The Deep Wounds description fits in the live 720p sidebar; screenshot is in the changelog.
+This is not proof of a full manual Arms encounter or the full Phase 5 acceptance criteria.
