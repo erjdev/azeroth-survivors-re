@@ -27,6 +27,17 @@ fn build_schedule(map: usize) -> Vec<(&'static data::EnemyDef, u32)> {
             rows.push((enemy, row.at_secs));
         }
     }
+    // Campaigns without collection drops still need a complete victory schedule.
+    // Space their authored bosses through 16:00, matching campaign finales;
+    // the final fight gates victory after the base 15-minute survival clock.
+    if rows.is_empty() && !roster.bosses.is_empty() {
+        return roster
+            .bosses
+            .iter()
+            .enumerate()
+            .map(|(i, enemy)| (enemy, ((i + 1) * 960 / roster.bosses.len()) as u32))
+            .collect();
+    }
     // Keep the existing boss roster as well as the drop encounters: timed drops do not
     // shrink the horde or remove its other boss fights.
     if !rows.is_empty() {
@@ -109,6 +120,33 @@ pub fn won(map: usize, elapsed: f32, defeated: u32) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scarlet_bosses_without_collection_loot_still_gate_victory() {
+        let map = data::MAPS
+            .iter()
+            .position(|m| m.name == "Scarlet Monastery")
+            .unwrap();
+        assert_eq!(data::MAPS[map].map, 189);
+        assert_eq!(data::roster(map).enemies.len(), 18);
+        assert!(ready(map));
+        assert_eq!(schedule(map).len(), 8);
+        for (i, &(enemy, at)) in schedule(map).iter().enumerate() {
+            assert_eq!(at, (i as u32 + 1) * 120);
+            assert!(next(map, i as u32, at as f32 - 0.01).is_none());
+            assert_eq!(next(map, i as u32, at as f32).unwrap().name, enemy.name);
+        }
+        assert_eq!(
+            schedule(map).last().unwrap().0.name,
+            "High Inquisitor Whitemane"
+        );
+        assert!(next(map, 8, 10_000.).is_none());
+        assert!(!won(map, 960., 7));
+        assert!(!won(map, 959., 8));
+        assert!(won(map, 960., 8));
+        assert!(!campaign::DROPS.iter().any(|row| row.zone == 7));
+        assert!(!campaign::zone_open(7, 51, &[true; campaign::CLEAR_COUNT]));
+    }
 
     #[test]
     fn scheduled_sources_use_the_same_capped_boss_probability_as_combat() {

@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Scarlet Monastery candidate
+
+Added the Cathedral courtyard, 18 verified wave identities and eight timed bosses.
+Campaign encounters without collection loot now require their final boss defeat.
+All 79 core tests, Clippy and native build pass.
+[Early combat screenshot](images/screenshots/2026-10-25-scarlet-candidate/combat.png)
+reveals wall-navigation and minimap work still needed; Scarlet remains locked.
+
 ## 2026-10-25 — Ahn'Qiraj Legendary armor sources
 
 Added eight timed outdoor encounters supplying Legendary armor for every class, with

@@ -2077,6 +2077,47 @@ pub static MAPS: &[MapDef] = &[
             foe("Skarr the Unbreakable", 10169, 58, 4.8, 1.8),
         ],
     },
+    MapDef {
+        name: "Scarlet Monastery",
+        zone: "Scarlet Monastery",
+        map: 189,
+        // Cathedral courtyard WMO floor at z=18.3377. Small candidate only;
+        // traversal, camera and crowd acceptance remain gated in campaign.
+        center: [950.0, 1399.0, 19.0],
+        leash: 15.0,
+        victory: "The Scarlet Crusade falls silent.",
+        // Identities verified against pinned map-189 placements; order/tuning authored.
+        foes: &[
+            foe("Scarlet Sentry", 2520, 30, 4.4, 1.0),
+            foe("Scarlet Torturer", 2607, 30, 4.4, 1.0),
+            foe("Unfettered Spirit", 5430, 31, 4.4, 1.0),
+            foe("Anguished Dead", 10256, 31, 4.4, 1.0),
+            foe("Haunting Phantasm", 4629, 32, 4.4, 1.0),
+            foe("Scarlet Gallant", 2463, 33, 4.4, 1.0),
+            foe("Scarlet Adept", 5725, 33, 4.4, 1.0),
+            foe("Scarlet Beastmaster", 2497, 34, 4.4, 1.0),
+            foe("Scarlet Tracking Hound", 2709, 33, 4.4, 1.0),
+            foe("Scarlet Diviner", 2508, 34, 4.4, 1.0),
+            foe("Scarlet Soldier", 2522, 35, 4.4, 1.0),
+            foe("Scarlet Conjuror", 2504, 35, 4.4, 1.0),
+            foe("Scarlet Evoker", 2509, 36, 4.4, 1.0),
+            foe("Scarlet Myrmidon", 2515, 37, 4.4, 1.0),
+            foe("Scarlet Defender", 2462, 37, 4.4, 1.0),
+            foe("Scarlet Centurion", 2499, 38, 4.4, 1.0),
+            foe("Scarlet Champion", 2460, 39, 4.4, 1.0),
+            foe("Scarlet Abbot", 2492, 39, 4.4, 1.0),
+        ],
+        bosses: &[
+            foe("Interrogator Vishas", 2044, 32, 4.4, 1.6),
+            foe("Bloodmage Thalnos", 11396, 34, 4.4, 1.6),
+            foe("Houndmaster Loksey", 2040, 34, 4.4, 1.6),
+            foe("Arcanist Doan", 5266, 37, 4.4, 1.6),
+            foe("Herod", 2041, 40, 4.4, 1.6),
+            foe("High Inquisitor Fairbanks", 2605, 40, 4.4, 1.6),
+            foe("Scarlet Commander Mograine", 2042, 42, 4.4, 1.6),
+            foe("High Inquisitor Whitemane", 2043, 42, 4.4, 1.6),
+        ],
+    },
 ];
 
 /// A battleground's horde and bosses with their numbers.

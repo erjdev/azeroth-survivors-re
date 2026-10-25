@@ -612,3 +612,50 @@ inside the 80-yard disk found 5,025/5,025 supported points, height range -4.988 
 16.081, no deep liquid or impassable samples, and 111 estimated slopes over 45 degrees.
 The start terrain is z=4.19. Terrain support is not collision, path connectivity or
 camera acceptance; steep patches and the full runtime world still require validation.
+
+
+## Scarlet Monastery candidate and roster — 2026-10-25
+
+Map 189 (`MonasteryInstances`) exists in the explicit local data. The new catalog
+candidate uses the Cathedral courtyard at [950, 1399, 19], leash 15. Its complete
+24-group WMO supplies floor z=18.3377; the ADT below is z=0 and is not the walking
+surface. Floor rings cover 64/64 samples at 10 yards, 63/64 at 20 and 48/64 at 30.
+The 30-yard disk covers 2545/2821 samples. This is not proof of a traversable arena:
+body clearance, continuous paths, streaming, camera and crowd capacity remain open.
+The campaign gate stays closed.
+
+The same pinned MaNGOS Zero templates/placements cited above verify every identity
+below on map 189. The roster deliberately combines wings in one Survivors arena;
+placement GUIDs prove instance membership, not natural courtyard presence. First
+template display and minimum level are used. Order, movement speed 4.4, wave scale
+1.0 and boss scale 1.6 are provisional authored tuning. Eight bosses arrive every
+two minutes, ending with Whitemane at 16:00; no collection loot is invented here.
+
+| Role | Creature | Entry | Display | Level | Example spawn GUID |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Wave | Scarlet Sentry | 4283 | 2520 | 30 | 27438 |
+| Wave | Scarlet Torturer | 4306 | 2607 | 30 | 27437 |
+| Wave | Unfettered Spirit | 4308 | 5430 | 31 | 39858 |
+| Wave | Anguished Dead | 6426 | 10256 | 31 | 39865 |
+| Wave | Haunting Phantasm | 6427 | 4629 | 32 | 39873 |
+| Wave | Scarlet Gallant | 4287 | 2463 | 33 | 40047 |
+| Wave | Scarlet Adept | 4296 | 5725 | 33 | 40051 |
+| Wave | Scarlet Beastmaster | 4288 | 2497 | 34 | 40053 |
+| Wave | Scarlet Tracking Hound | 4304 | 2709 | 33 | 40054 |
+| Wave | Scarlet Diviner | 4291 | 2508 | 34 | 40056 |
+| Wave | Scarlet Soldier | 4286 | 2522 | 35 | 40125 |
+| Wave | Scarlet Conjuror | 4297 | 2504 | 35 | 40128 |
+| Wave | Scarlet Evoker | 4289 | 2509 | 36 | 40142 |
+| Wave | Scarlet Myrmidon | 4295 | 2515 | 37 | 39945 |
+| Wave | Scarlet Defender | 4298 | 2462 | 37 | 39950 |
+| Wave | Scarlet Centurion | 4301 | 2499 | 38 | 39953 |
+| Wave | Scarlet Champion | 4302 | 2460 | 39 | 40004 |
+| Wave | Scarlet Abbot | 4303 | 2492 | 39 | 40007 |
+| Boss | Interrogator Vishas | 3983 | 2044 | 32 | 27443 |
+| Boss | Bloodmage Thalnos | 4543 | 11396 | 34 | 39934 |
+| Boss | Houndmaster Loksey | 3974 | 2040 | 34 | 40088 |
+| Boss | Arcanist Doan | 6487 | 5266 | 37 | 40124 |
+| Boss | Herod | 3975 | 2041 | 40 | 89097 |
+| Boss | High Inquisitor Fairbanks | 4542 | 2605 | 40 | 40039 |
+| Boss | Scarlet Commander Mograine | 3976 | 2042 | 42 | 40029 |
+| Boss | High Inquisitor Whitemane | 3977 | 2043 | 42 | 39946 |

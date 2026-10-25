@@ -2422,3 +2422,31 @@ was closed and its normal launch wrapper restored.
 The terrain survey supports all 5,025 points but finds 111 steep samples. This zone
 remains locked pending traversal, camera, model-scale, full encounter and performance
 acceptance. Screenshot: [level-up during the roster probe](images/screenshots/2026-10-25-aq-roster/level-up.png).
+
+
+### Scarlet Monastery catalog and encounter checkpoint — 2026-10-25
+
+Added map 189 using the Cathedral courtyard candidate, 18 wave identities and eight
+bosses verified against the pinned map-189 creature placements. The roster combines
+wings in a Survivors arena; arrival order, speeds and scales are authored tuning.
+The exact identity table and floor limitations are in [location evidence](SURVIVORS-LOCATIONS.md#scarlet-monastery-candidate-and-roster--2026-10-25).
+No collection drops are assigned to this zone. Campaigns without collection loot now
+have an explicit boss schedule across 16 minutes, and victory waits for every boss
+rather than treating an empty drop table as an empty encounter schedule. Existing
+collection-drop schedules are preserved. Scarlet ends with Whitemane at 16:00.
+
+All 79 core tests pass, including before/at spawn times, schedule exhaustion, final
+kill/time victory boundaries and the locked campaign gate. Workspace Clippy, formatting,
+render-pass lint and the native play build pass. The data audit finds all roster models;
+its 87 remaining gaps now comprise four missing maps, two floor validations and 81 PvP
+source cells. The aggregate count stays unchanged because adding Scarlet exposes its
+WMO floor requirement, replacing its missing-map gap. The ADT floor at z=0 is not the
+courtyard walking surface at z=18.3377.
+
+An isolated Warrior:idle probe renders early combat on the courtyard floor. The
+[screenshot](images/screenshots/2026-10-25-scarlet-candidate/combat.png) shows 00:14,
+level 4 and 28 kills. It also shows enemies gathered against the side walls and a blank
+minimap background. Navigation around these barriers, complete footprint/body/camera
+validation, minimap imagery, all bosses, scale tuning and sustained performance remain
+open. This brief stationary probe does not establish traversal or balance. The campaign
+stays locked. The validation app was closed and its normal launcher restored.
