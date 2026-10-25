@@ -346,3 +346,27 @@ The zone remains locked with **world content is not ready**, including on an oth
 fully progressed hero. The rejected summit coordinates remain configured until the
 candidate's gameplay placement is accepted. This source table does not approve those
 coordinates, routes, camera, spawning or live combat. Downloaded SQL remains ignored.
+
+
+### Southern candidate gameplay check — 2026-10-25
+
+An isolated Hunter fixture tested center `[-7136, -1609, -268]`, leash 40, in a temporary
+preview binary. The fixture supplied earlier-zone clears and enabled this zone only for
+validation. The committed world lock and summit configuration remain unchanged; the
+preview override and launcher were restored afterwards.
+
+The [1280×720 gameplay capture](images/screenshots/2026-10-25-ungoro-gameplay/combat-720.png)
+shows elapsed 00:22, level 3, 55 kills and the grounded-looking player, enemies, projectiles
+and pickups. A chest selection granted Arcane Shot rank two; subsequent level selection
+added Serpent Sting. Moving right away from the central trunk opened the camera view.
+Earlier near-center views were substantially occupied by that trunk. Auto-push camera and
+scenery cutaway were enabled in Settings. This does not prove either feature's behavior
+at all occluders, or measure capsule clearance from screenshots.
+
+The minimap labels this location **The Marshlands**, inconsistent with the current
+**Fire Plume Ridge** arena name. Before adopting it, resolve the location/name contract,
+record player positions through a complete traversal, check overlapping props and enemy
+routes, and validate camera occlusion from the starting view and arena edges. The six
+scheduled bosses and rewards still require a complete live run. The log contains frame
+hitches around one second and stall samples; no panic/error lines were found. Performance
+acceptance remains open. This short combat check is not zone approval.

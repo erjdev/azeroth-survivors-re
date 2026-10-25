@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Un'Goro gameplay investigation
+
+Captured [early Hunter combat](images/screenshots/2026-10-25-ungoro-gameplay/combat-720.png)
+on the southern candidate and refreshed the README. Moving away from the central tree
+opens the view; naming, full traversal, camera, performance and boss/reward checks remain
+open. Preview overrides were restored and the zone remains locked.
+
 ## 2026-10-25 — Un'Goro encounter sources
 
 Six timed bosses now roll uncommon armor from 3:00 through King Mosh at 16:00, using the

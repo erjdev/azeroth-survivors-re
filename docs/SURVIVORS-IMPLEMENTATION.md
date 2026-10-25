@@ -1705,3 +1705,14 @@ tests, 115 Survivors app tests with explicit checkout data, workspace Clippy, fo
 and render-pass lint pass. Core coverage checks every scheduled boundary, all-class name
 and display resolution, capped Keen Eye chances, last-boss victory timing and the retained
 world lock. No full workspace test pass or live loot-award completion is claimed.
+
+
+### Un'Goro early combat evidence — 2026-10-25
+
+The southern candidate now has [actual gameplay evidence](SURVIVORS-LOCATIONS.md#southern-candidate-gameplay-check--2026-10-25):
+22 seconds, level 3, 55 kills, chest upgrade and three functioning Hunter abilities.
+Moving away from the near-center tree opens the view. The minimap calls it The Marshlands,
+so arena naming must be reconciled before adoption. Full traversal with position evidence,
+prop/actor collision, camera occlusion, frame hitches and the complete encounter/reward run
+remain acceptance work. Temporary coordinates and readiness overrides were restored;
+Un'Goro remains locked. README now shows gameplay instead of only a free-camera preview.

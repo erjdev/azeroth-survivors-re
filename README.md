@@ -24,10 +24,11 @@ tuning to reach defeat quickly. This validates the displayed results, not gamepl
 Results resize live: [640×720](docs/images/screenshots/2026-10-24-results-layout/narrow-720.jpg)
 and [480×720 with wrapped stat tiles](docs/images/screenshots/2026-10-24-results-layout/wrapped-720.jpg).
 
-Un'Goro location investigation: the southern candidate renders jungle terrain and a large
-nearby trunk. This is a free-camera preview; traversal and zone readiness remain unverified.
+Un'Goro location investigation: early combat on the southern candidate, after moving away
+from its central tree. Full traversal, camera and encounter acceptance remain open; the zone
+stays locked. [Earlier free-camera view](docs/images/screenshots/2026-10-25-ungoro-candidate/world-preview-720.jpg).
 
-![Un'Goro southern arena candidate](docs/images/screenshots/2026-10-25-ungoro-candidate/world-preview-720.jpg)
+![Un'Goro candidate early combat at 720p](docs/images/screenshots/2026-10-25-ungoro-gameplay/combat-720.png)
 
 Elwynn tree investigation: [approach](docs/images/screenshots/2026-10-24-tree-contact/approach.jpg),
 [forward contact](docs/images/screenshots/2026-10-24-tree-contact/contact.jpg),
