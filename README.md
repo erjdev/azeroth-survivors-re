@@ -78,6 +78,8 @@ World validation: [Warsong developer preview at 720p](docs/images/screenshots/20
 
 Upgrade previews at 1280×720: [new spells and next rank](docs/images/screenshots/2026-10-24-codex-discovery/level-up-720.jpg) · [chest upgrades](docs/images/screenshots/2026-10-24-codex-discovery/chest-720.jpg).
 
+Card lighting without the rectangular outer glow: [hover at 1280×720](docs/images/screenshots/2026-10-24-card-lighting/hover-720.jpg) · [after live resize to 1280×800](docs/images/screenshots/2026-10-24-card-lighting/hover-800.jpg).
+
 Character comparisons: [inline race/sex controls](docs/images/screenshots/2026-10-24-character-appearance/orc.jpg) · [large weapon](docs/images/screenshots/2026-10-24-equipment-framing/weapon-appearance.jpg) · [1280×720](docs/images/screenshots/2026-10-24-equipment-framing/character-720.jpg).
 
 Current victory/defeat results, reward claims, equipped appearances and responsive

@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Card lighting stays on the card
+
+Removed the oversized animated rarity shadow that left a hard rectangular edge across
+the backdrop. Hover now brightens the rounded border while retaining lift and tilt;
+the card-face lighting and landing sheen remain inside the card.
+
+Native build passes. Verified hover and readable upgrade text at
+[1280×720](images/screenshots/2026-10-24-card-lighting/hover-720.jpg) and after a live resize to
+[1280×800](images/screenshots/2026-10-24-card-lighting/hover-800.jpg); selecting the resized
+card correctly grants its spell. Full rarity/animation/scale coverage remains open.
+
 ## 2026-10-24 — Front-door talent activation and Enrage status
 
 Fixed the front-door Enter action dropping the selected hero's active talent snapshot.

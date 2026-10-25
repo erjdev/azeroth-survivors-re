@@ -150,7 +150,7 @@ pub(super) struct Card {
     rarity: Rarity,
 }
 
-/// The rarity glow behind the card, which swells under the cursor.
+/// The rarity lighting inside the card face.
 #[derive(Component)]
 pub(super) struct CardGlow;
 
@@ -269,13 +269,6 @@ pub(super) fn deal_cards(
                     ColorStop::percent(Color::srgba(0.02, 0.015, 0.01, 0.98), 100.0),
                 ])),
                 BorderColor::all(rc),
-                BoxShadow::new(
-                    rc.with_alpha(0.0),
-                    Val::Px(0.0),
-                    Val::Px(0.0),
-                    Val::Px(0.0),
-                    Val::Px(26.0),
-                ),
                 UiTransform {
                     translation: Val2::px(0.0, 260.0),
                     scale: Vec2::splat(0.6),
@@ -292,6 +285,7 @@ pub(super) fn deal_cards(
                         right: Val::Px(0.0),
                         top: Val::Px(0.0),
                         height: Val::Px(150.0),
+                        border_radius: BorderRadius::all(Val::Px(8.0)),
                         ..default()
                     },
                     BackgroundGradient::from(RadialGradient::new(
@@ -465,7 +459,7 @@ pub(super) fn animate_cards(
         &Interaction,
         &RelativeCursorPosition,
         &mut UiTransform,
-        &mut BoxShadow,
+        &mut BorderColor,
         &mut Visibility,
     )>,
     mut shines: Query<(&CardShine, &mut BackgroundGradient)>,
@@ -483,7 +477,7 @@ pub(super) fn animate_cards(
     let now = time.elapsed_secs();
     let chosen = pending.0.map(|(i, _)| i);
     let mut shine_at = [None::<f32>; 4];
-    for (mut card, interaction, cursor, mut tf, mut shadow, mut vis) in &mut cards {
+    for (mut card, interaction, cursor, mut tf, mut border, mut vis) in &mut cards {
         let card = &mut *card;
         card.t += dt;
         if card.t < 0.0 {
@@ -536,12 +530,9 @@ pub(super) fn animate_cards(
         tf.scale = Vec2::new(s * squash, s * (1.0 + card.tilt.y.abs() * 0.02));
         tf.rotation = Rot2::degrees((1.0 - e) * -14.0 + lean);
         let rc = card.rarity.color();
-        if let Some(sh) = shadow.0.first_mut() {
-            sh.color = rc.with_alpha((0.25 + 0.6 * h) * (1.0 - pick_fade));
-            sh.blur_radius = Val::Px(18.0 + 22.0 * h);
-            sh.spread_radius = Val::Px(2.0 + 4.0 * h);
-            sh.y_offset = Val::Px(6.0 + 10.0 * h);
-        }
+        // Hover emphasis stays on the rounded card instead of lighting a rectangular
+        // shadow surface across the backdrop and neighboring cards.
+        *border = BorderColor::all(rc.mix(&Color::WHITE, 0.35 * h));
         if pick_fade >= 1.0 {
             *vis = Visibility::Hidden;
         }

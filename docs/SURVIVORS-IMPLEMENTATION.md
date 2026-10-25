@@ -1055,3 +1055,19 @@ Native build, workspace test compilation and 92 focused Survivors tests pass. Th
 was also verified live: white text says 7.5 seconds; green next-rank text says 7.5 → 8.2 seconds.
 The hover glow still has a visibly rectangular outer boundary; card-effect visual acceptance
 remains open. Existing broad-workspace failures remain tracked separately.
+
+### Card lighting checkpoint — 2026-10-24
+
+The rectangular spill was the animated outer `BoxShadow`, separate from the card-sized
+landing sheen. Removed that shadow; hover now brightens the rounded border while preserving
+lift/tilt. The internal rarity-lighting surface also has rounded corners.
+
+Native build passes. Live captures show Epic, Rare and Uncommon cards together, without the
+outer rectangle, at [1280×720](images/screenshots/2026-10-24-card-lighting/hover-720.jpg) and
+after resizing the same open hand to [1280×800](images/screenshots/2026-10-24-card-lighting/hover-800.jpg).
+The render log confirms a 2560×1600 framebuffer for the latter on this 2× display. The long
+shout description and all green comparisons fit; selecting it after resizing adds its HUD
+icon and advances to the next hand. The UI tool required rebinding the still-running window
+after resize; the app was not restarted. These captures cover settled hover states, not
+every frame of dealing/selection. Common/Legendary, other aspect ratios, non-default UI
+scales and complete animation-cycle acceptance remain open.
