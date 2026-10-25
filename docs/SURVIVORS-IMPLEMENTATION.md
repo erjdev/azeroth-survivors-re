@@ -2158,3 +2158,31 @@ The content audit resolves all new roster model files and now reports 160 gaps: 
 unsourced cells per class, five missing maps, Ahn'Qiraj encounters and Naxxramas floor
 validation. Audit source coverage includes locked zones and is not proof of obtainable
 live progression; the zone readiness and full acceptance requirements remain separate.
+
+### Gurubashi arena collision evidence and PvP screenshot — 2026-10-25
+
+Added an explicit-data runtime fixture for the placed Gurubashi arena WMO and ADT.
+Eight sampled body/camera directions hit the surrounding structure outside the 30-yard
+play disk. Hero-radius and 1.3-yard bodies complete 64 grounded radial routes each,
+120 quarter-yard steps per route, with supported height and no WMO overlap. The camera
+helper shortens its boom to the sphere hit minus its safety margin. WMO removal clears
+the checked elevated corridor. Exact placement, ranges and scope are recorded in
+[locations](SURVIVORS-LOCATIONS.md#gurubashi-placed-wmo-boundary-evidence).
+
+The fixture uses separate parsed walking/camera face sets and does not exercise live
+streamer layer assignment, all wall headings, enemy routing, rendered cutaway or crowd
+performance. Gurubashi remains locked. This checkpoint changes test coverage only;
+no gameplay runtime change or new native build is needed for the fixture.
+
+The previously blocked PvP menu capture is now saved under
+`docs/images/screenshots/2026-10-25-pvp-catalog/equipped-menu.png` and linked in README.
+It shows seeded Warrior ownership of 54 cells and PvP names/bonuses, not earned drops
+or full appearance acceptance. The still-running binary predates the Gurubashi schedule,
+so its zone-lock wording is historical. The fixture closed through a fresh AX close
+control with no subsequent query of the closed app. Normal launcher configuration had
+already been restored in the prior checkpoint.
+
+Validation: all 128 Survivors app tests with explicit checkout data pass. Workspace
+test compilation took 1m57s for the final fixture; Clippy took 14.69 seconds and passes.
+Formatting, render-pass lint and diff whitespace checks pass. Core gameplay files are
+unchanged from the prior 77-test checkpoint; the overall goal remains incomplete.

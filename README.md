@@ -106,6 +106,13 @@ Catalog coverage: every class now has all **54 collection cells named and mapped
 This completes identity coverage, not acquisition or gameplay acceptance: missing drop
 sources, live appearance checks and raid-set mechanics remain tracked in the plan.
 
+PvP identity milestone: this isolated Warrior fixture seeds all 54 owned cells and equips
+the PvP row to inspect names and bonuses. It was launched before the Gurubashi schedule
+change, so its zone-lock wording is historical. Ownership is seeded, not earned here;
+full appearances, acquisition and raid-set powers still require acceptance.
+
+![Warrior PvP equipped menu](docs/images/screenshots/2026-10-25-pvp-catalog/equipped-menu.png)
+
 Epic identity milestone: this capture shows 37 of 54 named cells; the subsequent Legendary
 armor addition brings every class to 45 of 54. This isolated
 Warrior account seeds the Wrath set and Ashkandi to inspect equipped names and bonuses;

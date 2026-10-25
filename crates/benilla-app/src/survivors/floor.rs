@@ -209,7 +209,7 @@ mod tests {
     use benilla_world::collision::MoverTraceExclusions;
     use bevy::ecs::system::RunSystemOnce;
 
-    fn fixture(heights: &[f32]) -> App {
+    pub(super) fn fixture(heights: &[f32]) -> App {
         let mut app = App::new();
         app.add_plugins((
             MinimalPlugins,
@@ -1086,3 +1086,7 @@ mod tests {
         assert_eq!(height(&mut app, 1.), Some(0.));
     }
 }
+
+#[cfg(test)]
+#[path = "floor/arena_tests.rs"]
+mod arena_tests;

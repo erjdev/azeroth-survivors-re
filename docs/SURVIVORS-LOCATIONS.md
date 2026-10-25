@@ -519,3 +519,29 @@ sampled 709 points at 2-yard spacing, all supported at z=21.857, with no liquid 
 than 0.1 yard, impassable terrain, slopes above 45 degrees or incomplete gradient
 neighborhoods. This only covers sampled ADT/MCLQ; WMO floors/walls, intervening hazards,
 props, connectivity and camera behavior are excluded. It does not unlock the zone.
+
+### Gurubashi placed WMO boundary evidence
+
+The start ADT (31,56) references `stranglegladiatorarena.wmo` at
+`[-13205.914, 271.83203, 20.190458]`, with MODF rotation `[0,64,0]`. Its one group
+provides 1,854 walking triangles. There is no WMO floor at the arena center or within
+the sampled 30-yard disk; the flat ADT is the play floor, with WMO stands/walls outside.
+
+The runtime fixture reads this exact placement and transforms it through the same
+`wow_to_bevy`/`placement_rotation` helpers as the client. Eight horizontal body rays one
+yard above the floor hit at 39.03–46.21 yards; hero capsule slides stop at 38.34–45.67
+yards. Camera sphere probes at 1.5 yards hit at 38.73–45.91 yards. The fixed sampled
+headings are 45 degrees apart in Bevy's horizontal plane. These are specific paths,
+not proof that the boundary has no doorway or opening at another heading.
+
+Walking and camera fixtures contain their separately parsed face sets on the default
+collision layer. This verifies those faces with the runtime query APIs, not the live
+streamer's layer assignment or registration. No rendering, occlusion/cutaway shader,
+interior camera pose or crowd-performance acceptance is implied.
+
+The strengthened fixture also adds the actual ADT collision mesh and walks 120
+quarter-yard grounded steps along each of 64 headings for hero-radius and 1.3-yard
+bodies. All paths reach approximately 30 yards, maintain floor height and avoid WMO
+body overlap at every step. The camera helper stops 0.05 yards inside each sampled
+sphere hit. Removing the WMO clears the checked elevated body/camera corridor.
+These tests do not replace runtime streaming or gameplay acceptance.

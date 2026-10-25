@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Arena collision evidence and catalog screenshot
+
+Verified Gurubashi's placed arena boundary with body/camera probes and 128 grounded
+radial routes across the play area. Added the seeded [54/54 PvP menu milestone](images/screenshots/2026-10-25-pvp-catalog/equipped-menu.png)
+to README. Live streaming, camera rendering and crowd acceptance remain open;
+Gurubashi stays locked.
+
 ## 2026-10-25 — Gurubashi Epic reward schedule
 
 Added nine timed Epic reward encounters with verified outdoor Stranglethorn identities,
