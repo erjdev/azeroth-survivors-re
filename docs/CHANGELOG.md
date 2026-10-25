@@ -5,6 +5,11 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 ## 2026-10-25 — Rogue control and critical strikes
 
+Combat-path follow-up: two regressions verify ranked casts, critical rolls,
+Rupture tick damage and Gouge stun/marker timing with equipment modifiers.
+All 31 combat milestone tests and workspace Clippy pass, along with formatting
+and render-pass lint. No UI change; the captures below remain current.
+
 Improved Gouge now extends its stun by 25% per rank. Lethality adds 6 percentage
 points of critical damage per rank to Sinister Strike and Gouge; Aggression adds
 2% damage per rank to Sinister Strike and Eviscerate. These replace provisional

@@ -18,22 +18,16 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
-Rogue now also has Improved Gouge (203), Lethality (269) and Aggression (1122):
-stun duration, scoped critical damage and scoped strike damage, respectively.
-The core regression verifies composition, exclusions and reset; all 105 core tests
-pass. Native 1280×720 descriptions, Gouge spend/refund and prerequisite/row gates
-were checked against the talent-page intention, with two inline changelog captures.
-Compact descriptions and live combat remain open.
-
-The preceding Rogue checkpoint added five explicit individual effects: audited IDs 276, 270, 201, 1123
-and 1702 replace their provisional +1% damage/rank. Eviscerate and Rupture damage,
-Rogue-only critical chance and spell damage, and Sinister Strike cooldown use the shared
-cast-effect path. Two new regressions cover isolation, composition, clamping,
-reset and baseline replacement; 104 core tests pass. Live 1280×720 spending,
-refund/reset and descriptions are captured inline. An account regression now covers
-save/reload, hero/class isolation, active-spec switching, reset persistence and
-removal of provisional damage for the first-row Rogue builds. Other Rogue
-nodes/milestones and live combat remain unfinished.
+Rogue has eight explicit individual talents: Improved Eviscerate, Malice,
+Improved Sinister Strike, Serrated Blades, Deadliness, Improved Gouge, Lethality
+and Aggression. Their effects replace provisional rank damage; exact rules are
+in `SURVIVORS.md`. All 105 core tests pass. Account coverage verifies save/reload,
+hero/class isolation, spec switching and reset persistence. Native 1280×720
+checks cover descriptions, purchase/refund and prerequisite/row gates, with
+inline changelog screenshots compared against the talent-page intention.
+Two combat-parameter/hit regressions also cover ability ranks 1/3/8, equipment
+composition, critical rolls, Rupture ticks and matching Gouge stun/marker durations.
+Other Rogue nodes/milestones, compact descriptions and live combat remain open.
 
 The user authorized lore-appropriate racials for all races. All eight now have
 explicit rules in `SURVIVORS.md` and shared core effects applied to the run sheet;

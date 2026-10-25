@@ -2034,6 +2034,112 @@ mod milestone_tests {
     }
 
     #[test]
+    fn rogue_training_reaches_ranked_casts_and_critical_hits() {
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (0, 276, 3),
+            (0, 270, 5),
+            (0, 269, 5),
+            (1, 201, 2),
+            (1, 203, 3),
+            (1, 1122, 3),
+            (2, 1123, 3),
+            (2, 1702, 5),
+        ]);
+        let mut stats = Run::default().stats();
+        // Non-default sheet values exercise composition with equipment/progression.
+        stats.might = 1.4;
+        stats.crit = 0.98;
+        stats.crit_damage = 2.2;
+        stats.targets = 4;
+        for (key, damage, critical_damage, cooldown) in [
+            ("sinister_strike", 1.10 * 1.06, 2.5, 0.9),
+            ("eviscerate", 1.10 * 1.15 * 1.06, 2.2, 1.0),
+            ("gouge", 1.10, 2.5, 1.0),
+            ("kidney_shot", 1.10, 2.2, 1.0),
+            ("rupture", 1.10 * 1.30, 2.2, 1.0),
+            ("blade_flurry", 1.10, 2.2, 1.0),
+            ("fireball", 1.0, 2.2, 1.0),
+        ] {
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                    "{key}"
+                );
+                assert!(
+                    (after.crit_damage - critical_damage).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(after.crit, if key == "fireball" { 0.98 } else { 1.0 });
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                let (damage, crit) = roll(&mut Rng(17), 1.0, after.crit_damage, after.dmg);
+                let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, crit);
+                assert!(hit.crit);
+                assert!(
+                    (hit.damage - after.dmg * critical_damage).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!(
+                    hit.dot, after.dot,
+                    "critical hits do not multiply Rupture ticks"
+                );
+                assert_eq!(hit.source, key);
+                let (normal, crit) = roll(&mut Rng(17), 0.0, after.crit_damage, after.dmg);
+                assert_eq!(normal, after.dmg);
+                assert!(!crit);
+            }
+        }
+    }
+
+    #[test]
+    fn rogue_gouge_stun_and_marker_scale_together_without_changing_kidney_shot() {
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let stats = Run::default().stats();
+        for rank in 0..=3 {
+            let trained = base.with_ranks(&[(1, 203, rank)]);
+            for level in [1, 3, 8] {
+                for (key, seconds) in [("gouge", 2.0), ("kidney_shot", 3.5)] {
+                    let owned = Owned {
+                        def: data::ability(key),
+                        level,
+                        cd: 0.0,
+                    };
+                    let after = Params::new(&owned, &stats, trained);
+                    let factor = if key == "gouge" {
+                        1.0 + 0.25 * f32::from(rank)
+                    } else {
+                        1.0
+                    };
+                    let expected = seconds * (1.0 + 0.1 * f32::from(level - 1)) * factor;
+                    let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, after.dmg, false);
+                    assert!(matches!(hit.effect, Effect::Stun(t) if (t - expected).abs() < 0.0001));
+                    assert!((hit.mark_dur - expected).abs() < 0.0001);
+                    assert_eq!(hit.splash, 0.0);
+                    assert_eq!(hit.dot, 0.0);
+                    let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    assert_eq!(reset.effect, Params::new(&owned, &stats, base).effect);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn hunter_training_reaches_direct_periodic_and_control_casts() {
         let base = Milestones {
             class: 2,
