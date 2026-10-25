@@ -107,6 +107,22 @@ impl Milestones {
 
     pub fn cast(self, key: &str) -> CastEffect {
         let mut effect = CastEffect::default();
+        if self.class == 2 && HUNTER_SHOTS.contains(&key) {
+            if self.points[1] >= 10 {
+                effect.cooldown *= 0.9;
+            }
+            if self.points[1] >= 20 {
+                effect.crit_damage += 0.2;
+            }
+            if self.points[1] >= 30 {
+                if key == "multi_shot" {
+                    effect.extra_targets += 2;
+                }
+                if key == "aimed_shot" {
+                    effect.damage *= 1.25;
+                }
+            }
+        }
         match key {
             "retaliation" if self.class == 0 => {
                 if self.points[1] >= 20 {
@@ -310,6 +326,16 @@ impl Milestones {
 }
 
 pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static str> {
+    if class == 2 {
+        return match (tree, threshold) {
+            (1, 10) => Some("Shots: 10% shorter cooldown; excludes Volley and traps"),
+            (1, 20) => {
+                Some("Shots: +20 percentage points critical damage; excludes Volley and traps")
+            }
+            (1, 30) => Some("Multi-Shot: +2 targets; Aimed Shot: +25% damage"),
+            _ => None,
+        };
+    }
     if class == 0 {
         return match (tree, threshold) {
             (0, 10) => Some(
@@ -493,6 +519,39 @@ mod tests {
         assert_eq!(outsider.critical_bleed("cleave", 100.0, true), 0.0);
         for threshold in [10, 20, 30] {
             assert!(description(0, 0, threshold).is_some());
+        }
+    }
+
+    #[test]
+    fn hunter_marksmanship_milestones_open_at_thresholds_and_compose_with_training() {
+        let at = |points| Milestones {
+            class: 2,
+            points: [0, points, 0],
+            ..Default::default()
+        };
+        assert_eq!(at(9).cast("arcane_shot").cooldown, 1.);
+        assert_eq!(at(10).cast("arcane_shot").cooldown, 0.9);
+        assert_eq!(at(19).cast("aimed_shot").crit_damage, 0.);
+        assert_eq!(at(20).cast("aimed_shot").crit_damage, 0.2);
+        assert_eq!(at(29).cast("multi_shot").extra_targets, 0);
+        assert_eq!(at(30).cast("multi_shot").extra_targets, 2);
+        assert_eq!(at(29).cast("aimed_shot").damage, 1.);
+        assert_eq!(at(30).cast("aimed_shot").damage, 1.25);
+        for key in ["volley", "explosive_trap", "fireball", "holy_shock"] {
+            assert_eq!(at(51).cast(key), CastEffect::default());
+        }
+        let trained = at(30).with_ranks(&[(1, 1346, 5), (1, 1349, 5), (1, 1345, 1)]);
+        assert!((trained.cast("arcane_shot").cooldown - 0.675).abs() < 0.00001);
+        assert!((trained.cast("aimed_shot").crit_damage - 0.5).abs() < 0.00001);
+        assert_eq!(trained.cast("aimed_shot").damage, 1.5625);
+        assert_eq!(trained.with_ranks(&[]), at(30));
+        for tree in [0, 2] {
+            let mut other = at(0);
+            other.points[tree] = 51;
+            assert_eq!(other.cast("multi_shot"), CastEffect::default());
+        }
+        for threshold in [10, 20, 30] {
+            assert!(description(2, 1, threshold).is_some());
         }
     }
 

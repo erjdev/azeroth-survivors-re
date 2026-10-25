@@ -1576,3 +1576,32 @@ Evidence: [Mortal Shots preview](images/screenshots/2026-10-25-hunter-talents/mo
 This validates these interactions and two dimensions, not the full resolution matrix,
 all talent nodes, live combat balance or complete Hunter acceptance. The single-point
 heading still reads `1 points`; copy polish remains open.
+
+
+### Hunter Marksmanship milestones
+
+Hunter Marksmanship now has explicit Survivors milestone behavior, additional to the
+existing baseline tree bonuses (the same convention as Warrior and Paladin). Effects are
+snapshotted from the selected hero/spec at run entry, including legacy tree point totals.
+
+| Points | Milestone | Behavior |
+| --- | --- | --- |
+| 10 | Efficiency | Arcane Shot, Multi-Shot, Serpent Sting, Concussive Shot and Aimed Shot cooldowns multiplied by 0.9 |
+| 20 | Mortal Shots | Those shots gain 20 percentage points of direct critical damage, added to equipment and individual training |
+| 30 | Trueshot Aura | Multi-Shot gains two direct targets; Aimed Shot damage multiplied by 1.25 |
+
+These are provisional survival-mode conversions. They do not grant unowned abilities.
+Volley and traps receive none of these milestone effects; their area targeting remains
+unchanged. Existing global baseline bonuses still apply through the normal stat rules.
+Maximum Improved Arcane Shot composes with Efficiency as `0.75 × 0.9 = 0.675`.
+Mortal Shots' five node ranks and its milestone add 50 percentage points together;
+with a 220% equipment-adjusted critical multiplier, eligible direct hits reach 270%.
+The Aimed Shot node and Trueshot Aura compose as `1.25 × 1.25 = 1.5625`.
+
+Tests cover threshold boundaries, unsupported trees/spells, cast parameters with existing
+extra targets, equipment critical damage, independent selected heroes/specs, persistence
+and reset. Beast Mastery and Survival milestones, remaining nodes, pets, live milestone
+UI/combat validation and final balance remain open.
+
+Validation: 65 core tests, 113 Survivors app tests, native build, workspace test compilation,
+Clippy, formatting and render-pass lint pass. No new live milestone screenshot is claimed.

@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Hunter Marksmanship milestones
+
+Efficiency shortens shot cooldowns; Mortal Shots adds direct critical damage; Trueshot Aura
+adds two Multi-Shot targets and strengthens Aimed Shot. These compose with individual ranks
+and the existing baseline tree bonuses. Volley and trap areas are unchanged. Other Hunter
+milestones, remaining talents, pets and live milestone validation remain open. Native build,
+65 core tests, 113 Survivors app tests, workspace test compilation, Clippy, formatting and
+render-pass lint pass.
+
 ## 2026-10-25 — Hunter talent UI evidence
 
 Verified rank refund/spend, independent spec reset and saved allocation after relaunch.

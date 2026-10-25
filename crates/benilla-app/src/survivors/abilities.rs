@@ -1226,6 +1226,61 @@ mod milestone_tests {
     }
 
     #[test]
+    fn hunter_milestones_reach_casts_without_expanding_areas() {
+        let mut stats = Run::default().stats();
+        stats.crit_damage = 2.2;
+        stats.targets = 4;
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [0, 30, 0],
+            ..base
+        }
+        .with_ranks(&[(1, 1346, 5), (1, 1349, 5), (1, 1345, 1)]);
+        for key in [
+            "arcane_shot",
+            "aimed_shot",
+            "multi_shot",
+            "volley",
+            "explosive_trap",
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            let shot = matches!(key, "arcane_shot" | "aimed_shot" | "multi_shot");
+            let cooldown = if key == "arcane_shot" {
+                0.675
+            } else if shot {
+                0.9
+            } else {
+                1.
+            };
+            assert!(
+                (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                "{key}"
+            );
+            let damage = if key == "aimed_shot" { 1.5625 } else { 1. };
+            assert!((after.dmg - before.dmg * damage).abs() < 0.0001, "{key}");
+            assert!(
+                (after.crit_damage - before.crit_damage - if shot { 0.5 } else { 0. }).abs()
+                    < 0.0001
+            );
+            assert_eq!(
+                after.count,
+                before.count + usize::from(key == "multi_shot") * 2
+            );
+            assert_eq!(after.radius, before.radius);
+            assert_eq!(after.duration, before.duration);
+        }
+    }
+
+    #[test]
     fn hunter_shot_crit_bonuses_compose_with_gear_and_keep_one_volley_area() {
         let mut stats = Run::default().stats();
         stats.crit = 0.98;

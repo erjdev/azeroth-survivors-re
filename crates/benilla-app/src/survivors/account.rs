@@ -1580,6 +1580,52 @@ mod tests {
     }
 
     #[test]
+    fn hunter_milestones_follow_the_selected_spec_and_survive_save() {
+        let mut account = empty();
+        let first = account.ensure(2);
+        let second = account.create("Test", "Hunter", 2).unwrap();
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == second)
+            .unwrap();
+        hero.talent_xp = 5100;
+        hero.dbc[0] = vec![
+            (1, 1342, 5),
+            (1, 1344, 5),
+            (1, 1346, 5),
+            (1, 1348, 5),
+            (1, 1349, 5),
+            (1, 1347, 3),
+            (1, 1362, 2),
+        ];
+        let trained = account.milestones_picked(2, Some(second));
+        assert_eq!(trained.points, [0, 30, 0]);
+        assert_eq!(trained.cast("multi_shot").extra_targets, 2);
+        assert_eq!(account.milestones_picked(2, Some(first)).points, [0; 3]);
+        account.select_spec(second, 1);
+        assert_eq!(
+            account
+                .milestones_picked(2, Some(second))
+                .cast("multi_shot")
+                .extra_targets,
+            0
+        );
+        account.select_spec(second, 0);
+        let loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.milestones_picked(2, Some(second)), trained);
+        account.respec(second);
+        assert_eq!(account.milestones_picked(2, Some(second)).points, [0; 3]);
+        assert_eq!(
+            account
+                .milestones_picked(2, Some(second))
+                .cast("multi_shot")
+                .extra_targets,
+            0
+        );
+    }
+
+    #[test]
     fn warrior_training_follows_selected_spec_and_persists() {
         let mut account = empty();
         let first = account.ensure(0);
