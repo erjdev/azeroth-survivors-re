@@ -1038,6 +1038,27 @@ mod milestone_tests {
     }
 
     #[test]
+    fn trained_protection_absorb_refreshes_without_stacking() {
+        let mut run = Run::default();
+        let effect = Milestones {
+            class: 0,
+            points: [0, 0, 30],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 1601, 5), (2, 145, 3), (2, 148, 1)])
+        .cast("heroic_strike");
+        for _ in 0..3 {
+            finish_milestone_cast(&mut run, effect, 100.);
+            assert!((run.shield - 11.).abs() < 0.00001);
+            assert_eq!(run.shield_t, 4.5);
+        }
+        run.shield = 20.;
+        run.shield_t = 1.;
+        finish_milestone_cast(&mut run, effect, 100.);
+        assert_eq!((run.shield, run.shield_t), (20., 1.));
+    }
+
+    #[test]
     fn fury_casts_and_damage_tradeoff_reach_combat() {
         let mut run = Run::default();
         let base = Milestones {

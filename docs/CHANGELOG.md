@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Warrior absorb talents
+
+Shield Specialization and Shield Slam now strengthen Heroic Strike's absorb; Improved
+Shield Block extends its duration. Their effects combine with the Protection milestone
+without stacking shields or replacing a stronger active shield. Green previews show shield
+strength and added seconds. Twenty-four Warrior nodes now have effects; balancing and
+manual combat acceptance remain pending.
+
+Native build, workspace test compilation, 54 core tests, 89 focused Survivors tests and
+the local talent-data audit pass. Fresh shield-description captures and manual combat
+acceptance remain pending.
+
+
 ## 2026-10-24 — Warrior control talents
 
 Piercing Howl adds slow duration to Demoralizing Shout; Concussion Blow adds stun duration

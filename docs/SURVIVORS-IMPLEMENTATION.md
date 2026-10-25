@@ -343,6 +343,9 @@ have implementations described below.
 | 167 | Bloodthirst | 1 | Execute heals an additional 2% maximum health once per cast |
 | 160 | Piercing Howl | 1 | Demoralizing Shout gains two seconds of 50% slow; bosses are slowed 25% |
 | 152 | Concussion Blow | 1 | Heroic Strike gains one second of stun; bosses receive 30% duration |
+| 1601 | Shield Specialization | 5 | Heroic Strike absorbs +1% maximum health per rank for three seconds |
+| 145 | Improved Shield Block | 3 | Heroic Strike absorb lasts +0.5 seconds per rank; requires an absorb source |
+| 148 | Shield Slam | 1 | Heroic Strike absorbs an additional 3% maximum health |
 
 Ranks add within each node; cast multipliers compose with ordinary stats and legendary
 bonuses. Booming Voice changes the actual shout area, never its number of locations.
@@ -984,3 +987,22 @@ acceptance remain unfinished.
 Native build, workspace test compilation, 53 core tests, 88 focused Survivors tests and
 the local talent-data audit pass. Both green previews fit at 1280×720 on an empty validation
 spec. These checks do not establish full manual combat acceptance.
+
+
+### Warrior absorb talents checkpoint — 2026-10-24
+
+Twenty-four Warrior nodes now have effects. Shield Specialization grants Heroic Strike an
+absorb equal to 1% maximum health per rank; Shield Slam adds 3%. Both add to the Protection
+30-point milestone's 3%. All use a three-second base lifetime, extended by Improved Shield
+Block's 0.5 seconds per rank. Duration alone does not grant a shield. At all three node caps
+with the milestone, a 100-health hero receives 11 absorb for 4.5 seconds once per cast.
+
+The existing shield refresh policy remains: no stacking, no multiplier from extra targets,
+and no replacement or lifetime extension of a stronger active shield. These are Survivors
+conversions rather than an equipment-dependent block system. Green previews distinguish
+percentage of maximum health from added seconds. Remaining nodes, balancing and full
+manual combat acceptance remain open.
+
+Native build, workspace test compilation, 54 core tests, 89 focused Survivors tests and
+the local talent-data audit pass. Fresh shield-description captures and manual combat
+acceptance remain pending.

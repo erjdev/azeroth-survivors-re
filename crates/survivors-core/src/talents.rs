@@ -106,7 +106,6 @@ impl Milestones {
             }
             "heroic_strike" if self.class == 0 && self.points[2] >= 30 => {
                 effect.shield_fraction = 0.03;
-                effect.shield_seconds = 3.0;
             }
             "execute" if self.class == 0 && self.points[1] >= 30 => {
                 effect.heal_fraction = 0.03;
@@ -159,10 +158,22 @@ impl Milestones {
                         effect.duration *= 1.0 + value
                     }
                     TalentStat::SpellHeal(spell) if spell == key => effect.heal_fraction += value,
+                    TalentStat::SpellShield(spell) if spell == key => {
+                        effect.shield_fraction += value
+                    }
+                    TalentStat::SpellShieldDuration(spell) if spell == key => {
+                        effect.shield_seconds += value
+                    }
                     TalentStat::SpellRadius(spell) if spell == key => effect.radius *= 1.0 + value,
                     _ => {}
                 }
             }
+        }
+        if effect.shield_fraction > 0.0 {
+            // All talent-granted absorbs start with three seconds; duration ranks add to it.
+            effect.shield_seconds += 3.0;
+        } else {
+            effect.shield_seconds = 0.0;
         }
         effect
     }
@@ -515,6 +526,8 @@ pub enum TalentStat {
     SpellCrit(&'static str),
     SpellDuration(&'static str),
     SpellHeal(&'static str),
+    SpellShield(&'static str),
+    SpellShieldDuration(&'static str),
     SpellRadius(&'static str),
 }
 
@@ -524,6 +537,8 @@ impl TalentDefinition {
         let rank = rank.min(self.max_rank);
         let (scale, unit) = match self.stat {
             TalentStat::Armor => (1.0, " armor"),
+            TalentStat::SpellShield(_) => (100.0, "% maximum health absorbed per cast"),
+            TalentStat::SpellShieldDuration(_) => (1.0, " s added shield duration"),
             TalentStat::SecondarySlowDuration(_) => (1.0, " s added slow duration"),
             TalentStat::SecondaryStunDuration(_) => (1.0, " s added stun duration"),
             TalentStat::Damage | TalentStat::SpellDamage(_) => (100.0, "% damage"),
@@ -725,6 +740,21 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::SecondaryStunDuration("heroic_strike"),
         per_rank: 1.0,
     },
+    TalentDefinition {
+        id: 1601, max_rank: 5, name: "Shield Specialization",
+        description: "Heroic Strike grants a 3-second absorb: +1% maximum health per rank; refreshes without stacking",
+        stat: TalentStat::SpellShield("heroic_strike"), per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 145, max_rank: 3, name: "Improved Shield Block",
+        description: "Heroic Strike's absorb lasts 0.5 seconds longer per rank; requires an absorb talent or milestone",
+        stat: TalentStat::SpellShieldDuration("heroic_strike"), per_rank: 0.5,
+    },
+    TalentDefinition {
+        id: 148, max_rank: 1, name: "Shield Slam",
+        description: "Heroic Strike adds a 3% maximum-health absorb for 3 seconds; adds to other shield talents and milestone",
+        stat: TalentStat::SpellShield("heroic_strike"), per_rank: 0.03,
+    },
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
@@ -918,6 +948,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellCrit(_)
             | TalentStat::SpellDuration(_)
             | TalentStat::SpellRadius(_)
+            | TalentStat::SpellShield(_)
+            | TalentStat::SpellShieldDuration(_)
             | TalentStat::SpellHeal(_) => {}
         }
     }
@@ -1058,6 +1090,41 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn shield_nodes_compose_and_duration_alone_grants_no_absorb() {
+        for points in [0, 30] {
+            let base = Milestones {
+                class: 0,
+                points: [0, 0, points],
+                ..Default::default()
+            };
+            for rank in 0..=5 {
+                let trained = base.with_ranks(&[(2, 1601, rank), (2, 145, 3), (2, 148, 1)]);
+                let effect = trained.cast("heroic_strike");
+                let expected = if points == 30 { 0.06 } else { 0.03 } + f32::from(rank) * 0.01;
+                assert!((effect.shield_fraction - expected).abs() < 0.00001);
+                assert_eq!(effect.shield_seconds, 4.5);
+                assert_eq!(trained.cast("cleave"), base.cast("cleave"));
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+        let duration = Milestones::default()
+            .with_ranks(&[(2, 145, 3)])
+            .cast("heroic_strike");
+        assert_eq!(
+            (duration.shield_fraction, duration.shield_seconds),
+            (0., 0.)
+        );
+        let shield = Milestones::default()
+            .with_ranks(&[(2, 1601, 1)])
+            .cast("heroic_strike");
+        assert_eq!((shield.shield_fraction, shield.shield_seconds), (0.01, 3.));
+        assert_eq!(
+            talent_definition(0, 145).unwrap().rank_preview(1),
+            "This talent: 0.5 to 1 s added shield duration next rank"
+        );
+    }
+
+    #[test]
     fn warrior_rank_reset_removes_previous_training() {
         let base = Milestones {
             class: 0,
@@ -1099,6 +1166,8 @@ mod stat_talent_tests {
                     | TalentStat::SpellCrit(_)
                     | TalentStat::SpellDuration(_)
                     | TalentStat::SpellRadius(_)
+                    | TalentStat::SpellShield(_)
+                    | TalentStat::SpellShieldDuration(_)
                     | TalentStat::SpellHeal(_) => {
                         assert!(total.might.abs() < 0.00001);
                         continue;
