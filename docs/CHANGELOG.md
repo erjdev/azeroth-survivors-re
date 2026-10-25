@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Long upgrade-card layout validation
+
+Added an opt-in card inspection mode that holds level-up and chest choices.
+Frost Nova's full defensive description fits at 720p and 1024×768, with single-unit
+green comparisons; selecting after resize grants rank two. [Screenshots](images/screenshots/2026-10-25-mage-talents/frost-nova-card-720.jpg)
+are in the README. Clippy and native build pass (42 seconds); live defensive timing remains open.
+
 ## 2026-10-25 — Mage Frost defenses and milestones
 
 Frost milestones now add Frostbolt targeting, Frost critical damage and a Nova

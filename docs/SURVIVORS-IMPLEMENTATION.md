@@ -2839,3 +2839,24 @@ Workspace test compilation, explicit-data DBC talent audit (including the Ice
 Barrier prerequisite), Clippy, formatting, render-pass lint and diff checks pass.
 Native play build: 15.23 seconds. Live defensive timing, new card wrapping/screenshots
 and remaining Mage Arcane/Fire milestones still need acceptance.
+
+
+### Frost Nova card wrapping evidence — 2026-10-25
+
+The opt-in `WOW_SURVIVORS_AUTO=Mage:cards` inspection mode starts with the full
+rank-one class pool and holds both level-up and chest offers for manual selection.
+An isolated Mage account with 32 Frost points, including Ice Block and Ice Barrier,
+reached a normal Frost Nova upgrade offer at level 12. The complete description
+fits at 1280×720 and, with the same hand held, 1024×768. Damage, radius, freeze and
+cooldown comparisons are green with one trailing unit; unchanged 15% shield,
+5-second shield lifetime and 0.5-second immunity remain ordinary prose. All three
+cards and the selection footer are visible. Selecting Nova after resize produces
+`frost_nova:2` in the live run log and resumes play. Window close exits normally.
+
+README captures: [720p](images/screenshots/2026-10-25-mage-talents/frost-nova-card-720.jpg)
+and [1024×768](images/screenshots/2026-10-25-mage-talents/frost-nova-card-1024.jpg).
+The raw local log is `target/survivors-validation/nova-cards-live.log`; the normal
+validation launcher was restored after exit. Clippy, native build (42.45 seconds),
+formatting, render-pass lint and diff checks pass; seven existing inline-description
+tests also pass. This closes this card's two-size wrapping check only. Live defense
+timing, the full responsive matrix and remaining Mage implementation stay open.

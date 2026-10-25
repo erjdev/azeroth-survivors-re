@@ -1,7 +1,7 @@
 //! `WOW_SURVIVORS_AUTO=<class name>`: a hands-off run for testing. It picks the class and its first
 //! look, begins once the world is up, takes a random card at every level, walks to the nearest
 //! gem away from the crowd and logs the run every ten seconds; `WOW_SURVIVORS_SHOTS=<dir>` also
-//! saves a screenshot every few seconds, which needs no window focus. A `:idle`, `:all`, `:late` or `:chest`
+//! saves a screenshot every few seconds, which needs no window focus. A `:idle`, `:all`, `:late`, `:cards` or `:chest`
 //! suffix on the class name changes the run, as the fields below say. `WOW_SURVIVORS_MAP=<index or
 //! name>` picks the battleground.
 
@@ -28,6 +28,8 @@ pub(super) struct Auto {
     late: bool,
     /// `:chest`: start as `:late`, but leave chest choices for manual UI inspection.
     hold_chest: bool,
+    /// `:cards`: start with rank-one spells and leave all choices for manual UI inspection.
+    hold_cards: bool,
     sample: FrameWindow,
     wait: f32,
     shots: Option<std::path::PathBuf>,
@@ -96,7 +98,8 @@ pub(super) fn from_env() -> Option<Auto> {
     let idle = mode.eq_ignore_ascii_case("idle");
     let hold_chest = mode.eq_ignore_ascii_case("chest");
     let late = mode.eq_ignore_ascii_case("late") || hold_chest;
-    let all = late || mode.eq_ignore_ascii_case("all");
+    let hold_cards = mode.eq_ignore_ascii_case("cards");
+    let all = late || hold_cards || mode.eq_ignore_ascii_case("all");
     let class = data::CLASSES
         .iter()
         .position(|c| c.name.eq_ignore_ascii_case(name))
@@ -124,6 +127,7 @@ pub(super) fn from_env() -> Option<Auto> {
         all,
         late,
         hold_chest,
+        hold_cards,
         sample: FrameWindow::default(),
         wait: 0.0,
         shots,
@@ -277,7 +281,7 @@ pub(super) fn drive(
             if auto.wait > 1.2 && (run.level <= 3 || run.level == 10) {
                 auto.capture_once(&mut commands, format!("levelup-{}", run.level));
             }
-            if auto.wait > 1.6 && !(auto.hold_chest && run.trading) {
+            if auto.wait > 1.6 && !auto.hold_cards && !(auto.hold_chest && run.trading) {
                 let n = offer.len().max(1);
                 let i = (rng.range(0.0, n as f32) as usize).min(n - 1);
                 hud::pick(i, &mut run, &mut offer, &mut rng, &mut next);

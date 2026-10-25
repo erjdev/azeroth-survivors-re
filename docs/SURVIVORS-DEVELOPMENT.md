@@ -257,6 +257,15 @@ subsequent chest hands also wait. Ordinary level-ups still auto-pick. Use an iso
 `BENILLA_HOME` and explicit `WOW_DATA` for validation: this mode grants accelerated
 combat/rewards and is not evidence of normal progression or balance.
 
+## Hold all upgrade cards for UI inspection
+
+`WOW_SURVIVORS_AUTO=Mage:cards WOW_SURVIVORS_MAP=Barrens cargo survivors`
+starts with the class's full rank-one ability pool and leaves level-up and chest
+choices open until selected manually. It uses normal offers, so advance hands
+until the ability being inspected appears. Use an isolated `BENILLA_HOME`:
+the run still awards progress. This setup is for wrapping, resize and input checks,
+not ordinary progression, balance or performance acceptance.
+
 ## Measure attended performance explicitly
 
 On macOS, unattended probes normally open behind other windows. An occluded or background

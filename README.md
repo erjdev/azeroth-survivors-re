@@ -172,6 +172,12 @@ These captures verify the UI, not live combat or completion of every Mage talent
 Winter's Chill spending/refunding and the [maximum-rank description](docs/images/screenshots/2026-10-25-mage-talents/winters-chill-max-720.png)
 were checked at 720p with an isolated Mage account; combat feel remains under validation.
 
+Frost Nova's longer description, including trained shield and immunity, fits at
+1280×720 and [1024×768](docs/images/screenshots/2026-10-25-mage-talents/frost-nova-card-1024.jpg).
+Selecting the same hand after resizing grants rank two; live defensive timing remains open.
+
+![Frost Nova defensive upgrade card at 720p](docs/images/screenshots/2026-10-25-mage-talents/frost-nova-card-720.jpg)
+
 ![Permafrost strength and duration preview at 720p](docs/images/screenshots/2026-10-25-mage-talents/permafrost-720.png)
 
 [Shatter](docs/images/screenshots/2026-10-25-mage-talents/shatter-preview.png) ·
