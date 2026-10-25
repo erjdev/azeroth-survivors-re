@@ -2509,3 +2509,25 @@ Validation: native play build passed in 1m31s; workspace test compilation passed
 4m39s (including a build-lock wait), and all 140 Survivors app tests passed. Workspace
 Clippy, formatting, render-pass lint and diff whitespace checks pass. No full workspace
 test-pass or camera fix is claimed. The validation app was closed and normal launcher restored.
+
+### Placed-tree camera regression — 2026-10-25
+
+The camera fixture now loads Elwynn placement 12578 (ElwynnTreeMid01) from the explicit
+checkout patch chain, applying its real position, rotation and scale. Raw WoW focus
+`[-9517, 154.8, 61]`, a 61-degree elevation and a 30-yard boom toward negative WoW X
+produce a 7.439-yard collision-limited arm. The resolved camera sphere must not overlap
+the trunk; advancing it 0.15 yards must overlap. A parallel boom three yards away must
+remain clear. Removing the hull restores the full arm; reattaching it restores the same
+collision result.
+
+This is a repeatable authored-geometry regression, not a live rendered-scene reproduction.
+It excludes terrain, other placements, renderer alignment and actual tile streaming.
+The first candidate at WoW Y=155.2 missed the tapered upper trunk; checking the authored
+vertices corrected the fixture to Y=154.8. Do not interpret that miss as absent collision.
+The earlier close-camera screenshot remains unexplained; its next live reproduction can
+now be compared with this known source-hull contact.
+
+Validation: all 141 Survivors app tests pass with the checkout data, including the
+new overlap and reattachment assertions. Workspace test compilation, Clippy, formatting,
+render-pass lint and diff whitespace checks pass. This checkpoint changes test code only;
+the gameplay binary and camera behavior are unchanged.

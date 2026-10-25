@@ -441,6 +441,106 @@ mod tests {
     }
 
     #[test]
+    fn placed_elwynn_tree_shortens_camera_boom_and_unloads_cleanly() {
+        use benilla_assets::coords::{placement_rotation, wow_to_bevy};
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {
+            eprintln!("SKIP placed Elwynn camera test: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        let tiles = benilla_formats::MapTiles::load(&mut chain, "Azeroth").unwrap();
+        let (x, y) = tiles.tile_at(-9521.674, 154.49414);
+        let tile = benilla_formats::load_tile_mesh(&mut chain, "Azeroth", x, y).unwrap();
+        let placement = tile.doodads.iter().find(|d| d.unique_id == 12578).unwrap();
+        let hull = benilla_formats::load_m2_collision_hull(&mut chain, &placement.model).unwrap();
+        let transform = Transform {
+            translation: wow_to_bevy(placement.position),
+            rotation: placement_rotation(placement.rotation),
+            scale: Vec3::splat(placement.scale),
+        };
+        let mut app = fixture(&[]);
+        let tree = app
+            .world_mut()
+            .spawn((
+                RigidBody::Static,
+                Collider::trimesh(
+                    hull.positions
+                        .iter()
+                        .map(|p| transform.transform_point(wow_to_bevy(*p)))
+                        .collect(),
+                    hull.indices.as_chunks::<3>().0.to_vec(),
+                ),
+                Transform::default(),
+            ))
+            .id();
+        app.update();
+        app.update();
+        // A fixed 61-degree, 30-yard boom crosses the upper trunk from the east;
+        // the adjacent parallel boom clears it. Only this placed source hull is loaded.
+        let look = wow_to_bevy([-9517.0, 154.8, 61.0]);
+        let pitch = 61.0_f32.to_radians();
+        let arm = Vec3::new(0.0, pitch.sin(), pitch.cos()) * 30.0;
+        let blocked = app
+            .world_mut()
+            .run_system_once(move |world: WorldCollision| camera_eye(&world, look, look + arm))
+            .unwrap();
+        eprintln!(
+            "placed Elwynn camera: look {look:?}, blocked {blocked:?}, length {}",
+            blocked.distance(look)
+        );
+        assert!(blocked.distance(look) > 7.0 && blocked.distance(look) < 8.0);
+        app.world_mut()
+            .run_system_once(move |spatial: SpatialQuery| {
+                let sphere = Collider::sphere(benilla_world::collision::CAMERA_PROBE_RADIUS);
+                let filter = SpatialQueryFilter::default();
+                assert!(
+                    !spatial
+                        .shape_intersections(&sphere, blocked, Quat::IDENTITY, &filter,)
+                        .contains(&tree),
+                    "resolved camera sphere overlaps trunk"
+                );
+                assert!(
+                    spatial
+                        .shape_intersections(
+                            &sphere,
+                            blocked + arm.normalize() * 0.15,
+                            Quat::IDENTITY,
+                            &filter,
+                        )
+                        .contains(&tree),
+                    "camera stopped before reaching the source trunk"
+                );
+            })
+            .unwrap();
+        let adjacent = look + Vec3::X * 3.0;
+        let clear = app
+            .world_mut()
+            .run_system_once(move |world: WorldCollision| {
+                camera_eye(&world, adjacent, adjacent + arm)
+            })
+            .unwrap();
+        assert_eq!(clear, adjacent + arm);
+        let collider = app.world().get::<Collider>(tree).unwrap().clone();
+        app.world_mut().despawn(tree);
+        app.update();
+        app.update();
+        let unloaded = app
+            .world_mut()
+            .run_system_once(move |world: WorldCollision| camera_eye(&world, look, look + arm))
+            .unwrap();
+        assert_eq!(unloaded, look + arm);
+        app.world_mut()
+            .spawn((RigidBody::Static, collider, Transform::default()));
+        app.update();
+        app.update();
+        let reloaded = app
+            .world_mut()
+            .run_system_once(move |world: WorldCollision| camera_eye(&world, look, look + arm))
+            .unwrap();
+        assert!(reloaded.distance(blocked) < 0.001);
+    }
+
+    #[test]
     fn placed_warsong_stump_blocks_the_candidate_crossing_and_unregisters() {
         use benilla_assets::coords::{placement_rotation, wow_to_bevy};
         let Some(data) = std::env::var_os("WOW_DATA").filter(|p| !p.is_empty()) else {

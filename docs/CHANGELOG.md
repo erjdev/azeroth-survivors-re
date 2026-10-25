@@ -3,6 +3,12 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Placed-tree camera regression
+
+Added a real Elwynn trunk fixture for blocked/clear camera paths, sphere clearance and
+hull removal/reload. This strengthens collision coverage; the reported close-camera
+symptom still needs an exact live reproduction. All 141 Survivors tests and Clippy pass.
+
 ## 2026-10-25 — Camera obstruction diagnostics
 
 Added optional position/zoom tracing to distinguish collision push-in from visual
