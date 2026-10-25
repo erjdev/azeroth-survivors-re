@@ -184,6 +184,22 @@ fn ground(world: &Floor, mut p: Vec3, fallback: f32) -> Vec3 {
     p
 }
 
+/// Recycling has the same geometry and arena constraints as a new spawn. Keep the
+/// old position while streamed geometry has no safe replacement.
+fn recycle(world: &Floor, map: &data::MapDef, hero: Vec3, at: &mut Vec3, radius: f32) {
+    let direction = flat(hero - *at);
+    if let Some(safe) = super::spawn::point(
+        world,
+        map,
+        hero,
+        direction.z.atan2(direction.x),
+        38.0,
+        radius,
+    ) {
+        *at = safe;
+    }
+}
+
 /// Keep the horde topped up on a ring outside the view, with the bosses and the encircling waves
 /// on the clock.
 pub(super) fn spawn_enemies(
@@ -325,6 +341,7 @@ pub(super) fn move_enemies(
     time: Res<Time>,
     mut run: ResMut<Run>,
     world: Floor,
+    selection: Res<Selection>,
     hero: Query<(Entity, &Transform), (With<Hero>, Without<Enemy>)>,
     mut enemies: Query<(Entity, &mut Transform, &mut Enemy, &mut MovementState), Without<Hero>>,
     mut fx: Fx,
@@ -413,8 +430,15 @@ pub(super) fn move_enemies(
 
         // Strays far behind are brought back in front, as the reference genre does.
         if dist > 75.0 {
-            let back = hpos + to_hero.normalize_or_zero() * 38.0;
-            tf.translation = ground(&world, back, hpos.y);
+            recycle(
+                &world,
+                selection.map_def(),
+                hpos,
+                &mut tf.translation,
+                e.radius,
+            );
+            mv.speed = 0.0;
+            mv.flags = 0;
             continue;
         }
 
@@ -747,6 +771,16 @@ mod spawn_tests {
         app.finish();
         app.cleanup();
         app.update();
+        let old = center - Vec3::X * 100.;
+        let deferred = app
+            .world_mut()
+            .run_system_once(move |floor: Floor| {
+                let mut at = old;
+                recycle(&floor, &data::MAPS[map], center, &mut at, 1.0);
+                at
+            })
+            .unwrap();
+        assert_eq!(deferred, old, "missing streamed floor must defer recycling");
         app.world_mut().run_system_once(spawn_enemies).unwrap();
         let run = app.world().resource::<Run>();
         assert_eq!(run.bosses, 0);
@@ -775,6 +809,21 @@ mod spawn_tests {
             Transform::from_translation(center),
         ));
         app.update();
+        app.world_mut()
+            .run_system_once(move |floor: Floor| {
+                // An outward recycle near the leash must still fit the enemy's body.
+                let map = &data::MAPS[map];
+                let hero = center + Vec3::X * (map.leash - 1.);
+                for radius in [0.6, 3.0] {
+                    let mut at = hero - Vec3::X * 100.;
+                    recycle(&floor, map, hero, &mut at, radius);
+                    assert!(flat(at - center).length() + radius < map.leash);
+                    assert!(flat(at - hero).length() >= 6.);
+                    assert!((at.y - center.y).abs() < 0.01);
+                    assert!(floor.can_spawn(at, radius));
+                }
+            })
+            .unwrap();
         app.world_mut().run_system_once(spawn_enemies).unwrap();
         let bosses = app.world().resource::<Run>().bosses;
         assert!(bosses > 0);

@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Safe distant-enemy placement
+
+Repositioned enemies now respect arena bounds, supported ground and body clearance,
+just like new spawns. Missing or obstructed geometry defers repositioning. All 160
+Survivors app tests, Clippy and native build pass. Routing around obstacles remains
+in progress; this fixes a placement bypass, not pathfinding.
+
 ## 2026-10-25 — Blackrock floor investigation
 
 Rejected seven unsupported interior arena candidates. The floor audit now separates

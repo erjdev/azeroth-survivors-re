@@ -3010,3 +3010,27 @@ a circular leash and a valid center floor cannot establish that. This also infor
 the existing indoor Scarlet/Naxxramas acceptance work. Eight audit tests and scoped
 Clippy pass; formatting and diff checks pass. Both classified local-data probes
 completed successfully. No native gameplay or navigation validation is claimed.
+
+
+### Enemy recycling geometry contract — 2026-10-25
+
+Routing investigation found that enemies more than 75 yards from the hero bypassed
+safe-spawn checks: recycling directly assigned a point 38 yards ahead, falling back
+to the hero's height when floor geometry was absent. This could place enemies
+outside the arena or inside solid/unsupported geometry.
+
+Recycling now uses the same bounded candidate selection as initial spawning:
+arena/body margin, distance from the hero, supported footprint and body clearance.
+If no candidate is safe, it retains the old position and retries on a later frame;
+its movement animation is stopped while repositioning. This does not establish
+connectivity to the hero. Obstacle routing and a height-aware Blackrock region
+remain required.
+
+The streamed-floor integration fixture now exercises recycling before floor load
+and after load near the arena boundary, for ordinary and large enemy radii. It
+checks deferral, body clearance, floor height and separation from the hero.
+
+Validation: all 160 Survivors app tests pass, including the extended streamed-floor
+fixture. Workspace test compilation, Clippy, native play build, formatting,
+render-pass lint and diff checks pass. No live obstacle-routing acceptance is
+claimed by this placement fix.
