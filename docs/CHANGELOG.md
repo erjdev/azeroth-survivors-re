@@ -11,6 +11,8 @@ all nine scheduled bosses and the 16-minute clock. Un'Goro stays locked pending 
 acceptance; live encounters, rewards and balancing remain open.
 Native build, 71 core tests, 118 Survivors app tests with checkout data, formatting,
 workspace Clippy and render-pass lint pass.
+Follow-up: all nine classes now have reward/save replay coverage, including duplicate
+drops, selected gear, independent appearances and class isolation; 119 app tests pass.
 
 ## 2026-10-25 — Uncommon weapons
 

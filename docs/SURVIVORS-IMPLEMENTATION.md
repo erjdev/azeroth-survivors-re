@@ -1826,3 +1826,17 @@ Validation: native play build 21.83 seconds; workspace test compilation 1 minute
 71 core tests and 118 Survivors app tests with explicit checkout data pass. Workspace
 Clippy, formatting, render-pass lint and diff whitespace checks pass. These checks do not
 replace live nine-boss/reward validation or the outstanding full-workspace gate failures.
+
+### Uncommon reward persistence — 2026-10-25
+
+An account integration regression now replays every Un'Goro drop for every class. It
+checks ten owned pieces (the starting common helmet plus nine uncommon rewards), keeps
+the deliberately selected common helmet until explicitly changed, and verifies that
+equipping the uncommon helmet increases damage while its common appearance remains.
+It then saves/reloads an empty weapon slot and hidden gloves, repeats every reward, and
+checks unchanged serialization, stats, class isolation and clear flags. This exercises
+the real collection/equipment/save path without claiming live combat or zone readiness.
+
+Validation: workspace test compilation and all 119 Survivors app tests with explicit
+checkout data pass; workspace Clippy, formatting and render-pass lint pass. No runtime
+behavior changed, so no new native play build or screenshot is claimed for this regression.
