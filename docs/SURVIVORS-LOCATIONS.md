@@ -821,3 +821,54 @@ NPC placement does not imply vanilla encounter mechanics or an equipped model.
 Boss rows cover slots 0–8 in order, at 60% base chance. PvP is the collection
 quality band; this is horde survival. Normal entry remains locked until runtime
 traversal, collision, camera, attachments and encounter acceptance are established.
+
+
+## Blackrock interior floor rejection — 2026-10-25
+
+Blackrock Mountain is on map 0, inside the placed
+`world\wmo\dungeon\az_blackrock\blackrock.wmo`, at
+`[-7627.2695,-1019.82227,235.90073]`, rotation `[0,7,0]`.
+The source contains 45 groups and 49,782 walking triangles. Terrain is not an
+interior floor: at `[-7380,-950]` the ADT height is 398.567 while nearby WMO
+floors are 169.909 and 176.065.
+
+Candidate anchors use the same pinned MaNGOS Zero map-0 placements recorded above:
+Anvilrage Overseer GUID 151165, Overseer 151169, Quarry Slaves 3753/5317/5223,
+and Franclorn Forgewright 5363. The `[-7380,-950]` point is an exploratory center
+between quarry placements. No candidate below is accepted as a circular arena.
+
+| Raw WoW probe x, y, z | Anchor | WMO support in 30-yard disk / 2,821 |
+| --- | --- | --- |
+| -7436, -987, 172 | Overseer 151165 | 1,722 |
+| -7384, -1040, 178 | Overseer 151169 | 2,053 |
+| -7380, -950, 172 | Quarry exploratory center | 2,410 |
+| -7388.94, -873.726, 172 | Quarry Slave 3753 | 927 |
+| -7351.24, -970.982, 172 | Quarry Slave 5317 | 1,756 |
+| -7433.47, -1049.26, 179 | Quarry Slave 5223 | 1,074 |
+| -7596, -1115, 253 | Franclorn Forgewright 5363 | 1,411 |
+
+The floor probe now distinguishes samples with no walking face at XY from those
+with floors only outside the fixed `z - 8 .. z + 2` height window. It counts distinct
+stacked levels (deduplicating shared triangle edges) and reports the closest
+unsupported sample. These remain source-geometry measurements, not runtime paths.
+
+At the quarry exploratory center, 298 disk samples have no walking face, 113 have
+only other-level faces, and 208 contain multiple levels. The closest unsupported
+sample is just 6.403 yards away, at `[-7375,-954,172]`, with no walking face.
+At Forgewright, all 1,410 excluded samples have other-level floors; 2,771 samples
+have stacked levels. The closest exclusion is 3.606 yards away at
+`[-7594,-1118,253]`. Its 10-yard ring nevertheless reports 64/64 support: a full
+ring must never stand in for support throughout the disk.
+
+Reproduce the classifications with:
+
+```sh
+cargo run -p survivors-audit -- "$PWD/wow-data/Data" --floor 0 -7380 -950 172
+cargo run -p survivors-audit -- "$PWD/wow-data/Data" --floor 0 -7596 -1115 253
+```
+
+Next: derive a connected, height-aware playable region and spawn routes from
+actual collision geometry, retaining holes, walls, ceilings and storey separation.
+Validate body clearance and camera push-in in that region before authoring the
+Blackrock encounter layout. Do not place a circular arena over these unsupported
+samples or shrink it solely to make a center-floor check pass.

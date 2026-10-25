@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Blackrock floor investigation
+
+Rejected seven unsupported interior arena candidates. The floor audit now separates
+holes from other storeys and flags nearby unsupported samples, including gaps hidden
+by a fully supported boundary ring. [Evidence and next layout requirements](SURVIVORS-LOCATIONS.md#blackrock-interior-floor-rejection--2026-10-25)
+are recorded. Eight audit tests and Clippy pass; Blackrock remains pending a safe,
+connected arena layout.
+
 ## 2026-10-25 — Alterac faction-survival candidate
 
 Added ten wave entries and nine bosses ending with Drek'Thar, with PvP rewards

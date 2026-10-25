@@ -2993,3 +2993,20 @@ This artificial full-pool run does not verify boss rendering, balance, full-run
 routing, equipment attachments or camera obstruction. The normal launcher was
 restored; no closed app handle was queried. Local log:
 `target/survivors-validation/alterac-roster-live.log`.
+
+
+### Blackrock floor and arena-shape investigation — 2026-10-25
+
+Seven interior candidates fail to support an entire 30-yard circular arena.
+The [floor evidence](SURVIVORS-LOCATIONS.md#blackrock-interior-floor-rejection--2026-10-25)
+records actual source anchors, support counts and stacked-floor exclusions.
+A fully supported boundary ring concealed interior gaps at Forgewright, so the
+floor audit now reports missing-face versus other-storey samples and the nearest
+unsupported sample. Shared triangle edges do not inflate the stacked-level count.
+
+Blackrock remains unconfigured. Its next requirement is a connected, height-aware
+playable region with safe spawn routes, body clearance and camera validation;
+a circular leash and a valid center floor cannot establish that. This also informs
+the existing indoor Scarlet/Naxxramas acceptance work. Eight audit tests and scoped
+Clippy pass; formatting and diff checks pass. Both classified local-data probes
+completed successfully. No native gameplay or navigation validation is claimed.

@@ -36,6 +36,27 @@ fn nearby_floor(triangles: &[[Vec3; 3]], point: Vec3) -> Option<f32> {
         .max_by(f32::total_cmp)
 }
 
+#[derive(Debug, PartialEq)]
+struct FloorSample {
+    selected: Option<f32>,
+    layers: usize,
+}
+
+fn sample(triangles: &[[Vec3; 3]], point: Vec3) -> FloorSample {
+    let mut heights: Vec<_> = triangles.iter().filter_map(|t| floor_z(t, point)).collect();
+    heights.sort_by(f32::total_cmp);
+    // Shared triangle edges must not masquerade as stacked storeys.
+    heights.dedup_by(|a, b| (*a - *b).abs() < 0.05);
+    FloorSample {
+        selected: heights
+            .iter()
+            .rev()
+            .copied()
+            .find(|z| *z <= point.z + 2.0 && *z >= point.z - 8.0),
+        layers: heights.len(),
+    }
+}
+
 pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
     let maps = benilla_formats::load_map_catalog(chain)?;
     let directory = maps.directory(map).context("map has no directory")?;
@@ -116,6 +137,8 @@ pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
         println!("WMO floor ring r={radius}: {count}/64 samples within runtime height window");
     }
     let (mut covered, mut samples) = (0, 0);
+    let (mut absent, mut other_level, mut stacked) = (0, 0, 0);
+    let mut nearest_miss: Option<(f32, Vec3, usize)> = None;
     for x in -30..=30 {
         for y in -30..=30 {
             if x * x + y * y > 900 {
@@ -123,10 +146,24 @@ pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
             }
             samples += 1;
             let p = point + Vec3::new(x as f32, y as f32, 0.);
-            covered += usize::from(nearby_floor(&triangles, p).is_some());
+            let evidence = sample(&triangles, p);
+            covered += usize::from(evidence.selected.is_some());
+            stacked += usize::from(evidence.layers > 1);
+            if evidence.selected.is_none() {
+                absent += usize::from(evidence.layers == 0);
+                other_level += usize::from(evidence.layers > 0);
+                let distance = (p - point).length();
+                if nearest_miss.is_none_or(|(old, _, _)| distance < old) {
+                    nearest_miss = Some((distance, p, evidence.layers));
+                }
+            }
         }
     }
     println!("WMO floor disk r=30 at one-yard spacing: {covered}/{samples} samples within runtime height window");
+    println!("Disk exclusions: {absent} with no walking face at XY, {other_level} with faces only outside the height window; {stacked} samples have multiple distinct floor levels");
+    if let Some((distance, at, layers)) = nearest_miss {
+        println!("Nearest unsupported sample: {distance:.3} horizontal yards at {:?}, {layers} distinct floor levels", at.to_array());
+    }
     println!("Scope: walking faces of complete WMO groups referenced by the start ADT. Excludes doodads, neighbouring-only placements, walls, connectivity, camera visibility and rendered identity. Ring samples are not proof of a traversable disk.");
     Ok(())
 }
@@ -146,6 +183,45 @@ mod tests {
         assert_eq!(floor_z(&[t[0], t[2], t[1]], Vec3::new(1., 1., 10.)), None);
         assert_eq!(nearby_floor(&[t], Vec3::new(1., 1., 30.)), None);
     }
+    #[test]
+    fn floor_samples_distinguish_holes_other_storeys_and_shared_edges() {
+        let base = [Vec3::ZERO, Vec3::X * 10., Vec3::Y * 10.];
+        let upper = base.map(|p| p + Vec3::Z * 20.);
+        let triangles = [base, base, upper];
+        assert_eq!(
+            sample(&triangles, Vec3::new(2., 2., 1.)),
+            FloorSample {
+                selected: Some(0.),
+                layers: 2,
+            }
+        );
+        assert_eq!(
+            sample(&triangles, Vec3::new(2., 2., 11.)),
+            FloorSample {
+                selected: None,
+                layers: 2,
+            }
+        );
+        assert_eq!(
+            sample(&triangles, Vec3::new(9., 9., 1.)),
+            FloorSample {
+                selected: None,
+                layers: 0,
+            }
+        );
+        assert_eq!(
+            sample(&triangles, Vec3::new(2., 2., 21.)).selected,
+            Some(20.)
+        );
+        for z in [-3., -2., 0., 8., 9., 18., 20., 28., 29.] {
+            let point = Vec3::new(2., 2., z);
+            assert_eq!(
+                sample(&triangles, point).selected,
+                nearby_floor(&triangles, point)
+            );
+        }
+    }
+
     #[test]
     fn zero_modf_rotation_preserves_height_and_flips_horizontal_axes() {
         let p = placement([0.; 3]) * Vec3::new(3., 4., 5.);
