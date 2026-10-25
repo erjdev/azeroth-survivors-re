@@ -114,6 +114,8 @@ pub(super) struct PetRanks {
     /// 0 none, 1 gold-sniffer, 2 wisp-herder, 3 rune-hound. One instinct per companion.
     pub instinct: [u8; 2],
     pub look: [u8; 2],
+    /// Older accounts had unrestricted Chicken access; retain that entitlement.
+    pub legacy_chicken: bool,
 }
 
 impl Default for PetRanks {
@@ -124,6 +126,7 @@ impl Default for PetRanks {
             paws: 0,
             instinct: [0, 0],
             look: [0, 0],
+            legacy_chicken: false,
         }
     }
 }
@@ -760,12 +763,15 @@ impl Account {
         Ok(())
     }
 
+    pub fn look_unlocked(&self, look: u8) -> bool {
+        usize::from(look) < super::companions::LOOKS.len()
+            && (look != 2 || self.pets.legacy_chicken || self.earned.contains(&65))
+    }
+
     /// Wear one of the checked critter looks. An unknown index leaves the slot as it was.
     pub fn wear_look(&mut self, slot: u8, look: u8) {
         let slot = usize::from(slot);
-        if slot >= usize::from(self.pets.owned.min(2))
-            || usize::from(look) >= super::companions::LOOKS.len()
-        {
+        if slot >= usize::from(self.pets.owned.min(2)) || !self.look_unlocked(look) {
             return;
         }
         self.pets.look[slot] = look;
@@ -945,7 +951,7 @@ fn encode(account: &Account) -> String {
         out.push_str(&format!("jewel_seen {key}\n"));
     }
     out.push_str(&format!(
-        "pets {} {} {} {} {} {} {}\n",
+        "pets {} {} {} {} {} {} {} {}\n",
         account.pets.owned,
         account.pets.leash,
         account.pets.paws,
@@ -953,6 +959,7 @@ fn encode(account: &Account) -> String {
         account.pets.instinct[1],
         account.pets.look[0],
         account.pets.look[1],
+        u8::from(account.pets.legacy_chicken),
     ));
     out.push_str(&format!(
         "meta {} {} {} {} {} {}\n",
@@ -1272,6 +1279,7 @@ fn parse(text: &str) -> Result<Account, ()> {
                     paws: n[2].min(3),
                     instinct: [n[3].min(3), n[4].min(3)],
                     look: [n[5], n[6]],
+                    legacy_chicken: parts.next().is_none_or(|value| value == "1"),
                 };
             }
             Some("meta") => {
@@ -2327,6 +2335,25 @@ pets 2 3 1 1 2 0 1
         assert_eq!(poor.unspent(), 0);
         poor.pets.owned = 0;
         assert_eq!(poor.instinct_target(), None);
+    }
+
+    #[test]
+    fn chicken_unlock_requires_veteran_but_preserves_legacy_access() {
+        let mut account = empty();
+        assert!(!account.look_unlocked(2));
+        account.wear_look(0, 2);
+        assert_eq!(account.pets.look[0], 0);
+        account.earned.push(65);
+        account.wear_look(0, 2);
+        assert_eq!(account.pets.look[0], 2);
+        assert!(parse(&encode(&account)).unwrap().look_unlocked(2));
+        let fresh = empty();
+        assert!(!parse(&encode(&fresh)).unwrap().look_unlocked(2));
+        let legacy = encode(&fresh).replace("pets 1 0 0 0 0 0 0 0", "pets 1 0 0 0 0 0 0");
+        let migrated = parse(&legacy).unwrap();
+        assert!(migrated.look_unlocked(2));
+        assert!(parse(&encode(&migrated)).unwrap().look_unlocked(2));
+        assert!(!migrated.look_unlocked(255));
     }
 
     #[test]

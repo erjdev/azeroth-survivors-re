@@ -11,13 +11,69 @@ use super::Floor;
 use super::{Phase, Run};
 use crate::creature_anim::{move_flags, MovementState};
 
-/// Critter looks. Display ids are 1.12 creature displays whose models ship with the client.
-pub(super) static LOOKS: &[(&str, u32)] = &[
-    ("Snowshoe Rabbit", 328),
-    ("Squirrel", 134),
-    ("Westfall Chicken", 304),
-    ("Black Kingsnake", 1206),
-    ("Black Whelpling", 629),
+/// Append only: save files persist these indices.
+pub(super) struct Look {
+    pub name: &'static str,
+    pub display: u32,
+    pub icon: &'static str,
+}
+
+pub(super) static LOOKS: &[Look] = &[
+    Look {
+        name: "Snowshoe Rabbit",
+        display: 328,
+        icon: "INV_Box_PetCarrier_01",
+    },
+    Look {
+        name: "Squirrel",
+        display: 134,
+        icon: "INV_Box_PetCarrier_01",
+    },
+    Look {
+        name: "Westfall Chicken",
+        display: 304,
+        icon: "INV_Box_PetCarrier_01",
+    },
+    Look {
+        name: "Black Kingsnake",
+        display: 1206,
+        icon: "Spell_Nature_GuardianWard",
+    },
+    Look {
+        name: "Black Whelpling",
+        display: 6288,
+        icon: "INV_Misc_Head_Dragon_Black",
+    },
+    Look {
+        name: "Crimson Macaw",
+        display: 9554,
+        icon: "INV_Box_Birdcage_01",
+    },
+    Look {
+        name: "Great Horned Owl",
+        display: 4615,
+        icon: "INV_Box_Birdcage_01",
+    },
+    Look {
+        name: "Tree Frog",
+        display: 6295,
+        icon: "INV_Box_PetCarrier_01",
+    },
+    Look {
+        name: "Sprite Darter",
+        display: 6294,
+        icon: "Spell_Nature_FaerieFire",
+    },
+    Look {
+        name: "Zergling",
+        display: 10993,
+        icon: "INV_Box_PetCarrier_01",
+    },
+    Look {
+        name: "Undercity Cockroach",
+        display: 2177,
+        icon: "INV_Box_PetCarrier_01",
+    },
 ];
 
 const BASE_LEASH: f32 = 25.0;
@@ -302,7 +358,7 @@ fn step_toward(
 
 fn spawn_fetcher(commands: &mut Commands, run: &mut Run, pos: Vec3, slot: u8, ranks: PetRanks) {
     let look = ranks.look[slot as usize] as usize;
-    let display = LOOKS.get(look).map(|(_, id)| *id).unwrap_or(328);
+    let display = LOOKS.get(look).map(|look| look.display).unwrap_or(328);
     let serial = run.guid();
     let e = units::spawn_unit(
         commands,
@@ -325,6 +381,32 @@ fn spawn_fetcher(commands: &mut Commands, run: &mut Run, pos: Vec3, slot: u8, ra
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn companion_displays_models_and_icons_exist_in_the_patch_chain() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_creature_catalog(&mut chain).unwrap();
+        for look in LOOKS {
+            let model = catalog.model(look.display).expect(look.name);
+            let url = benilla_assets::m2_url(&model.model_path);
+            assert!(!chain
+                .read(url.strip_prefix("mpq://").unwrap())
+                .expect(look.name)
+                .is_empty());
+            assert!(!chain
+                .read(&format!("Interface\\Icons\\{}.blp", look.icon))
+                .expect(look.name)
+                .is_empty());
+        }
+        assert_eq!(
+            LOOKS[..5]
+                .iter()
+                .map(|look| look.display)
+                .collect::<Vec<_>>(),
+            [328, 134, 304, 1206, 6288]
+        );
+    }
 
     #[test]
     fn a_companion_reaches_past_the_hero_and_rests_between_trips() {

@@ -3301,3 +3301,27 @@ in CHANGELOG and README. Native build, Clippy, formatting and render-pass lint p
 Remaining: the expanded achievement-gated looks catalog, closer icon art/denser spacing,
 Confirm/Undo purchases and broader resolution acceptance. No new pet models or gameplay
 were introduced in this checkpoint.
+
+### Companion catalog expansion — 2026-10-25
+
+Append-only look indices preserve the original Rabbit/Squirrel/Chicken/Snake/Whelpling
+saves. Added local DBC display mappings: Crimson Macaw 9554, Great Horned Owl 4615,
+Tree Frog 6295, Sprite Darter 6294, Zergling 10993, Undercity Cockroach 2177.
+Each catalog entry now owns its name, display and icon. Model and icon availability
+are covered by a patch-chain test; this does not establish live animation acceptance.
+
+Westfall Chicken follows the reference's Veteran requirement (achievement 65, 100 runs)
+for new accounts. A trailing pets-record flag preserves unrestricted Chicken access
+for existing seven-field saves, without granting achievement points or changing the
+selected appearance. Account selection enforces the same gate displayed by the UI.
+Panda Cub / Deathless Hour and Sapphiron / no u remain pending explicit achievement
+requirements; the reference names these gates but the written rules do not define them.
+
+The catalog check also exposed the old Black Whelpling display 629 as missing; it is
+corrected to pet-sized black display 6288, retaining saved index 4. Live isolated
+fixture checks verified Chicken rejects selection before Veteran and accepts it after
+100 synthetic runs award the achievement, plus Macaw selection and 640×720 reflow.
+Inline captures are in the changelog; in-world animation acceptance is still open.
+
+Validation: 174 Survivors tests, native build, workspace test compilation, Clippy,
+formatting and render-pass lint pass.

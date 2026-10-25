@@ -1625,11 +1625,11 @@ fn companion_page(
     reward_page::companions(panel, font, account);
     let first = super::companions::LOOKS
         .get(usize::from(account.pets.look[0]))
-        .map(|(name, _)| *name)
+        .map(|look| look.name)
         .unwrap_or("Snowshoe Rabbit");
     let second_look = super::companions::LOOKS
         .get(usize::from(account.pets.look[1]))
-        .map(|(name, _)| *name)
+        .map(|look| look.name)
         .unwrap_or("Snowshoe Rabbit");
     panel
         .spawn(Node {
