@@ -601,7 +601,7 @@ remain pending rather than receiving misleading screenshots.
 
 ### Upgrade readability checkpoint
 
-**Updated requirement — inline comparisons (pending implementation).** Upgrade changes
+**Updated requirement — inline comparisons.** Upgrade changes
 belong inside the descriptive sentence, replacing the separate comparison summary below it.
 For example: `Deal 20 » 43 damage to all enemies within 5yd » 7yd of the player.`
 Render the complete `20 » 43 damage` and `5yd » 7yd` spans in green, including both values,
@@ -1090,3 +1090,26 @@ icon and advances to the next hand. The UI tool required rebinding the still-run
 after resize; the app was not restarted. These captures cover settled hover states, not
 every frame of dealing/selection. Common/Legendary, other aspect ratios, non-default UI
 scales and complete animation-cycle acceptance remain open.
+
+### Inline card-description checkpoint — 2026-10-24
+
+The shared level/chest card renderer now emits a single wrapped text paragraph with colored
+spans. Ability changes live inside the description: damage, radius, count, duration and
+cooldown use actual cast parameters; talent-scaled control durations use the cast effect.
+Unchanged values retain normal prose color. Both values, the arrow and relevant units are
+green when changed, with additional precision for small cooldown differences. New abilities
+and passives label their rank-one/rank-two comparison as next-rank growth. Passives and
+health restoration use inline descriptions; jewelry retains red scoped replacement losses
+and neutral duplicate/no-change notices within its paragraph. No separate summary is rendered.
+Plain ability tooltips reuse the same prose implementation.
+
+Native build passes. Live validation covers new spells/passives, Cleave rank-up, Whirlwind
+damage/radius and Retaliation duration at 1280×720 and the same hand after live resize to
+1280×800. See the [720p capture](images/screenshots/2026-10-24-inline-upgrades/upgrade-720.jpg)
+and [resized capture](images/screenshots/2026-10-24-inline-upgrades/upgrade-800.jpg).
+Fresh chest/jewelry/healthstone captures and the full resolution matrix remain unverified.
+
+Workspace test compilation and 96 focused Survivors tests pass. New regressions verify
+the mixed-color damage/radius spans, unchanged values, trained duration, cooldown precision,
+passive/healing/absorb units, and red/neutral jewelry replacement semantics. This does not
+clear the previously recorded broad-workspace gate failures.

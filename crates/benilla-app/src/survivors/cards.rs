@@ -395,20 +395,31 @@ pub(super) fn deal_cards(
                         ColorStop::percent(rc.with_alpha(0.0), 100.0),
                     ])),
                 ));
-                if !matches!(
-                    choice,
-                    Choice::Upgrade(_) | Choice::NewPassive(_) | Choice::UpPassive(_)
-                ) {
-                    c.spawn(hud::centered_bundle(
-                        f,
-                        card.desc,
-                        14.0,
-                        Color::srgb(0.92, 0.9, 0.84),
-                    ));
-                }
-                for (line, color) in hud::card_growth::describe(choice, &run) {
-                    c.spawn(hud::centered_bundle(f, line, 14.0, color));
-                }
+                c.spawn(hud::centered_bundle(f, "", 14.0, hud::inline::PROSE))
+                    .with_children(|paragraph| {
+                        if !card.intro.is_empty() {
+                            paragraph.spawn((
+                                TextSpan::new(format!("{} ", card.intro)),
+                                TextColor(hud::inline::PROSE),
+                                TextFont {
+                                    font: f.clone(),
+                                    font_size: 14.0,
+                                    ..default()
+                                },
+                            ));
+                        }
+                        for (text, color) in hud::inline::describe(choice, &run) {
+                            paragraph.spawn((
+                                TextSpan::new(text),
+                                TextColor(color),
+                                TextFont {
+                                    font: f.clone(),
+                                    font_size: 14.0,
+                                    ..default()
+                                },
+                            ));
+                        }
+                    });
                 // The landing shine, a bright band that crosses once.
                 c.spawn((
                     CardShine(i),

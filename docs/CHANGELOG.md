@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Inline green upgrade descriptions
+
+Cards now embed before/after values and units directly in their descriptions, with changes
+green and surrounding prose neutral. This replaces the separate summary. New choices retain
+a next-rank label; jewelry replacement losses remain red. Tooltips share the ability prose.
+
+Live captures: [new spell/passive previews](images/screenshots/2026-10-24-inline-upgrades/new-720.jpg),
+[rank-up and area comparisons at 720p](images/screenshots/2026-10-24-inline-upgrades/upgrade-720.jpg),
+[same hand after resizing to 1280×800](images/screenshots/2026-10-24-inline-upgrades/upgrade-800.jpg).
+
+Native build, workspace test compilation and 96 focused Survivors tests pass. Fresh chest
+and jewelry captures, plus the full resolution matrix, remain pending.
+
 ## 2026-10-24 — Inline upgrade presentation planned
 
 Updated the design contract: embed green before/after values, arrows and units directly in

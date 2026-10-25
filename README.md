@@ -80,6 +80,8 @@ Upgrade previews at 1280×720: [new spells and next rank](docs/images/screenshot
 
 Card lighting without the rectangular outer glow: [hover at 1280×720](docs/images/screenshots/2026-10-24-card-lighting/hover-720.jpg) · [after live resize to 1280×800](docs/images/screenshots/2026-10-24-card-lighting/hover-800.jpg).
 
+Inline green upgrades: [new spells and passive](docs/images/screenshots/2026-10-24-inline-upgrades/new-720.jpg) · [rank-up and area effects at 720p](docs/images/screenshots/2026-10-24-inline-upgrades/upgrade-720.jpg) · [live resize to 1280×800](docs/images/screenshots/2026-10-24-inline-upgrades/upgrade-800.jpg).
+
 Character comparisons: [inline race/sex controls](docs/images/screenshots/2026-10-24-character-appearance/orc.jpg) · [large weapon](docs/images/screenshots/2026-10-24-equipment-framing/weapon-appearance.jpg) · [1280×720](docs/images/screenshots/2026-10-24-equipment-framing/character-720.jpg).
 
 Current victory/defeat results, reward claims, equipped appearances and responsive
