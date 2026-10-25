@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Campaign location evidence
+
+Added a read-only `--locations` audit using local map/area metadata and terrain. Documented
+three battleground candidates and the remaining content gaps in the
+[location report](SURVIVORS-LOCATIONS.md). Zones remain locked pending traversal, encounter
+and reward completion. Validation: four audit tests, local metadata report and three WMO
+floor probes pass; these are evidence checks, not playability acceptance.
+
 ## 2026-10-24 — Control duration scaling
 
 Slow, root, stun, fear and weakening durations now grow by 10% of base duration per ability

@@ -5,6 +5,7 @@ use survivors_core::{campaign, data, encounters};
 
 mod doodads;
 mod floor;
+mod locations;
 
 fn main() -> Result<()> {
     let mut args = std::env::args_os().skip(1);
@@ -13,12 +14,15 @@ fn main() -> Result<()> {
         .context("usage: survivors-audit <explicit WoW Data directory>")?;
     let rest: Vec<_> = args.collect();
     let mut chain = open_chain(std::path::Path::new(&path))?;
+    if rest.len() == 1 && rest[0] == "--locations" {
+        return locations::report(&mut chain);
+    }
     if rest.len() == 1 && rest[0] == "--talents" {
         return talents(&mut chain);
     }
     if !rest.is_empty() {
         if rest.len() != 5 || (rest[0] != "--floor" && rest[0] != "--doodads") {
-            bail!("usage: survivors-audit <Data> [--talents | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
+            bail!("usage: survivors-audit <Data> [--locations | --talents | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
         }
         let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
         let mut point = [0.0_f32; 3];

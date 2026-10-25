@@ -190,6 +190,11 @@ at 1280×720. The wider layout/content matrix remains open.
 
 ## Phase 4 — all twelve zones and gear content
 
+Read-only [location evidence](SURVIVORS-LOCATIONS.md) now records local map metadata and
+terrain-supported candidates for Warsong Gulch, Arathi Basin and Alterac Valley. Reproduce
+with `survivors-audit <Data> --locations`; none of these candidates establishes readiness.
+
+
 Complete the ordered path in SURVIVORS.md. For each zone, verify terrain/map coordinates,
 creature displays, named encounter roster, schedule, boss, slot/band drops and class item
 mapping. Use body-collision floors for heroes, enemies, companions and mobility destinations, including
