@@ -18,12 +18,18 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Companion upgrade rows now keep equal widths, including Second Companion.
+Looks and Tabards use adaptive grid columns; Looks fits four columns at 1280×720
+and three at 640×720 without stretching its last row. Live layout/selection checks
+and three inline screenshots cover this checkpoint. Companion artwork and other
+page-specific details remain open; this is not full Rewards visual acceptance.
+
 Companion upgrade cards now follow the compact Perk structure: inline rank pips,
 right-side cost/+⁄− controls and purchased-state tint. Preview, disabled purchases,
 pending removal/point restoration, compact text fit and appearance switching
 passed live checks; three new inline screenshots preserve the earlier captures.
-Artwork, the final card's full-width stretch and Looks/Tabards grids still need
-reference alignment. No companion cost or effect changed.
+Artwork and other page-specific details still need reference alignment.
+No companion cost or effect changed.
 
 Rewards currency/category rail now emphasizes available points and uses full-width
 category buttons. Confirm/Undo remain visible but disabled without a draft.

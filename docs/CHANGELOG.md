@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Consistent reward grids
+
+Companion upgrades now keep two equal columns, including the last card. Looks
+and Tabards use adaptive grid columns, so incomplete rows retain the widths of
+the rows above. The Companion Looks grid shows four columns in the wide preview
+and three at 640×720, following the reference's aligned tile layout.
+
+![Aligned Companion upgrades and looks](images/screenshots/2026-10-25-reward-grids/companions-1280.jpg)
+
+![Tabard selection at 1280×720](images/screenshots/2026-10-25-reward-grids/tabards-1280.jpg)
+
+![Compact Looks selection and final row](images/screenshots/2026-10-25-reward-grids/looks-640.jpg)
+
+Verified wide and compact Companion layout, look selection, and wide Tabard
+selection/removal live. Native build, workspace Clippy, formatting and render-pass
+lint pass. Artwork and remaining page-specific reference details are unfinished;
+this changes layout only.
+
 ## 2026-10-25 — Compact Companion upgrades
 
 Companion cards now place rank markers beside their names and cost/+⁄− controls
