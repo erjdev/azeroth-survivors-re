@@ -50,6 +50,8 @@ pub(super) struct LevelText;
 #[derive(Component)]
 pub(super) struct TimerText;
 #[derive(Component)]
+pub(super) struct EnrageText;
+#[derive(Component)]
 pub(super) struct KillText;
 #[derive(Component)]
 pub(super) struct HpFrame;
@@ -580,6 +582,7 @@ pub(super) fn setup_hud(
                         line.spawn((LevelText, text(f, "Level 1", 14.0, GOLD)));
                         line.spawn((KillText, text(f, "Kills 0", 14.0, Color::WHITE)));
                     });
+                    col.spawn((EnrageText, centered(f, "", 14.0, card_growth::GAIN)));
                 });
                 // The minimap cluster's column.
                 row.spawn(Node {
@@ -1932,6 +1935,19 @@ fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
     }
 }
 
+fn enrage_status(run: &Run) -> String {
+    let bonus = run.milestones.enrage_damage(run.enrage_t > 0.0) - 1.0;
+    if bonus <= 0.0 || run.dead_t.is_some() || run.hp <= 0.0 {
+        String::new()
+    } else {
+        format!(
+            "Enrage +{:.0}% damage ({:.0}s)",
+            bonus * 100.0,
+            run.enrage_t.ceil()
+        )
+    }
+}
+
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 pub(super) fn refresh_hud(
     mut commands: Commands,
@@ -1950,6 +1966,7 @@ pub(super) fn refresh_hud(
         Query<&mut Text, With<OverTitle>>,
         Query<&mut Text, With<OverStats>>,
         Query<&mut Text, With<XpText>>,
+        Query<&mut Text, With<EnrageText>>,
     )>,
     mut xp_fill: Query<&mut Node, With<XpFill>>,
     rows: Query<(Entity, Has<AbilityRow>), Or<(With<AbilityRow>, With<PassiveRow>)>>,
@@ -1972,6 +1989,12 @@ pub(super) fn refresh_hud(
     let secs = run.elapsed as u32;
     if let Ok(mut t) = texts.p1().single_mut() {
         **t = format!("{:02}:{:02}", secs / 60, secs % 60);
+    }
+    if let Ok(mut text) = texts.p7().single_mut() {
+        let next = enrage_status(&run);
+        if text.0 != next {
+            text.0 = next;
+        }
     }
     let kills = run.kills;
     if let Ok(mut t) = texts.p2().single_mut() {
@@ -2555,7 +2578,7 @@ fn ability_body(def: &AbilityDef, c: &Cast) -> String {
             num(secs)
         );
     }
-    if let Some(e) = effect_text(def.effect) {
+    if let Some(e) = effect_text(c.effect) {
         s += ", ";
         s += &e;
     }
@@ -2976,6 +2999,22 @@ pub(super) fn show_panels(
 mod talent_tooltip_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn effect_description_uses_rank_and_talent_scaled_duration() {
+        let stats = Run::default().stats();
+        let def = data::ability("demoralizing_shout");
+        let trained = Milestones::default().with_ranks(&[(1, 161, 5)]);
+        for (rank, talents, expected) in [
+            (1, Milestones::default(), "for 5 sec"),
+            (1, trained, "for 7.5 sec"),
+            (2, trained, "for 8.2 sec"),
+        ] {
+            let cast = cast_at(def, rank, &stats, talents);
+            let body = ability_body(def, &cast);
+            assert!(body.contains(expected), "{body}");
+        }
+    }
 
     #[test]
     fn healing_tooltip_uses_combined_cast_effects_for_each_spell() {

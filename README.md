@@ -69,6 +69,9 @@ have implemented effects; the complete class talent pass remains underway.
 
 [Piercing Howl node](docs/images/screenshots/2026-10-24-warrior-talents/piercing-howl-node-720.jpg) · [Concussion Blow node](docs/images/screenshots/2026-10-24-warrior-talents/concussion-blow-node-720.jpg).
 
+[Active Enrage HUD at 720p](docs/images/screenshots/2026-10-24-warrior-talents/enrage-hud-720.jpg): green damage bonus and remaining seconds, verified through front-door entry with a trained Fury spec.
+[Trained shout card](docs/images/screenshots/2026-10-24-warrior-talents/trained-shout-card-720.jpg): current duration and green next-rank comparison include the selected talents.
+
 [Deep Wounds ranks](docs/images/screenshots/2026-10-24-warrior-talents/deep-wounds-ranks-720.jpg) · [Improved Rend](docs/images/screenshots/2026-10-24-warrior-talents/improved-rend-720.jpg) · [Shout duration talent](docs/images/screenshots/2026-10-24-warrior-talents/shout-duration-720.jpg) · [Green talent rank comparisons at 720p](docs/images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg).
 
 World validation: [Warsong developer preview at 720p](docs/images/screenshots/2026-10-24-world-preview/warsong-720.jpg) · [reproduce the preview](docs/SURVIVORS-LOCATIONS.md#developer-instance-preview). Rendering verified; traversal remains pending.

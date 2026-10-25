@@ -1026,3 +1026,32 @@ buff artwork/indicator, manual combat feel and final balance remain pending.
 
 Native build, workspace test compilation, 54 core tests, 90 focused Survivors tests and
 the local talent-data audit pass. Live combat and fresh description captures remain pending.
+
+
+### Front-door talent integration checkpoint — 2026-10-24
+
+Live validation with an isolated Fury spec exposed an omitted talent snapshot in Armory's
+`try_enter`: permanent stats were copied, while spell-specific ranks and milestones reverted
+to defaults. The new front door uses this path. It now assigns the selected hero's active
+spec immediately after run initialization, matching the existing menu/restart/auto paths.
+A regression invokes the actual entry function with a selected second hero and second spec,
+then switches to an untrained hero to check that old effects do not leak into the next run.
+This finding means earlier unit and talent-page checks did not prove front-door combat
+activation; full class combat acceptance remains open.
+
+Enrage's runtime bonus and rounded-up remaining seconds appear in green under the combat
+clock. The line clears on expiry, lack of the talent, or death, and follows the HUD's parent
+layout/visibility. Dedicated buff artwork is still pending.
+
+The 1280×720 live run now shows the trained shout radius/duration in green upgrade
+comparisons and the active Enrage bonus/countdown. The [HUD capture](images/screenshots/2026-10-24-warrior-talents/enrage-hud-720.jpg)
+uses an isolated checkout validation save with a legal 20-point Fury allocation.
+White ability prose also now reads the cast's scaled effect instead of its raw definition,
+so shout duration agrees with the green preview. A regression covers base, trained and
+rank-two trained durations. This is targeted integration evidence, not full class acceptance.
+
+Native build, workspace test compilation and 92 focused Survivors tests pass. The corrected
+[shout card](images/screenshots/2026-10-24-warrior-talents/trained-shout-card-720.jpg)
+was also verified live: white text says 7.5 seconds; green next-rank text says 7.5 → 8.2 seconds.
+The hover glow still has a visibly rectangular outer boundary; card-effect visual acceptance
+remains open. Existing broad-workspace failures remain tracked separately.

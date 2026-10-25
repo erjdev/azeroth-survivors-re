@@ -691,6 +691,7 @@ fn try_enter(
         account.bonus_picked(class, hero),
     ) {
         run.apply_perks(account.perks);
+        run.milestones = account.milestones_picked(class, hero);
         next.set(Phase::Playing);
     } else {
         armory.note = "Pick a class and a look before entering.".into();
@@ -2286,6 +2287,67 @@ mod tests {
             armory.page = page;
             assert!(enter_refused(&account, &selection, armory.entered_zone()).is_some());
         }
+    }
+
+    #[test]
+    fn front_door_snapshots_the_selected_heroes_active_talents() {
+        let mut account = account::empty();
+        let first = account.ensure(0);
+        let id = account.create("Selected", "Warrior", 0).unwrap();
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == id)
+            .unwrap();
+        hero.talent_xp = 2000;
+        hero.spec = 1;
+        hero.dbc[1] = vec![(1, 158, 5), (1, 157, 5), (1, 161, 5), (1, 155, 5)];
+        let mut selection = Selection {
+            class: Some(0),
+            character: Some(id),
+            look: Some(0),
+            looks: vec![(20318, 1, 0)],
+            map: data::MAPS
+                .iter()
+                .position(|m| m.name == "Elwynn Forest")
+                .unwrap(),
+            ..Default::default()
+        };
+        let mut run = super::Run::default();
+        let mut armory = super::Armory::default();
+        let mut next = bevy::prelude::NextState::Unchanged;
+        super::try_enter(
+            &mut armory,
+            &account,
+            &mut selection,
+            &mut run,
+            &super::Renown::default(),
+            &super::Stash::default(),
+            &mut next,
+        );
+        assert!(
+            matches!(
+                next,
+                bevy::prelude::NextState::Pending(super::Phase::Playing)
+            ),
+            "{}",
+            armory.note
+        );
+        assert_eq!(run.milestones, account.milestones_picked(0, Some(id)));
+        assert_eq!(run.milestones.cast("demoralizing_shout").duration, 1.5);
+        assert!((run.milestones.enrage_damage(true) - 1.2).abs() < 0.00001);
+        selection.character = Some(first);
+        super::try_enter(
+            &mut armory,
+            &account,
+            &mut selection,
+            &mut run,
+            &super::Renown::default(),
+            &super::Stash::default(),
+            &mut next,
+        );
+        assert_eq!(run.milestones.points, [0; 3]);
+        assert_eq!(run.milestones.enrage_damage(true), 1.);
     }
 
     #[test]

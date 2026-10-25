@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Front-door talent activation and Enrage status
+
+Fixed the front-door Enter action dropping the selected hero's active talent snapshot.
+Permanent sheet stats were present, but spell-specific ranks and milestones could be missing
+in the run. The entry path now copies them just like the other launch paths. Enrage also
+has a green HUD line beneath the clock showing its damage bonus and seconds remaining.
+Ability descriptions now use the same rank- and talent-scaled effect durations as their
+green upgrade previews. [Live Enrage HUD](images/screenshots/2026-10-24-warrior-talents/enrage-hud-720.jpg).
+[Trained shout card](images/screenshots/2026-10-24-warrior-talents/trained-shout-card-720.jpg).
+
+Native build, workspace test compilation and 92 focused Survivors tests pass. Live 720p
+checks confirm talent activation, Enrage's HUD line and the corrected duration description.
+
 ## 2026-10-24 — Reactive Warrior Enrage
 
 Enrage now grants a four-second damage bonus after a hit removes health. Further hits
