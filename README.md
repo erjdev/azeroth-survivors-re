@@ -16,6 +16,11 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Defeat results at 1280×720, captured with an isolated save and temporarily reduced damage/XP
+tuning to reach defeat quickly. This validates the displayed results, not gameplay balance.
+
+![Defeat results](docs/images/screenshots/2026-10-24-defeat/results-720.jpg)
+
 Pick a class and a battleground, then survive: WASD to move, your abilities cast themselves,
 enemies swarm in waves, you level up and pick upgrades, and a boss shows up every couple of
 minutes. **No server, no login, no account** — fully offline and self-contained.

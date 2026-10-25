@@ -3,6 +3,12 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Defeat screen evidence
+
+Added [720p defeat results](images/screenshots/2026-10-24-defeat/results-720.jpg) to the README.
+An isolated save and temporary development tuning exercised the death-to-results flow;
+normal tuning was restored. Replay, victory and normal-balance acceptance remain open.
+
 ## 2026-10-24 — Consistent lethal-hit handling
 
 Spell healing, lifesteal and pickups can no longer revive a hero after a lethal hit but

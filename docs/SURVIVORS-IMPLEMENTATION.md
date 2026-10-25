@@ -1239,3 +1239,10 @@ death/result-screen validation and full workspace gates remain open.
 
 Validation: native build (33.9 seconds), workspace test compilation and 105 focused
 Survivors tests pass. Full workspace gates were not rerun.
+
+Live follow-up: death reached the results screen at 1280×720 on an isolated Night Elf
+Warrior save. Screenshot: `images/screenshots/2026-10-24-defeat/results-720.jpg`.
+Damage, XP and pickup multipliers were temporarily 0.1 to shorten the run, then restored
+to 1.0. This is results-flow evidence, not balance or same-frame healing-race verification.
+Replay, victory and the results resolution matrix remain open; the singular reward text
+currently says “1 marks” and needs correction.
