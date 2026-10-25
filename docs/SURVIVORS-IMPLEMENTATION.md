@@ -2041,3 +2041,21 @@ steady-state benchmark. Both validation apps were closed, and the normal launche
 Validation: all 124 Survivors app tests with checkout data pass; native incremental build
 took 1 minute 32 seconds. Workspace Clippy, formatting, render-pass lint and diff
 whitespace checks pass.
+
+### Rare reward/save coverage and full-health card text — 2026-10-25
+
+The all-class reward integration contract now runs against both Un'Goro's uncommon
+and Feralas's Rare tables. Across all nine Rare slots for all nine classes, it verifies
+collection, preservation of selected common gear, explicit rarity upgrades with stat
+increase, an independently selected common appearance, explicit empty/hidden slots,
+save/reload stability, duplicate replay without power changes, class isolation and no
+unearned zone clears. This extends automated coverage beyond the four Warrior slots
+observed live; it does not substitute for remaining live encounters or appearance checks.
+
+Healthstone now says “Already at full health.” when no healing is possible, fixing the
+awkward wording visible in the prior live screenshot. Damaged characters still see their
+current-to-maximum health comparison in green with one unit suffix. Full, over-cap and
+damaged-health text cases pass; the previous screenshot remains historical evidence.
+All 126 Survivors app tests pass with explicit checkout data.
+Native incremental build: 19.42 seconds; workspace test compilation: 2 minutes 39 seconds.
+Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass.

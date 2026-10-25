@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rare rewards and full-health cards
+
+Verified all 81 Rare class/slot rewards through save/reload and duplicate replay,
+preserving selected gear, independent appearances, empty slots and class isolation.
+Healthstone now clearly says when health is already full; actual heals retain green
+inline comparisons. All 126 Survivors app tests pass. Remaining live Rare encounters
+and appearance checks stay open.
+
 ## 2026-10-25 — Feralas live validation and useful combat metrics
 
 The accelerated Warrior fixture reached 219 enemies and persisted four Rare armor slots

@@ -333,6 +333,9 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
                 p.per_level * f32::from(rank + 1),
             )
         }
+        Choice::Heal if run.hp >= stats.max_hp => {
+            vec![("Already at full health.".into(), PROSE)]
+        }
         Choice::Heal => {
             let mut out = Sentence::default();
             out.add("Restores your health from ");
@@ -426,6 +429,28 @@ mod tests {
             assert!(plain(&spans).starts_with(prefix), "{}", plain(&spans));
         }
     }
+    #[test]
+    fn healthstone_shows_a_gain_only_when_health_can_be_restored() {
+        let mut run = Run::default();
+        let max_hp = run.stats().max_hp;
+        run.hp = max_hp;
+        assert_eq!(
+            describe(Choice::Heal, &run),
+            vec![("Already at full health.".into(), PROSE)]
+        );
+        run.hp = max_hp - 20.;
+        let spans = describe(Choice::Heal, &run);
+        assert!(spans.contains(&(
+            format!("{} » {} health", num(run.hp), num(max_hp)),
+            card_growth::GAIN
+        )));
+        run.hp = max_hp + 1.;
+        assert_eq!(
+            plain(&describe(Choice::Heal, &run)),
+            "Already at full health."
+        );
+    }
+
     #[test]
     fn jewelry_replacement_keeps_losses_and_neutral_duplicates_in_prose() {
         use crate::survivors::campaign::JewelKind;

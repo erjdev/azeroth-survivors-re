@@ -1670,6 +1670,18 @@ mod tests {
 
     #[test]
     fn uncommon_encounter_rewards_preserve_selected_gear_and_reload_for_every_class() {
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(3, 1);
+    }
+
+    #[test]
+    fn rare_encounter_rewards_preserve_selected_gear_and_reload_for_every_class() {
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(5, 2);
+    }
+
+    fn encounter_rewards_preserve_selected_gear_and_reload_for_every_class(
+        zone: usize,
+        band: usize,
+    ) {
         use super::super::equipment::Look;
         for class in 0..data::CLASSES.len() {
             let mut account = empty();
@@ -1677,19 +1689,21 @@ mod tests {
             // Start with an earned and deliberately selected common helmet.
             assert!(account.collect_drop(class, 0, "Hogger").is_some());
             assert!(account.show_piece(class, 0, Look::Piece(0)));
-            for row in campaign::DROPS.iter().filter(|row| row.zone == 3) {
+            for row in campaign::DROPS.iter().filter(|row| row.zone == zone) {
                 assert_eq!(
-                    account.collect_drop(class, 3, row.creature),
-                    campaign::piece_name(class, row.slot, 1)
+                    account.collect_drop(class, zone, row.creature),
+                    campaign::piece_name(class, row.slot, band)
                 );
             }
             let progress = &account.classes[class];
             assert_eq!(progress.pieces.iter().filter(|&&n| n > 0).count(), 10);
             assert_eq!(progress.equipment.worn[0], Some(0));
-            assert!(progress.equipment.worn[1..].iter().all(|&b| b == Some(1)));
+            assert!(progress.equipment.worn[1..]
+                .iter()
+                .all(|&b| b == Some(band as u8)));
             assert!(progress.clears.iter().all(|&cleared| !cleared));
             let might = account.bonus(class, hero).might;
-            assert!(account.wear_piece(class, 0, Some(1)));
+            assert!(account.wear_piece(class, 0, Some(band as u8)));
             assert!(account.bonus(class, hero).might > might);
             assert_eq!(
                 account.classes[class]
@@ -1703,8 +1717,8 @@ mod tests {
             let saved = encode(&account);
             let mut loaded = parse(&saved).unwrap();
             assert_eq!(encode(&loaded), saved);
-            for row in campaign::DROPS.iter().filter(|row| row.zone == 3) {
-                assert_eq!(loaded.collect_drop(class, 3, row.creature), None);
+            for row in campaign::DROPS.iter().filter(|row| row.zone == zone) {
+                assert_eq!(loaded.collect_drop(class, zone, row.creature), None);
             }
             assert_eq!(encode(&loaded), saved);
             assert_eq!(loaded.classes[class].equipment.worn[8], None);
