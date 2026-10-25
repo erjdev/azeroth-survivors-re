@@ -7,7 +7,10 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 Added [720p defeat results](images/screenshots/2026-10-24-defeat/results-720.jpg) to the README.
 An isolated save and temporary development tuning exercised the death-to-results flow;
-normal tuning was restored. Replay, victory and normal-balance acceptance remain open.
+normal tuning was restored. A follow-up verified Play again returns to hero selection and
+starts a fresh run with full health, a restarted timer and zero damage; see the
+[paused replay](images/screenshots/2026-10-24-defeat/replay-720.jpg). Corrected “1 marks”
+to “1 mark.” Victory and normal-balance acceptance remain open.
 
 ## 2026-10-24 — Consistent lethal-hit handling
 

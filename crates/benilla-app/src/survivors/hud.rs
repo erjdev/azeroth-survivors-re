@@ -2050,11 +2050,12 @@ pub(super) fn refresh_hud(
         **t = title;
     }
     let summary = format!(
-        "{} {} in {}   —   {} marks   —   {} gold   —   press Enter to play again",
+        "{} {} in {}   —   {} {}   —   {} gold   —   press Enter to play again",
         crate::char_select::race_name(run.race),
         run.class.name,
         selection.map_def().name,
         renown.last_earned,
+        if renown.last_earned == 1 { "mark" } else { "marks" },
         run.gold_found,
     );
     if let Ok(mut t) = texts.p5().single_mut() {

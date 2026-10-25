@@ -21,6 +21,9 @@ tuning to reach defeat quickly. This validates the displayed results, not gamepl
 
 ![Defeat results](docs/images/screenshots/2026-10-24-defeat/results-720.jpg)
 
+[Fresh run after Play again](docs/images/screenshots/2026-10-24-defeat/replay-720.jpg):
+paused at 00:02 with full health and zero damage, using the same isolated validation setup.
+
 Pick a class and a battleground, then survive: WASD to move, your abilities cast themselves,
 enemies swarm in waves, you level up and pick upgrades, and a boss shows up every couple of
 minutes. **No server, no login, no account** — fully offline and self-contained.

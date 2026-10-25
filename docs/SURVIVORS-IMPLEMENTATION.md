@@ -1244,5 +1244,9 @@ Live follow-up: death reached the results screen at 1280×720 on an isolated Nig
 Warrior save. Screenshot: `images/screenshots/2026-10-24-defeat/results-720.jpg`.
 Damage, XP and pickup multipliers were temporarily 0.1 to shorten the run, then restored
 to 1.0. This is results-flow evidence, not balance or same-frame healing-race verification.
-Replay, victory and the results resolution matrix remain open; the singular reward text
-currently says “1 marks” and needs correction.
+Replay follow-up at 1280×720: clicking Play again returned to hero selection; entering
+Elwynn again reset the clock (captured at 00:02), full health, level-one Cleave and zero
+damage. Evidence: `images/screenshots/2026-10-24-defeat/replay-720.jpg`. The same temporary
+tuning was restored afterward. Singular reward text now uses “1 mark”; the older results
+capture predates that text fix. Victory, keyboard replay and the results resolution matrix
+remain open.
