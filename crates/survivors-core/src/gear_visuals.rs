@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn absent_and_ambiguous_items_never_borrow_a_visual() {
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
-        assert_eq!(piece(0, 8, 2), None);
+        assert_eq!(piece(0, 8, 3), None);
         assert_eq!(piece(0, 0, 3), None);
         assert_eq!(piece(99, 0, 0), None);
         assert_eq!(piece(0, 9, 0), None);
@@ -181,7 +181,7 @@ mod tests {
     }
 
     #[test]
-    fn rare_armor_covers_each_class_without_filling_unknown_weapon_cells() {
+    fn rare_tier_covers_each_class_with_distinct_compatible_armor_and_weapons() {
         let mut items = std::collections::HashSet::new();
         for class in 0..crate::data::CLASSES.len() {
             let subclass = [4, 4, 3, 2, 1, 3, 1, 1, 2][class];
@@ -197,10 +197,20 @@ mod tests {
                 );
                 assert_ne!(Some(visual), piece(class, slot, 1));
             }
-            assert_eq!(piece(class, 8, 2), None);
-            assert_eq!(crate::campaign::piece_name(class, 8, 2), None);
+            let weapon = piece(class, 8, 2).unwrap();
+            assert_eq!(weapon.item_class, 2);
+            assert_eq!(weapon.subclass, [8, 8, 3, 7, 4, 5, 7, 15, 5][class]);
+            assert_eq!(
+                weapon.inventory_type,
+                [17, 17, 26, 13, 13, 17, 21, 21, 17][class]
+            );
+            assert!(items.insert(weapon.item_id));
+            assert!(crate::campaign::piece_name(class, 8, 2).is_some());
+            for band in [0, 1, 5] {
+                assert_ne!(Some(weapon), piece(class, 8, band));
+            }
         }
-        assert_eq!(items.len(), 72);
+        assert_eq!(items.len(), 81);
         assert_eq!(piece(9, 0, 2), None);
         assert_eq!(piece(0, 9, 2), None);
     }

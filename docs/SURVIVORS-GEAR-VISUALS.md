@@ -58,7 +58,7 @@ templates above, selected by `itemset` and mapped by `InventoryType` to the eigh
 slots (robe type 20 occupies chest). The checked-in identity table is
 `crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
 
-Each class now has 27 named collection cells; 27 are still unnamed. All nine uncommon
+Each class now has 28 named collection cells; 26 are still unnamed. All nine uncommon
 cells now list authored Un'Goro boss sources; that zone remains
 world-locked pending arena acceptance. Naming these pieces does not grant ownership, unlock zones or add raid
 bonuses. Live race/sex rendering and complete source acceptance remain open.
@@ -111,8 +111,32 @@ All 72 items were selected from the same pinned templates by `itemset`; each set
 exactly one item per armor slot and has the assigned class's `AllowableClass` mask.
 `crates/survivors-core/src/gear_upgrades/rare.rs` records only names and visual metadata.
 Chest inventory type 20 remains a robe, including Earthfury and Cenarion vestments.
-Rare weapons remain unnamed; Rare acquisition sources and live body rendering remain open.
+Rare weapons are listed below; Rare acquisition sources and live body rendering remain open.
 Collection naming does not award pieces or unlock zones.
+
+## Rare weapon catalog
+
+Each weapon below is an exact unique name in the pinned item templates. All have item
+class 2 and unrestricted `AllowableClass` masks (-1); the chosen subclasses fit their
+assigned classes. This is an authored Survivors tier assignment, not vanilla rarity,
+weapon-skill progression, loot or spell-power import. They use the existing Rare stats.
+The Hunter gun attaches as ranged gear but occupies the single main-hand collection slot;
+two-handed choices do not create an off-hand cell or a new talent requirement.
+
+| Class | Weapon | Entry | Display | Inventory type | Subclass | Material | Sheath |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Warrior | Obsidian Edged Blade | 18822 | 34112 | 17 | 8 | 1 | 1 |
+| Paladin | Bonereaver's Edge | 17076 | 32199 | 17 | 8 | 1 | 1 |
+| Hunter | Blastershot Launcher | 17072 | 29163 | 26 | 3 | 1 | 0 |
+| Rogue | Brutality Blade | 18832 | 31309 | 13 | 7 | 1 | 3 |
+| Priest | Aurastone Hammer | 17105 | 34109 | 13 | 4 | 2 | 3 |
+| Shaman | Earthshaker | 17073 | 32162 | 17 | 5 | 2 | 1 |
+| Mage | Azuresong Mageblade | 17103 | 29677 | 21 | 7 | 1 | 3 |
+| Warlock | Sorcerous Dagger | 18878 | 31337 | 21 | 15 | 1 | 3 |
+| Druid | Finkle's Lava Dredger | 18803 | 31265 | 17 | 5 | 1 | 1 |
+
+This completes all nine Rare identities per class. Actual acquisition sources and live
+weapon attachment/pose checks remain open; names alone do not establish obtainability.
 
 ## Class-specific Atiesh
 

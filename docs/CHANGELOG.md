@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rare weapon identities
+
+Added nine verified class weapon identities, completing the Rare tier's nine slots.
+Each class now has 28 of 54 named cells; 26 remain unnamed. Weapons retain Survivors
+stats. Rare acquisition sources and live weapon attachment/pose checks remain open.
+Native build, 72 core tests, 119 app tests with data (including new display/icon reads),
+workspace Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Rare armor identities
 
 Added 72 verified armor identities across all nine classes, bringing each collection to

@@ -10,6 +10,7 @@ pub(crate) fn piece(class: usize, slot: usize, band: usize) -> Option<(&'static 
         match band {
             1 if slot == 8 => WEAPONS.get(class)?,
             1 => ARMOR.get(class)?.get(slot)?,
+            2 if slot == 8 => rare::WEAPONS.get(class)?,
             2 => rare::ARMOR.get(class)?.get(slot)?,
             _ => return None,
         };

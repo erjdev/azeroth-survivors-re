@@ -103,3 +103,16 @@ pub(super) const ARMOR: [[Item; 8]; 9] = [
         ("Cenarion Gloves", 16831, 31726, 10, 4, 2, 8, 0),
     ],
 ];
+
+// Authored single main-hand choices; a ranged weapon still occupies this one slot.
+pub(super) const WEAPONS: [Item; 9] = [
+    ("Obsidian Edged Blade", 18822, 34112, 17, 2, 8, 1, 1),
+    ("Bonereaver's Edge", 17076, 32199, 17, 2, 8, 1, 1),
+    ("Blastershot Launcher", 17072, 29163, 26, 2, 3, 1, 0),
+    ("Brutality Blade", 18832, 31309, 13, 2, 7, 1, 3),
+    ("Aurastone Hammer", 17105, 34109, 13, 2, 4, 2, 3),
+    ("Earthshaker", 17073, 32162, 17, 2, 5, 2, 1),
+    ("Azuresong Mageblade", 17103, 29677, 21, 2, 7, 1, 3),
+    ("Sorcerous Dagger", 18878, 31337, 21, 2, 15, 1, 3),
+    ("Finkle's Lava Dredger", 18803, 31265, 17, 2, 5, 1, 1),
+];

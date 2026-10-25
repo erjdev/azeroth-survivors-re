@@ -1861,3 +1861,22 @@ the common axe. At 1280×720, collection icons, Rare helmet stats and missing-so
 render without overlap; collection and human male preview captures are in the README.
 This is not natural acquisition or complete model/attachment/race/sex acceptance. The
 validation window was closed and its ordinary isolated launcher configuration restored.
+
+### Rare weapon identities — 2026-10-25
+
+Nine class-appropriate weapons complete the Rare tier's identities. The
+[catalog](SURVIVORS-GEAR-VISUALS.md#rare-weapon-catalog) records exact pinned template
+entries, display IDs, inventory types, subclasses, materials and sheath metadata. All
+names resolve uniquely and class masks permit their assigned class. Survivors rarity,
+stats and one-main-hand rules remain authoritative; vanilla raid loot, procs and weapon
+skill/talent restrictions are not imported.
+
+Each class has 28 of 54 named cells. All 81 Rare identities are distinct and have typed
+slot metadata; the weapon choices differ from each class's common, uncommon and legendary
+weapon. Acquisition sources, live attachments/poses and remaining content remain open.
+
+Validation: native play build 12.86 seconds, workspace test compilation 20.38 seconds;
+72 core tests and 119 app tests with explicit checkout data pass. Mapped display/icon
+reads include all nine new weapons. Workspace Clippy, formatting and render-pass lint
+pass. The README distinguishes the earlier eight-piece Rare screenshot from the current
+nine-piece catalog; no new live weapon-rendering evidence is claimed.

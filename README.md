@@ -79,8 +79,9 @@ all nine classes. Hunter item details and pending-source messaging were checked 
 [Narrow collection layout](docs/images/screenshots/2026-10-25-collection-headings/collection-1024.png)
 
 Rare armor milestone: all nine classes now have eight named Rare armor pieces, bringing
-the catalog to 27 of 54 identities per class. This isolated Warrior fixture seeds ownership
-to inspect the UI; Rare sources and weapons remain unfinished.
+the catalog to 27 of 54 identities per class in this capture. The subsequent nine-weapon
+addition brings it to 28 of 54. This isolated Warrior fixture seeds ownership to inspect
+the UI; Rare acquisition sources remain unfinished.
 
 ![Warrior Rare collection and pending source at 720p](docs/images/screenshots/2026-10-25-rare-armor/collection-720.png)
 
