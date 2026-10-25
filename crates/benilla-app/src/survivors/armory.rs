@@ -8,6 +8,8 @@ pub(super) use codex_page::refresh_details as codex_details;
 mod collection;
 mod door;
 mod drop_page;
+#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+pub(super) mod preview;
 mod talent_page;
 pub(super) use talent_page::fill_art as fill_talent_art;
 

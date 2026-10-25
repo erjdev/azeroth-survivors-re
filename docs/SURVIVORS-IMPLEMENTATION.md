@@ -28,6 +28,20 @@ pass; record its unlock/persistence, timing and reward/balance acceptance later.
 
 ## Current PR boundary and post-merge physics (2026-10-25)
 
+Fast-preview checkpoint: native dev builds accept `WOW_SURVIVORS_UI_PREVIEW`, an
+opt-in local file with page/width/height. Complete valid edits switch production
+pages and logical window size during the menu without restarting; incomplete or
+invalid edits retain the view, and active runs defer updates. Account state and
+character-name drafts remain intact. Two new tests cover validation and applying
+the request; all 165 Survivors tests in the app-only feature build pass, as do
+workspace Clippy, formatting, render-pass lint and the native play build (1m48s).
+The app-only test command caused a different dependency feature build (7m59s);
+prefer the established workspace test build plus filtered executable for subsequent
+checks to avoid switching cache variants. Startup logs show the preview request
+was applied. Live rendered page-switch/resize verification and screenshots remain
+pending: the Mac was locked, so the validation app was stopped without UI inspection.
+Deterministic account fixtures and hot reload across the remaining pages are still open.
+
 Finish the interface and initial account/setup experience in this PR before starting
 Box3D work. The acceptance scope includes character creation/selection, talents and
 saved specs, gear/appearance and rarity rules, progression/unlocks, achievements and

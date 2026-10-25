@@ -64,6 +64,8 @@ pub(crate) struct SurvivorsPlugin;
 
 impl Plugin for SurvivorsPlugin {
     fn build(&self, app: &mut App) {
+        #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+        app.add_plugins(armory::preview::plugin);
         #[cfg(feature = "survivors-visibility")]
         app.add_plugins(visibility::plugin);
         // Present before `OnEnter(InWorld)`, where the UI lifecycle decides not to load FrameXML.

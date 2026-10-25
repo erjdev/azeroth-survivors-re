@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Live menu preview controls
+
+Native development builds can now switch production Armory pages and resize the
+window from an opt-in local file, without restarting or playing a run. Invalid
+edits retain the current view; account progress and name drafts are preserved.
+165 Survivors app tests, workspace Clippy and the native build pass. Startup logs
+confirm the control was applied; visual switching/resizing remains unverified
+because the Mac was locked. [Usage](SURVIVORS-DEVELOPMENT.md#starter-ui-iteration-priority).
+
 ## 2026-10-25 — Interface milestone and deferred physics scope
 
 Recorded the current PR's interface/setup acceptance boundary: characters, talents,

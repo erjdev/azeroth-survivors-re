@@ -327,3 +327,28 @@ warn and open the starter page. Player builds ignore this development switch.
 Collection's existing `crates/survivors-core/ui.txt` controls can be edited while
 this page remains open; broader page hot reload and deterministic fixture presets
 still need implementation.
+
+For page and viewport changes without restarting, create a local control file:
+
+```sh
+mkdir -p target/ui-preview
+cat > target/ui-preview/view.txt <<'EOF'
+page = collection
+width = 1280
+height = 720
+EOF
+WOW_DATA="$PWD/wow-data/Data" BENILLA_HOME="$PWD/target/ui-preview-state" \
+WOW_SURVIVORS_UI_PREVIEW="$PWD/target/ui-preview/view.txt" cargo survivors
+```
+
+Edit that file while the menu is open: for example use `page = talents` and
+`width = 1024`, `height = 768` to inspect the production talent page at 4:3.
+All three keys are required. Dimensions are logical window pixels, bounded to
+640–7680 wide and 480–4320 high; the desktop may constrain the actual window size.
+Comments beginning with `#` are allowed. Complete valid changes apply together
+within the next 250 ms menu poll. Invalid, incomplete or missing files keep the
+previous view. The control only applies new file contents, so ordinary navigation
+still works; edit the file again to request another view. It releases text-entry
+focus but preserves name drafts and account data. Changes wait while a run is
+active and apply when returning to the menu. This opt-in native development tool
+is excluded from player and wasm builds. It does not seed fixture accounts.
