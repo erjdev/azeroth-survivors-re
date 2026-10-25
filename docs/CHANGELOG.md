@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Interface milestone and deferred physics scope
+
+Recorded the current PR's interface/setup acceptance boundary: characters, talents,
+gear, progression and achievements, with persistence, responsive pages and fast UI
+previews. Box3D integration is a separate phase after this PR is complete and merged.
+Documented the existing Avian backend and the separate future server architecture
+decision; no physics dependencies or runtime behavior changed.
+
 ## 2026-10-25 — Conditional cutaway and starter-page previews
 
 Cutaway activation now checks the camera-to-player sightline and fades reveal

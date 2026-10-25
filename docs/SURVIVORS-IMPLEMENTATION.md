@@ -26,6 +26,46 @@ speed. Unlock criteria remain to be designed. Scale simulation consistently
 visibility fades on real time. Do not enable this feature during the starter-UI
 pass; record its unlock/persistence, timing and reward/balance acceptance later.
 
+## Current PR boundary and post-merge physics (2026-10-25)
+
+Finish the interface and initial account/setup experience in this PR before starting
+Box3D work. The acceptance scope includes character creation/selection, talents and
+saved specs, gear/appearance and rarity rules, progression/unlocks, achievements and
+rewards, and the documented starter/Armory expectations. These must have working
+state transitions and persistence, clear locked/empty/owned states, responsive
+layouts, inline green upgrade values with units shown once, and milestone screenshots
+in README. A displayed page or placeholder is not acceptance. Preserve the detailed
+phase criteria below; this priority change does not silently mark outstanding rules
+or functionality complete. Finish the fast production-UI preview workflow and verify
+representative fresh and progressed accounts across supported screen sizes.
+
+Further zone expansion follows the interface pass. Explicitly later features, including
+unlockable fast mode, remain later work. Review the PR's remaining acceptance gaps,
+complete required checks, and merge the interface/setup PR before beginning a separate
+Box3D integration branch/PR. Do not add Box3D dependencies or migrate physics in this PR.
+
+Post-merge physics direction: evaluate [Box3D](https://github.com/erincatto/box3d)
+against the existing Avian 0.6 integration. This is a backend migration/extension,
+not the first physics system: movement, floor support, scene queries, camera collision
+and enemy detours already depend on collision queries. Box3D's upstream library is
+C17; plan a pinned native build, Rust bindings and a safe ownership layer, followed
+by a repository-owned Bevy plugin. Do not assume a fork of Bevy itself is necessary.
+Audit collider import, terrain/WMO/M2 geometry, collision layers, ray/shape/overlap
+queries, character movement, fixed stepping, events and teardown before replacement.
+Prove native platform builds and the existing wasm target's linking/thread/SIMD
+constraints independently; upstream's Emscripten example does not prove compatibility
+with this workspace's wasm32-unknown-unknown build. Benchmark against Avian and retain
+regression coverage for floors, walls, foliage, camera occlusion and crowded movement.
+
+Survivors currently has no authoritative gameplay server. The realm/login/relay
+service is not a Survivors physics host. A future multiplayer design must separately
+define authority, shared collision assets, fixed ticks, input/snapshot protocols,
+prediction and reconciliation before deciding which simulation runs on the server.
+Box3D alone supplies neither networking nor navigation; the current local A* planner
+would consume the chosen backend's queries. Server integration is a future architecture
+decision, not an automatic dependency of the interface PR or a reason to modify the
+realm service now.
+
 ## Architecture and ownership
 
 The game is local simulation in Rust, on Bevy 0.18.1 and wgpu 27. The
