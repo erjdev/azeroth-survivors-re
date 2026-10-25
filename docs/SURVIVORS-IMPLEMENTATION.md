@@ -1757,3 +1757,28 @@ free retries from fishing for jewelry on an unchanged hand; the chest regression
 Final validation: native build 21.88 seconds, workspace test compilation 2m 09s, 70 core
 tests, 118 Survivors app tests with checkout data, workspace Clippy, scoped formatting,
 diff whitespace and render-pass lint pass. The tests include the final RNG restoration.
+
+
+### Live distinct-hand and banish validation — 2026-10-25
+
+Ran the committed behavior in Elwynn at 1280×720 with an isolated Hunter save and three
+fixture banish charges. No world-readiness or combat-tuning overrides were used. The
+[first hand](images/screenshots/2026-10-25-banish/before-720.png) offered Multi-Shot,
+Detect Lesser Invisibility and Serpent Sting. B then 2 replaced only the middle card
+with [Blessing of Kings](images/screenshots/2026-10-25-banish/after-720.png), preserving
+its neighbors and decreasing charges from three to two without selecting anything.
+Mouse selection of Kings resumed play and its passive icon appeared on the HUD.
+
+Keeping Arcane Shot as the sole owned spell produced a centered, readable
+[single-card chest](images/screenshots/2026-10-25-banish/single-chest-720.png) at 00:33.
+B then 1 rolled [Pendant of the Qiraji Guardian](images/screenshots/2026-10-25-banish/chest-replacement-720.png),
+spent the remaining charge and left the picker open. Clicking it advanced to the queued
+[next level hand](images/screenshots/2026-10-25-banish/chest-selected-720.png), with no
+banish hint. This live run sampled successful replacement, not the exhausted-roll case;
+that failure path remains proven by regression tests only. Two-card layout and additional
+screen sizes remain visual acceptance work.
+
+The jewelry screenshot exposed a misleading spell-only chest subtitle. It now reads
+“Choose your chest reward.” Captures above predate this wording change. The validation
+app was closed via its window, the launcher restored, and the log contains no panic/error
+lines. Fixture save and rewards remain isolated under target/survivors-validation/banish-state.

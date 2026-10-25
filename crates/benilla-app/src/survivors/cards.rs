@@ -184,7 +184,7 @@ pub(super) fn deal_cards(
     }
     if let Ok(mut sub) = subs.single_mut() {
         let mut line = if run.trading {
-            "Upgrade a spell you own".to_string()
+            "Choose your chest reward".to_string()
         } else {
             "Choose your power".to_string()
         };

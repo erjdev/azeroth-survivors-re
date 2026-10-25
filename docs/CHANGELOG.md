@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Live card and chest validation
+
+Verified keyboard banish, preserved neighboring cards, charge consumption and mouse
+selection at 720p. A [single-card chest](images/screenshots/2026-10-25-banish/single-chest-720.png)
+remains centered and usable, including after a jewelry replacement. README evidence added.
+Chest instructions now say “Choose your chest reward” to cover both spells and jewelry.
+
 ## 2026-10-25 — Banish replacement safety
 
 Banish now excludes every option in the current hand, including the card being replaced,
