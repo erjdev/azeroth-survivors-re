@@ -2184,6 +2184,39 @@ pub static MAPS: &[MapDef] = &[
             foe("Defiler Basin Warmaster", 15284, 52, 4.6, 1.5),
         ],
     },
+    MapDef {
+        name: "Alterac Valley",
+        zone: "Alterac Valley",
+        map: 30,
+        // Surveyed central terrain; world acceptance remains gated separately.
+        center: [-300.0, -300.0, 7.668],
+        leash: 60.0,
+        victory: "The valley's final assault is defeated.",
+        // Vanilla faction identities in an authored survival sequence.
+        foes: &[
+            foe("Frostwolf", 10278, 50, 4.8, 1.0),
+            foe("Alterac Ram", 13340, 50, 4.4, 1.0),
+            foe("Whitewhisker Vermin", 371, 52, 4.0, 1.0),
+            foe("Irondeep Miner", 556, 52, 4.0, 1.0),
+            foe("Irondeep Peon", 13335, 52, 4.0, 1.0),
+            foe("Stormpike Guardsman", 13253, 57, 4.2, 1.0),
+            foe("Stormpike Defender", 13274, 58, 4.2, 1.0),
+            foe("Frostwolf Guardian", 12165, 58, 4.2, 1.0),
+            foe("Stormpike Bowman", 13390, 59, 4.4, 1.0),
+            foe("Frostwolf Bowman", 13398, 59, 4.4, 1.0),
+        ],
+        bosses: &[
+            foe("Lieutenant Stronghoof", 13468, 59, 4.2, 1.4),
+            foe("Lieutenant Lewis", 13466, 59, 4.2, 1.4),
+            foe("Lieutenant Grummus", 14692, 59, 4.3, 1.4),
+            foe("Commander Malgor", 13463, 61, 4.3, 1.4),
+            foe("Commander Louis Philips", 13465, 61, 4.3, 1.4),
+            foe("Captain Galvangar", 11895, 61, 4.5, 1.4),
+            foe("Captain Balinda Stonehearth", 12823, 61, 4.2, 1.4),
+            foe("Vanndar Stormpike", 11896, 62, 4.4, 1.5),
+            foe("Drek'Thar", 11894, 62, 4.4, 1.5),
+        ],
+    },
 ];
 
 /// A battleground's horde and bosses with their numbers.

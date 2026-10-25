@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Alterac faction-survival candidate
+
+Added ten wave entries and nine bosses ending with Drek'Thar, with PvP rewards
+for every class and slot. [Gameplay and card captures](images/screenshots/2026-10-25-alterac-roster/survival-720.jpg)
+are linked in README. 94 core and 160 app tests, Clippy and native build pass
+(23 seconds). The data audit has three remaining gaps; Alterac stays locked pending
+full encounters, traversal, attachments and camera validation.
+
 ## 2026-10-25 — Arathi faction-survival candidate
 
 Added a surveyed stables-area arena, ten faction wave entries and nine authored

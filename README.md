@@ -198,6 +198,14 @@ candidate remains locked pending traversal, camera and complete encounter valida
 
 ![Arathi Basin faction-survival gameplay at 720p](docs/images/screenshots/2026-10-25-arathi-roster/survival-720.jpg)
 
+Alterac Valley's central candidate adds ten wave entries and nine bosses with PvP-band
+rewards. This 720p preview confirms early terrain, enemies, spells and HUD rendering;
+full encounters, traversal and camera validation remain open.
+
+![Alterac Valley survival gameplay at 720p](docs/images/screenshots/2026-10-25-alterac-roster/survival-720.jpg)
+
+[Inline upgrade comparisons during the Alterac run](docs/images/screenshots/2026-10-25-alterac-roster/upgrades-720.jpg).
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**

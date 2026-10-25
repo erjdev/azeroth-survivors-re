@@ -2962,3 +2962,34 @@ does not validate balance, the complete boss sequence, attachments or traversal.
 Prominent rocks obscure parts of the arena; routing and camera/cutaway acceptance
 remain open. The validation launcher was restored after closing, without querying
 the closed app handle. Local log: `target/survivors-validation/arathi-roster-live.log`.
+
+
+### Alterac faction-survival content — 2026-10-25
+
+Added map 30's surveyed central 60-yard candidate, ten faction wave identities and
+nine bosses ending with Drek'Thar at 16:00. Their PvP-band drops supply all nine
+slots for all nine classes. Maps are appended to preserve saved indices; normal
+entry remains world-locked. The [location record](SURVIVORS-LOCATIONS.md#alterac-central-survival-candidate--2026-10-25)
+contains terrain comparisons, obstacle limits and template/display provenance.
+This implements the confirmed survival direction, without PvP objectives.
+
+Tests cover the boss thresholds, full schedule, victory timing, class/slot sources,
+retained lock, equipment, independent appearances, duplicate ownership and save
+reload. Live identity/attachment, complete-run, routing and camera evidence remain
+required; roster model files alone do not establish those properties.
+
+Validation: 94 core and 160 Survivors app tests pass, plus workspace test
+compilation, Clippy, formatting, render-pass lint and diff checks. Native play
+build: 23.26 seconds. The explicit-data audit finds all Alterac roster model files
+and source coverage for all 54 collection cells per class; its expected nonzero
+result is three gaps (Blackrock's absent map, Scarlet and Naxxramas floor checks).
+This count excludes world-readiness and the broader acceptance requirements.
+
+An isolated `Mage:all` preview loaded map 30 and rendered the Field of Strife,
+early creatures, terrain, spell effects and HUD. README links the gameplay capture
+at 00:16 and upgrade cards at 00:11, both 1280×720 logical resolution. The log
+reached 28 game seconds before a normal window-close exit, without ERROR or panic.
+This artificial full-pool run does not verify boss rendering, balance, full-run
+routing, equipment attachments or camera obstruction. The normal launcher was
+restored; no closed app handle was queried. Local log:
+`target/survivors-validation/alterac-roster-live.log`.

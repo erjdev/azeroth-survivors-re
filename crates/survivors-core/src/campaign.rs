@@ -174,8 +174,8 @@ pub static ZONES: &[Zone] = &[
         name: "Alterac Valley",
         map: "Alterac Valley",
         talent: 32,
-        elites: &[],
-        boss: "",
+        elites: &["Captain Galvangar", "Captain Balinda Stonehearth"],
+        boss: "Drek'Thar",
         ready: false,
         into_id: 75,
         champ_id: 95,
@@ -502,6 +502,79 @@ pub struct DropRow {
 }
 
 pub static DROPS: &[DropRow] = &[
+    // PvP names the equipment band; encounters remain horde survival.
+    DropRow {
+        zone: 8,
+        slot: 0,
+        band: 4,
+        creature: "Lieutenant Stronghoof",
+        at_secs: 120,
+        chance: 60,
+    },
+    DropRow {
+        zone: 8,
+        slot: 1,
+        band: 4,
+        creature: "Lieutenant Lewis",
+        at_secs: 240,
+        chance: 60,
+    },
+    DropRow {
+        zone: 8,
+        slot: 2,
+        band: 4,
+        creature: "Lieutenant Grummus",
+        at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 8,
+        slot: 3,
+        band: 4,
+        creature: "Commander Malgor",
+        at_secs: 480,
+        chance: 60,
+    },
+    DropRow {
+        zone: 8,
+        slot: 4,
+        band: 4,
+        creature: "Commander Louis Philips",
+        at_secs: 600,
+        chance: 60,
+    },
+    DropRow {
+        zone: 8,
+        slot: 5,
+        band: 4,
+        creature: "Captain Galvangar",
+        at_secs: 720,
+        chance: 60,
+    },
+    DropRow {
+        zone: 8,
+        slot: 6,
+        band: 4,
+        creature: "Captain Balinda Stonehearth",
+        at_secs: 810,
+        chance: 60,
+    },
+    DropRow {
+        zone: 8,
+        slot: 7,
+        band: 4,
+        creature: "Vanndar Stormpike",
+        at_secs: 900,
+        chance: 60,
+    },
+    DropRow {
+        zone: 8,
+        slot: 8,
+        band: 4,
+        creature: "Drek'Thar",
+        at_secs: 960,
+        chance: 60,
+    },
     // Arathi is a Rare-tier survival source, independent of PvP objective rules.
     DropRow {
         zone: 4,
@@ -2111,7 +2184,7 @@ mod tests {
     #[test]
     fn drops_name_a_creature_on_that_map() {
         assert_eq!(PIECES, 54);
-        assert_eq!(DROPS.len(), 63);
+        assert_eq!(DROPS.len(), 72);
         for row in DROPS {
             let zone = &ZONES[row.zone];
             let map = super::super::data::MAPS

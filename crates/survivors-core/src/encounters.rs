@@ -122,6 +122,44 @@ mod tests {
     use super::*;
 
     #[test]
+    fn alterac_survival_bosses_supply_pvp_slots_and_gate_victory() {
+        let map = data::MAPS
+            .iter()
+            .position(|m| m.name == "Alterac Valley")
+            .unwrap();
+        assert_eq!(data::MAPS[map].map, 30);
+        assert_eq!(data::roster(map).enemies.len(), 10);
+        assert!(ready(map));
+        let rows: Vec<_> = campaign::DROPS.iter().filter(|row| row.zone == 8).collect();
+        assert_eq!(rows.len(), 9);
+        assert_eq!(schedule(map).len(), 9);
+        for (index, row) in rows.iter().enumerate() {
+            assert_eq!((row.slot, row.band, row.chance), (index, 4, 60));
+            assert!(drop_is_boss(row));
+            assert!(next(map, index as u32, row.at_secs as f32 - 0.01).is_none());
+            assert_eq!(
+                next(map, index as u32, row.at_secs as f32).unwrap().name,
+                row.creature
+            );
+            for class in 0..data::CLASSES.len() {
+                assert!(campaign::piece_name(class, row.slot, row.band).is_some());
+            }
+        }
+        assert_eq!(
+            schedule(map).last().unwrap().0.name,
+            campaign::ZONES[8].boss
+        );
+        assert!(!won(map, 960., 8));
+        assert!(!won(map, 959., 9));
+        assert!(won(map, 960., 9));
+        assert!(next(map, 9, 10_000.).is_none());
+        assert_eq!(
+            campaign::zone_lock_reason(8, 51, &[true; campaign::CLEAR_COUNT]).as_deref(),
+            Some("Alterac Valley world content is not ready")
+        );
+    }
+
+    #[test]
     fn arathi_survival_bosses_supply_rare_slots_and_gate_victory() {
         let map = data::MAPS
             .iter()

@@ -767,3 +767,57 @@ Each source has a 60% base boss chance with the existing Keen Eye modifier.
 Feralas shares these Rare collection cells; duplicate sources add no power.
 The final boss and all preceding bosses gate victory. Normal entry stays locked
 until full spawn, traversal, crowd, camera and encounter acceptance.
+
+
+## Alterac central survival candidate — 2026-10-25
+
+The map-art midpoint's steep samples prompted four nearby 60-yard disk surveys.
+All had 2,821/2,821 supported samples, zero sampled water, impassable terrain or
+missing gradient neighbours. `[-350,-300]` had 14 steep samples and was rejected.
+`[-280,-340]`, `[-250,-350]` and `[-300,-300]` had none. The selected `[-300,-300]`
+has terrain heights 4.768–13.872, center floor 6.667536, and start z 7.668.
+These are terrain samples, not navigation proof.
+
+Reproduce with `survivors-audit <Data> --terrain 30 -300 -300 60`,
+`--floor 30 -300 -300 10` and `--doodads 30 -300 -300 10`.
+The floor probe found no center WMO floor or sampled WMO floors in its runtime
+height window. Four hull-bearing doodad origins lie inside 60 yards, plus a
+zero-hull smoke emitter. They include fallen tree 389674 at
+`[-333.45313,-329.64258,7.708243]`, standing trees 389646/389672 and stump 389645.
+The nearby orc tower at `[-360.58398,-261.62305,10.351835]` and geometry extending
+from outside the disk still require runtime clearance and camera checks.
+
+Identities and displays below come from the same pinned MaNGOS Zero creature
+and creature_template source recorded above (commit
+`325948a78015794e6cc626212bc19fee70c805b2`). Each template has a map-30 placement.
+The survival order, speeds, scales and reward schedule are authored here; vanilla
+NPC placement does not imply vanilla encounter mechanics or an equipped model.
+
+| Wave identity | Template | Display |
+| --- | --- | --- |
+| Frostwolf | 10981 | 10278 |
+| Alterac Ram | 10990 | 13340 |
+| Whitewhisker Vermin | 10982 | 371 |
+| Irondeep Miner | 13396 | 556 |
+| Irondeep Peon | 13397 | 13335 |
+| Stormpike Guardsman | 12127 | 13253 |
+| Stormpike Defender | 12050 | 13274 |
+| Frostwolf Guardian | 12053 | 12165 |
+| Stormpike Bowman | 13358 | 13390 |
+| Frostwolf Bowman | 13359 | 13398 |
+
+| Boss / PvP slot source | Template | Display | Time |
+| --- | --- | --- | --- |
+| Lieutenant Stronghoof | 13143 | 13468 | 2:00 |
+| Lieutenant Lewis | 13147 | 13466 | 4:00 |
+| Lieutenant Grummus | 13145 | 14692 | 6:00 |
+| Commander Malgor | 13152 | 13463 | 8:00 |
+| Commander Louis Philips | 13154 | 13465 | 10:00 |
+| Captain Galvangar | 11947 | 11895 | 12:00 |
+| Captain Balinda Stonehearth | 11949 | 12823 | 13:30 |
+| Vanndar Stormpike | 11948 | 11896 | 15:00 |
+| Drek'Thar | 11946 | 11894 | 16:00 |
+
+Boss rows cover slots 0–8 in order, at 60% base chance. PvP is the collection
+quality band; this is horde survival. Normal entry remains locked until runtime
+traversal, collision, camera, attachments and encounter acceptance are established.

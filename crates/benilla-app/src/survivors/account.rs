@@ -1710,6 +1710,11 @@ mod tests {
     }
 
     #[test]
+    fn alterac_rewards_preserve_equipment_and_reload_for_every_class() {
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(8, 4, 9);
+    }
+
+    #[test]
     fn arathi_rewards_preserve_equipment_and_share_rare_ownership() {
         encounter_rewards_preserve_selected_gear_and_reload_for_every_class(4, 2, 9);
         for class in 0..data::CLASSES.len() {
