@@ -80,7 +80,14 @@ Upgrade previews at 1280×720: [new spells and next rank](docs/images/screenshot
 
 Card lighting without the rectangular outer glow: [hover at 1280×720](docs/images/screenshots/2026-10-24-card-lighting/hover-720.jpg) · [after live resize to 1280×800](docs/images/screenshots/2026-10-24-card-lighting/hover-800.jpg).
 
-Inline green upgrades: [new spells and passive](docs/images/screenshots/2026-10-24-inline-upgrades/new-720.jpg) · [rank-up and area effects at 720p](docs/images/screenshots/2026-10-24-inline-upgrades/upgrade-720.jpg) · [live resize to 1280×800](docs/images/screenshots/2026-10-24-inline-upgrades/upgrade-800.jpg).
+Current inline upgrades use one unit per comparison and keep rank labels beneath the name.
+![Inline upgrade cards at 1280×720](docs/images/screenshots/2026-10-24-inline-units/cards-720.jpg)
+
+Same hand after live resize: [1280×800](docs/images/screenshots/2026-10-24-inline-units/cards-800.jpg) · [1024×768](docs/images/screenshots/2026-10-24-inline-units/cards-1024.jpg).
+[Area, cooldown and percentage comparisons at 1024×768](docs/images/screenshots/2026-10-24-inline-units/area-1024.jpg).
+Cleave selection after resizing granted rank two. These captures cover sampled level-up
+cards; chest/jewelry states and the full resolution/UI-scale matrix remain open.
+
 
 Character comparisons: [inline race/sex controls](docs/images/screenshots/2026-10-24-character-appearance/orc.jpg) · [large weapon](docs/images/screenshots/2026-10-24-equipment-framing/weapon-appearance.jpg) · [1280×720](docs/images/screenshots/2026-10-24-equipment-framing/character-720.jpg).
 

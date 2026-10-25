@@ -1131,3 +1131,15 @@ fresh talent screenshots and manual combat acceptance remain open.
 Validation: native build (22.5 seconds), workspace test compilation, 54 core tests,
 97 focused Survivors tests and the local talent-data audit pass. The suite also caught
 and corrected three stale Codex-page expectations for the single-unit comparison format.
+
+
+### Inline text visual checkpoint — 2026-10-24
+
+Live checkout validation at 1280×720, then resizing the same paused hand to 1280×800 and
+1024×768, confirms readable single-unit comparisons and no prose rank labels. Selecting
+Cleave at the narrow size grants rank two. The next hand verifies area, cooldown and
+percentage comparisons at 1024×768. Screenshots are linked in README and the changelog.
+This proves those sampled hands at default UI scale; it does not close chest/jewelry,
+all-rarity, long-description or complete viewport/UI-scale acceptance. The isolated
+validation save was used; the launch wrapper was restored and the app closed without
+querying a stale app handle.

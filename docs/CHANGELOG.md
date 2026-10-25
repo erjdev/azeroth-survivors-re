@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Inline card visual checkpoint
+
+Verified single-unit green comparisons and removed prose rank labels in the live checkout.
+The same hand fits [720p](images/screenshots/2026-10-24-inline-units/cards-720.jpg),
+[1280×800](images/screenshots/2026-10-24-inline-units/cards-800.jpg) and
+[1024×768](images/screenshots/2026-10-24-inline-units/cards-1024.jpg); selecting Cleave after
+resizing grants rank two. A [second hand](images/screenshots/2026-10-24-inline-units/area-1024.jpg)
+shows seconds, yards and percentages without repeated units. README evidence refreshed.
+Chest/jewelry captures and the complete resolution/UI-scale matrix remain pending.
+
 ## 2026-10-24 — Warrior utility training
 
 Death Wish extends Retaliation, including its active Fury risk. Improved Disarm extends
