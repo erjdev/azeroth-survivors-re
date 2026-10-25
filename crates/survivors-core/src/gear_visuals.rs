@@ -120,7 +120,27 @@ pub fn named(name: &str) -> Option<GearVisual> {
 }
 
 pub fn piece(class: usize, slot: usize, band: usize) -> Option<GearVisual> {
-    named(super::campaign::piece_name(class, slot, band)?)
+    let name = super::campaign::piece_name(class, slot, band)?;
+    if name == "Atiesh, Greatstaff of the Guardian" {
+        // Pinned quest rewards disambiguate the four identically named staffs.
+        let (item_id, display_id) = match super::data::CLASSES.get(class)?.id {
+            5 => (22631, 35634),  // Priest: quest 9257.
+            8 => (22589, 35632),  // Mage: quest 9270.
+            9 => (22630, 35631),  // Warlock: quest 9271.
+            11 => (22632, 35633), // Druid: quest 9269.
+            _ => return None,
+        };
+        return Some(GearVisual {
+            item_id,
+            display_id,
+            inventory_type: 17,
+            item_class: 2,
+            subclass: 10,
+            material: 2,
+            sheath: 2,
+        });
+    }
+    named(name)
 }
 
 #[cfg(test)]
@@ -133,6 +153,27 @@ mod tests {
         assert_eq!(piece(0, 0, 1), None);
         assert_eq!(piece(99, 0, 0), None);
         assert_eq!(piece(0, 9, 0), None);
+    }
+
+    #[test]
+    fn atiesh_uses_the_class_quest_reward_without_a_name_only_fallback() {
+        for (class, item, display) in [
+            (4, 22631, 35634),
+            (6, 22589, 35632),
+            (7, 22630, 35631),
+            (8, 22632, 35633),
+        ] {
+            let visual = piece(class, 8, 5).unwrap();
+            assert_eq!((visual.item_id, visual.display_id), (item, display));
+            assert_eq!(
+                (visual.inventory_type, visual.item_class, visual.subclass),
+                (17, 2, 10)
+            );
+            assert_eq!((visual.material, visual.sheath), (2, 2));
+            assert_ne!(piece(class, 8, 0), Some(visual));
+            assert_eq!(piece(class, 7, 5), None);
+        }
+        assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
     }
 
     #[test]

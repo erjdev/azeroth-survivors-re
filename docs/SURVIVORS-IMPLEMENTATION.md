@@ -151,8 +151,8 @@ coverage in the 57-test Survivors suite. Live multi-hero switching still needs v
 The current hero uses the stock player compositor and attachments for selected armor,
 weapons and independent cosmetic overrides in both the world and full-body preview.
 The [gear visual catalog](SURVIVORS-GEAR-VISUALS.md) maps 91 distinct existing item names
-to vanilla identities and supplies item-detail icons; Atiesh variants and missing rarity
-cells remain unresolved. At 1440×900, a seeded human male account verified plate armor,
+to vanilla identities and supplies item-detail icons; class-specific Atiesh variants now
+resolve through pinned quest rewards. Missing rarity cells remain unresolved. At 1440×900, a seeded human male account verified plate armor,
 helmet/chest hiding, weapon appearance independent of equipped bonuses, and world entry.
 Native build, 44 core tests and 62 Survivors/preview tests passed. The preview now fits
 rigid attachment bounds using proportional padding; Thunderfury framing was checked at
@@ -1633,3 +1633,16 @@ Hunter nodes, pets and six other milestones remain open.
 
 Validation: 66 core tests, 115 Survivors app tests, native build, workspace test compilation,
 explicit-data talent audit, Clippy, formatting and render-pass lint pass.
+
+
+### Class-specific legendary visual identities — 2026-10-25
+
+Atiesh now resolves each existing Priest/Mage/Warlock/Druid band-five main-hand cell to
+its class quest reward and display. The [catalog evidence](SURVIVORS-GEAR-VISUALS.md#class-specific-atiesh)
+records the pinned quest/item join. Name-only lookups remain ambiguous. Ownership, stats,
+drops and zone locks are unchanged; this does not fill the 44 unnamed cells per class.
+Live attachment validation and complete obtainable collection coverage remain open.
+
+Validation: native play build (14.89 seconds), workspace test compilation, 67 core tests
+and 115 Survivors app tests pass. The explicit checkout data verifies all four Atiesh
+display rows and readable icon files. This is catalog evidence, not live attachment evidence.

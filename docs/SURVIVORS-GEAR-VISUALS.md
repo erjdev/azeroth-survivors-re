@@ -12,8 +12,8 @@ storage. Runtime icons, textures and models come from the user's data folder.
 
 - Correct vanilla names: **Field Plate Vambraces**, **Drake Fang Talisman**. Save slots are
   numeric, so these label corrections do not alter collection ownership.
-- **Atiesh** is deliberately unresolved: the source contains four equippable variants and
-  a non-equippable entry with the same name. Each class needs a verified explicit entry.
+- **Atiesh** uses explicit class reward entries (below). A name-only lookup stays
+  unresolved; it cannot choose between four equippable variants and a non-equippable entry.
 - Unnamed rarity cells remain unresolved. An absent mapping must never borrow another
   item's visual.
 - The catalog includes the existing auxiliary item names, but does not make them
@@ -33,6 +33,25 @@ with a fixed first-load appearance replacement at 1280×720. Pending attachment 
 renderer records them ready. Weapon poses remain open; icon availability alone does not
 establish correct armor textures or attachments.
 
+
+## Class-specific Atiesh
+
+The same pinned revision's [quest templates](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/quest_template.sql)
+join `RequiredClasses` and `RewItemId1` to the item catalog. The item equip masks alone
+are shared and cannot identify the intended class.
+
+| Class | Quest | Class mask | Item entry | Display |
+| --- | --- | --- | --- | --- |
+| Priest | 9257 | 16 | 22631 | 35634 |
+| Mage | 9270 | 128 | 22589 | 35632 |
+| Warlock | 9271 | 256 | 22630 | 35631 |
+| Druid | 9269 | 1024 | 22632 | 35633 |
+
+These resolve the four existing band-five main-hand cells through the class-aware piece
+lookup used by icons and equipment rendering. All are two-handed staffs (inventory 17,
+item class 2, subclass 10, material 2, sheath 2). They add no combat stats or availability;
+Naxxramas acceptance and the remaining unnamed cells are still pending. Automated checks
+cover all four display rows and readable icon assets; live staff attachment checks remain open.
 
 ## Shared jewelry icons
 

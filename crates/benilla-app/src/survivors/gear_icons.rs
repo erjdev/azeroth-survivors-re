@@ -102,19 +102,33 @@ mod tests {
         let mut chain = benilla_formats::Chain::open(&data).unwrap();
         let catalog = benilla_formats::load_item_display_catalog(&mut chain).unwrap();
         let mut seen = std::collections::HashSet::new();
-        for row in survivors_core::campaign::GEAR_NAMES {
-            for name in row {
-                let Some(visual) = survivors_core::gear_visuals::named(name) else {
-                    continue;
-                };
-                if !seen.insert(visual.display_id) {
-                    continue;
-                }
-                let display = catalog.get(visual.display_id).expect(name);
-                let icon = display.icon.as_ref().expect(name);
-                assert!(!chain.read(&format!("{icon}.blp")).expect(name).is_empty());
+        let auxiliary = survivors_core::campaign::GEAR_NAMES
+            .iter()
+            .flatten()
+            .filter_map(|name| survivors_core::gear_visuals::named(name));
+        let pieces = (0..9).flat_map(|class| {
+            (0..6).flat_map(move |band| {
+                (0..9)
+                    .filter_map(move |slot| survivors_core::gear_visuals::piece(class, slot, band))
+            })
+        });
+        for visual in auxiliary.chain(pieces) {
+            if !seen.insert(visual.display_id) {
+                continue;
             }
+            let display = catalog.get(visual.display_id).expect("mapped gear display");
+            let icon = display.icon.as_ref().expect("mapped gear icon");
+            assert!(!chain
+                .read(&format!("{icon}.blp"))
+                .expect("mapped gear texture")
+                .is_empty());
         }
-        assert!(seen.len() >= 80, "catalog coverage unexpectedly shrank");
+        for display in [35631, 35632, 35633, 35634] {
+            assert!(
+                seen.contains(&display),
+                "class-specific Atiesh must be checked"
+            );
+        }
+        assert!(seen.len() >= 84, "catalog coverage unexpectedly shrank");
     }
 }

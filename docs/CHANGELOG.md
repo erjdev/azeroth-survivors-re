@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Class-specific Atiesh appearances
+
+Priest, Mage, Warlock and Druid Atiesh cells now use their verified class reward identities
+for collection icons and equipment rendering. Ambiguous name-only lookups stay unresolved.
+Native build, 67 core tests and 115 Survivors tests pass, including local display/icon checks.
+Live staff attachment checks, acquisition paths and unnamed collection cells remain open.
+
 ## 2026-10-25 — Hunter control talents
 
 Scatter Shot and Wyvern Sting add brief shot stuns; Entrapment roots enemies hit by
