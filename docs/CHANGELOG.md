@@ -11,7 +11,10 @@ three-second, non-stacking refresh behavior and cannot trigger themselves. Ninet
 Warrior nodes now have implemented effects; other nodes and manual combat acceptance
 remain unfinished. Coefficients are provisional pending balance work.
 Native build, workspace test compilation, 52 core tests, 88 focused Survivors tests and
-the local talent identity/rank audit pass. Manual combat and fresh UI captures remain pending.
+the local talent identity/rank audit pass. Live 1280×720 green descriptions verified:
+[Deep Wounds](images/screenshots/2026-10-24-warrior-talents/deep-wounds-ranks-720.jpg) ·
+[Improved Rend](images/screenshots/2026-10-24-warrior-talents/improved-rend-720.jpg).
+These captures use an empty validation spec; manual combat acceptance remains pending.
 
 
 ## 2026-10-24 — Placed obstacle regression

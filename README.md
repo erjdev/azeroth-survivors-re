@@ -67,7 +67,7 @@ Nineteen Warrior nodes, including [defensive talents](docs/images/screenshots/20
 have implemented effects; the complete class talent pass remains underway.
 
 
-[Shout duration talent](docs/images/screenshots/2026-10-24-warrior-talents/shout-duration-720.jpg) · [Green talent rank comparisons at 720p](docs/images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg).
+[Deep Wounds ranks](docs/images/screenshots/2026-10-24-warrior-talents/deep-wounds-ranks-720.jpg) · [Improved Rend](docs/images/screenshots/2026-10-24-warrior-talents/improved-rend-720.jpg) · [Shout duration talent](docs/images/screenshots/2026-10-24-warrior-talents/shout-duration-720.jpg) · [Green talent rank comparisons at 720p](docs/images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg).
 
 World validation: [Warsong developer preview at 720p](docs/images/screenshots/2026-10-24-world-preview/warsong-720.jpg) · [reproduce the preview](docs/SURVIVORS-LOCATIONS.md#developer-instance-preview). Rendering verified; traversal remains pending.
 

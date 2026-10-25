@@ -958,4 +958,7 @@ area pulses, reflected damage and other classes cannot trigger this bleed; execu
 multistrike expansion still happen after the triggering damage snapshot is selected.
 Remaining Warrior nodes and full manual combat acceptance remain open.
 Native build, workspace test compilation, 52 core tests, 88 focused Survivors tests and
-the local talent identity/rank audit pass. Manual combat and fresh UI captures remain pending.
+the local talent identity/rank audit pass. Live 1280×720 validation confirms both new
+descriptions and green next-rank comparisons fit the sidebar. The empty validation account
+cannot spend points; its prerequisite/no-points messages are visible in the captures linked
+from README and the changelog. These are layout checks, not evidence of combat acceptance.
