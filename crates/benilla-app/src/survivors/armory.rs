@@ -15,6 +15,7 @@ pub(super) mod preview;
 mod reward_draft;
 mod reward_page;
 pub(super) use reward_page::remember_scroll as remember_reward_scroll;
+mod name_edit;
 mod talent_heading;
 pub(super) use talent_heading::fill as fill_talent_headings;
 mod talent_page;
@@ -137,8 +138,9 @@ mod preview_tests {
 pub(super) struct Armory {
     page: Page,
     manage_heroes: bool,
-    /// 0 none, 1 first name, 2 last name.
+    /// 0 none; 1/2 creation names; 3/4 selected-hero rename.
     focus: u8,
+    rename: Option<name_edit::Draft>,
     draft_first: String,
     draft_last: String,
     draft_class: usize,
@@ -170,6 +172,7 @@ impl Default for Armory {
             page: Page::initial(),
             manage_heroes: false,
             focus: 0,
+            rename: None,
             draft_first: "Adventurer".into(),
             draft_last: "Stormwind".into(),
             draft_class: 0,
@@ -194,6 +197,7 @@ impl Default for Armory {
 
 impl Armory {
     fn open_page(&mut self, page: Page) {
+        self.rename = None;
         self.page = page;
         self.focus = 0;
         self.manage_heroes = false;
@@ -237,6 +241,9 @@ pub(super) enum Act {
     Update,
     PickClass(usize),
     RandomName,
+    EditName,
+    SaveName,
+    CancelName,
     Look,
     Enter,
     RunOptions,
@@ -295,8 +302,27 @@ pub(super) fn input(
             .find(|c| selection.class == Some(c.class))
             .map(|c| c.id);
     }
-    typing.0 = armory.focus != 0 && armory.page == Page::Heroes;
-    if !typing.0 && keys.just_pressed(KeyCode::Escape) && armory.page != Page::Door {
+    if armory
+        .rename
+        .as_ref()
+        .is_some_and(|draft| armory.page != Page::Door || !draft.matches(&account, &selection))
+    {
+        armory.rename = None;
+        armory.focus = 0;
+    }
+    typing.0 = armory.focus != 0 && (armory.page == Page::Heroes || armory.rename.is_some());
+    if armory.rename.is_some() && keys.just_pressed(KeyCode::Escape) {
+        armory.rename = None;
+        armory.focus = 0;
+        armory.note.clear();
+        // Consume the edit shortcut for the rest of this frame.
+        typing.0 = true;
+    } else if armory.rename.is_some() && keys.just_pressed(KeyCode::Enter) {
+        save_name(&mut armory, &mut account, &selection);
+        typing.0 = true;
+    } else if armory.rename.is_some() && keys.just_pressed(KeyCode::Tab) {
+        armory.focus = if armory.focus == 3 { 4 } else { 3 };
+    } else if !typing.0 && keys.just_pressed(KeyCode::Escape) && armory.page != Page::Door {
         if armory.page == Page::Heroes && armory.manage_heroes {
             armory.manage_heroes = false;
         } else {
@@ -498,9 +524,23 @@ pub(super) fn input(
                 books.creatures.as_deref(),
                 index,
             ),
+            Act::EditName => {
+                armory.rename = name_edit::Draft::begin(&account, &selection);
+                armory.focus = if armory.rename.is_some() { 3 } else { 0 };
+                armory.note.clear();
+            }
+            Act::SaveName => save_name(&mut armory, &mut account, &selection),
+            Act::CancelName => {
+                armory.rename = None;
+                armory.focus = 0;
+                armory.note.clear();
+            }
             Act::RandomName => random_name(&mut armory, &mut account, &selection, &mut rng),
             Act::Look => {
                 armory.open_page(Page::Look);
+            }
+            Act::Enter if armory.rename.is_some() => {
+                armory.note = "Save or Cancel the name edit before entering a run.".into();
             }
             Act::Enter if !armory.reward_draft.is_empty() => {
                 armory.open_page(Page::Rewards);
@@ -602,10 +642,20 @@ fn buy_reward(account: &mut Account, code: u8) -> Result<(), &'static str> {
 }
 
 fn type_name(keys: &ButtonInput<KeyCode>, armory: &mut Armory) {
-    let field = if armory.focus == 1 {
-        &mut armory.draft_first
-    } else {
-        &mut armory.draft_last
+    let field = match armory.focus {
+        1 => &mut armory.draft_first,
+        2 => &mut armory.draft_last,
+        3 | 4 => {
+            let Some(draft) = armory.rename.as_mut() else {
+                return;
+            };
+            if armory.focus == 3 {
+                &mut draft.first
+            } else {
+                &mut draft.last
+            }
+        }
+        _ => return,
     };
     if keys.just_pressed(KeyCode::Backspace) {
         field.pop();
@@ -764,6 +814,20 @@ fn pick_class(
     armory.draft_class = index;
     armory.note.clear();
     super::menu::save_pick(selection);
+}
+
+fn save_name(armory: &mut Armory, account: &mut Account, selection: &Selection) {
+    let Some(draft) = armory.rename.as_ref() else {
+        return;
+    };
+    match draft.confirm(account, selection) {
+        Ok(()) => {
+            armory.rename = None;
+            armory.focus = 0;
+            armory.note.clear();
+        }
+        Err(reason) => armory.note = reason.into(),
+    }
 }
 
 fn random_name(armory: &mut Armory, account: &mut Account, selection: &Selection, rng: &mut Rng) {
@@ -2000,6 +2064,12 @@ fn signature(
     n = fold(n, u64::from(armory.focus));
     n = fold(n, u64::from(armory.manage_heroes));
     n = fold(n, armory.draft_class as u64);
+    if let Some(draft) = &armory.rename {
+        n = fold(n, u64::from(draft.hero));
+        n = fold(n, hash_str(&draft.first));
+        n = fold(n, hash_str(&draft.last));
+    }
+    n = fold(n, u64::from(armory.rename.is_some()));
     n = fold(n, hash_str(&armory.draft_first));
     n = fold(n, hash_str(&armory.draft_last));
     n = fold(n, hash_str(&armory.note));

@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter name editing
+
+The starter Hero panel now supports an explicit name draft with Save/Cancel,
+Enter/Escape and Tab between fields. Drafts belong to the selected hero;
+blank names are rejected. Saving with Enter no longer also starts a run.
+
+![Inline name editor](images/screenshots/2026-10-25-starter-names/editor-1280.jpg)
+
+![Name editor at 640×720](images/screenshots/2026-10-25-starter-names/editor-640.jpg)
+
+![Saved name after restarting](images/screenshots/2026-10-25-starter-names/persisted-640.jpg)
+
+Verified Save, Cancel, Escape, blank rejection, Enter isolation, narrow layout
+and restart persistence live. Draft isolation regression, native build, workspace
+Clippy and formatting pass. The existing key-state text handler can lose/reorder
+rapid input; replacing it with ordered text events remains an immediate follow-up.
+The editor uses existing Armory controls; reference typography remains unfinished.
+
 ## 2026-10-25 — Specialization headings
 
 Talent-tree headings now show their installed specialization icons and align

@@ -418,7 +418,7 @@ fn columns(
             class_column(body, art, font, account, selection)
         });
         panel(row, art, compact, |body| {
-            hero_column(body, art, font, account, selection)
+            hero_column(body, art, font, armory, account, selection)
         });
         panel(row, art, compact, |body| {
             zone_column(body, font, armory, account, selection)
@@ -631,6 +631,7 @@ fn hero_column(
     body: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
+    armory: &Armory,
     account: &Account,
     selection: &Selection,
 ) {
@@ -701,7 +702,33 @@ fn hero_column(
                     ..default()
                 })
                 .with_children(|row| {
+                    if let Some(draft) = armory
+                        .rename
+                        .as_ref()
+                        .filter(|draft| Some(draft.hero) == selection.character)
+                    {
+                        super::chip(
+                            row,
+                            font,
+                            &super::field_label(&draft.first, armory.focus == 3),
+                            Act::Focus(3),
+                            armory.focus == 3,
+                        );
+                        super::chip(
+                            row,
+                            font,
+                            &super::field_label(&draft.last, armory.focus == 4),
+                            Act::Focus(4),
+                            armory.focus == 4,
+                        );
+                        super::chip(row, font, "Save", Act::SaveName, false);
+                        super::chip(row, font, "Cancel", Act::CancelName, false);
+                        return;
+                    }
                     line(row, font, &name, 18.0, name_color);
+                    if hero.is_some() {
+                        super::chip(row, font, "Name", Act::EditName, false);
+                    }
                     glue_button(
                         row,
                         art,
