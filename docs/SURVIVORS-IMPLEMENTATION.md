@@ -1265,3 +1265,21 @@ in centered rows of three and two, with both buttons visible. Captures live unde
 isolated death save and temporary 0.1 damage/XP/pickup tuning, restored after closing.
 The narrow checks cover results only; victory, larger counters and other interface pages
 still need their own validation. Full workspace gates were not rerun for this layout change.
+
+### Elwynn tree collision investigation — 2026-10-24
+
+Source-hull audit at map 0, `[-9548.5, 115, 61]` found collision geometry on the nearby
+thin-trunk and canopy-bearing tree variants (12 and 52 triangles respectively). The existing
+read-only runtime probe queried twelve placement origins within 50 yards, after the streamed
+world became presentable. Exact starts, directions and results are retained in
+`validation/elwynn-tree-queries.txt`; reproduction points are the placement positions from
+`cargo run -p survivors-audit -- "$WOW_DATA" --doodads 0 -9548.5 115 61`.
+
+Placement 12578 (ElwynnTreeMid01) blocks all four capsule approaches before the requested
+12 yards; the positive-X slide advances 5.569 yards and the straight mobility sweep 4.000.
+Placement 12580 (ElwynnTreeCanopy03) permits all four origin-centered straight sweeps.
+This rules out a blanket absence of tree colliders, but does not prove canopy trunk failure:
+placement origins and broad source bounds do not establish exact solid occupancy, and some
+approaches lack a valid starting floor. The next check must align a short repeated movement
+path with a visible/source trunk surface, compare it against the registered hull, and repeat
+after tile reload. No collision fix or navmesh requirement is claimed by these probes.

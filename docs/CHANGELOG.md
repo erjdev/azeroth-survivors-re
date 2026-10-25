@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Elwynn collision evidence
+
+Audited source hulls and queried twelve nearby tree placements in the streamed world.
+Several trunks block movement queries; canopy-origin paths need exact trunk alignment
+before diagnosing a failure. Saved [query evidence](validation/elwynn-tree-queries.txt)
+and the next reproduction steps. The reported tree-collision issue remains open.
+
 ## 2026-10-24 — Responsive results
 
 Results use proportional widths, bounded controls and wrapping stat tiles/text. Live resize
