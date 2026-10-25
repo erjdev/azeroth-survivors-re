@@ -120,7 +120,7 @@ pub fn named(name: &str) -> Option<GearVisual> {
 }
 
 pub fn piece(class: usize, slot: usize, band: usize) -> Option<GearVisual> {
-    if matches!(band, 1 | 2) {
+    if matches!(band, 1..=3) {
         return super::gear_upgrades::piece(class, slot, band).map(|(_, visual)| visual);
     }
     let name = super::campaign::piece_name(class, slot, band)?;
@@ -153,8 +153,8 @@ mod tests {
     #[test]
     fn absent_and_ambiguous_items_never_borrow_a_visual() {
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
-        assert_eq!(piece(0, 8, 3), None);
-        assert_eq!(piece(0, 0, 3), None);
+        assert_eq!(piece(0, 8, 4), None);
+        assert_eq!(piece(0, 0, 4), None);
         assert_eq!(piece(99, 0, 0), None);
         assert_eq!(piece(0, 9, 0), None);
     }
@@ -213,6 +213,39 @@ mod tests {
         assert_eq!(items.len(), 81);
         assert_eq!(piece(9, 0, 2), None);
         assert_eq!(piece(0, 9, 2), None);
+    }
+
+    #[test]
+    fn epic_tier_has_distinct_class_compatible_identities_without_claiming_sources() {
+        let mut items = std::collections::HashSet::new();
+        for class in 0..crate::data::CLASSES.len() {
+            for slot in 0..9 {
+                let visual = piece(class, slot, 3).unwrap();
+                assert!(items.insert(visual.item_id));
+                assert!(crate::campaign::piece_name(class, slot, 3).is_some());
+                if slot < 8 {
+                    assert_eq!(visual.item_class, 4);
+                    assert_eq!(visual.subclass, [4, 4, 3, 2, 1, 3, 1, 1, 2][class]);
+                    assert!(
+                        visual.inventory_type == [1, 3, 5, 6, 7, 8, 9, 10][slot]
+                            || (slot == 2 && visual.inventory_type == 20)
+                    );
+                } else {
+                    assert_eq!(visual.item_class, 2);
+                    assert_eq!(
+                        visual.inventory_type,
+                        [17, 17, 26, 13, 21, 17, 17, 13, 17][class]
+                    );
+                    assert_eq!(visual.subclass, [8, 8, 18, 7, 4, 5, 10, 15, 5][class]);
+                }
+                for band in [0, 1, 2, 5] {
+                    assert_ne!(Some(visual), piece(class, slot, band));
+                }
+            }
+        }
+        assert_eq!(items.len(), 81);
+        assert_eq!(piece(9, 0, 3), None);
+        assert_eq!(piece(0, 9, 3), None);
     }
 
     #[test]

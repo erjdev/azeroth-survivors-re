@@ -58,7 +58,7 @@ templates above, selected by `itemset` and mapped by `InventoryType` to the eigh
 slots (robe type 20 occupies chest). The checked-in identity table is
 `crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
 
-Each class now has 28 named collection cells; 26 are still unnamed. All nine uncommon
+Each class now has 37 named collection cells; 17 are still unnamed. All nine uncommon
 cells now list authored Un'Goro boss sources; that zone remains
 world-locked pending arena acceptance. Naming these pieces does not grant ownership, unlock zones or add raid
 bonuses. Live race/sex rendering and complete source acceptance remain open.
@@ -206,3 +206,45 @@ displays (35649 and 35621) and deliberately remains unresolved.
 | The Burrower's Shell | 23558 | 36290 | — |
 | Talisman of Ascendance | 22678 | 24730 | — |
 | Master Dragonslayer's Medallion | 19383 | 31907 | — |
+
+## Epic identity catalog
+
+Band three now has nine verified identities per class: eight class-set armor pieces and
+one compatible weapon. These are authored Survivors tier choices from the same pinned
+item templates. Their vanilla raid sources, procs and set bonuses are not imported.
+The ordinary Epic band retains its five-stat progression; the requested raid-epic variant
+with an extra affix and build-oriented set bonuses remains separate, unfinished work.
+No ownership or source availability is granted by naming these cells.
+
+| Class | Appearance set | Vanilla item-set ID | Required class mask |
+| --- | --- | --- | --- |
+| Warrior | Wrath | 218 | 1 |
+| Paladin | Judgement | 217 | 2 |
+| Hunter | Dragonstalker | 215 | 4 |
+| Rogue | Bloodfang | 213 | 8 |
+| Priest | Transcendence | 211 | 16 |
+| Shaman | The Ten Storms | 216 | 64 |
+| Mage | Netherwind | 210 | 128 |
+| Warlock | Nemesis | 212 | 256 |
+| Druid | Stormrage | 214 | 1024 |
+
+Armor maps by inventory type to the eight slots, with robes in the chest slot. All
+81 item entries are distinct. The table lives in
+`crates/survivors-core/src/gear_upgrades/epic.rs`; runtime art still comes from local data.
+
+| Class | Weapon | Entry | Display | Inventory type | Subclass | Material | Sheath |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Warrior | Ashkandi, Greatsword of the Brotherhood | 19364 | 32000 | 17 | 8 | 1 | 1 |
+| Paladin | The Untamed Blade | 19334 | 31999 | 17 | 8 | 1 | 1 |
+| Hunter | Ashjre'thul, Crossbow of Smiting | 19361 | 32763 | 26 | 18 | 2 | 0 |
+| Rogue | Chromatically Tempered Sword | 19352 | 31867 | 13 | 7 | 1 | 3 |
+| Priest | Lok'amir il Romathis | 19360 | 31863 | 21 | 4 | 1 | 3 |
+| Shaman | Herald of Woe | 19357 | 31878 | 17 | 5 | 1 | 1 |
+| Mage | Staff of the Shadow Flame | 19356 | 31960 | 17 | 10 | 2 | 2 |
+| Warlock | Claw of Chromaggus | 19347 | 31865 | 13 | 15 | 1 | 3 |
+| Druid | Draconic Maul | 19358 | 31877 | 17 | 5 | 1 | 1 |
+
+All nine weapon class masks are unrestricted in the source templates; selected weapon
+types are usable by their assigned class. The Hunter crossbow is ranged, while the
+other weapons occupy the existing main-hand presentation. No off-hand cell is added.
+Epic acquisition sources and full body/attachment rendering acceptance remain open.

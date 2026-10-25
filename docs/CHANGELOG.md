@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Complete Epic item identities
+
+Added 81 verified Epic armor/weapon identities across all nine classes: each collection
+now has 37 of 54 named cells. Existing rarity power and save slots are preserved. Added
+an [equipped-menu milestone](images/screenshots/2026-10-25-epic-catalog/equipped-menu.png)
+to the README. All 74 core and 126 app tests pass, including new display/icon reads.
+Epic sources, full appearance checks and raid-epic/set mechanics remain open.
+
 ## 2026-10-25 — Rare rewards and full-health cards
 
 Verified all 81 Rare class/slot rewards through save/reload and duplicate replay,

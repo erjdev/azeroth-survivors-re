@@ -1,6 +1,7 @@
 //! Authored progression gear from pinned vanilla item templates.
 //! Only visual identity is imported; Survivors owns rarity, power and acquisition rules.
 use crate::gear_visuals::GearVisual;
+mod epic;
 mod rare;
 
 type Item = (&'static str, u32, u32, u8, u8, u8, i32, u8);
@@ -12,6 +13,8 @@ pub(crate) fn piece(class: usize, slot: usize, band: usize) -> Option<(&'static 
             1 => ARMOR.get(class)?.get(slot)?,
             2 if slot == 8 => rare::WEAPONS.get(class)?,
             2 => rare::ARMOR.get(class)?.get(slot)?,
+            3 if slot == 8 => epic::WEAPONS.get(class)?,
+            3 => epic::ARMOR.get(class)?.get(slot)?,
             _ => return None,
         };
     Some((

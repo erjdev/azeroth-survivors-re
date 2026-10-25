@@ -92,7 +92,8 @@ all nine classes. Hunter item details and pending-source messaging were checked 
 
 Rare armor milestone: all nine classes now have eight named Rare armor pieces, bringing
 the catalog to 27 of 54 identities per class in this capture. The subsequent nine-weapon
-addition brings it to 28 of 54. This isolated Warrior fixture seeds ownership to inspect
+addition brought it to 28 of 54; the Epic identity tier now brings the catalog to 37 of 54.
+This isolated Warrior fixture seeds ownership to inspect
 the UI. Rare sources now have a Feralas encounter table, while the zone remains locked
 pending world acceptance; this older capture predates those source labels.
 
@@ -100,6 +101,12 @@ pending world acceptance; this older capture predates those source labels.
 
 [Human male armor preview](docs/images/screenshots/2026-10-25-rare-armor/character-720.png)
 is a visual checkpoint, not complete race/sex or attachment acceptance.
+
+Epic identity milestone: all nine classes now have 37 of 54 named cells. This isolated
+Warrior account seeds the Wrath set and Ashkandi to inspect equipped names and bonuses;
+Epic drops, raid variants/set powers, and full appearance acceptance remain unfinished.
+
+![Warrior Epic equipped menu](docs/images/screenshots/2026-10-25-epic-catalog/equipped-menu.png)
 
 Hunter talent milestone: Mortal Shots has a green next-rank preview, and spending/resetting
 Spec 2 leaves Spec 1 intact. Verified at 1280×720 and after a live resize to 1024×720;

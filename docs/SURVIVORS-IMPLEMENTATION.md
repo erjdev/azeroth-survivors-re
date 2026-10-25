@@ -2059,3 +2059,28 @@ damaged-health text cases pass; the previous screenshot remains historical evide
 All 126 Survivors app tests pass with explicit checkout data.
 Native incremental build: 19.42 seconds; workspace test compilation: 2 minutes 39 seconds.
 Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass.
+
+### Complete Epic identity tier — 2026-10-25
+
+Added 72 armor identities and nine class-compatible weapons from the pinned item
+templates, giving every class 37 named cells out of 54. The eight-piece sets are Wrath,
+Judgement, Dragonstalker, Bloodfang, Transcendence, The Ten Storms, Netherwind, Nemesis
+and Stormrage. Exact entries, display/attachment metadata and authored tier decisions
+are documented in [gear visuals](SURVIVORS-GEAR-VISUALS.md#epic-identity-catalog).
+Survivors retains ordinary Epic stats and numeric save indices; no ownership, source,
+vanilla proc or set power is granted. Explicit raid-epic affixes/set builds remain open.
+
+All 81 entries are distinct and class/slot compatible. All 74 core tests and 126 app
+tests with checkout data pass, including display/icon resolution for the new items.
+Native incremental build: 12.63 seconds; workspace test compilation: 22.73 seconds.
+The full content audit still exits nonzero: 395 gaps, including 17 unnamed and 26
+unsourced cells per class plus the existing world/schedule gaps.
+
+A seeded human male Warrior menu renders the nine Epic names, bonuses and 37/54
+collection count; the README links its screenshot (1280×720 logical Retina window).
+Collection navigation could not be completed: CUA coordinate clicks repeatedly failed
+with `noWindowsAvailable` although AX/screenshot reads worked and the app was running.
+No collection-detail interaction or weapon pose acceptance is claimed. The app closed
+through its fresh AX close control, and the normal validation launcher was restored.
+Epic acquisition schedules, all-class appearance checks and remaining bands stay open.
+Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass.
