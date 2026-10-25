@@ -151,3 +151,38 @@ not extend it to 150 yards based on center support. Reject the Arathi map midpoi
 arena; investigate the blacksmith surroundings while accounting for its building. Alterac
 needs local slope inspection or a better location even with the smaller radius. None of
 these surveys unlocks a destination or validates encounters/rewards.
+
+
+## Warsong source-model obstacles
+
+Reproduce with `survivors-audit <Data> --doodads 489 1244.792 1468.750 310.296`.
+The probe now reports transformed hull bounds and four horizontal rays from the supplied
+point. Rays are one-sided, limited to 120 yards and use parsed ADT doodad hulls from the
+surrounding existing 3×3 tiles whose origins lie within 200 yards. They do not include
+terrain, WMO geometry/props, distant-origin overlaps or runtime collision registration.
+
+Within 60 yards of the candidate center, 25 placement origins were found: 17 with parsed
+hulls and eight without. A zero hull count does not establish intentional pass-through.
+
+| Direction in raw WoW coordinates | Nearest source hull hit | Placement |
+| --- | --- | --- |
+| Negative Y | 8.898 yards | 596699 |
+| Positive Y | 96.022 yards | 596694 |
+| Negative X | None within probe scope | — |
+| Positive X | None within probe scope | — |
+
+Placement 596699 is `ashenvaletreestump02.mdx`, at
+`[1240.6113, 1458.3818, 308.66428]`, scale `0.82910156`, with 24 hull triangles.
+Its transformed AABB is `[1229.9644, 1450.9308, 306.7777]` to
+`[1249.2847, 1468.3196, 318.40982]`: only 0.430 yards horizontally from the candidate
+center, despite an origin distance of 11.2 yards. The AABB is conservative, not exact
+occupancy; the 8.898-yard ray hit is at the supplied fixed height, not a capsule sweep
+following terrain. This is a concrete obstacle fixture for runtime slide/route tests.
+
+Next acceptance work: load map 489 at the documented center in a dedicated world-validation
+scene, verify renderer identity and floor height, then compare capsule contact and sliding
+against stump 596699 from multiple directions. Verify route finding around it, nearby
+stumps and tile unload/reload before setting arena readiness. The current standalone
+world viewer accepts a coordinate override but does not expose a map override; it cannot
+validate this instance merely by supplying Warsong coordinates on its default world.
+Campaign map/encounter/reward definitions remain unchanged and Warsong remains locked.

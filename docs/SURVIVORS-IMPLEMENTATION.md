@@ -910,3 +910,13 @@ terrain; shrinking Alterac's midpoint disk does not remove its steep samples. Th
 [location evidence](SURVIVORS-LOCATIONS.md) records coordinates, counts, method and limits.
 Five audit tests and Clippy pass. World traversal, source model identity, WMO/doodad
 collision, camera behavior and encounter/reward implementation remain outstanding.
+
+
+### Warsong obstacle checkpoint — 2026-10-24
+
+The model audit now reports world-space hull bounds and center rays. Local data identifies
+17 hull-bearing props and eight zero-hull props with origins inside the 60-yard candidate.
+A center ray hits stump 596699 at 8.898 yards; its bounds approach much closer than its
+origin. Use this fixture for runtime collision and route tests; terrain-only clearance is
+insufficient. The location report records exact coordinates, evidence limits and the
+standalone viewer's missing instance-map override. Six audit tests and Clippy pass.

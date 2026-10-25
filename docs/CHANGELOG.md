@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Warsong obstacle evidence
+
+Model audits now report transformed collision bounds and rays from the candidate center.
+Warsong's proposed arena contains solid stump obstacles; a documented 8.9-yard hit supplies
+a fixture for runtime collision and routing checks. [Evidence](SURVIVORS-LOCATIONS.md#warsong-source-model-obstacles).
+Six audit tests and Clippy pass. Runtime collision and world rendering remain unverified.
+
 ## 2026-10-24 — Arena terrain surveys
 
 Added `--terrain` to measure sampled support, water, impassable terrain and slopes across
