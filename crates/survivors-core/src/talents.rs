@@ -594,6 +594,38 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::Armor,
         per_rank: 6.0,
     },
+    TalentDefinition {
+        id: 147,
+        max_rank: 3,
+        name: "Improved Revenge",
+        description: "Retaliation: +10% reflected damage per rank (Survivors conversion)",
+        stat: TalentStat::SpellDamage("retaliation"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 150,
+        max_rank: 2,
+        name: "Improved Shield Wall",
+        description: "Retaliation: +15% duration per rank (Survivors conversion)",
+        stat: TalentStat::SpellDuration("retaliation"),
+        per_rank: 0.15,
+    },
+    TalentDefinition {
+        id: 153,
+        max_rank: 1,
+        name: "Last Stand",
+        description: "Retaliation heals an additional 5% maximum health once per cast",
+        stat: TalentStat::SpellHeal("retaliation"),
+        per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 167,
+        max_rank: 1,
+        name: "Bloodthirst",
+        description: "Execute heals an additional 2% maximum health once per cast",
+        stat: TalentStat::SpellHeal("execute"),
+        per_rank: 0.02,
+    },
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[

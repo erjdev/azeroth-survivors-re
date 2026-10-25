@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Warrior defensive talents
+
+Four more individual talents replace placeholder damage: Improved Revenge increases
+Retaliation damage, Improved Shield Wall extends it, and Last Stand/Bloodthirst add capped
+healing to Retaliation/Execute. Node healing combines with milestone healing once per cast.
+A longer Retaliation also extends Death Wish's incoming-damage penalty.
+
+[Defensive talent details at 720p](images/screenshots/2026-10-24-warrior-talents/defensive-talents-720.jpg).
+Coefficients remain provisional; remaining talents and manual combat validation are pending.
+**Validation:** native build, workspace test compilation, 85 Survivors tests, 50 core tests,
+and the local talent-data audit pass. Improved Shield Wall details verified at 720p.
+
 ## 2026-10-24 — Protection milestones
 
 Last Stand heals on Retaliation, Concussion Blow adds a brief Heroic Strike stun, and

@@ -312,8 +312,8 @@ audit must reject mismatched IDs, names or rank caps for supported nodes.
 Warrior individual talents now use the same selected-spec snapshot and comparison path.
 The following audited nodes replace their provisional +1% damage per rank; spent points
 still count toward existing tree milestones. These are Survivors conversions, not claims
-that rage, parry, or the original MMO talent behavior exists. Unsupported nodes and Warrior
-milestone-specific behaviors remain unfinished.
+that rage, parry, or the original MMO talent behavior exists. Unsupported individual nodes remain unfinished; all nine named Warrior milestones
+have implementations described below.
 
 | Talent ID | Name | Ranks | Survivors effect per rank |
 | --- | --- | --- | --- |
@@ -329,10 +329,18 @@ milestone-specific behaviors remain unfinished.
 | 1542 | Improved Execute | 2 | Execute cooldown shortened by 10% |
 | 138 | Anticipation | 5 | +1 percentage point damage reduction |
 | 140 | Toughness | 5 | +6 armor |
+| 147 | Improved Revenge | 3 | Retaliation +10% reflected damage |
+| 150 | Improved Shield Wall | 2 | Retaliation +15% duration |
+| 153 | Last Stand | 1 | Retaliation heals an additional 5% maximum health once per cast |
+| 167 | Bloodthirst | 1 | Execute heals an additional 2% maximum health once per cast |
 
 Ranks add within each node; cast multipliers compose with ordinary stats and legendary
 bonuses. Booming Voice changes the actual shout area, never its number of locations.
 Damage talents improve already-acquired abilities rather than granting free abilities.
+Improved Shield Wall extends the actual Retaliation buff, including Death Wish's incoming-
+damage risk when that milestone is active. Last Stand and Bloodthirst node healing adds to
+the same-name milestone healing, caps at maximum health, and applies once per successful
+cast regardless of extra targets. The nodes do not grant the corresponding ability.
 The data audit now checks every supported class catalog for missing nodes as well as
 wrong names and rank limits. Save format remains unchanged.
 
@@ -836,3 +844,14 @@ allocation. App tests cover capped healing, extra-target cast parameters, shield
 absorption and preservation of stronger defenses. Native build, workspace test compilation,
 84 Survivors tests and 50 core tests pass. Live Shield Slam details fit at 720p; the changelog
 links the screenshot. Full manual Protection combat validation remains outstanding.
+
+
+### Warrior defensive talent checkpoint — 2026-10-24
+
+Sixteen individual Warrior nodes now have specific effects. Improved Revenge, Improved
+Shield Wall, Last Stand and Bloodthirst use existing reflected damage, duration and capped
+cast-healing paths. Shared rank tests exercise each new node at every rank; an app test
+checks cast parameters, milestone composition, healing caps and training reset. Native
+build, workspace test compilation, 85 Survivors tests, 50 core tests and the talent-data
+audit pass. Live 720p Improved Shield Wall details are captured in the changelog. Manual
+combat acceptance and remaining Warrior nodes are still unfinished.

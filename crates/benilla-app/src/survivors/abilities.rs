@@ -1150,6 +1150,41 @@ mod milestone_tests {
     }
 
     #[test]
+    fn warrior_defensive_training_composes_with_milestones_and_heal_caps() {
+        let base = Milestones {
+            class: 0,
+            points: [0, 30, 10],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(2, 147, 3), (2, 150, 2), (2, 153, 1), (1, 167, 1)]);
+        let mut run = Run::default();
+        let stats = run.stats();
+        let owned = Owned {
+            def: data::ability("retaliation"),
+            level: 4,
+            cd: 0.0,
+        };
+        let before = Params::new(&owned, &stats, base);
+        let after = Params::new(&owned, &stats, trained);
+        assert!((after.dmg - before.dmg * 1.3).abs() < 0.0001);
+        assert!((after.duration - before.duration * 1.3).abs() < 0.0001);
+        assert_eq!(after.cooldown, before.cooldown);
+        assert_eq!(after.count, before.count);
+        run.hp = 40.0;
+        let healed = finish_milestone_cast(&mut run, trained.cast("retaliation"), 100.0);
+        assert!((healed - 15.0).abs() < 0.0001);
+        let healed = finish_milestone_cast(&mut run, trained.cast("execute"), 100.0);
+        assert!((healed - 5.0).abs() < 0.0001);
+        run.hp = 99.0;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("execute"), 100.0),
+            1.0
+        );
+        assert_eq!(run.hp, 100.0);
+        assert_eq!(trained.with_ranks(&[]), base);
+    }
+
+    #[test]
     fn warrior_training_reaches_casts_without_extra_area_locations() {
         let stats = Run::default().stats();
         let base = Milestones {
