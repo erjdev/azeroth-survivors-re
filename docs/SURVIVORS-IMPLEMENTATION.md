@@ -18,6 +18,17 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Achievement presentation checkpoint: replaced plain rows with the intention's
+points badge, category rail, recently earned cards, five category progress bars,
+and counted achievement cards. Descriptions derive from the same catalog variants
+that evaluate completion. No earned dates are stored, so cards use “Earned”. Category
+icons are verified local substitutes; boss-specific art and decorative crest work
+remain open. Responsive layout uses wrapping proportional columns and scrolling,
+with separate session offsets for Summary and each category. Live 1280×720 and
+640×720 captures, lower-zone reachability and navigation scroll restoration are
+recorded inline in the changelog.
+
+
 Rewards confirmation checkpoint: Perk/Companion purchases and perk resets are held
 in a session draft. Confirm validates the entire batch against the latest account
 before applying it; Undo discards the batch. Navigation retains pending choices,

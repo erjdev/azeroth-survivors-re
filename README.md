@@ -281,7 +281,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
     <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-24/talents.jpg" alt="Talents: Warrior tree presentation; this image does not imply every talent effect is implemented."><br>Warrior tree presentation; this image does not imply every talent effect is implemented.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-24/achievements.jpg" alt="Achievements: Achievement categories and account summary."><br>Achievement categories and account summary.</td>
+    <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-25-achievement-cards/summary-1280.jpg" alt="Achievements: Illustrated achievement cards, account points and progress."><br>Illustrated achievement cards, account points and progress.</td>
     <td width="50%"><strong>Rewards</strong><br><img src="docs/images/screenshots/2026-10-24/rewards.jpg" alt="Rewards: Current reward list and cosmetic categories."><br>Current reward list and cosmetic categories.</td>
   </tr>
   <tr>

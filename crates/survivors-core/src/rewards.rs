@@ -307,6 +307,31 @@ impl Kind {
         }
     }
 
+    fn description(&self) -> String {
+        match *self {
+            Kind::Placeholder => "Criteria will be defined in a future update.".into(),
+            Kind::ZoneAny(z) => format!("Clear {} with any class.", ZONES[z].name),
+            Kind::ZoneAll(z) => format!("Clear {} with all nine classes.", ZONES[z].name),
+            Kind::ClassClear(c) => format!("Clear a zone as {}.", data::CLASSES[c].name),
+            Kind::TalentCap(c) => format!(
+                "Reach talent level {} as {}.",
+                campaign::TALENT_CAP,
+                data::CLASSES[c].name
+            ),
+            Kind::Pieces(n) => {
+                format!("Collect {n} distinct class gear pieces across the account.")
+            }
+            Kind::FullSet => "Collect gear for all nine slots of one class.".into(),
+            Kind::Legends(n) => format!("Discover {n} legendary amulets in the Codex."),
+            Kind::AnyCloak => "Collect a cloak of any quality.".into(),
+            Kind::EpicCloak => "Collect an epic cloak.".into(),
+            Kind::LegendaryCloak => "Collect a legendary cloak.".into(),
+            Kind::Wins(1) => "Win a run.".into(),
+            Kind::Wins(n) => format!("Win {n} runs."),
+            Kind::Runs(n) => format!("Play {n} runs."),
+        }
+    }
+
     fn category(&self) -> Category {
         match self {
             Kind::ZoneAny(_) | Kind::ZoneAll(_) => Category::Zones,
@@ -499,6 +524,7 @@ pub fn catalog_len() -> usize {
 pub struct Listed {
     pub id: u16,
     pub name: String,
+    pub description: String,
     pub points: u32,
     pub earned: bool,
     pub available: bool,
@@ -516,6 +542,7 @@ pub fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
                 && (earned.contains(&a.id) || a.kind.met(snapshot)),
             available: !matches!(a.kind, Kind::Placeholder),
             points: a.points,
+            description: a.kind.description(),
             name: a.name,
             category: a.kind.category(),
             progress: a.kind.progress(snapshot),

@@ -3,6 +3,33 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Illustrated achievement cards and progress
+
+Rebuilt Achievements around the [summary](intentions/survivors_achievements_tab_summary.png)
+and [zone](intentions/survivors_achievement_tab_zones.png) references: account points,
+category navigation, recently earned cards, and ranked “Almost there” progress.
+Cards explain their actual completion rules and known Companion rewards. Placeholder
+feats remain impossible to earn. Each category retains its session scroll position.
+
+![Achievement summary and closest goals](images/screenshots/2026-10-25-achievement-cards/summary-1280.jpg)
+
+![Zone clears precede all-class champion goals](images/screenshots/2026-10-25-achievement-cards/zones-1280.jpg)
+
+![Lower zone goals remain reachable after a Collection round trip](images/screenshots/2026-10-25-achievement-cards/zones-return-1280.jpg)
+
+![Unachievable placeholder feats retain their planned rewards](images/screenshots/2026-10-25-achievement-cards/feats-1280.jpg)
+
+![Navigation stacks at 640×720](images/screenshots/2026-10-25-achievement-cards/navigation-640.jpg)
+
+![Narrow summary content remains reachable by scrolling](images/screenshots/2026-10-25-achievement-cards/summary-640.jpg)
+
+Captures use an isolated synthetic account. Live checks covered category selection,
+lower-card reachability, navigation scroll restoration and resizing without restart.
+Category icons currently substitute for bespoke achievement art; the decorative crest
+and typography still need refinement. Earned dates are not stored, so cards say “Earned”.
+Validation: 97 core tests, 179 Survivors app tests, native build, workspace test
+compilation, Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Placeholder feats and locked Companion looks
 
 Added **Deathless Hour** and **no u** under Feats, marked “Criteria pending”. As

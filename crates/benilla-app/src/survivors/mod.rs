@@ -95,6 +95,7 @@ impl Plugin for SurvivorsPlugin {
                 (
                     armory::remember_talent_scroll,
                     armory::remember_reward_scroll,
+                    armory::remember_achievement_scroll,
                 )
                     .run_if(in_state(Phase::Menu)),
             )

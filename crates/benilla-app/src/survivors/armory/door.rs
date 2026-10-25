@@ -51,6 +51,8 @@ pub(super) fn build(
         super::talent_page::build(ui, font, account, selection, talents, talent_scroll);
     } else if armory.page == Page::Rewards {
         super::rewards_page(ui, font, armory, account);
+    } else if armory.page == Page::Achievements {
+        super::achievements(ui, font, armory, account);
     } else if armory.page == Page::Heroes {
         super::character::build(
             ui, art, font, armory, account, selection, renown, stash, layout, features,

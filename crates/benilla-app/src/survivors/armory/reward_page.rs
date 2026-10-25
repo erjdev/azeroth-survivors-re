@@ -35,7 +35,7 @@ fn text(
     ui.spawn(hud::text_bundle(font, value, size, color));
 }
 
-fn frame(
+pub(super) fn frame(
     ui: &mut ChildSpawnerCommands,
     basis: f32,
     grow: f32,

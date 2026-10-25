@@ -1,6 +1,8 @@
 //! The Armory: the front door before a run, and the draft pages a tab opens inside that frame.
 //! Appearance stays on the glue race and class screen, reached from the hero column.
 
+mod achievement_page;
+pub(super) use achievement_page::remember_scroll as remember_achievement_scroll;
 mod character;
 pub(super) use character::subject as character_subject;
 mod codex_page;
@@ -141,6 +143,7 @@ pub(super) struct Armory {
     pub note: String,
     /// 0 summary, then Zones, Classes, Collection, Feats, Lifetime.
     achieve: u8,
+    achievement_scroll: [Vec2; 6],
     /// 0 perks, 1 companions, 2 tabards.
     reward_page: u8,
     /// Session-only positions, separate for Perks, Companions and Tabards.
@@ -165,6 +168,7 @@ impl Default for Armory {
             picked: None,
             note: String::new(),
             achieve: 0,
+            achievement_scroll: [Vec2::ZERO; 6],
             reward_page: 0,
             reward_scroll: [Vec2::ZERO; 3],
             reward_draft: reward_draft::Draft::default(),
@@ -1779,216 +1783,7 @@ fn achievements(
     armory: &Armory,
     account: &Account,
 ) {
-    let rows = account.achievement_list();
-    let earned_n = rows.iter().filter(|row| row.earned).count();
-    let earned_pts: u32 = rows
-        .iter()
-        .filter(|row| row.earned)
-        .map(|row| row.points)
-        .sum();
-    let total_pts: u32 = rows.iter().map(|row| row.points).sum();
-    let names = [
-        "Summary",
-        "Zones",
-        "Classes",
-        "Collection",
-        "Feats",
-        "Lifetime",
-    ];
-    panel
-        .spawn(Node {
-            width: Val::Percent(100.0),
-            flex_direction: FlexDirection::Row,
-            column_gap: Val::Px(12.0),
-            ..default()
-        })
-        .with_children(|row| {
-            row.spawn(Node {
-                width: Val::Px(168.0),
-                flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(2.0),
-                ..default()
-            })
-            .with_children(|nav| {
-                nav.spawn(hud::text_bundle(
-                    font,
-                    format!("{earned_pts} of {total_pts}"),
-                    16.0,
-                    GOLD,
-                ));
-                nav.spawn(hud::text_bundle(
-                    font,
-                    format!("{earned_n} of {} earned", rows.len()),
-                    12.0,
-                    DIM,
-                ));
-                for (index, name) in names.iter().enumerate() {
-                    let label = if index == 0 {
-                        (*name).to_string()
-                    } else {
-                        let (have, total, _, _) = category_counts(&rows, index as u8);
-                        format!("{name}  {have}/{total}")
-                    };
-                    chip(
-                        nav,
-                        font,
-                        &label,
-                        Act::Achieve(index as u8),
-                        armory.achieve == index as u8,
-                    );
-                    if index > 0 {
-                        let (_, _, pts, all) = category_counts(&rows, index as u8);
-                        meter(
-                            nav,
-                            if all == 0 {
-                                0.0
-                            } else {
-                                pts as f32 / all as f32
-                            },
-                        );
-                    }
-                }
-            });
-            row.spawn(Node {
-                flex_grow: 1.0,
-                flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(2.0),
-                ..default()
-            })
-            .with_children(|body| {
-                if armory.achieve == 0 {
-                    achievement_summary(body, font, account, &rows);
-                } else if let Some(category) = category_of(armory.achieve) {
-                    for entry in rows.iter().filter(|row| row.category == category) {
-                        let progress = entry
-                            .progress
-                            .map(|(have, need)| format!("  {have}/{need}"))
-                            .unwrap_or_default();
-                        let (mark, color) = if !entry.available {
-                            ("Criteria pending", DIM)
-                        } else if entry.earned {
-                            ("Earned", GOLD)
-                        } else {
-                            ("Open", Color::WHITE)
-                        };
-                        body.spawn(hud::text_bundle(
-                            font,
-                            if entry.available {
-                                format!(
-                                    "{mark} — {} — {} points{progress}",
-                                    entry.name, entry.points
-                                )
-                            } else {
-                                format!("{mark} — {}", entry.name)
-                            },
-                            13.0,
-                            color,
-                        ));
-                    }
-                }
-            });
-        });
-}
-
-fn achievement_summary(
-    body: &mut impl ChipParent,
-    font: &Handle<Font>,
-    account: &Account,
-    rows: &[rewards::Listed],
-) {
-    body.spawn(hud::text_bundle(font, "Recently earned", 13.0, GOLD));
-    let mut recent = 0;
-    for id in account.earned_ids().iter().rev() {
-        let Some(row) = rows.iter().find(|row| row.id == *id) else {
-            continue;
-        };
-        body.spawn(hud::text_bundle(
-            font,
-            format!("{} — {} points", row.name, row.points),
-            13.0,
-            Color::WHITE,
-        ));
-        recent += 1;
-        if recent == 4 {
-            break;
-        }
-    }
-    if recent == 0 {
-        body.spawn(hud::text_bundle(font, "None yet.", 13.0, DIM));
-    }
-    body.spawn(hud::text_bundle(font, "Almost there", 13.0, GOLD));
-    let mut close: Vec<_> = rows
-        .iter()
-        .filter(|row| !row.earned && row.progress.is_some())
-        .collect();
-    close.sort_by(|a, b| {
-        let (ah, an) = a.progress.unwrap_or((0, 1));
-        let (bh, bn) = b.progress.unwrap_or((0, 1));
-        let af = ah as f32 / an.max(1) as f32;
-        let bf = bh as f32 / bn.max(1) as f32;
-        bf.partial_cmp(&af).unwrap_or(std::cmp::Ordering::Equal)
-    });
-    if close.is_empty() {
-        body.spawn(hud::text_bundle(font, "Nothing in progress.", 13.0, DIM));
-    }
-    for row in close.into_iter().take(4) {
-        let (have, need) = row.progress.unwrap_or((0, 1));
-        body.spawn(hud::text_bundle(
-            font,
-            format!("{} — {} points  {have}/{need}", row.name, row.points),
-            13.0,
-            Color::WHITE,
-        ));
-    }
-}
-
-fn category_of(page: u8) -> Option<rewards::Category> {
-    match page {
-        1 => Some(rewards::Category::Zones),
-        2 => Some(rewards::Category::Classes),
-        3 => Some(rewards::Category::Collection),
-        4 => Some(rewards::Category::Feats),
-        5 => Some(rewards::Category::Lifetime),
-        _ => None,
-    }
-}
-
-fn category_counts(rows: &[rewards::Listed], page: u8) -> (usize, usize, u32, u32) {
-    let Some(category) = category_of(page) else {
-        return (0, 0, 0, 0);
-    };
-    let mine: Vec<_> = rows.iter().filter(|row| row.category == category).collect();
-    let have = mine.iter().filter(|row| row.earned).count();
-    let pts = mine
-        .iter()
-        .filter(|row| row.earned)
-        .map(|row| row.points)
-        .sum();
-    let all = mine.iter().map(|row| row.points).sum();
-    (have, mine.len(), pts, all)
-}
-
-fn meter(parent: &mut impl ChipParent, fraction: f32) {
-    parent
-        .spawn((
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Px(4.0),
-                margin: UiRect::bottom(Val::Px(4.0)),
-                ..default()
-            },
-            BackgroundColor(Color::srgba(0.2, 0.16, 0.08, 0.9)),
-        ))
-        .with_children(|bar| {
-            bar.spawn((
-                Node {
-                    width: Val::Percent((fraction.clamp(0.0, 1.0) * 100.0).max(0.0)),
-                    height: Val::Percent(100.0),
-                    ..default()
-                },
-                BackgroundColor(GOLD),
-            ));
-        });
+    achievement_page::build(panel, font, armory, account);
 }
 
 fn codex_legend(class: usize, slot: usize) -> u16 {
