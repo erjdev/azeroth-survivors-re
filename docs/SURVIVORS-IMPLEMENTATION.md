@@ -855,3 +855,18 @@ checks cast parameters, milestone composition, healing caps and training reset. 
 build, workspace test compilation, 85 Survivors tests, 50 core tests and the talent-data
 audit pass. Live 720p Improved Shield Wall details are captured in the changelog. Manual
 combat acceptance and remaining Warrior nodes are still unfinished.
+
+
+### Talent upgrade readability
+
+Supported individual talents show their implemented effect in green with a current-to-next-
+rank comparison. The comparison is explicitly the node's contribution, excluding other
+nodes, milestones and equipment. Maximum rank shows its final contribution without an
+next-rank comparison. Armor uses flat points; percentage effects use percentage units. Supported
+milestone effects also use green text. Unknown nodes retain an explicit pending notice in
+white. Names and rank headers remain white, and both talent layouts use the shared details
+system. This extends the green upgrade language used by level and chest cards.
+
+Validation: native build, workspace test compilation, 85 Survivors tests and 51 core tests
+pass. Live 720p comparison and supported-to-pending color reset verified; screenshot linked
+in the changelog and README. Maximum-rank formatting is covered by core tests.

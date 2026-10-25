@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Green talent upgrade previews
+
+Supported talent effects now appear in green beneath white name/rank headings. Each node
+shows its current contribution and next-rank value, or its final value at maximum rank.
+Milestone effects also use green; unfinished effects retain a clear pending notice.
+Comparisons use font-compatible text and distinguish node bonuses from total character stats.
+
+[Green rank preview at 720p](images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg).
+**Validation:** native build, workspace test compilation, 85 Survivors tests and 51 core
+tests pass. Live 720p checks confirm the comparison, green effect text, white heading and
+color reset for an unfinished talent.
+
 ## 2026-10-24 — Warrior defensive talents
 
 Four more individual talents replace placeholder damage: Improved Revenge increases

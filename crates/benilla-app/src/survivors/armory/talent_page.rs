@@ -263,7 +263,8 @@ pub(super) fn build(
                 button(reset, font, "Reset this spec".into(), Act::Respec, false);
             });
             text(side, font, "Point at a talent or milestone to inspect it. Click spends a point; right-click refunds one. Each row needs five points per tier in earlier rows of its tree.", 12.0, DIM);
-            side.spawn((TalentDetail, hud::text_bundle(font, "Choose a talent to read its Survivors effect.", 14.0, Color::WHITE)));
+            side.spawn((TalentDetail::Title, hud::text_bundle(font, "Choose a talent to read its Survivors effect.", 14.0, Color::WHITE)));
+            side.spawn((TalentDetail::Effect, hud::text_bundle(font, "", 14.0, Color::WHITE)));
             if hero.spent() > 0 && spent == 0 {
                 text(side, font, "Spending on these trees returns the legacy spread to unspent points.", 12.0, DIM);
             }

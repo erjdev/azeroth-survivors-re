@@ -1014,7 +1014,10 @@ fn dbc_points(hero: &super::account::Character, spec: usize) -> [u32; 3] {
 }
 
 #[derive(Component)]
-pub(super) struct TalentDetail;
+pub(super) enum TalentDetail {
+    Title,
+    Effect,
+}
 
 #[derive(Component)]
 pub(super) struct TalentInfo {
@@ -1029,39 +1032,59 @@ pub(super) struct TalentInfo {
 /// Update the detail line without rebuilding the tree under the pointer.
 pub(super) fn talent_details(
     nodes: Query<(&Interaction, &TalentInfo)>,
-    mut detail: Query<&mut Text, With<TalentDetail>>,
+    mut detail: Query<(&TalentDetail, &mut Text, &mut TextColor)>,
     spells: Option<Res<crate::ui_action::Spells>>,
 ) {
     let Some((_, node)) = nodes.iter().find(|(state, _)| **state != Interaction::None) else {
         return;
     };
-    if let Some((tree, at)) = node.milestone {
-        let effect = survivors_core::talents::description(node.class, tree, at)
-            .unwrap_or("Individual milestone effect pending; provisional tree stat bonuses apply.");
-        let value = format!(
-            "{} · {at} points\n{effect}",
-            campaign::milestone_name(node.class, tree, at)
-        );
-        for mut text in &mut detail {
-            if **text != value {
-                **text = value.clone();
-            }
-        }
-        return;
-    }
-    let name = spells
-        .as_deref()
-        .and_then(|spells| spells.catalog.get(node.spell))
-        .map(|spell| spell.name.as_str())
-        .unwrap_or("Talent");
-    let effect = survivors_core::talents::talent_definition(node.class, node.id)
-        .map(|node| node.description)
-        .unwrap_or("Individual effect pending; currently +1% damage per rank.");
-    let value = format!("{name}  {}/{} — Survivors: {effect}", node.rank, node.max);
-    for mut text in &mut detail {
-        if **text != value {
+    let (title, effect, supported) = if let Some((tree, at)) = node.milestone {
+        let effect = survivors_core::talents::description(node.class, tree, at);
+        (
+            format!(
+                "{} · {at} points",
+                campaign::milestone_name(node.class, tree, at)
+            ),
+            effect
+                .unwrap_or(
+                    "Individual milestone effect pending; provisional tree stat bonuses apply.",
+                )
+                .to_owned(),
+            effect.is_some(),
+        )
+    } else {
+        let name = spells
+            .as_deref()
+            .and_then(|spells| spells.catalog.get(node.spell))
+            .map(|spell| spell.name.as_str())
+            .unwrap_or("Talent");
+        let definition = survivors_core::talents::talent_definition(node.class, node.id);
+        (
+            format!("{name}  {}/{}", node.rank, node.max),
+            definition
+                .map(|def| format!("{}\n{}", def.description, def.rank_preview(node.rank)))
+                .unwrap_or_else(|| {
+                    "Individual effect pending; currently +1% damage per rank.".to_owned()
+                }),
+            definition.is_some(),
+        )
+    };
+    for (part, mut text, mut color) in &mut detail {
+        let (value, tint) = match part {
+            TalentDetail::Title => (&title, Color::WHITE),
+            TalentDetail::Effect => (
+                &effect,
+                if supported {
+                    Color::srgb(0.45, 1.0, 0.45)
+                } else {
+                    Color::WHITE
+                },
+            ),
+        };
+        if **text != *value {
             **text = value.clone();
         }
+        color.0 = tint;
     }
 }
 
@@ -1077,13 +1100,17 @@ fn draw_real_talents(
         return false;
     }
     panel.spawn((
-        TalentDetail,
+        TalentDetail::Title,
         hud::text_bundle(
             font,
             "Hover a talent to inspect its rank and current Survivors effect.",
             13.0,
             Color::WHITE,
         ),
+    ));
+    panel.spawn((
+        TalentDetail::Effect,
+        hud::text_bundle(font, "", 13.0, Color::WHITE),
     ));
     let active = usize::from(hero.spec).min(2);
     let points = dbc_points(hero, active);

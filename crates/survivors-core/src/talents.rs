@@ -496,6 +496,38 @@ pub enum TalentStat {
     SpellRadius(&'static str),
 }
 
+impl TalentDefinition {
+    /// This node's contribution only, before other talents, equipment and milestones.
+    pub fn rank_preview(&self, rank: u8) -> String {
+        let rank = rank.min(self.max_rank);
+        let (scale, unit) = match self.stat {
+            TalentStat::Armor => (1.0, " armor"),
+            TalentStat::Damage | TalentStat::SpellDamage(_) => (100.0, "% damage"),
+            TalentStat::Cooldown | TalentStat::SpellCooldown(_) => (100.0, "% cooldown reduction"),
+            TalentStat::Crit | TalentStat::SpellCrit(_) => (100.0, "% critical chance"),
+            TalentStat::CritDamage => (100.0, "% critical damage"),
+            TalentStat::Reduction => (100.0, "% damage reduction"),
+            TalentStat::Speed => (100.0, "% movement speed"),
+            TalentStat::SpellDuration(_) => (100.0, "% duration"),
+            TalentStat::SpellHeal(_) => (100.0, "% maximum health healed per cast"),
+            TalentStat::SpellRadius(_) => (100.0, "% radius"),
+        };
+        let amount = |rank| {
+            let value = format!("{:.1}", self.per_rank * f32::from(rank) * scale);
+            value.strip_suffix(".0").unwrap_or(&value).to_owned()
+        };
+        if rank == self.max_rank {
+            format!("This talent: {}{unit} (maximum rank)", amount(rank))
+        } else {
+            format!(
+                "This talent: {} to {}{unit} next rank",
+                amount(rank),
+                amount(rank + 1)
+            )
+        }
+    }
+}
+
 /// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
 pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
@@ -834,6 +866,32 @@ mod stat_talent_tests {
             for (index, node) in nodes.iter().enumerate() {
                 assert!(!nodes[..index].iter().any(|other| other.id == node.id));
             }
+        }
+    }
+
+    #[test]
+    fn talent_previews_show_node_contribution_and_stop_at_the_rank_cap() {
+        let armor = talent_definition(0, 140).unwrap();
+        assert_eq!(armor.rank_preview(0), "This talent: 0 to 6 armor next rank");
+        assert_eq!(
+            armor.rank_preview(4),
+            "This talent: 24 to 30 armor next rank"
+        );
+        assert_eq!(
+            armor.rank_preview(255),
+            "This talent: 30 armor (maximum rank)"
+        );
+        assert_eq!(
+            talent_definition(0, 150).unwrap().rank_preview(1),
+            "This talent: 15 to 30% duration next rank"
+        );
+        assert_eq!(
+            talent_definition(0, 153).unwrap().rank_preview(0),
+            "This talent: 0 to 5% maximum health healed per cast next rank"
+        );
+        for node in (0..9).flat_map(definitions) {
+            assert!(!node.rank_preview(node.max_rank).contains("next rank"));
+            assert!(node.rank_preview(0).contains("next rank"));
         }
     }
 
