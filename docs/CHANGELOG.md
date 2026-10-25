@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage school training and battleground direction
+
+Arcane Instability now improves Mage spell damage and critical chance; Elemental
+Precision improves Fire/Frost damage. Both replace generic stat placeholders,
+with scoped effects and accurate previews. Battleground zones are confirmed as
+horde survival with faction-themed encounters. Remaining Mage talents and
+battleground content are still in progress. 91 core and 157 app tests, DBC audit,
+Clippy and native build pass (14 seconds); live validation remains open.
+
 ## 2026-10-25 — Long upgrade-card layout validation
 
 Added an opt-in card inspection mode that holds level-up and chest choices.

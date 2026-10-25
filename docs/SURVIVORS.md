@@ -241,3 +241,10 @@ Shrinking the horde. Removing the level-up draft, renown, or the relic stash bef
 and talents replace what the player spends them on. An unverified download-and-run updater. The prompted, authenticated update design is in
 [development and distribution](SURVIVORS-DEVELOPMENT.md). Inventing
 item icons, creature display ids, or map files that are not in the 1.12.1 client.
+
+### Battleground encounter format
+
+Warsong Gulch, Arathi Basin and Alterac Valley keep horde survival with authored
+faction-themed encounters and bosses. They do not require a separate PvP objective
+mode. Use map-appropriate faction identities and verify spawn routes, collision,
+boss pacing and reward sources before unlocking these zones.

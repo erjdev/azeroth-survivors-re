@@ -1995,6 +1995,45 @@ mod milestone_tests {
     }
 
     #[test]
+    fn mage_instability_and_precision_reach_all_spell_casts() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 421, 3), (2, 1649, 3)]);
+        let stats = Run::default().stats();
+        for key in data::CLASSES[6]
+            .pool
+            .iter()
+            .copied()
+            .chain(["holy_shock", "consecration"])
+        {
+            let mage = data::CLASSES[6].pool.contains(&key);
+            let elemental = mage && !matches!(key, "arcane_missiles" | "arcane_explosion");
+            let factor = if mage { 1.03 } else { 1.0 } * if elemental { 1.03 } else { 1.0 };
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * factor).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * factor).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit - before.crit - if mage { 0.03 } else { 0.0 }).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.cooldown, before.cooldown);
+                assert_eq!(after.effect, before.effect);
+            }
+        }
+    }
+
+    #[test]
     fn hunter_training_reaches_direct_periodic_and_control_casts() {
         let base = Milestones {
             class: 2,

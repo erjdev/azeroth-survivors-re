@@ -2860,3 +2860,37 @@ validation launcher was restored after exit. Clippy, native build (42.45 seconds
 formatting, render-pass lint and diff checks pass; seven existing inline-description
 tests also pass. This closes this card's two-size wrapping check only. Live defense
 timing, the full responsive matrix and remaining Mage implementation stay open.
+
+
+### Battleground mode decision — 2026-10-25
+
+User confirmed horde survival with faction-themed encounters for Warsong Gulch,
+Arathi Basin and Alterac Valley. The earlier mode question is resolved. Author
+map-appropriate waves and bosses, then verify placements, traversal, pacing and
+PvP-tier reward sources; do not substitute spirit guides for combat bosses or
+require capture-the-flag, resource-control or player-versus-player systems.
+
+
+### Mage Arcane Instability and Elemental Precision — 2026-10-25
+
+Arcane Instability (DBC 421, three ranks, Presence of Mind prerequisite) now grants
+1% damage and one percentage point of critical chance per rank to the eleven Mage
+spells. Its talent preview shows both contributions. Elemental Precision (1649,
+three ranks) converts hit chance into 1% Fire/Frost damage per rank, consistent
+with the existing Survivors hit-stat conversion. Arcane spells do not receive
+Elemental Precision; other-class and neutral jewelry spells receive neither.
+Both replace their temporary generic per-point damage. Effects compose with
+school talents, affect direct and periodic spell damage, and leave area geometry,
+target counts and cooldowns unchanged. Thirty Mage nodes now have explicit rules;
+remaining nodes and Arcane/Fire milestones still require implementation.
+
+Core coverage checks every Mage spell, rank caps, reset and foreign classes,
+plus the dual-stat preview. App coverage checks direct/periodic damage, critical
+chance and unchanged geometry at ranks 1, 3 and 8. Live talent-page and combat
+acceptance for these two nodes remains open.
+
+Validation: 91 core and 157 Survivors app tests pass, as do workspace test
+compilation, Clippy, formatting, render-pass lint and diff checks. The explicit-data
+DBC talent audit confirms both three-rank identities and Instability's Presence
+of Mind prerequisite. Native incremental play build: 14.43 seconds. No new live
+capture or full-workspace test-pass claim is made for this checkpoint.

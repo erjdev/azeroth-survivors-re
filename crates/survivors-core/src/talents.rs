@@ -235,6 +235,19 @@ impl Milestones {
                             effect.radius *= 1.0 + value;
                         }
                     }
+                    TalentStat::ArcaneInstability
+                        if MAGE_ARCANE.contains(&key)
+                            || MAGE_FIRE.contains(&key)
+                            || MAGE_FROST.contains(&key) =>
+                    {
+                        effect.damage *= 1.0 + value;
+                        effect.crit += value;
+                    }
+                    TalentStat::ElementalPrecision
+                        if MAGE_FIRE.contains(&key) || MAGE_FROST.contains(&key) =>
+                    {
+                        effect.damage *= 1.0 + value;
+                    }
                     TalentStat::SpellGroupDamage(spells) if spells.contains(&key) => {
                         effect.damage *= 1.0 + value;
                     }
@@ -817,6 +830,8 @@ pub enum TalentStat {
     SecondaryRootDuration(&'static str),
     Reduction,
     Speed,
+    ArcaneInstability,
+    ElementalPrecision,
     SpellGroupDamage(&'static [&'static str]),
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
@@ -843,7 +858,21 @@ impl TalentDefinition {
                 format!("This talent: {} » {} percentage points stronger slows; {rank} » {} sec added duration next rank", strength(rank), strength(rank + 1), rank + 1)
             };
         }
+        if self.stat == TalentStat::ArcaneInstability {
+            let value = u32::from(rank);
+            return if rank == self.max_rank {
+                format!("This talent: {value}% damage; {value}% critical chance (maximum rank)")
+            } else {
+                format!(
+                    "This talent: {value} » {}% damage; {value} » {}% critical chance next rank",
+                    value + 1,
+                    value + 1
+                )
+            };
+        }
         let (scale, unit) = match self.stat {
+            TalentStat::ArcaneInstability => unreachable!("handled above"),
+            TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
             TalentStat::Armor => (1.0, " armor"),
             TalentStat::SpellShield(_) => (100.0, "% maximum health absorbed per cast"),
             TalentStat::SpellImmune(_) => (1.0, " sec immunity per successful cast"),
@@ -1475,6 +1504,16 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 421, max_rank: 3, name: "Arcane Instability",
+        description: "Mage spells: +1% damage and +1% critical chance per rank; excludes other-class and neutral jewelry spells",
+        stat: TalentStat::ArcaneInstability, per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 1649, max_rank: 3, name: "Elemental Precision",
+        description: "Fire and Frost spells: +1% damage per rank (Survivors hit conversion); excludes Arcane and other-class spells",
+        stat: TalentStat::ElementalPrecision, per_rank: 0.01,
+    },
+    TalentDefinition {
         id: 72, max_rank: 1, name: "Ice Block",
         description: "Frost Nova grants 0.5 sec immunity once per successful cast; preserves longer immunity (Survivors conversion)",
         stat: TalentStat::SpellImmune("frost_nova"), per_rank: 0.5,
@@ -1728,6 +1767,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::BlizzardSlow
             | TalentStat::FlameThrowing
             | TalentStat::ArcticReach
+            | TalentStat::ArcaneInstability
+            | TalentStat::ElementalPrecision
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
@@ -2191,6 +2232,8 @@ mod stat_talent_tests {
                     | TalentStat::BlizzardSlow
                     | TalentStat::FlameThrowing
                     | TalentStat::ArcticReach
+                    | TalentStat::ArcaneInstability
+                    | TalentStat::ElementalPrecision
                     | TalentStat::SpellGroupDamage(_)
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
@@ -2621,6 +2664,52 @@ mod stat_talent_tests {
                 0.
             );
         }
+    }
+
+    #[test]
+    fn mage_instability_and_precision_compose_across_schools_and_reset() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        for rank in 0..=4 {
+            let trained = base.with_ranks(&[(0, 421, rank), (2, 1649, rank)]);
+            let value = f32::from(rank.min(3)) * 0.01;
+            for key in crate::data::CLASSES[6].pool {
+                let effect = trained.cast(key);
+                let multiplier = (1.0 + value)
+                    * if MAGE_ARCANE.contains(key) {
+                        1.0
+                    } else {
+                        1.0 + value
+                    };
+                assert!((effect.damage - multiplier).abs() < 0.00001, "{key}");
+                assert!((effect.crit - value).abs() < 0.00001, "{key}");
+                assert_eq!(effect.extra_targets, 0);
+                assert_eq!(effect.radius, 1.0);
+            }
+            for key in ["holy_shock", "shadow_bolt", "consecration"] {
+                assert_eq!(trained.cast(key), CastEffect::default());
+            }
+            assert_eq!(trained.with_ranks(&[]), base);
+            for class in [0, 1, 2, 3, 4, 5, 7, 8] {
+                let foreign = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 421, rank), (2, 1649, rank)]);
+                assert_eq!(foreign.cast("fireball"), CastEffect::default());
+            }
+        }
+        let node = talent_definition(6, 421).unwrap();
+        assert_eq!(
+            node.rank_preview(2),
+            "This talent: 2 » 3% damage; 2 » 3% critical chance next rank"
+        );
+        assert_eq!(
+            node.rank_preview(255),
+            "This talent: 3% damage; 3% critical chance (maximum rank)"
+        );
     }
 
     #[test]
