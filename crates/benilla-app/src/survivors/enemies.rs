@@ -30,6 +30,7 @@ pub(super) struct Enemy {
     pub slow: f32,
     pub slow_t: f32,
     pub root_t: f32,
+    pub frozen_t: f32,
     pub stun_t: f32,
     pub fear_t: f32,
     pub weaken: f32,
@@ -164,6 +165,7 @@ fn spawn_enemy(
             slow: 1.0,
             slow_t: 0.0,
             root_t: 0.0,
+            frozen_t: 0.0,
             stun_t: 0.0,
             fear_t: 0.0,
             weaken: 1.0,
@@ -389,6 +391,7 @@ pub(super) fn move_enemies(
         for t in [
             &mut e.slow_t,
             &mut e.root_t,
+            &mut e.frozen_t,
             &mut e.stun_t,
             &mut e.fear_t,
             &mut e.weaken_t,

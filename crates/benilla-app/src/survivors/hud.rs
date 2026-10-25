@@ -2671,6 +2671,16 @@ fn ability_tip(
             ));
         }
     }
+    let shatter = milestones.shatter(def.key, true);
+    if shatter > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Shatter: +{} critical chance against frozen enemies.",
+                pct(shatter)
+            ),
+            card_growth::GAIN,
+        ));
+    }
     let frostbite = milestones.frostbite_chance(def.key, now.dmg);
     if frostbite > 0.0 {
         lines.push(TipLine::new(
@@ -3034,6 +3044,39 @@ pub(super) fn show_panels(
 mod talent_tooltip_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn shatter_tooltip_is_green_and_only_shown_for_trained_mage_spells() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = mage.with_ranks(&[(2, 67, 5)]);
+        let stats = Run::default().stats();
+        for (key, shown) in [
+            ("fireball", true),
+            ("frostbolt", true),
+            ("blizzard", true),
+            ("arcane_missiles", true),
+            ("volley", false),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            let tip = ability_tip(&owned, trained, &stats, None);
+            let line = tip.iter().find(|line| line.left.starts_with("Shatter:"));
+            assert_eq!(line.is_some(), shown);
+            if let Some(line) = line {
+                assert!(line.left.contains("50%"));
+                assert_eq!(line.color, card_growth::GAIN);
+            }
+            assert!(!ability_tip(&owned, mage, &stats, None)
+                .iter()
+                .any(|line| line.left.starts_with("Shatter:")));
+        }
+    }
 
     #[test]
     fn frostbite_tooltip_is_green_and_only_shown_for_trained_frost_spells() {

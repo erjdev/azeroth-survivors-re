@@ -2629,3 +2629,30 @@ restrictions, invalid damage, ordinary/boss root duration, longer-root preservat
 green trained-only tooltips. Workspace test compilation, explicit-data DBC talent audit,
 Clippy, formatting, render-pass lint and diff checks pass. Native play build: 20.88 seconds.
 No live combat or new screenshot evidence was collected for this checkpoint.
+
+
+### Mage Shatter and frozen-state checkpoint
+
+DBC node 67 has five functional ranks, each adding 10% critical chance to Mage spells
+against frozen targets. Arcane, Fire and Frost spells qualify; jewelry, other classes
+and periodic burns do not. Chance is capped at 100% after other critical bonuses.
+Direct attacks read the target state when the cast rolls its damage; ground areas read
+it on each tick. A spell that first applies a freeze does not retroactively gain the
+bonus on that hit. Splash retains the originating hit's existing critical semantics.
+
+Frost Nova and Frostbite now maintain a separate frozen timer alongside root movement
+control. Both use the existing 30% boss duration. Longer ordinary roots do not extend
+the freeze, and Hunter/other roots do not create it. Both timers decay during enemy
+updates; damage still does not break roots under the current Survivors rules.
+Green Shatter tooltips show the conditional chance on affected spells.
+
+Mage now has 19 functional individual nodes. Remaining talents, milestones, balancing
+and live visual acceptance remain open; this does not complete phase 5.
+
+Validation: 83 core and 148 Survivors app tests pass. Deterministic actual-hit checks
+cover Fireball, Flamestrike and Blizzard against frozen versus merely rooted enemies,
+and Fireball after freezing ends while a longer root remains. Additional checks cover
+rank caps, class/spell exclusions, boss freeze duration, longer-root preservation and
+green trained-only tooltips. DBC talent audit, workspace test compilation, Clippy,
+formatting, render-pass lint and diff checks pass. Native play build: 65 seconds.
+Live combat and screenshot validation remain open.

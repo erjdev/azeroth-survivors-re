@@ -84,6 +84,7 @@ struct Foe {
     e: Entity,
     pos: Vec3,
     hp: f32,
+    frozen: bool,
     dist: f32,
     radius: f32,
 }
@@ -258,6 +259,7 @@ pub(super) fn cast_abilities(
             e,
             pos: tf.translation,
             hp: en.hp,
+            frozen: en.frozen_t > 0.0,
             dist: hero::reach(hpos, tf.translation),
             radius: en.radius,
         })
@@ -308,7 +310,12 @@ pub(super) fn cast_abilities(
                         fx.cast(me, def.spell, &entities(&targets), None);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, crit_chance, p.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            p.crit_damage,
+                            p.dmg,
+                        );
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -337,7 +344,12 @@ pub(super) fn cast_abilities(
                 } else {
                     fx.cast(me, def.spell, &entities(&targets), None);
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, crit_chance, p.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            p.crit_damage,
+                            p.dmg,
+                        );
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -418,7 +430,7 @@ pub(super) fn cast_abilities(
                     for (k, f) in chain.iter().enumerate() {
                         let (dmg, crit) = roll(
                             &mut rng,
-                            crit_chance,
+                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
                             p.crit_damage,
                             p.dmg * 0.85f32.powi(k as i32),
                         );
@@ -470,7 +482,12 @@ pub(super) fn cast_abilities(
                         fx.impact(f.e, def.spell);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, crit_chance, p.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            p.crit_damage,
+                            p.dmg,
+                        );
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -483,7 +500,12 @@ pub(super) fn cast_abilities(
                 } else {
                     for f in &targets {
                         fx.impact(f.e, 403);
-                        let (dmg, crit) = roll(&mut rng, crit_chance, p.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            p.crit_damage,
+                            p.dmg,
+                        );
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -649,6 +671,7 @@ pub(super) fn tick_areas(
             e,
             pos: tf.translation,
             hp: en.hp,
+            frozen: en.frozen_t > 0.0,
             dist: 0.0,
             radius: en.radius,
         })
@@ -670,7 +693,12 @@ pub(super) fn tick_areas(
                 if area.impact != 0 && i < 12 {
                     fx.impact(f.e, area.impact);
                 }
-                let (dmg, crit) = roll(&mut rng, crit_chance, crit_damage, area.damage);
+                let (dmg, crit) = roll(
+                    &mut rng,
+                    (crit_chance + run.milestones.shatter(area.source, f.frozen)).min(1.0),
+                    crit_damage,
+                    area.damage,
+                );
                 hits.write(Hit {
                     target: f.e,
                     damage: dmg,
@@ -799,8 +827,14 @@ fn refresh_ignite(dots: &mut Vec<enemies::Dot>, added: f32) {
     }
 }
 
+fn apply_freeze(en: &mut Enemy, duration: f32) {
+    let duration = if en.boss { duration * 0.3 } else { duration };
+    en.root_t = en.root_t.max(duration);
+    en.frozen_t = en.frozen_t.max(duration);
+}
+
 fn apply_frostbite(en: &mut enemies::Enemy) {
-    en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
+    apply_freeze(en, 5.0);
 }
 
 fn apply_secondary_control(
@@ -975,6 +1009,7 @@ pub(super) fn apply_hits(
                 en.slow = if en.slow_t > 0.0 { en.slow.min(m) } else { m };
                 en.slow_t = en.slow_t.max(t);
             }
+            Effect::Root(t) if h.source == "frost_nova" => apply_freeze(&mut en, t),
             Effect::Root(t) => en.root_t = en.root_t.max(if boss { t * 0.3 } else { t }),
             Effect::Stun(t) => en.stun_t = en.stun_t.max(if boss { t * 0.3 } else { t }),
             Effect::Fear(t) if !boss => en.fear_t = en.fear_t.max(t),
@@ -1297,6 +1332,7 @@ mod milestone_tests {
                 slow: 0.4,
                 slow_t: 8.,
                 root_t: 0.,
+                frozen_t: 0.,
                 stun_t: 0.,
                 fear_t: 0.,
                 weaken: 1.,
@@ -1306,11 +1342,14 @@ mod milestone_tests {
             };
             apply_frostbite(&mut enemy);
             assert_eq!(enemy.root_t, if boss { 1.5 } else { 5. });
+            assert_eq!(enemy.frozen_t, enemy.root_t);
             enemy.root_t = 8.;
             apply_frostbite(&mut enemy);
             assert_eq!(enemy.root_t, 8.);
+            assert_eq!(enemy.frozen_t, if boss { 1.5 } else { 5. });
             assert_eq!((enemy.slow, enemy.slow_t, enemy.hp), (0.4, 8., 100.));
             enemy.root_t = 0.;
+            enemy.frozen_t = 0.;
             apply_secondary_control(&mut enemy, trained, "concussive_shot");
             assert_eq!(enemy.stun_t, if boss { 0.3 } else { 1. });
             apply_secondary_control(&mut enemy, trained, "serpent_sting");
@@ -1328,6 +1367,7 @@ mod milestone_tests {
                 apply_secondary_control(&mut enemy, trained, source);
             }
             assert_eq!((enemy.stun_t, enemy.root_t), (4., 5.));
+            assert_eq!(enemy.frozen_t, 0.);
             assert_eq!((enemy.slow, enemy.slow_t), (0.4, 8.));
             assert_eq!(enemy.hp, 100.);
         }
@@ -1457,9 +1497,13 @@ mod milestone_tests {
     fn mage_area_ticks_apply_school_critical_bonuses_to_actual_hits() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for (source, low, high, expected) in [
-            ("flamestrike", 0.10, 0.20, 20.0),
-            ("blizzard", 0.0, 0.04, 25.0),
+        for (source, low, high, expected, frozen, critical) in [
+            ("flamestrike", 0.10, 0.20, 20.0, false, true),
+            ("blizzard", 0.0, 0.04, 25.0, false, true),
+            ("flamestrike", 0.30, 0.40, 20.0, true, true),
+            ("flamestrike", 0.30, 0.40, 10.0, false, false),
+            ("blizzard", 0.30, 0.40, 25.0, true, true),
+            ("blizzard", 0.30, 0.40, 10.0, false, false),
         ] {
             let seed = (1..10000)
                 .find(|seed| {
@@ -1476,7 +1520,12 @@ mod milestone_tests {
                         class: 6,
                         ..Default::default()
                     }
-                    .with_ranks(&[(1, 31, 3), (1, 33, 3), (2, 73, 5)]),
+                    .with_ranks(&[
+                        (1, 31, 3),
+                        (1, 33, 3),
+                        (2, 73, 5),
+                        (2, 67, 5),
+                    ]),
                     ..Default::default()
                 })
                 .insert_resource(Rng(seed))
@@ -1504,7 +1553,8 @@ mod milestone_tests {
                         attack_cd: 0.,
                         slow: 1.,
                         slow_t: 0.,
-                        root_t: 0.,
+                        root_t: 8.,
+                        frozen_t: if frozen { 3. } else { 0. },
                         stun_t: 0.,
                         fear_t: 0.,
                         weaken: 1.,
@@ -1538,9 +1588,43 @@ mod milestone_tests {
                 .collect();
             assert_eq!(hits.len(), 1);
             assert_eq!(hits[0].target, enemy);
-            assert!(hits[0].crit, "{source}");
+            assert_eq!(hits[0].crit, critical, "{source}, frozen={frozen}");
             assert_eq!(hits[0].damage, expected, "{source}");
             assert_eq!(hits[0].splash, 0.);
+            if low == 0.30 {
+                app.world_mut()
+                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                app.world_mut()
+                    .resource_mut::<Run>()
+                    .abilities
+                    .push(super::super::Owned {
+                        def: data::ability("fireball"),
+                        level: 1,
+                        cd: 0.,
+                    });
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let direct: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(direct.len(), 1);
+                assert_eq!(direct[0].crit, frozen);
+                assert_eq!(direct[0].target, enemy);
+                // Once the freeze expires, a longer ordinary root must not keep Shatter active.
+                app.world_mut().get_mut::<Enemy>(enemy).unwrap().frozen_t = 0.;
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let expired: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(expired.len(), 1);
+                assert!(!expired[0].crit);
+            }
         }
     }
 
@@ -1887,6 +1971,7 @@ mod milestone_tests {
                 e: world.spawn_empty().id(),
                 pos: Vec3::X * x,
                 hp: 100.0,
+                frozen: false,
                 dist: x,
                 radius: 0.5,
             })

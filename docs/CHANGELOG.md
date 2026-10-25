@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage Shatter
+
+Mage spells gain rank-scaled critical chance against frozen enemies, including area
+ticks. Frost Nova and Frostbite track freezing separately from ordinary roots, with
+green conditional-chance tooltips. 83 core and 148 app tests, DBC audit, Clippy and
+native build pass (65 seconds). Live combat and screenshot verification remain open.
+
 ## 2026-10-25 — Mage Frostbite
 
 Frost damage can now freeze enemies with a rank-scaled chance. Boss roots are shorter,

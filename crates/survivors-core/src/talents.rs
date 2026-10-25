@@ -342,6 +342,19 @@ impl Milestones {
         self.trained_value(TalentStat::Frostbite)
     }
 
+    /// Only Mage spells benefit; ordinary roots are not frozen targets.
+    pub fn shatter(self, key: &str, frozen: bool) -> f32 {
+        if self.class != 6
+            || !frozen
+            || !(MAGE_ARCANE.contains(&key)
+                || MAGE_FIRE.contains(&key)
+                || MAGE_FROST.contains(&key))
+        {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::Shatter)
+    }
+
     /// Ardent Defender reduces the portion of a blow below 35% health, including a
     /// blow crossing that threshold. A large hit cannot skip the protection entirely.
     pub fn incoming(self, damage: f32, hp: f32, max_hp: f32) -> f32 {
@@ -672,6 +685,7 @@ pub enum TalentStat {
     CriticalBleed,
     CriticalBurn,
     Frostbite,
+    Shatter,
     EnrageDamage,
     BloodCrazeHealing,
     FlurryHaste,
@@ -722,6 +736,7 @@ impl TalentDefinition {
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
             TalentStat::Frostbite => (100.0, "% chance to freeze on frost damage"),
+            TalentStat::Shatter => (100.0, "% critical chance against frozen enemies"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
@@ -1318,6 +1333,15 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 67,
+        max_rank: 5,
+        name: "Shatter",
+        description: "Mage spells gain 10% critical chance per rank against frozen enemies; ordinary roots do not qualify",
+        stat: TalentStat::Shatter,
+        per_rank: 0.10,
+    },
+
+    TalentDefinition {
         id: 38,
         max_rank: 3,
         name: "Frostbite",
@@ -1505,6 +1529,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
             | TalentStat::Frostbite
+            | TalentStat::Shatter
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
@@ -1960,6 +1985,7 @@ mod stat_talent_tests {
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn
                     | TalentStat::Frostbite
+                    | TalentStat::Shatter
                     | TalentStat::SpellGroupDamage(_)
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
@@ -2061,6 +2087,32 @@ mod stat_talent_tests {
                 base.with_ranks(&[(0, node.id, node.max_rank)]).cast(key)
             );
         }
+    }
+
+    #[test]
+    fn shatter_requires_frozen_targets_and_mage_spells() {
+        for rank in 0..=6 {
+            let trained = Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 67, rank)]);
+            for key in MAGE_ARCANE.iter().chain(MAGE_FIRE).chain(MAGE_FROST) {
+                assert!(
+                    (trained.shatter(key, true) - 0.1 * f32::from(rank.min(5))).abs() < 0.00001
+                );
+                assert_eq!(trained.shatter(key, false), 0.);
+            }
+            for key in ["volley", "Ignite", "ice_barrier"] {
+                assert_eq!(trained.shatter(key, true), 0.);
+            }
+        }
+        assert_eq!(
+            Milestones::default()
+                .with_ranks(&[(2, 67, 5)])
+                .shatter("frostbolt", true),
+            0.
+        );
     }
 
     #[test]
