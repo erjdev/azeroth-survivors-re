@@ -876,11 +876,19 @@ fn enter_copy(armory: &Armory, account: &Account, selection: &Selection) -> (Str
     let (level, clears) = super::hero_gate(account, selection);
     if let Some((index, zone)) = shown_zone(armory, selection) {
         let under = campaign::zone_lock_reason(index, level, &clears).unwrap_or_else(|| {
-            if zone.boss.is_empty() {
-                String::new()
-            } else {
-                format!("{} is the last fight.", zone.boss)
-            }
+            let Some(map) = data::MAPS.iter().position(|map| map.name == zone.map) else {
+                return String::new();
+            };
+            let finale = super::super::encounters::finale(map);
+            let Some((_, at)) = finale.first() else {
+                return String::new();
+            };
+            let names = finale
+                .iter()
+                .map(|(enemy, _)| enemy.name)
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!("Final fight: {names} · {}:{:02}", at / 60, at % 60)
         });
         (format!("Enter {}", zone.name), under)
     } else {

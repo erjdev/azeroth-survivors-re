@@ -16,6 +16,10 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+The starter shows the selected zone's scheduled finale and retains progression locks.
+
+![Starter with Elwynn's scheduled finale](docs/images/screenshots/2026-10-25-starter-finale/elwynn-finale.jpg)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter finale follows the encounter schedule
+
+The starter now names the actual final boss and scheduled time: Elwynn shows
+**Fedfennel · 16:00**, replacing the legacy Hogger label. Starter and Drop Tables
+share the combat schedule's finale lookup, including simultaneous final bosses.
+Locked zones continue to show their progression requirement beneath Enter.
+
+![Elwynn's actual scheduled finale](images/screenshots/2026-10-25-starter-finale/elwynn-finale.jpg)
+
+![Locked Duskwood retains its entry requirement](images/screenshots/2026-10-25-starter-finale/locked-zone.jpg)
+
+Live checks used an isolated account at 1280×720. Validation: 100 core tests,
+181 Survivors app tests without default features, native build, workspace Clippy,
+formatting and render-pass lint pass. A regression checks finale names/times against
+combat spawns for every map. This changes menu copy, not encounters or zone readiness.
+
 ## 2026-10-25 — Page-local action feedback
 
 Armory navigation now clears the previous page's action message and text-entry

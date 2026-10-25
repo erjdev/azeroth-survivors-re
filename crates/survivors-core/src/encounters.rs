@@ -62,6 +62,16 @@ fn schedule(map: usize) -> &'static [Scheduled] {
     SCHEDULES.get(map).map(Vec::as_slice).unwrap_or(&[])
 }
 
+/// All bosses at the last scheduled time, including simultaneous finales.
+/// Empty for maps without an authored campaign schedule.
+pub fn finale(map: usize) -> &'static [(&'static data::EnemyDef, u32)] {
+    let rows = schedule(map);
+    let Some((_, last)) = rows.last() else {
+        return &[];
+    };
+    &rows[rows.partition_point(|(_, at)| at < last)..]
+}
+
 /// Whether this source resolves to the scheduled boss that combat actually spawns.
 pub fn drop_is_boss(drop: &campaign::DropRow) -> bool {
     data::MAPS.iter().enumerate().any(|(map, def)| {
@@ -75,10 +85,8 @@ pub fn drop_is_boss(drop: &campaign::DropRow) -> bool {
 /// A source at the last scheduled boss time, including simultaneous finale encounters.
 pub fn drop_is_final_boss(drop: &campaign::DropRow) -> bool {
     data::MAPS.iter().enumerate().any(|(map, def)| {
-        let rows = schedule(map);
         campaign::zone_index(def.name) == Some(drop.zone)
-            && rows.last().is_some_and(|(_, at)| *at == drop.at_secs)
-            && rows
+            && finale(map)
                 .iter()
                 .any(|(enemy, at)| enemy.name == drop.creature && *at == drop.at_secs)
     })
@@ -511,6 +519,35 @@ mod tests {
 #[cfg(test)]
 mod finale_label_tests {
     use super::*;
+
+    #[test]
+    fn displayed_finales_are_the_last_combat_spawns_for_every_map() {
+        for map in 0..data::MAPS.len() {
+            let rows = schedule(map);
+            let final_rows = finale(map);
+            if let Some((_, last)) = rows.last() {
+                assert!(!final_rows.is_empty());
+                for (enemy, at) in final_rows {
+                    assert_eq!(at, last);
+                    let index = rows
+                        .iter()
+                        .position(|(candidate, time)| candidate.name == enemy.name && time == at)
+                        .unwrap();
+                    assert_eq!(
+                        next(map, index as u32, *at as f32).unwrap().name,
+                        enemy.name
+                    );
+                }
+                assert_eq!(
+                    final_rows.len(),
+                    rows.iter().filter(|(_, at)| at == last).count()
+                );
+            } else {
+                assert!(final_rows.is_empty());
+            }
+        }
+        assert!(finale(usize::MAX).is_empty());
+    }
 
     #[test]
     fn finale_label_uses_combat_schedule_instead_of_legacy_zone_boss_name() {

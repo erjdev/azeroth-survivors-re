@@ -25,9 +25,10 @@ spec. Save-file readback preserves Warrior spec 1 and Mage spec 3 after the rese
 Screenshots are inline in the changelog. Still open: all-class combat acceptance,
 deep prerequisite/refund interaction checks and narrow per-spec scroll live validation.
 Stale action feedback is now cleared by page navigation; Talent → Character and
-Talent → Escape were checked live at 1280×720. The starter still labels Hogger as the
-last fight from legacy zone metadata; derive this label from the actual encounter
-schedule, as Drop Tables already does.
+Talent → Escape were checked live at 1280×720. Starter finale copy now shares the
+combat schedule lookup with Drop Tables and displays names plus time. Elwynn's
+Fedfennel at 16:00 and locked Duskwood's progression requirement were checked live;
+a regression covers finale identity/time for every map. Zone readiness remains separate.
 
 Character responsive checkpoint verified at 1280×720, 640×720 and 640×900:
 below 1100 UI units, stack a proportional square hero preview, appearance/features,
