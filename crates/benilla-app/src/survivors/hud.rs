@@ -2681,6 +2681,16 @@ fn ability_tip(
             card_growth::GAIN,
         ));
     }
+    let impact = milestones.impact_chance(def.key, now.dmg);
+    if impact > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Impact: {} chance on fire damage to stun for 1 sec (bosses: 0.3 sec).",
+                pct(impact)
+            ),
+            card_growth::GAIN,
+        ));
+    }
     let frostbite = milestones.frostbite_chance(def.key, now.dmg);
     if frostbite > 0.0 {
         lines.push(TipLine::new(
@@ -3104,6 +3114,38 @@ mod talent_tooltip_tests {
             assert!(!ability_tip(&owned, mage, &stats, None)
                 .iter()
                 .any(|line| line.left.starts_with("Shatter:")));
+        }
+    }
+
+    #[test]
+    fn impact_tooltip_is_green_and_only_shown_for_trained_fire_spells() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = mage.with_ranks(&[(1, 30, 5)]);
+        let stats = Run::default().stats();
+        for (key, shown) in [
+            ("fireball", true),
+            ("frostbolt", false),
+            ("flamestrike", true),
+            ("arcane_missiles", false),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            let tip = ability_tip(&owned, trained, &stats, None);
+            let line = tip.iter().find(|line| line.left.starts_with("Impact:"));
+            assert_eq!(line.is_some(), shown);
+            if let Some(line) = line {
+                assert!(line.left.contains("10%"));
+                assert_eq!(line.color, card_growth::GAIN);
+            }
+            assert!(!ability_tip(&owned, mage, &stats, None)
+                .iter()
+                .any(|line| line.left.starts_with("Impact:")));
         }
     }
 

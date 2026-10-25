@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage Fire procs
+
+Impact now gives fire hits a trained stun chance, with shorter boss stuns and no
+Ignite recursion. Incinerate increases Fire Blast critical chance. Affected spell
+tooltips show Impact in green. 87 core and 152 app tests, DBC audit, Clippy and native
+build pass (19 seconds). Live combat acceptance remains open.
+
 ## 2026-10-25 — Mage reach talents
 
 Flame Throwing and Arctic Reach now extend the appropriate targeting ranges or

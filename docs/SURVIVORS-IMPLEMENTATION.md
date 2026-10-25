@@ -2732,3 +2732,26 @@ cover caps, reset, exclusions and target-count invariance; tooltip checks cover
 trained fire/frost and unchanged Arcane ranges. Workspace test compilation, explicit-data
 DBC talent audit, Clippy, formatting, render-pass lint and diff checks pass. Native
 play build: 21.28 seconds. Live range-boundary and new screenshot acceptance remain open.
+
+### Mage Impact and Incinerate checkpoint
+
+Impact (DBC 30, five ranks) grants a 2% chance per rank on damaging Mage fire hits
+to stun for one second, reduced to 0.3 seconds on bosses. This is an explicit
+Survivors conversion. Direct, splash and ground-area fire hits share the hit path;
+Ignite's periodic damage cannot trigger it. Longer existing stuns survive, and
+stunning never marks the target frozen for Shatter.
+
+Incinerate (DBC 1141, two ranks) adds 2% critical chance per rank to Fire Blast,
+composing with Critical Mass and equipment. Scorch is absent from the current
+ability pool, so this implementation does not claim a Scorch effect. The talent
+description states the implemented scope. Impact's affected spell tooltips show
+the trained proc chance in green. Mage now has 25 functional individual nodes;
+remaining nodes, milestones and full live combat acceptance stay open.
+
+Validation: 87 core and 152 Survivors app tests pass. Checks cover proc eligibility,
+rank caps, invalid damage, normal/boss stun duration, preservation of longer stuns,
+Fire Blast's combined critical chance at multiple ability levels, and green
+spell-specific tooltips. Workspace test compilation, explicit-data DBC talent audit,
+Clippy, formatting, render-pass lint and diff checks pass. Native play build:
+19.48 seconds. These checks do not establish live proc frequency or combat feel;
+new live combat/screenshot evidence remains open.

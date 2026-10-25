@@ -355,6 +355,14 @@ impl Milestones {
         self.trained_value(TalentStat::Frostbite)
     }
 
+    /// Fire hit proc; periodic Ignite ticks and non-Mage sources cannot trigger it.
+    pub fn impact_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 6 || !damage.is_finite() || damage <= 0.0 || !MAGE_FIRE.contains(&key) {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::Impact)
+    }
+
     /// Only Mage spells benefit; ordinary roots are not frozen targets.
     pub fn shatter(self, key: &str, frozen: bool) -> f32 {
         if self.class != 6
@@ -720,6 +728,7 @@ pub enum TalentStat {
     CriticalBleed,
     CriticalBurn,
     Frostbite,
+    Impact,
     Shatter,
     Permafrost,
     BlizzardSlow,
@@ -782,6 +791,7 @@ impl TalentDefinition {
             TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
+            TalentStat::Impact => (100.0, "% chance to stun on fire damage"),
             TalentStat::Frostbite => (100.0, "% chance to freeze on frost damage"),
             TalentStat::Shatter => (100.0, "% critical chance against frozen enemies"),
             TalentStat::Permafrost => (
@@ -1387,6 +1397,17 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 30, max_rank: 5, name: "Impact",
+        description: "Fire damage has a 2% chance per rank to stun for 1 sec (bosses: 0.3 sec; Survivors conversion)",
+        stat: TalentStat::Impact, per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 1141, max_rank: 2, name: "Incinerate",
+        description: "Fire Blast: +2% critical chance per rank",
+        stat: TalentStat::SpellCrit("fire_blast"), per_rank: 0.02,
+    },
+
+    TalentDefinition {
         id: 28, max_rank: 2, name: "Flame Throwing",
         description: "Targeted fire spells: +10% targeting range per rank; does not enlarge their explosions (Survivors conversion)",
         stat: TalentStat::FlameThrowing, per_rank: 0.10,
@@ -1604,6 +1625,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::FlurryHaste
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
+            | TalentStat::Impact
             | TalentStat::Frostbite
             | TalentStat::Shatter
             | TalentStat::Permafrost
@@ -2064,6 +2086,7 @@ mod stat_talent_tests {
                     | TalentStat::FlurryHaste
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn
+                    | TalentStat::Impact
                     | TalentStat::Frostbite
                     | TalentStat::Shatter
                     | TalentStat::Permafrost
@@ -2282,6 +2305,35 @@ mod stat_talent_tests {
             Milestones::default()
                 .with_ranks(&[(2, 67, 5)])
                 .shatter("frostbolt", true),
+            0.
+        );
+    }
+
+    #[test]
+    fn impact_requires_positive_mage_fire_damage_and_caps_ranks() {
+        for rank in 0..=6 {
+            let trained = Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 30, rank)]);
+            for key in MAGE_FIRE {
+                assert!(
+                    (trained.impact_chance(key, 10.) - 0.02 * f32::from(rank.min(5))).abs()
+                        < 0.00001
+                );
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(trained.impact_chance(key, damage), 0.);
+                }
+            }
+            for key in ["frostbolt", "Ignite", "impact", "volley"] {
+                assert_eq!(trained.impact_chance(key, 10.), 0.);
+            }
+        }
+        assert_eq!(
+            Milestones::default()
+                .with_ranks(&[(1, 30, 5)])
+                .impact_chance("fireball", 10.),
             0.
         );
     }

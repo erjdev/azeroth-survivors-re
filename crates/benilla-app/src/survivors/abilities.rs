@@ -837,6 +837,10 @@ fn apply_freeze(en: &mut Enemy, duration: f32) {
     en.frozen_t = en.frozen_t.max(duration);
 }
 
+fn apply_impact(en: &mut Enemy) {
+    en.stun_t = en.stun_t.max(if en.boss { 0.3 } else { 1.0 });
+}
+
 fn apply_frostbite(en: &mut enemies::Enemy) {
     apply_freeze(en, 5.0);
 }
@@ -1000,6 +1004,10 @@ pub(super) fn apply_hits(
                 tick: 1.0,
                 source: h.source,
             });
+        }
+        let impact_chance = run.milestones.impact_chance(h.source, h.damage);
+        if impact_chance > 0.0 && rng.f32() < impact_chance {
+            apply_impact(&mut en);
         }
         let freeze_chance = run.milestones.frostbite_chance(h.source, h.damage);
         if freeze_chance > 0.0 && rng.f32() < freeze_chance {
@@ -1344,6 +1352,8 @@ mod milestone_tests {
                 dots: Vec::new(),
                 dead: false,
             };
+            apply_impact(&mut enemy);
+            assert_eq!(enemy.stun_t, if boss { 0.3 } else { 1. });
             apply_frostbite(&mut enemy);
             assert_eq!(enemy.root_t, if boss { 1.5 } else { 5. });
             assert_eq!(enemy.frozen_t, enemy.root_t);
@@ -1361,6 +1371,7 @@ mod milestone_tests {
             apply_secondary_control(&mut enemy, trained, "explosive_trap");
             assert!((enemy.root_t - if boss { 0.6 } else { 2. }).abs() < 0.00001);
             enemy.stun_t = 4.;
+            apply_impact(&mut enemy);
             enemy.root_t = 5.;
             for source in [
                 "concussive_shot",
@@ -1789,6 +1800,7 @@ mod milestone_tests {
             (0, 80, 5),
             (0, 81, 3),
             (1, 26, 5),
+            (1, 1141, 2),
             (1, 31, 3),
             (1, 33, 3),
             (1, 35, 5),
@@ -1803,6 +1815,7 @@ mod milestone_tests {
             ("arcane_missiles", 1.375, 1., 0., 0.),
             ("arcane_explosion", 1.1, 1., 0.06, 0.),
             ("fireball", 1.1, 0.8, 0.06, 0.),
+            ("fire_blast", 1.1, 1., 0.10, 0.),
             ("flamestrike", 1.1, 1., 0.21, 0.),
             ("frostbolt", 1.06, 0.8, 0., 0.5),
             ("blizzard", 1.06, 1., 0., 0.5),
