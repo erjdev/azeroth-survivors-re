@@ -29,6 +29,8 @@ mod notes;
 mod renown;
 mod spawn;
 mod stash;
+#[cfg(feature = "survivors-text")]
+pub(crate) mod text_placement;
 mod tuning;
 mod units;
 #[cfg(feature = "survivors-visibility")]

@@ -108,6 +108,10 @@ then trinkets after manual selections. Mark of the Champion's ambiguous identity
 
 ![Chest trinket item icons](docs/images/screenshots/2026-10-25-chest-item-icons/trinkets.png)
 
+Combat-text placement checkpoint: [paused chest with preserved damage numbers](docs/images/screenshots/2026-10-25-combat-text-cache/chest.png).
+Repeated identical overlap solves are cached; resumed combat was checked. Overall crowd
+performance remains under investigation.
+
 Gurubashi live checkpoint: an isolated accelerated Warrior run starts at 10:00 with
 max-rank abilities. The captured defeat at 10:36 reports six bosses and 409 kills; this
 is not a full-length run or balance acceptance. Slow combat samples remain under investigation.

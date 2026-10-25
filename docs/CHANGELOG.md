@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Cache repeated combat-text placement
+
+Frozen damage numbers reuse identical overlap placements. A dense 160-label check keeps
+every rectangle identical while reducing repeat placement from about 10 ms to 0.001 ms.
+All 133 Survivors, 12 combat-text and 10 solver tests pass, plus Clippy and native build.
+[Live chest evidence](images/screenshots/2026-10-25-combat-text-cache/chest.png) preserves
+the numbers; selecting a reward resumes them. Overall Gurubashi performance remains open.
+
 ## 2026-10-25 — Reuse unchanged minimap images
 
 Paused scenes now reuse their minimap image until visible inputs change. Native build,

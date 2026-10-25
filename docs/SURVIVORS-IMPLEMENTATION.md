@@ -2298,3 +2298,60 @@ Investigate repeated overlap placement of frozen combat text next; confirm timin
 without concurrent compilation and test resumed combat as well. Logs and journals
 remain in the ignored target/survivors-validation/minimap-before/after paths (the log
 and CSV filenames use those stems). The full performance and content gates remain open.
+
+### Combat-text placement reuse — 2026-10-25
+
+The held-chest stall sample identifies SmartScreenRect placement beneath
+float_combat_text as substantial repeated main-thread work. Survivors now enables a
+separate survivors-text feature that wraps the stock claim bucket with an exact
+placement-prefix cache. Each frame still lays out and draws the text. An identical
+desired rectangle and viewport can reuse its prior solved seat only while all preceding
+requests and claims match; the first mismatch sends the rest of the frame through the
+stock solver. Shrinking crowds truncate stale suffixes. Changed caller claims are
+recorded, so they invalidate dependent placements in the current and following frames.
+No numbers, lifetime rules, sorting, color, movement, or overlap policy are removed.
+
+The carry lives in survivors/text_placement.rs; the upstream combat-text system has only
+a cfg-gated bucket parameter selection. Launchers without survivors-text keep the stock
+bucket. Regression cases compare actual rectangles with SmartBucket across paused
+frames, movement, viewport changes, reordering, removal/regrowth, and changed claims.
+
+A focused optimized harness includes the actual SmartBucket and new wrapper source,
+linked against this checkout's play-profile bevy_math. It seats 160 rectangles of
+32×25 pixels in a 1440×900 viewport, centers at (720 + 3*(i%16), 450 + 3*(i/16)),
+and asserts every cached result equals the stock result. Initial measurement:
+10.411 ms cold, 0.001 ms on each of three identical cached frames, 10.752 ms for
+a repeated stock frame. This isolates placement cost and is not an FPS benchmark.
+The first live attempt overlapped compilation and suffered multi-second frames;
+it is excluded from performance conclusions.
+
+Final validation: 133 Survivors app tests, 12 combat-text tests and 10 stock solver tests
+pass with explicit checkout data. Workspace Clippy, formatting, pass-span lint (1646
+files) and diff whitespace checks pass. Native final incremental build: 36.18 seconds.
+Final workspace test compilation: 3m35s including build-lock wait. Native macOS was
+validated; other platforms and the full historical workspace gate failures remain open.
+The focused harness repeated after compilation: 9.815 ms cold, 0.001 ms cached,
+10.109 ms stock, with identical output.
+
+The fresh isolated 1440×900 logical Retina Gurubashi probe started only after all builds
+and tests finished. It held 159 enemies at level 7 with zero combat updates. Across 39
+journal samples from 60–100 seconds, median per-window mean frame time was 60.23 ms,
+p95 70.64 ms, process CPU/frame 89.58 ms and main-thread CPU/frame 45.08 ms. This is
+still only about 16 FPS. Different crowds and damage-number distributions prevent an
+identical-scene comparison with prior runs; do not claim an overall FPS speedup from it.
+
+A fresh one-second CPU sample of that held scene contains no SmartBucket::resolve
+samples and only six samples under float_combat_text (one in the cached resolver).
+Rig-pose evaluation appears prominently (37 samples in the main-thread call tree),
+alongside rendering and waiting; investigate the broader frame schedule next rather
+than declaring animation the sole bottleneck. GPU timestamps remain unavailable.
+The sample and journal are in target/survivors-validation/text-cache-idle-sample.txt
+and text-cache-idle.csv.
+
+The screenshot under docs/images/screenshots/2026-10-25-combat-text-cache/chest.png
+shows preserved paused numbers. Selecting Band of the Unicorn resumes combat, raises
+kills from 20 to 30, and produces new damage numbers and the next chest; the new ring
+bonuses are reflected in subsequent comparisons. That short resumed combat window
+measured 23.4 FPS over 1.54 seconds, with a 267.5 ms hitch, so combat acceptance remains
+open too. No ERROR/panic entries appeared. Closed the app through fresh AX state,
+did not query it after exit, and restored the normal launcher. README links the evidence.
