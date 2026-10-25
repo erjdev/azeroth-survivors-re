@@ -232,7 +232,14 @@ or buildings that the source terrain query excludes.
 
 Read [CHANGELOG.md](CHANGELOG.md) for grouped feature summaries and validation limits.
 Keep new entries short; add screenshots under `docs/images/screenshots/<milestone>/`
-without overwriting earlier milestones. Commit and push coherent checkpoints to `origin`
+without overwriting earlier milestones. **Embed actual captures inline in the changelog**
+using `![description](images/screenshots/...)`; links alone do not satisfy this requirement.
+For each major visual checkpoint, inspect the matching `docs/intentions/` image first,
+capture the changed interface, and summarize remaining design gaps. Record viewport,
+fixture/state and validation limits. Keep the README gallery current. If capture is
+blocked, report the blocker and leave visual acceptance open; do not silently drop
+the screenshots or accumulate further unreviewed visual milestones.
+Commit and push coherent checkpoints, including screenshots and concise notes, to `origin`
 when working on a feature branch.
 
 To follow the current implementation on another checkout:

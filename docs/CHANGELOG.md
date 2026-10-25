@@ -3,6 +3,33 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter UI visual checkpoint
+
+Captured build `4dcf72e` at 1280×720 logical resolution (Retina, title bar included),
+using the isolated collected fixture: ten heroes, all gear, unspent talents and rewards.
+Opened Character → Manage heroes → Talents → Rewards/Companions without a run.
+These are current captures; older images below remain attached to their original milestones.
+
+Compared with the [Character reference](intentions/survivors_character_tab.png),
+the three-column layout and larger model are present; feature pips, ornamentation
+and typography still need work. All ten heroes appear in management.
+
+![Current Character page](images/screenshots/2026-10-25-starter-review/character-720.jpg)
+
+![Ten-hero management view](images/screenshots/2026-10-25-starter-review/manage-heroes-720.jpg)
+
+Talents displays all three trees and the spec panel at this size. Narrow wrapping,
+scroll restoration and spend/refund interactions still need live checks.
+
+![Current Talent page](images/screenshots/2026-10-25-starter-review/talents-720.jpg)
+
+Companion destination, costs and effects are visible. The
+[Rewards reference](intentions/survivors_rewards_tab_companions.png) remains the target:
+illustrated cards, rank pips, appearance icons and a currency/sidebar layout are missing.
+Purchases were not exercised in this capture pass.
+
+![Current Companion page](images/screenshots/2026-10-25-starter-review/companions-720.jpg)
+
 ## 2026-10-25 — Companion purchase clarity
 
 Rewards now names the companion receiving an instinct, any replaced instinct,
@@ -10,7 +37,7 @@ the cost and the effect. Current instincts and locked companion state are visibl
 Initial purchases retain the reference's first-then-second assignment; appearance
 selection stays separate. Invalid instincts cannot charge points, and locked slots
 reject appearance edits. All 171 Survivors tests, Clippy and native build pass.
-Rendered Rewards layout and purchase interactions remain unverified.
+Initial rendered capture appears in the visual checkpoint above; purchase interactions remain unverified.
 
 ## 2026-10-25 — Talent scroll continuity
 
@@ -104,6 +131,8 @@ are linked in README. 94 core and 160 app tests, Clippy and native build pass
 (23 seconds). The data audit has three remaining gaps; Alterac stays locked pending
 full encounters, traversal, attachments and camera validation.
 
+![Gameplay and card captures](images/screenshots/2026-10-25-alterac-roster/survival-720.jpg)
+
 ## 2026-10-25 — Arathi faction-survival candidate
 
 Added a surveyed stables-area arena, ten faction wave entries and nine authored
@@ -113,6 +142,8 @@ is linked in README. 93 core and 159 app tests, Clippy and native build pass
 (22 seconds). Arathi stays locked pending traversal, camera and full encounters;
 the content audit now reports 85 remaining gaps.
 
+![Live 720p capture](images/screenshots/2026-10-25-arathi-roster/survival-720.jpg)
+
 ## 2026-10-25 — Warsong faction-survival candidate
 
 Added Warsong's map, ten wave entries, nine authored bosses and Uncommon drops for
@@ -120,6 +151,8 @@ all slots. Cross-zone duplicates preserve gear and appearances. [Live 720p captu
 is linked in README. 92 core and 158 app tests, Clippy and native build pass
 (22 seconds). The content audit is down to 86 gaps; Warsong stays locked pending
 full traversal, camera and encounter validation.
+
+![Live 720p capture](images/screenshots/2026-10-25-warsong-roster/survival-720.jpg)
 
 ## 2026-10-25 — Mage school training and battleground direction
 
@@ -136,6 +169,8 @@ Added an opt-in card inspection mode that holds level-up and chest choices.
 Frost Nova's full defensive description fits at 720p and 1024×768, with single-unit
 green comparisons; selecting after resize grants rank two. [Screenshots](images/screenshots/2026-10-25-mage-talents/frost-nova-card-720.jpg)
 are in the README. Clippy and native build pass (42 seconds); live defensive timing remains open.
+
+![Screenshots](images/screenshots/2026-10-25-mage-talents/frost-nova-card-720.jpg)
 
 ## 2026-10-25 — Mage Frost defenses and milestones
 
@@ -160,6 +195,8 @@ Verified spend/refund and green previews at 720p; [screenshots](images/screensho
 are linked in the README. 89 core and 153 app tests, DBC audit, Clippy and native
 build pass (95 seconds). Live combat acceptance remains open.
 
+![screenshots](images/screenshots/2026-10-25-mage-talents/winters-chill-preview-720.png)
+
 ## 2026-10-25 — Mage Fire procs
 
 Impact now gives fire hits a trained stun chance, with shorter boss stuns and no
@@ -181,6 +218,8 @@ directly from Talents. Permafrost previews compare both strength and duration.
 Verified refund/spend, independent specs and close/relaunch persistence; added
 [Mage milestone screenshots](images/screenshots/2026-10-25-mage-talents/permafrost-720.png) to the README.
 85 core and 150 app tests, Clippy and native build pass; live combat verification remains open.
+
+![Mage milestone screenshots](images/screenshots/2026-10-25-mage-talents/permafrost-720.png)
 
 ## 2026-10-25 — Mage frost slows
 
@@ -238,6 +277,8 @@ build pass; live Scarlet zoom and Elwynn terrain checks pass.
 [Scarlet screenshot](images/screenshots/2026-10-25-indoor-minimap/scarlet.png).
 Broader indoor alignment, camera/navigation and performance acceptance remain open.
 
+![Scarlet screenshot](images/screenshots/2026-10-25-indoor-minimap/scarlet.png)
+
 ## 2026-10-25 — Scarlet Monastery candidate
 
 Added the Cathedral courtyard, 18 verified wave identities and eight timed bosses.
@@ -246,6 +287,8 @@ All 79 core tests, Clippy and native build pass.
 [Early combat screenshot](images/screenshots/2026-10-25-scarlet-candidate/combat.png)
 reveals wall-navigation and minimap work still needed; Scarlet remains locked.
 
+![Early combat screenshot](images/screenshots/2026-10-25-scarlet-candidate/combat.png)
+
 ## 2026-10-25 — Ahn'Qiraj Legendary armor sources
 
 Added eight timed outdoor encounters supplying Legendary armor for every class, with
@@ -253,6 +296,8 @@ verified Silithus creature identities. All 78 core and 135 Survivors tests pass,
 Clippy and native build. A live probe saved three Legendary Warrior pieces.
 [Milestone screenshot](images/screenshots/2026-10-25-aq-roster/level-up.png).
 The zone remains locked for world acceptance; the content audit still reports 87 gaps.
+
+![Milestone screenshot](images/screenshots/2026-10-25-aq-roster/level-up.png)
 
 ## 2026-10-25 — Foreground performance validation
 
@@ -271,6 +316,8 @@ All 133 Survivors, 12 combat-text and 10 solver tests pass, plus Clippy and nati
 [Live chest evidence](images/screenshots/2026-10-25-combat-text-cache/chest.png) preserves
 the numbers; selecting a reward resumes them. Overall Gurubashi performance remains open.
 
+![Live chest evidence](images/screenshots/2026-10-25-combat-text-cache/chest.png)
+
 ## 2026-10-25 — Reuse unchanged minimap images
 
 Paused scenes now reuse their minimap image until visible inputs change. Native build,
@@ -285,6 +332,8 @@ spell art. Added a held-chest inspection mode and [live trinket evidence](images
 to README. All 131 app tests and Clippy pass. Mark of the Champion's identity remains
 unresolved; reward mechanics and saves are unchanged.
 
+![live trinket evidence](images/screenshots/2026-10-25-chest-item-icons/trinkets.png)
+
 ## 2026-10-25 — Spawn clearance and live Epic rewards
 
 Spawn candidates now reject body overlaps with registered collision geometry and retry
@@ -293,12 +342,16 @@ tests and Clippy pass. Native build took 22 seconds. Added a [Gurubashi results 
 isolated accelerated attempts persisted three Epic pieces. Slow combat and generic chest
 jewelry icons remain open; Gurubashi stays locked.
 
+![Gurubashi results milestone](images/screenshots/2026-10-25-gurubashi-live/late-warrior-results.png)
+
 ## 2026-10-25 — Arena collision evidence and catalog screenshot
 
 Verified Gurubashi's placed arena boundary with body/camera probes and 128 grounded
 radial routes across the play area. Added the seeded [54/54 PvP menu milestone](images/screenshots/2026-10-25-pvp-catalog/equipped-menu.png)
 to README. Live streaming, camera rendering and crowd acceptance remain open;
 Gurubashi stays locked.
+
+![54/54 PvP menu milestone](images/screenshots/2026-10-25-pvp-catalog/equipped-menu.png)
 
 ## 2026-10-25 — Gurubashi Epic reward schedule
 
@@ -331,6 +384,8 @@ an [equipped-menu milestone](images/screenshots/2026-10-25-epic-catalog/equipped
 to the README. All 74 core and 126 app tests pass, including new display/icon reads.
 Epic sources, full appearance checks and raid-epic/set mechanics remain open.
 
+![equipped-menu milestone](images/screenshots/2026-10-25-epic-catalog/equipped-menu.png)
+
 ## 2026-10-25 — Rare rewards and full-health cards
 
 Verified all 81 Rare class/slot rewards through save/reload and duplicate replay,
@@ -346,6 +401,8 @@ in an isolated save. A [live level-up milestone](images/screenshots/2026-10-25-f
 is linked from the README. Autopilot logs now separate combat FPS/time and hitches from
 menu and level-up frames; the new fields were checked in a native run. All 124 Survivors
 app tests pass. Early loading hitches and full zone acceptance remain open; Feralas stays locked.
+
+![live level-up milestone](images/screenshots/2026-10-25-feralas-live/late-warrior.png)
 
 ## 2026-10-25 — Faster horde collision
 
@@ -381,6 +438,8 @@ behavior and live encounters remain open; Feralas stays locked.
 All 120 Survivors app tests with checkout data, workspace Clippy, formatting and
 render-pass lint pass.
 
+![candidate world view](images/screenshots/2026-10-25-feralas-candidate/world-preview-720.png)
+
 ## 2026-10-25 — Feralas world and encounter foundation
 
 Added a provisional Feralas arena, 15 verified enemy identities and nine timed bosses.
@@ -408,6 +467,8 @@ Added [collection](images/screenshots/2026-10-25-rare-armor/collection-720.png) 
 from a seeded validation account. Native build, 72 core tests, 119 app tests with data,
 workspace Clippy, formatting and render-pass lint pass.
 
+![collection](images/screenshots/2026-10-25-rare-armor/collection-720.png)
+
 ## 2026-10-25 — Complete uncommon source table
 
 Clutchmother Zavas, Gruff and U'cha now supply uncommon wrists, hands and weapons at
@@ -434,6 +495,8 @@ selection at 720p. A [single-card chest](images/screenshots/2026-10-25-banish/si
 remains centered and usable, including after a jewelry replacement. README evidence added.
 Chest instructions now say “Choose your chest reward” to cover both spells and jewelry.
 
+![single-card chest](images/screenshots/2026-10-25-banish/single-chest-720.png)
+
 ## 2026-10-25 — Banish replacement safety
 
 Banish now excludes every option in the current hand, including the card being replaced,
@@ -458,6 +521,8 @@ on the southern candidate and refreshed the README. Moving away from the central
 opens the view; naming, full traversal, camera, performance and boss/reward checks remain
 open. Preview overrides were restored and the zone remains locked.
 
+![early Hunter combat](images/screenshots/2026-10-25-ungoro-gameplay/combat-720.png)
+
 ## 2026-10-25 — Un'Goro encounter sources
 
 Six timed bosses now roll uncommon armor from 3:00 through King Mosh at 16:00, using the
@@ -466,6 +531,8 @@ verified against pinned data. The [drop browser](images/screenshots/2026-10-25-u
 explains why the zone remains locked; arena, camera and live encounter acceptance remain
 open. Native build, 68 core tests, 115 Survivors tests and lint checks pass. README evidence updated.
 
+![drop browser](images/screenshots/2026-10-25-ungoro-drops/sources-720.png)
+
 ## 2026-10-25 — Collection heading spacing
 
 Centered slot headings within their proportional columns and adjusted text sizing to
@@ -473,6 +540,8 @@ separate the crowded Shoulders/Chest labels. Verified selection and resizing at
 [1024×720](images/screenshots/2026-10-25-collection-headings/collection-1024.png) and
 [1280×720](images/screenshots/2026-10-25-collection-headings/collection-720.png).
 Native build and formatting pass; README screenshots refreshed.
+
+![1024×720](images/screenshots/2026-10-25-collection-headings/collection-1024.png)
 
 ## 2026-10-25 — Uncommon armor catalog
 
@@ -483,6 +552,8 @@ tests pass, including display/icon checks. Hunter collection details were checke
 [720p](images/screenshots/2026-10-25-uncommon-armor/hunter-720.png) and
 [1024×720](images/screenshots/2026-10-25-uncommon-armor/hunter-1024.png); narrow slot-heading
 spacing and full armor-on-character validation remain open. README gallery updated.
+
+![720p](images/screenshots/2026-10-25-uncommon-armor/hunter-720.png)
 
 ## 2026-10-25 — Class-specific Atiesh appearances
 
@@ -514,6 +585,8 @@ Verified rank refund/spend, independent spec reset and saved allocation after re
 The three-tree page and green descriptions fit 1280×720 and a live resize to 1024×720.
 Added [milestone screenshots](images/screenshots/2026-10-25-hunter-talents/mortal-shots-720.jpg)
 to the README. No runtime errors or panics appeared; broader visual acceptance remains open.
+
+![milestone screenshots](images/screenshots/2026-10-25-hunter-talents/mortal-shots-720.jpg)
 
 ## 2026-10-25 — Hunter Marksmanship bonuses
 
@@ -663,6 +736,8 @@ checks passed at [1280×720](images/screenshots/2026-10-24-results-layout/wide-7
 Native incremental build passed in 30 seconds. Temporary validation tuning was restored;
 these captures verify layout, not balance or the rest of the interface at narrow sizes.
 
+![1280×720](images/screenshots/2026-10-24-results-layout/wide-720.jpg)
+
 ## 2026-10-24 — Defeat screen evidence
 
 Added [720p defeat results](images/screenshots/2026-10-24-defeat/results-720.jpg) to the README.
@@ -671,6 +746,8 @@ normal tuning was restored. A follow-up verified Play again returns to hero sele
 starts a fresh run with full health, a restarted timer and zero damage; see the
 [paused replay](images/screenshots/2026-10-24-defeat/replay-720.jpg). Corrected “1 marks”
 to “1 mark.” Victory and normal-balance acceptance remain open.
+
+![720p defeat results](images/screenshots/2026-10-24-defeat/results-720.jpg)
 
 ## 2026-10-24 — Consistent lethal-hit handling
 
@@ -700,6 +777,8 @@ and the [cleared HUD](images/screenshots/2026-10-24-reactive-buffs/expired-720.j
 
 Native build, workspace test compilation and 100 focused Survivors tests pass. Dedicated
 buff icons, broader viewport checks and full combat acceptance remain open.
+
+![active Flurry](images/screenshots/2026-10-24-reactive-buffs/flurry-720.jpg)
 
 ## 2026-10-24 — Flurry training
 
@@ -733,6 +812,8 @@ resizing grants rank two. A [second hand](images/screenshots/2026-10-24-inline-u
 shows seconds, yards and percentages without repeated units. README evidence refreshed.
 Chest/jewelry captures and the complete resolution/UI-scale matrix remain pending.
 
+![720p](images/screenshots/2026-10-24-inline-units/cards-720.jpg)
+
 ## 2026-10-24 — Warrior utility training
 
 Death Wish extends Retaliation, including its active Fury risk. Improved Disarm extends
@@ -756,6 +837,8 @@ Live captures: [new spell/passive previews](images/screenshots/2026-10-24-inline
 Native build, workspace test compilation and 96 focused Survivors tests pass. Fresh chest
 and jewelry captures, plus the full resolution matrix, remain pending.
 
+![new spell/passive previews](images/screenshots/2026-10-24-inline-upgrades/new-720.jpg)
+
 ## 2026-10-24 — Inline upgrade presentation planned
 
 Updated the design contract: embed green before/after values, arrows and units directly in
@@ -773,6 +856,8 @@ Native build passes. Verified hover and readable upgrade text at
 [1280×800](images/screenshots/2026-10-24-card-lighting/hover-800.jpg); selecting the resized
 card correctly grants its spell. Full rarity/animation/scale coverage remains open.
 
+![1280×720](images/screenshots/2026-10-24-card-lighting/hover-720.jpg)
+
 ## 2026-10-24 — Front-door talent activation and Enrage status
 
 Fixed the front-door Enter action dropping the selected hero's active talent snapshot.
@@ -785,6 +870,8 @@ green upgrade previews. [Live Enrage HUD](images/screenshots/2026-10-24-warrior-
 
 Native build, workspace test compilation and 92 focused Survivors tests pass. Live 720p
 checks confirm talent activation, Enrage's HUD line and the corrected duration description.
+
+![Live Enrage HUD](images/screenshots/2026-10-24-warrior-talents/enrage-hud-720.jpg)
 
 ## 2026-10-24 — Reactive Warrior Enrage
 
@@ -823,6 +910,8 @@ spec. These checks do not establish full manual combat acceptance.
 [Piercing Howl](images/screenshots/2026-10-24-warrior-talents/piercing-howl-node-720.jpg) ·
 [Concussion Blow](images/screenshots/2026-10-24-warrior-talents/concussion-blow-node-720.jpg).
 
+![Piercing Howl](images/screenshots/2026-10-24-warrior-talents/piercing-howl-node-720.jpg)
+
 ## 2026-10-24 — Warrior bleed talents
 
 Deep Wounds now adds bleed damage per talent rank; Improved Rend increases that bleed.
@@ -836,6 +925,7 @@ the local talent identity/rank audit pass. Live 1280×720 green descriptions ver
 [Improved Rend](images/screenshots/2026-10-24-warrior-talents/improved-rend-720.jpg).
 These captures use an empty validation spec; manual combat acceptance remains pending.
 
+![Deep Wounds](images/screenshots/2026-10-24-warrior-talents/deep-wounds-ranks-720.jpg)
 
 ## 2026-10-24 — Placed obstacle regression
 
@@ -852,6 +942,8 @@ Verified Warsong terrain and obstacles in a live 720p render; campaign unlocks a
 [Capture](images/screenshots/2026-10-24-world-preview/warsong-720.jpg) ·
 [Launch instructions](SURVIVORS-LOCATIONS.md#developer-instance-preview).
 Native build passes. Player collision, navigation and gameplay camera checks remain pending.
+
+![Capture](images/screenshots/2026-10-24-world-preview/warsong-720.jpg)
 
 ## 2026-10-24 — Warsong obstacle evidence
 
@@ -888,6 +980,8 @@ validation is still pending.
 **Validation:** native build, workspace test compilation, 86 Survivors tests, 51 core tests
 and the local talent-data audit pass. Live talent description verified at 720p.
 
+![Shout duration talent at 720p](images/screenshots/2026-10-24-warrior-talents/shout-duration-720.jpg)
+
 ## 2026-10-24 — Green talent upgrade previews
 
 Supported talent effects now appear in green beneath white name/rank headings. Each node
@@ -899,6 +993,8 @@ Comparisons use font-compatible text and distinguish node bonuses from total cha
 **Validation:** native build, workspace test compilation, 85 Survivors tests and 51 core
 tests pass. Live 720p checks confirm the comparison, green effect text, white heading and
 color reset for an unfinished talent.
+
+![Green rank preview at 720p](images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg)
 
 ## 2026-10-24 — Warrior defensive talents
 
@@ -912,6 +1008,8 @@ Coefficients remain provisional; remaining talents and manual combat validation 
 **Validation:** native build, workspace test compilation, 85 Survivors tests, 50 core tests,
 and the local talent-data audit pass. Improved Shield Wall details verified at 720p.
 
+![Defensive talent details at 720p](images/screenshots/2026-10-24-warrior-talents/defensive-talents-720.jpg)
+
 ## 2026-10-24 — Protection milestones
 
 Last Stand heals on Retaliation, Concussion Blow adds a brief Heroic Strike stun, and
@@ -922,6 +1020,8 @@ behaviors are implemented; remaining talents and manual combat validation are un
 [Protection details at 720p](images/screenshots/2026-10-24-warrior-talents/protection-milestones-720.jpg).
 **Validation:** native build, workspace test compilation, 84 Survivors tests and 50 core
 tests pass. Live 720p description verified. Coefficients remain provisional.
+
+![Protection details at 720p](images/screenshots/2026-10-24-warrior-talents/protection-milestones-720.jpg)
 
 ## 2026-10-24 — Fury milestones
 
@@ -935,6 +1035,8 @@ existing effects.
 tests pass; the Death Wish description fits at 720p. A full manual Fury encounter is still
 unverified. Protection milestones and remaining individual talents are unfinished.
 
+![Fury details at 720p](images/screenshots/2026-10-24-warrior-talents/fury-milestones-720.jpg)
+
 ## 2026-10-24 — Arms milestones and reliable DoT ticks
 
 Warrior Arms now gains Deep Wounds at 10 points, a larger Sweeping Strikes aura at 20,
@@ -945,6 +1047,8 @@ next tick. Damage-over-time catches up across long frames and stops at expiry.
 **Validation:** native build, workspace test compilation, 82 Survivors tests and 48 core
 tests pass. Live 720p description checked; a full manual Arms encounter remains unverified.
 Fury/Protection milestones and remaining individual talents are still in progress.
+
+![Arms milestone details at 720p](images/screenshots/2026-10-24-warrior-talents/arms-milestones-720.jpg)
 
 ## 2026-10-24 — Warrior talent effects
 
@@ -957,6 +1061,8 @@ unfinished. The save format is unchanged.
 tests, and the checkout talent-data audit pass. Live Heroic Strike and Booming Voice details
 fit at 720p. [Milestone screenshot](images/screenshots/2026-10-24-warrior-talents/talents-720.jpg).
 
+![Milestone screenshot](images/screenshots/2026-10-24-warrior-talents/talents-720.jpg)
+
 ## 2026-10-24 — Spell-specific legendary bonuses
 
 Legendary amulets now enhance only their associated spell. Green comparisons name that
@@ -968,6 +1074,8 @@ single-target attacks, with no additional AoE locations.
 Live 720p checks confirm both descriptions. Native build, workspace test compilation,
 77 Survivors tests and 45 core rules tests pass. Bonus values remain provisional.
 
+![Single-target bonuses](images/screenshots/2026-10-24-codex-discovery/legendary-direct-720.jpg)
+
 ## 2026-10-24 — Codex effect descriptions
 
 Selected jewelry shows its implemented standalone bonuses in green, using the same rules
@@ -975,6 +1083,8 @@ as chest comparisons. This checkpoint exposed global legendary bonuses; the late
 **Validation:** native build, workspace test compilation and 75 Survivors tests pass.
 [Live 720p capture](images/screenshots/2026-10-24-codex-discovery/codex-effects-720.jpg)
 confirms green ring bonuses match the rules.
+
+![Live 720p capture](images/screenshots/2026-10-24-codex-discovery/codex-effects-720.jpg)
 
 ## 2026-10-24 — Shared jewelry artwork
 
@@ -985,6 +1095,8 @@ remains a selectable question mark because its name identifies two different dis
 including all mapped icon files in the explicit data chain. The
 [720p capture](images/screenshots/2026-10-24-codex-discovery/codex-jewelry-720.jpg) shows
 the compact grid; mapped and unresolved cells both open their details.
+
+![720p capture](images/screenshots/2026-10-24-codex-discovery/codex-jewelry-720.jpg)
 
 ## 2026-10-24 — Codex browsing
 
@@ -1003,6 +1115,8 @@ unfinished; the current rows retain names and spell icons.
 [720p capture](images/screenshots/2026-10-24-codex-discovery/codex-layout-720.jpg) verifies
 amulet selection/details and reachable footer. Selection still resets catalog scrolling.
 
+![720p capture](images/screenshots/2026-10-24-codex-discovery/codex-layout-720.jpg)
+
 ## 2026-10-24 — Shared Codex discovery
 
 Rings, trinkets and shared amulets now keep account-wide discovery when their cards are
@@ -1015,6 +1129,8 @@ The native build passed. A 1280×720 live run confirms green level-up and chest 
 previews ([level up](images/screenshots/2026-10-24-codex-discovery/level-up-720.jpg),
 [chest](images/screenshots/2026-10-24-codex-discovery/chest-720.jpg)). Jewelry offer/restart
 validation and the Codex icon/detail layout remain unfinished; shared amulets clip at 720p.
+
+![level up](images/screenshots/2026-10-24-codex-discovery/level-up-720.jpg)
 
 ## 2026-10-24 — Validation follow-up
 

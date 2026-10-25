@@ -16,6 +16,12 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Current starter UI checkpoint (1280×720, isolated synthetic collected account).
+The [changelog](docs/CHANGELOG.md) includes Character management, Talents and Companion
+captures with remaining gaps against the intention designs.
+
+![Current Character interface](docs/images/screenshots/2026-10-25-starter-review/character-720.jpg)
+
 Scarlet Monastery now draws its authored building minimap, including zoom and enemy
 markers. The candidate zone stays locked pending navigation and full encounter acceptance.
 [Outdoor minimap regression](docs/images/screenshots/2026-10-25-indoor-minimap/elwynn.png)

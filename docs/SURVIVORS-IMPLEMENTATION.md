@@ -5,6 +5,17 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Visual reporting acceptance (hard requirement)
+
+Every major UI checkpoint includes actual inline screenshots in `docs/CHANGELOG.md`,
+stored under `docs/images/screenshots/<milestone>/`, plus a concise summary and
+feature-branch commit/push. Links alone are insufficient. Compare against the matching
+intention screenshot as the visual north star; record intentional departures and
+unfinished details. Keep README screenshots current. Follow the
+[checkpoint workflow](SURVIVORS-DEVELOPMENT.md#following-feature-milestones).
+The 2026-10-25 starter checkpoint captures Character, ten-hero management, Talents
+and Companions at 1280×720. Responsive variants and interaction acceptance remain open.
+
 ## Current priority — starter interface first (2026-10-25)
 
 Companion purchase clarity: preserve the reference's first-instinct-to-first,
