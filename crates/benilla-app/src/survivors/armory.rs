@@ -1454,10 +1454,25 @@ fn spend_talent(
     let Some(talent) = list.iter().find(|t| t.id == talent_id) else {
         return "That talent is not on this class".into();
     };
-    let name = spells
-        .and_then(|spells| spells.get(talent.ranks[0]))
-        .map(|spell| spell.name.clone())
-        .unwrap_or_else(|| "Talent".into());
+    let talent_name = |entry: &benilla_formats::Talent| {
+        spells
+            .and_then(|spells| spells.get(entry.ranks[0]))
+            .map(|spell| spell.name.clone())
+            .unwrap_or_else(|| format!("Talent {}", entry.id))
+    };
+    let requirement = |entry: &benilla_formats::Talent| {
+        let prerequisite = list
+            .iter()
+            .find(|other| other.id == entry.prereq_talent)
+            .map(&talent_name)
+            .unwrap_or_else(|| format!("Talent {}", entry.prereq_talent));
+        format!(
+            "{} requires {prerequisite} rank {}",
+            talent_name(entry),
+            entry.prereq_rank + 1
+        )
+    };
+    let name = talent_name(talent);
     let current = account
         .character(hero)
         .map(|c| c.dbc_rank(talent_id))
@@ -1482,6 +1497,13 @@ fn spend_talent(
             })
             .collect();
         if !account.unlearn_talent(hero, talent_id, talent_ranks_ok(list, &ranks)) {
+            if let Some(dependent) = list.iter().find(|entry| {
+                entry.prereq_talent == talent_id
+                    && u32::from(current - 1) <= entry.prereq_rank
+                    && ranks.iter().any(|&(id, rank)| id == entry.id && rank > 0)
+            }) {
+                return requirement(dependent);
+            }
             return "That point is holding a deeper row open".into();
         }
         return format!("{name} rank {}", current - 1);
@@ -1513,7 +1535,7 @@ fn spend_talent(
         .collect();
     if !talent_ranks_ok(list, &proposed) {
         return if !prereq_met {
-            "That talent's prerequisite is missing".into()
+            requirement(talent)
         } else {
             "That talent needs more points in earlier rows or is already full".into()
         };
@@ -1528,7 +1550,7 @@ fn spend_talent(
     ) {
         format!("{name} rank {}", current + 1)
     } else if !prereq_met {
-        "That talent's prerequisite is missing".into()
+        requirement(talent)
     } else {
         "That talent is shut or the points are spent".into()
     }

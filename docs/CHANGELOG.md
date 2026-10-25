@@ -3,6 +3,26 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Named talent prerequisites
+
+Blocked talent purchases and refunds now identify the dependency and required
+rank: “Shatter requires Improved Frost Nova rank 2.” A named prerequisite no
+longer reports a misleading row-point refund warning.
+
+![Refund explains the named prerequisite](images/screenshots/2026-10-25-talent-prerequisites/named-refund-blocker.jpg)
+
+![One prerequisite rank is insufficient](images/screenshots/2026-10-25-talent-prerequisites/partial-prerequisite-blocked.jpg)
+
+![Completing the prerequisite enables Shatter](images/screenshots/2026-10-25-talent-prerequisites/prerequisite-complete.jpg)
+
+Verified live at 1280×720 against the installed talent catalog: missing/partial
+prerequisites reject spending, full rank permits it, dependent-first refunds
+work, and trained Shatter protects its prerequisite. The saved build survived
+restart. The targeted DBC prerequisite/refund regression test, native build,
+workspace Clippy, formatting and render-pass lint pass.
+The talent reference remains the layout guide; typography, tree-heading icons
+and milestone icons still differ. Higher-tier and cross-class live checks remain.
+
 ## 2026-10-25 — Talent refund acceptance
 
 Verified the Mage Frost tree live at 1280×720: five first-row points unlock the

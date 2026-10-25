@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Named prerequisite checkpoint: Shatter/Improved Frost Nova verified live with
+missing, partial and complete prerequisite ranks, protected refunds and restart
+persistence. Blocked purchase/refund feedback now names both talents and the
+required rank. Three screenshots accompany the changelog. Higher-tier and
+cross-class acceptance remain open; reference heading/milestone icons and
+typography still need alignment.
+
 Mage Frost row gating now has live 1280×720 evidence: blocked supporting refund,
 dependent-first refund returning two points, and rejected spending after the row
 relocks. Three screenshots are inline in the changelog. Named prerequisite chains
