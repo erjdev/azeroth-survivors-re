@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Subtlety milestone interactions
+
+Subtlety now links control spells to defense and finishers: Gouge grants a small
+absorb at 10 points, Kidney Shot advances Gouge at 20, and Gouge advances Eviscerate
+at 30. Triggers run once per successful cast, affect only acquired abilities,
+and never stack the absorb. Ability text names the affected cooldown in green.
+
+![Premeditation at 1280×720](images/screenshots/2026-10-25-rogue-subtlety/premeditation-1280.jpg)
+
+![Master of Deception in the compact talent layout](images/screenshots/2026-10-25-rogue-subtlety/deception-640.jpg)
+
+107 core and 192 Survivors app tests pass, including threshold isolation,
+cooldown floors, dead-hero exclusion, stronger-shield preservation and the existing
+Paladin interaction. Native build, workspace Clippy, formatting and render-pass
+lint pass. All three Subtlety descriptions were checked at 640×720; Premeditation
+was also captured at 1280×720. All nine Rogue milestones now have effects;
+remaining individual talents and live-combat/balance acceptance are still open.
+
 ## 2026-10-25 — Assassination and Combat milestones
 
 Six Rogue milestones now have explicit effects. Assassination adds critical

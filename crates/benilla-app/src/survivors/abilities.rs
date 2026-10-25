@@ -666,10 +666,10 @@ fn finish_milestone_cast(
         run.shield = absorb;
         run.shield_t = effect.shield_seconds;
     }
-    if effect.wrath_advance > 0.0 {
+    if let Some((key, seconds)) = effect.cooldown_advance {
         for owned in &mut run.abilities {
-            if owned.def.key == "hammer_of_wrath" {
-                owned.cd = (owned.cd - effect.wrath_advance).max(0.0);
+            if owned.def.key == key {
+                owned.cd = (owned.cd - seconds).max(0.0);
             }
         }
     }
@@ -2031,6 +2031,57 @@ mod milestone_tests {
                 assert_eq!(after.effect, before.effect);
             }
         }
+    }
+
+    #[test]
+    fn rogue_subtlety_casts_advance_only_owned_spells_and_do_not_stack_shields() {
+        let trained = Milestones {
+            class: 3,
+            points: [0, 0, 30],
+            ..Default::default()
+        };
+        let mut run = Run::default();
+        for key in ["gouge", "eviscerate", "kidney_shot", "hammer_of_wrath"] {
+            run.abilities.push(Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 3.0,
+            });
+        }
+        let gouge = trained.cast("gouge");
+        finish_milestone_cast(&mut run, gouge, 100.0);
+        assert_eq!((run.shield, run.shield_t), (3.0, 3.0));
+        assert_eq!(
+            run.abilities.iter().map(|a| a.cd).collect::<Vec<_>>(),
+            vec![3.0, 2.0, 3.0, 3.0]
+        );
+        finish_milestone_cast(&mut run, trained.cast("kidney_shot"), 100.0);
+        assert_eq!(
+            run.abilities.iter().map(|a| a.cd).collect::<Vec<_>>(),
+            vec![1.0, 2.0, 3.0, 3.0]
+        );
+        for _ in 0..3 {
+            finish_milestone_cast(&mut run, gouge, 100.0);
+        }
+        assert_eq!(run.abilities[1].cd, 0.0);
+        assert_eq!(run.shield, 3.0);
+        run.shield = 20.0;
+        run.shield_t = 1.0;
+        finish_milestone_cast(&mut run, gouge, 100.0);
+        assert_eq!((run.shield, run.shield_t), (20.0, 1.0));
+        run.hp = 0.0;
+        finish_milestone_cast(&mut run, trained.cast("kidney_shot"), 100.0);
+        assert_eq!(
+            run.abilities[0].cd, 1.0,
+            "dead heroes receive no cast triggers"
+        );
+        run.hp = 100.0;
+        run.abilities.clear();
+        finish_milestone_cast(&mut run, gouge, 100.0);
+        assert!(
+            run.abilities.is_empty(),
+            "milestones do not grant unowned spells"
+        );
     }
 
     #[test]

@@ -102,7 +102,7 @@ pub struct CastEffect {
     pub shield_fraction: f32,
     pub shield_seconds: f32,
     pub immune_seconds: f32,
-    pub wrath_advance: f32,
+    pub cooldown_advance: Option<(&'static str, f32)>,
     pub storm_fraction: f32,
 }
 
@@ -121,7 +121,7 @@ impl Default for CastEffect {
             shield_fraction: 0.0,
             shield_seconds: 0.0,
             immune_seconds: 0.0,
-            wrath_advance: 0.0,
+            cooldown_advance: None,
             storm_fraction: 0.0,
         }
     }
@@ -143,6 +143,15 @@ impl Milestones {
     pub fn cast(self, key: &str) -> CastEffect {
         let mut effect = CastEffect::default();
         if self.class == 3 && ROGUE_SPELLS.contains(&key) {
+            if self.points[2] >= 10 && key == "gouge" {
+                effect.shield_fraction = 0.03;
+            }
+            if self.points[2] >= 20 && key == "kidney_shot" {
+                effect.cooldown_advance = Some(("gouge", 2.0));
+            }
+            if self.points[2] >= 30 && key == "gouge" {
+                effect.cooldown_advance = Some(("eviscerate", 1.0));
+            }
             if self.points[0] >= 10 {
                 effect.crit += 0.05;
             }
@@ -232,7 +241,7 @@ impl Milestones {
                     effect.damage = 1.25;
                 }
                 if self.paladin(2, 20) {
-                    effect.wrath_advance = 1.0;
+                    effect.cooldown_advance = Some(("hammer_of_wrath", 1.0));
                 }
                 if self.paladin(2, 30) {
                     effect.storm_fraction = 0.5;
@@ -517,6 +526,9 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
             (1, 10) => Some("Sinister Strike: 10% shorter cooldown"),
             (1, 20) => Some("Blade Flurry: +30% radius; remains one area around the player"),
             (1, 30) => Some("Rogue spells: 15% shorter cooldown (Survivors automatic Adrenaline Rush)"),
+            (2, 10) => Some("Gouge grants a 3% maximum-health absorb for 3 seconds once per successful cast; does not stack"),
+            (2, 20) => Some("Kidney Shot advances Gouge's cooldown by 2 seconds once per successful cast"),
+            (2, 30) => Some("Gouge advances Eviscerate's cooldown by 1 second once per successful cast"),
             _ => None,
         };
     }
@@ -725,6 +737,45 @@ mod tests {
     }
 
     #[test]
+    fn rogue_subtlety_milestones_have_scoped_cast_triggers() {
+        let at = |points| Milestones {
+            class: 3,
+            points: [0, 0, points],
+            ..Default::default()
+        };
+        assert_eq!(at(9).cast("gouge").shield_fraction, 0.0);
+        assert_eq!(at(10).cast("gouge").shield_fraction, 0.03);
+        assert_eq!(at(10).cast("gouge").shield_seconds, 3.0);
+        assert_eq!(at(19).cast("kidney_shot").cooldown_advance, None);
+        assert_eq!(
+            at(20).cast("kidney_shot").cooldown_advance,
+            Some(("gouge", 2.0))
+        );
+        assert_eq!(at(29).cast("gouge").cooldown_advance, None);
+        assert_eq!(
+            at(30).cast("gouge").cooldown_advance,
+            Some(("eviscerate", 1.0))
+        );
+        for key in [
+            "eviscerate",
+            "sinister_strike",
+            "blade_flurry",
+            "rupture",
+            "fireball",
+        ] {
+            assert_eq!(at(30).cast(key), CastEffect::default());
+        }
+        for class in [0, 1, 2, 4, 5, 6, 7, 8] {
+            let other = Milestones { class, ..at(30) };
+            assert_eq!(other.cast("gouge"), CastEffect::default());
+            assert_eq!(other.cast("kidney_shot"), CastEffect::default());
+        }
+        for threshold in [10, 20, 30] {
+            assert!(description(3, 2, threshold).is_some());
+        }
+    }
+
+    #[test]
     fn rogue_assassination_and_combat_milestones_unlock_and_compose() {
         let base = Milestones {
             class: 3,
@@ -769,13 +820,6 @@ mod tests {
             if *key != "sinister_strike" {
                 assert_eq!(effect.cooldown, 0.85);
             }
-        }
-        let subtlety = Milestones {
-            points: [0, 0, 51],
-            ..base
-        };
-        for key in ROGUE_SPELLS {
-            assert_eq!(subtlety.cast(key), CastEffect::default());
         }
         assert_eq!(trained.with_ranks(&[]), combat);
     }

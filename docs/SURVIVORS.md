@@ -300,7 +300,7 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 Rogue spell membership is Sinister Strike, Eviscerate, Blade Flurry, Rupture,
 Gouge and Kidney Shot. Other-class and neutral jewelry abilities are excluded.
 Damage factors from different talents multiply. Talents improve acquired abilities;
-they do not grant the spell. Other individual Rogue effects and Subtlety milestones
+they do not grant the spell. Other individual Rogue effects
 remain unfinished and retain their explicitly labeled provisional behavior.
 
 ### Rogue tree milestones
@@ -317,6 +317,13 @@ talents. Cooldown multipliers multiply; critical chance is capped at 100%.
 | Combat | 10 | Improved Sinister Strike | Sinister Strike cooldown ×0.90 |
 | Combat | 20 | Blade Flurry | Blade Flurry radius ×1.30, still one player-centered area |
 | Combat | 30 | Adrenaline Rush | All Rogue spell cooldowns ×0.85; automatic Survivors conversion |
+| Subtlety | 10 | Master of Deception | Successful Gouge grants a non-stacking 3% maximum-health absorb for 3 seconds |
+| Subtlety | 20 | Preparation | Successful Kidney Shot advances Gouge cooldown by 2 seconds |
+| Subtlety | 30 | Premeditation | Successful Gouge advances Eviscerate cooldown by 1 second |
 
-Subtlety milestone effects remain pending. Milestones are independent of the
+Subtlety's authored conversions trigger once per successful cast, not per target.
+Cooldown advances only affect acquired spells and stop at zero; they cannot
+trigger while dead. A smaller absorb does not replace or extend a stronger one.
+
+Milestones are independent of the
 similarly named individual talent nodes and reset when the selected spec changes.

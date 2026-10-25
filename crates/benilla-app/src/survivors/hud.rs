@@ -2744,10 +2744,15 @@ fn ability_tip(
             GOLD,
         ));
     }
-    if effect.wrath_advance > 0.0 {
+    if let Some((key, seconds)) = effect.cooldown_advance {
+        let target = super::data::ability(key);
         lines.push(TipLine::new(
-            "The Art of War: advances Hammer of Wrath by 1 second.",
-            GOLD,
+            format!(
+                "Advances {} cooldown by {} sec once per successful cast.",
+                spell_name(spells, target.spell, target.key),
+                num(seconds)
+            ),
+            card_growth::GAIN,
         ));
     }
     if effect.storm_fraction > 0.0 {

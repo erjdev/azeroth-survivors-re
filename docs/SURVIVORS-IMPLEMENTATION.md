@@ -31,7 +31,11 @@ Assassination and Combat now also implement all six 10/20/30-point milestones:
 critical chance/damage and guaranteed Eviscerate criticals; cooldown reductions
 and a wider single Blade Flurry area. 106 core and 191 Survivors app tests pass.
 Two live captures show independent active 30-point specs and exact descriptions.
-Other Rogue nodes, Subtlety milestones, compact descriptions and live combat remain open.
+Subtlety completes the nine Rogue milestones with a Gouge absorb, Kidney Shot
+advancing Gouge, and Gouge advancing Eviscerate. Shared cooldown-advance handling
+preserves Paladin behavior. All 107 core and 192 app tests pass. Subtlety descriptions
+were checked in the compact layout, with wide/compact inline screenshots.
+Other Rogue nodes, other compact descriptions and live combat remain open.
 
 The user authorized lore-appropriate racials for all races. All eight now have
 explicit rules in `SURVIVORS.md` and shared core effects applied to the run sheet;
