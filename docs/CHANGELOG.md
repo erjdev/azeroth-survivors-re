@@ -8,7 +8,7 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 Cards now embed before/after values and units directly in their descriptions, with changes
 green and surrounding prose neutral. This replaces the separate summary. Rank/new-choice
 context appears only beneath the spell name; jewelry replacement losses remain red. Tooltips
-share the ability prose.
+share the ability prose. Comparison units appear once, after the new value.
 
 Live captures: [new spell/passive previews](images/screenshots/2026-10-24-inline-upgrades/new-720.jpg),
 [rank-up and area comparisons at 720p](images/screenshots/2026-10-24-inline-upgrades/upgrade-720.jpg),

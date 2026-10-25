@@ -185,7 +185,11 @@ pub(in crate::survivors) fn jewelry_changes(
         if (new - old).abs() > 0.0001 {
             let fmt = |v| if percent { pct(v) } else { num(v) };
             lines.push((
-                format!("{label} bonus {} » {}", fmt(old), fmt(new)),
+                format!(
+                    "{label} bonus {} » {}",
+                    num(if percent { old * 100.0 } else { old }),
+                    fmt(new)
+                ),
                 if new > old { GAIN } else { LOSS },
             ));
         }

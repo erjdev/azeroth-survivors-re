@@ -64,7 +64,7 @@ needs an actual checkout screenshot in the README gallery. The detailed acceptan
 in [the implementation contract](SURVIVORS-IMPLEMENTATION.md#responsive-interface-and-bounded-effects).
 
 Upgrade cards show changes inline in their description: `Deal 20 » 43 damage to all enemies
-within 5yd » 7yd of the player.` Both values, the arrow and their units/stat wording are green;
+within 5 » 7yd of the player.` Both values, the arrow and their units/stat wording are green;
 surrounding prose keeps its normal color. This replaces a separate change summary below the
 description. See [upgrade readability](SURVIVORS-IMPLEMENTATION.md#upgrade-readability-checkpoint)
 for scope and acceptance requirements.

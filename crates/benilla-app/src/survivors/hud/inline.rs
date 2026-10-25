@@ -20,12 +20,7 @@ impl Part for (f32, f32, &str) {
         let precise = changed && num(old) == num(new);
         let fmt = |v| if precise { format!("{v:.2}") } else { num(v) };
         let text = if changed {
-            let old_unit = if matches!(unit, " yd" | " sec" | "%") {
-                unit
-            } else {
-                ""
-            };
-            format!("{}{old_unit} » {}{unit}", fmt(old), fmt(new))
+            format!("{} » {}{unit}", fmt(old), fmt(new))
         } else {
             format!("{}{unit}", fmt(old))
         };
@@ -332,9 +327,7 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
                 &cast_at(o.def, o.level + 1, &stats, run.milestones),
             )
         }
-        Choice::NewPassive(p) => {
-            passive(p.stat, p.per_level, p.per_level * 2.)
-        }
+        Choice::NewPassive(p) => passive(p.stat, p.per_level, p.per_level * 2.),
         Choice::UpPassive(i) => {
             let (p, rank) = run.passives[i];
             passive(
@@ -387,9 +380,10 @@ mod tests {
         a.radius = 5.;
         b.radius = 7.;
         let spans = ability(def, &a, &b);
-        assert!(plain(&spans)
-            .starts_with("Deals 20 » 43 damage to every enemy within 5 yd » 7 yd of you"));
-        for value in ["20 » 43 damage", "5 yd » 7 yd"] {
+        assert!(
+            plain(&spans).starts_with("Deals 20 » 43 damage to every enemy within 5 » 7 yd of you")
+        );
+        for value in ["20 » 43 damage", "5 » 7 yd"] {
             assert!(spans.contains(&(value.into(), card_growth::GAIN)));
         }
         assert!(spans.contains(&(" to every enemy within ".into(), PROSE)));
@@ -405,7 +399,7 @@ mod tests {
             &cast_at(def, 1, &stats, talents),
             &cast_at(def, 2, &stats, talents),
         );
-        assert!(spans.contains(&("7.5 sec » 8.2 sec".into(), card_growth::GAIN)));
+        assert!(spans.contains(&("7.5 » 8.2 sec".into(), card_growth::GAIN)));
         assert!(spans.contains(&("50%".into(), PROSE)));
         let def = data::ability("sweeping_strikes");
         let spans = ability(
@@ -413,7 +407,7 @@ mod tests {
             &cast_at(def, 1, &stats, talents),
             &cast_at(def, 2, &stats, talents),
         );
-        assert!(spans.contains(&("0.60 sec » 0.56 sec".into(), card_growth::GAIN)));
+        assert!(spans.contains(&("0.60 » 0.56 sec".into(), card_growth::GAIN)));
     }
     #[test]
     fn passive_and_defensive_prose_use_their_actual_units() {

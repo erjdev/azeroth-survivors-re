@@ -603,9 +603,10 @@ remain pending rather than receiving misleading screenshots.
 
 **Updated requirement — inline comparisons.** Upgrade changes
 belong inside the descriptive sentence, replacing the separate comparison summary below it.
-For example: `Deal 20 » 43 damage to all enemies within 5yd » 7yd of the player.`
-Render the complete `20 » 43 damage` and `5yd » 7yd` spans in green, including both values,
-the arrow and units/stat wording. Keep surrounding prose in its normal description color;
+For example: `Deal 20 » 43 damage to all enemies within 5 » 7yd of the player.`
+Render the complete `20 » 43 damage` and `5 » 7yd` spans in green, including both values,
+the arrow and units/stat wording. Show units only once, after the new value (for example,
+`4 » 3.7 sec`, `5 » 7 yd`, `20 » 40%`). Keep surrounding prose in its normal description color;
 do not color the whole sentence or duplicate the comparison in a footer.
 
 Apply this presentation consistently to ability, passive, item and other selectable upgrade
