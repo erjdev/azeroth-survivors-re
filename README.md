@@ -19,7 +19,7 @@ Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summarie
 The starter shows worn equipment icons that open Collection details, the selected
 zone's scheduled finale and progression locks. Narrow screens stack the three sections.
 
-![Starter with hero portrait and instance zone artwork](docs/images/screenshots/2026-10-25-zone-art/starter-1280.jpg)
+![Starter with expanded zone details](docs/images/screenshots/2026-10-25-zone-expansion/warsong-1280.jpg)
 
 ![Responsive starter at 640×720](docs/images/screenshots/2026-10-25-starter-portrait/mage-640.jpg)
 

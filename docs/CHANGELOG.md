@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Zone details expand in place
+
+Selecting a starter zone expands its description inside that row, following the
+main-menu reference. The previous zone collapses. The selected name is larger,
+its lock reason is highlighted, and its artwork adapts to the expanded shape.
+
+![Warsong details inside its selected row](images/screenshots/2026-10-25-zone-expansion/warsong-1280.jpg)
+
+![Available Elwynn expands without a lock message](images/screenshots/2026-10-25-zone-expansion/elwynn-1280.jpg)
+
+![Compact selection collapses Elwynn and expands Warsong](images/screenshots/2026-10-25-zone-expansion/warsong-640.jpg)
+
+Verified available/locked selection, text wrapping and artwork cropping at
+1280×720 and 640×720. Native build, workspace Clippy, formatting and render-pass
+lint pass. Gameplay rules and catalog descriptions are unchanged; gameplay tests
+were not rerun. Outdoor artwork and complete zone-content acceptance remain open.
+
 ## 2026-10-25 — Illustrated instance zone rows
 
 Starter rows now show installed loading artwork for Warsong Gulch, Arathi Basin,

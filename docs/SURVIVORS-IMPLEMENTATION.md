@@ -18,6 +18,11 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Starter selected-zone details now expand inside the selected row, matching the
+reference's placement. Switching Elwynn/Warsong collapses the old row; available
+and locked states, wrapping and crop updates were verified at 1280×720/640×720.
+Existing catalog descriptions remain separate from verified encounter completeness.
+
 Starter zone artwork checkpoint verified at 1280×720 and 640×720: runtime art,
 responsive cropping and locked banner clicks passed for Warsong/Naxxramas.
 Three captures are inline in the changelog. Use installed Map.dbc → LoadingScreens.dbc artwork

@@ -891,35 +891,48 @@ fn zone_column(
                 ));
             }
             let color = if reason.is_some() { DIM } else { GOLD };
-            line(row, font, zone.name, 14.0, color);
+            line(
+                row,
+                font,
+                zone.name,
+                if on { 16.0 } else { 14.0 },
+                if on { GOLD } else { color },
+            );
             if let Some(reason) = &reason {
-                line(row, font, reason, 11.0, DIM);
+                line(
+                    row,
+                    font,
+                    reason,
+                    11.0,
+                    if on {
+                        Color::srgb(0.9, 0.45, 0.35)
+                    } else {
+                        DIM
+                    },
+                );
+            }
+            if on {
+                if zone.name != zone.map {
+                    line(row, font, zone.map, 12.0, DIM);
+                }
+                if !zone.boss.is_empty() {
+                    let elites = zone.elites.join(", ");
+                    let stakes = if elites.is_empty() {
+                        format!("{}.", zone.boss)
+                    } else {
+                        format!("{}. {elites}.", zone.boss)
+                    };
+                    line(row, font, &stakes, 13.0, Color::WHITE);
+                }
+                if let Some(map) = data::MAPS.iter().find(|m| m.name == zone.map) {
+                    if !map.victory.is_empty() {
+                        line(row, font, map.victory, 12.0, DIM);
+                    }
+                }
             }
         });
     }
-    if let Some((index, zone)) = shown_zone(armory, selection) {
-        line(body, font, zone.name, 16.0, GOLD);
-        if zone.name != zone.map {
-            line(body, font, zone.map, 12.0, DIM);
-        }
-        if let Some(reason) = campaign::zone_lock_reason(index, level, &clears) {
-            line(body, font, &reason, 13.0, Color::srgb(0.9, 0.45, 0.35));
-        }
-        if !zone.boss.is_empty() {
-            let elites = zone.elites.join(", ");
-            let stakes = if elites.is_empty() {
-                format!("{}.", zone.boss)
-            } else {
-                format!("{}. {elites}.", zone.boss)
-            };
-            line(body, font, &stakes, 13.0, Color::WHITE);
-        }
-        if let Some(map) = data::MAPS.iter().find(|m| m.name == zone.map) {
-            if !map.victory.is_empty() {
-                line(body, font, map.victory, 12.0, DIM);
-            }
-        }
-    } else {
+    if shown.is_none() {
         let map = selection.map_def();
         line(body, font, map.name, 16.0, GOLD);
         line(
