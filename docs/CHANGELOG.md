@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage Ignite
+
+Critical fire hits now build one Ignite burn, carrying unpaid damage into refreshes
+without postponing the next tick. Added green spell-tooltip details and regression
+coverage for rank limits, school restrictions, refresh damage and recursion prevention.
+Native build, DBC audit, Clippy, 81 core and 146 app tests pass; live visual evidence remains open.
+
 ## 2026-10-25 — Mage talent effects
 
 Implemented 16 Mage talents across Arcane, Fire and Frost, with shared previews and

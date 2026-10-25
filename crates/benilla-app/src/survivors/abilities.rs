@@ -774,6 +774,31 @@ fn refresh_deep_wounds(dots: &mut Vec<enemies::Dot>, total: f32) {
     }
 }
 
+/// One burn per enemy; carry unpaid ticks forward without delaying the next tick.
+fn refresh_ignite(dots: &mut Vec<enemies::Dot>, added: f32) {
+    if !added.is_finite() || added <= 0.0 {
+        return;
+    }
+    if let Some(dot) = dots.iter_mut().find(|dot| dot.source == "Ignite") {
+        let ticks = (dot.left - dot.tick + 0.00001).floor().max(-1.0) + 1.0;
+        let total = dot.dps * ticks + added;
+        if total.is_finite() {
+            dot.dps = total / 4.0;
+            dot.left = 4.0;
+        }
+    } else {
+        if dots.len() >= 6 {
+            dots.remove(0);
+        }
+        dots.push(enemies::Dot {
+            dps: added / 4.0,
+            left: 4.0,
+            tick: 1.0,
+            source: "Ignite",
+        });
+    }
+}
+
 fn apply_secondary_control(
     en: &mut Enemy,
     milestones: survivors_core::talents::Milestones,
@@ -919,6 +944,10 @@ pub(super) fn apply_hits(
         run.record_flurry_hit(h.source, h.damage, h.crit);
         let bleed = run.milestones.critical_bleed(h.source, h.damage, h.crit);
         refresh_deep_wounds(&mut en.dots, bleed);
+        refresh_ignite(
+            &mut en.dots,
+            run.milestones.ignite(h.source, h.damage, h.crit),
+        );
         if h.dot > 0.0 && h.dot_dur > 0.0 {
             if en.dots.len() >= 6 {
                 en.dots.remove(0);
@@ -1378,6 +1407,35 @@ mod milestone_tests {
             assert_eq!(after.radius, before.radius);
             assert_eq!(after.duration, before.duration);
         }
+    }
+
+    #[test]
+    fn ignite_rolls_unpaid_damage_without_stacking_or_delaying_ticks() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 34, 5)]);
+        let mut dots = Vec::new();
+        refresh_ignite(&mut dots, mage.ignite("fireball", 100., true));
+        assert_eq!(dots.len(), 1);
+        assert_eq!(dots[0].advance(1.5), 1);
+        let paid = dots[0].dps;
+        assert!((paid - 10.).abs() < 0.0001);
+        assert_eq!(dots[0].tick, 0.5);
+        refresh_ignite(&mut dots, mage.ignite("fire_blast", 50., true));
+        assert_eq!(dots.len(), 1);
+        assert_eq!(dots[0].tick, 0.5);
+        assert!((dots[0].dps - 12.5).abs() < 0.0001); // 30 unpaid + 20 new, over four ticks.
+        assert_eq!(dots[0].advance(0.5), 1);
+        let next_paid = dots[0].dps;
+        assert_eq!(dots[0].advance(3.5), 3);
+        assert!((paid + next_paid + dots[0].dps * 3. - 60.).abs() < 0.0001);
+        assert_eq!(dots[0].advance(1.), 0);
+        assert_eq!(mage.ignite(dots[0].source, dots[0].dps, true), 0.);
+        refresh_ignite(&mut dots, f32::NAN);
+        refresh_ignite(&mut dots, 0.);
+        assert_eq!(dots[0].left, 0.);
     }
 
     #[test]

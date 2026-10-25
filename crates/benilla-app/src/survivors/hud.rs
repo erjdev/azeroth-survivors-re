@@ -2671,6 +2671,13 @@ fn ability_tip(
             ));
         }
     }
+    let ignite = milestones.ignite(def.key, 1.0, true);
+    if ignite > 0.0 {
+        lines.push(TipLine::new(
+            format!("Ignite: critical hits add {} of their damage to a four-tick burn; unpaid damage carries forward.", pct(ignite)),
+            card_growth::GAIN,
+        ));
+    }
     let effect = milestones.cast(def.key);
     if effect.heal_fraction > 0.0 {
         lines.push(TipLine::new(
@@ -3017,6 +3024,38 @@ pub(super) fn show_panels(
 mod talent_tooltip_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn ignite_tooltip_is_green_and_only_shown_for_trained_fire_spells() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = mage.with_ranks(&[(1, 34, 5)]);
+        let stats = Run::default().stats();
+        for (key, shown) in [
+            ("fireball", true),
+            ("flamestrike", true),
+            ("blizzard", false),
+            ("arcane_missiles", false),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            let tip = ability_tip(&owned, trained, &stats, None);
+            let line = tip.iter().find(|line| line.left.starts_with("Ignite:"));
+            assert_eq!(line.is_some(), shown);
+            if let Some(line) = line {
+                assert!(line.left.contains("40%"));
+                assert_eq!(line.color, card_growth::GAIN);
+            }
+            assert!(!ability_tip(&owned, mage, &stats, None)
+                .iter()
+                .any(|line| line.left.starts_with("Ignite:")));
+        }
+    }
 
     #[test]
     fn hunter_control_tooltips_show_ordinary_and_boss_durations() {

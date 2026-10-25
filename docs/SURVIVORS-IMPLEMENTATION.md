@@ -2583,3 +2583,28 @@ repeatedly returned `noWindowsAvailable` while AX/window captures and the app lo
 the live menu. Raising/rebinding did not restore coordinate input. The app was closed via
 its AX close button and the normal launcher restored. No live trained-combat or
 multi-resolution claim is made for this checkpoint.
+
+### Mage Ignite — 2026-10-25
+
+DBC node 34 now has its five functional ranks. A critical Mage fire hit adds 8% of that
+hit's pre-multistrike damage per rank to one Ignite burn on the enemy. Fireball splash
+and critical Flamestrike area hits qualify; Frost, Arcane, neutral spells and Ignite
+ticks do not. This is an explicit Survivors adaptation using the existing fire school list.
+
+The burn pays over four one-second ticks. A fresh critical carries all unpaid scheduled
+damage into the new four-tick pool, retaining the next tick deadline so repeated criticals
+cannot postpone all damage. Existing unrelated DoTs retain their state; Ignite occupies
+one slot under the existing six-DoT limit. Death cleanup and tick multistrike use the
+existing damage-over-time path. Invalid/nonpositive additions leave the burn unchanged.
+
+Talent rank previews and affected spell tooltips expose the percentage in green. Removing
+the rank removes the effect/tooltip. Mage now has 17 functional individual nodes; remaining
+nodes, milestones, balance and visual acceptance remain open.
+
+Validation: 81 core and 146 Survivors app tests pass, including conservation of the unpaid
+burn pool across a partial tick, unchanged tick phase, expiry, non-recursion, class/school
+restrictions, capped ranks and the green trained-only spell tooltip. DBC audit, native
+play build (22.12 seconds), workspace test compilation, Clippy, formatting, render-pass
+lint and diff whitespace checks pass. A fresh CUA session again loaded the seeded Mage
+menu but coordinate clicks returned `noWindowsAvailable`; no new talent-page screenshot
+or live combat acceptance is claimed. Closed via AX and restored the normal launcher.

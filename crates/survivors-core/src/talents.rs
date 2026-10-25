@@ -319,6 +319,20 @@ impl Milestones {
         }
     }
 
+    /// Critical Mage fire hits seed a four-tick Ignite before multistrike expansion.
+    /// The burn's own source is excluded, so periodic burn damage cannot recurse.
+    pub fn ignite(self, key: &str, damage: f32, critical: bool) -> f32 {
+        if self.class != 6
+            || !critical
+            || !damage.is_finite()
+            || damage <= 0.0
+            || !MAGE_FIRE.contains(&key)
+        {
+            return 0.0;
+        }
+        damage * self.trained_value(TalentStat::CriticalBurn)
+    }
+
     /// Ardent Defender reduces the portion of a blow below 35% health, including a
     /// blow crossing that threshold. A large hit cannot skip the protection entirely.
     pub fn incoming(self, damage: f32, hp: f32, max_hp: f32) -> f32 {
@@ -647,6 +661,7 @@ pub enum TalentStat {
     Crit,
     CritDamage,
     CriticalBleed,
+    CriticalBurn,
     EnrageDamage,
     BloodCrazeHealing,
     FlurryHaste,
@@ -695,6 +710,7 @@ impl TalentDefinition {
             }
             TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
+            TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
@@ -1291,6 +1307,15 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 34,
+        max_rank: 5,
+        name: "Ignite",
+        description: "Critical fire hits add 8% of their damage per rank to a four-tick burn; remaining burn damage rolls into the refresh",
+        stat: TalentStat::CriticalBurn,
+        per_rank: 0.08,
+    },
+
+    TalentDefinition {
         id: 76,
         max_rank: 5,
         name: "Arcane Focus",
@@ -1458,6 +1483,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::BloodCrazeHealing
             | TalentStat::FlurryHaste
             | TalentStat::CriticalBleed
+            | TalentStat::CriticalBurn
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
@@ -1911,6 +1937,7 @@ mod stat_talent_tests {
                     | TalentStat::BloodCrazeHealing
                     | TalentStat::FlurryHaste
                     | TalentStat::CriticalBleed
+                    | TalentStat::CriticalBurn
                     | TalentStat::SpellGroupDamage(_)
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
@@ -2010,6 +2037,52 @@ mod stat_talent_tests {
                 base.with_ranks(&[(0, node.id, 255), (0, node.id, 1)])
                     .cast(key),
                 base.with_ranks(&[(0, node.id, node.max_rank)]).cast(key)
+            );
+        }
+    }
+
+    #[test]
+    fn ignite_requires_a_trained_mage_fire_critical_and_cannot_recurse() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        for rank in 0..=5 {
+            let trained = mage.with_ranks(&[(1, 34, rank)]);
+            for key in MAGE_FIRE {
+                assert!((trained.ignite(key, 100., true) - 8. * f32::from(rank)).abs() < 0.0001);
+                assert_eq!(trained.ignite(key, 100., false), 0.);
+            }
+            for key in [
+                "Ignite",
+                "ignite",
+                "frostbolt",
+                "arcane_missiles",
+                "consecration",
+            ] {
+                assert_eq!(trained.ignite(key, 100., true), 0.);
+            }
+            for damage in [0., -1., f32::INFINITY, f32::NAN] {
+                assert_eq!(trained.ignite("fireball", damage, true), 0.);
+            }
+        }
+        assert!(
+            (mage
+                .with_ranks(&[(1, 34, 255)])
+                .ignite("fireball", 100., true)
+                - 40.)
+                .abs()
+                < 0.0001
+        );
+        for class in [0, 1, 2, 3, 4, 5, 7, 8] {
+            assert_eq!(
+                Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 34, 5)])
+                .ignite("fireball", 100., true),
+                0.
             );
         }
     }
