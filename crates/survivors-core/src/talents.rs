@@ -1733,6 +1733,21 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 203, max_rank: 3, name: "Improved Gouge",
+        description: "Gouge: +25% stun duration per rank",
+        stat: TalentStat::SpellDuration("gouge"), per_rank: 0.25,
+    },
+    TalentDefinition {
+        id: 269, max_rank: 5, name: "Lethality",
+        description: "Sinister Strike and Gouge: +6% critical damage per rank; excludes finishers and periodic damage",
+        stat: TalentStat::SpellGroupCritDamage(&["sinister_strike", "gouge"]), per_rank: 0.06,
+    },
+    TalentDefinition {
+        id: 1122, max_rank: 3, name: "Aggression",
+        description: "Sinister Strike and Eviscerate: +2% damage per rank",
+        stat: TalentStat::SpellGroupDamage(&["sinister_strike", "eviscerate"]), per_rank: 0.02,
+    },
+    TalentDefinition {
         id: 276, max_rank: 3, name: "Improved Eviscerate",
         description: "Eviscerate: +5% damage per rank",
         stat: TalentStat::SpellDamage("eviscerate"), per_rank: 0.05,
@@ -1828,6 +1843,50 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
 #[cfg(test)]
 mod stat_talent_tests {
     use super::*;
+
+    #[test]
+    fn rogue_control_and_strikes_compose_without_buffing_finishers_or_bleeds() {
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (1, 203, 3),
+            (0, 269, 5),
+            (1, 1122, 3),
+            (0, 276, 3),
+            (0, 270, 5),
+            (2, 1702, 5),
+        ]);
+        for key in ROGUE_SPELLS {
+            let effect = trained.cast(key);
+            let expected_damage = 1.10
+                * match *key {
+                    "sinister_strike" => 1.06,
+                    "eviscerate" => 1.06 * 1.15,
+                    _ => 1.0,
+                };
+            assert!((effect.damage - expected_damage).abs() < 0.00001, "{key}");
+            let expected_crit_damage = if matches!(*key, "sinister_strike" | "gouge") {
+                0.30
+            } else {
+                0.0
+            };
+            assert!(
+                (effect.crit_damage - expected_crit_damage).abs() < 0.00001,
+                "{key}"
+            );
+            assert_eq!(effect.duration, if *key == "gouge" { 1.75 } else { 1.0 });
+            assert!((effect.crit - 0.05).abs() < 0.00001);
+            assert_eq!(effect.extra_targets, 0);
+        }
+        assert_eq!(trained.cast("heroic_strike"), CastEffect::default());
+        assert_eq!(trained.with_ranks(&[]), base);
+        assert_eq!(
+            talent_definition(3, 203).unwrap().rank_preview(3),
+            "This talent: 75% duration (maximum rank)"
+        );
+    }
 
     #[test]
     fn rogue_training_composes_only_for_its_spells_and_resets() {

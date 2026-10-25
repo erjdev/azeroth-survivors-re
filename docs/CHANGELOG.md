@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rogue control and critical strikes
+
+Improved Gouge now extends its stun by 25% per rank. Lethality adds 6 percentage
+points of critical damage per rank to Sinister Strike and Gouge; Aggression adds
+2% damage per rank to Sinister Strike and Eviscerate. These replace provisional
+rank bonuses and compose with the earlier Rogue talents.
+
+![Improved Gouge purchased with its duration preview](images/screenshots/2026-10-25-rogue-control/gouge-1280.jpg)
+
+![Lethality effect and unmet prerequisite](images/screenshots/2026-10-25-rogue-control/lethality-1280.jpg)
+
+All 105 core tests, talent-data audit, native build, workspace Clippy, formatting
+and render-pass lint pass. Live 1280×720 checks covered all three descriptions,
+Gouge purchase/refund, and Lethality/Aggression gates. The three-tree layout follows
+the intention reference; live-combat and compact-layout acceptance for these
+new descriptions remain open.
+
 ## 2026-10-25 — First explicit Rogue talents
 
 Save-integrity follow-up: all 38 account tests pass, including a new Rogue

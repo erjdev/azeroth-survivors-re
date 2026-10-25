@@ -288,6 +288,9 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 
 | Talent (DBC ID) | Ranks | Survivors effect per rank |
 |---|---|---|
+| Improved Gouge (203) | 3 | +25% Gouge stun duration |
+| Lethality (269) | 5 | +6 percentage points critical damage for Sinister Strike and Gouge |
+| Aggression (1122) | 3 | +2% Sinister Strike and Eviscerate damage |
 | Improved Eviscerate (276) | 3 | +5% Eviscerate damage |
 | Malice (270) | 5 | +1 percentage point critical chance for Rogue spells |
 | Improved Sinister Strike (201) | 2 | 5% shorter Sinister Strike cooldown; energy-cost conversion |

@@ -18,7 +18,14 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
-Rogue now has five explicit individual effects: audited IDs 276, 270, 201, 1123
+Rogue now also has Improved Gouge (203), Lethality (269) and Aggression (1122):
+stun duration, scoped critical damage and scoped strike damage, respectively.
+The core regression verifies composition, exclusions and reset; all 105 core tests
+pass. Native 1280×720 descriptions, Gouge spend/refund and prerequisite/row gates
+were checked against the talent-page intention, with two inline changelog captures.
+Compact descriptions and live combat remain open.
+
+The preceding Rogue checkpoint added five explicit individual effects: audited IDs 276, 270, 201, 1123
 and 1702 replace their provisional +1% damage/rank. Eviscerate and Rupture damage,
 Rogue-only critical chance and spell damage, and Sinister Strike cooldown use the shared
 cast-effect path. Two new regressions cover isolation, composition, clamping,
