@@ -545,3 +545,70 @@ bodies. All paths reach approximately 30 yards, maintain floor height and avoid 
 body overlap at every step. The camera helper stops 0.05 yards inside each sampled
 sphere hit. Removing the WMO clears the checked elevated body/camera corridor.
 These tests do not replace runtime streaming or gameplay acceptance.
+
+## Gates of Ahn'Qiraj outdoor roster and Legendary armor — 2026-10-25
+
+The pinned MaNGOS Zero [creature templates](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_template.sql)
+and [placements](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature.sql)
+establish these outdoor Silithus identities. Each selected entry has a map-1 placement
+inside x (-9000, -6000), y (-500, 3000). This verifies regional identity, not natural
+placement at the arena. Template first display and minimum level drive the catalog.
+The old AQ20/AQ40 raid creatures are replaced; Setis replaces Ossirian as the final
+outdoor encounter. Hive'Ashi Worker replaces the unplaced Drone entry.
+
+| Role | Creature | Entry | Display | Level | Example spawn GUID |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Wave | Sand Skitterer | 11738 | 8014 | 55 | 44400 |
+| Wave | Stonelash Scorpid | 11735 | 15383 | 54 | 43907 |
+| Wave | Dredge Striker | 11740 | 15386 | 55 | 45691 |
+| Wave | Twilight Avenger | 11880 | 11811 | 57 | 42945 |
+| Wave | Hive'Ashi Worker | 11721 | 12151 | 57 | 43225 |
+| Wave | Stonelash Flayer | 11737 | 15385 | 57 | 44182 |
+| Wave | Hive'Ashi Defender | 11722 | 12153 | 58 | 43237 |
+| Wave | Dust Stormer | 11744 | 8715 | 55 | 46075 |
+| Wave | Twilight Stonecaller | 11882 | 11815 | 59 | 43045 |
+| Wave | Hive'Zora Wasp | 11727 | 11088 | 57 | 43355 |
+| Wave | Hive'Zora Reaver | 11728 | 11085 | 59 | 43640 |
+| Wave | Hive'Regal Ambusher | 11730 | 11106 | 59 | 43777 |
+| Wave | Hive'Ashi Stinger | 11698 | 12149 | 57 | 43181 |
+| Wave | Hive'Zora Hive Sister | 11729 | 12160 | 59 | 43693 |
+| Wave | Hive'Regal Spitfire | 11732 | 9229 | 59 | 43807 |
+| Wave | Hive'Regal Slavemaker | 11733 | 12154 | 59 | 43841 |
+| Wave | Hive'Regal Hive Lord | 11734 | 12155 | 59 | 43878 |
+| Wave | Twilight Overlord | 15213 | 15407 | 59 | 43078 |
+| Boss | Gretheer | 14472 | 1104 | 57 | 43119 |
+| Boss | Krellack | 14476 | 6068 | 56 | 51837 |
+| Boss | Grubthor | 14477 | 14523 | 58 | 43124 |
+| Boss | Huricanian | 14478 | 14525 | 58 | 43125 |
+| Boss | Lapress | 14473 | 14521 | 60 | 43120 |
+| Boss | Deathclasp | 15196 | 15327 | 59 | 42921 |
+| Boss | Twilight Lord Everun | 14479 | 14526 | 60 | 42160 |
+| Boss | Setis | 14471 | 5965 | 61 | 51838 |
+
+Arrivals, boss status, speeds, model scales and loot are authored Survivors tuning,
+not vanilla encounter or loot claims. Retained wave identities keep their speed/scale
+tuning; new wave slots retain the corresponding progression slot's speed/scale.
+Bosses initially use speed 4.4 and scale 2.0; Setis uses the giant archetype. These need
+live appearance and balance review. The 18-wave order and eight-boss schedule are:
+
+| Time | Boss | Legendary slot | Base drop chance |
+| --- | --- | --- | ---: |
+| 3:00 | Gretheer | Helm | 60% |
+| 4:30 | Krellack | Shoulders | 60% |
+| 6:00 | Grubthor | Chest | 60% |
+| 7:30 | Huricanian | Waist | 60% |
+| 9:00 | Lapress | Legs | 60% |
+| 10:30 | Deathclasp | Feet | 60% |
+| 12:00 | Twilight Lord Everun | Wrist | 60% |
+| 16:00 | Setis | Hands | 60% |
+
+The slot names above must follow the collection's stable slot order. These sources map
+to the existing verified class-specific Legendary armor identities; the Legendary main
+hand remains sourced from Naxxramas. Duplicate drops add no power. Adding these rows
+does not clear or unlock the zone.
+
+The unchanged candidate is map 1, [-8180, 1536, 5], leash 80. A 2-yard terrain grid
+inside the 80-yard disk found 5,025/5,025 supported points, height range -4.988 to
+16.081, no deep liquid or impassable samples, and 111 estimated slopes over 45 degrees.
+The start terrain is z=4.19. Terrain support is not collision, path connectivity or
+camera acceptance; steep patches and the full runtime world still require validation.

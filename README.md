@@ -16,6 +16,12 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Ahn'Qiraj outdoor roster milestone: an isolated accelerated Warrior run exercises the
+new Legendary armor encounters. The zone remains locked pending world acceptance;
+this screenshot does not establish normal progression or balance.
+
+![Ahn'Qiraj level-up during the roster probe](docs/images/screenshots/2026-10-25-aq-roster/level-up.png)
+
 Defeat results at 1280×720, captured with an isolated save and temporarily reduced damage/XP
 tuning to reach defeat quickly. This validates the displayed results, not gameplay balance.
 

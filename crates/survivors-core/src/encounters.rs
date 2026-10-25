@@ -298,6 +298,43 @@ mod tests {
     }
 
     #[test]
+    fn aq_legendary_armor_schedule_is_complete_but_world_acceptance_still_blocks_entry() {
+        let map = data::MAPS
+            .iter()
+            .position(|m| m.name == "Gates of Ahn'Qiraj")
+            .unwrap();
+        assert_eq!(data::MAPS[map].map, 1);
+        assert!(ready(map));
+        assert_eq!(schedule(map).len(), 8);
+        for (slot, row) in campaign::DROPS
+            .iter()
+            .filter(|row| row.zone == 10)
+            .enumerate()
+        {
+            assert_eq!((row.slot, row.band), (slot, 5));
+            assert!(next(map, slot as u32, row.at_secs as f32 - 0.01).is_none());
+            assert_eq!(
+                next(map, slot as u32, row.at_secs as f32).unwrap().name,
+                row.creature
+            );
+            assert!(drop_is_boss(row));
+            for class in 0..data::CLASSES.len() {
+                assert!(campaign::piece_name(class, slot, 5).is_some());
+                assert!(crate::gear_visuals::piece(class, slot, 5).is_some());
+            }
+        }
+        assert!(next(map, 8, 10_000.0).is_none());
+        assert!(!won(map, 959.0, 8));
+        assert!(!won(map, 960.0, 7));
+        assert!(won(map, 960.0, 8));
+        assert!(!campaign::zone_open(10, 51, &[true; campaign::CLEAR_COUNT]));
+        assert_eq!(
+            campaign::zone_lock_reason(10, 51, &[true; campaign::CLEAR_COUNT]).as_deref(),
+            Some("Gates of Ahn'Qiraj world content is not ready")
+        );
+    }
+
+    #[test]
     fn non_campaign_maps_keep_the_arena_clock() {
         let map = data::MAPS
             .iter()

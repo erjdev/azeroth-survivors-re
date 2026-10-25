@@ -2392,3 +2392,33 @@ over 9.99 seconds; its combat-only interval was 457 frames over 6.01 seconds (76
 This verifies the new fields reach the log, not broad performance acceptance. The
 validation apps were closed through fresh AX controls without querying after exit,
 and the normal launcher was restored. No ERROR/panic entries appeared.
+
+
+### Ahn'Qiraj Legendary armor acquisition checkpoint — 2026-10-25
+
+The outdoor Gates of Ahn'Qiraj catalog now uses 18 waves and eight named Silithus
+bosses with identities verified against pinned creature templates and regional map-1
+placements. Authored encounter timing supplies all eight Legendary armor slots for
+all nine classes; Naxxramas retains the Legendary main hand. Setis is the final
+encounter at 16:00. See [the source and tuning table](SURVIVORS-LOCATIONS.md#gates-of-ahnqiraj-outdoor-roster-and-legendary-armor--2026-10-25).
+This replaces raid-interior creatures in the outdoor candidate, without claiming
+vanilla loot or natural placement at the arena.
+
+All 78 core and 135 Survivors app tests pass, including every class's reward acquisition,
+duplicate neutrality, selected equipment, independent appearances and save reload.
+Workspace test compilation, Clippy, formatting, the render-pass lint and the native
+play build pass. The content audit reports 87 remaining gaps: 81 PvP source cells,
+five missing map definitions and the Naxxramas start floor. Its scope does not prove
+world readiness, full equipment appearance, talents or UI acceptance.
+
+The isolated Warrior:late live probe entered the outdoor world with max-rank abilities
+at simulated 10:00. The captured level-up hand is at 10:26, level 23 and 305 kills.
+The saved account contains Legendary helm, shoulders and waist from the new encounters;
+other classes remain untouched and no zone clear is recorded. No ERROR or panic was
+logged. Loading/early combat hitches and an unknown creature sound kit 5519 were logged;
+the mixed-focus run is not attended-performance or natural-balance evidence. The app
+was closed and its normal launch wrapper restored.
+
+The terrain survey supports all 5,025 points but finds 111 steep samples. This zone
+remains locked pending traversal, camera, model-scale, full encounter and performance
+acceptance. Screenshot: [level-up during the roster probe](images/screenshots/2026-10-25-aq-roster/level-up.png).

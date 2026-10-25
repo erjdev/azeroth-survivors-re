@@ -1670,22 +1670,28 @@ mod tests {
 
     #[test]
     fn uncommon_encounter_rewards_preserve_selected_gear_and_reload_for_every_class() {
-        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(3, 1);
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(3, 1, 9);
     }
 
     #[test]
     fn epic_encounter_rewards_preserve_selected_gear_and_reload_for_every_class() {
-        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(6, 3);
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(6, 3, 9);
     }
 
     #[test]
     fn rare_encounter_rewards_preserve_selected_gear_and_reload_for_every_class() {
-        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(5, 2);
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(5, 2, 9);
+    }
+
+    #[test]
+    fn legendary_armor_rewards_preserve_selected_gear_and_reload_for_every_class() {
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(10, 5, 8);
     }
 
     fn encounter_rewards_preserve_selected_gear_and_reload_for_every_class(
         zone: usize,
         band: usize,
+        slots: usize,
     ) {
         use super::super::equipment::Look;
         for class in 0..data::CLASSES.len() {
@@ -1701,11 +1707,15 @@ mod tests {
                 );
             }
             let progress = &account.classes[class];
-            assert_eq!(progress.pieces.iter().filter(|&&n| n > 0).count(), 10);
+            assert_eq!(
+                progress.pieces.iter().filter(|&&n| n > 0).count(),
+                slots + 1
+            );
             assert_eq!(progress.equipment.worn[0], Some(0));
-            assert!(progress.equipment.worn[1..]
+            assert!(progress.equipment.worn[1..slots]
                 .iter()
                 .all(|&b| b == Some(band as u8)));
+            assert!(progress.equipment.worn[slots..].iter().all(Option::is_none));
             assert!(progress.clears.iter().all(|&cleared| !cleared));
             let might = account.bonus(class, hero).might;
             assert!(account.wear_piece(class, 0, Some(band as u8)));
@@ -1717,7 +1727,7 @@ mod tests {
                 Some(0)
             );
             // Repeated boss rewards must not undo an explicit empty slot or hidden look.
-            assert!(account.wear_piece(class, 8, None));
+            assert!(account.wear_piece(class, slots - 1, None));
             assert!(account.show_piece(class, 7, Look::Hidden));
             let saved = encode(&account);
             let mut loaded = parse(&saved).unwrap();
@@ -1726,7 +1736,7 @@ mod tests {
                 assert_eq!(loaded.collect_drop(class, zone, row.creature), None);
             }
             assert_eq!(encode(&loaded), saved);
-            assert_eq!(loaded.classes[class].equipment.worn[8], None);
+            assert_eq!(loaded.classes[class].equipment.worn[slots - 1], None);
             assert_eq!(loaded.classes[class].equipment.looks[7], Look::Hidden);
             assert_eq!(
                 loaded.bonus(class, hero).health,

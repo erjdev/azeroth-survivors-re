@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Ahn'Qiraj Legendary armor sources
+
+Added eight timed outdoor encounters supplying Legendary armor for every class, with
+verified Silithus creature identities. All 78 core and 135 Survivors tests pass, plus
+Clippy and native build. A live probe saved three Legendary Warrior pieces.
+[Milestone screenshot](images/screenshots/2026-10-25-aq-roster/level-up.png).
+The zone remains locked for world acceptance; the content audit still reports 87 gaps.
+
 ## 2026-10-25 — Foreground performance validation
 
 Corrected the profiling setup: prior unattended/background FPS was not representative

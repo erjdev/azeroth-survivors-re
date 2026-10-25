@@ -196,8 +196,8 @@ pub static ZONES: &[Zone] = &[
         name: "Gates of Ahn'Qiraj",
         map: "Gates of Ahn'Qiraj",
         talent: 42,
-        elites: &["Qiraji Gladiator", "Anubisath Sentinel"],
-        boss: "Ossirian the Unscarred",
+        elites: &["Hive'Regal Hive Lord", "Twilight Overlord"],
+        boss: "Setis",
         ready: false,
         into_id: 77,
         champ_id: 97,
@@ -795,6 +795,70 @@ pub static DROPS: &[DropRow] = &[
         slot: 8,
         band: 3,
         creature: "King Mukla",
+        at_secs: 960,
+        chance: 60,
+    },
+    DropRow {
+        zone: 10,
+        slot: 0,
+        band: 5,
+        creature: "Gretheer",
+        at_secs: 180,
+        chance: 60,
+    },
+    DropRow {
+        zone: 10,
+        slot: 1,
+        band: 5,
+        creature: "Krellack",
+        at_secs: 270,
+        chance: 60,
+    },
+    DropRow {
+        zone: 10,
+        slot: 2,
+        band: 5,
+        creature: "Grubthor",
+        at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 10,
+        slot: 3,
+        band: 5,
+        creature: "Huricanian",
+        at_secs: 450,
+        chance: 60,
+    },
+    DropRow {
+        zone: 10,
+        slot: 4,
+        band: 5,
+        creature: "Lapress",
+        at_secs: 540,
+        chance: 60,
+    },
+    DropRow {
+        zone: 10,
+        slot: 5,
+        band: 5,
+        creature: "Deathclasp",
+        at_secs: 630,
+        chance: 60,
+    },
+    DropRow {
+        zone: 10,
+        slot: 6,
+        band: 5,
+        creature: "Twilight Lord Everun",
+        at_secs: 720,
+        chance: 60,
+    },
+    DropRow {
+        zone: 10,
+        slot: 7,
+        band: 5,
+        creature: "Setis",
         at_secs: 960,
         chance: 60,
     },
@@ -1901,7 +1965,7 @@ mod tests {
     #[test]
     fn drops_name_a_creature_on_that_map() {
         assert_eq!(PIECES, 54);
-        assert_eq!(DROPS.len(), 37);
+        assert_eq!(DROPS.len(), 45);
         for row in DROPS {
             let zone = &ZONES[row.zone];
             let map = super::super::data::MAPS
