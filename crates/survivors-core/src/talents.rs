@@ -194,17 +194,26 @@ impl Milestones {
         }
     }
 
-    /// Deep Wounds snapshots 12% of a critical direct attack over three seconds.
+    /// Deep Wounds snapshots the milestone plus trained fraction of a critical direct attack.
     /// Called before execute and echo expansion; ticks cannot trigger more bleeds.
     pub fn critical_bleed(self, key: &str, damage: f32, critical: bool) -> f32 {
-        if self.class != 0 || self.points[0] < 10 || !critical || !damage.is_finite() {
+        if self.class != 0 || !critical || !damage.is_finite() {
             return 0.0;
         }
         if matches!(
             key,
             "cleave" | "heroic_strike" | "execute" | "mortal_strike"
         ) {
-            damage.max(0.0) * 0.12
+            let trained: f32 = definitions(self.class)
+                .iter()
+                .enumerate()
+                .filter(|(_, node)| matches!(node.stat, TalentStat::CriticalBleed))
+                .map(|(index, node)| {
+                    node.per_rank * f32::from(self.training[index].min(node.max_rank))
+                })
+                .sum();
+            let fraction = if self.points[0] >= 10 { 0.12 } else { 0.0 } + trained;
+            damage.max(0.0) * fraction * self.cast("deep_wounds").damage
         } else {
             0.0
         }
@@ -486,6 +495,7 @@ pub enum TalentStat {
     Armor,
     Crit,
     CritDamage,
+    CriticalBleed,
     Reduction,
     Speed,
     SpellDamage(&'static str),
@@ -506,6 +516,7 @@ impl TalentDefinition {
             TalentStat::Cooldown | TalentStat::SpellCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::Crit | TalentStat::SpellCrit(_) => (100.0, "% critical chance"),
             TalentStat::CritDamage => (100.0, "% critical damage"),
+            TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
@@ -665,6 +676,23 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         description: "Demoralizing Shout: +10% weakening duration per rank (Survivors conversion)",
         stat: TalentStat::SpellDuration("demoralizing_shout"),
         per_rank: 0.1,
+    },
+
+    TalentDefinition {
+        id: 127,
+        max_rank: 3,
+        name: "Improved Rend",
+        description: "Deep Wounds: +10% bleed damage per rank (Survivors conversion)",
+        stat: TalentStat::SpellDamage("deep_wounds"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 121,
+        max_rank: 3,
+        name: "Deep Wounds",
+        description: "Direct criticals bleed for an additional 4% damage per rank over 3 seconds; refreshes, does not stack",
+        stat: TalentStat::CriticalBleed,
+        per_rank: 0.04,
     },
 ];
 
@@ -851,7 +879,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::CritDamage => bonus.crit_damage += value,
             TalentStat::Reduction => bonus.reduction += value,
             TalentStat::Speed => bonus.speed += value,
-            TalentStat::SpellDamage(_)
+            TalentStat::CriticalBleed
+            | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellCrit(_)
             | TalentStat::SpellDuration(_)
@@ -904,6 +933,52 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn warrior_bleed_training_composes_without_recursive_or_cross_class_procs() {
+        let base = Milestones {
+            class: 0,
+            points: [10, 0, 0],
+            ..Default::default()
+        };
+        for rank in 0..=3 {
+            let trained = base.with_ranks(&[(0, 121, rank), (0, 127, 3)]);
+            let expected = 100.0 * (0.12 + 0.04 * f32::from(rank)) * 1.3;
+            for key in ["cleave", "heroic_strike", "execute", "mortal_strike"] {
+                assert!((trained.critical_bleed(key, 100., true) - expected).abs() < 0.00001);
+                assert_eq!(trained.critical_bleed(key, 100., false), 0.);
+                assert_eq!(trained.critical_bleed(key, f32::NAN, true), 0.);
+            }
+            for key in ["deep_wounds", "whirlwind", "thunder_clap", "retaliation"] {
+                assert_eq!(trained.critical_bleed(key, 100., true), 0.);
+            }
+            assert_eq!(
+                trained.with_ranks(&[]).critical_bleed("cleave", 100., true),
+                12.
+            );
+        }
+        // Improved Rend improves a bleed; it does not grant one by itself.
+        let empty = Milestones::default();
+        assert_eq!(
+            empty
+                .with_ranks(&[(0, 127, 3)])
+                .critical_bleed("cleave", 100., true),
+            0.
+        );
+        let outsider = Milestones {
+            class: 1,
+            points: [30; 3],
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 121, 3), (0, 127, 3)]);
+        assert_eq!(outsider.critical_bleed("cleave", 100., true), 0.);
+        let capped = base.with_ranks(&[(0, 121, 255), (0, 127, 255)]);
+        assert!((capped.critical_bleed("cleave", 100., true) - 31.2).abs() < 0.00001);
+        assert_eq!(
+            talent_definition(0, 121).unwrap().rank_preview(1),
+            "This talent: 4 to 8% of direct critical damage as bleed next rank"
+        );
+    }
+
+    #[test]
     fn warrior_rank_reset_removes_previous_training() {
         let base = Milestones {
             class: 0,
@@ -937,7 +1012,8 @@ mod stat_talent_tests {
                     TalentStat::CritDamage => total.crit_damage,
                     TalentStat::Reduction => total.reduction,
                     TalentStat::Speed => total.speed,
-                    TalentStat::SpellDamage(_)
+                    TalentStat::CriticalBleed
+                    | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
                     | TalentStat::SpellCrit(_)
                     | TalentStat::SpellDuration(_)

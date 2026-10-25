@@ -323,6 +323,8 @@ have implementations described below.
 | Talent ID | Name | Ranks | Survivors effect per rank |
 | --- | --- | --- | --- |
 | 124 | Improved Heroic Strike | 3 | Heroic Strike cooldown shortened by 5% |
+| 127 | Improved Rend | 3 | Deep Wounds bleed damage +10% |
+| 121 | Deep Wounds | 3 | Direct criticals add 4% of hit damage to the three-second bleed |
 | 130 | Deflection | 5 | +1 percentage point damage reduction |
 | 128 | Improved Thunder Clap | 3 | Thunder Clap cooldown shortened by 10% |
 | 662 | Impale | 2 | +10 percentage points critical damage |
@@ -940,3 +942,20 @@ removal, after removal and after re-registration. This tests the same `Floor::sl
 player movement; it does not substitute for streamed-world traversal or Elwynn reproduction.
 See [fixture scope](SURVIVORS-LOCATIONS.md#placed-stump-capsule-regression).
 Workspace test compilation and all 87 focused Survivors tests pass with explicit checkout data.
+
+
+### Warrior bleed talents checkpoint — 2026-10-24
+
+Nineteen Warrior nodes now have explicit effects. Deep Wounds adds four percentage points
+per rank to the direct-critical bleed fraction, alongside the Arms 10-point milestone's
+12%. Improved Rend multiplies that bleed damage by 1 + 10% per rank. At maximum ranks,
+a 100-damage eligible critical with the milestone creates 31.2 damage over three seconds.
+Improved Rend alone does not grant a bleed. These are explicit Survivors conversions;
+no separate Rend ability is implied. The green rank preview uses the same coefficients.
+
+Existing non-stacking refresh behavior and tick scheduling remain unchanged. Bleed ticks,
+area pulses, reflected damage and other classes cannot trigger this bleed; execute and
+multistrike expansion still happen after the triggering damage snapshot is selected.
+Remaining Warrior nodes and full manual combat acceptance remain open.
+Native build, workspace test compilation, 52 core tests, 88 focused Survivors tests and
+the local talent identity/rank audit pass. Manual combat and fresh UI captures remain pending.

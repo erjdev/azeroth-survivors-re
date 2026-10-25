@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Warrior bleed talents
+
+Deep Wounds now adds bleed damage per talent rank; Improved Rend increases that bleed.
+Both replace placeholder bonuses and show green current/next-rank values. Bleeds retain
+three-second, non-stacking refresh behavior and cannot trigger themselves. Nineteen
+Warrior nodes now have implemented effects; other nodes and manual combat acceptance
+remain unfinished. Coefficients are provisional pending balance work.
+Native build, workspace test compilation, 52 core tests, 88 focused Survivors tests and
+the local talent identity/rank audit pass. Manual combat and fresh UI captures remain pending.
+
+
 ## 2026-10-24 — Placed obstacle regression
 
 Added a real-data Warsong stump regression covering player-capsule contact and collider

@@ -1157,6 +1157,30 @@ mod milestone_tests {
     }
 
     #[test]
+    fn trained_warrior_bleed_delivers_its_snapshot_over_three_ticks() {
+        let talents = Milestones {
+            class: 0,
+            points: [10, 0, 0],
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 121, 3), (0, 127, 3)]);
+        let mut dots = Vec::new();
+        refresh_deep_wounds(
+            &mut dots,
+            talents.critical_bleed("heroic_strike", 100., true),
+        );
+        assert_eq!(dots.len(), 1);
+        let ticks = dots[0].advance(3.);
+        assert_eq!(ticks, 3);
+        assert!((dots[0].dps * ticks as f32 - 31.2).abs() < 0.00001);
+        assert_eq!(dots[0].advance(1.), 0);
+        assert_eq!(
+            talents.critical_bleed(dots[0].source, dots[0].dps, true),
+            0.
+        );
+    }
+
+    #[test]
     fn control_duration_reaches_hits_and_markers_without_scaling_strength() {
         let base = Milestones {
             class: 0,
