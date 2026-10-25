@@ -7,6 +7,17 @@ completed changes. Each phase must pass its acceptance criteria before it is cal
 
 ## Current priority — starter interface first (2026-10-25)
 
+Preview fixture checkpoint: `scripts/survivors-ui-fixture.py` now copies checked-in
+synthetic fresh/partial/collected saves into new isolated state directories and
+prints a direct-page launch command. Existing directories and symlink destinations
+are refused. The real account parser and save round trip validate the fixtures;
+168 Survivors tests, two script isolation tests, workspace Clippy, formatting and
+render-pass lint pass. The collected fixture contains all 54 ownership cells per
+class and ten heroes, not verified item/zone completion. All fixtures intentionally
+omit zone clears and spent talent builds. Rendered fixture/resolution comparisons,
+populated spec fixtures and purchased reward states remain open. See the
+[fixture workflow](SURVIVORS-DEVELOPMENT.md#deterministic-account-fixtures).
+
 Prioritize the starter/menu and Armory interface pages before further zone content
 or in-map expansion. Build a fast, repeatable UI preview loop: direct page/fixture
 selection, isolated deterministic account data, immediate viewport changes and

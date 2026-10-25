@@ -210,6 +210,9 @@ Native development can now open a specific starter page directly with
 `WOW_SURVIVORS_UI_PAGE=collection`, without a gameplay session.
 [Direct Collection preview](docs/images/screenshots/2026-10-25-ui-preview/collection-direct.jpg)
 · [preview instructions](docs/SURVIVORS-DEVELOPMENT.md#starter-ui-iteration-priority).
+Use `python3 scripts/survivors-ui-fixture.py partial` to prepare an isolated account
+for UI checks; [fresh, partial and collected fixtures](docs/SURVIVORS-DEVELOPMENT.md#deterministic-account-fixtures)
+avoid earning test progress through gameplay.
 
 ## Interface gallery
 

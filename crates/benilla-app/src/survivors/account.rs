@@ -1403,6 +1403,52 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
 #[cfg(test)]
 mod tests {
     #[test]
+    fn ui_fixtures_parse_and_round_trip_without_claiming_zone_clears() {
+        let fresh = parse(include_str!("../../testdata/survivors-ui/fresh.txt")).unwrap();
+        assert!(fresh.characters.is_empty());
+        assert!(fresh
+            .classes
+            .iter()
+            .all(|class| class.pieces == [0; campaign::PIECES]));
+        for (text, heroes, owned) in [
+            (
+                include_str!("../../testdata/survivors-ui/partial.txt"),
+                2,
+                36,
+            ),
+            (
+                include_str!("../../testdata/survivors-ui/collected.txt"),
+                10,
+                486,
+            ),
+        ] {
+            let account = parse(text).unwrap();
+            assert_eq!(account.characters.len(), heroes);
+            assert_eq!(
+                account
+                    .classes
+                    .iter()
+                    .flat_map(|c| c.pieces)
+                    .filter(|&n| n > 0)
+                    .count(),
+                owned
+            );
+            assert!(account
+                .classes
+                .iter()
+                .all(|c| c.clears.iter().all(|&clear| !clear)));
+            assert!(account.characters.iter().all(|c| c.active_points() == 0));
+            assert_eq!(
+                account.classes[0].equipment.looks[0],
+                super::super::equipment::Look::Hidden
+            );
+            assert_eq!(account.classes[0].equipment.worn[0], Some(0));
+            let canonical = encode(&account);
+            assert_eq!(encode(&parse(&canonical).unwrap()), canonical);
+        }
+    }
+
+    #[test]
     fn custom_features_round_trip_by_hero_and_body_with_legacy_defaults() {
         let mut account = empty();
         let a = account.create("First", "Hero", 0).unwrap();

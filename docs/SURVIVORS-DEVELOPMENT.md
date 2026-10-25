@@ -358,3 +358,34 @@ roster, character creation, renown and relic controls, and **Back to character**
 to return. Selecting or creating a hero returns to the preview; an account without
 a selected valid hero shows management automatically. Direct page-preview requests
 reset this local management view without clearing drafts or changing account data.
+
+### Deterministic account fixtures
+
+Prepare a synthetic account without compiling or launching the engine:
+
+```sh
+python3 scripts/survivors-ui-fixture.py partial --page collection
+python3 scripts/survivors-ui-fixture.py collected --page heroes
+```
+
+The script prints a launch command with the exact isolated `BENILLA_HOME` and
+checkout data path. Each invocation creates a new directory under
+`target/ui-fixtures`; `--output PATH` also requires a new directory and refuses
+existing directories or symlinks. Fixture edits are saved only in that copied
+account. Create another copy to reset it. Use the printed home with the live
+page/viewport control above when comparing screen sizes in one session.
+
+| Fixture | Intended UI states |
+| --- | --- |
+| `fresh` | No named heroes, no collection, default account state. |
+| `partial` | Warrior and Mage heroes, 18/54 pieces each, 12 and 6 unspent talent points, mixed worn/empty slots, hidden head and independent shoulder appearance. |
+| `collected` | All 54 pieces for all nine classes, ten heroes including two Warriors, 51 unspent points for each class's first hero, varied worn rarities and independent appearance. |
+
+These are explicit synthetic save fixtures, validated by the real Rust account
+parser and round-trip tests. They do not add a cheat path to the player build.
+They intentionally contain no zone clears, spent talent builds, or fabricated
+encounter history. The normal achievement rules may award collection achievements
+when the menu loads. Full ownership is not proof that every item model, source,
+talent or zone is ready. Granted/locked achievements and collection states can be
+inspected, but populated talent specs and purchased reward fixtures remain future
+extensions. The fresh account may acquire normal defaults when the app initializes.

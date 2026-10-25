@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Isolated UI account fixtures
+
+Added fresh, partial and fully collected synthetic accounts for repeatable UI
+checks without gameplay. A small script copies each fixture into a new isolated
+state folder and prints its launch command; existing folders are never replaced.
+The collected fixture includes ten heroes for roster checks. All 168 Survivors
+tests, two script isolation tests and workspace Clippy pass. Rendered comparisons,
+spent talent specs and purchased reward fixtures remain pending.
+
 ## 2026-10-25 — Character preview and hero management
 
 Character now gives the dressed hero a larger central preview with a centered name
