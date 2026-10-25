@@ -21,7 +21,12 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 Shared Armory header checkpoint verified: title, wrapping tabs and selected
 class/collection subtitle follow the references; the starter keeps its game title.
 Collection's duplicate subtitle is removed. The 640-pixel check exposes crowded Collection
-slot labels: narrow Collection pane reflow remains required, independent of the header.
+slot labels. Narrow Collection reflow is verified at 640×720 and 640×900: below 1100 UI units,
+stack the collection, selected-item details, equipment and missing drops in one
+scroll surface. Wrap labeled tiles at a readable minimum width; preserve scrolling
+on item actions and tab return. A 1280×720 restart confirms the reference's three
+panes and saved equipment/appearance choices. Typography and item-stat/content
+acceptance remain open.
 
 Tabard presentation checkpoint: replaced the plain name buttons and
 client display-ID text with illustrated cosmetic tiles using the Companion Looks

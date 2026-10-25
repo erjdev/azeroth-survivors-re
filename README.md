@@ -22,6 +22,11 @@ captures with remaining gaps against the intention designs.
 
 ![Current Character interface](docs/images/screenshots/2026-10-25-armory-header/character-1280.jpg)
 
+Collection stacks into readable sections on narrow screens and retains its three-pane
+layout at wider sizes. Item actions and tab return preserve narrow scrolling.
+
+![Responsive Collection at 640×720](docs/images/screenshots/2026-10-25-collection-responsive/collection-640.jpg)
+
 Talent trees now use the available page height, closer to the intention layout.
 
 ![Full-height Talent interface](docs/images/screenshots/2026-10-25-talent-height/talents-1280.jpg)

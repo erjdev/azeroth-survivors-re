@@ -14,6 +14,42 @@ const BONUS: Color = Color::srgb(0.45, 0.9, 0.4);
 #[derive(Component)]
 pub(in crate::survivors) struct CollectionScroll;
 
+#[derive(Component)]
+pub(in crate::survivors) struct CompactScroll;
+
+pub(in crate::survivors) fn remember_scroll(
+    mut armory: ResMut<Armory>,
+    surfaces: Query<&ScrollPosition, With<CompactScroll>>,
+) {
+    for position in &surfaces {
+        if position.0.is_finite() && armory.collection_scroll != position.0 {
+            armory.collection_scroll = position.0;
+        }
+    }
+}
+
+fn section(
+    ui: &mut ChildSpawnerCommands,
+    layout: &Layout,
+    body: impl FnOnce(&mut ChildSpawnerCommands),
+) {
+    ui.spawn((
+        Node {
+            width: Val::Percent(100.0),
+            flex_direction: FlexDirection::Column,
+            flex_shrink: 0.0,
+            padding: UiRect::all(Val::Px(layout.padding)),
+            row_gap: Val::Px(layout.gap * 0.5),
+            border: UiRect::all(Val::Px(1.0)),
+            border_radius: BorderRadius::all(Val::Px(6.0)),
+            ..default()
+        },
+        BackgroundColor(Color::srgba(0.035, 0.028, 0.015, 0.96)),
+        BorderColor::all(Color::srgb(0.5, 0.4, 0.14)),
+    ))
+    .with_children(body);
+}
+
 #[cfg(test)]
 mod scroll_restore_tests {
     use super::*;
@@ -130,7 +166,44 @@ pub(super) fn build(
     account: &Account,
     selection: &Selection,
     layout: &Layout,
+    compact: bool,
 ) {
+    if compact {
+        panel
+            .spawn((
+                CollectionScroll,
+                CompactScroll,
+                RelativeCursorPosition::default(),
+                ScrollPosition(armory.collection_scroll),
+                Node {
+                    width: Val::Percent(100.0),
+                    flex_grow: 1.0,
+                    flex_basis: Val::Px(0.0),
+                    min_height: Val::Px(0.0),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(layout.gap),
+                    overflow: Overflow::scroll_y(),
+                    ..default()
+                },
+            ))
+            .with_children(|body| {
+                section(body, layout, |body| {
+                    grid(body, font, armory, account, selection, layout, true);
+                    text(body, font, "Select a piece; its details follow the collection. E: worn · L: shown as a look", layout.body_size, DIM);
+                });
+                section(body, layout, |body| {
+                    detail(body, font, armory, account, selection, layout)
+                });
+                section(body, layout, |body| {
+                    super::character::body_controls(body, art, font, account, selection, layout);
+                    equipment(body, font, armory, account, selection, layout);
+                });
+                section(body, layout, |body| {
+                    missing(body, font, armory, account, selection, layout)
+                });
+            });
+        return;
+    }
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
     panel
@@ -151,7 +224,7 @@ pub(super) fn build(
                 100.0 - layout.left_width - layout.right_width,
                 layout,
                 |body| {
-                    grid(body, font, armory, account, selection, layout);
+                    grid(body, font, armory, account, selection, layout, false);
                     missing(body, font, armory, account, selection, layout);
                     text(
                         body,
@@ -290,40 +363,52 @@ fn grid(
     account: &Account,
     selection: &Selection,
     layout: &Layout,
+    compact: bool,
 ) {
     text(ui, font, "Collection Log", layout.title_size, GOLD);
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
-    ui.spawn(Node {
-        width: Val::Percent(100.0),
-        column_gap: Val::Px(3.0),
-        ..default()
-    })
-    .with_children(|row| {
-        row.spawn(Node {
-            width: Val::Px(layout.body_size * 7.0),
-            flex_shrink: 0.0,
+    if !compact {
+        ui.spawn(Node {
+            width: Val::Percent(100.0),
+            column_gap: Val::Px(3.0),
             ..default()
-        });
-        for label in campaign::SLOTS.iter().take(campaign::GRID_SLOTS) {
+        })
+        .with_children(|row| {
             row.spawn(Node {
-                flex_grow: 1.0,
-                flex_basis: Val::Px(0.0),
-                min_width: Val::Px(0.0),
+                width: if compact {
+                    Val::Percent(100.0)
+                } else {
+                    Val::Px(layout.body_size * 7.0)
+                },
+                flex_shrink: 0.0,
                 ..default()
-            })
-            .with_children(|cell| {
-                cell.spawn((
-                    hud::centered_bundle(font, *label, (layout.body_size * 0.75).min(10.0), DIM),
-                    Node {
-                        width: Val::Percent(100.0),
-                        min_width: Val::Px(0.0),
-                        ..default()
-                    },
-                ));
             });
-        }
-    });
+            for label in campaign::SLOTS.iter().take(campaign::GRID_SLOTS) {
+                row.spawn(Node {
+                    flex_grow: 1.0,
+                    flex_basis: Val::Px(0.0),
+                    min_width: Val::Px(0.0),
+                    ..default()
+                })
+                .with_children(|cell| {
+                    cell.spawn((
+                        hud::centered_bundle(
+                            font,
+                            *label,
+                            (layout.body_size * 0.75).min(10.0),
+                            DIM,
+                        ),
+                        Node {
+                            width: Val::Percent(100.0),
+                            min_width: Val::Px(0.0),
+                            ..default()
+                        },
+                    ));
+                });
+            }
+        });
+    }
     for band in 0..campaign::BANDS {
         let found = progress.pieces[band * campaign::GRID_SLOTS..(band + 1) * campaign::GRID_SLOTS]
             .iter()
@@ -332,12 +417,22 @@ fn grid(
         ui.spawn(Node {
             width: Val::Percent(100.0),
             column_gap: Val::Px(3.0),
+            row_gap: Val::Px(6.0),
+            flex_wrap: if compact {
+                FlexWrap::Wrap
+            } else {
+                FlexWrap::NoWrap
+            },
             flex_shrink: 0.0,
             ..default()
         })
         .with_children(|row| {
             row.spawn(Node {
-                width: Val::Px(layout.body_size * 7.0),
+                width: if compact {
+                    Val::Percent(100.0)
+                } else {
+                    Val::Px(layout.body_size * 7.0)
+                },
                 flex_shrink: 0.0,
                 flex_direction: FlexDirection::Column,
                 ..default()
@@ -377,10 +472,15 @@ fn grid(
                     Button,
                     Act::InspectPiece(index),
                     Node {
-                        flex_grow: 1.0,
-                        flex_basis: Val::Px(0.0),
-                        min_width: Val::Px(0.0),
-                        height: Val::Px(layout.cell_height),
+                        flex_grow: if compact { 0.0 } else { 1.0 },
+                        flex_basis: if compact {
+                            Val::Percent(10.0)
+                        } else {
+                            Val::Px(0.0)
+                        },
+                        min_width: Val::Px(if compact { 54.0 } else { 0.0 }),
+                        height: Val::Px(layout.cell_height + if compact { 20.0 } else { 0.0 }),
+                        flex_direction: FlexDirection::Column,
                         border: UiRect::all(Val::Px(if armory.piece == index { 2.0 } else { 1.0 })),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
@@ -396,49 +496,66 @@ fn grid(
                     BackgroundColor(Color::srgb(0.07, 0.06, 0.04)),
                 ))
                 .with_children(|cell| {
-                    let has_icon = super::super::gear_icons::spawn_cell(
-                        cell,
-                        class,
-                        slot,
-                        band,
-                        layout.cell_height * 0.86,
-                        owned,
-                    );
-                    if !owned || !has_icon {
-                        cell.spawn((
-                            hud::text_bundle(
-                                font,
-                                if owned { "•" } else { "?" },
-                                layout.body_size,
-                                DIM,
-                            ),
-                            Node {
-                                position_type: PositionType::Absolute,
-                                ..default()
-                            },
-                            ZIndex(1),
-                        ));
-                    }
-                    if equipped || shown {
-                        let mark = match (equipped, shown) {
-                            (true, true) => "EL",
-                            (true, false) => "E",
-                            _ => "L",
-                        };
-                        cell.spawn((
-                            hud::text_bundle(font, mark, layout.body_size * 0.8, Color::BLACK),
-                            Node {
-                                position_type: PositionType::Absolute,
-                                right: Val::Px(0.0),
-                                top: Val::Px(0.0),
-                                padding: UiRect::horizontal(Val::Px(2.0)),
-                                border_radius: BorderRadius::all(Val::Px(layout.body_size)),
-                                ..default()
-                            },
-                            BackgroundColor(GOLD),
-                            ZIndex(2),
-                        ))
-                        .remove::<TextShadow>();
+                    cell.spawn(Node {
+                        width: Val::Percent(100.0),
+                        height: if compact {
+                            Val::Px(layout.cell_height)
+                        } else {
+                            Val::Percent(100.0)
+                        },
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        flex_shrink: 0.0,
+                        ..default()
+                    })
+                    .with_children(|cell| {
+                        let has_icon = super::super::gear_icons::spawn_cell(
+                            cell,
+                            class,
+                            slot,
+                            band,
+                            layout.cell_height * 0.86,
+                            owned,
+                        );
+                        if !owned || !has_icon {
+                            cell.spawn((
+                                hud::text_bundle(
+                                    font,
+                                    if owned { "•" } else { "?" },
+                                    layout.body_size,
+                                    DIM,
+                                ),
+                                Node {
+                                    position_type: PositionType::Absolute,
+                                    ..default()
+                                },
+                                ZIndex(1),
+                            ));
+                        }
+                        if equipped || shown {
+                            let mark = match (equipped, shown) {
+                                (true, true) => "EL",
+                                (true, false) => "E",
+                                _ => "L",
+                            };
+                            cell.spawn((
+                                hud::text_bundle(font, mark, layout.body_size * 0.8, Color::BLACK),
+                                Node {
+                                    position_type: PositionType::Absolute,
+                                    right: Val::Px(0.0),
+                                    top: Val::Px(0.0),
+                                    padding: UiRect::horizontal(Val::Px(2.0)),
+                                    border_radius: BorderRadius::all(Val::Px(layout.body_size)),
+                                    ..default()
+                                },
+                                BackgroundColor(GOLD),
+                                ZIndex(2),
+                            ))
+                            .remove::<TextShadow>();
+                        }
+                    });
+                    if compact {
+                        cell.spawn(hud::centered_bundle(font, campaign::SLOTS[slot], 9.0, DIM));
                     }
                 });
             }
@@ -704,7 +821,7 @@ mod tests {
     #[test]
     fn empty_and_full_class_collections_build_without_using_the_legacy_off_hand() {
         for class in 0..super::super::CLASSES.len() {
-            for owned in [false, true] {
+            for (owned, compact) in [(false, false), (true, false), (false, true), (true, true)] {
                 let mut account = super::super::super::account::blank();
                 if owned {
                     account.classes[class].pieces.fill(1);
@@ -727,6 +844,7 @@ mod tests {
                             &account,
                             &selection,
                             &Layout::default(),
+                            compact,
                         );
                     });
                 world.flush();
@@ -739,8 +857,13 @@ mod tests {
                 assert!(actions
                     .iter()
                     .any(|act| matches!(act, Act::InspectPiece(53))));
+                for index in 0..campaign::PIECES {
+                    assert!(actions
+                        .iter()
+                        .any(|act| matches!(act, Act::InspectPiece(found) if *found == index)));
+                }
                 let panels = world.query::<&CollectionScroll>().iter(&world).count();
-                assert_eq!(panels, 3);
+                assert_eq!(panels, if compact { 1 } else { 3 });
             }
         }
     }

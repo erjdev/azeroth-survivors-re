@@ -38,6 +38,7 @@ pub(super) fn build(
     layout: &survivors_core::layout::Layout,
     features: Option<&super::super::appearance::Options>,
     talent_scroll: Vec2,
+    compact_collection: bool,
 ) {
     if armory.page == Page::Door {
         header(ui, art, font);
@@ -62,7 +63,16 @@ pub(super) fn build(
             ui, art, font, armory, account, selection, renown, stash, layout, features,
         );
     } else if armory.page == Page::Collection {
-        super::collection::build(ui, art, font, armory, account, selection, layout);
+        super::collection::build(
+            ui,
+            art,
+            font,
+            armory,
+            account,
+            selection,
+            layout,
+            compact_collection,
+        );
     } else if armory.page == Page::Codex {
         super::codex_page::build(ui, font, armory, account, selection, layout);
     } else if armory.page == Page::DropTables {

@@ -3,6 +3,30 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Responsive Collection page
+
+Collection now stacks its log, item details, equipment and missing drops on narrow
+screens. Labeled tiles wrap without shrinking into overlapping headings or stretching
+the final tile. Wide screens retain the [reference](intentions/survivors_collection_tab.png)
+three-pane layout. Narrow scrolling survives item actions and tab round trips.
+
+![Readable slots at 640×720](images/screenshots/2026-10-25-collection-responsive/collection-640.jpg)
+
+![Wrapped tiles at 640×900 keep their size](images/screenshots/2026-10-25-collection-responsive/collection-640x900.jpg)
+
+![Equipping retains the detail scroll position](images/screenshots/2026-10-25-collection-responsive/equipped-640.jpg)
+
+![Independent appearance and scroll position survive a tab round trip](images/screenshots/2026-10-25-collection-responsive/tab-return-640.jpg)
+
+![Wide layout and saved helm selection after restart](images/screenshots/2026-10-25-collection-responsive/collection-1280.jpg)
+
+An isolated Warrior account verified selection, Equip, independent look selection,
+scrolling through equipment, tab return and restart persistence. Empty/full catalogs
+for all nine classes build every slot in both layouts. Validation: 182 Survivors app
+tests, native build, workspace test compilation, Clippy, formatting and render-pass
+lint pass. Reference typography, richer item stats and content acceptance remain open;
+this checkpoint resolves the narrow Collection crowding recorded below.
+
 ## 2026-10-25 — Shared Armory header
 
 Armory pages now share the reference's left-aligned title, wrapping navigation and

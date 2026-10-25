@@ -21,7 +21,9 @@ pub(super) use talent_page::{
     remember_scroll as remember_talent_scroll, ScrollMemory as TalentScrollMemory,
 };
 
-pub(super) use collection::scroll as scroll_collection;
+pub(super) use collection::{
+    remember_scroll as remember_collection_scroll, scroll as scroll_collection,
+};
 
 use bevy::ecs::hierarchy::ChildOf;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
@@ -152,6 +154,7 @@ pub(super) struct Armory {
     /// Which companion the Looks row dresses.
     pet_slot: u8,
     piece: usize,
+    collection_scroll: Vec2,
     drop_zone: usize,
     codex_entry: Option<u16>,
 }
@@ -174,6 +177,7 @@ impl Default for Armory {
             reward_draft: reward_draft::Draft::default(),
             pet_slot: 0,
             piece: 0,
+            collection_scroll: Vec2::ZERO,
             drop_zone: 0,
             codex_entry: None,
         }
@@ -850,7 +854,7 @@ pub(super) struct ArmoryArt<'w> {
 pub(super) fn refresh(
     mut commands: Commands,
     menus: Query<Entity, (With<MenuRoot>, With<super::menu::MenuBuilt>)>,
-    mut roots: Query<&mut Node, With<ArmoryRoot>>,
+    mut roots: Query<(&mut Node, &ComputedNode), With<ArmoryRoot>>,
     mut looks: Query<&mut Node, (With<super::menu::LookScreen>, Without<ArmoryRoot>)>,
     assets: ArmoryArt,
     armory: Res<Armory>,
@@ -878,7 +882,10 @@ pub(super) fn refresh(
             look.display = display;
         }
     }
-    if let Ok(mut node) = roots.single_mut() {
+    let mut compact_collection = false;
+    if let Ok((mut node, computed)) = roots.single_mut() {
+        let width = computed.size.x * computed.inverse_scale_factor;
+        compact_collection = width > 0.0 && width < 1100.0;
         let display = if show_door {
             Display::Flex
         } else {
@@ -928,7 +935,10 @@ pub(super) fn refresh(
             ),
             u64::from(assets.creatures.is_some() && assets.bodies.is_some()),
         ),
-        assets.layout.version,
+        fold(
+            assets.layout.version,
+            u64::from(compact_collection && armory.page == Page::Collection),
+        ),
     );
     if *drawn == Some(sig) {
         return;
@@ -991,6 +1001,7 @@ pub(super) fn refresh(
             &assets.layout.value,
             features.as_ref(),
             assets.talent_scroll.offset(&account, &selection),
+            compact_collection,
         );
     });
 }
