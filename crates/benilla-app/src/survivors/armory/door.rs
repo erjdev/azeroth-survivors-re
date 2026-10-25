@@ -132,6 +132,7 @@ fn armory_header(
     .with_children(|row| {
         row.spawn((
             hud::text_bundle(font, "Armory", 30.0, GOLD),
+            super::typography::DisplayHeading,
             Node {
                 flex_basis: Val::Px(160.0),
                 flex_grow: 1.0,

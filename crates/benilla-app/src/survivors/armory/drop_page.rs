@@ -194,7 +194,7 @@ fn sources(
     let class = picked_class(account, selection);
     let pieces = &account.classes[class].pieces;
     let zone = &campaign::ZONES[armory.drop_zone];
-    label(body, font, zone.name, layout.title_size, GOLD);
+    super::typography::heading(body, font, zone.name, layout.title_size, GOLD);
     let (level, clears) = super::hero_gate(account, selection);
     if let Some(reason) = campaign::zone_lock_reason(armory.drop_zone, level, &clears) {
         label(body, font, reason, layout.body_size, GOLD);

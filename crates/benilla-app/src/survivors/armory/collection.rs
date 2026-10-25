@@ -319,7 +319,7 @@ pub(super) fn equipment(
     selection: &Selection,
     layout: &Layout,
 ) {
-    text(ui, font, "Equipment", layout.title_size, GOLD);
+    super::typography::heading(ui, font, "Equipment", layout.title_size, GOLD);
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
     for (slot, label) in campaign::SLOTS
@@ -388,7 +388,7 @@ pub(super) fn equipment(
                 });
         });
     }
-    text(ui, font, "Equipment bonuses", layout.title_size, GOLD);
+    super::typography::heading(ui, font, "Equipment bonuses", layout.title_size, GOLD);
     let worn = progress.equipment.worn_pieces(&progress.pieces);
     text(
         ui,
@@ -408,7 +408,7 @@ fn grid(
     layout: &Layout,
     compact: bool,
 ) {
-    text(ui, font, "Collection Log", layout.title_size, GOLD);
+    super::typography::heading(ui, font, "Collection Log", layout.title_size, GOLD);
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
     if !compact {
@@ -660,7 +660,7 @@ pub(super) fn detail(
             BONUS,
         );
     }
-    text(ui, font, "Drops from", layout.title_size, GOLD);
+    super::typography::heading(ui, font, "Drops from", layout.title_size, GOLD);
     let mut sources = 0;
     for drop in campaign::DROPS
         .iter()

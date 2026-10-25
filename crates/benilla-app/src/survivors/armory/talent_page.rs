@@ -320,7 +320,7 @@ pub(super) fn build(
                         heading.spawn((super::talent_heading::Icon(node.tab), ImageNode::default(),
                             Node { width: Val::Px(24.0), height: Val::Px(24.0), flex_shrink: 0.0, ..default() }));
                     }
-                    heading.spawn((hud::text_bundle(font, name, 17.0, GOLD),
+                    heading.spawn((super::typography::DisplayHeading, hud::text_bundle(font, name, 17.0, GOLD),
                         Node { flex_grow: 1.0, ..default() }));
                     text(heading, font, format!("{} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), 12.0, DIM);
                 });
@@ -391,7 +391,7 @@ pub(super) fn build(
                     button(specs, font, format!("Spec {}\n{spread}", spec+1), Act::Spec(spec), hero.spec == spec);
                 }
             });
-            text(side, font, "Talent Points", 22.0, GOLD);
+            super::typography::heading(side, font, "Talent Points", 22.0, GOLD);
             text(side, font, format!("{unspent} to spend"), 25.0, GOLD);
             text(side, font, format!("{spent} of {earned} earned spent · 51 at most"), 12.0, DIM);
             text(side, font, "Runs award talent experience for time survived, kills, bosses and victory. Later zones pay more. Respecs are free.", 12.0, DIM);

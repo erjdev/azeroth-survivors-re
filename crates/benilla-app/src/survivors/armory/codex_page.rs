@@ -148,7 +148,7 @@ pub(super) fn build(
     })
     .with_children(|panes| {
         collection::column(panes, 74.0, layout, |catalog| {
-            label(catalog, font, "Codex", layout.title_size, GOLD);
+            super::typography::heading(catalog, font, "Codex", layout.title_size, GOLD);
             label(
                 catalog,
                 font,
@@ -314,7 +314,7 @@ pub(super) fn build(
                 });
         });
         collection::column(panes, 26.0, layout, |details| {
-            label(details, font, "Details", layout.title_size, GOLD);
+            super::typography::heading(details, font, "Details", layout.title_size, GOLD);
             details
                 .spawn((DetailArt(armory.codex_entry), Node::default()))
                 .with_children(|image| {

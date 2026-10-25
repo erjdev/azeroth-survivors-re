@@ -3,6 +3,33 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Armory display headings
+
+The Armory title and primary section headings now share the intention design's
+Morpheus face across Character, Collection, Drop Tables, Codex, Talents,
+Achievements and Rewards. Item names, stats and controls keep their readable face.
+
+![Character at 1280×720](images/screenshots/2026-10-25-armory-headings/character-1280.jpg)
+
+![Collection at 1280×720](images/screenshots/2026-10-25-armory-headings/collection-1280.jpg)
+
+![Drop Tables at 1280×720](images/screenshots/2026-10-25-armory-headings/drops-1280.jpg)
+
+![Codex at 1280×720](images/screenshots/2026-10-25-armory-headings/codex-1280.jpg)
+
+![Talents at 1280×720](images/screenshots/2026-10-25-armory-headings/talents-1280.jpg)
+
+![Achievements at 1280×720](images/screenshots/2026-10-25-armory-headings/achievements-1280.jpg)
+
+![Rewards at 1280×720](images/screenshots/2026-10-25-armory-headings/rewards-1280.jpg)
+
+![Compact talent headings after scrolling](images/screenshots/2026-10-25-armory-headings/talents-640.jpg)
+
+Verified all seven pages live at 1280×720, tab rebuilds, and wrapped/scrolled
+Talents at 640×720. Native build, workspace Clippy, formatting and render-pass
+lint pass. No mechanics changed. Buttons, decorative dividers and broader
+reference alignment remain unfinished; this is not full interface acceptance.
+
 ## 2026-10-25 — Starter display headings
 
 The starter title, section headings and zone names now use the installed Morpheus

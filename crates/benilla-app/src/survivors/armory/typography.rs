@@ -1,6 +1,19 @@
 //! Display headings use the installed Morpheus face; body copy keeps the HUD font.
 use bevy::prelude::*;
 
+pub(super) fn heading(
+    ui: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    value: impl Into<String>,
+    size: f32,
+    color: Color,
+) {
+    ui.spawn((
+        super::super::hud::text_bundle(font, value, size, color),
+        DisplayHeading,
+    ));
+}
+
 #[derive(Component)]
 pub(in crate::survivors) struct DisplayHeading;
 

@@ -21,8 +21,11 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 Starter title, section headings and zone names now use runtime-loaded Morpheus;
 body copy keeps the HUD face. Wide/compact rendering, outline alignment, long
 zone names and zone-selection rebuilds passed live checks with three screenshots.
-Remaining typography work includes other Armory pages and buttons; portrait
-badges, outdoor zone art and broader styling still need reference alignment.
+Armory primary section headings now share that face across all seven pages;
+1280×720 page switching and compact/scrolled Talents passed live checks, with
+eight inline changelog screenshots and refreshed README gallery images. Buttons,
+decorative dividers, portrait badges, outdoor zone art and broader styling still
+need reference alignment. This does not establish full interface acceptance.
 
 Starter class selection now follows the reference's three-by-three wide grid,
 using proportional icon sizing, centered labels and class-colored selection.
