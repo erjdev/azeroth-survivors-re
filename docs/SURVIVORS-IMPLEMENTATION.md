@@ -2129,3 +2129,32 @@ acceptance is claimed. The launcher was restored to its normal configuration for
 launches; the already-running fixture has not been closed through UI while locked.
 All-class/race/sex appearance checks, acquisition schedules and raid-epic/set mechanics
 remain required before completion.
+
+### Gurubashi Epic sources and outdoor identity correction — 2026-10-25
+
+Replaced Zul'Gurub raid identities in the Gurubashi Arena roster with 15 outdoor
+Stranglethorn foes and nine verified map-0 bosses. Corrected Shadowmaw Panther's display
+and the campaign's final-boss summary. Preserved tuning for retained foes and King
+Bangalash; new encounters use provisional authored tuning. The pinned creature templates
+and placement GUIDs are recorded in [locations](SURVIVORS-LOCATIONS.md#gurubashi-outdoor-roster-and-epic-schedule--2026-10-25).
+
+Nine timed encounters now roll all Epic slots for each class, from Kurmokk at 3:00 to
+King Mukla at 16:00. The shared drop table drives labels, rolls and combat scheduling.
+The acceptance test covers exact time boundaries, exhausted schedules, final victory
+requirements, all-class item resolution and the explicit world-readiness lock. The
+all-class reward/save contract additionally covers Epic ownership, selected equipment,
+independent appearances, duplicates, empty/hidden slots and isolation between classes.
+
+Gurubashi remains unavailable to ordinary progression: its previously optimistic ready
+flag is now false. A 709-point terrain survey supports the existing 30-yard disk at
+z=21.857, but does not establish wall collision, navigation, camera behavior or live
+encounter acceptance. No screenshot or live reward verification is claimed for this tier.
+
+Validation: all 77 core and 127 Survivors app tests pass with explicit checkout data.
+Native incremental build took 22.92 seconds; initial workspace test compilation took
+2m46s, followed by 23.10 seconds after retained-creature tuning was preserved. Workspace
+Clippy (17.16 seconds), formatting, render-pass lint and diff whitespace checks pass.
+The content audit resolves all new roster model files and now reports 160 gaps: 17
+unsourced cells per class, five missing maps, Ahn'Qiraj encounters and Naxxramas floor
+validation. Audit source coverage includes locked zones and is not proof of obtainable
+live progression; the zone readiness and full acceptance requirements remain separate.

@@ -1674,6 +1674,11 @@ mod tests {
     }
 
     #[test]
+    fn epic_encounter_rewards_preserve_selected_gear_and_reload_for_every_class() {
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(6, 3);
+    }
+
+    #[test]
     fn rare_encounter_rewards_preserve_selected_gear_and_reload_for_every_class() {
         encounter_rewards_preserve_selected_gear_and_reload_for_every_class(5, 2);
     }

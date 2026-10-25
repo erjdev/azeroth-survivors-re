@@ -465,3 +465,57 @@ and a negative-Y hit at 76.98257 yards. These are one-sided rays, not capsule or
 Grounded root traversal, streamed collider registration, complete arena connectivity,
 camera push-in/cutaway and live enemy movement remain acceptance requirements. The
 terrain-only screen is insufficient to open Feralas.
+
+## Gurubashi outdoor roster and Epic schedule — 2026-10-25
+
+The pinned MaNGOS Zero [creature templates](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_template.sql)
+and [placements](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature.sql)
+establish the following outdoor Stranglethorn identities on map 0. The previous roster
+mixed outdoor creatures with Zul'Gurub raid identities. Shadowmaw Panther also used the
+wrong display (11452); its template's first display is 633. The new roster uses each
+verified template's first display and minimum level. Alternate source displays are not
+randomized. The spawn GUID is one supporting outdoor placement, not an arena spawn claim.
+
+| Role | Creature | Entry | Display | Level | Map-0 spawn GUID |
+|---|---|---:|---:|---:|---:|
+| Horde | Shadowmaw Panther | 684 | 633 | 37 | 1109 |
+| Horde | Cold Eye Basilisk | 690 | 8797 | 39 | 758 |
+| Horde | Jungle Stalker | 687 | 11317 | 40 | 1181 |
+| Horde | Elder Mistvale Gorilla | 1557 | 838 | 40 | 1939 |
+| Horde | Zanzil Zombie | 1488 | 1065 | 43 | 759 |
+| Horde | Thrashtail Basilisk | 1550 | 8802 | 41 | 371 |
+| Horde | Bloodsail Sea Dog | 1565 | 796 | 43 | 380 |
+| Horde | Skullsplitter Berserker | 783 | 4623 | 43 | 658 |
+| Horde | Bloodsail Raider | 1561 | 793 | 39 | 2549 |
+| Horde | Skullsplitter Hunter | 669 | 4628 | 41 | 1157 |
+| Horde | Skullsplitter Mystic | 780 | 4616 | 39 | 1147 |
+| Horde | Bloodsail Warlock | 1564 | 4461 | 41 | 949 |
+| Horde | Zanzil Hunter | 1489 | 828 | 43 | 2333 |
+| Horde | Jungle Thunderer | 1114 | 845 | 37 | 392 |
+| Horde | Stranglethorn Tigress | 772 | 614 | 37 | 804 |
+| Boss | Kurmokk | 14491 | 3188 | 42 | 49126 |
+| Boss | Verifonix | 14492 | 7232 | 42 | 49152 |
+| Boss | Scale Belly | 1552 | 12342 | 45 | 1577 |
+| Boss | Lord Sakrasis | 2541 | 4910 | 45 | 32043 |
+| Boss | Rippa | 14490 | 14528 | 44 | 49058 |
+| Boss | Tethis | 730 | 8472 | 43 | 1342 |
+| Boss | Bhag'thera | 728 | 613 | 40 | 1348 |
+| Boss | King Bangalash | 731 | 616 | 43 | 2169 |
+| Boss | King Mukla | 1559 | 792 | 51 | 823 |
+
+Arena arrivals, speeds, scales and reward assignment are authored Survivors mechanics,
+not vanilla encounters or loot. The nine bosses arrive at 3:00, 4:30, 6:00, 7:30, 9:00,
+10:30, 12:00, 14:00 and 16:00 in the order above. They roll the nine Epic slots in grid
+order at 60% base chance, using the existing boss-luck modifier. Victory requires all
+nine defeats and the last scheduled time. Campaign summary now names King Mukla.
+
+The campaign readiness flag is explicitly false, so adding the schedule cannot unlock
+unverified world content. Existing center/leash are unchanged. Floor support, arena walls,
+traversal, camera behavior, crowd performance and live rewards still require acceptance;
+outdoor placements establish map identity, not those gameplay properties.
+
+Checkout terrain probe: `survivors-audit <Data> --terrain 0 -13205 272 30`
+sampled 709 points at 2-yard spacing, all supported at z=21.857, with no liquid deeper
+than 0.1 yard, impassable terrain, slopes above 45 degrees or incomplete gradient
+neighborhoods. This only covers sampled ADT/MCLQ; WMO floors/walls, intervening hazards,
+props, connectivity and camera behavior are excluded. It does not unlock the zone.

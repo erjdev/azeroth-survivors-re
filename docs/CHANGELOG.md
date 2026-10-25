@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Gurubashi Epic reward schedule
+
+Added nine timed Epic reward encounters with verified outdoor Stranglethorn identities,
+replacing the old mixed raid roster. The drop UI and combat schedule share all nine
+slots; all-class save/reload coverage verifies equipment, appearances and duplicate
+rewards. All 77 core and 127 app tests pass. Gurubashi remains locked pending world and
+live encounter validation; the initial terrain footprint is flat and dry.
+
 ## 2026-10-25 — Complete collection identity catalog
 
 Added the 81 PvP class/slot identities, completing all 54 named and mapped cells per

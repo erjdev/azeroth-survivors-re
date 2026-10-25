@@ -153,8 +153,8 @@ pub static ZONES: &[Zone] = &[
         map: "Gurubashi Arena",
         talent: 24,
         elites: &["Skullsplitter Berserker", "Bloodsail Raider"],
-        boss: "Hakkar",
-        ready: true,
+        boss: "King Mukla",
+        ready: false,
         into_id: 4,
         champ_id: 14,
         points: 20,
@@ -723,6 +723,78 @@ pub static DROPS: &[DropRow] = &[
         slot: 8,
         band: 2,
         creature: "Skarr the Unbreakable",
+        at_secs: 960,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 0,
+        band: 3,
+        creature: "Kurmokk",
+        at_secs: 180,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 1,
+        band: 3,
+        creature: "Verifonix",
+        at_secs: 270,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 2,
+        band: 3,
+        creature: "Scale Belly",
+        at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 3,
+        band: 3,
+        creature: "Lord Sakrasis",
+        at_secs: 450,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 4,
+        band: 3,
+        creature: "Rippa",
+        at_secs: 540,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 5,
+        band: 3,
+        creature: "Tethis",
+        at_secs: 630,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 6,
+        band: 3,
+        creature: "Bhag'thera",
+        at_secs: 720,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 7,
+        band: 3,
+        creature: "King Bangalash",
+        at_secs: 840,
+        chance: 60,
+    },
+    DropRow {
+        zone: 6,
+        slot: 8,
+        band: 3,
+        creature: "King Mukla",
         at_secs: 960,
         chance: 60,
     },
@@ -1676,7 +1748,7 @@ mod tests {
         assert!(!zone_open(6, 24, &clears));
         assert_eq!(
             zone_lock_reason(6, 24, &clears).as_deref(),
-            Some("Gurubashi Arena has no drop table yet")
+            Some("Gurubashi Arena world content is not ready")
         );
         clears[5] = true;
         assert!(!zone_open(6, 24, &clears));
@@ -1829,7 +1901,7 @@ mod tests {
     #[test]
     fn drops_name_a_creature_on_that_map() {
         assert_eq!(PIECES, 54);
-        assert_eq!(DROPS.len(), 28);
+        assert_eq!(DROPS.len(), 37);
         for row in DROPS {
             let zone = &ZONES[row.zone];
             let map = super::super::data::MAPS
@@ -1981,7 +2053,7 @@ mod tests {
         assert_eq!(ZONES[0].boss, "Hogger");
         assert!(!ZONES[0].elites.is_empty());
         assert_eq!(ZONES[6].name, "Gurubashi Arena");
-        assert_eq!(ZONES[6].boss, "Hakkar");
+        assert_eq!(ZONES[6].boss, "King Mukla");
         assert_eq!(ZONES.last().unwrap().name, "Naxxramas");
         assert_eq!(ZONES.last().unwrap().boss, "Kel'Thuzad");
         assert!(ZONES
