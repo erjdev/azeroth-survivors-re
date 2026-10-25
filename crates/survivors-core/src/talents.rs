@@ -57,6 +57,37 @@ impl Default for Milestones {
     }
 }
 
+/// Per-target Winter's Chill. A refresh preserves stacks; expiry removes them all.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct WintersChill {
+    stacks: u8,
+    remaining: f32,
+}
+
+impl WintersChill {
+    pub fn apply(&mut self) {
+        self.stacks = (self.stacks + 1).min(5);
+        self.remaining = 15.0;
+    }
+
+    pub fn advance(&mut self, seconds: f32) {
+        if seconds.is_finite() && seconds > 0.0 {
+            self.remaining = (self.remaining - seconds).max(0.0);
+            if self.remaining == 0.0 {
+                self.stacks = 0;
+            }
+        }
+    }
+
+    pub fn critical_bonus(self) -> f32 {
+        if self.remaining > 0.0 {
+            f32::from(self.stacks) * 0.02
+        } else {
+            0.0
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CastEffect {
     pub damage: f32,
@@ -361,6 +392,24 @@ impl Milestones {
             return 0.0;
         }
         self.trained_value(TalentStat::Impact)
+    }
+
+    /// A positive frost hit can add one stack after its damage is resolved.
+    pub fn winters_chill_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 6 || !damage.is_finite() || damage <= 0.0 || !MAGE_FROST.contains(&key) {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::WintersChill)
+    }
+
+    /// Conditional target bonuses are shared by direct casts and ground-area ticks.
+    pub fn target_crit(self, key: &str, frozen: bool, chill: WintersChill) -> f32 {
+        self.shatter(key, frozen)
+            + if self.class == 6 && MAGE_FROST.contains(&key) {
+                chill.critical_bonus()
+            } else {
+                0.0
+            }
     }
 
     /// Only Mage spells benefit; ordinary roots are not frozen targets.
@@ -729,6 +778,7 @@ pub enum TalentStat {
     CriticalBurn,
     Frostbite,
     Impact,
+    WintersChill,
     Shatter,
     Permafrost,
     BlizzardSlow,
@@ -791,6 +841,7 @@ impl TalentDefinition {
             TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
+            TalentStat::WintersChill => (100.0, "% chance to apply Winter's Chill on frost damage"),
             TalentStat::Impact => (100.0, "% chance to stun on fire damage"),
             TalentStat::Frostbite => (100.0, "% chance to freeze on frost damage"),
             TalentStat::Shatter => (100.0, "% critical chance against frozen enemies"),
@@ -1397,6 +1448,12 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 68, max_rank: 5, name: "Winter's Chill",
+        description: "Frost damage has a 20% chance per rank to add a 15 sec chill stack: +2% Frost critical chance against that enemy, up to five stacks (Survivors conversion)",
+        stat: TalentStat::WintersChill, per_rank: 0.20,
+    },
+
+    TalentDefinition {
         id: 30, max_rank: 5, name: "Impact",
         description: "Fire damage has a 2% chance per rank to stun for 1 sec (bosses: 0.3 sec; Survivors conversion)",
         stat: TalentStat::Impact, per_rank: 0.02,
@@ -1625,6 +1682,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::FlurryHaste
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
+            | TalentStat::WintersChill
             | TalentStat::Impact
             | TalentStat::Frostbite
             | TalentStat::Shatter
@@ -2086,6 +2144,7 @@ mod stat_talent_tests {
                     | TalentStat::FlurryHaste
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn
+                    | TalentStat::WintersChill
                     | TalentStat::Impact
                     | TalentStat::Frostbite
                     | TalentStat::Shatter
@@ -2310,6 +2369,42 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn winters_chill_refreshes_caps_expires_and_composes_with_shatter() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 67, 5)]);
+        let mut chill = WintersChill::default();
+        for stacks in 1..=8 {
+            chill.apply();
+            assert!((chill.critical_bonus() - 0.02 * stacks.min(5) as f32).abs() < 0.00001);
+        }
+        chill.advance(14.9);
+        chill.apply();
+        chill.advance(14.9);
+        assert!((mage.target_crit("frostbolt", true, chill) - 0.6).abs() < 0.00001);
+        assert!((mage.target_crit("blizzard", false, chill) - 0.1).abs() < 0.00001);
+        assert_eq!(mage.target_crit("fireball", true, chill), 0.5);
+        assert_eq!(mage.target_crit("arcane_missiles", false, chill), 0.);
+        assert_eq!(
+            Milestones::default().target_crit("frostbolt", true, chill),
+            0.
+        );
+        chill.advance(0.2);
+        assert_eq!(chill.critical_bonus(), 0.);
+        assert_eq!(mage.target_crit("frostbolt", true, chill), 0.5);
+        chill.apply();
+        assert_eq!(chill.critical_bonus(), 0.02);
+        for dt in [-1., f32::NAN, f32::INFINITY] {
+            chill.advance(dt);
+        }
+        assert_eq!(chill.critical_bonus(), 0.02);
+        chill.advance(15.);
+        assert_eq!(chill, WintersChill::default());
+    }
+
+    #[test]
     fn impact_requires_positive_mage_fire_damage_and_caps_ranks() {
         for rank in 0..=6 {
             let trained = Milestones {
@@ -2334,6 +2429,35 @@ mod stat_talent_tests {
             Milestones::default()
                 .with_ranks(&[(1, 30, 5)])
                 .impact_chance("fireball", 10.),
+            0.
+        );
+    }
+
+    #[test]
+    fn winters_chill_requires_positive_mage_frost_damage_and_caps_ranks() {
+        for rank in 0..=6 {
+            let trained = Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 68, rank)]);
+            for key in MAGE_FROST {
+                assert!(
+                    (trained.winters_chill_chance(key, 10.) - 0.20 * f32::from(rank.min(5))).abs()
+                        < 0.00001
+                );
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(trained.winters_chill_chance(key, damage), 0.);
+                }
+            }
+            for key in ["fireball", "Ignite", "winters_chill", "volley"] {
+                assert_eq!(trained.winters_chill_chance(key, 10.), 0.);
+            }
+        }
+        assert_eq!(
+            Milestones::default()
+                .with_ranks(&[(2, 68, 5)])
+                .winters_chill_chance("frostbolt", 10.),
             0.
         );
     }

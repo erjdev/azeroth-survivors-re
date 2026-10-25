@@ -2755,3 +2755,42 @@ spell-specific tooltips. Workspace test compilation, explicit-data DBC talent au
 Clippy, formatting, render-pass lint and diff checks pass. Native play build:
 19.48 seconds. These checks do not establish live proc frequency or combat feel;
 new live combat/screenshot evidence remains open.
+
+### Mage Winter's Chill checkpoint
+
+Winter's Chill (DBC 68, five ranks) is now a per-enemy combat debuff. Each damaging
+Mage Frost hit has a 20% chance per rank to add a stack, refreshing a 15-second
+duration. Each stack adds two percentage points of Frost critical chance against
+that enemy, capped at five stacks. This is an explicit Survivors conversion;
+it applies to bosses without a control-duration reduction because it does not
+immobilize them. Expiry clears all stacks; the next application starts at one.
+
+Direct casts and ground-area ticks share target-dependent critical calculations.
+Winter's Chill combines with Shatter and existing critical chance, capped at 100%;
+it never makes an enemy frozen and never benefits Fire or Arcane damage. The hit
+that adds a stack retains its already-resolved critical result. Other class hits,
+zero/invalid damage and periodic Ignite damage cannot add stacks. New enemies
+start unchilled, and stacks remain run-only state, outside the account save format.
+Spell tooltips show the trained proc chance and the stack cap in green.
+
+Mage now has 26 functional individual nodes. Remaining class talents, milestones,
+balance, live combat feel and the broader seven-phase acceptance remain open.
+
+Validation: 89 core and 153 Survivors app tests pass. Core checks cover rank caps,
+spell/class exclusions, invalid damage, stack refresh/cap/expiry and Shatter
+composition. Actual cast/area systems use matching random seeds to distinguish
+Frostbolt and Blizzard criticals with and without stacks; expiry removes the
+direct-cast bonus. Workspace test compilation, Clippy, DBC talent audit, formatting,
+render-pass lint and diff checks pass. Native play build: 1m 35s.
+
+Live 1280×720 validation spent Winter's Chill 4→5 and refunded 5→4, updating
+Frost totals 30→31→30 and available points 21→20→21. The green final-rank
+preview and maximum-rank text fit the side panel. Both screenshots are in the
+README under the Mage milestone. The isolated account saved rank four; the app
+was closed and the normal launch wrapper restored. This proves menu behavior
+and layout, not live proc frequency, combat balance or the full resolution matrix.
+
+The live menu log also records roughly one-second frame hitches during this
+automated inspection. No panic/error was recorded and window closure completed,
+but these captures are not performance acceptance. Investigate the saved local
+stall samples before attributing the hitches to gameplay or UI automation.

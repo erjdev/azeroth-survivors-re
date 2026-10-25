@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Winter's Chill
+
+Mage Frost hits can now build a per-enemy critical-chance debuff with five-stack
+cap, refresh and expiry. It combines with Shatter without freezing the target.
+Verified spend/refund and green previews at 720p; [screenshots](images/screenshots/2026-10-25-mage-talents/winters-chill-preview-720.png)
+are linked in the README. 89 core and 153 app tests, DBC audit, Clippy and native
+build pass (95 seconds). Live combat acceptance remains open.
+
 ## 2026-10-25 — Mage Fire procs
 
 Impact now gives fire hits a trained stun chance, with shorter boss stuns and no

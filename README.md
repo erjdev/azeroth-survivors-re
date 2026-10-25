@@ -167,6 +167,11 @@ compares both slow strength and duration. Refunding a rank, closing directly fro
 Talents, and relaunching preserves the edit; the separate Fire spec stays intact.
 These captures verify the UI, not live combat or completion of every Mage talent.
 
+![Winter's Chill final-rank preview at 720p](docs/images/screenshots/2026-10-25-mage-talents/winters-chill-preview-720.png)
+
+Winter's Chill spending/refunding and the [maximum-rank description](docs/images/screenshots/2026-10-25-mage-talents/winters-chill-max-720.png)
+were checked at 720p with an isolated Mage account; combat feel remains under validation.
+
 ![Permafrost strength and duration preview at 720p](docs/images/screenshots/2026-10-25-mage-talents/permafrost-720.png)
 
 [Shatter](docs/images/screenshots/2026-10-25-mage-talents/shatter-preview.png) ·

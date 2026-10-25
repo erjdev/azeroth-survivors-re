@@ -85,6 +85,7 @@ struct Foe {
     pos: Vec3,
     hp: f32,
     frozen: bool,
+    winters_chill: survivors_core::talents::WintersChill,
     dist: f32,
     radius: f32,
 }
@@ -264,6 +265,7 @@ pub(super) fn cast_abilities(
             pos: tf.translation,
             hp: en.hp,
             frozen: en.frozen_t > 0.0,
+            winters_chill: en.winters_chill,
             dist: hero::reach(hpos, tf.translation),
             radius: en.radius,
         })
@@ -316,7 +318,11 @@ pub(super) fn cast_abilities(
                     for f in &targets {
                         let (dmg, crit) = roll(
                             &mut rng,
-                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
                             p.crit_damage,
                             p.dmg,
                         );
@@ -350,7 +356,11 @@ pub(super) fn cast_abilities(
                     for f in &targets {
                         let (dmg, crit) = roll(
                             &mut rng,
-                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
                             p.crit_damage,
                             p.dmg,
                         );
@@ -434,7 +444,11 @@ pub(super) fn cast_abilities(
                     for (k, f) in chain.iter().enumerate() {
                         let (dmg, crit) = roll(
                             &mut rng,
-                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
                             p.crit_damage,
                             p.dmg * 0.85f32.powi(k as i32),
                         );
@@ -488,7 +502,11 @@ pub(super) fn cast_abilities(
                     for f in &targets {
                         let (dmg, crit) = roll(
                             &mut rng,
-                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
                             p.crit_damage,
                             p.dmg,
                         );
@@ -506,7 +524,11 @@ pub(super) fn cast_abilities(
                         fx.impact(f.e, 403);
                         let (dmg, crit) = roll(
                             &mut rng,
-                            (crit_chance + run.milestones.shatter(def.key, f.frozen)).min(1.0),
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
                             p.crit_damage,
                             p.dmg,
                         );
@@ -676,6 +698,7 @@ pub(super) fn tick_areas(
             pos: tf.translation,
             hp: en.hp,
             frozen: en.frozen_t > 0.0,
+            winters_chill: en.winters_chill,
             dist: 0.0,
             radius: en.radius,
         })
@@ -699,7 +722,11 @@ pub(super) fn tick_areas(
                 }
                 let (dmg, crit) = roll(
                     &mut rng,
-                    (crit_chance + run.milestones.shatter(area.source, f.frozen)).min(1.0),
+                    (crit_chance
+                        + run
+                            .milestones
+                            .target_crit(area.source, f.frozen, f.winters_chill))
+                    .min(1.0),
                     crit_damage,
                     area.damage,
                 );
@@ -1004,6 +1031,10 @@ pub(super) fn apply_hits(
                 tick: 1.0,
                 source: h.source,
             });
+        }
+        let chill_chance = run.milestones.winters_chill_chance(h.source, h.damage);
+        if chill_chance > 0.0 && rng.f32() < chill_chance {
+            en.winters_chill.apply();
         }
         let impact_chance = run.milestones.impact_chance(h.source, h.damage);
         if impact_chance > 0.0 && rng.f32() < impact_chance {
@@ -1345,6 +1376,7 @@ mod milestone_tests {
                 slow_t: 8.,
                 root_t: 0.,
                 frozen_t: 0.,
+                winters_chill: Default::default(),
                 stun_t: 0.,
                 fear_t: 0.,
                 weaken: 1.,
@@ -1512,13 +1544,15 @@ mod milestone_tests {
     fn mage_hits_apply_trained_critical_control_and_target_range() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for (source, low, high, expected, frozen, critical) in [
-            ("flamestrike", 0.10, 0.20, 20.0, false, true),
-            ("blizzard", 0.0, 0.04, 25.0, false, true),
-            ("flamestrike", 0.30, 0.40, 20.0, true, true),
-            ("flamestrike", 0.30, 0.40, 10.0, false, false),
-            ("blizzard", 0.30, 0.40, 25.0, true, true),
-            ("blizzard", 0.30, 0.40, 10.0, false, false),
+        for (source, low, high, expected, frozen, critical, chilled) in [
+            ("flamestrike", 0.10, 0.20, 20.0, false, true, false),
+            ("blizzard", 0.0, 0.04, 25.0, false, true, false),
+            ("flamestrike", 0.30, 0.40, 20.0, true, true, false),
+            ("flamestrike", 0.30, 0.40, 10.0, false, false, false),
+            ("blizzard", 0.30, 0.40, 25.0, true, true, false),
+            ("blizzard", 0.30, 0.40, 10.0, false, false, false),
+            ("blizzard", 0.06, 0.09, 25.0, false, true, true),
+            ("blizzard", 0.06, 0.09, 10.0, false, false, false),
         ] {
             let seed = (1..10000)
                 .find(|seed| {
@@ -1572,6 +1606,7 @@ mod milestone_tests {
                         slow_t: 0.,
                         root_t: 8.,
                         frozen_t: if frozen { 3. } else { 0. },
+                        winters_chill: Default::default(),
                         stun_t: 0.,
                         fear_t: 0.,
                         weaken: 1.,
@@ -1581,6 +1616,12 @@ mod milestone_tests {
                     },
                 ))
                 .id();
+            if chilled {
+                let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                for _ in 0..5 {
+                    en.winters_chill.apply();
+                }
+            }
             let area_effect = {
                 let run = app.world().resource::<Run>();
                 Params::new(
@@ -1628,6 +1669,43 @@ mod milestone_tests {
                 };
                 assert!((speed - 0.21).abs() < 0.00001);
                 assert!((seconds - 4.5).abs() < 0.00001);
+            }
+
+            if low == 0.06 {
+                app.world_mut()
+                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                app.world_mut()
+                    .resource_mut::<Run>()
+                    .abilities
+                    .push(super::super::Owned {
+                        def: data::ability("frostbolt"),
+                        level: 1,
+                        cd: 0.,
+                    });
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let direct: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(direct.len(), 1);
+                assert_eq!(direct[0].crit, chilled);
+                app.world_mut()
+                    .get_mut::<Enemy>(enemy)
+                    .unwrap()
+                    .winters_chill
+                    .advance(15.);
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let expired: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(expired.len(), 1);
+                assert!(!expired[0].crit);
             }
 
             if source == "blizzard" && low == 0.0 {
@@ -2135,6 +2213,7 @@ mod milestone_tests {
                 pos: Vec3::X * x,
                 hp: 100.0,
                 frozen: false,
+                winters_chill: Default::default(),
                 dist: x,
                 radius: 0.5,
             })

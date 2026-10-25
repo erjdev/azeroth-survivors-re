@@ -31,6 +31,7 @@ pub(super) struct Enemy {
     pub slow_t: f32,
     pub root_t: f32,
     pub frozen_t: f32,
+    pub winters_chill: survivors_core::talents::WintersChill,
     pub stun_t: f32,
     pub fear_t: f32,
     pub weaken: f32,
@@ -166,6 +167,7 @@ fn spawn_enemy(
             slow_t: 0.0,
             root_t: 0.0,
             frozen_t: 0.0,
+            winters_chill: Default::default(),
             stun_t: 0.0,
             fear_t: 0.0,
             weaken: 1.0,
@@ -388,6 +390,7 @@ pub(super) fn move_enemies(
             continue;
         }
         e.attack_cd -= dt;
+        e.winters_chill.advance(dt);
         for t in [
             &mut e.slow_t,
             &mut e.root_t,

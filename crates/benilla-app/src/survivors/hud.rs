@@ -2681,6 +2681,13 @@ fn ability_tip(
             card_growth::GAIN,
         ));
     }
+    let chill = milestones.winters_chill_chance(def.key, now.dmg);
+    if chill > 0.0 {
+        lines.push(TipLine::new(
+            format!("Winter's Chill: {} chance on frost damage to add a 15 sec stack; +2% Frost critical chance against that enemy per stack, up to 10%.", pct(chill)),
+            card_growth::GAIN,
+        ));
+    }
     let impact = milestones.impact_chance(def.key, now.dmg);
     if impact > 0.0 {
         lines.push(TipLine::new(
@@ -3146,6 +3153,40 @@ mod talent_tooltip_tests {
             assert!(!ability_tip(&owned, mage, &stats, None)
                 .iter()
                 .any(|line| line.left.starts_with("Impact:")));
+        }
+    }
+
+    #[test]
+    fn winters_chill_tooltip_is_green_and_only_shown_for_trained_frost_spells() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = mage.with_ranks(&[(2, 68, 5)]);
+        let stats = Run::default().stats();
+        for (key, shown) in [
+            ("fireball", false),
+            ("frostbolt", true),
+            ("blizzard", true),
+            ("arcane_missiles", false),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            let tip = ability_tip(&owned, trained, &stats, None);
+            let line = tip
+                .iter()
+                .find(|line| line.left.starts_with("Winter's Chill:"));
+            assert_eq!(line.is_some(), shown);
+            if let Some(line) = line {
+                assert!(line.left.contains("100%"));
+                assert_eq!(line.color, card_growth::GAIN);
+            }
+            assert!(!ability_tip(&owned, mage, &stats, None)
+                .iter()
+                .any(|line| line.left.starts_with("Winter's Chill:")));
         }
     }
 
