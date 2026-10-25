@@ -3,6 +3,36 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Responsive Talents live validation
+
+Validated the current native UI with an isolated collected Warrior account, against
+[the Talent reference](intentions/survivors_talent_tab.png), without a gameplay run.
+At 800×720, details wrap beneath three trees. Spending Deflection changes 51→50
+available points; resetting restores 51 without losing scroll. Leaving for Collection
+and returning to Talents also restores that position.
+
+![Wrapped Talent page at 800×720](images/screenshots/2026-10-25-talent-responsive/trees-800.jpg)
+
+![Spent point and green preview in the scrolled detail panel](images/screenshots/2026-10-25-talent-responsive/spent-scrolled-800.jpg)
+
+![Scroll position after resetting and returning from Collection](images/screenshots/2026-10-25-talent-responsive/tab-restored-800.jpg)
+
+Live preview resizing to 640×720 produces two columns. The lower Protection tree
+and spec controls remain reachable. Left-click spending and right-click refunding
+Shield Specialization update rank/totals and retain the scrolled view.
+
+![Two-column Talent layout at 640×720](images/screenshots/2026-10-25-talent-responsive/trees-640.jpg)
+
+![Spending in the wrapped Protection tree](images/screenshots/2026-10-25-talent-responsive/protection-spent-640.jpg)
+
+![Refunding in place](images/screenshots/2026-10-25-talent-responsive/protection-refunded-640.jpg)
+
+Screenshots are Retina captures including the title bar. No runtime code changed.
+This closes the sampled reflow/scroll interaction checks, not all-class acceptance:
+per-spec/per-hero restoration still needs live coverage. Reference header/milestone
+icons, full-height tree art and typography remain unfinished; spending one point
+also exposes the remaining “1 points” label.
+
 ## 2026-10-25 — Starter UI visual checkpoint
 
 Captured build `4dcf72e` at 1280×720 logical resolution (Retina, title bar included),

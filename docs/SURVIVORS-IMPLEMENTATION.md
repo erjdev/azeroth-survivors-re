@@ -18,6 +18,15 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Live Talent validation (2026-10-25): isolated Warrior fixture confirms 800×720
+three-tree-plus-wrapped-detail layout, wheel reachability, spending/reset totals,
+and scroll restoration after reset and a Collection round trip. In-process preview
+resize to 640×720 confirms two-column layout and lower-tree left-click spend /
+right-click refund without losing scroll. See inline evidence in the changelog.
+Remaining: live per-spec/per-hero restoration, other classes, reference header and
+milestone icons, full-height illustrated tree art, typography, and singular “point”.
+
+
 Companion purchase clarity: preserve the reference's first-instinct-to-first,
 next-to-second assignment. The existing replacement behavior targets the first
 companion once owned slots are filled; show that destination, the replaced instinct
