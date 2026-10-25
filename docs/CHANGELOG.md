@@ -3,6 +3,26 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rewards scroll continuity
+
+Rewards preserves its session scroll position when purchases rebuild the page and
+when returning from another Armory tab. Perks, Companions and Tabards keep separate
+positions; a category change cannot misattribute the previous page's offset.
+
+![Scrolled Perks before purchase at 640×720](images/screenshots/2026-10-25-reward-scroll/before-purchase-640.jpg)
+
+![Purchase updates the card without jumping to the top](images/screenshots/2026-10-25-reward-scroll/after-purchase-640.jpg)
+
+![Returning from Collection restores the same position](images/screenshots/2026-10-25-reward-scroll/returned-640.jpg)
+
+Live validation used an isolated collected Warrior at 640×720. Second Thoughts
+charged 15 points and updated in place; a Collection round trip retained the view.
+The layout remains based on the [Rewards intention](intentions/survivors_rewards_tab_perks.png).
+Cross-category bookkeeping has an ECS regression test; live Companion/Tabard scroll
+checks remain open. Positions reset when the application exits and are not save data.
+All 172 Survivors app tests, workspace Clippy, formatting, render-pass lint and the
+native build pass.
+
 ## 2026-10-25 — Inline Perk upgrade previews
 
 All six Perk cards now show the current and next effect inline in green, with the

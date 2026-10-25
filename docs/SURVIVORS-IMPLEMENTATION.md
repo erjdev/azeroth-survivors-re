@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Rewards scroll checkpoint: session offsets are tracked independently for the three
+categories and attached to the rendered category. At 640×720 a live Perk purchase
+and Collection round trip preserve the scrolled view; the changelog contains before,
+after and return captures. ECS coverage checks category changes and rejects invalid
+offsets. Live Companion/Tabard category scroll coverage remains open.
+
+
 Perk preview checkpoint: all six Perks render green inline current→next effects with
 units once, using core mechanics for XP, hand size and drop chance. Capped perks
 show their current effect only. Live Veteran's Lessons purchases verified both ranks

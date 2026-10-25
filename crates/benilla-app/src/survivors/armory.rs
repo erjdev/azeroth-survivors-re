@@ -11,6 +11,7 @@ mod drop_page;
 #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
 pub(super) mod preview;
 mod reward_page;
+pub(super) use reward_page::remember_scroll as remember_reward_scroll;
 mod talent_page;
 pub(super) use talent_page::fill_art as fill_talent_art;
 pub(super) use talent_page::{
@@ -141,6 +142,8 @@ pub(super) struct Armory {
     achieve: u8,
     /// 0 perks, 1 companions, 2 tabards.
     reward_page: u8,
+    /// Session-only positions, separate for Perks, Companions and Tabards.
+    reward_scroll: [Vec2; 3],
     /// Which companion the Looks row dresses.
     pet_slot: u8,
     piece: usize,
@@ -161,6 +164,7 @@ impl Default for Armory {
             note: String::new(),
             achieve: 0,
             reward_page: 0,
+            reward_scroll: [Vec2::ZERO; 3],
             pet_slot: 0,
             piece: 0,
             drop_zone: 0,

@@ -3,6 +3,26 @@ use super::{chip, hud, rewards, Account, Act, Armory, ChipParent, DIM, GOLD};
 use bevy::prelude::*;
 use bevy::ui::RelativeCursorPosition;
 
+/// The rendered category owns the offset even when an action changes the selected category.
+#[derive(Component)]
+pub(in crate::survivors) struct ScrollCategory(usize);
+
+pub(in crate::survivors) fn remember_scroll(
+    mut armory: ResMut<Armory>,
+    surfaces: Query<(&ScrollCategory, &ScrollPosition)>,
+) {
+    for (category, position) in &surfaces {
+        if position.0.is_finite()
+            && armory
+                .reward_scroll
+                .get(category.0)
+                .is_some_and(|old| *old != position.0)
+        {
+            armory.reward_scroll[category.0] = position.0;
+        }
+    }
+}
+
 const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 
 fn text(
@@ -45,7 +65,8 @@ pub(super) fn build(
     armory: &Armory,
     account: &Account,
 ) {
-    panel.spawn((super::collection::CollectionScroll, RelativeCursorPosition::default(), ScrollPosition::default(), Node {
+    let category = usize::from(armory.reward_page.min(2));
+    panel.spawn((super::collection::CollectionScroll, ScrollCategory(category), RelativeCursorPosition::default(), ScrollPosition(armory.reward_scroll[category]), Node {
         width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(0.0),
         flex_wrap: FlexWrap::Wrap, column_gap: Val::Px(12.0), row_gap: Val::Px(12.0),
         overflow: Overflow::scroll_y(), align_content: AlignContent::Start, ..default()
@@ -200,4 +221,42 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Account) 
             });
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn category_offsets_follow_the_rendered_page_and_reject_invalid_positions() {
+        let mut app = App::new();
+        app.init_resource::<Armory>()
+            .add_systems(Update, remember_scroll);
+        let old = app
+            .world_mut()
+            .spawn((ScrollCategory(0), ScrollPosition(Vec2::new(0., 280.))))
+            .id();
+        // A page action can change selection before the old rendered surface is replaced.
+        app.world_mut().resource_mut::<Armory>().reward_page = 1;
+        app.update();
+        assert_eq!(
+            app.world().resource::<Armory>().reward_scroll,
+            [Vec2::new(0., 280.), Vec2::ZERO, Vec2::ZERO]
+        );
+        app.world_mut().despawn(old);
+        let current = app
+            .world_mut()
+            .spawn((ScrollCategory(1), ScrollPosition(Vec2::new(0., 90.))))
+            .id();
+        app.update();
+        app.world_mut()
+            .entity_mut(current)
+            .insert(ScrollPosition(Vec2::splat(f32::NAN)));
+        app.update();
+        let memory = app.world().resource::<Armory>().reward_scroll;
+        assert_eq!(
+            memory,
+            [Vec2::new(0., 280.), Vec2::new(0., 90.), Vec2::ZERO]
+        );
+    }
 }

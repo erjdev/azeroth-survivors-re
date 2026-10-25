@@ -92,7 +92,11 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<armory::TalentScrollMemory>()
             .add_systems(
                 PreUpdate,
-                armory::remember_talent_scroll.run_if(in_state(Phase::Menu)),
+                (
+                    armory::remember_talent_scroll,
+                    armory::remember_reward_scroll,
+                )
+                    .run_if(in_state(Phase::Menu)),
             )
             .add_plugins(crate::portrait::survivors_pane::SurvivorsPanePlugin)
             .add_systems(Update, armory::character_subject.after(hud::menu_preview))
