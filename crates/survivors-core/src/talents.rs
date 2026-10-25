@@ -1277,11 +1277,156 @@ static HUNTER_TALENTS: &[TalentDefinition] = &[
     },
 ];
 
+// Explicit school membership: neutral jewelry abilities and other classes do not inherit these.
+const MAGE_ARCANE: &[&str] = &["arcane_missiles", "arcane_explosion"];
+const MAGE_FIRE: &[&str] = &[
+    "fireball",
+    "fire_blast",
+    "flamestrike",
+    "pyroblast",
+    "blast_wave",
+];
+const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_cold"];
+
+/// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
+static MAGE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 76,
+        max_rank: 5,
+        name: "Arcane Focus",
+        description:
+            "Arcane Missiles and Arcane Explosion: +2% damage per rank (Survivors hit conversion)",
+        stat: TalentStat::SpellGroupDamage(MAGE_ARCANE),
+        per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 80,
+        max_rank: 5,
+        name: "Improved Arcane Missiles",
+        description: "Arcane Missiles: +5% damage per rank (Survivors pushback conversion)",
+        stat: TalentStat::SpellDamage("arcane_missiles"),
+        per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 1650,
+        max_rank: 5,
+        name: "Magic Absorption",
+        description: "+1% damage reduction per rank (Survivors resistance conversion)",
+        stat: TalentStat::Reduction,
+        per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 81,
+        max_rank: 3,
+        name: "Improved Arcane Explosion",
+        description: "Arcane Explosion: +2% critical chance per rank",
+        stat: TalentStat::SpellCrit("arcane_explosion"),
+        per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 26,
+        max_rank: 5,
+        name: "Improved Fireball",
+        description: "Fireball: 4% shorter cooldown per rank (Survivors cast-time conversion)",
+        stat: TalentStat::SpellCooldown("fireball"),
+        per_rank: 0.04,
+    },
+    TalentDefinition {
+        id: 27,
+        max_rank: 3,
+        name: "Improved Fire Blast",
+        description: "Fire Blast: 5% shorter cooldown per rank",
+        stat: TalentStat::SpellCooldown("fire_blast"),
+        per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 31,
+        max_rank: 3,
+        name: "Improved Flamestrike",
+        description: "Flamestrike: +5% critical chance per rank",
+        stat: TalentStat::SpellCrit("flamestrike"),
+        per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 29,
+        max_rank: 1,
+        name: "Pyroblast",
+        description: "Pyroblast: +20% damage (spell acquisition remains independent)",
+        stat: TalentStat::SpellDamage("pyroblast"),
+        per_rank: 0.2,
+    },
+    TalentDefinition {
+        id: 33,
+        max_rank: 3,
+        name: "Critical Mass",
+        description: "Fire spells: +2% critical chance per rank",
+        stat: TalentStat::SpellGroupCrit(MAGE_FIRE),
+        per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 32,
+        max_rank: 1,
+        name: "Blast Wave",
+        description: "Blast Wave: +20% damage (spell acquisition remains independent)",
+        stat: TalentStat::SpellDamage("blast_wave"),
+        per_rank: 0.2,
+    },
+    TalentDefinition {
+        id: 35,
+        max_rank: 5,
+        name: "Fire Power",
+        description: "Fire spells: +2% damage per rank",
+        stat: TalentStat::SpellGroupDamage(MAGE_FIRE),
+        per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 37,
+        max_rank: 5,
+        name: "Improved Frostbolt",
+        description: "Frostbolt: 4% shorter cooldown per rank (Survivors cast-time conversion)",
+        stat: TalentStat::SpellCooldown("frostbolt"),
+        per_rank: 0.04,
+    },
+    TalentDefinition {
+        id: 73,
+        max_rank: 5,
+        name: "Ice Shards",
+        description: "Frost spells: +10% critical damage per rank (Survivors conversion)",
+        stat: TalentStat::SpellGroupCritDamage(MAGE_FROST),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 62,
+        max_rank: 2,
+        name: "Improved Frost Nova",
+        description: "Frost Nova: 10% shorter cooldown per rank",
+        stat: TalentStat::SpellCooldown("frost_nova"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 61,
+        max_rank: 3,
+        name: "Piercing Ice",
+        description: "Frost spells: +2% damage per rank",
+        stat: TalentStat::SpellGroupDamage(MAGE_FROST),
+        per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 64,
+        max_rank: 3,
+        name: "Improved Cone of Cold",
+        description: "Cone of Cold: +10% damage per rank",
+        stat: TalentStat::SpellDamage("cone_of_cold"),
+        per_rank: 0.1,
+    },
+];
+
 pub fn definitions(class: usize) -> &'static [TalentDefinition] {
     match class {
         0 => WARRIOR_TALENTS,
         1 => PALADIN_TALENTS,
         2 => HUNTER_TALENTS,
+        6 => MAGE_TALENTS,
         _ => &[],
     }
 }
@@ -1867,6 +2012,68 @@ mod stat_talent_tests {
                 base.with_ranks(&[(0, node.id, node.max_rank)]).cast(key)
             );
         }
+    }
+
+    #[test]
+    fn mage_school_training_composes_caps_and_stays_class_specific() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let ranks = [
+            (0, 76, 5),
+            (0, 80, 5),
+            (0, 81, 3),
+            (0, 1650, 5),
+            (1, 26, 5),
+            (1, 27, 3),
+            (1, 31, 3),
+            (1, 29, 1),
+            (1, 33, 3),
+            (1, 32, 1),
+            (1, 35, 5),
+            (2, 37, 5),
+            (2, 73, 5),
+            (2, 62, 2),
+            (2, 61, 3),
+            (2, 64, 3),
+        ];
+        let trained = base.with_ranks(&ranks);
+        let near = |a: f32, b: f32| assert!((a - b).abs() < 0.0001, "{a} != {b}");
+        near(trained.cast("arcane_missiles").damage, 1.1 * 1.25);
+        near(trained.cast("arcane_explosion").crit, 0.06);
+        near(trained.cast("fireball").cooldown, 0.8);
+        near(trained.cast("fire_blast").cooldown, 0.85);
+        near(trained.cast("flamestrike").crit, 0.21);
+        near(trained.cast("pyroblast").damage, 1.2 * 1.1);
+        near(trained.cast("blast_wave").damage, 1.2 * 1.1);
+        near(trained.cast("frostbolt").cooldown, 0.8);
+        near(trained.cast("frost_nova").cooldown, 0.8);
+        near(trained.cast("cone_of_cold").damage, 1.06 * 1.3);
+        near(trained.cast("blizzard").crit_damage, 0.5);
+        near(stat_adjustment(6, &ranks).reduction, 0.05);
+        for key in crate::data::CLASSES[6].pool {
+            let effect = trained.cast(key);
+            assert_eq!(effect.extra_targets, 0);
+            assert_eq!(effect.radius, 1.0);
+            assert_eq!(base.cast(key), CastEffect::default());
+            let capped = base.with_ranks(&ranks.map(|(tree, id, _)| (tree, id, 255)));
+            assert_eq!(capped.cast(key), effect);
+            for class in [0, 1, 2, 3, 4, 5, 7, 8] {
+                assert_eq!(
+                    Milestones {
+                        class,
+                        ..Default::default()
+                    }
+                    .with_ranks(&ranks)
+                    .cast(key),
+                    CastEffect::default()
+                );
+            }
+        }
+        assert_eq!(trained.cast("holy_shock"), CastEffect::default());
+        assert_eq!(trained.cast("shadow_bolt"), CastEffect::default());
+        assert_eq!(trained.with_ranks(&[]), base);
     }
 
     #[test]

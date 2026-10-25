@@ -656,6 +656,9 @@ pub(super) fn tick_areas(
 
     for (e, tf, mut area) in &mut areas {
         let stats = stats.for_spell(area.source);
+        let training = run.milestones.cast(area.source);
+        let crit_chance = (stats.crit + training.crit).min(1.0);
+        let crit_damage = stats.crit_damage + training.crit_damage;
         area.left -= dt;
         area.next_tick -= dt;
         if area.next_tick <= 0.0 {
@@ -667,7 +670,7 @@ pub(super) fn tick_areas(
                 if area.impact != 0 && i < 12 {
                     fx.impact(f.e, area.impact);
                 }
-                let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, area.damage);
+                let (dmg, crit) = roll(&mut rng, crit_chance, crit_damage, area.damage);
                 hits.write(Hit {
                     target: f.e,
                     damage: dmg,
@@ -1374,6 +1377,153 @@ mod milestone_tests {
             assert_eq!(after.count, before.count);
             assert_eq!(after.radius, before.radius);
             assert_eq!(after.duration, before.duration);
+        }
+    }
+
+    #[test]
+    fn mage_area_ticks_apply_school_critical_bonuses_to_actual_hits() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (source, low, high, expected) in [
+            ("flamestrike", 0.10, 0.20, 20.0),
+            ("blizzard", 0.0, 0.04, 25.0),
+        ] {
+            let seed = (1..10000)
+                .find(|seed| {
+                    let value = Rng(*seed).f32();
+                    value >= low && value < high
+                })
+                .unwrap();
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.insert_resource(time)
+                .insert_resource(Run {
+                    milestones: Milestones {
+                        class: 6,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(1, 31, 3), (1, 33, 3), (2, 73, 5)]),
+                    ..Default::default()
+                })
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            let enemy = app
+                .world_mut()
+                .spawn((
+                    Transform::default(),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 100.,
+                        max_hp: 100.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slow: 1.,
+                        slow_t: 0.,
+                        root_t: 0.,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ))
+                .id();
+            app.world_mut().spawn((
+                Transform::default(),
+                GroundArea {
+                    damage: 10.,
+                    dot: 0.,
+                    dot_dur: 0.,
+                    radius: 5.,
+                    left: 3.,
+                    every: 1.,
+                    next_tick: 0.,
+                    effect: Effect::None,
+                    mark: 0,
+                    impact: 0,
+                    source,
+                },
+            ));
+            app.world_mut().run_system_once(tick_areas).unwrap();
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            assert_eq!(hits.len(), 1);
+            assert_eq!(hits[0].target, enemy);
+            assert!(hits[0].crit, "{source}");
+            assert_eq!(hits[0].damage, expected, "{source}");
+            assert_eq!(hits[0].splash, 0.);
+        }
+    }
+
+    #[test]
+    fn mage_training_reaches_cast_parameters_and_preserves_area_geometry() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (0, 76, 5),
+            (0, 80, 5),
+            (0, 81, 3),
+            (1, 26, 5),
+            (1, 31, 3),
+            (1, 33, 3),
+            (1, 35, 5),
+            (2, 37, 5),
+            (2, 73, 5),
+            (2, 61, 3),
+            (2, 64, 3),
+        ]);
+        let mut stats = Run::default().stats();
+        stats.targets = 10;
+        for (key, damage, cooldown, crit, critical_damage) in [
+            ("arcane_missiles", 1.375, 1., 0., 0.),
+            ("arcane_explosion", 1.1, 1., 0.06, 0.),
+            ("fireball", 1.1, 0.8, 0.06, 0.),
+            ("flamestrike", 1.1, 1., 0.21, 0.),
+            ("frostbolt", 1.06, 0.8, 0., 0.5),
+            ("blizzard", 1.06, 1., 0., 0.5),
+            ("cone_of_cold", 1.378, 1., 0., 0.5),
+        ] {
+            for level in [1, 3] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.0001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - critical_damage).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.effect, before.effect);
+            }
         }
     }
 

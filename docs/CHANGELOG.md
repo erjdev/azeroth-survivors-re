@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage talent effects
+
+Implemented 16 Mage talents across Arcane, Fire and Frost, with shared previews and
+combat values. Fixed ground-area ticks ignoring talent critical bonuses. Remaining
+Mage nodes and milestones are still in progress. Native build, DBC audit, 80 core and
+144 app tests, and Clippy pass. Talent-page screenshots remain pending a UI input-tool issue.
+
 ## 2026-10-25 — Placed-tree camera regression
 
 Added a real Elwynn trunk fixture for blocked/clear camera paths, sphere clearance and

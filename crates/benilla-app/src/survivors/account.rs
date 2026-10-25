@@ -1580,6 +1580,47 @@ mod tests {
     }
 
     #[test]
+    fn mage_training_follows_character_spec_save_and_refund() {
+        let mut account = empty();
+        let first = account.ensure(6);
+        let second = account.create("Test", "Mage", 6).unwrap();
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|h| h.id == second)
+            .unwrap();
+        hero.talent_xp = 5100;
+        hero.dbc[0] = vec![(1, 26, 5)];
+        hero.dbc[1] = vec![(2, 37, 5)];
+        let fire = account.milestones_picked(6, Some(second));
+        assert!((fire.cast("fireball").cooldown - 0.8).abs() < 0.00001);
+        assert_eq!(fire.cast("frostbolt").cooldown, 1.);
+        assert_eq!(
+            account
+                .milestones_picked(6, Some(first))
+                .cast("fireball")
+                .cooldown,
+            1.
+        );
+        account.select_spec(second, 1);
+        let frost = account.milestones_picked(6, Some(second));
+        assert!((frost.cast("frostbolt").cooldown - 0.8).abs() < 0.00001);
+        assert_eq!(frost.cast("fireball").cooldown, 1.);
+        let loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.milestones_picked(6, Some(second)), frost);
+        account.respec(second);
+        assert_eq!(
+            account
+                .milestones_picked(6, Some(second))
+                .cast("frostbolt")
+                .cooldown,
+            1.
+        );
+        account.select_spec(second, 0);
+        assert_eq!(account.milestones_picked(6, Some(second)), fire);
+    }
+
+    #[test]
     fn hunter_milestones_follow_the_selected_spec_and_survive_save() {
         let mut account = empty();
         let first = account.ensure(2);

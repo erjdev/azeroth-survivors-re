@@ -2531,3 +2531,55 @@ Validation: all 141 Survivors app tests pass with the checkout data, including t
 new overlap and reattachment assertions. Workspace test compilation, Clippy, formatting,
 render-pass lint and diff whitespace checks pass. This checkpoint changes test code only;
 the gameplay binary and camera behavior are unchanged.
+
+### Mage individual talent effects — 2026-10-25
+
+Verified these node names and rank caps against the checkout's Talent/Spell DBCs. These
+explicit Survivors effects replace the temporary +1% damage-per-rank fallback for these
+nodes only; existing tree bonuses remain. Talent acquisition does not automatically grant
+a spell card.
+
+| Node | Ranks | Effect per rank unless stated |
+|---|---:|---|
+| 76 Arcane Focus | 5 | Arcane Missiles/Explosion +2% damage; hit conversion |
+| 80 Improved Arcane Missiles | 5 | Arcane Missiles +5% damage; pushback conversion |
+| 1650 Magic Absorption | 5 | +1% damage reduction; resistance conversion |
+| 81 Improved Arcane Explosion | 3 | Arcane Explosion +2% critical chance |
+| 26 Improved Fireball | 5 | Fireball cooldown reduced 4%; cast-time conversion |
+| 27 Improved Fire Blast | 3 | Fire Blast cooldown reduced 5% |
+| 31 Improved Flamestrike | 3 | Flamestrike +5% critical chance |
+| 29 Pyroblast | 1 | Pyroblast +20% damage |
+| 33 Critical Mass | 3 | Fire spells +2% critical chance |
+| 32 Blast Wave | 1 | Blast Wave +20% damage |
+| 35 Fire Power | 5 | Fire spells +2% damage |
+| 37 Improved Frostbolt | 5 | Frostbolt cooldown reduced 4%; cast-time conversion |
+| 73 Ice Shards | 5 | Frost critical multiplier +0.10; explicit Survivors conversion |
+| 62 Improved Frost Nova | 2 | Frost Nova cooldown reduced 10% |
+| 61 Piercing Ice | 3 | Frost spells +2% damage |
+| 64 Improved Cone of Cold | 3 | Cone of Cold +10% damage |
+
+School membership is explicit: Arcane Missiles/Explosion; Fireball/Fire Blast/Flamestrike/
+Pyroblast/Blast Wave; Frostbolt/Frost Nova/Blizzard/Cone of Cold. Cross-class and neutral
+jewelry spells receive no school bonus. These talents do not add targets, area centers,
+radius or control duration.
+
+Ground-area ticks now combine their spell-scoped gear critical stats with the run's talent
+snapshot; previously they ignored talent critical chance/multiplier even though cast
+previews included them. This carries Flamestrike and Blizzard training into emitted hits.
+UI talent descriptions and spell previews use the same definitions/effective parameters.
+
+Remaining Mage nodes and tree milestones are still unfinished; this does not establish
+complete Mage gameplay, balance or visual acceptance.
+
+Validation: all 80 core and 144 Survivors app tests pass. Coverage includes school
+composition, rank clamping, class isolation, selected character/spec save/refund,
+effective cast/periodic damage, and actual area-hit messages for Flamestrike critical
+chance and Blizzard critical multiplier. The DBC talent audit, workspace test compilation,
+Clippy and native play build pass (native 35.77 seconds).
+
+The native menu loaded the isolated Test Mage with five Fireball ranks. Talent-page
+visual acceptance and a milestone screenshot remain pending: native coordinate input
+repeatedly returned `noWindowsAvailable` while AX/window captures and the app log showed
+the live menu. Raising/rebinding did not restore coordinate input. The app was closed via
+its AX close button and the normal launcher restored. No live trained-combat or
+multi-resolution claim is made for this checkpoint.
