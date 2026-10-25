@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Page-local action feedback
+
+Armory navigation now clears the previous page's action message and text-entry
+focus. Talent refunds still show feedback on Talents, but that message no longer
+appears on Character or the starter after Escape. Pending reward purchases remain
+staged; the run-entry redirect sets its own Confirm/Undo instruction.
+
+![Talent refund feedback on its own page](images/screenshots/2026-10-25-page-feedback/talent-feedback.jpg)
+
+![Character after navigation, without stale Talent feedback](images/screenshots/2026-10-25-page-feedback/character-clean.jpg)
+
+![Starter after Escape, without stale Talent feedback](images/screenshots/2026-10-25-page-feedback/escape-clean.jpg)
+
+Verified live at 1280×720 with an isolated account. Native build, 181 Survivors app
+tests without default features, workspace Clippy, formatting and render-pass lint
+pass. The starter's legacy finale label still needs to use the encounter schedule;
+the capture does not establish zone-content completion.
+
 ## 2026-10-25 — Saved Talent builds: live acceptance
 
 Verified the [Talent interface](intentions/survivors_talent_tab.png) with an isolated

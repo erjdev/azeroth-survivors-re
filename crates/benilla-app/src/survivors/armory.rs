@@ -189,6 +189,13 @@ impl Default for Armory {
 }
 
 impl Armory {
+    fn open_page(&mut self, page: Page) {
+        self.page = page;
+        self.focus = 0;
+        self.manage_heroes = false;
+        self.note.clear();
+    }
+
     /// Keep the selected campaign row authoritative when opening another Armory tab.
     pub(super) fn entered_zone(&self) -> Option<usize> {
         if self.page == Page::Look {
@@ -288,7 +295,7 @@ pub(super) fn input(
         if armory.page == Page::Heroes && armory.manage_heroes {
             armory.manage_heroes = false;
         } else {
-            armory.page = Page::Door;
+            armory.open_page(Page::Door);
         }
         armory.focus = 0;
     } else if typing.0 && keys.just_pressed(KeyCode::Enter) {
@@ -349,9 +356,7 @@ pub(super) fn input(
         }
         match act.clone() {
             Act::Page(page) => {
-                armory.page = page;
-                armory.focus = 0;
-                armory.manage_heroes = false;
+                armory.open_page(page);
             }
             Act::ManageHeroes(open) => {
                 armory.manage_heroes = open;
@@ -483,11 +488,10 @@ pub(super) fn input(
             ),
             Act::RandomName => random_name(&mut armory, &mut account, &selection, &mut rng),
             Act::Look => {
-                armory.page = Page::Look;
-                armory.focus = 0;
+                armory.open_page(Page::Look);
             }
             Act::Enter if !armory.reward_draft.is_empty() => {
-                armory.page = Page::Rewards;
+                armory.open_page(Page::Rewards);
                 armory.note = "Confirm or Undo pending rewards before entering a run.".into();
             }
             Act::Enter => try_enter(
@@ -500,7 +504,7 @@ pub(super) fn input(
                 &mut next,
             ),
             Act::RunOptions => armory.note = "Difficulty is Normal.".into(),
-            Act::Options => armory.page = Page::Notes,
+            Act::Options => armory.open_page(Page::Notes),
             Act::Quit => {
                 exit.write(AppExit::Success);
             }
@@ -522,11 +526,11 @@ pub(super) fn input(
             Act::Codex(id) => armory.codex_entry = Some(id),
             Act::Achieve(page) => {
                 armory.achieve = page.min(5);
-                armory.page = Page::Achievements;
+                armory.open_page(Page::Achievements);
             }
             Act::RewardPage(page) => {
                 armory.reward_page = page.min(2);
-                armory.page = Page::Rewards;
+                armory.open_page(Page::Rewards);
             }
             Act::PetSlot(slot) => armory.pet_slot = slot.min(1),
             Act::WearLook(look) => {

@@ -23,8 +23,11 @@ and Mage: distinct Warrior specs (Arms 3/Fury 2), Mage spec 3 (Frost 1), selecte
 restoration across hero switches and restart, and resetting only the active Warrior
 spec. Save-file readback preserves Warrior spec 1 and Mage spec 3 after the reset.
 Screenshots are inline in the changelog. Still open: all-class combat acceptance,
-deep prerequisite/refund interaction checks, narrow per-spec scroll live validation,
-and clearing stale Talent action messages when navigating to Character.
+deep prerequisite/refund interaction checks and narrow per-spec scroll live validation.
+Stale action feedback is now cleared by page navigation; Talent → Character and
+Talent → Escape were checked live at 1280×720. The starter still labels Hogger as the
+last fight from legacy zone metadata; derive this label from the actual encounter
+schedule, as Drop Tables already does.
 
 Character responsive checkpoint verified at 1280×720, 640×720 and 640×900:
 below 1100 UI units, stack a proportional square hero preview, appearance/features,
