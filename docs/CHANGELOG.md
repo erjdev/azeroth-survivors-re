@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Warrior control talents
+
+Piercing Howl adds slow duration to Demoralizing Shout; Concussion Blow adds stun duration
+to Heroic Strike. Both compose with their tree milestones, preserve boss resistance and
+show green rank comparisons in seconds. Twenty-one Warrior nodes now have effects.
+Manual combat validation and balancing remain pending.
+
+Native build, workspace test compilation, 53 core tests, 88 focused Survivors tests and
+the local talent-data audit pass. Both green previews fit at 1280×720 on an empty validation
+spec. These checks do not establish full manual combat acceptance.
+[Piercing Howl](images/screenshots/2026-10-24-warrior-talents/piercing-howl-node-720.jpg) ·
+[Concussion Blow](images/screenshots/2026-10-24-warrior-talents/concussion-blow-node-720.jpg).
+
 ## 2026-10-24 — Warrior bleed talents
 
 Deep Wounds now adds bleed damage per talent rank; Improved Rend increases that bleed.

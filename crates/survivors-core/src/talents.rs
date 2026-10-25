@@ -167,22 +167,32 @@ impl Milestones {
         effect
     }
 
+    fn trained_value(self, stat: TalentStat) -> f32 {
+        definitions(self.class)
+            .iter()
+            .enumerate()
+            .filter(|(_, node)| node.stat == stat)
+            .map(|(index, node)| node.per_rank * f32::from(self.training[index].min(node.max_rank)))
+            .sum()
+    }
+
     /// Piercing Howl supplements, rather than replaces, the shout's damage weakening.
     pub fn secondary_slow(self, key: &str, boss: bool) -> Option<(f32, f32)> {
-        (self.class == 0 && self.points[1] >= 10 && key == "demoralizing_shout")
-            .then_some((if boss { 0.75 } else { 0.5 }, 3.0))
+        if self.class != 0 || key != "demoralizing_shout" {
+            return None;
+        }
+        let duration = if self.points[1] >= 10 { 3.0 } else { 0.0 }
+            + self.trained_value(TalentStat::SecondarySlowDuration("demoralizing_shout"));
+        (duration > 0.).then_some((if boss { 0.75 } else { 0.5 }, duration))
     }
 
     pub fn secondary_stun(self, key: &str, boss: bool) -> f32 {
-        if self.class == 0 && self.points[2] >= 20 && key == "heroic_strike" {
-            if boss {
-                0.3
-            } else {
-                1.0
-            }
-        } else {
-            0.0
+        if self.class != 0 || key != "heroic_strike" {
+            return 0.;
         }
+        let duration = if self.points[2] >= 20 { 1.0 } else { 0.0 }
+            + self.trained_value(TalentStat::SecondaryStunDuration("heroic_strike"));
+        duration * if boss { 0.3 } else { 1.0 }
     }
 
     /// Death Wish's risk applies only during the actual Retaliation buff.
@@ -488,7 +498,7 @@ pub struct TalentDefinition {
     pub per_rank: f32,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
     Damage,
     Cooldown,
@@ -496,6 +506,8 @@ pub enum TalentStat {
     Crit,
     CritDamage,
     CriticalBleed,
+    SecondarySlowDuration(&'static str),
+    SecondaryStunDuration(&'static str),
     Reduction,
     Speed,
     SpellDamage(&'static str),
@@ -512,6 +524,8 @@ impl TalentDefinition {
         let rank = rank.min(self.max_rank);
         let (scale, unit) = match self.stat {
             TalentStat::Armor => (1.0, " armor"),
+            TalentStat::SecondarySlowDuration(_) => (1.0, " s added slow duration"),
+            TalentStat::SecondaryStunDuration(_) => (1.0, " s added stun duration"),
             TalentStat::Damage | TalentStat::SpellDamage(_) => (100.0, "% damage"),
             TalentStat::Cooldown | TalentStat::SpellCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::Crit | TalentStat::SpellCrit(_) => (100.0, "% critical chance"),
@@ -693,6 +707,23 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         description: "Direct criticals bleed for an additional 4% damage per rank over 3 seconds; refreshes, does not stack",
         stat: TalentStat::CriticalBleed,
         per_rank: 0.04,
+    },
+
+    TalentDefinition {
+        id: 160,
+        max_rank: 1,
+        name: "Piercing Howl",
+        description: "Demoralizing Shout adds 2 seconds of 50% slow; adds to the Fury milestone. Bosses are slowed by 25%",
+        stat: TalentStat::SecondarySlowDuration("demoralizing_shout"),
+        per_rank: 2.0,
+    },
+    TalentDefinition {
+        id: 152,
+        max_rank: 1,
+        name: "Concussion Blow",
+        description: "Heroic Strike adds 1 second of stun; adds to the Protection milestone. Boss stun duration is reduced by 70%",
+        stat: TalentStat::SecondaryStunDuration("heroic_strike"),
+        per_rank: 1.0,
     },
 ];
 
@@ -879,7 +910,9 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::CritDamage => bonus.crit_damage += value,
             TalentStat::Reduction => bonus.reduction += value,
             TalentStat::Speed => bonus.speed += value,
-            TalentStat::CriticalBleed
+            TalentStat::SecondarySlowDuration(_)
+            | TalentStat::SecondaryStunDuration(_)
+            | TalentStat::CriticalBleed
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -979,6 +1012,52 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn warrior_control_nodes_add_to_milestones_and_preserve_boss_resistance() {
+        for points in [[0; 3], [30; 3]] {
+            let base = Milestones {
+                class: 0,
+                points,
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(1, 160, 1), (2, 152, 1)]);
+            let slow = if points[1] >= 10 { 5. } else { 2. };
+            let stun = if points[2] >= 20 { 2. } else { 1. };
+            assert_eq!(
+                trained.secondary_slow("demoralizing_shout", false),
+                Some((0.5, slow))
+            );
+            assert_eq!(
+                trained.secondary_slow("demoralizing_shout", true),
+                Some((0.75, slow))
+            );
+            assert_eq!(trained.secondary_stun("heroic_strike", false), stun);
+            assert!((trained.secondary_stun("heroic_strike", true) - stun * 0.3).abs() < 0.00001);
+            assert_eq!(trained.secondary_slow("cleave", false), None);
+            assert_eq!(trained.secondary_stun("cleave", false), 0.);
+            assert_eq!(
+                trained.cast("demoralizing_shout"),
+                base.cast("demoralizing_shout")
+            );
+            assert_eq!(trained.with_ranks(&[]), base);
+            assert_eq!(base.with_ranks(&[(1, 160, 255), (2, 152, 255)]), trained);
+            let outsider = Milestones {
+                class: 1,
+                ..trained
+            };
+            assert_eq!(outsider.secondary_slow("demoralizing_shout", false), None);
+            assert_eq!(outsider.secondary_stun("heroic_strike", false), 0.);
+        }
+        assert_eq!(
+            talent_definition(0, 160).unwrap().rank_preview(0),
+            "This talent: 0 to 2 s added slow duration next rank"
+        );
+        assert_eq!(
+            talent_definition(0, 152).unwrap().rank_preview(1),
+            "This talent: 1 s added stun duration (maximum rank)"
+        );
+    }
+
+    #[test]
     fn warrior_rank_reset_removes_previous_training() {
         let base = Milestones {
             class: 0,
@@ -1012,7 +1091,9 @@ mod stat_talent_tests {
                     TalentStat::CritDamage => total.crit_damage,
                     TalentStat::Reduction => total.reduction,
                     TalentStat::Speed => total.speed,
-                    TalentStat::CriticalBleed
+                    TalentStat::SecondarySlowDuration(_)
+                    | TalentStat::SecondaryStunDuration(_)
+                    | TalentStat::CriticalBleed
                     | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
                     | TalentStat::SpellCrit(_)

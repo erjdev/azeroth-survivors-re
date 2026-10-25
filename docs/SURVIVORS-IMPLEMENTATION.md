@@ -341,6 +341,8 @@ have implementations described below.
 | 150 | Improved Shield Wall | 2 | Retaliation +15% duration |
 | 153 | Last Stand | 1 | Retaliation heals an additional 5% maximum health once per cast |
 | 167 | Bloodthirst | 1 | Execute heals an additional 2% maximum health once per cast |
+| 160 | Piercing Howl | 1 | Demoralizing Shout gains two seconds of 50% slow; bosses are slowed 25% |
+| 152 | Concussion Blow | 1 | Heroic Strike gains one second of stun; bosses receive 30% duration |
 
 Ranks add within each node; cast multipliers compose with ordinary stats and legendary
 bonuses. Booming Voice changes the actual shout area, never its number of locations.
@@ -962,3 +964,23 @@ the local talent identity/rank audit pass. Live 1280×720 validation confirms bo
 descriptions and green next-rank comparisons fit the sidebar. The empty validation account
 cannot spend points; its prerequisite/no-points messages are visible in the captures linked
 from README and the changelog. These are layout checks, not evidence of combat acceptance.
+
+
+### Warrior control talents checkpoint — 2026-10-24
+
+Twenty-one Warrior nodes now have explicit effects. Piercing Howl adds two seconds to
+Demoralizing Shout's secondary slow; Concussion Blow adds one second to Heroic Strike's
+secondary stun. Each node can supply its control effect, and adds duration when its
+same-name milestone is active (five-second slow / two-second stun). Boss slow remains
+25% rather than 50%; boss stun lasts 30% of the ordinary duration. These secondary
+durations are fixed contributions, independent of the shout's rank-scaled weakening.
+The effects refresh existing control timers rather than adding durations on repeated hits.
+
+Green node previews show seconds rather than percentages. Spec reset removes the nodes'
+contributions; the milestones keep their own behavior. No extra AoE locations, free abilities
+or change to shout damage weakening is introduced. Other talents and manual combat
+acceptance remain unfinished.
+
+Native build, workspace test compilation, 53 core tests, 88 focused Survivors tests and
+the local talent-data audit pass. Both green previews fit at 1280×720 on an empty validation
+spec. These checks do not establish full manual combat acceptance.

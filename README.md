@@ -60,12 +60,14 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 </table>
 
 [Warrior talent-effect milestone at 720p](docs/images/screenshots/2026-10-24-warrior-talents/talents-720.jpg).
-Nineteen Warrior nodes, including [defensive talents](docs/images/screenshots/2026-10-24-warrior-talents/defensive-talents-720.jpg), plus the
+Twenty-one Warrior nodes, including [defensive talents](docs/images/screenshots/2026-10-24-warrior-talents/defensive-talents-720.jpg), plus the
 [Arms](docs/images/screenshots/2026-10-24-warrior-talents/arms-milestones-720.jpg),
 [Fury](docs/images/screenshots/2026-10-24-warrior-talents/fury-milestones-720.jpg) and
 [Protection](docs/images/screenshots/2026-10-24-warrior-talents/protection-milestones-720.jpg) milestones
 have implemented effects; the complete class talent pass remains underway.
 
+
+[Piercing Howl node](docs/images/screenshots/2026-10-24-warrior-talents/piercing-howl-node-720.jpg) · [Concussion Blow node](docs/images/screenshots/2026-10-24-warrior-talents/concussion-blow-node-720.jpg).
 
 [Deep Wounds ranks](docs/images/screenshots/2026-10-24-warrior-talents/deep-wounds-ranks-720.jpg) · [Improved Rend](docs/images/screenshots/2026-10-24-warrior-talents/improved-rend-720.jpg) · [Shout duration talent](docs/images/screenshots/2026-10-24-warrior-talents/shout-duration-720.jpg) · [Green talent rank comparisons at 720p](docs/images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg).
 
