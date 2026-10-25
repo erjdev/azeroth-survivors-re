@@ -2716,6 +2716,25 @@ fn ability_tip(
         ));
     }
     let effect = milestones.cast(def.key);
+    if effect.immune_seconds > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Grants {} sec immunity once per successful cast; preserves longer immunity.",
+                num(effect.immune_seconds)
+            ),
+            card_growth::GAIN,
+        ));
+    }
+    if effect.shield_fraction > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Absorbs {} maximum health for {} sec once per successful cast; does not stack.",
+                pct(effect.shield_fraction),
+                num(effect.shield_seconds)
+            ),
+            card_growth::GAIN,
+        ));
+    }
     if effect.heal_fraction > 0.0 {
         lines.push(TipLine::new(
             format!(
@@ -3088,6 +3107,30 @@ mod talent_tooltip_tests {
                     .is_some_and(|(text, _)| text == expected)),
                 "{key}"
             );
+        }
+    }
+
+    #[test]
+    fn nova_tooltip_explains_trained_immunity_and_combined_barrier() {
+        let trained = Milestones {
+            class: 6,
+            points: [0, 0, 30],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 72, 1), (2, 71, 1)]);
+        let owned = Owned {
+            def: data::ability("frost_nova"),
+            level: 1,
+            cd: 0.,
+        };
+        let tip = ability_tip(&owned, trained, &Run::default().stats(), None);
+        for text in [
+            "Grants 0.5 sec immunity once per successful cast; preserves longer immunity.",
+            "Absorbs 15% maximum health for 5 sec once per successful cast; does not stack.",
+        ] {
+            assert!(tip
+                .iter()
+                .any(|line| line.left == text && line.color == card_growth::GAIN));
         }
     }
 

@@ -2805,3 +2805,37 @@ An earlier quiet interval also had a 359 ms hitch, so no general performance
 clearance is claimed. Performance acceptance must use journal/combat telemetry
 without simultaneous screenshot or accessibility inspection. No runtime change
 was justified; gameplay, traversal and full frame-budget acceptance stay open.
+
+### Mage Frost milestones and defensive conversions
+
+The named Frost milestones now have spell-specific effects in addition to the
+existing tree-stat rewards: 10 points (Improved Frostbolt) adds one Frostbolt
+target; 20 (Ice Shards) adds 20 percentage points to Frost critical damage;
+30 (Ice Barrier) grants a 10% maximum-health absorb for five seconds once per
+successful Frost Nova cast. Area location count and radius remain unchanged.
+
+Two individual DBC nodes now have explicit Survivors effects on the existing
+spell pool. Ice Block (72, one rank) grants 0.5 seconds of immunity on a successful
+Frost Nova; Ice Barrier (71, one rank, DBC prerequisite Ice Block) adds a 5%
+maximum-health Nova absorb. The individual absorb lasts three seconds alone,
+or five with the 30-point milestone. Together they absorb 15% maximum health.
+These conversions do not claim standalone Ice Block/Barrier spells in the pool.
+Mage now has 28 functional individual nodes and three functional Frost milestones.
+
+Defenses apply once per successful cast, not per enemy, echo or extra target.
+Failed target selection grants nothing; dead heroes cannot gain defenses. Absorbs
+refresh without stacking and preserve stronger existing shields; immunity keeps
+the longer remaining duration. The shared cast snapshot exposes these values to
+inline cards, and spell tooltips now describe talent-granted shields and immunity
+in green. Unit suffixes occur once per before/after comparison.
+
+Validation: 90 core and 156 Survivors app tests pass. Boundary tests cover
+9/10, 19/20 and 29/30 points, rank caps/reset and class/spell exclusions.
+The actual cast system verifies out-of-range Nova grants no defenses and an
+in-range Nova grants the combined absorb/immunity. Damage-path tests verify
+immunity, subsequent absorption, non-stacking and stronger-defense preservation.
+Tooltip and inline-span checks cover both benefits and one trailing unit.
+Workspace test compilation, explicit-data DBC talent audit (including the Ice
+Barrier prerequisite), Clippy, formatting, render-pass lint and diff checks pass.
+Native play build: 15.23 seconds. Live defensive timing, new card wrapping/screenshots
+and remaining Mage Arcane/Fire milestones still need acceptance.

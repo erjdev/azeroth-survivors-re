@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Mage Frost defenses and milestones
+
+Frost milestones now add Frostbolt targeting, Frost critical damage and a Nova
+barrier. Ice Block and Ice Barrier talents add brief Nova immunity and an absorb,
+with no stacking or replacement of stronger defenses. Cards and tooltips explain
+the benefits. 90 core and 156 app tests, DBC audit, Clippy and native build pass
+(15 seconds). Live timing and new card-layout evidence remain open.
+
 ## 2026-10-25 — Menu performance evidence
 
 Separated screenshot-associated Metal presentation stalls from quiet menu timing.

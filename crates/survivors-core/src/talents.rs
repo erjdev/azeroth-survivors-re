@@ -101,6 +101,7 @@ pub struct CastEffect {
     pub heal_fraction: f32,
     pub shield_fraction: f32,
     pub shield_seconds: f32,
+    pub immune_seconds: f32,
     pub wrath_advance: f32,
     pub storm_fraction: f32,
 }
@@ -119,6 +120,7 @@ impl Default for CastEffect {
             heal_fraction: 0.0,
             shield_fraction: 0.0,
             shield_seconds: 0.0,
+            immune_seconds: 0.0,
             wrath_advance: 0.0,
             storm_fraction: 0.0,
         }
@@ -140,6 +142,18 @@ impl Milestones {
 
     pub fn cast(self, key: &str) -> CastEffect {
         let mut effect = CastEffect::default();
+        if self.class == 6 {
+            if self.points[2] >= 10 && key == "frostbolt" {
+                effect.extra_targets += 1;
+            }
+            if self.points[2] >= 20 && MAGE_FROST.contains(&key) {
+                effect.crit_damage += 0.2;
+            }
+            if self.points[2] >= 30 && key == "frost_nova" {
+                effect.shield_fraction = 0.10;
+                effect.shield_seconds = 2.0; // Added to the shared three-second absorb.
+            }
+        }
         if self.class == 2 && HUNTER_SHOTS.contains(&key) {
             if self.points[1] >= 10 {
                 effect.cooldown *= 0.9;
@@ -241,6 +255,9 @@ impl Milestones {
                     TalentStat::SpellHeal(spell) if spell == key => effect.heal_fraction += value,
                     TalentStat::SpellShield(spell) if spell == key => {
                         effect.shield_fraction += value
+                    }
+                    TalentStat::SpellImmune(spell) if spell == key => {
+                        effect.immune_seconds += value
                     }
                     TalentStat::SpellShieldDuration(spell) if spell == key => {
                         effect.shield_seconds += value
@@ -459,6 +476,14 @@ impl Milestones {
 }
 
 pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static str> {
+    if class == 6 {
+        return match (tree, threshold) {
+            (2, 10) => Some("Frostbolt: +1 target; area spells remain one area"),
+            (2, 20) => Some("Frost spells: +20 percentage points critical damage"),
+            (2, 30) => Some("Frost Nova grants a 10% maximum-health absorb for 5 seconds once per successful cast; does not stack"),
+            _ => None,
+        };
+    }
     if class == 2 {
         return match (tree, threshold) {
             (1, 10) => Some("Shots: 10% shorter cooldown; excludes Volley and traps"),
@@ -802,6 +827,7 @@ pub enum TalentStat {
     SpellHeal(&'static str),
     SpellShield(&'static str),
     SpellShieldDuration(&'static str),
+    SpellImmune(&'static str),
     SpellRadius(&'static str),
 }
 
@@ -820,6 +846,7 @@ impl TalentDefinition {
         let (scale, unit) = match self.stat {
             TalentStat::Armor => (1.0, " armor"),
             TalentStat::SpellShield(_) => (100.0, "% maximum health absorbed per cast"),
+            TalentStat::SpellImmune(_) => (1.0, " sec immunity per successful cast"),
             TalentStat::SpellShieldDuration(_) => (1.0, " s added shield duration"),
             TalentStat::SecondarySlowDuration(_) => (1.0, " s added slow duration"),
             TalentStat::SecondaryStunDuration(_) => (1.0, " s added stun duration"),
@@ -1448,6 +1475,17 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 72, max_rank: 1, name: "Ice Block",
+        description: "Frost Nova grants 0.5 sec immunity once per successful cast; preserves longer immunity (Survivors conversion)",
+        stat: TalentStat::SpellImmune("frost_nova"), per_rank: 0.5,
+    },
+    TalentDefinition {
+        id: 71, max_rank: 1, name: "Ice Barrier",
+        description: "Frost Nova grants an additional 5% maximum-health absorb for 3 sec, or 5 sec with the Frost 30-point milestone; does not stack (Survivors conversion)",
+        stat: TalentStat::SpellShield("frost_nova"), per_rank: 0.05,
+    },
+
+    TalentDefinition {
         id: 68, max_rank: 5, name: "Winter's Chill",
         description: "Frost damage has a 20% chance per rank to add a 15 sec chill stack: +2% Frost critical chance against that enemy, up to five stacks (Survivors conversion)",
         stat: TalentStat::WintersChill, per_rank: 0.20,
@@ -1699,6 +1737,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellDuration(_)
             | TalentStat::SpellRadius(_)
             | TalentStat::SpellShield(_)
+            | TalentStat::SpellImmune(_)
             | TalentStat::SpellShieldDuration(_)
             | TalentStat::SpellHeal(_) => {}
         }
@@ -2161,6 +2200,7 @@ mod stat_talent_tests {
                     | TalentStat::SpellDuration(_)
                     | TalentStat::SpellRadius(_)
                     | TalentStat::SpellShield(_)
+                    | TalentStat::SpellImmune(_)
                     | TalentStat::SpellShieldDuration(_)
                     | TalentStat::SpellHeal(_) => {
                         assert!(total.might.abs() < 0.00001);
@@ -2366,6 +2406,52 @@ mod stat_talent_tests {
                 .shatter("frostbolt", true),
             0.
         );
+    }
+
+    #[test]
+    fn mage_frost_milestones_and_defense_ranks_compose_without_extra_areas() {
+        for points in [0, 9, 10, 19, 20, 29, 30, 51] {
+            let base = Milestones {
+                class: 6,
+                points: [0, 0, points],
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(2, 72, 255), (2, 71, 255)]);
+            let bolt = trained.cast("frostbolt");
+            assert_eq!(bolt.extra_targets, usize::from(points >= 10));
+            assert_eq!(bolt.crit_damage, if points >= 20 { 0.2 } else { 0. });
+            let nova = trained.cast("frost_nova");
+            assert_eq!(nova.immune_seconds, 0.5);
+            assert!(
+                (nova.shield_fraction - if points >= 30 { 0.15 } else { 0.05 }).abs() < 0.00001
+            );
+            assert_eq!(nova.shield_seconds, if points >= 30 { 5. } else { 3. });
+            for key in MAGE_FROST {
+                let effect = trained.cast(key);
+                if *key != "frostbolt" {
+                    assert_eq!(effect.extra_targets, 0);
+                }
+                assert_eq!(effect.radius, 1.);
+                if *key != "frost_nova" {
+                    assert_eq!((effect.shield_fraction, effect.immune_seconds), (0., 0.));
+                }
+            }
+            assert_eq!(trained.cast("fireball"), CastEffect::default());
+            assert_eq!(trained.cast("arcane_explosion"), CastEffect::default());
+            assert_eq!(trained.with_ranks(&[]), base);
+        }
+        for threshold in [10, 20, 30] {
+            assert!(description(6, 2, threshold).is_some());
+        }
+        for class in [0, 1, 2, 3, 4, 5, 7, 8] {
+            let other = Milestones {
+                class,
+                points: [0, 0, 51],
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 72, 1), (2, 71, 1)]);
+            assert_eq!(other.cast("frost_nova"), CastEffect::default());
+        }
     }
 
     #[test]

@@ -101,6 +101,9 @@ pub(super) struct Params {
     pub cooldown: f32,
     pub crit: f32,
     pub crit_damage: f32,
+    pub shield_fraction: f32,
+    pub shield_seconds: f32,
+    pub immune_seconds: f32,
     pub effect: Effect,
 }
 
@@ -130,6 +133,9 @@ impl Params {
             cooldown: o.cooldown(stats) * effect.cooldown,
             crit: (stats.crit + effect.crit).min(1.0),
             crit_damage: stats.crit_damage + effect.crit_damage,
+            shield_fraction: effect.shield_fraction,
+            shield_seconds: effect.shield_seconds,
+            immune_seconds: effect.immune_seconds,
         }
     }
 }
@@ -652,6 +658,7 @@ fn finish_milestone_cast(
     if !run.alive() {
         return 0.0;
     }
+    run.immune_t = run.immune_t.max(effect.immune_seconds);
     let healed = run.heal(max_hp * effect.heal_fraction, max_hp);
     let absorb = max_hp * effect.shield_fraction;
     if absorb > 0.0 && (run.shield_t <= 0.0 || absorb >= run.shield) {
@@ -1133,6 +1140,7 @@ mod milestone_tests {
             heal_fraction: 1.,
             shield_fraction: 0.1,
             shield_seconds: 3.,
+            immune_seconds: 0.5,
             ..Default::default()
         };
         for hp in [0., -1.] {
@@ -1143,7 +1151,38 @@ mod milestone_tests {
             assert_eq!(finish_milestone_cast(&mut run, effect, 160.), 0.);
             assert_eq!(run.hp, hp);
             assert_eq!(run.shield, 0.);
+            assert_eq!(run.immune_t, 0.);
         }
+    }
+
+    #[test]
+    fn mage_nova_defenses_preserve_longer_buffs_and_absorb_real_damage() {
+        let trained = Milestones {
+            class: 6,
+            points: [0, 0, 30],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 72, 1), (2, 71, 1)]);
+        let effect = trained.cast("frost_nova");
+        let mut run = Run {
+            hp: 100.,
+            ..Default::default()
+        };
+        for _ in 0..3 {
+            finish_milestone_cast(&mut run, effect, 100.);
+        }
+        assert!((run.shield - 15.).abs() < 0.00001);
+        assert_eq!((run.shield_t, run.immune_t), (5., 0.5));
+        assert_eq!(hero::hurt_hero(&mut run, 10.), 0.);
+        assert_eq!(run.hp, 100.);
+        run.immune_t = 0.;
+        assert_eq!(hero::hurt_hero(&mut run, 10.), 0.);
+        assert!(run.shield < 15.);
+        run.shield = 30.;
+        run.shield_t = 1.;
+        run.immune_t = 2.;
+        finish_milestone_cast(&mut run, effect, 100.);
+        assert_eq!((run.shield, run.shield_t, run.immune_t), (30., 1., 2.));
     }
 
     #[test]
@@ -1829,6 +1868,36 @@ mod milestone_tests {
                 }
             }
         }
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.milestones = Milestones {
+                class: 6,
+                points: [0, 0, 30],
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 72, 1), (2, 71, 1)]);
+            run.abilities = vec![super::super::Owned {
+                def: data::ability("frost_nova"),
+                level: 1,
+                cd: 0.,
+            }];
+        }
+        app.world_mut()
+            .get_mut::<Transform>(enemy)
+            .unwrap()
+            .translation = Vec3::X * 30.;
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        let run = app.world().resource::<Run>();
+        assert_eq!((run.shield, run.immune_t), (0., 0.));
+        app.world_mut()
+            .get_mut::<Transform>(enemy)
+            .unwrap()
+            .translation = Vec3::X * 2.;
+        app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        let run = app.world().resource::<Run>();
+        assert!((run.shield - run.stats().max_hp * 0.15).abs() < 0.0001);
+        assert_eq!((run.shield_t, run.immune_t), (5., 0.5));
     }
 
     #[test]

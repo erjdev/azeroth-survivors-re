@@ -266,6 +266,26 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
             );
         }
     }
+    if b.shield_fraction > 0.0 {
+        prose!(
+            ". Absorbs ",
+            (
+                a.shield_fraction * 100.,
+                b.shield_fraction * 100.,
+                "% maximum health"
+            ),
+            " for ",
+            (a.shield_seconds, b.shield_seconds, " sec"),
+            " once per successful cast; does not stack"
+        );
+    }
+    if b.immune_seconds > 0.0 {
+        prose!(
+            ". Grants ",
+            (a.immune_seconds, b.immune_seconds, " sec"),
+            " immunity once per successful cast; preserves longer immunity"
+        );
+    }
     prose!(".");
     if !matches!(def.kind, Kind::Aura | Kind::Orbit) && (a.cooldown - b.cooldown).abs() > 0.0001 {
         prose!(" Recharges in ", cooldown, ".");
@@ -394,6 +414,30 @@ mod tests {
         assert!(spans.contains(&(" to every enemy within ".into(), PROSE)));
         assert!(!plain(&spans).contains("Targets"));
     }
+    #[test]
+    fn nova_defense_changes_are_inline_with_single_units() {
+        let def = data::ability("frost_nova");
+        let stats = Run::default().stats();
+        let base = survivors_core::talents::Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = survivors_core::talents::Milestones {
+            points: [0, 0, 30],
+            ..base
+        }
+        .with_ranks(&[(2, 72, 1), (2, 71, 1)]);
+        let spans = ability(
+            def,
+            &cast_at(def, 1, &stats, base),
+            &cast_at(def, 1, &stats, trained),
+        );
+        for text in ["0 » 15% maximum health", "0 » 5 sec", "0 » 0.5 sec"] {
+            assert!(spans.contains(&(text.into(), card_growth::GAIN)), "{text}");
+        }
+        assert!(plain(&spans).contains("once per successful cast; does not stack"));
+    }
+
     #[test]
     fn frost_slow_strength_and_duration_compare_inline_with_single_units() {
         let def = data::ability("blizzard");
