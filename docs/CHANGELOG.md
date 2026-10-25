@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Live tree contact and visibility
+
+Captured a nearby Elwynn trunk during forward contact and a successful sidestep; links are
+in the README. This approach appears blocked, while the trunk obscures the hero and combat.
+The reported collision issue remains open across other trees/approaches, as do cutaway and
+silhouette rendering. Temporary XP tuning and launch settings were restored.
+
 ## 2026-10-24 — Real-placement tree fixture
 
 Added tree 12580 with its actual transform and terrain tile to collision regression coverage.

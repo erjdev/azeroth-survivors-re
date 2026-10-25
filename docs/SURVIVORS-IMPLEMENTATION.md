@@ -1329,3 +1329,19 @@ confirmation and an approach that demonstrably starts outside the solid hull.
 Validation: workspace test compilation, 106 focused Survivors tests and audit-tool tests
 pass. This fixture adds actual terrain/placement coverage; visual traversal and full gates
 remain open.
+
+### Live Elwynn trunk contact — 2026-10-24
+
+From a fresh isolated Warrior run, W approached the large visible trunk north of the spawn.
+The paused 00:08 approach and 00:18 contact captures retain the same trunk/ground framing
+following further forward input, consistent with blocking. A subsequent D sidestep changes
+that framing substantially at 00:24, showing movement away from the contact. Captures are
+under `images/screenshots/2026-10-24-tree-contact/` and linked in the README. The pause overlay
+partly covers the hero; these images are qualitative evidence, not measured travel distances
+or a verified placement-ID match. This does not close collision acceptance for every tree,
+angle, enemy/companion or tile reload.
+
+The trunk visibly obscures the hero/combat, reinforcing the separate cutaway/silhouette
+requirement. XP tuning was temporarily reduced to 0.1 after early level-up interruptions;
+movement/damage stayed normal and all tuning/launch settings were restored after closing.
+No gameplay or rendering code changed in this visual check.
