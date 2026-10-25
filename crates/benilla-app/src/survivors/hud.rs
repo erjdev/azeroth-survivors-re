@@ -1247,6 +1247,9 @@ pub(super) fn pick(
     rng: &mut Rng,
     next: &mut NextState<Phase>,
 ) {
+    if !run.alive() {
+        return;
+    }
     let Some(&choice) = offer.choices.get(i) else {
         return;
     };
@@ -1259,7 +1262,10 @@ pub(super) fn pick(
         Choice::Upgrade(k) => run.abilities[k].level += 1,
         Choice::NewPassive(p) => run.passives.push((p, 1)),
         Choice::UpPassive(k) => run.passives[k].1 += 1,
-        Choice::Heal => run.hp = run.stats().max_hp,
+        Choice::Heal => {
+            let max_hp = run.stats().max_hp;
+            run.heal(max_hp, max_hp);
+        }
         Choice::Jewel(kind) => run.worn.equip(kind),
     }
     run.version += 1;

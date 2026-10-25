@@ -217,7 +217,7 @@ pub(super) fn cast_mobility(
         .advance(time.delta_secs(), *phase.get(), loading.covering());
     if *phase.get() != Phase::Playing
         || loading.covering()
-        || run.dead_t.is_some()
+        || !run.alive()
         || !keys.just_pressed(KEY)
     {
         return;

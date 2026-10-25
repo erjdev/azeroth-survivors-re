@@ -195,7 +195,7 @@ pub(super) fn spawn_enemies(
     world: Floor,
 ) {
     let Ok(h) = hero.single() else { return };
-    if run.dead_t.is_some() {
+    if !run.alive() {
         return;
     }
     let hpos = h.translation;
@@ -334,7 +334,7 @@ pub(super) fn move_enemies(
         return;
     };
     let hpos = htf.translation;
-    let hero_down = run.dead_t.is_some();
+    let hero_down = !run.alive();
 
     // Separation over a coarse grid: only neighbours in the same or adjacent cells push.
     const CELL: f32 = 3.0;
@@ -579,7 +579,7 @@ pub(super) fn collect_gems(
     mut gems: Query<(Entity, &mut Transform, &mut Gem)>,
 ) {
     let Ok(h) = hero.single() else { return };
-    if run.dead_t.is_some() {
+    if !run.alive() {
         return;
     }
     let dt = time.delta_secs();
@@ -613,10 +613,15 @@ pub(super) fn bank_gem(
     kind: GemKind,
     gold_bonus: f32,
 ) {
+    if !run.alive() {
+        return;
+    }
     let stats = run.stats();
     match kind {
         GemKind::Xp(xp) => run.xp += xp as f32 * data::XP_RATE * stats.growth,
-        GemKind::Heal(hp) => run.hp = (run.hp + hp).min(stats.max_hp),
+        GemKind::Heal(hp) => {
+            run.heal(hp, stats.max_hp);
+        }
         GemKind::Gold(n) => {
             let n = super::sheet::gold_amount(n, stats.gold_find * gold_bonus);
             run.gold_found += n;
@@ -669,7 +674,7 @@ pub(super) fn collect_chests(
     chests: Query<(Entity, &Transform, &Chest)>,
 ) {
     let Ok(h) = hero.single() else { return };
-    if run.dead_t.is_some() {
+    if !run.alive() {
         return;
     }
     for (e, tf, chest) in &chests {
@@ -789,5 +794,27 @@ mod spawn_tests {
                 .count(),
             3
         );
+    }
+}
+
+#[cfg(test)]
+mod lethal_pickup_tests {
+    use super::*;
+
+    #[test]
+    fn lethal_hit_blocks_healing_and_level_up_before_death_animation() {
+        for kind in [GemKind::Heal(1000.), GemKind::Xp(10000), GemKind::Gold(100)] {
+            let mut run = Run::default();
+            run.hp = 0.;
+            let mut stash = super::super::stash::Stash::default();
+            let mut next = NextState::Unchanged;
+            bank_gem(&mut run, &mut stash, &mut next, kind, 1.);
+            assert_eq!(run.hp, 0.);
+            assert_eq!(run.xp, 0.);
+            assert_eq!(run.level, 1);
+            assert_eq!(run.pending_levels, 0);
+            assert_eq!(run.gold_found, 0);
+            assert!(matches!(next, NextState::Unchanged));
+        }
     }
 }

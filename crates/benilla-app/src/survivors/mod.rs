@@ -536,6 +536,20 @@ impl Default for Run {
 }
 
 impl Run {
+    pub(super) fn alive(&self) -> bool {
+        self.hp > 0.0 && self.dead_t.is_none()
+    }
+
+    /// All combat healing shares the lethal-hit boundary, including before the death animation starts.
+    pub(super) fn heal(&mut self, amount: f32, max_hp: f32) -> f32 {
+        if !self.alive() || !amount.is_finite() || amount <= 0.0 || !max_hp.is_finite() {
+            return 0.0;
+        }
+        let healed = amount.min((max_hp - self.hp).max(0.0));
+        self.hp += healed;
+        healed
+    }
+
     pub(in crate::survivors) fn apply_perks(&mut self, perks: rewards::PerkRanks) {
         self.rerolls = perks.second_thoughts;
         self.banishes = perks.banish;

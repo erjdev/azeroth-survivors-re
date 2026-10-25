@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Consistent lethal-hit handling
+
+Spell healing, lifesteal and pickups can no longer revive a hero after a lethal hit but
+before the death animation. Pickups also cannot open a level-up choice in that interval.
+New casts, chest collection and stale card selections require a living hero. Existing
+in-flight attacks still resolve. Manual death/result-screen acceptance remains open.
+
+Native build, workspace test compilation and 105 focused Survivors tests pass.
+
 ## 2026-10-24 — Charge training and paused mobility
 
 Improved Charge lengthens Charge's stun; Improved Intercept shortens its cooldown. The

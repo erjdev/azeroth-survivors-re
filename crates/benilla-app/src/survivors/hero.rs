@@ -398,7 +398,7 @@ pub(super) fn place_camera(
 /// Damage the hero takes from one blow, after immunity, armour and the shield; returns what got
 /// through.
 pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
-    if run.immune_t > 0.0 || run.dead_t.is_some() {
+    if run.immune_t > 0.0 || !run.alive() {
         return 0.0;
     }
     let stats = run.stats();
@@ -449,7 +449,7 @@ fn regenerate(run: &mut Run, stats: &super::Stats, dt: f32) {
             stats.max_hp * run.milestones.blood_craze_fraction() * dt.min(run.blood_craze_t) / 6.0;
         run.blood_craze_t = (run.blood_craze_t - dt).max(0.0);
     }
-    run.hp = (run.hp + heal).min(stats.max_hp);
+    run.heal(heal, stats.max_hp);
 }
 
 /// The clock, regeneration, the timed buffs and their visuals, death and victory.
@@ -544,6 +544,28 @@ pub(super) fn reach(hero: Vec3, other: Vec3) -> f32 {
 mod reactive_talent_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn shared_healing_caps_and_never_revives_a_lethal_hit() {
+        let mut run = Run::default();
+        run.hp = 90.;
+        assert_eq!(run.heal(30., 100.), 10.);
+        for invalid in [-1., f32::NAN, f32::INFINITY] {
+            assert_eq!(run.heal(invalid, 100.), 0.);
+        }
+        assert_eq!(run.hp, 100.);
+        run.hp = 0.1;
+        hurt_hero(&mut run, 1.);
+        let lethal = run.hp;
+        assert!(!run.alive());
+        assert_eq!(run.heal(1000., 100.), 0.);
+        assert_eq!(hurt_hero(&mut run, 10.), 0.);
+        assert_eq!(run.hp, lethal);
+        run.hp = 10.;
+        run.dead_t = Some(0.);
+        assert_eq!(run.heal(100., 100.), 0.);
+        assert_eq!(run.hp, 10.);
+    }
 
     #[test]
     fn flurry_changes_cooldowns_refreshes_and_expires() {

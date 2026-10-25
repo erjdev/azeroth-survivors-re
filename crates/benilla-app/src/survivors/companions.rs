@@ -139,7 +139,7 @@ pub(super) fn herd(
     gems: PickupQuery<'_, '_>,
 ) {
     let Ok(hero_tf) = hero.single() else { return };
-    if run.dead_t.is_some() {
+    if !run.alive() {
         return;
     }
     let ranks = account.pets;

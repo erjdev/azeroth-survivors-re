@@ -1220,3 +1220,22 @@ remain open.
 
 Validation: native build, workspace test compilation, 56 core tests, 102 focused Survivors
 tests and the local talent-data audit pass. Full workspace gates were not rerun.
+
+
+### Lethal-hit boundary checkpoint — 2026-10-24
+
+Living means positive health with no death transition in progress. Shared combat healing
+now enforces that boundary for regeneration, spell/milestone heals, direct and periodic
+lifesteal, pickups and healthstone choices. Healing remains capped and returns the actual
+amount restored; nonpositive/nonfinite inputs grant nothing. Fresh-run health initialization
+is separate. A lethal hero cannot start new automatic or mobility casts, collect gems/chests,
+receive companion pickups, or accept a stale card choice before the death animation starts.
+This prevents same-frame healing from reviving the hero and XP from opening a level-up
+choice during the death transition. Already-launched attacks can still finish.
+
+Regression coverage includes shared healing caps and lethal-hit rejection, cast healing/
+shield rejection, and healing/XP/gold pickup rejection with no queued level-up. Manual
+death/result-screen validation and full workspace gates remain open.
+
+Validation: native build (33.9 seconds), workspace test compilation and 105 focused
+Survivors tests pass. Full workspace gates were not rerun.

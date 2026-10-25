@@ -244,7 +244,7 @@ pub(super) fn cast_abilities(
     mut hits: MessageWriter<Hit>,
 ) {
     let dt = time.delta_secs();
-    if run.dead_t.is_some() || dt <= 0.0 {
+    if !run.alive() || dt <= 0.0 {
         return;
     }
     let Ok((me, htf)) = hero.single() else { return };
@@ -601,8 +601,10 @@ fn finish_milestone_cast(
     effect: survivors_core::talents::CastEffect,
     max_hp: f32,
 ) -> f32 {
-    let healed = (max_hp * effect.heal_fraction).min((max_hp - run.hp).max(0.0));
-    run.hp += healed;
+    if !run.alive() {
+        return 0.0;
+    }
+    let healed = run.heal(max_hp * effect.heal_fraction, max_hp);
     let absorb = max_hp * effect.shield_fraction;
     if absorb > 0.0 && (run.shield_t <= 0.0 || absorb >= run.shield) {
         // Refresh this small absorb without stacking or extending a stronger existing shield.
@@ -890,7 +892,7 @@ pub(super) fn apply_hits(
                 0.0
             } + dmg * stats.leech;
             if heal > 0.0 {
-                run.hp = (run.hp + heal).min(stats.max_hp);
+                run.heal(heal, stats.max_hp);
             }
         }
         run.record_flurry_hit(h.source, h.damage, h.crit);
@@ -970,7 +972,7 @@ pub(super) fn apply_hits(
         if dealt > 0.0 {
             en.hp -= dealt;
             if stats.leech > 0.0 {
-                run.hp = (run.hp + dealt * stats.leech).min(stats.max_hp);
+                run.heal(dealt * stats.leech, stats.max_hp);
             }
             fx.number(e, dealt, false, COLOR_SPELL);
             if en.hp <= 0.0 {
@@ -996,6 +998,23 @@ mod milestone_tests {
     use super::*;
     use crate::survivors::{campaign, data, Owned, Stats};
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn lethal_hits_cannot_be_undone_by_cast_healing_or_grant_defenses() {
+        let effect = survivors_core::talents::CastEffect {
+            heal_fraction: 1.,
+            shield_fraction: 0.1,
+            shield_seconds: 3.,
+            ..Default::default()
+        };
+        for hp in [0., -1.] {
+            let mut run = Run::default();
+            run.hp = hp;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 160.), 0.);
+            assert_eq!(run.hp, hp);
+            assert_eq!(run.shield, 0.);
+        }
+    }
 
     #[test]
     fn protection_healing_and_shields_apply_once_and_preserve_stronger_defenses() {
