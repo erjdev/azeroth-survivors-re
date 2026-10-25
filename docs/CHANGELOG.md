@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Responsive results
+
+Results use proportional widths, bounded controls and wrapping stat tiles/text. Live resize
+checks passed at [1280×720](images/screenshots/2026-10-24-results-layout/wide-720.jpg),
+[640×720](images/screenshots/2026-10-24-results-layout/narrow-720.jpg) and
+[480×720](images/screenshots/2026-10-24-results-layout/wrapped-720.jpg).
+Native incremental build passed in 30 seconds. Temporary validation tuning was restored;
+these captures verify layout, not balance or the rest of the interface at narrow sizes.
+
 ## 2026-10-24 — Defeat screen evidence
 
 Added [720p defeat results](images/screenshots/2026-10-24-defeat/results-720.jpg) to the README.

@@ -1250,3 +1250,18 @@ damage. Evidence: `images/screenshots/2026-10-24-defeat/replay-720.jpg`. The sam
 tuning was restored afterward. Singular reward text now uses “1 mark”; the older results
 capture predates that text fix. Victory, keyboard replay and the results resolution matrix
 remain open.
+
+### Responsive results checkpoint — 2026-10-24
+
+Results layout now uses a proportional stat-row width with a maximum readable width,
+proportional tiles that wrap below their minimum readable size, constrained wrapping text,
+and a proportional replay button with minimum/maximum bounds. These bounds operate within
+the existing height-based UI scale rather than fixing the layout to one resolution.
+
+Native build passed in 29.84 seconds. Live resizing of one defeat screen verified 1280×720,
+640×720 and 480×720: summary text wraps and the smallest width places the five stat tiles
+in centered rows of three and two, with both buttons visible. Captures live under
+`images/screenshots/2026-10-24-results-layout/` and are linked in the README. This used the
+isolated death save and temporary 0.1 damage/XP/pickup tuning, restored after closing.
+The narrow checks cover results only; victory, larger counters and other interface pages
+still need their own validation. Full workspace gates were not rerun for this layout change.

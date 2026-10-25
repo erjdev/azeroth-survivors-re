@@ -19,7 +19,10 @@ Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summarie
 Defeat results at 1280×720, captured with an isolated save and temporarily reduced damage/XP
 tuning to reach defeat quickly. This validates the displayed results, not gameplay balance.
 
-![Defeat results](docs/images/screenshots/2026-10-24-defeat/results-720.jpg)
+![Defeat results](docs/images/screenshots/2026-10-24-results-layout/wide-720.jpg)
+
+Results resize live: [640×720](docs/images/screenshots/2026-10-24-results-layout/narrow-720.jpg)
+and [480×720 with wrapped stat tiles](docs/images/screenshots/2026-10-24-results-layout/wrapped-720.jpg).
 
 [Fresh run after Play again](docs/images/screenshots/2026-10-24-defeat/replay-720.jpg):
 paused at 00:02 with full health and zero damage, using the same isolated validation setup.

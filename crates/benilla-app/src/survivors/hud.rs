@@ -945,14 +945,30 @@ pub(super) fn setup_hud(
             Visibility::Hidden,
         ))
         .with_children(|root| {
-            root.spawn((OverTitle, centered(f, "", 64.0, GOLD)));
+            root.spawn((
+                OverTitle,
+                centered(f, "", 64.0, GOLD),
+                Node {
+                    max_width: Val::Percent(90.0),
+                    ..default()
+                },
+            ));
             root.spawn((
                 OverLine,
                 centered(f, "", 18.0, Color::srgb(0.85, 0.78, 0.6)),
+                Node {
+                    max_width: Val::Percent(90.0),
+                    ..default()
+                },
             ));
             // The run in numbers, one tile each.
             root.spawn(Node {
-                column_gap: Val::Px(12.0),
+                width: Val::Percent(80.0),
+                max_width: Val::Px(900.0),
+                flex_wrap: FlexWrap::Wrap,
+                justify_content: JustifyContent::Center,
+                column_gap: Val::Percent(1.5),
+                row_gap: Val::Px(12.0),
                 margin: UiRect::vertical(Val::Px(14.0)),
                 ..default()
             })
@@ -963,7 +979,8 @@ pub(super) fn setup_hud(
                 {
                     row.spawn((
                         Node {
-                            width: Val::Px(128.0),
+                            width: Val::Percent(18.0),
+                            min_width: Val::Px(100.0),
                             flex_direction: FlexDirection::Column,
                             align_items: AlignItems::Center,
                             padding: UiRect::axes(Val::Px(10.0), Val::Px(12.0)),
@@ -984,11 +1001,20 @@ pub(super) fn setup_hud(
                     });
                 }
             });
-            root.spawn((OverStats, centered(f, "", 15.0, DIM)));
+            root.spawn((
+                OverStats,
+                centered(f, "", 15.0, DIM),
+                Node {
+                    max_width: Val::Percent(85.0),
+                    ..default()
+                },
+            ));
             root.spawn((
                 edged_button(UiAction::MainMenu, BUTTON, GOLD),
                 Node {
-                    width: Val::Px(260.0),
+                    width: Val::Percent(30.0),
+                    min_width: Val::Px(180.0),
+                    max_width: Val::Px(320.0),
                     justify_content: JustifyContent::Center,
                     padding: UiRect::axes(Val::Px(20.0), Val::Px(11.0)),
                     margin: UiRect::top(Val::Px(8.0)),
@@ -2055,7 +2081,11 @@ pub(super) fn refresh_hud(
         run.class.name,
         selection.map_def().name,
         renown.last_earned,
-        if renown.last_earned == 1 { "mark" } else { "marks" },
+        if renown.last_earned == 1 {
+            "mark"
+        } else {
+            "marks"
+        },
         run.gold_found,
     );
     if let Ok(mut t) = texts.p5().single_mut() {
