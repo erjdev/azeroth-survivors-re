@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Companion purchase clarity
+
+Rewards now names the companion receiving an instinct, any replaced instinct,
+the cost and the effect. Current instincts and locked companion state are visible.
+Initial purchases retain the reference's first-then-second assignment; appearance
+selection stays separate. Invalid instincts cannot charge points, and locked slots
+reject appearance edits. All 171 Survivors tests, Clippy and native build pass.
+Rendered Rewards layout and purchase interactions remain unverified.
+
 ## 2026-10-25 — Talent scroll continuity
 
 Talent pages restore their scroll position after rebuilds, with separate session

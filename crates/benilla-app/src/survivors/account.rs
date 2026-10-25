@@ -739,16 +739,18 @@ impl Account {
         Ok(())
     }
 
-    /// Puts this instinct on the first companion who does not have one, else the first companion.
+    /// Initial instincts fill the first free owned slot; replacements use the first companion.
+    pub fn instinct_target(&self) -> Option<usize> {
+        (0..usize::from(self.pets.owned.min(2)))
+            .find(|&slot| self.pets.instinct[slot] == 0)
+            .or_else(|| (self.pets.owned > 0).then_some(0))
+    }
+
     pub fn buy_instinct(&mut self, kind: u8) -> Result<(), &'static str> {
-        let kind = kind.clamp(1, 3);
-        let slot = if self.pets.instinct[0] == 0 {
-            0
-        } else if self.pets.owned > 1 && self.pets.instinct[1] == 0 {
-            1
-        } else {
-            0
-        };
+        if !(1..=3).contains(&kind) {
+            return Err("Unknown instinct");
+        }
+        let slot = self.instinct_target().ok_or("Unlock a companion first")?;
         if self.pets.instinct[slot] == kind {
             return Err("Already learned");
         }
@@ -761,7 +763,9 @@ impl Account {
     /// Wear one of the checked critter looks. An unknown index leaves the slot as it was.
     pub fn wear_look(&mut self, slot: u8, look: u8) {
         let slot = usize::from(slot);
-        if slot > 1 || usize::from(look) >= super::companions::LOOKS.len() {
+        if slot >= usize::from(self.pets.owned.min(2))
+            || usize::from(look) >= super::companions::LOOKS.len()
+        {
             return;
         }
         self.pets.look[slot] = look;
@@ -2276,6 +2280,53 @@ pets 2 3 1 1 2 0 1
         assert_eq!(loaded.pets.leash, 1);
         assert_eq!(loaded.resets_left(), 1);
         assert!(!loaded.earned_ids().is_empty());
+    }
+
+    #[test]
+    fn companion_purchases_match_the_displayed_destination_and_preserve_refunds() {
+        let mut account = empty();
+        for class in 0..data::CLASSES.len() {
+            for zone in 0..campaign::ZONES.len() {
+                account.grant_zone(class, zone);
+            }
+        }
+        account.grant_new();
+        let before = encode(&account);
+        for kind in [0, 4, 255] {
+            assert!(account.buy_instinct(kind).is_err());
+            assert_eq!(encode(&account), before);
+        }
+        account.wear_look(1, 1);
+        assert_eq!(encode(&account), before);
+        assert_eq!(account.instinct_target(), Some(0));
+        let points = account.unspent();
+        account.buy_instinct(2).unwrap();
+        assert_eq!(account.pets.instinct, [2, 0]);
+        assert_eq!(account.unspent(), points - 30);
+        let duplicate = encode(&account);
+        assert!(account.buy_instinct(2).is_err());
+        assert_eq!(encode(&account), duplicate);
+        account.buy_second().unwrap();
+        assert_eq!(account.instinct_target(), Some(1));
+        account.buy_instinct(1).unwrap();
+        assert_eq!(account.pets.instinct, [2, 1]);
+        assert_eq!(account.instinct_target(), Some(0));
+        account.buy_instinct(3).unwrap();
+        assert_eq!(account.pets.instinct, [3, 1]);
+        assert_eq!(account.unspent(), points - 130);
+        account.buy_perk(Perk::SecondThoughts).unwrap();
+        account.reset_perks().unwrap();
+        assert_eq!(account.pets.instinct, [3, 1]);
+        assert_eq!(account.unspent(), points - 130);
+        let restored = parse(&encode(&account)).unwrap();
+        assert_eq!(restored.pets.instinct, [3, 1]);
+        assert_eq!(restored.pets.owned, 2);
+        let mut poor = empty();
+        assert!(poor.buy_instinct(1).is_err());
+        assert_eq!(poor.pets.instinct, [0, 0]);
+        assert_eq!(poor.unspent(), 0);
+        poor.pets.owned = 0;
+        assert_eq!(poor.instinct_target(), None);
     }
 
     #[test]

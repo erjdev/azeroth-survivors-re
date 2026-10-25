@@ -1709,9 +1709,6 @@ fn companion_page(
         .with_children(|row| {
             chip(row, font, &leash, Act::Reward(6), false);
             chip(row, font, &paws, Act::Reward(7), false);
-            chip(row, font, "Gold-sniffer · 30", Act::Reward(8), false);
-            chip(row, font, "Wisp-herder · 30", Act::Reward(9), false);
-            chip(row, font, "Rune-hound · 30", Act::Reward(10), false);
             chip(row, font, &second, Act::Reward(11), false);
         });
     let first = super::companions::LOOKS
@@ -1732,18 +1729,82 @@ fn companion_page(
             chip(
                 row,
                 font,
-                &format!("First companion: {first}"),
+                &format!(
+                    "First companion: {first} · {}",
+                    instinct_name(account.pets.instinct[0])
+                ),
                 Act::PetSlot(0),
                 armory.pet_slot == 0,
             );
             chip(
                 row,
                 font,
-                &format!("Second companion: {second_look}"),
+                &if account.pets.owned >= 2 {
+                    format!(
+                        "Second companion: {second_look} · {}",
+                        instinct_name(account.pets.instinct[1])
+                    )
+                } else {
+                    "Second companion · Locked".into()
+                },
                 Act::PetSlot(1),
                 armory.pet_slot == 1,
             );
         });
+    panel.spawn(hud::text_bundle(font, "Instincts fill the first companion, then the second. Once owned companions have instincts, a new purchase replaces the first companion's instinct. The appearance selection below does not change this order.", 12.0, DIM));
+    if let Some(target) = account.instinct_target() {
+        let destination = if target == 0 { "First" } else { "Second" };
+        let current = account.pets.instinct[target];
+        for (kind, code, effect) in [
+            (
+                1,
+                8,
+                "Fetches coins first; fetched coins are worth 10% more.",
+            ),
+            (
+                2,
+                9,
+                "Fetches experience wisps first, from twice as far away.",
+            ),
+            (
+                3,
+                10,
+                "Also fetches battleground runes and prioritizes them.",
+            ),
+        ] {
+            let label = if current == kind {
+                format!("{destination}: {} · Learned", instinct_name(kind))
+            } else if current != 0 {
+                format!(
+                    "{destination}: replace {} with {} · 30 points",
+                    instinct_name(current),
+                    instinct_name(kind)
+                )
+            } else {
+                format!("{destination}: learn {} · 30 points", instinct_name(kind))
+            };
+            panel
+                .spawn(Node {
+                    flex_wrap: FlexWrap::Wrap,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(8.0),
+                    ..default()
+                })
+                .with_children(|row| {
+                    chip(row, font, &label, Act::Reward(code), current == kind);
+                    row.spawn(hud::text_bundle(font, effect, 12.0, DIM));
+                });
+        }
+    }
+    if armory.pet_slot >= account.pets.owned.min(2) {
+        panel.spawn(hud::text_bundle(
+            font,
+            "Unlock the second companion above to choose its appearance.",
+            12.0,
+            DIM,
+        ));
+        return;
+    }
     panel.spawn(hud::text_bundle(
         font,
         "Pick a companion, then a look. Snowshoe Rabbit is the default.",
@@ -1768,6 +1829,15 @@ fn companion_page(
                 );
             }
         });
+}
+
+fn instinct_name(kind: u8) -> &'static str {
+    match kind {
+        1 => "Gold-sniffer",
+        2 => "Wisp-herder",
+        3 => "Rune-hound",
+        _ => "No instinct",
+    }
 }
 
 fn tabard_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {

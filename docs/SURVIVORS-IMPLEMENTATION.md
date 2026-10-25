@@ -7,6 +7,20 @@ completed changes. Each phase must pass its acceptance criteria before it is cal
 
 ## Current priority — starter interface first (2026-10-25)
 
+Companion purchase clarity: preserve the reference's first-instinct-to-first,
+next-to-second assignment. The existing replacement behavior targets the first
+companion once owned slots are filled; show that destination, the replaced instinct
+and the 30-point cost before purchase. Appearance slot selection is independent of
+instinct assignment and must not imply otherwise. Display each companion's current
+instinct and the three concrete effects. Reject unknown instincts without charging,
+and reject appearance changes to an unowned second companion. Perk resets continue
+to leave companion purchases intact. The full illustrated Rewards layout, pips,
+icons and live purchase/screenshot checks remain acceptance work.
+Validation: all 171 Survivors tests pass, including assignment, duplicate rejection,
+exact charges, insufficient funds, save/reload and perk-refund isolation. Workspace
+Clippy, formatting, render-pass lint and the native build (28 seconds) pass. The
+rendered page and end-to-end purchase interactions have not been visually verified.
+
 Talent scroll continuity checkpoint: a session-local cache remembers each rendered
 hero/spec's scroll position before menu actions rebuild the tree. Returning to a
 tab or spec restores its own position; a different hero starts independently.
