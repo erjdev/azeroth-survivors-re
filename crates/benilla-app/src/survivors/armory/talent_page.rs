@@ -97,7 +97,7 @@ pub(in crate::survivors) fn remember_scroll(
 }
 
 #[derive(Component)]
-pub(in crate::survivors) struct Backdrop(String);
+pub(in crate::survivors) struct Backdrop(pub(super) String);
 #[derive(Component)]
 pub(in crate::survivors) struct BackdropDone;
 

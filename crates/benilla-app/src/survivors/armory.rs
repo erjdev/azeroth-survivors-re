@@ -10,6 +10,7 @@ mod door;
 mod drop_page;
 #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
 pub(super) mod preview;
+mod reward_page;
 mod talent_page;
 pub(super) use talent_page::fill_art as fill_talent_art;
 pub(super) use talent_page::{
@@ -1602,83 +1603,7 @@ fn rewards_page(
     armory: &Armory,
     account: &Account,
 ) {
-    let earned = rewards::points_of(account.earned_ids());
-    let have = rewards::earned_count(account.earned_ids());
-    panel.spawn(hud::text_bundle(
-        font,
-        format!(
-            "{} to spend  ·  {earned} earned  ·  {have} of {}",
-            account.unspent(),
-            rewards::catalog_len()
-        ),
-        13.0,
-        Color::WHITE,
-    ));
-    if let Some(next) = account.next_locked() {
-        panel.spawn(hud::text_bundle(font, next, 12.0, GOLD));
-    }
-    panel
-        .spawn(Node {
-            flex_direction: FlexDirection::Row,
-            flex_wrap: FlexWrap::Wrap,
-            ..default()
-        })
-        .with_children(|row| {
-            for (i, name) in ["Perks", "Companions", "Tabards"].iter().enumerate() {
-                chip(
-                    row,
-                    font,
-                    name,
-                    Act::RewardPage(i as u8),
-                    armory.reward_page == i as u8,
-                );
-            }
-        });
-    match armory.reward_page {
-        1 => companion_page(panel, font, armory, account),
-        2 => tabard_page(panel, font, account),
-        _ => perk_page(panel, font, account),
-    }
-}
-
-fn perk_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
-    for (code, perk) in rewards::PERKS.into_iter().enumerate() {
-        let rank = account.perks.rank(perk);
-        let label = match rewards::perk_cost(perk, rank) {
-            Some(cost) => format!("{} {rank} · {cost}", rewards::perk_name(perk)),
-            None => format!("{} {rank} max", rewards::perk_name(perk)),
-        };
-        panel
-            .spawn(Node {
-                flex_direction: FlexDirection::Row,
-                align_items: AlignItems::Center,
-                column_gap: Val::Px(8.0),
-                ..default()
-            })
-            .with_children(|row| {
-                chip(row, font, &label, Act::Reward(code as u8), false);
-                row.spawn(hud::text_bundle(
-                    font,
-                    rewards::perk_effect(perk),
-                    12.0,
-                    DIM,
-                ));
-            });
-    }
-    panel
-        .spawn(Node {
-            flex_direction: FlexDirection::Row,
-            ..default()
-        })
-        .with_children(|row| {
-            chip(
-                row,
-                font,
-                &format!("Reset perks ({})", account.resets_left()),
-                Act::Reward(12),
-                false,
-            );
-        });
+    reward_page::build(panel, font, armory, account);
 }
 
 fn companion_page(

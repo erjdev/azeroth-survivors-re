@@ -18,6 +18,15 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Rewards visual checkpoint: currency/reset/category rail and illustrated two-column
+Perk cards replace the draft rows. Existing account purchase actions are reused.
+Live isolated-account validation confirms a 15-point purchase, rank pip/next cost,
+refund and reset consumption, plus 640×720 stacked layout. See the changelog for
+inline captures. Still required: green current→next effect previews, Confirm/Undo
+staging, Companion/Tabard illustrated content, scroll preservation across purchase
+rebuilds, reset singular wording, and typography matching the intention.
+
+
 Talent presentation checkpoint: panels use the available page height, with a readable
 minimum and the existing wrapping/outer scroll. Live Warrior captures at 1280×720
 and 640×720 verify taller trees, spending and lower-panel reachability. Singular

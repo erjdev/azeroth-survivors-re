@@ -3,6 +3,32 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rewards sidebar and illustrated Perks
+
+Rewards now uses the [intention's sidebar and two-column Perk cards](intentions/survivors_rewards_tab_perks.png):
+account currency, achievement totals, category navigation and perk reset sit together;
+cards show icons, earned rank pips, costs, effects and max-rank state. At narrower
+widths the sidebar stacks above the cards in one scrollable page. Purchases still
+apply immediately and are labelled as such; Confirm/Undo staging remains unfinished.
+
+![Rewards and Perk cards at 1280×720](images/screenshots/2026-10-25-rewards-cards/perks-1280.jpg)
+
+Live isolated-account check: Second Thoughts charged 15 points (275→260), filled
+one pip and offered rank two for 25 points. Reset refunded all 15 points and consumed
+one reset. Existing purchase/save logic is unchanged.
+
+![Purchased rank and updated currency](images/screenshots/2026-10-25-rewards-cards/purchased-1280.jpg)
+
+![Perks after reset](images/screenshots/2026-10-25-rewards-cards/reset-1280.jpg)
+
+![Stacked Rewards layout after live resize to 640×720](images/screenshots/2026-10-25-rewards-cards/perks-640.jpg)
+
+Native build, workspace Clippy, formatting and render-pass lint pass. Captures use
+the synthetic collected Warrior account and include the Retina title bar. Companion
+and Tabard content now share the frame but still need their illustrated layouts.
+Green current→next effect previews, staged purchasing, scroll continuity across
+purchases, the singular reset label and typography remain UI acceptance work.
+
 ## 2026-10-25 — Taller Talent presentation
 
 Talent panels now follow the available page height, giving the illustrated trees

@@ -31,6 +31,12 @@ Spend/refund and tab-return scroll continuity were exercised with an isolated Wa
 
 ![Responsive Talents at 640×720](docs/images/screenshots/2026-10-25-talent-responsive/trees-640.jpg)
 
+Rewards now groups currency and reset controls beside illustrated Perk cards.
+Purchase/refund and narrow stacking were checked in an isolated account; staged
+purchases and the remaining Rewards pages are still in progress.
+
+![Rewards sidebar and Perk cards](docs/images/screenshots/2026-10-25-rewards-cards/perks-1280.jpg)
+
 Scarlet Monastery now draws its authored building minimap, including zoom and enemy
 markers. The candidate zone stays locked pending navigation and full encounter acceptance.
 [Outdoor minimap regression](docs/images/screenshots/2026-10-25-indoor-minimap/elwynn.png)
