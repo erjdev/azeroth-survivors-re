@@ -16,11 +16,13 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
-Current Armory header checkpoint (1280×720, isolated synthetic collected account).
-The [changelog](docs/CHANGELOG.md) includes Character management, Talents and Companion
-captures with remaining gaps against the intention designs.
+Character retains the reference's three-pane layout on wide screens and stacks a
+proportional preview, appearance and equipment on narrow screens. Captures use an
+isolated synthetic account; saved appearance and tab-return scrolling were checked.
 
-![Current Character interface](docs/images/screenshots/2026-10-25-armory-header/character-1280.jpg)
+![Current Character interface](docs/images/screenshots/2026-10-25-character-responsive/character-1280.jpg)
+
+![Responsive Character at 640×900](docs/images/screenshots/2026-10-25-character-responsive/character-640x900.jpg)
 
 Collection stacks into readable sections on narrow screens and retains its three-pane
 layout at wider sizes. Item actions and tab return preserve narrow scrolling.

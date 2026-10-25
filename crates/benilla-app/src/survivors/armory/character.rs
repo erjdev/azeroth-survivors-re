@@ -17,12 +17,47 @@ pub(super) fn build(
     stash: &Stash,
     layout: &Layout,
     features: Option<&super::super::appearance::Options>,
+    compact: bool,
 ) {
-    let class = super::picked_class(account, selection);
-    let hero = selection.character.and_then(|id| account.character(id));
-    let name = hero
-        .map(|h| format!("{} {}", h.first, h.last))
-        .unwrap_or_else(|| "Choose a hero".into());
+    if compact {
+        panel
+            .spawn((
+                collection::CollectionScroll,
+                collection::CompactScroll::Character,
+                bevy::ui::RelativeCursorPosition::default(),
+                ScrollPosition(armory.character_scroll),
+                Node {
+                    width: Val::Percent(100.0),
+                    flex_grow: 1.0,
+                    flex_basis: Val::Px(0.0),
+                    min_height: Val::Px(0.0),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(layout.gap),
+                    overflow: Overflow::scroll_y(),
+                    ..default()
+                },
+            ))
+            .with_children(|body| {
+                collection::section(body, layout, |body| {
+                    hero_panel(
+                        body, font, armory, account, selection, renown, stash, layout, compact,
+                    )
+                });
+                collection::section(body, layout, |body| {
+                    body_controls(body, art, font, account, selection, layout);
+                    if let Some(features) = features {
+                        feature_controls(body, font, features, layout);
+                    }
+                });
+                collection::section(body, layout, |body| {
+                    collection::equipment(body, font, armory, account, selection, layout)
+                });
+                collection::section(body, layout, |body| {
+                    collection::detail(body, font, armory, account, selection, layout)
+                });
+            });
+        return;
+    }
     panel
         .spawn(Node {
             width: Val::Percent(100.0),
@@ -41,78 +76,9 @@ pub(super) fn build(
                 100.0 - layout.left_width - layout.right_width,
                 layout,
                 |body| {
-                    body.spawn(hud::centered_bundle(font, name, layout.title_size, GOLD));
-                    body.spawn(hud::centered_bundle(
-                        font,
-                        super::CLASSES[class].name,
-                        layout.body_size,
-                        GOLD,
-                    ));
-                    let managing = armory.manage_heroes || hero.is_none();
-                    if hero.is_some() {
-                        body.spawn(Node {
-                            justify_content: JustifyContent::Center,
-                            ..default()
-                        })
-                        .with_children(|row| {
-                            super::chip(
-                                row,
-                                font,
-                                if managing {
-                                    "Back to character"
-                                } else {
-                                    "Manage heroes"
-                                },
-                                super::Act::ManageHeroes(!managing),
-                                managing,
-                            );
-                        });
-                    }
-                    if managing {
-                        body.spawn(hud::text_bundle(font, "Heroes", layout.title_size, GOLD));
-                        super::heroes(body, font, armory, account, selection, renown, stash);
-                        return;
-                    }
-                    body.spawn((
-                        ModelPane,
-                        ImageNode::default(),
-                        Node {
-                            width: Val::Auto,
-                            height: Val::Percent(78.0),
-                            max_width: Val::Percent(100.0),
-                            aspect_ratio: Some(1.0),
-                            align_self: AlignSelf::Center,
-                            flex_shrink: 0.0,
-                            ..default()
-                        },
-                    ));
-                    body.spawn(hud::centered_bundle(
-                        font,
-                        "Drag the hero to turn",
-                        layout.body_size,
-                        GOLD,
-                    ));
-                    body.spawn(Node {
-                        column_gap: Val::Px(layout.gap),
-                        justify_content: JustifyContent::Center,
-                        ..default()
-                    })
-                    .with_children(|row| {
-                        for (label, angle) in [("Turn left", -0.4), ("Turn right", 0.4)] {
-                            row.spawn((
-                                Button,
-                                ModelTurn(angle),
-                                Node {
-                                    padding: UiRect::all(Val::Px(6.0)),
-                                    ..default()
-                                },
-                                BackgroundColor(Color::srgb(0.15, 0.12, 0.06)),
-                            ))
-                            .with_children(|button| {
-                                button.spawn(hud::text_bundle(font, label, layout.body_size, GOLD));
-                            });
-                        }
-                    });
+                    hero_panel(
+                        body, font, armory, account, selection, renown, stash, layout, compact,
+                    );
                 },
             );
             collection::column(row, layout.right_width, layout, |body| {
@@ -122,6 +88,122 @@ pub(super) fn build(
                 collection::detail(body, font, armory, account, selection, layout);
             });
         });
+}
+
+#[allow(clippy::too_many_arguments)]
+fn hero_panel(
+    body: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+    selection: &Selection,
+    renown: &Renown,
+    stash: &Stash,
+    layout: &Layout,
+    compact: bool,
+) {
+    let class = super::picked_class(account, selection);
+    let hero = selection.character.and_then(|id| account.character(id));
+    let name = hero
+        .map(|h| format!("{} {}", h.first, h.last))
+        .unwrap_or_else(|| "Choose a hero".into());
+    body.spawn(hud::centered_bundle(font, name, layout.title_size, GOLD));
+    body.spawn(hud::centered_bundle(
+        font,
+        super::CLASSES[class].name,
+        layout.body_size,
+        GOLD,
+    ));
+    let managing = armory.manage_heroes || hero.is_none();
+    if hero.is_some() {
+        body.spawn(Node {
+            justify_content: JustifyContent::Center,
+            ..default()
+        })
+        .with_children(|row| {
+            super::chip(
+                row,
+                font,
+                if managing {
+                    "Back to character"
+                } else {
+                    "Manage heroes"
+                },
+                super::Act::ManageHeroes(!managing),
+                managing,
+            );
+        });
+    }
+    if managing {
+        body.spawn(hud::text_bundle(font, "Heroes", layout.title_size, GOLD));
+        super::heroes(body, font, armory, account, selection, renown, stash);
+        return;
+    }
+    if compact {
+        // Let the layout own the aspect ratio; the render texture's intrinsic size
+        // must not inflate the scroll section when its image becomes available.
+        body.spawn(Node {
+            width: Val::Percent(60.0),
+            min_height: Val::Px(0.0),
+            aspect_ratio: Some(1.0),
+            align_self: AlignSelf::Center,
+            flex_shrink: 0.0,
+            ..default()
+        })
+        .with_children(|frame| {
+            frame.spawn((
+                ModelPane,
+                ImageNode::default(),
+                Node {
+                    position_type: PositionType::Absolute,
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+            ));
+        });
+    } else {
+        body.spawn((
+            ModelPane,
+            ImageNode::default(),
+            Node {
+                width: Val::Auto,
+                height: Val::Percent(78.0),
+                max_width: Val::Percent(100.0),
+                aspect_ratio: Some(1.0),
+                align_self: AlignSelf::Center,
+                flex_shrink: 0.0,
+                ..default()
+            },
+        ));
+    }
+    body.spawn(hud::centered_bundle(
+        font,
+        "Drag the hero to turn",
+        layout.body_size,
+        GOLD,
+    ));
+    body.spawn(Node {
+        column_gap: Val::Px(layout.gap),
+        justify_content: JustifyContent::Center,
+        ..default()
+    })
+    .with_children(|row| {
+        for (label, angle) in [("Turn left", -0.4), ("Turn right", 0.4)] {
+            row.spawn((
+                Button,
+                ModelTurn(angle),
+                Node {
+                    padding: UiRect::all(Val::Px(6.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.15, 0.12, 0.06)),
+            ))
+            .with_children(|button| {
+                button.spawn(hud::text_bundle(font, label, layout.body_size, GOLD));
+            });
+        }
+    });
 }
 
 pub(in crate::survivors) fn subject(

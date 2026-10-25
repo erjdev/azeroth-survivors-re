@@ -18,6 +18,16 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Character responsive checkpoint verified at 1280×720, 640×720 and 640×900:
+below 1100 UI units, stack a proportional square hero preview, appearance/features,
+equipment and item details in one scroll surface. Character, Collection and Drop
+Tables retain separate offsets. Wide screens retain the intention's
+appearance/model/features composition. Live body/feature edits, Warrior/Mage
+switching, tab return and restart persistence passed with an isolated account.
+Saved appearances no longer trigger the obsolete “Open Look” prompt. Actual captures
+are inline in the changelog. Final typography, wide-column scrolling and per-hero/spec
+Talent restoration remain separate acceptance.
+
 Drop Tables responsive checkpoint verified at 1280×720 and 640×720: below 1100 UI units, wrap zone
 choices and stack sources, item details and equipment in one scroll surface.
 Retain an independent session scroll offset on selection and tab return. Wide

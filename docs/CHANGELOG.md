@@ -3,6 +3,35 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Responsive Character and saved appearances
+
+Character now stacks its proportional hero preview, appearance controls, equipment
+and item details on narrow screens. Wide screens retain the
+[reference's](intentions/survivors_character_tab.png) three-pane composition.
+Appearance edits and tab return preserve Character scrolling independently of
+Collection and Drop Tables. Switching to a hero with a saved appearance no longer
+shows the obsolete “Open Look” prompt.
+
+![Wide Character composition](images/screenshots/2026-10-25-character-responsive/character-1280.jpg)
+
+![Proportional Character preview at 640×720](images/screenshots/2026-10-25-character-responsive/character-640.jpg)
+
+![Hero management at narrow width](images/screenshots/2026-10-25-character-responsive/manage-heroes-640.jpg)
+
+![Saved appearance restored after hero switching and restart](images/screenshots/2026-10-25-character-responsive/appearance-restored-640.jpg)
+
+![Appearance value and scroll retained after Collection tab return](images/screenshots/2026-10-25-character-responsive/appearance-tab-return-640.jpg)
+
+![Character preview at 640×900](images/screenshots/2026-10-25-character-responsive/character-640x900.jpg)
+
+![Appearance controls at 640×900](images/screenshots/2026-10-25-character-responsive/appearance-640x900.jpg)
+
+Actual native captures use an isolated two-hero account. Live checks covered body
+and feature edits, Warrior/Mage switching, tab return and restart persistence.
+Validation: 181 Survivors app tests without default features, native incremental
+build, workspace Clippy, formatting and render-pass lint pass. Final typography,
+wide-column scrolling and per-hero/spec Talent restoration remain open.
+
 ## 2026-10-25 — Responsive Drop Tables
 
 Drop Tables now wraps zone choices and stacks encounter sources, item details and

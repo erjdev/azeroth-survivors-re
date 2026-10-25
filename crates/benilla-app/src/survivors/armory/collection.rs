@@ -15,25 +15,22 @@ const BONUS: Color = Color::srgb(0.45, 0.9, 0.4);
 pub(in crate::survivors) struct CollectionScroll;
 
 #[derive(Component)]
-pub(in crate::survivors) struct CompactScroll;
+pub(in crate::survivors) enum CompactScroll {
+    Collection,
+    Drops,
+    Character,
+}
 
-#[derive(Component)]
-pub(in crate::survivors) struct DropCompactScroll;
-
-pub(in crate::survivors) type CompactSurfaces<'w, 's> = Query<
-    'w,
-    's,
-    (&'static ScrollPosition, Option<&'static DropCompactScroll>),
-    Or<(With<CompactScroll>, With<DropCompactScroll>)>,
->;
-
-pub(in crate::survivors) fn remember_scroll(mut armory: ResMut<Armory>, surfaces: CompactSurfaces) {
-    for (position, drops) in &surfaces {
+pub(in crate::survivors) fn remember_scroll(
+    mut armory: ResMut<Armory>,
+    surfaces: Query<(&ScrollPosition, &CompactScroll)>,
+) {
+    for (position, page) in &surfaces {
         if position.0.is_finite() {
-            let saved = if drops.is_some() {
-                &mut armory.drop_scroll
-            } else {
-                &mut armory.collection_scroll
+            let saved = match page {
+                CompactScroll::Collection => &mut armory.collection_scroll,
+                CompactScroll::Drops => &mut armory.drop_scroll,
+                CompactScroll::Character => &mut armory.character_scroll,
             };
             if *saved != position.0 {
                 *saved = position.0;
@@ -73,13 +70,20 @@ mod scroll_restore_tests {
         let mut app = App::new();
         app.init_resource::<Armory>()
             .add_systems(Update, remember_scroll);
-        app.world_mut()
-            .spawn((CompactScroll, ScrollPosition(Vec2::new(0.0, 120.0))));
+        app.world_mut().spawn((
+            CompactScroll::Collection,
+            ScrollPosition(Vec2::new(0.0, 120.0)),
+        ));
         let drops = app
             .world_mut()
-            .spawn((DropCompactScroll, ScrollPosition(Vec2::new(0.0, 460.0))))
+            .spawn((CompactScroll::Drops, ScrollPosition(Vec2::new(0.0, 460.0))))
             .id();
+        app.world_mut().spawn((
+            CompactScroll::Character,
+            ScrollPosition(Vec2::new(0.0, 730.0)),
+        ));
         app.update();
+        assert_eq!(app.world().resource::<Armory>().character_scroll.y, 730.0);
         assert_eq!(app.world().resource::<Armory>().collection_scroll.y, 120.0);
         assert_eq!(app.world().resource::<Armory>().drop_scroll.y, 460.0);
         app.world_mut()
@@ -209,7 +213,7 @@ pub(super) fn build(
         panel
             .spawn((
                 CollectionScroll,
-                CompactScroll,
+                CompactScroll::Collection,
                 RelativeCursorPosition::default(),
                 ScrollPosition(armory.collection_scroll),
                 Node {

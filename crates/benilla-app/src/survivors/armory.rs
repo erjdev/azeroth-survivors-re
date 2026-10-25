@@ -157,6 +157,7 @@ pub(super) struct Armory {
     collection_scroll: Vec2,
     drop_zone: usize,
     drop_scroll: Vec2,
+    character_scroll: Vec2,
     codex_entry: Option<u16>,
 }
 
@@ -181,6 +182,7 @@ impl Default for Armory {
             collection_scroll: Vec2::ZERO,
             drop_zone: 0,
             drop_scroll: Vec2::ZERO,
+            character_scroll: Vec2::ZERO,
             codex_entry: None,
         }
     }
@@ -407,9 +409,15 @@ pub(super) fn input(
                 let needs_look = pick_hero(&mut selection, &account, id);
                 armory.manage_heroes = false;
                 armory.focus = 0;
-                if needs_look {
-                    armory.note = "Open Look to choose this hero's appearance.".into();
-                }
+                armory.note = if needs_look
+                    && account
+                        .character(id)
+                        .is_some_and(|hero| hero.body.is_none())
+                {
+                    "Choose this hero's appearance below.".into()
+                } else {
+                    String::new()
+                };
             }
             Act::BrowseDrops(index) => armory.drop_zone = index.min(ZONES.len() - 1),
             Act::Zone(index) => {
@@ -940,7 +948,11 @@ pub(super) fn refresh(
         fold(
             assets.layout.version,
             u64::from(
-                compact_collection && matches!(armory.page, Page::Collection | Page::DropTables),
+                compact_collection
+                    && matches!(
+                        armory.page,
+                        Page::Collection | Page::DropTables | Page::Heroes
+                    ),
             ),
         ),
     );

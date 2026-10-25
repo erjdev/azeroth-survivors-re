@@ -47,7 +47,7 @@ pub(super) fn build(
     if compact {
         ui.spawn((
             collection::CollectionScroll,
-            collection::DropCompactScroll,
+            collection::CompactScroll::Drops,
             bevy::ui::RelativeCursorPosition::default(),
             ScrollPosition(armory.drop_scroll),
             Node {

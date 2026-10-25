@@ -60,7 +60,17 @@ pub(super) fn build(
         super::achievements(ui, font, armory, account);
     } else if armory.page == Page::Heroes {
         super::character::build(
-            ui, art, font, armory, account, selection, renown, stash, layout, features,
+            ui,
+            art,
+            font,
+            armory,
+            account,
+            selection,
+            renown,
+            stash,
+            layout,
+            features,
+            compact_collection,
         );
     } else if armory.page == Page::Collection {
         super::collection::build(
