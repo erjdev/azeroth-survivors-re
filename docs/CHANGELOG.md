@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Recover terrain boundary heights
+
+Survivors now checks nearby emitted terrain triangles when the fast height lookup misses.
+The reproduced Un'Goro boundary resolves correctly; successful queries and real holes
+retain their behavior. The change is opt-in for Survivors and its audit. Arena placement
+and zone readiness remain unapproved pending collision, visual and content validation.
+The southern candidate now resolves all 1,257 survey heights. Native build, workspace
+test compilation, Clippy, formatting and 122 scoped tests pass; the feature-off format
+build also checks.
+
 ## 2026-10-25 — Un'Goro arena investigation
 
 The current summit footprint contains submerged and steep terrain. Surveyed nearby

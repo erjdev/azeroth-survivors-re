@@ -1460,3 +1460,24 @@ mesh support. The audit reports these separately; runtime floors, map coordinate
 locks remain unchanged. Resolve the lookup discrepancy and inspect collider/obstacle and
 rendered behavior before authoring the replacement. Encounters and all-class drop mapping
 remain required before readiness.
+
+### Terrain boundary recovery — 2026-10-25
+
+The Survivors launcher and audit opt into `survivors-terrain`. The format adapter preserves
+successful indexed height queries, then checks emitted triangles in nearby chunks only
+when the fast lookup misses. The broad-phase margin only chooses chunks; exact triangle
+containment determines support, and omitted hole triangles remain absent. The original
+lookup stays available to builds without the feature. This also reaches the world stream's
+existing height query through the shared format API; no colliders or authored maps change.
+
+The local Un'Goro regression reproduces the old miss at `(-7100, -1625)`, recovers the mesh
+height -271.66095, checks adjacent queries, and rejects an emptied/fully holed mesh and
+outside-tile points. This is height-query correctness, not approval of an arena, route
+connectivity, enemy spawn placement, or the zone's missing encounters and equipment drops.
+
+After the fix, the southern Un'Goro survey resolves all 1,257 samples with no wet,
+impassable or over-45-degree samples. Native macOS build, workspace test compilation,
+workspace Clippy, formatting, render-pass lint, five terrain tests, 108 focused Survivors
+tests and nine world-collision tests pass. The format crate also checks without default
+features or `survivors-terrain`. These are scoped tests; full workspace test acceptance,
+live movement/streaming and arena approval remain open.

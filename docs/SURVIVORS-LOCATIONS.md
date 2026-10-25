@@ -259,3 +259,16 @@ Next: reproduce the lookup discrepancy at the chunk/cell boundary, verify physic
 collision and placed obstacles at the southern candidate, then inspect it in the world
 viewer before changing the authored arena. Existing map coordinates and campaign locks
 are unchanged. Encounter/drop/class-item gaps remain separate requirements.
+
+
+### Southern candidate after boundary recovery
+
+With `survivors-terrain` enabled (the Survivors launcher and audit default), the same
+`--terrain 1 -7136 -1609 40` survey now resolves all 1,257 samples: zero unresolved heights,
+wet samples, impassable samples, steep samples or incomplete gradient neighbourhoods.
+Height range remains -272.114 to -264.071. All 17 previous fast-index misses are recovered
+from existing triangles. The earlier table records the pre-fix result, not current coverage.
+
+This makes the southern disk a candidate for collider/obstacle and live-view inspection;
+it does not prove between-sample safety, WMO clearance, connected routes, camera behavior,
+or readiness to unlock Un'Goro. The authored summit location remains unchanged.

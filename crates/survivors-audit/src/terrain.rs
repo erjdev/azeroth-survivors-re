@@ -29,7 +29,7 @@ fn liquid_above(tile: &TileMesh, point: [f32; 3]) -> bool {
     })
 }
 
-// Diagnostic only: compare the fast height lookup with the triangles actually emitted by
+// Diagnostic only: compare the public height lookup with the triangles actually emitted by
 // the terrain loader. Missing samples remain missing in the survey's acceptance counts.
 fn mesh_height(tile: &TileMesh, point: [f32; 3]) -> Option<f32> {
     tile.chunks.iter().find_map(|chunk| {
@@ -109,7 +109,7 @@ pub fn survey(chain: &mut Chain, map: u32, input: [f32; 3]) -> Result<()> {
     }
     println!("TERRAIN DISK: map {map} ({dir}), center [{x:.3}, {y:.3}], radius {radius}, spacing 2 yards, {} tiles",cache.len());
     println!(
-        "Samples: {} total, {supported} fast-height supported, {} unresolved fast-height samples",
+        "Samples: {} total, {supported} height-query supported, {} unresolved height-query samples",
         points.len(),
         points.len() - supported
     );
@@ -117,7 +117,7 @@ pub fn survey(chain: &mut Chain, map: u32, input: [f32; 3]) -> Result<()> {
         println!("Terrain height range: {low:.3} to {high:.3}");
     }
     println!("Supported samples: {wet} liquid deeper than 0.1 yard, {impassable} impassable, {steep} estimated slope above 45 degrees, {edge} incomplete gradient neighbourhoods");
-    println!("Missing fast-height samples with emitted-mesh support: {mesh_supported_misses}");
+    println!("Missing height-query samples with emitted-mesh support: {mesh_supported_misses}");
     for (px, py, mesh) in missing_examples {
         println!("Missing sample [{px:.3}, {py:.3}]: emitted-mesh height {mesh:?}");
     }

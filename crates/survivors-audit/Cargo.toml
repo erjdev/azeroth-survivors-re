@@ -10,7 +10,7 @@ workspace = true
 
 [dependencies]
 anyhow.workspace = true
-benilla-formats = { path = "../benilla-formats", default-features = false }
+benilla-formats = { path = "../benilla-formats", default-features = false, features = ["survivors-terrain"] }
 benilla-wmo = { path = "../benilla-wmo" }
 survivors-core = { path = "../survivors-core" }
 

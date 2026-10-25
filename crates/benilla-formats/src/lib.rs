@@ -265,12 +265,18 @@ pub use models::{
     ALPHA_KEY_REF, DEGENERATE_RING_FOOTPRINT, GLUE_AUTHORED_ASPECT, NO_GROUP_LIQUID,
     OWNER_RUNG_BUCKETS, SHIPPED_GLUE_SCENES,
 };
+#[cfg(feature = "survivors-terrain")]
+mod survivors_terrain;
 mod terrain;
+#[cfg(feature = "survivors-terrain")]
+pub use survivors_terrain::terrain_height_at;
+#[cfg(not(feature = "survivors-terrain"))]
+pub use terrain::terrain_height_at;
 pub use terrain::{
     adt_to_tile_mesh, area_id_at, find_tile_near, ground_effect_at, impassable_at, load_tile_mesh,
-    load_tiles_around, mcsh_shadowed_at, terrain_height_at, triangle_z_at, ChunkMesh, Doodad,
-    MapTiles, TileMesh, WmoInstance, ALPHA_MAP_SIZE, CHUNK_SIZE, SHADOW_MAP_SIZE, STORMWIND_XY,
-    TERRAIN_LAYER_TILES, TILE_SIZE,
+    load_tiles_around, mcsh_shadowed_at, triangle_z_at, ChunkMesh, Doodad, MapTiles, TileMesh,
+    WmoInstance, ALPHA_MAP_SIZE, CHUNK_SIZE, SHADOW_MAP_SIZE, STORMWIND_XY, TERRAIN_LAYER_TILES,
+    TILE_SIZE,
 };
 mod wdl;
 /// World (x, y) to ADT tile `(col, row)`; minimap `map<X>_<Y>.blp` names use the same order.
