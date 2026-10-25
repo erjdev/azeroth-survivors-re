@@ -17,18 +17,32 @@ pub(in crate::survivors) struct CollectionScroll;
 #[derive(Component)]
 pub(in crate::survivors) struct CompactScroll;
 
-pub(in crate::survivors) fn remember_scroll(
-    mut armory: ResMut<Armory>,
-    surfaces: Query<&ScrollPosition, With<CompactScroll>>,
-) {
-    for position in &surfaces {
-        if position.0.is_finite() && armory.collection_scroll != position.0 {
-            armory.collection_scroll = position.0;
+#[derive(Component)]
+pub(in crate::survivors) struct DropCompactScroll;
+
+pub(in crate::survivors) type CompactSurfaces<'w, 's> = Query<
+    'w,
+    's,
+    (&'static ScrollPosition, Option<&'static DropCompactScroll>),
+    Or<(With<CompactScroll>, With<DropCompactScroll>)>,
+>;
+
+pub(in crate::survivors) fn remember_scroll(mut armory: ResMut<Armory>, surfaces: CompactSurfaces) {
+    for (position, drops) in &surfaces {
+        if position.0.is_finite() {
+            let saved = if drops.is_some() {
+                &mut armory.drop_scroll
+            } else {
+                &mut armory.collection_scroll
+            };
+            if *saved != position.0 {
+                *saved = position.0;
+            }
         }
     }
 }
 
-fn section(
+pub(super) fn section(
     ui: &mut ChildSpawnerCommands,
     layout: &Layout,
     body: impl FnOnce(&mut ChildSpawnerCommands),
@@ -53,6 +67,29 @@ fn section(
 #[cfg(test)]
 mod scroll_restore_tests {
     use super::*;
+
+    #[test]
+    fn compact_pages_remember_independent_scroll_positions() {
+        let mut app = App::new();
+        app.init_resource::<Armory>()
+            .add_systems(Update, remember_scroll);
+        app.world_mut()
+            .spawn((CompactScroll, ScrollPosition(Vec2::new(0.0, 120.0))));
+        let drops = app
+            .world_mut()
+            .spawn((DropCompactScroll, ScrollPosition(Vec2::new(0.0, 460.0))))
+            .id();
+        app.update();
+        assert_eq!(app.world().resource::<Armory>().collection_scroll.y, 120.0);
+        assert_eq!(app.world().resource::<Armory>().drop_scroll.y, 460.0);
+        app.world_mut()
+            .get_mut::<ScrollPosition>(drops)
+            .unwrap()
+            .0
+            .y = f32::NAN;
+        app.update();
+        assert_eq!(app.world().resource::<Armory>().drop_scroll.y, 460.0);
+    }
 
     #[test]
     fn restored_scroll_waits_for_layout_then_clamps_to_actual_content() {

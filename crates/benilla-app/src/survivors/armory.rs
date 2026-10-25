@@ -156,6 +156,7 @@ pub(super) struct Armory {
     piece: usize,
     collection_scroll: Vec2,
     drop_zone: usize,
+    drop_scroll: Vec2,
     codex_entry: Option<u16>,
 }
 
@@ -179,6 +180,7 @@ impl Default for Armory {
             piece: 0,
             collection_scroll: Vec2::ZERO,
             drop_zone: 0,
+            drop_scroll: Vec2::ZERO,
             codex_entry: None,
         }
     }
@@ -937,7 +939,9 @@ pub(super) fn refresh(
         ),
         fold(
             assets.layout.version,
-            u64::from(compact_collection && armory.page == Page::Collection),
+            u64::from(
+                compact_collection && matches!(armory.page, Page::Collection | Page::DropTables),
+            ),
         ),
     );
     if *drawn == Some(sig) {

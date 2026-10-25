@@ -18,6 +18,16 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Drop Tables responsive checkpoint verified at 1280×720 and 640×720: below 1100 UI units, wrap zone
+choices and stack sources, item details and equipment in one scroll surface.
+Retain an independent session scroll offset on selection and tab return. Wide
+encounter rows place source/time beside item/icon, matching the reference; zone
+choices show quality and collection count. Browsing must never select the next
+run zone. Live lower-row selection, equip and Collection round trip retain scrolling.
+Finale labels derive from the combat schedule, not the legacy zone boss name.
+Source identities, missing zone content and wide-column scroll restoration remain
+separate acceptance. Actual screenshots are inline in the changelog.
+
 Gear stat checkpoint verified at 1280×720: [slot profiles](SURVIVORS-GEAR-STATS.md) replace
 the shared non-glove bonus sequence. Each current band adds one stat and strengthens
 retained stats; only selected equipment contributes, regardless of duplicate count.

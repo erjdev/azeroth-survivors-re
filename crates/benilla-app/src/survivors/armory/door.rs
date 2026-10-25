@@ -76,7 +76,16 @@ pub(super) fn build(
     } else if armory.page == Page::Codex {
         super::codex_page::build(ui, font, armory, account, selection, layout);
     } else if armory.page == Page::DropTables {
-        super::drop_page::build(ui, art, font, armory, account, selection, layout);
+        super::drop_page::build(
+            ui,
+            art,
+            font,
+            armory,
+            account,
+            selection,
+            layout,
+            compact_collection,
+        );
     } else {
         panel(ui, art, |body| {
             super::fill_draft(

@@ -3,6 +3,31 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Responsive Drop Tables
+
+Drop Tables now wraps zone choices and stacks encounter sources, item details and
+equipment at narrow widths. Item selection, equip actions and tab return retain the
+page's independent scroll position. Wide encounter rows put the boss/time beside its
+item, following the [reference](intentions/survivors_drop_tables_tab.png); zone choices
+show quality and collection counts. Finale labels use the actual combat schedule.
+
+![Wide encounter rows and quality counts](images/screenshots/2026-10-25-drop-tables-responsive/drops-1280.jpg)
+
+![Wrapped zone choices at 640×720](images/screenshots/2026-10-25-drop-tables-responsive/drops-640.jpg)
+
+![Lower source selection retains scroll and updates item details](images/screenshots/2026-10-25-drop-tables-responsive/selected-source-640.jpg)
+
+![Equipped item and scroll survive a Collection round trip](images/screenshots/2026-10-25-drop-tables-responsive/equipped-tab-return-640.jpg)
+
+![Unfinished zone tables remain explicit](images/screenshots/2026-10-25-drop-tables-responsive/unfinished-zone-640.jpg)
+
+Live checks used an isolated synthetic Warrior account at 1280×720 and 640×720.
+All twelve zone choices and each zone's source actions are covered in both layouts;
+browsing does not select the next run's zone. Validation: 99 core tests, 181 Survivors
+app tests without default features, native build, workspace Clippy, formatting and
+render-pass lint pass. Missing zone content, final typography and wide-column scroll
+restoration remain open; this checkpoint does not claim those are complete.
+
 ## 2026-10-25 — Distinct gear stat profiles
 
 Gear slots now have distinct stat progressions: chest armor starts with health and

@@ -33,6 +33,11 @@ tuning shown here uses synthetic collected equipment.
 
 ![Epic chest bonuses and updated equipment totals](docs/images/screenshots/2026-10-25-gear-profiles/equipped-epic-1280.jpg)
 
+Drop Tables now wraps zone choices on narrow screens and preserves scrolling through
+item selection and tab return. Wide screens retain source and item details side by side.
+
+![Drop Tables at 1280×720](docs/images/screenshots/2026-10-25-drop-tables-responsive/drops-1280.jpg)
+
 Codex distinguishes legendary jewelry with spell badges and highlights the selected
 entry, with larger detail art. Discoveries below are synthetic preview data.
 

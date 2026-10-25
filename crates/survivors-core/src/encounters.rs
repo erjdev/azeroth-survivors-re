@@ -72,6 +72,18 @@ pub fn drop_is_boss(drop: &campaign::DropRow) -> bool {
     })
 }
 
+/// A source at the last scheduled boss time, including simultaneous finale encounters.
+pub fn drop_is_final_boss(drop: &campaign::DropRow) -> bool {
+    data::MAPS.iter().enumerate().any(|(map, def)| {
+        let rows = schedule(map);
+        campaign::zone_index(def.name) == Some(drop.zone)
+            && rows.last().is_some_and(|(_, at)| *at == drop.at_secs)
+            && rows
+                .iter()
+                .any(|(enemy, at)| enemy.name == drop.creature && *at == drop.at_secs)
+    })
+}
+
 /// A campaign table is enterable only when every advertised drop has a scheduled boss.
 pub fn ready(map: usize) -> bool {
     let Some(zone) = data::MAPS
@@ -493,5 +505,30 @@ mod tests {
         assert!(next(map, 0, data::BOSS_EVERY_SECS).is_some());
         assert!(!won(map, data::VICTORY_SECS - 0.01, 0));
         assert!(won(map, data::VICTORY_SECS, 0));
+    }
+}
+
+#[cfg(test)]
+mod finale_label_tests {
+    use super::*;
+
+    #[test]
+    fn finale_label_uses_combat_schedule_instead_of_legacy_zone_boss_name() {
+        let first = campaign::DROPS
+            .iter()
+            .find(|row| row.zone == 0 && row.at_secs == 180)
+            .unwrap();
+        let last = campaign::DROPS
+            .iter()
+            .find(|row| row.zone == 0 && row.at_secs == 960)
+            .unwrap();
+        assert!(drop_is_boss(first));
+        assert!(!drop_is_final_boss(first));
+        assert!(drop_is_final_boss(last));
+        let invented = campaign::DropRow {
+            at_secs: 961,
+            ..*last
+        };
+        assert!(!drop_is_final_boss(&invented));
     }
 }
