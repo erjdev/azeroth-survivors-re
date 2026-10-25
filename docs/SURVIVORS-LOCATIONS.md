@@ -121,3 +121,33 @@ Required instance: 533, Some("Naxxramas"), directory Some("Stratholme Raid").
 
 No matching WorldMapArea row. Resolve the location from other local geometry/area metadata before authoring a spawn.
 
+
+## Arena terrain surveys
+
+Reproduce with `survivors-audit <Data> --terrain <map> <x> <y> <radius>`.
+Samples lie on a two-yard grid within the disk. The survey loads adjacent tiles for both
+samples and one-yard gradient neighbours; a missing tile file fails the command. Terrain
+holes remain missing samples. Liquid counts include ADT liquid more than 0.1 yard above
+terrain; steep counts use a central-difference gradient greater than 1 (45 degrees).
+Counts can overlap. Neither these samples nor their gradient estimates prove continuous
+walkability or detect WMO/doodad walls, liquids, floors, overhead geometry or camera issues.
+
+| Candidate (raw WoW x, y) | Map | Radius | Supported / total | Wet | Steep | Missing gradient neighbours |
+| --- | --- | --- | --- | --- | --- | --- |
+| Warsong midpoint (1244.792, 1468.750) | 489 | 60 | 2821 / 2821 | 0 | 0 | 0 |
+| Warsong midpoint (1244.792, 1468.750) | 489 | 150 | 17573 / 17665 | 0 | 702 | 18 |
+| Arathi midpoint (922.917, 980.208) | 529 | 60 | 2821 / 2821 | 551 | 372 | 0 |
+| Arathi blacksmith (990.934, 1008.034) | 529 | 30 | 709 / 709 | 0 | 0 | 0 |
+| Alterac midpoint (-327.083, -337.500) | 30 | 60 | 2821 / 2821 | 0 | 9 | 0 |
+| Alterac midpoint (-327.083, -337.500) | 30 | 40 | 1257 / 1257 | 0 | 8 | 0 |
+
+All six surveys found zero impassable-chunk samples. The 150-yard Warsong disk crosses
+two ADTs; other surveys use one. The blacksmith candidate comes from the actual WMO
+placement printed by the Arathi center floor probe, not an invented coordinate; a building
+occupies that location, so dry terrain beneath it is not evidence of an unobstructed arena.
+
+Decisions: retain the 60-yard Warsong disk for collision/render/traversal inspection; do
+not extend it to 150 yards based on center support. Reject the Arathi map midpoint as a dry
+arena; investigate the blacksmith surroundings while accounting for its building. Alterac
+needs local slope inspection or a better location even with the smaller radius. None of
+these surveys unlocks a destination or validates encounters/rewards.

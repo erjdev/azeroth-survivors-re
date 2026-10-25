@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Arena terrain surveys
+
+Added `--terrain` to measure sampled support, water, impassable terrain and slopes across
+candidate arenas, including tile boundaries. Six local surveys reject Arathi's wet midpoint
+and narrow the next world checks to a 60-yard Warsong arena. [Evidence and limits](SURVIVORS-LOCATIONS.md#arena-terrain-surveys).
+Five audit tests and Clippy pass. No new zone is unlocked by these geometry checks.
+
 ## 2026-10-24 — Campaign location evidence
 
 Added a read-only `--locations` audit using local map/area metadata and terrain. Documented

@@ -6,6 +6,7 @@ use survivors_core::{campaign, data, encounters};
 mod doodads;
 mod floor;
 mod locations;
+mod terrain;
 
 fn main() -> Result<()> {
     let mut args = std::env::args_os().skip(1);
@@ -21,8 +22,10 @@ fn main() -> Result<()> {
         return talents(&mut chain);
     }
     if !rest.is_empty() {
-        if rest.len() != 5 || (rest[0] != "--floor" && rest[0] != "--doodads") {
-            bail!("usage: survivors-audit <Data> [--locations | --talents | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
+        if rest.len() != 5
+            || (rest[0] != "--floor" && rest[0] != "--doodads" && rest[0] != "--terrain")
+        {
+            bail!("usage: survivors-audit <Data> [--locations | --talents | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
         }
         let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
         let mut point = [0.0_f32; 3];
@@ -32,7 +35,9 @@ fn main() -> Result<()> {
                 bail!("coordinates must be finite");
             }
         }
-        return if rest[0] == "--doodads" {
+        return if rest[0] == "--terrain" {
+            terrain::survey(&mut chain, map, point)
+        } else if rest[0] == "--doodads" {
             doodads::probe(&mut chain, map, point)
         } else {
             floor::probe(&mut chain, map, point)

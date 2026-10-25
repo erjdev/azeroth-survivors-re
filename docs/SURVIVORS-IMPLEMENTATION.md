@@ -898,3 +898,15 @@ Validation: native build, workspace test compilation, 86 Survivors tests, 51 cor
 and the local talent-data audit pass. The new app regression checks rank/talent composition,
 hit/marker duration, unchanged strength/count/radius and non-timed effects. Live 720p talent
 details verified; full combat timing and balance validation remain outstanding.
+
+
+### Arena terrain survey checkpoint — 2026-10-24
+
+`survivors-audit <Data> --terrain <map> <x> <y> <radius>` now samples ADT terrain support,
+liquid depth, impassable chunks and estimated slope, including neighbouring tile loads.
+Six local surveys narrowed the next world-validation target to Warsong's 60-yard midpoint
+arena. Arathi's midpoint is wet/steep; Warsong's 150-yard disk includes holes and steep
+terrain; shrinking Alterac's midpoint disk does not remove its steep samples. The detailed
+[location evidence](SURVIVORS-LOCATIONS.md) records coordinates, counts, method and limits.
+Five audit tests and Clippy pass. World traversal, source model identity, WMO/doodad
+collision, camera behavior and encounter/reward implementation remain outstanding.
