@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Hunter talent UI evidence
+
+Verified rank refund/spend, independent spec reset and saved allocation after relaunch.
+The three-tree page and green descriptions fit 1280×720 and a live resize to 1024×720.
+Added [milestone screenshots](images/screenshots/2026-10-25-hunter-talents/mortal-shots-720.jpg)
+to the README. No runtime errors or panics appeared; broader visual acceptance remains open.
+
 ## 2026-10-25 — Hunter Marksmanship bonuses
 
 Barrage, Lethal Shots, Mortal Shots and Ranged Weapon Specialization now affect explicit

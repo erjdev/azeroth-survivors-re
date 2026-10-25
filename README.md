@@ -61,6 +61,16 @@ Pick a class and a battleground, then survive: WASD to move, your abilities cast
 enemies swarm in waves, you level up and pick upgrades, and a boss shows up every couple of
 minutes. **No server, no login, no account** — fully offline and self-contained.
 
+Hunter talent milestone: Mortal Shots has a green next-rank preview, and spending/resetting
+Spec 2 leaves Spec 1 intact. Verified at 1280×720 and after a live resize to 1024×720;
+the saved allocation also survived relaunch. Thirteen Hunter nodes have explicit effects;
+remaining nodes, pets and milestones are unfinished.
+
+![Hunter Mortal Shots rank preview at 720p](docs/images/screenshots/2026-10-25-hunter-talents/mortal-shots-720.jpg)
+
+[Independent second spec](docs/images/screenshots/2026-10-25-hunter-talents/spec-two-720.jpg) ·
+[Narrow talent layout](docs/images/screenshots/2026-10-25-hunter-talents/mortal-shots-1024.jpg)
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**

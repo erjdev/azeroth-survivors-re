@@ -1551,3 +1551,28 @@ and unchanged area targeting. Live visual and full-class acceptance remain unver
 
 Validation: native build, workspace test compilation, 64 core tests, 111 Survivors app
 tests, explicit-data talent audit, Clippy, formatting and render-pass lint pass.
+
+
+### Hunter talent visual and persistence checkpoint
+
+The native build containing the thirteen individual Hunter effects was exercised with
+an isolated, seeded 51-point account at 1280×720. Spec 1 started with 33 Marksmanship
+points. Clicking capped Mortal Shots kept 5/5 and displayed its green description.
+Right-click refunded one rank: 32 points spent, 19 unspent, and `24 to 30%` in the green
+preview. Spec 2 started empty with 51 unspent; spending one Improved Concussive Shot
+rank showed its slow-duration effect and left Spec 1 at 32. Resetting Spec 2 cleared only
+that spec. Spec 3 remained empty throughout.
+
+Returning to Spec 1 and live-resizing to 1024×720 kept all three trees, milestone rows,
+spec controls, reset and the full description visible. Clicking Mortal Shots at the new
+position restored 5/5 and 33 points. Closing and reopening restored that allocation and
+the empty second spec, confirmed in the page and saved DBC-rank payload. Neither run
+logged an ERROR or panic. The app was closed through its current window handle without
+querying the exited app, and launch overrides were restored.
+
+Evidence: [Mortal Shots preview](images/screenshots/2026-10-25-hunter-talents/mortal-shots-720.jpg),
+[independent second spec](images/screenshots/2026-10-25-hunter-talents/spec-two-720.jpg),
+[narrow layout](images/screenshots/2026-10-25-hunter-talents/mortal-shots-1024.jpg).
+This validates these interactions and two dimensions, not the full resolution matrix,
+all talent nodes, live combat balance or complete Hunter acceptance. The single-point
+heading still reads `1 points`; copy polish remains open.
