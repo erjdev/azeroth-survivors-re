@@ -1136,29 +1136,6 @@ pub fn set_complete(pieces: &[u8]) -> bool {
     (0..GRID_SLOTS).all(|slot| best_piece(pieces, slot).is_some())
 }
 
-fn band_bonus(band: usize) -> Bonus {
-    match band {
-        0 => quality_bonus(Quality::Common),
-        1 => quality_bonus(Quality::Uncommon),
-        2 => quality_bonus(Quality::Rare),
-        3 => quality_bonus(Quality::Epic),
-        4 => Bonus {
-            armor: 16.0,
-            might: 0.07,
-            crit: 0.045,
-            multistrike: 0.07,
-            speed: 0.035,
-            reduction: 0.03,
-            ..Bonus::default()
-        },
-        _ => {
-            let mut bonus = quality_bonus(Quality::Legendary);
-            bonus.reduction = 0.04;
-            bonus
-        }
-    }
-}
-
 /// Initial glove tuning follows the health/pickup/area/reduction/damage progression.
 /// These coefficients are game balance data, not the original WoW item's stats.
 pub fn glove_bonus(quality: Quality) -> Bonus {
@@ -1207,7 +1184,7 @@ pub fn piece_bonus(band: usize, slot: usize) -> Bonus {
         }
         return bonus;
     }
-    band_bonus(band)
+    crate::gear_stats::piece(band, slot)
 }
 
 /// One selected piece per slot, its quality's stats, the worn set, and a cloak.

@@ -18,6 +18,12 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Gear stat checkpoint verified at 1280×720: [slot profiles](SURVIVORS-GEAR-STATS.md) replace
+the shared non-glove bonus sequence. Each current band adds one stat and strengthens
+retained stats; only selected equipment contributes, regardless of duplicate count.
+This is initial tuning. Poor drops, distinct raid epics and build-specific raid sets
+still require authored identities and sources; combat balance remains open.
+
 Shared Armory header checkpoint verified: title, wrapping tabs and selected
 class/collection subtitle follow the references; the starter keeps its game title.
 Collection's duplicate subtitle is removed. The 640-pixel check exposes crowded Collection

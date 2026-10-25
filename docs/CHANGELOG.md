@@ -3,6 +3,32 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Distinct gear stat profiles
+
+Gear slots now have distinct stat progressions: chest armor starts with health and
+armor, boots with movement and pickup, wrists with critical chance and cooldown
+reduction. Every higher current band improves retained stats and adds one; duplicate
+copies still add no power. Gloves retain the requested examples. This changes existing
+items' bonuses while preserving ownership and selected equipment. See the
+[initial tuning and remaining raid/quality work](SURVIVORS-GEAR-STATS.md).
+
+![Common chest: two stats](images/screenshots/2026-10-25-gear-profiles/common-chest-1280.jpg)
+
+![Epic chest: five stats](images/screenshots/2026-10-25-gear-profiles/epic-chest-1280.jpg)
+
+![Equipping Epic chest updates the worn item and totals](images/screenshots/2026-10-25-gear-profiles/equipped-epic-1280.jpg)
+
+![Boots emphasize movement and pickup](images/screenshots/2026-10-25-gear-profiles/common-boots-1280.jpg)
+
+![Wrists show critical chance and clearly labeled cooldown reduction](images/screenshots/2026-10-25-gear-profiles/common-wrist-1280.jpg)
+
+Actual 1280×720 captures use an isolated synthetic account and retain the
+[Collection reference's](intentions/survivors_collection_tab.png) green item details
+and equipment totals. Typography, final balance, Poor drops, raid epics and distinct
+raid set bonuses remain open. Validation: 98 core rules tests, 180 Survivors app
+tests without default features (including mixed-equipment combat stats and downgrade),
+native incremental build (1m32s), workspace Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Codex jewelry icons and selection
 
 Legendary amulets now read as jewelry with an associated spell badge, following the

@@ -744,6 +744,37 @@ mod stat_tests {
     use super::*;
 
     #[test]
+    fn chosen_slot_profiles_reach_combat_stats_and_downgrade_cleanly() {
+        let mut run = Run::default();
+        let base = run.stats();
+        let mut owned = [0; campaign::PIECES];
+        owned[2] = 1; // Common chest, kept for an explicit downgrade.
+        owned[3 * campaign::GRID_SLOTS + 2] = 20; // Epic chest duplicates.
+        owned[5] = 1; // Common boots.
+        owned[6] = 1; // Common wrists.
+        let mut equipment = survivors_core::equipment::Equipment::legacy(&owned);
+        run.bonus = campaign::equipped_bonus(&equipment.worn_pieces(&owned), None);
+        let epic = run.stats();
+        assert!((epic.max_hp - base.max_hp - 25.0).abs() < 0.001);
+        assert!((epic.armor - base.armor - 14.0).abs() < 0.001);
+        assert!((epic.magnet - base.magnet * 1.26).abs() < 0.001);
+        assert!((epic.speed - base.speed * 1.01).abs() < 0.001);
+        assert!((epic.crit - base.crit - 0.01).abs() < 0.001);
+        assert!((epic.cooldown - base.cooldown - 0.005).abs() < 0.001);
+        assert!((epic.reduction - base.reduction - 0.02).abs() < 0.001);
+        equipment.wear(&owned, 2, Some(0));
+        run.bonus = campaign::equipped_bonus(&equipment.worn_pieces(&owned), None);
+        let common = run.stats();
+        assert!((common.max_hp - base.max_hp - 10.0).abs() < 0.001);
+        assert!((common.armor - base.armor - 6.0).abs() < 0.001);
+        assert!((common.magnet - base.magnet * 1.08).abs() < 0.001);
+        assert_eq!(common.reduction, base.reduction);
+        assert_eq!(common.might, base.might);
+        assert_eq!(common.speed, epic.speed);
+        assert_eq!(common.cooldown, epic.cooldown);
+    }
+
+    #[test]
     fn equipment_health_and_pickup_reach_the_run_sheet() {
         let mut run = Run::default();
         let base = run.stats();

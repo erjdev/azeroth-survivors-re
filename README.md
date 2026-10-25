@@ -27,6 +27,12 @@ layout at wider sizes. Item actions and tab return preserve narrow scrolling.
 
 ![Responsive Collection at 640×720](docs/images/screenshots/2026-10-25-collection-responsive/collection-640.jpg)
 
+Gear now has distinct [slot stat progressions](docs/SURVIVORS-GEAR-STATS.md). Higher
+quality strengthens existing stats and adds one; duplicates add no power. Initial
+tuning shown here uses synthetic collected equipment.
+
+![Epic chest bonuses and updated equipment totals](docs/images/screenshots/2026-10-25-gear-profiles/equipped-epic-1280.jpg)
+
 Codex distinguishes legendary jewelry with spell badges and highlights the selected
 entry, with larger detail art. Discoveries below are synthetic preview data.
 

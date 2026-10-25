@@ -1128,7 +1128,7 @@ pub(super) fn bonus_line(bonus: campaign::Bonus) -> String {
         parts.push(format!("{} damage reduction", pct(bonus.reduction)));
     }
     if bonus.cooldown.abs() > 0.0001 {
-        parts.push(format!("{} cooldown", pct(bonus.cooldown)));
+        parts.push(format!("{} cooldown reduction", pct(bonus.cooldown)));
     }
     if bonus.gold.abs() > 0.0001 {
         parts.push(format!("{} gold", pct(bonus.gold)));
