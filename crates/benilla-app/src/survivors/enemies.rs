@@ -207,7 +207,7 @@ pub(super) fn spawn_enemies(
     while let Some(def) = super::encounters::next(selection.map, run.bosses, elapsed) {
         let a = rng.range(0.0, std::f32::consts::TAU);
         let Some(pos) = super::spawn::point(&world, map, hpos, a, 30.0, radius_for(def)) else {
-            // The same scheduled boss remains pending until its floor is available.
+            // The same scheduled boss remains pending until a supported, clear position exists.
             break;
         };
         spawn_enemy(&mut commands, &mut run, def, pos, hpos, true, false);

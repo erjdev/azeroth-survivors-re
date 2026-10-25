@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Spawn clearance and live Epic rewards
+
+Spawn candidates now reject body overlaps with registered collision geometry and retry
+other directions. Verified walls, ceilings, slopes and arena-edge spawning; all 130 app
+tests and Clippy pass. Native build took 22 seconds. Added a [Gurubashi results milestone](images/screenshots/2026-10-25-gurubashi-live/late-warrior-results.png);
+isolated accelerated attempts persisted three Epic pieces. Slow combat and generic chest
+jewelry icons remain open; Gurubashi stays locked.
+
 ## 2026-10-25 — Arena collision evidence and catalog screenshot
 
 Verified Gurubashi's placed arena boundary with body/camera probes and 128 grounded

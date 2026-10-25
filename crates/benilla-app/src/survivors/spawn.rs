@@ -1,4 +1,4 @@
-//! Spawn candidates stay inside the arena and require nearby support at the center and footprint edges.
+//! Spawn candidates stay inside the arena, require floor support and reject body overlaps.
 use super::{data::MapDef, floor::Floor, hero::arena, units::flat};
 use bevy::prelude::*;
 
@@ -10,9 +10,15 @@ pub(super) fn point(
     distance: f32,
     radius: f32,
 ) -> Option<Vec3> {
-    choose(arena(map), map.leash, hero, angle, distance, radius, |p| {
-        world.height(p)
-    })
+    choose(
+        arena(map),
+        map.leash,
+        hero,
+        angle,
+        distance,
+        radius,
+        (|p| world.height(p), |p| world.can_spawn(p, radius)),
+    )
 }
 
 fn choose(
@@ -22,7 +28,7 @@ fn choose(
     angle: f32,
     distance: f32,
     radius: f32,
-    height: impl Fn(Vec3) -> Option<f32>,
+    (height, clear): (impl Fn(Vec3) -> Option<f32>, impl Fn(Vec3) -> bool),
 ) -> Option<Vec3> {
     let edge = leash - radius - 0.25;
     if edge <= 0.0 {
@@ -51,7 +57,7 @@ fn choose(
                 height(p + *axis * radius)
                     .is_some_and(|h| h.is_finite() && (h - y).abs() <= radius.max(0.75))
             });
-        if supported {
+        if supported && clear(p) {
             return Some(p);
         }
     }
@@ -73,7 +79,7 @@ mod tests {
                     i as f32 * std::f32::consts::TAU / 64.,
                     42.,
                     radius,
-                    |_| Some(10.),
+                    (|_| Some(10.), |_| true),
                 )
                 .unwrap();
                 assert!(flat(p).length() + radius <= 30.);
@@ -84,19 +90,73 @@ mod tests {
     }
     #[test]
     fn missing_floor_or_unsupported_footprint_cannot_produce_a_spawn() {
-        assert!(choose(Vec3::ZERO, 30., Vec3::ZERO, 0., 20., 1., |_| None).is_none());
+        assert!(choose(
+            Vec3::ZERO,
+            30.,
+            Vec3::ZERO,
+            0.,
+            20.,
+            1.,
+            (|_| None, |_| true)
+        )
+        .is_none());
         // Only the nominal ring has support: all bodies would overhang its edge.
-        assert!(choose(Vec3::ZERO, 30., Vec3::ZERO, 0., 20., 1., |p| {
-            ((flat(p).length() - 20.).abs() < 0.01).then_some(0.)
-        })
+        assert!(choose(
+            Vec3::ZERO,
+            30.,
+            Vec3::ZERO,
+            0.,
+            20.,
+            1.,
+            (
+                |p| { ((flat(p).length() - 20.).abs() < 0.01).then_some(0.) },
+                |_| true
+            )
+        )
         .is_none());
     }
     #[test]
     fn rejected_direction_can_retry_on_supported_ground() {
-        let p = choose(Vec3::ZERO, 30., Vec3::ZERO, 0., 20., 1., |p| {
-            (p.x < 0.).then_some(0.)
-        })
+        let p = choose(
+            Vec3::ZERO,
+            30.,
+            Vec3::ZERO,
+            0.,
+            20.,
+            1.,
+            (|p: Vec3| (p.x < 0.).then_some(0.), |_| true),
+        )
         .unwrap();
         assert!(p.x < 0.);
+    }
+    #[test]
+    fn supported_but_occupied_spawns_retry_and_fully_blocked_rings_wait() {
+        let candidate = choose(
+            Vec3::ZERO,
+            30.,
+            Vec3::ZERO,
+            0.,
+            20.,
+            1.,
+            (
+                |_| Some(4.),
+                |p: Vec3| {
+                    assert_eq!(p.y, 4.);
+                    p.x < 0.
+                },
+            ),
+        )
+        .unwrap();
+        assert!(candidate.x < 0.);
+        assert!(choose(
+            Vec3::ZERO,
+            30.,
+            Vec3::ZERO,
+            0.,
+            20.,
+            1.,
+            (|_| Some(0.), |_| false)
+        )
+        .is_none());
     }
 }

@@ -102,6 +102,12 @@ pending world acceptance; this older capture predates those source labels.
 [Human male armor preview](docs/images/screenshots/2026-10-25-rare-armor/character-720.png)
 is a visual checkpoint, not complete race/sex or attachment acceptance.
 
+Gurubashi live checkpoint: an isolated accelerated Warrior run starts at 10:00 with
+max-rank abilities. The captured defeat at 10:36 reports six bosses and 409 kills; this
+is not a full-length run or balance acceptance. Slow combat samples remain under investigation.
+
+![Gurubashi accelerated Warrior results](docs/images/screenshots/2026-10-25-gurubashi-live/late-warrior-results.png)
+
 Catalog coverage: every class now has all **54 collection cells named and mapped**.
 This completes identity coverage, not acquisition or gameplay acceptance: missing drop
 sources, live appearance checks and raid-set mechanics remain tracked in the plan.

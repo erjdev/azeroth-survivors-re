@@ -150,6 +150,17 @@ fn gurubashi_placed_arena_body_and_camera_boundaries() {
                                 );
                                 at = next;
                             }
+                            assert!(floor.can_spawn(at, radius), "clear arena endpoint rejected");
+                            let map = super::super::data::MAPS
+                                .iter()
+                                .find(|m| m.name == "Gurubashi Arena")
+                                .unwrap();
+                            let spawn =
+                                super::super::spawn::point(&floor, map, at, angle, 42., radius)
+                                    .expect("edge hero can spawn on clear arena floor");
+                            assert!(floor.can_spawn(spawn, radius));
+                            assert!((spawn - at).length() >= 6.);
+
                             assert!(
                                 (29.7..30.2).contains(&at.distance(start)),
                                 "arena traversal stalled: radius {radius}, ray {ray}, {at:?}"

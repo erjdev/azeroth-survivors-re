@@ -165,6 +165,26 @@ impl Floor<'_, '_> {
         self.ground(feet).map(|(height, _)| height)
     }
 
+    /// Spawn bodies need both a supported floor and unoccupied body space. Use the
+    /// same slope clearance as movement, so ordinary uphill terrain is not an obstacle.
+    pub fn can_spawn(&self, feet: Vec3, radius: f32) -> bool {
+        let Some((y, normal_y)) = self.ground(feet) else {
+            return false;
+        };
+        if (feet.y - y).abs() > 0.1 {
+            return false;
+        }
+        let center = feet + Vec3::Y * (radius / normal_y + 0.5 + 0.03);
+        self.spatial
+            .shape_intersections(
+                &Collider::capsule(radius, 1.0),
+                center,
+                Quat::IDENTITY,
+                &WorldCollision::body_filter(),
+            )
+            .is_empty()
+    }
+
     fn ground(&self, feet: Vec3) -> Option<(f32, f32)> {
         let origin = feet + Vec3::Y * STEP_UP;
         if let Some(hit) = self.collision.ray_body(origin, Dir3::NEG_Y, STEP_UP + DROP) {
@@ -913,6 +933,51 @@ mod tests {
     }
 
     #[test]
+    fn spawn_clearance_rejects_wall_edges_low_ceilings_and_missing_floor() {
+        let mut unsupported = fixture(&[]);
+        assert!(!unsupported
+            .world_mut()
+            .run_system_once(|floor: Floor| floor.can_spawn(Vec3::ZERO, 0.6))
+            .unwrap());
+        let mut app = fixture(&[0.]);
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::cuboid(0.2, 4., 10.),
+            Transform::from_xyz(2.1, 2., 0.),
+        ));
+        app.update();
+        app.world_mut()
+            .run_system_once(|floor: Floor| {
+                assert!(floor.can_spawn(Vec3::ZERO, 0.6));
+                assert!(floor.can_spawn(Vec3::ZERO, 1.3));
+                assert!(floor.can_spawn(Vec3::X * 1.2, 0.6));
+                assert!(!floor.can_spawn(Vec3::X * 1.6, 0.6));
+                assert!(!floor.can_spawn(Vec3::X * 1.2, 1.3));
+                assert!(!floor.can_spawn(Vec3::Y, 0.6));
+            })
+            .unwrap();
+        let ceiling = app
+            .world_mut()
+            .spawn((
+                RigidBody::Static,
+                Collider::cuboid(3., 0.2, 3.),
+                Transform::from_xyz(0., 2.2, 0.),
+            ))
+            .id();
+        app.update();
+        assert!(!app
+            .world_mut()
+            .run_system_once(|floor: Floor| floor.can_spawn(Vec3::ZERO, 0.6))
+            .unwrap());
+        app.world_mut().despawn(ceiling);
+        app.update();
+        assert!(app
+            .world_mut()
+            .run_system_once(|floor: Floor| floor.can_spawn(Vec3::ZERO, 0.6))
+            .unwrap());
+    }
+
+    #[test]
     fn walking_slides_into_a_two_wall_corner_without_crossing_either_face() {
         let mut app = fixture(&[0.]);
         for (size, center) in [
@@ -975,6 +1040,10 @@ mod tests {
                                 super::super::HERO_RADIUS,
                             );
                             walked.y = floor.height(walked).unwrap();
+                            assert!(
+                                floor.can_spawn(walked, super::super::HERO_RADIUS),
+                                "supported slope rejected"
+                            );
                         }
                         (
                             floor.travel(Vec3::ZERO, expected, super::super::HERO_RADIUS),

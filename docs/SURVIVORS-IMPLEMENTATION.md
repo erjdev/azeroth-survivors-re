@@ -2186,3 +2186,51 @@ Validation: all 128 Survivors app tests with explicit checkout data pass. Worksp
 test compilation took 1m57s for the final fixture; Clippy took 14.69 seconds and passes.
 Formatting, render-pass lint and diff whitespace checks pass. Core gameplay files are
 unchanged from the prior 77-test checkpoint; the overall goal remains incomplete.
+
+### Spawn body clearance — 2026-10-25
+
+Spawn placement previously checked the floor at the candidate center and four footprint
+edges but did not test the body's occupied space. It now checks a capsule with the actual
+spawn radius against body-collidable geometry after support passes, using the same slope
+clearance as movement. Candidates overlapping wall edges, low ceilings or other registered
+collision faces retry the remaining angular positions. When all candidates fail, existing
+boss scheduling retains the pending encounter instead of consuming it; ordinary spawns
+wait for a usable position.
+
+Regression coverage checks small/large bodies near a wall, a low ceiling and its removal,
+missing/mismatched floors, supported slopes, angular retry and fully occupied rings.
+The placed Gurubashi fixture also checks clearance and spawn candidates from a hero near
+the arena boundary across its 64 sampled headings for both tested body radii.
+
+This uses registered collision geometry. It is not navigation, a guarantee of a connected
+route to the player, or a volumetric containment test for an entire capsule enclosed by
+a hollow triangle mesh without touching its faces. Live streaming, crowd-performance and
+remaining zone acceptance still need validation. No readiness flag changes.
+
+Validation: all 130 Survivors app tests pass with explicit checkout data, including the
+real arena edge-spawn checks. Final workspace test compilation took 2m11s; native play
+build took 22.03 seconds; workspace Clippy took 14.94 seconds and passes. Formatting,
+render-pass lint and diff whitespace checks pass.
+
+An isolated native Warrior `:late` run in Gurubashi starts at 600 simulated seconds with
+all nine abilities at maximum rank. The captured results show 10:36, level 24, 409 kills,
+150.2k damage and six bosses. Autopilot began a second attempt before the app was closed;
+final save evidence spans both attempts. Warrior cells 27, 29 and 30 (Epic helm, chest,
+waist) are owned and selected (`404400000`); all zone-clear flags remain zero. This
+validates some actual reward persistence, not all nine encounters or normal acquisition.
+Screenshot: `docs/images/screenshots/2026-10-25-gurubashi-live/late-warrior-results.png`.
+
+The live log reaches 206 recorded enemies and has no ERROR/panic entries, but performance
+is not accepted: observed hitches reach 1,882ms, and later combat samples fall to
+roughly 7–9 FPS. The lowest reported combat sample is 4.3 FPS across only 2.10 combat
+seconds/nine frames, including a 1,090.9ms hitch; this is not a steady-state benchmark.
+Profiling must distinguish collision/spawning, rendering/effects and streaming before
+attributing the regression to a subsystem. Normal launcher restored; app closed via
+fresh AX control, without querying it after exit.
+
+A separate UI issue was observed during this run: chest jewelry cards still use generic
+spell-ID art (`jewel_card` in `hud.rs`), while the verified item-display mappings are only
+used by the Codex page. The trinket card showed a question-mark icon. Wire chest cards to
+the same item icon catalog and validate their live appearance in a subsequent checkpoint.
+The “no change” bonus line may represent an equivalent replacement and is not by itself
+proof of a missing effect.
