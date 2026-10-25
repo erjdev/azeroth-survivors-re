@@ -29,6 +29,21 @@ fn liquid_above(tile: &TileMesh, point: [f32; 3]) -> bool {
     })
 }
 
+// Diagnostic only: compare the fast height lookup with the triangles actually emitted by
+// the terrain loader. Missing samples remain missing in the survey's acceptance counts.
+fn mesh_height(tile: &TileMesh, point: [f32; 3]) -> Option<f32> {
+    tile.chunks.iter().find_map(|chunk| {
+        chunk.indices.as_chunks::<3>().0.iter().find_map(|t| {
+            let triangle = [
+                chunk.positions[t[0] as usize],
+                chunk.positions[t[1] as usize],
+                chunk.positions[t[2] as usize],
+            ];
+            benilla_formats::triangle_z_at(&triangle, point[0], point[1])
+        })
+    })
+}
+
 pub fn survey(chain: &mut Chain, map: u32, input: [f32; 3]) -> Result<()> {
     let [x, y, radius] = input;
     ensure!(
@@ -55,10 +70,20 @@ pub fn survey(chain: &mut Chain, map: u32, input: [f32; 3]) -> Result<()> {
         benilla_formats::terrain_height_at(&tile.chunks, [x, y, 0.])
     };
     let (mut supported, mut wet, mut impassable, mut steep, mut edge) = (0, 0, 0, 0, 0);
+    let mut mesh_supported_misses = 0;
+    let mut missing_examples = Vec::new();
     let (mut low, mut high) = (f32::INFINITY, f32::NEG_INFINITY);
     for p in &points {
         let (px, py) = (x + p[0], y + p[1]);
-        let Some(z) = height(px, py) else { continue };
+        let Some(z) = height(px, py) else {
+            let tile = &cache[&tiles.tile_at(px, py)];
+            let mesh = mesh_height(tile, [px, py, 0.]);
+            mesh_supported_misses += usize::from(mesh.is_some());
+            if missing_examples.len() < 8 {
+                missing_examples.push((px, py, mesh));
+            }
+            continue;
+        };
         supported += 1;
         low = low.min(z);
         high = high.max(z);
@@ -84,7 +109,7 @@ pub fn survey(chain: &mut Chain, map: u32, input: [f32; 3]) -> Result<()> {
     }
     println!("TERRAIN DISK: map {map} ({dir}), center [{x:.3}, {y:.3}], radius {radius}, spacing 2 yards, {} tiles",cache.len());
     println!(
-        "Samples: {} total, {supported} supported, {} missing terrain",
+        "Samples: {} total, {supported} fast-height supported, {} unresolved fast-height samples",
         points.len(),
         points.len() - supported
     );
@@ -92,6 +117,10 @@ pub fn survey(chain: &mut Chain, map: u32, input: [f32; 3]) -> Result<()> {
         println!("Terrain height range: {low:.3} to {high:.3}");
     }
     println!("Supported samples: {wet} liquid deeper than 0.1 yard, {impassable} impassable, {steep} estimated slope above 45 degrees, {edge} incomplete gradient neighbourhoods");
+    println!("Missing fast-height samples with emitted-mesh support: {mesh_supported_misses}");
+    for (px, py, mesh) in missing_examples {
+        println!("Missing sample [{px:.3}, {py:.3}]: emitted-mesh height {mesh:?}");
+    }
     println!("Counts may overlap. Scope: sampled ADT terrain and MCLQ only. Excludes WMO floors/liquids, doodad collision, walls, connectivity, camera and between-sample hazards. Not arena readiness or navigation proof.");
     Ok(())
 }

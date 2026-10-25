@@ -1450,3 +1450,13 @@ Validation: native macOS build, workspace test compilation, workspace Clippy, fo
 render-pass lint and all 12 focused HUD tests pass. Coverage includes effective critical
 chance, baseline/boosted/minimum multipliers and green single-unit passive comparisons.
 Live tooltip validation and the broader acceptance contract remain open.
+
+### Un'Goro location investigation — 2026-10-25
+
+[Location evidence](SURVIVORS-LOCATIONS.md#ungoro-arena-suitability-and-height-lookup-discrepancy--2026-10-25)
+now rejects the configured summit footprint as a dry arena and records four crater-floor
+alternatives. The southern candidate exposes 17 fast-height lookup misses despite emitted
+mesh support. The audit reports these separately; runtime floors, map coordinates and
+locks remain unchanged. Resolve the lookup discrepancy and inspect collider/obstacle and
+rendered behavior before authoring the replacement. Encounters and all-class drop mapping
+remain required before readiness.

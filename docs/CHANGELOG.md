@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Un'Goro arena investigation
+
+The current summit footprint contains submerged and steep terrain. Surveyed nearby
+alternatives and found a height-lookup discrepancy: 17 apparent gaps at a southern
+candidate have rendered-mesh support. The audit now reports these discrepancies and
+sample coordinates. Location evidence records the reproduction; Un'Goro remains locked.
+Audit build, seven tests, scoped Clippy and workspace formatting pass.
+
 ## 2026-10-25 — Accurate critical-hit descriptions
 
 Ability tooltips now show the effective critical damage percentage, including talents and

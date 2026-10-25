@@ -223,3 +223,39 @@ The fixture deliberately isolates the hull at a fixed height. It exercises `Floo
 and the engine collision query, not the async streamer, terrain-following movement,
 route finding or a live player. It therefore narrows the remaining investigation without
 closing the reported Elwynn collision issue or claiming Warsong traversal acceptance.
+
+
+## Un'Goro arena suitability and height-lookup discrepancy — 2026-10-25
+
+The configured Fire Plume Ridge center `(-7136, -1309)`, radius 32, has 797/797
+fast-height-supported samples, but 66 are submerged and 130 exceed the 45-degree gradient
+threshold. Height ranges from -196.720 to -173.435. Eight adjacent centers, offset by 40
+yards on either axis (including diagonals), each also contain steep, wet or unresolved
+samples. Do not approve this summit disk as a dry, traversable arena.
+
+Crater-floor alternatives, all sampled at radius 40 and two-yard spacing:
+
+| Center x, y | Fast-height support / total | Wet | Steep | Notes |
+| --- | --- | --- | --- | --- |
+| -6836, -1309 | 1257 / 1257 | 59 | 5 | Reject this footprint |
+| -7436, -1309 | 1240 / 1257 | 0 | 0 | Unresolved height samples need investigation |
+| -7136, -1009 | 1240 / 1257 | 0 | 0 | Unresolved height samples need investigation |
+| -7136, -1609 | 1240 / 1257 | 0 | 0 | All 17 misses have emitted-mesh support |
+
+Reproduce the last row with:
+
+```bash
+cargo run -p survivors-audit -- "$PWD/wow-data/Data" --terrain 1 -7136 -1609 40
+```
+
+The terrain audit now compares unresolved fast-height samples with the actual emitted
+triangle indices, reporting counts and up to eight coordinates. At `(-7100, -1625)` the
+fast lookup returns no height while the mesh yields -271.66095; the first eight misses
+share x=-7100 and y=-1625 through -1611 at two-yard intervals. This is evidence of a
+height-lookup discrepancy, not an absent rendered surface. The diagnostic leaves original
+support counts unchanged and does not supply runtime floors or fill authored holes.
+
+Next: reproduce the lookup discrepancy at the chunk/cell boundary, verify physical
+collision and placed obstacles at the southern candidate, then inspect it in the world
+viewer before changing the authored arena. Existing map coordinates and campaign locks
+are unchanged. Encounter/drop/class-item gaps remain separate requirements.
