@@ -1944,3 +1944,38 @@ Validation: all 121 Survivors app tests pass with explicit checkout data. Worksp
 compilation took 2 minutes 53 seconds; the incremental native play build took 49.93 seconds.
 Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass. No gameplay screenshot was
 used as proof of capsule contact; the numeric geometry regression provides that evidence.
+
+### Horde collision timing baseline — 2026-10-25
+
+The Feralas geometry regression has an opt-in timing probe, using actual terrain and
+root placement 245515 with 1, 60 and 220 bodies (the current late-run population target).
+It excludes loading, rendering, enemy separation, other props and streaming. Bodies
+advance 0.08 yards per simulated frame with radii 0.6/1.3; 60 warm-up frames precede
+600 samples. This is an optimized test-profile measurement on the local arm64 Mac,
+not a gameplay FPS result or a portable performance guarantee.
+
+| Bodies | Movement median | Movement p95 | Movement max | Final-pose replay p95 | Advancing steps |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 0.008 ms | 0.054 ms | 0.056 ms | 0.005 ms | 414 / 600 |
+| 60 | 0.312 ms | 2.267 ms | 2.345 ms | 0.234 ms | 24,687 / 36,000 |
+| 220 | 4.241 ms | 9.800 ms | 10.041 ms | 0.825 ms | 77,564 / 132,000 |
+
+Final-pose replay independently times floor lookup plus overlap checking at the resulting
+positions; it is diagnostic, not an exact subtraction of time within the full movement
+pass. A first run without replay also measured 9.779 ms p95 for 220 bodies. Some bodies
+stop at geometry; advancing-step counts expose that limitation. The sweep/contact solver
+is the next profiling target. A 9.8 ms collision-only p95 is not accepted as completion
+of the horde performance requirement; full gameplay profiling and optimization remain open.
+
+Reproduce from the checkout (keep the workspace feature graph):
+
+```bash
+WOW_DATA="$PWD/wow-data/Data" WOW_SURVIVORS_FLOOR_BENCH=1 \
+  cargo test --workspace \
+  survivors::floor::tests::placed_feralas_root_blocks_the_candidate_crossing_and_unregisters \
+  -- --exact --nocapture
+```
+
+No timing threshold is asserted on shared CI hardware. The normal collision assertions
+still run before the probe. All 121 Survivors app tests with checkout data and workspace
+Clippy pass; the new probe is test-only and does not change the native executable.

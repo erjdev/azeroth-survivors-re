@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Horde collision profiling
+
+Added a repeatable, opt-in Feralas collision timing probe at up to 220 bodies. It exposes
+roughly 9.8 ms p95 movement cost on this Mac; final-position overlap checks account for
+much less in an independent replay. Solver optimization and live gameplay profiling
+remain open. Measurements and the command are in the implementation plan. All 121
+Survivors app tests with checkout data and workspace Clippy pass; runtime is unchanged.
+
 ## 2026-10-25 — Grounded movement across slopes and roots
 
 Walking follows gentle terrain without wedging, recovers missed floor probes at triangle

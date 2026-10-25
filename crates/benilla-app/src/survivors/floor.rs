@@ -640,6 +640,76 @@ mod tests {
             "grounded capsule stalled before reaching the root: {walked:?}"
         );
         eprintln!("Feralas grounded root walk: {grounded:?} -> {walked:?}");
+        if std::env::var_os("WOW_SURVIVORS_FLOOR_BENCH").is_some() {
+            benchmark_grounded_horde(&mut app, grounded);
+        }
+    }
+
+    /// Opt-in timing only: no machine-dependent pass threshold. Uses the already loaded
+    /// Feralas terrain/root fixture, excluding asset loading, rendering and actor separation.
+    fn benchmark_grounded_horde(app: &mut App, origin: Vec3) {
+        use bevy::platform::time::Instant;
+        for count in [1, 60, super::super::data::target_alive(960.)] {
+            app.world_mut()
+                .run_system_once(move |floor: Floor| {
+                    let mut actors: Vec<_> = (0..count)
+                        .map(|i| {
+                            let at = origin
+                                + Vec3::new((i % 20) as f32 - 10., 0., (i / 20) as f32);
+                            Vec3::new(at.x, floor.height(at).unwrap_or(at.y), at.z)
+                        })
+                        .collect();
+                    let mut samples = Vec::with_capacity(600);
+                    let mut overlap_samples = Vec::with_capacity(600);
+                    let mut moving = 0;
+                    for frame in 0..660 {
+                        let start = Instant::now();
+                        let mut advanced = 0;
+                        for (i, at) in actors.iter_mut().enumerate() {
+                            let radius = if i % 10 == 0 { 1.3 } else { 0.6 };
+                            let mut next = floor.slide(*at, *at + Vec3::Z * 0.08, radius);
+                            next.y = floor.height(next).unwrap_or(next.y);
+                            advanced += usize::from((next.z - at.z).abs() > 0.001);
+                            *at = next;
+                        }
+                        let elapsed = start.elapsed().as_secs_f64() * 1000.;
+                        // Replay just final-pose validation on the same body positions to
+                        // distinguish its cost from the pre-existing slide/contact solver.
+                        let overlap_start = Instant::now();
+                        for (i, at) in actors.iter().enumerate() {
+                            let radius = if i % 10 == 0 { 1.3 } else { 0.6 };
+                            if let Some((y, normal_y)) = floor.ground(*at) {
+                                let center = Vec3::new(at.x, y + radius / normal_y + 0.53, at.z);
+                                std::hint::black_box(floor.spatial.shape_intersections(
+                                    &Collider::capsule(radius - 0.02, 1.0), center,
+                                    Quat::IDENTITY, &WorldCollision::body_filter(),
+                                ));
+                            }
+                        }
+                        let overlap_elapsed = overlap_start.elapsed().as_secs_f64() * 1000.;
+                        if frame >= 60 {
+                            overlap_samples.push(overlap_elapsed);
+                            samples.push(elapsed);
+                            moving += advanced;
+                        }
+                    }
+                    std::hint::black_box(&actors);
+                    samples.sort_by(f64::total_cmp);
+                    overlap_samples.sort_by(f64::total_cmp);
+                    eprintln!(
+                        "Feralas floor benchmark: actors={count}, frames={}, p50={:.3}ms, p95={:.3}ms, max={:.3}ms, moving_steps={moving}/{}",
+                        samples.len(), samples[samples.len() / 2],
+                        samples[samples.len() * 95 / 100], samples.last().unwrap(),
+                        samples.len() * count,
+                    );
+                    eprintln!(
+                        "Feralas final-pose replay: actors={count}, p50={:.3}ms, p95={:.3}ms",
+                        overlap_samples[overlap_samples.len() / 2],
+                        overlap_samples[overlap_samples.len() * 95 / 100],
+                    );
+                })
+                .unwrap();
+        }
     }
 
     #[test]
