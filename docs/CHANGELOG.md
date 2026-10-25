@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Camera obstruction diagnostics
+
+Added optional position/zoom tracing to distinguish collision push-in from visual
+occlusion. An Elwynn run kept all 98 sampled gameplay booms at 30 yards; the earlier
+close-camera symptom remains unresolved. Native build, 140 Survivors tests and Clippy
+pass. Evidence and next checks are in the plan.
+
 ## 2026-10-25 — Indoor minimap imagery
 
 Fixed Scarlet's blank map by compositing authored building-group textures. Unchanged

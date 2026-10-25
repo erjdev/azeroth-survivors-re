@@ -330,6 +330,7 @@ pub(super) fn place_camera(
     phase: Res<State<Phase>>,
     mut rig: ResMut<CamRig>,
     mut camera_settings: ResMut<super::camera::CameraSettings>,
+    mut trace: Local<super::camera::CameraTrace>,
     mut wheel: MessageReader<MouseWheel>,
     mouse: Res<ButtonInput<MouseButton>>,
     motion: Res<AccumulatedMouseMotion>,
@@ -390,7 +391,9 @@ pub(super) fn place_camera(
     } else {
         eye
     };
-    let eye = camera_settings.resolve(look, eye, safe, time.delta_secs());
+    let desired = eye;
+    let eye = camera_settings.resolve(look, desired, safe, time.delta_secs());
+    trace.record(time.elapsed_secs_f64(), look, desired, safe, eye);
     let placed = Transform::from_translation(eye).looking_at(look, Vec3::Y);
     for mut cam in &mut cams {
         *cam = placed;

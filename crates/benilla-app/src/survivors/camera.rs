@@ -88,6 +88,41 @@ impl CameraSettings {
     }
 }
 
+/// Opt-in, one-second camera samples for reproducing obstruction without changing the solver.
+/// Coordinates are raw WoW yards so the source-geometry audit can inspect the same location.
+pub(super) struct CameraTrace {
+    enabled: bool,
+    next: f64,
+}
+
+impl Default for CameraTrace {
+    fn default() -> Self {
+        Self {
+            enabled: std::env::var("WOW_SURVIVORS_CAMERA_TRACE").is_ok_and(|v| v == "1"),
+            next: 0.0,
+        }
+    }
+}
+
+impl CameraTrace {
+    pub fn record(&mut self, now: f64, look: Vec3, desired: Vec3, safe: Vec3, resolved: Vec3) {
+        if !self.enabled || now < self.next {
+            return;
+        }
+        self.next = now + 1.0;
+        info!(
+            "survivors camera: look_wow={:?} desired_wow={:?} safe_wow={:?} resolved_wow={:?} requested={:.3} safe={:.3} resolved={:.3}",
+            benilla_assets::coords::bevy_to_wow(look),
+            benilla_assets::coords::bevy_to_wow(desired),
+            benilla_assets::coords::bevy_to_wow(safe),
+            benilla_assets::coords::bevy_to_wow(resolved),
+            desired.distance(look),
+            safe.distance(look),
+            resolved.distance(look),
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

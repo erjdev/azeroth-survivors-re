@@ -2484,3 +2484,28 @@ These checks do not prove all indoor floors, building transitions, exact texture
 alignment throughout rotated interiors, sustained performance or Scarlet traversal.
 The existing Survivors zoom radius remains shared indoors/outdoors; matching separate
 stock indoor zoom preferences is not claimed. No zone readiness gate was changed.
+
+### Camera obstruction instrumentation — 2026-10-25
+
+Added opt-in `WOW_SURVIVORS_CAMERA_TRACE=1`: one sample per real second records
+the focus, requested eye, collision-limited eye and smoothed eye in raw WoW coordinates,
+plus all three boom lengths. It leaves camera/collision behavior unchanged and does no
+formatting or logging when disabled.
+
+A fresh isolated moving Warrior run in Elwynn (map 0, default auto-push and cutaway on,
+1440×900, `WOW_BG=0`, no concurrent build) produced
+[107 samples](validation/elwynn-camera-trace.txt). All 98 samples with the requested
+30-yard gameplay boom also had a 30-yard collision limit. Canopy/branch occlusion remained
+visible during this run, but the previously captured close-camera state was not reproduced.
+These one-second samples cannot exclude shorter transients or establish the cause of the
+earlier screenshot. No tree collision fix is claimed.
+
+Next: record the same trace during a controlled approach to an obscuring trunk, retaining
+the exact focus/eye at any shortened boom, then compare its placed source hull and rendered
+surface. Preserve cave/interior collision while deciding how tree obstruction and cutaway
+should cooperate. Broad camera/navigation acceptance remains open.
+
+Validation: native play build passed in 1m31s; workspace test compilation passed in
+4m39s (including a build-lock wait), and all 140 Survivors app tests passed. Workspace
+Clippy, formatting, render-pass lint and diff whitespace checks pass. No full workspace
+test-pass or camera fix is claimed. The validation app was closed and normal launcher restored.
