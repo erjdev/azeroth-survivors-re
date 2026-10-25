@@ -142,6 +142,26 @@ impl Milestones {
 
     pub fn cast(self, key: &str) -> CastEffect {
         let mut effect = CastEffect::default();
+        if self.class == 3 && ROGUE_SPELLS.contains(&key) {
+            if self.points[0] >= 10 {
+                effect.crit += 0.05;
+            }
+            if self.points[0] >= 20 && key != "rupture" {
+                effect.crit_damage += 0.20;
+            }
+            if self.points[0] >= 30 && key == "eviscerate" {
+                effect.crit = 1.0;
+            }
+            if self.points[1] >= 10 && key == "sinister_strike" {
+                effect.cooldown *= 0.9;
+            }
+            if self.points[1] >= 20 && key == "blade_flurry" {
+                effect.radius *= 1.3;
+            }
+            if self.points[1] >= 30 {
+                effect.cooldown *= 0.85;
+            }
+        }
         if self.class == 6 {
             if self.points[2] >= 10 && key == "frostbolt" {
                 effect.extra_targets += 1;
@@ -489,6 +509,17 @@ impl Milestones {
 }
 
 pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static str> {
+    if class == 3 {
+        return match (tree, threshold) {
+            (0, 10) => Some("Rogue spells: +5 percentage points critical chance; periodic ticks do not crit"),
+            (0, 20) => Some("Rogue direct attacks: +20 percentage points critical damage; excludes Rupture ticks"),
+            (0, 30) => Some("Eviscerate always critically strikes (Survivors automatic Cold Blood)"),
+            (1, 10) => Some("Sinister Strike: 10% shorter cooldown"),
+            (1, 20) => Some("Blade Flurry: +30% radius; remains one area around the player"),
+            (1, 30) => Some("Rogue spells: 15% shorter cooldown (Survivors automatic Adrenaline Rush)"),
+            _ => None,
+        };
+    }
     if class == 6 {
         return match (tree, threshold) {
             (2, 10) => Some("Frostbolt: +1 target; area spells remain one area"),
@@ -691,6 +722,62 @@ mod tests {
         for threshold in [10, 20, 30] {
             assert!(description(0, 0, threshold).is_some());
         }
+    }
+
+    #[test]
+    fn rogue_assassination_and_combat_milestones_unlock_and_compose() {
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        for tree in 0..2 {
+            for threshold in [10, 20, 30] {
+                let mut before = base;
+                before.points[tree] = threshold - 1;
+                let mut after = before;
+                after.points[tree] = threshold;
+                assert!(ROGUE_SPELLS
+                    .iter()
+                    .any(|key| before.cast(key) != after.cast(key)));
+                assert!(description(3, tree, threshold).is_some());
+                assert_eq!(after.cast("fireball"), CastEffect::default());
+                assert_eq!(after.cast("holy_shock"), CastEffect::default());
+            }
+        }
+        let assassination = Milestones {
+            points: [30, 0, 0],
+            ..base
+        };
+        assert_eq!(assassination.cast("eviscerate").crit, 1.0);
+        assert_eq!(assassination.cast("sinister_strike").crit, 0.05);
+        assert_eq!(assassination.cast("sinister_strike").crit_damage, 0.20);
+        assert_eq!(assassination.cast("rupture").crit_damage, 0.0);
+        let combat = Milestones {
+            points: [0, 30, 0],
+            ..base
+        };
+        let trained = combat.with_ranks(&[(1, 201, 2), (0, 269, 5)]);
+        assert!((trained.cast("sinister_strike").cooldown - 0.6885).abs() < 0.00001);
+        assert!((trained.cast("sinister_strike").crit_damage - 0.30).abs() < 0.00001);
+        for key in ROGUE_SPELLS {
+            let effect = trained.cast(key);
+            assert_eq!(effect.extra_targets, 0);
+            assert_eq!(
+                effect.radius,
+                if *key == "blade_flurry" { 1.3 } else { 1.0 }
+            );
+            if *key != "sinister_strike" {
+                assert_eq!(effect.cooldown, 0.85);
+            }
+        }
+        let subtlety = Milestones {
+            points: [0, 0, 51],
+            ..base
+        };
+        for key in ROGUE_SPELLS {
+            assert_eq!(subtlety.cast(key), CastEffect::default());
+        }
+        assert_eq!(trained.with_ranks(&[]), combat);
     }
 
     #[test]

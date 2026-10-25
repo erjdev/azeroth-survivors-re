@@ -300,5 +300,23 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 Rogue spell membership is Sinister Strike, Eviscerate, Blade Flurry, Rupture,
 Gouge and Kidney Shot. Other-class and neutral jewelry abilities are excluded.
 Damage factors from different talents multiply. Talents improve acquired abilities;
-they do not grant the spell. Other individual Rogue effects and milestones remain
-unfinished and retain their explicitly labeled provisional behavior.
+they do not grant the spell. Other individual Rogue effects and Subtlety milestones
+remain unfinished and retain their explicitly labeled provisional behavior.
+
+### Rogue tree milestones
+
+These authored Survivors effects supplement the existing tree-stat bonuses.
+They require an acquired ability, stay within Rogue spells, and stack with individual
+talents. Cooldown multipliers multiply; critical chance is capped at 100%.
+
+| Tree | Points | Milestone | Effect |
+|---|---|---|---|
+| Assassination | 10 | Malice | +5 percentage points critical chance for Rogue spells; periodic ticks do not crit |
+| Assassination | 20 | Lethality | +20 percentage points critical damage for Rogue direct attacks |
+| Assassination | 30 | Cold Blood | Eviscerate always critically strikes; automatic Survivors conversion |
+| Combat | 10 | Improved Sinister Strike | Sinister Strike cooldown ×0.90 |
+| Combat | 20 | Blade Flurry | Blade Flurry radius ×1.30, still one player-centered area |
+| Combat | 30 | Adrenaline Rush | All Rogue spell cooldowns ×0.85; automatic Survivors conversion |
+
+Subtlety milestone effects remain pending. Milestones are independent of the
+similarly named individual talent nodes and reset when the selected spec changes.

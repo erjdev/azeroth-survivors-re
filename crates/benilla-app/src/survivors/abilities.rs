@@ -2034,6 +2034,60 @@ mod milestone_tests {
     }
 
     #[test]
+    fn rogue_milestones_guarantee_eviscerate_crits_and_keep_flurry_one_area() {
+        let mut stats = Run::default().stats();
+        stats.crit = 0.0;
+        stats.crit_damage = 2.2;
+        stats.targets = 10;
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let assassination = Milestones {
+            points: [30, 0, 0],
+            ..base
+        }
+        .with_ranks(&[(0, 276, 3), (0, 270, 5)]);
+        let eviscerate = Owned {
+            def: data::ability("eviscerate"),
+            level: 3,
+            cd: 0.0,
+        };
+        let p = Params::new(&eviscerate, &stats, assassination);
+        assert_eq!(p.crit, 1.0);
+        assert!((p.crit_damage - 2.4).abs() < 0.00001);
+        for seed in [1, 17, 2999] {
+            let (damage, crit) = roll(&mut Rng(seed), p.crit, p.crit_damage, p.dmg);
+            assert!(crit);
+            assert!((damage - p.dmg * 2.4).abs() < 0.001);
+        }
+        let combat = Milestones {
+            points: [0, 30, 0],
+            ..base
+        }
+        .with_ranks(&[(1, 201, 2)]);
+        for key in ["sinister_strike", "blade_flurry", "gouge", "fireball"] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 3,
+                cd: 0.0,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, combat);
+            let cooldown = match key {
+                "sinister_strike" => 0.6885,
+                "fireball" => 1.0,
+                _ => 0.85,
+            };
+            assert!((after.cooldown - before.cooldown * cooldown).abs() < 0.0001);
+            assert_eq!(after.count, before.count);
+            let radius = if key == "blade_flurry" { 1.3 } else { 1.0 };
+            assert!((after.radius - before.radius * radius).abs() < 0.0001);
+            assert_eq!(after.effect, before.effect);
+        }
+    }
+
+    #[test]
     fn rogue_training_reaches_ranked_casts_and_critical_hits() {
         let base = Milestones {
             class: 3,

@@ -27,7 +27,11 @@ checks cover descriptions, purchase/refund and prerequisite/row gates, with
 inline changelog screenshots compared against the talent-page intention.
 Two combat-parameter/hit regressions also cover ability ranks 1/3/8, equipment
 composition, critical rolls, Rupture ticks and matching Gouge stun/marker durations.
-Other Rogue nodes/milestones, compact descriptions and live combat remain open.
+Assassination and Combat now also implement all six 10/20/30-point milestones:
+critical chance/damage and guaranteed Eviscerate criticals; cooldown reductions
+and a wider single Blade Flurry area. 106 core and 191 Survivors app tests pass.
+Two live captures show independent active 30-point specs and exact descriptions.
+Other Rogue nodes, Subtlety milestones, compact descriptions and live combat remain open.
 
 The user authorized lore-appropriate racials for all races. All eight now have
 explicit rules in `SURVIVORS.md` and shared core effects applied to the run sheet;

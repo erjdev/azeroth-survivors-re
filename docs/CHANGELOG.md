@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Assassination and Combat milestones
+
+Six Rogue milestones now have explicit effects. Assassination adds critical
+chance/damage and guaranteed Eviscerate criticals at 30 points. Combat shortens
+cooldowns and widens Blade Flurry while keeping a single area. Descriptions name
+the automatic Survivors conversions; [the rules](SURVIVORS.md#rogue-tree-milestones)
+record values and stacking.
+
+![Cold Blood on the active Assassination spec](images/screenshots/2026-10-25-rogue-milestones/cold-blood-1280.jpg)
+
+![Adrenaline Rush after switching to Combat](images/screenshots/2026-10-25-rogue-milestones/adrenaline-rush-1280.jpg)
+
+106 core tests and 191 Survivors app tests pass, including threshold, composition,
+critical-roll and area invariants. Native build, workspace Clippy, formatting and
+render-pass lint pass. Live 1280×720 checks verified the two independent 30-point
+specs and their milestone descriptions. Subtlety, remaining individual nodes,
+compact milestone checks and live-combat/balance acceptance remain open.
+
 ## 2026-10-25 — Rogue control and critical strikes
 
 Combat-path follow-up: two regressions verify ranked casts, critical rolls,
