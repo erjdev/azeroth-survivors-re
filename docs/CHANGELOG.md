@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Uncommon armor catalog
+
+Added 72 named armor appearances across all nine classes. Each class now has 18 of 54
+named cells; new drop sources and the remaining 36 names are still pending. Existing
+rarity stats and ownership are preserved. Native build, 67 core tests and 115 Survivors
+tests pass, including display/icon checks. Hunter collection details were checked at
+[720p](images/screenshots/2026-10-25-uncommon-armor/hunter-720.png) and
+[1024×720](images/screenshots/2026-10-25-uncommon-armor/hunter-1024.png); narrow slot-heading
+spacing and full armor-on-character validation remain open. README gallery updated.
+
 ## 2026-10-25 — Class-specific Atiesh appearances
 
 Priest, Mage, Warlock and Druid Atiesh cells now use their verified class reward identities

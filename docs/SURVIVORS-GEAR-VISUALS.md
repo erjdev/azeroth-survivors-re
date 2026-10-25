@@ -34,6 +34,35 @@ renderer records them ready. Weapon poses remain open; icon availability alone d
 establish correct armor textures or attachments.
 
 
+## Uncommon armor catalog
+
+Survivors' band-one armor uses the eight-piece dungeon-upgrade sets below. This is an
+authored progression choice: vanilla's mixed rare/epic qualities and quest acquisition
+are not copied. Survivors retains its uncommon quality, three increasing stat lines and
+existing ownership rules. Weapons remain unresolved for this band.
+
+| Survivors class | Appearance set | Vanilla item-set ID |
+| --- | --- | --- |
+| Warrior | Heroism | 511 |
+| Paladin | Soulforge | 516 |
+| Hunter | Beastmaster | 515 |
+| Rogue | Darkmantle | 512 |
+| Priest | Virtuous | 514 |
+| Shaman | The Five Thunders | 519 |
+| Mage | Sorcerer | 517 |
+| Warlock | Deathmist | 518 |
+| Druid | Feralheart | 513 |
+
+All 72 names, item entries, displays and attachment metadata come from the pinned item
+templates above, selected by `itemset` and mapped by `InventoryType` to the eight armor
+slots (robe type 20 occupies chest). The checked-in identity table is
+`crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
+
+Each class now has 18 named collection cells; 36 are still unnamed. These new armor
+cells show **Source not yet available** until encounter drop rows are authored and
+verified. Naming them does not grant ownership, unlock zones, add raid bonuses or make
+them obtainable. Live race/sex rendering and source acceptance remain open.
+
 ## Class-specific Atiesh
 
 The same pinned revision's [quest templates](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/quest_template.sql)

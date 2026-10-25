@@ -120,6 +120,9 @@ pub fn named(name: &str) -> Option<GearVisual> {
 }
 
 pub fn piece(class: usize, slot: usize, band: usize) -> Option<GearVisual> {
+    if band == 1 {
+        return super::gear_upgrades::piece(class, slot).map(|(_, visual)| visual);
+    }
     let name = super::campaign::piece_name(class, slot, band)?;
     if name == "Atiesh, Greatstaff of the Guardian" {
         // Pinned quest rewards disambiguate the four identically named staffs.
@@ -150,7 +153,8 @@ mod tests {
     #[test]
     fn absent_and_ambiguous_items_never_borrow_a_visual() {
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
-        assert_eq!(piece(0, 0, 1), None);
+        assert_eq!(piece(0, 8, 1), None);
+        assert_eq!(piece(0, 0, 2), None);
         assert_eq!(piece(99, 0, 0), None);
         assert_eq!(piece(0, 9, 0), None);
     }
@@ -180,11 +184,15 @@ mod tests {
     fn named_armor_matches_its_slot_and_weapons_remain_distinct() {
         for class in 0..9 {
             for (slot, expected) in [1, 3, 5, 6, 7, 8, 9, 10].into_iter().enumerate() {
-                let visual = piece(class, slot, 0).expect("named armor has a mapping");
-                assert!(visual.item_id > 0 && visual.display_id > 0);
-                assert!(
-                    visual.inventory_type == expected || (slot == 2 && visual.inventory_type == 20)
-                );
+                for band in [0, 1] {
+                    let visual = piece(class, slot, band).expect("named armor has a mapping");
+                    assert!(super::super::campaign::piece_name(class, slot, band).is_some());
+                    assert!(visual.item_id > 0 && visual.display_id > 0);
+                    assert!(
+                        visual.inventory_type == expected
+                            || (slot == 2 && visual.inventory_type == 20)
+                    );
+                }
             }
         }
         assert_eq!(piece(0, 8, 0).unwrap().item_id, 6975);

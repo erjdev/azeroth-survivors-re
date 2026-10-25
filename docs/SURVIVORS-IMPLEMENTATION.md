@@ -1646,3 +1646,26 @@ Live attachment validation and complete obtainable collection coverage remain op
 Validation: native play build (14.89 seconds), workspace test compilation, 67 core tests
 and 115 Survivors app tests pass. The explicit checkout data verifies all four Atiesh
 display rows and readable icon files. This is catalog evidence, not live attachment evidence.
+
+
+### Uncommon armor identities — 2026-10-25
+
+Added the eight dungeon-upgrade armor appearances for each class to band one (72 cells).
+The [catalog](SURVIVORS-GEAR-VISUALS.md#uncommon-armor-catalog) records the authored
+class/set assignments and pinned source. Names and rendering metadata share one identity
+table; common gear, weapons, save indices, rarity stats and duplicate behavior are unchanged.
+Each class now has 18 named cells and 36 unnamed cells. The new tier's weapon and all
+new acquisition rows remain pending; item details explicitly show unavailable sources.
+This is progress toward the full catalog, not completion of obtainable 54-piece collections.
+
+Live evidence: Hunter's Beastmaster cap displays its icon, uncommon title, three stat
+bonuses and unavailable-source message at [1280×720](images/screenshots/2026-10-25-uncommon-armor/hunter-720.png)
+and [1024×720](images/screenshots/2026-10-25-uncommon-armor/hunter-1024.png). Ownership
+remains 0/54 and no equip action is offered. At 1024 the Shoulders/Chest headings are
+too close; spacing remains a responsive-layout follow-up. Other classes' live armor
+attachments are not established by this collection-page check.
+
+Validation: native incremental build (24.22 seconds), workspace test compilation, 67
+core tests and 115 Survivors app tests pass. The slot-identity checks now cover both
+armor tiers for all classes; the local-data icon/display scan traverses every mapped
+collection cell, including the 72 additions. Formatting and render-pass lint pass.
