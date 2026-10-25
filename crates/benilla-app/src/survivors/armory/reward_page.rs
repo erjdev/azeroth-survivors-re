@@ -65,6 +65,8 @@ pub(super) fn build(
     armory: &Armory,
     account: &Account,
 ) {
+    let preview = armory.reward_draft.preview(account);
+    let account = preview.as_ref().unwrap_or(account);
     let category = usize::from(armory.reward_page.min(2));
     panel.spawn((super::collection::CollectionScroll, ScrollCategory(category), RelativeCursorPosition::default(), ScrollPosition(armory.reward_scroll[category]), Node {
         width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(0.0),
@@ -77,6 +79,15 @@ pub(super) fn build(
             let earned = rewards::points_of(account.earned_ids());
             text(side, font, format!("{earned} earned · {} spent", earned.saturating_sub(account.unspent())), 12.0, DIM);
             text(side, font, format!("{} of {} achievements", rewards::earned_count(account.earned_ids()), rewards::catalog_len()), 12.0, DIM);
+            if !armory.reward_draft.is_empty() {
+                text(side, font, format!("{} pending {}", armory.reward_draft.codes().len(), if armory.reward_draft.codes().len() == 1 { "change" } else { "changes" }), 13.0, hud::card_growth::GAIN);
+                side.spawn(Node { flex_wrap: FlexWrap::Wrap, ..default() }).with_children(|buttons| {
+                    chip(buttons, font, "Confirm", Act::ConfirmRewards, true);
+                    chip(buttons, font, "Undo", Act::UndoRewards, false);
+                });
+            } else {
+                text(side, font, "No pending changes", 12.0, DIM);
+            }
             for (i, name) in ["Perks", "Companions", "Tabards"].iter().enumerate() {
                 side.spawn(Node { width: Val::Percent(100.0), ..default() }).with_children(|slot| {
                     chip(slot, font, name, Act::RewardPage(i as u8), armory.reward_page == i as u8);
@@ -85,7 +96,7 @@ pub(super) fn build(
             text(side, font, "Reset", 18.0, GOLD);
             text(side, font, format!("Refund every point spent on perks. Companion purchases and tabards are kept. Resets remaining: {}.", account.resets_left()), 12.0, DIM);
             side.spawn(Node::default()).with_children(|slot| chip(slot, font, "Reset perks", Act::Reward(12), false));
-            text(side, font, "Purchases apply immediately. Rewards belong to the account and benefit every hero.", 12.0, DIM);
+            text(side, font, "Purchases and resets are previews until Confirm. Undo discards all pending changes. Closing the app discards them too. Looks apply immediately.", 12.0, DIM);
             if let Some(next) = account.next_locked() { text(side, font, next, 12.0, GOLD); }
         });
         frame(row, 540.0, 4.0, |body| {

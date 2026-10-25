@@ -3,6 +3,30 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Confirm and Undo reward purchases
+
+Perk/Companion purchases and perk resets now preview together, following the
+[Rewards reference](intentions/survivors_rewards_tab_companions.png). Confirm applies
+the whole batch; Undo discards it. Pending choices survive tab changes, require
+resolution before run entry, and are discarded on app close. Cosmetics stay immediate.
+
+![Two perks pending, with updated ranks and remaining points](images/screenshots/2026-10-25-reward-confirm/pending-1280.jpg)
+
+![Undo restores the original balance and ranks](images/screenshots/2026-10-25-reward-confirm/undo-1280.jpg)
+
+![Confirmed purchases saved to the account](images/screenshots/2026-10-25-reward-confirm/confirmed-1280.jpg)
+
+![Companion upgrades share the same pending purchase flow](images/screenshots/2026-10-25-reward-confirm/companions-pending-1280.jpg)
+
+![Confirm and Undo remain reachable at 640×720](images/screenshots/2026-10-25-reward-confirm/pending-640.jpg)
+
+![Restart retains confirmed perks and drops pending Companion upgrades](images/screenshots/2026-10-25-reward-confirm/restart-640.jpg)
+
+Live synthetic-account checks verified an unchanged save while staging, Undo, the
+30-point confirmed spend, and restart behavior. 177 Survivors tests, native build,
+workspace test compilation, Clippy, formatting and render-pass lint pass. Per-card
+minus controls and closer typography remain open.
+
 ## 2026-10-25 — Expanded Companion catalog and Veteran unlock
 
 Added six looks from the [Companion reference](intentions/survivors_rewards_tab_companions.png):

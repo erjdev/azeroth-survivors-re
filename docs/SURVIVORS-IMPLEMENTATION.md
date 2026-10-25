@@ -18,6 +18,17 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Rewards confirmation checkpoint: Perk/Companion purchases and perk resets are held
+in a session draft. Confirm validates the entire batch against the latest account
+before applying it; Undo discards the batch. Navigation retains pending choices,
+run entry requires Confirm/Undo, and closing the app discards unconfirmed choices.
+Cosmetic selections remain immediate. Per-card removal controls remain open.
+
+User clarification: add Deathless Hour and no u as visible placeholder achievements
+with no satisfiable criterion. Panda Cub and Sapphiron remain locked behind those
+entries until future criteria are implemented; do not infer rules from the names.
+
+
 Rewards scroll checkpoint: session offsets are tracked independently for the three
 categories and attached to the rendered category. At 640×720 a live Perk purchase
 and Collection round trip preserve the scrolled view; the changelog contains before,
@@ -3325,3 +3336,19 @@ Inline captures are in the changelog; in-world animation acceptance is still ope
 
 Validation: 174 Survivors tests, native build, workspace test compilation, Clippy,
 formatting and render-pass lint pass.
+
+### Rewards batch confirmation — 2026-10-25
+
+Purchase methods mutate memory only; the Armory saves the validated account after
+Confirm. The draft stores ordered reward codes and replays against the current
+account, preserving intervening cosmetic/achievement changes. Failed validation
+leaves both the live account and draft intact; there is no partial purchase.
+
+Live isolated-account checks: two perks preview 275→245 without changing the save;
+Undo restores both ranks/balance; Confirm writes the 30-point spend. Two Companion
+upgrades preview 245→215 at 1280×720 and 640×720. Restart retains the confirmed perks,
+245 points and two resets, discarding the pending Companion upgrades. Screenshots
+are embedded in CHANGELOG and README. Tests cover reset preview/Undo, atomic stale
+batch rejection, preserved intervening changes, insufficient points and duplicate
+confirmation. 177 Survivors tests, native build, workspace test compilation, Clippy,
+formatting and render-pass lint pass. Per-card minus controls remain open.

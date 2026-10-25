@@ -713,6 +713,7 @@ impl Account {
         true
     }
 
+    /// Reward mutations stay in memory so the Armory can preview a batch before saving.
     pub fn buy_perk(&mut self, perk: Perk) -> Result<(), &'static str> {
         let Some(cost) = rewards::perk_cost(perk, self.perks.rank(perk)) else {
             return Err("Max rank");
@@ -720,7 +721,6 @@ impl Account {
         self.pay(cost)?;
         self.perks.raise(perk);
         self.perk_spent += cost;
-        self.save();
         Ok(())
     }
 
@@ -738,7 +738,6 @@ impl Account {
         }
         self.pay(40)?;
         self.pets.owned = 2;
-        self.save();
         Ok(())
     }
 
@@ -759,7 +758,6 @@ impl Account {
         }
         self.pay(30)?;
         self.pets.instinct[slot] = kind;
-        self.save();
         Ok(())
     }
 
@@ -802,7 +800,6 @@ impl Account {
         self.perks = PerkRanks::default();
         self.resets -= 1;
         self.dirty = true;
-        self.save();
         Ok(())
     }
 
@@ -831,7 +828,6 @@ impl Account {
         } else {
             self.pets.paws += 1;
         }
-        self.save();
         Ok(())
     }
 

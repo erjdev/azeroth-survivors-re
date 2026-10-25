@@ -10,6 +10,7 @@ mod door;
 mod drop_page;
 #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
 pub(super) mod preview;
+mod reward_draft;
 mod reward_page;
 pub(super) use reward_page::remember_scroll as remember_reward_scroll;
 mod talent_page;
@@ -144,6 +145,7 @@ pub(super) struct Armory {
     reward_page: u8,
     /// Session-only positions, separate for Perks, Companions and Tabards.
     reward_scroll: [Vec2; 3],
+    reward_draft: reward_draft::Draft,
     /// Which companion the Looks row dresses.
     pet_slot: u8,
     piece: usize,
@@ -165,6 +167,7 @@ impl Default for Armory {
             achieve: 0,
             reward_page: 0,
             reward_scroll: [Vec2::ZERO; 3],
+            reward_draft: reward_draft::Draft::default(),
             pet_slot: 0,
             piece: 0,
             drop_zone: 0,
@@ -204,6 +207,8 @@ pub(super) enum Act {
     Spec(u8),
     Respec,
     Reward(u8),
+    ConfirmRewards,
+    UndoRewards,
     Restart,
     Update,
     PickClass(usize),
@@ -424,7 +429,22 @@ pub(super) fn input(
                     armory.note = "Talents refunded".into();
                 }
             }
-            Act::Reward(code) => armory.note = buy_reward(&mut account, code).into(),
+            Act::Reward(code) => {
+                armory.note = match armory.reward_draft.stage(&account, code) {
+                    Ok(()) => "Pending — Confirm to apply, or Undo to discard.".into(),
+                    Err(reason) => reason.into(),
+                };
+            }
+            Act::ConfirmRewards => {
+                armory.note = match armory.reward_draft.confirm(&mut account) {
+                    Ok(()) => "Rewards confirmed.".into(),
+                    Err(reason) => reason.into(),
+                };
+            }
+            Act::UndoRewards => {
+                armory.reward_draft.clear();
+                armory.note = "Pending rewards discarded.".into();
+            }
             Act::Restart => {
                 armory.note = super::notes::restart_same(&mut exit).into();
             }
@@ -440,6 +460,10 @@ pub(super) fn input(
             Act::Look => {
                 armory.page = Page::Look;
                 armory.focus = 0;
+            }
+            Act::Enter if !armory.reward_draft.is_empty() => {
+                armory.page = Page::Rewards;
+                armory.note = "Confirm or Undo pending rewards before entering a run.".into();
             }
             Act::Enter => try_enter(
                 &mut armory,
@@ -481,7 +505,11 @@ pub(super) fn input(
             }
             Act::PetSlot(slot) => armory.pet_slot = slot.min(1),
             Act::WearLook(look) => {
-                account.wear_look(armory.pet_slot, look);
+                if armory.pet_slot >= account.pets.owned.min(2) {
+                    armory.note = "Confirm the companion purchase before choosing its look.".into();
+                } else {
+                    account.wear_look(armory.pet_slot, look);
+                }
             }
             Act::Talent(talent) if pointer.mouse.just_released(MouseButton::Right) => {
                 let _ = talent;
@@ -513,8 +541,8 @@ pub(super) fn input(
     account.save();
 }
 
-fn buy_reward(account: &mut Account, code: u8) -> &'static str {
-    let result = match code {
+fn buy_reward(account: &mut Account, code: u8) -> Result<(), &'static str> {
+    match code {
         0 => account.buy_perk(Perk::SecondThoughts),
         1 => account.buy_perk(Perk::Skip),
         2 => account.buy_perk(Perk::Veterans),
@@ -529,10 +557,6 @@ fn buy_reward(account: &mut Account, code: u8) -> &'static str {
         11 => account.buy_second(),
         12 => account.reset_perks(),
         _ => Err("Unknown reward"),
-    };
-    match result {
-        Ok(()) => "Bought",
-        Err(reason) => reason,
     }
 }
 
@@ -2130,6 +2154,9 @@ fn signature(
     }
     n = fold(n, u64::from(armory.achieve));
     n = fold(n, u64::from(armory.reward_page));
+    for code in armory.reward_draft.codes() {
+        n = fold(n, u64::from(*code) + 1);
+    }
     n = fold(n, u64::from(armory.pet_slot));
     n = fold(n, armory.piece as u64);
     n = fold(n, armory.drop_zone as u64);

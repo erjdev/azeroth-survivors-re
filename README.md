@@ -53,6 +53,12 @@ with Veteran; existing saves retain access. Panda Cub and Sapphiron remain pendi
 
 ![Expanded Companion catalog](docs/images/screenshots/2026-10-25-companion-catalog/catalog-1280.jpg)
 
+Rewards purchases now preview before **Confirm**, with **Undo** to discard pending
+changes. Confirmed purchases persist; unconfirmed choices are discarded on app close.
+
+![Pending rewards with Confirm and Undo](docs/images/screenshots/2026-10-25-reward-confirm/pending-1280.jpg)
+
+
 Scarlet Monastery now draws its authored building minimap, including zoom and enemy
 markers. The candidate zone stays locked pending navigation and full encounter acceptance.
 [Outdoor minimap regression](docs/images/screenshots/2026-10-25-indoor-minimap/elwynn.png)
