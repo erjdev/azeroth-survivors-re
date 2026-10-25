@@ -215,6 +215,15 @@ impl Milestones {
         }
     }
 
+    /// Survivors Blood Craze heals over six seconds after a nonlethal health-damaging hit.
+    pub fn blood_craze_fraction(self) -> f32 {
+        if self.class == 0 {
+            self.trained_value(TalentStat::BloodCrazeHealing)
+        } else {
+            0.0
+        }
+    }
+
     /// Death Wish's risk applies only during the actual Retaliation buff.
     pub fn retaliation_risk(self, active: bool) -> f32 {
         if self.class == 0 && self.points[1] >= 20 && active {
@@ -263,15 +272,23 @@ impl Milestones {
 pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static str> {
     if class == 0 {
         return match (tree, threshold) {
-            (0, 10) => Some("Direct attack criticals bleed for 12% damage over 3 seconds; refreshes, does not stack"),
+            (0, 10) => Some(
+                "Direct attack criticals bleed for 12% damage over 3 seconds; refreshes, does not stack",
+            ),
             (0, 20) => Some("Sweeping Strikes: +30% radius"),
             (0, 30) => Some("Mortal Strike: +25% damage"),
-            (1, 10) => Some("Demoralizing Shout also slows enemies by 50% for 3 seconds (bosses: 25%)"),
-            (1, 20) => Some("Retaliation: +30% reflected damage; take 10% more damage while active"),
+            (1, 10) => {
+                Some("Demoralizing Shout also slows enemies by 50% for 3 seconds (bosses: 25%)")
+            }
+            (1, 20) => {
+                Some("Retaliation: +30% reflected damage; take 10% more damage while active")
+            }
             (1, 30) => Some("Execute heals 3% maximum health once per successful cast"),
             (2, 10) => Some("Retaliation heals 10% maximum health once per successful cast"),
             (2, 20) => Some("Heroic Strike stuns for 1 second (bosses: 0.3 seconds)"),
-            (2, 30) => Some("Heroic Strike grants a 3% maximum-health absorb for 3 seconds, once per cast; does not stack"),
+            (2, 30) => Some(
+                "Heroic Strike grants a 3% maximum-health absorb for 3 seconds, once per cast; does not stack",
+            ),
             _ => None,
         };
     }
@@ -527,6 +544,7 @@ pub enum TalentStat {
     CritDamage,
     CriticalBleed,
     EnrageDamage,
+    BloodCrazeHealing,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
     Reduction,
@@ -555,6 +573,9 @@ impl TalentDefinition {
             TalentStat::Cooldown | TalentStat::SpellCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::Crit | TalentStat::SpellCrit(_) => (100.0, "% critical chance"),
             TalentStat::CritDamage => (100.0, "% critical damage"),
+            TalentStat::BloodCrazeHealing => {
+                (100.0, "% maximum health over 6 seconds after health damage")
+            }
             TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
@@ -717,7 +738,6 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::SpellDuration("demoralizing_shout"),
         per_rank: 0.1,
     },
-
     TalentDefinition {
         id: 127,
         max_rank: 3,
@@ -734,7 +754,6 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::CriticalBleed,
         per_rank: 0.04,
     },
-
     TalentDefinition {
         id: 160,
         max_rank: 1,
@@ -752,41 +771,69 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         per_rank: 1.0,
     },
     TalentDefinition {
-        id: 1601, max_rank: 5, name: "Shield Specialization",
+        id: 1601,
+        max_rank: 5,
+        name: "Shield Specialization",
         description: "Heroic Strike grants a 3-second absorb: +1% maximum health per rank; refreshes without stacking",
-        stat: TalentStat::SpellShield("heroic_strike"), per_rank: 0.01,
+        stat: TalentStat::SpellShield("heroic_strike"),
+        per_rank: 0.01,
     },
     TalentDefinition {
-        id: 145, max_rank: 3, name: "Improved Shield Block",
+        id: 145,
+        max_rank: 3,
+        name: "Improved Shield Block",
         description: "Heroic Strike's absorb lasts 0.5 seconds longer per rank; requires an absorb talent or milestone",
-        stat: TalentStat::SpellShieldDuration("heroic_strike"), per_rank: 0.5,
+        stat: TalentStat::SpellShieldDuration("heroic_strike"),
+        per_rank: 0.5,
     },
     TalentDefinition {
-        id: 148, max_rank: 1, name: "Shield Slam",
+        id: 148,
+        max_rank: 1,
+        name: "Shield Slam",
         description: "Heroic Strike adds a 3% maximum-health absorb for 3 seconds; adds to other shield talents and milestone",
-        stat: TalentStat::SpellShield("heroic_strike"), per_rank: 0.03,
+        stat: TalentStat::SpellShield("heroic_strike"),
+        per_rank: 0.03,
     },
     TalentDefinition {
-        id: 155, max_rank: 5, name: "Enrage",
+        id: 155,
+        max_rank: 5,
+        name: "Enrage",
         description: "After losing health to a hit, deal +4% damage per rank for 4 seconds; further hits refresh without stacking",
-        stat: TalentStat::EnrageDamage, per_rank: 0.04,
+        stat: TalentStat::EnrageDamage,
+        per_rank: 0.04,
     },
     TalentDefinition {
-        id: 165, max_rank: 1, name: "Death Wish",
+        id: 165,
+        max_rank: 1,
+        name: "Death Wish",
         description: "Retaliation: +25% duration; also extends the Fury milestone's increased damage taken (Survivors conversion)",
-        stat: TalentStat::SpellDuration("retaliation"), per_rank: 0.25,
+        stat: TalentStat::SpellDuration("retaliation"),
+        per_rank: 0.25,
     },
     TalentDefinition {
-        id: 151, max_rank: 3, name: "Improved Disarm",
+        id: 151,
+        max_rank: 3,
+        name: "Improved Disarm",
         description: "Demoralizing Shout: +10% weakening duration per rank (Survivors conversion)",
-        stat: TalentStat::SpellDuration("demoralizing_shout"), per_rank: 0.1,
+        stat: TalentStat::SpellDuration("demoralizing_shout"),
+        per_rank: 0.1,
     },
     TalentDefinition {
-        id: 143, max_rank: 2, name: "Improved Taunt",
+        id: 143,
+        max_rank: 2,
+        name: "Improved Taunt",
         description: "Demoralizing Shout: 10% shorter cooldown per rank (Survivors conversion)",
-        stat: TalentStat::SpellCooldown("demoralizing_shout"), per_rank: 0.1,
+        stat: TalentStat::SpellCooldown("demoralizing_shout"),
+        per_rank: 0.1,
     },
-
+    TalentDefinition {
+        id: 661,
+        max_rank: 3,
+        name: "Blood Craze",
+        description: "After losing health to a hit, heal 1% maximum health per rank over 6 seconds; further hits refresh without stacking (Survivors conversion)",
+        stat: TalentStat::BloodCrazeHealing,
+        per_rank: 0.01,
+    },
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
@@ -975,6 +1022,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::SecondarySlowDuration(_)
             | TalentStat::SecondaryStunDuration(_)
             | TalentStat::EnrageDamage
+            | TalentStat::BloodCrazeHealing
             | TalentStat::CriticalBleed
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
@@ -1158,6 +1206,29 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn blood_craze_training_is_bounded_and_class_specific() {
+        for rank in 0..=3 {
+            let trained = Milestones::default().with_ranks(&[(1, 661, rank)]);
+            assert!((trained.blood_craze_fraction() - f32::from(rank) * 0.01).abs() < 0.00001);
+            assert_eq!(trained.with_ranks(&[]).blood_craze_fraction(), 0.);
+            assert_eq!(
+                Milestones {
+                    class: 1,
+                    ..trained
+                }
+                .blood_craze_fraction(),
+                0.
+            );
+        }
+        assert_eq!(
+            Milestones::default()
+                .with_ranks(&[(1, 661, 255)])
+                .blood_craze_fraction(),
+            0.03
+        );
+    }
+
+    #[test]
     fn warrior_rank_reset_removes_previous_training() {
         let base = Milestones {
             class: 0,
@@ -1194,6 +1265,7 @@ mod stat_talent_tests {
                     TalentStat::SecondarySlowDuration(_)
                     | TalentStat::SecondaryStunDuration(_)
                     | TalentStat::EnrageDamage
+                    | TalentStat::BloodCrazeHealing
                     | TalentStat::CriticalBleed
                     | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)

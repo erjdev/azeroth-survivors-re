@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Blood Craze and lethal-hit healing
+
+Blood Craze heals over six seconds after health damage; repeated hits refresh without
+stacking. Immunity and full absorbs do not trigger it, and spell healing stays independent.
+Regeneration can no longer undo a lethal hit before the death check. Warrior now has 29
+supported nodes. Values remain provisional; buff presentation and manual combat checks
+remain pending.
+
+Native build, workspace test compilation, 55 core tests, 98 focused Survivors tests and
+the local talent-data audit pass.
+
 ## 2026-10-24 — Inline card visual checkpoint
 
 Verified single-unit green comparisons and removed prose rank labels in the live checkout.

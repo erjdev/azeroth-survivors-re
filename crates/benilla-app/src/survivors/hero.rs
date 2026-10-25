@@ -6,9 +6,9 @@ use bevy::input::mouse::{AccumulatedMouseMotion, MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 
 use super::data::{self, ClassDef};
-use super::units::{self, flat, wow_to_bevy, yaw_toward, Fx, Marks, UnitSpec};
+use super::units::{self, Fx, Marks, UnitSpec, flat, wow_to_bevy, yaw_toward};
 use super::{Phase, Run, Selection};
-use crate::creature_anim::{move_flags, MovementState};
+use crate::creature_anim::{MovementState, move_flags};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
 #[derive(Component)]
@@ -416,6 +416,9 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
     if dmg > 0.0 && run.hp > 0.0 && run.milestones.enrage_damage(true) > 1.0 {
         run.enrage_t = 4.0;
     }
+    if dmg > 0.0 && run.hp > 0.0 && run.milestones.blood_craze_fraction() > 0.0 {
+        run.blood_craze_t = 6.0;
+    }
     dmg
 }
 
@@ -428,6 +431,24 @@ fn advance_buffs(run: &mut Run, dt: f32) {
     ] {
         *t = (*t - dt).max(0.0);
     }
+}
+
+/// Consume only the active part of the frame; healing cannot revive a lethal hit.
+fn regenerate(run: &mut Run, stats: &super::Stats, dt: f32) {
+    if run.hp <= 0.0 || run.dead_t.is_some() {
+        return;
+    }
+    let mut heal = stats.regen * dt;
+    if run.heal_t > 0.0 {
+        heal += run.heal_rate * dt.min(run.heal_t);
+        run.heal_t = (run.heal_t - dt).max(0.0);
+    }
+    if run.blood_craze_t > 0.0 {
+        heal +=
+            stats.max_hp * run.milestones.blood_craze_fraction() * dt.min(run.blood_craze_t) / 6.0;
+        run.blood_craze_t = (run.blood_craze_t - dt).max(0.0);
+    }
+    run.hp = (run.hp + heal).min(stats.max_hp);
 }
 
 /// The clock, regeneration, the timed buffs and their visuals, death and victory.
@@ -454,12 +475,7 @@ pub(super) fn hero_vitals(
     }
     run.elapsed += dt;
     advance_buffs(&mut run, dt);
-    let mut heal = stats.regen * dt;
-    if run.heal_t > 0.0 {
-        heal += run.heal_rate * dt.min(run.heal_t);
-        run.heal_t = (run.heal_t - dt).max(0.0);
-    }
-    run.hp = (run.hp + heal).min(stats.max_hp);
+    regenerate(&mut run, &stats, dt);
 
     // The buffs show as their own state kits: the shield bubble, the immunity glow, the orbs.
     let mut shown: Vec<u32> = Vec::new();
@@ -527,6 +543,49 @@ pub(super) fn reach(hero: Vec3, other: Vec3) -> f32 {
 mod reactive_talent_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn blood_craze_refreshes_and_heals_only_its_active_time() {
+        for steps in [vec![8.0], vec![1.0; 8], vec![0.25; 32]] {
+            let mut run = Run::default();
+            run.milestones = Milestones::default().with_ranks(&[(1, 661, 3)]);
+            run.hp = 60.;
+            run.immune_t = 1.;
+            hurt_hero(&mut run, 10.);
+            assert_eq!(run.blood_craze_t, 0.);
+            run.immune_t = 0.;
+            run.shield_t = 3.;
+            run.shield = 10.;
+            hurt_hero(&mut run, 10.);
+            assert_eq!(run.blood_craze_t, 0.);
+            hurt_hero(&mut run, 10.);
+            assert_eq!(run.blood_craze_t, 6.);
+            let mut stats = run.stats();
+            stats.regen = 0.;
+            regenerate(&mut run, &stats, 2.);
+            hurt_hero(&mut run, 1.);
+            assert_eq!(run.blood_craze_t, 6.);
+            let before = run.hp;
+            for dt in steps {
+                regenerate(&mut run, &stats, dt);
+            }
+            assert!((run.hp - before - stats.max_hp * 0.03).abs() < 0.0001);
+            assert_eq!(run.blood_craze_t, 0.);
+            run.hp = stats.max_hp - 0.01;
+            run.blood_craze_t = 6.;
+            regenerate(&mut run, &stats, 6.);
+            assert_eq!(run.hp, stats.max_hp);
+            run.hp = 0.1;
+            hurt_hero(&mut run, 1.);
+            let lethal = run.hp;
+            stats.regen = 100.;
+            run.heal_t = 5.;
+            run.heal_rate = 100.;
+            run.blood_craze_t = 6.;
+            regenerate(&mut run, &stats, 1.);
+            assert_eq!(run.hp, lethal, "no regeneration path revives a lethal hit");
+        }
+    }
 
     #[test]
     fn enrage_requires_health_damage_refreshes_and_expires() {

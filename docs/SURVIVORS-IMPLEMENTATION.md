@@ -1143,3 +1143,23 @@ This proves those sampled hands at default UI scale; it does not close chest/jew
 all-rarity, long-description or complete viewport/UI-scale acceptance. The isolated
 validation save was used; the launch wrapper was restored and the app closed without
 querying a stale app handle.
+
+
+### Blood Craze and lethal-hit healing checkpoint — 2026-10-24
+
+Blood Craze (local DBC node 661, three ranks) restores 1% maximum health per rank over
+six seconds after a surviving health-damaging hit. Additional hits refresh one timer;
+immunity and full absorbs cannot trigger it. This is an explicit Survivors adaptation
+with provisional balance: it triggers on health damage rather than an enemy critical.
+Healing uses the current maximum health and only the active portion of a frame, caps at
+maximum health, and remains separate from cast healing. The timer follows gameplay time
+and therefore pauses with the run. It is run-only, with no save-format change.
+
+Regeneration now refuses to heal at zero health, preventing passive or timed healing from
+undoing a lethal hit before the death check. Tests cover frame-size independence, refresh,
+immunity/absorption, capped healing, lethal damage, talent caps, reset and class isolation.
+Warrior has 29 supported nodes. Fresh talent/HUD captures, dedicated buff presentation,
+manual combat acceptance and remaining class nodes are still open.
+
+Validation: native build, workspace test compilation, 55 core tests, 98 focused Survivors
+tests and the local talent-data audit pass. Full workspace gates were not rerun.
