@@ -151,6 +151,13 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, ac
         "INV_Misc_Bag_10",
         "INV_Misc_Spyglass_03",
     ];
+    text(
+        ui,
+        font,
+        "Use + to preview a rank and − to remove a pending rank. Confirm applies your purchases.",
+        12.0,
+        DIM,
+    );
     ui.spawn(Node {
         width: Val::Percent(100.0),
         flex_wrap: FlexWrap::Wrap,
@@ -159,19 +166,24 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, ac
         ..default()
     })
     .with_children(|grid| {
-        // Row-major pairing matches the reference's two columns.
         for code in [0, 3, 1, 4, 2, 5] {
             let perk = rewards::PERKS[code];
             let rank = account.perks.rank(perk);
             let max = rewards::perk_max_rank(perk);
             let cost = rewards::perk_cost(perk, rank);
+            let pending = armory
+                .reward_draft
+                .codes()
+                .iter()
+                .filter(|&&value| usize::from(value) == code)
+                .count();
             grid.spawn((
                 Node {
+                    min_width: Val::Px(300.0),
                     flex_basis: Val::Percent(48.0),
                     flex_grow: 1.0,
-                    min_width: Val::Px(0.0),
-                    padding: UiRect::all(Val::Px(10.0)),
-                    column_gap: Val::Px(10.0),
+                    padding: UiRect::all(Val::Px(8.0)),
+                    column_gap: Val::Px(8.0),
                     border: UiRect::all(Val::Px(1.0)),
                     border_radius: BorderRadius::all(Val::Px(4.0)),
                     ..default()
@@ -199,30 +211,44 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, ac
                     flex_basis: Val::Px(0.0),
                     min_width: Val::Px(0.0),
                     flex_direction: FlexDirection::Column,
-                    row_gap: Val::Px(6.0),
+                    row_gap: Val::Px(4.0),
                     ..default()
                 })
                 .with_children(|content| {
-                    text(content, font, rewards::perk_name(perk), 16.0, GOLD);
                     content
                         .spawn(Node {
-                            column_gap: Val::Px(4.0),
+                            flex_wrap: FlexWrap::Wrap,
+                            align_items: AlignItems::Center,
+                            column_gap: Val::Px(8.0),
+                            row_gap: Val::Px(3.0),
                             ..default()
                         })
-                        .with_children(|pips| {
-                            for n in 0..max {
-                                pips.spawn((
-                                    Node {
-                                        width: Val::Px(7.0),
-                                        height: Val::Px(7.0),
-                                        border_radius: BorderRadius::MAX,
-                                        border: UiRect::all(Val::Px(1.0)),
-                                        ..default()
-                                    },
-                                    BorderColor::all(FRAME),
-                                    BackgroundColor(if n < rank { GOLD } else { Color::BLACK }),
-                                ));
-                            }
+                        .with_children(|heading| {
+                            text(heading, font, rewards::perk_name(perk), 15.0, GOLD);
+                            heading
+                                .spawn(Node {
+                                    column_gap: Val::Px(4.0),
+                                    ..default()
+                                })
+                                .with_children(|pips| {
+                                    for n in 0..max {
+                                        pips.spawn((
+                                            Node {
+                                                width: Val::Px(7.0),
+                                                height: Val::Px(7.0),
+                                                border_radius: BorderRadius::MAX,
+                                                border: UiRect::all(Val::Px(1.0)),
+                                                ..default()
+                                            },
+                                            BorderColor::all(FRAME),
+                                            BackgroundColor(if n < rank {
+                                                GOLD
+                                            } else {
+                                                Color::BLACK
+                                            }),
+                                        ));
+                                    }
+                                });
                         });
                     let (before, value, after) = rewards::perk_preview(perk, rank);
                     content
@@ -244,27 +270,86 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, ac
                                 ));
                             }
                         });
-                    remove_pending(content, font, armory, code as u8);
-                    if let Some(cost) = cost {
-                        content.spawn(Node::default()).with_children(|buy| {
-                            chip(
-                                buy,
+                });
+                card.spawn(Node {
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::FlexEnd,
+                    width: Val::Px(78.0),
+                    flex_shrink: 0.0,
+                    row_gap: Val::Px(4.0),
+                    ..default()
+                })
+                .with_children(|actions| {
+                    text(
+                        actions,
+                        font,
+                        cost.map_or_else(|| "Max rank".into(), |value| format!("{value} points")),
+                        12.0,
+                        DIM,
+                    );
+                    actions
+                        .spawn(Node {
+                            column_gap: Val::Px(4.0),
+                            ..default()
+                        })
+                        .with_children(|buttons| {
+                            perk_step(
+                                buttons,
                                 font,
-                                &format!("Rank {} · {cost} points", rank + 1),
-                                Act::Reward(code as u8),
-                                false,
-                            )
+                                "−",
+                                (pending > 0).then_some(Act::RemoveReward(code as u8)),
+                            );
+                            perk_step(
+                                buttons,
+                                font,
+                                "+",
+                                cost.filter(|&value| account.unspent() >= value)
+                                    .map(|_| Act::Reward(code as u8)),
+                            );
                         });
-                        if account.unspent() < cost {
-                            text(content, font, "Not enough points", 12.0, DIM);
-                        }
-                    } else {
-                        text(content, font, "Max rank", 12.0, GOLD);
+                    if pending > 0 {
+                        text(
+                            actions,
+                            font,
+                            format!("{pending} pending"),
+                            11.0,
+                            hud::card_growth::GAIN,
+                        );
+                    }
+                    if cost.is_some_and(|value| account.unspent() < value) {
+                        text(actions, font, "Need points", 11.0, DIM);
                     }
                 });
             });
         }
     });
+}
+
+fn perk_step(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, label: &str, act: Option<Act>) {
+    let node = Node {
+        width: Val::Px(22.0),
+        height: Val::Px(22.0),
+        ..default()
+    };
+    if let Some(act) = act {
+        super::controls::button(ui, font, label, act, false, node);
+    } else {
+        // No Button or Act: unavailable purchases and committed ranks cannot be clicked.
+        ui.spawn((
+            Node {
+                border: UiRect::all(Val::Px(1.0)),
+                border_radius: BorderRadius::all(Val::Px(3.0)),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..node
+            },
+            BackgroundColor(Color::srgb(0.025, 0.02, 0.01)),
+            BorderColor::all(Color::srgb(0.16, 0.13, 0.06)),
+        ))
+        .with_children(|body| {
+            text(body, font, label, 13.0, Color::srgb(0.31, 0.28, 0.19));
+        });
+    }
 }
 
 // Values come from the same trip calculation that drives the fetchers.

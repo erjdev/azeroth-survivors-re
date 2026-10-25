@@ -324,7 +324,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-25-armory-headings/achievements-1280.jpg" alt="Achievements: Illustrated achievement cards, account points and progress."><br>Illustrated achievement cards, account points and progress.</td>
-    <td width="50%"><strong>Rewards</strong><br><img src="docs/images/screenshots/2026-10-25-armory-controls/rewards-pending-1280.jpg" alt="Rewards: Reward perks with a pending purchase and Confirm/Undo controls."><br>Reward perks with a pending purchase and Confirm/Undo controls.</td>
+    <td width="50%"><strong>Rewards</strong><br><img src="docs/images/screenshots/2026-10-25-perk-layout/pending-1280.jpg" alt="Rewards: Compact reward perks with rank controls, a pending purchase and Confirm/Undo."><br>Compact reward perks with rank controls, a pending purchase and Confirm/Undo.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Appearance</strong><br><img src="docs/images/screenshots/2026-10-24-character-features/character-portraits.jpg" alt="Appearance: Per-hero race, sex and feature editing with live preview; shown at 1280×720."><br>Per-hero race, sex and feature editing with live preview; shown at 1280×720.</td>

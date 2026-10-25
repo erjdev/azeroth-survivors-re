@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Compact reward perks
+
+Perk cards now group rank markers beside their names and put cost and +/− controls
+on the right, following the Rewards intention screenshot. Inline green upgrade
+changes remain in the description. Plus is disabled at max rank or when points
+are insufficient; minus removes only pending purchases. Confirm/Undo still apply
+to the whole draft.
+
+![Compact two-column perks](images/screenshots/2026-10-25-perk-layout/perks-1280.jpg)
+
+![Pending rank with max-rank and unaffordable upgrades disabled](images/screenshots/2026-10-25-perk-layout/pending-1280.jpg)
+
+![Scrolled perks at 640×720](images/screenshots/2026-10-25-perk-layout/perks-640.jpg)
+
+Verified +/−, point restoration, disabled controls and wide/compact text fit live.
+Native build, workspace Clippy, formatting and render-pass lint pass. Costs and
+perk effects are unchanged. Currency/category rail styling, section dividers and
+Companion/Tabard reference alignment remain unfinished.
+
 ## 2026-10-25 — Outlined Armory controls
 
 Navigation and shared Armory buttons now use thin gold outlines, a burgundy

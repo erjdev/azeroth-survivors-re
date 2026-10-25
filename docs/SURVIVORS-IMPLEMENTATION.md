@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Reward perks now use compact reference-style cards with name-adjacent rank
+markers and cost/+/− controls at right. Disabled max-rank/unaffordable purchases,
+pending-rank removal and point restoration passed live checks at 1280×720;
+640×720 wrapping was captured after scrolling. Three screenshots are inline in
+the changelog. Currency/category rail, dividers and Companion/Tabard styling
+remain open; no costs or perk effects changed.
+
 Navigation and shared Armory controls now use gold outlines, burgundy selection
 and hover/pressed feedback. Text-sized tabs wrap; Done only appears inside the
 Armory. Equipment actions, reward preview/Undo, navigation and 1280/640×720 fit
