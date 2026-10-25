@@ -2,8 +2,8 @@
 //! on the border's top strip, the 140-unit map in its ring with the zoom buttons, the minimize
 //! button, and `GameTime.xml`'s day clock.
 //!
-//! Bevy UI clips only to rectangles, so the round map is composited here each frame: the ADT tiles
-//! through `md5translate.trs` (north up, 533.33 yd per 256-px tile), masked by `MinimapMask.blp`,
+//! Bevy UI clips only to rectangles, so the round map is composited when its visible inputs change:
+//! the ADT tiles through `md5translate.trs` (north up, 533.33 yd per 256-px tile), masked by `MinimapMask.blp`,
 //! then the player arrow, then the red `ObjectIcons` cell per live enemy, the dot the reference
 //! draws for a tracked creature. Sizes are the engine minimap's ([`crate::minimap`]), measured
 //! against its 140.8-px blip basis.
@@ -109,6 +109,16 @@ struct Art {
     icons: Option<Rgba>,
 }
 
+/// Exact inputs to the composite; enemy ordering preserves alpha-blending order.
+#[derive(Default, PartialEq)]
+struct View {
+    dir: String,
+    zoom: usize,
+    center: Vec2,
+    yaw: f32,
+    enemies: Vec<Vec2>,
+}
+
 #[derive(Resource)]
 pub(super) struct MiniMap {
     zoom: usize,
@@ -119,6 +129,8 @@ pub(super) struct MiniMap {
     tiles: HashMap<(u32, u32), Option<Vec<u8>>>,
     dir: String,
     buf: Vec<u8>,
+    rendered: Option<View>,
+    pending: View,
 }
 
 impl MiniMap {
@@ -142,6 +154,8 @@ impl MiniMap {
             tiles: HashMap::new(),
             dir: String::new(),
             buf: vec![0; SIDE * SIDE * 4],
+            rendered: None,
+            pending: View::default(),
         }
     }
 
@@ -375,6 +389,22 @@ pub(super) fn compose(
         return;
     };
     let map = &mut *map;
+    let p = hero.translation;
+    let radius = map.view_radius();
+    map.pending.dir.clone_from(&dir);
+    map.pending.zoom = map.zoom;
+    map.pending.center = Vec2::new(p.x, p.z);
+    map.pending.yaw = hero.rotation.to_euler(EulerRot::YXZ).0;
+    map.pending.enemies.clear();
+    map.pending
+        .enemies
+        .extend(enemies.iter().filter_map(|(tf, enemy)| {
+            let off = Vec2::new(tf.translation.x - p.x, tf.translation.z - p.z);
+            (!enemy.dead && off.length() <= radius).then_some(off)
+        }));
+    if map.rendered.as_ref() == Some(&map.pending) {
+        return;
+    }
     if map.dir != dir {
         map.tiles.clear();
         map.dir.clone_from(&dir);
@@ -399,9 +429,7 @@ pub(super) fn compose(
     let art = map.art.as_ref().expect("art loaded above");
 
     // The hero in WoW coordinates; screen right is east (-y), screen down south (-x).
-    let p = hero.translation;
     let (wx, wy) = (-p.z, -p.x);
-    let radius = map.view_radius();
     let yd_per_px = 2.0 * radius / SIDE as f32;
 
     // The 2×2 tile window under the view: its diameter (at most 14 chunks) is under one tile.
@@ -484,7 +512,7 @@ pub(super) fn compose(
     let center = Vec2::splat(half);
     // The arrow turns with the hero's facing: counter-clockwise from north, as the yaw runs.
     if let Some(arrow) = &art.arrow {
-        let yaw = hero.rotation.to_euler(EulerRot::YXZ).0;
+        let yaw = map.pending.yaw;
         let (s, c) = yaw.sin_cos();
         let to_screen = |t: Vec2| Vec2::new(c * t.x + s * t.y, -s * t.x + c * t.y);
         let to_tex = |q: Vec2| Vec2::new(c * q.x - s * q.y, s * q.x + c * q.y);
@@ -504,14 +532,7 @@ pub(super) fn compose(
     if let Some(icons) = &art.icons {
         let size = DOT_PX * scale;
         let [l, r, t, b] = TRACKED_UNIT_CELL;
-        for (tf, enemy) in &enemies {
-            if enemy.dead {
-                continue;
-            }
-            let off = Vec2::new(tf.translation.x - p.x, tf.translation.z - p.z);
-            if off.length() > radius {
-                continue;
-            }
+        for &off in &map.pending.enemies {
             blit(buf, center + off / yd_per_px, size, |q| {
                 let f = q / size + 0.5;
                 let x = (l + (r - l) * f.x) * icons.w as f32;
@@ -524,6 +545,9 @@ pub(super) fn compose(
     if let Some(image) = images.get_mut(&map.image) {
         if let Some(data) = image.data.as_mut() {
             data.copy_from_slice(&map.buf);
+            // Recycle both dot buffers instead of allocating for each moving frame.
+            let previous = map.rendered.get_or_insert_with(View::default);
+            std::mem::swap(previous, &mut map.pending);
         }
     }
 }

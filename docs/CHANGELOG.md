@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Reuse unchanged minimap images
+
+Paused scenes now reuse their minimap image until visible inputs change. Native build,
+all 131 Survivors app tests and workspace Clippy pass; live chest selection confirms the
+map updates after combat resumes. Gurubashi remains slow. A new stall sample points to
+combat-text overlap placement as the next investigation target; no FPS gain is claimed.
+
 ## 2026-10-25 — Correct chest jewelry artwork
 
 Chest jewelry now uses the verified item icons shared with the Codex, replacing generic

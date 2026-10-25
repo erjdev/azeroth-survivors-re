@@ -2264,3 +2264,37 @@ took 1m19s; workspace Clippy took 48.96 seconds and passes. Final test compilati
 the inspection-mode addition took 2m20s. Formatting, render-pass lint and diff whitespace
 checks pass. The full game goal remains incomplete, including Mark of the Champion,
 remaining zone/appearance acceptance and the recorded Gurubashi performance problem.
+
+### Unchanged minimap compositing — 2026-10-25
+
+The held-chest Gurubashi probe reproduces slow frames without combat updates: 218 live
+enemies remain frozen at 608 simulated seconds. Over 30 journal samples after 50 seconds
+of wall time, median per-window mean frame time was 71.52 ms, process CPU time per frame
+102.10 ms and main-thread CPU time 54.05 ms. These CPU counters are not GPU timing;
+Metal reported no GPU spans. The earlier stall sample included minimap compositing,
+but does not establish it as the principal bottleneck.
+
+The Survivors minimap now retains its composite when map directory, zoom, horizontal
+hero position, facing and ordered visible enemy positions are exactly unchanged.
+Dead and out-of-range enemies do not enter that snapshot. Changed inputs still use the
+same tile sampling, masking and ordered alpha blending; two reusable position buffers
+avoid allocating on each moving frame. The snapshot is committed only after image data
+is written. This removes redundant CPU rasterization and image uploads at a held chest
+without throttling moving scenes. Live performance acceptance remains open.
+
+Validation: native play build passed (1m57s initial, 20.81s final incremental rebuild);
+all 131 Survivors app tests pass on the final source with checkout data. Workspace
+Clippy, formatting and render-pass lint pass. A live 1440×900 logical Retina run shows
+the held map and updated dot layout after selecting a chest reward and resuming combat.
+No ERROR or panic entries appeared; validation app closed and normal launcher restored.
+
+This is not a demonstrated FPS improvement. The second run held 224 enemies with a
+different combat-text distribution, so it is not an identical-scene A/B benchmark.
+After compilation finished, 15 journal samples from 118–135 seconds had median
+per-window mean frame time 100.27 ms, process CPU 133.75 ms and main-thread CPU 80.51 ms.
+A stall sample during the earlier held portion contains no minimap compositor samples,
+but 174 samples in the combat-text SmartBucket overlap solver under float_combat_text.
+Investigate repeated overlap placement of frozen combat text next; confirm timings
+without concurrent compilation and test resumed combat as well. Logs and journals
+remain in the ignored target/survivors-validation/minimap-before/after paths (the log
+and CSV filenames use those stems). The full performance and content gates remain open.
