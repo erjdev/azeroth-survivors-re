@@ -26,6 +26,7 @@ mod menu;
 mod minimap;
 mod minimap_indoor;
 mod mobility;
+mod navigation;
 mod notes;
 mod renown;
 mod spawn;

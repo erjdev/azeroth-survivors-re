@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Initial enemy obstacle detours
+
+Stalled enemies now plan and follow collision-checked local detours, sharing a
+bounded search budget across frames. Routes reset when targets move substantially
+or enemies leave play. All 164 app tests pass, including real-physics wall-detour
+playback; Clippy and native build pass (78 seconds). Live foliage/indoor routing,
+narrow passages and crowded-queue performance remain open.
+
 ## 2026-10-25 — Safe distant-enemy placement
 
 Repositioned enemies now respect arena bounds, supported ground and body clearance,

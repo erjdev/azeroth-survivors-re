@@ -3034,3 +3034,36 @@ Validation: all 160 Survivors app tests pass, including the extended streamed-fl
 fixture. Workspace test compilation, Clippy, native play build, formatting,
 render-pass lint and diff checks pass. No live obstacle-routing acceptance is
 claimed by this placement fix.
+
+
+### Incremental obstacle detours — 2026-10-25
+
+Stalled enemies now request local paths through the runtime collision geometry.
+The planner searches a two-yard grid with separate half-yard height keys; each
+edge must pass the existing grounded capsule travel and body-clearance checks,
+and stay inside the arena. A final connection must reach the target's actual
+height, so another storey is not accepted just because its XY matches.
+
+Work is incremental: eight edge probes total per frame, round-robin across at
+most 64 waiting requests, with at most 256 nodes per search. Movement continues
+under the existing collision rules while a request waits. Failed searches retry
+after a cooldown. Waypoints use grounded travel again during playback; a stale
+path cannot bypass a newly streamed solid surface. Target movement beyond six
+yards invalidates a route. Crowd control, fear, recycling, death/despawn and map
+changes discard the relevant route state.
+
+This is an initial local detour implementation, not full navigation acceptance.
+Narrow passages below grid resolution, long indoor routes, crowded queue latency,
+dynamic target behavior and real foliage/room geometry still need validation.
+It does not unlock Blackrock, Scarlet or other pending zones. The Blackrock
+playable-region and spawn-connectivity requirements remain open.
+
+
+Validation: all 164 Survivors app tests pass. New tests verify incremental detours
+around a finite wall, the global edge budget and queue rotation, dead/map/target
+invalidation, missing support, rejection of a goal on another storey, and route
+playback through real Avian capsule sweeps. The physics fixture confirms the direct
+path is blocked, finds a detour, and checks body clearance while walking every
+segment to the destination. Workspace test compilation, Clippy, formatting,
+render-pass lint and diff checks pass. Native play build: 1 minute 18 seconds.
+Live world navigation and performance acceptance are still pending.

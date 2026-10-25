@@ -344,6 +344,7 @@ pub(super) fn move_enemies(
     selection: Res<Selection>,
     hero: Query<(Entity, &Transform), (With<Hero>, Without<Enemy>)>,
     mut enemies: Query<(Entity, &mut Transform, &mut Enemy, &mut MovementState), Without<Hero>>,
+    mut navigation: Local<super::navigation::Navigation>,
     mut fx: Fx,
     mut hits: MessageWriter<Hit>,
 ) {
@@ -364,6 +365,14 @@ pub(super) fn move_enemies(
         .filter(|(_, _, e, _)| !e.dead)
         .map(|(ent, tf, e, _)| (ent, tf.translation, e.radius))
         .collect();
+    navigation.advance(dt, selection.map, &bodies, |from, to, radius| {
+        let map = selection.map_def();
+        if flat(to - hero::arena(map)).length() + radius > map.leash {
+            return None;
+        }
+        let end = world.travel(from, to, radius);
+        (flat(end - to).length() < 0.1 && world.can_spawn(end, radius)).then_some(end)
+    });
     let key = |p: Vec3| ((p.x / CELL).floor() as i32, (p.z / CELL).floor() as i32);
     let mut grid: HashMap<(i32, i32), Vec<usize>> = HashMap::new();
     for (i, b) in bodies.iter().enumerate() {
@@ -430,6 +439,7 @@ pub(super) fn move_enemies(
 
         // Strays far behind are brought back in front, as the reference genre does.
         if dist > 75.0 {
+            navigation.forget(ent);
             recycle(
                 &world,
                 selection.map_def(),
@@ -448,15 +458,22 @@ pub(super) fn move_enemies(
         let contact = dist <= HERO_RADIUS + e.radius + 0.35 && world.line_clear(pos, hpos);
         let mut step = Vec3::ZERO;
         let mut speed = 0.0;
+        if held || hero_down || e.fear_t > 0.0 {
+            navigation.forget(ent);
+        }
+        let waypoint = navigation.waypoint(ent, pos, hpos);
         if !held && !hero_down {
             let dir = if e.fear_t > 0.0 {
                 -to_hero.normalize_or_zero()
             } else {
-                to_hero.normalize_or_zero()
+                flat(waypoint.unwrap_or(hpos) - pos).normalize_or_zero()
             };
             if !contact || e.fear_t > 0.0 {
                 speed = e.speed * e.slow;
                 step = dir * speed;
+                if let Some(point) = waypoint {
+                    step = step.clamp_length_max(flat(point - pos).length() / dt);
+                }
             }
             if dir != Vec3::ZERO {
                 let target = Quat::from_rotation_y(yaw_toward(dir));
@@ -465,9 +482,25 @@ pub(super) fn move_enemies(
         }
         let shove = push.get(&ent).copied().unwrap_or_default();
         let mut next = pos + step * dt + shove * (dt * 8.0).min(0.5);
-        next = world.slide(pos, next, e.radius);
+        next = if waypoint.is_some() {
+            world.travel(pos, next, e.radius)
+        } else {
+            world.slide(pos, next, e.radius)
+        };
         next = ground(&world, next, pos.y);
         tf.translation = next;
+        if !held && !hero_down && e.fear_t <= 0.0 && !contact {
+            let expected = speed * dt;
+            let progress = flat(next - pos).dot(step.normalize_or_zero());
+            navigation.observe(
+                ent,
+                next,
+                hpos,
+                e.radius,
+                expected > 0.001 && progress < expected * 0.2,
+                dt,
+            );
+        }
         if speed > 0.0 {
             mv.speed = speed;
             mv.flags = move_flags::FORWARD;
