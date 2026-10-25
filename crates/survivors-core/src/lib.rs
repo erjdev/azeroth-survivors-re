@@ -11,6 +11,7 @@ mod gear_stats;
 mod gear_upgrades;
 pub mod gear_visuals;
 pub mod layout;
+pub mod racials;
 pub mod rewards;
 pub mod selection;
 pub mod sheet;

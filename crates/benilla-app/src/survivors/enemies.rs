@@ -890,6 +890,22 @@ mod lethal_pickup_tests {
     use super::*;
 
     #[test]
+    fn human_xp_and_gold_apply_to_hero_and_companion_pickups() {
+        let mut run = Run {
+            race: 1,
+            ..Default::default()
+        };
+        let mut stash = super::super::stash::Stash::default();
+        let mut next = NextState::Unchanged;
+        bank_gem(&mut run, &mut stash, &mut next, GemKind::Xp(1), 1.0);
+        assert!((run.xp - data::XP_RATE * 1.1).abs() < 0.001);
+        bank_gem(&mut run, &mut stash, &mut next, GemKind::Gold(100), 1.0);
+        assert_eq!(run.gold_found, 120);
+        bank_gem(&mut run, &mut stash, &mut next, GemKind::Gold(100), 1.1);
+        assert_eq!(run.gold_found, 252);
+    }
+
+    #[test]
     fn lethal_hit_blocks_healing_and_level_up_before_death_animation() {
         for kind in [GemKind::Heal(1000.), GemKind::Xp(10000), GemKind::Gold(100)] {
             let mut run = Run {

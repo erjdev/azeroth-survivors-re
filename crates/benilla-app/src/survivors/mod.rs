@@ -642,10 +642,15 @@ impl Run {
         apply_sheet(&mut s, self.bonus);
         apply_sheet(&mut s, self.worn.bonus());
         s.haste += self.milestones.flurry_haste(self.flurry_t > 0.0);
-        let enrage = self.milestones.enrage_damage(self.enrage_t > 0.0);
-        s.might *= self.tuning.damage * enrage;
+        let damage_buff = self.milestones.enrage_damage(self.enrage_t > 0.0)
+            * survivors_core::racials::damage_multiplier(self.race, self.elapsed);
+        if self.race == survivors_core::racials::HUMAN {
+            s.growth += survivors_core::racials::HUMAN_EXPERIENCE;
+            s.gold_find += survivors_core::racials::HUMAN_GOLD;
+        }
+        s.might *= self.tuning.damage * damage_buff;
         if let Some((_, bonus)) = s.legendary.as_mut() {
-            bonus.might *= enrage;
+            bonus.might *= damage_buff;
         }
         s.speed *= self.tuning.movement;
         s.growth *= self.tuning.experience;
@@ -742,6 +747,34 @@ fn reset_run(
 #[cfg(test)]
 mod stat_tests {
     use super::*;
+
+    #[test]
+    fn human_racials_reach_the_run_sheet_without_accumulating() {
+        let mut run = Run {
+            race: 1,
+            ..Run::default()
+        };
+        run.bonus.growth = 0.2;
+        run.bonus.gold = 0.3;
+        run.bonus.might = 0.4;
+        run.worn.equip(campaign::JewelKind::Legend("fireball"));
+        let normal = run.stats();
+        assert!((normal.growth - 1.3).abs() < 0.001);
+        assert!((normal.gold_find - 1.5).abs() < 0.001);
+        run.elapsed = 30.0;
+        assert!((run.stats().might - normal.might * 1.15).abs() < 0.001);
+        let active = run.stats();
+        assert!(
+            (active.for_spell("fireball").might - normal.for_spell("fireball").might * 1.15).abs()
+                < 0.001
+        );
+        assert_eq!(run.stats().might, active.might);
+        run.elapsed = 40.0;
+        assert_eq!(run.stats().might, normal.might);
+        run.race = 2;
+        assert!((run.stats().growth - 1.2).abs() < 0.001);
+        assert!((run.stats().gold_find - 1.3).abs() < 0.001);
+    }
 
     #[test]
     fn chosen_slot_profiles_reach_combat_stats_and_downgrade_cleanly() {

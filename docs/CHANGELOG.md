@@ -3,6 +3,26 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Human racial benefits
+
+Implemented the starter reference's Human rules: Perception grants +15% damage
+for 10 seconds every 30 seconds (first activation at 30); Human Spirit adds 10%
+run experience and Diplomacy adds 20% gold. The starter uses the same values as
+gameplay. Other races explicitly show that their rules remain undefined.
+
+![Human benefits on the starter](images/screenshots/2026-10-25-human-racials/human-1280.jpg)
+
+![Other races remain explicitly pending](images/screenshots/2026-10-25-human-racials/gnome-pending-1280.jpg)
+
+![Human benefits remain readable at 640×720](images/screenshots/2026-10-25-human-racials/human-640.jpg)
+
+Validation: 101 core tests, 183 Survivors app tests, native build, workspace
+Clippy, formatting and render-pass lint pass. Tests cover activation boundaries,
+stat/legendary stacking and hero/companion pickups. Live checks cover starter
+text and race switching, not combat timing or effects. Existing nearest-coin
+rounding applies to each gold award. Other racial rules and Perception's visible
+combat feedback remain open.
+
 ## 2026-10-25 — Live hero portrait on the starter
 
 The starter now shows the selected hero's saved body and appearance beside their

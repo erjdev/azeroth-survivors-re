@@ -57,6 +57,22 @@ The front door is three columns.
 
 Reference: `docs/intentions/survivors_main_menu.png`.
 
+Human racial rules from the main-menu reference:
+- Perception: +15% damage for 10 seconds every 30 seconds of gameplay. The first
+  activation is at 30 seconds; windows are [30, 40), [60, 70), and so on. Paused
+  gameplay does not advance this timer. It multiplies damage after permanent
+  bonuses, including spell-specific legendary damage.
+- The Human Spirit: +10 percentage points to run experience gain, additive with
+  other experience bonuses before run tuning. This affects pickups, not account
+  talent experience awarded at run end.
+- Diplomacy: +20 percentage points to gold gain, additive with other gold bonuses.
+  Existing per-award nearest-coin rounding still applies; a single coin can remain
+  one coin. Companion gold multipliers apply afterward.
+
+These are Survivors mechanics, not vanilla racial spell effects. Other races'
+bonuses require authored rules and currently grant none; the starter labels them
+as not yet defined. The selected body's race is captured when a run starts.
+
 The reference composition must scale proportionally across reasonable resolutions and aspect
 ratios, with readable minimum sizes and deliberate reflow/scrolling. Fixed-pixel placement at
 one resolution is not completion. Card sheen stays inside its card. Every interface surface

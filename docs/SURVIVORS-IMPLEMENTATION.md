@@ -18,6 +18,16 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Human racial checkpoint: the reference's Perception (+15% damage for 10 seconds
+every 30), Human Spirit (+10% run XP) and Diplomacy (+20% gold) now reach the run
+sheet and appear on the starter. First Perception activation is at 30 seconds.
+Core boundary tests and app tests cover stat stacking, legendary damage and
+hero/companion pickups. Human/Gnome switching and 1280×720/640×720 descriptions
+were checked live. Other racial rules, Perception combat feedback and full live
+combat acceptance remain open. Existing per-award gold rounding is retained.
+The starter Look button still reaches the older glue screen; consolidate that
+route with Character's body controls in a subsequent interface checkpoint.
+
 Starter portrait checkpoint verified at 1280×720 and 640×720: the selected
 hero's saved body/appearance renders beside their name and race in a proportional
 pane. Live Warrior/Mage switching, Character round trip, scroll clipping and
@@ -32,7 +42,7 @@ Below 1100 UI units, Class/Hero/Zone stack in a shared scroll surface with an
 independent session offset; entry controls stay outside the scroll. Live shoulders
 inspection, lower-zone reachability and Collection/Escape scroll restoration passed.
 Still open against the main-menu intention: illustrated zone rows,
-decorative typography, racial bonuses and wider viewport acceptance.
+decorative typography, remaining racial bonuses and wider viewport acceptance.
 
 Talent saved-build live checkpoint verified at 1280×720 with an isolated Warrior
 and Mage: distinct Warrior specs (Arms 3/Fury 2), Mage spec 3 (Frost 1), selected-spec

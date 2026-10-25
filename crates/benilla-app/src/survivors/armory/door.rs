@@ -787,7 +787,13 @@ fn hero_column(
     });
     if let Some((race, _)) = look {
         line(body, font, race_name(race), 14.0, GOLD);
-        line(body, font, "No permanent bonus.", 12.0, DIM);
+        if let Some(racials) = survivors_core::racials::description(race) {
+            for racial in racials {
+                line(body, font, &racial, 12.0, BONUS);
+            }
+        } else {
+            line(body, font, "Racial bonuses are not yet defined.", 12.0, DIM);
+        }
     }
 }
 
