@@ -1681,3 +1681,27 @@ and separates Shoulders/Chest; Main Hand wraps only where needed. Evidence:
 [1280×720](images/screenshots/2026-10-25-collection-headings/collection-720.png).
 Native play build and formatting pass. This checks the default layout at these two sizes,
 not the full resolution/layout-setting matrix or other Armory pages.
+
+
+### Un'Goro scheduled armor sources — 2026-10-25
+
+The six existing roster bosses now have timed uncommon helm-through-feet rolls, backed
+by [pinned creature identity and placement evidence](SURVIVORS-LOCATIONS.md#ungoro-encounter-identity-and-source-table--2026-10-25).
+All nine classes have named visual identities for those cells. The encounter clock and
+source pages use the same rows; King Mosh arrives at 16:00 and victory requires all six
+kills. The drop page now explains the selected zone's lock, even when a table exists.
+Un'Goro remains world-locked: the current summit is unsuitable and the southern candidate
+still needs live gameplay/camera/spawn acceptance. Wrist/hands/weapon sources remain open.
+
+Live 1280×720 evidence verifies the [world-lock message and new sources](images/screenshots/2026-10-25-ungoro-drops/sources-720.png),
+scroll access to the sixth row, and [King Mosh's matching boots detail](images/screenshots/2026-10-25-ungoro-drops/final-item-720.png).
+Selection rebuilds the page and returns its source scroll to the top; preserving that
+scroll position remains UI follow-up. A transient automation-pipe disconnect recovered
+with the app still running and the requested selection applied. No live encounter or
+loot-award acceptance is claimed from this menu check.
+
+Validation: final native play build (29.08 seconds), workspace test compilation, 68 core
+tests, 115 Survivors app tests with explicit checkout data, workspace Clippy, formatting
+and render-pass lint pass. Core coverage checks every scheduled boundary, all-class name
+and display resolution, capped Keen Eye chances, last-boss victory timing and the retained
+world lock. No full workspace test pass or live loot-award completion is claimed.

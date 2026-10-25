@@ -58,10 +58,11 @@ templates above, selected by `itemset` and mapped by `InventoryType` to the eigh
 slots (robe type 20 occupies chest). The checked-in identity table is
 `crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
 
-Each class now has 18 named collection cells; 36 are still unnamed. These new armor
-cells show **Source not yet available** until encounter drop rows are authored and
-verified. Naming them does not grant ownership, unlock zones, add raid bonuses or make
-them obtainable. Live race/sex rendering and source acceptance remain open.
+Each class now has 18 named collection cells; 36 are still unnamed. Six uncommon armor
+cells now list the authored Un'Goro boss sources; that zone remains
+world-locked pending arena acceptance. Wrist and hands still show **Source not yet
+available**. Naming these pieces does not grant ownership, unlock zones or add raid
+bonuses. Live race/sex rendering and complete source acceptance remain open.
 
 ## Class-specific Atiesh
 

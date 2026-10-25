@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Un'Goro encounter sources
+
+Six timed bosses now roll uncommon armor from 3:00 through King Mosh at 16:00, using the
+same table for combat and item sources. Creature identities and zone placements are
+verified against pinned data. The [drop browser](images/screenshots/2026-10-25-ungoro-drops/sources-720.png)
+explains why the zone remains locked; arena, camera and live encounter acceptance remain
+open. Native build, 68 core tests, 115 Survivors tests and lint checks pass. README evidence updated.
+
 ## 2026-10-25 — Collection heading spacing
 
 Centered slot headings within their proportional columns and adjusted text sizing to

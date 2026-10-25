@@ -61,6 +61,13 @@ Pick a class and a battleground, then survive: WASD to move, your abilities cast
 enemies swarm in waves, you level up and pick upgrades, and a boss shows up every couple of
 minutes. **No server, no login, no account** — fully offline and self-contained.
 
+Un'Goro source milestone: six timed uncommon-armor encounters now share their schedule
+with the drop browser. The zone remains world-locked while arena validation continues.
+
+![Un'Goro sources and availability at 720p](docs/images/screenshots/2026-10-25-ungoro-drops/sources-720.png)
+
+[King Mosh item detail](docs/images/screenshots/2026-10-25-ungoro-drops/final-item-720.png)
+
 Collection content milestone: the uncommon armor row now has real item identities for
 all nine classes. Hunter item details and pending-source messaging were checked at
 1280×720 and 1024×720. Slot headings are centered and separated at both sizes.

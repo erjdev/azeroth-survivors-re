@@ -114,7 +114,7 @@ mod tests {
     fn scheduled_sources_use_the_same_capped_boss_probability_as_combat() {
         for drop in campaign::DROPS
             .iter()
-            .filter(|d| d.zone == 0 || d.zone == 1)
+            .filter(|d| matches!(d.zone, 0 | 1 | 3))
         {
             assert!(drop_is_boss(drop), "{}", drop.creature);
             for (rank, expected) in [(0, 0.60), (1, 0.65), (2, 0.70), (255, 0.70)] {
@@ -183,6 +183,37 @@ mod tests {
         assert!(!won(map, 960.0, 5));
         assert!(won(map, 960.0, 6));
         assert!(!won(map, 959.0, 6));
+    }
+
+    #[test]
+    fn ungoro_drops_follow_six_bosses_but_do_not_unlock_unverified_world_content() {
+        let map = data::MAPS
+            .iter()
+            .position(|m| m.name == "Fire Plume Ridge")
+            .unwrap();
+        assert!(ready(map));
+        assert_eq!(schedule(map).len(), 6);
+        for (index, row) in campaign::DROPS.iter().filter(|d| d.zone == 3).enumerate() {
+            assert!(next(map, index as u32, row.at_secs as f32 - 0.01).is_none());
+            assert_eq!(
+                next(map, index as u32, row.at_secs as f32).unwrap().name,
+                row.creature
+            );
+            assert!(drop_is_boss(row));
+            for class in 0..data::CLASSES.len() {
+                assert!(campaign::piece_name(class, row.slot, row.band).is_some());
+                assert!(crate::gear_visuals::piece(class, row.slot, row.band).is_some());
+            }
+        }
+        assert!(next(map, 6, 10_000.0).is_none());
+        assert!(!won(map, 959.0, 6));
+        assert!(!won(map, 960.0, 5));
+        assert!(won(map, 960.0, 6));
+        assert!(!campaign::zone_open(3, 51, &[true; campaign::CLEAR_COUNT]));
+        assert_eq!(
+            campaign::zone_lock_reason(3, 51, &[true; campaign::CLEAR_COUNT]).as_deref(),
+            Some("Un'Goro Crater world content is not ready")
+        );
     }
 
     #[test]

@@ -81,6 +81,10 @@ pub(super) fn build(
         collection::column(row, (100.0-layout.left_width-layout.right_width)*0.70, layout, |body| {
             let zone = &campaign::ZONES[armory.drop_zone];
             label(body, font, zone.name, layout.title_size, GOLD);
+            let (level, clears) = super::hero_gate(account, selection);
+            if let Some(reason) = campaign::zone_lock_reason(armory.drop_zone, level, &clears) {
+                label(body, font, reason, layout.body_size, GOLD);
+            }
             label(body, font, "Each piece rolls independently. Duplicates add no stats. Chances include your Keen Eye bonus for scheduled bosses.", layout.body_size, DIM);
             let rows: Vec<_> = campaign::DROPS.iter().filter(|d| d.zone == armory.drop_zone).collect();
             if rows.is_empty() {

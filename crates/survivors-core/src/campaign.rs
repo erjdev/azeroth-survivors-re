@@ -575,6 +575,54 @@ pub static DROPS: &[DropRow] = &[
         chance: 60,
     },
     DropRow {
+        zone: 3,
+        slot: 0,
+        band: 1,
+        creature: "Ravasaur Matriarch",
+        at_secs: 180,
+        chance: 60,
+    },
+    DropRow {
+        zone: 3,
+        slot: 1,
+        band: 1,
+        creature: "Uhk'loc",
+        at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 3,
+        slot: 2,
+        band: 1,
+        creature: "Blazerunner",
+        at_secs: 540,
+        chance: 60,
+    },
+    DropRow {
+        zone: 3,
+        slot: 3,
+        band: 1,
+        creature: "Baron Charr",
+        at_secs: 720,
+        chance: 60,
+    },
+    DropRow {
+        zone: 3,
+        slot: 4,
+        band: 1,
+        creature: "Tyrant Devilsaur",
+        at_secs: 840,
+        chance: 60,
+    },
+    DropRow {
+        zone: 3,
+        slot: 5,
+        band: 1,
+        creature: "King Mosh",
+        at_secs: 960,
+        chance: 60,
+    },
+    DropRow {
         zone: 11,
         slot: 8,
         band: 5,
@@ -1662,7 +1710,7 @@ mod tests {
     #[test]
     fn drops_name_a_creature_on_that_map() {
         assert_eq!(PIECES, 54);
-        assert_eq!(DROPS.len(), 10);
+        assert_eq!(DROPS.len(), 16);
         for row in DROPS {
             let zone = &ZONES[row.zone];
             let map = super::super::data::MAPS
@@ -1851,7 +1899,7 @@ mod tests {
         );
         assert_eq!(
             zone_lock_reason(3, 60, &[true; CLEAR_COUNT]).as_deref(),
-            Some("Un'Goro Crater has no drop table yet")
+            Some("Un'Goro Crater world content is not ready")
         );
     }
 
