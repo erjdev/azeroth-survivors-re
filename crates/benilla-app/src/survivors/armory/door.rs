@@ -1112,7 +1112,12 @@ fn gear_lines(
         .unwrap_or([0; campaign::PIECES]);
     body.spawn(Node {
         width: Val::Percent(100.0),
-        flex_wrap: FlexWrap::Wrap,
+        display: Display::Grid,
+        grid_template_columns: vec![RepeatedGridTrack::minmax(
+            GridTrackRepetition::AutoFit,
+            MinTrackSizingFunction::Px(36.0),
+            MaxTrackSizingFunction::Fraction(1.0),
+        )],
         column_gap: Val::Px(3.0),
         row_gap: Val::Px(5.0),
         ..default()
@@ -1124,9 +1129,7 @@ fn gear_lines(
                 Button,
                 Act::OpenEquipment(slot),
                 Node {
-                    flex_basis: Val::Percent(9.0),
-                    flex_grow: 1.0,
-                    min_width: Val::Px(36.0),
+                    min_width: Val::Px(0.0),
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
                     padding: UiRect::all(Val::Px(2.0)),

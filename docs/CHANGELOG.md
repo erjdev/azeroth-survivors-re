@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Equipment wrapping
+
+Starter equipment slots now share grid columns across wrapped rows. The final
+main-hand slot no longer stretches across the entire panel at 1100 pixels.
+Worn/empty slots retain their rarity borders and Collection inspection action.
+
+![Consistent wrapped slot widths at 1100×720](images/screenshots/2026-10-25-equipment-wrap/starter-1100.jpg)
+
+![Wrapped main-hand slot opens the matching item](images/screenshots/2026-10-25-equipment-wrap/main-hand-inspection.jpg)
+
+![Single-row equipment at 1280×720](images/screenshots/2026-10-25-equipment-wrap/starter-1280.jpg)
+
+![Scrolled compact equipment at 640×720](images/screenshots/2026-10-25-equipment-wrap/starter-640.jpg)
+
+Verified the three layouts and wrapped-slot inspection live. Native build,
+workspace Clippy, formatting and render-pass lint pass. No mechanics changed;
+gameplay tests were not rerun. Reference typography, portrait badges and outdoor
+zone art remain unfinished.
+
 ## 2026-10-25 — Starter class grid
 
 The wide starter now uses the intention screenshot's three-by-three class grid,
