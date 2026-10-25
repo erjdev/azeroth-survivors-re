@@ -1716,3 +1716,22 @@ so arena naming must be reconciled before adoption. Full traversal with position
 prop/actor collision, camera occlusion, frame hitches and the complete encounter/reward run
 remain acceptance work. Temporary coordinates and readiness overrides were restored;
 Un'Goro remains locked. README now shows gameplay instead of only a free-camera preview.
+
+
+### Distinct initial chest hands — 2026-10-25
+
+The Un'Goro gameplay check showed Multi-Shot twice in one chest. Chest generation now
+samples unused rewards within each rolled category (upgrade, ordinary jewelry, legendary).
+An exhausted category adds no card, so one or two eligible spell upgrades produce a smaller
+hand without promoting an unsuccessful jewelry roll. Empty upgrade pools still offer
+ordinary jewelry. Legend identities retain the owned-ability index, including sparse lists.
+
+Core regression coverage reproduces the two-spell hand and checks uniqueness, eligibility
+and nonempty hands across zero, one, two and four eligible spells, repeated random picks,
+low/high luck and category boundaries. This covers initial chest generation; banish
+replacement can still independently select a card already present and needs the same
+hand-wide exclusion contract. Live rendering of the reduced chest hand remains to verify.
+
+Validation: native play build 53.14 seconds; workspace test compilation 3m 23s; 69 core
+and 115 Survivors app tests pass. Core Clippy, scoped formatting, diff whitespace and
+render-pass lint pass. No new live UI screenshot is claimed for this change.

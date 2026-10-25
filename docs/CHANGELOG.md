@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Distinct chest rewards
+
+New chest hands no longer repeat the same spell upgrade or jewelry piece. With fewer
+eligible upgrades, hands can contain fewer than three cards; exhausted upgrade rolls do
+not turn into free jewelry. Luck and legendary category thresholds are unchanged.
+The two-spell duplicate seen during Un'Goro validation is covered by a regression test.
+Native build, 69 core tests and 115 Survivors app tests pass. Reduced-hand live rendering
+and duplicate prevention during banish replacement remain follow-up work.
+
 ## 2026-10-25 — Un'Goro gameplay investigation
 
 Captured [early Hunter combat](images/screenshots/2026-10-25-ungoro-gameplay/combat-720.png)

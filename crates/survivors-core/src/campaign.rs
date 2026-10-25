@@ -897,43 +897,54 @@ pub enum TradeCard {
     Ring(usize),
     Trinket(usize),
     Amulet(usize),
-    /// Index into the upgradeable-ability list, which is also the owned-ability index when that
-    /// list is the upgradeable set.
+    /// Owned-ability index supplied by the upgradeable list.
     Legend(usize),
 }
 
-/// Three chest cards. `rolls[i]` below [`jewel_chance`] turns that card into jewelry. `picks`
-/// chooses which upgrade or which catalog piece.
+/// Up to three distinct chest cards. Each roll chooses its reward category before sampling
+/// unused rewards. An exhausted category produces no card, never an extra jewelry roll.
 pub fn trade_cards(
     upgradeable: &[usize],
     luck_percent: f32,
     rolls: [f32; 3],
     picks: [u32; 3],
     extra_jewel: f32,
-) -> [TradeCard; 3] {
+) -> Vec<TradeCard> {
     let chance = (jewel_chance(luck_percent) + extra_jewel.max(0.0)).min(0.75);
     let legend = (legend_share(luck_percent) * 100.0) as u32;
     let catalog = RINGS + TRINKETS + AMULETS;
-    std::array::from_fn(|i| {
-        let jewel = rolls[i] < chance;
-        if jewel || upgradeable.is_empty() {
-            let n = picks[i];
+    let mut out = Vec::with_capacity(3);
+    for i in 0..3 {
+        let n = picks[i];
+        let mut pool: Vec<_> = if rolls[i] < chance || upgradeable.is_empty() {
             if !upgradeable.is_empty() && n % 100 < legend {
-                TradeCard::Legend(upgradeable[n as usize % upgradeable.len()])
+                upgradeable.iter().copied().map(TradeCard::Legend).collect()
             } else {
-                let slot = n as usize % catalog;
-                if slot < RINGS {
-                    TradeCard::Ring(slot)
-                } else if slot < RINGS + TRINKETS {
-                    TradeCard::Trinket(slot - RINGS)
-                } else {
-                    TradeCard::Amulet(slot - RINGS - TRINKETS)
-                }
+                (0..catalog)
+                    .map(|slot| {
+                        if slot < RINGS {
+                            TradeCard::Ring(slot)
+                        } else if slot < RINGS + TRINKETS {
+                            TradeCard::Trinket(slot - RINGS)
+                        } else {
+                            TradeCard::Amulet(slot - RINGS - TRINKETS)
+                        }
+                    })
+                    .collect()
             }
         } else {
-            TradeCard::Upgrade(upgradeable[picks[i] as usize % upgradeable.len()])
+            upgradeable
+                .iter()
+                .copied()
+                .map(TradeCard::Upgrade)
+                .collect()
+        };
+        pool.retain(|card| !out.contains(card));
+        if !pool.is_empty() {
+            out.push(pool[n as usize % pool.len()]);
         }
-    })
+    }
+    out
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1917,6 +1928,36 @@ mod tests {
         );
         assert!(is_named_elite("Elwynn Forest", "Defias Bandit"));
         assert!(!is_named_elite("Elwynn Forest", "Young Wolf"));
+    }
+
+    #[test]
+    fn chest_hands_offer_distinct_eligible_rewards_without_promoting_exhausted_rolls() {
+        // Reproduces the two-spell chest: three non-jewelry rolls must not repeat a spell.
+        let hand = trade_cards(&[0, 2], 0.0, [0.9; 3], [1, 0, 2], 0.0);
+        assert_eq!(hand, vec![TradeCard::Upgrade(2), TradeCard::Upgrade(0)]);
+        assert_eq!(
+            trade_cards(&[4], 0.0, [0.9; 3], [0; 3], 0.0),
+            vec![TradeCard::Upgrade(4)]
+        );
+        for owned in [&[][..], &[0][..], &[1, 3][..], &[0, 2, 4, 5][..]] {
+            for luck in [0.0, 100.0] {
+                for roll in [0.0, 0.1, 0.9] {
+                    for seed in 0..100 {
+                        let hand = trade_cards(owned, luck, [roll; 3], [seed; 3], 0.0);
+                        assert!(!hand.is_empty());
+                        for (i, card) in hand.iter().enumerate() {
+                            assert!(!hand[..i].contains(card), "{hand:?}");
+                            if let TradeCard::Upgrade(index) | TradeCard::Legend(index) = card {
+                                assert!(owned.contains(index));
+                            }
+                        }
+                        if owned.is_empty() || (owned.len() >= 3 && roll == 0.9) {
+                            assert_eq!(hand.len(), 3);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     #[test]
