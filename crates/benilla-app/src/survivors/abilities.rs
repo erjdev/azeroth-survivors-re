@@ -893,6 +893,7 @@ pub(super) fn apply_hits(
                 run.hp = (run.hp + heal).min(stats.max_hp);
             }
         }
+        run.record_flurry_hit(h.source, h.damage, h.crit);
         let bleed = run.milestones.critical_bleed(h.source, h.damage, h.crit);
         refresh_deep_wounds(&mut en.dots, bleed);
         if h.dot > 0.0 && h.dot_dur > 0.0 {

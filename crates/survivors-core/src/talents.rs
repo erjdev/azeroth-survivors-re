@@ -39,12 +39,22 @@ pub fn valid_tree(nodes: &[RankedTalent]) -> bool {
     })
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Milestones {
     pub class: usize,
     pub points: [u32; 3],
     /// Bounded selected-spec ranks in the class catalog order; not a save format.
-    pub training: [u8; 32],
+    pub training: [u8; 64],
+}
+
+impl Default for Milestones {
+    fn default() -> Self {
+        Self {
+            class: 0,
+            points: [0; 3],
+            training: [0; 64],
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -222,6 +232,25 @@ impl Milestones {
         } else {
             0.0
         }
+    }
+
+    pub fn flurry_haste(self, active: bool) -> f32 {
+        if self.class == 0 && active {
+            self.trained_value(TalentStat::FlurryHaste)
+        } else {
+            0.0
+        }
+    }
+
+    pub fn triggers_flurry(self, key: &str, damage: f32, critical: bool) -> bool {
+        self.flurry_haste(true) > 0.0
+            && critical
+            && damage.is_finite()
+            && damage > 0.0
+            && matches!(
+                key,
+                "cleave" | "heroic_strike" | "execute" | "mortal_strike"
+            )
     }
 
     /// Death Wish's risk applies only during the actual Retaliation buff.
@@ -545,6 +574,7 @@ pub enum TalentStat {
     CriticalBleed,
     EnrageDamage,
     BloodCrazeHealing,
+    FlurryHaste,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
     Reduction,
@@ -573,6 +603,7 @@ impl TalentDefinition {
             TalentStat::Cooldown | TalentStat::SpellCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::Crit | TalentStat::SpellCrit(_) => (100.0, "% critical chance"),
             TalentStat::CritDamage => (100.0, "% critical damage"),
+            TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::BloodCrazeHealing => {
                 (100.0, "% maximum health over 6 seconds after health damage")
             }
@@ -834,6 +865,12 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::BloodCrazeHealing,
         per_rank: 0.01,
     },
+    TalentDefinition {
+        id: 156, max_rank: 5, name: "Flurry",
+        description: "Direct attack criticals grant 5% haste per rank for 3 seconds; further criticals refresh without stacking (Survivors conversion)",
+        stat: TalentStat::FlurryHaste, per_rank: 0.05,
+    },
+
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
@@ -1023,6 +1060,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SecondaryStunDuration(_)
             | TalentStat::EnrageDamage
             | TalentStat::BloodCrazeHealing
+            | TalentStat::FlurryHaste
             | TalentStat::CriticalBleed
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
@@ -1206,6 +1244,48 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn flurry_requires_trained_direct_criticals() {
+        for rank in 0..=5 {
+            let trained = Milestones::default().with_ranks(&[(1, 156, rank)]);
+            assert_eq!(trained.flurry_haste(false), 0.0);
+            assert!((trained.flurry_haste(true) - 0.05 * f32::from(rank)).abs() < 0.00001);
+            for key in ["cleave", "heroic_strike", "execute", "mortal_strike"] {
+                assert_eq!(trained.triggers_flurry(key, 10., true), rank > 0);
+                assert!(!trained.triggers_flurry(key, 10., false));
+                assert!(!trained.triggers_flurry(key, 0., true));
+                assert!(!trained.triggers_flurry(key, f32::NAN, true));
+            }
+            for key in [
+                "deep_wounds",
+                "whirlwind",
+                "retaliation",
+                "sweeping_strikes",
+                "fireball",
+            ] {
+                assert!(!trained.triggers_flurry(key, 10., true));
+            }
+            assert_eq!(trained.with_ranks(&[]).flurry_haste(true), 0.);
+            assert_eq!(
+                Milestones {
+                    class: 1,
+                    ..trained
+                }
+                .flurry_haste(true),
+                0.
+            );
+        }
+        assert_eq!(
+            Milestones::default()
+                .with_ranks(&[(1, 156, 255)])
+                .flurry_haste(true),
+            0.25
+        );
+        for class in 0..9 {
+            assert!(definitions(class).len() <= Milestones::default().training.len());
+        }
+    }
+
+    #[test]
     fn blood_craze_training_is_bounded_and_class_specific() {
         for rank in 0..=3 {
             let trained = Milestones::default().with_ranks(&[(1, 661, rank)]);
@@ -1266,6 +1346,7 @@ mod stat_talent_tests {
                     | TalentStat::SecondaryStunDuration(_)
                     | TalentStat::EnrageDamage
                     | TalentStat::BloodCrazeHealing
+                    | TalentStat::FlurryHaste
                     | TalentStat::CriticalBleed
                     | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)

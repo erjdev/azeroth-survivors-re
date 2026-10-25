@@ -6,9 +6,9 @@ use bevy::input::mouse::{AccumulatedMouseMotion, MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 
 use super::data::{self, ClassDef};
-use super::units::{self, Fx, Marks, UnitSpec, flat, wow_to_bevy, yaw_toward};
+use super::units::{self, flat, wow_to_bevy, yaw_toward, Fx, Marks, UnitSpec};
 use super::{Phase, Run, Selection};
-use crate::creature_anim::{MovementState, move_flags};
+use crate::creature_anim::{move_flags, MovementState};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
 #[derive(Component)]
@@ -428,6 +428,7 @@ fn advance_buffs(run: &mut Run, dt: f32) {
         &mut run.immune_t,
         &mut run.thorns_t,
         &mut run.enrage_t,
+        &mut run.flurry_t,
     ] {
         *t = (*t - dt).max(0.0);
     }
@@ -543,6 +544,32 @@ pub(super) fn reach(hero: Vec3, other: Vec3) -> f32 {
 mod reactive_talent_tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn flurry_changes_cooldowns_refreshes_and_expires() {
+        let mut run = Run::default();
+        run.milestones = Milestones::default().with_ranks(&[(1, 156, 5)]);
+        let owned = super::super::Owned {
+            def: data::ability("cleave"),
+            level: 1,
+            cd: 0.0,
+        };
+        let before = run.stats();
+        run.record_flurry_hit("cleave", 10., false);
+        assert_eq!(run.flurry_t, 0.);
+        run.record_flurry_hit("cleave", 10., true);
+        assert_eq!(run.flurry_t, 3.);
+        assert!((owned.cooldown(&run.stats()) - owned.cooldown(&before) * 0.75).abs() < 0.00001);
+        advance_buffs(&mut run, 2.);
+        run.record_flurry_hit("heroic_strike", 10., true);
+        assert_eq!(run.flurry_t, 3.);
+        assert_eq!(run.stats().haste, before.haste + 0.25);
+        advance_buffs(&mut run, 4.);
+        assert_eq!(run.stats().haste, before.haste);
+        run.hp = 0.;
+        run.record_flurry_hit("cleave", 10., true);
+        assert_eq!(run.flurry_t, 0.);
+    }
 
     #[test]
     fn blood_craze_refreshes_and_heals_only_its_active_time() {

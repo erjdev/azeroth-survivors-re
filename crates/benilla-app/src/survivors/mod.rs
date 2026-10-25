@@ -409,6 +409,7 @@ pub(super) struct Run {
     pub shield_t: f32,
     pub immune_t: f32,
     pub enrage_t: f32,
+    pub flurry_t: f32,
     pub blood_craze_t: f32,
     pub thorns: f32,
     pub thorns_t: f32,
@@ -490,6 +491,7 @@ impl Default for Run {
             shield_t: 0.0,
             immune_t: 0.0,
             enrage_t: 0.0,
+            flurry_t: 0.0,
             blood_craze_t: 0.0,
             thorns: 0.0,
             thorns_t: 0.0,
@@ -540,6 +542,15 @@ impl Run {
         self.opening_hand = perks.opening_hand > 0;
         self.can_skip = perks.skip > 0;
         self.keen_eye = perks.keen_eye;
+    }
+
+    pub(super) fn record_flurry_hit(&mut self, source: &str, damage: f32, critical: bool) {
+        if self.hp > 0.0
+            && self.dead_t.is_none()
+            && self.milestones.triggers_flurry(source, damage, critical)
+        {
+            self.flurry_t = 3.0;
+        }
     }
 
     pub fn stats(&self) -> Stats {
@@ -595,6 +606,7 @@ impl Run {
         }
         apply_sheet(&mut s, self.bonus);
         apply_sheet(&mut s, self.worn.bonus());
+        s.haste += self.milestones.flurry_haste(self.flurry_t > 0.0);
         let enrage = self.milestones.enrage_damage(self.enrage_t > 0.0);
         s.might *= self.tuning.damage * enrage;
         if let Some((_, bonus)) = s.legendary.as_mut() {

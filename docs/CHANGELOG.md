@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Flurry training
+
+Direct Warrior criticals can now trigger a three-second Flurry haste bonus. Further
+criticals refresh without stacking; bleeds, area ticks and reflection do not trigger it.
+The bonus follows existing haste cooldown rules. Warrior now has 30 supported nodes,
+and the run-only talent snapshot has room for complete class catalogs without save changes.
+Balance, dedicated buff presentation and manual combat acceptance remain pending.
+
+Native build, workspace test compilation, 56 core tests, 99 focused Survivors tests and
+the local talent-data audit pass.
+
 ## 2026-10-24 — Blood Craze and lethal-hit healing
 
 Blood Craze heals over six seconds after health damage; repeated hits refresh without

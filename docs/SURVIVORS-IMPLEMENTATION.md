@@ -1163,3 +1163,24 @@ manual combat acceptance and remaining class nodes are still open.
 
 Validation: native build, workspace test compilation, 55 core tests, 98 focused Survivors
 tests and the local talent-data audit pass. Full workspace gates were not rerun.
+
+
+### Flurry training checkpoint — 2026-10-24
+
+Flurry (local DBC node 156, five ranks) grants 5% haste per rank for three seconds after
+a successful direct critical from Cleave, Heroic Strike, Execute or Mortal Strike.
+Further eligible criticals refresh one timer; periodic areas, bleeds and reflection do
+not trigger it. This is a provisional Survivors adaptation, not vanilla's charge model.
+It uses the existing haste rule (percentage shorter cooldowns, additive with other haste
+and subject to its floor); it affects subsequent cast cooldowns, not an already-running
+cooldown. Gameplay pause freezes the timer. Expiry removes the bonus, and dead heroes
+cannot activate it. It changes neither damage nor target count.
+
+Warrior now has 30 supported nodes. The run-only training snapshot holds 64 entries so
+continued class implementation can exceed the previous 32-node limit; saves still store
+DBC IDs/ranks. A capacity regression checks every implemented class catalog. Remaining
+nodes, dedicated Flurry buff presentation, fresh screenshots and manual combat checks
+remain open.
+
+Validation: native build, workspace test compilation, 56 core tests, 99 focused Survivors
+tests and the local talent-data audit pass. Full workspace gates were not rerun.
