@@ -2003,3 +2003,41 @@ route coverage and Feralas gameplay acceptance remain open.
 Validation: all 122 Survivors app tests with checkout data, workspace Clippy, formatting,
 render-pass lint and diff whitespace checks pass. Native incremental build: 19.00 seconds;
 workspace test compilation: 2 minutes 38 seconds. No live gameplay performance claim is made.
+
+### Feralas live combat and partial reward persistence — 2026-10-25
+
+Ran the native checkout build with `WOW_SURVIVORS_AUTO=Warrior:late`,
+`WOW_SURVIVORS_MAP=Feralas`, explicit checkout `WOW_DATA`, and a new isolated
+`BENILLA_HOME=target/survivors-validation/feralas-live-state`. The existing validation
+autopilot can enter the locked candidate without changing player-facing readiness.
+The logical window was 1280×720; the saved Retina screenshot includes the title bar.
+
+The run began at simulated 600 seconds with max-rank Warrior abilities and reached
+219 living enemies. The final logged sample reached level 45, 398 kills and 130,820
+damage at simulated 624 seconds. Repeated level-ups paused combat, so this is not a
+normal progression/balance run. The screenshot shows a late-run single Healthstone
+card; its full-health wording (“Restores your health from 320 health”) needs cleanup.
+
+After close, the isolated account file owns Warrior cells `(band 2, slots 0..3)` and
+selects those four pieces: Helm, Pauldrons, Breastplate and Belt of Might. Other class
+collections remain empty. This supplies live drop-to-save evidence for four Rare
+slots; five slots, reload appearance checks and the final encounter remain unverified.
+
+Two early hitches were logged at 1,830 and 1,006 ms. The captured stall sample includes
+render/executor waits and does not establish their root cause. The old autopilot FPS
+number divided all accumulated frames by ten, including menu/level-up frames, so no
+combat FPS claim is made from that output. Validation telemetry now records actual
+interval duration, separate combat frames/time/FPS, and worst combat-frame duration;
+windows with no combat report `n/a`. Menu time is reset out of the sample.
+
+The README links the captured milestone. The app was closed through its fresh close
+control and the ordinary validation launcher restored. Feralas remains locked; live
+traversal, occlusion, full encounters/rewards, hitch diagnosis and performance remain open.
+
+A second isolated native run verified the new telemetry in real output: a 9.99-second
+window reported 49 overall FPS, 328 combat frames over 7.38 real seconds (44.5 combat
+FPS), and a 1,893.9 ms worst combat frame. This includes startup/asset work and is not a
+steady-state benchmark. Both validation apps were closed, and the normal launcher restored.
+Validation: all 124 Survivors app tests with checkout data pass; native incremental build
+took 1 minute 32 seconds. Workspace Clippy, formatting, render-pass lint and diff
+whitespace checks pass.

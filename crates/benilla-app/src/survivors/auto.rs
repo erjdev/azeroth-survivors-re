@@ -26,7 +26,7 @@ pub(super) struct Auto {
     /// `<class>:late`: the whole pool at its top level, two thirds of the way in, for the crowd at
     /// its thickest.
     late: bool,
-    frames: u32,
+    sample: FrameWindow,
     wait: f32,
     shots: Option<std::path::PathBuf>,
     shot_t: f32,
@@ -35,6 +35,35 @@ pub(super) struct Auto {
     dir: Vec3,
     /// The screens already captured once: the menu, the first level-ups, the results.
     seen: Vec<String>,
+}
+
+/// Wall-clock frame accounting; level-up and pause time must not inflate combat FPS.
+#[derive(Default)]
+struct FrameWindow {
+    frames: u32,
+    seconds: f64,
+    combat_frames: u32,
+    combat_seconds: f64,
+    combat_max_ms: f32,
+}
+
+impl FrameWindow {
+    fn record(&mut self, dt: f32, combat: bool) {
+        if !dt.is_finite() || dt <= 0.0 {
+            return;
+        }
+        self.frames += 1;
+        self.seconds += f64::from(dt);
+        if combat {
+            self.combat_frames += 1;
+            self.combat_seconds += f64::from(dt);
+            self.combat_max_ms = self.combat_max_ms.max(dt * 1000.);
+        }
+    }
+
+    fn combat_fps(&self) -> Option<f64> {
+        (self.combat_seconds > 0.).then(|| f64::from(self.combat_frames) / self.combat_seconds)
+    }
 }
 
 impl Auto {
@@ -84,7 +113,7 @@ pub(super) fn from_env() -> Option<Auto> {
         idle,
         all,
         late,
-        frames: 0,
+        sample: FrameWindow::default(),
         wait: 0.0,
         shots,
         shot_t: 3.0,
@@ -165,7 +194,12 @@ pub(super) fn drive(
 ) {
     let dt = time.delta_secs();
     auto.wait += dt;
-    auto.frames += 1;
+    if *phase.get() == Phase::Menu {
+        auto.sample = FrameWindow::default();
+        auto.log_t = 10.0;
+    } else {
+        auto.sample.record(dt, *phase.get() == Phase::Playing);
+    }
     match phase.get() {
         Phase::Menu => {
             if selection.map != auto.map {
@@ -249,8 +283,11 @@ pub(super) fn drive(
     auto.log_t -= dt;
     if auto.log_t <= 0.0 && *phase.get() != Phase::Menu {
         auto.log_t = 10.0;
-        let fps = auto.frames as f32 / 10.0;
-        auto.frames = 0;
+        let sample = std::mem::take(&mut auto.sample);
+        let fps = f64::from(sample.frames) / sample.seconds.max(f64::EPSILON);
+        let combat_fps = sample
+            .combat_fps()
+            .map_or_else(|| "n/a".into(), |fps| format!("{fps:.1}"));
         let alive = enemies.iter().filter(|e| !e.dead).count();
         let build: Vec<String> = run
             .abilities
@@ -259,13 +296,17 @@ pub(super) fn drive(
             .chain(run.passives.iter().map(|(p, l)| format!("{}:{}", p.key, l)))
             .collect();
         info!(
-            "survivors auto: {:?} t={:.0}s fps={fps:.0} alive={alive} level={} hp={:.0} kills={} damage={:.0} build=[{}]",
+            "survivors auto: {:?} t={:.0}s fps={fps:.0} alive={alive} level={} hp={:.0} kills={} damage={:.0} sample_secs={:.2} combat_fps={combat_fps} combat_frames={} combat_secs={:.2} combat_max_ms={:.1} build=[{}]",
             phase.get(),
             run.elapsed,
             run.level,
             run.hp,
             run.kills,
             run.damage_done,
+            sample.seconds,
+            sample.combat_frames,
+            sample.combat_seconds,
+            sample.combat_max_ms,
             build.join(" ")
         );
     }
@@ -280,5 +321,36 @@ pub(super) fn drive(
                 .spawn(Screenshot::primary_window())
                 .observe(save_to_disk(path));
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::FrameWindow;
+
+    #[test]
+    fn combat_fps_excludes_level_up_frames_and_preserves_hitches() {
+        let mut sample = FrameWindow::default();
+        sample.record(0.25, true);
+        sample.record(0.25, true);
+        sample.record(1.0, false);
+        assert_eq!(sample.frames, 3);
+        assert_eq!(sample.seconds, 1.5);
+        assert_eq!(sample.combat_fps(), Some(4.0));
+        assert_eq!(sample.combat_max_ms, 250.0);
+        sample.record(1.5, true);
+        assert_eq!(sample.combat_fps(), Some(1.5));
+        assert_eq!(sample.combat_max_ms, 1500.0);
+    }
+
+    #[test]
+    fn windows_without_combat_do_not_report_zero_as_measured_combat_fps() {
+        let mut sample = FrameWindow::default();
+        for dt in [0., -1., f32::NAN, f32::INFINITY] {
+            sample.record(dt, true);
+        }
+        sample.record(0.5, false);
+        assert_eq!(sample.frames, 1);
+        assert_eq!(sample.combat_fps(), None);
     }
 }

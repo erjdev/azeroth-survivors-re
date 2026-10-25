@@ -76,6 +76,12 @@ acceptance; the zone remains locked.
 
 ![Feralas candidate world preview at 720p](docs/images/screenshots/2026-10-25-feralas-candidate/world-preview-720.png)
 
+Feralas live validation: an accelerated Warrior fixture reached 219 enemies and persisted
+four Rare armor drops in an isolated save. This level-up capture is from a 1280×720 logical
+window (Retina pixels); it is not a performance or complete-zone acceptance result.
+
+![Feralas live Warrior level-up](docs/images/screenshots/2026-10-25-feralas-live/late-warrior.png)
+
 Collection content milestone: the uncommon armor row now has real item identities for
 all nine classes. Hunter item details and pending-source messaging were checked at
 1280×720 and 1024×720. Slot headings are centered and separated at both sizes.

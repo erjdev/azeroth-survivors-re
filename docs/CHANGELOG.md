@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Feralas live validation and useful combat metrics
+
+The accelerated Warrior fixture reached 219 enemies and persisted four Rare armor slots
+in an isolated save. A [live level-up milestone](images/screenshots/2026-10-25-feralas-live/late-warrior.png)
+is linked from the README. Autopilot logs now separate combat FPS/time and hitches from
+menu and level-up frames; the new fields were checked in a native run. All 124 Survivors
+app tests pass. Early loading hitches and full zone acceptance remain open; Feralas stays locked.
+
 ## 2026-10-25 — Faster horde collision
 
 Survivors now slides along planes found by successive sweeps, avoiding repeated nearby-face
