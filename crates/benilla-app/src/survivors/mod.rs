@@ -170,6 +170,7 @@ impl Plugin for SurvivorsPlugin {
                         armory::codex_details,
                         armory::talent_details,
                         armory::fill_talent_art,
+                        armory::fill_talent_headings,
                     )
                         .chain(),
                     (menu::menu_clicks, menu::sync_hero_look).chain(),

@@ -218,6 +218,8 @@ mod spell_focus;
 mod spell_mechanic;
 pub use spell_focus::{load_spell_focus_catalog, SpellFocusCatalog};
 pub use spell_mechanic::{load_spell_mechanic_catalog, SpellMechanicCatalog};
+mod survivors_talent_art;
+pub use survivors_talent_art::load_survivors_talent_icons;
 mod talents;
 pub use talents::{load_talent_catalog, Talent, TalentCatalog, TalentTabInfo, MAX_TALENT_RANK};
 mod spell_visual;

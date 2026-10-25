@@ -15,6 +15,8 @@ pub(super) mod preview;
 mod reward_draft;
 mod reward_page;
 pub(super) use reward_page::remember_scroll as remember_reward_scroll;
+mod talent_heading;
+pub(super) use talent_heading::fill as fill_talent_headings;
 mod talent_page;
 pub(super) use talent_page::fill_art as fill_talent_art;
 pub(super) use talent_page::{

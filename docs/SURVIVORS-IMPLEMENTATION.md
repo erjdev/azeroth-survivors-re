@@ -18,18 +18,23 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Talent headings now resolve specialization artwork through the installed
+TalentTab → SpellIcon catalogs, with points aligned opposite the name. Missing
+art leaves a text heading. The Survivors adapter is separate from the stock
+talent catalog. Mage and Paladin were checked live at 1280×720, plus Paladin at
+640×720; its custom milestone text-only fallback also passed. Three screenshots
+are inline in the changelog. Typography and custom Paladin milestone artwork remain open.
+
 Talent milestone icons now resolve by the milestone name within its installed
 talent tab, then use that talent's spell icon. Locked icons dim alongside their
 text; earned icons brighten. Custom milestones absent from the vanilla tree
-retain text-only fallback. Tree-heading icons, custom Paladin milestone artwork
-and typography remain open reference-alignment work.
+retain text-only fallback. Custom Paladin milestone artwork and typography remain open reference-alignment work.
 
 Named prerequisite checkpoint: Shatter/Improved Frost Nova verified live with
 missing, partial and complete prerequisite ranks, protected refunds and restart
 persistence. Blocked purchase/refund feedback now names both talents and the
 required rank. Three screenshots accompany the changelog. Higher-tier and
-cross-class acceptance remain open; reference heading/milestone icons and
-typography still need alignment.
+cross-class acceptance remain open; custom milestone icons and typography still need alignment.
 
 Mage Frost row gating now has live 1280×720 evidence: blocked supporting refund,
 dependent-first refund returning two points, and rejected spending after the row

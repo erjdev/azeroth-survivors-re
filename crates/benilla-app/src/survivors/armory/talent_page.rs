@@ -314,7 +314,16 @@ pub(super) fn build(
     .with_children(|row| {
         for (tree, (name, nodes)) in trees.iter().enumerate() {
             panel(row, 1.0, |col| {
-                text(col, font, format!("{name}   {} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), 17.0, GOLD);
+                col.spawn(Node { width: Val::Percent(100.0), align_items: AlignItems::Center,
+                    column_gap: Val::Px(6.0), flex_wrap: FlexWrap::Wrap, ..default() }).with_children(|heading| {
+                    if let Some(node) = nodes.first() {
+                        heading.spawn((super::talent_heading::Icon(node.tab), ImageNode::default(),
+                            Node { width: Val::Px(24.0), height: Val::Px(24.0), flex_shrink: 0.0, ..default() }));
+                    }
+                    heading.spawn((hud::text_bundle(font, name, 17.0, GOLD),
+                        Node { flex_grow: 1.0, ..default() }));
+                    text(heading, font, format!("{} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), 12.0, DIM);
+                });
                 col.spawn((Node { width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(300.0),
                     overflow: Overflow::clip(), border_radius: BorderRadius::all(Val::Px(3.0)), ..default() }, BackgroundColor(Color::BLACK)))
                 .with_children(|grid| {

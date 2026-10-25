@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Specialization headings
+
+Talent-tree headings now show their installed specialization icons and align
+point totals opposite the name, matching the reference's structure. Icons resolve
+through TalentTab and SpellIcon; no artwork is bundled. Missing art retains the
+text heading.
+
+![Mage specialization headings](images/screenshots/2026-10-25-talent-headings/mage-1280.jpg)
+
+![Paladin headings match the reference icons](images/screenshots/2026-10-25-talent-headings/paladin-1280.jpg)
+
+![Paladin headings at 640×720](images/screenshots/2026-10-25-talent-headings/paladin-640.jpg)
+
+Verified Mage/Paladin headings live, Paladin at 640×720, and the text-only fallback
+for custom Paladin milestones. The catalog regression covers icon-ID resolution,
+missing IDs and truncated input. Native build, workspace Clippy, formatting and
+render-pass lint pass. Typography and custom milestone artwork remain unfinished;
+this does not validate all classes' talent effects.
+
 ## 2026-10-25 — Illustrated talent milestones
 
 Talent milestone rows now include their matching installed spell icons, following
