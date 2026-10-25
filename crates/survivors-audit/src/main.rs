@@ -177,19 +177,18 @@ fn talents(chain: &mut benilla_formats::Chain) -> Result<()> {
             }
         }
     }
-    for effect in survivors_core::talents::PALADIN_TALENTS {
-        let present = talents
-            .tabs_for_class(1, data::CLASSES[1].id)
-            .iter()
-            .any(|tab| {
+    for (class_index, class) in data::CLASSES.iter().enumerate() {
+        for effect in survivors_core::talents::definitions(class_index) {
+            let present = talents.tabs_for_class(1, class.id).iter().any(|tab| {
                 talents
                     .talents_in_tab(tab.id)
                     .iter()
                     .any(|node| node.id == effect.id)
             });
-        if !present {
-            println!("MISSING SUPPORTED TALENT: {} / {}", effect.id, effect.name);
-            gaps += 1;
+            if !present {
+                println!("MISSING SUPPORTED TALENT: {} / {}", effect.id, effect.name);
+                gaps += 1;
+            }
         }
     }
     if gaps > 0 {

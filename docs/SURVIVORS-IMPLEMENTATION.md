@@ -309,6 +309,33 @@ conversions from nodes whose individual effects still need implementation; do no
 vanilla spell prose as if mana, parry or other absent mechanics were functional. The catalog
 audit must reject mismatched IDs, names or rank caps for supported nodes.
 
+Warrior individual talents now use the same selected-spec snapshot and comparison path.
+The following audited nodes replace their provisional +1% damage per rank; spent points
+still count toward existing tree milestones. These are Survivors conversions, not claims
+that rage, parry, or the original MMO talent behavior exists. Unsupported nodes and Warrior
+milestone-specific behaviors remain unfinished.
+
+| Talent ID | Name | Ranks | Survivors effect per rank |
+| --- | --- | --- | --- |
+| 124 | Improved Heroic Strike | 3 | Heroic Strike cooldown shortened by 5% |
+| 130 | Deflection | 5 | +1 percentage point damage reduction |
+| 128 | Improved Thunder Clap | 3 | Thunder Clap cooldown shortened by 10% |
+| 662 | Impale | 2 | +10 percentage points critical damage |
+| 133 | Sweeping Strikes | 1 | Sweeping Strikes +20% damage |
+| 135 | Mortal Strike | 1 | Mortal Strike +25% damage |
+| 158 | Booming Voice | 5 | Demoralizing Shout +10% radius |
+| 157 | Cruelty | 5 | +1 percentage point critical chance |
+| 166 | Improved Cleave | 3 | Cleave +10% damage |
+| 1542 | Improved Execute | 2 | Execute cooldown shortened by 10% |
+| 138 | Anticipation | 5 | +1 percentage point damage reduction |
+| 140 | Toughness | 5 | +6 armor |
+
+Ranks add within each node; cast multipliers compose with ordinary stats and legendary
+bonuses. Booming Voice changes the actual shout area, never its number of locations.
+Damage talents improve already-acquired abilities rather than granting free abilities.
+The data audit now checks every supported class catalog for missing nodes as well as
+wrong names and rank limits. Save format remains unchanged.
+
 Paladin milestone balance uses the following explicit Survivors behavior. These are custom
 survival-mode effects, not claims about the original MMO spells. Existing per-point/stat
 bonuses remain the baseline; named milestone behavior is additional. Snapshot tree points
@@ -715,3 +742,15 @@ Validation: native play build and workspace test compilation pass; all 77 Surviv
 and 45 core rules tests pass. Live 720p checks confirm Consecration omits extra targets and
 Hammer of Wrath includes them; both captures are linked in the changelog. This does not
 clear the previously recorded full-workspace acceptance failures.
+
+
+### Warrior talent checkpoint — 2026-10-24
+
+Twelve nodes now use explicit class-specific effects. Rank snapshots are class-catalog
+indexed; re-snapshotting clears old training. Tests cover every supported rank, foreign
+classes and spells, caps, duplicate IDs, resetting training, account spec switching,
+save/reload, and the actual cast parameters for cooldown, damage and shout radius.
+Native build, workspace test compilation, 79 Survivors tests and 47 core tests pass.
+The configured 1.12.1 talent audit passes for all supported IDs, names and rank caps.
+Live 720p Heroic Strike and Booming Voice details fit; the changelog links the capture.
+Remaining class nodes and named milestones are still Phase 5 requirements.

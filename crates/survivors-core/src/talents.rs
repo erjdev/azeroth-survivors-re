@@ -43,8 +43,8 @@ pub fn valid_tree(nodes: &[RankedTalent]) -> bool {
 pub struct Milestones {
     pub class: usize,
     pub points: [u32; 3],
-    /// Bounded selected-spec ranks in PALADIN_TALENTS order; not a save format.
-    pub training: [u8; PALADIN_TALENTS.len()],
+    /// Bounded selected-spec ranks in the class catalog order; not a save format.
+    pub training: [u8; 32],
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -78,10 +78,9 @@ impl Default for CastEffect {
 
 impl Milestones {
     pub fn with_ranks(mut self, ranks: &[(u8, u32, u8)]) -> Self {
-        if self.class == 1 {
-            for (index, node) in PALADIN_TALENTS.iter().enumerate() {
-                self.training[index] = bounded_rank(node, ranks);
-            }
+        self.training.fill(0);
+        for (index, node) in definitions(self.class).iter().enumerate() {
+            self.training[index] = bounded_rank(node, ranks);
         }
         self
     }
@@ -122,8 +121,8 @@ impl Milestones {
             }
             _ => {}
         }
-        if self.class == 1 {
-            for (index, node) in PALADIN_TALENTS.iter().enumerate() {
+        {
+            for (index, node) in definitions(self.class).iter().enumerate() {
                 let value = node.per_rank * f32::from(self.training[index].min(node.max_rank));
                 match node.stat {
                     TalentStat::SpellDamage(spell) if spell == key => effect.damage *= 1.0 + value,
@@ -135,6 +134,7 @@ impl Milestones {
                         effect.duration *= 1.0 + value
                     }
                     TalentStat::SpellHeal(spell) if spell == key => effect.heal_fraction += value,
+                    TalentStat::SpellRadius(spell) if spell == key => effect.radius *= 1.0 + value,
                     _ => {}
                 }
             }
@@ -305,6 +305,7 @@ pub enum TalentStat {
     Cooldown,
     Armor,
     Crit,
+    CritDamage,
     Reduction,
     Speed,
     SpellDamage(&'static str),
@@ -312,7 +313,108 @@ pub enum TalentStat {
     SpellCrit(&'static str),
     SpellDuration(&'static str),
     SpellHeal(&'static str),
+    SpellRadius(&'static str),
 }
+
+/// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
+pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 124,
+        max_rank: 3,
+        name: "Improved Heroic Strike",
+        description: "Heroic Strike: 5% shorter cooldown per rank",
+        stat: TalentStat::SpellCooldown("heroic_strike"),
+        per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 130,
+        max_rank: 5,
+        name: "Deflection",
+        description: "+1% damage reduction per rank (Survivors conversion)",
+        stat: TalentStat::Reduction,
+        per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 128,
+        max_rank: 3,
+        name: "Improved Thunder Clap",
+        description: "Thunder Clap: 10% shorter cooldown per rank",
+        stat: TalentStat::SpellCooldown("thunder_clap"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 662,
+        max_rank: 2,
+        name: "Impale",
+        description: "+10% critical damage per rank",
+        stat: TalentStat::CritDamage,
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 133,
+        max_rank: 1,
+        name: "Sweeping Strikes",
+        description: "Sweeping Strikes: +20% damage",
+        stat: TalentStat::SpellDamage("sweeping_strikes"),
+        per_rank: 0.2,
+    },
+    TalentDefinition {
+        id: 135,
+        max_rank: 1,
+        name: "Mortal Strike",
+        description: "Mortal Strike: +25% damage",
+        stat: TalentStat::SpellDamage("mortal_strike"),
+        per_rank: 0.25,
+    },
+    TalentDefinition {
+        id: 158,
+        max_rank: 5,
+        name: "Booming Voice",
+        description: "Demoralizing Shout: +10% radius per rank",
+        stat: TalentStat::SpellRadius("demoralizing_shout"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 157,
+        max_rank: 5,
+        name: "Cruelty",
+        description: "+1% critical chance per rank",
+        stat: TalentStat::Crit,
+        per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 166,
+        max_rank: 3,
+        name: "Improved Cleave",
+        description: "Cleave: +10% damage per rank",
+        stat: TalentStat::SpellDamage("cleave"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 1542,
+        max_rank: 2,
+        name: "Improved Execute",
+        description: "Execute: 10% shorter cooldown per rank",
+        stat: TalentStat::SpellCooldown("execute"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 138,
+        max_rank: 5,
+        name: "Anticipation",
+        description: "+1% damage reduction per rank (Survivors conversion)",
+        stat: TalentStat::Reduction,
+        per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 140,
+        max_rank: 5,
+        name: "Toughness",
+        description: "+6 armor per rank",
+        stat: TalentStat::Armor,
+        per_rank: 6.0,
+    },
+];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
@@ -469,20 +571,23 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
     },
 ];
 
+pub fn definitions(class: usize) -> &'static [TalentDefinition] {
+    match class {
+        0 => WARRIOR_TALENTS,
+        1 => PALADIN_TALENTS,
+        _ => &[],
+    }
+}
+
 pub fn talent_definition(class: usize, id: u32) -> Option<&'static TalentDefinition> {
-    (class == 1)
-        .then(|| PALADIN_TALENTS.iter().find(|node| node.id == id))
-        .flatten()
+    definitions(class).iter().find(|node| node.id == id)
 }
 
 /// Convert active saved DBC ranks into stat adjustments. Unknown nodes retain their
 /// temporary baseline; never guess an effect from a spell name or localization.
 pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign::Bonus {
     let mut bonus = crate::campaign::Bonus::default();
-    if class != 1 {
-        return bonus;
-    }
-    for node in PALADIN_TALENTS {
+    for node in definitions(class) {
         let rank = bounded_rank(node, ranks);
         let value = node.per_rank * f32::from(rank);
         bonus.might -= 0.01 * f32::from(rank);
@@ -491,12 +596,14 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::Cooldown => bonus.cooldown += value,
             TalentStat::Armor => bonus.armor += value,
             TalentStat::Crit => bonus.crit += value,
+            TalentStat::CritDamage => bonus.crit_damage += value,
             TalentStat::Reduction => bonus.reduction += value,
             TalentStat::Speed => bonus.speed += value,
             TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellCrit(_)
             | TalentStat::SpellDuration(_)
+            | TalentStat::SpellRadius(_)
             | TalentStat::SpellHeal(_) => {}
         }
     }
@@ -508,26 +615,55 @@ mod stat_talent_tests {
     use super::*;
 
     #[test]
+    fn class_catalogs_fit_snapshots_and_have_unique_ids() {
+        for class in 0..9 {
+            let nodes = definitions(class);
+            assert!(nodes.len() <= Milestones::default().training.len());
+            for (index, node) in nodes.iter().enumerate() {
+                assert!(!nodes[..index].iter().any(|other| other.id == node.id));
+            }
+        }
+    }
+
+    #[test]
+    fn warrior_rank_reset_removes_previous_training() {
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 124, 3), (1, 166, 3), (1, 158, 5)]);
+        assert!((trained.cast("heroic_strike").cooldown - 0.85).abs() < 0.00001);
+        assert!((trained.cast("cleave").damage - 1.3).abs() < 0.00001);
+        assert_eq!(trained.cast("demoralizing_shout").radius, 1.5);
+        assert_eq!(trained.cast("whirlwind"), CastEffect::default());
+        assert_eq!(trained.with_ranks(&[]), base);
+    }
+
+    #[test]
     fn each_named_stat_talent_replaces_its_generic_damage_at_every_rank() {
-        for node in PALADIN_TALENTS {
+        for (class, node) in
+            (0..9).flat_map(|class| definitions(class).iter().map(move |node| (class, node)))
+        {
             for rank in 0..=node.max_rank {
                 let mut total = crate::campaign::Bonus {
                     might: 0.01 * f32::from(rank),
                     ..Default::default()
                 };
-                total.add(stat_adjustment(1, &[(0, node.id, rank)]));
+                total.add(stat_adjustment(class, &[(0, node.id, rank)]));
                 let value = node.per_rank * f32::from(rank);
                 let actual = match node.stat {
                     TalentStat::Damage => total.might,
                     TalentStat::Cooldown => total.cooldown,
                     TalentStat::Armor => total.armor,
                     TalentStat::Crit => total.crit,
+                    TalentStat::CritDamage => total.crit_damage,
                     TalentStat::Reduction => total.reduction,
                     TalentStat::Speed => total.speed,
                     TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
                     | TalentStat::SpellCrit(_)
                     | TalentStat::SpellDuration(_)
+                    | TalentStat::SpellRadius(_)
                     | TalentStat::SpellHeal(_) => {
                         assert!(total.might.abs() < 0.00001);
                         continue;
@@ -547,18 +683,21 @@ mod stat_talent_tests {
 
     #[test]
     fn spell_training_changes_only_its_spell_and_composes_with_milestones() {
-        for node in PALADIN_TALENTS {
+        for (class, node) in
+            (0..9).flat_map(|class| definitions(class).iter().map(move |node| (class, node)))
+        {
             let key = match node.stat {
                 TalentStat::SpellDamage(key)
                 | TalentStat::SpellCooldown(key)
                 | TalentStat::SpellCrit(key)
                 | TalentStat::SpellDuration(key)
+                | TalentStat::SpellRadius(key)
                 | TalentStat::SpellHeal(key) => key,
                 _ => continue,
             };
             for rank in 0..=node.max_rank {
                 let base = Milestones {
-                    class: 1,
+                    class,
                     points: [30; 3],
                     ..Default::default()
                 };
@@ -579,19 +718,18 @@ mod stat_talent_tests {
                     TalentStat::SpellDuration(_) => {
                         assert!((after.duration - before.duration * (1.0 + value)).abs() < 0.00001)
                     }
+                    TalentStat::SpellRadius(_) => {
+                        assert!((after.radius - before.radius * (1.0 + value)).abs() < 0.00001)
+                    }
                     TalentStat::SpellHeal(_) => assert!(
                         (after.heal_fraction - before.heal_fraction - value).abs() < 0.00001
                     ),
                     _ => unreachable!(),
                 }
-                for other in [
-                    "judgement",
-                    "holy_shock",
-                    "hammer_of_justice",
-                    "consecration",
-                    "fireball",
-                    "divine_shield",
-                ] {
+                for other in crate::data::CLASSES
+                    .iter()
+                    .flat_map(|class| class.ability_keys())
+                {
                     if other != key {
                         assert_eq!(trained.cast(other), base.cast(other));
                     }
@@ -601,14 +739,14 @@ mod stat_talent_tests {
                     assert_eq!(after.heal_fraction, before.heal_fraction);
                 }
                 let outsider = Milestones {
-                    class: 0,
+                    class: (class + 1) % 9,
                     ..Default::default()
                 }
                 .with_ranks(&[(0, node.id, rank)]);
                 assert_eq!(outsider.cast(key), CastEffect::default());
             }
             let base = Milestones {
-                class: 1,
+                class,
                 ..Default::default()
             };
             assert_eq!(

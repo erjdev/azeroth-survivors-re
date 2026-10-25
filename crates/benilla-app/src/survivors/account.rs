@@ -1580,6 +1580,49 @@ mod tests {
     }
 
     #[test]
+    fn warrior_training_follows_selected_spec_and_persists() {
+        let mut account = empty();
+        let first = account.ensure(0);
+        let second = account.create("Test", "Warrior", 0).unwrap();
+        let baseline = account.bonus(0, second);
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == second)
+            .unwrap();
+        hero.dbc[0] = vec![(0, 124, 3), (1, 166, 3)];
+        hero.dbc[1] = vec![(1, 157, 5), (2, 140, 5)];
+        let cast = account.milestones_picked(0, Some(second));
+        assert!((cast.cast("heroic_strike").cooldown - 0.85).abs() < 0.00001);
+        assert!((cast.cast("cleave").damage - 1.3).abs() < 0.00001);
+        assert_eq!(
+            account
+                .milestones_picked(0, Some(first))
+                .cast("cleave")
+                .damage,
+            1.0
+        );
+        assert!((account.bonus(0, second).might - baseline.might).abs() < 0.00001);
+        account.select_spec(second, 1);
+        let defense = account.bonus(0, second);
+        assert!((defense.crit - baseline.crit - 0.05).abs() < 0.00001);
+        assert_eq!(defense.armor - baseline.armor, 30.0);
+        assert_eq!(
+            account
+                .milestones_picked(0, Some(second))
+                .cast("cleave")
+                .damage,
+            1.0
+        );
+        let loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.bonus(0, second).armor, defense.armor);
+        account.respec(second);
+        assert_eq!(account.bonus(0, second).armor, baseline.armor);
+        account.select_spec(second, 0);
+        assert_eq!(account.milestones_picked(0, Some(second)), cast);
+    }
+
+    #[test]
     fn duplicate_drops_and_legacy_stack_counts_never_add_power() {
         let mut account = empty();
         let hero = account.ensure(0);

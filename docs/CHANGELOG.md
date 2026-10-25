@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Warrior talent effects
+
+Twelve audited Warrior talents now improve specific attacks, shout radius, critical stats,
+armor or damage reduction. Their effects replace placeholder damage, follow the selected
+hero/spec, and appear in talent details. Other Warrior nodes and milestone behaviors remain
+unfinished. The save format is unchanged.
+
+**Validation:** native build, workspace test compilation, 79 Survivors tests, 47 core rules
+tests, and the checkout talent-data audit pass. Live Heroic Strike and Booming Voice details
+fit at 720p. [Milestone screenshot](images/screenshots/2026-10-24-warrior-talents/talents-720.jpg).
+
 ## 2026-10-24 — Spell-specific legendary bonuses
 
 Legendary amulets now enhance only their associated spell. Green comparisons name that

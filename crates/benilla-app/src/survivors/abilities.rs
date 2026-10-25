@@ -955,6 +955,42 @@ mod milestone_tests {
     use survivors_core::talents::Milestones;
 
     #[test]
+    fn warrior_training_reaches_casts_without_extra_area_locations() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 124, 3), (1, 166, 3), (1, 158, 5)]);
+        let cast = |key, milestones| {
+            Params::new(
+                &Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.0,
+                },
+                &stats,
+                milestones,
+            )
+        };
+        assert!(
+            (cast("heroic_strike", trained).cooldown / cast("heroic_strike", base).cooldown - 0.85)
+                .abs()
+                < 0.00001
+        );
+        assert!((cast("cleave", trained).dmg / cast("cleave", base).dmg - 1.3).abs() < 0.00001);
+        let shout = cast("demoralizing_shout", trained);
+        let original = cast("demoralizing_shout", base);
+        assert_eq!(shout.radius, original.radius * 1.5);
+        assert_eq!(shout.count, original.count);
+        assert_eq!(shout.dmg, original.dmg);
+        assert_eq!(
+            cast("holy_shock", trained).dmg,
+            cast("holy_shock", base).dmg
+        );
+    }
+
+    #[test]
     fn legendary_bonuses_are_cast_local_and_do_not_duplicate_areas() {
         let mut run = Run::default();
         run.tuning.damage = 2.0;
