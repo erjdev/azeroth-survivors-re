@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — First explicit Rogue talents
+
+Five audited Rogue talents now replace their provisional damage bonus with real
+spell effects: Improved Eviscerate (+5% damage/rank), Malice (+1% Rogue critical
+chance/rank), Improved Sinister Strike (5% shorter cooldown/rank), Serrated Blades
+(+10% Rupture damage/rank), and Deadliness (+2% Rogue spell damage/rank). UI text
+labels Survivors conversions and excludes unsupported armor penetration.
+
+![Improved Eviscerate rank and effect](images/screenshots/2026-10-25-rogue-training/eviscerate-1280.jpg)
+
+![Sinister Strike cooldown conversion](images/screenshots/2026-10-25-rogue-training/sinister-strike-1280.jpg)
+
+All 104 core tests, the checkout talent-catalog audit, native build, workspace
+Clippy, formatting and render-pass lint pass. Tests cover spell/class isolation,
+composition, rank caps and removal of the provisional bonus. Spending, refund,
+reset and two descriptions were verified live at 1280×720. Remaining Rogue nodes,
+milestones and live-combat acceptance are still open.
+
 ## 2026-10-25 — Racials for every playable race
 
 All eight races now have authored Survivors bonuses. Human rules stay intact;

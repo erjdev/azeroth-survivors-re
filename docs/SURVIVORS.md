@@ -280,3 +280,22 @@ Warsong Gulch, Arathi Basin and Alterac Valley keep horde survival with authored
 faction-themed encounters and bosses. They do not require a separate PvP objective
 mode. Use map-appropriate faction identities and verify spawn routes, collision,
 boss pacing and reward sources before unlocking these zones.
+
+### Rogue individual talent checkpoint
+
+The following audited nodes replace the temporary +1% damage per spent rank;
+they do not stack with it. Existing tree bonuses and row/prerequisite gates remain.
+
+| Talent (DBC ID) | Ranks | Survivors effect per rank |
+|---|---|---|
+| Improved Eviscerate (276) | 3 | +5% Eviscerate damage |
+| Malice (270) | 5 | +1 percentage point critical chance for Rogue spells |
+| Improved Sinister Strike (201) | 2 | 5% shorter Sinister Strike cooldown; energy-cost conversion |
+| Serrated Blades (1123) | 3 | +10% Rupture damage; no armor penetration |
+| Deadliness (1702) | 5 | +2% Rogue spell damage; attack-power conversion |
+
+Rogue spell membership is Sinister Strike, Eviscerate, Blade Flurry, Rupture,
+Gouge and Kidney Shot. Other-class and neutral jewelry abilities are excluded.
+Damage factors from different talents multiply. Talents improve acquired abilities;
+they do not grant the spell. Other individual Rogue effects and milestones remain
+unfinished and retain their explicitly labeled provisional behavior.

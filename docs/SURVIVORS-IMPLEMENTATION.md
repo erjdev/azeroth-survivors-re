@@ -18,6 +18,14 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Rogue now has five explicit individual effects: audited IDs 276, 270, 201, 1123
+and 1702 replace their provisional +1% damage/rank. Eviscerate and Rupture damage,
+Rogue-only critical chance and spell damage, and Sinister Strike cooldown use the shared
+cast-effect path. Two new regressions cover isolation, composition, clamping,
+reset and baseline replacement; 104 core tests pass. Live 1280×720 spending,
+refund/reset and descriptions are captured inline. Other Rogue nodes/milestones,
+account-level loaded-build coverage and live combat remain unfinished.
+
 The user authorized lore-appropriate racials for all races. All eight now have
 explicit rules in `SURVIVORS.md` and shared core effects applied to the run sheet;
 Human rules remain intact. Timed effects use gameplay time. Two core tests and

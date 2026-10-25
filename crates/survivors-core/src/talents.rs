@@ -1721,11 +1721,50 @@ static MAGE_TALENTS: &[TalentDefinition] = &[
     },
 ];
 
+// Explicit membership excludes neutral jewelry abilities and spells from other classes.
+const ROGUE_SPELLS: &[&str] = &[
+    "sinister_strike",
+    "eviscerate",
+    "blade_flurry",
+    "rupture",
+    "gouge",
+    "kidney_shot",
+];
+
+const ROGUE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 276, max_rank: 3, name: "Improved Eviscerate",
+        description: "Eviscerate: +5% damage per rank",
+        stat: TalentStat::SpellDamage("eviscerate"), per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 270, max_rank: 5, name: "Malice",
+        description: "Rogue spells: +1% critical chance per rank; excludes other-class and neutral jewelry spells",
+        stat: TalentStat::SpellGroupCrit(ROGUE_SPELLS), per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 201, max_rank: 2, name: "Improved Sinister Strike",
+        description: "Sinister Strike: 5% shorter cooldown per rank (Survivors energy-cost conversion)",
+        stat: TalentStat::SpellCooldown("sinister_strike"), per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 1123, max_rank: 3, name: "Serrated Blades",
+        description: "Rupture: +10% damage per rank; armor penetration is not simulated",
+        stat: TalentStat::SpellDamage("rupture"), per_rank: 0.10,
+    },
+    TalentDefinition {
+        id: 1702, max_rank: 5, name: "Deadliness",
+        description: "Rogue spells: +2% damage per rank (Survivors attack-power conversion); excludes other-class and neutral jewelry spells",
+        stat: TalentStat::SpellGroupDamage(ROGUE_SPELLS), per_rank: 0.02,
+    },
+];
+
 pub fn definitions(class: usize) -> &'static [TalentDefinition] {
     match class {
         0 => WARRIOR_TALENTS,
         1 => PALADIN_TALENTS,
         2 => HUNTER_TALENTS,
+        3 => ROGUE_TALENTS,
         6 => MAGE_TALENTS,
         _ => &[],
     }
@@ -1789,6 +1828,78 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
 #[cfg(test)]
 mod stat_talent_tests {
     use super::*;
+
+    #[test]
+    fn rogue_training_composes_only_for_its_spells_and_resets() {
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let ranks = [
+            (0, 276, 3),
+            (0, 270, 5),
+            (1, 201, 2),
+            (2, 1123, 3),
+            (2, 1702, 5),
+        ];
+        let trained = base.with_ranks(&ranks);
+        for key in ROGUE_SPELLS {
+            let effect = trained.cast(key);
+            let damage = 1.10
+                * match *key {
+                    "eviscerate" => 1.15,
+                    "rupture" => 1.30,
+                    _ => 1.0,
+                };
+            assert!((effect.damage - damage).abs() < 0.00001, "{key}");
+            assert!((effect.crit - 0.05).abs() < 0.00001, "{key}");
+            assert_eq!(
+                effect.cooldown,
+                if *key == "sinister_strike" { 0.9 } else { 1.0 }
+            );
+            assert_eq!(effect.extra_targets, 0);
+        }
+        for key in ["fireball", "heroic_strike", "arcane_shot", "unknown"] {
+            assert_eq!(trained.cast(key), CastEffect::default());
+        }
+        assert_eq!(trained.with_ranks(&[]), base);
+        // Supported ranks replace, rather than stack with, the provisional 1% per point.
+        assert!((stat_adjustment(3, &ranks).might + 0.18).abs() < 0.00001);
+        assert_eq!(stat_adjustment(3, &[]).might, 0.0);
+        for class in [0, 1, 2, 4, 5, 6, 7, 8] {
+            let other = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&ranks);
+            assert_eq!(other.cast("eviscerate"), CastEffect::default());
+        }
+    }
+
+    #[test]
+    fn rogue_ranks_are_bounded_and_catalog_membership_is_complete() {
+        assert_eq!(ROGUE_SPELLS, crate::data::CLASSES[3].pool);
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        for node in ROGUE_TALENTS {
+            let capped = base.with_ranks(&[(0, node.id, node.max_rank)]);
+            assert_eq!(
+                base.with_ranks(&[(0, node.id, 255), (0, node.id, 1)]),
+                capped
+            );
+            for rank in 0..=node.max_rank {
+                let trained = base.with_ranks(&[(0, node.id, rank)]);
+                assert_eq!(trained.with_ranks(&[]), base);
+                assert!(
+                    (stat_adjustment(3, &[(0, node.id, rank)]).might + 0.01 * f32::from(rank))
+                        .abs()
+                        < 0.00001
+                );
+            }
+        }
+    }
 
     #[test]
     fn class_catalogs_fit_snapshots_and_have_unique_ids() {

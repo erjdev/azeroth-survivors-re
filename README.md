@@ -306,6 +306,11 @@ shown on the starter. Initial values still need combat balance testing.
 
 ![Orc racial bonuses](docs/images/screenshots/2026-10-25-racial-bonuses/orc-1280.jpg)
 
+Five Rogue talents now have explicit spell effects and truthful rank previews.
+Rogue coverage is still incomplete.
+
+![Rogue talent effect preview](docs/images/screenshots/2026-10-25-rogue-training/sinister-strike-1280.jpg)
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**
