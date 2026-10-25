@@ -3288,3 +3288,16 @@ inline milestone captures are in the changelog and README. Native build, Clippy,
 formatting and render-pass lint pass. The reference's base Companion card, matching
 icon choices, illustrated expanded Looks catalog and Confirm/Undo staging remain open.
 Rune-hound labels the existing lack of rune spawning; no new gameplay is claimed.
+
+### Companion appearance checkpoint — 2026-10-25
+
+The existing five companion looks now render as wrapping illustrated tiles with a
+selected border and green Worn label. Added the free base Companion description,
+using trip-derived baseline range/rest/minimum sweep values, and reference card order.
+Icon paths were verified against the checkout patch chain. Live 1280×720/640×720
+checks selected first-slot Whelpling and second-slot Squirrel then Kingsnake without
+changing instincts or points; restart preserved both slots. Inline screenshots are
+in CHANGELOG and README. Native build, Clippy, formatting and render-pass lint pass.
+Remaining: the expanded achievement-gated looks catalog, closer icon art/denser spacing,
+Confirm/Undo purchases and broader resolution acceptance. No new pet models or gameplay
+were introduced in this checkpoint.

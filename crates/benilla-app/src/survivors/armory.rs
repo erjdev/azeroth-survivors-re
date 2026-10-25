@@ -1678,24 +1678,7 @@ fn companion_page(
         12.0,
         DIM,
     ));
-    panel
-        .spawn(Node {
-            flex_direction: FlexDirection::Row,
-            flex_wrap: FlexWrap::Wrap,
-            ..default()
-        })
-        .with_children(|row| {
-            let worn = account.pets.look[usize::from(armory.pet_slot)];
-            for (index, (name, _)) in super::companions::LOOKS.iter().enumerate() {
-                chip(
-                    row,
-                    font,
-                    name,
-                    Act::WearLook(index as u8),
-                    worn == index as u8,
-                );
-            }
-        });
+    reward_page::looks(panel, font, armory, account);
 }
 
 fn instinct_name(kind: u8) -> &'static str {

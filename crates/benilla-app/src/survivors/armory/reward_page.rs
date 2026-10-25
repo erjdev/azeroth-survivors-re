@@ -242,22 +242,24 @@ pub(super) fn companions(panel: &mut impl ChipParent, font: &Handle<Font>, accou
     use super::super::companions::trip;
     panel.spawn(hud::text_bundle(font, "Instincts fill the first companion, then the second. Further purchases replace the first companion's instinct. Appearance selection does not change this order.", 12.0, DIM));
     panel.spawn(Node { width: Val::Percent(100.0), flex_wrap: FlexWrap::Wrap, column_gap: Val::Px(8.0), row_gap: Val::Px(8.0), ..default() }).with_children(|grid| {
-        for code in [6, 7, 8, 9, 10, 11] {
+        for code in [13, 6, 7, 8, 9, 10, 11] {
             let pets = &account.pets;
             let target = account.instinct_target();
             let current = target.map_or(0, |slot| pets.instinct[slot]);
             let (name, icon, rank, max) = match code {
-                6 => ("Long Leash", "INV_Misc_Spyglass_03", pets.leash.min(3), 3),
-                7 => ("Quick Paws", "Ability_Hunter_BeastSoothe", pets.paws.min(3), 3),
+                13 => ("Companion", "INV_Box_PetCarrier_01", u8::from(pets.owned > 0), 1),
+                6 => ("Long Leash", "INV_Misc_Key_09", pets.leash.min(3), 3),
+                7 => ("Quick Paws", "Ability_Druid_Dash", pets.paws.min(3), 3),
                 8 => ("Gold-sniffer", "INV_Misc_Coin_01", u8::from(current == 1), 1),
                 9 => ("Wisp-herder", "Spell_Nature_WispSplode", u8::from(current == 2), 1),
                 10 => ("Rune-hound", "INV_Misc_Rune_01", u8::from(current == 3), 1),
-                _ => ("Second Companion", "INV_Misc_Bag_10", u8::from(pets.owned >= 2), 1),
+                _ => ("Second Companion", "INV_Box_PetCarrier_01", u8::from(pets.owned >= 2), 1),
             };
-            let cost = if rank == max { None } else { Some(match code { 6 | 7 => [15, 25, 35][usize::from(rank)], 11 => 40, _ => 30 }) };
+            let cost = if rank == max || code == 13 { None } else { Some(match code { 6 | 7 => [15, 25, 35][usize::from(rank)], 11 => 40, _ => 30 }) };
             let now = trip(0.0, pets.leash, pets.paws, current);
             let next = trip(0.0, if code == 6 { rank.saturating_add(1) } else { pets.leash }, if code == 7 { rank.saturating_add(1) } else { pets.paws }, if (8..=10).contains(&code) { code - 7 } else { current });
             let parts = match code {
+                13 => vec![(format!("A free companion follows every hero, fetching coins and experience up to {} yd beyond your pickup radius. It sweeps a quarter of your pickup radius (at least {} yd), resting {} sec between trips before upgrades. Chests and healing drops are left for you.", trip(0.0, 0, 0, 0).reach, trip(0.0, 0, 0, 0).grasp, trip(0.0, 0, 0, 0).rest), DIM)],
                 6 => vec![("Fetch coins and experience up to ".into(), DIM), (comparison(now.reach, next.reach, " yd"), hud::card_growth::GAIN), (" beyond your pickup radius.".into(), DIM)],
                 7 => vec![("Run ".into(), DIM), (comparison((now.speed / trip(0.0, 0, 0, 0).speed - 1.0) * 100.0, (next.speed / trip(0.0, 0, 0, 0).speed - 1.0) * 100.0, "%"), hud::card_growth::GAIN), (" faster and rest ".into(), DIM), (comparison(now.rest, next.rest, " sec"), hud::card_growth::GAIN), (" between trips.".into(), DIM)],
                 8 => vec![("Prioritize coins, worth ".into(), DIM), (comparison((now.gold_bonus - 1.0) * 100.0, (next.gold_bonus - 1.0) * 100.0, "% more"), hud::card_growth::GAIN), (" when fetched.".into(), DIM)],
@@ -283,12 +285,99 @@ pub(super) fn companions(panel: &mut impl ChipParent, font: &Handle<Font>, accou
                             body.spawn(Node::default()).with_children(|buy| chip(buy, font, &format!("Buy · {cost} points"), Act::Reward(code), false));
                             if account.unspent() < cost { text(body, font, "Not enough points", 12.0, DIM); }
                         }
-                    } else { text(body, font, if (8..=10).contains(&code) { "Learned" } else { "Max rank" }, 12.0, GOLD); }
+                    } else { text(body, font, if code == 13 { if pets.owned > 0 { "Included" } else { "Unavailable" } } else if (8..=10).contains(&code) { "Learned" } else { "Max rank" }, 12.0, GOLD); }
                 });
             });
         }
     });
     panel.spawn(hud::text_bundle(font, "Looks", 18.0, GOLD));
+}
+
+/// Cosmetic choices act on the selected slot; they never choose an instinct destination.
+pub(super) fn looks(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+) {
+    let icons = [
+        "INV_Box_PetCarrier_01",
+        "INV_Box_PetCarrier_01",
+        "INV_Box_PetCarrier_01",
+        "Spell_Nature_GuardianWard",
+        "INV_Misc_Head_Dragon_Black",
+    ];
+    let worn = account.pets.look[usize::from(armory.pet_slot)];
+    panel
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            flex_wrap: FlexWrap::Wrap,
+            column_gap: Val::Px(8.0),
+            row_gap: Val::Px(8.0),
+            ..default()
+        })
+        .with_children(|grid| {
+            for (index, (name, _)) in super::super::companions::LOOKS.iter().enumerate() {
+                let selected = worn == index as u8;
+                grid.spawn((
+                    Button,
+                    Act::WearLook(index as u8),
+                    Node {
+                        flex_basis: Val::Px(180.0),
+                        flex_grow: 1.0,
+                        min_width: Val::Px(0.0),
+                        align_items: AlignItems::Center,
+                        column_gap: Val::Px(8.0),
+                        padding: UiRect::all(Val::Px(8.0)),
+                        border: UiRect::all(Val::Px(1.0)),
+                        border_radius: BorderRadius::all(Val::Px(4.0)),
+                        ..default()
+                    },
+                    BackgroundColor(if selected {
+                        Color::srgb(0.14, 0.10, 0.035)
+                    } else {
+                        Color::srgb(0.025, 0.02, 0.012)
+                    }),
+                    BorderColor::all(if selected { GOLD } else { FRAME }),
+                ))
+                .with_children(|card| {
+                    card.spawn((
+                        super::talent_page::Backdrop(format!(
+                            "Interface\\Icons\\{}.blp",
+                            icons[index]
+                        )),
+                        ImageNode::default(),
+                        Node {
+                            width: Val::Px(30.0),
+                            height: Val::Px(30.0),
+                            flex_shrink: 0.0,
+                            ..default()
+                        },
+                    ));
+                    card.spawn(Node {
+                        flex_direction: FlexDirection::Column,
+                        flex_grow: 1.0,
+                        min_width: Val::Px(0.0),
+                        flex_basis: Val::Px(0.0),
+                        ..default()
+                    })
+                    .with_children(|label| {
+                        text(label, font, *name, 13.0, GOLD);
+                        text(
+                            label,
+                            font,
+                            if selected { "Worn" } else { "Wear" },
+                            12.0,
+                            if selected {
+                                hud::card_growth::GAIN
+                            } else {
+                                DIM
+                            },
+                        );
+                    });
+                });
+            }
+        });
 }
 
 #[cfg(test)]

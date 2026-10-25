@@ -3,6 +3,26 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Illustrated Companion appearances
+
+Looks now uses illustrated, wrapping tiles with a gold selection border and green
+“Worn” state. Added the free Companion card and restored the [reference's card order](intentions/survivors_rewards_tab_companions.png),
+with carrier, leash and movement icons loaded from the local patch chain.
+
+![Base companion and upgrade cards](images/screenshots/2026-10-25-companion-looks/companion-1280.jpg)
+
+![First companion wearing Black Whelpling](images/screenshots/2026-10-25-companion-looks/first-whelpling-1280.jpg)
+
+![Second companion independently wearing Squirrel](images/screenshots/2026-10-25-companion-looks/second-squirrel-1280.jpg)
+
+![Saved looks after restart at 640×720](images/screenshots/2026-10-25-companion-looks/looks-640.jpg)
+
+Live isolated-account checks: first-slot Whelpling, second-slot Squirrel then Kingsnake;
+instincts and points remained unchanged, and both looks survived restart. Checked
+1280×720 and 640×720 scrolling/reflow. Native build, workspace Clippy, formatting and
+render-pass lint pass. The five existing looks are illustrated; expanding to the reference's
+achievement-gated catalog, denser spacing and Confirm/Undo purchases remain unfinished.
+
 ## 2026-10-25 — Companion cards and upgrade previews
 
 Companion upgrades now use illustrated two-column cards with rank pips, costs and
