@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Legendary armor identities
+
+Added 72 verified class armor identities, bringing each collection to 45 of 54 named
+cells. Existing Legendary weapons and numeric save slots remain unchanged. All 75
+core and 126 app tests pass, including new display/icon reads; native build took 13 seconds.
+The PvP row, remaining acquisition schedules, live appearances and raid-set powers remain open.
+
 ## 2026-10-25 — Complete Epic item identities
 
 Added 81 verified Epic armor/weapon identities across all nine classes: each collection

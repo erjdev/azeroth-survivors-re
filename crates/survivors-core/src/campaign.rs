@@ -738,7 +738,7 @@ pub fn piece_name(class: usize, slot: usize, band: usize) -> Option<&'static str
     if band == 0 && slot < GRID_SLOTS {
         return Some(row[slot]);
     }
-    if matches!(band, 1..=3) {
+    if matches!(band, 1..=3) || (band == 5 && slot < 8) {
         return super::gear_upgrades::piece(class, slot, band).map(|(name, _)| name);
     }
     if band == 5 && slot == 8 {

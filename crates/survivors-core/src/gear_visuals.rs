@@ -120,7 +120,7 @@ pub fn named(name: &str) -> Option<GearVisual> {
 }
 
 pub fn piece(class: usize, slot: usize, band: usize) -> Option<GearVisual> {
-    if matches!(band, 1..=3) {
+    if matches!(band, 1..=3) || (band == 5 && slot < 8) {
         return super::gear_upgrades::piece(class, slot, band).map(|(_, visual)| visual);
     }
     let name = super::campaign::piece_name(class, slot, band)?;
@@ -175,7 +175,7 @@ mod tests {
             );
             assert_eq!((visual.material, visual.sheath), (2, 2));
             assert_ne!(piece(class, 8, 0), Some(visual));
-            assert_eq!(piece(class, 7, 5), None);
+            assert_eq!(piece(class, 7, 4), None);
         }
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
     }
@@ -246,6 +246,35 @@ mod tests {
         assert_eq!(items.len(), 81);
         assert_eq!(piece(9, 0, 3), None);
         assert_eq!(piece(0, 9, 3), None);
+    }
+
+    #[test]
+    fn legendary_armor_is_distinct_and_preserves_existing_weapon_identities() {
+        let mut items = std::collections::HashSet::new();
+        for class in 0..crate::data::CLASSES.len() {
+            for slot in 0..8 {
+                let visual = piece(class, slot, 5).unwrap();
+                assert!(items.insert(visual.item_id));
+                assert!(crate::campaign::piece_name(class, slot, 5).is_some());
+                assert_eq!(visual.item_class, 4);
+                assert_eq!(visual.subclass, [4, 4, 3, 2, 1, 3, 1, 1, 2][class]);
+                assert!(
+                    visual.inventory_type == [1, 3, 5, 6, 7, 8, 9, 10][slot]
+                        || (slot == 2 && visual.inventory_type == 20)
+                );
+                for band in 0..=3 {
+                    assert_ne!(Some(visual), piece(class, slot, band));
+                }
+            }
+            assert_eq!(
+                crate::campaign::piece_name(class, 8, 5),
+                Some(crate::campaign::GEAR_NAMES[class][10])
+            );
+            assert_eq!(piece(class, 8, 5).unwrap().item_class, 2);
+        }
+        assert_eq!(items.len(), 72);
+        assert_eq!(piece(9, 0, 5), None);
+        assert_eq!(piece(0, 9, 5), None);
     }
 
     #[test]

@@ -2084,3 +2084,24 @@ No collection-detail interaction or weapon pose acceptance is claimed. The app c
 through its fresh AX close control, and the normal validation launcher was restored.
 Epic acquisition schedules, all-class appearance checks and remaining bands stay open.
 Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass.
+
+### Legendary armor identity completion — 2026-10-25
+
+Added the eight armor identities for each of nine classes from the pinned vanilla
+Naxxramas sets: 72 distinct entries with verified class masks, armor subclasses, inventory
+slots and display/attachment metadata. Source-set rings are excluded. The existing
+Legendary weapons, including class-specific Atiesh variants, are unchanged. These are
+authored Survivors rarity assignments; vanilla raid loot and set powers are not imported.
+Exact set IDs and provenance are in [gear visuals](SURVIVORS-GEAR-VISUALS.md#legendary-armor-identity-catalog).
+
+Every class now has 45 of 54 named cells; the nine PvP cells remain unnamed. No ownership,
+drop source or zone readiness is granted. Acquisition schedules, live all-class/race/sex
+armor and attachment checks, and explicit raid-epic/set-build mechanics remain unfinished.
+
+Validation: all 75 core and 126 app tests with checkout data pass, including local reads
+of the new display/icon assets. Native incremental build took 12.66 seconds; workspace
+test compilation took 22.17 seconds. Formatting, render-pass lint and diff whitespace
+checks pass. The full content audit still exits nonzero with 323 gaps: nine unnamed and
+26 unsourced cells per class plus existing world/schedule gaps. No new live visual
+acceptance is claimed; the README labels the older Epic screenshot's historical count.
+Workspace Clippy also passes.

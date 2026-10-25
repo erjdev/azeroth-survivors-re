@@ -58,7 +58,7 @@ templates above, selected by `itemset` and mapped by `InventoryType` to the eigh
 slots (robe type 20 occupies chest). The checked-in identity table is
 `crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
 
-Each class now has 37 named collection cells; 17 are still unnamed. All nine uncommon
+Each class now has 45 named collection cells; the nine PvP cells are still unnamed. All nine uncommon
 cells now list authored Un'Goro boss sources; that zone remains
 world-locked pending arena acceptance. Naming these pieces does not grant ownership, unlock zones or add raid
 bonuses. Live race/sex rendering and complete source acceptance remain open.
@@ -248,3 +248,30 @@ All nine weapon class masks are unrestricted in the source templates; selected w
 types are usable by their assigned class. The Hunter crossbow is ranged, while the
 other weapons occupy the existing main-hand presentation. No off-hand cell is added.
 Epic acquisition sources and full body/attachment rendering acceptance remain open.
+
+## Legendary armor identity catalog
+
+Band five uses the eight armor pieces of the following vanilla class sets. Rings in
+the source sets are deliberately excluded from the nine-slot equipment grid. This is
+an authored Survivors rarity assignment: vanilla quality, raid acquisition and set
+effects are not imported. Existing class-specific Legendary weapon entries, including
+the four Atiesh variants, remain unchanged.
+
+| Class | Appearance set | Vanilla item-set ID | Required class mask |
+| --- | --- | --- | --- |
+| Warrior | Dreadnaught | 523 | 1 |
+| Paladin | Redemption | 528 | 2 |
+| Hunter | Cryptstalker | 530 | 4 |
+| Rogue | Bonescythe | 524 | 8 |
+| Priest | Faith | 525 | 16 |
+| Shaman | Earthshatter | 527 | 64 |
+| Mage | Frostfire | 526 | 128 |
+| Warlock | Plagueheart | 529 | 256 |
+| Druid | Dreamwalker | 521 | 1024 |
+
+All 72 armor entries have distinct IDs, exact source class masks and the correct armor
+subclass/inventory slot. Names, display IDs, material and sheath fields are stored in
+`crates/survivors-core/src/gear_upgrades/legendary.rs`, from the pinned templates above.
+The existing Legendary numerical progression remains authoritative. No source schedule,
+collection ownership, new raid-epic variant or build-oriented set power is added by this
+identity mapping. Acquisition and live all-class/race/sex appearance acceptance remain open.
