@@ -14,6 +14,36 @@ const BONUS: Color = Color::srgb(0.45, 0.9, 0.4);
 #[derive(Component)]
 pub(in crate::survivors) struct CollectionScroll;
 
+#[cfg(test)]
+mod scroll_restore_tests {
+    use super::*;
+
+    #[test]
+    fn restored_scroll_waits_for_layout_then_clamps_to_actual_content() {
+        let mut app = App::new();
+        app.add_message::<MouseWheel>().add_systems(Update, scroll);
+        let entity = app
+            .world_mut()
+            .spawn((
+                CollectionScroll,
+                RelativeCursorPosition::default(),
+                ComputedNode::default(),
+                ScrollPosition(Vec2::new(0., 250.)),
+            ))
+            .id();
+        app.update();
+        assert_eq!(app.world().get::<ScrollPosition>(entity).unwrap().0.y, 250.);
+        {
+            let mut node = app.world_mut().get_mut::<ComputedNode>(entity).unwrap();
+            node.size = Vec2::new(100., 100.);
+            node.content_size = Vec2::new(100., 200.);
+            node.inverse_scale_factor = 1.;
+        }
+        app.update();
+        assert_eq!(app.world().get::<ScrollPosition>(entity).unwrap().0.y, 100.);
+    }
+}
+
 pub(in crate::survivors) fn scroll(
     mut wheel: MessageReader<MouseWheel>,
     mut panels: Query<
@@ -29,6 +59,10 @@ pub(in crate::survivors) fn scroll(
         })
         .sum();
     for (cursor, node, mut pos) in &mut panels {
+        // Newly rebuilt or hidden nodes have no layout yet. Do not erase a restored offset.
+        if node.size.y <= 0.0 {
+            continue;
+        }
         let max = ((node.content_size.y - node.size.y) * node.inverse_scale_factor).max(0.0);
         // Relative position also works over the child buttons, which consume Interaction.
         let hovered = cursor

@@ -12,6 +12,9 @@ mod drop_page;
 pub(super) mod preview;
 mod talent_page;
 pub(super) use talent_page::fill_art as fill_talent_art;
+pub(super) use talent_page::{
+    remember_scroll as remember_talent_scroll, ScrollMemory as TalentScrollMemory,
+};
 
 pub(super) use collection::scroll as scroll_collection;
 
@@ -798,6 +801,7 @@ pub(super) struct ArmoryArt<'w> {
     font: Res<'w, HudFont>,
     art: Res<'w, GlueArt>,
     layout: Res<'w, super::UiLayout>,
+    talent_scroll: Res<'w, TalentScrollMemory>,
     creatures: Option<Res<'w, crate::entities::Creatures>>,
     bodies: Option<Res<'w, crate::entities::CharCreate>>,
 }
@@ -951,6 +955,7 @@ pub(super) fn refresh(
             talents.as_deref().map(|loaded| &loaded.catalog),
             &assets.layout.value,
             features.as_ref(),
+            assets.talent_scroll.offset(&account, &selection),
         );
     });
 }

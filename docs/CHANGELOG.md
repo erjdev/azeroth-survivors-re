@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Talent scroll continuity
+
+Talent pages restore their scroll position after rebuilds, with separate session
+positions for each hero and spec. Restored offsets wait for layout before clamping
+to content bounds. All 170 Survivors tests, workspace Clippy, formatting,
+render-pass lint and the native build pass. Live scrolling, spending/refunding,
+spec switching and resized-layout verification remain pending.
+
 ## 2026-10-25 — Talent panel reflow
 
 Talent trees and the spec/detail panel now wrap at narrower widths instead of

@@ -37,6 +37,7 @@ pub(super) fn build(
     talents: Option<&benilla_formats::TalentCatalog>,
     layout: &survivors_core::layout::Layout,
     features: Option<&super::super::appearance::Options>,
+    talent_scroll: Vec2,
 ) {
     header(ui, art, font);
     tabs(ui, art, font, armory.page, account.unspent());
@@ -47,7 +48,7 @@ pub(super) fn build(
         columns(ui, art, font, armory, account, selection);
         enter_bar(ui, art, font, armory, account, selection);
     } else if armory.page == Page::Talents {
-        super::talent_page::build(ui, font, account, selection, talents);
+        super::talent_page::build(ui, font, account, selection, talents, talent_scroll);
     } else if armory.page == Page::Heroes {
         super::character::build(
             ui, art, font, armory, account, selection, renown, stash, layout, features,

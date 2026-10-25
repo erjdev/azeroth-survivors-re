@@ -89,6 +89,11 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<stash::Stash>()
             .init_resource::<account::Account>()
             .init_resource::<armory::Armory>()
+            .init_resource::<armory::TalentScrollMemory>()
+            .add_systems(
+                PreUpdate,
+                armory::remember_talent_scroll.run_if(in_state(Phase::Menu)),
+            )
             .add_plugins(crate::portrait::survivors_pane::SurvivorsPanePlugin)
             .add_systems(Update, armory::character_subject.after(hud::menu_preview))
             .add_systems(PreUpdate, gear_body::sync)

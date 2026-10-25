@@ -7,6 +7,16 @@ completed changes. Each phase must pass its acceptance criteria before it is cal
 
 ## Current priority — starter interface first (2026-10-25)
 
+Talent scroll continuity checkpoint: a session-local cache remembers each rendered
+hero/spec's scroll position before menu actions rebuild the tree. Returning to a
+tab or spec restores its own position; a different hero starts independently.
+The shared scroll clamp waits for a nonzero computed layout before constraining
+a restored offset to actual content bounds. Two ECS regression tests cover old-tree
+identity during spec switching and restored-offset clamping after layout. All 170
+Survivors tests, workspace Clippy, formatting, render-pass lint and the native build
+(2m05s) pass. Live wheel,
+spend/refund, tab/spec-switch and resize checks still require visual validation.
+
 Talent responsiveness checkpoint: tree and spec/detail panels use proportional
 growth with a 240-unit preferred basis and 200-unit minimum width, wrapping into
 additional rows as available width falls. The page owns vertical scrolling instead

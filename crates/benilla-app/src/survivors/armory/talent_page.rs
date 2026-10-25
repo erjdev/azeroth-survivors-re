@@ -11,6 +11,91 @@ const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
 const ICON: f32 = 36.0;
 
+#[cfg(test)]
+mod scroll_tests {
+    use super::*;
+
+    #[test]
+    fn rebuilt_trees_keep_offsets_with_the_rendered_hero_and_spec() {
+        let mut account = crate::survivors::account::empty();
+        let id = account.create("Scroll", "Preview", 0).unwrap();
+        let mut app = App::new();
+        app.insert_resource(account)
+            .insert_resource(super::super::Armory {
+                page: super::super::Page::Talents,
+                ..default()
+            })
+            .init_resource::<ScrollMemory>()
+            .add_systems(Update, remember_scroll);
+        let old = app
+            .world_mut()
+            .spawn((ScrollKey(id, 0), ScrollPosition(Vec2::new(0., 250.))))
+            .id();
+        // Selection may already point at the next spec while the old tree still exists.
+        app.world_mut().resource_mut::<Account>().characters[0].spec = 1;
+        app.update();
+        app.world_mut().despawn(old);
+        app.world_mut()
+            .spawn((ScrollKey(id, 1), ScrollPosition(Vec2::new(0., 420.))));
+        app.update();
+        let selection = Selection {
+            character: Some(id),
+            ..default()
+        };
+        let memory = app.world().resource::<ScrollMemory>();
+        let mut account = app.world().resource::<Account>().clone();
+        assert_eq!(memory.offset(&account, &selection).y, 420.);
+        account.characters[0].spec = 0;
+        assert_eq!(memory.offset(&account, &selection).y, 250.);
+        let another = account.create("Another", "Hero", 0).unwrap();
+        assert_eq!(
+            memory.offset(
+                &account,
+                &Selection {
+                    character: Some(another),
+                    ..default()
+                }
+            ),
+            Vec2::ZERO
+        );
+    }
+}
+
+/// Each rendered scroll surface owns its key, even while selection changes this frame.
+#[derive(Component, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub(in crate::survivors) struct ScrollKey(u32, u8);
+
+#[derive(Resource, Default)]
+pub(in crate::survivors) struct ScrollMemory(std::collections::BTreeMap<ScrollKey, Vec2>);
+
+impl ScrollMemory {
+    pub(super) fn offset(&self, account: &Account, selection: &Selection) -> Vec2 {
+        selection
+            .character
+            .and_then(|id| account.character(id))
+            .and_then(|hero| self.0.get(&ScrollKey(hero.id, hero.spec)))
+            .copied()
+            .unwrap_or_default()
+    }
+}
+
+pub(in crate::survivors) fn remember_scroll(
+    armory: Res<super::Armory>,
+    account: Res<Account>,
+    mut memory: ResMut<ScrollMemory>,
+    surfaces: Query<(&ScrollKey, &ScrollPosition)>,
+) {
+    if armory.page != super::Page::Talents {
+        return;
+    }
+    memory.0.retain(|key, _| account.character(key.0).is_some());
+    for (key, position) in &surfaces {
+        if position.0.is_finite() {
+            memory.0.insert(*key, position.0);
+        }
+    }
+}
+
 #[derive(Component)]
 pub(in crate::survivors) struct Backdrop(String);
 #[derive(Component)]
@@ -143,6 +228,7 @@ pub(super) fn build(
     account: &Account,
     selection: &Selection,
     catalog: Option<&benilla_formats::TalentCatalog>,
+    scroll: Vec2,
 ) {
     let Some(hero) = selection.character.and_then(|id| account.character(id)) else {
         text(
@@ -186,7 +272,7 @@ pub(super) fn build(
     );
     // Wrapping keeps the four-column talent grids readable on narrower aspect ratios.
     // Only this outer surface scrolls, so a wheel event cannot move two nested panels.
-    ui.spawn((super::collection::CollectionScroll, RelativeCursorPosition::default(), ScrollPosition::default(),
+    ui.spawn((super::collection::CollectionScroll, ScrollKey(hero.id, hero.spec), RelativeCursorPosition::default(), ScrollPosition(scroll),
         Node { width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(0.0),
             flex_wrap: FlexWrap::Wrap, align_content: AlignContent::Start,
             column_gap: Val::Px(10.0), row_gap: Val::Px(10.0), overflow: Overflow::scroll_y(), ..default() }))
