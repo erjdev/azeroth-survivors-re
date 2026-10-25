@@ -1050,10 +1050,88 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
     },
 ];
 
+static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1395,
+        max_rank: 3,
+        name: "Thick Hide",
+        description: "+8 hero armor per rank (Survivors conversion)",
+        stat: TalentStat::Armor,
+        per_rank: 8.0,
+    },
+    TalentDefinition {
+        id: 1384,
+        max_rank: 2,
+        name: "Pathfinding",
+        description: "+4% hero movement speed per rank (Survivors conversion)",
+        stat: TalentStat::Speed,
+        per_rank: 0.04,
+    },
+    TalentDefinition {
+        id: 1341,
+        max_rank: 5,
+        name: "Improved Concussive Shot",
+        description: "Concussive Shot: +10% slow duration per rank (Survivors conversion)",
+        stat: TalentStat::SpellDuration("concussive_shot"),
+        per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 1345,
+        max_rank: 1,
+        name: "Aimed Shot",
+        description: "Aimed Shot: +25% damage; does not grant the ability (Survivors conversion)",
+        stat: TalentStat::SpellDamage("aimed_shot"),
+        per_rank: 0.25,
+    },
+    TalentDefinition {
+        id: 1346,
+        max_rank: 5,
+        name: "Improved Arcane Shot",
+        description: "Arcane Shot: 5% shorter cooldown per rank (Survivors conversion)",
+        stat: TalentStat::SpellCooldown("arcane_shot"),
+        per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 1348,
+        max_rank: 5,
+        name: "Improved Serpent Sting",
+        description:
+            "Serpent Sting: +2% direct and periodic damage per rank (Survivors conversion)",
+        stat: TalentStat::SpellDamage("serpent_sting"),
+        per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 1311,
+        max_rank: 5,
+        name: "Deflection",
+        description: "+1% damage reduction per rank (Survivors conversion)",
+        stat: TalentStat::Reduction,
+        per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 1306,
+        max_rank: 2,
+        name: "Clever Traps",
+        description:
+            "Explosive Trap: +15% direct and periodic damage per rank (Survivors conversion)",
+        stat: TalentStat::SpellDamage("explosive_trap"),
+        per_rank: 0.15,
+    },
+    TalentDefinition {
+        id: 1321,
+        max_rank: 3,
+        name: "Killer Instinct",
+        description: "+1% critical chance per rank",
+        stat: TalentStat::Crit,
+        per_rank: 0.01,
+    },
+];
+
 pub fn definitions(class: usize) -> &'static [TalentDefinition] {
     match class {
         0 => WARRIOR_TALENTS,
         1 => PALADIN_TALENTS,
+        2 => HUNTER_TALENTS,
         _ => &[],
     }
 }
@@ -1343,6 +1421,61 @@ mod stat_talent_tests {
         let other = Milestones { class: 1, ..base }.with_ranks(&[(0, 131, 2), (1, 168, 5)]);
         assert_eq!(other.cast("heroic_strike"), CastEffect::default());
         assert_eq!(other.cast("mortal_strike"), CastEffect::default());
+    }
+
+    #[test]
+    fn hunter_training_is_bounded_spell_specific_and_resettable() {
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let ranks = [
+            (0, 1395, 3),
+            (0, 1384, 2),
+            (1, 1341, 5),
+            (1, 1345, 1),
+            (1, 1346, 5),
+            (1, 1348, 5),
+            (2, 1311, 5),
+            (2, 1306, 2),
+            (2, 1321, 3),
+        ];
+        let trained = base.with_ranks(&ranks);
+        for (key, damage, cooldown, duration) in [
+            ("arcane_shot", 1., 0.75, 1.),
+            ("aimed_shot", 1.25, 1., 1.),
+            ("serpent_sting", 1.1, 1., 1.),
+            ("concussive_shot", 1., 1., 1.5),
+            ("explosive_trap", 1.3, 1., 1.),
+            ("multi_shot", 1., 1., 1.),
+            ("volley", 1., 1., 1.),
+        ] {
+            let cast = trained.cast(key);
+            assert!((cast.damage - damage).abs() < 0.00001, "{key}");
+            assert!((cast.cooldown - cooldown).abs() < 0.00001, "{key}");
+            assert!((cast.duration - duration).abs() < 0.00001, "{key}");
+            assert_eq!(cast.extra_targets, 0);
+        }
+        let bonus = stat_adjustment(2, &ranks);
+        assert_eq!(bonus.armor, 24.);
+        assert!((bonus.speed - 0.08).abs() < 0.00001);
+        assert!((bonus.reduction - 0.05).abs() < 0.00001);
+        assert!((bonus.crit - 0.03).abs() < 0.00001);
+        assert_eq!(trained.with_ranks(&[]), base);
+        let excessive: Vec<_> = ranks
+            .iter()
+            .flat_map(|&(tree, id, _)| [(tree, id, 255), (tree, id, 1)])
+            .collect();
+        assert_eq!(base.with_ranks(&excessive), trained);
+        for class in [0, 1, 3, 4, 5, 6, 7, 8] {
+            let other = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&ranks);
+            assert_eq!(other.cast("arcane_shot"), CastEffect::default());
+            assert_eq!(other.cast("explosive_trap"), CastEffect::default());
+        }
     }
 
     #[test]

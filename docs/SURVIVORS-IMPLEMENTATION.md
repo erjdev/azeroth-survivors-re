@@ -1494,3 +1494,34 @@ source-obstacle measurements in [location evidence](SURVIVORS-LOCATIONS.md). Tre
 The preview verifies rendering only: no live player, horde, gameplay camera, pathfinding
 or arena-readiness claim follows. Launch overrides were restored; authored coordinates,
 locks and reward definitions remain unchanged.
+
+
+### Hunter individual training — first nine nodes
+
+The explicit checkout-data audit confirms the following native node identities and caps.
+These are provisional Survivors effects, replacing each supported rank's temporary 1%
+global damage bonus. They do not grant abilities; selected-spec reset removes them.
+
+| Tree | Node | Ranks | Survivors effect per rank |
+| --- | --- | --- | --- |
+| Beast Mastery | 1395 Thick Hide | 3 | +8 hero armor; flat-armor conversion |
+| Beast Mastery | 1384 Pathfinding | 2 | +4% hero movement speed; no aspect requirement |
+| Marksmanship | 1341 Improved Concussive Shot | 5 | +10% slow duration, unchanged slow strength; conversion from stun chance |
+| Marksmanship | 1345 Aimed Shot | 1 | +25% owned Aimed Shot damage |
+| Marksmanship | 1346 Improved Arcane Shot | 5 | 5% shorter Arcane Shot cooldown |
+| Marksmanship | 1348 Improved Serpent Sting | 5 | +2% direct and periodic Serpent Sting damage |
+| Survival | 1311 Deflection | 5 | +1% damage reduction; no parry simulation |
+| Survival | 1306 Clever Traps | 2 | +15% direct and periodic Explosive Trap damage |
+| Survival | 1321 Killer Instinct | 3 | +1 percentage point critical chance |
+
+The same definitions supply node descriptions and rank previews. Spell multipliers apply
+through the existing combat parameter path, including periodic damage and control markers.
+Multi-Shot/Volley targeting and all area locations remain unchanged. Tests cover rank caps,
+duplicate saved ranks, reset, class isolation, removal of the generic damage baseline, and
+rank-one/rank-three combat parameters. Hunter pets, remaining nodes and nine milestones
+are still required; this is not complete Hunter acceptance. Visual talent-page validation
+and final balancing remain open.
+
+Validation for this checkpoint: 63 core tests, 110 Survivors app tests, native build,
+workspace test compilation, explicit-data talent audit, Clippy, formatting and render-pass
+lint pass. These checks do not prove live talent-page interaction or complete class balance.

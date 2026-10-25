@@ -1226,6 +1226,56 @@ mod milestone_tests {
     }
 
     #[test]
+    fn hunter_training_reaches_direct_periodic_and_control_casts() {
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (1, 1341, 5),
+            (1, 1345, 1),
+            (1, 1346, 5),
+            (1, 1348, 5),
+            (2, 1306, 2),
+        ]);
+        let stats = Run::default().stats();
+        for (key, damage, cooldown) in [
+            ("aimed_shot", 1.25, 1.),
+            ("arcane_shot", 1., 0.75),
+            ("serpent_sting", 1.1, 1.),
+            ("explosive_trap", 1.3, 1.),
+            ("concussive_shot", 1., 1.),
+            ("multi_shot", 1., 1.),
+            ("volley", 1., 1.),
+        ] {
+            for level in [1, 3] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.0001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.0001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                if key == "concussive_shot" {
+                    let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, after.dmg, false);
+                    let expected = 6. * (1. + 0.1 * f32::from(level - 1));
+                    assert!(matches!(hit.effect, Effect::Slow(strength, duration)
+                        if strength == 0.5 && (duration - expected).abs() < 0.0001));
+                    assert!((hit.mark_dur - expected).abs() < 0.0001);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn control_duration_reaches_hits_and_markers_without_scaling_strength() {
         let base = Milestones {
             class: 0,

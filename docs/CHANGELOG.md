@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Hunter training foundation
+
+Nine Hunter talents now affect shots, traps, armor, movement, damage reduction or critical
+chance instead of generic damage. Tooltips identify Survivors conversions. Rank caps,
+selected-spec reset and single-area targeting are preserved. Pets, remaining talents,
+milestones and visual acceptance remain unfinished. Native build, 63 core tests,
+110 Survivors app tests, catalog audit, Clippy, formatting and render-pass lint pass.
+
 ## 2026-10-25 — Grounded tree collision
 
 Fixed a reproduced Un'Goro trunk penetration: steep surfaces now constrain horizontal
