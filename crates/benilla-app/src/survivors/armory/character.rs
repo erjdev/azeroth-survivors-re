@@ -213,8 +213,8 @@ pub(in crate::survivors) fn subject(
     mut subject: ResMut<ModelSubject>,
 ) {
     subject.0 = if *phase.get() == super::super::Phase::Menu
-        && armory.page == super::Page::Heroes
-        && !armory.manage_heroes
+        && (armory.page == super::Page::Door
+            || (armory.page == super::Page::Heroes && !armory.manage_heroes))
     {
         heroes.single().ok()
     } else {

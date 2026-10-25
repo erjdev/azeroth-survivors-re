@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Live hero portrait on the starter
+
+The starter now shows the selected hero's saved body and appearance beside their
+name and race, using the same model renderer as Character. The portrait scales
+with its panel and supports drag-to-turn. Name and look controls wrap as needed.
+This brings the hero section closer to the [main-menu reference](intentions/survivors_main_menu.png).
+
+![Warrior starter portrait](images/screenshots/2026-10-25-starter-portrait/warrior-1280.jpg)
+
+![Switching class refreshes the saved Mage appearance](images/screenshots/2026-10-25-starter-portrait/mage-1280.jpg)
+
+![Proportional portrait in the scrolled 640×720 starter](images/screenshots/2026-10-25-starter-portrait/mage-640.jpg)
+
+![Drag-to-turn keeps the Mage and staff framed](images/screenshots/2026-10-25-starter-portrait/mage-turned-640.jpg)
+
+Verified with isolated Warrior/Mage saves at 1280×720 and 640×720: class switching,
+Character round trip, scroll clipping and portrait rotation. Native build,
+181 Survivors app tests without default features, workspace Clippy, formatting
+and render-pass lint pass. Zone artwork, decorative typography, faction/class
+portrait badges and racial bonuses remain open; this is not full starter acceptance.
+
 ## 2026-10-25 — Starter equipment strip and narrow layout
 
 The starter replaces nine equipment text rows with worn-item icons, quality borders

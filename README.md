@@ -19,9 +19,9 @@ Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summarie
 The starter shows worn equipment icons that open Collection details, the selected
 zone's scheduled finale and progression locks. Narrow screens stack the three sections.
 
-![Starter equipment strip](docs/images/screenshots/2026-10-25-starter-equipment/starter-1280.jpg)
+![Starter with live hero portrait](docs/images/screenshots/2026-10-25-starter-portrait/warrior-1280.jpg)
 
-![Responsive starter at 640×720](docs/images/screenshots/2026-10-25-starter-equipment/starter-640.jpg)
+![Responsive starter at 640×720](docs/images/screenshots/2026-10-25-starter-portrait/mage-640.jpg)
 
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an

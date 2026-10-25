@@ -645,56 +645,106 @@ fn hero_column(
         ),
         _ => ("No hero of this class".to_string(), DIM),
     };
-    body.spawn(Node {
-        width: Val::Percent(100.0),
-        flex_direction: FlexDirection::Row,
-        justify_content: JustifyContent::SpaceBetween,
-        align_items: AlignItems::Center,
-        column_gap: Val::Px(6.0),
-        ..default()
-    })
-    .with_children(|row| {
-        line(row, font, &name, 18.0, name_color);
-        glue_button(
-            row,
-            art,
-            font,
-            Act::RandomName,
-            "Random",
-            88.0,
-            26.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
-    });
     let look = selection
         .look
         .and_then(|i| selection.looks.get(i))
         .map(|&(_, race, sex)| (race, sex));
-    let look_line = match look {
-        Some((race, sex)) => format!("{} {} {}", faction(race), race_name(race), sex_name(sex)),
-        None => "No look chosen".to_string(),
-    };
     body.spawn(Node {
         width: Val::Percent(100.0),
-        flex_direction: FlexDirection::Row,
-        justify_content: JustifyContent::SpaceBetween,
         align_items: AlignItems::Center,
+        column_gap: Val::Px(8.0),
         ..default()
     })
     .with_children(|row| {
-        line(row, font, &look_line, 13.0, Color::WHITE);
-        glue_button(
-            row,
-            art,
-            font,
-            Act::Look,
-            "Look",
-            72.0,
-            26.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
+        if hero.is_some() {
+            row.spawn((
+                Node {
+                    width: Val::Percent(30.0),
+                    aspect_ratio: Some(0.75),
+                    flex_shrink: 0.0,
+                    overflow: Overflow::clip(),
+                    ..default()
+                },
+                BackgroundColor(Color::srgba(0.02, 0.01, 0.03, 0.85)),
+            ))
+            .with_children(|frame| {
+                frame.spawn((
+                    crate::portrait::survivors_pane::ModelPane,
+                    ImageNode::default(),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        ..default()
+                    },
+                ));
+            });
+        }
+        row.spawn(Node {
+            flex_grow: 1.0,
+            flex_basis: Val::Px(0.0),
+            min_width: Val::Px(0.0),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(6.0),
+            ..default()
+        })
+        .with_children(|details| {
+            details
+                .spawn(Node {
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Row,
+                    flex_wrap: FlexWrap::Wrap,
+                    row_gap: Val::Px(4.0),
+                    justify_content: JustifyContent::SpaceBetween,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(6.0),
+                    ..default()
+                })
+                .with_children(|row| {
+                    line(row, font, &name, 18.0, name_color);
+                    glue_button(
+                        row,
+                        art,
+                        font,
+                        Act::RandomName,
+                        "Random",
+                        88.0,
+                        26.0,
+                        GlueBtnKind::Small,
+                        1.0,
+                    );
+                });
+            let look_line = match look {
+                Some((race, sex)) => {
+                    format!("{} {} {}", faction(race), race_name(race), sex_name(sex))
+                }
+                None => "No look chosen".to_string(),
+            };
+            details
+                .spawn(Node {
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Row,
+                    flex_wrap: FlexWrap::Wrap,
+                    row_gap: Val::Px(4.0),
+                    justify_content: JustifyContent::SpaceBetween,
+                    align_items: AlignItems::Center,
+                    ..default()
+                })
+                .with_children(|row| {
+                    line(row, font, &look_line, 13.0, Color::WHITE);
+                    glue_button(
+                        row,
+                        art,
+                        font,
+                        Act::Look,
+                        "Look",
+                        72.0,
+                        26.0,
+                        GlueBtnKind::Small,
+                        1.0,
+                    );
+                });
+        });
     });
     heading(body, font, "Equipment");
     let owned = gear_lines(body, font, account, class_i);
