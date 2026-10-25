@@ -1622,24 +1622,7 @@ fn companion_page(
         12.0,
         DIM,
     ));
-    let leash = pet_label("Long Leash", account.pets.leash, 3);
-    let paws = pet_label("Quick Paws", account.pets.paws, 3);
-    let second = if account.pets.owned >= 2 {
-        "Second companion max".to_string()
-    } else {
-        "Second companion · 40".to_string()
-    };
-    panel
-        .spawn(Node {
-            flex_direction: FlexDirection::Row,
-            flex_wrap: FlexWrap::Wrap,
-            ..default()
-        })
-        .with_children(|row| {
-            chip(row, font, &leash, Act::Reward(6), false);
-            chip(row, font, &paws, Act::Reward(7), false);
-            chip(row, font, &second, Act::Reward(11), false);
-        });
+    reward_page::companions(panel, font, account);
     let first = super::companions::LOOKS
         .get(usize::from(account.pets.look[0]))
         .map(|(name, _)| *name)
@@ -1680,51 +1663,6 @@ fn companion_page(
                 armory.pet_slot == 1,
             );
         });
-    panel.spawn(hud::text_bundle(font, "Instincts fill the first companion, then the second. Once owned companions have instincts, a new purchase replaces the first companion's instinct. The appearance selection below does not change this order.", 12.0, DIM));
-    if let Some(target) = account.instinct_target() {
-        let destination = if target == 0 { "First" } else { "Second" };
-        let current = account.pets.instinct[target];
-        for (kind, code, effect) in [
-            (
-                1,
-                8,
-                "Fetches coins first; fetched coins are worth 10% more.",
-            ),
-            (
-                2,
-                9,
-                "Fetches experience wisps first, from twice as far away.",
-            ),
-            (
-                3,
-                10,
-                "Also fetches battleground runes and prioritizes them.",
-            ),
-        ] {
-            let label = if current == kind {
-                format!("{destination}: {} · Learned", instinct_name(kind))
-            } else if current != 0 {
-                format!(
-                    "{destination}: replace {} with {} · 30 points",
-                    instinct_name(current),
-                    instinct_name(kind)
-                )
-            } else {
-                format!("{destination}: learn {} · 30 points", instinct_name(kind))
-            };
-            panel
-                .spawn(Node {
-                    flex_wrap: FlexWrap::Wrap,
-                    align_items: AlignItems::Center,
-                    column_gap: Val::Px(8.0),
-                    ..default()
-                })
-                .with_children(|row| {
-                    chip(row, font, &label, Act::Reward(code), current == kind);
-                    row.spawn(hud::text_bundle(font, effect, 12.0, DIM));
-                });
-        }
-    }
     if armory.pet_slot >= account.pets.owned.min(2) {
         panel.spawn(hud::text_bundle(
             font,
@@ -1800,15 +1738,6 @@ fn tabard_page(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Accou
         12.0,
         DIM,
     ));
-}
-
-fn pet_label(name: &str, rank: u8, max: u8) -> String {
-    if rank >= max {
-        format!("{name} {rank} max")
-    } else {
-        let cost = [15, 25, 35][usize::from(rank)];
-        format!("{name} {rank} · {cost}")
-    }
 }
 
 const DIM: Color = Color::srgb(0.55, 0.5, 0.42);

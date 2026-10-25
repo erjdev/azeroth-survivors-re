@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Companion cards and upgrade previews
+
+Companion upgrades now use illustrated two-column cards with rank pips, costs and
+green inline comparisons derived from gameplay values. The [Companion intention](intentions/survivors_rewards_tab_companions.png)
+remains the reference. Appearance selection stays separate from instinct assignment.
+
+![Companion upgrade cards at 1280×720](images/screenshots/2026-10-25-companion-cards/companions-1280.jpg)
+
+![Quick Paws purchase updates its rank and both effects](images/screenshots/2026-10-25-companion-cards/purchased-1280.jpg)
+
+![Instincts assigned to first and second companions](images/screenshots/2026-10-25-companion-cards/instincts-1280.jpg)
+
+![Narrow cards and appearance controls at 640×720](images/screenshots/2026-10-25-companion-cards/companions-640.jpg)
+
+Checked live with an isolated collected account: Quick Paws charged 15 points,
+second companion 40, and each instinct 30; Gold-sniffer filled the first slot and
+Wisp-herder the second. Narrow scrolling reaches every card and the Looks controls.
+Native build, workspace Clippy, formatting and render-pass lint pass. Captures are
+Retina window images. Remaining design work: base-companion card, closer icon choices,
+illustrated/expanded Looks catalog and staged purchases. Rune spawning remains unavailable.
+
 ## 2026-10-25 — Rewards scroll continuity
 
 Rewards preserves its session scroll position when purchases rebuild the page and
