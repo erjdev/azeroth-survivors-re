@@ -658,6 +658,14 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::SpellHeal("execute"),
         per_rank: 0.02,
     },
+    TalentDefinition {
+        id: 161,
+        max_rank: 5,
+        name: "Improved Demoralizing Shout",
+        description: "Demoralizing Shout: +10% weakening duration per rank (Survivors conversion)",
+        stat: TalentStat::SpellDuration("demoralizing_shout"),
+        per_rank: 0.1,
+    },
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[

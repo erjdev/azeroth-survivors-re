@@ -98,6 +98,7 @@ pub(super) struct Params {
     pub cooldown: f32,
     pub crit: f32,
     pub crit_damage: f32,
+    pub effect: Effect,
 }
 
 impl Params {
@@ -116,6 +117,10 @@ impl Params {
             count: o.count(stats) as usize + effect.extra_targets,
             radius: o.radius(stats) * effect.radius,
             duration: o.duration() * effect.duration,
+            effect: o
+                .def
+                .effect
+                .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
             cooldown: o.cooldown(stats) * effect.cooldown,
             crit: (stats.crit + effect.crit).min(1.0),
             crit_damage: stats.crit_damage,
@@ -123,12 +128,14 @@ impl Params {
     }
 }
 
-fn mark_secs(def: &AbilityDef, duration: f32) -> f32 {
-    match def.effect {
-        Effect::Slow(_, t) | Effect::Weaken(_, t) => t,
-        Effect::Root(t) | Effect::Stun(t) | Effect::Fear(t) => t,
-        _ if duration > 0.0 => duration,
-        _ => 3.0,
+fn mark_secs(p: &Params) -> f32 {
+    let control = p.effect.duration();
+    if control > 0.0 {
+        control
+    } else if p.duration > 0.0 {
+        p.duration
+    } else {
+        3.0
     }
 }
 
@@ -138,9 +145,9 @@ fn hit_for(def: &AbilityDef, p: &Params, target: Entity, damage: f32, crit: bool
         damage,
         dot: p.dot,
         dot_dur: p.duration,
-        effect: def.effect,
+        effect: p.effect,
         mark: def.mark,
-        mark_dur: mark_secs(def, p.duration),
+        mark_dur: mark_secs(p),
         splash: if matches!(def.kind, Kind::Bolt | Kind::Strike) {
             p.radius
         } else {
@@ -378,7 +385,7 @@ pub(super) fn cast_abilities(
                             left: if burst { 1.5 } else { p.duration },
                             every: if burst { f32::INFINITY } else { 1.0 },
                             next_tick: if burst { 0.0 } else { 0.4 },
-                            effect: def.effect,
+                            effect: p.effect,
                             mark: def.mark,
                             impact: if def.overhead { def.spell } else { 0 },
                             source: def.key,
@@ -1147,6 +1154,44 @@ mod milestone_tests {
         assert_eq!(dots[0].advance(4.0), 3);
         assert_eq!(dots[0].left, 0.0);
         assert_eq!(dots[0].advance(1.0), 0);
+    }
+
+    #[test]
+    fn control_duration_reaches_hits_and_markers_without_scaling_strength() {
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(1, 161, 5)]);
+        let stats = Run::default().stats();
+        let owned = Owned {
+            def: data::ability("demoralizing_shout"),
+            level: 3,
+            cd: 0.0,
+        };
+        let p = Params::new(&owned, &stats, trained);
+        assert!((p.effect.duration() - 9.0).abs() < 0.00001);
+        let hit = hit_for(owned.def, &p, Entity::PLACEHOLDER, p.dmg, false);
+        assert!(
+            matches!(hit.effect, Effect::Weaken(m, t) if m == 0.5 && (t - 9.0).abs() < 0.00001)
+        );
+        assert!((hit.mark_dur - 9.0).abs() < 0.00001);
+        assert_eq!(p.duration, 0.0, "no artificial area or DoT lifetime");
+        let original = Params::new(&owned, &stats, base);
+        assert_eq!(p.count, original.count);
+        assert_eq!(p.radius, original.radius);
+        for effect in [
+            Effect::Slow(0.5, 2.0),
+            Effect::Weaken(0.7, 2.0),
+            Effect::Stun(2.0),
+            Effect::Root(2.0),
+            Effect::Fear(2.0),
+        ] {
+            assert_eq!(effect.scaled_duration(1.5).duration(), 3.0);
+        }
+        for effect in [Effect::None, Effect::Drain(0.2), Effect::Execute(0.3)] {
+            assert_eq!(effect.scaled_duration(1.5), effect);
+        }
     }
 
     #[test]

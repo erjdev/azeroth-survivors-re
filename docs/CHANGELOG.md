@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Control duration scaling
+
+Slow, root, stun, fear and weakening durations now grow by 10% of base duration per ability
+rank after the first. Duration talents compose with rank growth, and green upgrade previews
+show effect duration separately from area/buff lifetime. Boss resistance remains in place.
+Improved Demoralizing Shout now increases weakening duration instead of placeholder damage.
+
+[Shout duration talent at 720p](images/screenshots/2026-10-24-warrior-talents/shout-duration-720.jpg).
+These changes affect combat balance; coefficients remain provisional and full manual combat
+validation is still pending.
+**Validation:** native build, workspace test compilation, 86 Survivors tests, 51 core tests
+and the local talent-data audit pass. Live talent description verified at 720p.
+
 ## 2026-10-24 — Green talent upgrade previews
 
 Supported talent effects now appear in green beneath white name/rank headings. Each node

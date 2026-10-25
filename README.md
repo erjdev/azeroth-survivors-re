@@ -60,14 +60,14 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
 </table>
 
 [Warrior talent-effect milestone at 720p](docs/images/screenshots/2026-10-24-warrior-talents/talents-720.jpg).
-Sixteen Warrior nodes, including [defensive talents](docs/images/screenshots/2026-10-24-warrior-talents/defensive-talents-720.jpg), plus the
+Seventeen Warrior nodes, including [defensive talents](docs/images/screenshots/2026-10-24-warrior-talents/defensive-talents-720.jpg), plus the
 [Arms](docs/images/screenshots/2026-10-24-warrior-talents/arms-milestones-720.jpg),
 [Fury](docs/images/screenshots/2026-10-24-warrior-talents/fury-milestones-720.jpg) and
 [Protection](docs/images/screenshots/2026-10-24-warrior-talents/protection-milestones-720.jpg) milestones
 have implemented effects; the complete class talent pass remains underway.
 
 
-[Green talent rank comparisons at 720p](docs/images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg).
+[Shout duration talent](docs/images/screenshots/2026-10-24-warrior-talents/shout-duration-720.jpg) · [Green talent rank comparisons at 720p](docs/images/screenshots/2026-10-24-warrior-talents/green-rank-preview-720.jpg).
 
 Upgrade previews at 1280×720: [new spells and next rank](docs/images/screenshots/2026-10-24-codex-discovery/level-up-720.jpg) · [chest upgrades](docs/images/screenshots/2026-10-24-codex-discovery/chest-720.jpg).
 

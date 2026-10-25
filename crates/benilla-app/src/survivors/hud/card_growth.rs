@@ -140,6 +140,12 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
     }
     change("Radius", a.radius, b.radius, " yd");
     change("Duration", a.duration, b.duration, "s");
+    change(
+        "Effect duration",
+        a.effect.duration(),
+        b.effect.duration(),
+        "s",
+    );
     if lines.is_empty() {
         "No numerical change at current bonuses".into()
     } else {

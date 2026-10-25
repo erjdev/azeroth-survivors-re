@@ -86,6 +86,30 @@ pub enum Effect {
     Execute(f32),
 }
 
+impl Effect {
+    pub fn duration(self) -> f32 {
+        match self {
+            Self::Slow(_, t)
+            | Self::Weaken(_, t)
+            | Self::Root(t)
+            | Self::Stun(t)
+            | Self::Fear(t) => t,
+            _ => 0.0,
+        }
+    }
+
+    pub fn scaled_duration(self, multiplier: f32) -> Self {
+        match self {
+            Self::Slow(m, t) => Self::Slow(m, t * multiplier),
+            Self::Weaken(m, t) => Self::Weaken(m, t * multiplier),
+            Self::Root(t) => Self::Root(t * multiplier),
+            Self::Stun(t) => Self::Stun(t * multiplier),
+            Self::Fear(t) => Self::Fear(t * multiplier),
+            other => other,
+        }
+    }
+}
+
 pub struct AbilityDef {
     pub key: &'static str,
     pub spell: u32,

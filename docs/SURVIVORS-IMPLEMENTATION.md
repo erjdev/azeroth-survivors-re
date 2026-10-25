@@ -324,6 +324,7 @@ have implementations described below.
 | 133 | Sweeping Strikes | 1 | Sweeping Strikes +20% damage |
 | 135 | Mortal Strike | 1 | Mortal Strike +25% damage |
 | 158 | Booming Voice | 5 | Demoralizing Shout +10% radius |
+| 161 | Improved Demoralizing Shout | 5 | Demoralizing Shout +10% weakening duration |
 | 157 | Cruelty | 5 | +1 percentage point critical chance |
 | 166 | Improved Cleave | 3 | Cleave +10% damage |
 | 1542 | Improved Execute | 2 | Execute cooldown shortened by 10% |
@@ -870,3 +871,25 @@ system. This extends the green upgrade language used by level and chest cards.
 Validation: native build, workspace test compilation, 85 Survivors tests and 51 core tests
 pass. Live 720p comparison and supported-to-pending color reset verified; screenshot linked
 in the changelog and README. Maximum-rank formatting is covered by core tests.
+
+
+### Crowd-control duration contract
+
+Timed hit effects (slow, root, stun, fear and weakening) now gain 10% of their base duration
+per ability rank after rank one, matching the existing duration growth of buffs and DoTs.
+Spell-duration talent multipliers compose with that rank multiplier. The resulting effect
+is captured in cast parameters and carried into direct/delayed hits and ground areas;
+attached state markers use the same duration on direct hits. Strength, target count and area
+locations do not change. Drain fractions and execute thresholds are not durations and stay
+unchanged. Existing boss resistance is applied by the hit processor after this scaling.
+Upgrade cards compare effect duration separately from an area/buff/DoT lifetime.
+
+Improved Demoralizing Shout (audited ID 161, five ranks) replaces placeholder damage with
+10% additional weakening duration per rank. At ability rank three and talent rank five,
+its five-second base weakening lasts nine seconds. The separate Piercing Howl milestone
+slow still uses its own fixed three-second duration. These coefficients are provisional.
+
+Validation: native build, workspace test compilation, 86 Survivors tests, 51 core tests
+and the local talent-data audit pass. The new app regression checks rank/talent composition,
+hit/marker duration, unchanged strength/count/radius and non-timed effects. Live 720p talent
+details verified; full combat timing and balance validation remain outstanding.
