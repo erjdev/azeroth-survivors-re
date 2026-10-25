@@ -659,3 +659,46 @@ two minutes, ending with Whitemane at 16:00; no collection loot is invented here
 | Boss | High Inquisitor Fairbanks | 4542 | 2605 | 40 | 40039 |
 | Boss | Scarlet Commander Mograine | 3976 | 2042 | 42 | 40029 |
 | Boss | High Inquisitor Whitemane | 3977 | 2043 | 42 | 39946 |
+
+
+### Warsong faction-survival roster — 2026-10-25
+
+The user confirmed authored faction-themed horde survival for battlegrounds. The
+candidate uses map 489, center `[1244.792, 1468.750, 310.296]`, and a 60-yard leash,
+matching the earlier terrain and stump fixtures. It remains locked: these fixtures
+are not full route, spawn, crowd, camera or live combat acceptance.
+
+Model identities below come from the same pinned MaNGOS Zero creature templates
+cited above, read from the checkout's local audit copy. These are reusable faction
+archetypes, **not evidence of vanilla map-489 placements or boss identities**.
+Survivors authors the boss names, levels, scales, sequence, combat tuning and loot.
+
+| Archetype | Template entry | Displays used |
+| --- | --- | --- |
+| Warsong Peon | 11656 | 11857 |
+| Silverwing Warrior | 12897 | 4841 |
+| Warsong Scout | 12862 | 11869 |
+| Silverwing Sentinel | 12896 | 4842 |
+| Warsong Runner | 12863 | 11872 |
+| Warsong Shaman | 11683 | 11865 |
+| Warsong Grunt | 11682 | 11861 |
+| Warsong Outrider | 12864 | 11871 |
+| Warsong Shredder | 11684 | 1303 |
+| Silverwing Elite | 14715 | 14712, 14713 |
+
+| Authored boss | Time | Uncommon slot | Display |
+| --- | --- | --- | --- |
+| Warsong Scout Captain | 2:00 | Helm | 11869 |
+| Silverwing Vanguard | 4:00 | Shoulders | 4841 |
+| Warsong Shaman Elder | 6:00 | Chest | 11865 |
+| Silverwing Sentinel Captain | 8:00 | Waist | 4842 |
+| Warsong Shredder Foreman | 10:00 | Legs | 1303 |
+| Warsong Grunt Champion | 12:00 | Feet | 11861 |
+| Silverwing Blade Champion | 13:30 | Wrist | 14713 |
+| Silverwing Field Marshal | 15:00 | Hands | 14712 |
+| Warsong Gulch Warmaster | 16:00 | Main Hand | 11871 |
+
+All drops use the existing 60% base boss chance and Keen Eye modifier. They share
+the Uncommon collection cells with Un'Goro, so duplicates from either map grant
+no additional stats and do not alter selected equipment or independent appearances.
+Victory requires all nine bosses defeated and the 16-minute finale reached.

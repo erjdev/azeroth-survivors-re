@@ -122,6 +122,41 @@ mod tests {
     use super::*;
 
     #[test]
+    fn warsong_faction_encounters_schedule_all_uncommon_sources() {
+        let map = data::MAPS
+            .iter()
+            .position(|m| m.name == "Warsong Gulch")
+            .unwrap();
+        assert_eq!(data::MAPS[map].map, 489);
+        assert_eq!(data::roster(map).enemies.len(), 10);
+        assert!(ready(map));
+        let rows: Vec<_> = campaign::DROPS.iter().filter(|row| row.zone == 2).collect();
+        assert_eq!(rows.len(), 9);
+        assert_eq!(schedule(map).len(), 9);
+        for (index, row) in rows.iter().enumerate() {
+            assert_eq!((row.slot, row.band, row.chance), (index, 1, 60));
+            assert!(drop_is_boss(row));
+            assert!(next(map, index as u32, row.at_secs as f32 - 0.01).is_none());
+            assert_eq!(
+                next(map, index as u32, row.at_secs as f32).unwrap().name,
+                row.creature
+            );
+            for class in 0..data::CLASSES.len() {
+                assert!(campaign::piece_name(class, row.slot, row.band).is_some());
+            }
+        }
+        assert_eq!(
+            schedule(map).last().unwrap().0.name,
+            campaign::ZONES[2].boss
+        );
+        assert!(!won(map, 960., 8));
+        assert!(!won(map, 959., 9));
+        assert!(won(map, 960., 9));
+        assert!(next(map, 9, 10_000.).is_none());
+        assert!(!campaign::zone_open(2, 51, &[true; campaign::CLEAR_COUNT]));
+    }
+
+    #[test]
     fn scarlet_bosses_without_collection_loot_still_gate_victory() {
         let map = data::MAPS
             .iter()

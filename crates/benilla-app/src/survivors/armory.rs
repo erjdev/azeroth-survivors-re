@@ -2377,7 +2377,7 @@ mod tests {
         let reason = enter_refused(&account, &selection, Some(warsong));
         assert_eq!(
             reason.as_deref(),
-            Some("Warsong Gulch has no map and no boss yet")
+            Some("Warsong Gulch world content is not ready")
         );
     }
 }

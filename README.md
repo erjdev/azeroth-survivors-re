@@ -186,6 +186,12 @@ Selecting the same hand after resizing grants rank two; live defensive timing re
 [Frostbite](docs/images/screenshots/2026-10-25-mage-talents/frostbite-720.png) ·
 [Allocation after relaunch](docs/images/screenshots/2026-10-25-mage-talents/reloaded-spec-720.png)
 
+Warsong Gulch now has an authored faction-survival roster and nine Uncommon boss
+reward sources. This isolated full-pool Mage run verifies early rendering at 720p;
+the zone remains locked pending traversal, camera, complete encounters and balance.
+
+![Warsong Gulch faction-survival gameplay at 720p](docs/images/screenshots/2026-10-25-warsong-roster/survival-720.jpg)
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**

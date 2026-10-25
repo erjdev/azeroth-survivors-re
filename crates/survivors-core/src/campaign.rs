@@ -108,8 +108,8 @@ pub static ZONES: &[Zone] = &[
         name: "Warsong Gulch",
         map: "Warsong Gulch",
         talent: 8,
-        elites: &[],
-        boss: "",
+        elites: &["Warsong Shredder Foreman", "Silverwing Field Marshal"],
+        boss: "Warsong Gulch Warmaster",
         ready: false,
         into_id: 70,
         champ_id: 90,
@@ -502,6 +502,79 @@ pub struct DropRow {
 }
 
 pub static DROPS: &[DropRow] = &[
+    // Authored faction-themed survival sources; Warsong rewards Uncommon gear.
+    DropRow {
+        zone: 2,
+        slot: 0,
+        band: 1,
+        creature: "Warsong Scout Captain",
+        at_secs: 120,
+        chance: 60,
+    },
+    DropRow {
+        zone: 2,
+        slot: 1,
+        band: 1,
+        creature: "Silverwing Vanguard",
+        at_secs: 240,
+        chance: 60,
+    },
+    DropRow {
+        zone: 2,
+        slot: 2,
+        band: 1,
+        creature: "Warsong Shaman Elder",
+        at_secs: 360,
+        chance: 60,
+    },
+    DropRow {
+        zone: 2,
+        slot: 3,
+        band: 1,
+        creature: "Silverwing Sentinel Captain",
+        at_secs: 480,
+        chance: 60,
+    },
+    DropRow {
+        zone: 2,
+        slot: 4,
+        band: 1,
+        creature: "Warsong Shredder Foreman",
+        at_secs: 600,
+        chance: 60,
+    },
+    DropRow {
+        zone: 2,
+        slot: 5,
+        band: 1,
+        creature: "Warsong Grunt Champion",
+        at_secs: 720,
+        chance: 60,
+    },
+    DropRow {
+        zone: 2,
+        slot: 6,
+        band: 1,
+        creature: "Silverwing Blade Champion",
+        at_secs: 810,
+        chance: 60,
+    },
+    DropRow {
+        zone: 2,
+        slot: 7,
+        band: 1,
+        creature: "Silverwing Field Marshal",
+        at_secs: 900,
+        chance: 60,
+    },
+    DropRow {
+        zone: 2,
+        slot: 8,
+        band: 1,
+        creature: "Warsong Gulch Warmaster",
+        at_secs: 960,
+        chance: 60,
+    },
     DropRow {
         zone: 0,
         slot: 0,
@@ -1965,7 +2038,7 @@ mod tests {
     #[test]
     fn drops_name_a_creature_on_that_map() {
         assert_eq!(PIECES, 54);
-        assert_eq!(DROPS.len(), 45);
+        assert_eq!(DROPS.len(), 54);
         for row in DROPS {
             let zone = &ZONES[row.zone];
             let map = super::super::data::MAPS
@@ -2150,7 +2223,7 @@ mod tests {
         );
         assert_eq!(
             zone_lock_reason(2, 60, &[true; CLEAR_COUNT]).as_deref(),
-            Some("Warsong Gulch has no map and no boss yet")
+            Some("Warsong Gulch world content is not ready")
         );
         assert_eq!(
             zone_lock_reason(3, 60, &[true; CLEAR_COUNT]).as_deref(),

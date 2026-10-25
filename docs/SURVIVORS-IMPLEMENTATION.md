@@ -2867,7 +2867,8 @@ timing, the full responsive matrix and remaining Mage implementation stay open.
 User confirmed horde survival with faction-themed encounters for Warsong Gulch,
 Arathi Basin and Alterac Valley. The earlier mode question is resolved. Author
 map-appropriate waves and bosses, then verify placements, traversal, pacing and
-PvP-tier reward sources; do not substitute spirit guides for combat bosses or
+the assigned reward tiers (Warsong Uncommon, Arathi Rare, Alterac PvP); do not
+substitute spirit guides for combat bosses or
 require capture-the-flag, resource-control or player-versus-player systems.
 
 
@@ -2894,3 +2895,37 @@ compilation, Clippy, formatting, render-pass lint and diff checks. The explicit-
 DBC talent audit confirms both three-rank identities and Instability's Presence
 of Mind prerequisite. Native incremental play build: 14.43 seconds. No new live
 capture or full-workspace test-pass claim is made for this checkpoint.
+
+
+### Warsong faction-survival content — 2026-10-25
+
+Added the map-489 candidate at the previously surveyed 60-yard midpoint arena,
+ten faction-themed wave archetypes, nine authored bosses and nine Uncommon slot
+sources. The final Warsong Gulch Warmaster arrives at 16:00; victory waits for all
+nine kills. Archetype template/display identities and the authored schedule are
+recorded in [location evidence](SURVIVORS-LOCATIONS.md#warsong-faction-survival-roster--2026-10-25).
+The shared source table drives combat schedules and the Armory drop page. All nine
+classes resolve every reward, with duplicate Un'Goro sources sharing ownership.
+Map indices remain stable because the destination was appended. The world-content
+lock remains until full traversal, spawn/crowd, camera and live encounter checks pass.
+
+Regression coverage checks each exact boss threshold, final victory, all slots,
+class reward resolution and the retained lock. Account coverage collects/reloads
+all nine classes, preserves selected gear and appearances, and checks cross-zone
+duplicates cannot change saved state. Arathi, Alterac and Blackrock remain missing
+map content; adding Warsong does not resolve the 81 PvP source-cell gaps.
+
+Validation: 92 core and 158 Survivors app tests pass, including Armory lock text.
+Workspace test compilation, Clippy, formatting, render-pass lint and diff checks
+pass. Native incremental build: 22.42 seconds. Explicit-data content audit finds
+Warsong terrain at z=309.30 and every roster model file. Its expected nonzero exit
+now reports 86 gaps: three missing maps, two floor validations, and 81 PvP sources.
+
+An isolated `Mage:all` run starts on map 489 and renders early faction enemies,
+combat and the HUD at 1280×720. The README capture at game 00:32 shows level six
+and 52 kills. It grants the full starting ability pool for validation and is not
+normal progression or balance evidence. The log records loading/capture-associated
+hitches and background frames; no performance clearance is claimed. Full boss
+sequence, late crowd routing, attachments and camera acceptance remain open.
+The app exited through its window close control and the validation launcher was
+restored. Local log: `target/survivors-validation/warsong-roster-live.log`.

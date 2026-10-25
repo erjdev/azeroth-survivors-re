@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Warsong faction-survival candidate
+
+Added Warsong's map, ten wave entries, nine authored bosses and Uncommon drops for
+all slots. Cross-zone duplicates preserve gear and appearances. [Live 720p capture](images/screenshots/2026-10-25-warsong-roster/survival-720.jpg)
+is linked in README. 92 core and 158 app tests, Clippy and native build pass
+(22 seconds). The content audit is down to 86 gaps; Warsong stays locked pending
+full traversal, camera and encounter validation.
+
 ## 2026-10-25 — Mage school training and battleground direction
 
 Arcane Instability now improves Mage spell damage and critical chance; Elemental

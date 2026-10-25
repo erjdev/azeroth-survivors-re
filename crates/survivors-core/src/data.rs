@@ -2118,6 +2118,39 @@ pub static MAPS: &[MapDef] = &[
             foe("High Inquisitor Whitemane", 2043, 42, 4.4, 1.6),
         ],
     },
+    MapDef {
+        name: "Warsong Gulch",
+        zone: "Warsong Gulch",
+        map: 489,
+        // Surveyed 60-yard midpoint disk. Gameplay traversal/camera acceptance remains gated.
+        center: [1244.792, 1468.75, 310.296],
+        leash: 60.0,
+        victory: "The battle for the gulch is won.",
+        // Faction-themed Survivors encounters; not vanilla map-489 NPC spawns.
+        foes: &[
+            foe("Warsong Peon", 11857, 26, 3.6, 1.0),
+            foe("Silverwing Warrior", 4841, 21, 4.0, 1.0),
+            foe("Warsong Scout", 11869, 28, 4.6, 1.0),
+            foe("Silverwing Sentinel", 4842, 22, 4.2, 1.0),
+            foe("Warsong Runner", 11872, 29, 4.8, 1.0),
+            foe("Warsong Shaman", 11865, 28, 4.0, 1.0),
+            foe("Warsong Grunt", 11861, 29, 4.2, 1.0),
+            foe("Warsong Outrider", 11871, 30, 4.8, 1.0),
+            foe("Warsong Shredder", 1303, 27, 3.8, 1.0),
+            foe("Silverwing Elite", 14712, 55, 4.6, 1.0),
+        ],
+        bosses: &[
+            foe("Warsong Scout Captain", 11869, 28, 4.6, 1.4),
+            foe("Silverwing Vanguard", 4841, 30, 4.2, 1.4),
+            foe("Warsong Shaman Elder", 11865, 32, 4.0, 1.4),
+            foe("Silverwing Sentinel Captain", 4842, 34, 4.4, 1.4),
+            foe("Warsong Shredder Foreman", 1303, 36, 3.8, 1.4),
+            foe("Warsong Grunt Champion", 11861, 38, 4.4, 1.4),
+            foe("Silverwing Blade Champion", 14713, 40, 4.6, 1.4),
+            foe("Silverwing Field Marshal", 14712, 42, 4.6, 1.5),
+            foe("Warsong Gulch Warmaster", 11871, 44, 4.8, 1.5),
+        ],
+    },
 ];
 
 /// A battleground's horde and bosses with their numbers.

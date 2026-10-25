@@ -1710,6 +1710,27 @@ mod tests {
     }
 
     #[test]
+    fn warsong_rewards_preserve_equipment_and_share_uncommon_ownership() {
+        encounter_rewards_preserve_selected_gear_and_reload_for_every_class(2, 1, 9);
+        for class in 0..data::CLASSES.len() {
+            let mut account = empty();
+            account.ensure(class);
+            for row in campaign::DROPS.iter().filter(|row| row.zone == 2) {
+                assert!(account.collect_drop(class, 2, row.creature).is_some());
+            }
+            let saved = encode(&account);
+            for row in campaign::DROPS.iter().filter(|row| row.zone == 3) {
+                assert_eq!(account.collect_drop(class, 3, row.creature), None);
+            }
+            assert_eq!(
+                encode(&account),
+                saved,
+                "alternate source must not stack gear"
+            );
+        }
+    }
+
+    #[test]
     fn uncommon_encounter_rewards_preserve_selected_gear_and_reload_for_every_class() {
         encounter_rewards_preserve_selected_gear_and_reload_for_every_class(3, 1, 9);
     }
