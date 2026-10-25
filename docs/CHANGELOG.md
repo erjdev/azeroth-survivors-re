@@ -3,6 +3,12 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Upgrade comparison units
+
+Upgrade comparisons use one trailing unit: `4 » 3.7 sec`, `5 » 7 yd`.
+The inline card text already follows this rule; the remaining ability-summary formatter
+now follows it too.
+
 ## 2026-10-25 — Un'Goro candidate visual evidence
 
 Added a 720p world-viewer capture to the README and recorded nearby tree-hull probes.

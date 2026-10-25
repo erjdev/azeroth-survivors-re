@@ -108,7 +108,7 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
             } else {
                 (num(old), num(new))
             };
-            lines.push(format!("{label} {old}{unit} » {new}{unit}"));
+            lines.push(format!("{label} {old} » {new}{unit}"));
         }
     };
     if def.kind != Kind::Immune && def.kind != Kind::Dot {
@@ -232,7 +232,7 @@ mod tests {
         let milestones = survivors_core::talents::Milestones::default();
         let a = cast_at(def, 1, &stats, milestones);
         let b = cast_at(def, 2, &stats, milestones);
-        assert!(ability_changes(def, &a, &b).contains("Cooldown 0.60s » 0.56s"));
+        assert!(ability_changes(def, &a, &b).contains("Cooldown 0.60 » 0.56s"));
     }
 
     #[test]
