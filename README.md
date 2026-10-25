@@ -301,6 +301,11 @@ Use `python3 scripts/survivors-ui-fixture.py partial` to prepare an isolated acc
 for UI checks; [fresh, partial and collected fixtures](docs/SURVIVORS-DEVELOPMENT.md#deterministic-account-fixtures)
 avoid earning test progress through gameplay.
 
+All eight playable races now have authored Survivors bonuses, with exact rules
+shown on the starter. Initial values still need combat balance testing.
+
+![Orc racial bonuses](docs/images/screenshots/2026-10-25-racial-bonuses/orc-1280.jpg)
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**

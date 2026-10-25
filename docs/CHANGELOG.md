@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Racials for every playable race
+
+All eight races now have authored Survivors bonuses. Human rules stay intact;
+Orcs gain Blood Fury, Dwarves Stoneform, Night Elves timed protection, and Trolls
+Berserking. Undead regeneration, Tauren durability and Gnome utility round out the
+set. Starter descriptions list exact effects; [the rules](SURVIVORS.md) document
+values and stacking. These are initial balance values.
+
+![Orc racial rules on the starter](images/screenshots/2026-10-25-racial-bonuses/orc-1280.jpg)
+
+![Racial descriptions at 640×720](images/screenshots/2026-10-25-racial-bonuses/orc-640.jpg)
+
+Two core timing tests and four run-stat tests pass, covering all races, window
+boundaries, invalid time, stat integration and removal without accumulation.
+Native build, workspace Clippy, formatting and render-pass lint pass. Orc starter text was checked
+live at both sizes; extended combat/balance playtests remain outstanding.
+
 ## 2026-10-25 — Companion reference artwork
 
 Quick Paws now uses the cat artwork; Crimson Macaw and Great Horned Owl use the

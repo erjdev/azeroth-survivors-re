@@ -650,12 +650,13 @@ impl Run {
         apply_sheet(&mut s, self.bonus);
         apply_sheet(&mut s, self.worn.bonus());
         s.haste += self.milestones.flurry_haste(self.flurry_t > 0.0);
-        let damage_buff = self.milestones.enrage_damage(self.enrage_t > 0.0)
-            * survivors_core::racials::damage_multiplier(self.race, self.elapsed);
-        if self.race == survivors_core::racials::HUMAN {
-            s.growth += survivors_core::racials::HUMAN_EXPERIENCE;
-            s.gold_find += survivors_core::racials::HUMAN_GOLD;
-        }
+        let racial = survivors_core::racials::effects(self.race, self.elapsed);
+        apply_sheet(&mut s, racial.bonus);
+        s.max_hp *= racial.health_multiplier;
+        s.regen += racial.regen;
+        s.haste += racial.haste;
+        let damage_buff =
+            self.milestones.enrage_damage(self.enrage_t > 0.0) * racial.damage_multiplier;
         s.might *= self.tuning.damage * damage_buff;
         if let Some((_, bonus)) = s.legendary.as_mut() {
             bonus.might *= damage_buff;
@@ -755,6 +756,43 @@ fn reset_run(
 #[cfg(test)]
 mod stat_tests {
     use super::*;
+
+    #[test]
+    fn all_racial_bonuses_reach_combat_and_race_changes_remove_them() {
+        let mut run = Run {
+            race: 0,
+            ..Run::default()
+        };
+        let base = run.stats();
+        for race in 1..=8 {
+            run.race = race;
+            let rules = survivors_core::racials::effects(race, 30.0);
+            run.elapsed = 30.0;
+            let actual = run.stats();
+            assert!(
+                (actual.might - (base.might + rules.bonus.might) * rules.damage_multiplier).abs()
+                    < 0.00001
+            );
+            assert!((actual.max_hp - base.max_hp * rules.health_multiplier).abs() < 0.00001);
+            assert!((actual.regen - base.regen - rules.regen).abs() < 0.00001);
+            assert!((actual.haste - base.haste - rules.haste).abs() < 0.00001);
+            assert!((actual.reduction - base.reduction - rules.bonus.reduction).abs() < 0.00001);
+            assert!((actual.speed - base.speed * (1.0 + rules.bonus.speed)).abs() < 0.00001);
+            assert!((actual.magnet - base.magnet * (1.0 + rules.bonus.pickup)).abs() < 0.00001);
+            assert!((actual.area - base.area - rules.bonus.area).abs() < 0.00001);
+            assert!((actual.armor - base.armor - rules.bonus.armor).abs() < 0.00001);
+            assert!(
+                (actual.crit_damage - base.crit_damage - rules.bonus.crit_damage).abs() < 0.00001
+            );
+            assert!((actual.growth - base.growth - rules.bonus.growth).abs() < 0.00001);
+            assert!((actual.gold_find - base.gold_find - rules.bonus.gold).abs() < 0.00001);
+            assert_eq!(run.stats().might, actual.might);
+        }
+        run.race = 0;
+        assert_eq!(run.stats().might, base.might);
+        assert_eq!(run.stats().regen, base.regen);
+        assert_eq!(run.stats().max_hp, base.max_hp);
+    }
 
     #[test]
     fn human_racials_reach_the_run_sheet_without_accumulating() {

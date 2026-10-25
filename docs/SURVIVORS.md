@@ -69,9 +69,25 @@ Human racial rules from the main-menu reference:
   Existing per-award nearest-coin rounding still applies; a single coin can remain
   one coin. Companion gold multipliers apply afterward.
 
-These are Survivors mechanics, not vanilla racial spell effects. Other races'
-bonuses require authored rules and currently grant none; the starter labels them
-as not yet defined. The selected body's race is captured when a run starts.
+The user authorized lore-appropriate authored rules for every other race. Initial
+values are tuning candidates; these are Survivors adaptations, not vanilla racial
+spell behavior. The selected body's race is captured when a run starts.
+
+| Race | Bonuses |
+|---|---|
+| Orc | Blood Fury: +20% multiplicative damage for 8 sec every 30 sec; Hardiness: 5 percentage points damage reduction; Warrior Spirit: +5 percentage points damage |
+| Dwarf | Stoneform: 15 percentage points damage reduction for 8 sec every 30 sec; Mountain Resilience: 3 permanent points reduction; Treasure Sense: +10 percentage points gold |
+| Night Elf | Quickness: +5% movement speed; Shadowmeld: 10 percentage points damage reduction for 6 sec every 30 sec; Elune's Grace: 0.3 health/sec regeneration |
+| Undead | Unending Hunger: 0.5 health/sec regeneration; Will of the Forsaken: 5 percentage points damage reduction; Shadow Affinity: +0.10 critical damage multiplier |
+| Tauren | Endurance: +10% maximum health after flat bonuses; Thick Hide: +5 armor; Earthmother's Reach: +15% pickup radius |
+| Gnome | Expansive Mind: +10 percentage points experience; Nimble: +5% movement speed; Ingenious Design: +10 percentage points area-radius bonus |
+| Troll | Berserking: +15 percentage points haste for 10 sec every 30 sec; Regeneration: 0.5 health/sec; Hunter's Instinct: +5 percentage points damage |
+
+All timed racials first activate at 30 seconds of gameplay and use half-open
+windows like Perception; pause stops their timer. Reduction adds to other reduction
+bonuses under the existing combat cap. Regeneration follows the normal health cap.
+These adaptations do not grant stealth, control immunity, creature-type bonuses,
+or extra summoned units. Unknown race IDs grant no racial bonus.
 
 The reference composition must scale proportionally across reasonable resolutions and aspect
 ratios, with readable minimum sizes and deliberate reflow/scrolling. Fixed-pixel placement at
