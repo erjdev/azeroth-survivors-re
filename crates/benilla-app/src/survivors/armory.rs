@@ -1999,7 +1999,7 @@ fn jewel_text(kind: &str, name: Option<&str>, rule: &str) -> String {
     format!("{kind} — {} — {rule}", name.unwrap_or("Unknown"))
 }
 
-fn spell_title(key: &str) -> String {
+pub(super) fn spell_title(key: &str) -> String {
     key.split('_')
         .map(|word| {
             let mut chars = word.chars();

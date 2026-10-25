@@ -38,7 +38,7 @@ See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures) to ref
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-24-drop-tables/keen-eye-720.jpg" alt="Drop Tables: Zone browser, encounter sources and shared item details; missing content remains."><br>Zone browser, encounter sources and shared item details; missing content remains.</td>
   </tr>
   <tr>
-    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-24-codex-discovery/codex-effects-720.jpg" alt="Codex: Shared jewelry icons and green effect details at 720p; one ambiguous item and legendary amulet artwork remain unfinished."><br>Shared jewelry icons and green effect details at 720p; one ambiguous item and legendary amulet artwork remain unfinished.</td>
+    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-24-codex-discovery/legendary-direct-720.jpg" alt="Codex: Shared jewelry icons and green effect details at 720p; one ambiguous item and legendary amulet artwork remain unfinished."><br>Shared jewelry icons and green effect details at 720p; one ambiguous item and legendary amulet artwork remain unfinished.</td>
     <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-24/talents.jpg" alt="Talents: Warrior tree presentation; this image does not imply every talent effect is implemented."><br>Warrior tree presentation; this image does not imply every talent effect is implemented.</td>
   </tr>
   <tr>

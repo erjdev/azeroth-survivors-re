@@ -691,10 +691,27 @@ clear this is the item's standalone bonus; chest cards still compare the actual 
 and expose replacement losses. Native build, workspace test compilation and 75 Survivors
 tests pass; live 720p validation confirmed the ring damage/critical-chance values in green.
 
-Mechanics discrepancy: `Worn::bonus` currently grants every legendary amulet global
+Mechanics discrepancy found at that checkpoint: `Worn::bonus` granted every legendary amulet global
 +5% damage, +15 percentage points of critical damage and +1 direct-attack target,
 regardless of the associated spell. This does not satisfy the intended one-spell
-legendary enhancement. The Codex introduction now describes the implemented scope;
-fix the combat scope and verify single-target/AoE behavior before claiming Phase 6 done.
+legendary enhancement. The following scope correction addresses this; Phase 6 remains incomplete.
 Shared jewelry still uses draft index-based bonus tables and needs a deliberate content
 pass, rather than importing vanilla stats or presenting the current draft as balanced.
+
+
+### Legendary spell scope — 2026-10-24
+
+Legendary bonuses now enter cast parameters only for their associated spell, leaving the
+shared character stat sheet unchanged. Direct casts and lingering areas/totems use that
+spell scope for critical damage; existing areas retain their damage snapshot, while their
+critical bonus follows the currently worn amulet as before. Single-target direct attacks
+can gain one target; area spells keep one area. Live damage tuning scales the bonus once.
+
+Chest comparisons label the affected spell and show replacement losses in red. Codex
+details show the same scoped bonuses and omit inapplicable extra targets. Bonus magnitudes
+remain draft values; distinct spell-specific legendary designs and balance are still pending.
+
+Validation: native play build and workspace test compilation pass; all 77 Survivors tests
+and 45 core rules tests pass. Live 720p checks confirm Consecration omits extra targets and
+Hammer of Wrath includes them; both captures are linked in the changelog. This does not
+clear the previously recorded full-workspace acceptance failures.

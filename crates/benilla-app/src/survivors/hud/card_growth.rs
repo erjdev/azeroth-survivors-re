@@ -1,5 +1,6 @@
 //! Choice benefits use the same cast parameters and jewelry rules as applying the choice.
 use super::*;
+use crate::survivors::campaign;
 
 pub(super) const GAIN: Color = Color::srgb(0.3, 1.0, 0.3);
 const LOSS: Color = Color::srgb(1.0, 0.4, 0.35);
@@ -43,6 +44,35 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, 
             format!("Health {} » {}", num(run.hp), num(stats.max_hp)),
             GAIN,
         )],
+        Choice::Jewel(campaign::JewelKind::Legend(key)) => {
+            let mut after = run.worn;
+            after.equip(campaign::JewelKind::Legend(key));
+            let next = legend_effect(after).unwrap();
+            if run
+                .worn
+                .legendary_bonus()
+                .is_some_and(|(old, _)| old == key)
+            {
+                return jewelry_changes(next.1, next.1);
+            }
+            let mut lines = Vec::new();
+            if let Some((old, bonus)) = legend_effect(run.worn) {
+                lines.push((
+                    format!(
+                        "{} only (replaced)",
+                        crate::survivors::armory::spell_title(old)
+                    ),
+                    LOSS,
+                ));
+                lines.extend(jewelry_changes(bonus, campaign::Bonus::default()));
+            }
+            lines.push((
+                format!("{} only", crate::survivors::armory::spell_title(key)),
+                GAIN,
+            ));
+            lines.extend(jewelry_changes(campaign::Bonus::default(), next.1));
+            lines
+        }
         Choice::Jewel(kind) => {
             let before = run.worn.bonus();
             let mut after = run.worn;
@@ -50,6 +80,16 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, 
             jewelry_changes(before, after.bonus())
         }
     }
+}
+
+pub(in crate::survivors) fn legend_effect(
+    worn: campaign::Worn,
+) -> Option<(&'static str, campaign::Bonus)> {
+    worn.legendary_bonus().map(|(key, mut bonus)| {
+        let def = data::ability(key);
+        bonus.targets = super::super::sheet::extra_targets(def.kind, def.count, bonus.targets);
+        (key, bonus)
+    })
 }
 
 fn passive_value(stat: Stat, value: f32) -> String {
@@ -153,6 +193,28 @@ pub(in crate::survivors) fn jewelry_changes(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn legendary_replacement_reports_scoped_losses_and_gains() {
+        let mut run = Run::default();
+        run.worn.equip(campaign::JewelKind::Legend("fireball"));
+        let lines = describe(
+            Choice::Jewel(campaign::JewelKind::Legend("consecration")),
+            &run,
+        );
+        assert!(lines
+            .iter()
+            .any(|(s, c)| s.contains("Fireball only (replaced)") && *c == LOSS));
+        assert!(lines
+            .iter()
+            .any(|(s, c)| s.contains("Consecration only") && *c == GAIN));
+        assert!(!lines
+            .iter()
+            .any(|(s, c)| s.contains("targets") && *c == GAIN));
+        let same = describe(Choice::Jewel(campaign::JewelKind::Legend("fireball")), &run);
+        assert_eq!(same.len(), 1);
+        assert_eq!(same[0].1, DIM);
+    }
+
     #[test]
     fn fast_ability_cooldown_changes_keep_enough_precision() {
         let def = data::ability("sweeping_strikes");

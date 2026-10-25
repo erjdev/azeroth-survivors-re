@@ -227,7 +227,7 @@ pub(super) fn build(
     });
 }
 
-const INTRO: &str = "Every ring, trinket and amulet offered to any hero is remembered, even if you do not take it. Dim icons have not been offered yet. Select an entry to read it.\n\nShared jewelry lasts one run. Legendary amulets are cataloged per spell; their current bonuses apply to the whole build.";
+const INTRO: &str = "Every ring, trinket and amulet offered to any hero is remembered, even if you do not take it. Dim icons have not been offered yet. Select an entry to read it.\n\nShared jewelry lasts one run. Legendary amulets are cataloged per spell; their bonuses apply only to their associated spell.";
 
 #[derive(Component)]
 pub(in crate::survivors) struct DetailText(bool);
@@ -277,9 +277,13 @@ fn effect_text(armory: &Armory) -> String {
     };
     let mut worn = campaign::Worn::default();
     worn.equip(kind);
-    let lines = hud::card_growth::jewelry_changes(campaign::Bonus::default(), worn.bonus());
+    let (heading, bonus) = match hud::card_growth::legend_effect(worn) {
+        Some((key, bonus)) => (format!("{} only", super::spell_title(key)), bonus),
+        None => ("Bonuses when worn alone".into(), worn.bonus()),
+    };
+    let lines = hud::card_growth::jewelry_changes(campaign::Bonus::default(), bonus);
     format!(
-        "Bonuses when worn alone\n{}",
+        "{heading}\n{}",
         lines
             .into_iter()
             .map(|(text, _)| text)
@@ -331,6 +335,8 @@ mod tests {
         armory.codex_entry = Some(codex_jewel(4, campaign::AMULET_NAMES.len()));
         assert!(effect_text(&armory).is_empty());
         armory.codex_entry = Some(codex_legend(0, 0));
+        assert!(!effect_text(&armory).contains("Direct-attack targets"));
+        armory.codex_entry = Some(codex_legend(1, 0));
         let legend = effect_text(&armory);
         assert!(
             legend.contains("Direct-attack targets bonus 0 » 1"),

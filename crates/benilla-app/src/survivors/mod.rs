@@ -327,6 +327,7 @@ impl Owned {
 /// The hero's derived numbers, from the base and the passives.
 #[derive(Clone, Copy)]
 pub(super) struct Stats {
+    legendary: Option<(&'static str, campaign::Bonus)>,
     pub might: f32,
     pub max_hp: f32,
     pub speed: f32,
@@ -353,6 +354,19 @@ pub(super) struct Stats {
     pub multistrike: f32,
     /// Extra targets for a spell that starts as single-target.
     pub targets: u32,
+}
+
+impl Stats {
+    fn for_spell(&self, key: &str) -> Self {
+        let mut scoped = *self;
+        scoped.legendary = None;
+        if let Some((spell, bonus)) = self.legendary {
+            if spell == key {
+                apply_sheet(&mut scoped, bonus);
+            }
+        }
+        scoped
+    }
 }
 
 fn apply_sheet(s: &mut Stats, b: campaign::Bonus) {
@@ -526,6 +540,10 @@ impl Run {
 
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
+            legendary: self.worn.legendary_bonus().map(|(key, mut bonus)| {
+                bonus.might *= self.tuning.damage;
+                (key, bonus)
+            }),
             might: 1.0,
             max_hp: BASE_HP,
             speed: BASE_SPEED,

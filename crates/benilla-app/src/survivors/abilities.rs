@@ -97,6 +97,7 @@ pub(super) struct Params {
     pub duration: f32,
     pub cooldown: f32,
     pub crit: f32,
+    pub crit_damage: f32,
 }
 
 impl Params {
@@ -105,6 +106,8 @@ impl Params {
         stats: &super::Stats,
         milestones: survivors_core::talents::Milestones,
     ) -> Self {
+        let scoped = stats.for_spell(o.def.key);
+        let stats = &scoped;
         let effect = milestones.cast(o.def.key);
         let mult = o.damage_mult() * stats.might * effect.damage;
         Self {
@@ -115,6 +118,7 @@ impl Params {
             duration: o.duration() * effect.duration,
             cooldown: o.cooldown(stats) * effect.cooldown,
             crit: (stats.crit + effect.crit).min(1.0),
+            crit_damage: stats.crit_damage,
         }
     }
 }
@@ -297,7 +301,7 @@ pub(super) fn cast_abilities(
                         fx.cast(me, def.spell, &entities(&targets), None);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, crit_chance, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, crit_chance, p.crit_damage, p.dmg);
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -326,7 +330,7 @@ pub(super) fn cast_abilities(
                 } else {
                     fx.cast(me, def.spell, &entities(&targets), None);
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, crit_chance, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, crit_chance, p.crit_damage, p.dmg);
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -408,7 +412,7 @@ pub(super) fn cast_abilities(
                         let (dmg, crit) = roll(
                             &mut rng,
                             crit_chance,
-                            stats.crit_damage,
+                            p.crit_damage,
                             p.dmg * 0.85f32.powi(k as i32),
                         );
                         schedule(
@@ -459,7 +463,7 @@ pub(super) fn cast_abilities(
                         fx.impact(f.e, def.spell);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, crit_chance, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, crit_chance, p.crit_damage, p.dmg);
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -472,7 +476,7 @@ pub(super) fn cast_abilities(
                 } else {
                     for f in &targets {
                         fx.impact(f.e, 403);
-                        let (dmg, crit) = roll(&mut rng, crit_chance, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(&mut rng, crit_chance, p.crit_damage, p.dmg);
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -636,6 +640,7 @@ pub(super) fn tick_areas(
         .collect();
 
     for (e, tf, mut area) in &mut areas {
+        let stats = stats.for_spell(area.source);
         area.left -= dt;
         area.next_tick -= dt;
         if area.next_tick <= 0.0 {
@@ -669,6 +674,7 @@ pub(super) fn tick_areas(
     }
 
     for (e, tf, mut totem) in &mut totems {
+        let stats = stats.for_spell(totem.source);
         totem.left -= dt;
         if totem.left <= 0.0 {
             commands
@@ -945,7 +951,53 @@ pub(super) fn apply_hits(
 #[cfg(test)]
 mod milestone_tests {
     use super::*;
+    use crate::survivors::{campaign, data, Owned, Stats};
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn legendary_bonuses_are_cast_local_and_do_not_duplicate_areas() {
+        let mut run = Run::default();
+        run.tuning.damage = 2.0;
+        let base = run.stats();
+        let params = |key, stats: &Stats| {
+            Params::new(
+                &Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.0,
+                },
+                stats,
+                Milestones::default(),
+            )
+        };
+        let fire = params("fireball", &base);
+        let area = params("consecration", &base);
+        run.worn.equip(campaign::JewelKind::Legend("fireball"));
+        let stats = run.stats();
+        assert_eq!(stats.might, base.might);
+        assert_eq!(stats.targets, base.targets);
+        assert_eq!(stats.crit_damage, base.crit_damage);
+        let enhanced = params("fireball", &stats);
+        assert!((enhanced.dmg - fire.dmg * 1.05).abs() < 0.001);
+        assert_eq!(enhanced.count, fire.count + 1);
+        assert!((enhanced.crit_damage - fire.crit_damage - 0.15).abs() < 0.001);
+        assert_eq!(params("consecration", &stats).dmg, area.dmg);
+        run.worn.equip(campaign::JewelKind::Legend("consecration"));
+        let stats = run.stats();
+        assert_eq!(params("fireball", &stats).dmg, fire.dmg);
+        let enhanced = params("consecration", &stats);
+        assert!((enhanced.dmg - area.dmg * 1.05).abs() < 0.001);
+        assert_eq!(enhanced.count, area.count);
+        assert_eq!(enhanced.radius, area.radius);
+        // Lingering effects resolve crit bonuses by their stored source.
+        let scoped = stats.for_spell("consecration");
+        assert!((scoped.crit_damage - base.crit_damage - 0.15).abs() < 0.001);
+        assert_eq!(
+            scoped.for_spell("consecration").crit_damage,
+            scoped.crit_damage
+        );
+        assert_eq!(stats.for_spell("fireball").crit_damage, base.crit_damage);
+    }
 
     #[test]
     fn divine_storm_hits_one_hero_centered_area_even_with_extra_targets() {

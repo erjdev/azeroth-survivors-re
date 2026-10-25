@@ -3,11 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-24 — Spell-specific legendary bonuses
+
+Legendary amulets now enhance only their associated spell. Green comparisons name that
+spell; replacements show lost bonuses in red. Extra targets remain limited to eligible
+single-target attacks, with no additional AoE locations.
+
+[Single-target bonuses](images/screenshots/2026-10-24-codex-discovery/legendary-direct-720.jpg) ·
+[Area bonuses](images/screenshots/2026-10-24-codex-discovery/legendary-area-720.jpg).
+Live 720p checks confirm both descriptions. Native build, workspace test compilation,
+77 Survivors tests and 45 core rules tests pass. Bonus values remain provisional.
+
 ## 2026-10-24 — Codex effect descriptions
 
 Selected jewelry shows its implemented standalone bonuses in green, using the same rules
-as chest comparisons. The Codex now accurately describes legendary bonuses as global;
-restricting them to their associated spell remains a mechanics fix in the plan.
+as chest comparisons. This checkpoint exposed global legendary bonuses; the later scope correction above fixes them.
 **Validation:** native build, workspace test compilation and 75 Survivors tests pass.
 [Live 720p capture](images/screenshots/2026-10-24-codex-discovery/codex-effects-720.jpg)
 confirms green ring bonuses match the rules.

@@ -923,15 +923,22 @@ impl Worn {
         if let Some(i) = self.amulet {
             total.add(amulet_bonus(i));
         }
-        if self.legend.is_some() {
-            total.add(Bonus {
-                might: 0.05,
-                crit_damage: 0.15,
-                targets: 1,
-                ..Bonus::default()
-            });
-        }
         total
+    }
+
+    /// Cast-local bonuses; excluded from the hero's shared stat sheet.
+    pub fn legendary_bonus(&self) -> Option<(&'static str, Bonus)> {
+        self.legend.map(|key| {
+            (
+                key,
+                Bonus {
+                    might: 0.05,
+                    crit_damage: 0.15,
+                    targets: 1,
+                    ..Bonus::default()
+                },
+            )
+        })
     }
 }
 
