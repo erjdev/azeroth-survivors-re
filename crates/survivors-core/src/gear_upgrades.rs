@@ -1,4 +1,4 @@
-//! Authored uncommon-tier appearances from the pinned vanilla dungeon-upgrade sets.
+//! Authored uncommon-tier armor sets and weapons from pinned vanilla item templates.
 //! Only visual identity is imported; Survivors owns rarity, power and acquisition rules.
 use crate::gear_visuals::GearVisual;
 
@@ -6,7 +6,11 @@ type Item = (&'static str, u32, u32, u8, u8, u8, i32, u8);
 
 pub(crate) fn piece(class: usize, slot: usize) -> Option<(&'static str, GearVisual)> {
     let &(name, item_id, display_id, inventory_type, item_class, subclass, material, sheath) =
-        ARMOR.get(class)?.get(slot)?;
+        if slot == 8 {
+            WEAPONS.get(class)?
+        } else {
+            ARMOR.get(class)?.get(slot)?
+        };
     Some((
         name,
         GearVisual {
@@ -139,4 +143,17 @@ const ARMOR: [[Item; 8]; 9] = [
         ("Feralheart Bracers", 22108, 34641, 9, 4, 2, 8, 0),
         ("Feralheart Gloves", 22110, 34640, 10, 4, 2, 8, 0),
     ],
+];
+
+// In class order, one main-hand appearance per class; powers remain Survivors tuning.
+const WEAPONS: [Item; 9] = [
+    ("Arcanite Reaper", 12784, 23904, 17, 2, 1, 1, 1),
+    ("Hammer of the Grand Crusader", 18717, 23239, 17, 2, 5, 1, 1),
+    ("Carapace Spine Crossbow", 18738, 31239, 26, 2, 18, 2, 0),
+    ("Heartseeker", 12783, 23248, 13, 2, 15, 1, 3),
+    ("Benediction", 18608, 31347, 17, 2, 10, 2, 2),
+    ("The Hammer of Grace", 11923, 21956, 21, 2, 4, 2, 3),
+    ("Headmaster's Charge", 13937, 24771, 17, 2, 10, 2, 2),
+    ("Rod of the Ogre Magi", 18534, 30870, 17, 2, 10, 2, 2),
+    ("Unyielding Maul", 18531, 30867, 17, 2, 5, 6, 1),
 ];

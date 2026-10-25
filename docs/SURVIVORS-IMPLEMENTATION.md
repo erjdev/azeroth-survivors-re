@@ -1782,3 +1782,25 @@ The jewelry screenshot exposed a misleading spell-only chest subtitle. It now re
 “Choose your chest reward.” Captures above predate this wording change. The validation
 app was closed via its window, the launcher restored, and the log contains no panic/error
 lines. Fixture save and rewards remain isolated under target/survivors-validation/banish-state.
+
+
+### Uncommon weapon identities — 2026-10-25
+
+Added the [nine class weapon identities](SURVIVORS-GEAR-VISUALS.md#uncommon-weapon-catalog)
+to the shared uncommon table. All names are unique in the pinned SQL, their class masks
+permit the selected class, and entry/display/inventory/subclass/material/sheath fields
+match the source. All nine slots of band one now have names and visuals for all classes:
+19 named collection cells per class, 35 still unnamed. These are authored Survivors tier
+choices, not claims of vanilla set membership or equivalent vanilla rarity.
+
+Core coverage verifies class-specific weapon identities, weapon class/subclass and
+inventory placement, completeness of all band-one slots, distinct common/legendary
+weapons, and invalid-cell rejection. Existing app icon coverage enumerates every mapped
+cell against checkout data. Weapon sources, live race/sex attachment rendering, the other
+unnamed tiers and complete obtainability remain acceptance work. No ownership, save
+layout, stats, drop chance or zone readiness changes are included.
+
+Validation: native play build 11.76 seconds; workspace test compilation 59.93 seconds;
+71 core tests and 118 Survivors app tests with explicit checkout data pass, including
+mapped display/icon reads. Workspace Clippy, scoped formatting and render-pass lint pass.
+No live attachment or collection screenshot is claimed for the new weapons yet.

@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn absent_and_ambiguous_items_never_borrow_a_visual() {
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
-        assert_eq!(piece(0, 8, 1), None);
+        assert_eq!(piece(0, 8, 2), None);
         assert_eq!(piece(0, 0, 2), None);
         assert_eq!(piece(99, 0, 0), None);
         assert_eq!(piece(0, 9, 0), None);
@@ -178,6 +178,40 @@ mod tests {
             assert_eq!(piece(class, 7, 5), None);
         }
         assert_eq!(named("Atiesh, Greatstaff of the Guardian"), None);
+    }
+
+    #[test]
+    fn uncommon_weapons_have_class_appropriate_attachment_metadata() {
+        for (class, item, inventory, subclass) in [
+            (0, 12784, 17, 1),
+            (1, 18717, 17, 5),
+            (2, 18738, 26, 18),
+            (3, 12783, 13, 15),
+            (4, 18608, 17, 10),
+            (5, 11923, 21, 4),
+            (6, 13937, 17, 10),
+            (7, 18534, 17, 10),
+            (8, 18531, 17, 5),
+        ] {
+            let weapon = piece(class, 8, 1).unwrap();
+            assert_eq!(
+                (
+                    weapon.item_id,
+                    weapon.item_class,
+                    weapon.inventory_type,
+                    weapon.subclass
+                ),
+                (item, 2, inventory, subclass)
+            );
+            assert_ne!(Some(weapon), piece(class, 8, 0));
+            assert_ne!(Some(weapon), piece(class, 8, 5));
+            for slot in 0..9 {
+                assert!(piece(class, slot, 1).is_some());
+                assert!(crate::campaign::piece_name(class, slot, 1).is_some());
+            }
+        }
+        assert_eq!(piece(9, 8, 1), None);
+        assert_eq!(piece(0, 9, 1), None);
     }
 
     #[test]

@@ -39,7 +39,7 @@ establish correct armor textures or attachments.
 Survivors' band-one armor uses the eight-piece dungeon-upgrade sets below. This is an
 authored progression choice: vanilla's mixed rare/epic qualities and quest acquisition
 are not copied. Survivors retains its uncommon quality, three increasing stat lines and
-existing ownership rules. Weapons remain unresolved for this band.
+existing ownership rules. The weapon catalog below completes this band’s nine identities.
 
 | Survivors class | Appearance set | Vanilla item-set ID |
 | --- | --- | --- |
@@ -58,11 +58,35 @@ templates above, selected by `itemset` and mapped by `InventoryType` to the eigh
 slots (robe type 20 occupies chest). The checked-in identity table is
 `crates/survivors-core/src/gear_upgrades.rs`. No SQL, vanilla stats, or item art is bundled.
 
-Each class now has 18 named collection cells; 36 are still unnamed. Six uncommon armor
+Each class now has 19 named collection cells; 35 are still unnamed. Six uncommon armor
 cells now list the authored Un'Goro boss sources; that zone remains
-world-locked pending arena acceptance. Wrist and hands still show **Source not yet
+world-locked pending arena acceptance. Wrist, hands and weapons still show **Source not yet
 available**. Naming these pieces does not grant ownership, unlock zones or add raid
 bonuses. Live race/sex rendering and complete source acceptance remain open.
+
+## Uncommon weapon catalog
+
+These are authored Survivors tier choices, using exact unique identities from the same
+pinned templates. They are not vanilla dungeon-set members, and vanilla rarity, stats,
+required levels and acquisition rules are not imported. All entries are weapons (item
+class 2); their class masks permit the assigned class. Benediction specifically requires
+Priest (mask 16). Each occupies the single Survivors main-hand collection slot; the Hunter
+crossbow attaches as ranged equipment, and two-handed weapons add no off-hand cell.
+
+| Class | Weapon | Entry | Display | Inventory type | Subclass | Material | Sheath |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Warrior | Arcanite Reaper | 12784 | 23904 | 17 | 1 | 1 | 1 |
+| Paladin | Hammer of the Grand Crusader | 18717 | 23239 | 17 | 5 | 1 | 1 |
+| Hunter | Carapace Spine Crossbow | 18738 | 31239 | 26 | 18 | 2 | 0 |
+| Rogue | Heartseeker | 12783 | 23248 | 13 | 15 | 1 | 3 |
+| Priest | Benediction | 18608 | 31347 | 17 | 10 | 2 | 2 |
+| Shaman | The Hammer of Grace | 11923 | 21956 | 21 | 4 | 2 | 3 |
+| Mage | Headmaster's Charge | 13937 | 24771 | 17 | 10 | 2 | 2 |
+| Warlock | Rod of the Ogre Magi | 18534 | 30870 | 17 | 10 | 2 | 2 |
+| Druid | Unyielding Maul | 18531 | 30867 | 17 | 5 | 6 | 1 |
+
+Source assignment and live body/attachment rendering remain open for these nine weapons.
+Their numerical power still comes from the existing uncommon quality rules.
 
 ## Class-specific Atiesh
 

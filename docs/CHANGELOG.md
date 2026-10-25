@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Uncommon weapons
+
+Added nine verified weapon identities, completing the uncommon tier's nine slots for
+every class. Collections now have 19 of 54 named cells per class; 35 remain unnamed.
+Icons and attachments use pinned vanilla identities; rarity stats remain Survivors rules.
+Weapon acquisition sources and live attachment validation remain open. Native build,
+71 core tests, 118 Survivors app tests (including display/icon reads) and workspace Clippy pass.
+
 ## 2026-10-25 — Live card and chest validation
 
 Verified keyboard banish, preserved neighboring cards, charge consumption and mouse
