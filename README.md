@@ -35,7 +35,7 @@ Rewards now groups currency and reset controls beside illustrated Perk cards.
 Purchase/refund and narrow stacking were checked in an isolated account; staged
 purchases and the remaining Rewards pages are still in progress.
 
-![Rewards sidebar and Perk cards](docs/images/screenshots/2026-10-25-rewards-cards/perks-1280.jpg)
+![Rewards sidebar and inline Perk previews](docs/images/screenshots/2026-10-25-reward-previews/perks-1280.jpg)
 
 Scarlet Monastery now draws its authored building minimap, including zoom and enemy
 markers. The candidate zone stays locked pending navigation and full encounter acceptance.

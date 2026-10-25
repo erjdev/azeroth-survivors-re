@@ -2,7 +2,7 @@
 use super::*;
 use crate::survivors::campaign;
 
-pub(super) const GAIN: Color = Color::srgb(0.3, 1.0, 0.3);
+pub(in crate::survivors) const GAIN: Color = Color::srgb(0.3, 1.0, 0.3);
 const LOSS: Color = Color::srgb(1.0, 0.4, 0.35);
 
 pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, Color)> {

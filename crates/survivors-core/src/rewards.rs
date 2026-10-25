@@ -95,6 +95,81 @@ pub const PERKS: [Perk; 6] = [
     Perk::KeenEye,
 ];
 
+/// Maximum purchasable rank, shared by reward pips and previews.
+pub fn perk_max_rank(perk: Perk) -> u8 {
+    (0..=u8::MAX)
+        .find(|&rank| perk_cost(perk, rank).is_none())
+        .unwrap_or(0)
+}
+
+/// One sentence with its changing value isolated for inline highlighting.
+pub fn perk_preview(perk: Perk, rank: u8) -> (&'static str, String, &'static str) {
+    let rank = rank.min(perk_max_rank(perk));
+    let next = (rank + 1).min(perk_max_rank(perk));
+    let compare = |current: String, future: String| {
+        if rank == next {
+            current
+        } else {
+            format!("{current} » {future}")
+        }
+    };
+    match perk {
+        Perk::SecondThoughts => (
+            "Redraw a level-up hand ",
+            format!("{} times", compare(rank.to_string(), next.to_string())),
+            " per run.",
+        ),
+        Perk::Banish => (
+            "Throw out one card and draw another ",
+            format!("{} times", compare(rank.to_string(), next.to_string())),
+            " per run.",
+        ),
+        Perk::Skip => (
+            "Passing a hand for gold is ",
+            compare(
+                if rank == 0 {
+                    "unavailable"
+                } else {
+                    "available"
+                }
+                .into(),
+                "available".into(),
+            ),
+            ". The payout scales with your run level.",
+        ),
+        Perk::Veterans => {
+            let bonus = |r| format!("{:.0}", (veteran_multiplier(r, 0, 1) - 1.0) * 100.0);
+            (
+                "A class behind the account's best earns ",
+                format!(
+                    "{}% more talent experience",
+                    compare(bonus(rank), bonus(next))
+                ),
+                ".",
+            )
+        }
+        Perk::OpeningHand => (
+            "The first level-up of each run deals ",
+            format!(
+                "{} cards",
+                compare(
+                    hand_size(rank > 0, 0).to_string(),
+                    hand_size(next > 0, 0).to_string()
+                )
+            ),
+            ".",
+        ),
+        Perk::KeenEye => {
+            let bonus = |r| format!("{:.0}", keen_drop_bonus(r) * 100.0);
+            (
+                "Add ",
+                format!("{} percentage points", compare(bonus(rank), bonus(next))),
+                " to each boss gear drop chance.",
+            )
+        }
+    }
+}
+
 /// Gold offered for passing a hand, before gold find.
 pub fn skip_gold(level: u32) -> u32 {
     8 + level
@@ -431,6 +506,24 @@ pub fn next_locked(snapshot: &Snapshot, earned: &[u16]) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn previews_show_next_effect_once_and_stop_at_the_cap() {
+        assert_eq!(perk_preview(Perk::OpeningHand, 0).1, "3 » 4 cards");
+        assert_eq!(perk_preview(Perk::SecondThoughts, 1).1, "1 » 2 times");
+        assert_eq!(
+            perk_preview(Perk::Veterans, 1).1,
+            "20 » 40% more talent experience"
+        );
+        assert_eq!(perk_preview(Perk::KeenEye, 1).1, "5 » 10 percentage points");
+        assert_eq!(perk_preview(Perk::Skip, 0).1, "unavailable » available");
+        for perk in PERKS {
+            let max = perk_max_rank(perk);
+            assert!(!perk_preview(perk, max).1.contains('»'));
+            assert_eq!(perk_preview(perk, u8::MAX), perk_preview(perk, max));
+            assert!(perk_preview(perk, max - 1).1.contains('»'));
+        }
+    }
 
     #[test]
     fn a_zone_pays_once_and_a_champion_needs_every_class() {

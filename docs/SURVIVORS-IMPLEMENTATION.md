@@ -18,6 +18,14 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Perk preview checkpoint: all six Perks render green inline current→next effects with
+units once, using core mechanics for XP, hand size and drop chance. Capped perks
+show their current effect only. Live Veteran's Lessons purchases verified both ranks
+and max state; 640×720 wrapping is captured in the changelog. Core tests cover unit
+formatting and all caps. Companion previews, staged purchasing and Rewards scroll
+continuity remain open; reset-count wording is now corrected.
+
+
 Rewards visual checkpoint: currency/reset/category rail and illustrated two-column
 Perk cards replace the draft rows. Existing account purchase actions are reused.
 Live isolated-account validation confirms a 15-point purchase, rank pip/next cost,

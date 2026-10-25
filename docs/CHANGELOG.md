@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Inline Perk upgrade previews
+
+All six Perk cards now show the current and next effect inline in green, with the
+unit once: for example, “20 » 40% more talent experience” and “3 » 4 cards.” Capped
+perks show only the current benefit. Skip explains its unlock; Keen Eye explicitly
+uses percentage points. Preview values share the core reward mechanics. Reset-count
+wording is also corrected. The [Rewards intention](intentions/survivors_rewards_tab_perks.png)
+remains the layout reference; inline comparisons follow the requested presentation.
+
+![Green inline Perk previews](images/screenshots/2026-10-25-reward-previews/perks-1280.jpg)
+
+![Veteran's Lessons after the first purchase](images/screenshots/2026-10-25-reward-previews/rank-one-1280.jpg)
+
+![Maximum rank and narrow preview wrapping](images/screenshots/2026-10-25-reward-previews/capped-640.jpg)
+
+Live isolated-account purchases charged 20 then 40 points, updated the preview and
+removed the arrow at the cap. Checked 1280×720 and a live resize to 640×720 (Retina
+captures including title bar). All 96 core tests, workspace Clippy, formatting,
+render-pass lint and native build pass. Companion previews, staged purchases and
+Rewards scroll continuity remain unfinished.
+
 ## 2026-10-25 — Rewards sidebar and illustrated Perks
 
 Rewards now uses the [intention's sidebar and two-column Perk cards](intentions/survivors_rewards_tab_perks.png):

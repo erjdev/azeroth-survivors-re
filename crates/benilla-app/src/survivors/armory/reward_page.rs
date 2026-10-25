@@ -62,7 +62,7 @@ pub(super) fn build(
                 });
             }
             text(side, font, "Reset", 18.0, GOLD);
-            text(side, font, format!("Refund every point spent on perks. Companion purchases and tabards are kept. {} resets remain.", account.resets_left()), 12.0, DIM);
+            text(side, font, format!("Refund every point spent on perks. Companion purchases and tabards are kept. Resets remaining: {}.", account.resets_left()), 12.0, DIM);
             side.spawn(Node::default()).with_children(|slot| chip(slot, font, "Reset perks", Act::Reward(12), false));
             text(side, font, "Purchases apply immediately. Rewards belong to the account and benefit every hero.", 12.0, DIM);
             if let Some(next) = account.next_locked() { text(side, font, next, 12.0, GOLD); }
@@ -99,9 +99,7 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Account) 
         for code in [0, 3, 1, 4, 2, 5] {
             let perk = rewards::PERKS[code];
             let rank = account.perks.rank(perk);
-            let max = (0..=u8::MAX)
-                .find(|&n| rewards::perk_cost(perk, n).is_none())
-                .unwrap_or(0);
+            let max = rewards::perk_max_rank(perk);
             let cost = rewards::perk_cost(perk, rank);
             grid.spawn((
                 Node {
@@ -162,7 +160,26 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Account) 
                                 ));
                             }
                         });
-                    text(content, font, rewards::perk_effect(perk), 12.0, DIM);
+                    let (before, value, after) = rewards::perk_preview(perk, rank);
+                    content
+                        .spawn(hud::text_bundle(font, "", 12.0, DIM))
+                        .with_children(|sentence| {
+                            for (part, color) in [
+                                (before.to_string(), DIM),
+                                (value, hud::card_growth::GAIN),
+                                (after.to_string(), DIM),
+                            ] {
+                                sentence.spawn((
+                                    TextSpan::new(part),
+                                    TextColor(color),
+                                    TextFont {
+                                        font: font.clone(),
+                                        font_size: 12.0,
+                                        ..default()
+                                    },
+                                ));
+                            }
+                        });
                     if let Some(cost) = cost {
                         content.spawn(Node::default()).with_children(|buy| {
                             chip(
