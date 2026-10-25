@@ -2450,3 +2450,37 @@ minimap background. Navigation around these barriers, complete footprint/body/ca
 validation, minimap imagery, all bosses, scale tuning and sustained performance remain
 open. This brief stationary probe does not establish traversal or balance. The campaign
 stays locked. The validation app was closed and its normal launcher restored.
+
+
+### Indoor minimap composition checkpoint — 2026-10-25
+
+Scarlet's blank minimap was reproduced in the courtyard. The explicit local
+`md5translate.trs` contains Cathedral group textures; its outdoor MonasteryInstances
+tiles instead reference the same uniform texture. The Survivors compositor previously
+looked up only ADT tiles. Building-group composition now uses the engine's existing
+portal flood selection, model placement, group ordering and authored tile grid. It
+samples group tiles with a half-texel inset and alpha threshold before applying the
+round mask, player arrow and enemy markers. Terrain composition remains the outdoor
+path. Background caching is separate from marker changes and invalidates on map,
+position, zoom, building transform, group or height changes.
+
+All 140 Survivors tests pass, including rotated placement, alpha threshold, layer
+order and the reused engine portal-selection regressions. Workspace test compilation,
+Clippy, formatting, render-pass lint (1,647 files) and native play build pass. The final
+native build took 58 seconds. The engine helper is compiled from its existing source
+with a narrowly scoped duplicate-module lint allowance; no upstream source is changed.
+
+The final live pass, after compilation stopped, verifies Cathedral textures, zoom-out,
+pause/resume and changing enemy markers. [Scarlet screenshot](images/screenshots/2026-10-25-indoor-minimap/scarlet.png).
+Short focused combat samples measured 61–73 FPS, but occasional one-second hitches
+remain. The first concurrent-build probe was much slower and is not a benchmark.
+An [Elwynn regression capture](images/screenshots/2026-10-25-indoor-minimap/elwynn.png)
+shows terrain imagery and markers still render after the automatic hero moved. Its
+camera is pushed very close to the character; that broader camera-obstruction issue
+remains open and is not hidden by the minimap check. Both validation apps were closed
+and the normal launcher restored.
+
+These checks do not prove all indoor floors, building transitions, exact texture
+alignment throughout rotated interiors, sustained performance or Scarlet traversal.
+The existing Survivors zoom radius remains shared indoors/outdoors; matching separate
+stock indoor zoom preferences is not claimed. No zone readiness gate was changed.

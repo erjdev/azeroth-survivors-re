@@ -16,11 +16,12 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
-Scarlet Monastery candidate: early courtyard combat renders with the verified roster.
-Wall navigation, the blank minimap and complete encounter acceptance remain unfinished;
-the zone stays locked in normal progression.
+Scarlet Monastery now draws its authored building minimap, including zoom and enemy
+markers. The candidate zone stays locked pending navigation and full encounter acceptance.
+[Outdoor minimap regression](docs/images/screenshots/2026-10-25-indoor-minimap/elwynn.png)
+(the close camera remains a separate unresolved issue).
 
-![Scarlet Monastery candidate combat](docs/images/screenshots/2026-10-25-scarlet-candidate/combat.png)
+![Scarlet building minimap](docs/images/screenshots/2026-10-25-indoor-minimap/scarlet.png)
 
 Ahn'Qiraj outdoor roster milestone: an isolated accelerated Warrior run exercises the
 new Legendary armor encounters. The zone remains locked pending world acceptance;

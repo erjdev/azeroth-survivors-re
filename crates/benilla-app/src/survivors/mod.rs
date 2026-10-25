@@ -24,6 +24,7 @@ mod jewel_icons;
 mod look_catalog;
 mod menu;
 mod minimap;
+mod minimap_indoor;
 mod mobility;
 mod notes;
 mod renown;

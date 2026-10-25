@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Indoor minimap imagery
+
+Fixed Scarlet's blank map by compositing authored building-group textures. Unchanged
+backgrounds are reused while markers update. All 140 Survivors tests, Clippy and native
+build pass; live Scarlet zoom and Elwynn terrain checks pass.
+[Scarlet screenshot](images/screenshots/2026-10-25-indoor-minimap/scarlet.png).
+Broader indoor alignment, camera/navigation and performance acceptance remain open.
+
 ## 2026-10-25 — Scarlet Monastery candidate
 
 Added the Cathedral courtyard, 18 verified wave identities and eight timed bosses.
