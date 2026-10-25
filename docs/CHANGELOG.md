@@ -3,6 +3,31 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Undo individual pending Rewards
+
+Perk and Companion cards now show pending counts and a minus control that removes
+one pending upgrade while keeping the rest. Pending resets have their own Undo.
+Removing a prerequisite cannot silently move an instinct to another companion or
+invalidate later purchases: the draft stays intact until dependencies are undone.
+Confirmed purchases retain the existing reset/refund rules.
+
+![Three upgrades staged across two cards](images/screenshots/2026-10-25-reward-minus/three-pending-1280.jpg)
+
+![Removing one rank returns 25 points and retains Banish](images/screenshots/2026-10-25-reward-minus/one-removed-1280.jpg)
+
+![Per-card undo remains reachable at 640×720](images/screenshots/2026-10-25-reward-minus/pending-640.jpg)
+
+![Companion upgrades use the same pending controls](images/screenshots/2026-10-25-reward-minus/companion-pending-1280.jpg)
+
+![Pending resets can be undone independently](images/screenshots/2026-10-25-reward-minus/reset-pending-1280.jpg)
+
+Isolated-account checks verified rank repricing, narrow-screen removal, confirmation
+of only the retained 15-point perk, and undo of a reset and Long Leash without saving
+either. Dependency and companion-destination cases have regression coverage.
+Validation: 182 Survivors app tests, native build, workspace test compilation, Clippy,
+formatting and render-pass lint pass. Reference typography/control placement still
+need refinement; these controls edit pending purchases only.
+
 ## 2026-10-25 — Tabard cosmetic gallery
 
 Tabards now use illustrated selection tiles based on the Companion Looks reference,

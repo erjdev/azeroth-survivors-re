@@ -63,7 +63,9 @@ The current catalog contains one verified Guild Tabard.
 Rewards purchases now preview before **Confirm**, with **Undo** to discard pending
 changes. Confirmed purchases persist; unconfirmed choices are discarded on app close.
 
-![Pending rewards with Confirm and Undo](docs/images/screenshots/2026-10-25-reward-confirm/pending-1280.jpg)
+Each card also lets you undo one pending upgrade without discarding the rest.
+
+![Pending rewards with individual undo controls](docs/images/screenshots/2026-10-25-reward-minus/three-pending-1280.jpg)
 
 
 Scarlet Monastery now draws its authored building minimap, including zoom and enemy

@@ -40,7 +40,13 @@ Rewards confirmation checkpoint: Perk/Companion purchases and perk resets are he
 in a session draft. Confirm validates the entire batch against the latest account
 before applying it; Undo discards the batch. Navigation retains pending choices,
 run entry requires Confirm/Undo, and closing the app discards unconfirmed choices.
-Cosmetic selections remain immediate. Per-card removal controls remain open.
+Cosmetic selections remain immediate. Per-card minus controls remove the latest
+pending purchase of that type and replay the remaining draft. Removal is atomic:
+if it invalidates a later purchase or changes an instinct destination, the player
+must undo that dependent purchase first. Confirmed purchases still use Reset perks
+for refunds; a card minus only edits the current draft. Live wide/narrow removal,
+rank repricing, confirm, reset undo and Companion undo are captured in the changelog.
+Three regression tests cover repricing and dependency/destination preservation.
 
 User clarification implemented: Deathless Hour and no u are visible placeholder
 achievements with no satisfiable criterion or points. Panda Cub and Sapphiron remain

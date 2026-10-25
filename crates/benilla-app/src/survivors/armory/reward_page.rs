@@ -96,6 +96,7 @@ pub(super) fn build(
             text(side, font, "Reset", 18.0, GOLD);
             text(side, font, format!("Refund every point spent on perks. Companion purchases and tabards are kept. Resets remaining: {}.", account.resets_left()), 12.0, DIM);
             side.spawn(Node::default()).with_children(|slot| chip(slot, font, "Reset perks", Act::Reward(12), false));
+            remove_pending(side, font, armory, 12);
             text(side, font, "Purchases and resets are previews until Confirm. Undo discards all pending changes. Closing the app discards them too. Looks apply immediately.", 12.0, DIM);
             if let Some(next) = account.next_locked() { text(side, font, next, 12.0, GOLD); }
         });
@@ -104,13 +105,44 @@ pub(super) fn build(
             match armory.reward_page {
                 1 => super::companion_page(body, font, armory, account),
                 2 => tabards(body, font, account),
-                _ => perks(body, font, account),
+                _ => perks(body, font, armory, account),
             }
         });
     });
 }
 
-fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Account) {
+fn remove_pending(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, code: u8) {
+    let count = armory
+        .reward_draft
+        .codes()
+        .iter()
+        .filter(|&&pending| pending == code)
+        .count();
+    if count > 0 {
+        text(
+            ui,
+            font,
+            format!("{count} pending"),
+            12.0,
+            hud::card_growth::GAIN,
+        );
+        ui.spawn(Node::default()).with_children(|buttons| {
+            chip(
+                buttons,
+                font,
+                if code == 12 {
+                    "− Undo reset"
+                } else {
+                    "− Undo upgrade"
+                },
+                Act::RemoveReward(code),
+                false,
+            );
+        });
+    }
+}
+
+fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, account: &Account) {
     let icons = [
         "INV_Misc_PocketWatch_01",
         "INV_Misc_Coin_01",
@@ -212,6 +244,7 @@ fn perks(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Account) 
                                 ));
                             }
                         });
+                    remove_pending(content, font, armory, code as u8);
                     if let Some(cost) = cost {
                         content.spawn(Node::default()).with_children(|buy| {
                             chip(
@@ -249,7 +282,12 @@ fn comparison(current: f32, next: f32, unit: &str) -> String {
     }
 }
 
-pub(super) fn companions(panel: &mut impl ChipParent, font: &Handle<Font>, account: &Account) {
+pub(super) fn companions(
+    panel: &mut impl ChipParent,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+) {
     use super::super::companions::trip;
     panel.spawn(hud::text_bundle(font, "Instincts fill the first companion, then the second. Further purchases replace the first companion's instinct. Appearance selection does not change this order.", 12.0, DIM));
     panel.spawn(Node { width: Val::Percent(100.0), flex_wrap: FlexWrap::Wrap, column_gap: Val::Px(8.0), row_gap: Val::Px(8.0), ..default() }).with_children(|grid| {
@@ -291,6 +329,7 @@ pub(super) fn companions(panel: &mut impl ChipParent, font: &Handle<Font>, accou
                     if (8..=10).contains(&code) {
                         text(body, font, target.map_or_else(|| "Requires a companion".into(), |slot| format!("{} companion · {}", if slot == 0 { "First" } else { "Second" }, if rank == max { "instinct learned".into() } else if current == 0 { "learn instinct".into() } else { format!("replaces {}", super::instinct_name(current)) })), 12.0, DIM);
                     }
+                    remove_pending(body, font, armory, code);
                     if let Some(cost) = cost {
                         if !(8..=10).contains(&code) || target.is_some() {
                             body.spawn(Node::default()).with_children(|buy| chip(buy, font, &format!("Buy · {cost} points"), Act::Reward(code), false));

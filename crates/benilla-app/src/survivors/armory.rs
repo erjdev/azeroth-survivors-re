@@ -211,6 +211,7 @@ pub(super) enum Act {
     Spec(u8),
     Respec,
     Reward(u8),
+    RemoveReward(u8),
     ConfirmRewards,
     UndoRewards,
     Restart,
@@ -436,6 +437,12 @@ pub(super) fn input(
             Act::Reward(code) => {
                 armory.note = match armory.reward_draft.stage(&account, code) {
                     Ok(()) => "Pending — Confirm to apply, or Undo to discard.".into(),
+                    Err(reason) => reason.into(),
+                };
+            }
+            Act::RemoveReward(code) => {
+                armory.note = match armory.reward_draft.remove(&account, code) {
+                    Ok(()) => "Pending upgrade removed. Confirm to apply remaining changes.".into(),
                     Err(reason) => reason.into(),
                 };
             }
@@ -1650,7 +1657,7 @@ fn companion_page(
         12.0,
         DIM,
     ));
-    reward_page::companions(panel, font, account);
+    reward_page::companions(panel, font, armory, account);
     let first = super::companions::LOOKS
         .get(usize::from(account.pets.look[0]))
         .map(|look| look.name)
