@@ -376,7 +376,7 @@ pub(super) fn companions(
             let (name, icon, rank, max) = match code {
                 13 => ("Companion", "INV_Box_PetCarrier_01", u8::from(pets.owned > 0), 1),
                 6 => ("Long Leash", "INV_Misc_Key_09", pets.leash.min(3), 3),
-                7 => ("Quick Paws", "Ability_Druid_Dash", pets.paws.min(3), 3),
+                7 => ("Quick Paws", "Ability_Hunter_Pet_Cat", pets.paws.min(3), 3),
                 8 => ("Gold-sniffer", "INV_Misc_Coin_01", u8::from(current == 1), 1),
                 9 => ("Wisp-herder", "Spell_Nature_WispSplode", u8::from(current == 2), 1),
                 10 => ("Rune-hound", "INV_Misc_Rune_01", u8::from(current == 3), 1),

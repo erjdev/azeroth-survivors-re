@@ -81,7 +81,7 @@ Looks catalog remains unfinished.
 Companion appearances now have illustrated tiles and a green Worn state. Each slot's
 look remains independent of its instinct; narrow layout and restart persistence were checked.
 
-![Companion appearance tiles](docs/images/screenshots/2026-10-25-reward-grids/companions-1280.jpg)
+![Companion appearance tiles](docs/images/screenshots/2026-10-25-companion-art/companions-1280.jpg)
 
 The Companion catalog now lists thirteen looks. New accounts unlock Westfall Chicken
 with Veteran; existing saves retain access. Panda Cub and Sapphiron are locked behind

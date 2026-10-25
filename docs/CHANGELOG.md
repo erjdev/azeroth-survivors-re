@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Companion reference artwork
+
+Quick Paws now uses the cat artwork; Crimson Macaw and Great Horned Owl use the
+owl artwork shown in the intention reference. Both icon paths were verified and
+decoded from this checkout's data archive, then checked in the native UI.
+
+![Verified cat and owl artwork](images/screenshots/2026-10-25-companion-art/companions-1280.jpg)
+
+Native build, workspace Clippy, formatting and render-pass lint pass. Appearance
+IDs and unlock rules are unchanged. Other differing Companion icons remain under
+review; no extracted game assets are committed.
+
 ## 2026-10-25 — Consistent reward grids
 
 Companion upgrades now keep two equal columns, including the last card. Looks

@@ -59,14 +59,14 @@ pub(super) static LOOKS: &[Look] = &[
     Look {
         name: "Crimson Macaw",
         display: 9554,
-        icon: "INV_Box_Birdcage_01",
+        icon: "Ability_Hunter_Pet_Owl",
         achievement: None,
         locked_label: "",
     },
     Look {
         name: "Great Horned Owl",
         display: 4615,
-        icon: "INV_Box_Birdcage_01",
+        icon: "Ability_Hunter_Pet_Owl",
         achievement: None,
         locked_label: "",
     },

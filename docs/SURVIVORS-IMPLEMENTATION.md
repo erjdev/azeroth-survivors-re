@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Companion artwork checkpoint: archive-listed and decoded `Ability_Hunter_Pet_Cat`
+now supplies Quick Paws; `Ability_Hunter_Pet_Owl` supplies Crimson Macaw and Great
+Horned Owl, matching those reference icons. Native loading was verified and an
+inline screenshot recorded. Long Leash, Tree Frog, Sprite Darter, Zergling and
+Undercity Cockroach still differ from the reference; do not treat this as complete
+artwork acceptance. Extracted candidates remain in ignored validation storage.
+
 Companion upgrade rows now keep equal widths, including Second Companion.
 Looks and Tabards use adaptive grid columns; Looks fits four columns at 1280×720
 and three at 640×720 without stretching its last row. Live layout/selection checks
