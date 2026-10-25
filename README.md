@@ -206,6 +206,11 @@ full encounters, traversal and camera validation remain open.
 
 [Inline upgrade comparisons during the Alterac run](docs/images/screenshots/2026-10-25-alterac-roster/upgrades-720.jpg).
 
+Native development can now open a specific starter page directly with
+`WOW_SURVIVORS_UI_PAGE=collection`, without a gameplay session.
+[Direct Collection preview](docs/images/screenshots/2026-10-25-ui-preview/collection-direct.jpg)
+· [preview instructions](docs/SURVIVORS-DEVELOPMENT.md#starter-ui-iteration-priority).
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**

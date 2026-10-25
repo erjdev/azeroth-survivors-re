@@ -21,6 +21,9 @@ pub(super) fn plugin(app: &mut App) {
 
 fn sync(
     phase: Res<State<Phase>>,
+    time: Res<Time<Real>>,
+    spatial: avian3d::prelude::SpatialQuery,
+    mut fade: Local<survivors_core::visibility::CutawayFade>,
     settings: Res<CameraSettings>,
     hero: Query<&GlobalTransform, With<Hero>>,
     camera: Query<(&GlobalTransform, &Projection), With<WorldCamera>>,
@@ -28,15 +31,18 @@ fn sync(
 ) {
     *cutaway = SceneryCutaway::default();
     if !settings.cutaway || matches!(phase.get(), Phase::Menu | Phase::GameOver) {
+        *fade = default();
         return;
     }
     let (Ok(hero), Ok((camera, projection))) = (hero.single(), camera.single()) else {
+        *fade = default();
         return;
     };
     let focus = hero.translation() + Vec3::Y * CAMERA_FOCUS_HEIGHT;
     let eye = camera.translation();
     if focus.is_finite() && eye.is_finite() {
         let Projection::Perspective(projection) = projection else {
+            *fade = default();
             return;
         };
         let radius = survivors_core::visibility::perspective_radius(
@@ -46,6 +52,9 @@ fn sync(
             DIAMETER_FRACTION,
         );
         cutaway.focus = focus.extend(radius);
-        cutaway.camera = eye.extend(0.25);
+        let occluded = benilla_world::survivors_visibility::hero_occluded(&spatial, eye, focus);
+        cutaway.camera = eye.extend(fade.advance(occluded, time.delta_secs()));
+    } else {
+        *fade = default();
     }
 }

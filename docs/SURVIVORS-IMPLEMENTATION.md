@@ -5,6 +5,27 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Current priority — starter interface first (2026-10-25)
+
+Prioritize the starter/menu and Armory interface pages before further zone content
+or in-map expansion. Build a fast, repeatable UI preview loop: direct page/fixture
+selection, isolated deterministic account data, immediate viewport changes and
+screenshots without playing through a session. Reuse compiled engine dependencies;
+use hot-reloaded layout/style/content where practical. Preview the production UI
+components so a separate mockup cannot drift from the game. Existing held-card
+and F12 tools help but do not complete this requirement.
+
+The reported cutaway defect is an immediate correction: activate only when scenery
+blocks the actual camera-to-player sightline; buildings behind or beside a visible
+player must remain opaque. Fade reveal strength linearly over 500 ms of real time,
+and fade back when visibility returns. Preserve collision throughout.
+
+Later feature: unlockable fast mode with 1.0× normal, 1.1×, 1.25×, 1.5× and 2× game
+speed. Unlock criteria remain to be designed. Scale simulation consistently
+(movement, attacks, cooldowns, waves and encounter clocks), leaving UI/input and
+visibility fades on real time. Do not enable this feature during the starter-UI
+pass; record its unlock/persistence, timing and reward/balance acceptance later.
+
 ## Architecture and ownership
 
 The game is local simulation in Rust, on Bevy 0.18.1 and wgpu 27. The
@@ -3067,3 +3088,28 @@ path is blocked, finds a detour, and checks body clearance while walking every
 segment to the destination. Workspace test compilation, Clippy, formatting,
 render-pass lint and diff checks pass. Native play build: 1 minute 18 seconds.
 Live world navigation and performance acceptance are still pending.
+
+
+### Visibility gating and direct page preview — 2026-10-25
+
+The cutaway was previously applied whenever enabled. It now casts a camera/LOS
+scenery ray from the actual camera to the player focus, stopping before the focus
+plane; geometry behind or outside that sightline cannot activate it. Reveal strength
+fades linearly in and out over 500 ms using real time. The existing ordered-coverage
+shader interpolates scenery visibility while leaving colliders intact. This uses
+scenery camera colliders; rendered foliage without corresponding LOS geometry still
+requires visual coverage review.
+
+Native development `WOW_SURVIVORS_UI_PAGE` opens a named starter/Armory page directly.
+This uses production components, leaves progression intact and avoids playing a
+session. A fresh isolated account opened Collection at 1440×900 logical resolution;
+README includes the capture. This is direct page entry, not complete fixture or
+hot-reload tooling for every page. Normal launcher settings were restored after exit.
+
+Validation: 95 core tests, 165 app tests and one camera-layer physics regression
+pass. The regression moves the same building collider behind, in front of and
+beside the player sightline. Fade tests cover 500 ms timing and reversal without a
+jump. Workspace test compilation, Clippy, formatting, render-pass lint and diff
+checks pass; native play build took 2m 07s. The preview rendered successfully and
+closed normally. The user's exact building scene and visual fade still need live
+validation; the menu preview is not evidence for that behavior.

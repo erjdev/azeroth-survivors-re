@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Conditional cutaway and starter-page previews
+
+Cutaway activation now checks the camera-to-player sightline and fades reveal
+strength over 500 ms of real time. Buildings behind or beside a visible player
+stay opaque. Added direct development entry into starter/Armory pages; Collection
+was verified without a run and captured in README. 95 core, 165 app and one camera
+regression test pass, with Clippy and native build. The reported building scene's
+visual fade check remains open. Starter UI takes priority; unlockable game-speed
+options are recorded for later.
+
 ## 2026-10-25 — Initial enemy obstacle detours
 
 Stalled enemies now plan and follow collision-checked local detours, sharing a

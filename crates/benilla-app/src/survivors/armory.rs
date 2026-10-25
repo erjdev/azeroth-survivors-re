@@ -61,6 +61,64 @@ pub(super) enum Page {
     Look,
 }
 
+impl Page {
+    #[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))]
+    fn preview(name: &str) -> Option<Self> {
+        Some(match name {
+            "starter" => Self::Door,
+            "heroes" => Self::Heroes,
+            "talents" => Self::Talents,
+            "rewards" => Self::Rewards,
+            "collection" => Self::Collection,
+            "codex" => Self::Codex,
+            "achievements" => Self::Achievements,
+            "notes" => Self::Notes,
+            "drops" => Self::DropTables,
+            "look" => Self::Look,
+            _ => return None,
+        })
+    }
+
+    fn initial() -> Self {
+        #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+        if let Ok(name) = std::env::var("WOW_SURVIVORS_UI_PAGE") {
+            if let Some(page) = Self::preview(&name) {
+                return page;
+            }
+            warn!("Unknown WOW_SURVIVORS_UI_PAGE {name:?}; opening starter page");
+        }
+        Self::Door
+    }
+}
+
+#[cfg(test)]
+mod preview_tests {
+    use super::Page;
+    #[test]
+    fn direct_ui_pages_are_explicit_and_unknown_names_do_not_start_gameplay() {
+        for name in [
+            "starter",
+            "heroes",
+            "talents",
+            "rewards",
+            "collection",
+            "codex",
+            "achievements",
+            "notes",
+            "drops",
+            "look",
+        ] {
+            assert!(Page::preview(name).is_some());
+        }
+        assert!(matches!(
+            Page::preview("collection"),
+            Some(Page::Collection)
+        ));
+        assert!(Page::preview("playing").is_none());
+        assert!(Page::preview("").is_none());
+    }
+}
+
 #[derive(Resource)]
 pub(super) struct Armory {
     page: Page,
@@ -86,7 +144,7 @@ pub(super) struct Armory {
 impl Default for Armory {
     fn default() -> Self {
         Self {
-            page: Page::Door,
+            page: Page::initial(),
             focus: 0,
             draft_first: "Adventurer".into(),
             draft_last: "Stormwind".into(),

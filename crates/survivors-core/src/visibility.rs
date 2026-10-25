@@ -1,6 +1,25 @@
 //! Camera-to-hero cutaway geometry. Rendering and collision policy stay separate.
 //! CPU reference for the Survivors scenery shader; actor classification belongs to the renderer.
 
+/// Reveal strength, linearly faded in and out over half a real-time second.
+#[derive(Default)]
+pub struct CutawayFade(pub f32);
+
+impl CutawayFade {
+    pub fn advance(&mut self, occluded: bool, seconds: f32) -> f32 {
+        if seconds.is_finite() && seconds > 0.0 {
+            self.0 = (self.0
+                + if occluded {
+                    seconds / 0.5
+                } else {
+                    -seconds / 0.5
+                })
+            .clamp(0.0, 1.0);
+        }
+        self.0
+    }
+}
+
 /// World radius whose projected diameter occupies a fraction of the viewport's shorter side.
 /// Uses the actual perspective FOV/aspect and camera-to-focus distance, including camera push-in.
 /// Invalid or unavailable projection data disables the aperture instead of hiding scenery.
@@ -99,6 +118,17 @@ fn dot(a: [f32; 3], b: [f32; 3]) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reveal_fades_only_when_obscured_and_reverses_without_a_pop() {
+        let mut fade = CutawayFade::default();
+        assert_eq!(fade.advance(false, 1.), 0.);
+        assert_eq!(fade.advance(true, 0.25), 0.5);
+        assert_eq!(fade.advance(false, 0.125), 0.25);
+        assert_eq!(fade.advance(true, 0.375), 1.);
+        assert_eq!(fade.advance(false, 0.5), 0.);
+        assert_eq!(fade.advance(true, f32::NAN), 0.);
+    }
 
     #[test]
     fn reveal_keeps_its_viewport_fraction_across_zoom_fov_and_aspect() {

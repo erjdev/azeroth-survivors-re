@@ -299,3 +299,31 @@ splits main schedules and world stages, and groups the remaining time as render+
 Its exclusive stamps change scheduling, so do not attribute differences between an
 instrumented and uninstrumented run to a game change. Empty GPU columns in the FPS journal
 mean unavailable measurements, not zero GPU cost.
+
+
+## Starter UI iteration priority
+
+The next development focus is the starter/menu and Armory pages. UI previews must
+open chosen production pages against deterministic isolated fixtures, without a
+full gameplay session. Add direct page selection, viewport presets and rapid
+layout/content reloads while retaining the compiled engine cache. The existing
+F12 capture and held-card modes are supporting tools, not the complete fast-preview
+workflow. Real-time interface transitions must stay independent of the later
+unlockable 1.1×/1.25×/1.5×/2× simulation-speed option.
+
+
+Native development builds now accept direct page entry:
+
+```sh
+WOW_DATA="$PWD/wow-data/Data" BENILLA_HOME="$PWD/target/ui-preview-state" \
+WOW_SURVIVORS_UI_PAGE=collection cargo survivors
+```
+
+Page names: `starter`, `heroes`, `talents`, `rewards`, `collection`, `codex`,
+`achievements`, `notes`, `drops`, `look`. This selects the initial Armory page;
+it does not start autoplay or a run, seed progression, or bypass unlock rules.
+Use an isolated fixture account when a page needs earned content. Unknown names
+warn and open the starter page. Player builds ignore this development switch.
+Collection's existing `crates/survivors-core/ui.txt` controls can be edited while
+this page remains open; broader page hot reload and deterministic fixture presets
+still need implementation.
