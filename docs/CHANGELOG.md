@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Character switching acceptance
+
+The ten-hero roster and creation controls fit at 640×720. Switching from Warrior
+to Paladin restores the saved female model and class gear; switching back restores
+the Warrior's five feature values. This checkpoint adds visual evidence, without
+changing runtime code.
+
+![Saved Paladin after switching heroes](images/screenshots/2026-10-25-character-acceptance/paladin-640.jpg)
+
+![Ten-hero management at compact width](images/screenshots/2026-10-25-character-acceptance/roster-640.jpg)
+
+![Warrior features restored after switching back](images/screenshots/2026-10-25-character-acceptance/restored-640.jpg)
+
+Native checks used an isolated populated account. Full-HD acceptance remains open:
+macOS clamped the requested 1920×1080 window, invalidating that capture. No new
+creation or restart-persistence claim is made by this checkpoint.
+
 ## 2026-10-25 — Imported talent budget protection
 
 Overspent saved specs now keep their ranks but grant no talent effects until their

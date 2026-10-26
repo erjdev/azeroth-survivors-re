@@ -327,6 +327,10 @@ navigation to Collection for full equipment details.
 
 ![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
+Compact hero switching restores each hero's saved appearance and class gear.
+
+![Ten-hero management at 640×720](docs/images/screenshots/2026-10-25-character-acceptance/roster-640.jpg)
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**

@@ -641,7 +641,11 @@ all nine icons, selection/details and unequip/re-equip; the native build and 71 
 Proportional scroll columns expose worn equipment,
 summed equipment bonuses and shared item/look actions alongside existing hero controls.
 Named heroes now persist independent race/sex choices, with legacy migration and invalid-save
-coverage in the 57-test Survivors suite. Live multi-hero switching still needs verification.
+coverage in the 57-test Survivors suite. The 2026-10-25 compact acceptance checkpoint
+verified Warrior → Paladin → Warrior switching, saved sex/model/class gear and
+restoration of all five Warrior feature values in a ten-hero account. Roster and
+creation controls fit at 640×720. Actual 1920×1080 acceptance remains open: macOS
+clamped the requested window, so that capture was rejected.
 The current hero uses the stock player compositor and attachments for selected armor,
 weapons and independent cosmetic overrides in both the world and full-body preview.
 The [gear visual catalog](SURVIVORS-GEAR-VISUALS.md) maps 91 distinct existing item names
