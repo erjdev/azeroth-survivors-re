@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Shaman talent training
+
+Thirteen Shaman nodes now train lightning, shocks, totems, critical hits and defenses,
+with green next-rank previews. Shared rules apply their effects to combat; tuning is
+provisional. Coverage is now 147/432 individual definitions, including 13/46 Shaman nodes.
+
+![Convection cooldown training](images/screenshots/2026-10-26-shaman-nodes/convection-1280.png)
+
+![Ancestral Knowledge health training](images/screenshots/2026-10-26-shaman-nodes/ancestral-knowledge-1280.png)
+
+123 core and 249 app tests, native build, workspace Clippy, formatting and render lint
+pass. The data audit verifies names and rank caps; native checks verify purchases,
+previews and saved ranks. Remaining nodes and live combat/balance acceptance stay open.
+
 ## 2026-10-26 — Measurable talent coverage
 
 Added concise per-class talent coverage and detailed missing-node reports against

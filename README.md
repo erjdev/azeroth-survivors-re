@@ -55,6 +55,10 @@ Shaman milestones add lightning, shock and totem build effects.
 
 ![Shaman Mana Tide milestone](docs/images/screenshots/2026-10-26-shaman-milestones/mana-tide-1280.png)
 
+Shaman's first 13 individual talents now provide spell and defensive training.
+
+![Shaman Convection training preview](docs/images/screenshots/2026-10-26-shaman-nodes/convection-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

@@ -1,5 +1,7 @@
 //! Survivors talent effects and dependency rules, independent of engine spell visuals.
 
+mod shaman;
+
 /// One catalog node and its proposed rank, for validating a single talent tree.
 #[derive(Clone, Copy, Debug)]
 pub struct RankedTalent {
@@ -228,9 +230,9 @@ impl Milestones {
             }
         }
         if self.class == 5 {
-            let lightning = ["lightning_bolt", "chain_lightning"].contains(&key);
-            let shock = ["earth_shock", "flame_shock", "frost_shock"].contains(&key);
-            let totem = ["searing_totem", "magma_totem"].contains(&key);
+            let lightning = shaman::LIGHTNING.contains(&key);
+            let shock = shaman::SHOCKS.contains(&key);
+            let totem = shaman::TOTEMS.contains(&key);
             if self.points[0] >= 10 && (lightning || shock) {
                 effect.cooldown *= 0.9;
             }
@@ -2332,6 +2334,7 @@ pub fn definitions(class: usize) -> &'static [TalentDefinition] {
         2 => HUNTER_TALENTS,
         3 => ROGUE_TALENTS,
         4 => PRIEST_TALENTS,
+        5 => shaman::DEFINITIONS,
         6 => MAGE_TALENTS,
         _ => &[],
     }

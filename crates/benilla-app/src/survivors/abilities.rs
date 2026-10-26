@@ -3488,6 +3488,63 @@ mod milestone_tests {
     }
 
     #[test]
+    fn shaman_node_training_reaches_direct_periodic_and_totem_parameters() {
+        let base = Milestones {
+            class: 5,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (0, 564, 5),
+            (0, 563, 5),
+            (0, 561, 3),
+            (0, 575, 5),
+            (0, 562, 5),
+            (0, 721, 5),
+            (0, 565, 1),
+            (1, 607, 3),
+            (2, 595, 5),
+            (2, 594, 5),
+        ]);
+        let stats = Run::default().stats();
+        for level in [1, 5] {
+            for (key, damage, cooldown, crit, crit_damage) in [
+                ("lightning_bolt", 1.1, 0.72, 0.10, 0.5),
+                ("chain_lightning", 1.1, 0.72, 0.10, 0.5),
+                ("flame_shock", 1.1, 0.765, 0.05, 0.5),
+                ("searing_totem", 1.15, 0.85, 0., 0.),
+                ("magma_totem", 1.15, 0.85, 0., 0.),
+                ("lightning_shield", 1.15, 1., 0., 0.),
+                ("fireball", 1., 1., 0., 0.),
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!(
+                    (after.count, after.radius, after.range, after.duration),
+                    (before.count, before.radius, before.range, before.duration)
+                );
+                let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
+            }
+        }
+    }
+
+    #[test]
     fn shaman_milestones_reach_combat_and_deployment_benefits_are_bounded() {
         let mut run = Run::default();
         let stats = run.stats();

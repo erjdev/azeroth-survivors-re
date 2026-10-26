@@ -650,11 +650,11 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Hunter | 16 / 46 | 3 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
 | Priest | 19 / 47 | 9 / 9 |
-| Shaman | 0 / 46 | 9 / 9 |
+| Shaman | 13 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
 | Warlock | 0 / 50 | 0 / 9 |
 | Druid | 0 / 47 | 0 / 9 |
-| Total | 134 / 432 | 57 / 81 |
+| Total | 147 / 432 | 57 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1123,7 +1123,30 @@ Totem pulses cannot repeat deployment healing or cooldown benefits. Healing caps
 at maximum health, cooldowns stop at zero, and the absorb never stacks or replaces
 a stronger active shield. Totem area sizes and counts remain unchanged. Milestone
 thresholds, cast parameters and tooltips share the engine-independent rules.
-Individual Shaman nodes and full live combat/balance acceptance remain open.
+Thirteen audited Shaman nodes now have individual effects, replacing their generic
+damage fallback. Values below are per rank and provisional Survivors tuning.
+
+| Talent ID / name | Ranks | Effect |
+| --- | --- | --- |
+| 564 Convection | 5 | Lightning and shocks: 2% shorter cooldown; mana-cost conversion |
+| 563 Concussion | 5 | Lightning and shocks: +2% direct and periodic damage |
+| 561 Call of Flame | 3 | Searing/Magma Totem: +5% damage |
+| 575 Reverberation | 5 | All three shocks: 3% shorter cooldown |
+| 562 Call of Thunder | 5 | Lightning Bolt/Chain Lightning: +1 percentage point critical chance |
+| 721 Lightning Mastery | 5 | Lightning Bolt/Chain Lightning: 4% shorter cooldown; cast-time conversion |
+| 565 Elemental Fury | 1 | Lightning and shocks: +50 percentage points critical damage |
+| 614 Ancestral Knowledge | 5 | +4 maximum health; mana conversion |
+| 613 Thundering Strikes | 5 | +1 percentage point hero critical chance, including spells/totems; conversion |
+| 607 Improved Lightning Shield | 3 | Lightning Shield: +5% damage |
+| 615 Toughness | 5 | +8 hero armor; conversion |
+| 595 Totemic Focus | 5 | Searing/Magma Totem: 3% shorter deployment cooldown; mana-cost conversion |
+| 594 Tidal Mastery | 5 | Lightning and shocks: +1 percentage point critical chance; deployment healing cannot crit |
+
+Lightning means Lightning Bolt/Chain Lightning; shocks means Earth/Flame/Frost Shock.
+Tests cover rank caps, reset, class/spell isolation, milestone composition and direct,
+periodic and totem parameters. Native purchases verify green previews and persisted
+ranks on an isolated character. The other 33 nodes and full live combat/balance
+acceptance remain open.
 
 Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
 threshold tests and representative combat tests prove those behaviors. Switching specs
