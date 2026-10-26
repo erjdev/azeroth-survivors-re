@@ -246,7 +246,8 @@ impl Plugin for SurvivorsPlugin {
             .add_systems(
                 Update,
                 (
-                    hud::settings_slider_input.after(hud::keys),
+                    hud::settings_keyboard.after(hud::keys),
+                    hud::settings_slider_input,
                     hud::apply_settings.after(crate::cvars::sync_cvars),
                 )
                     .chain(),

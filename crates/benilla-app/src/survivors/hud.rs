@@ -5,6 +5,7 @@ pub(super) mod card_growth;
 mod draft;
 pub(super) mod inline;
 mod settings;
+pub(super) use settings::keyboard::navigate as settings_keyboard;
 pub(super) use settings::sliders::{
     input as settings_slider_input, refresh as refresh_settings_sliders,
 };
@@ -1388,35 +1389,55 @@ pub(super) fn buttons(
             Interaction::None => bg.0 = base.0,
             Interaction::Pressed => {
                 bg.0 = BUTTON_HOT;
-                match (*action, *phase.get()) {
-                    (UiAction::Resume, Phase::Paused) => next.set(Phase::Playing),
-                    (UiAction::MainMenu, Phase::Paused | Phase::GameOver) => next.set(Phase::Menu),
-                    (UiAction::Quit, Phase::Paused | Phase::GameOver | Phase::Menu) => {
-                        exit.write(AppExit::Success);
-                    }
-                    (UiAction::OpenSettings, Phase::Paused) => page.open = true,
-                    (UiAction::CloseSettings, Phase::Paused | Phase::Menu) => page.open = false,
-                    (UiAction::SettingsCategory(category), Phase::Paused | Phase::Menu)
-                        if page.open =>
-                    {
-                        page.category = category;
-                    }
-                    (UiAction::RestoreSettings(category), Phase::Menu | Phase::Paused)
-                        if page.open && category == page.category =>
-                    {
-                        edits.restore = Some(category);
-                    }
-                    (UiAction::BuildNotes, Phase::Menu) if page.open => {
-                        page.open = false;
-                        armory.open_page(super::armory::Page::Notes);
-                    }
-                    (UiAction::Toggle(knob), Phase::Paused | Phase::Menu) if page.open => {
-                        edits.toggle.push(knob);
-                    }
-                    _ => {}
-                }
+                activate_action(
+                    *action,
+                    *phase.get(),
+                    &mut next,
+                    &mut exit,
+                    &mut edits,
+                    &mut page,
+                    &mut armory,
+                );
             }
         }
+    }
+}
+
+/// Shared by pointer and keyboard activation; phase/modal guards stay in one place.
+#[allow(clippy::too_many_arguments)]
+fn activate_action(
+    action: UiAction,
+    phase: Phase,
+    next: &mut NextState<Phase>,
+    exit: &mut MessageWriter<AppExit>,
+    edits: &mut SettingEdits,
+    page: &mut PausePage,
+    armory: &mut super::armory::Armory,
+) {
+    match (action, phase) {
+        (UiAction::Resume, Phase::Paused) => next.set(Phase::Playing),
+        (UiAction::MainMenu, Phase::Paused | Phase::GameOver) => next.set(Phase::Menu),
+        (UiAction::Quit, Phase::Paused | Phase::GameOver | Phase::Menu) => {
+            exit.write(AppExit::Success);
+        }
+        (UiAction::OpenSettings, Phase::Paused) => page.open = true,
+        (UiAction::CloseSettings, Phase::Paused | Phase::Menu) => page.open = false,
+        (UiAction::SettingsCategory(category), Phase::Paused | Phase::Menu) if page.open => {
+            page.category = category;
+        }
+        (UiAction::RestoreSettings(category), Phase::Menu | Phase::Paused)
+            if page.open && category == page.category =>
+        {
+            edits.restore = Some(category);
+        }
+        (UiAction::BuildNotes, Phase::Menu) if page.open => {
+            page.open = false;
+            armory.open_page(super::armory::Page::Notes);
+        }
+        (UiAction::Toggle(knob), Phase::Paused | Phase::Menu) if page.open => {
+            edits.toggle.push(knob);
+        }
+        _ => {}
     }
 }
 

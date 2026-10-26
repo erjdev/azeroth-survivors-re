@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Keyboard Options
+
+Options now has visible keyboard focus: Tab/Shift-Tab or Up/Down moves between
+visible controls, Left/Right adjusts sliders, Home/End chooses limits, and
+Enter/Space activates buttons. Mac modifier handling preserves Shift-Tab.
+Done closes settings without starting or resuming a run.
+
+![Keyboard focus on Audio](images/screenshots/2026-10-26-options-keyboard/audio-1280.png)
+
+![Compact Graphics keyboard focus](images/screenshots/2026-10-26-options-keyboard/graphics-640.png)
+
+232 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Native wide/compact checks cover focus, volume limits, category selection, graphics
+adjustment, Done, pointer handoff and build notes. Gamepad navigation, checkbox
+styling and remaining categories are still open. Audible output was not tested.
+
 ## 2026-10-26 — Options sliders
 
 Audio and Graphics now use proportional gold sliders with separate labels and

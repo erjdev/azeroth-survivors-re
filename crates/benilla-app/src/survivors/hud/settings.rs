@@ -1,4 +1,5 @@
 //! One focused settings category at a time, shared by the starter and pause menu.
+pub(super) mod keyboard;
 pub(super) mod sliders;
 use super::*;
 use bevy::ecs::system::SystemParam;
@@ -105,7 +106,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
     });
     col.spawn(text(
         font,
-        "Changes apply immediately. Escape returns to the previous screen.",
+        "Tab: focus  •  Arrows: adjust  •  Enter: select  •  Escape: return",
         12.0,
         DIM,
     ));

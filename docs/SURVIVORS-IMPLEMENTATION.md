@@ -56,8 +56,14 @@ in CHANGELOG/README. Audible output was not tested.
 
 Compared against `survivors_paused_options_gamepad.png`: Audio, Graphics and About
 now use left-side category navigation and a focused bordered content panel.
-Keyboard/gamepad slider navigation, checkbox styling, bindings and the other
-settings remain required.
+Options now supports Tab/Shift-Tab and Up/Down focus, Left/Right slider steps,
+Home/End limits and Enter/Space activation. A white outline marks the focused
+control; hidden categories are skipped. Mac raw modifier events preserve Shift-Tab.
+Done runs after the HUD shortcut handler, preventing the same Enter from starting
+or resuming a run. ECS tests cover both phases; native wide/compact checks cover
+focus, slider steps/limits, category activation, Done, pointer handoff and build
+notes. Screenshots are embedded in CHANGELOG/README.
+Gamepad navigation, checkbox styling, bindings and the other settings remain required.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.

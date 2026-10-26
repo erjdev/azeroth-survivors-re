@@ -4,7 +4,7 @@ use bevy::input::ButtonState;
 use bevy::window::WindowEvent;
 
 #[derive(Component)]
-pub(in crate::survivors) struct Slider(Knob);
+pub(in crate::survivors) struct Slider(pub(super) Knob);
 #[derive(Component)]
 pub(in crate::survivors) struct Fill(Knob);
 #[derive(Component)]
@@ -72,6 +72,18 @@ pub(in crate::survivors::hud) fn apply(cvars: &mut crate::cvars::Cvars, knob: Kn
         let spec = spec(knob);
         cvars.set(spec.name, &spec.value(position).to_string());
     }
+}
+
+/// Keyboard arrows use the same scale and supported stops as pointer dragging.
+pub(super) fn nudge(cvars: &crate::cvars::Cvars, knob: Knob, direction: f32) -> f32 {
+    let spec = spec(knob);
+    let current = cvars.num(spec.name).unwrap_or(0.);
+    let count = if spec.steps.is_empty() {
+        100.
+    } else {
+        (spec.steps.len() - 1) as f32
+    };
+    ((spec.position(current) * count).round() + direction).clamp(0., count) / count
 }
 
 pub(super) fn row(parent: &mut ChildSpawnerCommands, font: &Handle<Font>, knob: Knob) {
@@ -151,6 +163,7 @@ pub(in crate::survivors) struct Drag {
 pub(in crate::survivors) fn input(
     page: Res<PausePage>,
     phase: Res<State<Phase>>,
+    preview: Res<super::super::super::cards::PreviewHand>,
     loading: Res<crate::loading_screen::LoadingScreen>,
     windows: Query<(Entity, &Window), With<PrimaryWindow>>,
     sliders: Query<(Entity, &Slider, &ComputedNode, &UiGlobalTransform)>,
@@ -158,7 +171,11 @@ pub(in crate::survivors) fn input(
     mut drag: Local<Drag>,
     mut edits: ResMut<SettingEdits>,
 ) {
-    if !page.open || !matches!(phase.get(), Phase::Menu | Phase::Paused) || loading.covering() {
+    if !page.open
+        || preview.0
+        || !matches!(phase.get(), Phase::Menu | Phase::Paused)
+        || loading.covering()
+    {
         events.clear();
         *drag = Drag::default();
         return;
@@ -267,6 +284,7 @@ mod tests {
             world.insert_resource(State::new(Phase::Menu));
             world.init_resource::<crate::loading_screen::LoadingScreen>();
             world.init_resource::<SettingEdits>();
+            world.init_resource::<super::super::super::super::cards::PreviewHand>();
             world.init_resource::<Messages<WindowEvent>>();
             let window = world
                 .spawn((
