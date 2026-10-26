@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Legendary class collection
+
+The reference’s Legendary achievement now grants 25 points for collecting all
+nine legendary gear pieces of one class. Pieces split across classes and duplicate
+drops do not advance it. Duplicate achievement IDs in imported saves no longer
+inflate points or earned counts.
+
+![Eight pieces remain incomplete](images/screenshots/2026-10-26-legendary-achievement/progress-1280.png)
+
+![Completed class collection earns 25 points](images/screenshots/2026-10-26-legendary-achievement/earned-1280.png)
+
+133 core and 259 app tests, native build, workspace Clippy, achievement artwork
+audit, formatting and render lint pass. Native screenshots use a synthetic account;
+tests cover rarity, class boundaries, duplicate drops, save reload and one-time awards.
+
 ## 2026-10-26 — Druid milestone builds
 
 All nine Druid milestones now have explicit Survivors adaptations. Balance adds

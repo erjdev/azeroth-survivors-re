@@ -218,6 +218,7 @@ pub struct Snapshot {
     pub clears: [[bool; campaign::CLEAR_COUNT]; 9],
     pub pieces: u32,
     pub full_sets: u32,
+    pub best_legendary_set: u32,
     pub legends: u32,
     pub jewelry: u32,
     pub talent_cap: [bool; 9],
@@ -234,6 +235,7 @@ impl Default for Snapshot {
             clears: [[false; campaign::CLEAR_COUNT]; 9],
             pieces: 0,
             full_sets: 0,
+            best_legendary_set: 0,
             legends: 0,
             jewelry: 0,
             talent_cap: [false; 9],
@@ -281,6 +283,7 @@ enum Kind {
     TalentCap(usize),
     Pieces(u32),
     FullSet,
+    LegendarySet,
     Legends(u32),
     JewelryHalf,
     AnyCloak,
@@ -316,6 +319,7 @@ impl Kind {
             Kind::TalentCap(c) => snap.talent_cap.get(c).copied().unwrap_or(false),
             Kind::Pieces(n) => snap.pieces >= n,
             Kind::FullSet => snap.full_sets > 0,
+            Kind::LegendarySet => snap.best_legendary_set >= campaign::GRID_SLOTS as u32,
             Kind::Legends(n) => snap.legends >= n,
             Kind::JewelryHalf => snap.jewelry >= jewelry_half_target(),
             Kind::AnyCloak => snap.any_cloak,
@@ -341,6 +345,7 @@ impl Kind {
                 format!("Collect {n} distinct class gear pieces across the account.")
             }
             Kind::FullSet => "Collect gear for all nine slots of one class.".into(),
+            Kind::LegendarySet => "Collect every legendary gear piece of one class.".into(),
             Kind::Legends(n) => format!("Discover {n} legendary amulets in the Codex."),
             Kind::JewelryHalf => format!(
                 "Discover half the Codex’s rings, trinkets and amulets ({} of {}).",
@@ -387,6 +392,7 @@ impl Kind {
             Kind::Pieces(10) => "INV_Sword_04",
             Kind::Pieces(_) => "INV_Misc_Bag_10",
             Kind::FullSet => "INV_Chest_Plate04",
+            Kind::LegendarySet => "INV_Shield_06",
             Kind::JewelryHalf => "INV_Jewelry_Ring_03",
             Kind::Legends(_) => "INV_Jewelry_Necklace_01",
             Kind::AnyCloak => "INV_Misc_Cape_01",
@@ -406,9 +412,11 @@ impl Kind {
         match self {
             Kind::ZoneAny(_) | Kind::ZoneAll(_) => Category::Zones,
             Kind::ClassClear(_) | Kind::TalentCap(_) => Category::Classes,
-            Kind::Pieces(_) | Kind::FullSet | Kind::Legends(_) | Kind::JewelryHalf => {
-                Category::Collection
-            }
+            Kind::Pieces(_)
+            | Kind::FullSet
+            | Kind::LegendarySet
+            | Kind::Legends(_)
+            | Kind::JewelryHalf => Category::Collection,
             Kind::AnyCloak | Kind::EpicCloak | Kind::LegendaryCloak | Kind::Placeholder => {
                 Category::Feats
             }
@@ -427,6 +435,10 @@ impl Kind {
                 Some((have, 9))
             }
             Kind::Pieces(n) => Some((snap.pieces.min(n), n)),
+            Kind::LegendarySet => Some((
+                snap.best_legendary_set.min(campaign::GRID_SLOTS as u32),
+                campaign::GRID_SLOTS as u32,
+            )),
             Kind::Legends(n) => Some((snap.legends.min(n), n)),
             Kind::JewelryHalf => Some((
                 snap.jewelry.min(jewelry_half_target()),
@@ -498,6 +510,12 @@ fn catalog() -> Vec<Achievement> {
         name: "Legendary discoveries".into(),
         points: 15,
         kind: Kind::Legends(36),
+    });
+    out.push(Achievement {
+        id: 46,
+        name: "Legendary".into(),
+        points: 25,
+        kind: Kind::LegendarySet,
     });
     out.push(Achievement {
         id: 51,
@@ -575,21 +593,17 @@ pub fn fresh(snapshot: &Snapshot, earned: &[u16]) -> Vec<(u16, u32)> {
 }
 
 pub fn points_of(earned: &[u16]) -> u32 {
-    let cat = catalog();
-    earned
+    catalog()
         .iter()
-        .filter_map(|id| cat.iter().find(|a| a.id == *id).map(|a| a.points))
+        .filter(|a| earned.contains(&a.id))
+        .map(|a| a.points)
         .sum()
 }
 
 pub fn earned_count(earned: &[u16]) -> usize {
-    let cat = catalog();
-    earned
+    catalog()
         .iter()
-        .filter(|id| {
-            cat.iter()
-                .any(|a| a.id == **id && !matches!(a.kind, Kind::Placeholder))
-        })
+        .filter(|a| earned.contains(&a.id) && !matches!(a.kind, Kind::Placeholder))
         .count()
 }
 
@@ -681,6 +695,32 @@ mod tests {
         assert!(fresh(&snap, &[])
             .iter()
             .any(|&(id, points)| id == 45 && points == 15));
+    }
+
+    #[test]
+    fn legendary_collection_requires_all_nine_and_duplicate_ids_never_pay_twice() {
+        for count in [0, 8, 9, 10, u32::MAX] {
+            let snap = Snapshot {
+                best_legendary_set: count,
+                ..Default::default()
+            };
+            let row = listed(&snap, &[])
+                .into_iter()
+                .find(|row| row.id == 46)
+                .unwrap();
+            assert_eq!(row.earned, count >= 9);
+            assert_eq!(row.progress, Some((count.min(9), 9)));
+            assert_eq!(row.points, 25);
+            assert_eq!(
+                fresh(&snap, &[])
+                    .iter()
+                    .any(|&(id, points)| id == 46 && points == 25),
+                count >= 9
+            );
+            assert!(!fresh(&snap, &[46, 46]).iter().any(|(id, _)| *id == 46));
+        }
+        assert_eq!(points_of(&[46, 46, DEATHLESS_HOUR, NO_U, u16::MAX]), 25);
+        assert_eq!(earned_count(&[46, 46, DEATHLESS_HOUR, NO_U, u16::MAX]), 1);
     }
 
     #[test]

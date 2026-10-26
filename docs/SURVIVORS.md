@@ -229,6 +229,11 @@ amulet (currently 56 of 112 entries). Each entry counts once across the account.
 Existing awards from the earlier eight-legendary rule remain earned. Legendary
 discoveries separately grants 15 points for 36 class legendary amulets.
 
+Legendary grants 25 points for all nine legendary gear pieces of one class.
+It tracks the best single-class collection; duplicate pieces and lower rarities do
+not advance it. Each achievement ID contributes points and earned count only once,
+including when a saved account contains repeated IDs.
+
 The draft's catalog is the start (zone clears, a win on each class, talent cap, pieces,
 the set, legendary amulets, cloaks, runs, wins). It grows when a zone, a piece, or a feat
 from this file exists to be earned. Point totals on the pictures (645 of 1520, 40 of 73)

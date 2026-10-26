@@ -26,7 +26,7 @@ changelog/README. First-earned UTC dates now persist for new grants and appear o
 summary/category cards. Legacy achievements remain undated; date metadata never
 grants points or unlocks, and repeated grants preserve the original date. Native
 wide/compact restart evidence and save compatibility/calendar tests verify this.
-The 57 catalog entries now use authored requirement-themed vanilla icons; related
+The 58 catalog entries now use authored requirement-themed vanilla icons; related
 zone/class tiers share icons. The explicit-data `--achievement-art` audit checks
 all referenced files, and native summary/category captures document the artwork.
 Jeweler’s Eye now measures half the complete jewelry Codex (currently 56/112),
@@ -34,6 +34,10 @@ combining deduplicated shared discoveries with valid class legendary discoveries
 Legacy awards remain earned; the separate 36-legendary rule remains under the
 clearer Legendary discoveries name. Core/account tests and native before/after
 fixtures verify thresholds, persistence, duplicate protection and a single grant.
+Legendary now awards 25 points for all nine legendary gear pieces of one class.
+The best single-class collection drives progress; duplicate drops, lower rarities
+and cross-class pieces cannot fill it. Saved duplicate achievement IDs cannot inflate
+points/counts. Core/account tests and native 8/9-to-earned screenshots verify this.
 Reference catalog expansion and broader per-page interaction acceptance remain open.
 
 Options now opens shared pause settings from the starter and all Armory pages.

@@ -890,6 +890,11 @@ impl Account {
             if campaign::set_complete(&class.pieces) {
                 snap.full_sets += 1;
             }
+            let legendary = class.pieces[5 * campaign::GRID_SLOTS..6 * campaign::GRID_SLOTS]
+                .iter()
+                .filter(|&&owned| owned > 0)
+                .count() as u32;
+            snap.best_legendary_set = snap.best_legendary_set.max(legendary);
             snap.legends += self.legendary_progress(i).0 as u32;
             let talent_max = self
                 .characters
@@ -1384,7 +1389,9 @@ fn parse(text: &str) -> Result<Account, ()> {
                 if let Some(list) = parts.next() {
                     for id in list.split(',') {
                         if let Ok(id) = id.parse() {
-                            account.earned.push(id);
+                            if !account.earned.contains(&id) {
+                                account.earned.push(id);
+                            }
                         }
                     }
                 }
@@ -2575,6 +2582,44 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.snapshot().legends, 1);
         assert!(!account.feats(0, 0).amulets);
         assert!(!account.legendary_complete(usize::MAX));
+    }
+
+    #[test]
+    fn legendary_set_tracks_one_class_and_duplicate_drops_or_save_ids_cannot_inflate_it() {
+        let mut account = empty();
+        let drops: Vec<_> = (0..campaign::GRID_SLOTS)
+            .map(|slot| {
+                campaign::DROPS
+                    .iter()
+                    .find(|row| row.band == 5 && row.slot == slot)
+                    .unwrap()
+            })
+            .collect();
+        for drop in &drops[..8] {
+            assert!(account.collect_drop(0, drop.zone, drop.creature).is_some());
+            assert!(account.collect_drop(0, drop.zone, drop.creature).is_none());
+        }
+        let last = drops[8];
+        account.collect_drop(1, last.zone, last.creature);
+        // A full lower-rarity class and nine legendaries split between classes do not qualify.
+        account.classes[2].pieces[..campaign::GRID_SLOTS].fill(1);
+        account.grant_new_on(Some(20_752));
+        assert_eq!(account.snapshot().best_legendary_set, 8);
+        assert!(!account.earned_ids().contains(&46));
+        account.collect_drop(0, last.zone, last.creature);
+        assert!(account.grant_new_on(Some(20_752)));
+        assert_eq!(account.snapshot().best_legendary_set, 9);
+        assert!(account.earned_ids().contains(&46));
+        let points = account.unspent();
+        let text = format!("{}earn 46,46\n", encode(&account));
+        let mut restored = parse(&text).unwrap();
+        assert_eq!(
+            restored.earned_ids().iter().filter(|&&id| id == 46).count(),
+            1
+        );
+        assert_eq!(restored.unspent(), points);
+        assert!(!restored.grant_new_on(Some(20_753)));
+        assert_eq!(restored.earned_date(46), account.earned_date(46));
     }
 
     #[test]
