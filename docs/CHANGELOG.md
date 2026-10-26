@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Casting distance on upgrade cards
+
+Targeted spell cards now state their effective casting distance inline, separately
+from splash or area radius. Range changes use green comparisons with one trailing
+unit; unchanged distances remain ordinary text.
+
+![Live Smite upgrade with Holy Reach's 24-yard range](images/screenshots/2026-10-25-card-range/smite-1280.jpg)
+
+29 HUD tests pass. The live 1280×720 card fits, and selecting it advances Smite to
+rank 2 and resumes combat. Native build, Clippy, formatting and render lint pass.
+This capture verifies the Smite card; other card layouts still need visual coverage.
+
 ## 2026-10-25 — Priest reach talents
 
 Holy Reach extends Smite/Holy Fire casting range and Holy Nova's single area.

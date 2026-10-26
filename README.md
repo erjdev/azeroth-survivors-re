@@ -329,6 +329,10 @@ navigation to Collection for full equipment details.
 
 Priest now has eleven individual talents and nine tree milestones with scoped previews.
 
+Upgrade cards now state effective casting distance separately from area radius.
+
+![Smite card with trained casting range](docs/images/screenshots/2026-10-25-card-range/smite-1280.jpg)
+
 ![Priest range and area talent](docs/images/screenshots/2026-10-25-priest-reach/holy-1280.jpg)
 
 ![Spirit Tap recovery preview](docs/images/screenshots/2026-10-25-spirit-tap/talent-1280.jpg)

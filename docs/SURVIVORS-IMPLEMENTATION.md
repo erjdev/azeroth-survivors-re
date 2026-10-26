@@ -3796,3 +3796,17 @@ and confirms target count/control remain unchanged. DBC audit, native build,
 workspace Clippy, formatting and render lint pass. Native Holy purchase/refund
 at 1280×720 and compact Shadow description/max-rank guard at 640×720 are captured
 inline in the changelog. Live combat range acceptance and remaining nodes are open.
+
+### Effective casting distance on cards — 2026-10-25
+
+Card prose now includes targeting distance for bolts, strikes, melee attacks,
+periodic targeted spells, chains and placed ground areas. Existing totem distance
+text remains. Targeting distance and splash/area radius use separate effective
+combat parameters; changed values are green with a single trailing unit.
+
+29 HUD tests pass, including trained Priest range changes and unchanged-range
+coloring. An isolated Priest:cards run in The Barrens showed Smite's trained
+24-yard distance at 1280×720; selecting it advanced smite:1 to smite:2 and resumed
+combat. The changelog/README embed the capture. Native build, workspace Clippy,
+formatting and render lint pass. Other affected card layouts still need visual
+coverage; this does not close live range-boundary or full responsive acceptance.

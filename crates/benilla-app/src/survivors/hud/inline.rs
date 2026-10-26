@@ -38,6 +38,7 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
     macro_rules! prose { ($($p:expr),* $(,)?) => { $(out.add($p);)* }; }
     let damage = (a.dmg, b.dmg, " damage");
     let radius = (a.radius, b.radius, " yd");
+    let range = (a.range, b.range, " yd");
     let duration = (a.duration, b.duration, " sec");
     let count = (
         a.count as f32,
@@ -56,7 +57,7 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
             prose!(if melee { "Strikes " } else { "Hits " });
             if a.count == 1 && b.count == 1 {
                 prose!(if toughest {
-                    "the toughest enemy in range"
+                    "the toughest enemy"
                 } else {
                     "the closest enemy"
                 });
@@ -65,13 +66,13 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
                     "the ",
                     count,
                     if toughest {
-                        " with the most health in range"
+                        " with the most health"
                     } else {
                         " nearest to you"
                     }
                 );
             }
-            prose!(" for ", damage);
+            prose!(" within ", range, " for ", damage);
             if a.radius > 0.0 && !melee {
                 prose!(", and everything within ", radius, " of the hit");
             }
@@ -115,10 +116,15 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
                     " every second"
                 );
             }
+            if def.kind == Kind::Ground {
+                prose!(" within ", range, " casting range");
+            }
         }
         Kind::Chain => {
             prose!(
-                "Strikes the nearest enemy for ",
+                "Strikes the nearest enemy within ",
+                range,
+                " for ",
                 damage,
                 ", then jumps to ",
                 count,
@@ -131,7 +137,9 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
             prose!(
                 "Afflicts ",
                 count,
-                " in range with ",
+                " within ",
+                range,
+                " with ",
                 (a.dot, b.dot, " damage"),
                 " every second for ",
                 duration
@@ -393,6 +401,39 @@ mod tests {
     fn plain(spans: &Spans) -> String {
         spans.iter().map(|(s, _)| s.as_str()).collect()
     }
+    #[test]
+    fn targeting_range_is_inline_and_distinct_from_splash_radius() {
+        let stats = Run::default().stats();
+        let base = survivors_core::talents::Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(1, 1635, 2), (2, 881, 3)]);
+        for key in ["smite", "holy_fire", "mind_blast", "shadow_word_pain"] {
+            let def = data::ability(key);
+            let a = cast_at(def, 1, &stats, base);
+            let b = cast_at(def, 1, &stats, trained);
+            let spans = ability(def, &a, &b);
+            let delta = format!("{} » {} yd", num(a.range), num(b.range));
+            assert!(
+                spans.contains(&(delta.clone(), card_growth::GAIN)),
+                "{key}: {}",
+                plain(&spans)
+            );
+            assert!(plain(&spans).contains(&format!("within {delta}")));
+            assert!(!plain(&spans).contains("yd »"));
+            let current = ability(def, &b, &b);
+            assert!(current.contains(&(format!("{} yd", num(b.range)), PROSE)));
+            assert!(!plain(&current).contains('»'));
+        }
+        let def = data::ability("holy_nova");
+        let a = cast_at(def, 1, &stats, base);
+        let b = cast_at(def, 1, &stats, trained);
+        let text = plain(&ability(def, &a, &b));
+        assert!(text.contains("of you"));
+        assert!(!text.contains("casting range"));
+    }
+
     #[test]
     fn damage_and_radius_changes_are_inline_colored_with_units() {
         let def = data::ability("frost_nova");
