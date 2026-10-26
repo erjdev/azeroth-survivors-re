@@ -185,6 +185,12 @@ impl Floor<'_, '_> {
             .is_empty()
     }
 
+    /// Conservative spawn connectivity until a shared walkable region map is available.
+    /// Checking from outside also rejects the empty interior of triangle-only tree hulls.
+    pub fn can_spawn_from(&self, hero: Vec3, feet: Vec3, radius: f32) -> bool {
+        self.can_spawn(feet, radius) && self.line_clear(hero, feet)
+    }
+
     fn ground(&self, feet: Vec3) -> Option<(f32, f32)> {
         let origin = feet + Vec3::Y * STEP_UP;
         if let Some(hit) = self.collision.ray_body(origin, Dir3::NEG_Y, STEP_UP + DROP) {
@@ -315,6 +321,14 @@ mod tests {
             for axis in [Vec3::X, Vec3::NEG_X, Vec3::Z, Vec3::NEG_Z] {
                 let from = axis * 12.0;
                 let desired = -from;
+                assert!(
+                    !app.world_mut()
+                        .run_system_once(move |floor: Floor| {
+                            floor.can_spawn_from(from, Vec3::ZERO, 0.6)
+                        })
+                        .unwrap(),
+                    "{model}: a spawn inside the trunk passed clearance"
+                );
                 let (walk, dash) = app
                     .world_mut()
                     .run_system_once(move |floor: Floor| {

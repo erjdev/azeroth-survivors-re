@@ -17,7 +17,14 @@ pub(super) fn point(
         angle,
         distance,
         radius,
-        (|p| world.height(p), |p| world.can_spawn(p, radius)),
+        (
+            |p| world.height(p),
+            |p| {
+                // Triangle hulls can contain empty space: an overlap alone cannot prove
+                // a candidate is outside a tree or on the hero's side of a closed fence.
+                world.can_spawn_from(hero, p, radius)
+            },
+        ),
     )
 }
 

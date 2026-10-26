@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Windows playtest corrections
+
+- Foliage reveal checks rendered scenery instead of collision hulls, with the existing 500 ms fade.
+- Spawns reject trunk interiors and unverified fence connections; more enemies receive route work each frame.
+- Elite chests: first after 60 seconds, then 90 seconds apart, maximum five per run. Boss rewards remain separate. Corrected elite/boss models that incorrectly referenced a sarcophagus and grave marker.
+- Talent backgrounds preserve the painted art's proportions and crop transparent padding; icons stay aligned.
+
+![Talent backgrounds and aligned rows](images/screenshots/2026-10-26-playtest-fixes/talents-1280.png)
+
+![Compact talent layout](images/screenshots/2026-10-26-playtest-fixes/talents-640.png)
+
+![Corrected chest models in the preview world](images/screenshots/2026-10-26-playtest-fixes/chests-native.png)
+
+135 core tests and 270 app tests pass, including authored tree/chest collision
+checks and foliage without colliders. Native build, workspace Clippy, formatting
+and render lint pass.
+
+Native UI and chest models checked on macOS. The model capture uses the preview
+world; it is not an Elwynn routing replay. Exact Windows foliage/fence/chest scenarios still need
+retesting; these fixes do not constitute a Windows gameplay acceptance pass.
+
 ## 2026-10-26 — Fast jewelry previews and clearer legendary cards
 
 Chest offers can now be inspected from a watched preview file, with reusable wide

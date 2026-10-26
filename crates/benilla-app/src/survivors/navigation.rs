@@ -5,9 +5,10 @@ use bevy::prelude::*;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 const SPACING: f32 = 2.0;
-const MAX_NODES: usize = 256;
+const MAX_NODES: usize = 512;
 const EDGE_BUDGET: usize = 8;
 const MAX_REQUESTS: usize = 64;
+const REQUESTS_PER_FRAME: usize = 8;
 const DIRECTIONS: [(i32, i32); 8] = [
     (1, 0),
     (0, 1),
@@ -159,7 +160,7 @@ pub(super) struct Navigation {
 }
 
 impl Navigation {
-    /// Eight edge probes total per frame, shared fairly across waiting enemies.
+    /// Up to eight requests receive eight edge probes each per frame, round-robin.
     pub fn advance(
         &mut self,
         dt: f32,
@@ -179,22 +180,25 @@ impl Navigation {
         });
         self.queue
             .retain(|entity| self.routes.get(entity).is_some_and(|r| r.search.is_some()));
-        let Some(entity) = self.queue.pop_front() else {
-            return;
-        };
-        let route = self.routes.get_mut(&entity).unwrap();
-        let Some(search) = route.search.as_mut() else {
-            return;
-        };
-        match search.advance(EDGE_BUDGET, |a, b| edge(a, b, route.radius)) {
-            Outcome::Pending => self.queue.push_back(entity),
-            Outcome::Found(path) => {
-                route.path = path;
-                route.search = None;
-            }
-            Outcome::Failed => {
-                route.search = None;
-                route.cooldown = 1.;
+        let turns = self.queue.len().min(REQUESTS_PER_FRAME);
+        for _ in 0..turns {
+            let Some(entity) = self.queue.pop_front() else {
+                continue;
+            };
+            let route = self.routes.get_mut(&entity).unwrap();
+            let Some(search) = route.search.as_mut() else {
+                continue;
+            };
+            match search.advance(EDGE_BUDGET, |a, b| edge(a, b, route.radius)) {
+                Outcome::Pending => self.queue.push_back(entity),
+                Outcome::Found(path) => {
+                    route.path = path;
+                    route.search = None;
+                }
+                Outcome::Failed => {
+                    route.search = None;
+                    route.cooldown = 1.;
+                }
             }
         }
     }
@@ -286,7 +290,7 @@ mod tests {
         assert!(matches!(missing.advance(32, |_, _| None), Outcome::Failed));
         let mut stacked = Search::new(Vec3::ZERO, Vec3::new(0., 20., 0.));
         let mut outcome = Outcome::Pending;
-        for _ in 0..200 {
+        for _ in 0..MAX_NODES * 2 {
             outcome = stacked.advance(8, |_, b| Some(Vec3::new(b.x, 0., b.z)));
             if !matches!(outcome, Outcome::Pending) {
                 break;
@@ -309,8 +313,8 @@ mod tests {
             probes += 1;
             Some(b)
         });
-        assert_eq!(probes, EDGE_BUDGET);
-        assert_eq!(nav.queue.front(), Some(&b));
+        assert_eq!(probes, EDGE_BUDGET * 2);
+        assert_eq!(nav.queue.front(), Some(&a));
         nav.advance(0.1, 0, &live[..1], |_, b, _| Some(b));
         assert!(!nav.routes.contains_key(&b));
         assert!(!nav.queue.contains(&b));
@@ -321,7 +325,30 @@ mod tests {
         assert!(nav.queue.is_empty());
     }
     #[test]
-    fn route_edges_and_playback_use_real_body_sweeps() {
+    fn crowded_queue_services_eight_enemies_per_frame_without_starvation() {
+        let mut nav = Navigation::default();
+        let live: Vec<_> = (1..=64)
+            .map(|id| (Entity::from_bits(id), Vec3::ZERO, 0.6))
+            .collect();
+        nav.advance(0.1, 0, &live, |_, _, _| unreachable!());
+        for &(entity, at, radius) in &live {
+            nav.observe(entity, at, Vec3::X * 8., radius, true, 0.4);
+        }
+        for _ in 0..120 {
+            let mut probes = 0;
+            nav.advance(1.0 / 60.0, 0, &live, |_, b, _| {
+                probes += 1;
+                Some(b)
+            });
+            assert!(probes <= REQUESTS_PER_FRAME * EDGE_BUDGET);
+        }
+        assert!(nav.queue.is_empty());
+        assert!(live
+            .iter()
+            .all(|(entity, _, _)| !nav.routes[entity].path.is_empty()));
+    }
+
+    fn route_around_solid(collider: avian3d::prelude::Collider, transform: Transform, fence: bool) {
         use super::super::Floor;
         use avian3d::prelude::*;
         use benilla_world::collision::MoverTraceExclusions;
@@ -349,18 +376,23 @@ mod tests {
             ),
             Transform::default(),
         ));
-        app.world_mut().spawn((
-            RigidBody::Static,
-            Collider::cuboid(1., 4., 6.),
-            Transform::from_xyz(4., 2., 0.),
-        ));
+        app.world_mut()
+            .spawn((RigidBody::Static, collider, transform));
         app.finish();
         app.cleanup();
         app.update();
         app.world_mut()
-            .run_system_once(|floor: Floor| {
+            .run_system_once(move |floor: Floor| {
                 let goal = Vec3::X * 8.;
-                assert!(floor.travel(Vec3::ZERO, goal, 0.6).x < 3.);
+                assert!(floor.can_spawn(goal, 0.6));
+                if fence {
+                    assert!(
+                        !floor.can_spawn_from(Vec3::ZERO, goal, 0.6),
+                        "do not spawn beyond an unverified fence connection"
+                    );
+                }
+                assert!(floor.can_spawn_from(Vec3::X * 6., goal, 0.6));
+                assert!(floor.travel(Vec3::ZERO, goal, 0.6).x < 7.5);
                 let mut search = Search::new(Vec3::ZERO, goal);
                 let mut found = None;
                 for _ in 0..400 {
@@ -396,5 +428,44 @@ mod tests {
                 assert!(at.distance(goal) < 0.1);
             })
             .unwrap();
+    }
+    #[test]
+    fn route_edges_and_playback_use_real_body_sweeps() {
+        route_around_solid(
+            avian3d::prelude::Collider::cuboid(1., 4., 6.),
+            Transform::from_xyz(4., 2., 0.),
+            true,
+        );
+    }
+
+    #[test]
+    fn authored_chests_allow_a_walkable_detour() {
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|path| !path.is_empty()) else {
+            eprintln!("SKIP authored chest routes: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        let catalog = benilla_formats::load_gameobject_catalog(&mut chain).unwrap();
+        use super::super::campaign::{chest_display, ChestTier};
+        for tier in [ChestTier::C, ChestTier::B, ChestTier::A] {
+            let display = chest_display(tier);
+            let path = catalog.model_path(display).unwrap();
+            assert!(
+                path.to_ascii_lowercase().contains("chest"),
+                "{display}: {path}"
+            );
+            let hull = benilla_formats::load_m2_collision_hull(&mut chain, path).unwrap();
+            assert!(!hull.is_empty(), "{path}");
+            let vertices = hull
+                .positions
+                .iter()
+                .map(|p| benilla_assets::coords::wow_to_bevy(*p) * 1.15)
+                .collect();
+            let collider = avian3d::prelude::Collider::trimesh(
+                vertices,
+                hull.indices.as_chunks::<3>().0.to_vec(),
+            );
+            route_around_solid(collider, Transform::from_xyz(4., 0., 0.), false);
+        }
     }
 }

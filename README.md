@@ -136,6 +136,10 @@ Codex details describe healing and defensive spells with their actual effects.
 
 ![Codex healing detail](docs/images/screenshots/2026-10-26-codex-prose/healing-1280.png)
 
+Talent artwork keeps its painted proportions at wide and compact sizes, without padded blank edges.
+
+![Proportioned talent backgrounds](docs/images/screenshots/2026-10-26-playtest-fixes/talents-1280.png)
+
 Jewelry offers have live wide/compact preview presets, with resolved legendary spell names and icons.
 
 ![Jewelry card preview](docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png)

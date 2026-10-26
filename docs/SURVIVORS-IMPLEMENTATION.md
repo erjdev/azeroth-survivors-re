@@ -4441,3 +4441,47 @@ Validation: 266 app tests, native play build, workspace Clippy, formatting and r
 lint pass. Native 1280×720 and 640×720 checks cover corrected icons/names, green
 bonuses, compact scrolling, disabled picks and return to the undiscovered Codex.
 Screenshots are embedded in CHANGELOG and README.
+
+### Windows playtest follow-up — 2026-10-26
+
+- **Foliage reveal:** replace the collision-only activation probe with rendered
+  scenery triangles from all three pick/render paths. Probe at 10 Hz after visibility
+  classification, ignore units and scenery behind the hero, and retain the 500 ms
+  fade. This is geometry visibility, not alpha-texture/pixel sampling; camera push-in
+  remains a separate collision feature. Exact Windows foliage scene acceptance is
+  still open.
+- **Spawns and routes:** require a clear solid-world segment from hero to spawn in
+  addition to supported, unoccupied body space. This conservatively rejects hollow
+  trunk interiors and unverified connections across fences; it can defer waves in
+  tight rooms. Existing enemies still use incremental A*, now servicing up to eight
+  requests × eight edge probes per frame, with 512 nodes per search and 64 pending
+  requests. IDA* has not been introduced; shared navigation regions, long fences,
+  enclosed areas and crowded Windows performance remain acceptance work.
+- **Elite chests:** first eligible named-elite death after 60 seconds, then at least
+  90 seconds apart, at most five per run. Same-frame bursts cannot multiply drops.
+  Boss/start/wooden rewards stay separate. Verified DBC displays are now 10/1/41
+  (Chest01/02/03); the previous 11/12 references were a sarcophagus and grave marker.
+  Chests remain solid and are routed around;
+  overlapping drops/enemies and the reported live Windows jam still need scene replay.
+- **Talent art:** use the painted 300×331 area of the padded 320×384 vanilla tile
+  canvas. Crop right/bottom padding at runtime, preserve aspect ratio, and keep all
+  icons and connectors in the same proportional coordinate space. Checked the
+  bottom-right alpha extents of all 28 shipped background variants (one has a final
+  transparent column). Native 1280×720/640×720 checks cover all three Hunter trees,
+  scrolling, and purchase/right-click refund at the visible icon. Screenshots are
+  embedded in CHANGELOG and README. No install assets are committed.
+
+These changes address identified causes, but do not claim reproduction or closure
+of the user's exact Windows gameplay scene. Recheck canopy reveal with scenery in
+front/behind, fence detours under an elite wave, and enemy movement past dropped
+chests on Windows before declaring those reports closed.
+
+A short manual native check confirms the new tier-A models render as chests, with
+an inline milestone capture. The UI preview's world remained at the Dark Portal;
+this is model evidence only, not an Elwynn navigation or spawn acceptance run.
+
+Validation: 135 core tests and 270 app tests pass with the visibility feature and
+explicit checkout data. Regressions cover render-only foliage, authored Elwynn
+trunk spawn rejection, actual body movement around fences and all three chest
+models, bounded route scheduling, and elite-drop cadence. Native play build,
+workspace Clippy, formatting, and render lint pass.

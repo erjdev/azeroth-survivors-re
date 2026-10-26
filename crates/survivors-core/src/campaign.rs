@@ -1285,12 +1285,12 @@ pub enum ChestTier {
     A,
 }
 
-/// `GameObjectDisplayInfo` 10, 11 and 12: the wooden chest ladder.
+/// Verified `GameObjectDisplayInfo`: Chest01 (10), Chest02 (1), Chest03 (41).
 pub fn chest_display(tier: ChestTier) -> u32 {
     match tier {
         ChestTier::C => crate::CHEST_DISPLAY,
-        ChestTier::B => 11,
-        ChestTier::A => 12,
+        ChestTier::B => 1,
+        ChestTier::A => 41,
     }
 }
 
@@ -2364,7 +2364,7 @@ mod tests {
                 chest_display(ChestTier::B),
                 chest_display(ChestTier::A)
             ),
-            (10, 11, 12)
+            (10, 1, 41)
         );
         assert!(is_named_elite("Elwynn Forest", "Defias Bandit"));
         assert!(!is_named_elite("Elwynn Forest", "Young Wolf"));

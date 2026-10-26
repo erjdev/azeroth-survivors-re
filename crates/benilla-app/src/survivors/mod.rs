@@ -490,6 +490,9 @@ pub(super) struct Run {
     pub trading: bool,
     /// The three area-start chests have been placed.
     pub stocked: bool,
+    /// Special elite loot is paced independently of how many elites a wave contains.
+    pub elite_chests: u8,
+    pub last_elite_chest: f32,
     /// Rings, trinkets and amulets worn this run.
     worn: campaign::Worn,
     /// Seconds since the hero fell, while the death plays out.
@@ -569,6 +572,8 @@ impl Default for Run {
             trades: 0,
             trading: false,
             stocked: false,
+            elite_chests: 0,
+            last_elite_chest: 0.0,
             worn: campaign::Worn::default(),
             dead_t: None,
             next_guid: 1,

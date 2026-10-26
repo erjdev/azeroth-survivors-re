@@ -570,6 +570,20 @@ pub(super) fn mark_dying(commands: &mut Commands, e: Entity) {
 /// Most gems on the ground at once; past it, a kill's worth joins an existing gem.
 const MAX_GEMS: usize = 350;
 
+/// At most five special elite chests: first after one minute, then at least 90 seconds apart.
+/// Boss rewards remain independent. Updating immediately also bounds same-frame death bursts.
+fn claim_elite_chest(run: &mut Run) -> bool {
+    if run.elite_chests >= 5
+        || run.elapsed < 60.0
+        || (run.elite_chests > 0 && run.elapsed - run.last_elite_chest < 90.0)
+    {
+        return false;
+    }
+    run.elite_chests += 1;
+    run.last_elite_chest = run.elapsed;
+    true
+}
+
 pub(super) fn drop_loot(
     mut commands: Commands,
     mut drops: MessageReader<Loot>,
@@ -590,7 +604,7 @@ pub(super) fn drop_loot(
                 d.pos,
                 super::campaign::ChestTier::A,
             );
-        } else if d.elite {
+        } else if d.elite && claim_elite_chest(&mut run) {
             spawn_chest(
                 &mut commands,
                 &mut run,
@@ -925,5 +939,35 @@ mod lethal_pickup_tests {
             assert_eq!(run.gold_found, 0);
             assert!(matches!(next, NextState::Unchanged));
         }
+    }
+}
+
+#[cfg(test)]
+mod elite_chest_tests {
+    use super::*;
+
+    #[test]
+    fn elite_bursts_obey_spacing_cap_and_new_run_reset() {
+        let mut run = Run::default();
+        for second in [0., 30., 59.9] {
+            run.elapsed = second;
+            assert!(!claim_elite_chest(&mut run));
+        }
+        for index in 0..5 {
+            run.elapsed = 60. + index as f32 * 90.;
+            assert!(claim_elite_chest(&mut run));
+            for _ in 0..100 {
+                assert!(!claim_elite_chest(&mut run));
+            }
+            run.elapsed += 89.9;
+            assert!(!claim_elite_chest(&mut run));
+        }
+        run.elapsed = 3600.;
+        assert!(!claim_elite_chest(&mut run));
+        run = Run {
+            elapsed: 60.,
+            ..default()
+        };
+        assert!(claim_elite_chest(&mut run));
     }
 }

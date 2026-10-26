@@ -325,20 +325,21 @@ pub(super) fn build(
                         Node { flex_grow: 1.0, ..default() }));
                     text(heading, font, format!("{} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), 12.0, DIM);
                 });
-                col.spawn((Node { width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(300.0),
+                col.spawn((Node { width: Val::Percent(100.0), aspect_ratio: Some(300.0 / 331.0), flex_shrink: 0.0,
                     overflow: Overflow::clip(), border_radius: BorderRadius::all(Val::Px(3.0)), ..default() }, BackgroundColor(Color::BLACK)))
                 .with_children(|grid| {
                     let tabs = catalog.tabs_for_class(1, CLASSES[hero.class].id);
                     if let Some(tab) = tabs.iter().find(|tab| tab.name == *name) {
-                        // The 1.12 backgrounds form a 320x384 image from 256/64 by 256/128 tiles.
+                        // The 320x384 tile canvas contains 300x331 pixels of painted art;
+                        // the right/bottom remainder is transparent padding for the stock frame.
                         for (tile, left, top, width, height) in [
-                            ("TopLeft", 0.0, 0.0, 80.0, 200.0/3.0), ("TopRight", 80.0, 0.0, 20.0, 200.0/3.0),
-                            ("BottomLeft", 0.0, 200.0/3.0, 80.0, 100.0/3.0), ("BottomRight", 80.0, 200.0/3.0, 20.0, 100.0/3.0),
+                            ("TopLeft", 0.0, 0.0, 256.0, 256.0), ("TopRight", 256.0, 0.0, 44.0, 256.0),
+                            ("BottomLeft", 0.0, 256.0, 256.0, 75.0), ("BottomRight", 256.0, 256.0, 44.0, 75.0),
                         ] {
                             grid.spawn((Backdrop(format!("Interface\\TalentFrame\\{}-{tile}.blp", tab.background)),
-                                ImageNode { color: Color::srgba(1.0, 1.0, 1.0, 0.8), ..default() },
-                                Node { position_type: PositionType::Absolute, left: Val::Percent(left), top: Val::Percent(top),
-                                    width: Val::Percent(width), height: Val::Percent(height), ..default() }));
+                                ImageNode { color: Color::srgba(1.0, 1.0, 1.0, 0.8), rect: Some(Rect::new(0.0, 0.0, width, height)), ..default() },
+                                Node { position_type: PositionType::Absolute, left: Val::Percent(left / 3.0), top: Val::Percent(top / 3.31),
+                                    width: Val::Percent(width / 3.0), height: Val::Percent(height / 3.31), ..default() }));
                         }
                     }
                     for node in nodes {

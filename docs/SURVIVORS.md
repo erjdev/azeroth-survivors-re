@@ -414,3 +414,10 @@ Healing cannot exceed maximum health or revive a dead hero. Cooldown advances cl
 to zero. Lightwell is a cast-triggered pulse here, not a placed world object;
 Shadowform is a defensive cast interaction, not a model transformation. Combat
 balance and presentation refinement remain open.
+
+### Elite-chest pacing
+
+Special named-elite chests are limited to five per run. The first can drop after
+60 seconds of gameplay; later drops require at least 90 seconds since the previous
+one. Killing many elites together does not bypass this pacing. Boss rewards and
+ordinary wooden chests use their own rules.
