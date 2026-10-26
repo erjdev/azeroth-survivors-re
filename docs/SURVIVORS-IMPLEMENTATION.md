@@ -653,8 +653,8 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Shaman | 13 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
 | Warlock | 12 / 50 | 0 / 9 |
-| Druid | 0 / 47 | 0 / 9 |
-| Total | 159 / 432 | 57 / 81 |
+| Druid | 12 / 47 | 0 / 9 |
+| Total | 171 / 432 | 57 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1170,6 +1170,29 @@ and Shadowburn. These definitions replace generic damage fallback and do not gra
 unowned abilities. Area locations, target counts and durations stay unchanged.
 The remaining 38 nodes, all nine Warlock milestones and live balance acceptance
 remain open. No demon companion system is claimed by this first group.
+
+Druid has twelve audited individual effects. Values are per rank and provisional:
+
+| Talent ID / name | Ranks | Effect |
+| --- | --- | --- |
+| 762 Improved Wrath | 5 | Wrath: 4% shorter cooldown; cast-time conversion |
+| 763 Improved Moonfire | 5 | Moonfire: +2% direct/periodic damage and +2 percentage points critical chance |
+| 782 Improved Thorns | 3 | Thorns: +10% retaliation damage |
+| 792 Vengeance | 5 | Wrath/Moonfire/Starfire: +10 percentage points critical damage |
+| 784 Improved Starfire | 5 | Starfire: 3% shorter cooldown; cast-time conversion |
+| 783 Moonglow | 3 | Wrath/Moonfire/Starfire/Rejuvenation: 3% shorter cooldown; mana-cost conversion |
+| 790 Moonfury | 5 | Wrath/Moonfire/Starfire: +2% direct/periodic damage |
+| 794 Thick Hide | 5 | +8 hero armor; conversion |
+| 807 Feline Swiftness | 2 | +5% hero movement speed; conversion without forms |
+| 798 Sharpened Claws | 3 | +2 percentage points hero critical chance; conversion without forms |
+| 830 Improved Rejuvenation | 3 | Rejuvenation: +5% healing |
+| 828 Gift of Nature | 5 | Rejuvenation: +2% healing |
+
+Healing previews identify healing explicitly. Rejuvenation bonuses multiply its
+existing total heal over the same duration; they do not add an instant heal.
+Moonfire previews show both damage and critical chance. These effects replace the
+generic damage fallback. Remaining 35 nodes, nine milestones, forms/feral attacks
+and live combat/balance acceptance remain open.
 
 Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
 threshold tests and representative combat tests prove those behaviors. Switching specs

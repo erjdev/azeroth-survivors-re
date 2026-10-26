@@ -1,5 +1,6 @@
 //! Survivors talent effects and dependency rules, independent of engine spell visuals.
 
+mod druid;
 mod shaman;
 mod warlock;
 
@@ -427,7 +428,13 @@ impl Milestones {
                     TalentStat::SpellGroupCritDamage(spells) if spells.contains(&key) => {
                         effect.crit_damage += value;
                     }
-                    TalentStat::SpellDamage(spell) | TalentStat::SpellAbsorb(spell)
+                    TalentStat::SpellDamageAndCrit(spell) if spell == key => {
+                        effect.damage *= 1.0 + value;
+                        effect.crit += value;
+                    }
+                    TalentStat::SpellDamage(spell)
+                    | TalentStat::SpellAbsorb(spell)
+                    | TalentStat::SpellHealing(spell)
                         if spell == key =>
                     {
                         effect.damage *= 1.0 + value
@@ -1229,6 +1236,8 @@ pub enum TalentStat {
     SpellGroupCooldown(&'static [&'static str]),
     SpellDamage(&'static str),
     SpellAbsorb(&'static str),
+    SpellHealing(&'static str),
+    SpellDamageAndCrit(&'static str),
     SpellCooldown(&'static str),
     SpellCrit(&'static str),
     SpellDuration(&'static str),
@@ -1253,21 +1262,25 @@ impl TalentDefinition {
         }
         if matches!(
             self.stat,
-            TalentStat::ArcaneInstability | TalentStat::ForceOfWill
+            TalentStat::ArcaneInstability
+                | TalentStat::ForceOfWill
+                | TalentStat::SpellDamageAndCrit(_)
         ) {
-            let value = u32::from(rank);
+            let value = (self.per_rank * f32::from(rank) * 100.0).round() as u32;
+            let next = (self.per_rank * f32::from(rank + 1) * 100.0).round() as u32;
             return if rank == self.max_rank {
                 format!("This talent: {value}% damage; {value}% critical chance (maximum rank)")
             } else {
                 format!(
                     "This talent: {value} » {}% damage; {value} » {}% critical chance next rank",
-                    value + 1,
-                    value + 1
+                    next, next
                 )
             };
         }
         let (scale, unit) = match self.stat {
-            TalentStat::ArcaneInstability | TalentStat::ForceOfWill => {
+            TalentStat::ArcaneInstability
+            | TalentStat::ForceOfWill
+            | TalentStat::SpellDamageAndCrit(_) => {
                 unreachable!("handled above")
             }
             TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
@@ -1280,6 +1293,7 @@ impl TalentDefinition {
             TalentStat::SecondaryStunDuration(_) => (1.0, " s added stun duration"),
             TalentStat::SecondaryRootDuration(_) => (1.0, " s added root duration"),
             TalentStat::SpellAbsorb(_) => (100.0, "% absorption"),
+            TalentStat::SpellHealing(_) => (100.0, "% healing"),
             TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
                 (100.0, "% damage")
             }
@@ -2338,6 +2352,7 @@ pub fn definitions(class: usize) -> &'static [TalentDefinition] {
         5 => shaman::DEFINITIONS,
         6 => MAGE_TALENTS,
         7 => warlock::DEFINITIONS,
+        8 => druid::DEFINITIONS,
         _ => &[],
     }
 }
@@ -2395,6 +2410,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellAbsorb(_)
+            | TalentStat::SpellHealing(_)
+            | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -3306,6 +3323,8 @@ mod stat_talent_tests {
                     | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellGroupCooldown(_)
                     | TalentStat::SpellAbsorb(_)
+                    | TalentStat::SpellHealing(_)
+                    | TalentStat::SpellDamageAndCrit(_)
                     | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
                     | TalentStat::SpellCrit(_)

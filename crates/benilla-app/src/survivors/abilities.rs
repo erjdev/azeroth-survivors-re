@@ -3488,6 +3488,58 @@ mod milestone_tests {
     }
 
     #[test]
+    fn druid_node_training_reaches_damage_retaliation_and_healing_parameters() {
+        let base = Milestones {
+            class: 8,
+            ..Default::default()
+        };
+        let ranks: Vec<_> = survivors_core::talents::definitions(8)
+            .iter()
+            .map(|node| (0, node.id, node.max_rank))
+            .collect();
+        let trained = base.with_ranks(&ranks);
+        let stats = Run::default().stats();
+        for level in [1, 5] {
+            for (key, damage, cooldown, crit, crit_damage) in [
+                ("wrath", 1.1, 0.728, 0., 0.5),
+                ("moonfire", 1.21, 0.91, 0.1, 0.5),
+                ("starfire", 1.1, 0.7735, 0., 0.5),
+                ("thorns", 1.3, 1., 0., 0.),
+                ("rejuvenation", 1.265, 0.91, 0., 0.),
+                ("hurricane", 1., 1., 0., 0.),
+                ("insect_swarm", 1., 1., 0., 0.),
+                ("entangling_roots", 1., 1., 0., 0.),
+                ("fireball", 1., 1., 0., 0.),
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!(
+                    (after.count, after.radius, after.range, after.duration),
+                    (before.count, before.radius, before.range, before.duration)
+                );
+                let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
+            }
+        }
+    }
+
+    #[test]
     fn warlock_node_training_reaches_direct_and_periodic_parameters() {
         let base = Milestones {
             class: 7,

@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Druid talent training
+
+Twelve Druid talents now strengthen Balance spells, Thorns, Rejuvenation and hero
+stats. Moonfire previews show damage and critical chance; Rejuvenation previews
+say healing. Coverage is 171/432 individual definitions, including 12/47 Druid nodes.
+
+![Purchased Moonfire talent with both upgrade benefits](images/screenshots/2026-10-26-druid-nodes/moonfire-1280.png)
+
+![Untrained Rejuvenation healing preview](images/screenshots/2026-10-26-druid-nodes/rejuvenation-1280.png)
+
+128 core and 251 app tests, native build, workspace Clippy, data audit, formatting
+and render lint pass. Native checks cover the five-point row gate, purchases,
+saved Wrath/Moonfire ranks and the locked healing preview. Tests cover rank caps,
+reset, spell/class scope and healing/retaliation parameters. Forms, remaining nodes,
+Druid milestones and live balance acceptance remain open.
+
 ## 2026-10-26 — Warlock talent training
 
 Twelve Warlock talents now train shadow, fire, curses and health, with green next-rank
