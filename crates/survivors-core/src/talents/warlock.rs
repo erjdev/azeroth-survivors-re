@@ -17,6 +17,8 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1021, max_rank: 2, name: "Grim Reach", description: "Corruption, Curse of Agony and Death Coil: +10% targeting range per rank; damage, duration and target counts are unchanged", stat: TalentStat::SpellGroupRange(&["corruption", "curse_of_agony", "death_coil"]), per_rank: 0.10 },
+    TalentDefinition { id: 964, max_rank: 2, name: "Destructive Reach", description: "Shadow Bolt, Immolate, Searing Pain, Shadowburn and Rain of Fire: +10% targeting range per rank. Rain of Fire's radius is unchanged; excludes player-centered Hellfire", stat: TalentStat::SpellGroupRange(&["shadow_bolt", "immolate", "searing_pain", "shadowburn", "rain_of_fire"]), per_rank: 0.10 },
     TalentDefinition { id: 1003, max_rank: 5, name: "Improved Corruption", description: "Corruption: 4% shorter cooldown per rank (Survivors cast-time conversion)", stat: TalentStat::SpellCooldown("corruption"), per_rank: 0.04 },
     TalentDefinition { id: 1284, max_rank: 3, name: "Improved Curse of Agony", description: "Curse of Agony: +2% periodic damage per rank", stat: TalentStat::SpellDamage("curse_of_agony"), per_rank: 0.02 },
     TalentDefinition { id: 1042, max_rank: 5, name: "Shadow Mastery", description: "Shadow Bolt, Corruption, Curse of Agony, Death Coil and Shadowburn: +2% damage per rank", stat: TalentStat::SpellGroupDamage(SHADOW), per_rank: 0.02 },

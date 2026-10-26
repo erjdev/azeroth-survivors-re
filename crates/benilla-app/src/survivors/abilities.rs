@@ -126,7 +126,7 @@ impl Params {
             dot: o.def.dot * mult,
             count: o.count(stats) as usize + effect.extra_targets,
             radius: o.radius(stats) * effect.radius,
-            range: o.def.range * effect.range,
+            range: o.def.range * effect.range + effect.range_yards,
             duration: o.duration() * effect.duration,
             effect: milestones.control(
                 o.def.key,
@@ -3508,6 +3508,55 @@ mod milestone_tests {
     }
 
     #[test]
+    fn reach_talents_extend_cast_selection_without_expanding_area_or_bounces() {
+        let stats = Run::default().stats();
+        for (class, id, rank, key, expected) in [
+            (2, 1352, 3, "arcane_shot", 34.),
+            (2, 1352, 3, "volley", 30.),
+            (5, 1641, 2, "chain_lightning", 24.),
+            (7, 1021, 2, "corruption", 24.),
+            (7, 1021, 2, "death_coil", 26.4),
+            (7, 964, 2, "rain_of_fire", 24.),
+            (8, 764, 2, "entangling_roots", 19.2),
+            (8, 764, 2, "hurricane", 24.),
+        ] {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(0, id, rank)]);
+            for level in [1, 4, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.range - expected).abs() < 0.0001, "{key}");
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.dmg, before.dmg);
+                assert_eq!(after.dot, before.dot);
+                assert_eq!(after.duration, before.duration);
+                assert_eq!(after.cooldown, before.cooldown);
+                let distance = (before.range + after.range) * 0.5;
+                let foes = [Foe {
+                    e: Entity::PLACEHOLDER,
+                    pos: Vec3::X * distance,
+                    radius: 0.6,
+                    hp: 100.,
+                    frozen: false,
+                    winters_chill: Default::default(),
+                    dist: distance,
+                }];
+                assert!(nearest(&foes, before.range, 1).is_empty());
+                assert_eq!(nearest(&foes, after.range, 1).len(), 1);
+            }
+        }
+    }
+
+    #[test]
     fn divine_shield_legendary_recharges_only_its_spell_without_stacking() {
         let mut run = Run::default();
         let params = |key, rank, stats: &Stats| {
@@ -3727,9 +3776,21 @@ mod milestone_tests {
                     (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
                     "{key}"
                 );
+                let range_multiplier = if matches!(
+                    key,
+                    "wrath" | "moonfire" | "starfire" | "entangling_roots" | "hurricane"
+                ) {
+                    1.2
+                } else {
+                    1.0
+                };
+                assert!(
+                    (after.range - before.range * range_multiplier).abs() < 0.001,
+                    "{key}"
+                );
                 assert_eq!(
-                    (after.count, after.radius, after.range, after.duration),
-                    (before.count, before.radius, before.range, before.duration)
+                    (after.count, after.radius, after.duration),
+                    (before.count, before.radius, before.duration)
                 );
                 let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
                 assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
@@ -3939,9 +4000,28 @@ mod milestone_tests {
                     (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
                     "{key}"
                 );
+                let range_multiplier = if matches!(
+                    key,
+                    "shadow_bolt"
+                        | "corruption"
+                        | "curse_of_agony"
+                        | "immolate"
+                        | "rain_of_fire"
+                        | "searing_pain"
+                        | "shadowburn"
+                        | "death_coil"
+                ) {
+                    1.2
+                } else {
+                    1.0
+                };
+                assert!(
+                    (after.range - before.range * range_multiplier).abs() < 0.001,
+                    "{key}"
+                );
                 assert_eq!(
-                    (after.count, after.radius, after.range, after.duration),
-                    (before.count, before.radius, before.range, before.duration)
+                    (after.count, after.radius, after.duration),
+                    (before.count, before.radius, before.duration)
                 );
                 let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
                 assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));

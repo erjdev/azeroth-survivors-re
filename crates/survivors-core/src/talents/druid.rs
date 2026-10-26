@@ -2,6 +2,7 @@
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 764, max_rank: 2, name: "Nature's Reach", description: "Wrath, Moonfire, Starfire, Entangling Roots and Hurricane: +10% targeting range per rank. Hurricane's radius and target counts are unchanged; excludes Insect Swarm, Thorns and healing", stat: TalentStat::SpellGroupRange(&["wrath", "moonfire", "starfire", "entangling_roots", "hurricane"]), per_rank: 0.10 },
     TalentDefinition { id: 762, max_rank: 5, name: "Improved Wrath", description: "Wrath: 4% shorter cooldown per rank (Survivors cast-time conversion)", stat: TalentStat::SpellCooldown("wrath"), per_rank: 0.04 },
     TalentDefinition { id: 763, max_rank: 5, name: "Improved Moonfire", description: "Moonfire: +2% direct and periodic damage and +2 percentage points critical chance per rank", stat: TalentStat::SpellDamageAndCrit("moonfire"), per_rank: 0.02 },
     TalentDefinition { id: 782, max_rank: 3, name: "Improved Thorns", description: "Thorns: +10% retaliation damage per rank", stat: TalentStat::SpellDamage("thorns"), per_rank: 0.1 },
@@ -126,7 +127,18 @@ mod tests {
                 );
             }
             for key in ["hurricane", "entangling_roots", "insect_swarm", "fireball"] {
-                assert_eq!(trained.cast(key), CastEffect::default());
+                let range = if matches!(key, "hurricane" | "entangling_roots") {
+                    1. + 0.10 * f32::from(rank.min(2))
+                } else {
+                    1.
+                };
+                assert_eq!(
+                    trained.cast(key),
+                    CastEffect {
+                        range,
+                        ..Default::default()
+                    }
+                );
             }
             let bonus = stat_adjustment(8, &ranks);
             assert_eq!(bonus.armor, 12. * r);

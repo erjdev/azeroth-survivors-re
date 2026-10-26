@@ -120,6 +120,7 @@ pub struct CastEffect {
     pub damage: f32,
     pub radius: f32,
     pub range: f32,
+    pub range_yards: f32,
     pub duration: f32,
     pub cooldown: f32,
     pub crit: f32,
@@ -139,6 +140,7 @@ impl Default for CastEffect {
             damage: 1.0,
             radius: 1.0,
             range: 1.0,
+            range_yards: 0.0,
             duration: 1.0,
             cooldown: 1.0,
             crit: 0.0,
@@ -432,6 +434,12 @@ impl Milestones {
                         if MAGE_FIRE.contains(&key) || MAGE_FROST.contains(&key) =>
                     {
                         effect.damage *= 1.0 + value;
+                    }
+                    TalentStat::SpellGroupRange(spells) if spells.contains(&key) => {
+                        effect.range *= 1.0 + value;
+                    }
+                    TalentStat::SpellGroupRangeYards(spells) if spells.contains(&key) => {
+                        effect.range_yards += value;
                     }
                     TalentStat::SpellGroupDamage(spells) if spells.contains(&key) => {
                         effect.damage *= 1.0 + value;
@@ -1333,6 +1341,8 @@ pub enum TalentStat {
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
     SpellGroupCooldown(&'static [&'static str]),
+    SpellGroupRange(&'static [&'static str]),
+    SpellGroupRangeYards(&'static [&'static str]),
     SpellDamage(&'static str),
     SpellAbsorb(&'static str),
     SpellHealing(&'static str),
@@ -1405,6 +1415,8 @@ impl TalentDefinition {
             TalentStat::CritDamage | TalentStat::SpellGroupCritDamage(_) => {
                 (100.0, "% critical damage")
             }
+            TalentStat::SpellGroupRange(_) => (100.0, "% targeting range"),
+            TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
@@ -1903,6 +1915,11 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1352, max_rank: 3, name: "Hawk Eye",
+        description: "Shots, stings and Volley: +2 yd targeting range per rank. Volley's radius and target counts are unchanged; excludes Explosive Trap",
+        stat: TalentStat::SpellGroupRangeYards(&["arcane_shot", "multi_shot", "serpent_sting", "concussive_shot", "aimed_shot", "volley"]), per_rank: 2.0,
+    },
     TalentDefinition {
         id: 1353,
         max_rank: 1,
@@ -2531,6 +2548,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellGroupCooldown(_)
+            | TalentStat::SpellGroupRange(_)
+            | TalentStat::SpellGroupRangeYards(_)
             | TalentStat::SpellAbsorb(_)
             | TalentStat::SpellHealing(_)
             | TalentStat::SpellDamageAndCrit(_)
@@ -3151,6 +3170,96 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn ranged_talent_groups_change_only_targeting_distance() {
+        let cases: &[(usize, u32, u8, &[&str], bool)] = &[
+            (
+                2,
+                1352,
+                3,
+                &[
+                    "arcane_shot",
+                    "multi_shot",
+                    "serpent_sting",
+                    "concussive_shot",
+                    "aimed_shot",
+                    "volley",
+                ],
+                true,
+            ),
+            (5, 1641, 2, &["lightning_bolt", "chain_lightning"], false),
+            (
+                7,
+                1021,
+                2,
+                &["corruption", "curse_of_agony", "death_coil"],
+                false,
+            ),
+            (
+                7,
+                964,
+                2,
+                &[
+                    "shadow_bolt",
+                    "immolate",
+                    "searing_pain",
+                    "shadowburn",
+                    "rain_of_fire",
+                ],
+                false,
+            ),
+            (
+                8,
+                764,
+                2,
+                &[
+                    "wrath",
+                    "moonfire",
+                    "starfire",
+                    "entangling_roots",
+                    "hurricane",
+                ],
+                false,
+            ),
+        ];
+        for &(class, id, max, spells, flat) in cases {
+            for rank in [0, 1, 2, 3, 255] {
+                let base = Milestones {
+                    class,
+                    points: [30; 3],
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(0, id, rank)]);
+                for def in crate::data::ABILITIES {
+                    let mut expected = base.cast(def.key);
+                    if spells.contains(&def.key) {
+                        if flat {
+                            expected.range_yards += 2. * f32::from(rank.min(max));
+                        } else {
+                            expected.range *= 1. + 0.10 * f32::from(rank.min(max));
+                        }
+                    }
+                    assert_eq!(trained.cast(def.key), expected, "{id}: {}", def.key);
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+                for other in (0..9).filter(|other| *other != class) {
+                    let foreign = Milestones {
+                        class: other,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(0, id, rank)]);
+                    assert_eq!(
+                        foreign,
+                        Milestones {
+                            class: other,
+                            ..Default::default()
+                        }
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn paladin_retribution_damage_is_scoped_bounded_and_removable() {
         for rank in [0, 1, 5, 255] {
             let base = Milestones {
@@ -3491,6 +3600,8 @@ mod stat_talent_tests {
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellGroupCooldown(_)
+                    | TalentStat::SpellGroupRange(_)
+                    | TalentStat::SpellGroupRangeYards(_)
                     | TalentStat::SpellAbsorb(_)
                     | TalentStat::SpellHealing(_)
                     | TalentStat::SpellDamageAndCrit(_)

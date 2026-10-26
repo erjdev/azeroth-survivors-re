@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Targeting-range talents
+
+Hawk Eye, Storm Reach, Grim Reach, Destructive Reach and Nature’s Reach now extend
+their named spells’ targeting distance. Area size, Chain Lightning bounce distance
+and target counts stay unchanged. Talent previews show the green range benefit.
+
+![Hawk Eye preview](images/screenshots/2026-10-26-reach-talents/hawk-eye-1280.png)
+
+![Destructive Reach preview](images/screenshots/2026-10-26-reach-talents/destructive-reach-1280.png)
+
+137 core and 273 app tests pass; native build, workspace Clippy, formatting and
+render lint pass. The data audit verifies 183/432 talent definitions. Native 1280×720 checks cover
+Hunter and Warlock descriptions and prerequisite refusal. Live combat range checks
+and the full responsive matrix remain open.
+
 ## 2026-10-26 — Paladin Retribution damage talents
 
 Sanctity Aura now boosts Paladin Holy attacks by 10%. Vengeance grants 3% per rank

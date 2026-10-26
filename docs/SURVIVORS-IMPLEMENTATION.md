@@ -4540,3 +4540,25 @@ and README. The DBC audit verifies Paladin 21/44 nodes and total 178/432; all 78
 milestone descriptions remain as before. Full talent and responsive acceptance is
 still open. 136 core tests and 272 app tests pass with explicit checkout data.
 Native play build, workspace Clippy, formatting and render lint pass.
+
+### Targeting-range talents — 2026-10-26
+
+Hawk Eye adds 2 yd per rank (three ranks) to Hunter shots, Serpent Sting and Volley,
+excluding Explosive Trap. Storm Reach adds 10% per rank (two ranks) to Lightning
+Bolt and Chain Lightning's initial targeting range. Grim Reach adds 10% per rank
+to Corruption, Curse of Agony and Death Coil. Destructive Reach adds 10% per rank
+to Shadow Bolt, Immolate, Searing Pain, Shadowburn and Rain of Fire. Nature's Reach
+adds 10% per rank to Wrath, Moonfire, Starfire, Entangling Roots and Hurricane.
+The latter three nodes have two ranks. Ground spells extend placement distance;
+area radius and chain bounce distance do not change. Player-centered effects,
+healing, unrelated spells and target counts are excluded.
+
+Core tests cover the full ability catalog, bounded ranks, foreign classes and reset.
+App tests exercise cast parameters and a target between base and trained range,
+plus unchanged damage, duration, cooldown, radius and count. Native 1280×720 Hunter
+and Warlock previews verify descriptions and locked-node refusal; live combat and
+the full responsive matrix remain open. Screenshots are embedded in CHANGELOG and
+README. The data audit verifies 183/432 nodes; milestone coverage remains 78/81.
+
+Validation: 137 core and 273 app tests pass with checkout data. Native play build,
+workspace Clippy, formatting and render lint pass.

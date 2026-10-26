@@ -144,6 +144,10 @@ Paladin Retribution now includes Sanctity Aura and a timed Vengeance damage bonu
 
 ![Paladin Vengeance talent](docs/images/screenshots/2026-10-26-paladin-retribution/vengeance-1280.png)
 
+Range talents explain which attacks reach farther without increasing area size.
+
+![Destructive Reach talent](docs/images/screenshots/2026-10-26-reach-talents/destructive-reach-1280.png)
+
 Jewelry offers have live wide/compact preview presets, with resolved legendary spell names and icons.
 
 ![Jewelry card preview](docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png)

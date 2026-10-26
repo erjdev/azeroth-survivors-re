@@ -13,6 +13,7 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1641, max_rank: 2, name: "Storm Reach", description: "Lightning Bolt and Chain Lightning: +10% initial targeting range per rank. Chain Lightning bounce radius and target count are unchanged", stat: TalentStat::SpellGroupRange(LIGHTNING), per_rank: 0.10 },
     TalentDefinition { id: 564, max_rank: 5, name: "Convection", description: "Lightning Bolt, Chain Lightning and shocks: 2% shorter cooldown per rank (Survivors mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(CASTS), per_rank: 0.02 },
     TalentDefinition { id: 563, max_rank: 5, name: "Concussion", description: "Lightning Bolt, Chain Lightning and shocks: +2% direct and periodic damage per rank", stat: TalentStat::SpellGroupDamage(CASTS), per_rank: 0.02 },
     TalentDefinition { id: 561, max_rank: 3, name: "Call of Flame", description: "Searing Totem and Magma Totem: +5% damage per rank", stat: TalentStat::SpellGroupDamage(TOTEMS), per_rank: 0.05 },
