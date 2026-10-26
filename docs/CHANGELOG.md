@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Keep talent focus while editing a spec
+
+Buying or refunding a rank now keeps the talent focused and refreshes its green
+preview. Focus survives tree rebuilds and layout delays without repeating actions;
+leaving the page, switching heroes or handing control to the mouse clears it.
+
+![Talent remains focused after consecutive refunds and a purchase](images/screenshots/2026-10-26-talent-retain/focus-after-purchase-1280.png)
+
+244 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Native keyboard validation covers
+two consecutive refunds, a purchase, updated previews and saved final rank.
+Physical controller acceptance and focus retention on other pages remain open.
+
 ## 2026-10-26 — Talent refunds without a mouse
 
 Backspace or controller west refunds one point from the focused talent through

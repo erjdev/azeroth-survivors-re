@@ -110,9 +110,9 @@ leaving a margin for the outline. Focused Enter is consumed before the global ru
 shortcut. Native compact evidence covers Options/Achievements, Space category
 selection, and equipment/lower-action scroll reveal; two screenshots are embedded
 in CHANGELOG/README. Controller ECS tests cover the shared path and nested-scroll
-regression. Physical devices, complete per-page traversal, focus-driven hover
-details, secondary actions/refunds, name entry without a keyboard and controller
-gameplay remain open.
+regression. Physical devices, complete per-page traversal, other hover details,
+non-talent secondary actions, name entry without a keyboard and controller gameplay
+remain open.
 Talent and milestone descriptions now follow keyboard/controller focus before
 mouse hover, using the same title, rank preview and supported-effect tint. Pure
 milestone rows join focus navigation without becoming purchase actions. Inspection
@@ -122,7 +122,10 @@ Talent refunds now accept Backspace/controller west on the focused talent throug
 the same row/prerequisite checks as right-click. Requests last one frame, clear
 under modals/text entry and cannot trigger secondary equipment actions. Native
 Backspace validation refunded rank 4→3, returned one point and verified the saved
-spec. Focus retention across the resulting tree rebuild is still required.
+spec. Talent and milestone focus now survives tree entity replacement, including
+the intermediate layout frame, using rank-independent identity scoped to the hero.
+Restoration does not replay an action and clears on page/hero changes or modal
+and pointer handoff. General focus retention on other pages remains open.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.

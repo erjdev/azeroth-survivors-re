@@ -43,7 +43,9 @@ Talent descriptions follow directional focus before spending a point.
 
 ![Talent focus and rank preview](docs/images/screenshots/2026-10-26-talent-focus/talent-1280.png)
 
-![Keyboard talent refund](docs/images/screenshots/2026-10-26-talent-refund/refunded-1280.png)
+Talent focus and the green preview stay in place when buying or refunding ranks.
+
+![Talent focus after editing ranks](docs/images/screenshots/2026-10-26-talent-retain/focus-after-purchase-1280.png)
 
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
