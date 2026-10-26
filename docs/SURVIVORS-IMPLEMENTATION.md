@@ -557,14 +557,14 @@ obtainable; dead heroes cannot win simultaneously. UI and combat use the same dr
 write failure that preserves the old save, keeps dirty state and succeeds on
 retry. A native full restart retained a common equipped helmet, a legendary
 cosmetic override and an explicitly empty shoulder slot with identical totals.
-The screenshot is inline in the changelog. Explicit appearance buttons work;
-automated Shift-right-click equipped the item instead, so modifier-shortcut
-acceptance remains unresolved. This does not prove all platform/model variants.
-Follow-up: gesture state now retains Shift through release, with two passing
-regressions for both Shift keys, coalesced events and no leakage. The automated
-macOS modified click still equips; standalone held-modifier automation is unsupported.
-Do not close shortcut acceptance without verifying actual native modifier delivery
-and the resulting appearance action. Explicit appearance buttons remain the verified path.
+The screenshot is inline in the changelog. Explicit appearance buttons work.
+The automated macOS Shift-right-click mismatch was traced to native aggregate
+modifier flags arriving without physical key events. Reading those flags in event
+order now selects the legendary look while retaining the common equipped helmet
+and unchanged totals. A following ordinary right-click removed/restored equipment
+without changing the look. Five shortcut regressions cover key release, aggregate
+flags, focus loss, window destruction and window isolation. Native macOS shortcut
+acceptance is verified for this fixture; other platforms/model variants remain open.
 
 
 Add per-class selected gear for all nine slots, with explicit empty slots. Migrate old

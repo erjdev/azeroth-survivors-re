@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Native cosmetic shortcut verified
+
+Shift-right-click now reads native modifier flags as well as physical keys. A
+macOS trace confirmed Shift flags arrived without key events; event-order tracking
+fixes the cosmetic gesture and clears state on focus loss or window destruction.
+
+![Shift-right-click selects the legendary look while the common helmet remains equipped](images/screenshots/2026-10-25-native-look-shortcut/cosmetic-1280.jpg)
+
+Native 1280×720 validation retained the common helmet and its bonuses while
+selecting the legendary look. Subsequent ordinary right-clicks removed/restored
+equipment without changing that look. Five shortcut regressions pass, including
+release ordering and window isolation. Native build, workspace Clippy, formatting
+and render-pass lint pass. This resolves the preceding macOS fixture
+failure; other platforms and full model acceptance remain open.
+
 ## 2026-10-25 — Cosmetic shortcut release handling
 
 Right-click now remembers Shift from the start of the gesture and accepts a

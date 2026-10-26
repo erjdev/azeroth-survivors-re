@@ -313,9 +313,11 @@ Rogue coverage is still incomplete.
 
 The Collection detail card groups item identity following the intention design;
 long names wrap with the available panel width. Equipment comparisons preview
-gains and losses, including the worn-set bonus.
+gains and losses, including the worn-set bonus. Shift-right-click selects a collected
+look independently of worn gear; native macOS validation retained the common
+helmet’s bonuses while selecting its legendary appearance.
 
-![Collection equipment comparison](docs/images/screenshots/2026-10-25-equipment-preview/set-loss-1280.jpg)
+![Collection with common helmet equipped and legendary appearance selected](docs/images/screenshots/2026-10-25-native-look-shortcut/cosmetic-1280.jpg)
 
 ## Interface gallery
 

@@ -276,11 +276,7 @@ pub(super) enum Act {
 pub(super) fn input(
     pointer: Pointer,
     acts: Query<(Entity, &Act, &Interaction)>,
-    keyboard: (
-        Res<ButtonInput<KeyCode>>,
-        MessageReader<bevy::input::keyboard::KeyboardInput>,
-        Local<shortcuts::RightClickModifiers>,
-    ),
+    keyboard: shortcuts::Keyboard,
     mut typing: ResMut<Typing>,
     mut armory: ResMut<Armory>,
     mut account: ResMut<Account>,
@@ -295,14 +291,21 @@ pub(super) fn input(
     mut granted: Local<bool>,
     mut exit: MessageWriter<AppExit>,
 ) {
-    let (keys, mut keyboard, mut shortcut) = keyboard;
+    let shortcuts::Keyboard {
+        keys,
+        mut keyboard,
+        mut shortcut,
+        mut raw,
+        mut native,
+    } = keyboard;
+    let native_cosmetic_click = native.read(raw.read());
     if *phase.get() != Phase::Menu {
         typing.0 = false;
         keyboard.clear();
         *shortcut = default();
         return;
     }
-    let cosmetic_click = shortcut.update(&pointer.mouse, &keys);
+    let cosmetic_click = shortcut.update(&pointer.mouse, &keys) || native_cosmetic_click;
     if !*granted {
         if account.grant_new() {
             account.save();
