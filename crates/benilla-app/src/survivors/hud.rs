@@ -2009,12 +2009,42 @@ fn reactive_buff_status(run: &Run) -> String {
             run.blood_craze_t.ceil()
         ));
     }
+    let regen = run.milestones.spirit_tap_regen();
+    if regen > 0.0 && run.spirit_tap_t > 0.0 {
+        active.push(format!(
+            "Spirit Tap +{:.0}% health/sec ({:.0}s)",
+            regen * 100.0,
+            run.spirit_tap_t.ceil()
+        ));
+    }
     active.join("\n")
 }
 
 #[cfg(test)]
 mod reactive_buff_tests {
     use super::*;
+
+    #[test]
+    fn spirit_tap_status_reports_regeneration_and_expiry() {
+        let mut run = Run {
+            spirit_tap_t: 14.2,
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 465, 1)]),
+            ..Default::default()
+        };
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Spirit Tap +1% health/sec (15s)"
+        );
+        run.spirit_tap_t = 0.0;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.spirit_tap_t = 10.0;
+        run.hp = 0.0;
+        assert!(reactive_buff_status(&run).is_empty());
+    }
 
     #[test]
     fn active_talents_show_effects_and_remaining_seconds_only_while_alive() {

@@ -443,6 +443,7 @@ pub(super) struct Run {
     pub flurry_t: f32,
     pub remorseless_until: f32,
     pub blood_craze_t: f32,
+    pub spirit_tap_t: f32,
     pub thorns: f32,
     pub thorns_t: f32,
     pub thorns_spell: u32,
@@ -526,6 +527,7 @@ impl Default for Run {
             flurry_t: 0.0,
             remorseless_until: 0.0,
             blood_craze_t: 0.0,
+            spirit_tap_t: 0.0,
             thorns: 0.0,
             thorns_t: 0.0,
             thorns_spell: 0,
@@ -589,6 +591,13 @@ impl Run {
         self.opening_hand = perks.opening_hand > 0;
         self.can_skip = perks.skip > 0;
         self.keen_eye = perks.keen_eye;
+    }
+
+    pub(super) fn record_spirit_tap_kill(&mut self, rng: &mut Rng) {
+        let chance = self.milestones.spirit_tap_chance();
+        if self.alive() && chance > 0.0 && (chance >= 1.0 || rng.f32() < chance) {
+            self.spirit_tap_t = 15.0;
+        }
     }
 
     pub(super) fn record_remorseless_kill(&mut self) {

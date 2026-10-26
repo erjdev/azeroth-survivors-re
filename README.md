@@ -327,7 +327,9 @@ navigation to Collection for full equipment details.
 
 ![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
-Priest now has eight individual spell-training talents and nine tree milestones with scoped previews.
+Priest now has nine individual talents and nine tree milestones with scoped previews.
+
+![Spirit Tap recovery preview](docs/images/screenshots/2026-10-25-spirit-tap/talent-1280.jpg)
 
 ![Priest spell-training preview](docs/images/screenshots/2026-10-25-priest-training/searing-light-1280.jpg)
 

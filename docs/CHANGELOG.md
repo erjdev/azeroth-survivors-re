@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Spirit Tap recovery
+
+Priest Spirit Tap now gives kills a 20% chance per rank to regenerate 1% maximum
+health per second for 15 seconds. Further procs refresh the duration without
+stacking; the active-buff readout shows time remaining.
+
+![Spirit Tap purchase/refund preview at 1280×720](images/screenshots/2026-10-25-spirit-tap/talent-1280.jpg)
+
+114 core tests and four engine tests pass, covering direct/periodic kills, expiry,
+refreshes and frame-independent healing. Native purchase/refund, build, Clippy,
+formatting and render lint pass. Live combat visuals and balance remain unverified.
+
 ## 2026-10-25 — Priest tree milestones
 
 All nine Priest milestones now have explicit effects: shield protection, linked

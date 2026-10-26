@@ -345,10 +345,11 @@ similarly named individual talent nodes and reset when the selected spec changes
 
 ### Priest talent tuning (initial)
 
-Eight individual Priest talents now replace their provisional general damage:
+Nine individual Priest talents now replace their provisional general damage:
 
 | Talent | Per-rank Survivors effect |
 |---|---|
+| Spirit Tap (5 ranks) | +20 percentage points chance on kill to regenerate 1% maximum health/sec for 15 sec; refreshes without stacking |
 | Improved Power Word: Shield (3 ranks) | +5% shield absorption; same duration |
 | Holy Specialization (5) | +1% critical chance for Smite, Holy Fire and Holy Nova |
 | Divine Fury (5) | 4% shorter Smite/Holy Fire cooldown; automatic-cast conversion |
@@ -357,6 +358,9 @@ Eight individual Priest talents now replace their provisional general damage:
 | Improved Mind Blast (5) | 5% shorter Mind Blast cooldown |
 | Improved Psychic Scream (2) | 10% shorter cooldown; unchanged fear duration |
 | Darkness (5) | +2% Shadow Word: Pain, Mind Blast and Psychic Scream damage |
+
+Spirit Tap converts spirit/mana recovery to health regeneration. Direct and periodic
+kills can trigger it once per enemy; healing stops at maximum health and cannot revive.
 
 These effects stay with the selected hero/spec and do not affect foreign-class or
 jewelry spells. Duration/cooldown conversions use the existing Survivors spell

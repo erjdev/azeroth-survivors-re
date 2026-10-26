@@ -409,6 +409,22 @@ impl Milestones {
         }
     }
 
+    pub fn spirit_tap_chance(self) -> f32 {
+        if self.class == 4 {
+            self.trained_value(TalentStat::SpiritTap)
+        } else {
+            0.0
+        }
+    }
+
+    pub fn spirit_tap_regen(self) -> f32 {
+        if self.spirit_tap_chance() > 0.0 {
+            0.01
+        } else {
+            0.0
+        }
+    }
+
     /// Kill-triggered critical chance for the next successful Rogue melee cast.
     pub fn remorseless_crit(self, key: &str) -> f32 {
         if self.class == 3
@@ -1025,6 +1041,7 @@ pub enum TalentStat {
     BloodCrazeHealing,
     FlurryHaste,
     Remorseless,
+    SpiritTap,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
     SecondaryRootDuration(&'static str),
@@ -1095,6 +1112,7 @@ impl TalentDefinition {
             TalentStat::CritDamage | TalentStat::SpellGroupCritDamage(_) => {
                 (100.0, "% critical damage")
             }
+            TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::BloodCrazeHealing => {
@@ -2028,6 +2046,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 465, max_rank: 5, name: "Spirit Tap",
+        description: "Kills have a 20% chance per rank to regenerate 1% maximum health per second for 15 sec; refreshes without stacking (Survivors spirit/mana conversion)",
+        stat: TalentStat::SpiritTap, per_rank: 0.20,
+    },
+    TalentDefinition {
         id: 343, max_rank: 3, name: "Improved Power Word: Shield",
         description: "Power Word: Shield absorbs 5% more damage per rank; does not change its duration",
         stat: TalentStat::SpellAbsorb("power_word_shield"), per_rank: 0.05,
@@ -2106,6 +2129,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SecondaryRootDuration(_)
             | TalentStat::EnrageDamage
             | TalentStat::BloodCrazeHealing
+            | TalentStat::SpiritTap
             | TalentStat::Remorseless
             | TalentStat::FlurryHaste
             | TalentStat::CriticalBleed
@@ -2329,6 +2353,30 @@ mod stat_talent_tests {
             }
             .with_ranks(&ranks);
             assert_eq!(other.cast("eviscerate"), CastEffect::default());
+        }
+    }
+
+    #[test]
+    fn spirit_tap_chance_is_bounded_and_regeneration_is_not_rank_multiplied() {
+        for class in 0..9 {
+            for rank in 0..=6 {
+                let trained = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 465, rank)]);
+                let chance = if class == 4 {
+                    0.2 * f32::from(rank.min(5))
+                } else {
+                    0.0
+                };
+                assert_eq!(trained.spirit_tap_chance(), chance);
+                assert_eq!(
+                    trained.spirit_tap_regen(),
+                    if chance > 0.0 { 0.01 } else { 0.0 }
+                );
+                assert_eq!(trained.with_ranks(&[]).spirit_tap_chance(), 0.0);
+            }
         }
     }
 
@@ -2898,6 +2946,7 @@ mod stat_talent_tests {
                     | TalentStat::SecondaryRootDuration(_)
                     | TalentStat::EnrageDamage
                     | TalentStat::BloodCrazeHealing
+                    | TalentStat::SpiritTap
                     | TalentStat::Remorseless
                     | TalentStat::FlurryHaste
                     | TalentStat::CriticalBleed

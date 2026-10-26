@@ -454,6 +454,10 @@ fn regenerate(run: &mut Run, stats: &super::Stats, dt: f32) {
             stats.max_hp * run.milestones.blood_craze_fraction() * dt.min(run.blood_craze_t) / 6.0;
         run.blood_craze_t = (run.blood_craze_t - dt).max(0.0);
     }
+    if run.spirit_tap_t > 0.0 {
+        heal += stats.max_hp * run.milestones.spirit_tap_regen() * dt.min(run.spirit_tap_t);
+        run.spirit_tap_t = (run.spirit_tap_t - dt).max(0.0);
+    }
     run.heal(heal, stats.max_hp);
 }
 
@@ -600,6 +604,68 @@ mod reactive_talent_tests {
         run.hp = 0.;
         run.record_flurry_hit("cleave", 10., true);
         assert_eq!(run.flurry_t, 0.);
+    }
+
+    #[test]
+    fn spirit_tap_refreshes_without_stacking_and_heals_only_active_time() {
+        for steps in [vec![20.0], vec![1.0; 20], vec![0.25; 80]] {
+            let mut run = Run {
+                hp: 20.0,
+                milestones: Milestones {
+                    class: 4,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 465, 5)]),
+                ..Default::default()
+            };
+            let mut rng = super::super::Rng(42);
+            let mut stats = run.stats();
+            stats.regen = 0.0;
+            run.record_spirit_tap_kill(&mut rng);
+            assert_eq!(run.spirit_tap_t, 15.0);
+            regenerate(&mut run, &stats, 2.0);
+            run.record_spirit_tap_kill(&mut rng);
+            assert_eq!(run.spirit_tap_t, 15.0);
+            let before = run.hp;
+            for dt in steps {
+                regenerate(&mut run, &stats, dt);
+            }
+            assert!((run.hp - before - stats.max_hp * 0.15).abs() < 0.0001);
+            assert_eq!(run.spirit_tap_t, 0.0);
+            run.hp = stats.max_hp - 0.01;
+            run.record_spirit_tap_kill(&mut rng);
+            regenerate(&mut run, &stats, 1.0);
+            assert_eq!(run.hp, stats.max_hp);
+            run.hp = 0.0;
+            let remaining = run.spirit_tap_t;
+            run.record_spirit_tap_kill(&mut rng);
+            assert_eq!(run.spirit_tap_t, remaining);
+            regenerate(&mut run, &stats, 5.0);
+            assert_eq!(run.hp, 0.0);
+            run.hp = 20.0;
+            run.milestones = run.milestones.with_ranks(&[]);
+            regenerate(&mut run, &stats, 5.0);
+            assert_eq!(run.hp, 20.0);
+        }
+    }
+
+    #[test]
+    fn spirit_tap_failed_roll_preserves_remaining_duration_and_untrained_rng() {
+        let seed = (1..10000)
+            .find(|seed| super::super::Rng(*seed).f32() > 0.2)
+            .unwrap();
+        let mut rng = super::super::Rng(seed);
+        let mut run = Run::default();
+        run.record_spirit_tap_kill(&mut rng);
+        assert_eq!(rng.0, seed);
+        run.milestones = Milestones {
+            class: 4,
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 465, 1)]);
+        run.spirit_tap_t = 7.0;
+        run.record_spirit_tap_kill(&mut rng);
+        assert_eq!(run.spirit_tap_t, 7.0);
     }
 
     #[test]

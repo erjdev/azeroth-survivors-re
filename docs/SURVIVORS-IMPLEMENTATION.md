@@ -3768,3 +3768,17 @@ cooldown advances, shielding and immunity. Native 1280×720 Lightwell and 640×7
 Shadow Weaving descriptions are captured in the changelog from legal 30-point specs.
 Native build, workspace Clippy, formatting and render-pass lint pass. Remaining
 individual Priest talents, live combat balance and presentation refinement remain open.
+
+### Spirit Tap recovery — 2026-10-25
+
+The ninth individual Priest talent replaces provisional damage with a kill-triggered
+health regeneration conversion: 20% proc chance per rank, 1% maximum health per
+second for 15 seconds. Further procs refresh without stacking. Direct and periodic
+kills share the trigger; dead enemies cannot trigger again. Active-buff text reports
+remaining time. Removing training stops the healing benefit.
+
+114 core tests and four focused engine tests pass, including failed rolls, refresh,
+expiry across frame sizes, health caps and death. Native 1280×720 purchase/refund
+confirms the green 80 to 100% preview; the changelog and README embed its capture.
+Native build, workspace Clippy, formatting and render lint pass. Live combat
+presentation/balance and remaining Priest nodes remain open.
