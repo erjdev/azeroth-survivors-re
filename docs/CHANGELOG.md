@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Achievement earned dates
+
+New achievements save their first-earned UTC date and show it on summary/category
+cards. Older achievements stay undated; loading date metadata cannot unlock
+achievements or award points. Recent ordering continues to follow grant order.
+
+![New dated achievement alongside legacy achievements](images/screenshots/2026-10-26-achievement-dates/summary-1280.png)
+
+![Saved date after restarting at compact size](images/screenshots/2026-10-26-achievement-dates/reloaded-640.png)
+
+256 app tests pass, including save round-trips, repeated grants, legacy saves,
+invalid metadata and leap-year boundaries. Native 1280×720 / 640×720 checks use
+an isolated synthetic account and confirm persistence without a second grant.
+Native build, workspace Clippy, formatting and render lint pass. Dates use the
+local system clock in UTC; historical dates cannot be recovered from older saves.
+
 ## 2026-10-26 — Achievement category navigation
 
 Achievement categories now use full-width action rows, matching the intention

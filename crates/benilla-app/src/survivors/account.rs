@@ -1,6 +1,9 @@
 //! The account save: named characters, and the permanent progress shared by a class.
 
+mod achievement_dates;
+
 use bevy::prelude::*;
+use std::collections::BTreeMap;
 
 use super::campaign::{self, Bonus, Feats, Quality, TALENT_CAP};
 use super::data;
@@ -145,6 +148,7 @@ pub(super) struct Account {
     pub pets: PetRanks,
     pub perks: PerkRanks,
     earned: Vec<u16>,
+    earned_dates: BTreeMap<u16, u32>,
     spent: u32,
     perk_spent: u32,
     resets: u8,
@@ -713,6 +717,13 @@ impl Account {
         &self.earned
     }
 
+    pub fn earned_date(&self, id: u16) -> Option<String> {
+        self.earned_dates
+            .get(&id)
+            .copied()
+            .and_then(achievement_dates::label)
+    }
+
     pub fn resets_left(&self) -> u8 {
         self.resets
     }
@@ -727,12 +738,20 @@ impl Account {
 
     /// Pays any achievement the account now meets. A second call pays nothing new.
     pub fn grant_new(&mut self) -> bool {
+        self.grant_new_on(achievement_dates::today())
+    }
+
+    fn grant_new_on(&mut self, day: Option<u32>) -> bool {
+        let day = day.filter(|day| *day <= achievement_dates::MAX_DAY);
         let found = rewards::fresh(&self.snapshot(), &self.earned);
         if found.is_empty() {
             return false;
         }
         for (id, _) in found {
             self.earned.push(id);
+            if let Some(day) = day {
+                self.earned_dates.insert(id, day);
+            }
         }
         self.dirty = true;
         true
@@ -912,6 +931,7 @@ pub(super) fn empty() -> Account {
         pets: PetRanks::default(),
         perks: PerkRanks::default(),
         earned: Vec::new(),
+        earned_dates: BTreeMap::new(),
         spent: 0,
         perk_spent: 0,
         resets: 2,
@@ -1015,6 +1035,9 @@ fn encode(account: &Account) -> String {
             .collect::<Vec<_>>()
             .join(",");
         out.push_str(&format!("earn {ids}\n"));
+    }
+    for (id, day) in &account.earned_dates {
+        out.push_str(&format!("earned_date {id} {day}\n"));
     }
     out
 }
@@ -1343,6 +1366,16 @@ fn parse(text: &str) -> Result<Account, ()> {
                     keen_eye: n[5].min(2),
                 };
             }
+            Some("earned_date") => {
+                if let (Some(id), Some(day)) = (
+                    parts.next().and_then(|s| s.parse::<u16>().ok()),
+                    parts.next().and_then(|s| s.parse::<u32>().ok()),
+                ) {
+                    if day <= achievement_dates::MAX_DAY {
+                        account.earned_dates.entry(id).or_insert(day);
+                    }
+                }
+            }
             Some("earn") => {
                 if let Some(list) = parts.next() {
                     for id in list.split(',') {
@@ -1378,6 +1411,9 @@ fn parse(text: &str) -> Result<Account, ()> {
             super::equipment::Equipment::legacy(&progress.pieces)
         };
     }
+    account
+        .earned_dates
+        .retain(|id, _| account.earned.contains(id) && rewards::available(*id));
     Ok(account)
 }
 
@@ -2556,6 +2592,49 @@ pets 2 3 1 1 2 0 1
         let anduin_might = account.bonus_picked(1, Some(anduin)).might;
         let uther_might = account.bonus_picked(1, Some(uther)).might;
         assert!(anduin_might > uther_might);
+    }
+
+    #[test]
+    fn achievement_dates_record_once_roundtrip_and_never_backfill_or_grant() {
+        let mut account = empty();
+        account.runs = 10;
+        assert!(account.grant_new_on(Some(20_695)));
+        assert_eq!(account.earned_date(64).as_deref(), Some("30 Aug 2026 UTC"));
+        let points = account.unspent();
+        assert!(!account.grant_new_on(Some(20_696)));
+        assert_eq!(account.unspent(), points);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.earned_dates, account.earned_dates);
+        loaded.runs = 100;
+        assert!(loaded.grant_new_on(Some(20_696)));
+        assert_eq!(loaded.earned_date(64), account.earned_date(64));
+        assert_eq!(loaded.earned_date(65).as_deref(), Some("31 Aug 2026 UTC"));
+
+        let mut legacy = parse("earn 64\n").unwrap();
+        legacy.runs = 10;
+        assert!(!legacy.grant_new_on(Some(20_695)));
+        assert!(legacy.earned_date(64).is_none());
+        assert!(parse(&encode(&legacy)).unwrap().earned_date(64).is_none());
+
+        let metadata = format!(
+            "earned_date 64 20695\nearned_date 64 20696\nearned_date 65 20695\nearned_date {} 20695\nearned_date 63 4294967295\nearned_date 62 -1\nearned_date 61 bad\nearn 64,63,62,61,{}\n",
+            rewards::DEATHLESS_HOUR, rewards::DEATHLESS_HOUR,
+        );
+        let loaded = parse(&metadata).unwrap();
+        assert_eq!(loaded.earned_dates.len(), 1);
+        assert_eq!(loaded.earned_date(64), account.earned_date(64));
+        assert!(!loaded.earned_ids().contains(&65));
+        assert_eq!(loaded.unspent(), rewards::points_of(loaded.earned_ids()));
+
+        for missing in [None, Some(u32::MAX)] {
+            let mut account = empty();
+            account.runs = 10;
+            assert!(account.grant_new_on(missing));
+            assert!(account.earned_dates.is_empty());
+            assert!(account.earned_ids().contains(&64));
+            assert!(!account.grant_new_on(Some(20_695)));
+            assert!(account.earned_dates.is_empty());
+        }
     }
 
     #[test]

@@ -214,6 +214,11 @@ Reference: `docs/intentions/survivors_talent_tab.png`.
 
 ## Achievements
 
+New grants record their first-earned UTC calendar date from the system clock.
+Summary and category cards show that date; legacy achievements without recorded
+dates remain labeled Earned. Date metadata never grants an achievement or points.
+Recent ordering follows grant order, even if the system clock changes.
+
 Account-wide. The summary shows points earned against the whole catalog, recently earned,
 and five bars: Zones, Classes, Collection, Feats, Lifetime. Each category has its own page.
 A row shows its reward in points and, where it is a count, how far along it is.

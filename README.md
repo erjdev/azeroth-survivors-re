@@ -79,6 +79,10 @@ Achievements uses full-row category controls for pointer and keyboard navigation
 
 ![Achievement category navigation](docs/images/screenshots/2026-10-26-achievement-nav/summary-1280.png)
 
+New achievements retain their earned dates; older saves keep undated history.
+
+![Achievement earned dates](docs/images/screenshots/2026-10-26-achievement-dates/summary-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

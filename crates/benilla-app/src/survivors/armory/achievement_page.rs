@@ -277,7 +277,7 @@ pub(super) fn build(
                     }
                     grid(body, |grid| {
                         for entry in entries {
-                            card(grid, font, entry);
+                            card(grid, font, account, entry);
                         }
                     });
                 }
@@ -285,7 +285,12 @@ pub(super) fn build(
         });
 }
 
-fn card(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, entry: &rewards::Listed) {
+fn card(
+    ui: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    account: &Account,
+    entry: &rewards::Listed,
+) {
     ui.spawn((
         Node {
             flex_basis: Val::Percent(48.0),
@@ -346,16 +351,19 @@ fn card(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, entry: &rewards::Lis
             if entry.id == rewards::NO_U {
                 text(content, font, "Companion: Sapphiron", 12.0, DIM);
             }
+            let status = if !entry.available {
+                "Criteria pending".to_string()
+            } else if entry.earned {
+                account
+                    .earned_date(entry.id)
+                    .map_or_else(|| "Earned".to_string(), |date| format!("Earned {date}"))
+            } else {
+                "Not earned".to_string()
+            };
             text(
                 content,
                 font,
-                if !entry.available {
-                    "Criteria pending"
-                } else if entry.earned {
-                    "Earned"
-                } else {
-                    "Not earned"
-                },
+                status,
                 11.0,
                 if entry.earned { GOLD } else { DIM },
             );
@@ -431,7 +439,7 @@ fn summary(
     }
     grid(body, |grid| {
         for entry in recent {
-            card(grid, font, entry);
+            card(grid, font, account, entry);
         }
     });
     text(body, font, "Progress", 14.0, GOLD);
@@ -475,7 +483,7 @@ fn summary(
     }
     grid(body, |grid| {
         for entry in close {
-            card(grid, font, entry);
+            card(grid, font, account, entry);
         }
     });
 }
