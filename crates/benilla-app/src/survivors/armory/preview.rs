@@ -51,6 +51,7 @@ impl Preview {
 enum Card {
     Ability(&'static data::AbilityDef, u8),
     Jewel(JewelKind),
+    Passive(&'static data::PassiveDef, u8),
 }
 
 struct Request {
@@ -95,6 +96,18 @@ impl Request {
                             let def = data::ABILITIES.iter().find(|def| def.key == key.trim())?;
                             let rank = rank.trim().parse::<u8>().ok()?;
                             (rank < data::MAX_ABILITY_LEVEL).then_some(Card::Ability(def, rank))
+                        })
+                        .collect();
+                    cards = Some(parsed?);
+                }
+                "passives" if cards.is_none() => {
+                    let parsed: Option<Vec<_>> = value
+                        .split(',')
+                        .map(|entry| {
+                            let (key, rank) = entry.trim().split_once(':')?;
+                            let def = data::PASSIVES.iter().find(|def| def.key == key.trim())?;
+                            let rank = rank.trim().parse::<u8>().ok()?;
+                            (rank < data::MAX_PASSIVE_LEVEL).then_some(Card::Passive(def, rank))
                         })
                         .collect();
                     cards = Some(parsed?);
@@ -327,10 +340,16 @@ impl Preview {
             }
             *run = snapshot;
             run.abilities.clear();
+            run.passives.clear();
             offer.choices.clear();
             for &card in cards {
                 match card {
                     Card::Jewel(kind) => offer.choices.push(Choice::Jewel(kind)),
+                    Card::Passive(def, 0) => offer.choices.push(Choice::NewPassive(def)),
+                    Card::Passive(def, rank) => {
+                        offer.choices.push(Choice::UpPassive(run.passives.len()));
+                        run.passives.push((def, rank));
+                    }
                     Card::Ability(def, 0) => offer.choices.push(Choice::NewAbility(def)),
                     Card::Ability(def, rank) => {
                         offer.choices.push(Choice::Upgrade(run.abilities.len()));
@@ -354,6 +373,92 @@ impl Preview {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn passive_requests_validate_catalog_ranks_page_and_single_source() {
+        for body in [
+            "passives=",
+            "passives=missing:1",
+            "passives=renew:5",
+            "passives=renew:-1",
+            "passives=renew:256",
+            "passives=renew:1,",
+            "passives=renew:0,renew:1,renew:2,renew:3,renew:4",
+            "passives=renew:1\nabilities=smite:1",
+            "jewelry=ring:0\npassives=renew:1",
+            "passives=renew:1\npassives=renew:2",
+        ] {
+            assert!(
+                Request::parse(&format!("page=cards\nwidth=1280\nheight=720\n{body}")).is_none(),
+                "{body}"
+            );
+        }
+        assert!(Request::parse("page=talents\nwidth=1280\nheight=720\npassives=renew:1").is_none());
+        let request = Request::parse(
+            "page=cards\nwidth=640\nheight=720\npassives=renew:0,renew:4\nprofile=selected",
+        )
+        .unwrap();
+        assert!(request.selected);
+        assert!(matches!(
+            request.cards.as_deref(),
+            Some([Card::Passive(_, 0), Card::Passive(_, 4)])
+        ));
+    }
+
+    #[test]
+    fn passive_hand_uses_training_reloads_and_restores_original_passives() {
+        let renew = data::PASSIVES.iter().find(|p| p.key == "renew").unwrap();
+        let mut preview = Preview {
+            path: "unused".into(),
+            seen: String::new(),
+            poll: Timer::from_seconds(0.25, TimerMode::Repeating),
+            saved: None,
+            inspected: None,
+        };
+        let mut run = Run {
+            passives: vec![(renew, 3)],
+            hp: 37.0,
+            ..default()
+        };
+        let mut offer = Offer {
+            choices: vec![Choice::Heal],
+        };
+        let mut hand = PreviewHand::default();
+        let request = Request::parse(
+            "page=cards\nwidth=1280\nheight=720\npassives=renew:0,renew:2\nprofile=selected",
+        )
+        .unwrap();
+        let trained = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..default()
+            }
+            .with_ranks(&[(1, 406, 1)]),
+            ..default()
+        };
+        preview.hand(&request, &mut run, &mut offer, &mut hand, trained);
+        assert!(hand.0);
+        assert!(matches!(
+            offer.choices(),
+            [Choice::NewPassive(_), Choice::UpPassive(0)]
+        ));
+        assert_eq!(run.passives.len(), 1);
+        assert_eq!(run.passives[0].1, 2);
+        assert!((run.stats().regen - 1.05).abs() < 0.00001);
+        assert!((run.passive_value(renew, 1) - 0.525).abs() < 0.00001);
+        preview.hand(&request, &mut run, &mut offer, &mut hand, Run::default());
+        assert_eq!(run.stats().regen, 1.0);
+        let ability =
+            Request::parse("page=cards\nwidth=1280\nheight=720\nabilities=smite:1").unwrap();
+        preview.hand(&ability, &mut run, &mut offer, &mut hand, Run::default());
+        assert!(run.passives.is_empty());
+        let exit = Request::parse("page=talents\nwidth=1280\nheight=720").unwrap();
+        preview.hand(&exit, &mut run, &mut offer, &mut hand, Run::default());
+        assert!(!hand.0);
+        assert_eq!(run.passives[0].1, 3);
+        assert_eq!(run.hp, 37.0);
+        assert!(matches!(offer.choices(), [Choice::Heal]));
+    }
 
     #[test]
     fn partial_unknown_duplicate_and_unsafe_sizes_are_rejected() {

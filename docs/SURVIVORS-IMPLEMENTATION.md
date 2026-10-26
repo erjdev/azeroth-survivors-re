@@ -4676,3 +4676,26 @@ Validation: 139 core and 279 app tests, native play build (27 seconds), workspac
 Clippy, formatting and render lint pass. The refreshed checkout-data audit reports
 184/432 matching talent definitions and 78/81 milestone descriptions; these counts
 do not establish gameplay acceptance.
+
+
+### 2026-10-26 — Passive card preview acceptance
+
+The watched UI request now supports `passives=key:rank`, with rank 0 acquisition
+and ranks 1–4 upgrades. It validates actual passive keys, bounded ranks, one-to-four
+cards, cards-page scope and one source per request (abilities/passives/jewelry).
+Selected profiles reuse run-start talents, while baseline profiles remove them.
+Preview hands replace their temporary passive list; leaving restores the original
+run, owned passives and offer. Picks and gameplay remain disabled by the existing
+preview guard. Wide/compact presets are included under docs/ui-previews.
+
+Native seeded checks show Improved Renew rank 1 yields 0.525→1.05, 1.05→1.575 and
+2.1→2.625 health/sec for new, rank-2 and rank-4 cards. A maximum-rank request with a
+new viewport preserves the existing view; a valid compact request resizes and scrolls
+to the final card; returning to Talents removes the overlay. The account hash is
+unchanged. Screenshots are inline in CHANGELOG and README. The bordered card layout
+was compared with the level-up intention; inline green amounts follow the user's
+later instruction. This verifies preview presentation, not live run acquisition.
+
+Validation: all 12 preview tests pass, including catalog/rank/source rejection,
+trained versus baseline values, switching hand types and original-state restoration.
+Native build, workspace Clippy, formatting and render lint pass.

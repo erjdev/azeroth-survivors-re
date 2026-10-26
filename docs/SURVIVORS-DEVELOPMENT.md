@@ -437,6 +437,16 @@ again to refresh the snapshot after changing a build. `profile = baseline` (or
 omitting it) restores baseline stats. Remove `profile` when returning to an Armory
 page. This option reads your account; use an isolated fixture for visual checks.
 
+Passive cards use `passives = renew:0, renew:2, renew:4` in place of `abilities`.
+Rank `0` previews acquisition and ranks `1`–`4` preview an upgrade; rank `5` is
+already maximum and is rejected. Use one card source per request: `abilities`,
+`passives`, or `jewelry`. The same one-to-four-card limit and selected/baseline
+profiles apply. `profile = selected` includes Improved Renew when trained by the
+selected Priest; it does not grant the talent. Requests at
+`docs/ui-previews/passive-cards-1280.txt` and `passive-cards-640.txt` compare new,
+intermediate and final Renew upgrades without entering gameplay. Leaving preview
+restores the original passives along with the original run and offer.
+
 It animates and scrolls the real cards but disables picks, gameplay starts,
 and discovery/reward writes. Resize or replace the hand by editing the file; return
 to `page = talents` (remove `abilities`) to restore the previous run and offer.

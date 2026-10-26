@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Fast passive card previews
+
+Live UI previews now accept passive acquisitions and upgrades, including selected
+hero talents. Wide/compact presets show Renew's actual trained regeneration without
+a run. Invalid names/ranks or mixed card sources preserve the current preview.
+
+![Trained Renew acquisition and upgrades](images/screenshots/2026-10-26-passive-preview/renew-1280.png)
+
+![Final Renew upgrade reached by compact scrolling](images/screenshots/2026-10-26-passive-preview/renew-640.png)
+
+Native checks cover selected-profile values, invalid-request retention, compact
+scrolling and returning to Talents. The fixture account remains byte-for-byte unchanged.
+The cards retain the intention's bordered layout with the requested inline green
+values. All 12 preview tests, native build, workspace Clippy, formatting and render
+lint pass. This is a development preview; picks remain disabled.
+
 ## 2026-10-26 — Improved Renew and accurate regeneration previews
 
 Priest Improved Renew now increases acquired Renew regeneration by 5% per rank,
