@@ -635,6 +635,32 @@ mod tests {
     }
 
     #[test]
+    fn trained_wrath_changes_real_bites_only_inside_extended_window() {
+        for (elapsed, expected) in [(10.0, 19.2), (17.999, 19.2), (18.0, 9.6), (30.0, 19.2)] {
+            let mut app = setup();
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.elapsed = elapsed;
+                run.milestones = survivors_core::talents::Milestones {
+                    class: 2,
+                    points: [30, 0, 0],
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1386, 1)]);
+            }
+            let enemy = foe(&mut app, Vec3::X);
+            app.world_mut().get_mut::<Enemy>(enemy).unwrap().hp = 100.0;
+            app.world_mut().insert_resource(Rng(16));
+            app.world_mut().run_system_once(fight).unwrap();
+            app.world_mut().run_system_once(fight).unwrap();
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            assert!(
+                (app.world().get::<Enemy>(enemy).unwrap().hp - (100.0 - expected)).abs() < 0.001
+            );
+        }
+    }
+
+    #[test]
     fn pet_level_growth_preserves_health_fraction() {
         let mut app = setup();
         app.world_mut().run_system_once(fight).unwrap();

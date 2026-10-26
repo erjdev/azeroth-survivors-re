@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Bestial Wrath capstone
+
+Training Bestial Wrath upgrades the automatic milestone from +50% bite damage
+for ten seconds to +100% for eighteen seconds in each thirty-second cycle. It
+replaces the base Wrath bonus while combining with other wolf damage training.
+Hunter spells remain unchanged; the capstone grants no immunity.
+
+159 core and 316 data-required app tests pass, including actual bite damage at
+the extended window boundaries. Clippy, formatting and native build pass. Talent
+coverage is 201/432. Wide and compact menu previews checked; live combat and
+Windows acceptance remain open.
+
+![Bestial Wrath capstone](images/screenshots/2026-10-26-pet-wrath/wrath-1280.png)
+
+![Compact Bestial Wrath details](images/screenshots/2026-10-26-pet-wrath/wrath-640.png)
+
+
 ## 2026-10-26 — Intimidation
 
 Intimidation empowers the wolf's nearest bite every 60 seconds, stunning for three

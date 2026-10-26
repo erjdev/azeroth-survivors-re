@@ -5378,3 +5378,22 @@ Native play build passed. Captures at 1280×720 and 640×720 show the full
 Intimidation description and aligned tree in a valid 33-point spec. Screenshots
 are embedded in CHANGELOG and the existing README gallery. These menu checks
 do not establish live combat or Windows gameplay acceptance.
+
+### Trained Bestial Wrath — 2026-10-26
+
+DBC capstone 1386 upgrades the existing automatic 30-point Beast Mastery window
+to 18 seconds per 30-second run-time cycle and a 2× bite multiplier. It replaces
+the original 10-second / 1.5× window; it does not stack a second Wrath bonus.
+Unleashed Fury and individual damage training remain multiplicative. The saved
+talent tree enforces its Intimidation prerequisite and 30 earlier points. Core
+execution also requires the 30-point milestone, rejects invalid run times, and
+keeps hero spells and pickup companions unchanged. No immunity is implied.
+
+Validation: 159 core and 316 data-required app tests pass. Core checks cover
+window boundaries, invalid time, rank bounds, reset, milestone gating and hero
+spell isolation; actual bite tests confirm 19.2 damage at 10/17.999 seconds,
+9.6 at 18 seconds, and 19.2 again at 30 seconds with baseline level-one stats.
+Clippy, formatting and native build pass; coverage is 201/432 individual talents
+and 81/81 automatic milestones. Native 1280×720 and 640×720 captures show the
+capstone in a valid 34-point saved spec, embedded in CHANGELOG and README.
+Live combat and Windows behavior remain separate acceptance work.

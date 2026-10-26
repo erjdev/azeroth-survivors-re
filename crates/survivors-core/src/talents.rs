@@ -1376,6 +1376,7 @@ pub enum TalentStat {
     PetHealth,
     PetRecovery,
     PetIntimidation,
+    PetWrath,
     SpiritBond,
     PetDamage,
     PetCrit,
@@ -1476,6 +1477,7 @@ impl TalentDefinition {
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
+            TalentStat::PetWrath => (1.0, " upgraded Bestial Wrath window"),
             TalentStat::PetIntimidation => (1.0, " empowered bite every 60 sec"),
             TalentStat::PetRecovery => (100.0, "% shorter combat wolf recovery"),
             TalentStat::SpiritBond => (100.0, "% maximum health restored every 10 sec"),
@@ -1986,6 +1988,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1386, max_rank: 1, name: "Bestial Wrath",
+        description: "Upgrades the 30-point milestone: combat wolf bite damage rises from +50 to +100%, and its window from 10 to 18 sec in each 30 sec cycle. Replaces the base Wrath bonus; no immunity or hero spell bonus",
+        stat: TalentStat::PetWrath, per_rank: 1.0 },
     TalentDefinition { id: 1387, max_rank: 1, name: "Intimidation",
         description: "Every 60 sec, the wolf's next bite stuns its nearest victim for 3 sec and forces it to target the living wolf for 6 sec. Bosses: 0.9 sec stun, no forced targeting. Extra bite targets are unaffected",
         stat: TalentStat::PetIntimidation, per_rank: 1.0 },
@@ -2634,6 +2639,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
+            | TalentStat::PetWrath
             | TalentStat::PetIntimidation
             | TalentStat::PetRecovery
             | TalentStat::SpiritBond
@@ -3722,6 +3728,7 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing
+                    | TalentStat::PetWrath
                     | TalentStat::PetIntimidation
                     | TalentStat::PetRecovery
                     | TalentStat::SpiritBond

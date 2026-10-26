@@ -481,3 +481,9 @@ receives a three-second stun and six seconds of forced attention toward the
 living wolf, even when the hero is closer. Bosses receive the existing 30% stun
 duration (0.9 seconds), but cannot be forced away from the hero. Recovery does
 not reset the cooldown. Solid-world collision and route planning still apply.
+
+The individual Bestial Wrath capstone upgrades the automatic 30-point Beast
+Mastery milestone from +50% bite damage for 10 seconds to +100% for 18 seconds
+of each 30-second run-time cycle. It replaces the base Wrath multiplier, while
+still multiplying Unleashed Fury and trained bite damage. It provides no damage
+or crowd-control immunity and does not affect Hunter spells or pickup companions.

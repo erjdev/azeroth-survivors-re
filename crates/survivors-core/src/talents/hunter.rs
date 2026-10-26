@@ -76,8 +76,14 @@ impl Milestones {
         if self.points[0] >= 20 {
             bonus.cooldown *= 0.8;
         }
-        if self.points[0] >= 30 && elapsed.is_finite() && elapsed >= 0.0 && elapsed % 30.0 < 10.0 {
-            bonus.damage *= 1.5;
+        let trained_wrath = self.trained_value(TalentStat::PetWrath) > 0.0;
+        let wrath_duration = if trained_wrath { 18.0 } else { 10.0 };
+        if self.points[0] >= 30
+            && elapsed.is_finite()
+            && elapsed >= 0.0
+            && elapsed % 30.0 < wrath_duration
+        {
+            bonus.damage *= if trained_wrath { 2.0 } else { 1.5 };
         }
         bonus
     }
@@ -145,6 +151,35 @@ mod tests {
                     PetBonus::default()
                 );
             }
+        }
+    }
+
+    #[test]
+    fn trained_wrath_replaces_bonus_extends_window_and_requires_milestone() {
+        let base = Milestones {
+            class: 2,
+            points: [30, 0, 0],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 1386, 255)]);
+        for elapsed in [0.0, 9.999, 10.0, 17.999, 30.0, 47.999] {
+            assert!((trained.hunter_pet(elapsed).damage - 2.4).abs() < 0.0001);
+        }
+        for elapsed in [18.0, 29.999, 48.0, -1.0, f32::NAN, f32::INFINITY] {
+            assert_eq!(trained.hunter_pet(elapsed).damage, 1.2);
+        }
+        assert!((trained.with_ranks(&[]).hunter_pet(0.0).damage - 1.8).abs() < 0.0001);
+        assert_eq!(
+            Milestones {
+                points: [29, 0, 0],
+                ..trained
+            }
+            .hunter_pet(0.0)
+            .damage,
+            1.2
+        );
+        for key in ["arcane_shot", "multi_shot", "volley", "explosive_trap"] {
+            assert_eq!(trained.cast(key), super::super::CastEffect::default());
         }
     }
 
