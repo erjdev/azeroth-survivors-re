@@ -16,6 +16,8 @@ pub(super) fn display(name: &str) -> Option<u32> {
         "Smotts' Compass" => 6562,
         "Defender of the Timbermaw" => 33702,
         "Ramstein's Lightning Bolts" => 1236,
+        // Survivors uses vanilla entry 23206 for its single Mark of the Champion.
+        "Mark of the Champion" => 35649,
         "Talisman of Ephemeral Power" => 31287,
         "Zandalarian Hero Medallion" => 32431,
         "Eye of the Beast" => 24784,
@@ -58,15 +60,12 @@ mod tests {
             .chain(super::super::campaign::AMULET_NAMES.iter());
         let mut verified = 0;
         for name in names {
-            let Some(display) = super::display(name) else {
-                assert_eq!(*name, "Mark of the Champion", "unexpected unresolved item");
-                continue;
-            };
+            let display = super::display(name).expect(name);
             let row = catalog.get(display).expect(name);
             let icon = row.icon.as_ref().expect(name);
             assert!(!chain.read(&format!("{icon}.blp")).expect(name).is_empty());
             verified += 1;
         }
-        assert_eq!(verified, 38);
+        assert_eq!(verified, 39);
     }
 }

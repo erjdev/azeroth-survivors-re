@@ -443,7 +443,7 @@ legendary silhouette is representative art, not a claim that generated amulets h
 vanilla item identities. Distinct legendary artwork and complete catalog expansion
 remain required. Live badge clicks, unseen/shared entries and lower-row selection
 retain the catalog scroll position; actual captures are inline in the changelog.
-Mark of the Champion still lacks verified art.
+Mark of the Champion art is resolved by the explicit variant choice recorded below.
 
 Tabard presentation checkpoint: replaced the plain name buttons and
 client display-ID text with illustrated cosmetic tiles using the Companion Looks
@@ -4503,3 +4503,20 @@ live combat balance still require work.
 Validation: 135 core and 271 app tests pass. New checks cover rank-one/four/eight
 cast timing, unrelated spells, duplicate equips, replacement removal, green gains
 and red losses. Native play build, workspace Clippy, formatting and render lint pass.
+
+### Shared jewelry artwork completion — 2026-10-26
+
+The Codex audit reproduced the remaining question-mark icon. Mark of the Champion
+now explicitly uses vanilla item 23206/display 35649, verified in the pinned item
+templates and checkout data. The other same-name variant is not an additional
+Survivors item. This resolves the earlier unresolved-art notes without changing
+stats, discovery keys, or save format. All 39 shared jewelry entries must now resolve
+item artwork in both the catalog audit and chest-card tests; no exception remains.
+
+Native macOS checks cover the complete grid, selected undiscovered detail at
+1280×720, and the compact chest card at 640×720. Inline screenshots are in the
+changelog and README. Full legendary content and broader responsive acceptance
+remain open.
+
+Validation: all 271 app tests with explicit checkout data, native play build,
+workspace Clippy, formatting and render lint pass.

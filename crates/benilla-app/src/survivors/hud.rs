@@ -3386,14 +3386,10 @@ mod card_icon_tests {
             for (i, name) in names.iter().enumerate() {
                 let card = describe_card(Choice::Jewel(kind(i as u8)), &run, None);
                 assert_eq!(card.name, *name);
-                if *name == "Mark of the Champion" {
-                    assert_eq!(card.icon, CardIcon::Missing);
-                } else {
-                    assert_eq!(
-                        card.icon,
-                        CardIcon::Item(super::super::jewel_icons::display(name).unwrap())
-                    );
-                }
+                assert_eq!(
+                    card.icon,
+                    CardIcon::Item(super::super::jewel_icons::display(name).unwrap())
+                );
             }
         }
         for kind in [

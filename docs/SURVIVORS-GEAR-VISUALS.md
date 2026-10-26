@@ -164,7 +164,9 @@ cover all four display rows and readable icon assets; live staff attachment chec
 `survivors::jewel_icons` uses the same pinned item-template source. Four abbreviated
 Survivors names map to their unique full vanilla name below; saved names stay unchanged.
 Royal Seal variants all share one display. Mark of the Champion has two distinct
-displays (35649 and 35621) and deliberately remains unresolved.
+vanilla variants. Survivors explicitly chooses entry 23206, display 35649, for its
+single shared trinket; entry 23207/display 35621 is not a second Survivors item.
+This is an artwork choice, not an import of vanilla combat bonuses.
 The Codex and chest choice cards both use these item-display mappings. Legendary amulet
 cards retain their associated spell art; ordinary jewelry never resolves its item ID
 through the spell icon catalog.
@@ -184,6 +186,7 @@ through the spell icon catalog.
 | Smotts' Compass | 4130 | 6562 | — |
 | Defender of the Timbermaw | 21326 | 33702 | — |
 | Ramstein's Lightning Bolts | 13515 | 1236 | — |
+| Mark of the Champion | 23206 | 35649 | Explicit variant choice |
 | Talisman of Ephemeral Power | 18820 | 31287 | — |
 | Zandalarian Hero Medallion | 19949 | 32431 | — |
 | Eye of the Beast | 13968 | 24784 | — |

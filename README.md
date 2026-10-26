@@ -333,9 +333,9 @@ is a visual checkpoint, not complete race/sex or attachment acceptance.
 
 Chest rewards now use verified item artwork. This isolated accelerated fixture holds
 chest choices for inspection: [rings and amulet](docs/images/screenshots/2026-10-25-chest-item-icons/rings-and-amulet.png),
-then trinkets after manual selections. Mark of the Champion's ambiguous identity remains unresolved.
+then trinkets after manual selections. Mark of the Champion now explicitly uses vanilla entry 23206's artwork.
 
-![Chest trinket item icons](docs/images/screenshots/2026-10-25-chest-item-icons/trinkets.png)
+![Shared jewelry artwork completed](docs/images/screenshots/2026-10-26-champion-icon/codex-1280.png)
 
 Combat-text placement checkpoint: [paused chest with preserved damage numbers](docs/images/screenshots/2026-10-25-combat-text-cache/chest.png).
 Repeated identical overlap solves are cached; resumed combat was checked. A later foreground

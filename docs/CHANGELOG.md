@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Shared jewelry artwork completed
+
+Mark of the Champion now has its item artwork in the Codex and chest cards.
+All 39 shared jewelry entries have verified mappings. The chosen vanilla variant
+changes presentation only; stats and discoveries are unchanged.
+
+![Completed Codex jewelry art](images/screenshots/2026-10-26-champion-icon/codex-1280.png)
+
+![Compact chest card](images/screenshots/2026-10-26-champion-icon/cards-640.png)
+
+271 app tests with checkout data, native build, workspace Clippy, formatting and
+render lint pass. Native Codex and compact card checks were performed on macOS.
+
 ## 2026-10-26 — A useful Divine Shield legendary
 
 Divine Shield's amulet now grants 15% spell-local cooldown reduction, replacing
