@@ -670,6 +670,75 @@ fn grid(
     }
 }
 
+struct ItemHeader<'a> {
+    name: &'a str,
+    quality: &'a str,
+    slot: usize,
+    owned: bool,
+    color: Color,
+}
+
+fn item_header(
+    ui: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    layout: &Layout,
+    item: ItemHeader<'_>,
+    draw_icon: impl FnOnce(&mut ChildSpawnerCommands),
+) {
+    ui.spawn((
+        Node {
+            width: Val::Percent(100.0),
+            flex_shrink: 0.0,
+            align_items: AlignItems::Center,
+            column_gap: Val::Px(layout.gap),
+            padding: UiRect::all(Val::Px(layout.padding * 0.7)),
+            border: UiRect::all(Val::Px(1.0)),
+            border_radius: BorderRadius::all(Val::Px(5.0)),
+            ..default()
+        },
+        BackgroundColor(Color::srgb(0.13, 0.12, 0.10)),
+        BorderColor::all(item.color.with_alpha(0.65)),
+    ))
+    .with_children(|card| {
+        card.spawn(Node {
+            flex_shrink: 0.0,
+            ..default()
+        })
+        .with_children(|icon| {
+            draw_icon(icon);
+        });
+        card.spawn(Node {
+            flex_grow: 1.0,
+            flex_basis: Val::Px(0.0),
+            min_width: Val::Px(0.0),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(layout.gap * 0.25),
+            ..default()
+        })
+        .with_children(|labels| {
+            text(labels, font, item.name, layout.body_size * 1.15, item.color);
+            text(
+                labels,
+                font,
+                format!("{} · {}", item.quality, campaign::SLOTS[item.slot]),
+                layout.body_size,
+                DIM,
+            );
+            text(
+                labels,
+                font,
+                if item.owned {
+                    "In your collection"
+                } else {
+                    "Not collected"
+                },
+                layout.body_size,
+                if item.owned { BONUS } else { DIM },
+            );
+        });
+    });
+}
+
 pub(super) fn detail(
     ui: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
@@ -686,20 +755,21 @@ pub(super) fn detail(
         .and_then(survivors_core::supplemental_gear::by_key)
         .filter(|p| p.class == class)
     {
-        super::super::gear_icons::spawn_visual(ui, piece.visual, layout.title_size * 2.6);
-        text(
+        let owned = account.supplemental.owns(class, &piece.key);
+        item_header(
             ui,
             font,
-            piece.name,
-            layout.title_size,
-            Color::srgb(0.65, 0.65, 0.65),
-        );
-        text(
-            ui,
-            font,
-            format!("Poor · {}", campaign::SLOTS[piece.slot]),
-            layout.body_size,
-            DIM,
+            layout,
+            ItemHeader {
+                name: piece.name,
+                quality: "Poor",
+                slot: piece.slot,
+                owned,
+                color: Color::srgb(0.65, 0.65, 0.65),
+            },
+            |icon| {
+                super::super::gear_icons::spawn_visual(icon, piece.visual, layout.title_size * 2.6);
+            },
         );
         text(
             ui,
@@ -708,17 +778,13 @@ pub(super) fn detail(
             layout.body_size,
             BONUS,
         );
-        let owned = account.supplemental.owns(class, &piece.key);
+        super::typography::heading(ui, font, "Drops from", layout.title_size, GOLD);
         text(
             ui,
             font,
-            if owned {
-                "In your collection"
-            } else {
-                "Not collected"
-            },
+            survivors_core::supplemental_gear::poor_source_label(),
             layout.body_size,
-            if owned { BONUS } else { DIM },
+            DIM,
         );
         if owned {
             let equipped =
@@ -729,6 +795,17 @@ pub(super) fn detail(
             } else {
                 preview.wear_supplemental(class, &account.supplemental, piece.slot, &piece.key);
             }
+            text(
+                ui,
+                font,
+                if equipped {
+                    "Equipment bonuses if unequipped"
+                } else {
+                    "Equipment bonuses if equipped"
+                },
+                layout.body_size,
+                GOLD,
+            );
             for (line, color) in hud::card_growth::bonus_changes(
                 progress
                     .equipment
@@ -750,39 +827,53 @@ pub(super) fn detail(
                 equipped,
             );
         }
+        text(ui, font, "Right-click a collected piece to equip or unequip it. Shift-right-click chooses its look.", layout.body_size, DIM);
+        super::typography::heading(
+            ui,
+            font,
+            format!("Look · {}", campaign::SLOTS[piece.slot]),
+            layout.title_size,
+            GOLD,
+        );
         text(
             ui,
             font,
-            "Look · Only worn pieces add bonuses.",
+            "Only worn pieces add bonuses.",
             layout.body_size,
             DIM,
         );
-        if owned {
+        ui.spawn(Node {
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        })
+        .with_children(|actions| {
             chip(
-                ui,
+                actions,
                 font,
-                "This piece",
-                Act::ShowSupplemental(piece.key.clone()),
-                progress.equipment.supplemental_looks()[piece.slot].as_deref() == Some(&piece.key),
-            );
-        }
-        for (label, look) in [("Worn piece", Look::Worn), ("Hidden", Look::Hidden)] {
-            chip(
-                ui,
-                font,
-                label,
-                Act::ShowPiece(piece.slot, look),
+                "Worn piece",
+                Act::ShowPiece(piece.slot, Look::Worn),
                 progress.equipment.supplemental_looks()[piece.slot].is_none()
-                    && progress.equipment.looks[piece.slot] == look,
+                    && progress.equipment.looks[piece.slot] == Look::Worn,
             );
-        }
-        text(
-            ui,
-            font,
-            survivors_core::supplemental_gear::poor_source_label(),
-            layout.body_size,
-            DIM,
-        );
+            if owned {
+                chip(
+                    actions,
+                    font,
+                    "This piece",
+                    Act::ShowSupplemental(piece.key.clone()),
+                    progress.equipment.supplemental_looks()[piece.slot].as_deref()
+                        == Some(&piece.key),
+                );
+            }
+            chip(
+                actions,
+                font,
+                "Hidden",
+                Act::ShowPiece(piece.slot, Look::Hidden),
+                progress.equipment.supplemental_looks()[piece.slot].is_none()
+                    && progress.equipment.looks[piece.slot] == Look::Hidden,
+            );
+        });
         return;
     }
     let selected = armory.piece.min(campaign::PIECES - 1);
@@ -790,68 +881,21 @@ pub(super) fn detail(
     let band = selected / campaign::GRID_SLOTS;
     let name = campaign::piece_name(class, slot, band);
     let owned = progress.pieces[selected] > 0;
-    ui.spawn((
-        Node {
-            width: Val::Percent(100.0),
-            flex_shrink: 0.0,
-            align_items: AlignItems::Center,
-            column_gap: Val::Px(layout.gap),
-            padding: UiRect::all(Val::Px(layout.padding * 0.7)),
-            border: UiRect::all(Val::Px(1.0)),
-            border_radius: BorderRadius::all(Val::Px(5.0)),
-            ..default()
+    item_header(
+        ui,
+        font,
+        layout,
+        ItemHeader {
+            name: name.unwrap_or("Item content not yet available"),
+            quality: campaign::BANDS_NAMED[band],
+            slot,
+            owned,
+            color: super::door::band_color(band),
         },
-        BackgroundColor(Color::srgb(0.13, 0.12, 0.10)),
-        BorderColor::all(super::door::band_color(band).with_alpha(0.65)),
-    ))
-    .with_children(|card| {
-        card.spawn(Node {
-            flex_shrink: 0.0,
-            ..default()
-        })
-        .with_children(|icon| {
+        |icon| {
             super::super::gear_icons::spawn(icon, class, slot, band, layout.title_size * 2.6);
-        });
-        card.spawn(Node {
-            flex_grow: 1.0,
-            flex_basis: Val::Px(0.0),
-            min_width: Val::Px(0.0),
-            flex_direction: FlexDirection::Column,
-            row_gap: Val::Px(layout.gap * 0.25),
-            ..default()
-        })
-        .with_children(|labels| {
-            text(
-                labels,
-                font,
-                name.unwrap_or("Item content not yet available"),
-                layout.body_size * 1.15,
-                super::door::band_color(band),
-            );
-            text(
-                labels,
-                font,
-                format!(
-                    "{} · {}",
-                    campaign::BANDS_NAMED[band],
-                    campaign::SLOTS[slot]
-                ),
-                layout.body_size,
-                DIM,
-            );
-            text(
-                labels,
-                font,
-                if owned {
-                    "In your collection"
-                } else {
-                    "Not collected"
-                },
-                layout.body_size,
-                if owned { BONUS } else { DIM },
-            );
-        });
-    });
+        },
+    );
     if name.is_some() {
         text(
             ui,

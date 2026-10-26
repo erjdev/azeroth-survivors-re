@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Consistent Collection item details
+
+Poor gear now uses the same bordered item header and section hierarchy as other
+rarities. Sources, equip/unequip comparisons and wrapping appearance controls are
+aligned with the Collection design reference. Item stats and behavior are unchanged.
+
+Verified at 1280×720 and 640×720; appearance toggles preserve equipped bonuses.
+All 317 Survivors app tests, scoped Clippy and the native build pass.
+
+![Unified Poor-item details](images/screenshots/2026-10-26-poor-detail/detail-1280.png)
+
+![Compact item details and appearance actions](images/screenshots/2026-10-26-poor-detail/detail-640.png)
+
+
 ## 2026-10-26 — Direct Poor-gear UI previews
 
 Collection's fast preview now accepts `piece = poor:<slot>` for every class and

@@ -5419,3 +5419,20 @@ in CHANGELOG; README's Collection image is refreshed. The three-column wide
 layout follows the Collection intention; the extra Poor row and stacked compact
 layout are intentional extensions. This does not close the full page/platform
 acceptance matrix or add unimplemented Raid Epic content.
+
+### Consistent Collection item details — 2026-10-26
+
+Poor items now use the same proportional bordered item header as Common through
+Legendary: icon beside the name, quality/slot and collection status. This follows
+the Collection intention's compact header hierarchy. Sources precede equipment
+comparisons, comparisons name equip versus unequip, and appearance controls use
+a labeled section with wrapping buttons in the same order as other rarities.
+The Poor row and ordinary-enemy source text remain intentional extensions. No
+item stats, ownership, equipment actions or appearance semantics change.
+
+Validation: all 317 Survivors app tests, scoped Clippy, native play build and
+formatting pass. Native menu fixtures at 1280×720 and 640×720 show readable
+headers, sections and appearance actions. Hidden/This piece toggles update the
+look marker while preserving the equipment marker and +8 health. Screenshots
+are embedded in the changelog and the README Collection cell is refreshed.
+This is menu validation on macOS, not in-world or Windows acceptance.

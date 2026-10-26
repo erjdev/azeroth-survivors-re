@@ -45,7 +45,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-26-poor-preview/poor-1280.png" alt="Collection"><br>2026-10-26 · Poor–Legendary rarity rows, equipment and independent appearance markers.</td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-26-poor-detail/detail-1280.png" alt="Collection"><br>2026-10-26 · Consistent item details, equipment and independent appearance controls.</td>
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-26-poor-drops/drop-tables.png" alt="Drop Tables"><br>2026-10-26 · Ordinary-enemy Poor gear, scheduled encounters and item details.</td>
   </tr>
   <tr>
