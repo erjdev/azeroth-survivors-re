@@ -241,7 +241,11 @@ without overwriting earlier milestones. **Embed actual captures inline in the ch
 using `![description](images/screenshots/...)`; links alone do not satisfy this requirement.
 For each major visual checkpoint, inspect the matching `docs/intentions/` image first,
 capture the changed interface, and summarize remaining design gaps. Record viewport,
-fixture/state and validation limits. Keep the README gallery current. If capture is
+fixture/state and validation limits. Update the matching page in the README gallery
+instead of prepending another milestone gallery. Keep representative captures for
+each interface portion, date older gameplay evidence explicitly, and retain every
+inline changelog image. Earlier README iterations live in [SCREENSHOT-HISTORY.md](SCREENSHOT-HISTORY.md).
+If capture is
 blocked, report the blocker and leave visual acceptance open; do not silently drop
 the screenshots or accumulate further unreviewed visual milestones.
 Commit and push coherent checkpoints, including screenshots and concise notes, to `origin`

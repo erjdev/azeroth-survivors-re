@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Page-by-page screenshot gallery
+
+The README now groups 20 representative captures by interface page, with capture
+dates and explicit limits for older gameplay evidence. Earlier README milestones
+and all 187 referenced screenshots are preserved in [screenshot history](SCREENSHOT-HISTORY.md).
+Every existing inline changelog image remains in place. Local image/document links
+were checked; this documentation-only checkpoint adds no new runtime screenshots.
+
+
 ## 2026-10-26 — Character identity follows appearance
 
 Character now shows gender, race and a class-colored class name beneath the hero's

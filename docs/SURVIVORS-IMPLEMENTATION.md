@@ -4885,3 +4885,20 @@ Warrior, then switching through Manage heroes to the saved Female Human Paladin.
 are embedded in CHANGELOG/README. The native build, app Clippy, formatting and diff
 checks pass. This presentation-only change does not add rule tests. Full race/sex/
 equipment coverage and Windows DPI remain open.
+
+
+### 2026-10-26 — README gallery consolidation
+
+The README had accumulated 781 lines of repeated milestone images alongside a
+stale gallery caption that dated newer captures as October 24. It now presents
+20 representative captures across starter, Character, hero management, Collection,
+Drop Tables, Codex, Talents, Achievements, all three Rewards categories, Options,
+upgrade cards and explicitly historical gameplay/results views. Dates are attached
+to individual captures; fixtures and platform acceptance limitations are stated.
+All 187 screenshot paths from the previous README milestone section are preserved
+in docs/SCREENSHOT-HISTORY.md, including the existing image embeds, with original
+files untouched. Existing
+CHANGELOG image embeds were preserved verbatim. Future checkpoints update the
+relevant README page while retaining inline milestone history in CHANGELOG.
+Local image/document references were checked. No UI or runtime behavior changed;
+this does not close fresh gameplay capture or full interface acceptance work.
