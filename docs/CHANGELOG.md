@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Warlock talent training
+
+Twelve Warlock talents now train shadow, fire, curses and health, with green next-rank
+previews and explicit Survivors conversions. Coverage reaches 159/432 individual
+definitions; Warlock has 12/50 nodes, with its milestones still pending.
+
+![Improved Corruption cooldown preview](images/screenshots/2026-10-26-warlock-nodes/corruption-1280.png)
+
+![Demonic Embrace health preview](images/screenshots/2026-10-26-warlock-nodes/demonic-embrace-1280.png)
+
+125 core and 250 app tests pass, including rank caps, reset, class isolation and direct,
+periodic and area spell parameters. Native build and data identity audit pass;
+purchases, green previews and persisted ranks were checked on an isolated character.
+Workspace Clippy, formatting and render lint also pass. Live balance acceptance
+remains open.
+
 ## 2026-10-26 — Shaman talent training
 
 Thirteen Shaman nodes now train lightning, shocks, totems, critical hits and defenses,

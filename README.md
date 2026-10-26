@@ -59,6 +59,10 @@ Shaman's first 13 individual talents now provide spell and defensive training.
 
 ![Shaman Convection training preview](docs/images/screenshots/2026-10-26-shaman-nodes/convection-1280.png)
 
+Warlock's first 12 individual talents now train shadow, fire, curses and health.
+
+![Warlock Corruption training](docs/images/screenshots/2026-10-26-warlock-nodes/corruption-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

@@ -652,9 +652,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 19 / 47 | 9 / 9 |
 | Shaman | 13 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
-| Warlock | 0 / 50 | 0 / 9 |
+| Warlock | 12 / 50 | 0 / 9 |
 | Druid | 0 / 47 | 0 / 9 |
-| Total | 147 / 432 | 57 / 81 |
+| Total | 159 / 432 | 57 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1147,6 +1147,29 @@ Tests cover rank caps, reset, class/spell isolation, milestone composition and d
 periodic and totem parameters. Native purchases verify green previews and persisted
 ranks on an isolated character. The other 33 nodes and full live combat/balance
 acceptance remain open.
+
+Warlock has twelve audited individual effects. Values are per rank and provisional:
+
+| Talent ID / name | Ranks | Effect |
+| --- | --- | --- |
+| 1003 Improved Corruption | 5 | Corruption: 4% shorter cooldown; cast-time conversion |
+| 1284 Improved Curse of Agony | 3 | Curse of Agony: +2% periodic damage |
+| 1042 Shadow Mastery | 5 | Shadow Bolt, Corruption, Curse of Agony, Death Coil, Shadowburn: +2% damage |
+| 1223 Demonic Embrace | 5 | +5 maximum health; stamina conversion |
+| 944 Improved Shadow Bolt | 5 | Shadow Bolt: +4% damage; conversion from critical-hit vulnerability |
+| 941 Cataclysm | 5 | Destruction spells: 2% shorter cooldown; mana-cost conversion |
+| 943 Bane | 5 | Shadow Bolt/Immolate: 4% shorter cooldown; cast-time conversion |
+| 981 Devastation | 5 | Destruction spells: +1 percentage point critical chance |
+| 965 Improved Searing Pain | 5 | Searing Pain: +2 percentage points critical chance |
+| 961 Improved Immolate | 5 | Immolate: +5% direct and periodic damage; Survivors conversion |
+| 967 Ruin | 1 | Destruction spells: +50 percentage points critical damage |
+| 966 Emberstorm | 5 | Immolate, Rain of Fire, Hellfire, Searing Pain: +2% damage |
+
+Destruction includes Shadow Bolt, Immolate, Rain of Fire, Hellfire, Searing Pain
+and Shadowburn. These definitions replace generic damage fallback and do not grant
+unowned abilities. Area locations, target counts and durations stay unchanged.
+The remaining 38 nodes, all nine Warlock milestones and live balance acceptance
+remain open. No demon companion system is claimed by this first group.
 
 Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
 threshold tests and representative combat tests prove those behaviors. Switching specs

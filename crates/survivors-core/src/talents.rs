@@ -1,6 +1,7 @@
 //! Survivors talent effects and dependency rules, independent of engine spell visuals.
 
 mod shaman;
+mod warlock;
 
 /// One catalog node and its proposed rank, for validating a single talent tree.
 #[derive(Clone, Copy, Debug)]
@@ -2336,6 +2337,7 @@ pub fn definitions(class: usize) -> &'static [TalentDefinition] {
         4 => PRIEST_TALENTS,
         5 => shaman::DEFINITIONS,
         6 => MAGE_TALENTS,
+        7 => warlock::DEFINITIONS,
         _ => &[],
     }
 }
