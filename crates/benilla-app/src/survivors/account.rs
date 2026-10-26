@@ -1425,6 +1425,12 @@ fn parse(text: &str) -> Result<Account, ()> {
     account
         .earned_dates
         .retain(|id, _| account.earned.contains(id) && rewards::available(*id));
+    // Achievement rows may follow pets; validate both slots after reading the entire save.
+    for slot in 0..account.pets.look.len() {
+        if !account.look_unlocked(account.pets.look[slot]) {
+            account.pets.look[slot] = 0;
+        }
+    }
     Ok(account)
 }
 
@@ -2833,6 +2839,46 @@ pets 2 3 1 1 2 0 1
         let restored = parse(&encode(&account)).unwrap();
         assert!(!restored.look_unlocked(11));
         assert!(!restored.look_unlocked(12));
+    }
+
+    #[test]
+    fn saved_companion_looks_respect_unlocks_in_both_slots_after_all_rows_load() {
+        let mut account = empty();
+        account.pets.owned = 2;
+        // Placeholder achievement IDs must never unlock their associated appearances.
+        account
+            .earned
+            .extend([rewards::DEATHLESS_HOUR, rewards::NO_U]);
+        for look in [2, 11, 12, 13, 255] {
+            account.pets.look = [look, look];
+            let loaded = parse(&encode(&account)).unwrap();
+            assert_eq!(loaded.pets.look, [0, 0], "unavailable look {look}");
+            assert_eq!(parse(&encode(&loaded)).unwrap().pets.look, [0, 0]);
+        }
+        for look in [0, 1, 3, 4, 5, 6, 7, 8, 9, 10] {
+            account.pets.look = [look, look];
+            assert_eq!(parse(&encode(&account)).unwrap().pets.look, [look, look]);
+        }
+        account.pets.look = [2, 1];
+        account.earned.push(65);
+        let save = encode(&account);
+        let rows: Vec<_> = save.lines().collect();
+        let reversed = rows.into_iter().rev().collect::<Vec<_>>().join("\n");
+        for save in [&save, &reversed] {
+            let loaded = parse(save).unwrap();
+            assert_eq!(loaded.pets.look, [2, 1]);
+            assert_eq!(loaded.pets.instinct, account.pets.instinct);
+            assert_eq!(loaded.unspent(), account.unspent());
+        }
+        account.earned.clear();
+        account.pets.legacy_chicken = true;
+        assert_eq!(parse(&encode(&account)).unwrap().pets.look, [2, 1]);
+        // An unowned second slot may retain a legitimate cosmetic for a later purchase.
+        account.pets.owned = 1;
+        account.pets.look = [1, 10];
+        let loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.pets.owned, 1);
+        assert_eq!(loaded.pets.look, [1, 10]);
     }
 
     #[test]

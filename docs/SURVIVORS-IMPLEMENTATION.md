@@ -4360,3 +4360,15 @@ compact previews verify selection by icon, locked Panda Cub rejection and readab
 scroll reachability. Screenshots are inline in CHANGELOG and the README gallery.
 Native build, workspace Clippy, formatting and render lint pass. Physical gamepad
 acceptance and in-world appearance validation remain open.
+
+### Saved Companion appearance validation — 2026-10-26
+
+Both saved look indices are checked after the complete account file has loaded,
+so achievement row order cannot change availability. Unknown indices and locked
+looks, including the two unachievable placeholders, fall back to Snowshoe Rabbit.
+Valid choices, earned Veteran and legacy Chicken access remain intact. A legitimate
+second-slot look is preserved even before that slot is owned. Regression coverage
+checks both slots and serialization; native screenshots verify repair, independent
+second-slot selection and restart persistence. All 262 app tests and the native
+build, workspace Clippy, formatting and render lint pass. In-world rendering
+acceptance remains open.

@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Saved Companion unlocks
+
+Loading a save now checks both Companion looks against the completed achievement
+list. Unavailable or unknown looks fall back to Snowshoe Rabbit; earned Veteran
+and legacy Chicken access are preserved. This closes a path that could show a
+locked appearance as worn after loading.
+
+![Unavailable saved looks repaired](images/screenshots/2026-10-26-companion-save/restored-1280.png)
+
+![Independent looks retained after restart](images/screenshots/2026-10-26-companion-save/restarted-1280.png)
+
+262 app tests pass, including both slots, free/locked/unknown looks, row ordering
+and legacy access. A synthetic native save verifies repair, second-slot selection,
+saving and restart persistence. Native build, workspace Clippy, formatting and
+render lint pass; no in-world appearance validation is claimed.
+
 ## 2026-10-26 — Companion appearance controls
 
 Companion looks now share the gold hover outline and burgundy selection treatment
