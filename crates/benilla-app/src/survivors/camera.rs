@@ -55,6 +55,12 @@ impl CameraSettings {
         self.save();
     }
 
+    /// Reset to the built-in preferences, never to values loaded from disk by `Default`.
+    pub fn restore_defaults(&mut self) {
+        *self = Self::parse("");
+        self.save();
+    }
+
     fn save(&self) {
         if let Some(home) = crate::local_state::home() {
             if let Err(error) =

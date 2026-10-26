@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Restore category defaults
+
+Audio and Graphics now restore their own defaults without changing the other
+category. Graphics includes camera push-in and scenery cutaway. Options also uses
+the reference display font and groups Defaults/Done at the panel's lower right.
+
+![Restored Audio defaults](images/screenshots/2026-10-26-options-defaults/audio-1280.png)
+
+![Compact Graphics defaults](images/screenshots/2026-10-26-options-defaults/graphics-640.png)
+
+228 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Wide/compact native checks verify resets, category isolation and persistence
+after relaunch. Sliders, bindings and remaining categories are still unfinished;
+audible output and in-world camera effects were not retested.
+
 ## 2026-10-26 — Options categories
 
 Options now uses the reference's category navigation with focused Audio, Graphics

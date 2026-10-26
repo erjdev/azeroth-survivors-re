@@ -16,7 +16,10 @@ struct Content(Category);
 struct MenuOnly;
 
 pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
-    col.spawn(centered(font, "Options", 36.0, GOLD));
+    col.spawn((
+        centered(font, "Options", 36.0, GOLD),
+        super::super::armory::DisplayHeading,
+    ));
     col.spawn(Node {
         width: Val::Percent(100.0),
         flex_wrap: FlexWrap::Wrap,
@@ -105,7 +108,47 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
         12.0,
         DIM,
     ));
-    action(col, font, "Done", UiAction::CloseSettings);
+    col.spawn(Node {
+        width: Val::Percent(100.0),
+        justify_content: JustifyContent::End,
+        column_gap: Val::Px(8.0),
+        ..default()
+    })
+    .with_children(|footer| {
+        for (category, label) in [
+            (Category::Audio, "Audio defaults"),
+            (Category::Graphics, "Graphics defaults"),
+        ] {
+            footer
+                .spawn((Content(category), Node::default()))
+                .with_children(|slot| {
+                    action(slot, font, label, UiAction::RestoreSettings(category));
+                });
+        }
+        action(footer, font, "Done", UiAction::CloseSettings);
+    });
+}
+
+/// Use the registry's authoritative defaults and normal callback/persistence path.
+/// Reset only the selected category, preserving unrelated client preferences.
+pub(super) fn restore_cvars(cvars: &mut crate::cvars::Cvars, category: Category) {
+    let names: &[&str] = match category {
+        Category::Audio => &[
+            "MasterVolume",
+            "SoundVolume",
+            "MusicVolume",
+            "AmbienceVolume",
+            "MasterSoundEffects",
+            "EnableMusic",
+        ],
+        Category::Graphics => &["farclip", "WorldDetail", "spellEffectLevel", "renderScale"],
+        Category::About => &[],
+    };
+    for name in names {
+        if let Some(value) = cvars.default_of(name).map(str::to_owned) {
+            cvars.set(name, &value);
+        }
+    }
 }
 
 fn action(parent: &mut ChildSpawnerCommands, font: &Handle<Font>, label: &str, action: UiAction) {
@@ -186,6 +229,32 @@ impl Categories<'_, '_> {
 mod tests {
     use super::*;
     use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn category_defaults_preserve_other_preferences_and_emit_normal_changes() {
+        let mut cvars = crate::cvars::Cvars::default();
+        cvars.set("MasterVolume", "0.2");
+        cvars.set("EnableMusic", "0");
+        cvars.set("farclip", "777");
+        cvars.set("renderScale", "0.5");
+        cvars.take_events();
+        restore_cvars(&mut cvars, Category::Audio);
+        assert_eq!(cvars.get("MasterVolume"), cvars.default_of("MasterVolume"));
+        assert_eq!(cvars.get("EnableMusic"), cvars.default_of("EnableMusic"));
+        assert_eq!(cvars.get("farclip"), Some("777"));
+        assert_eq!(cvars.get("renderScale"), Some("0.5"));
+        let events = cvars.take_events();
+        assert_eq!(events.len(), 2);
+        assert!(events.iter().any(|event| event.is("MasterVolume")));
+        assert!(events.iter().any(|event| event.is("EnableMusic")));
+        cvars.set("MasterVolume", "0.3");
+        restore_cvars(&mut cvars, Category::Graphics);
+        assert_eq!(cvars.get("MasterVolume"), Some("0.3"));
+        assert_eq!(cvars.get("farclip"), cvars.default_of("farclip"));
+        assert_eq!(cvars.get("renderScale"), cvars.default_of("renderScale"));
+        restore_cvars(&mut cvars, Category::About);
+        assert_eq!(cvars.get("MasterVolume"), Some("0.3"));
+    }
 
     #[test]
     fn build_notes_are_reachable_from_starter_but_cannot_abandon_a_paused_run() {

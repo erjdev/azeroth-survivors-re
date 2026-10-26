@@ -201,6 +201,7 @@ pub(super) enum UiAction {
     CloseSettings,
     SettingsCategory(settings::Category),
     BuildNotes,
+    RestoreSettings(settings::Category),
     Adjust(Knob, i8),
     Toggle(Knob),
 }
@@ -218,6 +219,7 @@ pub(super) struct PausePage {
 pub(super) struct SettingEdits {
     adjust: Vec<(Knob, i8)>,
     toggle: Vec<Knob>,
+    restore: Option<settings::Category>,
 }
 
 #[derive(Component)]
@@ -1397,6 +1399,11 @@ pub(super) fn buttons(
                     {
                         page.category = category;
                     }
+                    (UiAction::RestoreSettings(category), Phase::Menu | Phase::Paused)
+                        if page.open && category == page.category =>
+                    {
+                        edits.restore = Some(category);
+                    }
                     (UiAction::BuildNotes, Phase::Menu) if page.open => {
                         page.open = false;
                         armory.open_page(super::armory::Page::Notes);
@@ -1423,7 +1430,7 @@ pub(super) fn apply_settings(
     mut camera: ResMut<super::camera::CameraSettings>,
     mut cvars: ResMut<crate::cvars::Cvars>,
 ) {
-    if edits.adjust.is_empty() && edits.toggle.is_empty() {
+    if edits.adjust.is_empty() && edits.toggle.is_empty() && edits.restore.is_none() {
         return;
     }
     for (knob, dir) in edits.adjust.drain(..) {
@@ -1436,6 +1443,12 @@ pub(super) fn apply_settings(
             camera.toggle_cutaway();
         } else {
             toggle_knob(&mut cvars, knob);
+        }
+    }
+    if let Some(category) = edits.restore.take() {
+        settings::restore_cvars(&mut cvars, category);
+        if category == settings::Category::Graphics {
+            camera.restore_defaults();
         }
     }
 }

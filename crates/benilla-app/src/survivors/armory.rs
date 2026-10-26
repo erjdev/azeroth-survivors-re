@@ -21,7 +21,7 @@ pub(super) use reward_page::remember_scroll as remember_reward_scroll;
 mod name_edit;
 mod name_input;
 mod typography;
-pub(super) use typography::apply as style_headings;
+pub(super) use typography::{apply as style_headings, DisplayHeading};
 mod talent_heading;
 pub(super) use talent_heading::fill as fill_talent_headings;
 mod talent_page;

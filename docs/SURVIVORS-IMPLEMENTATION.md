@@ -35,9 +35,18 @@ saved values, Enter isolation, Done and the About→build-notes route. All 33 fo
 HUD tests and workspace Clippy pass; the new regression guards the notes action
 against leaving a paused run. An actual restart and audible output were not retested.
 
+Audio/Graphics now each restore their own registered defaults; Graphics also resets
+camera preferences to the built-in defaults rather than reloading saved values.
+The title uses the installed Morpheus font and Defaults/Done align at lower right.
+All 228 Survivors tests pass, including category isolation and normal CVar change
+callbacks. Native 1280×720 / 640×720 checks verify both resets, unrelated-category
+preservation, About hiding defaults, and saved values after relaunch. Build,
+workspace Clippy, formatting and render lint pass; two inline screenshots record
+this checkpoint. Audible output and in-world camera effects were not retested.
+
 Compared against `survivors_paused_options_gamepad.png`: Audio, Graphics and About
 now use left-side category navigation and a focused bordered content panel.
-Sliders, defaults, gamepad/key bindings and the other settings remain required.
+Sliders, gamepad/key bindings and the other settings remain required.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.
