@@ -3684,3 +3684,21 @@ DBC audit confirms identities and rank counts. Native 1280×720 Vigor refund and
 repurchase and 640×720 Elusiveness refund/restore verify green text and readable
 previews. Screenshots are inline in the changelog. Live combat feel, final balance
 and remaining Rogue nodes are still open.
+
+### Imported talent budgets — 2026-10-25
+
+An imported spec with more points spent than the hero has earned keeps its saved
+ranks for repair, but contributes no talent stat bonuses, trained spell effects or
+milestones to a new run. Valid sibling specs still work. Refunding/resetting or
+earning enough points restores eligibility. The talent page explains the inactive
+state and dims milestone indicators. This enforces the earned-point budget only;
+full catalog/row/prerequisite validation of imported ranks remains a separate gap.
+
+The account regression covers save preservation, suspended bonuses and snapshots,
+sibling-spec isolation, refund recovery, additional earned points and unchanged
+existing run snapshots. Native 1280×720 evidence shows the warning and its removal
+after refunding the excess Vigor rank; before/after captures are in the changelog.
+
+All 202 Survivors app tests pass. Three older test fixtures now supply earned
+points for their deliberately assigned ranks. Native build, workspace Clippy,
+formatting and render-pass lint pass.

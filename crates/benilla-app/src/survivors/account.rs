@@ -64,6 +64,11 @@ impl Character {
         self.tree_points(usize::from(self.spec).min(2)).iter().sum()
     }
 
+    /// Keep imported ranks available for repair without granting unearned effects.
+    pub(super) fn talent_budget_valid(&self) -> bool {
+        self.active_points() <= campaign::talent_level(self.talent_xp)
+    }
+
     pub(super) fn dbc_rank(&self, talent: u32) -> u8 {
         let spec = usize::from(self.spec).min(2);
         self.dbc[spec]
@@ -422,7 +427,9 @@ impl Account {
             return Bonus::default();
         };
         let pieces = progress.equipment.worn_pieces(&progress.pieces);
-        let hero = self.character(id);
+        let hero = self
+            .character(id)
+            .filter(|hero| hero.class == class && hero.talent_budget_valid());
         let using_dbc = hero.is_some_and(|c| {
             c.dbc[usize::from(c.spec).min(2)]
                 .iter()
@@ -636,6 +643,7 @@ impl Account {
             Some(id) => self.character(id).filter(|hero| hero.class == class),
             None => self.characters.iter().find(|hero| hero.class == class),
         };
+        let hero = hero.filter(|hero| hero.talent_budget_valid());
         survivors_core::talents::Milestones {
             class,
             points: hero
@@ -1559,6 +1567,56 @@ mod tests {
     use super::*;
 
     #[test]
+    fn imported_overbudget_spec_preserves_ranks_but_grants_no_talent_effects() {
+        let mut account = empty();
+        let id = account.ensure(3);
+        let hero = account.characters.iter_mut().find(|h| h.id == id).unwrap();
+        hero.talent_xp = 1000;
+        hero.dbc[0] = vec![(0, 276, 3), (0, 270, 5), (0, 272, 2), (0, 273, 1)];
+        hero.dbc[1] = vec![(1, 187, 5)];
+        let original = hero.dbc.clone();
+        let mut loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.character(id).unwrap().dbc, original);
+        assert_eq!(loaded.character(id).unwrap().active_points(), 11);
+        assert!(!loaded.character(id).unwrap().talent_budget_valid());
+        let inactive = loaded.milestones_picked(3, Some(id));
+        assert_eq!(inactive.points, [0; 3]);
+        assert_eq!(inactive.cast("eviscerate"), Default::default());
+        assert_eq!(loaded.bonus(3, id).might, 0.0);
+        assert_eq!(loaded.bonus(3, id).armor, 0.0);
+        loaded.select_spec(id, 1);
+        assert_eq!(
+            loaded.bonus(3, id).armor,
+            15.0,
+            "valid sibling spec remains active"
+        );
+        loaded.select_spec(id, 0);
+        assert!(loaded.unlearn_talent(id, 273, true));
+        assert!(loaded.character(id).unwrap().talent_budget_valid());
+        assert_eq!(loaded.milestones_picked(3, Some(id)).points, [10, 0, 0]);
+        assert!(
+            loaded
+                .milestones_picked(3, Some(id))
+                .cast("eviscerate")
+                .damage
+                > 1.0
+        );
+        assert_eq!(inactive.points, [0; 3], "running snapshot is unchanged");
+        assert_eq!(
+            parse(&encode(&loaded)).unwrap().character(id).unwrap().dbc[0].len(),
+            3
+        );
+        // Earning the missing point also activates the untouched original spec.
+        account
+            .characters
+            .iter_mut()
+            .find(|h| h.id == id)
+            .unwrap()
+            .talent_xp = 1100;
+        assert_eq!(account.milestones_picked(3, Some(id)).points, [11, 0, 0]);
+    }
+
+    #[test]
     fn named_stat_talents_change_the_selected_sheet_and_survive_spec_switches() {
         let mut account = empty();
         let id = account.ensure(1);
@@ -1602,6 +1660,7 @@ mod tests {
             .iter_mut()
             .find(|hero| hero.id == second)
             .unwrap();
+        hero.talent_xp = 2000;
         hero.dbc[0] = vec![(0, 99, 5), (0, 100, 5)];
         hero.dbc[1] = vec![(2, 101, 5), (2, 102, 5), (2, 103, 5), (2, 104, 5)];
         hero.spec = 1;
@@ -1635,6 +1694,7 @@ mod tests {
             .iter_mut()
             .find(|hero| hero.id == second)
             .unwrap();
+        hero.talent_xp = 300;
         hero.dbc[0] = vec![(2, 1631, 2)];
         hero.dbc[1] = vec![(1, 1521, 3)];
         hero.spec = 1;
@@ -1861,6 +1921,7 @@ mod tests {
             .iter_mut()
             .find(|hero| hero.id == second)
             .unwrap();
+        hero.talent_xp = 1000;
         hero.dbc[0] = vec![(0, 124, 3), (1, 166, 3)];
         hero.dbc[1] = vec![(1, 157, 5), (2, 140, 5)];
         let cast = account.milestones_picked(0, Some(second));

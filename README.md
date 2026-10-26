@@ -307,7 +307,8 @@ shown on the starter. Initial values still need combat balance testing.
 ![Orc racial bonuses](docs/images/screenshots/2026-10-25-racial-bonuses/orc-1280.jpg)
 
 Sixteen Rogue talents now have explicit effects and truthful rank previews.
-Rogue coverage is still incomplete.
+Rogue coverage is still incomplete. Imported specs that exceed earned points retain
+their saved ranks, but talent effects stay inactive until the point budget is repaired.
 
 ![Rogue Vigor cooldown talent](docs/images/screenshots/2026-10-25-rogue-cooldowns/vigor-1280.jpg)
 

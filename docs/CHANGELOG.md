@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Imported talent budget protection
+
+Overspent saved specs now keep their ranks but grant no talent effects until their
+point budget is repaired. Valid sibling specs remain usable. The talent page
+explains the recovery options and dims inactive milestones.
+
+![Saved spec exceeds its earned points](images/screenshots/2026-10-25-talent-budget/inactive-1280.jpg)
+
+![Refunding the excess rank restores the spec](images/screenshots/2026-10-25-talent-budget/repaired-1280.jpg)
+
+Native 1280×720 checks verified the warning and recovery after refunding one rank.
+The regression covers preserved saves, suspended bonuses, independent specs and
+reactivation through refunds or earned points. All 202 Survivors app tests pass.
+Native build, workspace Clippy, formatting and render-pass lint pass. Full
+imported-catalog validation remains open.
+
 ## 2026-10-25 — Rogue cooldown talents
 
 Three talents replace provisional damage with explicit cooldown effects: Improved
