@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Priest healing talent
+
+Spiritual Healing now increases Renew and Holy Nova's unlocked healing by 2% per
+rank, up to 10%, replacing its generic damage placeholder. It multiplies Improved
+Renew and does not grant spells or increase damage, shields or Shadow lifesteal.
+
+![Spiritual Healing purchase and next rank](images/screenshots/2026-10-26-spiritual-healing/talent-1280.png)
+
+![Compact details after refund](images/screenshots/2026-10-26-spiritual-healing/talent-640.png)
+
+Native checks cover purchase, saved rank, refund and readable details at 1280×720
+and 640×720. All 143 core and 290 Survivors app tests pass, along with the native
+build, app Clippy and formatting. Catalog coverage is 189/432 individual talents;
+live combat balance and Windows acceptance remain open.
+
+
 ## 2026-10-26 — Retained foliage visibility coverage
 
 Added a regression check for collider-free foliage in the retained renderer through

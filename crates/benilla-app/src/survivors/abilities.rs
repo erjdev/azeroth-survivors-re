@@ -3980,6 +3980,34 @@ mod milestone_tests {
     }
 
     #[test]
+    fn spiritual_healing_reaches_unlocked_nova_heal_and_respects_health_caps() {
+        for points in [0, 29, 30] {
+            let trained = Milestones {
+                class: 4,
+                points: [0, points, 0],
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 404, 5)]);
+            let effect = trained.cast("holy_nova");
+            let expected = if points >= 30 { 5.5 } else { 0. };
+            let mut run = Run {
+                hp: 50.,
+                ..Default::default()
+            };
+            assert!((finish_milestone_cast(&mut run, effect, 100.) - expected).abs() < 0.00001);
+            assert!((run.hp - 50. - expected).abs() < 0.00001);
+            run.hp = 99.;
+            assert_eq!(
+                finish_milestone_cast(&mut run, effect, 100.),
+                expected.min(1.)
+            );
+            run.hp = 0.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 0.);
+            assert_eq!(run.hp, 0.);
+        }
+    }
+
+    #[test]
     fn druid_individual_swiftmend_heals_once_without_consuming_regeneration() {
         let mut run = Run::default();
         for points in [0, 29, 30] {

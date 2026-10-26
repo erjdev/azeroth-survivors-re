@@ -486,6 +486,9 @@ impl Milestones {
                 }
             }
         }
+        if self.class == 4 && key == "holy_nova" {
+            effect.heal_fraction *= 1.0 + self.trained_value(TalentStat::SpiritualHealing);
+        }
         if effect.shield_fraction > 0.0 {
             // All talent-granted absorbs start with three seconds; duration ranks add to it.
             effect.shield_seconds += 3.0;
@@ -498,7 +501,8 @@ impl Milestones {
     /// Renew is a passive in Survivors. Other regeneration sources are not multiplied.
     pub fn passive_multiplier(self, key: &str) -> f32 {
         if self.class == 4 && key == "renew" {
-            1.0 + self.trained_value(TalentStat::ImprovedRenew)
+            (1.0 + self.trained_value(TalentStat::ImprovedRenew))
+                * (1.0 + self.trained_value(TalentStat::SpiritualHealing))
         } else {
             1.0
         }
@@ -1348,6 +1352,7 @@ pub enum TalentStat {
     Remorseless,
     SpiritTap,
     ImprovedRenew,
+    SpiritualHealing,
     SiphonLife,
     Nightfall,
     SecondarySlowDuration(&'static str),
@@ -1440,6 +1445,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
+            TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
@@ -2408,6 +2414,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 404, max_rank: 5, name: "Spiritual Healing",
+        description: "Renew and Holy Nova's unlocked healing: +2% healing per rank, multiplying Improved Renew. Does not unlock either effect; excludes damage, shields, Spirit Tap, lifesteal and other regeneration (Survivors healing scope)",
+        stat: TalentStat::SpiritualHealing, per_rank: 0.02,
+    },
+    TalentDefinition {
         id: 406, max_rank: 3, name: "Improved Renew",
         description: "Renew: +5% regeneration per rank. Requires acquiring Renew during the run; excludes gear, racial regeneration, Spirit Tap and other healing (Survivors passive conversion)",
         stat: TalentStat::ImprovedRenew, per_rank: 0.05,
@@ -2552,6 +2563,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::BloodCrazeHealing
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
+            | TalentStat::SpiritualHealing
             | TalentStat::SiphonLife
             | TalentStat::Nightfall
             | TalentStat::Remorseless
@@ -3629,6 +3641,7 @@ mod stat_talent_tests {
                     | TalentStat::BloodCrazeHealing
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
+                    | TalentStat::SpiritualHealing
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
                     | TalentStat::Remorseless
@@ -4494,4 +4507,52 @@ fn bounded_rank(node: &TalentDefinition, ranks: &[(u8, u32, u8)]) -> u8 {
         .max()
         .unwrap_or(0)
         .min(node.max_rank)
+}
+
+#[cfg(test)]
+mod spiritual_healing_tests {
+    use super::*;
+
+    #[test]
+    fn healing_training_scales_owned_effects_without_granting_or_buffing_damage() {
+        for class in 0..9 {
+            for points in [0, 29, 30, 40] {
+                let base = Milestones {
+                    class,
+                    points: [0, points, 0],
+                    ..Default::default()
+                };
+                for rank in [0, 1, 5, 255] {
+                    let trained = base.with_ranks(&[(1, 404, rank), (1, 406, 3)]);
+                    let multiplier = if class == 4 {
+                        1. + 0.02 * f32::from(rank.min(5))
+                    } else {
+                        1.
+                    };
+                    let nova = trained.cast("holy_nova");
+                    let mut expected = base.cast("holy_nova");
+                    expected.heal_fraction *= multiplier;
+                    assert_eq!(nova, expected);
+                    let renew = if class == 4 { 1.15 * multiplier } else { 1. };
+                    assert!((trained.passive_multiplier("renew") - renew).abs() < 0.00001);
+                    for key in [
+                        "regeneration",
+                        "rejuvenation",
+                        "holy_shock",
+                        "power_word_shield",
+                        "shadow_word_pain",
+                        "smite",
+                    ] {
+                        assert_eq!(trained.cast(key), base.cast(key));
+                        assert_eq!(trained.passive_multiplier(key), 1.);
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+        assert_eq!(
+            talent_definition(4, 404).unwrap().rank_preview(1),
+            "This talent: 2 to 4% Renew and Holy Nova healing next rank"
+        );
+    }
 }

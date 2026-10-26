@@ -869,6 +869,32 @@ mod stat_tests {
     }
 
     #[test]
+    fn spiritual_healing_multiplies_renew_without_other_regeneration() {
+        let renew = data::PASSIVES.iter().find(|p| p.key == "renew").unwrap();
+        let mut run = Run {
+            race: 8,
+            ..Default::default()
+        };
+        let baseline = run.stats().regen;
+        run.milestones = survivors_core::talents::Milestones {
+            class: 4,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 406, 3), (1, 404, 5)]);
+        assert_eq!(run.stats().regen, baseline);
+        for rank in 1..=data::MAX_PASSIVE_LEVEL {
+            run.passives = vec![(renew, rank)];
+            let expected = 0.5 * f32::from(rank) * 1.15 * 1.1;
+            assert!((run.stats().regen - baseline - expected).abs() < 0.00001);
+        }
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(
+            (run.stats().regen - baseline - 0.5 * f32::from(data::MAX_PASSIVE_LEVEL)).abs()
+                < 0.00001
+        );
+    }
+
+    #[test]
     fn all_racial_bonuses_reach_combat_and_race_changes_remove_them() {
         let mut run = Run {
             race: 0,

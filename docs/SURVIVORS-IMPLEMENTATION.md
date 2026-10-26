@@ -701,12 +701,12 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Paladin | 21 / 44 | 9 / 9 |
 | Hunter | 17 / 46 | 6 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
-| Priest | 20 / 47 | 9 / 9 |
+| Priest | 21 / 47 | 9 / 9 |
 | Shaman | 14 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
 | Warlock | 16 / 50 | 9 / 9 |
-| Druid | 18 / 47 | 9 / 9 |
-| Total | 186 / 432 | 78 / 81 |
+| Druid | 20 / 47 | 9 / 9 |
+| Total | 189 / 432 | 78 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -4918,3 +4918,26 @@ Validation: the new public-query test and both existing retained-source tests pa
 formatting and diff checks pass. The first world-test configuration build took four
 minutes; the adjacent cached test invocation finished in under one second. No game
 was launched and no new visual evidence is claimed.
+
+
+### 2026-10-26 — Individual Priest Spiritual Healing
+
+DBC 404 (five ranks) now provides 2% healing per rank to the current Priest healing
+sources: owned Renew and the 30-point Holy milestone's Holy Nova heal. It multiplies
+Improved Renew; at full training Renew is 1.265× baseline and Nova heals 5.5% maximum
+health. It does not grant an ability or unlock Nova healing early. Damage, absorbs,
+Spirit Tap, Vampiric Embrace and racial regeneration remain unchanged. The normal
+supported-node adjustment removes the old generic damage per point. Future Priest
+healing abilities must explicitly join this scope when implemented.
+
+Core coverage checks rank caps, class/spell isolation, milestone thresholds and
+reset. App coverage checks owned Renew with separate Troll regeneration and Nova
+healing, overheal/death caps. Native fixture spiritual-healing uses 25 support points
+(including still-provisional Improved Healing), purchases rank 1, verifies persistence,
+then refunds it at 640×720. Wide/compact screenshots are embedded in CHANGELOG and
+replace the relevant README gallery cells; the earlier Druid captures stay in the
+changelog/history. Reusable read-only preview requests are under docs/ui-previews/.
+The checkout-data audit reports 189/432 definitions and 78/81 milestone descriptions.
+This does not complete Priest talents, combat balance or Windows acceptance.
+Validation: 143 core tests, 290 visibility-enabled app tests, native play build
+(59 seconds), app Clippy, formatting and diff checks pass.
