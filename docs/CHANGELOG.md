@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Visibility regression gate
+
+The PR workflow now runs Survivors rules and visibility-enabled integration tests.
+New checks verify that collider-free ordinary/merged scenery drives the 500 ms
+reveal fade, releases it behind the hero, and clears it in menus or when disabled.
+Removed the unused collision-only reveal helper. All 285 app and 141 core tests
+pass locally. This changes verification, not rendering; the exact Windows foliage
+scene remains open, and there is no new visual milestone screenshot.
+
 ## 2026-10-26 — Nightfall procs
 
 Warlock Nightfall now gives Corruption ticks a 2%/4% chance to ready an owned

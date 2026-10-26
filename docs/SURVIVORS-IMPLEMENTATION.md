@@ -4785,3 +4785,25 @@ screenshots show the next-rank preview and maximum-rank description without
 clipping, using the intention's art-backed trees and separate details panel.
 Screenshots are embedded in CHANGELOG/README and reusable preview presets are in
 docs/ui-previews. Live combat balance and the remaining talent catalog stay open.
+
+
+### 2026-10-26 — Render-only reveal integration and PR gate
+
+The active visibility adapter uses WorldPick rendered triangles, not physics
+collision. Removed its obsolete, unused collision-only helper from the world
+visibility module. New scheduled-system coverage feeds collider-free ordinary
+meshes and merged PickBlob members through the actual adapter into SceneryCutaway.
+It measures five 100 ms real-time updates to fully reveal and five to restore
+opacity after moving scenery behind the hero. It also checks focus/radius output,
+continued real-time fading while paused, disabled-option clearing, and reset on
+menu/game-over transitions. Existing triangle tests cover off-axis scenery and
+actor exclusion. No runtime rendering policy changed in this checkpoint.
+
+The previous PR workflow omitted Survivors tests, and the default documented test
+command excluded this feature-gated adapter. CI now runs survivors-core and the
+visibility-enabled Survivors app suite; the matching command is documented in
+SURVIVORS-DEVELOPMENT. Both commands pass locally: 141 core and 285 app tests.
+These fixtures do not prove alpha-texture-aware occlusion, retained StaticGx
+rendering, WMO cutaway, or the user's exact Windows foliage scene. Those remain
+open acceptance work. No new screenshot is claimed for this nonvisual checkpoint.
+Visibility-enabled app Clippy, formatting and diff checks also pass locally.

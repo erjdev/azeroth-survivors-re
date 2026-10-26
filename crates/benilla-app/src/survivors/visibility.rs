@@ -173,4 +173,115 @@ mod tests {
             "another unit does not cut away scenery"
         );
     }
+
+    #[test]
+    fn render_only_scenery_drives_real_time_fade_and_resets_across_modes() {
+        use benilla_world::interact::PickMember;
+        use bevy::camera::visibility::SetViewVisibility;
+        use std::time::Duration;
+        for merged in [false, true] {
+            let mut world = World::new();
+            world.insert_resource(State::new(Phase::Playing));
+            world.insert_resource(Time::<Real>::default());
+            let mut settings = CameraSettings::default();
+            settings.cutaway = true;
+            world.insert_resource(settings);
+            world.init_resource::<SceneryCutaway>();
+            // Put the camera focus at (0, 0, 10), beyond a render-only canopy at z=5.
+            world.spawn((
+                Hero { vy: 0., air: 0. },
+                GlobalTransform::from_translation(Vec3::new(0., -CAMERA_FOCUS_HEIGHT, 10.)),
+            ));
+            world.spawn((
+                WorldCamera,
+                GlobalTransform::IDENTITY,
+                Projection::Perspective(PerspectiveProjection::default()),
+            ));
+            let geometry = Arc::new(benilla_formats::RenderSubmesh {
+                positions: vec![[-5., 2., -2.], [-5., -2., -2.], [-5., 0., 2.]],
+                indices: vec![0, 1, 2],
+                ..default()
+            });
+            let object = WorldObject {
+                kind: ModelKind::Doodad,
+                label: "Canopy without collision".into(),
+                id: 1,
+                detail: String::new(),
+            };
+            let canopy = world
+                .spawn((GlobalTransform::IDENTITY, ViewVisibility::HIDDEN))
+                .id();
+            if merged {
+                world
+                    .entity_mut(canopy)
+                    .insert(PickBlob(Arc::from([PickMember {
+                        object: Arc::new(object),
+                        geometry,
+                        transform: Transform::IDENTITY,
+                    }])));
+            } else {
+                world
+                    .entity_mut(canopy)
+                    .insert((PickMesh(geometry), object));
+            }
+            world
+                .get_mut::<ViewVisibility>(canopy)
+                .unwrap()
+                .set_visible();
+            let mut schedule = Schedule::default();
+            schedule.add_systems(sync);
+            let step = |world: &mut World, schedule: &mut Schedule| {
+                world
+                    .resource_mut::<Time<Real>>()
+                    .advance_by(Duration::from_millis(100));
+                schedule.run(world);
+                world.resource::<SceneryCutaway>().camera.w
+            };
+            for frame in 1..=5 {
+                let strength = step(&mut world, &mut schedule);
+                assert!(
+                    (strength - frame as f32 * 0.2).abs() < 0.00001,
+                    "500 ms fade, merged={merged}"
+                );
+                let cutaway = world.resource::<SceneryCutaway>();
+                assert_eq!(cutaway.focus.truncate(), Vec3::Z * 10.);
+                assert_eq!(cutaway.camera.truncate(), Vec3::ZERO);
+                assert!(cutaway.focus.w > 0.);
+            }
+            // Behind the hero, the same canopy must release the reveal over 500 ms.
+            if merged {
+                let mut blob = world.get_mut::<PickBlob>(canopy).unwrap();
+                Arc::make_mut(&mut blob.0)[0].transform.translation = Vec3::Z * 10.;
+            } else {
+                *world.get_mut::<GlobalTransform>(canopy).unwrap() =
+                    GlobalTransform::from_translation(Vec3::Z * 10.);
+            }
+            for frame in 1..=5 {
+                assert!(
+                    (step(&mut world, &mut schedule) - (1. - frame as f32 * 0.2)).abs() < 0.00001
+                );
+            }
+            if merged {
+                let mut blob = world.get_mut::<PickBlob>(canopy).unwrap();
+                Arc::make_mut(&mut blob.0)[0].transform.translation = Vec3::ZERO;
+            } else {
+                *world.get_mut::<GlobalTransform>(canopy).unwrap() = GlobalTransform::IDENTITY;
+            }
+            // The fade remains on real time while gameplay is paused.
+            world.insert_resource(State::new(Phase::Paused));
+            assert!((step(&mut world, &mut schedule) - 0.2).abs() < 0.00001);
+            world.resource_mut::<CameraSettings>().cutaway = false;
+            assert_eq!(step(&mut world, &mut schedule), 0.);
+            assert_eq!(world.resource::<SceneryCutaway>().focus, Vec4::ZERO);
+            world.resource_mut::<CameraSettings>().cutaway = true;
+            assert!((step(&mut world, &mut schedule) - 0.2).abs() < 0.00001);
+            for phase in [Phase::Menu, Phase::GameOver] {
+                world.insert_resource(State::new(phase));
+                assert_eq!(step(&mut world, &mut schedule), 0.);
+                assert_eq!(world.resource::<SceneryCutaway>().focus, Vec4::ZERO);
+                world.insert_resource(State::new(Phase::Playing));
+                assert!((step(&mut world, &mut schedule) - 0.2).abs() < 0.00001);
+            }
+        }
+    }
 }
