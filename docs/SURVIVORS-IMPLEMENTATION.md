@@ -3938,3 +3938,23 @@ audit, native build, Clippy, formatting and render lint pass. Native rank 7→8
 cards fit at 1280×720 and 640×720, including the long Psychic Scream shield/stun
 text reached by scrolling. Screenshots are embedded in README/changelog. Live
 crowd-control balance and remaining talents are still open.
+
+
+### Vampiric Embrace — 2026-10-25
+
+DBC 484 (one rank) grants always-active self-healing for 20% of health removed by
+Priest Shadow spells. DBC 1638 (two ranks) adds five percentage points per rank,
+requires the base talent, and caps at 30% total. Both replace provisional generic
+damage. This is the Survivors conversion, without an upkeep debuff or party heal.
+Direct and periodic paths heal from actual remaining enemy health, excluding
+overkill; mixed periodic sources consume that health budget in tick order.
+Existing generic leech/drain behavior is unchanged. Shared card/tooltip prose
+shows the effective fraction and supports green inline changes.
+
+118 core tests cover talent identity scopes, base prerequisite, bounded ranks,
+invalid damage and reset. The app regression exercises real direct/periodic hits
+at all improvement ranks with living/dead players, overkill and already-dead
+targets. DBC audit, native build, Clippy, formatting and render lint pass. Native
+1280×720 and 640×720 checks show combined healing/Blackout/shield text fits, with
+the third compact card reachable by scrolling. Screenshots are embedded in README
+and changelog. Live healing balance and remaining talents remain unverified.

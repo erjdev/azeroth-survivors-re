@@ -106,6 +106,7 @@ pub(super) struct Params {
     pub immune_seconds: f32,
     pub heal_fraction: f32,
     pub blackout_chance: f32,
+    pub vampiric_fraction: f32,
     pub effect: Effect,
 }
 
@@ -140,6 +141,7 @@ impl Params {
             immune_seconds: effect.immune_seconds,
             heal_fraction: effect.heal_fraction,
             blackout_chance: milestones.blackout_chance(o.def.key, 1.0),
+            vampiric_fraction: milestones.vampiric_healing(o.def.key, 1.0),
         }
     }
 }
@@ -1020,6 +1022,7 @@ pub(super) fn apply_hits(
         if dmg > 0.0 {
             let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
             dmg *= echoes as f32;
+            let removed = dmg.min(en.hp.max(0.0));
             en.hp -= dmg;
             run.add_damage(h.source, dmg);
             fx.number(e, dmg, h.crit, h.color);
@@ -1027,7 +1030,8 @@ pub(super) fn apply_hits(
                 dmg * frac
             } else {
                 0.0
-            } + dmg * stats.leech;
+            } + dmg * stats.leech
+                + run.milestones.vampiric_healing(h.source, removed);
             if heal > 0.0 {
                 run.heal(heal, stats.max_hp);
             }
@@ -1111,10 +1115,15 @@ pub(super) fn apply_hits(
         let stats = run.stats();
         let mut dealt = 0.0;
         let mut blackout = false;
+        let mut vampiric_heal = 0.0;
+        let mut remaining_hp = en.hp.max(0.0);
         for d in &mut en.dots {
             for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
                 let tick = d.dps * echoes as f32;
+                let removed = tick.max(0.0).min(remaining_hp);
+                remaining_hp = (remaining_hp - removed).max(0.0);
+                vampiric_heal += run.milestones.vampiric_healing(d.source, removed);
                 dealt += tick;
                 run.add_damage(d.source, tick);
                 let chance = run.milestones.blackout_chance(d.source, tick);
@@ -1129,8 +1138,8 @@ pub(super) fn apply_hits(
         en.dots.retain(|d| d.left > 0.0);
         if dealt > 0.0 {
             en.hp -= dealt;
-            if stats.leech > 0.0 {
-                run.heal(dealt * stats.leech, stats.max_hp);
+            if stats.leech > 0.0 || vampiric_heal > 0.0 {
+                run.heal(dealt * stats.leech + vampiric_heal, stats.max_hp);
             }
             fx.number(e, dealt, false, COLOR_SPELL);
             if en.hp <= 0.0 {
@@ -2296,6 +2305,105 @@ mod milestone_tests {
             let radius = if key == "blade_flurry" { 1.3 } else { 1.0 };
             assert!((after.radius - before.radius * radius).abs() < 0.0001);
             assert_eq!(after.effect, before.effect);
+        }
+    }
+
+    #[test]
+    fn vampiric_embrace_heals_actual_direct_and_periodic_damage_without_reviving() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for rank in [0, 1, 2] {
+                for hp in [0.0, 50.0, 99.0] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        hp,
+                        milestones: Milestones {
+                            class: 4,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 484, 1), (2, 1638, rank)]),
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 5.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slow: 1.0,
+                                slow_t: 0.0,
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source: "shadow_word_pain",
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source: "mind_blast",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let expected = if hp == 0.0 {
+                        0.0
+                    } else {
+                        (hp + 5.0 * (0.20 + 0.05 * f32::from(rank))).min(run.stats().max_hp)
+                    };
+                    assert!((run.hp - expected).abs() < 0.00001);
+                    assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert!(
+                        (app.world().resource::<Run>().hp - expected).abs() < 0.00001,
+                        "dead targets cannot heal again"
+                    );
+                }
+            }
         }
     }
 

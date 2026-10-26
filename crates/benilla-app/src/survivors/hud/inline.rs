@@ -274,6 +274,17 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
             );
         }
     }
+    if b.vampiric_fraction > 0.0 {
+        prose!(
+            ". Heals you for ",
+            (
+                a.vampiric_fraction * 100.,
+                b.vampiric_fraction * 100.,
+                "% of enemy health removed"
+            ),
+            " by this spell, including periodic ticks"
+        );
+    }
     if b.blackout_chance > 0.0 {
         prose!(
             ". Shadow damage has ",

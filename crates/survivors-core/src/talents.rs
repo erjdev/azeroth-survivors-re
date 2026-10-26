@@ -551,6 +551,19 @@ impl Milestones {
         self.trained_value(TalentStat::Blackout)
     }
 
+    /// Passive self-healing conversion; improvement requires the base talent.
+    pub fn vampiric_healing(self, key: &str, damage: f32) -> f32 {
+        if self.class != 4 || !damage.is_finite() || damage <= 0.0 || !PRIEST_SHADOW.contains(&key)
+        {
+            return 0.0;
+        }
+        let base = self.trained_value(TalentStat::VampiricEmbrace);
+        if base <= 0.0 {
+            return 0.0;
+        }
+        damage * (base + self.trained_value(TalentStat::ImprovedVampiricEmbrace))
+    }
+
     /// A positive frost hit can add one stack after its damage is resolved.
     pub fn winters_chill_chance(self, key: &str, damage: f32) -> f32 {
         if self.class != 6 || !damage.is_finite() || damage <= 0.0 || !MAGE_FROST.contains(&key) {
@@ -1061,6 +1074,8 @@ pub enum TalentStat {
     Frostbite,
     Impact,
     Blackout,
+    VampiricEmbrace,
+    ImprovedVampiricEmbrace,
     WintersChill,
     Shatter,
     Permafrost,
@@ -1163,6 +1178,8 @@ impl TalentDefinition {
             TalentStat::WintersChill => (100.0, "% chance to apply Winter's Chill on frost damage"),
             TalentStat::Impact => (100.0, "% chance to stun on fire damage"),
             TalentStat::Blackout => (100.0, "% chance to stun on Shadow damage"),
+            TalentStat::VampiricEmbrace => (100.0, "% Shadow damage healed"),
+            TalentStat::ImprovedVampiricEmbrace => (100.0, "% additional Shadow damage healed"),
             TalentStat::Frostbite => (100.0, "% chance to freeze on frost damage"),
             TalentStat::Shatter => (100.0, "% critical chance against frozen enemies"),
             TalentStat::Permafrost => (
@@ -2088,6 +2105,16 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 484, max_rank: 1, name: "Vampiric Embrace",
+        description: "Heal yourself for 20% of health removed by Priest Shadow damage, including Pain ticks; always active, excludes overkill (Survivors conversion)",
+        stat: TalentStat::VampiricEmbrace, per_rank: 0.20,
+    },
+    TalentDefinition {
+        id: 1638, max_rank: 2, name: "Improved Vampiric Embrace",
+        description: "Vampiric Embrace heals an additional 5% of Shadow damage per rank (25% / 30% total); requires Vampiric Embrace",
+        stat: TalentStat::ImprovedVampiricEmbrace, per_rank: 0.05,
+    },
+    TalentDefinition {
         id: 464, max_rank: 5, name: "Blackout",
         description: "Priest Shadow damage, including Pain ticks: 2% chance per rank to stun for 3 sec (bosses: 0.9 sec); refreshes without stacking",
         stat: TalentStat::Blackout, per_rank: 0.02,
@@ -2215,6 +2242,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::WintersChill
             | TalentStat::Impact
             | TalentStat::Blackout
+            | TalentStat::VampiricEmbrace
+            | TalentStat::ImprovedVampiricEmbrace
             | TalentStat::Frostbite
             | TalentStat::Shatter
             | TalentStat::Permafrost
@@ -3123,6 +3152,8 @@ mod stat_talent_tests {
                     | TalentStat::WintersChill
                     | TalentStat::Impact
                     | TalentStat::Blackout
+                    | TalentStat::VampiricEmbrace
+                    | TalentStat::ImprovedVampiricEmbrace
                     | TalentStat::Frostbite
                     | TalentStat::Shatter
                     | TalentStat::Permafrost
@@ -3433,6 +3464,47 @@ mod stat_talent_tests {
         assert_eq!(chill.critical_bonus(), 0.02);
         chill.advance(15.);
         assert_eq!(chill, WintersChill::default());
+    }
+
+    #[test]
+    fn vampiric_embrace_requires_base_talent_and_scoped_damage() {
+        let base = Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        for rank in [0, 1, 2, 255] {
+            let trained = base.with_ranks(&[(2, 484, 1), (2, 1638, rank)]);
+            for key in PRIEST_SHADOW {
+                assert!(
+                    (trained.vampiric_healing(key, 100.) - (20. + 5. * f32::from(rank.min(2))))
+                        .abs()
+                        < 0.00001
+                );
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(trained.vampiric_healing(key, damage), 0.);
+                }
+            }
+            for key in ["smite", "holy_fire", "drain_life", "fireball"] {
+                assert_eq!(trained.vampiric_healing(key, 100.), 0.);
+            }
+            assert_eq!(
+                base.with_ranks(&[(2, 1638, rank)])
+                    .vampiric_healing("mind_blast", 100.),
+                0.
+            );
+            assert_eq!(trained.with_ranks(&[]), base);
+        }
+        for class in (0..9).filter(|class| *class != 4) {
+            assert_eq!(
+                Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 484, 1), (2, 1638, 2)])
+                .vampiric_healing("mind_blast", 100.),
+                0.
+            );
+        }
     }
 
     #[test]

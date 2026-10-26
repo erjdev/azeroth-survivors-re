@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Vampiric Embrace
+
+Vampiric Embrace now heals for 20% of enemy health removed by Priest Shadow
+hits and Pain ticks. Its two improvement ranks raise this to 25% / 30% and require
+the base talent. Overkill and dead targets grant no additional healing; dead
+players cannot revive through it. This is always-active self-healing in Survivors.
+
+![Shadow cards with Vampiric Embrace](images/screenshots/2026-10-25-vampiric-embrace/cards-1280.jpg)
+
+![Compact combined healing, stun and shield description](images/screenshots/2026-10-25-vampiric-embrace/scream-640.jpg)
+
+118 core tests, the direct/periodic healing regression, DBC audit, native build,
+Clippy, formatting and render lint pass. Wide/compact descriptions fit and scroll;
+live healing balance and remaining talents are open.
+
 ## 2026-10-25 — Blackout and Shadow control
 
 Blackout now gives Priest Shadow damage a 2% stun chance per rank, including Pain

@@ -345,10 +345,12 @@ similarly named individual talent nodes and reset when the selected spec changes
 
 ### Priest talent tuning (initial)
 
-Sixteen individual Priest talents now replace their provisional general damage:
+Eighteen individual Priest talents now replace their provisional general damage:
 
 | Talent | Per-rank Survivors effect |
 |---|---|
+| Vampiric Embrace (1 rank) | Always-active self-healing for 20% of health removed by Priest Shadow damage, including Pain ticks; excludes overkill |
+| Improved Vampiric Embrace (2 ranks) | +5 percentage points of healing per rank (25% / 30% total); requires the base talent |
 | Blackout (5 ranks) | +2 percentage points chance on Priest Shadow damage, including Pain ticks, to stun for 3 seconds (bosses: 0.9 seconds); refreshes without stacking |
 | Improved Power Word: Fortitude (2 ranks) | +10 maximum health, always active; no maintained buff required |
 | Improved Inner Fire (3 ranks) | +2 flat armor, always active; applied before percentage reduction |
