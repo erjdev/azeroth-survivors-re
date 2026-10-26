@@ -4520,3 +4520,23 @@ remain open.
 
 Validation: all 271 app tests with explicit checkout data, native play build,
 workspace Clippy, formatting and render lint pass.
+
+### Paladin Retribution damage talents — 2026-10-26
+
+Sanctity Aura adds 10% damage to the seven Paladin Holy attacks. Vengeance grants
+3% damage per rank for eight seconds after a damaging direct Holy critical hit;
+further qualifying criticals refresh without stacking. Consecration benefits from
+the damage bonus when cast, retains that damage for its lifetime, and cannot trigger
+Vengeance from its ticks. Immunity, other-class abilities and neutral jewelry spells
+are excluded. Both effects multiply with existing cast bonuses; the shared hero
+sheet is not inflated by the conditional spell-local buff. Refund/spec replacement
+removes the bonus, expiry stops it, and a dead hero cannot activate it.
+
+Core tests cover rank bounds, trigger exclusions, spell scope and reset. App tests
+cover cast damage, refresh/expiry, no stacking, unrelated spells and removal. The
+native 1280×720 empty-spec preview verifies both descriptions and prerequisite
+refusal, not purchase or live combat balance. Screenshots are embedded in CHANGELOG
+and README. The DBC audit verifies Paladin 21/44 nodes and total 178/432; all 78/81
+milestone descriptions remain as before. Full talent and responsive acceptance is
+still open. 136 core tests and 272 app tests pass with explicit checkout data.
+Native play build, workspace Clippy, formatting and render lint pass.

@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Paladin Retribution damage talents
+
+Sanctity Aura now boosts Paladin Holy attacks by 10%. Vengeance grants 3% per rank
+for eight seconds after a direct Paladin Holy critical, refreshing without stacking.
+The active buff appears in combat status; other classes' spells stay unaffected.
+
+![Vengeance talent preview](images/screenshots/2026-10-26-paladin-retribution/vengeance-1280.png)
+
+![Sanctity Aura talent preview](images/screenshots/2026-10-26-paladin-retribution/sanctity-1280.png)
+
+136 core and 272 app tests pass; the data audit verifies 178/432 talent definitions.
+Native build, workspace Clippy, formatting and render lint pass.
+Native 1280×720 checks cover descriptions and locked-node prerequisites. Combat
+balance, purchased-node gameplay and the full responsive matrix remain open.
+
 ## 2026-10-26 — Shared jewelry artwork completed
 
 Mark of the Champion now has its item artwork in the Codex and chest cards.

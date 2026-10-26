@@ -386,6 +386,7 @@ impl Owned {
 #[derive(Clone, Copy)]
 pub(super) struct Stats {
     legendary: Option<(&'static str, campaign::Bonus)>,
+    vengeance: f32,
     pub might: f32,
     pub max_hp: f32,
     pub speed: f32,
@@ -418,10 +419,14 @@ impl Stats {
     fn for_spell(&self, key: &str) -> Self {
         let mut scoped = *self;
         scoped.legendary = None;
+        scoped.vengeance = 0.0;
         if let Some((spell, bonus)) = self.legendary {
             if spell == key {
                 apply_sheet(&mut scoped, bonus);
             }
+        }
+        if survivors_core::talents::PALADIN_HOLY.contains(&key) {
+            scoped.might *= 1.0 + self.vengeance;
         }
         scoped
     }
@@ -468,6 +473,7 @@ pub(super) struct Run {
     pub immune_t: f32,
     pub enrage_t: f32,
     pub flurry_t: f32,
+    pub vengeance_t: f32,
     pub remorseless_until: f32,
     pub blood_craze_t: f32,
     pub spirit_tap_t: f32,
@@ -555,6 +561,7 @@ impl Default for Run {
             immune_t: 0.0,
             enrage_t: 0.0,
             flurry_t: 0.0,
+            vengeance_t: 0.0,
             remorseless_until: 0.0,
             blood_craze_t: 0.0,
             spirit_tap_t: 0.0,
@@ -652,6 +659,12 @@ impl Run {
         }
     }
 
+    pub(super) fn record_vengeance_hit(&mut self, source: &str, damage: f32, critical: bool) {
+        if self.alive() && self.milestones.triggers_vengeance(source, damage, critical) {
+            self.vengeance_t = 8.0;
+        }
+    }
+
     pub(super) fn record_flurry_hit(&mut self, source: &str, damage: f32, critical: bool) {
         if self.hp > 0.0
             && self.dead_t.is_none()
@@ -663,6 +676,9 @@ impl Run {
 
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
+            vengeance: self
+                .milestones
+                .vengeance_bonus(self.alive() && self.vengeance_t > 0.0),
             legendary: self.worn.legendary_bonus().map(|(key, mut bonus)| {
                 bonus.might *= self.tuning.damage;
                 (key, bonus)

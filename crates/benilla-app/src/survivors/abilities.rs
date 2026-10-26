@@ -1042,6 +1042,7 @@ pub(super) fn apply_hits(
             }
         }
         run.record_flurry_hit(h.source, h.damage, h.crit);
+        run.record_vengeance_hit(h.source, dmg, h.crit);
         let bleed = run.milestones.critical_bleed(h.source, h.damage, h.crit);
         refresh_deep_wounds(&mut en.dots, bleed);
         refresh_ignite(

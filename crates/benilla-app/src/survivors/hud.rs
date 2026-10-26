@@ -1854,6 +1854,16 @@ fn reactive_buff_status(run: &Run) -> String {
             run.flurry_t.ceil()
         ));
     }
+    let vengeance = run
+        .milestones
+        .vengeance_bonus(run.alive() && run.vengeance_t > 0.0);
+    if vengeance > 0.0 {
+        active.push(format!(
+            "Vengeance +{:.0}% Paladin Holy damage ({:.0}s)",
+            vengeance * 100.0,
+            run.vengeance_t.ceil()
+        ));
+    }
     let healing = run.milestones.blood_craze_fraction();
     if healing > 0.0 && run.blood_craze_t > 0.0 {
         active.push(format!(

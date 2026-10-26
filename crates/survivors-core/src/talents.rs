@@ -570,6 +570,23 @@ impl Milestones {
         }
     }
 
+    pub fn vengeance_bonus(self, active: bool) -> f32 {
+        if self.class == 1 && active {
+            self.trained_value(TalentStat::Vengeance)
+        } else {
+            0.0
+        }
+    }
+
+    pub fn triggers_vengeance(self, key: &str, damage: f32, critical: bool) -> bool {
+        self.vengeance_bonus(true) > 0.0
+            && critical
+            && damage.is_finite()
+            && damage > 0.0
+            && key != "consecration"
+            && PALADIN_HOLY.contains(&key)
+    }
+
     pub fn flurry_haste(self, active: bool) -> f32 {
         if self.class == 0 && active {
             self.trained_value(TalentStat::FlurryHaste)
@@ -1301,6 +1318,7 @@ pub enum TalentStat {
     EnrageDamage,
     BloodCrazeHealing,
     FlurryHaste,
+    Vengeance,
     Remorseless,
     SpiritTap,
     SecondarySlowDuration(&'static str),
@@ -1390,6 +1408,7 @@ impl TalentDefinition {
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
+            TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
             TalentStat::BloodCrazeHealing => {
                 (100.0, "% maximum health over 6 seconds after health damage")
             }
@@ -1699,7 +1718,28 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
 
 ];
 
+/// Survivors Paladin attacks; excludes immunity and other classes' Holy spells.
+pub const PALADIN_HOLY: &[&str] = &[
+    "hammer_of_wrath",
+    "consecration",
+    "holy_shock",
+    "exorcism",
+    "holy_wrath",
+    "hammer_of_justice",
+    "judgement",
+];
+
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1409, max_rank: 1, name: "Sanctity Aura",
+        description: "Paladin Holy attacks: +10% damage, including Consecration; always active (Survivors aura conversion). Excludes other-class and jewelry spells",
+        stat: TalentStat::SpellGroupDamage(PALADIN_HOLY), per_rank: 0.10,
+    },
+    TalentDefinition {
+        id: 1402, max_rank: 5, name: "Vengeance",
+        description: "Direct Paladin Holy critical hits grant +3% Paladin Holy damage per rank for 8 sec; refreshes without stacking. New Consecration casts snapshot the bonus; its ticks cannot trigger it",
+        stat: TalentStat::Vengeance, per_rank: 0.03,
+    },
     TalentDefinition {
         id: 1450,
         max_rank: 5,
@@ -2467,6 +2507,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::Remorseless
             | TalentStat::FlurryHaste
+            | TalentStat::Vengeance
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
             | TalentStat::WintersChill
@@ -3110,6 +3151,52 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn paladin_retribution_damage_is_scoped_bounded_and_removable() {
+        for rank in [0, 1, 5, 255] {
+            let base = Milestones {
+                class: 1,
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(2, 1402, rank), (2, 1409, rank)]);
+            let expected = 0.03 * f32::from(rank.min(5));
+            assert!((trained.vengeance_bonus(true) - expected).abs() < 0.00001);
+            assert_eq!(trained.vengeance_bonus(false), 0.);
+            for key in PALADIN_HOLY {
+                let effect = trained.cast(key);
+                assert!((effect.damage - if rank > 0 { 1.1 } else { 1. }).abs() < 0.00001);
+                assert_eq!(effect.radius, 1.);
+                assert_eq!(effect.extra_targets, 0);
+                assert_eq!(
+                    trained.triggers_vengeance(key, 10., true),
+                    rank > 0 && *key != "consecration"
+                );
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert!(!trained.triggers_vengeance(key, damage, true));
+                }
+                assert!(!trained.triggers_vengeance(key, 10., false));
+            }
+            for key in [
+                "divine_shield",
+                "smite",
+                "holy_nova",
+                "fireball",
+                "rejuvenation",
+                "unknown",
+            ] {
+                assert_eq!(trained.cast(key), CastEffect::default());
+                assert!(!trained.triggers_vengeance(key, 10., true));
+            }
+            assert_eq!(trained.with_ranks(&[]), base);
+            assert_eq!(
+                Milestones::default()
+                    .with_ranks(&[(2, 1402, rank)])
+                    .vengeance_bonus(true),
+                0.
+            );
+        }
+    }
+
+    #[test]
     fn flurry_requires_trained_direct_criticals() {
         for rank in 0..=5 {
             let trained = Milestones::default().with_ranks(&[(1, 156, rank)]);
@@ -3380,6 +3467,7 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::Remorseless
                     | TalentStat::FlurryHaste
+                    | TalentStat::Vengeance
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn
                     | TalentStat::WintersChill
