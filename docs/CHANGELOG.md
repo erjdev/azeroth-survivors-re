@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Shaman milestone builds
+
+All nine Shaman milestones now have described, implemented Survivors effects:
+Elemental improves lightning and shocks; Enhancement adds Earth Shock protection
+and offensive bonuses; Restoration adds totem-deployment healing and cooldown
+support. Tuning is provisional and documented in the implementation plan.
+
+![Mana Tide Totem milestone](images/screenshots/2026-10-26-shaman-milestones/mana-tide-1280.png)
+
+![Stormstrike milestone](images/screenshots/2026-10-26-shaman-milestones/stormstrike-1280.png)
+
+121 core and 248 Survivors app tests, native build, workspace Clippy, formatting
+and render lint pass. Native checks confirm descriptions on an untrained preview
+character. Automated
+coverage checks thresholds, class/spell scope, cast parameters, healing/cooldown
+caps, non-stacking absorbs and tooltip text. Individual Shaman nodes and live
+combat/balance acceptance remain open.
+
 ## 2026-10-26 — Mage Arcane and Fire milestones
 
 The six pending Arcane/Fire milestone rows now describe implemented effects.

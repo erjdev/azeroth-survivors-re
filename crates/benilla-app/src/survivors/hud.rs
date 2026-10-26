@@ -3254,6 +3254,28 @@ mod talent_tooltip_tests {
     }
 
     #[test]
+    fn shaman_deployment_tooltip_shows_healing_and_counterpart_cooldown() {
+        let stats = Run::default().stats();
+        let owned = super::super::Owned {
+            def: data::ability("searing_totem"),
+            level: 1,
+            cd: 0.,
+        };
+        let trained = Milestones {
+            class: 5,
+            points: [0, 0, 30],
+            ..Default::default()
+        };
+        let lines = ability_tip(&owned, trained, &stats, None);
+        assert!(lines.iter().any(|line| line
+            .left
+            .contains("Heals 3% maximum health once per successful cast.")));
+        assert!(lines.iter().any(|line| line.left.contains("Advances")
+            && line.left.contains("2 sec once per successful cast")
+            && line.color == card_growth::GAIN));
+    }
+
+    #[test]
     fn presence_of_mind_tooltip_explains_the_shared_cast_benefit() {
         let stats = Run::default().stats();
         let owned = super::super::Owned {

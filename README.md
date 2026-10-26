@@ -51,6 +51,10 @@ All nine Mage milestones now have implemented effects; individual pending nodes 
 
 ![Mage Presence of Mind milestone](docs/images/screenshots/2026-10-26-mage-milestones/presence-of-mind-1280.png)
 
+Shaman milestones add lightning, shock and totem build effects.
+
+![Shaman Mana Tide milestone](docs/images/screenshots/2026-10-26-shaman-milestones/mana-tide-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

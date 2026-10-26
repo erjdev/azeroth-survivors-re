@@ -3488,6 +3488,87 @@ mod milestone_tests {
     }
 
     #[test]
+    fn shaman_milestones_reach_combat_and_deployment_benefits_are_bounded() {
+        let mut run = Run::default();
+        let stats = run.stats();
+        let base = Milestones {
+            class: 5,
+            ..Default::default()
+        };
+        let elemental = Milestones {
+            points: [30, 0, 0],
+            ..base
+        };
+        let enhancement = Milestones {
+            points: [0, 30, 0],
+            ..base
+        };
+        let restoration = Milestones {
+            points: [0, 0, 30],
+            ..base
+        };
+        for (key, talents, damage, cooldown, extra) in [
+            ("chain_lightning", elemental, 1., 0.9, 0),
+            ("earth_shock", enhancement, 1.25, 1., 1),
+            ("searing_totem", enhancement, 1.2, 1., 0),
+            ("magma_totem", enhancement, 1.2, 1., 0),
+            ("lightning_shield", enhancement, 1.2, 1., 0),
+            ("flame_shock", restoration, 1., 0.85, 0),
+        ] {
+            let owned = super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 3,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, talents);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+            assert!(
+                (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                "{key}"
+            );
+            assert_eq!(after.count, before.count + extra);
+            assert_eq!(after.radius, before.radius);
+            if key == "chain_lightning" {
+                assert_eq!(after.crit, 1.);
+            }
+        }
+        run.hp = 99.;
+        run.abilities.clear();
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("magma_totem"),
+            level: 1,
+            cd: 1.,
+        });
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("earth_shock"),
+            level: 1,
+            cd: 4.,
+        });
+        assert_eq!(
+            finish_milestone_cast(&mut run, restoration.cast("searing_totem"), 100.),
+            1.
+        );
+        assert_eq!(run.hp, 100.);
+        assert_eq!(run.abilities[0].cd, 0.);
+        assert_eq!(run.abilities[1].cd, 4.);
+        run.hp = 90.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, restoration.cast("magma_totem"), 100.),
+            3.
+        );
+        assert_eq!(run.abilities.len(), 2); // Does not grant the unowned counterpart.
+        finish_milestone_cast(&mut run, enhancement.cast("earth_shock"), 100.);
+        assert_eq!((run.shield, run.shield_t), (3., 3.));
+        finish_milestone_cast(&mut run, enhancement.cast("earth_shock"), 100.);
+        assert_eq!((run.shield, run.shield_t), (3., 3.));
+        run.shield = 20.;
+        run.shield_t = 8.;
+        finish_milestone_cast(&mut run, enhancement.cast("earth_shock"), 100.);
+        assert_eq!((run.shield, run.shield_t), (20., 8.));
+    }
+
+    #[test]
     fn mage_arcane_fire_milestones_reach_cast_parameters_and_cooldown_finish() {
         let mut run = Run::default();
         let stats = run.stats();

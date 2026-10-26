@@ -227,6 +227,46 @@ impl Milestones {
                 effect.shield_fraction = 0.05;
             }
         }
+        if self.class == 5 {
+            let lightning = ["lightning_bolt", "chain_lightning"].contains(&key);
+            let shock = ["earth_shock", "flame_shock", "frost_shock"].contains(&key);
+            let totem = ["searing_totem", "magma_totem"].contains(&key);
+            if self.points[0] >= 10 && (lightning || shock) {
+                effect.cooldown *= 0.9;
+            }
+            if self.points[0] >= 20 && lightning {
+                effect.crit += 0.10;
+            }
+            if self.points[0] >= 30 && key == "chain_lightning" {
+                effect.crit = 1.0;
+            }
+            if self.points[1] >= 10 && key == "earth_shock" {
+                effect.shield_fraction = 0.03;
+            }
+            if self.points[1] >= 20 && (totem || key == "lightning_shield") {
+                effect.damage *= 1.2;
+            }
+            if self.points[1] >= 30 && key == "earth_shock" {
+                effect.damage *= 1.25;
+                effect.extra_targets += 1;
+            }
+            if self.points[2] >= 10 && totem {
+                effect.heal_fraction = 0.03;
+            }
+            if self.points[2] >= 20 && shock {
+                effect.cooldown *= 0.85;
+            }
+            if self.points[2] >= 30 && totem {
+                effect.cooldown_advance = Some((
+                    if key == "searing_totem" {
+                        "magma_totem"
+                    } else {
+                        "searing_totem"
+                    },
+                    2.0,
+                ));
+            }
+        }
         if self.class == 6 {
             // Automatic Survivors adaptations of Arcane Focus, Presence of Mind and Arcane Power.
             if MAGE_ARCANE.contains(&key) {
@@ -716,6 +756,20 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
             (2, 10) => Some("Mind Blast: +1 target; area spells remain one area (Survivors Shadow Affinity)"),
             (2, 20) => Some("Mind Blast advances Shadow Word: Pain's cooldown by 2 seconds once per successful cast (Survivors Shadow Weaving)"),
             (2, 30) => Some("Psychic Scream grants a 5% maximum-health absorb for 3 seconds once per successful cast; does not stack (Survivors defensive Shadowform)"),
+            _ => None,
+        };
+    }
+    if class == 5 {
+        return match (tree, threshold) {
+            (0, 10) => Some("Lightning Bolt, Chain Lightning and shocks: 10% shorter cooldown (Survivors Convection)"),
+            (0, 20) => Some("Lightning Bolt and Chain Lightning: +10 percentage points critical chance (Survivors Elemental Focus)"),
+            (0, 30) => Some("Chain Lightning always critically strikes (Survivors automatic Elemental Mastery)"),
+            (1, 10) => Some("Earth Shock grants a 3% maximum-health absorb for 3 seconds once per successful cast; does not stack (Survivors Ancestral Knowledge)"),
+            (1, 20) => Some("Searing Totem, Magma Totem and Lightning Shield: +20% damage (Survivors Elemental Weapons)"),
+            (1, 30) => Some("Earth Shock: +25% damage and +1 direct target (Survivors Stormstrike)"),
+            (2, 10) => Some("Deploying Searing Totem or Magma Totem heals 3% maximum health once per cast, not per pulse (Survivors Improved Healing Wave)"),
+            (2, 20) => Some("Earth, Flame and Frost Shock: 15% shorter cooldown, multiplying Convection (Survivors automatic Nature's Swiftness)"),
+            (2, 30) => Some("Deploying Searing Totem advances an owned Magma Totem cooldown by 2 seconds, and vice versa, once per cast (Survivors Mana Tide Totem)"),
             _ => None,
         };
     }
@@ -3459,6 +3513,72 @@ mod stat_talent_tests {
                 .shatter("frostbolt", true),
             0.
         );
+    }
+
+    #[test]
+    fn shaman_milestones_unlock_at_exact_thresholds_without_extra_areas() {
+        let spells = [
+            "lightning_bolt",
+            "chain_lightning",
+            "earth_shock",
+            "flame_shock",
+            "frost_shock",
+            "searing_totem",
+            "magma_totem",
+            "lightning_shield",
+        ];
+        for tree in 0..3 {
+            for threshold in [10, 20, 30] {
+                let mut before = Milestones {
+                    class: 5,
+                    ..Default::default()
+                };
+                before.points[tree] = threshold - 1;
+                let mut after = before;
+                after.points[tree] = threshold;
+                assert!(spells.iter().any(|key| before.cast(key) != after.cast(key)));
+                assert!(description(5, tree, threshold).is_some());
+                for key in ["fireball", "holy_shock", "arcane_explosion", "volley"] {
+                    assert_eq!(after.cast(key), CastEffect::default());
+                }
+            }
+        }
+        let trained = Milestones {
+            class: 5,
+            points: [30; 3],
+            ..Default::default()
+        };
+        assert_eq!(trained.cast("chain_lightning").crit, 1.);
+        assert_eq!(trained.cast("lightning_bolt").crit, 0.1);
+        assert!((trained.cast("earth_shock").cooldown - 0.765).abs() < 0.00001);
+        assert_eq!(trained.cast("earth_shock").extra_targets, 1);
+        assert_eq!(trained.cast("earth_shock").damage, 1.25);
+        assert_eq!(trained.cast("earth_shock").shield_fraction, 0.03);
+        assert_eq!(trained.cast("earth_shock").shield_seconds, 3.);
+        for key in ["searing_totem", "magma_totem", "lightning_shield"] {
+            let effect = trained.cast(key);
+            assert_eq!(effect.damage, 1.2);
+            assert_eq!(effect.extra_targets, 0);
+            assert_eq!(effect.radius, 1.);
+            assert_eq!(
+                effect.heal_fraction,
+                if key == "lightning_shield" { 0. } else { 0.03 }
+            );
+        }
+        assert_eq!(
+            trained.cast("searing_totem").cooldown_advance,
+            Some(("magma_totem", 2.))
+        );
+        assert_eq!(
+            trained.cast("magma_totem").cooldown_advance,
+            Some(("searing_totem", 2.))
+        );
+        for class in [0, 1, 2, 3, 4, 6, 7, 8] {
+            let other = Milestones { class, ..trained };
+            for key in spells {
+                assert_eq!(other.cast(key), CastEffect::default());
+            }
+        }
     }
 
     #[test]

@@ -1077,6 +1077,22 @@ parameters and the completion handler drive both combat and tooltip descriptions
 Frost's existing milestones remain unchanged; individual unimplemented Mage nodes
 and full live combat/balance acceptance remain open.
 
+Shaman now implements all nine milestones using its existing ability pool. These
+are provisional automatic Survivors conversions; they do not claim the original
+MMO spells or add a mana resource, Healing Wave spell, or a new totem type.
+
+| Tree | 10 points | 20 points | 30 points |
+| --- | --- | --- | --- |
+| Elemental | Convection: Lightning Bolt, Chain Lightning and all three shocks have 10% shorter cooldowns | Elemental Focus: Lightning Bolt/Chain Lightning gain 10 percentage points critical chance | Elemental Mastery: Chain Lightning always critically strikes |
+| Enhancement | Ancestral Knowledge: each successful Earth Shock cast grants a non-stacking 3% maximum-health absorb for 3 seconds | Elemental Weapons: Searing/Magma Totem and Lightning Shield deal 20% more damage | Stormstrike: Earth Shock deals 25% more damage and hits one additional direct target |
+| Restoration | Improved Healing Wave: deploying Searing/Magma Totem heals 3% maximum health once | Nature's Swiftness: Earth/Flame/Frost Shock cooldowns multiply by 0.85, composing with Convection | Mana Tide Totem: deploying either Searing/Magma Totem advances an owned counterpart's cooldown by 2 seconds |
+
+Totem pulses cannot repeat deployment healing or cooldown benefits. Healing caps
+at maximum health, cooldowns stop at zero, and the absorb never stacks or replaces
+a stronger active shield. Totem area sizes and counts remain unchanged. Milestone
+thresholds, cast parameters and tooltips share the engine-independent rules.
+Individual Shaman nodes and full live combat/balance acceptance remain open.
+
 Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
 threshold tests and representative combat tests prove those behaviors. Switching specs
 changes the next run without losing either spread. Free reset and right-click refund keep
