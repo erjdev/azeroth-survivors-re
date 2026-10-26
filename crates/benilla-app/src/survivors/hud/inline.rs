@@ -274,6 +274,17 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
             );
         }
     }
+    if b.blackout_chance > 0.0 {
+        prose!(
+            ". Shadow damage has ",
+            (
+                a.blackout_chance * 100.,
+                b.blackout_chance * 100.,
+                "% chance"
+            ),
+            " to stun for 3 sec (bosses: 0.9 sec), including periodic ticks"
+        );
+    }
     if b.heal_fraction > 0.0 {
         prose!(
             ". Heals ",

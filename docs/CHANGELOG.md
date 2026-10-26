@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Blackout and Shadow control
+
+Blackout now gives Priest Shadow damage a 2% stun chance per rank, including Pain
+ticks. Stuns last 3 seconds (0.9 on bosses), refresh without stacking and preserve
+longer stuns. Cards and tooltips include the effect inline.
+
+![Blackout on high-rank Shadow cards](images/screenshots/2026-10-25-blackout/cards-1280.jpg)
+
+![Compact Psychic Scream with stun and shield effects](images/screenshots/2026-10-25-blackout/scream-640.jpg)
+
+117 core tests, the direct/periodic engine regression, DBC audit, native build,
+Clippy, formatting and render lint pass. Wide/compact card text and scrolling are
+verified; live crowd-control balance remains open.
+
 ## 2026-10-25 — Priest defensive talents
 
 Fortitude now grants 10 maximum health per rank, Inner Fire grants 2 armor, and

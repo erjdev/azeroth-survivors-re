@@ -542,6 +542,15 @@ impl Milestones {
         self.trained_value(TalentStat::Impact)
     }
 
+    /// Includes direct Shadow hits and periodic Shadow Word: Pain ticks.
+    pub fn blackout_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 4 || !damage.is_finite() || damage <= 0.0 || !PRIEST_SHADOW.contains(&key)
+        {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::Blackout)
+    }
+
     /// A positive frost hit can add one stack after its damage is resolved.
     pub fn winters_chill_chance(self, key: &str, damage: f32) -> f32 {
         if self.class != 6 || !damage.is_finite() || damage <= 0.0 || !MAGE_FROST.contains(&key) {
@@ -1051,6 +1060,7 @@ pub enum TalentStat {
     CriticalBurn,
     Frostbite,
     Impact,
+    Blackout,
     WintersChill,
     Shatter,
     Permafrost,
@@ -1152,6 +1162,7 @@ impl TalentDefinition {
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
             TalentStat::WintersChill => (100.0, "% chance to apply Winter's Chill on frost damage"),
             TalentStat::Impact => (100.0, "% chance to stun on fire damage"),
+            TalentStat::Blackout => (100.0, "% chance to stun on Shadow damage"),
             TalentStat::Frostbite => (100.0, "% chance to freeze on frost damage"),
             TalentStat::Shatter => (100.0, "% critical chance against frozen enemies"),
             TalentStat::Permafrost => (
@@ -2077,6 +2088,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 464, max_rank: 5, name: "Blackout",
+        description: "Priest Shadow damage, including Pain ticks: 2% chance per rank to stun for 3 sec (bosses: 0.9 sec); refreshes without stacking",
+        stat: TalentStat::Blackout, per_rank: 0.02,
+    },
+    TalentDefinition {
         id: 344, max_rank: 2, name: "Improved Power Word: Fortitude",
         description: "+10 maximum health per rank, always active (Survivors Fortitude conversion)",
         stat: TalentStat::Health, per_rank: 10.0,
@@ -2198,6 +2214,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::CriticalBurn
             | TalentStat::WintersChill
             | TalentStat::Impact
+            | TalentStat::Blackout
             | TalentStat::Frostbite
             | TalentStat::Shatter
             | TalentStat::Permafrost
@@ -3105,6 +3122,7 @@ mod stat_talent_tests {
                     | TalentStat::CriticalBurn
                     | TalentStat::WintersChill
                     | TalentStat::Impact
+                    | TalentStat::Blackout
                     | TalentStat::Frostbite
                     | TalentStat::Shatter
                     | TalentStat::Permafrost
@@ -3415,6 +3433,47 @@ mod stat_talent_tests {
         assert_eq!(chill.critical_bonus(), 0.02);
         chill.advance(15.);
         assert_eq!(chill, WintersChill::default());
+    }
+
+    #[test]
+    fn blackout_requires_priest_shadow_damage_and_bounded_training() {
+        let priest = Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        for rank in [0, 1, 3, 5, 255] {
+            let trained = priest.with_ranks(&[(2, 464, rank)]);
+            for key in PRIEST_SHADOW {
+                assert!(
+                    (trained.blackout_chance(key, 10.) - 0.02 * f32::from(rank.min(5))).abs()
+                        < 0.00001
+                );
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(trained.blackout_chance(key, damage), 0.);
+                }
+            }
+            for key in [
+                "smite",
+                "holy_fire",
+                "fireball",
+                "Ignite",
+                "power_word_shield",
+            ] {
+                assert_eq!(trained.blackout_chance(key, 10.), 0.);
+            }
+            assert_eq!(trained.with_ranks(&[]), priest);
+        }
+        for class in (0..9).filter(|class| *class != 4) {
+            assert_eq!(
+                Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 464, 5)])
+                .blackout_chance("mind_blast", 10.),
+                0.
+            );
+        }
     }
 
     #[test]

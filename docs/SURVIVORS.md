@@ -345,10 +345,11 @@ similarly named individual talent nodes and reset when the selected spec changes
 
 ### Priest talent tuning (initial)
 
-Fifteen individual Priest talents now replace their provisional general damage:
+Sixteen individual Priest talents now replace their provisional general damage:
 
 | Talent | Per-rank Survivors effect |
 |---|---|
+| Blackout (5 ranks) | +2 percentage points chance on Priest Shadow damage, including Pain ticks, to stun for 3 seconds (bosses: 0.9 seconds); refreshes without stacking |
 | Improved Power Word: Fortitude (2 ranks) | +10 maximum health, always active; no maintained buff required |
 | Improved Inner Fire (3 ranks) | +2 flat armor, always active; applied before percentage reduction |
 | Spell Warding (5 ranks) | 2% reduced incoming damage; general reduction until incoming damage schools are modeled |

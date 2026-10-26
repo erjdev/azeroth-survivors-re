@@ -105,6 +105,7 @@ pub(super) struct Params {
     pub shield_seconds: f32,
     pub immune_seconds: f32,
     pub heal_fraction: f32,
+    pub blackout_chance: f32,
     pub effect: Effect,
 }
 
@@ -138,6 +139,7 @@ impl Params {
             shield_seconds: effect.shield_seconds,
             immune_seconds: effect.immune_seconds,
             heal_fraction: effect.heal_fraction,
+            blackout_chance: milestones.blackout_chance(o.def.key, 1.0),
         }
     }
 }
@@ -874,6 +876,10 @@ fn apply_freeze(en: &mut Enemy, duration: f32) {
     en.frozen_t = en.frozen_t.max(duration);
 }
 
+fn apply_blackout(en: &mut Enemy) {
+    en.stun_t = en.stun_t.max(if en.boss { 0.9 } else { 3.0 });
+}
+
 fn apply_impact(en: &mut Enemy) {
     en.stun_t = en.stun_t.max(if en.boss { 0.3 } else { 1.0 });
 }
@@ -1048,6 +1054,10 @@ pub(super) fn apply_hits(
         if chill_chance > 0.0 && rng.f32() < chill_chance {
             en.winters_chill.apply();
         }
+        let blackout = run.milestones.blackout_chance(h.source, h.damage);
+        if blackout > 0.0 && rng.f32() < blackout {
+            apply_blackout(&mut en);
+        }
         let impact_chance = run.milestones.impact_chance(h.source, h.damage);
         if impact_chance > 0.0 && rng.f32() < impact_chance {
             apply_impact(&mut en);
@@ -1100,13 +1110,21 @@ pub(super) fn apply_hits(
         }
         let stats = run.stats();
         let mut dealt = 0.0;
+        let mut blackout = false;
         for d in &mut en.dots {
             for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
                 let tick = d.dps * echoes as f32;
                 dealt += tick;
                 run.add_damage(d.source, tick);
+                let chance = run.milestones.blackout_chance(d.source, tick);
+                if chance > 0.0 && rng.f32() < chance {
+                    blackout = true;
+                }
             }
+        }
+        if blackout {
+            apply_blackout(&mut en);
         }
         en.dots.retain(|d| d.left > 0.0);
         if dealt > 0.0 {
@@ -2278,6 +2296,107 @@ mod milestone_tests {
             let radius = if key == "blade_flurry" { 1.3 } else { 1.0 };
             assert!((after.radius - before.radius * radius).abs() < 0.0001);
             assert_eq!(after.effect, before.effect);
+        }
+    }
+
+    #[test]
+    fn blackout_stuns_on_direct_and_periodic_shadow_damage_without_stacking() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for rank in [0, 5] {
+                for boss in [false, true] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        milestones: Milestones {
+                            class: 4,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 464, rank)]),
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 100.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slow: 1.0,
+                                slow_t: 0.0,
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source: "shadow_word_pain",
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source: "mind_blast",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let expected = if rank == 0 {
+                        0.0
+                    } else if boss {
+                        0.9
+                    } else {
+                        3.0
+                    };
+                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().stun_t, expected);
+                    assert!(!app.world().get::<Enemy>(enemy).unwrap().dead);
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().stun_t = 5.0;
+                    app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                        source: "mind_blast",
+                        ..Hit::direct(enemy, 10.0, false)
+                    });
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().stun_t, 5.0);
+                }
+            }
         }
     }
 

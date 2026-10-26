@@ -3918,3 +3918,23 @@ run snapshot. DBC audit, native build, workspace Clippy, formatting and render
 lint pass. Native Inner Fire 2→3 purchase and 3→2 refund show the 4→6 armor preview
 at 1280×720; screenshot embedded in README/changelog. Live damage balance and
 other defensive talent layouts remain unverified.
+
+
+### Blackout — 2026-10-25
+
+Priest Blackout (DBC 464, five ranks) replaces provisional damage with a 2% chance
+per rank for Priest Shadow damage to stun for three seconds (bosses: 0.9 seconds).
+Direct hits and Shadow Word: Pain ticks roll independently per damage event;
+multistrike damage is one event. The stun refreshes without adding duration and
+never shortens a longer stun. Zero/non-finite damage and foreign/Holy spells do
+not qualify. The selected spec snapshot controls the effect.
+
+The shared spell description exposes the chance and durations on cards/tooltips,
+using green comparisons when the chance changes. The core regression covers
+rank caps, class/source scope, invalid damage and reset. The app regression runs
+the real direct/periodic hit system for untrained/trained normal enemies and bosses,
+including longer-stun preservation. 117 core tests, the engine regression, DBC
+audit, native build, Clippy, formatting and render lint pass. Native rank 7→8
+cards fit at 1280×720 and 640×720, including the long Psychic Scream shield/stun
+text reached by scrolling. Screenshots are embedded in README/changelog. Live
+crowd-control balance and remaining talents are still open.
