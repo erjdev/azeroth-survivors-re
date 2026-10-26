@@ -61,6 +61,7 @@ struct Request {
     selected: bool,
     category: Option<u8>,
     talent: Option<u32>,
+    piece: Option<usize>,
     cards: Option<Vec<Card>>,
 }
 
@@ -72,6 +73,7 @@ impl Request {
         let mut profile = None;
         let mut category = None;
         let mut talent = None;
+        let mut piece = None;
         for line in text.lines() {
             let line = line.split('#').next()?.trim();
             if line.is_empty() {
@@ -150,6 +152,16 @@ impl Request {
                 }
                 "category" if category.is_none() => category = Some(value),
                 "talent" if talent.is_none() => talent = Some(value.parse::<u32>().ok()?),
+                "piece" if piece.is_none() => {
+                    let (band, slot) = value.split_once(':')?;
+                    let band = campaign::BANDS_NAMED
+                        .iter()
+                        .position(|name| name.eq_ignore_ascii_case(band.trim()))?;
+                    let slot = campaign::SLOTS[..campaign::GRID_SLOTS]
+                        .iter()
+                        .position(|name| name.eq_ignore_ascii_case(slot.trim()))?;
+                    piece = Some(band * campaign::GRID_SLOTS + slot);
+                }
                 "width" if width.is_none() => width = Some(value.parse::<u32>().ok()?),
                 "height" if height.is_none() => height = Some(value.parse::<u32>().ok()?),
                 _ => return None,
@@ -164,7 +176,9 @@ impl Request {
             return None;
         }
         let page = page?;
-        if talent.is_some_and(|id| id == 0 || page != Page::Talents) {
+        if talent.is_some_and(|id| id == 0 || page != Page::Talents)
+            || (piece.is_some() && page != Page::Collection)
+        {
             return None;
         }
         let category = match category {
@@ -189,6 +203,7 @@ impl Request {
             page,
             category,
             talent,
+            piece,
             width: width?,
             height: height?,
             cards,
@@ -200,6 +215,9 @@ impl Request {
 
     fn apply(&self, armory: &mut Armory, typing: &mut Typing, window: &mut Window) {
         armory.page = self.page;
+        if let Some(piece) = self.piece {
+            armory.piece = piece;
+        }
         if let Some(category) = self.category {
             match self.page {
                 Page::Rewards => armory.reward_page = category,
@@ -373,6 +391,87 @@ impl Preview {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn collection_piece_previews_validate_all_cells_and_reject_invalid_requests() {
+        for (band, name) in campaign::BANDS_NAMED.iter().enumerate() {
+            for (slot, name_slot) in campaign::SLOTS[..campaign::GRID_SLOTS].iter().enumerate() {
+                let request = Request::parse(&format!(
+                    "page=collection\nwidth=1280\nheight=720\npiece={name}:{name_slot}"
+                ))
+                .unwrap();
+                assert_eq!(request.piece, Some(band * campaign::GRID_SLOTS + slot));
+            }
+        }
+        assert_eq!(
+            Request::parse("page=collection\nwidth=640\nheight=720\npiece= LEGENDARY : main hand ")
+                .unwrap()
+                .piece,
+            Some(campaign::PIECES - 1)
+        );
+        for extra in [
+            "piece=epic:off hand",
+            "piece=poor:hands",
+            "piece=raid epic:hands",
+            "piece=epic:unknown",
+            "piece=3:7",
+            "piece=epic:hands:extra",
+            "piece=epic:hands\npiece=rare:feet",
+            "piece=",
+            "piece=epic",
+        ] {
+            assert!(
+                Request::parse(&format!("page=collection\nwidth=640\nheight=720\n{extra}"))
+                    .is_none(),
+                "{extra}"
+            );
+        }
+        for page in [
+            "character",
+            "drops",
+            "talents",
+            "rewards",
+            "cards\nabilities=smite:1",
+        ] {
+            assert!(
+                Request::parse(&format!(
+                    "page={page}\nwidth=640\nheight=720\npiece=epic:hands"
+                ))
+                .is_none(),
+                "{page}"
+            );
+        }
+    }
+
+    #[test]
+    fn collection_piece_preview_changes_inspection_and_preserves_other_selections() {
+        let mut armory = Armory {
+            piece: 1,
+            drop_zone: 4,
+            codex_entry: Some(3),
+            collection_scroll: Vec2::new(0., 80.),
+            ..default()
+        };
+        let mut typing = Typing(true);
+        let mut window = Window::default();
+        Request::parse("page=collection\nwidth=640\nheight=720\npiece=epic:hands")
+            .unwrap()
+            .apply(&mut armory, &mut typing, &mut window);
+        assert_eq!(armory.piece, 3 * campaign::GRID_SLOTS + 7);
+        assert!(armory.page == Page::Collection);
+        assert_eq!((armory.drop_zone, armory.codex_entry), (4, Some(3)));
+        assert_eq!(armory.collection_scroll, Vec2::new(0., 80.));
+        assert_eq!(window.width(), 640.);
+        assert!(!typing.0);
+        Request::parse("page=collection\nwidth=1280\nheight=720")
+            .unwrap()
+            .apply(&mut armory, &mut typing, &mut window);
+        assert_eq!(
+            armory.piece,
+            3 * campaign::GRID_SLOTS + 7,
+            "omission preserves manual inspection"
+        );
+    }
 
     #[test]
     fn passive_requests_validate_catalog_ranks_page_and_single_source() {

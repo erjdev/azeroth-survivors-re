@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+
+## 2026-10-26 — Direct Collection previews
+
+Live UI preview files can select gear by rarity and slot (`piece = epic:hands`),
+so item details and equipment comparisons can be inspected without a gameplay run.
+Invalid edits preserve the previous view; preview selection does not equip items.
+
+![Wide Epic Hands preview](images/screenshots/2026-10-26-piece-preview/epic-hands-1280.png)
+
+![Compact item details after scrolling](images/screenshots/2026-10-26-piece-preview/epic-hands-640.png)
+
+287 visibility-enabled app tests, native build and app Clippy pass. Native previews
+verified valid/invalid live edits and compact scrolling; the saved account hash
+remained unchanged through shutdown. Windows gameplay acceptance remains open.
+
 ## 2026-10-26 — Visibility regression gate
 
 The PR workflow now runs Survivors rules and visibility-enabled integration tests.

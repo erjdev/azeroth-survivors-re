@@ -384,6 +384,17 @@ the actual saved rank and does not focus, train or refund a node. Removing the
 mouse/keyboard purchases still work, so use an isolated account when testing them.
 Changing file contents is required to retry a rejected request after selecting a hero.
 
+Collection accepts `piece = <band>:<slot>`, for example `piece = epic:hands`
+or `piece = legendary:main hand`. Names are case-insensitive and use the current
+catalog: Common, Uncommon, Rare, Epic, PvP, Legendary; Helm, Shoulders, Chest,
+Waist, Legs, Feet, Wrist, Hands, Main Hand. This selects the inspected cell for the
+current class, including unowned pieces, without granting or equipping it. Normal
+mouse/keyboard gear actions remain active; use an isolated account for interactions.
+Omitting `piece` preserves the manual selection. Invalid names, Off Hand, repeated
+keys or use outside Collection reject the entire request, preserving page and size.
+Wide/compact examples are `docs/ui-previews/collection-epic-hands-1280.txt` and
+`collection-epic-hands-640.txt`; compact details remain reachable by scrolling.
+
 Rewards and Achievements also accept an optional `category` key. Category changes
 apply with the page and dimensions in the same reload; omitting it preserves the
 last manually selected category. Unsupported categories, duplicate keys and a

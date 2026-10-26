@@ -4807,3 +4807,27 @@ These fixtures do not prove alpha-texture-aware occlusion, retained StaticGx
 rendering, WMO cutaway, or the user's exact Windows foliage scene. Those remain
 open acceptance work. No new screenshot is claimed for this nonvisual checkpoint.
 Visibility-enabled app Clippy, formatting and diff checks also pass locally.
+
+
+### 2026-10-26 — Direct Collection preview acceptance
+
+The live preview parser accepts `piece = <band>:<slot>` on Collection pages only.
+All 54 existing cells are covered, including case/whitespace normalization and
+invalid/duplicate/cross-page rejection. Omission preserves the current inspection;
+selection does not grant or equip gear. Two reusable Epic Hands presets cover
+1280×720 and 640×720. Native validation switched between Epic Hands and Legendary
+Main Hand, rejected an invalid Off Hand request without resizing, and checked
+compact item details by scrolling. The post-startup account SHA-256 stayed unchanged
+through shutdown. 287 visibility-enabled app tests, native build, app Clippy,
+formatting and diff checks pass. Actual screenshots are embedded in CHANGELOG/README.
+
+Windows playtest follow-up remains an acceptance requirement for the existing
+corrections: test a rendered leaf canopy without collision between camera and hero,
+then move it behind the hero and verify the 500 ms fade; test Elwynn tree interiors
+and both sides of a fence for spawn rejection/routing; test enemy routes around a
+dropped chest and elite reward cadence (first at 60 seconds, 90-second spacing,
+maximum five, boss rewards separate). Record build SHA, location and renderer settings
+with captures. The implemented route search is bounded incremental A*, not IDA*.
+Talent artwork must retain its 300:331 painted proportions with centered square
+icons at wide and compact sizes. Existing macOS captures and synthetic tests do not
+close these exact Windows reproduction checks.
