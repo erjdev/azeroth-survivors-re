@@ -3977,3 +3977,19 @@ enemies. DBC audit, native build, Clippy, formatting and render lint pass. Nativ
 1280×720 and 640×720 previews show vulnerability plus healing/control/shield text;
 scrolling reaches the full compact third card. Screenshots are embedded in README
 and changelog. Live vulnerability balance and remaining talents remain open.
+
+
+### Companion reference icons — 2026-10-25
+
+Compared `survivors_rewards_tab_companions.png` directly with decoded checkout
+patch-chain icons. Long Leash now uses Ability_Hunter_BeastCall; Black Kingsnake
+and Sprite Darter use Ability_Hunter_Pet_WindSerpent; Tree Frog uses Pet_Turtle,
+Zergling Pet_Scorpid, and Undercity Cockroach Pet_Crab. These intentionally follow
+the reference's illustrative choices rather than changing creature displays.
+Saved indices, unlock requirements and mechanics are unchanged.
+
+Native 1280×720 and 640×720 checks verified icon rendering and the complete
+scrollable Looks catalog. Screenshots are embedded in CHANGELOG and README.
+The actual-data model/icon test, native build, formatting and render lint pass;
+224 Survivors app integration tests passed before this icon-only change.
+In-world pet animation/scale acceptance and broader layout polish remain open.

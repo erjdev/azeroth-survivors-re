@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Companion reference artwork
+
+Matched Long Leash and five companion looks to the intention screenshot using
+verified local 1.12.1 icons. The whistle, frog, serpents, Zergling and cockroach
+now use the reference artwork.
+
+![Companion cards with the reference whistle](images/screenshots/2026-10-25-companion-reference-icons/cards-1280.png)
+
+![Complete companion looks at compact width](images/screenshots/2026-10-25-companion-reference-icons/looks-640.png)
+
+Native 1280×720 / 640×720 inspection, patch-chain asset test, build, formatting
+and render lint pass. The preceding integration run passed all 224 Survivors app
+tests. This artwork checkpoint does not establish in-world pet animation acceptance.
+
 ## 2026-10-25 — Shadow Weaving
 
 Shadow Weaving now builds vulnerability on each enemy: 20% application chance per

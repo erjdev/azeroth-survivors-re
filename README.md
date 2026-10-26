@@ -90,6 +90,10 @@ These achievements are visible placeholders; their criteria will be defined late
 
 ![Companion catalog with placeholder achievement gates](docs/images/screenshots/2026-10-25-placeholder-feats/locked-looks-1280.jpg)
 
+Long Leash and the remaining five mismatched looks now use the intention's icon artwork.
+
+![Companion reference artwork](docs/images/screenshots/2026-10-25-companion-reference-icons/looks-1280.png)
+
 Tabards now show illustrated Wear/Remove choices, with immediate account-wide saving.
 The current catalog contains one verified Guild Tabard.
 
