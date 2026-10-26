@@ -5137,3 +5137,28 @@ new obtainable gear or visual acceptance is claimed by this persistence checkpoi
 
 Validation: 150 core and 293 visibility-enabled app tests, native build, core/app
 Clippy, formatting and diff checks pass.
+
+
+### 2026-10-26 — Unified legacy/supplemental loadout resolver
+
+Added a core Loadout wrapper owning legacy choices plus stable supplemental worn
+and appearance references. Choosing a legacy worn piece clears that slot's
+supplemental reference; choosing a supplemental piece clears its legacy worn slot.
+Appearance setters similarly replace only the cosmetic choice. Worn/hidden modes
+and cross-tier cosmetic overrides resolve independently from combat power.
+
+Resolved pieces expose one name, visual and bonus. Resolution rechecks ownership,
+class and slot; unowned or foreign references cannot grant power or visuals. The
+combined bonus sums one item per slot and the existing full-nine-slot set bonus once.
+No raid set behavior is claimed. Tests cover both override directions, empty slots,
+hiding, wrong classes/slots, lost ownership, mixed-set gain/loss and exact stat
+compatibility across all nine classes and six legacy bands.
+
+This wrapper is not yet installed as ClassProgress equipment. Next integration must
+replace its legacy-only equipment consumer paths, persist supplemental worn/look
+references after ownership loads, and route Character/comparison/model consumers
+through the resolver before enabling UI actions. Until then, no runtime supplemental
+equip/appearance feature is claimed. This rules checkpoint has no visual change.
+
+Validation: 153 core tests, native build, all-target core Clippy, formatting and
+diff checks pass. No live UI or model acceptance was run for this core-only change.

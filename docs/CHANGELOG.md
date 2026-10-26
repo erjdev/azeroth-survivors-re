@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Unified gear resolution rules
+
+Added a shared resolver for legacy and supplemental worn pieces and appearances.
+A supplemental piece replaces its slot's power; cosmetic overrides remain separate.
+Ownership, class and slot are checked on selection and resolution, and mixed full
+loadouts receive the existing nine-slot set bonus exactly once.
+
+This is a rules-layer checkpoint. Live account equipment, saves, model rendering
+and UI still need to adopt the resolver; no new equip action is enabled yet.
+All 153 core tests, native build, core Clippy, formatting and diff checks pass.
+
 ## 2026-10-26 — Supplemental gear ownership saves
 
 Added separate, stable-key ownership records for Poor gear. Duplicate records do

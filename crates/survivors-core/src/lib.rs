@@ -7,6 +7,7 @@ pub mod campaign;
 pub mod data;
 pub mod encounters;
 pub mod equipment;
+pub mod gear_loadout;
 mod gear_stats;
 pub mod gear_tier;
 mod gear_upgrades;
