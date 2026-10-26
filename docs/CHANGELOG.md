@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Settings before a run
+
+Options now opens the shared audio, graphics and camera settings from the starter
+and every Armory page. Back/Escape returns to the same page; Enter cannot start a
+run while settings is open. Escape also closes paused settings before resuming.
+
+![Settings with persisted preferences](images/screenshots/2026-10-26-starter-settings/settings-1280.png)
+
+![Compact settings panel](images/screenshots/2026-10-26-starter-settings/settings-640.png)
+
+226 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Native checks cover edits, restart persistence, Enter isolation, Back/Escape
+and wide/compact fit. The reference's category navigation, gamepad/key bindings,
+sliders and remaining settings are still unfinished; audible output was not tested.
+
 ## 2026-10-25 — Starter action cards
 
 Starter actions now share the Armory's gold outlines and burgundy emphasis.

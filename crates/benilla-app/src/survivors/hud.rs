@@ -202,7 +202,7 @@ pub(super) enum UiAction {
     Toggle(Knob),
 }
 
-/// Settings replaces the pause buttons until Back.
+/// Shared settings hide the starter or replace pause buttons until Back/Escape.
 #[derive(Resource, Default)]
 pub(super) struct PausePage {
     pub open: bool,
@@ -870,15 +870,26 @@ pub(super) fn setup_hud(
                 SettingsPanel,
                 Node {
                     display: Display::None,
+                    width: Val::Percent(90.0),
+                    max_width: Val::Px(800.0),
+                    padding: UiRect::all(Val::Px(18.0)),
+                    border: UiRect::all(Val::Px(1.0)),
+                    border_radius: BorderRadius::all(Val::Px(6.0)),
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
                     row_gap: Val::Px(14.0),
                     ..default()
                 },
+                BackgroundColor(Color::srgb(0.035, 0.025, 0.015)),
+                BorderColor::all(EDGE),
             ))
             .with_children(|col| {
                 col.spawn(centered(f, "Settings", 36.0, GOLD));
                 col.spawn(Node {
+                    max_width: Val::Percent(100.0),
+                    flex_wrap: FlexWrap::Wrap,
+                    justify_content: JustifyContent::Center,
+                    row_gap: Val::Px(12.0),
                     column_gap: Val::Px(28.0),
                     ..default()
                 })
@@ -1428,9 +1439,13 @@ pub(super) fn buttons(
                         exit.write(AppExit::Success);
                     }
                     (UiAction::OpenSettings, Phase::Paused) => page.open = true,
-                    (UiAction::CloseSettings, Phase::Paused) => page.open = false,
-                    (UiAction::Adjust(knob, dir), Phase::Paused) => edits.adjust.push((knob, dir)),
-                    (UiAction::Toggle(knob), Phase::Paused) => edits.toggle.push(knob),
+                    (UiAction::CloseSettings, Phase::Paused | Phase::Menu) => page.open = false,
+                    (UiAction::Adjust(knob, dir), Phase::Paused | Phase::Menu) if page.open => {
+                        edits.adjust.push((knob, dir));
+                    }
+                    (UiAction::Toggle(knob), Phase::Paused | Phase::Menu) if page.open => {
+                        edits.toggle.push(knob);
+                    }
                     _ => {}
                 }
             }
@@ -1775,6 +1790,7 @@ fn source_name(key: &str, spells: Option<&crate::ui_action::Spells>) -> String {
 }
 
 pub(super) fn keys(
+    mut settings: ResMut<PausePage>,
     keys: Res<ButtonInput<KeyCode>>,
     phase: Res<State<Phase>>,
     renown: Res<super::renown::Renown>,
@@ -1786,6 +1802,12 @@ pub(super) fn keys(
     mut run: ResMut<Run>,
     mut next: ResMut<NextState<Phase>>,
 ) {
+    if settings.open {
+        if keys.just_pressed(KeyCode::Escape) {
+            settings.open = false;
+        }
+        return;
+    }
     match phase.get() {
         Phase::Menu => {
             let ranks = selection.class.map(|i| renown.ranks(i)).unwrap_or([0; 3]);
@@ -3073,6 +3095,7 @@ pub(super) fn icon_tooltip(
 
 #[allow(clippy::type_complexity)]
 pub(super) fn show_panels(
+    settings: Res<PausePage>,
     phase: Res<State<Phase>>,
     preview: Res<super::cards::PreviewHand>,
     mut hints: Query<&mut Text, With<LevelHint>>,
@@ -3111,7 +3134,7 @@ pub(super) fn show_panels(
         }
     };
     for root in &mut roots.p0() {
-        set(root, p == Phase::Menu && !preview.0);
+        set(root, p == Phase::Menu && !preview.0 && !settings.open);
     }
     for root in &mut roots.p1() {
         set(root, p != Phase::Menu && p != Phase::GameOver);
@@ -3120,7 +3143,10 @@ pub(super) fn show_panels(
         set(root, p == Phase::LevelUp || preview.0);
     }
     for root in &mut roots.p3() {
-        set(root, p == Phase::Paused);
+        set(
+            root,
+            p == Phase::Paused || (p == Phase::Menu && settings.open),
+        );
     }
     for root in &mut roots.p4() {
         set(root, p == Phase::GameOver);
@@ -3513,5 +3539,92 @@ mod card_icon_tests {
             describe_card(Choice::Heal, &run, None).icon,
             CardIcon::Spell(5720)
         );
+    }
+}
+
+#[cfg(test)]
+mod settings_navigation_tests {
+    use super::*;
+    use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn settings_consume_enter_and_escape_without_starting_or_resuming_a_run() {
+        for phase in [Phase::Menu, Phase::Paused] {
+            let mut world = World::new();
+            world.insert_resource(State::new(phase));
+            world.init_resource::<NextState<Phase>>();
+            world.init_resource::<ButtonInput<KeyCode>>();
+            world.init_resource::<super::super::renown::Renown>();
+            world.init_resource::<super::super::stash::Stash>();
+            world.insert_resource(super::super::account::empty());
+            world.init_resource::<super::super::Typing>();
+            world.init_resource::<super::super::armory::Armory>();
+            world.insert_resource(Selection {
+                class: Some(0),
+                looks: vec![(49, 1, 0)],
+                look: Some(0),
+                map: data::MAPS
+                    .iter()
+                    .position(|map| map.name == "Elwynn Forest")
+                    .unwrap(),
+                ..default()
+            });
+            world.init_resource::<Run>();
+            world.insert_resource(PausePage { open: true });
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(KeyCode::Enter);
+            world.run_system_once(keys).unwrap();
+            assert!(world.resource::<PausePage>().open);
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Unchanged
+            ));
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(KeyCode::Escape);
+            world.run_system_once(keys).unwrap();
+            assert!(!world.resource::<PausePage>().open);
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Unchanged
+            ));
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(if phase == Phase::Menu {
+                    KeyCode::Enter
+                } else {
+                    KeyCode::Escape
+                });
+            world.run_system_once(keys).unwrap();
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Pending(Phase::Playing)
+            ));
+        }
+    }
+
+    #[test]
+    fn starter_settings_remove_menu_from_layout_and_back_restores_it() {
+        let mut world = World::new();
+        world.insert_resource(State::new(Phase::Menu));
+        world.insert_resource(PausePage { open: true });
+        world.init_resource::<super::super::cards::PreviewHand>();
+        let menu = world
+            .spawn((MenuRoot, Visibility::Inherited, Node::default()))
+            .id();
+        let pause = world
+            .spawn((PauseRoot, Visibility::Hidden, Node::default()))
+            .id();
+        world.run_system_once(show_panels).unwrap();
+        assert_eq!(world.get::<Node>(menu).unwrap().display, Display::None);
+        assert_eq!(world.get::<Visibility>(menu), Some(&Visibility::Hidden));
+        assert_eq!(world.get::<Node>(pause).unwrap().display, Display::Flex);
+        world.resource_mut::<PausePage>().open = false;
+        world.run_system_once(show_panels).unwrap();
+        assert_eq!(world.get::<Node>(menu).unwrap().display, Display::Flex);
+        assert_eq!(world.get::<Node>(pause).unwrap().display, Display::None);
     }
 }

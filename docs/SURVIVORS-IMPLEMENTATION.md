@@ -16,7 +16,26 @@ unfinished details. Keep README screenshots current. Follow the
 The 2026-10-25 starter checkpoint captures Character, ten-hero management, Talents
 and Companions at 1280×720. Responsive variants and interaction acceptance remain open.
 
-## Current priority — starter interface first (2026-10-25)
+## Current priority — starter interface first (2026-10-26)
+
+Options now opens shared pause settings from the starter and all Armory pages.
+The menu leaves layout while settings is visible; its mouse/keyboard actions are
+blocked. Back/Escape restores the existing page/draft; Enter cannot start a run.
+Paused Escape closes settings before a subsequent Escape resumes. A bounded,
+opaque bordered panel improves readability and supports wide/compact rendering.
+Native 1280×720 / 640×720 checks verified MasterVolume 100→90%, auto-push On→Off,
+both values after restart, Enter isolation and return to Talents. The two ECS
+regressions cover modal key consumption and menu layout/input removal. All 226
+Survivors tests, native build, workspace Clippy, formatting and render lint pass.
+Inline screenshots are in CHANGELOG/README.
+
+Compared against `survivors_paused_options_gamepad.png`: category navigation,
+sliders, defaults, gamepad/key bindings and the other settings remain required.
+This exposes existing controls; it does not complete the reference Options page
+or establish audible output/engine setting effectiveness. The former notes/restart
+page is retained in code but needs a dedicated About/update route now that Options
+opens real preferences. Run Options still only reports Normal difficulty.
+
 
 Starter actions now use the shared gold-outline/burgundy control style. Armory,
 Talents and entry actions contain both title and subtitle within the button.

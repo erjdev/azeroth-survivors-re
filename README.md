@@ -31,6 +31,10 @@ Starter actions now use outlined cards with their supporting text inside the but
 
 ![Starter action cards](docs/images/screenshots/2026-10-25-starter-actions/starter-1280.png)
 
+Options opens shared audio, graphics and camera preferences without entering a run.
+
+![Starter settings](docs/images/screenshots/2026-10-26-starter-settings/settings-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

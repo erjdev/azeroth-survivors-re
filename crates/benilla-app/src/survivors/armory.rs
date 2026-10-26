@@ -292,6 +292,7 @@ pub(super) fn input(
     mut exit: MessageWriter<AppExit>,
 ) {
     let shortcuts::Keyboard {
+        mut settings,
         keys,
         mut keyboard,
         mut shortcut,
@@ -301,6 +302,11 @@ pub(super) fn input(
     let native_cosmetic_click = native.read(raw.read());
     if *phase.get() != Phase::Menu {
         typing.0 = false;
+        keyboard.clear();
+        *shortcut = default();
+        return;
+    }
+    if settings.open {
         keyboard.clear();
         *shortcut = default();
         return;
@@ -564,7 +570,7 @@ pub(super) fn input(
                 &mut next,
             ),
             Act::RunOptions => armory.note = "Difficulty is Normal.".into(),
-            Act::Options => armory.open_page(Page::Notes),
+            Act::Options => settings.open = true,
             Act::Quit => {
                 exit.write(AppExit::Success);
             }

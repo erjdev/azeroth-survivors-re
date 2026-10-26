@@ -3,6 +3,7 @@ use bevy::prelude::*;
 
 #[derive(bevy::ecs::system::SystemParam)]
 pub(in crate::survivors) struct Keyboard<'w, 's> {
+    pub(super) settings: ResMut<'w, crate::survivors::hud::PausePage>,
     pub(super) keys: Res<'w, ButtonInput<KeyCode>>,
     pub(super) keyboard: MessageReader<'w, 's, bevy::input::keyboard::KeyboardInput>,
     pub(super) shortcut: Local<'s, RightClickModifiers>,
