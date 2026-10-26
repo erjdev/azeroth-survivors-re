@@ -213,7 +213,8 @@ Collection detail now groups icon/name/quality/ownership in the bordered identit
 card from the Collection intention. A collected Warrior fixture verifies selection
 changes and long-name wrapping at 1280×720 and 640×720, with inline changelog
 captures. This does not complete collection-page styling or the item catalog:
-Poor drops and distinct raid-epic identities, acquisition and set builds remain open.
+Poor gear now has catalog, save, UI and ordinary-enemy drop integration; distinct
+raid-epic identities, acquisition and set builds remain open.
 
 Rogue has sixteen explicit individual talents: Improved Slice and Dice, Elusiveness,
 Vigor, Remorseless Attacks, Lightning Reflexes, Deflection,
@@ -423,8 +424,8 @@ separate acceptance. Actual screenshots are inline in the changelog.
 Gear stat checkpoint verified at 1280×720: [slot profiles](SURVIVORS-GEAR-STATS.md) replace
 the shared non-glove bonus sequence. Each current band adds one stat and strengthens
 retained stats; only selected equipment contributes, regardless of duplicate count.
-This is initial tuning. Poor drops, distinct raid epics and build-specific raid sets
-still require authored identities and sources; combat balance remains open.
+This is initial tuning. Poor gear now has authored identities and starter-zone
+sources; distinct raid epics, build-specific raid sets and combat balance remain open.
 
 Shared Armory header checkpoint verified: title, wrapping tabs and selected
 class/collection subtitle follow the references; the starter keeps its game title.
@@ -676,9 +677,10 @@ They must be extended rather than replaced with independent copies.
 
 Current source audit (2026-10-26): all six existing bands have named gear entries.
 Selected worn equipment and independent cosmetic choices persist; only worn pieces
-supply bonuses (`account.rs`, `survivors-core/equipment.rs`). Collection and drop
-pages now use icons and detail panes. Poor quality and a distinct raid-Epic tier
-still require catalog/save/UI expansion and acquisition rules.
+supply bonuses (`account.rs`, `survivors-core/gear_loadout.rs`). Collection and drop
+pages use icons and detail panes. Poor gear has 81 class/slot identities, a grid
+row, stable-key saves and ordinary-enemy starter-zone acquisition. A distinct
+raid-Epic catalog, acquisition and build sets remain open.
 
 Settlement credits the selected valid hero and guards repeated awards; regression
 coverage includes save/reload and invalid references. This supersedes the original
@@ -5191,3 +5193,20 @@ appearance, matching the existing grid interaction.
 The existing 54-piece count is explicitly labeled Common–Legendary; Poor has its own
 row count and does not silently change collection-achievement or cloak requirements.
 Natural acquisition and raid-specific catalog rows/sets still require implementation.
+
+### 2026-10-26 — Natural Poor gear acquisition
+
+Initial tuning gives ordinary Elwynn/Duskwood enemies a 2% aggregate Poor-drop
+chance, choosing one of nine slots uniformly. Named scheduled sources retain
+their existing table; bosses and elites cannot also roll this starter gear.
+The shared kill handler covers direct damage and periodic kills. Newly owned
+pieces fill empty slots only and use the existing discovery-save flow. Duplicates
+do not add power or re-equip; existing worn gear and independent looks are retained.
+Permanent equipment bonuses still apply at the next run boundary.
+
+Collection details and Drop Tables describe the same source/rate constant.
+Balancing and a supervised Windows in-map acceptance run remain open, as do
+raid-specific acquisition and build sets. No new chest is spawned by Poor drops.
+
+General piece-count and nine-slot Full set achievements include supplemental ownership;
+the class cloak collection feat still requires the 54 Common–Legendary cells.

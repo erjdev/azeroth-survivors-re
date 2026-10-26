@@ -2,6 +2,29 @@
 //! See docs/SURVIVORS-GEAR-VISUALS.md. Stats and acquisition are Survivors rules.
 use crate::{gear_tier::GearTier, gear_visuals::GearVisual};
 
+/// Initial Survivors tuning: one random Poor slot from ordinary starter-zone enemies.
+pub const POOR_DROP_CHANCE: f32 = 0.02;
+pub const POOR_DROP_ZONES: [usize; 2] = [0, 1];
+
+/// A single uniform [0, 1) roll selects either no drop or one of nine equally likely slots.
+pub fn poor_drop_slot(zone: usize, boss: bool, elite: bool, roll: f32) -> Option<usize> {
+    if !POOR_DROP_ZONES.contains(&zone) || boss || elite || !(0.0..POOR_DROP_CHANCE).contains(&roll)
+    {
+        return None;
+    }
+    Some(
+        ((roll / POOR_DROP_CHANCE * crate::campaign::GRID_SLOTS as f32) as usize)
+            .min(crate::campaign::GRID_SLOTS - 1),
+    )
+}
+
+pub fn poor_source_label() -> String {
+    let zones = POOR_DROP_ZONES
+        .map(|zone| crate::campaign::ZONES[zone].name)
+        .join(" · ");
+    format!("{zones} · ordinary enemies: {:.0}% chance for one random Poor piece (nine equally likely slots). Bosses and elites excluded.", POOR_DROP_CHANCE * 100.0)
+}
+
 type Item = (&'static str, u32, u32, u8, u8, u8, i32, u8);
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -224,5 +247,30 @@ mod inventory_tests {
             assert!(!owned.owns(6, invalid));
         }
         assert_eq!(owned.keys().count(), 81);
+    }
+}
+
+#[cfg(test)]
+mod drop_tests {
+    use super::*;
+
+    #[test]
+    fn poor_drop_boundaries_cover_each_slot_only_in_ordinary_starter_encounters() {
+        for zone in POOR_DROP_ZONES {
+            for slot in 0..crate::campaign::GRID_SLOTS {
+                let roll =
+                    POOR_DROP_CHANCE * (slot as f32 + 0.5) / crate::campaign::GRID_SLOTS as f32;
+                assert_eq!(poor_drop_slot(zone, false, false, roll), Some(slot));
+                assert_eq!(poor_drop_slot(zone, true, false, roll), None);
+                assert_eq!(poor_drop_slot(zone, false, true, roll), None);
+            }
+            assert_eq!(poor_drop_slot(zone, false, false, 0.0), Some(0));
+            for roll in [POOR_DROP_CHANCE, 0.5, 1.0, -0.1, f32::NAN, f32::INFINITY] {
+                assert_eq!(poor_drop_slot(zone, false, false, roll), None);
+            }
+        }
+        for zone in 2..=crate::campaign::ZONES.len() {
+            assert_eq!(poor_drop_slot(zone, false, false, 0.0), None);
+        }
     }
 }

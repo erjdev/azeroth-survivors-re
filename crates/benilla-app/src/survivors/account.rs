@@ -307,6 +307,30 @@ impl Account {
         Some(name)
     }
 
+    /// Poor drops fill empty slots only; duplicate ownership never re-equips or adds power.
+    pub fn collect_poor_drop(&mut self, class: usize, slot: usize) -> Option<&'static str> {
+        let piece = survivors_core::supplemental_gear::piece(
+            class,
+            slot,
+            survivors_core::gear_tier::GearTier::Poor,
+        )?;
+        let progress = self.classes.get_mut(class)?;
+        if !self.supplemental.collect(class, &piece.key) {
+            return None;
+        }
+        if progress
+            .equipment
+            .worn(class, &progress.pieces, &self.supplemental, slot)
+            .is_none()
+        {
+            progress
+                .equipment
+                .wear_supplemental(class, &self.supplemental, slot, &piece.key);
+        }
+        self.dirty = true;
+        Some(piece.name)
+    }
+
     pub fn wear_piece(&mut self, class: usize, slot: usize, band: Option<u8>) -> bool {
         let Some(progress) = self.classes.get_mut(class) else {
             return false;
@@ -917,11 +941,21 @@ impl Account {
     fn snapshot(&self) -> rewards::Snapshot {
         let mut snap = rewards::Snapshot::default();
         let mut epics = 0u32;
+        let mut supplemental_slots = [0u16; 9];
+        for key in self.supplemental.keys() {
+            if let Some(piece) = survivors_core::supplemental_gear::by_key(key) {
+                snap.pieces += 1;
+                supplemental_slots[piece.class] |= 1 << piece.slot;
+            }
+        }
         for (i, class) in self.classes.iter().enumerate().take(9) {
             let n = snap.clears[i].len().min(class.clears.len());
             snap.clears[i][..n].copy_from_slice(&class.clears[..n]);
             snap.pieces += campaign::owned_pieces(&class.pieces) as u32;
-            if campaign::set_complete(&class.pieces) {
+            if (0..campaign::GRID_SLOTS).all(|slot| {
+                supplemental_slots[i] & (1 << slot) != 0
+                    || campaign::best_piece(&class.pieces, slot).is_some()
+            }) {
                 snap.full_sets += 1;
             }
             let legendary = class.pieces[5 * campaign::GRID_SLOTS..6 * campaign::GRID_SLOTS]
@@ -1731,6 +1765,46 @@ mod tests {
     }
 
     use super::*;
+
+    #[test]
+    fn poor_drops_persist_fill_empty_slots_and_duplicates_do_not_reequip() {
+        for class in 0..data::CLASSES.len() {
+            let mut account = blank();
+            for slot in 0..campaign::GRID_SLOTS {
+                assert!(account.collect_poor_drop(class, slot).is_some());
+                assert!(account.classes[class].equipment.supplemental_worn()[slot].is_some());
+            }
+            let mut account = parse(&encode(&account)).unwrap();
+            assert_eq!(account.supplemental.keys().count(), campaign::GRID_SLOTS);
+            assert_eq!(account.snapshot().pieces, 9);
+            assert_eq!(account.snapshot().full_sets, 1);
+            assert!(!account.feats(class, 0).collection);
+            assert!(account.wear_piece(class, 7, None));
+            account.dirty = false;
+            let before = encode(&account);
+            assert_eq!(account.collect_poor_drop(class, 7), None);
+            assert_eq!(encode(&account), before);
+            assert!(!account.dirty);
+        }
+    }
+
+    #[test]
+    fn new_poor_drop_preserves_existing_gear_and_cosmetic_selection() {
+        let mut account = blank();
+        assert!(account.collect_drop(0, 0, "Hogger").is_some());
+        assert!(account.show_piece(0, 0, super::super::equipment::Look::Hidden));
+        let before = account.bonus(0, 0);
+        assert!(account.collect_poor_drop(0, 0).is_some());
+        assert_eq!(account.classes[0].equipment.worn[0], Some(0));
+        assert_eq!(
+            account.classes[0].equipment.looks[0],
+            super::super::equipment::Look::Hidden
+        );
+        assert_eq!(account.bonus(0, 0).armor, before.armor);
+        assert_eq!(account.bonus(0, 0).might, before.might);
+        assert_eq!(account.collect_poor_drop(99, 0), None);
+        assert_eq!(account.collect_poor_drop(0, 99), None);
+    }
 
     #[test]
     fn supplemental_loadout_restores_after_ownership_and_preserves_cosmetic_independence() {

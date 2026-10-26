@@ -779,7 +779,7 @@ pub(super) fn detail(
         text(
             ui,
             font,
-            "Drop source not yet available",
+            survivors_core::supplemental_gear::poor_source_label(),
             layout.body_size,
             DIM,
         );

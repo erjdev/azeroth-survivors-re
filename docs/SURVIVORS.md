@@ -156,6 +156,16 @@ ordinary epic, with an additional stat and raid set bonuses that support specifi
 The catalog must represent those tiers explicitly; the existing six-band grid is a foundation,
 not a reason to collapse raid epics into ordinary epics. Final coefficients are tuning data.
 
+Poor gear has an initial 2% aggregate drop chance from ordinary enemies in Elwynn
+Forest and Duskwood; one of the nine slots is chosen uniformly. Scheduled item
+sources, bosses and elites keep their own loot rules. First-time Poor drops fill
+empty equipment slots only; occupied slots and independent looks are preserved.
+Duplicates never add stats or re-equip an unequipped item. Like other permanent
+equipment changes, collected power is applied when starting the next run.
+Poor ownership counts toward general piece-count and nine-slot Full set achievements;
+the Common–Legendary completion feat still requires its 54 cells.
+This is tuning, not a vanilla drop-table claim.
+
 The cloak's collection feat requires every catalog cell for one class (currently
 54 pieces), not merely one item in each of the nine slots. The nine-slot Full set
 achievement and worn-set combat bonus remain separate. Previously earned achievement

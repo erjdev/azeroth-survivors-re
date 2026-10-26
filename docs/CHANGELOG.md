@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Poor gear drops in starter zones
+
+Ordinary Elwynn/Duskwood enemies now have an initial 2% chance to award one random
+Poor piece. New pieces fill empty slots; duplicates add no power and never
+re-equip. Boss/elite loot and chest counts are unchanged. Poor ownership counts
+toward piece-count and Full set achievements; the cloak's 54-cell requirement
+remains separate. Collection and Drop Tables explain the source and rate.
+
+Verified 154 core and 299 data-required app tests, including direct/periodic kill
+awards, exclusions, duplicate handling and save restoration. Native build, Clippy
+and menu inspection pass. Screenshots use a seeded menu fixture; live Windows
+drop-rate/balance acceptance remains open.
+
+![Poor item acquisition details](images/screenshots/2026-10-26-poor-drops/collection-source.png)
+
+![Starter-zone Poor drops alongside scheduled encounters](images/screenshots/2026-10-26-poor-drops/drop-tables.png)
+
 ## 2026-10-26 — Poor rarity collection row
 
 Poor gear now appears in the Collection grid with nine slots, ownership counts,

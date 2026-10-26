@@ -352,6 +352,8 @@ Weapons are Beaten Battle Axe (Warrior), Cracked Sledge (Paladin), Cracked Short
 Stick (Druid). This is authored Survivors progression, not imported vanilla item power.
 
 The explicit-data gear audit includes every supplemental entry's display and icon.
-It does not establish body texture/attachment correctness. No Poor ownership, drop
-source, equip action or collection UI is enabled by catalog presence. Raid Epic
-identities and the supplemental save/equipment path remain outstanding.
+It does not establish body texture/attachment correctness. Poor ownership, stable-key
+equipment/appearance saves and the Collection row are now integrated. Survivors
+acquisition uses a 2% aggregate chance from ordinary Elwynn/Duskwood enemies, with
+nine equally likely slots; the rate is independent of vanilla item metadata.
+Raid Epic identities and build-specific sets remain outstanding.

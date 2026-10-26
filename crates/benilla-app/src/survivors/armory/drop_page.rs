@@ -199,7 +199,17 @@ fn sources(
     if let Some(reason) = campaign::zone_lock_reason(armory.drop_zone, level, &clears) {
         label(body, font, reason, layout.body_size, GOLD);
     }
-    label(body, font, "Each piece rolls independently. Duplicates add no stats. Chances include your Keen Eye bonus for scheduled bosses.", layout.body_size, DIM);
+    label(body, font, "Scheduled encounter drops roll independently. Duplicates add no stats. Boss chances include your Keen Eye bonus.", layout.body_size, DIM);
+    if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&armory.drop_zone) {
+        super::typography::heading(body, font, "Poor gear", layout.title_size, GOLD);
+        label(
+            body,
+            font,
+            survivors_core::supplemental_gear::poor_source_label(),
+            layout.body_size,
+            DIM,
+        );
+    }
     let rows: Vec<_> = campaign::DROPS
         .iter()
         .filter(|d| d.zone == armory.drop_zone)
@@ -229,7 +239,13 @@ fn sources(
                 ..default()
             },
             BackgroundColor(Color::srgb(0.035, 0.025, 0.015)),
-            BorderColor::all(if armory.piece == piece { GOLD } else { DIM }),
+            BorderColor::all(
+                if armory.supplemental_piece.is_none() && armory.piece == piece {
+                    GOLD
+                } else {
+                    DIM
+                },
+            ),
         ))
         .with_children(|entry| {
             entry
