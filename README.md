@@ -609,6 +609,20 @@ Or set it permanently by editing the single clearly-marked `DEFAULT_DATA_URL` li
 `scripts/fetch-data.sh`. Either way the URL must be a direct link to a zip holding the client's
 `Data/*.MPQ` files.
 
+## Talent implementation coverage
+
+Check authored talent definitions against your explicit game-data folder:
+
+```sh
+cargo run -p survivors-audit -- wow-data/Data --talent-coverage
+cargo run -p survivors-audit -- wow-data/Data --talent-gaps
+```
+
+The first command summarizes each class; the second lists pending node IDs/names.
+Identity mismatches fail the command. Missing effects are reported as incomplete;
+these counts do not establish combat or visual acceptance. Current counts and
+remaining requirements are in the [implementation plan](docs/SURVIVORS-IMPLEMENTATION.md#talent-definition-coverage--2026-10-26).
+
 ## How it's built
 
 The survivors mode is `crates/benilla-app/src/survivors/`, running on two upstream projects:

@@ -622,16 +622,48 @@ collection save, three saved specs, real Talent.dbc presentation, achievement ca
 perks, companion controls, tabard selection, jewelry catalogs, and combat already exist.
 They must be extended rather than replaced with independent copies.
 
-The collection currently names nine common items and a legendary main hand per class.
-The other bands are incomplete. Strongest-owned gear supplies stats automatically; there
-is no independently chosen worn loadout and appearance loadout. Collection and drop pages
-remain predominantly text. Most campaign zones lack complete verified content. Talent
-points feed generic tree bonuses rather than the promised individual spell behaviors.
-A visible control or stored field alone is not a completed feature.
+Current source audit (2026-10-26): all six existing bands have named gear entries.
+Selected worn equipment and independent cosmetic choices persist; only worn pieces
+supply bonuses (`account.rs`, `survivors-core/equipment.rs`). Collection and drop
+pages now use icons and detail panes. Poor quality and a distinct raid-Epic tier
+still require catalog/save/UI expansion and acquisition rules.
 
-Two correctness gaps precede expansion: settlement credits the first hero of a class
-instead of the selected hero, and displayed drop times are disconnected from the periodic
-boss scheduler (the advertised 16-minute drop exceeds the 15-minute victory timer).
+Settlement credits the selected valid hero and guards repeated awards; regression
+coverage includes save/reload and invalid references. This supersedes the original
+first-hero settlement defect. Zone/content and full run acceptance remain open.
+Individual talents remain substantially incomplete; the coverage table below is
+catalog evidence, not a substitute for combat or visual acceptance.
+
+### Talent definition coverage — 2026-10-26
+
+Read from this checkout's `wow-data/Data` using:
+
+```sh
+cargo run -p survivors-audit -- wow-data/Data --talent-coverage
+cargo run -p survivors-audit -- wow-data/Data --talent-gaps
+```
+
+| Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
+| --- | ---: | ---: |
+| Warrior | 34 / 52 | 9 / 9 |
+| Paladin | 19 / 44 | 9 / 9 |
+| Hunter | 16 / 46 | 3 / 9 |
+| Rogue | 16 / 51 | 9 / 9 |
+| Priest | 19 / 47 | 9 / 9 |
+| Shaman | 0 / 46 | 9 / 9 |
+| Mage | 30 / 49 | 9 / 9 |
+| Warlock | 0 / 50 | 0 / 9 |
+| Druid | 0 / 47 | 0 / 9 |
+| Total | 134 / 432 | 57 / 81 |
+
+The command checks definition names/rank caps against actual selectable DBC nodes,
+rejects unknown authored node IDs or mismatched tree ordering, and lists missing
+nodes with `--talent-gaps`. Missing effects are reported without failing identity
+validation. Milestone counts measure available descriptions, not runtime proof;
+each milestone still needs the acceptance evidence described in Phase 5. Imported
+saves and generic fallback bonuses do not make missing individual effects complete.
+The next class-content work must address these gaps, including combat-pet/form
+mechanisms where needed, rather than treating milestone coverage as class completion.
 
 ## Rule decisions
 
@@ -1115,16 +1147,13 @@ perks change the described run behavior; companions fetch coins/wisps without op
 chests or behaving like a magnet. All cosmetics use verified displays. Totals reconcile
 across tabs, saves and achievements; locked rows explain requirements.
 
-Current Codex audit: class cloak/achievement checks incorrectly compare raw seen-name counts
-with the entire ability catalog. Count unique, recognized legendary amulets from that class’s
-start/pool instead, and share the same catalog with the visible grid. Duplicate or foreign
-save entries must never advance completion. Shared jewelry rows currently display full
-counts without discovery tracking; persist account-wide discovery when cards are dealt,
-including abandoned runs, while keeping the jewelry’s effects run-only. Replace the text
-chips with verified icons and a responsive selected-item detail pane. Match the reference’s
-class-colored labels, amulet artwork with small spell badges, shared jewelry rows and
-bottom discovery total/bar. Keep counts tied to implemented offers rather than copying
-the screenshot’s larger catalog totals.
+Codex source status (2026-10-26): `Account::legendary_progress` counts recognized
+entries in the selected class's ability catalog, excluding duplicate/foreign save
+names. `remember_jewelry` records discovery when cards are dealt, including shared
+jewelry; these discoveries persist without equipping run-only effects. The page
+uses icon grids and selected-item details. This supersedes the initial raw-count
+and missing-discovery defects. Keep expansion tied to implemented offers and
+retain the end-to-end acceptance requirements above.
 
 ## Phase 7 — integration and visual acceptance
 

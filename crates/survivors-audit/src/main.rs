@@ -6,6 +6,7 @@ use survivors_core::{campaign, data, encounters};
 mod doodads;
 mod floor;
 mod locations;
+mod talent_coverage;
 mod terrain;
 
 fn main() -> Result<()> {
@@ -21,11 +22,14 @@ fn main() -> Result<()> {
     if rest.len() == 1 && rest[0] == "--talents" {
         return talents(&mut chain);
     }
+    if rest.len() == 1 && (rest[0] == "--talent-coverage" || rest[0] == "--talent-gaps") {
+        return talent_coverage::report(&mut chain, rest[0] == "--talent-gaps");
+    }
     if !rest.is_empty() {
         if rest.len() != 5
             || (rest[0] != "--floor" && rest[0] != "--doodads" && rest[0] != "--terrain")
         {
-            bail!("usage: survivors-audit <Data> [--locations | --talents | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
+            bail!("usage: survivors-audit <Data> [--locations | --talents | --talent-coverage | --talent-gaps | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
         }
         let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
         let mut point = [0.0_f32; 3];

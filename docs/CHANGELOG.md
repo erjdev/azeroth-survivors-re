@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Measurable talent coverage
+
+Added concise per-class talent coverage and detailed missing-node reports against
+an explicit game-data folder. The current audit finds 134/432 matching individual
+effect definitions and 57/81 milestone descriptions; these are not combat-acceptance
+claims. The implementation plan now records the gaps and corrects stale equipment,
+settlement and Codex status notes.
+
+Both reports ran against checkout data; audit-crate Clippy, formatting and whitespace
+checks pass. No interface change; the latest visual evidence remains below.
+
 ## 2026-10-26 — Shaman milestone builds
 
 All nine Shaman milestones now have described, implemented Survivors effects:
