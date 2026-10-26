@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rogue cooldown talents
+
+Three talents replace provisional damage with explicit cooldown effects: Improved
+Slice and Dice speeds up Blade Flurry, Elusiveness speeds up Gouge/Kidney Shot,
+and Vigor speeds up Rogue spells. Green previews label the Survivors conversions
+and their exact scope. Rogue now has sixteen implemented individual talents.
+
+![Vigor at maximum rank](images/screenshots/2026-10-25-rogue-cooldowns/vigor-1280.jpg)
+
+![Compact Elusiveness next-rank preview](images/screenshots/2026-10-25-rogue-cooldowns/elusiveness-640.jpg)
+
+111 core tests, a cast-parameter regression across ability ranks 1/3/8, local DBC
+audit, native build, workspace Clippy, formatting and render-pass lint pass.
+Native checks verified Vigor refund/repurchase and compact Elusiveness refund/restore.
+Live combat feel and final balance remain open; other Rogue nodes are still provisional.
+
 ## 2026-10-25 — Focused Character appearance actions
 
 Character now follows the reference’s focused Features/Look column. Appearance

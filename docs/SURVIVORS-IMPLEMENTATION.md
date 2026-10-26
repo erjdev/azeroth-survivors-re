@@ -30,7 +30,8 @@ changes and long-name wrapping at 1280×720 and 640×720, with inline changelog
 captures. This does not complete collection-page styling or the item catalog:
 Poor drops and distinct raid-epic identities, acquisition and set builds remain open.
 
-Rogue has thirteen explicit individual talents: Remorseless Attacks, Lightning Reflexes, Deflection,
+Rogue has sixteen explicit individual talents: Improved Slice and Dice, Elusiveness,
+Vigor, Remorseless Attacks, Lightning Reflexes, Deflection,
 Camouflage, Sleight of Hand, Improved Eviscerate, Malice,
 Improved Sinister Strike, Serrated Blades, Deadliness, Improved Gouge, Lethality
 and Aggression. Their effects replace provisional rank damage; exact rules are
@@ -3667,3 +3668,19 @@ criteria pending, and all thirteen tiles fit after 640×720 reflow. Three inline
 captures accompany the changelog. 97 core tests and 178 Survivors app tests pass,
 as do the native build, workspace test compilation, Clippy, formatting and
 render-pass lint. Achievement-page typography/layout remains a separate UI task.
+
+### Rogue cooldown talents — 2026-10-25
+
+Improved Slice and Dice (277, three ranks) reduces Blade Flurry cooldown by 5%
+per rank. Elusiveness (247, two ranks) reduces Gouge/Kidney Shot cooldowns by 10%
+per rank. Vigor (382, one rank) reduces the six Rogue spells’ cooldowns by 10%.
+These explicitly labeled Survivors conversions replace provisional rank damage;
+spell membership excludes other-class and neutral jewelry abilities. Different
+reductions multiply with existing training, milestones and equipment.
+
+111 core tests and a ranked cast-parameter regression pass, covering scope,
+composition, rank clamping/reset and unchanged damage/control/targets. The local
+DBC audit confirms identities and rank counts. Native 1280×720 Vigor refund and
+repurchase and 640×720 Elusiveness refund/restore verify green text and readable
+previews. Screenshots are inline in the changelog. Live combat feel, final balance
+and remaining Rogue nodes are still open.

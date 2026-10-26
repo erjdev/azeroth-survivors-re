@@ -288,6 +288,9 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 
 | Talent (DBC ID) | Ranks | Survivors effect per rank |
 |---|---|---|
+| Improved Slice and Dice (277) | 3 | Blade Flurry: 5% shorter cooldown per rank; automatic Slice and Dice conversion |
+| Elusiveness (247) | 2 | Gouge and Kidney Shot: 10% shorter cooldown per rank; defensive cooldown conversion, no stealth required |
+| Vigor (382) | 1 | Rogue spells: 10% shorter cooldown; energy-capacity conversion |
 | Remorseless Attacks (272) | 2 | After a kill, +20 percentage points critical chance on the next successful Rogue melee cast; 20 sec window |
 | Lightning Reflexes (186) | 5 | +1 percentage point damage reduction; dodge conversion |
 | Deflection (187) | 5 | +3 armor; parry conversion |

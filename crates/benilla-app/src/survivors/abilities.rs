@@ -2279,6 +2279,47 @@ mod milestone_tests {
     }
 
     #[test]
+    fn rogue_cooldown_training_reaches_ranked_cast_parameters() {
+        let base = Milestones {
+            class: 3,
+            points: [30, 30, 30],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 277, 3), (2, 247, 2), (0, 382, 1)]);
+        let mut stats = Run::default().stats();
+        stats.haste = 0.25;
+        stats.cooldown = 0.15;
+        for (key, factor) in [
+            ("blade_flurry", 0.85 * 0.9),
+            ("gouge", 0.8 * 0.9),
+            ("kidney_shot", 0.8 * 0.9),
+            ("sinister_strike", 0.9),
+            ("eviscerate", 0.9),
+            ("rupture", 0.9),
+            ("fireball", 1.0),
+        ] {
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!(
+                    (after.cooldown - before.cooldown * factor).abs() < 0.0001,
+                    "{key} rank {level}"
+                );
+                assert_eq!(after.dmg, before.dmg);
+                assert_eq!(after.dot, before.dot);
+                assert_eq!(after.effect, before.effect);
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+            }
+        }
+    }
+
+    #[test]
     fn rogue_training_reaches_ranked_casts_and_critical_hits() {
         let base = Milestones {
             class: 3,

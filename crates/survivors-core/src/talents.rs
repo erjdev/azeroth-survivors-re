@@ -287,6 +287,9 @@ impl Milestones {
                         effect.crit_damage += value;
                     }
                     TalentStat::SpellDamage(spell) if spell == key => effect.damage *= 1.0 + value,
+                    TalentStat::SpellGroupCooldown(spells) if spells.contains(&key) => {
+                        effect.cooldown *= 1.0 - value
+                    }
                     TalentStat::SpellCooldown(spell) if spell == key => {
                         effect.cooldown *= 1.0 - value
                     }
@@ -981,6 +984,7 @@ pub enum TalentStat {
     SpellGroupDamage(&'static [&'static str]),
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
+    SpellGroupCooldown(&'static [&'static str]),
     SpellDamage(&'static str),
     SpellCooldown(&'static str),
     SpellCrit(&'static str),
@@ -1029,7 +1033,9 @@ impl TalentDefinition {
             TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
                 (100.0, "% damage")
             }
-            TalentStat::Cooldown | TalentStat::SpellCooldown(_) => (100.0, "% cooldown reduction"),
+            TalentStat::Cooldown
+            | TalentStat::SpellCooldown(_)
+            | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) => {
                 (100.0, "% critical chance")
             }
@@ -1880,6 +1886,21 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 277, max_rank: 3, name: "Improved Slice and Dice",
+        description: "Blade Flurry: 5% shorter cooldown per rank (Survivors automatic Slice and Dice conversion)",
+        stat: TalentStat::SpellCooldown("blade_flurry"), per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 247, max_rank: 2, name: "Elusiveness",
+        description: "Gouge and Kidney Shot: 10% shorter cooldown per rank (Survivors defensive cooldown conversion; no stealth required)",
+        stat: TalentStat::SpellGroupCooldown(&["gouge", "kidney_shot"]), per_rank: 0.10,
+    },
+    TalentDefinition {
+        id: 382, max_rank: 1, name: "Vigor",
+        description: "Rogue spells: 10% shorter cooldown (Survivors energy-capacity conversion); excludes other-class and neutral jewelry spells",
+        stat: TalentStat::SpellGroupCooldown(ROGUE_SPELLS), per_rank: 0.10,
+    },
+    TalentDefinition {
         id: 272, max_rank: 2, name: "Remorseless Attacks",
         description: "After a kill, your next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast gains +20% critical chance per rank; expires after 20 sec; refreshes without stacking",
         stat: TalentStat::Remorseless, per_rank: 0.20,
@@ -1999,6 +2020,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
+            | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -2047,6 +2069,41 @@ mod stat_talent_tests {
                 .remorseless_crit("gouge"),
             0.0
         );
+    }
+
+    #[test]
+    fn rogue_cooldown_training_is_scoped_and_composes_with_milestones() {
+        let base = Milestones {
+            class: 3,
+            points: [30, 30, 30],
+            ..Default::default()
+        };
+        let ranks = [(0, 277, 3), (2, 247, 2), (0, 382, 1), (1, 201, 2)];
+        let trained = base.with_ranks(&ranks);
+        for key in ROGUE_SPELLS
+            .iter()
+            .copied()
+            .chain(["fireball", "holy_nova", "unknown"])
+        {
+            let factor = match key {
+                "blade_flurry" => 0.85 * 0.9,
+                "gouge" | "kidney_shot" => 0.8 * 0.9,
+                "sinister_strike" => 0.9 * 0.9,
+                "rupture" | "eviscerate" => 0.9,
+                _ => 1.0,
+            };
+            let mut expected = base.cast(key);
+            expected.cooldown *= factor;
+            assert!(
+                (trained.cast(key).cooldown - expected.cooldown).abs() < 0.00001,
+                "{key}"
+            );
+            let mut actual = trained.cast(key);
+            actual.cooldown = expected.cooldown;
+            assert_eq!(actual, expected, "only cooldown changes: {key}");
+        }
+        assert!((stat_adjustment(3, &ranks).might + 0.08).abs() < 0.00001);
+        assert_eq!(trained.with_ranks(&[]), base);
     }
 
     #[test]
@@ -2644,6 +2701,7 @@ mod stat_talent_tests {
                     | TalentStat::SpellGroupDamage(_)
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
+                    | TalentStat::SpellGroupCooldown(_)
                     | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
                     | TalentStat::SpellCrit(_)
