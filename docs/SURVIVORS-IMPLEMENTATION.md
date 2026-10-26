@@ -4722,3 +4722,20 @@ pairs and the existing Rewards category, disabled-control and pointer guards.
 Native play build passes. This does not establish every page's live traversal or
 physical controller acceptance.
 Workspace Clippy, formatting and render lint also pass.
+
+
+### 2026-10-26 — Browser compile gate verified
+
+Installed the pinned Rust toolchain's wasm32-unknown-unknown target and the
+repository-pinned WASI SDK 27 under ignored tools/wasi-sdk. The CI command
+`cargo check --target wasm32-unknown-unknown -p wenilla --no-default-features --features webgpu`
+passes locally (five existing client warnings). This supersedes the earlier
+missing-target limitation; it establishes compilation, not linked browser or
+WebGPU runtime acceptance.
+
+Updated the browser startup test DOM mock for loading-screen CSS properties and
+child elements, and isolated animation intervals. All seven startup/journal tests
+pass using the bundled Node runtime; the system Node installation could not start
+because its llhttp dynamic library is missing. No application behavior or visual
+layout changed, so this checkpoint requires no new screenshot. Windows gameplay
+and browser runtime checks remain open.

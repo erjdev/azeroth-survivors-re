@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Browser build verification
+
+The WebGPU WebAssembly compile gate now passes locally. Browser startup tests now
+model the loading screen's CSS properties, child elements and animation timers;
+all seven startup/journal tests pass. This changes test infrastructure only, so
+there is no new interface screenshot. Browser runtime and Windows gameplay
+acceptance remain open.
+
 ## 2026-10-26 — Keep Armory keyboard/controller focus
 
 Character, Collection and other Armory actions now retain focus through page
