@@ -79,7 +79,12 @@ Graphics resets preserve inversion, and Controls resets preserve collision/cutaw
 wide/compact checks cover mouse/keyboard toggles, both reset boundaries and saved
 inversion after relaunch. Build, workspace Clippy, formatting and render lint pass;
 screenshots are inline in CHANGELOG/README. In-world inversion and paused camera
-isolation still need live acceptance checks. Sensitivity, gamepad navigation,
+isolation still need live acceptance checks. The shared runtime camera-input path
+now has regression coverage for all non-playing phases, loading-screen coverage,
+blocked wheel-event consumption, independent inversion, fixed-view restoration,
+line/pixel zoom equivalence and pitch/zoom limits. Loading coverage also suppresses
+camera gestures while the world is not ready. All 236 Survivors tests, native
+build, workspace Clippy, formatting and render lint pass. Sensitivity, gamepad navigation,
 bindings and other settings remain required.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing

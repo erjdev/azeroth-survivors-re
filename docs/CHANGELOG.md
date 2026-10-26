@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Camera input isolation
+
+Camera controls now ignore gestures while the loading screen covers the world.
+Regression checks exercise the runtime input path across menus, pause, rewards
+and loading, including draining scroll events before resume. They also cover
+axis inversion, returning to fixed view, trackpad/wheel equivalence and camera
+limits. The interface remains as pictured in the Controls milestone below.
+
+236 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Live in-world acceptance remains open.
+
 ## 2026-10-26 — Mouse camera controls
 
 Options gains a Controls page with saved X/Y mouse inversion, category defaults

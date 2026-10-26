@@ -1,5 +1,7 @@
 //! The hero: its body, WASD movement over the terrain, the top-down camera, and its health.
 
+mod camera_input;
+
 use benilla_world::collision::WorldCollision;
 use benilla_world::view::WorldCamera;
 use bevy::input::mouse::{AccumulatedMouseMotion, MouseScrollUnit, MouseWheel};
@@ -331,6 +333,7 @@ pub(super) fn place_camera(
     mut rig: ResMut<CamRig>,
     mut camera_settings: ResMut<super::camera::CameraSettings>,
     mut trace: Local<super::camera::CameraTrace>,
+    loading: Res<crate::loading_screen::LoadingScreen>,
     mut wheel: MessageReader<MouseWheel>,
     mouse: Res<ButtonInput<MouseButton>>,
     motion: Res<AccumulatedMouseMotion>,
@@ -340,33 +343,19 @@ pub(super) fn place_camera(
     hero: Query<&Transform, (With<Hero>, Without<WorldCamera>)>,
     mut cams: Query<&mut Transform, With<WorldCamera>>,
 ) {
-    // `C` unlocks the camera to swing and tilt; locking it again snaps back to the top-down view,
-    // so world-relative WASD lines up with the screen again.
-    let camera_input = *phase.get() == Phase::Playing;
-    if camera_input && keys.just_pressed(KeyCode::KeyC) {
-        rig.mode = match rig.mode {
-            CamMode::Fixed => CamMode::Orbit,
-            CamMode::Orbit => {
-                rig.yaw = 0.0;
-                rig.pitch = FIXED_PITCH;
-                CamMode::Fixed
-            }
-        };
-    }
+    camera_input::apply(
+        &mut rig,
+        &camera_settings,
+        *phase.get(),
+        loading.covering(),
+        keys.just_pressed(KeyCode::KeyC),
+        mouse
+            .any_pressed([MouseButton::Left, MouseButton::Right])
+            .then_some(motion.delta),
+        wheel.read(),
+    );
     // With no hero yet, the focus `drive_hero` grounded.
     let focus = hero.single().map_or(player.pos, |t| t.translation);
-    // Multiplicative, so a notch moves as far by eye close in as far out; all the way down to an
-    // over-the-shoulder view.
-    for w in wheel.read() {
-        if !camera_input {
-            continue;
-        }
-        let notches = match w.unit {
-            MouseScrollUnit::Line => w.y,
-            MouseScrollUnit::Pixel => w.y * 0.02,
-        };
-        rig.dist = (rig.dist * (1.0 - 0.12 * notches).clamp(0.5, 1.5)).clamp(ZOOM_MIN, ZOOM_MAX);
-    }
     let (eye, look) = if *phase.get() == Phase::Menu {
         rig.orbit += time.delta_secs() * MENU_ORBIT;
         let d = 7.0;
@@ -375,15 +364,6 @@ pub(super) fn place_camera(
             focus + Vec3::Y * 1.1,
         )
     } else {
-        // Unlocked, either mouse button drags the camera around the hero, as in WoW.
-        if camera_input
-            && rig.mode == CamMode::Orbit
-            && mouse.any_pressed([MouseButton::Left, MouseButton::Right])
-        {
-            let delta = camera_settings.mouse_delta(motion.delta);
-            rig.yaw -= delta.x * ORBIT_RATE;
-            rig.pitch = (rig.pitch + delta.y * ORBIT_RATE).clamp(PITCH_MIN, PITCH_MAX);
-        }
         let (sy, cy) = rig.yaw.sin_cos();
         let (sp, cp) = rig.pitch.sin_cos();
         let look = focus + Vec3::Y * CAMERA_FOCUS_HEIGHT;
