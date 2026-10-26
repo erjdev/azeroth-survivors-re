@@ -117,8 +117,12 @@ Talent and milestone descriptions now follow keyboard/controller focus before
 mouse hover, using the same title, rank preview and supported-effect tint. Pure
 milestone rows join focus navigation without becoming purchase actions. Inspection
 never activates a talent or spends a point; the page help describes arrows/D-pad.
-Other hover surfaces, secondary actions/refunds and physical-device acceptance
-remain open.
+Other hover surfaces and physical-device acceptance remain open.
+Talent refunds now accept Backspace/controller west on the focused talent through
+the same row/prerequisite checks as right-click. Requests last one frame, clear
+under modals/text entry and cannot trigger secondary equipment actions. Native
+Backspace validation refunded rank 4→3, returned one point and verified the saved
+spec. Focus retention across the resulting tree rebuild is still required.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.

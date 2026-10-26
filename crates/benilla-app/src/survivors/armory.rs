@@ -351,9 +351,13 @@ pub(super) fn input(
         }
         armory.focus = 0;
     }
-    if pointer.mouse.just_released(MouseButton::Right) {
-        for (_, act, interaction) in &acts {
-            if *interaction == Interaction::None {
+    if pointer.mouse.just_released(MouseButton::Right) || pointer.controller.refund.is_some() {
+        for (entity, act, interaction) in &acts {
+            let pointer_refund = pointer.mouse.just_released(MouseButton::Right)
+                && *interaction != Interaction::None;
+            let focused_refund = pointer.controller.refund == Some(entity)
+                && matches!(act, Act::Talent(_) | Act::Learn(_));
+            if !pointer_refund && !focused_refund {
                 continue;
             }
             match act {

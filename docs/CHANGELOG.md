@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Talent refunds without a mouse
+
+Backspace or controller west refunds one point from the focused talent through
+the existing row and prerequisite checks. Milestones and unrelated controls ignore
+the refund shortcut; page help and README controls describe it.
+
+![Keyboard refund returns a point to the active spec](images/screenshots/2026-10-26-talent-refund/refunded-1280.png)
+
+243 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Native validation refunded Improved Frostbolt from rank 4 to 3, increased available
+points from 2 to 3, and verified the saved spec. Automated input coverage includes
+one-frame requests and modal exclusion. Physical controller acceptance remains
+open. Purchases/refunds currently rebuild the tree and clear focus; retaining
+focus across that rebuild remains a usability task.
+
 ## 2026-10-26 — Inspect talents with directional focus
 
 Talent and milestone descriptions now follow keyboard/controller focus, including

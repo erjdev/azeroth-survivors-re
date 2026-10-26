@@ -43,6 +43,8 @@ Talent descriptions follow directional focus before spending a point.
 
 ![Talent focus and rank preview](docs/images/screenshots/2026-10-26-talent-focus/talent-1280.png)
 
+![Keyboard talent refund](docs/images/screenshots/2026-10-26-talent-refund/refunded-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.
@@ -570,8 +572,9 @@ moves focus, **left/right** adjusts sliders, **south** selects, and **east** clo
 Options. On the starter and Armory pages, **D-pad / arrow keys** move the focus
 outline between controls; **south / Enter / Space** selects. Focus scrolls into
 view automatically. **East** returns to the starter. Text entry still needs a
-keyboard. Talents and milestones show descriptions when focused. Other hover details,
-controller gameplay and talent-refund shortcuts remain unfinished.
+keyboard. Talents and milestones show descriptions when focused. **Backspace / controller
+west** refunds one point from the focused talent, respecting row and prerequisite
+requirements. Other hover details and controller gameplay remain unfinished.
 
 ## The game data (not in this repo)
 

@@ -5,6 +5,7 @@ use super::*;
 pub(in crate::survivors) struct ControllerFocus {
     focused: Option<Entity>,
     pub activated: Option<Entity>,
+    pub refund: Option<Entity>,
     pub keyboard_selected: bool,
 }
 
@@ -77,6 +78,7 @@ pub(in crate::survivors) fn navigate(
     )>,
 ) {
     focus.activated = None;
+    focus.refund = None;
     focus.keyboard_selected = false;
     let old = focus.focused;
     let eligible = *phase.get() == Phase::Menu
@@ -106,6 +108,7 @@ pub(in crate::survivors) fn navigate(
                 GamepadButton::DPadLeft,
                 GamepadButton::DPadRight,
                 GamepadButton::South,
+                GamepadButton::West,
                 GamepadButton::East,
                 GamepadButton::Start,
             ]
@@ -136,6 +139,9 @@ pub(in crate::survivors) fn navigate(
                 .find(|(button, key, _)| pressed(*button) || keys.just_pressed(*key));
                 if let Some((_, _, direction)) = direction {
                     focus.focused = step(&items, focus.focused, direction);
+                } else if pressed(GamepadButton::West) || keys.just_pressed(KeyCode::Backspace) {
+                    // Refund requests are filtered to talent actions by the shared handler.
+                    focus.refund = focus.focused;
                 } else if pressed(GamepadButton::South) || (key_select && focus.focused.is_some()) {
                     // A first select establishes focus instead of firing an unseen action.
                     if focus.focused.is_none() {
@@ -279,10 +285,23 @@ mod tests {
         assert_eq!(world.resource::<ControllerFocus>().activated, Some(button));
         assert!(world.resource::<ControllerFocus>().keyboard_selected);
         world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        press(&mut world, &mut schedule, GamepadButton::West);
+        assert_eq!(world.resource::<ControllerFocus>().refund, Some(button));
+        assert_eq!(world.resource::<ControllerFocus>().activated, None);
+        world.get_mut::<Gamepad>(pad).unwrap().digital_mut().clear();
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().refund, None);
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Backspace);
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().refund, Some(button));
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
         world.resource_mut::<hud::PausePage>().open = true;
         press(&mut world, &mut schedule, GamepadButton::South);
         assert_eq!(world.resource::<ControllerFocus>().activated, None);
         assert_eq!(world.resource::<ControllerFocus>().focused, None);
+        assert_eq!(world.resource::<ControllerFocus>().refund, None);
         assert!(world.get::<Outline>(button).is_none());
         world.resource_mut::<hud::PausePage>().open = false;
         world.resource_mut::<Typing>().0 = true;
