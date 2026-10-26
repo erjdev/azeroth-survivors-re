@@ -287,7 +287,7 @@ fn card(
     ui.spawn((
         Node {
             flex_basis: Val::Percent(48.0),
-            flex_grow: 1.0,
+            flex_grow: 0.0,
             min_width: Val::Px(200.0),
             padding: UiRect::all(Val::Px(9.0)),
             column_gap: Val::Px(8.0),

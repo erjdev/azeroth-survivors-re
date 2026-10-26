@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Consistent achievement cards
+
+Achievement cards retain their proportional column width on incomplete rows instead
+of stretching the last card across the panel. This follows the intention’s two-column
+alignment and applies to category, recent and almost-complete cards.
+
+![Consistent Feats card widths](images/screenshots/2026-10-26-achievement-widths/feats-1280.png)
+
+![Compact Feats layout](images/screenshots/2026-10-26-achievement-widths/feats-640.png)
+
+Native 1280×720 and 640×720 previews verify the five-card Feats layout, readable
+content and scroll reachability using a synthetic account. Native build, workspace
+Clippy, formatting and render lint pass. No mechanics changed.
+
 ## 2026-10-26 — Direct category previews
 
 The fast UI preview now opens Rewards and Achievement categories directly using

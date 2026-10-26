@@ -18,6 +18,11 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-26)
 
+Achievement cards now keep the same proportional column width on incomplete rows,
+matching the intention's aligned columns. Native wide/compact Feats captures verify
+five-card alignment, readable text and scrolling. The shared card style also serves
+recent/almost-complete summaries; broader layout acceptance remains open.
+
 Fast native UI previews now support all three Rewards categories and all six
 Achievement categories through a validated optional `category` key. Page, category
 and dimensions apply together; omission preserves the manual category and invalid

@@ -112,6 +112,10 @@ See [the preview guide](docs/SURVIVORS-DEVELOPMENT.md) for reusable requests.
 
 ![Direct Feats preview](docs/images/screenshots/2026-10-26-preview-categories/feats-1280.png)
 
+Achievement cards retain consistent widths on incomplete rows.
+
+![Consistent achievement card widths](docs/images/screenshots/2026-10-26-achievement-widths/feats-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.
