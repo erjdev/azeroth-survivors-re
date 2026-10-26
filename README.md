@@ -23,6 +23,10 @@ zone's scheduled finale and progression locks. Narrow screens stack the three se
 
 ![Responsive starter at 640×720](docs/images/screenshots/2026-10-25-starter-portrait/mage-640.jpg)
 
+Starter portraits now show faction and class badges, with wide/compact checks.
+
+![Starter portrait identity](docs/images/screenshots/2026-10-25-starter-badges/alliance-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

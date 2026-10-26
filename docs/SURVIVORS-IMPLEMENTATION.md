@@ -18,6 +18,14 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Starter portraits now include the reference's faction pill and circular class
+badge, derived from the selected race/class and runtime class atlas. Badge size
+and corner offsets follow the portrait. Native Horde Warrior → Alliance Mage
+switching, drag rotation, 1280×720 / 640×720 layout and scroll clipping passed;
+three screenshots accompany the changelog/README. Native build, workspace Clippy,
+formatting and render lint pass. Starter control styling, background and outdoor
+zone illustrations remain open.
+
 Collection equip/unequip actions now preview the complete equipment contribution,
 including worn-set gains/losses. The shared bonus formatter uses green/red numeric
 comparisons with one unit. 110 core and 194 app tests pass; native wide/compact
@@ -68,12 +76,11 @@ Human rules remain intact. Timed effects use gameplay time. Two core tests and
 four run-stat tests pass, and wide/compact Orc starter screenshots verify the
 visible descriptions. Extended combat and balance acceptance remains open.
 
-Companion artwork checkpoint: archive-listed and decoded `Ability_Hunter_Pet_Cat`
-now supplies Quick Paws; `Ability_Hunter_Pet_Owl` supplies Crimson Macaw and Great
-Horned Owl, matching those reference icons. Native loading was verified and an
-inline screenshot recorded. Long Leash, Tree Frog, Sprite Darter, Zergling and
-Undercity Cockroach still differ from the reference; do not treat this as complete
-artwork acceptance. Extracted candidates remain in ignored validation storage.
+Companion artwork now matches the reference's Quick Paws, bird, Long Leash,
+frog, serpent, Zergling and cockroach icons. Runtime paths were verified against
+the checkout patch chain and native wide/compact captures are inline in the
+changelog. In-world pet animation/scale and broader Rewards layout acceptance
+remain open; icon matching does not establish those checks.
 
 Companion upgrade rows now keep equal widths, including Second Companion.
 Looks and Tabards use adaptive grid columns; Looks fits four columns at 1280×720

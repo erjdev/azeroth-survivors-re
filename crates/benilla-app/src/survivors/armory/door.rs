@@ -633,6 +633,65 @@ fn class_icon(
     });
 }
 
+/// Decorative overlays follow the selected body and class, leaving portrait drag input intact.
+fn portrait_badges(
+    frame: &mut ChildSpawnerCommands,
+    art: &GlueArt,
+    font: &Handle<Font>,
+    class: &ClassDef,
+    race: u8,
+) {
+    let color = if matches!(race, 1 | 3 | 4 | 7) {
+        Color::srgb(0.3, 0.6, 1.0)
+    } else {
+        Color::srgb(1.0, 0.3, 0.2)
+    };
+    frame
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Percent(3.0),
+                top: Val::Percent(3.0),
+                max_width: Val::Percent(94.0),
+                padding: UiRect::axes(Val::Px(4.0), Val::Px(1.0)),
+                border: UiRect::all(Val::Px(1.0)),
+                border_radius: BorderRadius::MAX,
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.015, 0.01, 0.02, 0.95)),
+            BorderColor::all(color),
+        ))
+        .with_children(|badge| {
+            badge.spawn(hud::text_bundle(
+                font,
+                faction(race).to_uppercase(),
+                8.0,
+                color,
+            ));
+        });
+    if let (Some((sheet, size)), Some(tc)) = (&art.classes, class_tc(class.id)) {
+        frame.spawn((
+            ImageNode {
+                image: sheet.clone(),
+                rect: Some(tc_rect(*size, tc)),
+                ..default()
+            },
+            Node {
+                position_type: PositionType::Absolute,
+                right: Val::Percent(3.0),
+                bottom: Val::Percent(3.0),
+                width: Val::Percent(32.0),
+                max_width: Val::Px(40.0),
+                aspect_ratio: Some(1.0),
+                border: UiRect::all(Val::Px(1.0)),
+                border_radius: BorderRadius::MAX,
+                ..default()
+            },
+            BorderColor::all(hud::rgb(class.color)),
+        ));
+    }
+}
+
 fn hero_column(
     body: &mut ChildSpawnerCommands,
     art: &GlueArt,
@@ -685,6 +744,9 @@ fn hero_column(
                         ..default()
                     },
                 ));
+                if let (Some(class), Some((race, _))) = (class, look) {
+                    portrait_badges(frame, art, font, class, race);
+                }
             });
         }
         row.spawn(Node {

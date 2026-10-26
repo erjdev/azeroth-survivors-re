@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter portrait identity
+
+The starter portrait now carries the reference's faction label and circular class
+badge. Both follow the selected hero; the badge scales with the portrait.
+
+![Horde Warrior portrait identity](images/screenshots/2026-10-25-starter-badges/horde-1280.png)
+
+![Alliance Mage at compact width](images/screenshots/2026-10-25-starter-badges/alliance-640.png)
+
+Native 1280×720 / 640×720 checks cover Horde→Alliance class switching, portrait
+dragging and scroll clipping. Native build, workspace Clippy, formatting and
+render lint pass. Remaining starter controls, background and zone artwork still
+need reference alignment.
+
 ## 2026-10-25 — Companion reference artwork
 
 Matched Long Leash and five companion looks to the intention screenshot using
