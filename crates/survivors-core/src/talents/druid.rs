@@ -3,7 +3,7 @@ use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 831, max_rank: 1, name: "Nature's Swiftness", description: "Rejuvenation: 15% shorter cooldown, multiplying individual cooldown ranks and the 20-point Restoration milestone (Survivors automatic instant-cast conversion)", stat: TalentStat::SpellCooldown("rejuvenation"), per_rank: 0.15 },
-    TalentDefinition { id: 844, max_rank: 1, name: "Swiftmend", description: "Rejuvenation immediately heals 5% maximum health once per successful cast; adds to the 30-point Restoration milestone for 10% total. Does not consume healing over time (Survivors automatic conversion)", stat: TalentStat::SpellHeal("rejuvenation"), per_rank: 0.05 },
+    TalentDefinition { id: 844, max_rank: 1, name: "Swiftmend", description: "Rejuvenation immediately heals 5% maximum health once per successful cast; adds to the 30-point Restoration milestone for 10% total before healing bonuses. Does not consume healing over time (Survivors automatic conversion)", stat: TalentStat::SpellHeal("rejuvenation"), per_rank: 0.05 },
     TalentDefinition { id: 764, max_rank: 2, name: "Nature's Reach", description: "Wrath, Moonfire, Starfire, Entangling Roots and Hurricane: +10% targeting range per rank. Hurricane's radius and target counts are unchanged; excludes Insect Swarm, Thorns and healing", stat: TalentStat::SpellGroupRange(&["wrath", "moonfire", "starfire", "entangling_roots", "hurricane"]), per_rank: 0.10 },
     TalentDefinition { id: 762, max_rank: 5, name: "Improved Wrath", description: "Wrath: 4% shorter cooldown per rank (Survivors cast-time conversion)", stat: TalentStat::SpellCooldown("wrath"), per_rank: 0.04 },
     TalentDefinition { id: 763, max_rank: 5, name: "Improved Moonfire", description: "Moonfire: +2% direct and periodic damage and +2 percentage points critical chance per rank", stat: TalentStat::SpellDamageAndCrit("moonfire"), per_rank: 0.02 },
@@ -126,19 +126,13 @@ mod tests {
                 assert!((e.cooldown - cooldown).abs() < 0.00001, "{key}");
                 assert!((e.crit - crit).abs() < 0.00001, "{key}");
                 assert!((e.crit_damage - crit_damage).abs() < 0.00001, "{key}");
-                assert_eq!(
-                    (e.radius, e.duration, e.extra_targets, e.heal_fraction),
-                    (
-                        1.,
-                        1.,
-                        0,
-                        if key == "rejuvenation" && rank > 0 {
-                            0.05
-                        } else {
-                            0.
-                        }
-                    )
-                );
+                assert_eq!((e.radius, e.duration, e.extra_targets), (1., 1., 0));
+                let expected_heal = if key == "rejuvenation" && rank > 0 {
+                    0.05 * damage
+                } else {
+                    0.
+                };
+                assert!((e.heal_fraction - expected_heal).abs() < 0.00001);
             }
             for key in ["hurricane", "entangling_roots", "insect_swarm", "fireball"] {
                 let range = if matches!(key, "hurricane" | "entangling_roots") {
@@ -189,7 +183,7 @@ mod tests {
                 .cast("rejuvenation");
                 assert!((milestones.damage - healing * 1.2).abs() < 0.00001);
                 assert!((milestones.cooldown - cooldown * 0.85).abs() < 0.00001);
-                assert_eq!(milestones.heal_fraction, 0.05);
+                assert!((milestones.heal_fraction - 0.05 * healing).abs() < 0.00001);
             }
         }
     }
@@ -277,7 +271,7 @@ mod milestone_tests {
         assert_eq!(all.cast("thorns").shield_fraction, 0.05);
         assert_eq!(all.cast("thorns").shield_seconds, 3.);
         assert_eq!(all.cast("thorns").heal_fraction, 0.03);
-        assert_eq!(all.cast("rejuvenation").heal_fraction, 0.05);
+        assert!((all.cast("rejuvenation").heal_fraction - 0.05 * 1.15 * 1.1).abs() < 0.00001);
         for key in [
             "wrath",
             "moonfire",
@@ -344,6 +338,50 @@ mod restoration_capstones {
                     for key in ["wrath", "thorns", "holy_shock", "renew"] {
                         assert_eq!(trained.cast(key), base.cast(key));
                     }
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod healing_composition_tests {
+    use crate::talents::Milestones;
+
+    #[test]
+    fn healing_training_scales_both_portions_without_unlocking_or_changing_other_casts() {
+        for points in [0, 29, 30] {
+            for swiftmend in [0, 1] {
+                let base = Milestones {
+                    class: 8,
+                    points: [0, 0, points],
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 844, swiftmend)]);
+                for rank in [0, 1, 5, 255] {
+                    let mut ranks = [
+                        (2, 844, swiftmend),
+                        (2, 830, rank),
+                        (2, 828, rank),
+                        (2, 823, rank),
+                    ];
+                    let trained = base.with_ranks(&ranks);
+                    ranks.reverse();
+                    assert_eq!(
+                        trained.cast("rejuvenation"),
+                        base.with_ranks(&ranks).cast("rejuvenation")
+                    );
+                    let scale = (1. + 0.05 * f32::from(rank.min(3)))
+                        * (1. + 0.02 * f32::from(rank.min(5))).powi(2);
+                    let before = base.cast("rejuvenation");
+                    let actual = trained.cast("rejuvenation");
+                    assert!((actual.damage - before.damage * scale).abs() < 0.00001);
+                    assert!((actual.heal_fraction - before.heal_fraction * scale).abs() < 0.00001);
+                    assert_eq!(actual.cooldown, before.cooldown);
+                    for key in ["thorns", "moonfire", "wrath", "holy_nova"] {
+                        assert_eq!(trained.cast(key), base.cast(key));
+                    }
+                    assert_eq!(trained.with_ranks(&[(2, 844, swiftmend)]), base);
                 }
             }
         }

@@ -171,6 +171,7 @@ impl Milestones {
 
     pub fn cast(self, key: &str) -> CastEffect {
         let mut effect = CastEffect::default();
+        let mut healing_multiplier = 1.0;
         if self.class == 3 && ROGUE_SPELLS.contains(&key) {
             if self.points[2] >= 10 && key == "gouge" {
                 effect.shield_fraction = 0.03;
@@ -454,9 +455,11 @@ impl Milestones {
                         effect.damage *= 1.0 + value;
                         effect.crit += value;
                     }
-                    TalentStat::SpellDamage(spell)
-                    | TalentStat::SpellAbsorb(spell)
-                    | TalentStat::SpellHealing(spell)
+                    TalentStat::SpellHealing(spell) if spell == key => {
+                        effect.damage *= 1.0 + value;
+                        healing_multiplier *= 1.0 + value;
+                    }
+                    TalentStat::SpellDamage(spell) | TalentStat::SpellAbsorb(spell)
                         if spell == key =>
                     {
                         effect.damage *= 1.0 + value
@@ -486,6 +489,8 @@ impl Milestones {
                 }
             }
         }
+        // Apply after all flat heals so definition order cannot bypass healing training.
+        effect.heal_fraction *= healing_multiplier;
         if self.class == 5 && shaman::TOTEMS.contains(&key) {
             effect.heal_fraction *= 1.0 + self.trained_value(TalentStat::TotemHealing);
         }

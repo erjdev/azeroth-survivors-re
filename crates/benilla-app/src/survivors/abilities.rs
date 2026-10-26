@@ -4025,6 +4025,11 @@ mod milestone_tests {
             assert_eq!(finish_milestone_cast(&mut run, effect, 100.), expected);
             assert_eq!(run.hp, 50. + expected);
             assert_eq!((run.heal_rate, run.heal_t), (3., 10.));
+            let healing = trained.with_ranks(&[(2, 844, 1), (2, 830, 3), (2, 828, 5), (2, 823, 5)]);
+            run.hp = 50.;
+            let restored = finish_milestone_cast(&mut run, healing.cast("rejuvenation"), 100.);
+            assert!((restored - expected * 1.15 * 1.1 * 1.1).abs() < 0.00001);
+            assert_eq!((run.heal_rate, run.heal_t), (3., 10.));
             run.hp = 99.;
             assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 1.);
             run.hp = 100.;

@@ -5019,3 +5019,23 @@ No unattended combat was run; live balance and Windows acceptance remain open.
 Validation: 145 core tests, 291 visibility-enabled Survivors app tests, native build,
 core/app Clippy, formatting and diff checks pass. The DBC audit reports 192/432
 individual definitions and 78/81 milestone descriptions; neither is full acceptance.
+
+
+### 2026-10-26 — Druid healing composition correction
+
+SpellHealing bonuses now multiply both the spell's healing payload and any unlocked
+immediate heal. The immediate multiplier applies after collecting flat heals, so
+adding a later talent definition cannot bypass it. This fixes Improved Rejuvenation,
+Gift of Nature and Nature's Focus with Swiftmend and the Restoration 30-point pulse.
+The 10-point periodic-healing milestone still affects only periodic healing. Neither
+healing ranks alone nor this fix grants an immediate pulse before its unlock.
+
+Regression coverage checks capped ranks, milestone-only/Swiftmend-only/combined
+pulses, reversed saved rank order, refund, unchanged cooldown and unrelated spells.
+Application cast completion verifies the scaled heal without consuming the existing
+healing-over-time effect. The Swiftmend description clarifies that 10% is before
+healing bonuses. This is a rules correction; no new layout screenshots or live combat
+acceptance are claimed, and talent definition coverage is unchanged.
+
+Validation: all 146 core and 291 visibility-enabled Survivors app tests, native
+build, core/app Clippy, formatting and diff checks pass.

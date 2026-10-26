@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Consistent Druid healing bonuses
+
+Improved Rejuvenation, Gift of Nature and Nature's Focus now scale Rejuvenation's
+immediate Swiftmend/milestone heal as well as its periodic healing. Previously the
+immediate portion missed these bonuses. Full healing ranks raise a combined 10%
+base pulse to 13.915% maximum health; healing over time is not consumed.
+
+All 146 core and 291 Survivors app tests pass, along with native build and Clippy.
+This is a rules correction, with no layout change or new visual acceptance claim.
+Live balance and Windows gameplay acceptance remain open.
+
 ## 2026-10-26 — Shaman totem healing talents
 
 Restorative Totems and Purification now strengthen the unlocked totem-deployment
