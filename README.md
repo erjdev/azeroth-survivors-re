@@ -327,7 +327,10 @@ navigation to Collection for full equipment details.
 
 ![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
-Priest now has twelve individual talents and nine tree milestones with scoped previews.
+Priest now has fifteen individual talents and nine tree milestones with scoped previews.
+Fortitude, Inner Fire and Spell Warding now provide health, armor and damage reduction.
+
+![Priest defensive talent preview](docs/images/screenshots/2026-10-25-priest-defenses/inner-fire-1280.jpg)
 
 Long ground, chain and damage-over-time cards have checked [wide](docs/ui-previews/long-cards-1280.txt) and [compact](docs/ui-previews/long-cards-640.txt) preview presets.
 

@@ -1041,6 +1041,7 @@ pub struct TalentDefinition {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
+    Health,
     Damage,
     Cooldown,
     Armor,
@@ -1119,6 +1120,7 @@ impl TalentDefinition {
                 unreachable!("handled above")
             }
             TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
+            TalentStat::Health => (1.0, " maximum health"),
             TalentStat::Armor => (1.0, " armor"),
             TalentStat::SpellShield(_) => (100.0, "% maximum health absorbed per cast"),
             TalentStat::SpellImmune(_) => (1.0, " sec immunity per successful cast"),
@@ -2075,6 +2077,21 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 344, max_rank: 2, name: "Improved Power Word: Fortitude",
+        description: "+10 maximum health per rank, always active (Survivors Fortitude conversion)",
+        stat: TalentStat::Health, per_rank: 10.0,
+    },
+    TalentDefinition {
+        id: 346, max_rank: 3, name: "Improved Inner Fire",
+        description: "+2 armor per rank, always active; armor reduces each hit before percentage reduction (Survivors Inner Fire conversion)",
+        stat: TalentStat::Armor, per_rank: 2.0,
+    },
+    TalentDefinition {
+        id: 411, max_rank: 5, name: "Spell Warding",
+        description: "2% reduced damage taken per rank; protects against all incoming damage (Survivors Spell Warding conversion)",
+        stat: TalentStat::Reduction, per_rank: 0.02,
+    },
+    TalentDefinition {
         id: 1202, max_rank: 5, name: "Force of Will",
         description: "Priest Holy and Shadow spells: +1% damage and +1% direct critical chance per rank; periodic damage does not crit. Excludes shields, other-class and jewelry spells",
         stat: TalentStat::ForceOfWill, per_rank: 0.01,
@@ -2163,6 +2180,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
         match node.stat {
             TalentStat::Damage => bonus.might += value,
             TalentStat::Cooldown => bonus.cooldown += value,
+            TalentStat::Health => bonus.health += value,
             TalentStat::Armor => bonus.armor += value,
             TalentStat::Crit => bonus.crit += value,
             TalentStat::CritDamage => bonus.crit_damage += value,
@@ -3069,6 +3087,7 @@ mod stat_talent_tests {
                 let actual = match node.stat {
                     TalentStat::Damage => total.might,
                     TalentStat::Cooldown => total.cooldown,
+                    TalentStat::Health => total.health,
                     TalentStat::Armor => total.armor,
                     TalentStat::Crit => total.crit,
                     TalentStat::CritDamage => total.crit_damage,

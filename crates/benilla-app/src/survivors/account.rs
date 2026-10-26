@@ -1707,6 +1707,62 @@ mod tests {
     }
 
     #[test]
+    fn priest_defenses_reach_combat_and_remain_independent_per_saved_spec() {
+        let mut account = empty();
+        let id = account.ensure(4);
+        let other = account.create("Other", "Priest", 4).unwrap();
+        let baseline = account.bonus(4, id);
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == id)
+            .unwrap();
+        hero.talent_xp = 1000;
+        hero.dbc[0] = vec![(0, 344, 2), (0, 346, 3), (1, 411, 5)];
+        hero.dbc[1] = vec![(0, 344, 1)];
+        let defenses = account.bonus(4, id);
+        assert_eq!(defenses.health - baseline.health, 20.0);
+        assert_eq!(defenses.armor - baseline.armor, 6.0);
+        assert!((defenses.reduction - baseline.reduction - 0.10).abs() < 0.00001);
+        assert!((defenses.might - baseline.might).abs() < 0.00001);
+        let run = super::super::Run {
+            bonus: defenses,
+            ..Default::default()
+        };
+        let base = super::super::Run {
+            bonus: baseline,
+            ..Default::default()
+        }
+        .stats();
+        let stats = run.stats();
+        assert_eq!(stats.max_hp - base.max_hp, 20.0);
+        assert_eq!(stats.armor - base.armor, 6.0);
+        assert!(
+            (survivors_core::sheet::mitigate(50.0, stats.armor, stats.reduction)
+                - (50.0 - stats.armor) * (1.0 - stats.reduction))
+                .abs()
+                < 0.00001
+        );
+        assert_eq!(account.bonus(4, other).health, baseline.health);
+        account.select_spec(id, 1);
+        let alternate = account.bonus(4, id);
+        assert_eq!(alternate.health - baseline.health, 10.0);
+        assert_eq!(alternate.armor, baseline.armor);
+        assert_eq!(alternate.reduction, baseline.reduction);
+        let loaded = parse(&encode(&account)).unwrap();
+        assert_eq!(loaded.bonus(4, id).health, alternate.health);
+        account.select_spec(id, 0);
+        assert_eq!(account.bonus(4, id).armor, defenses.armor);
+        account.respec(id);
+        assert_eq!(account.bonus(4, id).health, baseline.health);
+        assert_eq!(
+            run.stats().max_hp,
+            stats.max_hp,
+            "active run keeps its snapshot"
+        );
+    }
+
+    #[test]
     fn milestone_snapshot_uses_the_selected_hero_and_spec_and_survives_save() {
         let mut account = empty();
         let first = account.ensure(1);

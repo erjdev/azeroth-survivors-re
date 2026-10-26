@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Priest defensive talents
+
+Fortitude now grants 10 maximum health per rank, Inner Fire grants 2 armor, and
+Spell Warding grants 2% incoming damage reduction. These replace provisional
+damage bonuses. Fortitude/Inner Fire are always active; Warding currently covers
+all damage because incoming damage schools are not modeled.
+
+![Inner Fire purchase/refund and armor preview](images/screenshots/2026-10-25-priest-defenses/inner-fire-1280.jpg)
+
+116 core tests, the saved-spec/combat-sheet regression, DBC audit, native build,
+Clippy, formatting and render lint pass. Native Inner Fire purchase/refund is
+verified at 1280×720. Combat balance and remaining Priest talents stay open.
+
 ## 2026-10-25 — Preview the selected build without a run
 
 Card previews now accept `profile = selected`, using the normal starting build's

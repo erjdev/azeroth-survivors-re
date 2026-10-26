@@ -3895,3 +3895,26 @@ Switching to baseline removes talent healing; returning to Talents works. The
 isolated account SHA-256 is unchanged. Screenshots are embedded in README and the
 changelog. This closes the compact Holy healing description check, not acceptance
 for all talents/classes or passive/jewelry card previews.
+
+
+### Priest defensive talents — 2026-10-25
+
+Improved Power Word: Fortitude (DBC 344, two ranks) adds 10 maximum health per
+rank. Improved Inner Fire (346, three ranks) adds 2 armor per rank. Spell Warding
+(411, five ranks) adds 2% damage reduction per rank. These replace each node's
+provisional damage bonus and flow through the selected hero/spec's account bonus
+into the run sheet. Rank previews expose health, armor and reduction respectively.
+
+Fortitude and Inner Fire are always active Survivors conversions, without upkeep
+or charges. Spell Warding uses general incoming reduction because damage schools
+are not yet modeled; its description explicitly covers all damage. The standard
+armor-before-reduction formula and reduction cap still apply. These are initial
+balance values, not a claim of completed Priest talent coverage.
+
+Validation: 116 core tests include every implemented talent at every rank. The
+app regression verifies health/armor/reduction reach the combat sheet, stay
+independent between heroes/specs, persist and reset without changing an active
+run snapshot. DBC audit, native build, workspace Clippy, formatting and render
+lint pass. Native Inner Fire 2→3 purchase and 3→2 refund show the 4→6 armor preview
+at 1280×720; screenshot embedded in README/changelog. Live damage balance and
+other defensive talent layouts remain unverified.
