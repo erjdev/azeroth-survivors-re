@@ -312,9 +312,10 @@ Rogue coverage is still incomplete.
 ![Rogue conditional talent preview](docs/images/screenshots/2026-10-25-remorseless-attacks/talent-1280.jpg)
 
 The Collection detail card groups item identity following the intention design;
-long names wrap with the available panel width.
+long names wrap with the available panel width. Equipment comparisons preview
+gains and losses, including the worn-set bonus.
 
-![Collection item identity card](docs/images/screenshots/2026-10-25-collection-header/collection-1280.jpg)
+![Collection equipment comparison](docs/images/screenshots/2026-10-25-equipment-preview/set-loss-1280.jpg)
 
 ## Interface gallery
 

@@ -40,6 +40,24 @@ impl Equipment {
         true
     }
 
+    /// Preview the complete equipment contribution, including gaining/losing the worn set.
+    /// Cloaks and cosmetics are unaffected; the live loadout and ownership are never changed.
+    pub fn preview_wear_bonus(
+        &self,
+        pieces: &[u8],
+        slot: usize,
+        band: Option<u8>,
+    ) -> Option<(campaign::Bonus, campaign::Bonus)> {
+        let mut next = self.clone();
+        if !next.wear(pieces, slot, band) {
+            return None;
+        }
+        Some((
+            campaign::equipped_bonus(&self.worn_pieces(pieces), None),
+            campaign::equipped_bonus(&next.worn_pieces(pieces), None),
+        ))
+    }
+
     pub fn show(&mut self, pieces: &[u8], slot: usize, look: Look) -> bool {
         if slot >= GRID_SLOTS
             || matches!(look, Look::Piece(band) if !Self::owns(pieces, slot, band))
@@ -119,6 +137,30 @@ impl Equipment {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn preview_tracks_downgrades_and_set_loss_without_mutating_equipment() {
+        let mut pieces = [0; PIECES];
+        pieces[..GRID_SLOTS].fill(1);
+        pieces[3 * GRID_SLOTS + 7] = 255;
+        let mut gear = Equipment::legacy(&pieces);
+        gear.show(&pieces, 7, Look::Piece(0));
+        let saved = gear.encode();
+        let (before, after) = gear.preview_wear_bonus(&pieces, 7, Some(0)).unwrap();
+        assert_eq!(before.health - after.health, 15.);
+        assert!((before.pickup - after.pickup - 0.401).abs() < 0.00001);
+        assert!((before.might - after.might - 0.019).abs() < 0.00001);
+        assert_eq!(gear.encode(), saved);
+        let (_, empty) = gear.preview_wear_bonus(&pieces, 7, None).unwrap();
+        assert!((before.might - empty.might - 0.019 - campaign::set_bonus().might).abs() < 0.00001);
+        assert!((before.crit - empty.crit - campaign::set_bonus().crit).abs() < 0.00001);
+        gear.wear(&pieces, 7, None);
+        let (_, restored) = gear.preview_wear_bonus(&pieces, 7, Some(3)).unwrap();
+        assert_eq!(restored.might, before.might);
+        assert_eq!(restored.health, before.health);
+        assert!(gear.preview_wear_bonus(&pieces, 7, Some(5)).is_none());
+        assert!(gear.preview_wear_bonus(&pieces, GRID_SLOTS, None).is_none());
+    }
 
     #[test]
     fn visible_loadout_obeys_ownership_and_never_changes_power() {

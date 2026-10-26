@@ -39,3 +39,8 @@ Verification covers every slot/band's stat count and strictly increasing retaine
 stats, duplicate immunity, explicit downgrades, and propagation of mixed equipped
 items into the actual run stat sheet. UI captures use isolated synthetic accounts;
 they demonstrate presentation, not encounter balance or earned progression.
+
+Collection previews the equipment contribution before an equip/unequip action,
+including the nine-piece worn-set bonus. Green comparisons are gains; red are
+losses. These totals exclude unchanged cloak, talent and racial contributions.
+Previewing never mutates saved gear, appearance or ownership.

@@ -728,6 +728,29 @@ pub(super) fn detail(
     }
     if owned {
         let equipped = progress.equipment.worn[slot] == Some(band as u8);
+        let target = if equipped { None } else { Some(band as u8) };
+        if let Some((before, after)) =
+            progress
+                .equipment
+                .preview_wear_bonus(&progress.pieces, slot, target)
+        {
+            text(
+                ui,
+                font,
+                if equipped {
+                    "Equipment bonuses if unequipped"
+                } else {
+                    "Equipment bonuses if equipped"
+                },
+                layout.body_size,
+                GOLD,
+            );
+            for (line, color) in
+                hud::card_growth::bonus_changes(before, after, "No change to equipment bonuses")
+            {
+                text(ui, font, line, layout.body_size, color);
+            }
+        }
         chip(
             ui,
             font,

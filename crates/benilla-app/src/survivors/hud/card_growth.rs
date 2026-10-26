@@ -157,8 +157,16 @@ pub(in crate::survivors) fn jewelry_changes(
     a: super::super::campaign::Bonus,
     b: super::super::campaign::Bonus,
 ) -> Vec<(String, Color)> {
+    bonus_changes(a, b, "No change to current jewelry bonuses")
+}
+
+pub(in crate::survivors) fn bonus_changes(
+    a: campaign::Bonus,
+    b: campaign::Bonus,
+    unchanged: &str,
+) -> Vec<(String, Color)> {
     let mut lines = Vec::new();
-    // Compare the complete jewelry loadout, so a full slot exposes replacement losses.
+    // Compare the complete contribution, including replacement losses.
     for (label, old, new, percent) in [
         ("Health", a.health, b.health, false),
         ("Pickup range", a.pickup, b.pickup, true),
@@ -195,7 +203,7 @@ pub(in crate::survivors) fn jewelry_changes(
         }
     }
     if lines.is_empty() {
-        lines.push(("No change to current jewelry bonuses".into(), DIM));
+        lines.push((unchanged.into(), DIM));
     }
     lines
 }

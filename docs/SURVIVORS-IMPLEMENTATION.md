@@ -18,6 +18,12 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Collection equip/unequip actions now preview the complete equipment contribution,
+including worn-set gains/losses. The shared bonus formatter uses green/red numeric
+comparisons with one unit. 110 core and 194 app tests pass; native wide/compact
+checks verified preview totals against actual removal/restoration. Screenshots
+are inline in the changelog. All-class and all-item visual acceptance remains open.
+
 Collection detail now groups icon/name/quality/ownership in the bordered identity
 card from the Collection intention. A collected Warrior fixture verifies selection
 changes and long-name wrapping at 1280×720 and 640×720, with inline changelog

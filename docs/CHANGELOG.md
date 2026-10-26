@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Equipment change previews
+
+Collection now previews total equipment bonuses before equipping or removing an
+owned piece. Gains are green, losses red, and units appear once. The comparison
+includes gaining or losing the nine-piece worn-set bonus; cosmetic choices and
+collection ownership stay independent.
+
+![Unequip preview includes set-bonus losses](images/screenshots/2026-10-25-equipment-preview/set-loss-1280.jpg)
+
+![Compact equip preview restores the set bonus](images/screenshots/2026-10-25-equipment-preview/set-gain-640.jpg)
+
+110 core and 194 Survivors app tests, native build, workspace Clippy, formatting
+and render-pass lint pass. Tests cover downgrade and set changes without mutating
+the loadout. Native 1280×720/640×720 checks verified removal/restoration against
+the displayed equipment totals. These are isolated account fixtures, not earned
+progression or balance acceptance.
+
 ## 2026-10-25 — Collection item identity card
 
 The selected item's icon, name, quality and ownership now share a compact bordered
