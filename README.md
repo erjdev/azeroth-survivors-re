@@ -67,6 +67,10 @@ Druid's first 12 talents add Balance, defensive and healing effects with explici
 
 ![Druid Moonfire damage and critical chance preview](docs/images/screenshots/2026-10-26-druid-nodes/moonfire-1280.png)
 
+All nine Warlock milestones now have implemented Survivors effects.
+
+![Warlock Siphon Life milestone](docs/images/screenshots/2026-10-26-warlock-milestones/siphon-life-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

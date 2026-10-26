@@ -2329,6 +2329,106 @@ mod milestone_tests {
     }
 
     #[test]
+    fn siphon_life_heals_actual_damage_without_overkill_or_revival() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for points in [29, 30] {
+                for hp in [0.0, 50.0, 99.0] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        hp,
+                        milestones: Milestones {
+                            class: 7,
+                            points: [points, 0, 0],
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 5.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slow: 1.0,
+                                slow_t: 0.0,
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source: "corruption",
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source: "curse_of_agony",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let expected = if hp == 0.0 {
+                        0.0
+                    } else {
+                        (hp + 5.0 * (if points >= 30 { 0.05 } else { 0. })).min(run.stats().max_hp)
+                    };
+                    assert!((run.hp - expected).abs() < 0.00001);
+                    assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert!(
+                        (app.world().resource::<Run>().hp - expected).abs() < 0.00001,
+                        "dead targets cannot heal again"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn vampiric_embrace_heals_actual_direct_and_periodic_damage_without_reviving() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
@@ -3537,6 +3637,79 @@ mod milestone_tests {
                 assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
             }
         }
+    }
+
+    #[test]
+    fn warlock_milestones_reach_casts_and_bound_healing_shields_and_cooldowns() {
+        let base = Milestones {
+            class: 7,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [30; 3],
+            ..base
+        };
+        let mut run = Run::default();
+        let stats = run.stats();
+        for (key, damage, cd, crit_damage) in [
+            ("shadow_bolt", 1.375, 1., 0.2),
+            ("corruption", 1.1, 0.9, 0.),
+            ("curse_of_agony", 1.1, 1., 0.),
+            ("immolate", 1.1, 1., 0.2),
+            ("rain_of_fire", 1.1, 1., 0.2),
+            ("hellfire", 1.1, 1., 0.2),
+            ("death_coil", 1.1, 1., 0.),
+            ("shadowburn", 1.1, 1., 0.2),
+        ] {
+            let owned = super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 3,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+            assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+            assert!(
+                (after.cooldown - before.cooldown * cd).abs() < 0.001,
+                "{key}"
+            );
+            assert!(
+                (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
+                "{key}"
+            );
+            assert_eq!(
+                (after.count, after.radius, after.duration),
+                (before.count, before.radius, before.duration)
+            );
+        }
+        run.hp = 99.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.),
+            1.
+        );
+        assert_eq!((run.hp, run.shield, run.shield_t), (100., 5., 3.));
+        finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+        assert_eq!(run.shield, 5.);
+        run.shield = 20.;
+        run.shield_t = 8.;
+        finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+        assert_eq!((run.shield, run.shield_t), (20., 8.));
+        run.abilities.clear();
+        for key in ["shadow_bolt", "shadowburn", "searing_pain"] {
+            run.abilities.push(super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 1,
+                cd: 0.5,
+            });
+        }
+        finish_milestone_cast(&mut run, trained.cast("corruption"), 100.);
+        assert_eq!((run.abilities[0].cd, run.abilities[1].cd), (0., 0.5));
+        finish_milestone_cast(&mut run, trained.cast("immolate"), 100.);
+        assert_eq!((run.abilities[1].cd, run.abilities[2].cd), (0., 0.5));
+        run.abilities.clear();
+        finish_milestone_cast(&mut run, trained.cast("immolate"), 100.);
+        assert!(run.abilities.is_empty());
     }
 
     #[test]

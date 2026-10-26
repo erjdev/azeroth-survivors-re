@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Warlock milestone builds
+
+All nine Warlock milestones now have explicit Survivors effects: Affliction adds
+cooldown support and damage-based healing; Demonology strengthens spells and Death
+Coil defenses; Destruction adds damage, critical damage and an Immolate→Shadowburn
+cooldown benefit. Tuning is provisional; demon companions remain separate work.
+
+![Siphon Life milestone](images/screenshots/2026-10-26-warlock-milestones/siphon-life-1280.png)
+
+![Conflagrate milestone](images/screenshots/2026-10-26-warlock-milestones/conflagrate-1280.png)
+
+130 core and 253 app tests, native build, workspace Clippy, data audit, formatting
+and render lint pass. Tests cover thresholds, node composition, direct/periodic
+healing without overkill or revival, cast parameters and bounded shields/cooldowns.
+Native screenshots verify descriptions on an untrained character. Live combat/balance
+acceptance and remaining individual nodes stay open.
+
 ## 2026-10-26 — Druid talent training
 
 Twelve Druid talents now strengthen Balance spells, Thorns, Rejuvenation and hero

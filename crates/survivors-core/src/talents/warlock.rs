@@ -30,6 +30,52 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 967, max_rank: 1, name: "Ruin", description: "Destruction spells: +50 percentage points critical damage", stat: TalentStat::SpellGroupCritDamage(DESTRUCTION), per_rank: 0.5 },
     TalentDefinition { id: 966, max_rank: 5, name: "Emberstorm", description: "Immolate, Rain of Fire, Hellfire and Searing Pain: +2% damage per rank", stat: TalentStat::SpellGroupDamage(FIRE), per_rank: 0.02 },
  ];
+pub(super) fn apply_milestones(points: [u32; 3], key: &str, effect: &mut super::CastEffect) {
+    if key == "corruption" {
+        if points[0] >= 10 {
+            effect.cooldown *= 0.9;
+        }
+        if points[0] >= 20 {
+            effect.cooldown_advance = Some(("shadow_bolt", 1.0));
+        }
+    }
+    if key == "death_coil" {
+        if points[1] >= 10 {
+            effect.heal_fraction = 0.03;
+        }
+        if points[1] >= 30 {
+            effect.shield_fraction = 0.05;
+        }
+    }
+    if points[1] >= 20 && (SHADOW.contains(&key) || FIRE.contains(&key)) {
+        effect.damage *= 1.1;
+    }
+    if points[2] >= 10 && key == "shadow_bolt" {
+        effect.damage *= 1.25;
+    }
+    if points[2] >= 20 && DESTRUCTION.contains(&key) {
+        effect.crit_damage += 0.2;
+    }
+    if points[2] >= 30 && key == "immolate" {
+        effect.cooldown_advance = Some(("shadowburn", 2.0));
+    }
+}
+
+pub(super) fn description(tree: usize, threshold: u32) -> Option<&'static str> {
+    match (tree,threshold) {
+        (0,10) => Some("Corruption: 10% shorter cooldown, multiplying individual ranks (Survivors Improved Corruption milestone)"),
+        (0,20) => Some("Corruption advances an owned Shadow Bolt cooldown by 1 second once per successful cast, not per target or tick (Survivors automatic Nightfall)"),
+        (0,30) => Some("Corruption and Curse of Agony heal 5% of enemy health actually removed; overkill cannot add healing (Survivors Siphon Life)"),
+        (1,10) => Some("Death Coil heals 3% maximum health once per successful cast, in addition to its drain (Survivors Improved Healthstone)"),
+        (1,20) => Some("Warlock spells: +10% direct and periodic damage (Survivors automatic Demonic Sacrifice; no demon required)"),
+        (1,30) => Some("Death Coil grants a non-stacking 5% maximum-health absorb for 3 seconds once per successful cast (Survivors Soul Link; no demon required)"),
+        (2,10) => Some("Shadow Bolt: +25% damage, multiplying individual ranks (Survivors Improved Shadow Bolt milestone)"),
+        (2,20) => Some("Destruction spells: +20 percentage points critical damage, adding to individual Ruin ranks"),
+        (2,30) => Some("Immolate advances an owned Shadowburn cooldown by 2 seconds once per successful cast, not per target or burn tick (Survivors automatic Conflagrate)"),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -109,5 +155,98 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(base.with_ranks(&[(0, u32::MAX, 255)]), base);
+    }
+}
+
+#[cfg(test)]
+mod milestone_tests {
+    use super::*;
+    use crate::talents::{CastEffect, Milestones};
+    #[test]
+    fn milestones_unlock_at_exact_thresholds_and_compose_with_training() {
+        let base = Milestones {
+            class: 7,
+            ..Default::default()
+        };
+        for tree in 0..3 {
+            for threshold in [10, 20, 30] {
+                let mut before = base;
+                before.points[tree] = threshold - 1;
+                let mut after = before;
+                after.points[tree] = threshold;
+                assert!(description(tree, threshold).is_some());
+                let cast_changed = SHADOW
+                    .iter()
+                    .chain(FIRE)
+                    .any(|k| before.cast(k) != after.cast(k));
+                assert!(
+                    cast_changed
+                        || before.vampiric_healing("corruption", 100.)
+                            != after.vampiric_healing("corruption", 100.)
+                );
+                assert_eq!(after.cast("fireball"), CastEffect::default());
+            }
+        }
+        let all = Milestones {
+            points: [30; 3],
+            ..base
+        }
+        .with_ranks(&[(0, 1003, 5), (0, 1042, 5), (2, 944, 5), (2, 967, 1)]);
+        assert!((all.cast("shadow_bolt").damage - 1.1 * 1.25 * 1.1 * 1.2).abs() < 0.00001);
+        assert!((all.cast("corruption").cooldown - 0.72).abs() < 0.00001);
+        assert!((all.cast("shadow_bolt").crit_damage - 0.7).abs() < 0.00001);
+        assert_eq!(
+            all.cast("corruption").cooldown_advance,
+            Some(("shadow_bolt", 1.))
+        );
+        assert_eq!(
+            all.cast("immolate").cooldown_advance,
+            Some(("shadowburn", 2.))
+        );
+        assert_eq!(
+            (
+                all.cast("death_coil").heal_fraction,
+                all.cast("death_coil").shield_fraction,
+                all.cast("death_coil").shield_seconds
+            ),
+            (0.03, 0.05, 3.)
+        );
+        for key in SHADOW.iter().chain(FIRE) {
+            let e = all.cast(key);
+            assert_eq!((e.radius, e.duration, e.extra_targets), (1., 1., 0));
+        }
+    }
+    #[test]
+    fn siphon_life_requires_affliction_threshold_and_scoped_positive_damage() {
+        for points in [0, 29, 30, 31] {
+            let talent = Milestones {
+                class: 7,
+                points: [points, 30, 30],
+                ..Default::default()
+            };
+            for key in ["corruption", "curse_of_agony"] {
+                assert_eq!(
+                    talent.vampiric_healing(key, 100.),
+                    if points >= 30 { 5. } else { 0. }
+                );
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(talent.vampiric_healing(key, damage), 0.);
+                }
+            }
+            for key in ["shadow_bolt", "immolate", "death_coil", "shadow_word_pain"] {
+                assert_eq!(talent.vampiric_healing(key, 100.), 0.);
+            }
+        }
+        for class in [0, 1, 2, 3, 4, 5, 6, 8] {
+            assert_eq!(
+                Milestones {
+                    class,
+                    points: [30; 3],
+                    ..Default::default()
+                }
+                .vampiric_healing("corruption", 100.),
+                0.
+            );
+        }
     }
 }

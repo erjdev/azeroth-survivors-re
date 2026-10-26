@@ -652,9 +652,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 19 / 47 | 9 / 9 |
 | Shaman | 13 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
-| Warlock | 12 / 50 | 0 / 9 |
+| Warlock | 12 / 50 | 9 / 9 |
 | Druid | 12 / 47 | 0 / 9 |
-| Total | 171 / 432 | 57 / 81 |
+| Total | 171 / 432 | 66 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1168,8 +1168,23 @@ Warlock has twelve audited individual effects. Values are per rank and provision
 Destruction includes Shadow Bolt, Immolate, Rain of Fire, Hellfire, Searing Pain
 and Shadowburn. These definitions replace generic damage fallback and do not grant
 unowned abilities. Area locations, target counts and durations stay unchanged.
-The remaining 38 nodes, all nine Warlock milestones and live balance acceptance
-remain open. No demon companion system is claimed by this first group.
+The remaining 38 nodes and live balance acceptance remain open. No demon companion
+system is claimed by this first group.
+
+All nine Warlock milestones now use explicit automatic Survivors adaptations:
+
+| Tree | 10 points | 20 points | 30 points |
+| --- | --- | --- | --- |
+| Affliction | Improved Corruption: Corruption cooldown ×0.9 | Nightfall: each successful Corruption cast advances an owned Shadow Bolt cooldown by 1 second | Siphon Life: Corruption/Curse of Agony heal 5% of enemy health actually removed |
+| Demonology | Improved Healthstone: each successful Death Coil cast heals 3% maximum health, additional to its drain | Demonic Sacrifice: all nine Warlock spells gain 10% direct/periodic damage | Soul Link: Death Coil grants a non-stacking 5% maximum-health absorb for 3 seconds |
+| Destruction | Improved Shadow Bolt: Shadow Bolt damage ×1.25 | Ruin: Destruction spells gain 20 percentage points critical damage | Conflagrate: each successful Immolate cast advances an owned Shadowburn cooldown by 2 seconds |
+
+Damage/cooldown bonuses multiply individual nodes; critical damage adds to Ruin
+training. Cast benefits occur once, not per target or tick. Cooldowns stop at zero
+and never grant unowned spells; absorbs preserve stronger active shields. Siphon
+Life uses the existing direct/periodic damage pipeline, excludes overkill and dead
+targets, caps healing and cannot revive the player. Demonology conversions require
+no demon. These provisional rules still need live combat and balance acceptance.
 
 Druid has twelve audited individual effects. Values are per rank and provisional:
 

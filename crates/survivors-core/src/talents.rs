@@ -306,6 +306,9 @@ impl Milestones {
                 effect.shield_seconds = 2.0; // Added to the shared three-second absorb.
             }
         }
+        if self.class == 7 {
+            warlock::apply_milestones(self.points, key, &mut effect);
+        }
         if self.class == 2 && HUNTER_SHOTS.contains(&key) {
             if self.points[1] >= 10 {
                 effect.cooldown *= 0.9;
@@ -647,8 +650,16 @@ impl Milestones {
         self.trained_value(TalentStat::Blackout)
     }
 
-    /// Passive self-healing conversion; improvement requires the base talent.
+    /// Healing from health actually removed: Priest talent or Warlock Affliction milestone.
     pub fn vampiric_healing(self, key: &str, damage: f32) -> f32 {
+        if self.class == 7
+            && self.points[0] >= 30
+            && matches!(key, "corruption" | "curse_of_agony")
+            && damage.is_finite()
+            && damage > 0.0
+        {
+            return damage * 0.05;
+        }
         if self.class != 4 || !damage.is_finite() || damage <= 0.0 || !PRIEST_SHADOW.contains(&key)
         {
             return 0.0;
@@ -741,6 +752,9 @@ impl Milestones {
 }
 
 pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static str> {
+    if class == 7 {
+        return warlock::description(tree, threshold);
+    }
     if class == 3 {
         return match (tree, threshold) {
             (0, 10) => Some("Rogue spells: +5 percentage points critical chance; periodic ticks do not crit"),
