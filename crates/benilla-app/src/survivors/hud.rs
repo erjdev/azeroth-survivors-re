@@ -5,6 +5,9 @@ pub(super) mod card_growth;
 mod draft;
 pub(super) mod inline;
 mod settings;
+pub(super) use settings::sliders::{
+    input as settings_slider_input, refresh as refresh_settings_sliders,
+};
 
 use std::collections::HashMap;
 
@@ -202,7 +205,6 @@ pub(super) enum UiAction {
     SettingsCategory(settings::Category),
     BuildNotes,
     RestoreSettings(settings::Category),
-    Adjust(Knob, i8),
     Toggle(Knob),
 }
 
@@ -217,7 +219,7 @@ pub(super) struct PausePage {
 /// with the rest of the client.
 #[derive(Resource, Default)]
 pub(super) struct SettingEdits {
-    adjust: Vec<(Knob, i8)>,
+    set: Vec<(Knob, f32)>,
     toggle: Vec<Knob>,
     restore: Option<settings::Category>,
 }
@@ -1408,9 +1410,6 @@ pub(super) fn buttons(
                         page.open = false;
                         armory.open_page(super::armory::Page::Notes);
                     }
-                    (UiAction::Adjust(knob, dir), Phase::Paused | Phase::Menu) if page.open => {
-                        edits.adjust.push((knob, dir));
-                    }
                     (UiAction::Toggle(knob), Phase::Paused | Phase::Menu) if page.open => {
                         edits.toggle.push(knob);
                     }
@@ -1430,11 +1429,11 @@ pub(super) fn apply_settings(
     mut camera: ResMut<super::camera::CameraSettings>,
     mut cvars: ResMut<crate::cvars::Cvars>,
 ) {
-    if edits.adjust.is_empty() && edits.toggle.is_empty() && edits.restore.is_none() {
+    if edits.set.is_empty() && edits.toggle.is_empty() && edits.restore.is_none() {
         return;
     }
-    for (knob, dir) in edits.adjust.drain(..) {
-        adjust_knob(&mut cvars, knob, dir);
+    for (knob, position) in edits.set.drain(..) {
+        settings::sliders::apply(&mut cvars, knob, position);
     }
     for knob in edits.toggle.drain(..) {
         if knob == Knob::AutoPush {
@@ -1451,52 +1450,6 @@ pub(super) fn apply_settings(
             camera.restore_defaults();
         }
     }
-}
-
-fn setting_row(ui: &mut ChildSpawnerCommands, f: &Handle<Font>, knob: Knob) {
-    ui.spawn(Node {
-        column_gap: Val::Px(6.0),
-        align_items: AlignItems::Center,
-        ..default()
-    })
-    .with_children(|row| {
-        row.spawn((
-            button(UiAction::Adjust(knob, -1), BUTTON),
-            Node {
-                width: Val::Px(32.0),
-                height: Val::Px(28.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                border: UiRect::all(Val::Px(1.0)),
-                ..default()
-            },
-        ))
-        .with_children(|b| {
-            b.spawn(text(f, "−", 18.0, Color::WHITE));
-        });
-        row.spawn((
-            SettingReadout(knob),
-            Node {
-                width: Val::Px(168.0),
-                ..default()
-            },
-            text(f, "", 14.0, Color::WHITE),
-        ));
-        row.spawn((
-            button(UiAction::Adjust(knob, 1), BUTTON),
-            Node {
-                width: Val::Px(32.0),
-                height: Val::Px(28.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                border: UiRect::all(Val::Px(1.0)),
-                ..default()
-            },
-        ))
-        .with_children(|b| {
-            b.spawn(text(f, "+", 18.0, Color::WHITE));
-        });
-    });
 }
 
 fn toggle_row(ui: &mut ChildSpawnerCommands, f: &Handle<Font>, knob: Knob) {
@@ -1617,33 +1570,6 @@ fn knob_text(cvars: &crate::cvars::Cvars, knob: Knob) -> String {
     }
 }
 
-fn adjust_knob(cvars: &mut crate::cvars::Cvars, knob: Knob, dir: i8) {
-    let step_volume = |cvars: &mut crate::cvars::Cvars, name: &str, fallback: f32| {
-        let cur = cvars.num(name).unwrap_or(fallback);
-        let next = ((cur * 10.0).round() + f32::from(dir)).clamp(0.0, 10.0) / 10.0;
-        cvars.set(name, &format!("{next:.1}"));
-    };
-    match knob {
-        Knob::Master => step_volume(cvars, "MasterVolume", 1.0),
-        Knob::Effects => step_volume(cvars, "SoundVolume", 1.0),
-        Knob::Music => step_volume(cvars, "MusicVolume", 0.4),
-        Knob::Ambience => step_volume(cvars, "AmbienceVolume", 0.6),
-        Knob::Sound | Knob::MusicOn | Knob::AutoPush | Knob::Cutaway => {}
-        Knob::View => {
-            const STEPS: [f32; 6] = [177.0, 250.0, 350.0, 500.0, 650.0, 777.0];
-            step_list(cvars, "farclip", &STEPS, dir, |v| {
-                format!("{}", v.round() as i32)
-            });
-        }
-        Knob::Grass => step_int(cvars, "WorldDetail", 1, dir, 0, 2),
-        Knob::Spells => step_int(cvars, "spellEffectLevel", 2, dir, 0, 2),
-        Knob::Scale => {
-            const STEPS: [f32; 7] = [0.5, 0.6, 0.75, 1.0, 1.25, 1.5, 2.0];
-            step_list(cvars, "renderScale", &STEPS, dir, |v| format!("{v:.2}"));
-        }
-    }
-}
-
 fn toggle_knob(cvars: &mut crate::cvars::Cvars, knob: Knob) {
     let name = match knob {
         Knob::Sound => "MasterSoundEffects",
@@ -1652,30 +1578,6 @@ fn toggle_knob(cvars: &mut crate::cvars::Cvars, knob: Knob) {
     };
     let on = cvars.num(name).unwrap_or(1.0) != 0.0;
     cvars.set(name, if on { "0" } else { "1" });
-}
-
-fn step_int(cvars: &mut crate::cvars::Cvars, name: &str, fallback: i32, dir: i8, lo: i32, hi: i32) {
-    let cur = cvars.num(name).unwrap_or(fallback as f32).round() as i32;
-    let next = (cur + i32::from(dir)).clamp(lo, hi);
-    cvars.set(name, &next.to_string());
-}
-
-fn step_list(
-    cvars: &mut crate::cvars::Cvars,
-    name: &str,
-    steps: &[f32],
-    dir: i8,
-    fmt: impl Fn(f32) -> String,
-) {
-    let cur = cvars.num(name).unwrap_or(steps[0]);
-    let mut best = 0;
-    for (i, step) in steps.iter().enumerate() {
-        if (step - cur).abs() < (steps[best] - cur).abs() {
-            best = i;
-        }
-    }
-    let next = (best as i32 + i32::from(dir)).clamp(0, steps.len() as i32 - 1) as usize;
-    cvars.set(name, &fmt(steps[next]));
 }
 
 pub(super) fn refresh_meter(

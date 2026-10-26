@@ -204,6 +204,7 @@ impl Plugin for SurvivorsPlugin {
                     hud::refresh_meter,
                     hud::sync_pause_page,
                     hud::refresh_settings,
+                    hud::refresh_settings_sliders,
                     stash::flush,
                 )
                     .chain()
@@ -242,7 +243,14 @@ impl Plugin for SurvivorsPlugin {
                 )
                     .chain(),
             )
-            .add_systems(Update, hud::apply_settings.after(crate::cvars::sync_cvars));
+            .add_systems(
+                Update,
+                (
+                    hud::settings_slider_input.after(hud::keys),
+                    hud::apply_settings.after(crate::cvars::sync_cvars),
+                )
+                    .chain(),
+            );
         // After the saved config, so a default install gets the browser budget and a value the
         // player already chose (or passed on the URL) is left alone.
         #[cfg(target_arch = "wasm32")]

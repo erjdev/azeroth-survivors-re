@@ -1,4 +1,5 @@
 //! One focused settings category at a time, shared by the starter and pause menu.
+pub(super) mod sliders;
 use super::*;
 use bevy::ecs::system::SystemParam;
 
@@ -74,7 +75,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
                     match category {
                         Category::Audio => {
                             for knob in [Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience] {
-                                setting_row(body, font, knob);
+                                sliders::row(body, font, knob);
                             }
                             for knob in [Knob::Sound, Knob::MusicOn] {
                                 toggle_row(body, font, knob);
@@ -82,7 +83,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
                         }
                         Category::Graphics => {
                             for knob in [Knob::View, Knob::Grass, Knob::Spells, Knob::Scale] {
-                                setting_row(body, font, knob);
+                                sliders::row(body, font, knob);
                             }
                             toggle_row(body, font, Knob::AutoPush);
                             if cfg!(feature = "survivors-visibility") {

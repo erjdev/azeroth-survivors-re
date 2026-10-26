@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Options sliders
+
+Audio and Graphics now use proportional gold sliders with separate labels and
+values. Audio supports 1% adjustments; graphics snap to the existing supported
+levels. Click or drag to adjust, including short drags and movement past an edge.
+
+![Audio sliders](images/screenshots/2026-10-26-options-sliders/audio-1280.png)
+
+![Compact Graphics sliders](images/screenshots/2026-10-26-options-sliders/graphics-640.png)
+
+230 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Native checks cover clicking, dragging, clamping, graphics stops, defaults,
+Enter isolation, wide/compact fit and 37% volume after relaunch. Keyboard/gamepad
+slider navigation, checkbox styling and remaining categories are still open;
+audible output was not tested.
+
 ## 2026-10-26 — Restore category defaults
 
 Audio and Graphics now restore their own defaults without changing the other

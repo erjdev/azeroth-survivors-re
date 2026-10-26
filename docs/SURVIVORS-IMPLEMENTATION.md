@@ -44,9 +44,20 @@ preservation, About hiding defaults, and saved values after relaunch. Build,
 workspace Clippy, formatting and render lint pass; two inline screenshots record
 this checkpoint. Audible output and in-world camera effects were not retested.
 
+Numeric Audio/Graphics controls now use proportional gold sliders with separate
+labels and readouts. Audio snaps to 1%; graphics retain all supported stops. Ordered
+window events preserve short drags, clamp past the track and stop on release,
+window focus loss or leaving Options. Tests cover short drags at 1×/2× display
+scale and every supported graphics stop; all 230 Survivors tests pass. Native
+1280×720 / 640×720 checks verify click/drag, maximum clamping, 37% audio, all four
+graphics sliders, defaults/fills, Enter isolation and volume after relaunch.
+Build, workspace Clippy, formatting and render lint pass; screenshots are inline
+in CHANGELOG/README. Audible output was not tested.
+
 Compared against `survivors_paused_options_gamepad.png`: Audio, Graphics and About
 now use left-side category navigation and a focused bordered content panel.
-Sliders, gamepad/key bindings and the other settings remain required.
+Keyboard/gamepad slider navigation, checkbox styling, bindings and the other
+settings remain required.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.
