@@ -406,7 +406,7 @@ impl Account {
 
     pub fn feats(&self, class: usize, id: u32) -> Feats {
         let progress = self.classes.get(class);
-        let character = self.character(id);
+        let character = self.character(id).filter(|hero| hero.class == class);
         let talent_max = character
             .map(|c| campaign::talent_level(c.talent_xp) >= TALENT_CAP)
             .unwrap_or(false);
@@ -690,7 +690,7 @@ impl Account {
         self.bonus_for(class)
     }
 
-    fn legendary_ready(&self) -> bool {
+    pub fn epic_cloaks(&self) -> usize {
         let mut epics = 0;
         for class in 0..self.classes.len().min(data::CLASSES.len()) {
             let ids: Vec<u32> = self
@@ -706,7 +706,11 @@ impl Account {
                 epics += 1;
             }
         }
-        epics >= 9
+        epics
+    }
+
+    fn legendary_ready(&self) -> bool {
+        campaign::legendary_cloak(self.epic_cloaks())
     }
 
     pub fn unspent(&self) -> u32 {
@@ -2543,6 +2547,28 @@ pets 2 3 1 1 2 0 1
         let reloaded = parse(&noisy).unwrap();
         assert_eq!(reloaded.legendary_progress(0).0, 1);
         assert_eq!(reloaded.shared_jewel_progress(2).0, 0);
+    }
+
+    #[test]
+    fn talent_cap_cloak_credit_cannot_cross_heroes_or_classes() {
+        let mut account = empty();
+        let warrior = account.ensure(0);
+        let paladin = account.ensure(1);
+        account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == paladin)
+            .unwrap()
+            .talent_xp = campaign::TALENT_CAP * campaign::XP_PER_TALENT;
+        assert!(account.feats(1, paladin).talent_max);
+        assert!(!account.feats(0, warrior).talent_max);
+        assert!(!account.feats(0, paladin).talent_max);
+        assert!(!account.feats(1, u32::MAX).talent_max);
+        assert_eq!(
+            account.bonus(0, paladin).might,
+            account.bonus(0, warrior).might
+        );
+        assert_eq!(account.epic_cloaks(), 0);
     }
 
     #[test]

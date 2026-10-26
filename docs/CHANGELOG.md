@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Visible cloak progression
+
+Character and Collection now show cloak quality, active bonuses, the four unlock
+requirements, and progress toward the account legendary cloak. Talent-cap credit
+cannot come from a hero of another class. Also fixed development-only talent preview
+references leaking into non-development builds.
+
+![Cloak progress beside equipment](images/screenshots/2026-10-26-cloak-progress/character-1280.png)
+
+![Compact cloak progress](images/screenshots/2026-10-26-cloak-progress/character-640.png)
+
+Native seeded previews checked at 1280×720 and 640×720. 277 app tests, native play
+build, non-development library check and workspace Clippy pass. The non-development
+check has existing feature-specific warnings; wasm is not checked (target absent).
+This exposes existing cloak rules; it adds no cosmetic cloak model.
+
 ## 2026-10-26 — Cloaks require a completed collection
 
 Fixed the cloak collection feat granting credit for just nine occupied slots. It

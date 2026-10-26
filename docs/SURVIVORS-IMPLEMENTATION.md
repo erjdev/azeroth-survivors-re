@@ -4632,3 +4632,24 @@ obtainable sources, distinct raid sets and their save/UI expansion remain requir
 
 Validation: 138 core and 276 app tests with checkout data pass, as do the native
 play build, workspace Clippy, formatting and render lint.
+
+
+### 2026-10-26 — Cloak progression presentation
+
+Character and Collection share an explicit cloak section below equipment bonuses:
+selected hero's class-cloak quality and actual bonus, talent-cap/raid/collection/amulet
+requirements, and the account's epic-class-cloak count. Completed requirements are
+green. The account legendary bonus is shown separately when eligible. Talent-cap
+credit requires the selected ID to belong to the requested class; a regression test
+covers foreign and missing IDs. Existing additive cloak mechanics are unchanged.
+
+This intentionally extends the Character reference while retaining its wide
+loadout/model/features layout and compact page scrolling. Native seeded screenshots
+at 1280×720 and 640×720 show the section and are embedded in CHANGELOG and README.
+No cosmetic cloak model or new acquisition source is included.
+
+Also corrected the development preview's system parameter and selection code to
+use the same compile gate as its module. Native play build, 277 app tests,
+non-development library check and workspace Clippy pass. Existing warnings remain
+in the non-development feature combination. The wasm target is not installed, so
+this milestone does not claim a wasm check or Windows gameplay acceptance.

@@ -397,6 +397,7 @@ pub(super) fn equipment(
         layout.body_size,
         BONUS,
     );
+    super::cloak::build(ui, font, account, selection, layout);
 }
 
 fn grid(

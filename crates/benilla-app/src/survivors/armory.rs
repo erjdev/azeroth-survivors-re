@@ -4,6 +4,7 @@
 mod achievement_page;
 pub(super) use achievement_page::remember_scroll as remember_achievement_scroll;
 mod character;
+mod cloak;
 pub(super) use character::subject as character_subject;
 mod codex_page;
 pub(super) use codex_page::refresh_details as codex_details;
@@ -1209,10 +1210,14 @@ pub(super) struct TalentInfo {
 pub(super) fn talent_details(
     nodes: Query<(Entity, &Interaction, &TalentInfo)>,
     focus: Res<controller::ControllerFocus>,
-    preview: Option<Res<preview::Preview>>,
+    #[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))] preview: Option<
+        Res<preview::Preview>,
+    >,
     mut detail: Query<(&TalentDetail, &mut Text, &mut TextColor)>,
     spells: Option<Res<crate::ui_action::Spells>>,
 ) {
+    let selected = focus.focused().and_then(|entity| nodes.get(entity).ok());
+    #[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))]
     let selected = preview
         .as_ref()
         .and_then(|preview| preview.inspected())
@@ -1221,7 +1226,7 @@ pub(super) fn talent_details(
                 info.class == class && info.id == id && info.milestone.is_none()
             })
         })
-        .or_else(|| focus.focused().and_then(|entity| nodes.get(entity).ok()));
+        .or(selected);
     let Some((_, _, node)) = selected.or_else(|| {
         nodes
             .iter()
