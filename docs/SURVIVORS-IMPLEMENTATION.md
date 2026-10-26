@@ -3877,3 +3877,21 @@ Holy Fire rank 1 → 2 card with Holy talents fits at 1280×720; selection resum
 combat with rank 2. The screenshot is embedded in the changelog and README.
 Compact talent-added descriptions and other healing card families still need
 visual acceptance.
+
+
+### Selected-build card previews — 2026-10-25
+
+`profile = selected` extends the direct card preview through the production
+run-start snapshot, including equipment, renown, relics, race, perks and validated
+talents. It waits for catalog/class/look readiness, uses a private Selection and
+keeps the original Run/Offer for restoration. Baseline is the default; profiles
+are only accepted on cards. Invalid profiles/duplicate keys are rejected.
+
+Six preview tests cover parsing, effect preservation, baseline clearing and
+original-state restoration. Native build, workspace Clippy, formatting and render
+lint pass. Native checks show Holy Fire/Holy Nova 7→8 talent healing fits at
+1280×720 and 640×720, with the wrapped shield card reachable by scrolling.
+Switching to baseline removes talent healing; returning to Talents works. The
+isolated account SHA-256 is unchanged. Screenshots are embedded in README and the
+changelog. This closes the compact Holy healing description check, not acceptance
+for all talents/classes or passive/jewelry card previews.

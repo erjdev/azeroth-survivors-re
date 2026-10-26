@@ -42,6 +42,7 @@ struct Request {
     page: Page,
     width: u32,
     height: u32,
+    selected: bool,
     cards: Option<Vec<(&'static data::AbilityDef, u8)>>,
 }
 
@@ -50,6 +51,7 @@ impl Request {
         let (mut page, mut width, mut height) = (None, None, None);
         let mut cards_page = false;
         let mut cards = None;
+        let mut profile = None;
         for line in text.lines() {
             let line = line.split('#').next()?.trim();
             if line.is_empty() {
@@ -78,12 +80,20 @@ impl Request {
                         .collect();
                     cards = Some(parsed?);
                 }
+                "profile" if profile.is_none() => {
+                    profile = Some(match value {
+                        "baseline" => false,
+                        "selected" => true,
+                        _ => return None,
+                    });
+                }
                 "width" if width.is_none() => width = Some(value.parse::<u32>().ok()?),
                 "height" if height.is_none() => height = Some(value.parse::<u32>().ok()?),
                 _ => return None,
             }
         }
-        if cards_page != cards.is_some()
+        if (!cards_page && profile.is_some())
+            || cards_page != cards.is_some()
             || cards
                 .as_ref()
                 .is_some_and(|cards| cards.is_empty() || cards.len() > 4)
@@ -95,6 +105,7 @@ impl Request {
             width: width?,
             height: height?,
             cards,
+            selected: profile.unwrap_or(false),
         };
         ((640..=7680).contains(&request.width) && (480..=4320).contains(&request.height))
             .then_some(request)
@@ -119,6 +130,11 @@ fn reload(
     mut run: ResMut<Run>,
     mut offer: ResMut<Offer>,
     mut hand: ResMut<PreviewHand>,
+    account: Res<crate::survivors::account::Account>,
+    selection: Res<crate::survivors::Selection>,
+    renown: Res<crate::survivors::renown::Renown>,
+    stash: Res<crate::survivors::stash::Stash>,
+    talents: Option<Res<crate::ui_talent::Talents>>,
     rows: Query<Entity, With<crate::survivors::hud::OfferRow>>,
     mut windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
@@ -143,10 +159,52 @@ fn reload(
     if request.cards.is_some() && rows.is_empty() {
         return;
     }
+    let snapshot = if request.selected {
+        if talents.is_none() {
+            return;
+        }
+        let Some(snapshot) = selected_run(&account, &selection, &renown, &stash) else {
+            return;
+        };
+        snapshot
+    } else {
+        Run::default()
+    };
     preview.seen = text;
     request.apply(&mut armory, &mut typing, &mut window);
-    preview.hand(&request, &mut run, &mut offer, &mut hand);
+    preview.hand(&request, &mut run, &mut offer, &mut hand, snapshot);
     info!("Survivors UI preview applied: {}", preview.seen.trim());
+}
+
+/// Use the production start snapshot on a private selection; never move the menu's world.
+fn selected_run(
+    account: &crate::survivors::account::Account,
+    selection: &crate::survivors::Selection,
+    renown: &crate::survivors::renown::Renown,
+    stash: &crate::survivors::stash::Stash,
+) -> Option<Run> {
+    let class = selection.class?;
+    let mut local = crate::survivors::Selection {
+        class: selection.class,
+        character: selection.character,
+        looks: selection.looks.clone(),
+        look: selection.look,
+        map: selection.map,
+        ..default()
+    };
+    let mut run = Run::default();
+    if !crate::survivors::hud::start_run(
+        &mut run,
+        &mut local,
+        renown.ranks(class),
+        stash.gear(),
+        account.bonus_picked(class, selection.character),
+    ) {
+        return None;
+    }
+    run.apply_perks(account.perks);
+    run.milestones = account.milestones_picked(class, selection.character);
+    Some(run)
 }
 
 impl Preview {
@@ -156,12 +214,14 @@ impl Preview {
         run: &mut Run,
         offer: &mut Offer,
         hand: &mut PreviewHand,
+        snapshot: Run,
     ) {
         if let Some(cards) = &request.cards {
             if self.saved.is_none() {
                 self.saved = Some((std::mem::take(run), std::mem::take(offer)));
             }
-            *run = Run::default();
+            *run = snapshot;
+            run.abilities.clear();
             offer.choices.clear();
             for &(def, rank) in cards {
                 if rank == 0 {
@@ -198,6 +258,9 @@ mod tests {
             "page=collection\nwidth=99999\nheight=720",
             "page=collection\nwidth=1280\nheight=720\nwidth=1024",
             "page=collection\nwidth=1280\nheight=720\nunlock=true",
+            "page=talents\nwidth=1280\nheight=720\nprofile=selected",
+            "page=cards\nwidth=1280\nheight=720\nabilities=smite:1\nprofile=unknown",
+            "page=cards\nwidth=1280\nheight=720\nabilities=smite:1\nprofile=selected\nprofile=baseline",
         ] {
             assert!(Request::parse(text).is_none(), "{text}");
         }
@@ -251,7 +314,7 @@ mod tests {
                 "page=cards\nwidth={size}\nheight=720\nabilities=smite:0,holy_fire:7"
             ))
             .unwrap();
-            preview.hand(&request, &mut run, &mut offer, &mut hand);
+            preview.hand(&request, &mut run, &mut offer, &mut hand, Run::default());
             assert!(hand.0);
             assert_eq!(offer.len(), 2);
             assert!(matches!(offer.choices()[0], Choice::NewAbility(def) if def.key == "smite"));
@@ -260,12 +323,43 @@ mod tests {
             assert_eq!(run.kills, 0);
         }
         let request = Request::parse("page=talents\nwidth=1280\nheight=720").unwrap();
-        preview.hand(&request, &mut run, &mut offer, &mut hand);
+        preview.hand(&request, &mut run, &mut offer, &mut hand, Run::default());
         assert!(!hand.0);
         assert_eq!(run.hp, 37.0);
         assert_eq!(run.kills, 42);
         assert!(matches!(offer.choices(), [Choice::Heal]));
         assert!(preview.saved.is_none());
+    }
+
+    #[test]
+    fn selected_profile_preserves_effects_and_baseline_reload_clears_them() {
+        let mut preview = Preview {
+            path: "unused".into(),
+            seen: String::new(),
+            poll: Timer::from_seconds(0.25, TimerMode::Repeating),
+            saved: None,
+        };
+        let mut run = Run::default();
+        let mut offer = Offer::default();
+        let mut hand = PreviewHand::default();
+        let text = "page=cards\nwidth=640\nheight=720\nabilities=holy_fire:1";
+        let request = Request::parse(&format!("{text}\nprofile=selected")).unwrap();
+        assert!(request.selected);
+        let snapshot = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                points: [0, 30, 0],
+                ..default()
+            },
+            ..default()
+        };
+        preview.hand(&request, &mut run, &mut offer, &mut hand, snapshot);
+        assert_eq!(run.milestones.points, [0, 30, 0]);
+        assert_eq!(run.abilities.len(), 1);
+        let baseline = Request::parse(text).unwrap();
+        assert!(!baseline.selected);
+        preview.hand(&baseline, &mut run, &mut offer, &mut hand, Run::default());
+        assert_eq!(run.milestones.points, [0; 3]);
     }
 
     #[test]

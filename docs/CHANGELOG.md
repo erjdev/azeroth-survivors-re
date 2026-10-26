@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Preview the selected build without a run
+
+Card previews now accept `profile = selected`, using the normal starting build's
+gear, talents, race and account bonuses. Change cards, ranks, size or profile by
+editing the preview file; no combat session or rebuild is needed.
+
+![Selected Priest build at 1280×720](images/screenshots/2026-10-25-selected-card-preview/wide-1280.jpg)
+
+![Talent healing descriptions at 640×720](images/screenshots/2026-10-25-selected-card-preview/compact-640.jpg)
+
+Six preview tests, native build, workspace Clippy, formatting and render lint pass.
+Native checks cover high-rank Holy healing, compact scrolling, baseline reload and
+return to Talents; the isolated account checksum is unchanged. Other classes and
+passive/jewelry card previews remain outside this check.
+
 ## 2026-10-25 — Healing visible on upgrade cards
 
 Talent-triggered healing now appears in the shared card and tooltip description,

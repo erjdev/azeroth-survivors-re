@@ -371,8 +371,16 @@ abilities = smite:1, holy_fire:3, holy_nova:0
 
 One to four comma-separated ability keys are supported. Rank `0` shows a new spell;
 `1`–`7` shows that rank's upgrade. Unknown keys, malformed ranks, and maximum-rank
-upgrades are rejected. The preview uses baseline run stats, without account gear or
-talents. It animates and scrolls the real cards but disables picks, gameplay starts,
+upgrades are rejected. The preview defaults to baseline run stats. Add
+`profile = selected` to snapshot the selected character using the production
+run-start path: equipment, talents, renown, relics, race and account perks. The
+selected profile waits for the talent catalog and a valid class/look selection;
+it never enters gameplay or changes the menu's world selection. Edit the file
+again to refresh the snapshot after changing a build. `profile = baseline` (or
+omitting it) restores baseline stats. Remove `profile` when returning to an Armory
+page. This option reads your account; use an isolated fixture for visual checks.
+
+It animates and scrolls the real cards but disables picks, gameplay starts,
 and discovery/reward writes. Resize or replace the hand by editing the file; return
 to `page = talents` (remove `abilities`) to restore the previous run and offer.
 No combat session or level-up is needed. Normal Armory navigation remains available
