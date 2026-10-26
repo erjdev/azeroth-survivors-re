@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Hunter combat wolf foundation
+
+Hunter runs summon a separate combat wolf with grounded movement, obstacle routing,
+melee line-of-sight checks and normal damage/kill/loot credit. Pickup companions
+keep their existing role. Initial bites deal 8 damage (+2 per run level after the
+first), scaled by global damage, every 2 seconds. Extra-target bonuses add nearby
+melee victims without extending reach.
+
+304 data-required Survivors app tests pass, including pet lifecycle, kill/loot
+credit, cooldown, extra-target reach, solid-wall rejection and model availability.
+App Clippy, the incremental native build and formatting pass.
+
+This foundation does not complete Beast Mastery: pet health/threat, pet talents and
+milestones remain open. Live appearance, animation, pathing and balance acceptance
+are pending; there is no new visual acceptance screenshot for this checkpoint.
+
+
 ## 2026-10-26 — Poor gear drops in starter zones
 
 Ordinary Elwynn/Duskwood enemies now have an initial 2% chance to award one random

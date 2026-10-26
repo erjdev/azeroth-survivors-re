@@ -229,13 +229,13 @@ pub(super) fn camera_eye(collision: &WorldCollision, look: Vec3, desired: Vec3) 
 }
 
 #[cfg(test)]
-mod tests {
+pub(super) mod tests {
     use super::*;
     use avian3d::prelude::*;
     use benilla_world::collision::MoverTraceExclusions;
     use bevy::ecs::system::RunSystemOnce;
 
-    pub(super) fn fixture(heights: &[f32]) -> App {
+    pub(in crate::survivors) fn fixture(heights: &[f32]) -> App {
         let mut app = App::new();
         app.add_plugins((
             MinimalPlugins,

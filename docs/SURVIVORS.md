@@ -23,6 +23,13 @@ These stay, and later phases read them instead of inventing a second copy.
   live on the class. The save is `benilla-config/survivors-account.txt`.
 - A run still spends a level-up hand, then any chest trades. Chests are not a magnet.
   Companions walk out, pick up coins and experience wisps, and rest. They do not open chests.
+- Hunters also summon one separate combat wolf. Its melee bite deals 8 base damage
+  at run level 1, +2 per additional level, multiplied by global damage, every 2 seconds.
+  It follows the Hunter, seeks enemies within 18 yards of the Hunter, and uses body
+  sweeps and local routes. Extra-target bonuses add nearby melee victims without increasing reach.
+  It cannot bite through solid scenery or across floors.
+  This initial companion has no threat or incoming damage; pet health/recovery and
+  Beast Mastery effects remain planned. It does not occupy a collectible companion slot.
 - Achievement points buy perks and companion ranks. Two perk resets refund perk points and
   leave companion ranks. The first companion is free.
 - Cloak quality follows feats: talent cap, raid clear, a finished collection, every legendary

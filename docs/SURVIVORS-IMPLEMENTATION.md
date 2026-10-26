@@ -5210,3 +5210,30 @@ raid-specific acquisition and build sets. No new chest is spawned by Poor drops.
 
 General piece-count and nine-slot Full set achievements include supplemental ownership;
 the class cloak collection feat still requires the 54 Common–Legendary cells.
+
+### Hunter combat companion foundation — 2026-10-26
+
+Hunter runs now summon one Timber Wolf (CreatureDisplayInfo 604), independent of
+purchased pickup companions. The wolf pursues living enemies within an 18-yard
+hero leash, follows the hero otherwise, and uses the existing grounded body sweeps
+and incremental local navigation. Bites require melee reach in three dimensions
+and solid-world line of sight. Damage enters the same Hit pipeline as player
+abilities, including kill credit, loot and the damage meter under “Hunter Pet”.
+
+Initial authored tuning: 8 + 2 × (run level − 1) base damage, global damage
+multiplier, 2-second attack cooldown, no criticals. Extra-target bonuses add nearby melee victims without increasing reach. Movement is
+115% of the greater of hero speed and 7 yards/second. The pet despawns when the hero
+is dead and is included in normal RunEntity cleanup. No save migration is needed.
+
+This is a combat foundation, not completion of Beast Mastery. Pet health, enemy
+threat, recovery, three BM milestones and individual pet talents remain open.
+Enemies still target the hero; this wolf cannot tank. Unreachable targets are not
+attacked through geometry or rescued by teleporting. Live model scale, animation,
+Elwynn pathing, balance and Windows acceptance remain to be checked.
+
+Validation: all 304 data-required Survivors app tests pass, including the wolf's
+spawn/class/death lifecycle, damage-to-kill/loot integration, cooldown, extra-target
+reach, rejection of bites through a solid wall and local model availability. These
+headless checks do not replace live visual or Windows acceptance.
+
+App Clippy, the incremental native build, formatting and diff checks pass.

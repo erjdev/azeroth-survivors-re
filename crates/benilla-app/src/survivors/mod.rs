@@ -20,6 +20,7 @@ mod gear_template;
 mod grade;
 mod hero;
 mod hud;
+mod hunter_pet;
 mod jewel_icons;
 mod look_catalog;
 mod menu;
@@ -144,6 +145,7 @@ impl Plugin for SurvivorsPlugin {
                     enemies::move_enemies,
                     abilities::cast_abilities,
                     abilities::tick_areas,
+                    hunter_pet::fight,
                     abilities::apply_hits,
                     enemies::tick_marks,
                     enemies::drop_loot,
