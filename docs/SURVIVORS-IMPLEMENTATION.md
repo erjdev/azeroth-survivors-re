@@ -4421,3 +4421,23 @@ comparisons. Full catalog content and legendary balance acceptance remain open.
 
 Validation for this checkpoint: 265 app tests, native play build, workspace Clippy,
 formatting and render lint pass.
+
+### Live jewelry card previews — 2026-10-26
+
+The watched menu preview accepts one to four ring, trinket, amulet or legendary
+entries, with wide/compact presets under `docs/ui-previews/`. Catalog bounds and
+mutually exclusive ability/jewelry hands are checked before applying a request.
+Preview hand changes preserve the original run/offer until leaving cards; picks
+remain disabled. This extends the fast inspection loop to chest offers without
+requiring a run or granting discovery/progression.
+
+Visual inspection exposed raw legendary spell keys and missing icons when the
+spell was not learned. Legendary cards now resolve names and icons from the spell
+catalog, independently of the current loadout. This does not change acquisition,
+rarity, bonuses or saves. Passive-card presets and authored legendary effects remain
+open.
+
+Validation: 266 app tests, native play build, workspace Clippy, formatting and render
+lint pass. Native 1280×720 and 640×720 checks cover corrected icons/names, green
+bonuses, compact scrolling, disabled picks and return to the undiscovered Codex.
+Screenshots are embedded in CHANGELOG and README.

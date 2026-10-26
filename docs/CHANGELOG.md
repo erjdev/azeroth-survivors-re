@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Fast jewelry previews and clearer legendary cards
+
+Chest offers can now be inspected from a watched preview file, with reusable wide
+and compact presets. Legendary cards show the actual spell name and icon even
+without that spell in the current loadout.
+
+![Jewelry and legendary cards](images/screenshots/2026-10-26-jewelry-preview/cards-1280.png)
+
+![Compact scrollable jewelry cards](images/screenshots/2026-10-26-jewelry-preview/cards-640.png)
+
+266 app tests, native build, workspace Clippy, formatting and render lint pass.
+Native checks verify responsive wrapping, second-row scrolling,
+disabled reward picks and return to the undiscovered Codex. No balance or save changes.
+
 ## 2026-10-26 — Clearer Codex spell details
 
 Legendary entries now describe the actual rank-one spell effect and recharge time.

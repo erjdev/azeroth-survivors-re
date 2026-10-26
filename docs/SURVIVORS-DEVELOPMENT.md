@@ -382,6 +382,16 @@ width = 1280
 height = 720
 ```
 
+Chest offers use `page = cards` with `jewelry = legend:rejuvenation,
+legend:power_word_shield, ring:0, trinket:0` instead of `abilities`. Supply one to
+four entries; `ring`, `trinket`, and `amulet` use zero-based catalog indices, while
+`legend` uses an ability key. Unknown entries, out-of-range indices, and requests
+containing both hand types are rejected atomically. `profile = selected` also
+works with jewelry. These are preview offers only: clicking cannot grant items,
+and leaving cards restores the original run and offer. Reusable wide and compact
+requests are in `docs/ui-previews/jewelry-cards-1280.txt` and
+`docs/ui-previews/jewelry-cards-640.txt`.
+
 Reusable requests live in `docs/ui-previews/achievements-feats-1280.txt` and
 `docs/ui-previews/rewards-tabards-640.txt`. Copy either over the watched file to
 switch production screens while the same app remains open. These requests change

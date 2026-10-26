@@ -3,6 +3,7 @@
 use super::Phase;
 use super::{Armory, Page, Typing};
 use crate::survivors::{
+    campaign::{self, JewelKind},
     cards::PreviewHand,
     data,
     hud::{Choice, Offer},
@@ -38,13 +39,19 @@ struct Preview {
     saved: Option<(Run, Offer)>,
 }
 
+#[derive(Clone, Copy)]
+enum Card {
+    Ability(&'static data::AbilityDef, u8),
+    Jewel(JewelKind),
+}
+
 struct Request {
     page: Page,
     width: u32,
     height: u32,
     selected: bool,
     category: Option<u8>,
-    cards: Option<Vec<(&'static data::AbilityDef, u8)>>,
+    cards: Option<Vec<Card>>,
 }
 
 impl Request {
@@ -77,7 +84,36 @@ impl Request {
                             let (key, rank) = entry.trim().split_once(':')?;
                             let def = data::ABILITIES.iter().find(|def| def.key == key.trim())?;
                             let rank = rank.trim().parse::<u8>().ok()?;
-                            (rank < data::MAX_ABILITY_LEVEL).then_some((def, rank))
+                            (rank < data::MAX_ABILITY_LEVEL).then_some(Card::Ability(def, rank))
+                        })
+                        .collect();
+                    cards = Some(parsed?);
+                }
+                "jewelry" if cards.is_none() => {
+                    let parsed: Option<Vec<_>> = value
+                        .split(',')
+                        .map(|entry| {
+                            let (kind, value) = entry.trim().split_once(':')?;
+                            let value = value.trim();
+                            let jewel = if kind.trim() == "legend" {
+                                let def = data::ABILITIES.iter().find(|def| def.key == value)?;
+                                JewelKind::Legend(def.key)
+                            } else {
+                                let index = value.parse::<u8>().ok()?;
+                                match kind.trim() {
+                                    "ring" if (index as usize) < campaign::RINGS => {
+                                        JewelKind::Ring(index)
+                                    }
+                                    "trinket" if (index as usize) < campaign::TRINKETS => {
+                                        JewelKind::Trinket(index)
+                                    }
+                                    "amulet" if (index as usize) < campaign::AMULETS => {
+                                        JewelKind::Amulet(index)
+                                    }
+                                    _ => return None,
+                                }
+                            };
+                            Some(Card::Jewel(jewel))
                         })
                         .collect();
                     cards = Some(parsed?);
@@ -253,16 +289,18 @@ impl Preview {
             *run = snapshot;
             run.abilities.clear();
             offer.choices.clear();
-            for &(def, rank) in cards {
-                if rank == 0 {
-                    offer.choices.push(Choice::NewAbility(def));
-                } else {
-                    offer.choices.push(Choice::Upgrade(run.abilities.len()));
-                    run.abilities.push(Owned {
-                        def,
-                        level: rank,
-                        cd: 0.0,
-                    });
+            for &card in cards {
+                match card {
+                    Card::Jewel(kind) => offer.choices.push(Choice::Jewel(kind)),
+                    Card::Ability(def, 0) => offer.choices.push(Choice::NewAbility(def)),
+                    Card::Ability(def, rank) => {
+                        offer.choices.push(Choice::Upgrade(run.abilities.len()));
+                        run.abilities.push(Owned {
+                            def,
+                            level: rank,
+                            cd: 0.0,
+                        });
+                    }
                 }
             }
             hand.0 = true;
@@ -388,6 +426,42 @@ mod tests {
     }
 
     #[test]
+    fn jewelry_requires_known_catalog_entries_and_one_hand_source() {
+        for input in [
+            "jewelry=",
+            "jewelry=ring:9",
+            "jewelry=trinket:13",
+            "jewelry=amulet:17",
+            "jewelry=ring:-1",
+            "jewelry=ring:256",
+            "jewelry=legend:missing",
+            "jewelry=unknown:0",
+            "jewelry=ring",
+            "jewelry=ring:0,",
+            "jewelry=ring:0,ring:1,ring:2,ring:3,ring:4",
+            "jewelry=ring:0\nabilities=smite:1",
+            "abilities=smite:1\njewelry=ring:0",
+            "jewelry=ring:0\njewelry=ring:1",
+        ] {
+            assert!(
+                Request::parse(&format!("page=cards\nwidth=1280\nheight=720\n{input}")).is_none(),
+                "{input}"
+            );
+        }
+        assert!(Request::parse("page=codex\nwidth=1280\nheight=720\njewelry=ring:0").is_none());
+        let request = Request::parse("jewelry=legend:rejuvenation,ring:8,trinket:12,amulet:16\npage=cards\nwidth=640\nheight=720").unwrap();
+        assert!(matches!(
+            request.cards.unwrap().as_slice(),
+            [
+                Card::Jewel(JewelKind::Legend("rejuvenation")),
+                Card::Jewel(JewelKind::Ring(8)),
+                Card::Jewel(JewelKind::Trinket(12)),
+                Card::Jewel(JewelKind::Amulet(16))
+            ]
+        ));
+    }
+
+    #[test]
     fn preview_reloads_hand_and_restores_original_run_and_offer() {
         let mut preview = Preview {
             path: "unused".into(),
@@ -417,6 +491,19 @@ mod tests {
             assert_eq!(run.abilities[0].level, 7);
             assert_eq!(run.kills, 0);
         }
+        let jewelry =
+            Request::parse("page=cards\nwidth=640\nheight=720\njewelry=legend:rejuvenation,ring:0")
+                .unwrap();
+        preview.hand(&jewelry, &mut run, &mut offer, &mut hand, Run::default());
+        assert!(hand.0);
+        assert!(run.abilities.is_empty());
+        assert!(matches!(
+            offer.choices(),
+            [
+                Choice::Jewel(JewelKind::Legend("rejuvenation")),
+                Choice::Jewel(JewelKind::Ring(0))
+            ]
+        ));
         let request = Request::parse("page=talents\nwidth=1280\nheight=720").unwrap();
         preview.hand(&request, &mut run, &mut offer, &mut hand, Run::default());
         assert!(!hand.0);

@@ -1765,11 +1765,14 @@ pub(super) fn describe_card(
             intro: String::new(),
             ranks: None,
         },
-        Choice::Jewel(kind) => jewel_card(kind, run),
+        Choice::Jewel(kind) => jewel_card(kind, spells),
     }
 }
 
-fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
+fn jewel_card(
+    kind: super::campaign::JewelKind,
+    spells: Option<&crate::ui_action::Spells>,
+) -> CardText {
     use super::campaign::{JewelKind, AMULET_NAMES, RING_NAMES, TRINKET_NAMES};
     let (icon, name, tag, desc) = match kind {
         JewelKind::Ring(i) => (
@@ -1803,15 +1806,13 @@ fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
             "Worn for this run. One amulet.",
         ),
         JewelKind::Legend(key) => {
-            let icon = run
-                .abilities
-                .iter()
-                .find(|o| o.def.key == key)
-                .map(|o| CardIcon::Spell(o.def.spell))
-                .unwrap_or(CardIcon::Missing);
+            let def = data::ABILITIES.iter().find(|def| def.key == key);
             (
-                icon,
-                super::campaign::legendary_amulet(key),
+                def.map_or(CardIcon::Missing, |def| CardIcon::Spell(def.spell)),
+                def.map_or_else(
+                    || super::campaign::legendary_amulet(key),
+                    |def| format!("Amulet of {}", spell_name(spells, def.spell, def.key)),
+                ),
                 "Legendary amulet",
                 "Seen once dealt, whether or not you take it. One legendary amulet for this run.",
             )
@@ -3403,6 +3404,18 @@ mod card_icon_tests {
             assert_eq!(
                 describe_card(Choice::Jewel(kind), &run, None).icon,
                 CardIcon::Missing
+            );
+        }
+        for def in data::ABILITIES {
+            let card = describe_card(
+                Choice::Jewel(JewelKind::Legend(def.key)),
+                &Run::default(),
+                None,
+            );
+            assert_eq!(card.icon, CardIcon::Spell(def.spell), "{}", def.key);
+            assert_eq!(
+                card.name,
+                format!("Amulet of {}", def.key.replace('_', " "))
             );
         }
         let def = data::ability("cleave");
