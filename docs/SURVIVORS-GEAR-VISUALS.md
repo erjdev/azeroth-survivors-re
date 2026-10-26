@@ -327,3 +327,31 @@ Warlock Common and Uncommon armor already share Deathmist identities; that mappi
 preserved, with quality still selecting its own power. The tests require every valid
 cell to resolve and each quality within a class to contain nine distinct items.
 PvP acquisition schedules and live equipment/appearance acceptance remain open.
+
+
+## Supplemental Poor catalog
+
+`survivors-core::supplemental_gear` adds 81 class/slot identities outside the six
+legacy collection bands. Stable keys such as `poor:warrior:hands` are independent
+of display names and item IDs. The source remains the pinned MaNGOS Zero revision
+linked above; all 41 distinct source items have vanilla Quality 0. Only identity
+and visual metadata are imported. Vanilla level requirements and drop locations
+are not Survivors acquisition rules.
+
+| Classes | Armor family |
+| --- | --- |
+| Warrior, Paladin | Light Plate |
+| Hunter, Shaman | Double Mail |
+| Rogue, Druid | Hardened Leather |
+| Priest, Mage, Warlock | Interlaced |
+
+Each family includes head, shoulders, chest, waist, legs, feet, wrist and hands.
+Weapons are Beaten Battle Axe (Warrior), Cracked Sledge (Paladin), Cracked Shortbow
+(Hunter), Sharpened Letter Opener (Rogue), Withered Staff (Priest), Carpenter's Mallet
+(Shaman), Rough Wooden Staff (Mage), Chipped Quarterstaff (Warlock), and Cedar Walking
+Stick (Druid). This is authored Survivors progression, not imported vanilla item power.
+
+The explicit-data gear audit includes every supplemental entry's display and icon.
+It does not establish body texture/attachment correctness. No Poor ownership, drop
+source, equip action or collection UI is enabled by catalog presence. Raid Epic
+identities and the supplemental save/equipment path remain outstanding.

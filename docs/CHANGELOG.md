@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Poor gear identities
+
+Added all 81 Poor class/slot identities from the pinned vanilla catalog: four armor
+families and nine class-appropriate weapons. Stable named keys keep these separate
+from the existing 54-piece collection. The gear audit now includes their icons and
+display rows.
+
+This is catalog groundwork. Ownership, acquisition and equipment/UI integration
+remain pending; no new obtainable gear or rendered appearance is claimed.
+All 149 core and 292 data-required app tests pass, including the expanded icon audit;
+native build, Clippy, formatting and diff checks pass.
+
 ## 2026-10-26 — Explicit gear progression tiers
 
 Added separate Poor and Raid Epic rules without changing existing collection/save

@@ -16,6 +16,7 @@ pub mod racials;
 pub mod rewards;
 pub mod selection;
 pub mod sheet;
+pub mod supplemental_gear;
 pub mod talents;
 pub mod tuning;
 pub mod visibility;

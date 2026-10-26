@@ -112,7 +112,18 @@ mod tests {
                     .filter_map(move |slot| survivors_core::gear_visuals::piece(class, slot, band))
             })
         });
-        for visual in auxiliary.chain(pieces) {
+        let supplemental = (0..9).flat_map(|class| {
+            (0..9).map(move |slot| {
+                survivors_core::supplemental_gear::piece(
+                    class,
+                    slot,
+                    survivors_core::gear_tier::GearTier::Poor,
+                )
+                .expect("complete Poor catalog")
+                .visual
+            })
+        });
+        for visual in auxiliary.chain(pieces).chain(supplemental) {
             if !seen.insert(visual.display_id) {
                 continue;
             }

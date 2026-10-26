@@ -5092,3 +5092,24 @@ existing lines for every slot. These checks are not catalog or gameplay acceptan
 Validation: 148 core tests, all-target core Clippy, formatting and diff checks pass.
 Native play-profile build also passes; no runtime or visual session was needed for
 this rules-layer foundation.
+
+
+### 2026-10-26 — Verified supplemental Poor identities
+
+The supplemental catalog now resolves all 81 Poor class/slot combinations with
+stable named keys, exact template names and full visual metadata. Four armor
+families share 32 items across appropriate classes; nine weapons complete the slots.
+All 41 distinct templates were checked against the pinned source's Quality 0 rows.
+The key parser rejects unknown classes/slots, wrong tiers and trailing components;
+Raid Epic returns unresolved rather than borrowing ordinary Epic art.
+
+Core coverage checks uniqueness, key round trips, armor class, inventory slot and
+boundary rejection. The existing explicit-data application gear audit now checks
+supplemental displays and readable icon files as well as the old catalog. Details
+and source are in SURVIVORS-GEAR-VISUALS. Supplemental ownership/save/equipment,
+acquisition, UI comparisons, rendered body acceptance and raid identities/sets
+remain open. No screenshot is presented as evidence for an unrendered catalog.
+
+Validation: 149 core tests and 292 visibility-enabled app tests pass with
+`WOW_DATA=wow-data/Data` and `BENILLA_REQUIRE_DATA=1`, including the expanded gear
+display/icon audit. Native build, core/app Clippy, formatting and diff checks pass.
