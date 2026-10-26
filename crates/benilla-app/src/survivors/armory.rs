@@ -13,7 +13,7 @@ mod shortcuts;
 pub(super) use controls::style as style_controls;
 mod door;
 mod drop_page;
-#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+#[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))]
 pub(super) mod preview;
 mod reward_draft;
 mod reward_page;

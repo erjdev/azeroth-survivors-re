@@ -10,6 +10,14 @@ use super::data::{self, Kind};
 use super::hud::{self, Choice, HudFont, Offer, SpellIcon};
 use super::{Phase, Rng, Run};
 
+/// A developer-only presentation overlay; never a playable offer.
+#[derive(Resource, Default)]
+pub(super) struct PreviewHand(pub bool);
+
+pub(super) fn preview_active(preview: Res<PreviewHand>) -> bool {
+    preview.0
+}
+
 /// WoW's item-quality colours (`ITEM_QUALITY_COLORS`).
 pub(super) const COMMON: Color = Color::srgb(1.0, 1.0, 1.0);
 pub(super) const UNCOMMON: Color = Color::srgb(0.118, 1.0, 0.0);
@@ -168,6 +176,7 @@ const PICK_SECS: f32 = 0.28;
 pub(super) fn deal_cards(
     mut commands: Commands,
     offer: Res<Offer>,
+    preview: Res<PreviewHand>,
     run: Res<Run>,
     mut account: ResMut<super::account::Account>,
     spells: Option<Res<crate::ui_action::Spells>>,
@@ -202,15 +211,23 @@ pub(super) fn deal_cards(
             line.push_str("  ·  ");
             line.push_str(&hints.join("  "));
         }
-        **sub = line;
+        **sub = if preview.0 {
+            "UI preview · edit the preview file to change cards or return to a page".into()
+        } else {
+            line
+        };
     }
     let Ok((row, mut scroll)) = rows.single_mut() else {
         return;
     };
     // Record the actual hand being built, never discarded random candidates (e.g. banish).
-    if let Some(class) = super::data::CLASSES
-        .iter()
-        .position(|class| class.id == run.class.id)
+    if let Some(class) = (!preview.0)
+        .then(|| {
+            super::data::CLASSES
+                .iter()
+                .position(|class| class.id == run.class.id)
+        })
+        .flatten()
     {
         account.remember_jewelry(
             class,
@@ -484,6 +501,7 @@ fn ease_out_back(t: f32) -> f32 {
 pub(super) fn animate_cards(
     time: Res<Time<Real>>,
     phase: Res<State<Phase>>,
+    preview: Res<PreviewHand>,
     mut cards: Query<(
         &mut Card,
         &Interaction,
@@ -499,9 +517,12 @@ pub(super) fn animate_cards(
     mut rng: ResMut<Rng>,
     mut next: ResMut<NextState<Phase>>,
 ) {
-    if *phase.get() != Phase::LevelUp {
+    if *phase.get() != Phase::LevelUp && !preview.0 {
         pending.0 = None;
         return;
+    }
+    if preview.0 {
+        pending.0 = None;
     }
     let dt = time.delta_secs().min(0.05);
     let now = time.elapsed_secs();
@@ -649,6 +670,7 @@ pub(super) fn choose_card(
 /// Keep wrapped hands reachable without reducing text or hit targets below readable sizes.
 pub(super) fn scroll_hand(
     phase: Res<State<Phase>>,
+    preview: Res<PreviewHand>,
     mut wheel: MessageReader<bevy::input::mouse::MouseWheel>,
     mut rows: Query<(&ComputedNode, &mut ScrollPosition), With<hud::OfferRow>>,
 ) {
@@ -659,7 +681,7 @@ pub(super) fn scroll_hand(
             bevy::input::mouse::MouseScrollUnit::Pixel => event.y,
         })
         .sum();
-    if *phase.get() != Phase::LevelUp {
+    if *phase.get() != Phase::LevelUp && !preview.0 {
         return;
     }
     for (node, mut scroll) in &mut rows {

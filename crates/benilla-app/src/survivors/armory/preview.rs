@@ -1,8 +1,18 @@
 //! Opt-in live controls for the production menu, independent of gameplay and saves.
-use super::{Armory, Page, Phase, Typing};
+#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+use super::Phase;
+use super::{Armory, Page, Typing};
+use crate::survivors::{
+    cards::PreviewHand,
+    data,
+    hud::{Choice, Offer},
+    Owned, Run,
+};
 use bevy::prelude::*;
+#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
 use bevy::window::PrimaryWindow;
 
+#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
 pub(crate) fn plugin(app: &mut App) {
     let Some(path) = std::env::var_os("WOW_SURVIVORS_UI_PREVIEW") else {
         return;
@@ -11,6 +21,7 @@ pub(crate) fn plugin(app: &mut App) {
         path: path.into(),
         seen: String::new(),
         poll: Timer::from_seconds(0.25, TimerMode::Repeating),
+        saved: None,
     })
     .add_systems(
         Update,
@@ -19,21 +30,26 @@ pub(crate) fn plugin(app: &mut App) {
 }
 
 #[derive(Resource)]
+#[cfg_attr(not(feature = "dev"), allow(dead_code))]
 struct Preview {
     path: std::path::PathBuf,
     seen: String,
     poll: Timer,
+    saved: Option<(Run, Offer)>,
 }
 
 struct Request {
     page: Page,
     width: u32,
     height: u32,
+    cards: Option<Vec<(&'static data::AbilityDef, u8)>>,
 }
 
 impl Request {
     fn parse(text: &str) -> Option<Self> {
         let (mut page, mut width, mut height) = (None, None, None);
+        let mut cards_page = false;
+        let mut cards = None;
         for line in text.lines() {
             let line = line.split('#').next()?.trim();
             if line.is_empty() {
@@ -42,16 +58,43 @@ impl Request {
             let (key, value) = line.split_once('=')?;
             let value = value.trim();
             match key.trim() {
-                "page" if page.is_none() => page = Some(Page::preview(value)?),
+                "page" if page.is_none() => {
+                    cards_page = value == "cards";
+                    page = Some(if cards_page {
+                        Page::Door
+                    } else {
+                        Page::preview(value)?
+                    });
+                }
+                "abilities" if cards.is_none() => {
+                    let parsed: Option<Vec<_>> = value
+                        .split(',')
+                        .map(|entry| {
+                            let (key, rank) = entry.trim().split_once(':')?;
+                            let def = data::ABILITIES.iter().find(|def| def.key == key.trim())?;
+                            let rank = rank.trim().parse::<u8>().ok()?;
+                            (rank < data::MAX_ABILITY_LEVEL).then_some((def, rank))
+                        })
+                        .collect();
+                    cards = Some(parsed?);
+                }
                 "width" if width.is_none() => width = Some(value.parse::<u32>().ok()?),
                 "height" if height.is_none() => height = Some(value.parse::<u32>().ok()?),
                 _ => return None,
             }
         }
+        if cards_page != cards.is_some()
+            || cards
+                .as_ref()
+                .is_some_and(|cards| cards.is_empty() || cards.len() > 4)
+        {
+            return None;
+        }
         let request = Self {
             page: page?,
             width: width?,
             height: height?,
+            cards,
         };
         ((640..=7680).contains(&request.width) && (480..=4320).contains(&request.height))
             .then_some(request)
@@ -66,11 +109,17 @@ impl Request {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
+#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
 fn reload(
     time: Res<Time<Real>>,
     mut preview: ResMut<Preview>,
     mut armory: ResMut<Armory>,
     mut typing: ResMut<Typing>,
+    mut run: ResMut<Run>,
+    mut offer: ResMut<Offer>,
+    mut hand: ResMut<PreviewHand>,
+    rows: Query<Entity, With<crate::survivors::hud::OfferRow>>,
     mut windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     if !preview.poll.tick(time.delta()).just_finished() {
@@ -86,13 +135,53 @@ fn reload(
         return;
     }
     let request = Request::parse(&text);
-    preview.seen = text;
     let Some(request) = request else {
+        preview.seen = text;
         warn!("Invalid Survivors UI preview; keeping current page and size");
         return;
     };
+    if request.cards.is_some() && rows.is_empty() {
+        return;
+    }
+    preview.seen = text;
     request.apply(&mut armory, &mut typing, &mut window);
+    preview.hand(&request, &mut run, &mut offer, &mut hand);
     info!("Survivors UI preview applied: {}", preview.seen.trim());
+}
+
+impl Preview {
+    fn hand(
+        &mut self,
+        request: &Request,
+        run: &mut Run,
+        offer: &mut Offer,
+        hand: &mut PreviewHand,
+    ) {
+        if let Some(cards) = &request.cards {
+            if self.saved.is_none() {
+                self.saved = Some((std::mem::take(run), std::mem::take(offer)));
+            }
+            *run = Run::default();
+            offer.choices.clear();
+            for &(def, rank) in cards {
+                if rank == 0 {
+                    offer.choices.push(Choice::NewAbility(def));
+                } else {
+                    offer.choices.push(Choice::Upgrade(run.abilities.len()));
+                    run.abilities.push(Owned {
+                        def,
+                        level: rank,
+                        cd: 0.0,
+                    });
+                }
+            }
+            hand.0 = true;
+        } else if let Some((saved_run, saved_offer)) = self.saved.take() {
+            *run = saved_run;
+            *offer = saved_offer;
+            hand.0 = false;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -112,6 +201,71 @@ mod tests {
         ] {
             assert!(Request::parse(text).is_none(), "{text}");
         }
+    }
+
+    #[test]
+    fn cards_require_bounded_known_spells_and_upgradeable_ranks() {
+        for abilities in [
+            "missing:1",
+            "smite:8",
+            "smite:255",
+            "smite:-1",
+            "smite",
+            "",
+            "smite:1,smite:1,smite:1,smite:1,smite:1",
+        ] {
+            assert!(Request::parse(&format!(
+                "page=cards\nwidth=1280\nheight=720\nabilities={abilities}"
+            ))
+            .is_none());
+        }
+        assert!(Request::parse("page=cards\nwidth=1280\nheight=720").is_none());
+        assert!(
+            Request::parse("page=talents\nwidth=1280\nheight=720\nabilities=smite:1").is_none()
+        );
+        assert!(
+            Request::parse("page=cards\nwidth=640\nheight=480\nabilities=smite:0,holy_fire:7")
+                .is_some()
+        );
+    }
+
+    #[test]
+    fn preview_reloads_hand_and_restores_original_run_and_offer() {
+        let mut preview = Preview {
+            path: "unused".into(),
+            seen: String::new(),
+            poll: Timer::from_seconds(0.25, TimerMode::Repeating),
+            saved: None,
+        };
+        let mut run = Run {
+            hp: 37.0,
+            kills: 42,
+            ..default()
+        };
+        let mut offer = Offer {
+            choices: vec![Choice::Heal],
+        };
+        let mut hand = PreviewHand::default();
+        for size in [1280, 640] {
+            let request = Request::parse(&format!(
+                "page=cards\nwidth={size}\nheight=720\nabilities=smite:0,holy_fire:7"
+            ))
+            .unwrap();
+            preview.hand(&request, &mut run, &mut offer, &mut hand);
+            assert!(hand.0);
+            assert_eq!(offer.len(), 2);
+            assert!(matches!(offer.choices()[0], Choice::NewAbility(def) if def.key == "smite"));
+            assert!(matches!(offer.choices()[1], Choice::Upgrade(0)));
+            assert_eq!(run.abilities[0].level, 7);
+            assert_eq!(run.kills, 0);
+        }
+        let request = Request::parse("page=talents\nwidth=1280\nheight=720").unwrap();
+        preview.hand(&request, &mut run, &mut offer, &mut hand);
+        assert!(!hand.0);
+        assert_eq!(run.hp, 37.0);
+        assert_eq!(run.kills, 42);
+        assert!(matches!(offer.choices(), [Choice::Heal]));
+        assert!(preview.saved.is_none());
     }
 
     #[test]

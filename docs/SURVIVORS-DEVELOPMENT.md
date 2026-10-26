@@ -360,6 +360,24 @@ focus but preserves name drafts and account data. Changes wait while a run is
 active and apply when returning to the menu. This opt-in native development tool
 is excluded from player and wasm builds. It does not seed fixture accounts.
 
+To inspect production upgrade cards immediately, use the same file:
+
+```ini
+page = cards
+width = 1280
+height = 720
+abilities = smite:1, holy_fire:3, holy_nova:0
+```
+
+One to four comma-separated ability keys are supported. Rank `0` shows a new spell;
+`1`–`7` shows that rank's upgrade. Unknown keys, malformed ranks, and maximum-rank
+upgrades are rejected. The preview uses baseline run stats, without account gear or
+talents. It animates and scrolls the real cards but disables picks, gameplay starts,
+and discovery/reward writes. Resize or replace the hand by editing the file; return
+to `page = talents` (remove `abilities`) to restore the previous run and offer.
+No combat session or level-up is needed. Normal Armory navigation remains available
+outside the card overlay.
+
 The Character page opens on the dressed preview. Use **Manage heroes** for the
 roster, character creation, renown and relic controls, and **Back to character**
 to return. Selecting or creating a hero returns to the preview; an account without

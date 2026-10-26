@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Direct, reloadable card previews
+
+Upgrade cards can now open directly from the UI preview file. Change spell keys,
+ranks and window size without recompiling or playing a run. The production cards
+still animate and scroll; picks and gameplay starts are disabled in this view.
+
+![Three-card preview at 1280×720](images/screenshots/2026-10-25-card-preview/wide-1280.jpg)
+
+![Wrapped third card reached by scrolling at 640×720](images/screenshots/2026-10-25-card-preview/compact-640.jpg)
+
+Five preview tests, native build, workspace Clippy, formatting and render lint pass.
+Native checks cover resize, scrolling, rejected input,
+invalid requests and return to Talents; the account checksum is unchanged.
+Setup and baseline-stat limitations are in [development instructions](SURVIVORS-DEVELOPMENT.md).
+
 ## 2026-10-25 — Casting distance on upgrade cards
 
 Targeted spell cards now state their effective casting distance inline, separately

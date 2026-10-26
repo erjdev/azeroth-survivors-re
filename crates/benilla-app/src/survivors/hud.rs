@@ -75,6 +75,9 @@ pub(super) struct AbilityRow;
 pub(super) struct PassiveRow;
 #[derive(Component)]
 pub(super) struct OfferRow;
+
+#[derive(Component)]
+pub(super) struct LevelHint;
 /// The line under LEVEL UP: which level this is.
 #[derive(Component)]
 pub(super) struct LevelUpSub;
@@ -259,7 +262,7 @@ pub(super) enum Choice {
 /// The level-up cards on offer.
 #[derive(Resource, Default)]
 pub(super) struct Offer {
-    choices: Vec<Choice>,
+    pub(super) choices: Vec<Choice>,
 }
 
 impl Offer {
@@ -799,11 +802,14 @@ pub(super) fn setup_hud(
                     ..default()
                 },
             ));
-            root.spawn(centered(
-                f,
-                "Click a card or press its number · Scroll to see more",
-                14.0,
-                DIM,
+            root.spawn((
+                LevelHint,
+                centered(
+                    f,
+                    "Click a card or press its number · Scroll to see more",
+                    14.0,
+                    DIM,
+                ),
             ));
         });
 
@@ -3077,6 +3083,8 @@ pub(super) fn icon_tooltip(
 #[allow(clippy::type_complexity)]
 pub(super) fn show_panels(
     phase: Res<State<Phase>>,
+    preview: Res<super::cards::PreviewHand>,
+    mut hints: Query<&mut Text, With<LevelHint>>,
     mut roots: ParamSet<(
         Query<(&mut Visibility, &mut Node), With<MenuRoot>>,
         Query<(&mut Visibility, &mut Node), With<HudRoot>>,
@@ -3086,6 +3094,16 @@ pub(super) fn show_panels(
     )>,
 ) {
     let p = *phase.get();
+    let hint = if preview.0 {
+        "Preview only · Picks disabled · Scroll to see more"
+    } else {
+        "Click a card or press its number · Scroll to see more"
+    };
+    for mut text in &mut hints {
+        if text.0 != hint {
+            text.0 = hint.into();
+        }
+    }
     // A hidden panel leaves the layout too: a merely invisible button still takes clicks.
     let set = |(mut v, mut node): (Mut<Visibility>, Mut<Node>), on: bool| {
         let want = if on {
@@ -3102,13 +3120,13 @@ pub(super) fn show_panels(
         }
     };
     for root in &mut roots.p0() {
-        set(root, p == Phase::Menu);
+        set(root, p == Phase::Menu && !preview.0);
     }
     for root in &mut roots.p1() {
         set(root, p != Phase::Menu && p != Phase::GameOver);
     }
     for root in &mut roots.p2() {
-        set(root, p == Phase::LevelUp);
+        set(root, p == Phase::LevelUp || preview.0);
     }
     for root in &mut roots.p3() {
         set(root, p == Phase::Paused);

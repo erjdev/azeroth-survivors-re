@@ -3810,3 +3810,24 @@ coloring. An isolated Priest:cards run in The Barrens showed Smite's trained
 combat. The changelog/README embed the capture. Native build, workspace Clippy,
 formatting and render lint pass. Other affected card layouts still need visual
 coverage; this does not close live range-boundary or full responsive acceptance.
+
+### Direct upgrade-card preview — 2026-10-25
+
+The native development preview accepts `page=cards` and one to four explicit
+`abilities=key:rank` entries. Rank zero means new ability; ranks 1–7 preview an
+upgrade. It uses production card layout/animation/scrolling with baseline stats,
+without waiting for combat or an offer. Live file edits resize or replace the hand.
+
+The overlay stays in Menu, blocks card picks/menu gameplay starts/autoplay, and
+skips discovery/reward writes. Returning to a regular page restores the original
+run and offer. Invalid requests retain the last view; the initial request waits
+for the UI to exist. Player/wasm builds do not expose the file-control entry point.
+
+Five preview tests pass, including parser bounds and repeated-hand restoration.
+Native 1280×720 and 640×720 captures show the same three-card hand and scrolling to
+the third card. Clicking/number/Enter did not pick or start combat; an invalid key
+kept the hand; returning to Talents succeeded. Account SHA-256 remained identical.
+The changelog and README embed screenshots. Talent/gear-aware card fixtures and
+non-ability reward previews remain future extensions of this development tool.
+
+Native build, workspace Clippy, formatting and render-pass lint pass for this checkpoint.

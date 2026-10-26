@@ -329,6 +329,10 @@ navigation to Collection for full equipment details.
 
 Priest now has eleven individual talents and nine tree milestones with scoped previews.
 
+Card layouts can be opened and resized without a run using the [live UI preview](docs/SURVIVORS-DEVELOPMENT.md).
+
+![Direct production card preview](docs/images/screenshots/2026-10-25-card-preview/wide-1280.jpg)
+
 Upgrade cards now state effective casting distance separately from area radius.
 
 ![Smite card with trained casting range](docs/images/screenshots/2026-10-25-card-range/smite-1280.jpg)

@@ -110,6 +110,7 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<hud::PausePage>()
             .init_resource::<hud::SettingEdits>()
             .init_resource::<cards::PendingPick>()
+            .init_resource::<cards::PreviewHand>()
             .add_message::<abilities::Hit>()
             .add_message::<enemies::Loot>()
             .add_plugins(bevy::ui_render::UiMaterialPlugin::<hud::SweepUiMaterial>::default())
@@ -160,9 +161,9 @@ impl Plugin for SurvivorsPlugin {
                 (
                     hero::follow_map,
                     hud::menu_preview,
-                    hud::buttons,
-                    armory::input,
-                    hud::keys,
+                    hud::buttons.run_if(not(cards::preview_active)),
+                    armory::input.run_if(not(cards::preview_active)),
+                    hud::keys.run_if(not(cards::preview_active)),
                     hud::refresh_menu,
                     menu::restore_pick,
                     menu::build_menu,
@@ -177,7 +178,11 @@ impl Plugin for SurvivorsPlugin {
                         armory::fill_talent_headings,
                     )
                         .chain(),
-                    (menu::menu_clicks, menu::sync_hero_look).chain(),
+                    (
+                        menu::menu_clicks.run_if(not(cards::preview_active)),
+                        menu::sync_hero_look,
+                    )
+                        .chain(),
                     menu::refresh_menu_ui.before(crate::glue::GlueVisuals),
                     cards::deal_cards,
                     cards::choose_card,
@@ -246,7 +251,10 @@ impl Plugin for SurvivorsPlugin {
             app.insert_resource(auto)
                 .add_systems(
                     Update,
-                    auto::drive.after(hud::keys).before(hud::refresh_menu),
+                    auto::drive
+                        .after(hud::keys)
+                        .before(hud::refresh_menu)
+                        .run_if(not(cards::preview_active)),
                 )
                 .add_systems(Update, auto::plan.before(WorldStage::Input));
         }
