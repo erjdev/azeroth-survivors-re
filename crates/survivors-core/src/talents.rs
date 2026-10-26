@@ -297,6 +297,17 @@ impl Milestones {
                             effect.radius *= 1.0 + value;
                         }
                     }
+                    TalentStat::HolyReach => {
+                        if PRIEST_CAST_HOLY.contains(&key) {
+                            effect.range *= 1.0 + value;
+                        }
+                        if key == "holy_nova" {
+                            effect.radius *= 1.0 + value;
+                        }
+                    }
+                    TalentStat::ShadowReach if matches!(key, "shadow_word_pain" | "mind_blast") => {
+                        effect.range *= 1.0 + value;
+                    }
                     TalentStat::ArcaneInstability
                         if MAGE_ARCANE.contains(&key)
                             || MAGE_FIRE.contains(&key)
@@ -1037,6 +1048,8 @@ pub enum TalentStat {
     BlizzardSlow,
     FlameThrowing,
     ArcticReach,
+    HolyReach,
+    ShadowReach,
     EnrageDamage,
     BloodCrazeHealing,
     FlurryHaste,
@@ -1132,6 +1145,8 @@ impl TalentDefinition {
             TalentStat::BlizzardSlow => (100.0, "% stronger Blizzard slow"),
             TalentStat::FlameThrowing => (100.0, "% fire spell targeting range"),
             TalentStat::ArcticReach => (100.0, "% frost targeting range / Nova and Cone radius"),
+            TalentStat::HolyReach => (100.0, "% Smite/Holy Fire range and Holy Nova radius"),
+            TalentStat::ShadowReach => (100.0, "% Shadow Word: Pain/Mind Blast range"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
@@ -2046,6 +2061,16 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 1635, max_rank: 2, name: "Holy Reach",
+        description: "Smite and Holy Fire: +10% casting range per rank; Holy Nova: +10% radius per rank, still one player-centered area",
+        stat: TalentStat::HolyReach, per_rank: 0.10,
+    },
+    TalentDefinition {
+        id: 881, max_rank: 3, name: "Shadow Reach",
+        description: "Shadow Word: Pain and Mind Blast: +6.67% casting range per rank (20% at rank 3); does not enlarge Psychic Scream or add targets",
+        stat: TalentStat::ShadowReach, per_rank: 0.20 / 3.0,
+    },
+    TalentDefinition {
         id: 465, max_rank: 5, name: "Spirit Tap",
         description: "Kills have a 20% chance per rank to regenerate 1% maximum health per second for 15 sec; refreshes without stacking (Survivors spirit/mana conversion)",
         stat: TalentStat::SpiritTap, per_rank: 0.20,
@@ -2142,6 +2167,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::BlizzardSlow
             | TalentStat::FlameThrowing
             | TalentStat::ArcticReach
+            | TalentStat::HolyReach
+            | TalentStat::ShadowReach
             | TalentStat::ArcaneInstability
             | TalentStat::ElementalPrecision
             | TalentStat::SpellGroupDamage(_)
@@ -2440,6 +2467,49 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn priest_reach_separates_casting_range_from_area_radius() {
+        let base = Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        for (id, max) in [(1635, 2), (881, 3)] {
+            for rank in 0..=max {
+                let trained = base.with_ranks(&[(0, id, rank)]);
+                for key in [
+                    "smite",
+                    "holy_fire",
+                    "holy_nova",
+                    "shadow_word_pain",
+                    "mind_blast",
+                    "psychic_scream",
+                    "power_word_shield",
+                    "shadow_bolt",
+                    "holy_shock",
+                ] {
+                    let effect = trained.cast(key);
+                    let amount = if id == 1635 { 0.1 } else { 0.2 / 3.0 } * f32::from(rank);
+                    let range = if (id == 1635 && PRIEST_CAST_HOLY.contains(&key))
+                        || (id == 881 && matches!(key, "shadow_word_pain" | "mind_blast"))
+                    {
+                        1.0 + amount
+                    } else {
+                        1.0
+                    };
+                    let radius = if id == 1635 && key == "holy_nova" {
+                        1.0 + amount
+                    } else {
+                        1.0
+                    };
+                    assert!((effect.range - range).abs() < 0.00001, "{key}");
+                    assert!((effect.radius - radius).abs() < 0.00001, "{key}");
+                    assert_eq!(effect.extra_targets, 0);
+                    assert_eq!(effect.damage, 1.0);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn priest_training_is_scoped_bounded_and_replaces_provisional_damage() {
         let base = Milestones {
             class: 4,
@@ -2466,7 +2536,7 @@ mod stat_talent_tests {
             assert!((cast.cooldown - cooldown).abs() < 0.00001, "{key}");
             assert!((cast.duration - duration).abs() < 0.00001, "{key}");
             assert!((cast.crit - crit).abs() < 0.00001, "{key}");
-            assert_eq!(cast.radius, 1.0);
+            assert_eq!(cast.radius, if key == "holy_nova" { 1.2 } else { 1.0 });
             assert_eq!(cast.extra_targets, 0);
             assert_eq!(cast.shield_fraction, 0.0);
         }
@@ -2959,6 +3029,8 @@ mod stat_talent_tests {
                     | TalentStat::BlizzardSlow
                     | TalentStat::FlameThrowing
                     | TalentStat::ArcticReach
+                    | TalentStat::HolyReach
+                    | TalentStat::ShadowReach
                     | TalentStat::ArcaneInstability
                     | TalentStat::ElementalPrecision
                     | TalentStat::SpellGroupDamage(_)

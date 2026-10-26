@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Priest reach talents
+
+Holy Reach extends Smite/Holy Fire casting range and Holy Nova's single area.
+Shadow Reach extends Shadow Word: Pain/Mind Blast range. Both reach 20% at maximum
+rank, with scoped green descriptions; neither adds targets or extra AoE locations.
+
+![Holy Reach at 1280×720](images/screenshots/2026-10-25-priest-reach/holy-1280.jpg)
+
+![Shadow Reach at 640×720, with maximum-rank purchase guard](images/screenshots/2026-10-25-priest-reach/shadow-640.jpg)
+
+115 core tests, the ranked engine parameter test, DBC catalog audit, native build,
+Clippy, formatting and render lint pass. Holy purchase/refund and compact Shadow
+text were checked natively. Live combat range acceptance remains open.
+
 ## 2026-10-25 — Spirit Tap recovery
 
 Priest Spirit Tap now gives kills a 20% chance per rank to regenerate 1% maximum

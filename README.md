@@ -327,7 +327,9 @@ navigation to Collection for full equipment details.
 
 ![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
-Priest now has nine individual talents and nine tree milestones with scoped previews.
+Priest now has eleven individual talents and nine tree milestones with scoped previews.
+
+![Priest range and area talent](docs/images/screenshots/2026-10-25-priest-reach/holy-1280.jpg)
 
 ![Spirit Tap recovery preview](docs/images/screenshots/2026-10-25-spirit-tap/talent-1280.jpg)
 

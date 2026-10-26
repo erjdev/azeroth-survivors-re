@@ -3782,3 +3782,17 @@ expiry across frame sizes, health caps and death. Native 1280×720 purchase/refu
 confirms the green 80 to 100% preview; the changelog and README embed its capture.
 Native build, workspace Clippy, formatting and render lint pass. Live combat
 presentation/balance and remaining Priest nodes remain open.
+
+### Priest casting range and area reach — 2026-10-25
+
+Holy Reach (DBC 1635, two ranks) now adds 10% per rank to Smite/Holy Fire casting
+range and Holy Nova radius. Shadow Reach (881, three ranks) adds one third of 20%
+per rank to Shadow Word: Pain/Mind Blast casting range. Psychic Scream is unchanged.
+Both replace provisional general damage. No added targets or duplicate AoE centers.
+
+115 core tests pass, including all-rank scope and separate range/radius checks.
+The engine parameter regression covers spell ranks 1/3/8 with gear haste/cooldown
+and confirms target count/control remain unchanged. DBC audit, native build,
+workspace Clippy, formatting and render lint pass. Native Holy purchase/refund
+at 1280×720 and compact Shadow description/max-rank guard at 640×720 are captured
+inline in the changelog. Live combat range acceptance and remaining nodes are open.

@@ -2543,7 +2543,20 @@ mod milestone_tests {
                 );
                 assert!((after.crit - before.crit - crit).abs() < 0.0001, "{key}");
                 assert_eq!(after.count, before.count);
-                assert_eq!(after.radius, before.radius);
+                assert!(
+                    (after.radius - before.radius * if key == "holy_nova" { 1.2 } else { 1.0 })
+                        .abs()
+                        < 0.0001
+                );
+                let reach = if matches!(
+                    key,
+                    "smite" | "holy_fire" | "shadow_word_pain" | "mind_blast"
+                ) {
+                    1.2
+                } else {
+                    1.0
+                };
+                assert!((after.range - before.range * reach).abs() < 0.0001);
                 assert_eq!(after.effect, before.effect);
             }
         }
