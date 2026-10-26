@@ -86,6 +86,7 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<Rng>()
             .init_resource::<Selection>()
             .init_resource::<Run>()
+            .init_resource::<armory::controller::ControllerFocus>()
             .init_resource::<hero::CamRig>()
             .init_resource::<camera::CameraSettings>()
             .init_resource::<hero::AimPoint>()
@@ -167,7 +168,11 @@ impl Plugin for SurvivorsPlugin {
                     hero::follow_map,
                     hud::menu_preview,
                     hud::buttons.run_if(not(cards::preview_active)),
-                    armory::input.run_if(not(cards::preview_active)),
+                    (
+                        armory::controller::navigate,
+                        armory::input.run_if(not(cards::preview_active)),
+                    )
+                        .chain(),
                     hud::keys.run_if(not(cards::preview_active)),
                     hud::refresh_menu,
                     menu::restore_pick,

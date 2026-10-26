@@ -1610,6 +1610,7 @@ fn source_name(key: &str, spells: Option<&crate::ui_action::Spells>) -> String {
 }
 
 pub(super) fn keys(
+    focus: Option<Res<super::armory::controller::ControllerFocus>>,
     mut settings: ResMut<PausePage>,
     keys: Res<ButtonInput<KeyCode>>,
     phase: Res<State<Phase>>,
@@ -1622,6 +1623,9 @@ pub(super) fn keys(
     mut run: ResMut<Run>,
     mut next: ResMut<NextState<Phase>>,
 ) {
+    if focus.is_some_and(|focus| focus.keyboard_selected) {
+        return;
+    }
     if settings.open {
         if keys.just_pressed(KeyCode::Escape) {
             settings.open = false;

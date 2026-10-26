@@ -37,6 +37,8 @@ Options opens shared audio, graphics and camera preferences without entering a r
 
 ![Compact Options navigation help](docs/images/screenshots/2026-10-26-options-controller/options-640.png)
 
+![Starter focus and scroll reveal](docs/images/screenshots/2026-10-26-starter-focus/starter-scroll-640.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.
@@ -561,7 +563,10 @@ to pause, **1/2/3** to pick a level-up card.
 
 In the starter or pause menu, a controller's **Start** opens Options. **D-pad up/down**
 moves focus, **left/right** adjusts sliders, **south** selects, and **east** closes
-Options. Controller gameplay and navigation on other starter pages are not implemented yet.
+Options. On the starter and Armory pages, **D-pad / arrow keys** move the focus
+outline between controls; **south / Enter / Space** selects. Focus scrolls into
+view automatically. **East** returns to the starter. Text entry still needs a
+keyboard; focus-driven hover details, controller gameplay and talent-refund shortcuts remain unfinished.
 
 ## The game data (not in this repo)
 

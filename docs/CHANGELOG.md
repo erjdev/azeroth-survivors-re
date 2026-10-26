@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Starter and Armory focus navigation
+
+D-pad and arrow keys now move a visible focus outline between starter/Armory
+controls. South, Enter or Space selects through the existing action handler;
+focused Enter cannot also start a run. Focus reveals scrolled controls with room
+for the outline, and clears for Options, text entry and pointer clicks.
+
+![Focused achievement category](images/screenshots/2026-10-26-starter-focus/achievements-640.png)
+
+![Compact starter scrolled to the focused action](images/screenshots/2026-10-26-starter-focus/starter-scroll-640.png)
+
+242 Survivors tests, native build, workspace Clippy, formatting and render lint pass.
+Native compact checks cover directional focus, Options and Achievements activation,
+Space selection and equipment/lower-action scroll reveal. Automated checks cover
+controller edges, nested non-scrolling wrappers, display scaling, one-frame
+activation, modal/text-entry exclusion and Enter consumption. Physical controller
+acceptance, focus-driven hover details and secondary actions remain open.
+
 ## 2026-10-26 — Controller navigation in Options
 
 Survivors now enables controller discovery. Start opens Options from the starter

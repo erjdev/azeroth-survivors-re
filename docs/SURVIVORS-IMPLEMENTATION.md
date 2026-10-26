@@ -100,6 +100,19 @@ both menu states, toggles, slider changes, back, held input, gameplay rejection 
 card-preview rejection. Native compact validation covers backend startup and help
 layout, with a keyboard-focused screenshot in CHANGELOG/README. Physical controller
 acceptance, other starter pages and gameplay remain unfinished.
+The starter/Armory primary actions now share directional controller/keyboard focus:
+D-pad/arrows navigate by screen position, south/Enter/Space activates the existing
+Act path, and controller east returns to the starter. First controller selection
+establishes focus; held input cannot repeat activation. Focus clears for Options,
+text entry, loading, pointer presses and non-menu phases. Scrolled controls reveal
+through the actual vertical scroll container, skipping non-scrolling wrappers and
+leaving a margin for the outline. Focused Enter is consumed before the global run
+shortcut. Native compact evidence covers Options/Achievements, Space category
+selection, and equipment/lower-action scroll reveal; two screenshots are embedded
+in CHANGELOG/README. Controller ECS tests cover the shared path and nested-scroll
+regression. Physical devices, complete per-page traversal, focus-driven hover
+details, secondary actions/refunds, name entry without a keyboard and controller
+gameplay remain open.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.

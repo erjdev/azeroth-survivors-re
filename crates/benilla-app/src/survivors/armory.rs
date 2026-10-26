@@ -37,6 +37,8 @@ pub(super) use collection::{
 use bevy::ecs::hierarchy::ChildOf;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::ecs::system::SystemParam;
+pub(super) mod controller;
+
 use bevy::prelude::*;
 
 use super::account::Account;
@@ -56,6 +58,7 @@ const GOLD: Color = Color::srgb(1.0, 0.82, 0.0);
 #[derive(SystemParam)]
 pub(super) struct Pointer<'w> {
     clicks: Res<'w, GlueClicks>,
+    controller: Res<'w, controller::ControllerFocus>,
     mouse: Res<'w, ButtonInput<MouseButton>>,
 }
 
@@ -396,7 +399,7 @@ pub(super) fn input(
         }
     }
     for (entity, act, _) in &acts {
-        if !pointer.clicks.hit(entity) {
+        if !pointer.clicks.hit(entity) && pointer.controller.activated != Some(entity) {
             continue;
         }
         match act.clone() {

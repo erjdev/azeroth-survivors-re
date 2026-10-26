@@ -287,6 +287,24 @@ mod tests {
                 world.resource::<NextState<Phase>>(),
                 NextState::Unchanged
             ));
+            // A focused starter action owns Enter; the global start/resume shortcut cannot also run.
+            world
+                .init_resource::<super::super::super::super::armory::controller::ControllerFocus>();
+            world
+                .resource_mut::<super::super::super::super::armory::controller::ControllerFocus>()
+                .keyboard_selected = true;
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(KeyCode::Enter);
+            schedule.run(&mut world);
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Unchanged
+            ));
+            world
+                .resource_mut::<super::super::super::super::armory::controller::ControllerFocus>()
+                .keyboard_selected = false;
             // Held Enter does not reactivate anything after the modal is gone.
             world.resource_mut::<ButtonInput<KeyCode>>().clear();
             schedule.run(&mut world);
