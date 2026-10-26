@@ -120,6 +120,10 @@ Druid Restoration training previews explicit healing, cooldown and defensive ben
 
 ![Druid Restoration healing preview](docs/images/screenshots/2026-10-26-restoration-nodes/natures-focus-1280.png)
 
+Companion looks share the selection styling and keep locked appearances visibly unavailable.
+
+![Companion appearance controls](docs/images/screenshots/2026-10-26-companion-controls/looks-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

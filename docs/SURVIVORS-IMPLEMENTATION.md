@@ -4350,3 +4350,13 @@ scrollable Looks catalog. Screenshots are embedded in CHANGELOG and README.
 The actual-data model/icon test, native build, formatting and render lint pass;
 224 Survivors app integration tests passed before this icon-only change.
 In-world pet animation/scale acceptance and broader layout polish remain open.
+
+### Companion appearance control consistency — 2026-10-26
+
+Unlocked looks use the shared hover/pressed/selected control treatment. Locked
+looks retain their icon and achievement requirement without a Button/Act, so they
+are excluded from click and keyboard/controller action discovery. Native wide and
+compact previews verify selection by icon, locked Panda Cub rejection and readable
+scroll reachability. Screenshots are inline in CHANGELOG and the README gallery.
+Native build, workspace Clippy, formatting and render lint pass. Physical gamepad
+acceptance and in-world appearance validation remain open.

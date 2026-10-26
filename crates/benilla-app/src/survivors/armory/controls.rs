@@ -119,6 +119,22 @@ pub(super) fn action_card(
 
 /// Unavailable actions keep their place without receiving input.
 pub(super) fn disabled(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, node: Node) {
+    disabled_content(parent, node, |body| {
+        body.spawn(hud::text_bundle(
+            font,
+            label,
+            13.0,
+            Color::srgb(0.31, 0.28, 0.19),
+        ));
+    });
+}
+
+/// Illustrated locked choices remain readable without becoming focus or click targets.
+pub(super) fn disabled_content(
+    parent: &mut impl ChipParent,
+    node: Node,
+    content: impl FnOnce(&mut ChildSpawnerCommands),
+) {
     parent
         .spawn((
             Node {
@@ -130,14 +146,7 @@ pub(super) fn disabled(parent: &mut impl ChipParent, font: &Handle<Font>, label:
             BackgroundColor(Color::srgb(0.025, 0.02, 0.01)),
             BorderColor::all(Color::srgb(0.16, 0.13, 0.06)),
         ))
-        .with_children(|body| {
-            body.spawn(hud::text_bundle(
-                font,
-                label,
-                13.0,
-                Color::srgb(0.31, 0.28, 0.19),
-            ));
-        });
+        .with_children(content);
 }
 
 pub(in crate::survivors) fn style(

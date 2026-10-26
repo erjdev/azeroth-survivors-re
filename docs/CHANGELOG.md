@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Companion appearance controls
+
+Companion looks now share the gold hover outline and burgundy selection treatment
+used by Tabards. Locked looks keep their achievement labels but no longer expose
+click or keyboard/controller action targets.
+
+![Selected Companion appearance](images/screenshots/2026-10-26-companion-controls/looks-1280.png)
+
+![Compact Companion appearances](images/screenshots/2026-10-26-companion-controls/looks-640.png)
+
+Native 1280×720 and 640×720 checks verify icon clicks, selection changes, locked
+Panda Cub rejection and readable scrolling with a synthetic account. Native build,
+workspace Clippy, formatting and render lint pass. Physical controller acceptance
+and in-world companion appearance remain separate validation work.
+
 ## 2026-10-26 — Druid Restoration training
 
 Five more talents replace generic damage with explicit armor, damage reduction,

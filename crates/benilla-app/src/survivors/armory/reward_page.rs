@@ -451,26 +451,13 @@ pub(super) fn looks(
             for (index, look) in super::super::companions::LOOKS.iter().enumerate() {
                 let selected = worn == index as u8;
                 let unlocked = account.look_unlocked(index as u8);
-                grid.spawn((
-                    Button,
-                    Act::WearLook(index as u8),
-                    Node {
-                        min_width: Val::Px(0.0),
-                        align_items: AlignItems::Center,
-                        column_gap: Val::Px(8.0),
-                        padding: UiRect::all(Val::Px(8.0)),
-                        border: UiRect::all(Val::Px(1.0)),
-                        border_radius: BorderRadius::all(Val::Px(4.0)),
-                        ..default()
-                    },
-                    BackgroundColor(if selected {
-                        Color::srgb(0.14, 0.10, 0.035)
-                    } else {
-                        Color::srgb(0.025, 0.02, 0.012)
-                    }),
-                    BorderColor::all(if selected { GOLD } else { FRAME }),
-                ))
-                .with_children(|card| {
+                let node = Node {
+                    min_width: Val::Px(0.0),
+                    column_gap: Val::Px(8.0),
+                    padding: UiRect::all(Val::Px(8.0)),
+                    ..default()
+                };
+                let content = |card: &mut ChildSpawnerCommands| {
                     card.spawn((
                         super::talent_page::Backdrop(format!(
                             "Interface\\Icons\\{}.blp",
@@ -517,7 +504,18 @@ pub(super) fn looks(
                             },
                         );
                     });
-                });
+                };
+                if unlocked {
+                    super::controls::content_button(
+                        grid,
+                        Act::WearLook(index as u8),
+                        selected,
+                        node,
+                        content,
+                    );
+                } else {
+                    super::controls::disabled_content(grid, node, content);
+                }
             }
         });
 }
