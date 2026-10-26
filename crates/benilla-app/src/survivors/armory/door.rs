@@ -1074,11 +1074,6 @@ fn gear_lines(
         .map(|p| p.pieces)
         .unwrap_or([0; campaign::PIECES]);
     let owned = campaign::owned_pieces(&pieces);
-    let worn = account
-        .classes
-        .get(class)
-        .map(|p| p.equipment.worn_pieces(&p.pieces))
-        .unwrap_or([0; campaign::PIECES]);
     body.spawn(Node {
         width: Val::Percent(100.0),
         display: Display::Grid,
@@ -1093,7 +1088,11 @@ fn gear_lines(
     })
     .with_children(|row| {
         for slot in 0..campaign::GRID_SLOTS {
-            let band = campaign::best_piece(&worn, slot).map(|(band, _)| band);
+            let progress = &account.classes[class];
+            let band = progress.equipment.worn[slot].map(usize::from);
+            let piece = progress
+                .equipment
+                .worn(class, &pieces, &account.supplemental, slot);
             row.spawn((
                 Button,
                 Act::OpenEquipment(slot),
@@ -1110,8 +1109,8 @@ fn gear_lines(
                 BackgroundColor(Color::srgb(0.025, 0.02, 0.01)),
             ))
             .with_children(|cell| {
-                if let Some(band) = band {
-                    super::super::gear_icons::spawn(cell, class, slot, band, 30.0);
+                if let Some(piece) = piece {
+                    super::super::gear_icons::spawn_visual(cell, piece.visual, 30.0);
                 } else {
                     cell.spawn(Node {
                         width: Val::Px(30.0),

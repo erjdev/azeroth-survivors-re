@@ -20,7 +20,39 @@ pub struct ResolvedPiece {
     pub bonus: Bonus,
 }
 
+// Read-only legacy access keeps collection-band inspection available during migration.
+impl std::ops::Deref for Loadout {
+    type Target = Equipment;
+    fn deref(&self) -> &Equipment {
+        &self.legacy
+    }
+}
+
 impl Loadout {
+    pub fn wear(&mut self, pieces: &[u8], slot: usize, band: Option<u8>) -> bool {
+        self.wear_legacy(pieces, slot, band)
+    }
+    pub fn show(&mut self, pieces: &[u8], slot: usize, look: Look) -> bool {
+        self.show_legacy(pieces, slot, look)
+    }
+    pub fn preview_wear_bonus(
+        &self,
+        class: usize,
+        pieces: &[u8],
+        owned: &Inventory,
+        slot: usize,
+        band: Option<u8>,
+    ) -> Option<(Bonus, Bonus)> {
+        let mut next = self.clone();
+        if !next.wear_legacy(pieces, slot, band) {
+            return None;
+        }
+        Some((
+            self.bonus(class, pieces, owned),
+            next.bonus(class, pieces, owned),
+        ))
+    }
+
     pub fn from_legacy(legacy: Equipment) -> Self {
         Self {
             legacy,

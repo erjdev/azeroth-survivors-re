@@ -328,15 +328,25 @@ pub(super) fn equipment(
         .enumerate()
     {
         let band = progress.equipment.worn[slot].map(usize::from);
-        let name = band
-            .and_then(|band| campaign::piece_name(class, slot, band))
-            .unwrap_or("Empty");
-        let color = band.map(super::door::band_color).unwrap_or(DIM);
+        let resolved =
+            progress
+                .equipment
+                .worn(class, &progress.pieces, &account.supplemental, slot);
+        let name = resolved.as_ref().map(|piece| piece.name).unwrap_or("Empty");
+        let key = progress.equipment.supplemental_worn()[slot].as_ref();
+        let color = band
+            .map(super::door::band_color)
+            .unwrap_or(Color::srgb(0.65, 0.65, 0.65));
         let index = band.unwrap_or(0) * campaign::GRID_SLOTS + slot;
-        let selected = armory.piece == index;
+        let selected = key.map_or(
+            armory.supplemental_piece.is_none() && armory.piece == index,
+            |key| armory.supplemental_piece.as_ref() == Some(key),
+        );
         ui.spawn((
             Button,
-            Act::InspectPiece(index),
+            key.map_or(Act::InspectPiece(index), |key| {
+                Act::InspectSupplemental(key.clone())
+            }),
             Node {
                 width: Val::Percent(100.0),
                 align_items: AlignItems::Center,
@@ -359,8 +369,8 @@ pub(super) fn equipment(
         ))
         .with_children(|entry| {
             let size = layout.body_size * 2.4;
-            if let Some(band) = band {
-                super::super::gear_icons::spawn(entry, class, slot, band, size);
+            if let Some(piece) = resolved {
+                super::super::gear_icons::spawn_visual(entry, piece.visual, size);
             } else {
                 entry.spawn((
                     Node {
@@ -388,12 +398,41 @@ pub(super) fn equipment(
                 });
         });
     }
+    if account
+        .supplemental
+        .keys()
+        .any(|key| survivors_core::supplemental_gear::by_key(key).is_some_and(|p| p.class == class))
+    {
+        super::typography::heading(
+            ui,
+            font,
+            "Additional collected gear",
+            layout.body_size,
+            GOLD,
+        );
+    }
+    for key in account.supplemental.keys() {
+        if let Some(piece) =
+            survivors_core::supplemental_gear::by_key(key).filter(|p| p.class == class)
+        {
+            chip(
+                ui,
+                font,
+                piece.name,
+                Act::InspectSupplemental(key.to_owned()),
+                armory.supplemental_piece.as_deref() == Some(key),
+            );
+        }
+    }
     super::typography::heading(ui, font, "Equipment bonuses", layout.title_size, GOLD);
-    let worn = progress.equipment.worn_pieces(&progress.pieces);
     text(
         ui,
         font,
-        super::door::bonus_line(campaign::equipped_bonus(&worn, None)),
+        super::door::bonus_line(progress.equipment.bonus(
+            class,
+            &progress.pieces,
+            &account.supplemental,
+        )),
         layout.body_size,
         BONUS,
     );
@@ -525,18 +564,26 @@ fn grid(
                         min_width: Val::Px(if compact { 54.0 } else { 0.0 }),
                         height: Val::Px(layout.cell_height + if compact { 20.0 } else { 0.0 }),
                         flex_direction: FlexDirection::Column,
-                        border: UiRect::all(Val::Px(if armory.piece == index { 2.0 } else { 1.0 })),
+                        border: UiRect::all(Val::Px(
+                            if armory.supplemental_piece.is_none() && armory.piece == index {
+                                2.0
+                            } else {
+                                1.0
+                            },
+                        )),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    BorderColor::all(if armory.piece == index {
-                        GOLD
-                    } else if owned {
-                        super::door::band_color(band)
-                    } else {
-                        Color::srgb(0.20, 0.18, 0.12)
-                    }),
+                    BorderColor::all(
+                        if armory.supplemental_piece.is_none() && armory.piece == index {
+                            GOLD
+                        } else if owned {
+                            super::door::band_color(band)
+                        } else {
+                            Color::srgb(0.20, 0.18, 0.12)
+                        },
+                    ),
                     BackgroundColor(Color::srgb(0.07, 0.06, 0.04)),
                 ))
                 .with_children(|cell| {
@@ -617,6 +664,95 @@ pub(super) fn detail(
 ) {
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
+    if let Some(piece) = armory
+        .supplemental_piece
+        .as_deref()
+        .and_then(survivors_core::supplemental_gear::by_key)
+        .filter(|p| p.class == class && account.supplemental.owns(class, &p.key))
+    {
+        super::super::gear_icons::spawn_visual(ui, piece.visual, layout.title_size * 2.6);
+        text(
+            ui,
+            font,
+            piece.name,
+            layout.title_size,
+            Color::srgb(0.65, 0.65, 0.65),
+        );
+        text(
+            ui,
+            font,
+            format!("Poor · {}", campaign::SLOTS[piece.slot]),
+            layout.body_size,
+            DIM,
+        );
+        text(
+            ui,
+            font,
+            super::door::bonus_line(piece.tier.piece_bonus(piece.slot)),
+            layout.body_size,
+            BONUS,
+        );
+        let equipped =
+            progress.equipment.supplemental_worn()[piece.slot].as_deref() == Some(&piece.key);
+        let mut preview = progress.equipment.clone();
+        if equipped {
+            preview.wear(&progress.pieces, piece.slot, None);
+        } else {
+            preview.wear_supplemental(class, &account.supplemental, piece.slot, &piece.key);
+        }
+        for (line, color) in hud::card_growth::bonus_changes(
+            progress
+                .equipment
+                .bonus(class, &progress.pieces, &account.supplemental),
+            preview.bonus(class, &progress.pieces, &account.supplemental),
+            "No change to equipment bonuses",
+        ) {
+            text(ui, font, line, layout.body_size, color);
+        }
+        chip(
+            ui,
+            font,
+            if equipped { "Unequip" } else { "Equip" },
+            if equipped {
+                Act::WearPiece(piece.slot, None)
+            } else {
+                Act::WearSupplemental(piece.key.clone())
+            },
+            equipped,
+        );
+        text(
+            ui,
+            font,
+            "Look · Only worn pieces add bonuses.",
+            layout.body_size,
+            DIM,
+        );
+        chip(
+            ui,
+            font,
+            "This piece",
+            Act::ShowSupplemental(piece.key.clone()),
+            progress.equipment.supplemental_looks()[piece.slot].as_deref() == Some(&piece.key),
+        );
+        for (label, look) in [("Worn piece", Look::Worn), ("Hidden", Look::Hidden)] {
+            chip(
+                ui,
+                font,
+                label,
+                Act::ShowPiece(piece.slot, look),
+                progress.equipment.supplemental_looks()[piece.slot].is_none()
+                    && progress.equipment.looks[piece.slot] == look,
+            );
+        }
+        text(
+            ui,
+            font,
+            "Drop source not yet available",
+            layout.body_size,
+            DIM,
+        );
+        return;
+    }
     let selected = armory.piece.min(campaign::PIECES - 1);
     let slot = selected % campaign::GRID_SLOTS;
     let band = selected / campaign::GRID_SLOTS;
@@ -730,11 +866,13 @@ pub(super) fn detail(
     if owned {
         let equipped = progress.equipment.worn[slot] == Some(band as u8);
         let target = if equipped { None } else { Some(band as u8) };
-        if let Some((before, after)) =
-            progress
-                .equipment
-                .preview_wear_bonus(&progress.pieces, slot, target)
-        {
+        if let Some((before, after)) = progress.equipment.preview_wear_bonus(
+            class,
+            &progress.pieces,
+            &account.supplemental,
+            slot,
+            target,
+        ) {
             text(
                 ui,
                 font,
@@ -814,7 +952,8 @@ pub(super) fn look_controls(
                     font,
                     label,
                     Act::ShowPiece(slot, look),
-                    progress.equipment.looks[slot] == look,
+                    progress.equipment.supplemental_looks()[slot].is_none()
+                        && progress.equipment.looks[slot] == look,
                 );
             }
         }
@@ -874,11 +1013,13 @@ fn missing(
                     border: UiRect::all(Val::Px(1.0)),
                     ..default()
                 },
-                BorderColor::all(if armory.piece == index {
-                    GOLD
-                } else {
-                    Color::NONE
-                }),
+                BorderColor::all(
+                    if armory.supplemental_piece.is_none() && armory.piece == index {
+                        GOLD
+                    } else {
+                        Color::NONE
+                    },
+                ),
             ))
             .with_children(|entry| {
                 let size = layout.body_size * 2.5;
@@ -941,7 +1082,13 @@ mod tests {
                 let mut account = super::super::super::account::blank();
                 if owned {
                     account.classes[class].pieces.fill(1);
-                    account.classes[class].equipment.worn.fill(Some(0));
+                    for slot in 0..campaign::GRID_SLOTS {
+                        account.classes[class].equipment.wear(
+                            &[1; campaign::PIECES],
+                            slot,
+                            Some(0),
+                        );
+                    }
                 }
                 let selection = Selection {
                     class: Some(class),

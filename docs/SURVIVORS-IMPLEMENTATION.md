@@ -5162,3 +5162,19 @@ equip/appearance feature is claimed. This rules checkpoint has no visual change.
 
 Validation: 153 core tests, native build, all-target core Clippy, formatting and
 diff checks pass. No live UI or model acceptance was run for this core-only change.
+
+### 2026-10-26 — Live supplemental loadouts
+
+The account now adopts the shared loadout resolver for runtime stats, player
+appearance and equipment previews. Stable worn/look save rows are applied after
+ownership and legacy migration; malformed, unowned, foreign-class and wrong-slot
+references are ignored. Existing gear digits and legacy collection completion
+remain unchanged. New legacy drops do not overwrite an occupied supplemental slot.
+
+Owned Poor pieces can be inspected, equipped, unequipped or chosen as an independent
+appearance in Collection. The starter equipment strip resolves their real icons.
+UI invalidation includes supplemental ownership, worn and appearance choices.
+
+Still open: natural Poor acquisition, full catalog-row integration and completion
+semantics, raid-specific identities/acquisition/set builds, and Windows in-map
+appearance acceptance. This checkpoint does not grant Poor items to normal saves.

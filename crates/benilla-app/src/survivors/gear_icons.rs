@@ -17,6 +17,14 @@ pub(super) fn spawn(
     let Some(visual) = survivors_core::gear_visuals::piece(class, slot, band) else {
         return;
     };
+    spawn_visual(ui, visual, size);
+}
+
+pub(super) fn spawn_visual(
+    ui: &mut ChildSpawnerCommands,
+    visual: survivors_core::gear_visuals::GearVisual,
+    size: f32,
+) {
     ui.spawn((
         GearIcon(visual.display_id, Color::WHITE),
         ImageNode {

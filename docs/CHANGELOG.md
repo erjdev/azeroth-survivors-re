@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Poor gear equipment and appearance
+
+Owned Poor pieces now support inspection, equip/unequip and independent appearance
+choices. Their saved selections feed runtime bonuses, equipment icons and the
+player appearance resolver; existing collection progress stays intact.
+Natural drops and raid gear/set builds remain unfinished.
+
+Verified: 153 core tests, 295 data-required app tests, native build and Clippy.
+Menu checks at 1280×720 and 640×720 confirmed equip/unequip and hidden-look state.
+These screenshots use a seeded menu fixture; in-map and Windows appearance checks
+remain open.
+
+![Poor gloves: equip preview at 1280×720](images/screenshots/2026-10-26-poor-loadout/collection-1280.png)
+
+![Poor gloves: compact inspector with independent hidden appearance](images/screenshots/2026-10-26-poor-loadout/collection-640.png)
+
 ## 2026-10-26 — Unified gear resolution rules
 
 Added a shared resolver for legacy and supplemental worn pieces and appearances.

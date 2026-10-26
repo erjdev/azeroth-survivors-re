@@ -217,6 +217,7 @@ impl Request {
         armory.page = self.page;
         if let Some(piece) = self.piece {
             armory.piece = piece;
+            armory.supplemental_piece = None;
         }
         if let Some(category) = self.category {
             match self.page {

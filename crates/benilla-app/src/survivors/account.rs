@@ -94,7 +94,7 @@ fn blank_specs() -> [[u8; campaign::SPEC_LEN]; 3] {
 pub(super) struct ClassProgress {
     /// Ownership in the nine-by-six grid: zero is unseen, one is collected.
     pub pieces: [u8; campaign::PIECES],
-    pub equipment: super::equipment::Equipment,
+    pub equipment: survivors_core::gear_loadout::Loadout,
     pub legendary_weapon: bool,
     pub clears: [bool; campaign::CLEAR_COUNT],
     /// Legendary amulet names whose card has been dealt.
@@ -105,7 +105,7 @@ impl Default for ClassProgress {
     fn default() -> Self {
         Self {
             pieces: [0; campaign::PIECES],
-            equipment: super::equipment::Equipment::default(),
+            equipment: Default::default(),
             legendary_weapon: false,
             clears: [false; campaign::CLEAR_COUNT],
             seen: Vec::new(),
@@ -288,7 +288,11 @@ impl Account {
             return None;
         }
         progress.pieces[index] = 1;
-        if progress.equipment.worn[row.slot].is_none() {
+        if progress
+            .equipment
+            .worn(class, &progress.pieces, &self.supplemental, row.slot)
+            .is_none()
+        {
             progress
                 .equipment
                 .wear(&progress.pieces, row.slot, Some(row.band as u8));
@@ -312,6 +316,26 @@ impl Account {
         }
         self.dirty = true;
         true
+    }
+
+    pub fn select_supplemental(&mut self, class: usize, key: &str, cosmetic: bool) -> bool {
+        let Some(piece) = survivors_core::supplemental_gear::by_key(key) else {
+            return false;
+        };
+        let Some(progress) = self.classes.get_mut(class) else {
+            return false;
+        };
+        let changed = if cosmetic {
+            progress
+                .equipment
+                .show_supplemental(class, &self.supplemental, piece.slot, key)
+        } else {
+            progress
+                .equipment
+                .wear_supplemental(class, &self.supplemental, piece.slot, key)
+        };
+        self.dirty |= changed;
+        changed
     }
 
     pub fn show_piece(&mut self, class: usize, slot: usize, look: super::equipment::Look) -> bool {
@@ -440,7 +464,7 @@ impl Account {
         let Some(progress) = self.classes.get(class) else {
             return Bonus::default();
         };
-        let pieces = progress.equipment.worn_pieces(&progress.pieces);
+
         let hero = self
             .character(id)
             .filter(|hero| hero.class == class && self.talents_valid(hero));
@@ -456,7 +480,12 @@ impl Account {
             .map(|c| c.tree_points(usize::from(c.spec).min(2)))
             .unwrap_or([0; 3]);
         let cloak = campaign::cloak_quality(self.feats(class, id));
-        let mut total = campaign::equipped_bonus(&pieces, cloak);
+        let mut total = progress
+            .equipment
+            .bonus(class, &progress.pieces, &self.supplemental);
+        if let Some(quality) = cloak {
+            total.add(campaign::cloak_bonus(quality));
+        }
         if self.legendary_ready() {
             let cloak = campaign::cloak_bonus(Quality::Legendary);
             total.might += cloak.might;
@@ -1005,6 +1034,16 @@ fn encode(account: &Account) -> String {
         ));
         let (worn, looks) = class.equipment.encode();
         out.push_str(&format!("equipment {i} {worn} {looks}\n"));
+        for (kind, choices) in [
+            ("supplemental_worn", class.equipment.supplemental_worn()),
+            ("supplemental_look", class.equipment.supplemental_looks()),
+        ] {
+            for (slot, key) in choices.iter().enumerate() {
+                if let Some(key) = key {
+                    out.push_str(&format!("{kind} {i} {slot} {key}\n"));
+                }
+            }
+        }
         for name in &class.seen {
             out.push_str(&format!("seen {i} {}\n", escape(name)));
         }
@@ -1244,6 +1283,7 @@ fn parse(text: &str) -> Result<Account, ()> {
     let mut equipment_rows = Vec::new();
     let mut body_rows = Vec::new();
     let mut talent_rows = Vec::new();
+    let mut supplemental_choices = Vec::new();
     let mut feature_rows = Vec::new();
     for line in text.lines() {
         let line = line.trim();
@@ -1336,6 +1376,21 @@ fn parse(text: &str) -> Result<Account, ()> {
                 if let Some(progress) = account.classes.get_mut(index) {
                     if !name.is_empty() && !progress.seen.contains(&name) {
                         progress.seen.push(name);
+                    }
+                }
+            }
+            Some("supplemental_worn" | "supplemental_look") => {
+                let kind = line.split_whitespace().next().unwrap();
+                if let (Some(class), Some(slot), Some(key), None) =
+                    (parts.next(), parts.next(), parts.next(), parts.next())
+                {
+                    if let (Ok(class), Ok(slot)) = (class.parse::<usize>(), slot.parse::<usize>()) {
+                        supplemental_choices.push((
+                            kind == "supplemental_look",
+                            class,
+                            slot,
+                            key.to_string(),
+                        ));
                     }
                 }
             }
@@ -1437,13 +1492,26 @@ fn parse(text: &str) -> Result<Account, ()> {
         }
     }
     for (index, progress) in account.classes.iter_mut().enumerate() {
-        progress.equipment = if let Some((_, worn, looks)) =
-            equipment_rows.iter().rev().find(|row| row.0 == index)
-        {
-            super::equipment::Equipment::decode(worn, looks, &progress.pieces)
-        } else {
-            super::equipment::Equipment::legacy(&progress.pieces)
-        };
+        progress.equipment = survivors_core::gear_loadout::Loadout::from_legacy(
+            if let Some((_, worn, looks)) = equipment_rows.iter().rev().find(|row| row.0 == index) {
+                super::equipment::Equipment::decode(worn, looks, &progress.pieces)
+            } else {
+                super::equipment::Equipment::legacy(&progress.pieces)
+            },
+        );
+    }
+    for (look, class, slot, key) in supplemental_choices {
+        if let Some(progress) = account.classes.get_mut(class) {
+            if look {
+                progress
+                    .equipment
+                    .show_supplemental(class, &account.supplemental, slot, &key);
+            } else {
+                progress
+                    .equipment
+                    .wear_supplemental(class, &account.supplemental, slot, &key);
+            }
+        }
     }
     account
         .earned_dates
@@ -1663,6 +1731,66 @@ mod tests {
     }
 
     use super::*;
+
+    #[test]
+    fn supplemental_loadout_restores_after_ownership_and_preserves_cosmetic_independence() {
+        let base = parse("who 1 0 0 Test Warrior\n").unwrap();
+        let choices =
+            "supplemental_worn 0 7 poor:warrior:hands\nsupplemental_look 0 7 poor:warrior:hands\n";
+        let ownership = "supplemental 0 poor:warrior:hands\n";
+        for rows in [
+            format!("{choices}{ownership}"),
+            format!("{ownership}{choices}"),
+        ] {
+            let mut account = parse(&format!("who 1 0 0 Test Warrior\n{rows}")).unwrap();
+            assert_eq!(account.bonus(0, 1).health, base.bonus(0, 1).health + 8.0);
+            let saved = encode(&account);
+            account = parse(&saved).unwrap();
+            assert_eq!(
+                account.classes[0].equipment.supplemental_worn()[7].as_deref(),
+                Some("poor:warrior:hands")
+            );
+            assert_eq!(
+                account.classes[0].equipment.supplemental_looks()[7].as_deref(),
+                Some("poor:warrior:hands")
+            );
+            assert!(!account.dirty);
+            assert!(account.wear_piece(0, 7, None));
+            assert_eq!(account.bonus(0, 1).health, base.bonus(0, 1).health);
+            assert!(account.classes[0]
+                .equipment
+                .visible(0, &account.classes[0].pieces, &account.supplemental, 7)
+                .is_some());
+            assert!(account.select_supplemental(0, "poor:warrior:hands", false));
+            assert!(account.show_piece(0, 7, super::super::equipment::Look::Hidden));
+            assert_eq!(account.bonus(0, 1).health, base.bonus(0, 1).health + 8.0);
+            assert!(account.classes[0]
+                .equipment
+                .visible(0, &account.classes[0].pieces, &account.supplemental, 7)
+                .is_none());
+        }
+    }
+
+    #[test]
+    fn supplemental_loadout_rejects_unowned_foreign_and_wrong_slot_save_references() {
+        let rows = "supplemental 0 poor:warrior:hands\nsupplemental_worn 0 0 poor:warrior:hands\nsupplemental_worn 1 7 poor:warrior:hands\nsupplemental_worn 0 1 poor:warrior:shoulders\nsupplemental_look 0 7 poor:warrior:hands extra\n";
+        let mut account = parse(rows).unwrap();
+        for class in &account.classes {
+            assert!(class
+                .equipment
+                .supplemental_worn()
+                .iter()
+                .all(Option::is_none));
+            assert!(class
+                .equipment
+                .supplemental_looks()
+                .iter()
+                .all(Option::is_none));
+        }
+        assert!(!account.select_supplemental(1, "poor:warrior:hands", false));
+        assert!(!account.select_supplemental(0, "poor:warrior:shoulders", true));
+        assert!(!account.dirty);
+    }
 
     #[test]
     fn supplemental_ownership_round_trips_without_changing_legacy_progress_or_power() {

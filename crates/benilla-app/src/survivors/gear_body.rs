@@ -4,7 +4,7 @@ use crate::entities::{CharCreate, Creatures};
 use crate::net::{NetEntity, ObjectStore};
 use benilla_protocol::{EntityKind, ObjectFields};
 use bevy::prelude::*;
-use survivors_core::{campaign, gear_visuals};
+use survivors_core::campaign;
 
 // 1.12.1 public descriptor layout, shared with ObjectFields' player readers.
 const VISIBLE_ENTRY: u16 = 260;
@@ -45,18 +45,21 @@ pub(super) fn sync(
     let Some(progress) = account.classes.get(class) else {
         return;
     };
-    let visible = progress.equipment.visible_bands(&progress.pieces);
     let mut entries = [0; 19];
     let mut ranged = false;
-    for (slot, band) in visible.into_iter().enumerate() {
-        let Some(band) = band else { continue };
-        let Some(visual) = gear_visuals::piece(class, slot, usize::from(band)) else {
+    for slot in 0..campaign::GRID_SLOTS {
+        let Some(piece) =
+            progress
+                .equipment
+                .visible(class, &progress.pieces, &account.supplemental, slot)
+        else {
             continue;
         };
+        let visual = piece.visual;
         let target = render_slot(slot, visual.inventory_type);
         let Some(target) = target else { continue };
         if items.template_cached(visual.item_id).is_none() {
-            let name = campaign::piece_name(class, slot, usize::from(band)).unwrap();
+            let name = piece.name;
             items.insert_template(
                 visual.item_id,
                 Some(super::gear_template::template(name, visual)),

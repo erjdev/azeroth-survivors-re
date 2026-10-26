@@ -168,6 +168,7 @@ pub(super) struct Armory {
     /// Which companion the Looks row dresses.
     pet_slot: u8,
     piece: usize,
+    supplemental_piece: Option<String>,
     collection_scroll: Vec2,
     drop_zone: usize,
     drop_scroll: Vec2,
@@ -195,6 +196,7 @@ impl Default for Armory {
             reward_draft: reward_draft::Draft::default(),
             pet_slot: 0,
             piece: 0,
+            supplemental_piece: None,
             collection_scroll: Vec2::ZERO,
             drop_zone: 0,
             drop_scroll: Vec2::ZERO,
@@ -271,6 +273,9 @@ pub(super) enum Act {
     Tabard(u8),
     Talent(u32),
     InspectPiece(usize),
+    InspectSupplemental(String),
+    WearSupplemental(String),
+    ShowSupplemental(String),
     OpenEquipment(usize),
     WearPiece(usize, Option<u8>),
     ShowPiece(usize, super::equipment::Look),
@@ -415,10 +420,23 @@ pub(super) fn input(
                 armory.manage_heroes = open;
                 armory.focus = 0;
             }
-            Act::InspectPiece(index) => armory.piece = index.min(campaign::PIECES - 1),
+            Act::InspectPiece(index) => {
+                armory.piece = index.min(campaign::PIECES - 1);
+                armory.supplemental_piece = None;
+            }
+            Act::InspectSupplemental(key) => armory.supplemental_piece = Some(key),
+            Act::WearSupplemental(key) | Act::ShowSupplemental(key) => {
+                let class = picked_class(&account, &selection);
+                if account.select_supplemental(class, &key, matches!(act, Act::ShowSupplemental(_)))
+                {
+                    account.save();
+                }
+            }
             Act::OpenEquipment(slot) => {
                 let class = picked_class(&account, &selection);
                 let slot = slot.min(campaign::GRID_SLOTS - 1);
+                armory.supplemental_piece =
+                    account.classes[class].equipment.supplemental_worn()[slot].clone();
                 let band = account.classes[class].equipment.worn[slot].unwrap_or(0);
                 armory.piece = usize::from(band) * campaign::GRID_SLOTS + slot;
                 armory.open_page(Page::Collection);
@@ -2015,6 +2033,10 @@ fn signature(
     }
     n = fold(n, u64::from(armory.pet_slot));
     n = fold(n, armory.piece as u64);
+    n = fold(
+        n,
+        hash_str(armory.supplemental_piece.as_deref().unwrap_or("")),
+    );
     n = fold(n, armory.drop_zone as u64);
     // Codex selection updates its detail text in place, preserving catalog scrolling.
     n = fold(n, armory.picked.unwrap_or(99) as u64);
@@ -2046,7 +2068,18 @@ fn signature(
             }
         }
     }
+    for key in account.supplemental.keys() {
+        n = fold(n, hash_str(key));
+    }
     for class in &account.classes {
+        for key in class
+            .equipment
+            .supplemental_worn()
+            .iter()
+            .chain(class.equipment.supplemental_looks())
+        {
+            n = fold(n, hash_str(key.as_deref().unwrap_or("")));
+        }
         let (worn, looks) = class.equipment.encode();
         n = fold(n, hash_str(&worn));
         n = fold(n, hash_str(&looks));
