@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Collection item identity card
+
+The selected item's icon, name, quality and ownership now share a compact bordered
+card, following the Collection intention. Names wrap within the available width;
+the card grows vertically instead of clipping them.
+
+![Collection item card at 1280×720](images/screenshots/2026-10-25-collection-header/collection-1280.jpg)
+
+![Collection item card at 640×720](images/screenshots/2026-10-25-collection-header/collection-640.jpg)
+
+Native build, workspace Clippy, formatting and render-pass lint pass. An isolated
+collected Warrior fixture verified selection changes and a long shoulder name at
+both sizes. This is presentation-only. Full collection-page visual acceptance,
+Poor drops and distinct raid-epic/set content remain open.
+
 ## 2026-10-25 — Rogue proc combat regression
 
 The actual auto-cast system now has regression coverage for all four Remorseless

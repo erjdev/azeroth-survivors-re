@@ -306,10 +306,15 @@ shown on the starter. Initial values still need combat balance testing.
 
 ![Orc racial bonuses](docs/images/screenshots/2026-10-25-racial-bonuses/orc-1280.jpg)
 
-Five Rogue talents now have explicit spell effects and truthful rank previews.
+Thirteen Rogue talents now have explicit effects and truthful rank previews.
 Rogue coverage is still incomplete.
 
 ![Rogue conditional talent preview](docs/images/screenshots/2026-10-25-remorseless-attacks/talent-1280.jpg)
+
+The Collection detail card groups item identity following the intention design;
+long names wrap with the available panel width.
+
+![Collection item identity card](docs/images/screenshots/2026-10-25-collection-header/collection-1280.jpg)
 
 ## Interface gallery
 

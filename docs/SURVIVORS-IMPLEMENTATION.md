@@ -18,6 +18,12 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Collection detail now groups icon/name/quality/ownership in the bordered identity
+card from the Collection intention. A collected Warrior fixture verifies selection
+changes and long-name wrapping at 1280×720 and 640×720, with inline changelog
+captures. This does not complete collection-page styling or the item catalog:
+Poor drops and distinct raid-epic identities, acquisition and set builds remain open.
+
 Rogue has thirteen explicit individual talents: Remorseless Attacks, Lightning Reflexes, Deflection,
 Camouflage, Sleight of Hand, Improved Eviscerate, Malice,
 Improved Sinister Strike, Serrated Blades, Deadliness, Improved Gouge, Lethality

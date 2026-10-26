@@ -621,36 +621,68 @@ pub(super) fn detail(
     let band = selected / campaign::GRID_SLOTS;
     let name = campaign::piece_name(class, slot, band);
     let owned = progress.pieces[selected] > 0;
-    super::super::gear_icons::spawn(ui, class, slot, band, layout.title_size * 3.0);
-    text(
-        ui,
-        font,
-        name.unwrap_or("Item content not yet available"),
-        layout.title_size,
-        super::door::band_color(band),
-    );
-    text(
-        ui,
-        font,
-        format!(
-            "{} · {}",
-            campaign::BANDS_NAMED[band],
-            campaign::SLOTS[slot]
-        ),
-        layout.body_size,
-        DIM,
-    );
-    text(
-        ui,
-        font,
-        if owned {
-            "In your collection"
-        } else {
-            "Not collected"
+    ui.spawn((
+        Node {
+            width: Val::Percent(100.0),
+            flex_shrink: 0.0,
+            align_items: AlignItems::Center,
+            column_gap: Val::Px(layout.gap),
+            padding: UiRect::all(Val::Px(layout.padding * 0.7)),
+            border: UiRect::all(Val::Px(1.0)),
+            border_radius: BorderRadius::all(Val::Px(5.0)),
+            ..default()
         },
-        layout.body_size,
-        if owned { BONUS } else { DIM },
-    );
+        BackgroundColor(Color::srgb(0.13, 0.12, 0.10)),
+        BorderColor::all(super::door::band_color(band).with_alpha(0.65)),
+    ))
+    .with_children(|card| {
+        card.spawn(Node {
+            flex_shrink: 0.0,
+            ..default()
+        })
+        .with_children(|icon| {
+            super::super::gear_icons::spawn(icon, class, slot, band, layout.title_size * 2.6);
+        });
+        card.spawn(Node {
+            flex_grow: 1.0,
+            flex_basis: Val::Px(0.0),
+            min_width: Val::Px(0.0),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(layout.gap * 0.25),
+            ..default()
+        })
+        .with_children(|labels| {
+            text(
+                labels,
+                font,
+                name.unwrap_or("Item content not yet available"),
+                layout.body_size * 1.15,
+                super::door::band_color(band),
+            );
+            text(
+                labels,
+                font,
+                format!(
+                    "{} · {}",
+                    campaign::BANDS_NAMED[band],
+                    campaign::SLOTS[slot]
+                ),
+                layout.body_size,
+                DIM,
+            );
+            text(
+                labels,
+                font,
+                if owned {
+                    "In your collection"
+                } else {
+                    "Not collected"
+                },
+                layout.body_size,
+                if owned { BONUS } else { DIM },
+            );
+        });
+    });
     if name.is_some() {
         text(
             ui,
