@@ -32,7 +32,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 <table>
   <tr>
     <td width="50%"><strong>Starter</strong><br><img src="docs/images/screenshots/2026-10-25-starter-actions/starter-1280.png" alt="Starter"><br>2026-10-25 · Class, hero and zone selection.</td>
-    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-26-hunter-appearance/night-elf-female.png" alt="Character"><br>2026-10-26 · Selected identity, equipment and independent appearance.</td>
+    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-26-feature-dots/character-1280.png" alt="Character"><br>2026-10-26 · Selected identity, equipment and independent appearance.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Hero management</strong><br><img src="docs/images/screenshots/2026-10-25-character-acceptance/roster-640.jpg" alt="Hero management"><br>2026-10-25 · Saved heroes and creation at compact width.</td>

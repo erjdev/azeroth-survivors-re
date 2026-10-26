@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Appearance choice indicators
+
+Character customization now includes the intention design's position dots below
+each counter. The selected dot updates in place when cycling choices, preserving
+scroll position. Indicators scale with the interface typography.
+
+![Character choice indicators](images/screenshots/2026-10-26-feature-dots/character-1280.png)
+
+![Compact feature controls](images/screenshots/2026-10-26-feature-dots/character-640.png)
+
+Native 1280×720 and 640×720 checks confirm selection changes and wraparound for
+Night Elf hair styles. Native build, app Clippy, formatting and diff checks pass.
+Windows visual acceptance remains open.
+
 ## 2026-10-26 — Hunter appearance verification
 
 Verified Dwarf and Night Elf, male and female, on the native Character page at

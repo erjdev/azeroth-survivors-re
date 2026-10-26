@@ -482,6 +482,17 @@ mod tests {
 #[derive(Component)]
 pub(in crate::survivors) struct FeatureValue(pub usize);
 
+#[derive(Component)]
+pub(in crate::survivors) struct FeatureDot(pub usize, pub u8);
+
+pub(super) fn feature_dot_color(selected: bool) -> Color {
+    if selected {
+        GOLD
+    } else {
+        Color::srgb(0.24, 0.20, 0.12)
+    }
+}
+
 fn feature_controls(
     body: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
@@ -533,6 +544,31 @@ fn feature_controls(
                         GOLD,
                     ),
                 ));
+                value
+                    .spawn(Node {
+                        width: Val::Percent(100.0),
+                        justify_content: JustifyContent::Center,
+                        column_gap: Val::Px(layout.body_size * 0.12),
+                        ..default()
+                    })
+                    .with_children(|dots| {
+                        for position in 0..features.counts[i] {
+                            dots.spawn((
+                                FeatureDot(i, position),
+                                Node {
+                                    flex_basis: Val::Px(0.0),
+                                    flex_grow: 1.0,
+                                    min_width: Val::Px(0.0),
+                                    max_width: Val::Px(layout.body_size * 0.32),
+                                    height: Val::Px(layout.body_size * 0.32),
+                                    aspect_ratio: Some(1.0),
+                                    border_radius: BorderRadius::MAX,
+                                    ..default()
+                                },
+                                BackgroundColor(feature_dot_color(position == features.values[i])),
+                            ));
+                        }
+                    });
             });
             super::chip(row, font, ">", super::Act::Feature(i, 1), false);
         });

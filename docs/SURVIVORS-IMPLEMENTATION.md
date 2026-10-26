@@ -4983,3 +4983,16 @@ This adds evidence for these four unequipped Hunter bodies only. It does not pro
 all feature values, gear attachment combinations, every race/class, starter-panel
 resolution parity or Windows behavior. No runtime code changed and no code tests
 were rerun. The validation application was closed and its launcher restored.
+
+
+### 2026-10-26 — Character appearance position indicators
+
+Added the reference design's gold selected/dim unselected position dots under each
+appearance counter. Dot counts use the loaded race/body options; selection colors
+update without rebuilding the page. Sizing follows interface typography and fits
+within the available control width. Native Night Elf Hunter checks at 1280×720
+verified hair-style wraparound 7→1; at 640×720, 1→2 updates the indicator without
+resetting the scrolled feature panel. Both captures are embedded in CHANGELOG;
+README's existing Character cell is updated. Native build and app Clippy pass.
+This is menu evidence only; Windows gameplay reports remain open for exact-scene
+acceptance as recorded in the playtest correction milestone.

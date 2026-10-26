@@ -907,6 +907,7 @@ pub(super) fn refresh(
     mut drawn: Local<Option<(u64, u64)>>,
     mut root_id: Local<Option<Entity>>,
     mut feature_values: Query<(&character::FeatureValue, &mut Text)>,
+    mut feature_dots: Query<(&character::FeatureDot, &mut BackgroundColor)>,
 ) {
     if *phase.get() != Phase::Menu {
         return;
@@ -945,6 +946,12 @@ pub(super) fn refresh(
     // Features change the compositor and these counters, not the layout. Keep the
     // tree (and its focus, scrolling and preview) alive while the player edits.
     if let Some(features) = &features {
+        for (dot, mut color) in &mut feature_dots {
+            let next = character::feature_dot_color(features.values[dot.0] == dot.1);
+            if color.0 != next {
+                color.0 = next;
+            }
+        }
         for (dial, mut text) in &mut feature_values {
             let value = format!(
                 "{} / {}",
