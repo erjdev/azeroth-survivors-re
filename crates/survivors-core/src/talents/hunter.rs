@@ -1,10 +1,13 @@
 //! Authored automatic Beast Mastery milestones for the Survivors combat wolf.
-use super::Milestones;
+use super::{Milestones, TalentStat};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PetBonus {
     pub damage: f32,
     pub cooldown: f32,
+    pub crit: f32,
+    pub frenzy_chance: f32,
+    pub speed: f32,
 }
 
 impl Default for PetBonus {
@@ -12,6 +15,34 @@ impl Default for PetBonus {
         Self {
             damage: 1.0,
             cooldown: 1.0,
+            crit: 0.0,
+            frenzy_chance: 0.0,
+            speed: 1.0,
+        }
+    }
+}
+
+/// A critical-triggered buff; repeated procs refresh duration rather than stack haste.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct PetFrenzy {
+    remaining: f32,
+}
+impl PetFrenzy {
+    pub fn advance(&mut self, seconds: f32) {
+        if seconds.is_finite() && seconds > 0.0 {
+            self.remaining = (self.remaining - seconds).max(0.0);
+        }
+    }
+    pub fn critical(&mut self, chance: f32, roll: f32) {
+        if (0.0..1.0).contains(&roll) && roll < chance.clamp(0.0, 1.0) {
+            self.remaining = 8.0;
+        }
+    }
+    pub fn haste(self) -> f32 {
+        if self.remaining > 0.0 {
+            0.3
+        } else {
+            0.0
         }
     }
 }
@@ -23,6 +54,10 @@ impl Milestones {
         if self.class != 2 {
             return bonus;
         }
+        bonus.damage *= 1.0 + self.trained_value(TalentStat::PetDamage);
+        bonus.crit = self.trained_value(TalentStat::PetCrit);
+        bonus.frenzy_chance = self.trained_value(TalentStat::PetFrenzy);
+        bonus.speed += self.trained_value(TalentStat::PetSpeed);
         if self.points[0] >= 10 {
             bonus.damage *= 1.2;
         }
@@ -39,6 +74,59 @@ impl Milestones {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pet_training_is_bounded_resettable_and_multiplies_milestones() {
+        let base = Milestones {
+            class: 2,
+            points: [30, 0, 0],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (0, 1396, 255),
+            (0, 1393, 255),
+            (0, 1397, 255),
+            (0, 1391, 255),
+        ]);
+        let bonus = trained.hunter_pet(0.0);
+        assert!((bonus.damage - 2.16).abs() < 0.00001);
+        assert_eq!(bonus.cooldown, 0.8);
+        assert!((bonus.crit - 0.1).abs() < 0.00001);
+        assert_eq!(bonus.frenzy_chance, 1.0);
+        assert_eq!(bonus.speed, 1.3);
+        assert_eq!(trained.with_ranks(&[]), base);
+        for rank in 0..=5 {
+            let m = base.with_ranks(&[(0, 1396, rank), (0, 1393, rank), (0, 1397, rank)]);
+            let b = m.hunter_pet(10.0);
+            assert!((b.damage - 1.2 * (1.0 + 0.04 * f32::from(rank))).abs() < 0.00001);
+            assert!((b.crit - 0.02 * f32::from(rank)).abs() < 0.00001);
+            assert!((b.frenzy_chance - 0.2 * f32::from(rank)).abs() < 0.00001);
+            assert_eq!(m.cast("arcane_shot"), super::super::CastEffect::default());
+        }
+        for id in [1396, 1393, 1397, 1391] {
+            let node = super::super::talent_definition(2, id).unwrap();
+            assert!(!node.rank_preview(0).contains("pending"));
+        }
+    }
+
+    #[test]
+    fn frenzy_expires_and_refreshes_without_stacking() {
+        let mut state = PetFrenzy::default();
+        for roll in [-1.0, 0.2, 1.0, f32::NAN] {
+            state.critical(0.2, roll);
+        }
+        assert_eq!(state.haste(), 0.0);
+        state.critical(0.2, 0.199);
+        assert_eq!(state.haste(), 0.3);
+        state.advance(7.5);
+        state.critical(1.0, 0.5);
+        state.advance(7.5);
+        assert_eq!(state.haste(), 0.3);
+        state.advance(0.5);
+        assert_eq!(state.haste(), 0.0);
+        state.critical(0.0, 0.0);
+        assert_eq!(state.haste(), 0.0);
+    }
+
     #[test]
     fn thresholds_and_periodic_wrath_are_pet_only() {
         let at = |points| Milestones {

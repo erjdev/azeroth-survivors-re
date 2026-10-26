@@ -4,6 +4,27 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Individual Beast Mastery training
+
+Unleashed Fury, Ferocity, Frenzy and Bestial Swiftness now affect the combat wolf.
+Bites use global critical chance/damage; trained criticals can refresh an eight-second
+haste buff. Pet damage, haste and movement bonuses combine with the automatic
+milestones while leaving pickup companions and Hunter spell bonuses separate.
+
+157 core and 307 data-required app tests pass, including real critical damage,
+cooldown changes, grounded movement, rank bounds and buff expiry/refresh. Other
+pet talents, health/threat and live combat acceptance remain unfinished.
+
+The DBC audit reports 196/432 individual talents. Clippy, native build and formatting
+pass. The seeded 30-point spec and its text were inspected at 1280×720 and 640×720.
+
+![Trained Frenzy and next-rank chance](images/screenshots/2026-10-26-beast-training/frenzy-1280.png)
+
+![Ferocity at maximum rank](images/screenshots/2026-10-26-beast-training/ferocity-1280.png)
+
+![Compact Frenzy details after scrolling](images/screenshots/2026-10-26-beast-training/frenzy-640.png)
+
+
 ## 2026-10-26 — Beast Mastery milestones
 
 The Hunter wolf now gains Unleashed Fury (+20% bite damage), automatic Frenzy

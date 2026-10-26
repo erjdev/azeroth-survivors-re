@@ -5268,3 +5268,38 @@ Bestial Wrath remains fully readable after scrolling at 640×720. Captures under
 and are embedded in CHANGELOG and the existing README talent gallery. They prove
 menu presentation, not in-map pet rendering or balance. Clippy and native build
 pass; a final text-only glyph/unit correction was rebuilt and visually checked.
+
+### Individual Beast Mastery combat training — 2026-10-26
+
+The local 1.12.1 catalog verifies Unleashed Fury 1396 (5 ranks), Ferocity 1393
+(5), Frenzy 1397 (5, requires Ferocity 5), and Bestial Swiftness 1391 (1).
+The existing saved-spec validator continues to enforce DBC row/prerequisite rules.
+
+- Unleashed Fury: +4% pet damage/rank, multiplying the automatic damage milestones.
+- Ferocity: +2 percentage points pet crit/rank, added to global critical chance.
+  Wolf bites now use global critical damage; each extra melee victim rolls separately.
+- Frenzy: 20% proc chance/rank on positive-damage pet criticals for 30% bite haste
+  over 8 seconds. Repeat procs refresh to 8 seconds without stacking. The triggering
+  bite starts the shortened cooldown; an already-running cooldown is not rescaled
+  when the buff expires. Pause/selection screens freeze the timer.
+- Bestial Swiftness: +30% grounded pet movement speed, leaving melee reach and the
+  18-yard hero leash unchanged.
+
+These pet-only nodes replace their temporary per-point global damage fallback;
+Hunter spells and pickup companions gain none of the explicit pet bonuses. Full
+training and damage milestones produce ×2.16 bite damage during Wrath. The automatic
+Frenzy milestone and active proc combine to a 1.6 / 1.3 ≈ 1.231-second bite cooldown.
+Pet health/threat, other pet nodes, live rendering/pathing and balance remain open.
+
+Validation: 157 core and 307 data-required app tests pass. The new checks cover
+rank bounds/reset, composition and isolation, Frenzy proc thresholds and nonstacking
+refresh/expiry, deterministic real critical damage and cooldowns, and actual
+supported movement with/without Bestial Swiftness. No live balance claim is made.
+
+The local DBC coverage audit reports 196/432 individual nodes and 81/81 milestone
+definitions. Clippy, native build, formatting and diff checks pass. Native menu
+screenshots under `docs/images/screenshots/2026-10-26-beast-training/` show the valid
+30-point seeded spec, Frenzy's next-rank chance and Ferocity's maximum-rank value.
+The compact capture verifies the full Frenzy text after scrolling. Screenshots are
+embedded in CHANGELOG and the existing README talent gallery; they do not certify
+in-map animation, live pathing, Windows presentation or combat balance.

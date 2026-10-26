@@ -16,6 +16,7 @@ const SOURCE: &str = "Hunter Pet";
 #[derive(Component, Default)]
 pub(super) struct HunterPet {
     cooldown: f32,
+    frenzy: survivors_core::talents::PetFrenzy,
 }
 
 #[allow(clippy::type_complexity)]
@@ -30,6 +31,7 @@ pub(super) fn fight(
     mut pets: Query<(Entity, &mut Transform, &mut MovementState, &mut HunterPet), Without<Hero>>,
     mut navigation: Local<Navigation>,
     mut hits: MessageWriter<Hit>,
+    mut rng: ResMut<super::Rng>,
     mut fx: units::Fx,
 ) {
     if !run.alive() || run.class.id != 3 {
@@ -82,6 +84,7 @@ pub(super) fn fight(
         movement.flags = 0;
         movement.speed = 0.0;
         pet.cooldown = (pet.cooldown - dt).max(0.0);
+        pet.frenzy.advance(dt);
         let at = tf.translation;
         // Full 3D distances prevent biting enemies on another floor.
         let target = (at.distance(hpos) <= LEASH)
@@ -129,17 +132,22 @@ pub(super) fn fight(
                         .total_cmp(&b.translation.distance_squared(at))
                 });
                 for (victim, _, _) in victims.into_iter().take(1 + stats.targets as usize) {
-                    let mut hit = Hit::direct(victim, damage, false);
+                    let critical = rng.f32() < (stats.crit + bonus.crit).clamp(0.0, 1.0);
+                    let damage = damage * if critical { stats.crit_damage } else { 1.0 };
+                    if critical && damage > 0.0 {
+                        pet.frenzy.critical(bonus.frenzy_chance, rng.f32());
+                    }
+                    let mut hit = Hit::direct(victim, damage, critical);
                     hit.source = SOURCE;
                     hits.write(hit);
                     fx.swing(entity, victim, damage);
                 }
-                pet.cooldown = 2.0 * bonus.cooldown;
+                pet.cooldown = 2.0 * bonus.cooldown / (1.0 + pet.frenzy.haste());
             }
         } else if !in_reach || target.is_some() {
             let waypoint = navigation.waypoint(entity, at, goal).unwrap_or(goal);
             let dir = units::flat(waypoint - at);
-            let speed = stats.speed.max(7.0) * 1.15;
+            let speed = stats.speed.max(7.0) * 1.15 * bonus.speed;
             let step = (speed * dt).min(dir.length());
             let desired = at + dir.normalize_or_zero() * step;
             let end = world.travel(at, desired, RADIUS);
@@ -184,7 +192,7 @@ mod tests {
             })
             .insert_resource(super::super::account::empty())
             .init_resource::<Selection>()
-            .init_resource::<Rng>()
+            .insert_resource(Rng(1))
             .init_resource::<PlaySeq>()
             .init_resource::<PendingHits>()
             .add_message::<Hit>()
@@ -294,6 +302,68 @@ mod tests {
                 .count(),
             0
         );
+    }
+
+    #[test]
+    fn trained_bites_crit_and_proc_frenzy_without_buffing_untrained_pet() {
+        for trained in [false, true] {
+            let mut app = setup();
+            app.insert_resource(Rng(16)); // First roll 0.0758: above base crit, below trained crit.
+            app.world_mut().resource_mut::<Run>().milestones =
+                survivors_core::talents::Milestones {
+                    class: 2,
+                    ..Default::default()
+                }
+                .with_ranks(if trained {
+                    &[(0, 1396, 5), (0, 1393, 5), (0, 1397, 5)]
+                } else {
+                    &[]
+                });
+            let target = foe(&mut app, Vec3::X);
+            app.world_mut().get_mut::<Enemy>(target).unwrap().hp = 100.0;
+            app.world_mut().run_system_once(fight).unwrap();
+            app.world_mut().run_system_once(fight).unwrap();
+            let pet = app
+                .world_mut()
+                .query::<&HunterPet>()
+                .single(app.world())
+                .unwrap();
+            assert_eq!(pet.frenzy.haste(), if trained { 0.3 } else { 0.0 });
+            assert!((pet.cooldown - if trained { 2.0 / 1.3 } else { 2.0 }).abs() < 0.0001);
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            let damage = if trained { 19.2 } else { 8.0 };
+            assert!(
+                (app.world().get::<Enemy>(target).unwrap().hp - (100.0 - damage)).abs() < 0.0001
+            );
+        }
+    }
+
+    #[test]
+    fn bestial_swiftness_increases_real_grounded_movement() {
+        let mut distances = vec![];
+        for rank in [0, 1] {
+            let mut app = setup();
+            app.world_mut().resource_mut::<Run>().milestones =
+                survivors_core::talents::Milestones {
+                    class: 2,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1391, rank)]);
+            foe(&mut app, Vec3::X * 4.0);
+            app.world_mut().run_system_once(fight).unwrap();
+            app.world_mut().run_system_once(fight).unwrap();
+            let pos = app
+                .world_mut()
+                .query_filtered::<&Transform, With<HunterPet>>()
+                .single(app.world())
+                .unwrap()
+                .translation;
+            assert!(pos.y.abs() < 0.01);
+            distances.push(pos.x);
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+        }
+        assert!(distances[0] > 0.0);
+        assert!((distances[1] / distances[0] - 1.3).abs() < 0.01);
     }
 
     #[test]

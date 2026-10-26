@@ -2,7 +2,7 @@
 
 mod druid;
 mod hunter;
-pub use hunter::PetBonus;
+pub use hunter::{PetBonus, PetFrenzy};
 mod shaman;
 mod warlock;
 
@@ -1373,6 +1373,10 @@ pub enum TalentStat {
     ImprovedRenew,
     SpiritualHealing,
     TotemHealing,
+    PetDamage,
+    PetCrit,
+    PetFrenzy,
+    PetSpeed,
     SiphonLife,
     Nightfall,
     SecondarySlowDuration(&'static str),
@@ -1468,6 +1472,13 @@ impl TalentDefinition {
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
+            TalentStat::PetDamage => (100.0, "% combat wolf bite damage"),
+            TalentStat::PetCrit => (100.0, " percentage points combat wolf critical chance"),
+            TalentStat::PetFrenzy => (
+                100.0,
+                "% chance per wolf critical for 30% bite haste for 8 sec",
+            ),
+            TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
@@ -1967,6 +1978,18 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1396, max_rank: 5, name: "Unleashed Fury",
+        description: "Combat wolf: +4% bite damage per rank, multiplying the Unleashed Fury milestone and Bestial Wrath. Does not affect Hunter spells or pickup companions",
+        stat: TalentStat::PetDamage, per_rank: 0.04 },
+    TalentDefinition { id: 1393, max_rank: 5, name: "Ferocity",
+        description: "Combat wolf: +2 percentage points bite critical chance per rank, added to global critical chance. Critical bites use global critical damage",
+        stat: TalentStat::PetCrit, per_rank: 0.02 },
+    TalentDefinition { id: 1397, max_rank: 5, name: "Frenzy",
+        description: "Wolf bite criticals: 20% chance per rank to grant 30% bite haste for 8 sec. Refreshes without stacking; combines with the automatic Frenzy milestone",
+        stat: TalentStat::PetFrenzy, per_rank: 0.2 },
+    TalentDefinition { id: 1391, max_rank: 1, name: "Bestial Swiftness",
+        description: "Combat wolf: +30% movement speed; melee reach, leash and pickup companions are unchanged",
+        stat: TalentStat::PetSpeed, per_rank: 0.3 },
     TalentDefinition {
         id: 1622, max_rank: 5, name: "Survivalist",
         description: "+2% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health",
@@ -2591,6 +2614,10 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
+            | TalentStat::PetDamage
+            | TalentStat::PetCrit
+            | TalentStat::PetFrenzy
+            | TalentStat::PetSpeed
             | TalentStat::SpiritualHealing
             | TalentStat::MaximumHealth
             | TalentStat::SiphonLife
@@ -3671,6 +3698,10 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing
+                    | TalentStat::PetDamage
+                    | TalentStat::PetCrit
+                    | TalentStat::PetFrenzy
+                    | TalentStat::PetSpeed
                     | TalentStat::SpiritualHealing
                     | TalentStat::MaximumHealth
                     | TalentStat::SiphonLife

@@ -29,11 +29,17 @@ These stay, and later phases read them instead of inventing a second copy.
   sweeps and local routes. Extra-target bonuses add nearby melee victims without increasing reach.
   It cannot bite through solid scenery or across floors.
   This initial companion has no threat or incoming damage; pet health/recovery and
-  individual pet talents remain planned. It does not occupy a collectible companion slot.
+  remaining individual pet talents remain planned. It does not occupy a collectible companion slot.
   Beast Mastery milestones: 10 points grants +20% bite damage; 20 points shortens
   the bite cooldown by 20%; 30 points grants a further ×1.5 bite damage during
   seconds 0–10 of each 30-second run-time cycle. These automatic adaptations affect
   neither Hunter shots nor pickup companions.
+  Individual training: Unleashed Fury adds 4% wolf damage per rank (5 ranks),
+  Ferocity adds 2 percentage points wolf critical chance per rank (5 ranks),
+  Frenzy grants a 20% chance per rank on wolf criticals for 30% bite haste for
+  8 seconds (5 ranks; refreshes without stacking), and Bestial Swiftness grants
+  30% wolf movement speed (1 rank). Bites use global critical chance/damage;
+  Frenzy haste divides the milestone-adjusted bite cooldown by 1.3 while active.
 - Achievement points buy perks and companion ranks. Two perk resets refund perk points and
   leave companion ranks. The first companion is free.
 - Cloak quality follows feats: talent cap, raid clear, a finished collection, every legendary
