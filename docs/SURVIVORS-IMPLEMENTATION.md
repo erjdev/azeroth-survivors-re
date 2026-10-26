@@ -5237,3 +5237,34 @@ reach, rejection of bites through a solid wall and local model availability. The
 headless checks do not replace live visual or Windows acceptance.
 
 App Clippy, the incremental native build, formatting and diff checks pass.
+
+### Beast Mastery automatic milestones — 2026-10-26
+
+| Points / milestone | Combat wolf effect |
+| --- | --- |
+| 10 · Unleashed Fury | Bite damage ×1.2 |
+| 20 · Frenzy | Bite cooldown ×0.8 (2 → 1.6 seconds) |
+| 30 · Bestial Wrath | Bite damage ×1.5 during the first 10 seconds of each 30-second run-time cycle |
+
+These are automatic Survivors adaptations, separate from individual DBC talent
+training. Frenzy is a passive cooldown benefit, not a critical-strike proc. Wrath
+starts active, ends at 10 seconds, and returns at 30 seconds; menu/pause time does
+not advance its clock. The two damage bonuses multiply (×1.8 during Wrath), then
+scale with the wolf's level and global damage. Shots, traps, Volley and collectible
+pickup companions receive no bonus. No immunity or pet tanking is implied.
+
+All 81 named class/tree milestones now have runtime effects and descriptions.
+This count does not complete the individual talent catalog, pet health/threat,
+visual combat acceptance, or class balance. Hunter pet health/recovery and the
+remaining Beast Mastery individual nodes are still open.
+
+155 core and 305 data-required app tests pass. New tests cover threshold boundaries,
+periodic Wrath activation/expiry, class/tree isolation, unchanged Hunter spells,
+and actual enemy health changes and bite cooldowns through the combat pipeline.
+
+Native menu evidence: all three Beast Mastery descriptions inspected at 1280×720;
+Bestial Wrath remains fully readable after scrolling at 640×720. Captures under
+`docs/images/screenshots/2026-10-26-beast-mastery/` use an empty saved-spec fixture
+and are embedded in CHANGELOG and the existing README talent gallery. They prove
+menu presentation, not in-map pet rendering or balance. Clippy and native build
+pass; a final text-only glyph/unit correction was rebuilt and visually checked.

@@ -4,6 +4,30 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Beast Mastery milestones
+
+The Hunter wolf now gains Unleashed Fury (+20% bite damage), automatic Frenzy
+(2 → 1.6 sec bite cooldown), and automatic Bestial Wrath (+50% damage for 10 sec
+every 30 sec of run time). Bonuses affect the combat wolf only; pauses preserve
+the Wrath window. The two damage bonuses multiply.
+
+155 core and 305 data-required app tests pass, including threshold/timer boundaries
+and real enemy damage and bite cooldowns. Individual pet talents, pet health/threat,
+combat appearance and balance remain unfinished.
+
+Native menu inspection passes at 1280×720 and 640×720; these captures use an empty
+saved-spec fixture. Clippy, native build and formatting pass. The final text-only
+fix was rebuilt and visually checked after the full test run.
+
+![Unleashed Fury](images/screenshots/2026-10-26-beast-mastery/fury-1280.png)
+
+![Frenzy with readable cooldown units](images/screenshots/2026-10-26-beast-mastery/frenzy-1280.png)
+
+![Bestial Wrath](images/screenshots/2026-10-26-beast-mastery/wrath-1280.png)
+
+![Compact Wrath description after scrolling](images/screenshots/2026-10-26-beast-mastery/wrath-640.png)
+
+
 ## 2026-10-26 — Hunter combat wolf foundation
 
 Hunter runs summon a separate combat wolf with grounded movement, obstacle routing,

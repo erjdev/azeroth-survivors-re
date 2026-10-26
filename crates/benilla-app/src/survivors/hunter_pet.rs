@@ -77,6 +77,7 @@ pub(super) fn fight(
         (units::flat(end - to).length() < 0.1 && world.can_spawn(end, radius)).then_some(end)
     });
     let stats = run.stats();
+    let bonus = run.milestones.hunter_pet(run.elapsed);
     for (entity, mut tf, mut movement, mut pet) in &mut pets {
         movement.flags = 0;
         movement.speed = 0.0;
@@ -111,7 +112,8 @@ pub(super) fn fight(
                 tf.rotation = Quat::from_rotation_y(units::yaw_toward(delta));
             }
             if pet.cooldown <= 0.0 {
-                let damage = (8.0 + 2.0 * run.level.saturating_sub(1) as f32) * stats.might;
+                let damage =
+                    (8.0 + 2.0 * run.level.saturating_sub(1) as f32) * stats.might * bonus.damage;
                 let mut victims: Vec<_> = enemies
                     .iter()
                     .filter(|(_, tf, enemy)| {
@@ -132,7 +134,7 @@ pub(super) fn fight(
                     hits.write(hit);
                     fx.swing(entity, victim, damage);
                 }
-                pet.cooldown = 2.0;
+                pet.cooldown = 2.0 * bonus.cooldown;
             }
         } else if !in_reach || target.is_some() {
             let waypoint = navigation.waypoint(entity, at, goal).unwrap_or(goal);
@@ -292,6 +294,43 @@ mod tests {
                 .count(),
             0
         );
+    }
+
+    #[test]
+    fn beast_mastery_changes_real_bites_and_cooldowns() {
+        for (points, elapsed, damage, cooldown) in [
+            (9, 0.0, 8.0, 2.0),
+            (10, 0.0, 9.6, 2.0),
+            (20, 0.0, 9.6, 1.6),
+            (30, 0.0, 14.4, 1.6),
+            (30, 10.0, 9.6, 1.6),
+        ] {
+            let mut app = setup();
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.elapsed = elapsed;
+                run.milestones = survivors_core::talents::Milestones {
+                    class: 2,
+                    points: [points, 0, 0],
+                    ..Default::default()
+                };
+            }
+            let target = foe(&mut app, Vec3::X);
+            app.world_mut().get_mut::<Enemy>(target).unwrap().hp = 100.0;
+            app.world_mut().run_system_once(fight).unwrap();
+            app.world_mut().run_system_once(fight).unwrap();
+            let bite_cd = app
+                .world_mut()
+                .query::<&HunterPet>()
+                .single(app.world())
+                .unwrap()
+                .cooldown;
+            assert!((bite_cd - cooldown).abs() < 0.00001);
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            assert!(
+                (app.world().get::<Enemy>(target).unwrap().hp - (100.0 - damage)).abs() < 0.0001
+            );
+        }
     }
 
     #[test]

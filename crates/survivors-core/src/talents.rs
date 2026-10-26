@@ -1,6 +1,8 @@
 //! Survivors talent effects and dependency rules, independent of engine spell visuals.
 
 mod druid;
+mod hunter;
+pub use hunter::PetBonus;
 mod shaman;
 mod warlock;
 
@@ -889,6 +891,9 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
     }
     if class == 2 {
         return match (tree, threshold) {
+            (0, 10) => Some("Combat wolf: +20% bite damage; does not affect Hunter shots or pickup companions"),
+            (0, 20) => Some("Combat wolf: 20% shorter bite cooldown (from 2 to 1.6 sec; Survivors automatic Frenzy)"),
+            (0, 30) => Some("Combat wolf: +50% bite damage for the first 10 sec of every 30 sec of run time; multiplies Unleashed Fury (Survivors automatic Bestial Wrath)"),
             (1, 10) => Some("Shots: 10% shorter cooldown; excludes Volley and traps"),
             (1, 20) => {
                 Some("Shots: +20 percentage points critical damage; excludes Volley and traps")

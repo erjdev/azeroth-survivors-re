@@ -29,7 +29,11 @@ These stay, and later phases read them instead of inventing a second copy.
   sweeps and local routes. Extra-target bonuses add nearby melee victims without increasing reach.
   It cannot bite through solid scenery or across floors.
   This initial companion has no threat or incoming damage; pet health/recovery and
-  Beast Mastery effects remain planned. It does not occupy a collectible companion slot.
+  individual pet talents remain planned. It does not occupy a collectible companion slot.
+  Beast Mastery milestones: 10 points grants +20% bite damage; 20 points shortens
+  the bite cooldown by 20%; 30 points grants a further ×1.5 bite damage during
+  seconds 0–10 of each 30-second run-time cycle. These automatic adaptations affect
+  neither Hunter shots nor pickup companions.
 - Achievement points buy perks and companion ranks. Two perk resets refund perk points and
   leave companion ranks. The first companion is free.
 - Cloak quality follows feats: talent cap, raid clear, a finished collection, every legendary
