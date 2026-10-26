@@ -495,6 +495,15 @@ impl Milestones {
         effect
     }
 
+    /// Renew is a passive in Survivors. Other regeneration sources are not multiplied.
+    pub fn passive_multiplier(self, key: &str) -> f32 {
+        if self.class == 4 && key == "renew" {
+            1.0 + self.trained_value(TalentStat::ImprovedRenew)
+        } else {
+            1.0
+        }
+    }
+
     fn trained_value(self, stat: TalentStat) -> f32 {
         definitions(self.class)
             .iter()
@@ -1329,6 +1338,7 @@ pub enum TalentStat {
     Vengeance,
     Remorseless,
     SpiritTap,
+    ImprovedRenew,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
     SecondaryRootDuration(&'static str),
@@ -1418,6 +1428,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRange(_) => (100.0, "% targeting range"),
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
+            TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
@@ -2384,6 +2395,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 406, max_rank: 3, name: "Improved Renew",
+        description: "Renew: +5% regeneration per rank. Requires acquiring Renew during the run; excludes gear, racial regeneration, Spirit Tap and other healing (Survivors passive conversion)",
+        stat: TalentStat::ImprovedRenew, per_rank: 0.05,
+    },
+    TalentDefinition {
         id: 461, max_rank: 5, name: "Shadow Weaving",
         description: "Priest Shadow damage, including Pain ticks: 20% chance per rank to add 3% Shadow vulnerability for 15 sec, up to 15%; refreshes all stacks after the triggering damage",
         stat: TalentStat::ShadowWeaving, per_rank: 0.20,
@@ -2522,6 +2538,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::EnrageDamage
             | TalentStat::BloodCrazeHealing
             | TalentStat::SpiritTap
+            | TalentStat::ImprovedRenew
             | TalentStat::Remorseless
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
@@ -2927,6 +2944,28 @@ mod stat_talent_tests {
             talent_definition(4, 1202).unwrap().rank_preview(4),
             "This talent: 4 » 5% damage; 4 » 5% critical chance next rank"
         );
+    }
+
+    #[test]
+    fn improved_renew_is_bounded_passive_only_and_class_specific() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, 2, 3, 255] {
+                let trained = base.with_ranks(&[(1, 406, rank)]);
+                let expected = if class == 4 {
+                    1.0 + 0.05 * f32::from(rank.min(3))
+                } else {
+                    1.0
+                };
+                assert_eq!(trained.passive_multiplier("renew"), expected);
+                assert_eq!(trained.passive_multiplier("fortitude"), 1.0);
+                assert_eq!(trained.cast("renew"), CastEffect::default());
+                assert_eq!(trained.with_ranks(&[]).passive_multiplier("renew"), 1.0);
+            }
+        }
     }
 
     #[test]
@@ -3574,6 +3613,7 @@ mod stat_talent_tests {
                     | TalentStat::EnrageDamage
                     | TalentStat::BloodCrazeHealing
                     | TalentStat::SpiritTap
+                    | TalentStat::ImprovedRenew
                     | TalentStat::Remorseless
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance

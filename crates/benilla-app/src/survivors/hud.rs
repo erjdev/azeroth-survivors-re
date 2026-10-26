@@ -2444,6 +2444,14 @@ fn num(v: f32) -> String {
     }
 }
 
+// Small regeneration talents must remain visible rather than rounding back to baseline.
+fn regen_num(v: f32) -> String {
+    format!("{v:.3}")
+        .trim_end_matches('0')
+        .trim_end_matches('.')
+        .to_owned()
+}
+
 fn pct(v: f32) -> String {
     format!("{}%", num(v * 100.0))
 }
@@ -2713,7 +2721,7 @@ fn passive_text(stat: Stat, v: f32) -> String {
         Stat::Might => format!("Increases all damage you deal by {}.", pct(v)),
         Stat::MaxHp => format!("Increases your maximum health by {}.", pct(v)),
         Stat::Speed => format!("Increases your movement speed by {}.", pct(v)),
-        Stat::Regen => format!("Restores {} health every second.", num(v)),
+        Stat::Regen => format!("Restores {} health every second.", regen_num(v)),
         Stat::Haste => format!("Your abilities recharge {} faster.", pct(v)),
         Stat::Area => format!("Increases the size of your areas of effect by {}.", pct(v)),
         Stat::Magnet => format!("Increases your pickup range by {}.", pct(v)),
@@ -2729,7 +2737,7 @@ fn stat_total(stat: Stat, s: &Stats) -> String {
         Stat::Might => format!("Damage dealt: {}", pct(s.might)),
         Stat::MaxHp => format!("Maximum health: {}", num(s.max_hp)),
         Stat::Speed => format!("Movement speed: {} yd per second", num(s.speed)),
-        Stat::Regen => format!("Health restored: {} per second", num(s.regen)),
+        Stat::Regen => format!("Health restored: {} per second", regen_num(s.regen)),
         Stat::Haste => format!("Cooldowns: {} shorter", pct(s.haste.min(0.65))),
         Stat::Area => format!("Area of effect: {}", pct(s.area)),
         Stat::Magnet => format!("Pickup range: {} yd", num(s.magnet)),
@@ -2739,18 +2747,18 @@ fn stat_total(stat: Stat, s: &Stats) -> String {
     }
 }
 
-fn passive_tip(p: &PassiveDef, level: u8, stats: &Stats) -> Vec<TipLine> {
+fn passive_tip(p: &PassiveDef, level: u8, stats: &Stats, run: &Run) -> Vec<TipLine> {
     let mut lines = vec![
         TipLine::new(p.name, Color::WHITE)
             .header()
             .right(format!("Rank {level}"), TIP_GREY),
-        TipLine::new(passive_text(p.stat, p.per_level * f32::from(level)), GOLD),
+        TipLine::new(passive_text(p.stat, run.passive_value(p, level)), GOLD),
         TipLine::new(stat_total(p.stat, stats), Color::WHITE),
     ];
     if level < data::MAX_PASSIVE_LEVEL {
         lines.push(TipLine::new("Next rank:", Color::WHITE));
         lines.push(TipLine::new(
-            passive_text(p.stat, p.per_level * f32::from(level + 1)),
+            passive_text(p.stat, run.passive_value(p, level + 1)),
             card_growth::GAIN,
         ));
     } else {
@@ -2889,7 +2897,7 @@ pub(super) fn icon_tooltip(
         TipFor::Passive(i) => run
             .passives
             .get(i)
-            .map(|&(p, level)| passive_tip(p, level, &stats)),
+            .map(|&(p, level)| passive_tip(p, level, &stats, &run)),
         TipFor::Mobility => run.mobility().map(|m| {
             vec![
                 TipLine::new(spell_name(spells.as_deref(), m.spell, m.name), Color::WHITE).header(),

@@ -674,6 +674,10 @@ impl Run {
         }
     }
 
+    pub fn passive_value(&self, passive: &PassiveDef, rank: u8) -> f32 {
+        passive.per_level * f32::from(rank) * self.milestones.passive_multiplier(passive.key)
+    }
+
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
             vengeance: self
@@ -714,7 +718,7 @@ impl Run {
         s.haste += 0.03 * f32::from(self.renown_celerity);
         stash::apply_gear(&mut s, self.gear);
         for &(p, level) in &self.passives {
-            let v = p.per_level * f32::from(level);
+            let v = self.passive_value(p, level);
             match p.stat {
                 Stat::Might => s.might += v,
                 Stat::MaxHp => s.max_hp *= 1.0 + v,
@@ -837,6 +841,32 @@ fn reset_run(
 #[cfg(test)]
 mod stat_tests {
     use super::*;
+
+    #[test]
+    fn improved_renew_scales_owned_renew_only_and_resets_with_spec() {
+        let renew = data::PASSIVES.iter().find(|p| p.key == "renew").unwrap();
+        let mut run = Run {
+            race: 8,
+            ..Default::default()
+        }; // Separate Troll regeneration.
+        let base = run.stats().regen;
+        run.milestones = survivors_core::talents::Milestones {
+            class: 4,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 406, 3)]);
+        assert_eq!(run.stats().regen, base); // Training alone does not acquire Renew.
+        for rank in 1..=data::MAX_PASSIVE_LEVEL {
+            run.passives = vec![(renew, rank)];
+            let value = 0.5 * f32::from(rank) * 1.15;
+            assert!((run.stats().regen - base - value).abs() < 0.00001);
+            assert!((run.passive_value(renew, rank) - value).abs() < 0.00001);
+        }
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(
+            (run.stats().regen - base - 0.5 * f32::from(data::MAX_PASSIVE_LEVEL)).abs() < 0.00001
+        );
+    }
 
     #[test]
     fn all_racial_bonuses_reach_combat_and_race_changes_remove_them() {

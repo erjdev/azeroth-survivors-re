@@ -22,9 +22,9 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, 
         Choice::NewPassive(p) => vec![(
             format!(
                 "{}\nNext rank: {} » {}",
-                passive_text(p.stat, p.per_level),
-                passive_value(p.stat, p.per_level),
-                passive_value(p.stat, 2.0 * p.per_level)
+                passive_text(p.stat, run.passive_value(p, 1)),
+                passive_value(p.stat, run.passive_value(p, 1)),
+                passive_value(p.stat, run.passive_value(p, 2))
             ),
             GAIN,
         )],
@@ -34,8 +34,8 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, 
                 format!(
                     "{}\n{} » {}",
                     stat_label(p.stat),
-                    passive_value(p.stat, p.per_level * f32::from(rank)),
-                    passive_value(p.stat, p.per_level * f32::from(rank + 1))
+                    passive_value(p.stat, run.passive_value(p, rank)),
+                    passive_value(p.stat, run.passive_value(p, rank + 1))
                 ),
                 GAIN,
             )]
@@ -120,7 +120,8 @@ pub(in crate::survivors) fn legendary_changes(
 
 fn passive_value(stat: Stat, value: f32) -> String {
     match stat {
-        Stat::Regen | Stat::Armor => num(value),
+        Stat::Regen => regen_num(value),
+        Stat::Armor => num(value),
         _ => pct(value),
     }
 }

@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Improved Renew and accurate regeneration previews
+
+Priest Improved Renew now increases acquired Renew regeneration by 5% per rank,
+up to 15%, replacing its temporary damage bonus. Other healing stays independent.
+Upgrade cards and passive tooltips use the same trained values as the stat sheet;
+small gains retain enough precision to remain visible (0.525 health/sec at rank 1).
+
+![Improved Renew after spending a point](images/screenshots/2026-10-26-renew-talent/talents-1280.png)
+
+![Compact Improved Renew details](images/screenshots/2026-10-26-renew-talent/talents-640.png)
+
+Native wide/compact Talents checks verify spending, saved rank 2 and readable details.
+The tree layout follows the intention reference; the description explicitly explains
+the passive conversion. Card values are covered by regression tests, not a live
+combat capture. 139 core and 279 app tests, native build, workspace Clippy, formatting
+and render lint pass. Talent definition coverage is 184/432; remaining talents and
+gameplay balance stay open.
+
 ## 2026-10-26 — Visible cloak progression
 
 Character and Collection now show cloak quality, active bonuses, the four unlock

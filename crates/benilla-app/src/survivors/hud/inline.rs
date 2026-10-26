@@ -360,7 +360,16 @@ fn passive(stat: Stat, a: f32, b: f32) -> Spans {
             prose!("Increases your movement speed by ", percent);
         }
         Stat::Regen => {
-            prose!("Restores ", (a, b, " health"), " every second");
+            prose!("Restores ");
+            let changed = (b - a).abs() > 0.0001;
+            let value = if changed {
+                format!("{} » {} health", regen_num(a), regen_num(b))
+            } else {
+                format!("{} health", regen_num(a))
+            };
+            out.0
+                .push((value, if changed { card_growth::GAIN } else { PROSE }));
+            prose!(" every second");
         }
         Stat::Haste => {
             prose!("Your abilities recharge ", percent, " faster");
@@ -401,13 +410,13 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
                 &cast_at(o.def, o.level + 1, &stats, run.milestones),
             )
         }
-        Choice::NewPassive(p) => passive(p.stat, p.per_level, p.per_level * 2.),
+        Choice::NewPassive(p) => passive(p.stat, run.passive_value(p, 1), run.passive_value(p, 2)),
         Choice::UpPassive(i) => {
             let (p, rank) = run.passives[i];
             passive(
                 p.stat,
-                p.per_level * f32::from(rank),
-                p.per_level * f32::from(rank + 1),
+                run.passive_value(p, rank),
+                run.passive_value(p, rank + 1),
             )
         }
         Choice::Heal if run.hp >= stats.max_hp => {
@@ -442,6 +451,29 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn renew_preview_matches_trained_regeneration_without_rounding_away_ranks() {
+        let renew = data::PASSIVES.iter().find(|p| p.key == "renew").unwrap();
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 406, 1)]),
+            ..Default::default()
+        };
+        let spans = describe(Choice::NewPassive(renew), &run);
+        assert_eq!(plain(&spans), "Restores 0.525 » 1.05 health every second.");
+        assert!(spans
+            .iter()
+            .any(|(text, color)| text == "0.525 » 1.05 health" && *color == card_growth::GAIN));
+        run.passives.push((renew, 2));
+        assert_eq!(
+            plain(&describe(Choice::UpPassive(0), &run)),
+            "Restores 1.05 » 1.575 health every second."
+        );
+    }
+
     fn plain(spans: &Spans) -> String {
         spans.iter().map(|(s, _)| s.as_str()).collect()
     }

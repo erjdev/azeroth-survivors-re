@@ -4653,3 +4653,26 @@ use the same compile gate as its module. Native play build, 277 app tests,
 non-development library check and workspace Clippy pass. Existing warnings remain
 in the non-development feature combination. The wasm target is not installed, so
 this milestone does not claim a wasm check or Windows gameplay acceptance.
+
+
+### 2026-10-26 — Passive-aware Improved Renew
+
+The checkout DBC identifies Improved Renew as talent 406, three ranks, Holy row 0.
+Renew is a Survivors passive, not an active spell: its talent now adds 5% regeneration
+per rank to that passive only. Training alone grants no regeneration. Other passive
+stats, gear/racial regeneration, Spirit Tap and healing spells are unaffected. The
+normal supported-node adjustment removes its provisional 1% damage per point.
+
+A shared Run passive-value calculation feeds the stat sheet, new/upgrade card prose,
+benefit summaries and passive tooltips. Regeneration formatting retains up to three
+decimal places, so the first talent rank's 0.5→0.525 health/sec is not hidden. Core
+coverage checks class isolation, rank bounds and spec reset; runtime tests check all
+Renew levels and an unrelated racial regeneration source; card tests check exact
+inline amounts, green tint and a single unit. Native seeded previews verify rank
+1→2 spending, saved rank 2, and wide/compact talent descriptions against the three-tree
+intention layout. No gameplay healing capture or Windows acceptance is claimed.
+
+Validation: 139 core and 279 app tests, native play build (27 seconds), workspace
+Clippy, formatting and render lint pass. The refreshed checkout-data audit reports
+184/432 matching talent definitions and 78/81 milestone descriptions; these counts
+do not establish gameplay acceptance.
