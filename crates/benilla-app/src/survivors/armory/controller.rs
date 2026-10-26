@@ -1,4 +1,4 @@
-//! Controller focus uses the same guarded actions as pointer selection.
+//! Keyboard/controller focus uses the same guarded actions as pointer selection.
 use super::*;
 
 #[derive(Resource, Default)]
@@ -6,6 +6,12 @@ pub(in crate::survivors) struct ControllerFocus {
     focused: Option<Entity>,
     pub activated: Option<Entity>,
     pub keyboard_selected: bool,
+}
+
+impl ControllerFocus {
+    pub(super) fn focused(&self) -> Option<Entity> {
+        self.focused
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -60,7 +66,7 @@ pub(in crate::survivors) fn navigate(
             &UiGlobalTransform,
             &InheritedVisibility,
         ),
-        (With<Act>, With<Button>),
+        (Or<(With<Act>, With<TalentInfo>)>, With<Button>),
     >,
     parents: Query<&ChildOf>,
     mut scrolls: Query<(
@@ -282,5 +288,73 @@ mod tests {
         world.resource_mut::<Typing>().0 = true;
         press(&mut world, &mut schedule, GamepadButton::South);
         assert_eq!(world.resource::<ControllerFocus>().focused, None);
+    }
+    #[test]
+    fn focused_talent_details_precede_pointer_hover_without_spending_points() {
+        let mut world = World::new();
+        let hovered = world
+            .spawn((
+                Interaction::Hovered,
+                TalentInfo {
+                    class: 0,
+                    id: 0,
+                    spell: 0,
+                    rank: 0,
+                    max: 5,
+                    milestone: None,
+                },
+            ))
+            .id();
+        let focused = world
+            .spawn((
+                Interaction::None,
+                TalentInfo {
+                    class: 0,
+                    id: 150,
+                    spell: 0,
+                    rank: 1,
+                    max: 5,
+                    milestone: None,
+                },
+            ))
+            .id();
+        world.insert_resource(ControllerFocus {
+            focused: Some(focused),
+            ..default()
+        });
+        let effect = world
+            .spawn((TalentDetail::Effect, Text::new(""), TextColor(Color::WHITE)))
+            .id();
+        let mut schedule = Schedule::default();
+        schedule.add_systems(super::super::talent_details);
+        schedule.run(&mut world);
+        let definition = survivors_core::talents::talent_definition(0, 150).unwrap();
+        assert!(world
+            .get::<Text>(effect)
+            .unwrap()
+            .0
+            .contains(&definition.rank_preview(1)));
+        assert_eq!(
+            world.get::<TextColor>(effect).unwrap().0,
+            Color::srgb(0.45, 1., 0.45)
+        );
+        assert_eq!(world.get::<TalentInfo>(focused).unwrap().rank, 1);
+        assert_eq!(world.resource::<ControllerFocus>().activated, None);
+        world.resource_mut::<ControllerFocus>().focused = Some(hovered);
+        world.get_mut::<TalentInfo>(hovered).unwrap().milestone = Some((0, 10));
+        schedule.run(&mut world);
+        assert_eq!(
+            world.get::<Text>(effect).unwrap().0,
+            survivors_core::talents::description(0, 0, 10).unwrap()
+        );
+        world.resource_mut::<ControllerFocus>().focused = None;
+        world.get_mut::<TalentInfo>(hovered).unwrap().milestone = None;
+        schedule.run(&mut world);
+        assert!(world
+            .get::<Text>(effect)
+            .unwrap()
+            .0
+            .contains("Individual effect pending"));
+        assert_eq!(world.get::<TextColor>(effect).unwrap().0, Color::WHITE);
     }
 }

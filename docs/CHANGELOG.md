@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Inspect talents with directional focus
+
+Talent and milestone descriptions now follow keyboard/controller focus, including
+green rank previews for supported talents. Inspection spends no points; milestone
+rows remain informational. Page help explains arrows and D-pad navigation.
+
+![Focused talent with green rank preview](images/screenshots/2026-10-26-talent-focus/talent-1280.png)
+
+![Focused milestone with its current implementation status](images/screenshots/2026-10-26-talent-focus/milestone-1280.png)
+
+243 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Native checks cover directional inspection and unchanged points after Enter
+on a milestone. Physical controller acceptance and other hover surfaces remain
+open. The pictured Mage milestone effect is still pending; this changes navigation,
+not talent mechanics.
+
 ## 2026-10-26 — Starter and Armory focus navigation
 
 D-pad and arrow keys now move a visible focus outline between starter/Armory

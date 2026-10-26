@@ -113,6 +113,12 @@ in CHANGELOG/README. Controller ECS tests cover the shared path and nested-scrol
 regression. Physical devices, complete per-page traversal, focus-driven hover
 details, secondary actions/refunds, name entry without a keyboard and controller
 gameplay remain open.
+Talent and milestone descriptions now follow keyboard/controller focus before
+mouse hover, using the same title, rank preview and supported-effect tint. Pure
+milestone rows join focus navigation without becoming purchase actions. Inspection
+never activates a talent or spends a point; the page help describes arrows/D-pad.
+Other hover surfaces, secondary actions/refunds and physical-device acceptance
+remain open.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.

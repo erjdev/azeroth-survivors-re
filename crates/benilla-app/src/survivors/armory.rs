@@ -1201,13 +1201,19 @@ pub(super) struct TalentInfo {
     milestone: Option<(usize, u32)>,
 }
 
-/// Update the detail line without rebuilding the tree under the pointer.
+/// Inspect focused talents before purchase, or the hovered talent in pointer mode.
 pub(super) fn talent_details(
-    nodes: Query<(&Interaction, &TalentInfo)>,
+    nodes: Query<(Entity, &Interaction, &TalentInfo)>,
+    focus: Res<controller::ControllerFocus>,
     mut detail: Query<(&TalentDetail, &mut Text, &mut TextColor)>,
     spells: Option<Res<crate::ui_action::Spells>>,
 ) {
-    let Some((_, node)) = nodes.iter().find(|(state, _)| **state != Interaction::None) else {
+    let selected = focus.focused().and_then(|entity| nodes.get(entity).ok());
+    let Some((_, _, node)) = selected.or_else(|| {
+        nodes
+            .iter()
+            .find(|(_, state, _)| **state != Interaction::None)
+    }) else {
         return;
     };
     let (title, effect, supported) = if let Some((tree, at)) = node.milestone {
