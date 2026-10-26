@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rogue defense and mobility choices
+
+Lightning Reflexes and Sleight of Hand now reduce damage taken, Deflection adds
+armor, and Camouflage increases movement speed. These replace provisional damage
+bonuses; descriptions explicitly name the Survivors conversions instead of
+implying simulated dodge, parry, threat or stealth.
+
+![Camouflage movement-speed preview](images/screenshots/2026-10-25-rogue-defense/camouflage-1280.jpg)
+
+![Deflection armor preview](images/screenshots/2026-10-25-rogue-defense/deflection-1280.jpg)
+
+108 core tests, the local talent-data audit, native build, workspace Clippy,
+formatting and render-pass lint pass. Rank caps, class isolation and provisional
+bonus removal are covered. Camouflage and Deflection refund/rebuy and descriptions
+were checked at 1280×720; these nodes still need compact and live-combat acceptance.
+
 ## 2026-10-25 — Subtlety milestone interactions
 
 Subtlety now links control spells to defense and finishers: Gouge grants a small

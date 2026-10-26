@@ -1864,6 +1864,26 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 186, max_rank: 5, name: "Lightning Reflexes",
+        description: "+1% damage reduction per rank (Survivors dodge conversion)",
+        stat: TalentStat::Reduction, per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 187, max_rank: 5, name: "Deflection",
+        description: "+3 armor per rank (Survivors parry conversion)",
+        stat: TalentStat::Armor, per_rank: 3.0,
+    },
+    TalentDefinition {
+        id: 244, max_rank: 5, name: "Camouflage",
+        description: "+3% movement speed per rank; always active in Survivors, without stealth",
+        stat: TalentStat::Speed, per_rank: 0.03,
+    },
+    TalentDefinition {
+        id: 1700, max_rank: 2, name: "Sleight of Hand",
+        description: "+2% damage reduction per rank (Survivors threat conversion)",
+        stat: TalentStat::Reduction, per_rank: 0.02,
+    },
+    TalentDefinition {
         id: 203, max_rank: 3, name: "Improved Gouge",
         description: "Gouge: +25% stun duration per rank",
         stat: TalentStat::SpellDuration("gouge"), per_rank: 0.25,
@@ -1974,6 +1994,37 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
 #[cfg(test)]
 mod stat_talent_tests {
     use super::*;
+
+    #[test]
+    fn rogue_defense_and_mobility_replace_damage_without_changing_spells() {
+        let ranks = [(1, 186, 5), (1, 187, 5), (2, 244, 5), (2, 1700, 2)];
+        let bonus = stat_adjustment(3, &ranks);
+        assert!((bonus.reduction - 0.09).abs() < 0.00001);
+        assert_eq!(bonus.armor, 15.0);
+        assert!((bonus.speed - 0.15).abs() < 0.00001);
+        assert!((bonus.might + 0.17).abs() < 0.00001);
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&ranks);
+        for key in ROGUE_SPELLS {
+            assert_eq!(trained.cast(key), base.cast(key));
+        }
+        assert_eq!(stat_adjustment(3, &[]).reduction, 0.0);
+        for class in [0, 1, 2, 4, 5, 6, 7, 8] {
+            let foreign = stat_adjustment(class, &ranks);
+            assert_eq!(
+                (
+                    foreign.reduction,
+                    foreign.armor,
+                    foreign.speed,
+                    foreign.might
+                ),
+                (0.0, 0.0, 0.0, 0.0)
+            );
+        }
+    }
 
     #[test]
     fn rogue_control_and_strikes_compose_without_buffing_finishers_or_bleeds() {

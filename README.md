@@ -309,7 +309,7 @@ shown on the starter. Initial values still need combat balance testing.
 Five Rogue talents now have explicit spell effects and truthful rank previews.
 Rogue coverage is still incomplete.
 
-![Rogue talent effect preview](docs/images/screenshots/2026-10-25-rogue-subtlety/premeditation-1280.jpg)
+![Rogue talent effect preview](docs/images/screenshots/2026-10-25-rogue-defense/camouflage-1280.jpg)
 
 ## Interface gallery
 

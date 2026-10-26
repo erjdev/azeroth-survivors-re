@@ -18,7 +18,8 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
-Rogue has eight explicit individual talents: Improved Eviscerate, Malice,
+Rogue has twelve explicit individual talents: Lightning Reflexes, Deflection,
+Camouflage, Sleight of Hand, Improved Eviscerate, Malice,
 Improved Sinister Strike, Serrated Blades, Deadliness, Improved Gouge, Lethality
 and Aggression. Their effects replace provisional rank damage; exact rules are
 in `SURVIVORS.md`. All 105 core tests pass. Account coverage verifies save/reload,
@@ -35,6 +36,9 @@ Subtlety completes the nine Rogue milestones with a Gouge absorb, Kidney Shot
 advancing Gouge, and Gouge advancing Eviscerate. Shared cooldown-advance handling
 preserves Paladin behavior. All 107 core and 192 app tests pass. Subtlety descriptions
 were checked in the compact layout, with wide/compact inline screenshots.
+The four defense/mobility nodes replace provisional damage with reduction, armor
+or movement speed. 108 core tests and the local talent audit pass; native
+Camouflage/Deflection refund/rebuy checks and two screenshots cover 1280×720.
 Other Rogue nodes, other compact descriptions and live combat remain open.
 
 The user authorized lore-appropriate racials for all races. All eight now have

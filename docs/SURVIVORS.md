@@ -288,6 +288,10 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 
 | Talent (DBC ID) | Ranks | Survivors effect per rank |
 |---|---|---|
+| Lightning Reflexes (186) | 5 | +1 percentage point damage reduction; dodge conversion |
+| Deflection (187) | 5 | +3 armor; parry conversion |
+| Camouflage (244) | 5 | +3% movement speed, always active without stealth |
+| Sleight of Hand (1700) | 2 | +2 percentage points damage reduction; threat conversion |
 | Improved Gouge (203) | 3 | +25% Gouge stun duration |
 | Lethality (269) | 5 | +6 percentage points critical damage for Sinister Strike and Gouge |
 | Aggression (1122) | 3 | +2% Sinister Strike and Eviscerate damage |
