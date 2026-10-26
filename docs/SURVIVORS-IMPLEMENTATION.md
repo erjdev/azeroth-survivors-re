@@ -18,6 +18,14 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-26)
 
+Fast native UI previews now support all three Rewards categories and all six
+Achievement categories through a validated optional `category` key. Page, category
+and dimensions apply together; omission preserves the manual category and invalid
+combinations retain the previous view. Reusable wide Feats/compact Tabards requests
+and documentation are checked in. All 261 app tests pass; native direct launch,
+invalid-request retention and cross-page live reload have inline screenshot evidence.
+Broader fixture automation and remaining page-specific preview controls stay open.
+
 Tabard cards now use shared hover/pressed feedback, gold outlines and burgundy
 selection. Native wide/compact validation covers icon selection, removal, keyboard
 focus/selection, scrolling and saved appearance after restart. Inline screenshots

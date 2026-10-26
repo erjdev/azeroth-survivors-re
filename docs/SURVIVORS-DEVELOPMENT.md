@@ -363,6 +363,31 @@ focus but preserves name drafts and account data. Changes wait while a run is
 active and apply when returning to the menu. This opt-in native development tool
 is excluded from player and wasm builds. It does not seed fixture accounts.
 
+Rewards and Achievements also accept an optional `category` key. Category changes
+apply with the page and dimensions in the same reload; omitting it preserves the
+last manually selected category. Unsupported categories, duplicate keys and a
+category on any other page reject the whole request.
+
+| Page | Category values |
+| --- | --- |
+| `rewards` | `perks`, `companions`, `tabards` |
+| `achievements` | `summary`, `zones`, `classes`, `collection`, `feats`, `lifetime` |
+
+For example, open Feats directly without clicking through the menu:
+
+```ini
+page = achievements
+category = feats
+width = 1280
+height = 720
+```
+
+Reusable requests live in `docs/ui-previews/achievements-feats-1280.txt` and
+`docs/ui-previews/rewards-tabards-640.txt`. Copy either over the watched file to
+switch production screens while the same app remains open. These requests change
+only the view; they do not award achievements, spend points or select cosmetics.
+Existing category scroll positions and purchase drafts are retained.
+
 To inspect production upgrade cards immediately, use the same file:
 
 ```ini

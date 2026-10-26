@@ -43,6 +43,7 @@ struct Request {
     width: u32,
     height: u32,
     selected: bool,
+    category: Option<u8>,
     cards: Option<Vec<(&'static data::AbilityDef, u8)>>,
 }
 
@@ -52,6 +53,7 @@ impl Request {
         let mut cards_page = false;
         let mut cards = None;
         let mut profile = None;
+        let mut category = None;
         for line in text.lines() {
             let line = line.split('#').next()?.trim();
             if line.is_empty() {
@@ -87,6 +89,7 @@ impl Request {
                         _ => return None,
                     });
                 }
+                "category" if category.is_none() => category = Some(value),
                 "width" if width.is_none() => width = Some(value.parse::<u32>().ok()?),
                 "height" if height.is_none() => height = Some(value.parse::<u32>().ok()?),
                 _ => return None,
@@ -100,8 +103,28 @@ impl Request {
         {
             return None;
         }
+        let page = page?;
+        let category = match category {
+            None => None,
+            Some(name) => {
+                let names: &[&str] = match page {
+                    Page::Rewards => &["perks", "companions", "tabards"],
+                    Page::Achievements => &[
+                        "summary",
+                        "zones",
+                        "classes",
+                        "collection",
+                        "feats",
+                        "lifetime",
+                    ],
+                    _ => return None,
+                };
+                Some(names.iter().position(|candidate| *candidate == name)? as u8)
+            }
+        };
         let request = Self {
-            page: page?,
+            page,
+            category,
             width: width?,
             height: height?,
             cards,
@@ -113,6 +136,13 @@ impl Request {
 
     fn apply(&self, armory: &mut Armory, typing: &mut Typing, window: &mut Window) {
         armory.page = self.page;
+        if let Some(category) = self.category {
+            match self.page {
+                Page::Rewards => armory.reward_page = category,
+                Page::Achievements => armory.achieve = category,
+                _ => unreachable!("category was validated against the page"),
+            }
+        }
         armory.manage_heroes = false;
         armory.focus = 0;
         typing.0 = false;
@@ -263,6 +293,71 @@ mod tests {
             "page=cards\nwidth=1280\nheight=720\nabilities=smite:1\nprofile=selected\nprofile=baseline",
         ] {
             assert!(Request::parse(text).is_none(), "{text}");
+        }
+    }
+
+    #[test]
+    fn categories_are_page_specific_atomic_and_optional() {
+        let mut armory = Armory {
+            draft_first: "Keep my draft".into(),
+            ..default()
+        };
+        let mut typing = Typing(true);
+        let mut window = Window::default();
+        for (page, categories) in [
+            ("rewards", &["perks", "companions", "tabards"][..]),
+            (
+                "achievements",
+                &[
+                    "summary",
+                    "zones",
+                    "classes",
+                    "collection",
+                    "feats",
+                    "lifetime",
+                ][..],
+            ),
+        ] {
+            for (index, category) in categories.iter().enumerate() {
+                // Key order must not matter; category can precede the page.
+                let request = Request::parse(&format!(
+                    "category={category}\npage={page}\nwidth=640\nheight=720"
+                ))
+                .unwrap();
+                request.apply(&mut armory, &mut typing, &mut window);
+                assert_eq!(
+                    if page == "rewards" {
+                        armory.reward_page
+                    } else {
+                        armory.achieve
+                    },
+                    index as u8
+                );
+                assert_eq!(armory.draft_first, "Keep my draft");
+                assert_eq!(window.resolution.width(), 640.);
+            }
+        }
+        Request::parse("page=rewards\nwidth=1280\nheight=720")
+            .unwrap()
+            .apply(&mut armory, &mut typing, &mut window);
+        assert_eq!(
+            armory.reward_page, 2,
+            "omission preserves manual category selection"
+        );
+        assert_eq!(armory.achieve, 5, "other pages retain their category");
+        for text in [
+            "page=rewards\ncategory=zones",
+            "page=achievements\ncategory=tabards",
+            "page=talents\ncategory=perks",
+            "page=cards\nabilities=smite:1\ncategory=perks",
+            "page=rewards\ncategory=",
+            "page=rewards\ncategory=tabards\ncategory=perks",
+            "page=achievements\ncategory=unknown",
+        ] {
+            assert!(
+                Request::parse(&format!("{text}\nwidth=1280\nheight=720")).is_none(),
+                "{text}"
+            );
         }
     }
 

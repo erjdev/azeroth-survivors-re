@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Direct category previews
+
+The fast UI preview now opens Rewards and Achievement categories directly using
+`category = ...`. Reusable Feats and compact Tabards requests are included under
+`docs/ui-previews/`; changing the watched file updates page, category and size
+without restarting or entering a run. Invalid combinations preserve the current view.
+
+![Direct launch into Feats](images/screenshots/2026-10-26-preview-categories/feats-1280.png)
+
+![Live switch to compact Tabards](images/screenshots/2026-10-26-preview-categories/tabards-640.png)
+
+261 app tests, native build, workspace Clippy, formatting and render lint pass.
+Native checks cover direct launch, rejected category/size changes and live cross-page
+reload with a synthetic account. This extends development controls; player layout
+and progression rules are unchanged.
+
 ## 2026-10-26 — Rapid menu selection
 
 Fixed a dropped selection when a direction and Enter/Space (or controller South)

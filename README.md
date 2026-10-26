@@ -107,6 +107,11 @@ Rapid menu navigation followed by selection now applies in the same frame.
 
 ![Keyboard selection after rapid navigation](docs/images/screenshots/2026-10-26-coalesced-input/selected-1280.png)
 
+Fast preview files can open Rewards and Achievement categories directly.
+See [the preview guide](docs/SURVIVORS-DEVELOPMENT.md) for reusable requests.
+
+![Direct Feats preview](docs/images/screenshots/2026-10-26-preview-categories/feats-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.
