@@ -66,6 +66,11 @@ pub(crate) struct SurvivorsPlugin;
 
 impl Plugin for SurvivorsPlugin {
     fn build(&self, app: &mut App) {
+        // Stock 1.12 boot disables controllers; Survivors opts back into native
+        // device discovery and Bevy's normalized gamepad buttons.
+        if !app.is_plugin_added::<bevy::gilrs::GilrsPlugin>() {
+            app.add_plugins(bevy::gilrs::GilrsPlugin);
+        }
         #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
         app.add_plugins(armory::preview::plugin);
         #[cfg(feature = "survivors-visibility")]

@@ -35,6 +35,8 @@ Options opens shared audio, graphics and camera preferences without entering a r
 
 ![Options Controls](docs/images/screenshots/2026-10-26-controls-speed/controls-1280.png)
 
+![Compact Options navigation help](docs/images/screenshots/2026-10-26-options-controller/options-640.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.
@@ -556,6 +558,10 @@ Run `make` (or `make help`) to list every target.
 See [CONTROLS.md](CONTROLS.md). The short version: **WASD** to move, **Space** to jump, **F**
 for your class's movement spell, the **mouse wheel** to zoom, **C** to unlock the camera, **Esc**
 to pause, **1/2/3** to pick a level-up card.
+
+In the starter or pause menu, a controller's **Start** opens Options. **D-pad up/down**
+moves focus, **left/right** adjusts sliders, **south** selects, and **east** closes
+Options. Controller gameplay and navigation on other starter pages are not implemented yet.
 
 ## The game data (not in this repo)
 

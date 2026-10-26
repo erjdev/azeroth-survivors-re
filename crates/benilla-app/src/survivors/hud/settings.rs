@@ -119,7 +119,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
     });
     col.spawn(text(
         font,
-        "Tab: focus  •  Arrows: adjust  •  Enter: select  •  Escape: return",
+        "Tab / D-pad: focus  •  Left/right: adjust  •  Enter / south: select  •  Escape / east: return",
         12.0,
         DIM,
     ));

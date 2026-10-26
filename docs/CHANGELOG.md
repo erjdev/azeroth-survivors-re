@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Controller navigation in Options
+
+Survivors now enables controller discovery. Start opens Options from the starter
+or pause menu; D-pad moves focus/adjusts sliders, south selects and east returns.
+Controller and keyboard navigation share the same focus and setting actions.
+
+![Compact Options help and keyboard focus](images/screenshots/2026-10-26-options-controller/options-640.png)
+
+240 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Simulated-controller tests cover both menu states, controls, sliders and
+modal boundaries. Native validation covers backend startup, compact help and
+keyboard focus. Physical controllers, other starter pages and controller gameplay
+still need implementation/acceptance as applicable.
+
 ## 2026-10-26 — Camera and zoom sensitivity
 
 Controls gains independent, saved camera and zoom speed sliders from 25% to 300%.

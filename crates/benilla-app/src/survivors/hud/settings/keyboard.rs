@@ -1,4 +1,4 @@
-//! Explicit Options focus order excludes hidden categories and starter-only actions.
+//! Shared keyboard/controller Options focus excludes hidden categories and starter-only actions.
 use super::*;
 use bevy::input::{mouse::MouseButtonInput, ButtonState};
 
@@ -86,6 +86,7 @@ pub(in crate::survivors) fn navigate(
     mut edits: ResMut<SettingEdits>,
     mut armory: ResMut<super::super::super::armory::Armory>,
     nodes: FocusNodes,
+    pads: Query<&Gamepad>,
     mut focus: Local<Focus>,
 ) {
     // macOS can send modifier flags without physical Shift key events.
@@ -107,6 +108,33 @@ pub(in crate::survivors) fn navigate(
             _ => {}
         }
     }
+    // Take one controller's new presses per frame, so two pads cannot combine
+    // a navigation press on one device with an unintended selection on another.
+    let pad = pads.iter().find(|pad| {
+        [
+            GamepadButton::Start,
+            GamepadButton::South,
+            GamepadButton::East,
+            GamepadButton::DPadUp,
+            GamepadButton::DPadDown,
+            GamepadButton::DPadLeft,
+            GamepadButton::DPadRight,
+        ]
+        .into_iter()
+        .any(|button| pad.just_pressed(button))
+    });
+    let pressed = |button| pad.is_some_and(|pad| pad.just_pressed(button));
+    let eligible = !preview.0 && matches!(phase.get(), Phase::Menu | Phase::Paused);
+    if eligible {
+        if page.open && pressed(GamepadButton::East) {
+            page.open = false;
+        } else if !page.open && pressed(GamepadButton::Start) {
+            page.open = true;
+            focus.target = Some(Target::Action(UiAction::SettingsCategory(
+                Category::Controls,
+            )));
+        }
+    }
     let pointer = mouse
         .read()
         .any(|event| event.state == ButtonState::Pressed);
@@ -121,9 +149,9 @@ pub(in crate::survivors) fn navigate(
             shifted_tab || keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight);
         let movement = if keys.just_pressed(KeyCode::Tab) {
             Some(if backwards { -1 } else { 1 })
-        } else if keys.just_pressed(KeyCode::ArrowUp) {
+        } else if keys.just_pressed(KeyCode::ArrowUp) || pressed(GamepadButton::DPadUp) {
             Some(-1)
-        } else if keys.just_pressed(KeyCode::ArrowDown) {
+        } else if keys.just_pressed(KeyCode::ArrowDown) || pressed(GamepadButton::DPadDown) {
             Some(1)
         } else {
             None
@@ -142,9 +170,13 @@ pub(in crate::survivors) fn navigate(
                         Some(0.)
                     } else if keys.just_pressed(KeyCode::End) {
                         Some(1.)
-                    } else if keys.just_pressed(KeyCode::ArrowLeft) {
+                    } else if keys.just_pressed(KeyCode::ArrowLeft)
+                        || pressed(GamepadButton::DPadLeft)
+                    {
                         Some(sliders::nudge(&cvars, &camera, knob, -1.))
-                    } else if keys.just_pressed(KeyCode::ArrowRight) {
+                    } else if keys.just_pressed(KeyCode::ArrowRight)
+                        || pressed(GamepadButton::DPadRight)
+                    {
                         Some(sliders::nudge(&cvars, &camera, knob, 1.))
                     } else {
                         None
@@ -154,7 +186,9 @@ pub(in crate::survivors) fn navigate(
                     }
                 }
                 Target::Action(action)
-                    if keys.just_pressed(KeyCode::Enter) || keys.just_pressed(KeyCode::Space) =>
+                    if keys.just_pressed(KeyCode::Enter)
+                        || keys.just_pressed(KeyCode::Space)
+                        || pressed(GamepadButton::South) =>
                 {
                     activate_action(
                         action,
@@ -256,6 +290,89 @@ mod tests {
             // Held Enter does not reactivate anything after the modal is gone.
             world.resource_mut::<ButtonInput<KeyCode>>().clear();
             schedule.run(&mut world);
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Unchanged
+            ));
+        }
+    }
+
+    fn controller_world(phase: Phase) -> (World, Entity, Schedule) {
+        let mut world = World::new();
+        world.init_resource::<ButtonInput<KeyCode>>();
+        world.init_resource::<Messages<MouseButtonInput>>();
+        world.init_resource::<Messages<bevy::winit::RawWinitWindowEvent>>();
+        world.init_resource::<Messages<AppExit>>();
+        world.init_resource::<NextState<Phase>>();
+        world.init_resource::<crate::cvars::Cvars>();
+        let mut camera = super::super::super::super::camera::CameraSettings::default();
+        camera.camera_speed = 1.;
+        camera.zoom_speed = 1.;
+        world.insert_resource(camera);
+        world.init_resource::<SettingEdits>();
+        world.init_resource::<super::super::super::super::armory::Armory>();
+        world.init_resource::<super::super::super::super::cards::PreviewHand>();
+        world.init_resource::<PausePage>();
+        world.insert_resource(State::new(phase));
+        let pad = world.spawn(Gamepad::default()).id();
+        let mut schedule = Schedule::default();
+        schedule.add_systems(navigate);
+        (world, pad, schedule)
+    }
+
+    fn press_pad(world: &mut World, pad: Entity, schedule: &mut Schedule, button: GamepadButton) {
+        let mut gamepad = world.get_mut::<Gamepad>(pad).unwrap();
+        gamepad.digital_mut().reset_all();
+        gamepad.digital_mut().press(button);
+        schedule.run(world);
+    }
+
+    #[test]
+    fn controller_opens_navigates_adjusts_and_closes_options_without_starting_or_resuming() {
+        for phase in [Phase::Menu, Phase::Paused] {
+            let (mut world, pad, mut schedule) = controller_world(phase);
+            press_pad(&mut world, pad, &mut schedule, GamepadButton::Start);
+            assert!(world.resource::<PausePage>().open);
+            press_pad(&mut world, pad, &mut schedule, GamepadButton::South);
+            assert!(world.resource::<PausePage>().category == Category::Controls);
+            for _ in 0..4 {
+                press_pad(&mut world, pad, &mut schedule, GamepadButton::DPadDown);
+            }
+            press_pad(&mut world, pad, &mut schedule, GamepadButton::South);
+            assert!(world.resource::<SettingEdits>().toggle == vec![Knob::InvertX]);
+            for _ in 0..2 {
+                press_pad(&mut world, pad, &mut schedule, GamepadButton::DPadDown);
+            }
+            press_pad(&mut world, pad, &mut schedule, GamepadButton::DPadRight);
+            let edits = world.resource::<SettingEdits>();
+            assert!(edits.set.len() == 1 && edits.set[0].0 == Knob::CameraSpeed);
+            assert_eq!(
+                sliders::speed_value(edits.set[0].0, edits.set[0].1),
+                Some(1.25)
+            );
+            press_pad(&mut world, pad, &mut schedule, GamepadButton::East);
+            assert!(!world.resource::<PausePage>().open);
+            world.get_mut::<Gamepad>(pad).unwrap().digital_mut().clear();
+            schedule.run(&mut world);
+            assert!(!world.resource::<PausePage>().open);
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Unchanged
+            ));
+        }
+    }
+
+    #[test]
+    fn controller_options_entry_ignores_gameplay_and_card_previews() {
+        for phase in [Phase::Menu, Phase::Playing] {
+            let (mut world, pad, mut schedule) = controller_world(phase);
+            if phase == Phase::Menu {
+                world
+                    .resource_mut::<super::super::super::super::cards::PreviewHand>()
+                    .0 = true;
+            }
+            press_pad(&mut world, pad, &mut schedule, GamepadButton::Start);
+            assert!(!world.resource::<PausePage>().open);
             assert!(matches!(
                 world.resource::<NextState<Phase>>(),
                 NextState::Unchanged

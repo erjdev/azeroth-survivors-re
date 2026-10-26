@@ -92,6 +92,14 @@ pass, including rotation/zoom scaling. Native wide/compact checks cover clicks,
 dragging, keyboard limits/steps, reset isolation and persistence after relaunch;
 new screenshots are embedded in CHANGELOG/README. In-world feel, gamepad navigation,
 bindings and other settings remain required.
+Controller discovery is enabled for Survivors (the stock client keeps it disabled).
+Start opens Options from Menu/Paused; D-pad up/down focuses, left/right adjusts,
+south selects and east closes. This shares keyboard focus and setting actions,
+and only one controller supplies new presses per frame. Synthetic ECS checks cover
+both menu states, toggles, slider changes, back, held input, gameplay rejection and
+card-preview rejection. Native compact validation covers backend startup and help
+layout, with a keyboard-focused screenshot in CHANGELOG/README. Physical controller
+acceptance, other starter pages and gameplay remain unfinished.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.
