@@ -4996,3 +4996,26 @@ resetting the scrolled feature panel. Both captures are embedded in CHANGELOG;
 README's existing Character cell is updated. Native build and app Clippy pass.
 This is menu evidence only; Windows gameplay reports remain open for exact-scene
 acceptance as recorded in the playtest correction milestone.
+
+
+### 2026-10-26 — Shaman Restoration deployment healing
+
+DBC 588 Restorative Totems (5 ranks) and 592 Purification (5 ranks) now add 5% and
+2% healing per rank respectively to Searing/Magma Totem's existing 10-point
+Restoration deployment pulse. Both are explicit Survivors conversions; neither
+unlocks healing early or changes damage, shield amounts or passive regeneration.
+At full ranks the 3%-maximum-health pulse becomes 4.05%. Generic point damage is
+removed for these supported nodes; tree milestone totals still count the points.
+
+Core regression coverage checks all classes, the 9/10-point unlock boundary, capped
+ranks, unrelated spells, passive scope and reset. Application coverage exercises
+actual cast completion with missing health, overhealing and a dead hero. Native
+1280×720 purchase and 640×720 refund of Purification persist correctly; both talent
+descriptions fit and screenshots are embedded in CHANGELOG and the existing README
+gallery cells. Preview presets are included. The fixture's row-zero supporting
+nodes remain provisional; this milestone does not claim the entire Restoration tree.
+No unattended combat was run; live balance and Windows acceptance remain open.
+
+Validation: 145 core tests, 291 visibility-enabled Survivors app tests, native build,
+core/app Clippy, formatting and diff checks pass. The DBC audit reports 192/432
+individual definitions and 78/81 milestone descriptions; neither is full acceptance.

@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Shaman totem healing talents
+
+Restorative Totems and Purification now strengthen the unlocked totem-deployment
+heal instead of granting generic damage. Their bonuses add: maximum ranks raise
+healing from 3% to 4.05% maximum health. Damage, shields and regeneration stay outside
+this healing scope.
+
+![Purification purchased](images/screenshots/2026-10-26-totem-healing/talent-1280.png)
+
+![Compact Restorative Totems details](images/screenshots/2026-10-26-totem-healing/talent-640.png)
+
+Native purchase/refund persistence and wide/compact descriptions verified. All 145
+core and 291 Survivors app tests pass, alongside native build and Clippy. Definition
+coverage reaches 192/432; gameplay balance and Windows acceptance remain open.
+
 ## 2026-10-26 — Appearance choice indicators
 
 Character customization now includes the intention design's position dots below

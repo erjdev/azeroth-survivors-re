@@ -13,6 +13,8 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 588, max_rank: 5, name: "Restorative Totems", description: "Searing Totem and Magma Totem deployment: +5% healing per rank, adding to Purification. Requires the 10-point Restoration healing milestone; excludes damage, shields and regeneration (Survivors healing-totem conversion)", stat: TalentStat::TotemHealing, per_rank: 0.05 },
+    TalentDefinition { id: 592, max_rank: 5, name: "Purification", description: "Searing Totem and Magma Totem deployment: +2% healing per rank, adding to Restorative Totems. Requires the 10-point Restoration healing milestone; excludes damage, shields and regeneration (Survivors healing scope)", stat: TalentStat::TotemHealing, per_rank: 0.02 },
     TalentDefinition { id: 1641, max_rank: 2, name: "Storm Reach", description: "Lightning Bolt and Chain Lightning: +10% initial targeting range per rank. Chain Lightning bounce radius and target count are unchanged", stat: TalentStat::SpellGroupRange(LIGHTNING), per_rank: 0.10 },
     TalentDefinition { id: 564, max_rank: 5, name: "Convection", description: "Lightning Bolt, Chain Lightning and shocks: 2% shorter cooldown per rank (Survivors mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(CASTS), per_rank: 0.02 },
     TalentDefinition { id: 563, max_rank: 5, name: "Concussion", description: "Lightning Bolt, Chain Lightning and shocks: +2% direct and periodic damage per rank", stat: TalentStat::SpellGroupDamage(CASTS), per_rank: 0.02 },
@@ -105,5 +107,57 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(base.with_ranks(&[(0, u32::MAX, 255)]), base);
+    }
+}
+
+#[cfg(test)]
+mod healing_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn deployment_healing_requires_unlock_and_caps_additive_training() {
+        for class in 0..9 {
+            for points in [0, 9, 10, 30, 51] {
+                let base = Milestones {
+                    class,
+                    points: [0, 0, points],
+                    ..Default::default()
+                };
+                for rank in [0, 1, 3, 5, 255] {
+                    let trained = base.with_ranks(&[(2, 588, rank), (2, 592, rank)]);
+                    for key in [
+                        "searing_totem",
+                        "magma_totem",
+                        "lightning_shield",
+                        "earth_shock",
+                        "renew",
+                        "rejuvenation",
+                        "holy_nova",
+                    ] {
+                        let mut expected = base.cast(key);
+                        if class == 5 && super::TOTEMS.contains(&key) {
+                            expected.heal_fraction *= 1. + 0.07 * f32::from(rank.min(5));
+                        }
+                        let actual = trained.cast(key);
+                        assert!((actual.heal_fraction - expected.heal_fraction).abs() < 0.000001);
+                        expected.heal_fraction = actual.heal_fraction;
+                        assert_eq!(actual, expected);
+                        assert_eq!(
+                            trained.passive_multiplier(key),
+                            base.passive_multiplier(key)
+                        );
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+        assert_eq!(
+            talent_definition(5, 588).unwrap().rank_preview(1),
+            "This talent: 5 to 10% totem deployment healing next rank"
+        );
+        assert_eq!(
+            talent_definition(5, 592).unwrap().rank_preview(255),
+            "This talent: 10% totem deployment healing (maximum rank)"
+        );
     }
 }

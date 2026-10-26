@@ -486,6 +486,9 @@ impl Milestones {
                 }
             }
         }
+        if self.class == 5 && shaman::TOTEMS.contains(&key) {
+            effect.heal_fraction *= 1.0 + self.trained_value(TalentStat::TotemHealing);
+        }
         if self.class == 4 && key == "holy_nova" {
             effect.heal_fraction *= 1.0 + self.trained_value(TalentStat::SpiritualHealing);
         }
@@ -1359,6 +1362,7 @@ pub enum TalentStat {
     SpiritTap,
     ImprovedRenew,
     SpiritualHealing,
+    TotemHealing,
     SiphonLife,
     Nightfall,
     SecondarySlowDuration(&'static str),
@@ -1452,6 +1456,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
+            TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
@@ -2575,6 +2580,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::BloodCrazeHealing
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
+            | TalentStat::TotemHealing
             | TalentStat::SpiritualHealing
             | TalentStat::MaximumHealth
             | TalentStat::SiphonLife
@@ -3654,6 +3660,7 @@ mod stat_talent_tests {
                     | TalentStat::BloodCrazeHealing
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
+                    | TalentStat::TotemHealing
                     | TalentStat::SpiritualHealing
                     | TalentStat::MaximumHealth
                     | TalentStat::SiphonLife

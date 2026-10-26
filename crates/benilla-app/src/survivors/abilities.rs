@@ -4393,6 +4393,23 @@ mod milestone_tests {
             finish_milestone_cast(&mut run, restoration.cast("magma_totem"), 100.),
             3.
         );
+        let trained = restoration.with_ranks(&[(2, 588, 5), (2, 592, 5)]);
+        run.hp = 90.;
+        let healed = finish_milestone_cast(&mut run, trained.cast("magma_totem"), 100.);
+        assert!((healed - 4.05).abs() < 0.00001);
+        assert!((run.hp - 94.05).abs() < 0.00001);
+        run.hp = 99.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("searing_totem"), 100.),
+            1.
+        );
+        run.hp = 0.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("magma_totem"), 100.),
+            0.
+        );
+        assert_eq!(run.hp, 0.);
+        run.hp = 90.;
         assert_eq!(run.abilities.len(), 2); // Does not grant the unowned counterpart.
         finish_milestone_cast(&mut run, enhancement.cast("earth_shock"), 100.);
         assert_eq!((run.shield, run.shield_t), (3., 3.));
