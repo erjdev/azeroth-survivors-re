@@ -3640,6 +3640,92 @@ mod milestone_tests {
     }
 
     #[test]
+    fn druid_milestones_reach_casts_with_bounded_healing_and_defenses() {
+        let base = Milestones {
+            class: 8,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [30; 3],
+            ..base
+        };
+        let mut run = Run::default();
+        let stats = run.stats();
+        for (key, damage, cooldown, crit) in [
+            ("wrath", 1., 1., 0.05),
+            ("moonfire", 1.25, 1., 0.05),
+            ("starfire", 1., 1., 0.05),
+            ("hurricane", 1., 1., 0.),
+            ("insect_swarm", 1., 1., 0.),
+            ("entangling_roots", 1., 0.85, 0.),
+            ("thorns", 1., 0.85, 0.),
+            ("rejuvenation", 1.2, 0.85, 0.),
+            ("fireball", 1., 1., 0.),
+        ] {
+            let owned = super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 3,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+            assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+            assert!(
+                (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                "{key}"
+            );
+            assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+            assert_eq!(
+                (after.count, after.radius, after.duration),
+                (before.count, before.radius, before.duration)
+            );
+        }
+        run.hp = 50.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("thorns"), 100.),
+            3.
+        );
+        assert_eq!((run.hp, run.shield, run.shield_t), (53., 5., 3.));
+        finish_milestone_cast(&mut run, trained.cast("thorns"), 100.);
+        assert_eq!(run.shield, 5.);
+        run.shield = 20.;
+        run.shield_t = 8.;
+        finish_milestone_cast(&mut run, trained.cast("thorns"), 100.);
+        assert_eq!((run.shield, run.shield_t), (20., 8.));
+        run.heal_rate = 3.;
+        run.heal_t = 10.;
+        run.hp = 50.;
+        let before_swiftmend = Milestones {
+            points: [0, 0, 29],
+            ..base
+        };
+        assert_eq!(
+            finish_milestone_cast(&mut run, before_swiftmend.cast("rejuvenation"), 100.),
+            0.
+        );
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("rejuvenation"), 100.),
+            5.
+        );
+        assert_eq!((run.heal_rate, run.heal_t), (3., 10.));
+        run.hp = 99.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("rejuvenation"), 100.),
+            1.
+        );
+        run.hp = 0.;
+        run.shield = 0.;
+        run.shield_t = 0.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("rejuvenation"), 100.),
+            0.
+        );
+        finish_milestone_cast(&mut run, trained.cast("thorns"), 100.);
+        assert_eq!((run.hp, run.shield, run.shield_t), (0., 0., 0.));
+    }
+
+    #[test]
     fn warlock_milestones_reach_casts_and_bound_healing_shields_and_cooldowns() {
         let base = Milestones {
             class: 7,

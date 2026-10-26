@@ -676,8 +676,8 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Shaman | 13 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
 | Warlock | 12 / 50 | 9 / 9 |
-| Druid | 12 / 47 | 0 / 9 |
-| Total | 171 / 432 | 66 / 81 |
+| Druid | 12 / 47 | 9 / 9 |
+| Total | 171 / 432 | 75 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1226,11 +1226,31 @@ Druid has twelve audited individual effects. Values are per rank and provisional
 | 830 Improved Rejuvenation | 3 | Rejuvenation: +5% healing |
 | 828 Gift of Nature | 5 | Rejuvenation: +2% healing |
 
-Healing previews identify healing explicitly. Rejuvenation bonuses multiply its
-existing total heal over the same duration; they do not add an instant heal.
+Healing previews identify healing explicitly. Individual Rejuvenation ranks multiply
+its existing total heal over the same duration; those ranks do not add an instant heal.
 Moonfire previews show both damage and critical chance. These effects replace the
-generic damage fallback. Remaining 35 nodes, nine milestones, forms/feral attacks
-and live combat/balance acceptance remain open.
+generic damage fallback. Remaining 35 nodes, forms/feral attacks and live
+combat/balance acceptance remain open.
+
+All nine Druid milestones have explicit automatic Survivors adaptations:
+
+| Tree / points | Effect |
+| --- | --- |
+| Balance 10 · Nature's Grasp | Entangling Roots cooldown ×0.85 |
+| Balance 20 · Improved Moonfire | Moonfire direct/periodic damage ×1.25 |
+| Balance 30 · Moonkin Form | Wrath/Moonfire/Starfire +5 percentage points critical chance; no form required |
+| Feral 10 · Ferocity | Thorns cooldown ×0.85; feral attacks remain separate work |
+| Feral 20 · Heart of the Wild | Thorns cast grants a 5% maximum-health absorb for 3 sec; no stacking |
+| Feral 30 · Leader of the Pack | Thorns cast heals 3% maximum health once, not per retaliation |
+| Restoration 10 · Improved Healing Touch | Rejuvenation total healing ×1.2 |
+| Restoration 20 · Nature's Swiftness | Rejuvenation cooldown ×0.85 |
+| Restoration 30 · Swiftmend | Rejuvenation cast also immediately heals 5% maximum health; preserves the HoT |
+
+Multipliers compose with individual training. These milestones do not add targets,
+area locations or duration; periodic damage does not gain critical strikes. Cast
+healing caps at maximum health and cannot revive; absorbs preserve stronger active
+shields. Core/app tests cover thresholds and runtime parameters/finish behavior.
+Native screenshots verify preview text on an empty spec, not live combat balance.
 
 Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
 threshold tests and representative combat tests prove those behaviors. Switching specs

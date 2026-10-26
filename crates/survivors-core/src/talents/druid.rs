@@ -15,6 +15,55 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 830, max_rank: 3, name: "Improved Rejuvenation", description: "Rejuvenation: +5% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.05 },
     TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation: +2% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.02 },
  ];
+pub(super) fn apply_milestones(points: [u32; 3], key: &str, effect: &mut super::CastEffect) {
+    if points[0] >= 10 && key == "entangling_roots" {
+        effect.cooldown *= 0.85;
+    }
+    if points[0] >= 20 && key == "moonfire" {
+        effect.damage *= 1.25;
+    }
+    if points[0] >= 30 && BALANCE.contains(&key) {
+        effect.crit += 0.05;
+    }
+    if key == "thorns" {
+        if points[1] >= 10 {
+            effect.cooldown *= 0.85;
+        }
+        if points[1] >= 20 {
+            effect.shield_fraction = 0.05;
+        }
+        if points[1] >= 30 {
+            effect.heal_fraction = 0.03;
+        }
+    }
+    if key == "rejuvenation" {
+        if points[2] >= 10 {
+            effect.damage *= 1.2; // Heal spells store total healing in damage.
+        }
+        if points[2] >= 20 {
+            effect.cooldown *= 0.85;
+        }
+        if points[2] >= 30 {
+            effect.heal_fraction = 0.05;
+        }
+    }
+}
+
+pub(super) fn description(tree: usize, threshold: u32) -> Option<&'static str> {
+    match (tree, threshold) {
+        (0, 10) => Some("Entangling Roots: 15% shorter cooldown (Survivors automatic Nature's Grasp)"),
+        (0, 20) => Some("Moonfire: +25% direct and periodic damage, multiplying individual ranks (Survivors Improved Moonfire milestone)"),
+        (0, 30) => Some("Wrath, Moonfire and Starfire: +5 percentage points critical chance; periodic ticks do not crit (Survivors Moonkin Form; no form required)"),
+        (1, 10) => Some("Thorns: 15% shorter cooldown (Survivors Ferocity; feral attacks remain separate work)"),
+        (1, 20) => Some("Thorns grants a non-stacking 5% maximum-health absorb for 3 seconds once per successful cast (Survivors Heart of the Wild; no form required)"),
+        (1, 30) => Some("Thorns heals 3% maximum health once per successful cast, not per retaliation (Survivors Leader of the Pack; no form required)"),
+        (2, 10) => Some("Rejuvenation: +20% total healing, multiplying individual healing ranks (Survivors Improved Healing Touch)"),
+        (2, 20) => Some("Rejuvenation: 15% shorter cooldown, multiplying Moonglow (Survivors automatic Nature's Swiftness)"),
+        (2, 30) => Some("Rejuvenation also immediately heals 5% maximum health once per successful cast; its healing over time remains intact (Survivors automatic Swiftmend)"),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -113,6 +162,73 @@ mod tests {
             for key in BALANCE.iter().chain(["thorns", "rejuvenation"].iter()) {
                 assert_eq!(trained.cast(key), CastEffect::default());
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod milestone_tests {
+    use super::*;
+    use crate::talents::{CastEffect, Milestones};
+
+    #[test]
+    fn druid_milestones_unlock_at_each_threshold_and_stay_scoped() {
+        let base = Milestones {
+            class: 8,
+            ..Default::default()
+        };
+        for (tree, keys) in [
+            (0, &["entangling_roots", "moonfire", "wrath"][..]),
+            (1, &["thorns", "thorns", "thorns"][..]),
+            (2, &["rejuvenation", "rejuvenation", "rejuvenation"][..]),
+        ] {
+            for (index, key) in keys.iter().enumerate() {
+                let threshold = (index as u32 + 1) * 10;
+                let mut before = base;
+                before.points[tree] = threshold - 1;
+                let mut after = before;
+                after.points[tree] = threshold;
+                assert!(description(tree, threshold).is_some());
+                assert_ne!(before.cast(key), after.cast(key));
+                assert_eq!(after.cast("fireball"), CastEffect::default());
+            }
+        }
+        let all = Milestones {
+            points: [30; 3],
+            ..base
+        }
+        .with_ranks(&[
+            (0, 763, 5),
+            (0, 783, 3),
+            (0, 790, 5),
+            (0, 782, 3),
+            (2, 830, 3),
+            (2, 828, 5),
+        ]);
+        assert!((all.cast("moonfire").damage - 1.25 * 1.1 * 1.1).abs() < 0.00001);
+        assert!((all.cast("moonfire").crit - 0.15).abs() < 0.00001);
+        assert!((all.cast("rejuvenation").damage - 1.2 * 1.15 * 1.1).abs() < 0.00001);
+        assert!((all.cast("rejuvenation").cooldown - 0.85 * 0.91).abs() < 0.00001);
+        assert!((all.cast("thorns").damage - 1.3).abs() < 0.00001);
+        assert_eq!(all.cast("thorns").shield_fraction, 0.05);
+        assert_eq!(all.cast("thorns").shield_seconds, 3.);
+        assert_eq!(all.cast("thorns").heal_fraction, 0.03);
+        assert_eq!(all.cast("rejuvenation").heal_fraction, 0.05);
+        for key in [
+            "wrath",
+            "moonfire",
+            "starfire",
+            "hurricane",
+            "insect_swarm",
+            "entangling_roots",
+            "thorns",
+            "rejuvenation",
+        ] {
+            let e = all.cast(key);
+            assert_eq!((e.radius, e.duration, e.extra_targets), (1., 1., 0));
+        }
+        for key in ["hurricane", "insect_swarm"] {
+            assert_eq!(all.cast(key), CastEffect::default());
         }
     }
 }

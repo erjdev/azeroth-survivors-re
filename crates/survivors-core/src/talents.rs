@@ -309,6 +309,9 @@ impl Milestones {
         if self.class == 7 {
             warlock::apply_milestones(self.points, key, &mut effect);
         }
+        if self.class == 8 {
+            druid::apply_milestones(self.points, key, &mut effect);
+        }
         if self.class == 2 && HUNTER_SHOTS.contains(&key) {
             if self.points[1] >= 10 {
                 effect.cooldown *= 0.9;
@@ -752,6 +755,9 @@ impl Milestones {
 }
 
 pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static str> {
+    if class == 8 {
+        return druid::description(tree, threshold);
+    }
     if class == 7 {
         return warlock::description(tree, threshold);
     }

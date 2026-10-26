@@ -91,6 +91,10 @@ Jeweler’s Eye now tracks discovery across the full jewelry Codex.
 
 ![Combined jewelry discovery achievement](docs/images/screenshots/2026-10-26-jewel-achievement/progress-1280.png)
 
+Druid milestones now support Balance spells, Thorns defenses and Rejuvenation healing.
+
+![Druid Swiftmend milestone](docs/images/screenshots/2026-10-26-druid-milestones/swiftmend-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

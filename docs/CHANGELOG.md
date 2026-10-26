@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Druid milestone builds
+
+All nine Druid milestones now have explicit Survivors adaptations. Balance adds
+root cooldown support, Moonfire damage and spell critical chance. Feral supports
+Thorns with cooldown, absorb and healing benefits. Restoration strengthens
+Rejuvenation and adds Swiftmend’s immediate heal without consuming its ongoing heal.
+Forms and feral attacks remain unfinished; tuning is provisional.
+
+![Swiftmend milestone](images/screenshots/2026-10-26-druid-milestones/swiftmend-1280.png)
+
+![Heart of the Wild milestone](images/screenshots/2026-10-26-druid-milestones/heart-of-the-wild-1280.png)
+
+132 core and 258 app tests, native build, workspace Clippy, talent data audit,
+formatting and render lint pass. Tests cover threshold boundaries, individual-rank
+composition, cast parameters, capped healing, no revival and absorb non-stacking.
+Native previews use an untrained synthetic character; live combat/balance acceptance
+remains open. Catalog coverage is 171/432 nodes and 75/81 milestone descriptions.
+
 ## 2026-10-26 — Jeweler’s Eye follows the Codex
 
 Jeweler’s Eye now counts discovered rings, trinkets and amulets across the account,
