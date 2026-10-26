@@ -2671,6 +2671,13 @@ fn ability_tip(
             ));
         }
     }
+    let remorseless = milestones.remorseless_crit(def.key);
+    if remorseless > 0.0 {
+        lines.push(TipLine::new(
+            format!("Remorseless Attacks: after a kill, the next successful Rogue melee cast gains +{} critical chance; expires after 20 sec.", pct(remorseless)),
+            card_growth::GAIN,
+        ));
+    }
     let shatter = milestones.shatter(def.key, true);
     if shatter > 0.0 {
         lines.push(TipLine::new(

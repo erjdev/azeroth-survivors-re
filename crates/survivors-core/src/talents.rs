@@ -369,6 +369,20 @@ impl Milestones {
         }
     }
 
+    /// Kill-triggered critical chance for the next successful Rogue melee cast.
+    pub fn remorseless_crit(self, key: &str) -> f32 {
+        if self.class == 3
+            && matches!(
+                key,
+                "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
+            )
+        {
+            self.trained_value(TalentStat::Remorseless)
+        } else {
+            0.0
+        }
+    }
+
     pub fn flurry_haste(self, active: bool) -> f32 {
         if self.class == 0 && active {
             self.trained_value(TalentStat::FlurryHaste)
@@ -956,6 +970,7 @@ pub enum TalentStat {
     EnrageDamage,
     BloodCrazeHealing,
     FlurryHaste,
+    Remorseless,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
     SecondaryRootDuration(&'static str),
@@ -1021,6 +1036,7 @@ impl TalentDefinition {
             TalentStat::CritDamage | TalentStat::SpellGroupCritDamage(_) => {
                 (100.0, "% critical damage")
             }
+            TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::BloodCrazeHealing => {
                 (100.0, "% maximum health over 6 seconds after health damage")
@@ -1864,6 +1880,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 272, max_rank: 2, name: "Remorseless Attacks",
+        description: "After a kill, your next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast gains +20% critical chance per rank; expires after 20 sec; refreshes without stacking",
+        stat: TalentStat::Remorseless, per_rank: 0.20,
+    },
+    TalentDefinition {
         id: 186, max_rank: 5, name: "Lightning Reflexes",
         description: "+1% damage reduction per rank (Survivors dodge conversion)",
         stat: TalentStat::Reduction, per_rank: 0.01,
@@ -1961,6 +1982,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SecondaryRootDuration(_)
             | TalentStat::EnrageDamage
             | TalentStat::BloodCrazeHealing
+            | TalentStat::Remorseless
             | TalentStat::FlurryHaste
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
@@ -1994,6 +2016,38 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
 #[cfg(test)]
 mod stat_talent_tests {
     use super::*;
+
+    #[test]
+    fn remorseless_chance_is_rank_bounded_and_excludes_areas_and_bleeds() {
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        for rank in 0..=2 {
+            let trained = base.with_ranks(&[(0, 272, rank)]);
+            for key in ["sinister_strike", "eviscerate", "gouge", "kidney_shot"] {
+                assert_eq!(trained.remorseless_crit(key), 0.2 * f32::from(rank));
+                assert_eq!(
+                    trained.cast(key),
+                    CastEffect::default(),
+                    "not a permanent bonus"
+                );
+            }
+            for key in ["rupture", "blade_flurry", "heroic_strike", "unknown"] {
+                assert_eq!(trained.remorseless_crit(key), 0.0);
+            }
+        }
+        assert_eq!(
+            base.with_ranks(&[(0, 272, 255)]).remorseless_crit("gouge"),
+            0.4
+        );
+        assert_eq!(
+            base.with_ranks(&[(0, 272, 2)])
+                .with_ranks(&[])
+                .remorseless_crit("gouge"),
+            0.0
+        );
+    }
 
     #[test]
     fn rogue_defense_and_mobility_replace_damage_without_changing_spells() {
@@ -2573,6 +2627,7 @@ mod stat_talent_tests {
                     | TalentStat::SecondaryRootDuration(_)
                     | TalentStat::EnrageDamage
                     | TalentStat::BloodCrazeHealing
+                    | TalentStat::Remorseless
                     | TalentStat::FlurryHaste
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn

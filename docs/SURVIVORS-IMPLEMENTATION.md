@@ -18,7 +18,7 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
-Rogue has twelve explicit individual talents: Lightning Reflexes, Deflection,
+Rogue has thirteen explicit individual talents: Remorseless Attacks, Lightning Reflexes, Deflection,
 Camouflage, Sleight of Hand, Improved Eviscerate, Malice,
 Improved Sinister Strike, Serrated Blades, Deadliness, Improved Gouge, Lethality
 and Aggression. Their effects replace provisional rank damage; exact rules are
@@ -39,7 +39,12 @@ were checked in the compact layout, with wide/compact inline screenshots.
 The four defense/mobility nodes replace provisional damage with reduction, armor
 or movement speed. 108 core tests and the local talent audit pass; native
 Camouflage/Deflection refund/rebuy checks and two screenshots cover 1280×720.
-Other Rogue nodes, other compact descriptions and live combat remain open.
+Remorseless Attacks adds a non-stacking, 20-second kill-triggered bonus to the
+next successful eligible melee cast. 109 core and 193 app tests pass, including
+rank limits, expiry, refresh and consumption. Wide/compact captures document
+the description; native refund/rebuy was verified. An active-proc HUD indicator
+and live combat acceptance remain open, alongside other Rogue nodes and
+remaining compact descriptions.
 
 The user authorized lore-appropriate racials for all races. All eight now have
 explicit rules in `SURVIVORS.md` and shared core effects applied to the run sheet;

@@ -288,6 +288,7 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 
 | Talent (DBC ID) | Ranks | Survivors effect per rank |
 |---|---|---|
+| Remorseless Attacks (272) | 2 | After a kill, +20 percentage points critical chance on the next successful Rogue melee cast; 20 sec window |
 | Lightning Reflexes (186) | 5 | +1 percentage point damage reduction; dodge conversion |
 | Deflection (187) | 5 | +3 armor; parry conversion |
 | Camouflage (244) | 5 | +3% movement speed, always active without stealth |
@@ -303,6 +304,13 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 
 Rogue spell membership is Sinister Strike, Eviscerate, Blade Flurry, Rupture,
 Gouge and Kidney Shot. Other-class and neutral jewelry abilities are excluded.
+Remorseless Attacks applies to Sinister Strike, Eviscerate, Gouge and Kidney Shot.
+Any kill by the run refreshes its 20-second gameplay-time window without stacking.
+It is consumed once by a successful eligible cast, including all targets of that
+cast. Failed casts, Rupture and area spells do not consume it. It expires while
+unspent, does not advance while paused, and cannot trigger or apply while dead.
+Critical chance is capped at 100%; this proc adds no permanent sheet bonus.
+
 Damage factors from different talents multiply. Talents improve acquired abilities;
 they do not grant the spell. Other individual Rogue effects
 remain unfinished and retain their explicitly labeled provisional behavior.

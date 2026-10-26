@@ -293,7 +293,7 @@ pub(super) fn cast_abilities(
         let def = o.def;
         let milestone = run.milestones.cast(def.key);
         let p = Params::new(o, &stats, run.milestones);
-        let crit_chance = p.crit;
+        let crit_chance = (p.crit + run.remorseless_crit(def.key)).min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
             Kind::Bolt | Kind::Strike | Kind::Melee => {
@@ -622,6 +622,7 @@ pub(super) fn cast_abilities(
         };
         run.abilities[i].cd = if fired { p.cooldown } else { 0.2 };
         if fired {
+            run.consume_remorseless(def.key);
             let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
             if healed > 0.0 {
                 fx.number(me, healed, false, COLOR_HEAL);
@@ -970,6 +971,7 @@ pub(super) fn apply_hits(
             elite: en.elite,
         });
         run.kills += 1;
+        run.record_remorseless_kill();
         if en.boss {
             run.bosses_defeated = run.bosses_defeated.saturating_add(1);
         }
@@ -2031,6 +2033,44 @@ mod milestone_tests {
                 assert_eq!(after.effect, before.effect);
             }
         }
+    }
+
+    #[test]
+    fn remorseless_kills_refresh_expire_and_consume_only_on_eligible_casts() {
+        let mut run = Run {
+            milestones: Milestones {
+                class: 3,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 272, 2)]),
+            ..Default::default()
+        };
+        assert_eq!(run.remorseless_crit("sinister_strike"), 0.0);
+        run.record_remorseless_kill();
+        assert_eq!(run.remorseless_crit("sinister_strike"), 0.4);
+        run.elapsed = 19.9;
+        assert_eq!(run.remorseless_crit("gouge"), 0.4);
+        run.elapsed = 20.0;
+        assert_eq!(run.remorseless_crit("gouge"), 0.0);
+        run.record_remorseless_kill();
+        run.elapsed = 21.0;
+        run.record_remorseless_kill();
+        assert_eq!(run.remorseless_until, 41.0);
+        assert_eq!(run.remorseless_crit("eviscerate"), 0.4);
+        for key in ["rupture", "blade_flurry", "fireball"] {
+            assert_eq!(run.remorseless_crit(key), 0.0);
+            run.consume_remorseless(key);
+            assert_eq!(run.remorseless_crit("eviscerate"), 0.4);
+        }
+        run.consume_remorseless("kidney_shot");
+        assert_eq!(run.remorseless_crit("sinister_strike"), 0.0);
+        run.hp = 0.0;
+        run.record_remorseless_kill();
+        assert_eq!(run.remorseless_until, 0.0);
+        run.hp = 100.0;
+        run.record_remorseless_kill();
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert_eq!(run.remorseless_crit("gouge"), 0.0);
     }
 
     #[test]

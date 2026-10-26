@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Remorseless Attacks
+
+Rogue kills now grant +20% critical chance per rank to the next successful
+Sinister Strike, Eviscerate, Gouge or Kidney Shot cast. The bonus expires after
+20 gameplay seconds and refreshes without stacking; areas and bleeds do not
+consume it. This replaces the node's provisional permanent damage bonus.
+
+![Remorseless Attacks rank preview](images/screenshots/2026-10-25-remorseless-attacks/talent-1280.jpg)
+
+![Remorseless Attacks in the compact layout](images/screenshots/2026-10-25-remorseless-attacks/talent-640.jpg)
+
+109 core and 193 Survivors app tests, native build, workspace Clippy, formatting
+and render-pass lint pass. Tests cover rank limits, eligible spells, expiry,
+refresh and consumption. Native refund/rebuy and description wrapping were
+checked at 1280×720 and 640×720. Live combat acceptance remains open.
+
 ## 2026-10-25 — Rogue defense and mobility choices
 
 Lightning Reflexes and Sleight of Hand now reduce damage taken, Deflection adds

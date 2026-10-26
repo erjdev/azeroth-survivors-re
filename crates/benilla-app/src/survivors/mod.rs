@@ -439,6 +439,7 @@ pub(super) struct Run {
     pub immune_t: f32,
     pub enrage_t: f32,
     pub flurry_t: f32,
+    pub remorseless_until: f32,
     pub blood_craze_t: f32,
     pub thorns: f32,
     pub thorns_t: f32,
@@ -521,6 +522,7 @@ impl Default for Run {
             immune_t: 0.0,
             enrage_t: 0.0,
             flurry_t: 0.0,
+            remorseless_until: 0.0,
             blood_craze_t: 0.0,
             thorns: 0.0,
             thorns_t: 0.0,
@@ -585,6 +587,26 @@ impl Run {
         self.opening_hand = perks.opening_hand > 0;
         self.can_skip = perks.skip > 0;
         self.keen_eye = perks.keen_eye;
+    }
+
+    pub(super) fn record_remorseless_kill(&mut self) {
+        if self.alive() && self.milestones.remorseless_crit("sinister_strike") > 0.0 {
+            self.remorseless_until = self.elapsed + 20.0;
+        }
+    }
+
+    pub(super) fn remorseless_crit(&self, key: &str) -> f32 {
+        if self.alive() && self.elapsed < self.remorseless_until {
+            self.milestones.remorseless_crit(key)
+        } else {
+            0.0
+        }
+    }
+
+    pub(super) fn consume_remorseless(&mut self, key: &str) {
+        if self.milestones.remorseless_crit(key) > 0.0 {
+            self.remorseless_until = 0.0;
+        }
     }
 
     pub(super) fn record_flurry_hit(&mut self, source: &str, damage: f32, critical: bool) {
