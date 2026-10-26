@@ -342,3 +342,23 @@ trigger while dead. A smaller absorb does not replace or extend a stronger one.
 
 Milestones are independent of the
 similarly named individual talent nodes and reset when the selected spec changes.
+
+### Priest talent tuning (initial)
+
+Eight individual Priest talents now replace their provisional general damage:
+
+| Talent | Per-rank Survivors effect |
+|---|---|
+| Improved Power Word: Shield (3 ranks) | +5% shield absorption; same duration |
+| Holy Specialization (5) | +1% critical chance for Smite, Holy Fire and Holy Nova |
+| Divine Fury (5) | 4% shorter Smite/Holy Fire cooldown; automatic-cast conversion |
+| Searing Light (2) | +5% Smite/Holy Fire damage, including Holy Fire's burn |
+| Improved Shadow Word: Pain (2) | +15% duration; unchanged tick damage |
+| Improved Mind Blast (5) | 5% shorter Mind Blast cooldown |
+| Improved Psychic Scream (2) | 10% shorter cooldown; unchanged fear duration |
+| Darkness (5) | +2% Shadow Word: Pain, Mind Blast and Psychic Scream damage |
+
+These effects stay with the selected hero/spec and do not affect foreign-class or
+jewelry spells. Duration/cooldown conversions use the existing Survivors spell
+cadence and are initial balance values. Remaining Priest talents and individual
+10/20/30-point milestones retain explicitly provisional behavior.

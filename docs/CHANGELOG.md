@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Priest spell training
+
+Eight Priest talents now improve their named spells: Holy damage/critical chance,
+casting cooldowns, Shadow damage and duration, Psychic Scream cadence and shield
+absorption. Green previews explain their scope and Survivors conversions.
+
+![Searing Light next-rank damage at 1280×720](images/screenshots/2026-10-25-priest-training/searing-light-1280.jpg)
+
+![Shadow Word Pain duration at 640×720](images/screenshots/2026-10-25-priest-training/pain-640.jpg)
+
+112 core tests and the ranked combat-parameter regression pass. Native UI checks,
+build, workspace Clippy, formatting and render-pass lint pass. These are initial
+balance values; Priest milestones and remaining nodes are still unfinished.
+
 ## 2026-10-25 — Saved specs follow talent-tree rules
 
 Saved DBC specs now require valid class/tree membership, rank caps, earlier-row

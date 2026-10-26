@@ -2279,6 +2279,56 @@ mod milestone_tests {
     }
 
     #[test]
+    fn priest_training_reaches_ranked_damage_burns_shields_and_cooldowns() {
+        let base = Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        let ranks: Vec<_> = survivors_core::talents::definitions(4)
+            .iter()
+            .map(|node| (0, node.id, node.max_rank))
+            .collect();
+        let trained = base.with_ranks(&ranks);
+        let mut stats = Run::default().stats();
+        stats.haste = 0.25;
+        stats.cooldown = 0.15;
+        for (key, damage, cooldown, duration, crit) in [
+            ("smite", 1.1, 0.8, 1.0, 0.05),
+            ("holy_fire", 1.1, 0.8, 1.0, 0.05),
+            ("holy_nova", 1.0, 1.0, 1.0, 0.05),
+            ("shadow_word_pain", 1.1, 1.0, 1.3, 0.0),
+            ("mind_blast", 1.1, 0.75, 1.0, 0.0),
+            ("psychic_scream", 1.1, 0.8, 1.0, 0.0),
+            ("power_word_shield", 1.15, 1.0, 1.0, 0.0),
+            ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),
+        ] {
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.0001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.0001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                    "{key}"
+                );
+                assert!(
+                    (after.duration - before.duration * duration).abs() < 0.0001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.0001, "{key}");
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.effect, before.effect);
+            }
+        }
+    }
+
+    #[test]
     fn rogue_cooldown_training_reaches_ranked_cast_parameters() {
         let base = Milestones {
             class: 3,

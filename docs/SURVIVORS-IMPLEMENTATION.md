@@ -3736,3 +3736,19 @@ Clippy, formatting and render-pass lint pass. This closes the DBC class/rank/row
 prerequisite gap recorded above. Legacy non-DBC spread rules, required-spell semantics
 outside Survivors' talent prerequisites, and unfinished individual talent effects
 are not expanded by this checkpoint.
+
+### Priest individual spell training — 2026-10-25
+
+Eight DBC-verified Priest nodes now have scoped spell effects rather than provisional
+general damage: Improved Power Word: Shield, Holy Specialization, Divine Fury,
+Searing Light, Improved Shadow Word: Pain, Improved Mind Blast, Improved Psychic
+Scream and Darkness. The spec records exact initial values. Shield growth is labeled
+absorption; conversion descriptions identify Survivors duration/cooldown rules.
+
+112 core tests and the focused app regression pass. The app test covers ranks 1/3/8,
+Holy Fire direct/burn damage, Pain duration, shield amount, critical chance and
+cooldowns composed with gear; foreign spells, counts, radii and control effects stay
+unchanged. Native 1280×720 Searing Light refund/repurchase and 640×720 Pain previews
+are captured inline in the changelog, using legal saved specs and the intention's
+three-tree/sidebar layout. Native build, workspace Clippy, formatting and render-pass
+lint pass. Priest milestones, remaining nodes and live combat balance remain open.

@@ -286,7 +286,11 @@ impl Milestones {
                     TalentStat::SpellGroupCritDamage(spells) if spells.contains(&key) => {
                         effect.crit_damage += value;
                     }
-                    TalentStat::SpellDamage(spell) if spell == key => effect.damage *= 1.0 + value,
+                    TalentStat::SpellDamage(spell) | TalentStat::SpellAbsorb(spell)
+                        if spell == key =>
+                    {
+                        effect.damage *= 1.0 + value
+                    }
                     TalentStat::SpellGroupCooldown(spells) if spells.contains(&key) => {
                         effect.cooldown *= 1.0 - value
                     }
@@ -986,6 +990,7 @@ pub enum TalentStat {
     SpellGroupCritDamage(&'static [&'static str]),
     SpellGroupCooldown(&'static [&'static str]),
     SpellDamage(&'static str),
+    SpellAbsorb(&'static str),
     SpellCooldown(&'static str),
     SpellCrit(&'static str),
     SpellDuration(&'static str),
@@ -1030,6 +1035,7 @@ impl TalentDefinition {
             TalentStat::SecondarySlowDuration(_) => (1.0, " s added slow duration"),
             TalentStat::SecondaryStunDuration(_) => (1.0, " s added stun duration"),
             TalentStat::SecondaryRootDuration(_) => (1.0, " s added root duration"),
+            TalentStat::SpellAbsorb(_) => (100.0, "% absorption"),
             TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
                 (100.0, "% damage")
             }
@@ -1967,12 +1973,62 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
 ];
 
+const PRIEST_HOLY: &[&str] = &["smite", "holy_fire", "holy_nova"];
+const PRIEST_CAST_HOLY: &[&str] = &["smite", "holy_fire"];
+const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scream"];
+
+// Vanilla identities and rank caps; automatic-cast conversions are labeled in descriptions.
+#[rustfmt::skip]
+const PRIEST_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 343, max_rank: 3, name: "Improved Power Word: Shield",
+        description: "Power Word: Shield absorbs 5% more damage per rank; does not change its duration",
+        stat: TalentStat::SpellAbsorb("power_word_shield"), per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 401, max_rank: 5, name: "Holy Specialization",
+        description: "Smite, Holy Fire and Holy Nova: +1% critical chance per rank",
+        stat: TalentStat::SpellGroupCrit(PRIEST_HOLY), per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 1181, max_rank: 5, name: "Divine Fury",
+        description: "Smite and Holy Fire: 4% shorter cooldown per rank (Survivors cast-time conversion)",
+        stat: TalentStat::SpellGroupCooldown(PRIEST_CAST_HOLY), per_rank: 0.04,
+    },
+    TalentDefinition {
+        id: 403, max_rank: 2, name: "Searing Light",
+        description: "Smite and Holy Fire: +5% damage per rank, including Holy Fire's burn",
+        stat: TalentStat::SpellGroupDamage(PRIEST_CAST_HOLY), per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 482, max_rank: 2, name: "Improved Shadow Word: Pain",
+        description: "Shadow Word: Pain lasts 15% longer per rank; tick damage is unchanged (Survivors duration conversion)",
+        stat: TalentStat::SpellDuration("shadow_word_pain"), per_rank: 0.15,
+    },
+    TalentDefinition {
+        id: 481, max_rank: 5, name: "Improved Mind Blast",
+        description: "Mind Blast: 5% shorter cooldown per rank (Survivors cooldown conversion)",
+        stat: TalentStat::SpellCooldown("mind_blast"), per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 542, max_rank: 2, name: "Improved Psychic Scream",
+        description: "Psychic Scream: 10% shorter cooldown per rank; fear duration is unchanged (Survivors cooldown conversion)",
+        stat: TalentStat::SpellCooldown("psychic_scream"), per_rank: 0.10,
+    },
+    TalentDefinition {
+        id: 462, max_rank: 5, name: "Darkness",
+        description: "Shadow Word: Pain, Mind Blast and Psychic Scream: +2% damage per rank; excludes other-class and jewelry spells",
+        stat: TalentStat::SpellGroupDamage(PRIEST_SHADOW), per_rank: 0.02,
+    },
+];
+
 pub fn definitions(class: usize) -> &'static [TalentDefinition] {
     match class {
         0 => WARRIOR_TALENTS,
         1 => PALADIN_TALENTS,
         2 => HUNTER_TALENTS,
         3 => ROGUE_TALENTS,
+        4 => PRIEST_TALENTS,
         6 => MAGE_TALENTS,
         _ => &[],
     }
@@ -2021,6 +2077,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellGroupCooldown(_)
+            | TalentStat::SpellAbsorb(_)
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -2226,6 +2283,57 @@ mod stat_talent_tests {
             .with_ranks(&ranks);
             assert_eq!(other.cast("eviscerate"), CastEffect::default());
         }
+    }
+
+    #[test]
+    fn priest_training_is_scoped_bounded_and_replaces_provisional_damage() {
+        let base = Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        let ranks: Vec<_> = PRIEST_TALENTS
+            .iter()
+            .map(|n| (0, n.id, n.max_rank))
+            .collect();
+        let trained = base.with_ranks(&ranks);
+        for (key, damage, cooldown, duration, crit) in [
+            ("smite", 1.1, 0.8, 1.0, 0.05),
+            ("holy_fire", 1.1, 0.8, 1.0, 0.05),
+            ("holy_nova", 1.0, 1.0, 1.0, 0.05),
+            ("shadow_word_pain", 1.1, 1.0, 1.3, 0.0),
+            ("mind_blast", 1.1, 0.75, 1.0, 0.0),
+            ("psychic_scream", 1.1, 0.8, 1.0, 0.0),
+            ("power_word_shield", 1.15, 1.0, 1.0, 0.0),
+            ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),
+            ("holy_shock", 1.0, 1.0, 1.0, 0.0),
+        ] {
+            let cast = trained.cast(key);
+            assert!((cast.damage - damage).abs() < 0.00001, "{key}");
+            assert!((cast.cooldown - cooldown).abs() < 0.00001, "{key}");
+            assert!((cast.duration - duration).abs() < 0.00001, "{key}");
+            assert!((cast.crit - crit).abs() < 0.00001, "{key}");
+            assert_eq!(cast.radius, 1.0);
+            assert_eq!(cast.extra_targets, 0);
+            assert_eq!(cast.shield_fraction, 0.0);
+        }
+        for node in PRIEST_TALENTS {
+            assert_eq!(
+                base.with_ranks(&[(0, node.id, 255), (0, node.id, 1)]),
+                base.with_ranks(&[(0, node.id, node.max_rank)])
+            );
+            for rank in 0..=node.max_rank {
+                assert!(
+                    (stat_adjustment(4, &[(0, node.id, rank)]).might + 0.01 * f32::from(rank))
+                        .abs()
+                        < 0.00001
+                );
+            }
+        }
+        assert_eq!(trained.with_ranks(&[]), base);
+        assert_eq!(
+            talent_definition(4, 343).unwrap().rank_preview(3),
+            "This talent: 15% absorption (maximum rank)"
+        );
     }
 
     #[test]
@@ -2702,6 +2810,7 @@ mod stat_talent_tests {
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellGroupCooldown(_)
+                    | TalentStat::SpellAbsorb(_)
                     | TalentStat::SpellDamage(_)
                     | TalentStat::SpellCooldown(_)
                     | TalentStat::SpellCrit(_)
