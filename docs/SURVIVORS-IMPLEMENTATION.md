@@ -705,8 +705,8 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Shaman | 13 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
 | Warlock | 12 / 50 | 9 / 9 |
-| Druid | 12 / 47 | 9 / 9 |
-| Total | 171 / 432 | 75 / 81 |
+| Druid | 17 / 47 | 9 / 9 |
+| Total | 176 / 432 | 75 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1238,7 +1238,7 @@ Life uses the existing direct/periodic damage pipeline, excludes overkill and de
 targets, caps healing and cannot revive the player. Demonology conversions require
 no demon. These provisional rules still need live combat and balance acceptance.
 
-Druid has twelve audited individual effects. Values are per rank and provisional:
+Druid has seventeen audited individual effects. Values are per rank and provisional:
 
 | Talent ID / name | Ranks | Effect |
 | --- | --- | --- |
@@ -1254,11 +1254,16 @@ Druid has twelve audited individual effects. Values are per rank and provisional
 | 798 Sharpened Claws | 3 | +2 percentage points hero critical chance; conversion without forms |
 | 830 Improved Rejuvenation | 3 | Rejuvenation: +5% healing |
 | 828 Gift of Nature | 5 | Rejuvenation: +2% healing |
+| 821 Improved Mark of the Wild | 5 | +4 hero armor; permanent Mark conversion |
+| 824 Improved Healing Touch | 5 | Rejuvenation: 3% shorter cooldown; cast-time conversion |
+| 823 Nature's Focus | 5 | Rejuvenation: +2% healing; healing reliability conversion |
+| 841 Subtlety | 5 | +1 percentage point hero damage reduction; threat conversion |
+| 843 Tranquil Spirit | 5 | Rejuvenation: 2% shorter cooldown; healing mana-cost conversion |
 
 Healing previews identify healing explicitly. Individual Rejuvenation ranks multiply
 its existing total heal over the same duration; those ranks do not add an instant heal.
 Moonfire previews show both damage and critical chance. These effects replace the
-generic damage fallback. Remaining 35 nodes, forms/feral attacks and live
+generic damage fallback. Remaining 30 nodes, forms/feral attacks and live
 combat/balance acceptance remain open.
 
 All nine Druid milestones have explicit automatic Survivors adaptations:

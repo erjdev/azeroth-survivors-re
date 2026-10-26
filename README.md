@@ -116,6 +116,10 @@ Achievement cards retain consistent widths on incomplete rows.
 
 ![Consistent achievement card widths](docs/images/screenshots/2026-10-26-achievement-widths/feats-1280.png)
 
+Druid Restoration training previews explicit healing, cooldown and defensive benefits.
+
+![Druid Restoration healing preview](docs/images/screenshots/2026-10-26-restoration-nodes/natures-focus-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

@@ -3605,7 +3605,7 @@ mod milestone_tests {
                 ("moonfire", 1.21, 0.91, 0.1, 0.5),
                 ("starfire", 1.1, 0.7735, 0., 0.5),
                 ("thorns", 1.3, 1., 0., 0.),
-                ("rejuvenation", 1.265, 0.91, 0., 0.),
+                ("rejuvenation", 1.3915, 0.69615, 0., 0.),
                 ("hurricane", 1., 1., 0., 0.),
                 ("insect_swarm", 1., 1., 0., 0.),
                 ("entangling_roots", 1., 1., 0., 0.),

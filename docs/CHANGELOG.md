@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Druid Restoration training
+
+Five more talents replace generic damage with explicit armor, damage reduction,
+Rejuvenation healing and cooldown effects. Green rank previews show the benefit;
+these are provisional Survivors adaptations of the original talents.
+
+![Improved Mark armor preview](images/screenshots/2026-10-26-restoration-nodes/mark-1280.png)
+
+![Healing Touch cooldown preview](images/screenshots/2026-10-26-restoration-nodes/healing-touch-1280.png)
+
+![Nature's Focus healing preview](images/screenshots/2026-10-26-restoration-nodes/natures-focus-1280.png)
+
+134 core and 261 app tests pass, covering rank caps, spell scope, resets and milestone
+composition. Native previews verify spending, row unlocks and refund/reallocation
+with a synthetic account. Build, workspace Clippy, formatting and render lint pass.
+DBC audit: 176/432 individual nodes; live combat and balance acceptance remain open.
+
 ## 2026-10-26 — Consistent achievement cards
 
 Achievement cards retain their proportional column width on incomplete rows instead

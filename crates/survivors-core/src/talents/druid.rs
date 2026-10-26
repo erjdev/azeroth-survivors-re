@@ -14,6 +14,11 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 798, max_rank: 3, name: "Sharpened Claws", description: "+2 percentage points hero critical chance per rank (Survivors conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.02 },
     TalentDefinition { id: 830, max_rank: 3, name: "Improved Rejuvenation", description: "Rejuvenation: +5% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.05 },
     TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation: +2% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.02 },
+    TalentDefinition { id: 821, max_rank: 5, name: "Improved Mark of the Wild", description: "+4 hero armor per rank (Survivors permanent Mark of the Wild conversion)", stat: TalentStat::Armor, per_rank: 4.0 },
+    TalentDefinition { id: 824, max_rank: 5, name: "Improved Healing Touch", description: "Rejuvenation: 3% shorter cooldown per rank (Survivors Healing Touch cast-time conversion)", stat: TalentStat::SpellCooldown("rejuvenation"), per_rank: 0.03 },
+    TalentDefinition { id: 823, max_rank: 5, name: "Nature's Focus", description: "Rejuvenation: +2% healing per rank (Survivors healing reliability conversion; no spell pushback)", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.02 },
+    TalentDefinition { id: 841, max_rank: 5, name: "Subtlety", description: "+1 percentage point hero damage reduction per rank (Survivors threat-reduction conversion)", stat: TalentStat::Reduction, per_rank: 0.01 },
+    TalentDefinition { id: 843, max_rank: 5, name: "Tranquil Spirit", description: "Rejuvenation: 2% shorter cooldown per rank (Survivors healing mana-cost conversion)", stat: TalentStat::SpellCooldown("rejuvenation"), per_rank: 0.02 },
  ];
 pub(super) fn apply_milestones(points: [u32; 3], key: &str, effect: &mut super::CastEffect) {
     if points[0] >= 10 && key == "entangling_roots" {
@@ -104,8 +109,8 @@ mod tests {
                 ("thorns", 1. + 0.1 * short, 1., 0., 0.),
                 (
                     "rejuvenation",
-                    (1. + 0.05 * short) * (1. + 0.02 * r),
-                    1. - 0.03 * short,
+                    (1. + 0.05 * short) * (1. + 0.02 * r).powi(2),
+                    (1. - 0.03 * short) * (1. - 0.03 * r) * (1. - 0.02 * r),
                     0.,
                     0.,
                 ),
@@ -124,12 +129,45 @@ mod tests {
                 assert_eq!(trained.cast(key), CastEffect::default());
             }
             let bonus = stat_adjustment(8, &ranks);
-            assert_eq!(bonus.armor, 8. * r);
+            assert_eq!(bonus.armor, 12. * r);
+            assert!((bonus.reduction - 0.01 * r).abs() < 0.00001);
             assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
             assert!((bonus.crit - 0.02 * short).abs() < 0.00001);
             assert_eq!(trained.with_ranks(&[]), base);
         }
     }
+    #[test]
+    fn restoration_nodes_are_individually_scoped_and_multiply_with_milestones() {
+        for rank in [0, 1, 5, 255] {
+            let r = f32::from(rank.min(5));
+            for (id, healing, cooldown) in [
+                (824, 1., 1. - 0.03 * r),
+                (823, 1. + 0.02 * r, 1.),
+                (843, 1., 1. - 0.02 * r),
+            ] {
+                let base = Milestones {
+                    class: 8,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, id, rank)]);
+                assert!((trained.cast("rejuvenation").damage - healing).abs() < 0.00001);
+                assert!((trained.cast("rejuvenation").cooldown - cooldown).abs() < 0.00001);
+                for key in ["wrath", "moonfire", "thorns", "holy_nova"] {
+                    assert_eq!(trained.cast(key), CastEffect::default());
+                }
+                let milestones = Milestones {
+                    points: [0, 0, 30],
+                    ..base
+                }
+                .with_ranks(&[(2, id, rank)])
+                .cast("rejuvenation");
+                assert!((milestones.damage - healing * 1.2).abs() < 0.00001);
+                assert!((milestones.cooldown - cooldown * 0.85).abs() < 0.00001);
+                assert_eq!(milestones.heal_fraction, 0.05);
+            }
+        }
+    }
+
     #[test]
     fn druid_previews_identify_healing_and_both_moonfire_benefits() {
         let node = |id| DEFINITIONS.iter().find(|n| n.id == id).unwrap();
