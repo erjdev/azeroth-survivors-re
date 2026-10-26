@@ -28,8 +28,14 @@ These stay, and later phases read them instead of inventing a second copy.
   It follows the Hunter, seeks enemies within 18 yards of the Hunter, and uses body
   sweeps and local routes. Extra-target bonuses add nearby melee victims without increasing reach.
   It cannot bite through solid scenery or across floors.
-  This initial companion has no threat or incoming damage; pet health/recovery and
-  remaining individual pet talents remain planned. It does not occupy a collectible companion slot.
+  The wolf has 60 health plus 6 per additional run level. Non-boss enemies can
+  attack a closer living wolf within 4 yards and solid-world line of sight; bosses
+  keep targeting the hero. Defeat disables the wolf for 10 seconds of run time,
+  then it returns beside the hero when that position has safe floor support.
+  The HUD reports wolf health or recovery time. Endurance Training adds 3% wolf
+  maximum health per rank (5 ranks). Level changes preserve its health percentage.
+  It does not occupy a collectible companion slot. Further pet talents and balance
+  acceptance remain unfinished.
   Beast Mastery milestones: 10 points grants +20% bite damage; 20 points shortens
   the bite cooldown by 20%; 30 points grants a further ×1.5 bite damage during
   seconds 0–10 of each 30-second run-time cycle. These automatic adaptations affect

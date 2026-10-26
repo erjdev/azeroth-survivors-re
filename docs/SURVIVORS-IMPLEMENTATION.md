@@ -5303,3 +5303,35 @@ screenshots under `docs/images/screenshots/2026-10-26-beast-training/` show the 
 The compact capture verifies the full Frenzy text after scrolling. Screenshots are
 embedded in CHANGELOG and the existing README talent gallery; they do not certify
 in-map animation, live pathing, Windows presentation or combat balance.
+
+### Combat wolf health and recovery — 2026-10-26
+
+The wolf now has 60 + 6 × (run level − 1) maximum health. Endurance Training
+(DBC 1389, five ranks) multiplies that by 1 + 0.03 × rank. Level growth preserves
+health percentage instead of fully healing an injured wolf.
+
+Non-boss enemies choose a living wolf only when it is closer than the hero,
+within four yards, and visible through the solid-world line check. Bosses keep
+attacking the hero. This is proximity targeting, not a complete threat table or
+an Intimidation taunt. Pet-target changes discard stale hero routes. Contact uses
+three-dimensional distance, so actors on different floors cannot melee each other.
+Enemy attack cooldowns remain shared across target switches. Pet damage does not
+consume hero health, shields or trigger hero Thorns.
+
+At zero health the wolf plays death, stops moving/attacking and loses Frenzy.
+After ten seconds of run time it is replaced at the hero's supported position;
+unsafe positions defer recovery. A new entity restores full health and clears
+combat state. No healing, pet armor, resurrection spell, aggro persistence or
+boss taunting is implied. The HUD shows current/max wolf health or recovery time.
+Pause and selection screens do not consume the recovery timer.
+
+Validation: 157 core and 311 data-required app tests pass, including nearby enemy
+damage, boss exclusion, shared cooldown on target switch, no hero Thorns from pet
+damage, defeat/recovery, HUD text, and level-growth health fractions. Clippy,
+formatting and the native play build pass. DBC coverage is 197/432 individual
+talents and 81/81 automatic milestones.
+
+Native menu captures at 1280×720 and 640×720 show Endurance Training's 12 to 15%
+preview in a valid 29-point spec. They are embedded in CHANGELOG and README.
+The in-map HUD, wolf death animation and Windows combat behavior still require
+live acceptance; headless tests and menu screenshots do not establish those.

@@ -600,6 +600,10 @@ pub(super) fn setup_hud(
                         line.spawn((KillText, text(f, "Kills 0", 14.0, Color::WHITE)));
                     });
                     col.spawn((ReactiveBuffText, centered(f, "", 14.0, card_growth::GAIN)));
+                    col.spawn((
+                        super::hunter_pet::PetStatusText,
+                        centered(f, "", 14.0, card_growth::GAIN),
+                    ));
                 });
                 // The minimap cluster's column.
                 row.spawn(Node {

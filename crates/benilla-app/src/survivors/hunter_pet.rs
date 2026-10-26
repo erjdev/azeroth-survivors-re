@@ -1,5 +1,5 @@
 //! Hunter's combat companion, separate from the account's pickup companions.
-//! Authored Survivors rules: one permanent wolf, no threat or incoming pet damage.
+//! Authored Survivors rules: one wolf, nearby enemy attention, and timed recovery.
 use bevy::prelude::*;
 
 use super::{
@@ -8,15 +8,79 @@ use super::{
 };
 use crate::creature_anim::{move_flags, MovementState};
 
-const RADIUS: f32 = 0.4;
+pub(super) const RADIUS: f32 = 0.4;
 const LEASH: f32 = 18.0;
 const DISPLAY: u32 = 604; // Timber Wolf, CreatureDisplayInfo.
 const SOURCE: &str = "Hunter Pet";
 
 #[derive(Component, Default)]
 pub(super) struct HunterPet {
+    pub(super) hp: f32,
+    max_hp: f32,
+    revive_at: Option<f32>,
     cooldown: f32,
     frenzy: survivors_core::talents::PetFrenzy,
+}
+
+impl HunterPet {
+    fn new(run: &Run) -> Self {
+        let max_hp = maximum_health(run);
+        Self {
+            hp: max_hp,
+            max_hp,
+            ..Default::default()
+        }
+    }
+
+    pub(super) fn hurt(&mut self, damage: f32, now: f32) -> f32 {
+        if self.hp <= 0.0 || !damage.is_finite() || damage <= 0.0 {
+            return 0.0;
+        }
+        let removed = damage.min(self.hp);
+        self.hp -= removed;
+        if self.hp <= 0.0 {
+            self.revive_at = Some(now + 10.0);
+            self.frenzy = Default::default();
+        }
+        removed
+    }
+}
+
+fn maximum_health(run: &Run) -> f32 {
+    (60.0 + 6.0 * run.level.saturating_sub(1) as f32)
+        * run.milestones.hunter_pet(run.elapsed).health
+}
+
+#[derive(Component)]
+pub(super) struct PetStatusText;
+
+pub(super) fn update_status(
+    run: Res<Run>,
+    pets: Query<&HunterPet>,
+    mut labels: Query<&mut Text, With<PetStatusText>>,
+) {
+    let value = if !run.alive() {
+        String::new()
+    } else {
+        pets.single().map_or_else(
+            |_| String::new(),
+            |pet| {
+                if let Some(at) = pet.revive_at {
+                    format!(
+                        "Wolf recovering · {:.0} sec",
+                        (at - run.elapsed).max(0.0).ceil()
+                    )
+                } else {
+                    format!("Wolf {:.0} / {:.0}", pet.hp.ceil(), pet.max_hp.ceil())
+                }
+            },
+        )
+    };
+    for mut text in &mut labels {
+        if **text != value {
+            **text = value.clone();
+        }
+    }
 }
 
 #[allow(clippy::type_complexity)]
@@ -67,7 +131,7 @@ pub(super) fn fight(
             hpos,
             0.0,
         );
-        commands.entity(entity).insert(HunterPet::default());
+        commands.entity(entity).insert(HunterPet::new(&run));
         return;
     }
     let bodies: Vec<_> = pets
@@ -83,6 +147,18 @@ pub(super) fn fight(
     for (entity, mut tf, mut movement, mut pet) in &mut pets {
         movement.flags = 0;
         movement.speed = 0.0;
+        if let Some(at) = pet.revive_at {
+            navigation.forget(entity);
+            if run.elapsed >= at && world.can_spawn(hpos, RADIUS) {
+                commands.entity(entity).despawn();
+            }
+            continue;
+        }
+        let max_hp = maximum_health(&run);
+        if max_hp != pet.max_hp {
+            pet.hp = (pet.hp / pet.max_hp * max_hp).clamp(0.0, max_hp);
+            pet.max_hp = max_hp;
+        }
         pet.cooldown = (pet.cooldown - dt).max(0.0);
         pet.frenzy.advance(dt);
         let at = tf.translation;
@@ -210,6 +286,7 @@ mod tests {
     fn foe(app: &mut App, at: Vec3) -> Entity {
         app.world_mut()
             .spawn((
+                MovementState::default(),
                 Guid(123),
                 Transform::from_translation(at),
                 ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
@@ -240,6 +317,143 @@ mod tests {
                 },
             ))
             .id()
+    }
+
+    #[test]
+    fn nearby_enemy_hurts_wolf_without_hero_damage_or_thorns_then_recovery_resummons() {
+        let mut app = setup();
+        app.world_mut().run_system_once(fight).unwrap();
+        app.world_mut()
+            .query_filtered::<&mut Transform, With<Hero>>()
+            .single_mut(app.world_mut())
+            .unwrap()
+            .translation = Vec3::X * 3.0;
+        let enemy = foe(&mut app, Vec3::X);
+        app.world_mut().get_mut::<Enemy>(enemy).unwrap().damage = 100.0;
+        let hero_hp = app.world().resource::<Run>().hp;
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.thorns_t = 10.0;
+            run.thorns = 50.0;
+        }
+        app.world_mut()
+            .run_system_once(super::super::enemies::move_enemies)
+            .unwrap();
+        assert_eq!(app.world().resource::<Run>().hp, hero_hp);
+        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+        let dead = app
+            .world_mut()
+            .query_filtered::<Entity, With<HunterPet>>()
+            .single(app.world())
+            .unwrap();
+        assert_eq!(app.world().get::<HunterPet>(dead).unwrap().hp, 0.0);
+        // Switching back to the hero must not grant another attack in the same cooldown.
+        app.world_mut()
+            .query_filtered::<&mut Transform, With<Hero>>()
+            .single_mut(app.world_mut())
+            .unwrap()
+            .translation = Vec3::X * 1.2;
+        app.world_mut()
+            .run_system_once(super::super::enemies::move_enemies)
+            .unwrap();
+        assert_eq!(app.world().resource::<Run>().hp, hero_hp);
+        app.world_mut().resource_mut::<Run>().elapsed = 9.99;
+        app.world_mut().run_system_once(fight).unwrap();
+        assert!(app.world().get::<HunterPet>(dead).is_some());
+        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+        app.world_mut().resource_mut::<Run>().elapsed = 10.0;
+        app.world_mut().run_system_once(fight).unwrap();
+        assert!(app.world().get::<HunterPet>(dead).is_none());
+        app.world_mut().run_system_once(fight).unwrap();
+        let pet = app
+            .world_mut()
+            .query::<&HunterPet>()
+            .single(app.world())
+            .unwrap();
+        assert_eq!(pet.hp, 60.0);
+        assert_eq!(pet.revive_at, None);
+    }
+
+    #[test]
+    fn bosses_keep_attacking_hero_and_endurance_scales_actual_pet_health() {
+        let mut app = setup();
+        app.world_mut().resource_mut::<Run>().milestones = survivors_core::talents::Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 1389, 5)]);
+        app.world_mut().run_system_once(fight).unwrap();
+        app.world_mut()
+            .query_filtered::<&mut Transform, With<Hero>>()
+            .single_mut(app.world_mut())
+            .unwrap()
+            .translation = Vec3::X * 3.0;
+        let enemy = foe(&mut app, Vec3::X);
+        {
+            let mut e = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+            e.damage = 10.0;
+            e.boss = true;
+            e.radius = 1.5;
+        }
+        let hero_hp = app.world().resource::<Run>().hp;
+        app.world_mut()
+            .run_system_once(super::super::enemies::move_enemies)
+            .unwrap();
+        assert!(app.world().resource::<Run>().hp < hero_hp);
+        let pet = app
+            .world_mut()
+            .query::<&HunterPet>()
+            .single(app.world())
+            .unwrap();
+        assert!((pet.hp - 69.0).abs() < 0.0001);
+    }
+
+    #[test]
+    fn pet_level_growth_preserves_health_fraction() {
+        let mut app = setup();
+        app.world_mut().run_system_once(fight).unwrap();
+        app.world_mut()
+            .query::<&mut HunterPet>()
+            .single_mut(app.world_mut())
+            .unwrap()
+            .hurt(30.0, 0.0);
+        app.world_mut().resource_mut::<Run>().level = 2;
+        app.world_mut().run_system_once(fight).unwrap();
+        let pet = app
+            .world_mut()
+            .query::<&HunterPet>()
+            .single(app.world())
+            .unwrap();
+        assert_eq!(pet.max_hp, 66.0);
+        assert_eq!(pet.hp, 33.0);
+    }
+
+    #[test]
+    fn pet_status_reports_health_and_recovery_without_reviving_or_healing() {
+        let mut app = setup();
+        app.world_mut().run_system_once(fight).unwrap();
+        let label = app.world_mut().spawn((PetStatusText, Text::default())).id();
+        app.world_mut().run_system_once(update_status).unwrap();
+        assert_eq!(app.world().get::<Text>(label).unwrap().0, "Wolf 60 / 60");
+        app.world_mut()
+            .query::<&mut HunterPet>()
+            .single_mut(app.world_mut())
+            .unwrap()
+            .hurt(80.0, 0.0);
+        app.world_mut().resource_mut::<Run>().elapsed = 2.2;
+        app.world_mut().run_system_once(update_status).unwrap();
+        assert_eq!(
+            app.world().get::<Text>(label).unwrap().0,
+            "Wolf recovering · 8 sec"
+        );
+        assert_eq!(
+            app.world_mut()
+                .query::<&HunterPet>()
+                .single(app.world())
+                .unwrap()
+                .hp,
+            0.0
+        );
     }
 
     #[test]

@@ -347,6 +347,15 @@ pub(super) fn move_enemies(
     hero: Query<(Entity, &Transform), (With<Hero>, Without<Enemy>)>,
     mut enemies: Query<(Entity, &mut Transform, &mut Enemy, &mut MovementState), Without<Hero>>,
     mut navigation: Local<super::navigation::Navigation>,
+    mut pets: Query<
+        (
+            Entity,
+            &Transform,
+            &mut super::hunter_pet::HunterPet,
+            &mut ObjectStore,
+        ),
+        (Without<Enemy>, Without<Hero>),
+    >,
     mut fx: Fx,
     mut hits: MessageWriter<Hit>,
 ) {
@@ -455,21 +464,50 @@ pub(super) fn move_enemies(
             continue;
         }
 
+        // Ordinary foes engage a closer living wolf within four yards and line of sight.
+        // Bosses keep pressure on the hero; there is no global pet threat table.
+        let pet_target = if e.boss {
+            None
+        } else {
+            pets.iter()
+                .filter(|(_, tf, pet, _)| {
+                    pet.hp > 0.0
+                        && tf.translation.distance(pos) <= 4.0
+                        && tf.translation.distance(pos) < (hpos - pos).length()
+                        && world.line_clear(pos, tf.translation)
+                })
+                .min_by(|(_, a, _, _), (_, b, _, _)| {
+                    a.translation
+                        .distance_squared(pos)
+                        .total_cmp(&b.translation.distance_squared(pos))
+                })
+                .map(|(entity, tf, _, _)| (entity, tf.translation))
+        };
+        let (target_e, target_pos, target_radius) = pet_target
+            .map_or((hero_e, hpos, HERO_RADIUS), |(e, pos)| {
+                (e, pos, super::hunter_pet::RADIUS)
+            });
+        let to_target = flat(target_pos - pos);
+        if pet_target.is_some() {
+            navigation.forget(ent);
+        }
+
         // Under Fade the horde has lost the hero: it mills where it stands.
         let lost = run.mobile.vanish_t > 0.0 && !e.boss;
         let held = e.stun_t > 0.0 || e.root_t > 0.0 || lost;
-        let contact = dist <= HERO_RADIUS + e.radius + 0.35 && world.line_clear(pos, hpos);
+        let contact = (target_pos - pos).length() <= target_radius + e.radius + 0.35
+            && world.line_clear(pos, target_pos);
         let mut step = Vec3::ZERO;
         let mut speed = 0.0;
         if held || hero_down || e.fear_t > 0.0 {
             navigation.forget(ent);
         }
-        let waypoint = navigation.waypoint(ent, pos, hpos);
+        let waypoint = navigation.waypoint(ent, pos, target_pos);
         if !held && !hero_down {
             let dir = if e.fear_t > 0.0 {
-                -to_hero.normalize_or_zero()
+                -to_target.normalize_or_zero()
             } else {
-                flat(waypoint.unwrap_or(hpos) - pos).normalize_or_zero()
+                flat(waypoint.unwrap_or(target_pos) - pos).normalize_or_zero()
             };
             if !contact || e.fear_t > 0.0 {
                 speed = e.speed * e.slow;
@@ -498,7 +536,7 @@ pub(super) fn move_enemies(
             navigation.observe(
                 ent,
                 next,
-                hpos,
+                target_pos,
                 e.radius,
                 expected > 0.001 && progress < expected * 0.2,
                 dt,
@@ -521,13 +559,23 @@ pub(super) fn move_enemies(
         {
             e.attack_cd = if e.boss { 1.0 } else { 1.3 };
             let raw = e.damage * e.weaken;
-            let taken = hero::hurt_hero(&mut run, raw);
-            fx.swing(ent, hero_e, taken);
+            let taken = if let Some((entity, _)) = pet_target {
+                let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
+                let taken = pet.hurt(raw, run.elapsed);
+                if pet.hp <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+                taken
+            } else {
+                let taken = hero::hurt_hero(&mut run, raw);
+                if run.thorns_t > 0.0 {
+                    hits.write(Hit::direct(ent, run.thorns * run.stats().might, false));
+                }
+                taken
+            };
+            fx.swing(ent, target_e, taken);
             if taken > 0.0 {
-                fx.number(hero_e, taken, false, COLOR_HURT);
-            }
-            if run.thorns_t > 0.0 {
-                hits.write(Hit::direct(ent, run.thorns * run.stats().might, false));
+                fx.number(target_e, taken, false, COLOR_HURT);
             }
         }
     }

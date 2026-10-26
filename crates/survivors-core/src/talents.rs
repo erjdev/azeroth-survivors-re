@@ -1373,6 +1373,7 @@ pub enum TalentStat {
     ImprovedRenew,
     SpiritualHealing,
     TotemHealing,
+    PetHealth,
     PetDamage,
     PetCrit,
     PetFrenzy,
@@ -1472,6 +1473,7 @@ impl TalentDefinition {
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
+            TalentStat::PetHealth => (100.0, "% combat wolf maximum health"),
             TalentStat::PetDamage => (100.0, "% combat wolf bite damage"),
             TalentStat::PetCrit => (100.0, " percentage points combat wolf critical chance"),
             TalentStat::PetFrenzy => (
@@ -1978,6 +1980,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1389, max_rank: 5, name: "Endurance Training",
+        description: "Combat wolf: +3% maximum health per rank. Does not increase hero health; the wolf recovers 10 sec after defeat",
+        stat: TalentStat::PetHealth, per_rank: 0.03 },
     TalentDefinition { id: 1396, max_rank: 5, name: "Unleashed Fury",
         description: "Combat wolf: +4% bite damage per rank, multiplying the Unleashed Fury milestone and Bestial Wrath. Does not affect Hunter spells or pickup companions",
         stat: TalentStat::PetDamage, per_rank: 0.04 },
@@ -2614,6 +2619,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
+            | TalentStat::PetHealth
             | TalentStat::PetDamage
             | TalentStat::PetCrit
             | TalentStat::PetFrenzy
@@ -3698,6 +3704,7 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing
+                    | TalentStat::PetHealth
                     | TalentStat::PetDamage
                     | TalentStat::PetCrit
                     | TalentStat::PetFrenzy

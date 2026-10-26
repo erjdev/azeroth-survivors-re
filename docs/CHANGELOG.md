@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Combat wolf health and recovery
+
+The Hunter wolf now takes damage, draws nearby ordinary enemies, and recovers ten
+seconds after defeat. Bosses continue targeting the hero. Endurance Training adds
+3% maximum wolf health per rank; level growth preserves its health percentage.
+The HUD reports wolf health or recovery time.
+
+157 core and 311 data-required app tests pass, covering target switching, shared
+attack cooldowns, defeat/recovery, boss targeting and health growth. Talent coverage
+is 197/432. Full threat, other pet talents and live combat acceptance remain open.
+Clippy, formatting and the native build pass. Menu previews were inspected at
+1280×720 and 640×720; the in-map HUD and death animation need live acceptance.
+
+![Endurance Training health upgrade](images/screenshots/2026-10-26-pet-health/endurance-1280.png)
+
+![Compact Endurance Training details](images/screenshots/2026-10-26-pet-health/endurance-640.png)
+
+
 ## 2026-10-26 — Individual Beast Mastery training
 
 Unleashed Fury, Ferocity, Frenzy and Bestial Swiftness now affect the combat wolf.

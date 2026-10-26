@@ -3,6 +3,7 @@ use super::{Milestones, TalentStat};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PetBonus {
+    pub health: f32,
     pub damage: f32,
     pub cooldown: f32,
     pub crit: f32,
@@ -13,6 +14,7 @@ pub struct PetBonus {
 impl Default for PetBonus {
     fn default() -> Self {
         Self {
+            health: 1.0,
             damage: 1.0,
             cooldown: 1.0,
             crit: 0.0,
@@ -54,6 +56,7 @@ impl Milestones {
         if self.class != 2 {
             return bonus;
         }
+        bonus.health += self.trained_value(TalentStat::PetHealth);
         bonus.damage *= 1.0 + self.trained_value(TalentStat::PetDamage);
         bonus.crit = self.trained_value(TalentStat::PetCrit);
         bonus.frenzy_chance = self.trained_value(TalentStat::PetFrenzy);
@@ -82,6 +85,7 @@ mod tests {
             ..Default::default()
         };
         let trained = base.with_ranks(&[
+            (0, 1389, 255),
             (0, 1396, 255),
             (0, 1393, 255),
             (0, 1397, 255),
@@ -89,6 +93,7 @@ mod tests {
         ]);
         let bonus = trained.hunter_pet(0.0);
         assert!((bonus.damage - 2.16).abs() < 0.00001);
+        assert!((bonus.health - 1.15).abs() < 0.00001);
         assert_eq!(bonus.cooldown, 0.8);
         assert!((bonus.crit - 0.1).abs() < 0.00001);
         assert_eq!(bonus.frenzy_chance, 1.0);

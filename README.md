@@ -50,7 +50,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-26-champion-icon/codex-1280.png" alt="Codex"><br>2026-10-26 · Jewelry catalog and spell artwork.</td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-26-beast-training/frenzy-1280.png" alt="Talents"><br>2026-10-26 · Saved specs and individual Beast Mastery effects; talent catalog incomplete.</td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-26-pet-health/endurance-1280.png" alt="Talents"><br>2026-10-26 · Saved specs and Endurance Training health scaling; talent catalog incomplete.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>
@@ -72,7 +72,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>
-    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-26-beast-training/frenzy-640.png" alt="Compact Talents"><br>2026-10-26 · Scrolled tree and readable details at 640×720.</td>
+    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-26-pet-health/endurance-640.png" alt="Compact Talents"><br>2026-10-26 · Scrolled tree and readable details at 640×720.</td>
   </tr>
 </table>
 
