@@ -4608,3 +4608,27 @@ ranks/actions and restoring ordinary detail/color handling. Native play build,
 workspace Clippy, formatting and render lint pass. The client-data audit was rerun
 and the main coverage table updated to 183/432. No new mechanics or all-platform
 acceptance is claimed.
+
+### Collection completion and cloak eligibility — 2026-10-26
+
+The six-band equipment audit confirms one added stat line per band, stronger prior
+lines and independent worn/cosmetic selection. It also exposed a separate defect:
+cloak collection eligibility reused the nine-slot set predicate. A new complete-grid
+predicate now requires every catalog cell (54 currently) in one class, in both the
+selected-hero bonus path and achievement snapshot. Nine-slot Full set and worn-set
+bonuses are unchanged. Duplicate counts and another class's pieces cannot substitute
+for a missing cell. Ownership counts ignore bytes beyond the current catalog.
+
+Core tests cover missing/short grids, stack counts and trailing data. Account tests
+cover nine slots versus 53/54 cells, foreign-class isolation, exact cloak damage/speed
+contribution, reload, single achievement grant and preservation of old earned points.
+Legacy achievements do not supply cloak power if current feats are unmet. Native
+1280×720 seeded fixture reloads show Cloak bearer locked at 53 and earned at 54;
+that final legendary piece also grants Legendary (25 points), alongside the cloak's
+10. This verifies loading/presentation, not acquisition during a live run.
+
+Inline screenshots are embedded in CHANGELOG and README. Poor/raid-Epic identities,
+obtainable sources, distinct raid sets and their save/UI expansion remain required.
+
+Validation: 138 core and 276 app tests with checkout data pass, as do the native
+play build, workspace Clippy, formatting and render lint.

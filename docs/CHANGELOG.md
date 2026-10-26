@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Cloaks require a completed collection
+
+Fixed the cloak collection feat granting credit for just nine occupied slots. It
+now requires all 54 pieces for one class. Full set still means nine slots; existing
+achievement points remain earned, while cloak power follows the corrected rule.
+
+![Cloak locked at 53 pieces](images/screenshots/2026-10-26-collection-cloak/53-pieces.png)
+
+![Cloak earned at 54 pieces](images/screenshots/2026-10-26-collection-cloak/54-pieces.png)
+
+Native fixture reloads verify the boundary. The final piece also earns the separate
+Legendary achievement, so the screenshot total rises by 35 points (10 + 25).
+138 core and 276 app tests, native build, workspace Clippy, formatting and render
+lint pass. Poor and raid-Epic catalog expansion remain open.
+
 ## 2026-10-26 — Direct talent inspection in live previews
 
 The development preview accepts a talent ID to pin its real description and saved

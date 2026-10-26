@@ -156,6 +156,11 @@ ordinary epic, with an additional stat and raid set bonuses that support specifi
 The catalog must represent those tiers explicitly; the existing six-band grid is a foundation,
 not a reason to collapse raid epics into ordinary epics. Final coefficients are tuning data.
 
+The cloak's collection feat requires every catalog cell for one class (currently
+54 pieces), not merely one item in each of the nine slots. The nine-slot Full set
+achievement and worn-set combat bonus remain separate. Previously earned achievement
+points stay earned after rule corrections; cloak power follows the current feats.
+
 Looks are separate from stats. A collected piece can be worn as gear, shown on the model
 while another piece is worn, or hidden. Only the worn piece adds bonuses.
 

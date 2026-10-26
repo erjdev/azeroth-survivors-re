@@ -410,7 +410,7 @@ pub fn quality_bonus(quality: Quality) -> Bonus {
     }
 }
 
-/// Ten base pieces together.
+/// All nine worn slots together, independent of collection completion.
 pub fn set_bonus() -> Bonus {
     Bonus {
         might: 0.10,
@@ -1128,7 +1128,14 @@ pub fn best_piece(pieces: &[u8], slot: usize) -> Option<(usize, u8)> {
 }
 
 pub fn owned_pieces(pieces: &[u8]) -> usize {
-    pieces.iter().filter(|n| **n > 0).count()
+    pieces.iter().take(PIECES).filter(|n| **n > 0).count()
+}
+
+/// Every slot at every collection quality, distinct from a complete worn set.
+pub fn collection_complete(pieces: &[u8]) -> bool {
+    pieces
+        .get(..PIECES)
+        .is_some_and(|grid| grid.iter().all(|&owned| owned > 0))
 }
 
 /// Nine worn pieces. A two-handed weapon does not add an off-hand cell.
@@ -2064,6 +2071,22 @@ mod tests {
             assert_eq!(b.leech + b.area + b.reduction + b.health + b.pickup, 0.0);
             previous = lines;
         }
+    }
+
+    #[test]
+    fn collection_completion_counts_catalog_cells_not_stacks_or_trailing_data() {
+        assert!(!collection_complete(&[]));
+        assert!(!collection_complete(&[1; PIECES - 1]));
+        let mut pieces = vec![255; PIECES + 10];
+        pieces[PIECES - 1] = 0;
+        assert_eq!(owned_pieces(&pieces), PIECES - 1);
+        assert!(!collection_complete(&pieces));
+        assert!(set_complete(&pieces));
+        pieces[PIECES - 1] = 1;
+        assert_eq!(owned_pieces(&pieces), PIECES);
+        assert!(collection_complete(&pieces));
+        pieces[..PIECES].fill(1);
+        assert!(collection_complete(&pieces));
     }
 
     #[test]

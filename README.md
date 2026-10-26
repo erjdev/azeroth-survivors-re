@@ -144,6 +144,10 @@ Paladin Retribution now includes Sanctity Aura and a timed Vengeance damage bonu
 
 ![Paladin Vengeance talent](docs/images/screenshots/2026-10-26-paladin-retribution/vengeance-1280.png)
 
+A completed class collection now grants its cloak feat at all 54 pieces.
+
+![Completed collection cloak feat](docs/images/screenshots/2026-10-26-collection-cloak/54-pieces.png)
+
 Live preview presets can pin a talent description for repeatable visual checks.
 
 ![Direct talent inspection](docs/images/screenshots/2026-10-26-talent-preview/grim-reach-1024.png)

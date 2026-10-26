@@ -414,7 +414,7 @@ impl Account {
             .and_then(|p| p.clears.last().copied())
             .unwrap_or(false);
         let collection = progress
-            .map(|p| campaign::set_complete(&p.pieces))
+            .map(|p| campaign::collection_complete(&p.pieces))
             .unwrap_or(false);
         let amulets = self.legendary_complete(class);
         Feats {
@@ -904,7 +904,7 @@ impl Account {
             let feats = Feats {
                 talent_max,
                 raid: class.clears.last().copied().unwrap_or(false),
-                collection: campaign::set_complete(&class.pieces),
+                collection: campaign::collection_complete(&class.pieces),
                 amulets: self.legendary_complete(i),
             };
             if campaign::cloak_quality(feats).is_some() {
@@ -2543,6 +2543,61 @@ pets 2 3 1 1 2 0 1
         let reloaded = parse(&noisy).unwrap();
         assert_eq!(reloaded.legendary_progress(0).0, 1);
         assert_eq!(reloaded.shared_jewel_progress(2).0, 0);
+    }
+
+    #[test]
+    fn cloak_collection_requires_every_quality_while_full_set_still_means_nine_slots() {
+        let mut account = empty();
+        let hero = account.ensure(0);
+        account.classes[0].pieces[..campaign::GRID_SLOTS].fill(255);
+        assert!(!account.feats(0, hero).collection);
+        assert_eq!(account.snapshot().full_sets, 1);
+        assert!(!account.snapshot().any_cloak);
+        account.grant_new_on(Some(20_752));
+        assert!(
+            account.earned.contains(&43),
+            "the nine-slot set achievement is separate"
+        );
+        assert!(!account.earned.contains(&51));
+        let mut legacy = parse(&encode(&account)).unwrap();
+        legacy.earned.push(51);
+        let legacy = parse(&encode(&legacy)).unwrap();
+        assert!(
+            legacy.earned.contains(&51),
+            "retain already-earned achievement points"
+        );
+        assert!(
+            !legacy.snapshot().any_cloak,
+            "legacy awards cannot supply cloak power"
+        );
+        account.classes[0].pieces.fill(1);
+        account.classes[0].pieces[campaign::PIECES - 1] = 0;
+        assert!(!account.feats(0, hero).collection);
+        assert!(!account.snapshot().any_cloak);
+        account.classes[1].pieces[campaign::PIECES - 1] = 1;
+        assert!(
+            !account.feats(0, hero).collection,
+            "another class cannot fill the gap"
+        );
+        let before = account.bonus(0, hero);
+        account.classes[0].pieces[campaign::PIECES - 1] = 1;
+        let after = account.bonus(0, hero);
+        let cloak = campaign::cloak_bonus(Quality::Uncommon);
+        assert!((after.might - before.might - cloak.might).abs() < 0.00001);
+        assert!((after.speed - before.speed - cloak.speed).abs() < 0.00001);
+        assert!(account.feats(0, hero).collection);
+        assert!(account.snapshot().any_cloak);
+        assert_eq!(
+            campaign::cloak_quality(account.feats(0, hero)),
+            Some(Quality::Uncommon)
+        );
+        account.grant_new_on(Some(20_752));
+        assert!(account.earned.contains(&51));
+        let restored = parse(&encode(&account)).unwrap();
+        assert_eq!(restored.earned.iter().filter(|&&id| id == 51).count(), 1);
+        assert!(restored.feats(0, hero).collection);
+        assert!(restored.snapshot().any_cloak);
+        assert_eq!(restored.snapshot().full_sets, 1);
     }
 
     #[test]
