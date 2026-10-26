@@ -53,7 +53,7 @@ pub(super) fn build(
                     collection::equipment(body, font, armory, account, selection, layout)
                 });
                 collection::section(body, layout, |body| {
-                    collection::detail(body, font, armory, account, selection, layout)
+                    look_panel(body, font, armory, account, selection, layout)
                 });
             });
         return;
@@ -85,9 +85,32 @@ pub(super) fn build(
                 if let Some(features) = features {
                     feature_controls(body, font, features, layout);
                 }
-                collection::detail(body, font, armory, account, selection, layout);
+                body.spawn(Node {
+                    flex_grow: 1.0,
+                    min_height: Val::Px(layout.gap),
+                    ..default()
+                });
+                look_panel(body, font, armory, account, selection, layout);
             });
         });
+}
+
+fn look_panel(
+    body: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+    selection: &Selection,
+    layout: &Layout,
+) {
+    collection::look_controls(body, font, armory, account, selection, layout);
+    super::chip(
+        body,
+        font,
+        "Inspect in Collection",
+        super::Act::Page(super::Page::Collection),
+        false,
+    );
 }
 
 #[allow(clippy::too_many_arguments)]

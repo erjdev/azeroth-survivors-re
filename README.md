@@ -321,8 +321,10 @@ helmet’s bonuses while selecting its legendary appearance.
 
 Character appearance controls use bordered, responsive rows based on the intention
 design. The counters update in place, preserving compact-page scroll position.
+A focused Look section keeps appearance actions visible, with selected-item
+navigation to Collection for full equipment details.
 
-![Character appearance controls](docs/images/screenshots/2026-10-25-feature-cards/character-1280.jpg)
+![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
 ## Interface gallery
 

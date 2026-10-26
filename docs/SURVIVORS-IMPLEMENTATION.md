@@ -580,6 +580,15 @@ legacy migration, malformed references and round trips have regression tests.
 
 ## Phase 3 — collection and character surfaces
 
+Character Look checkpoint (2026-10-25): the wide Features column now ends in
+shared appearance actions rather than repeating the full Collection detail panel.
+“Inspect in Collection” retains the selected item and exposes its full sources,
+comparisons and equipment actions there. Native 1280×720 verified helmet hiding
+with unchanged bonuses and navigation to the selected shoulder; 640×720 verified
+reachable actions below equipment. Captures are inline in the changelog. Native
+build, workspace Clippy, formatting and render-pass lint pass. Other race/model
+and resolution combinations remain open.
+
 Feature-control presentation checkpoint (2026-10-25): the five appearance controls
 use full-width bordered rows with centered labels/counters and edge-aligned arrows,
 following `intentions/survivors_character_tab.png`. Native 1280×720/640×720 checks

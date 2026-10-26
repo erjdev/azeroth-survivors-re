@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Focused Character appearance actions
+
+Character now follows the reference’s focused Features/Look column. Appearance
+actions stay visible at the bottom of the wide panel; “Inspect in Collection”
+opens the selected item’s full sources, equipment comparisons and equip controls.
+Both pages share the same appearance actions.
+
+![Character with visible Look actions and helmet hidden](images/screenshots/2026-10-25-character-look/character-1280.jpg)
+
+![Compact equipment and Look section](images/screenshots/2026-10-25-character-look/look-640.jpg)
+
+Native 1280×720 checks verified helmet hiding with unchanged equipment bonuses
+and selected-shoulder navigation into Collection. The 640×720 Look section remains
+reachable below equipment. Native build, workspace Clippy, formatting and
+render-pass lint pass. Full race/model/resolution acceptance remains open.
+
 ## 2026-10-25 — Character appearance feature cards
 
 Appearance controls now follow the Character intention’s bordered rows: muted

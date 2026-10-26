@@ -766,6 +766,23 @@ pub(super) fn detail(
         layout.body_size,
         DIM,
     );
+    look_controls(ui, font, armory, account, selection, layout);
+}
+
+pub(super) fn look_controls(
+    ui: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+    selection: &Selection,
+    layout: &Layout,
+) {
+    let class = picked_class(account, selection);
+    let progress = &account.classes[class];
+    let selected = armory.piece.min(campaign::PIECES - 1);
+    let slot = selected % campaign::GRID_SLOTS;
+    let band = selected / campaign::GRID_SLOTS;
+    let owned = progress.pieces[selected] > 0;
     text(
         ui,
         font,
