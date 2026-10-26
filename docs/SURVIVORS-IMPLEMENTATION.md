@@ -580,6 +580,14 @@ legacy migration, malformed references and round trips have regression tests.
 
 ## Phase 3 — collection and character surfaces
 
+Feature-control presentation checkpoint (2026-10-25): the five appearance controls
+use full-width bordered rows with centered labels/counters and edge-aligned arrows,
+following `intentions/survivors_character_tab.png`. Native 1280×720/640×720 checks
+verified increment/decrement and stable compact scroll position. The wide capture
+also shows the dressed model and rotation controls fitting the central column.
+Inline captures are in the changelog; native build, workspace Clippy, formatting
+and render-pass lint pass. This does not close the full race/model/resolution matrix.
+
 Character composition checkpoint (2026-10-25): the name/class now sit inside the
 central column above a larger proportional model pane. The default view no longer
 stacks roster, creation, renown and relic controls below the model; Manage heroes

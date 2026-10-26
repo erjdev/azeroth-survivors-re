@@ -444,30 +444,47 @@ fn feature_controls(
         if features.counts[i] < 2 {
             continue;
         }
-        body.spawn(hud::text_bundle(
-            font,
-            features.labels[i],
-            layout.body_size,
-            GOLD,
-        ));
-        body.spawn(Node {
-            width: Val::Percent(100.0),
-            flex_wrap: FlexWrap::Wrap,
-            column_gap: Val::Px(layout.gap),
-            align_items: AlignItems::Center,
-            ..default()
-        })
+        body.spawn((
+            Node {
+                width: Val::Percent(100.0),
+                padding: UiRect::all(Val::Px(layout.gap)),
+                border: UiRect::all(Val::Px(1.0)),
+                column_gap: Val::Px(layout.gap),
+                align_items: AlignItems::Center,
+                flex_shrink: 0.0,
+                ..default()
+            },
+            BorderColor::all(Color::srgb(0.24, 0.20, 0.12)),
+            BackgroundColor(Color::srgb(0.035, 0.03, 0.02)),
+        ))
         .with_children(|row| {
             super::chip(row, font, "<", super::Act::Feature(i, -1), false);
-            row.spawn((
-                FeatureValue(i),
-                hud::text_bundle(
+            row.spawn(Node {
+                flex_grow: 1.0,
+                flex_basis: Val::Px(0.0),
+                min_width: Val::Px(0.0),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(layout.gap * 0.4),
+                ..default()
+            })
+            .with_children(|value| {
+                value.spawn(hud::centered_bundle(
                     font,
-                    format!("{} / {}", features.values[i] + 1, features.counts[i]),
-                    layout.body_size,
-                    GOLD,
-                ),
-            ));
+                    features.labels[i],
+                    layout.body_size * 0.85,
+                    Color::srgb(0.65, 0.61, 0.45),
+                ));
+                value.spawn((
+                    FeatureValue(i),
+                    hud::centered_bundle(
+                        font,
+                        format!("{} / {}", features.values[i] + 1, features.counts[i]),
+                        layout.body_size,
+                        GOLD,
+                    ),
+                ));
+            });
             super::chip(row, font, ">", super::Act::Feature(i, 1), false);
         });
     }

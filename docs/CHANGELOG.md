@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Character appearance feature cards
+
+Appearance controls now follow the Character intention’s bordered rows: muted
+labels and centered counters, with previous/next buttons at opposite edges. Rows
+use the available panel width and grow with their contents.
+
+![Character feature cards at 1280×720](images/screenshots/2026-10-25-feature-cards/character-1280.jpg)
+
+![Scrollable appearance controls at 640×720](images/screenshots/2026-10-25-feature-cards/features-640.jpg)
+
+Native 1280×720 and 640×720 checks verified all five rows, increment/decrement
+and stable compact scroll position. Native build, workspace Clippy, formatting
+and render-pass lint pass. This is a presentation change; full race/model and
+resolution acceptance remains open.
+
 ## 2026-10-25 — Native cosmetic shortcut verified
 
 Shift-right-click now reads native modifier flags as well as physical keys. A

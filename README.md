@@ -319,6 +319,11 @@ helmet’s bonuses while selecting its legendary appearance.
 
 ![Collection with common helmet equipped and legendary appearance selected](docs/images/screenshots/2026-10-25-native-look-shortcut/cosmetic-1280.jpg)
 
+Character appearance controls use bordered, responsive rows based on the intention
+design. The counters update in place, preserving compact-page scroll position.
+
+![Character appearance controls](docs/images/screenshots/2026-10-25-feature-cards/character-1280.jpg)
+
 ## Interface gallery
 
 Actual checkout captures from **2026-10-24**, at a **1440 × 900 logical viewport**
