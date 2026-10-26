@@ -329,6 +329,10 @@ navigation to Collection for full equipment details.
 
 Priest now has eleven individual talents and nine tree milestones with scoped previews.
 
+Long ground, chain and damage-over-time cards have checked [wide](docs/ui-previews/long-cards-1280.txt) and [compact](docs/ui-previews/long-cards-640.txt) preview presets.
+
+![Long card descriptions](docs/images/screenshots/2026-10-25-long-cards/wide-1280.jpg)
+
 Card layouts can be opened and resized without a run using the [live UI preview](docs/SURVIVORS-DEVELOPMENT.md).
 
 ![Direct production card preview](docs/images/screenshots/2026-10-25-card-preview/wide-1280.jpg)

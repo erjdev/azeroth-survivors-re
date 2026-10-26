@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Long-card layout acceptance
+
+Checked high-rank ground, chain and damage-over-time descriptions at 1280×720 and
+640×720. Text stays inside the cards, and the compact third card is reachable by
+scrolling. Reusable presets are committed under `docs/ui-previews/`.
+
+![Long descriptions at 1280×720](images/screenshots/2026-10-25-long-cards/wide-1280.jpg)
+
+![Ground and chain descriptions at 640×720](images/screenshots/2026-10-25-long-cards/compact-640.jpg)
+
+![Scrolled damage-over-time card](images/screenshots/2026-10-25-long-cards/compact-scrolled-640.jpg)
+
+Native visual validation only; no engine change. Talent-added text and other
+viewport sizes remain outside this acceptance check.
+
 ## 2026-10-25 — Direct, reloadable card previews
 
 Upgrade cards can now open directly from the UI preview file. Change spell keys,

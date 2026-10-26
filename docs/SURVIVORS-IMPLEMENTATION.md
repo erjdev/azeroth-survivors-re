@@ -3831,3 +3831,19 @@ The changelog and README embed screenshots. Talent/gear-aware card fixtures and
 non-ability reward previews remain future extensions of this development tool.
 
 Native build, workspace Clippy, formatting and render-pass lint pass for this checkpoint.
+
+### Long-description card acceptance — 2026-10-25
+
+Rechecked `docs/intentions/survivors_level_up_selection_screen.png` for the framed
+card hierarchy and green upgrade emphasis. Using the production preview, Blizzard
+7→8, Chain Lightning 6→7 and Shadow Word: Pain 5→6 fit at 1280×720 and 640×720.
+The compact third card wraps below the first row and is fully reachable by scrolling;
+the footer stays visible. Casting distance, area/jump radius, duration, damage and
+cooldown comparisons remain readable inside the card borders.
+
+The exact baseline-stat inputs are committed as `docs/ui-previews/long-cards-1280.txt`
+and `long-cards-640.txt`, with repeat instructions in the development guide. Three
+native screenshots are embedded in the changelog and the README links the presets.
+No engine code changed, so no rebuild was needed. This closes these three baseline
+card layouts at these two sizes only; extra talent text, other sizes and other
+card families retain their existing acceptance gaps.

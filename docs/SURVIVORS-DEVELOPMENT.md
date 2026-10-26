@@ -378,6 +378,18 @@ to `page = talents` (remove `abilities`) to restore the previous run and offer.
 No combat session or level-up is needed. Normal Armory navigation remains available
 outside the card overlay.
 
+Repeat the checked long-description hand with the committed presets:
+
+```sh
+cp docs/ui-previews/long-cards-1280.txt target/ui-preview/view.txt
+# While the preview remains open:
+cp docs/ui-previews/long-cards-640.txt target/ui-preview/view.txt
+```
+
+These cover Blizzard 7→8, Chain Lightning 6→7 and Shadow Word: Pain 5→6.
+At 640×720, scroll down to inspect the third card. They verify baseline descriptions;
+additional talent-triggered text still needs separate coverage.
+
 The Character page opens on the dressed preview. Use **Manage heroes** for the
 roster, character creation, renown and relic controls, and **Back to character**
 to return. Selecting or creating a hero returns to the preview; an account without
