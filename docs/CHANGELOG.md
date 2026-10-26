@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Retained foliage visibility coverage
+
+Added a regression check for collider-free foliage in the retained renderer through
+the camera reveal's public world query. It covers selected/culled scenery, clear
+rays and disabling the retained renderer; CI now runs it. This is synthetic query
+coverage, not a new visual change or confirmation of the reported Windows scene.
+The new test and two adjacent retained-picking tests pass, as do formatting and
+diff checks. No new screenshot is attached to this test-only checkpoint.
+
+
 ## 2026-10-26 — Page-by-page screenshot gallery
 
 The README now groups 20 representative captures by interface page, with capture

@@ -74,5 +74,6 @@ jobs:
           cargo test -p benilla-world --lib web_budget --no-default-features
       - name: Survivors rules and visibility integration
         run: |
+          cargo test -p benilla-world --lib --features survivors-visibility survivors_visibility
           cargo test -p survivors-core
           cargo test -p benilla-app --lib --features survivors-visibility survivors::

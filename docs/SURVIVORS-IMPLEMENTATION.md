@@ -4902,3 +4902,19 @@ CHANGELOG image embeds were preserved verbatim. Future checkpoints update the
 relevant README page while retaining inline milestone history in CHANGELOG.
 Local image/document references were checked. No UI or runtime behavior changed;
 this does not close fresh gameplay capture or full interface acceptance work.
+
+
+### 2026-10-26 — Retained foliage query coverage
+
+The retained renderer already participates in WorldPick independently of the entity
+pick set. A new feature-gated world test casts through an AlphaTest retained triangle
+with no entities or colliders, verifies its identity/distance, and checks clear rays,
+culled geometry, visibility removal and absence of the retained resource. CI runs
+this test alongside the existing ordinary/merged-mesh reveal integration tests.
+This checkpoint changes no runtime rendering. Texture-alpha sampling, GPU cutaway
+appearance, WMO cutaway and the exact Windows foliage replay remain open; synthetic
+query coverage does not close any of those acceptance requirements.
+Validation: the new public-query test and both existing retained-source tests pass;
+formatting and diff checks pass. The first world-test configuration build took four
+minutes; the adjacent cached test invocation finished in under one second. No game
+was launched and no new visual evidence is claimed.
