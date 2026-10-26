@@ -6,6 +6,8 @@ pub(in crate::survivors) struct Check(Knob);
 
 pub(super) fn row(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, knob: Knob) {
     let label = match knob {
+        Knob::InvertX => "Invert camera X",
+        Knob::InvertY => "Invert camera Y",
         Knob::Sound => "Enable sound",
         Knob::MusicOn => "Enable music",
         Knob::AutoPush => "Auto-push camera",
@@ -88,6 +90,8 @@ pub(in crate::survivors) fn refresh(
         let enabled = match check.0 {
             Knob::Sound => cvars.num("MasterSoundEffects").unwrap_or(1.) != 0.,
             Knob::MusicOn => cvars.num("EnableMusic").unwrap_or(1.) != 0.,
+            Knob::InvertX => camera.invert_x,
+            Knob::InvertY => camera.invert_y,
             Knob::AutoPush => camera.auto_push,
             Knob::Cutaway => camera.cutaway,
             _ => unreachable!("checkbox requires a boolean preference"),

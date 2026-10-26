@@ -71,7 +71,16 @@ states, Graphics defaults and persisted music state after relaunch. All 38 focus
 HUD tests, native build, workspace Clippy, formatting and render lint pass. New
 screenshots are inline in CHANGELOG/README; audible output and in-world camera
 effects were not retested.
-Gamepad navigation, bindings and the other settings remain required.
+Controls now exposes saved mouse X/Y inversion with category defaults and current
+movement/camera guidance. The camera applies inversion to orbit drag, and camera
+rotation/zoom/mode input is limited to Playing. Old saves default both axes off;
+Graphics resets preserve inversion, and Controls resets preserve collision/cutaway.
+233 Survivors tests cover direction mapping and persistence compatibility; native
+wide/compact checks cover mouse/keyboard toggles, both reset boundaries and saved
+inversion after relaunch. Build, workspace Clippy, formatting and render lint pass;
+screenshots are inline in CHANGELOG/README. In-world inversion and paused camera
+isolation still need live acceptance checks. Sensitivity, gamepad navigation,
+bindings and other settings remain required.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.

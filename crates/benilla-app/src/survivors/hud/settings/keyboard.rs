@@ -16,16 +16,25 @@ pub(in crate::survivors) struct Focus {
 }
 
 fn order(category: Category, phase: Phase) -> Vec<Target> {
-    let mut targets = [Category::Audio, Category::Graphics, Category::About]
-        .map(|category| Target::Action(UiAction::SettingsCategory(category)))
-        .to_vec();
+    let mut targets = [
+        Category::Controls,
+        Category::Audio,
+        Category::Graphics,
+        Category::About,
+    ]
+    .map(|category| Target::Action(UiAction::SettingsCategory(category)))
+    .to_vec();
     let knobs: &[Knob] = match category {
         Category::Audio => &[Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience],
         Category::Graphics => &[Knob::View, Knob::Grass, Knob::Spells, Knob::Scale],
-        Category::About => &[],
+        Category::Controls | Category::About => &[],
     };
     targets.extend(knobs.iter().copied().map(Target::Slider));
     match category {
+        Category::Controls => {
+            targets.push(Target::Action(UiAction::Toggle(Knob::InvertX)));
+            targets.push(Target::Action(UiAction::Toggle(Knob::InvertY)));
+        }
         Category::Audio => {
             targets.push(Target::Action(UiAction::Toggle(Knob::Sound)));
             targets.push(Target::Action(UiAction::Toggle(Knob::MusicOn)));

@@ -342,7 +342,8 @@ pub(super) fn place_camera(
 ) {
     // `C` unlocks the camera to swing and tilt; locking it again snaps back to the top-down view,
     // so world-relative WASD lines up with the screen again.
-    if keys.just_pressed(KeyCode::KeyC) {
+    let camera_input = *phase.get() == Phase::Playing;
+    if camera_input && keys.just_pressed(KeyCode::KeyC) {
         rig.mode = match rig.mode {
             CamMode::Fixed => CamMode::Orbit,
             CamMode::Orbit => {
@@ -357,7 +358,7 @@ pub(super) fn place_camera(
     // Multiplicative, so a notch moves as far by eye close in as far out; all the way down to an
     // over-the-shoulder view.
     for w in wheel.read() {
-        if *phase.get() == Phase::LevelUp {
+        if !camera_input {
             continue;
         }
         let notches = match w.unit {
@@ -375,10 +376,13 @@ pub(super) fn place_camera(
         )
     } else {
         // Unlocked, either mouse button drags the camera around the hero, as in WoW.
-        if rig.mode == CamMode::Orbit && mouse.any_pressed([MouseButton::Left, MouseButton::Right])
+        if camera_input
+            && rig.mode == CamMode::Orbit
+            && mouse.any_pressed([MouseButton::Left, MouseButton::Right])
         {
-            rig.yaw -= motion.delta.x * ORBIT_RATE;
-            rig.pitch = (rig.pitch + motion.delta.y * ORBIT_RATE).clamp(PITCH_MIN, PITCH_MAX);
+            let delta = camera_settings.mouse_delta(motion.delta);
+            rig.yaw -= delta.x * ORBIT_RATE;
+            rig.pitch = (rig.pitch + delta.y * ORBIT_RATE).clamp(PITCH_MIN, PITCH_MAX);
         }
         let (sy, cy) = rig.yaw.sin_cos();
         let (sp, cp) = rig.pitch.sin_cos();

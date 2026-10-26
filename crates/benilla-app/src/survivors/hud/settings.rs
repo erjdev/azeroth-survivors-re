@@ -9,6 +9,7 @@ use bevy::ecs::system::SystemParam;
 pub(in crate::survivors) enum Category {
     #[default]
     Audio,
+    Controls,
     Graphics,
     About,
 }
@@ -40,6 +41,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
         })
         .with_children(|nav| {
             for (category, title) in [
+                (Category::Controls, "Controls"),
                 (Category::Audio, "Audio"),
                 (Category::Graphics, "Graphics"),
                 (Category::About, "About"),
@@ -63,6 +65,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
         ))
         .with_children(|panel| {
             for (category, title) in [
+                (Category::Controls, "Controls"),
                 (Category::Audio, "Audio"),
                 (Category::Graphics, "Graphics"),
                 (Category::About, "About"),
@@ -75,6 +78,14 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
                 })).with_children(|body| {
                     body.spawn(text(font, title, 20.0, GOLD));
                     match category {
+                        Category::Controls => {
+                            checkboxes::row(body, font, Knob::InvertX);
+                            checkboxes::row(body, font, Knob::InvertY);
+                            body.spawn(text(font, "Mouse camera", 16., GOLD));
+                            body.spawn(text(font, "C switches between fixed and orbit camera. In orbit mode, hold either mouse button and drag to rotate. Scroll to zoom.", 14., DIM));
+                            body.spawn(text(font, "Movement", 16., GOLD));
+                            body.spawn(text(font, "WASD or arrow keys move. Movement follows the camera in orbit mode. Space jumps. Escape pauses the run.", 14., DIM));
+                        }
                         Category::Audio => {
                             for knob in [Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience] {
                                 sliders::row(body, font, knob);
@@ -119,6 +130,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
     })
     .with_children(|footer| {
         for (category, label) in [
+            (Category::Controls, "Controls defaults"),
             (Category::Audio, "Audio defaults"),
             (Category::Graphics, "Graphics defaults"),
         ] {
@@ -145,7 +157,7 @@ pub(super) fn restore_cvars(cvars: &mut crate::cvars::Cvars, category: Category)
             "EnableMusic",
         ],
         Category::Graphics => &["farclip", "WorldDetail", "spellEffectLevel", "renderScale"],
-        Category::About => &[],
+        Category::Controls | Category::About => &[],
     };
     for name in names {
         if let Some(value) = cvars.default_of(name).map(str::to_owned) {

@@ -5,6 +5,8 @@ use bevy::prelude::*;
 pub(super) struct CameraSettings {
     pub auto_push: bool,
     pub cutaway: bool,
+    pub invert_x: bool,
+    pub invert_y: bool,
     resolved_distance: Option<f32>,
 }
 
@@ -22,6 +24,8 @@ impl CameraSettings {
         let mut settings = Self {
             auto_push: true,
             cutaway: true,
+            invert_x: false,
+            invert_y: false,
             resolved_distance: None,
         };
         for line in text.lines() {
@@ -30,6 +34,10 @@ impl CameraSettings {
                 ["auto_push", "1"] => settings.auto_push = true,
                 ["cutaway", "0"] => settings.cutaway = false,
                 ["cutaway", "1"] => settings.cutaway = true,
+                ["invert_x", "0"] => settings.invert_x = false,
+                ["invert_x", "1"] => settings.invert_x = true,
+                ["invert_y", "0"] => settings.invert_y = false,
+                ["invert_y", "1"] => settings.invert_y = true,
                 _ => {}
             }
         }
@@ -38,9 +46,11 @@ impl CameraSettings {
 
     fn encode(&self) -> String {
         format!(
-            "auto_push {}\ncutaway {}\n",
+            "auto_push {}\ncutaway {}\ninvert_x {}\ninvert_y {}\n",
             u8::from(self.auto_push),
-            u8::from(self.cutaway)
+            u8::from(self.cutaway),
+            u8::from(self.invert_x),
+            u8::from(self.invert_y)
         )
     }
 
@@ -55,10 +65,35 @@ impl CameraSettings {
         self.save();
     }
 
-    /// Reset to the built-in preferences, never to values loaded from disk by `Default`.
+    /// Reset Graphics preferences only, preserving the independent Controls category.
     pub fn restore_defaults(&mut self) {
-        *self = Self::parse("");
+        self.auto_push = true;
+        self.cutaway = true;
+        self.resolved_distance = None;
         self.save();
+    }
+
+    pub fn toggle_inversion(&mut self, horizontal: bool) {
+        if horizontal {
+            self.invert_x = !self.invert_x;
+        } else {
+            self.invert_y = !self.invert_y;
+        }
+        self.save();
+    }
+
+    pub fn restore_controls(&mut self) {
+        self.invert_x = false;
+        self.invert_y = false;
+        self.save();
+    }
+
+    pub fn mouse_delta(&self, delta: Vec2) -> Vec2 {
+        delta
+            * Vec2::new(
+                if self.invert_x { -1. } else { 1. },
+                if self.invert_y { -1. } else { 1. },
+            )
     }
 
     fn save(&self) {
@@ -134,17 +169,41 @@ mod tests {
     use super::*;
 
     #[test]
+    fn saved_inversion_changes_only_the_selected_mouse_axis() {
+        let delta = Vec2::new(12., -7.);
+        for (text, expected) in [
+            ("", delta),
+            ("invert_x 1", Vec2::new(-12., -7.)),
+            ("invert_y 1", Vec2::new(12., 7.)),
+            ("invert_x 1\ninvert_y 1", -delta),
+            ("invert_x broken\ninvert_y 9", delta),
+        ] {
+            let settings = CameraSettings::parse(text);
+            assert_eq!(settings.mouse_delta(delta), expected);
+            assert_eq!(
+                CameraSettings::parse(&settings.encode()).mouse_delta(delta),
+                expected
+            );
+            assert!(settings.auto_push && settings.cutaway);
+        }
+    }
+
+    #[test]
     fn preferences_round_trip_and_old_or_invalid_files_keep_collision_enabled() {
         for enabled in [false, true] {
             let settings = CameraSettings {
                 auto_push: enabled,
                 cutaway: !enabled,
+                invert_x: enabled,
+                invert_y: !enabled,
                 resolved_distance: Some(4.0),
             };
             let loaded = CameraSettings::parse(&settings.encode());
             assert_eq!(loaded.auto_push, enabled);
             assert_eq!(loaded.cutaway, !enabled);
             assert_eq!(loaded.resolved_distance, None);
+            assert_eq!(loaded.invert_x, enabled);
+            assert_eq!(loaded.invert_y, !enabled);
         }
         assert!(CameraSettings::parse("").auto_push);
         assert!(CameraSettings::parse("auto_push 0").cutaway);

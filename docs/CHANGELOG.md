@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Mouse camera controls
+
+Options gains a Controls page with saved X/Y mouse inversion, category defaults
+and movement/camera guidance. Camera rotation, zoom and mode changes now accept
+input only during active gameplay. Graphics resets preserve Controls preferences.
+
+![Controls with both axes inverted](images/screenshots/2026-10-26-options-controls/controls-1280.png)
+
+![Compact Controls with vertical inversion](images/screenshots/2026-10-26-options-controls/controls-640.png)
+
+233 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Native checks cover mouse/keyboard toggles, reset isolation, wide/compact fit
+and inversion after relaunch. Tests cover direction mapping and save compatibility;
+in-world inversion and paused camera isolation still need live acceptance checks.
+Sensitivity, key rebinding and gamepad support remain unfinished.
+
 ## 2026-10-26 — Options checkboxes
 
 Audio and camera switches now use labeled gold checkboxes aligned with the

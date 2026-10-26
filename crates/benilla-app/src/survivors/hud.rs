@@ -183,6 +183,8 @@ pub(super) struct TipBody;
 
 #[derive(Clone, Copy, PartialEq)]
 pub(super) enum Knob {
+    InvertX,
+    InvertY,
     Master,
     Effects,
     Music,
@@ -1459,6 +1461,8 @@ pub(super) fn apply_settings(
             camera.toggle();
         } else if knob == Knob::Cutaway {
             camera.toggle_cutaway();
+        } else if matches!(knob, Knob::InvertX | Knob::InvertY) {
+            camera.toggle_inversion(knob == Knob::InvertX);
         } else {
             toggle_knob(&mut cvars, knob);
         }
@@ -1467,6 +1471,8 @@ pub(super) fn apply_settings(
         settings::restore_cvars(&mut cvars, category);
         if category == settings::Category::Graphics {
             camera.restore_defaults();
+        } else if category == settings::Category::Controls {
+            camera.restore_controls();
         }
     }
 }
