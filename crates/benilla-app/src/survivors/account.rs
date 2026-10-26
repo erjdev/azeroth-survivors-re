@@ -1163,10 +1163,22 @@ fn read_dbc(payload: &str) -> [Vec<(u8, u32, u8)>; 3] {
     for (spec, group) in payload.split('|').enumerate().take(3) {
         for entry in group.split(',').filter(|s| !s.is_empty()) {
             let mut bits = entry.split(':');
-            let tree = bits.next().unwrap_or("0").parse::<u8>().unwrap_or(0).min(2);
-            let id = bits.next().unwrap_or("0").parse::<u32>().unwrap_or(0);
-            let rank = bits.next().unwrap_or("0").parse::<u8>().unwrap_or(0);
-            if id != 0 && rank > 0 {
+            let (Some(tree), Some(id), Some(rank)) = (bits.next(), bits.next(), bits.next()) else {
+                continue;
+            };
+            let (Ok(tree), Ok(id), Ok(rank)) =
+                (tree.parse::<u8>(), id.parse::<u32>(), rank.parse::<u8>())
+            else {
+                continue;
+            };
+            if tree >= 3 || id == 0 || rank == 0 || bits.next().is_some() {
+                continue;
+            }
+            // A talent owns one rank per spec; repeated rows never buy tree points.
+            // Keep its first tree and highest rank, matching core spell training.
+            if let Some(existing) = specs[spec].iter_mut().find(|entry| entry.1 == id) {
+                existing.2 = existing.2.max(rank);
+            } else {
                 specs[spec].push((tree, id, rank));
             }
         }
@@ -1565,6 +1577,40 @@ mod tests {
     }
 
     use super::*;
+
+    #[test]
+    fn imported_duplicate_talents_do_not_inflate_tree_points_or_effects() {
+        let mut account = parse(
+            "who 1 3 5100 Saved Rogue\ndbc 1 0:270:2,0:270:5,0:270:5,1:270:3|1:187:5,1:187:5|0:270:1\n",
+        )
+        .unwrap();
+        let mut untrained = parse(&encode(&account)).unwrap();
+        untrained.respec(1);
+        let baseline = untrained.bonus(3, 1);
+        assert_eq!(account.character(1).unwrap().dbc[0], vec![(0, 270, 5)]);
+        assert_eq!(account.character(1).unwrap().dbc_rank(270), 5);
+        let active = account.milestones_picked(3, Some(1));
+        assert_eq!(active.points, [5, 0, 0]);
+        assert_eq!(active, active.with_ranks(&[(0, 270, 5)]));
+        assert!((active.cast("sinister_strike").crit - 0.05).abs() < 0.00001);
+        assert_eq!(account.bonus(3, 1).crit, baseline.crit);
+        assert_eq!(account.bonus(3, 1).might, baseline.might);
+        account.select_spec(1, 1);
+        assert_eq!(account.milestones_picked(3, Some(1)).points, [0, 5, 0]);
+        assert_eq!(account.bonus(3, 1).armor, baseline.armor + 15.0);
+        account.select_spec(1, 2);
+        assert_eq!(account.character(1).unwrap().dbc_rank(270), 1);
+        assert_eq!(
+            parse(&encode(&account)).unwrap().character(1).unwrap().dbc,
+            account.character(1).unwrap().dbc
+        );
+    }
+
+    #[test]
+    fn malformed_saved_talent_entries_are_not_reinterpreted_as_valid_trees() {
+        let ranks = read_dbc("3:270:5,bad:270:5,:270:5,0:bad:5,0:270:bad,0:270,0:270:5:extra,0:0:5,0:270:0,2:244:5||1:187:2");
+        assert_eq!(ranks, [vec![(2, 244, 5)], vec![], vec![(1, 187, 2)]]);
+    }
 
     #[test]
     fn imported_overbudget_spec_preserves_ranks_but_grants_no_talent_effects() {

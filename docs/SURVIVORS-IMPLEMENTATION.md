@@ -3706,3 +3706,15 @@ after refunding the excess Vigor rank; before/after captures are in the changelo
 All 202 Survivors app tests pass. Three older test fixtures now supply earned
 points for their deliberately assigned ranks. Native build, workspace Clippy,
 formatting and render-pass lint pass.
+
+### Saved talent row normalization — 2026-10-25
+
+Loading DBC specs now collapses repeated talent IDs within each spec to the highest
+rank, retaining the first tree assignment. This matches core training's highest-rank
+rule without multiplying tree points or milestone eligibility. Separate specs retain
+independent ranks. Malformed fields, trees outside 0–2, zero IDs/ranks and extra fields
+are discarded instead of coerced into a different tree. Canonical saves round-trip.
+This does not establish class membership, catalog rank caps, row unlocks or prerequisites;
+those checks remain open. No runtime UI or design change is included.
+
+Validation: all 42 account tests, workspace Clippy, formatting and render-pass lint pass.

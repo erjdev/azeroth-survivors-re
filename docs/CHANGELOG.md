@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Saved talent consistency
+
+Repeated talent rows now load once per spec at their highest saved rank, so they
+cannot inflate tree points or unlock extra milestones. Malformed rows are rejected.
+Separate specs and unrelated progression bonuses remain intact.
+
+All 42 account tests pass, including duplicate/malformed imports, spec isolation,
+spell effects and save round trips. Workspace Clippy, formatting and render-pass
+lint pass. This is a save-parser change with no visual change; full catalog rank,
+class, row and prerequisite validation remains open.
+
 ## 2026-10-25 — Character switching acceptance
 
 The ten-hero roster and creation controls fit at 640×720. Switching from Warrior
