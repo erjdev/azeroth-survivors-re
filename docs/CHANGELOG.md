@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Direct Poor-gear UI previews
+
+Collection's fast preview now accepts `piece = poor:<slot>` for every class and
+visible gear slot. It inspects the actual catalog item without granting, equipping
+or saving it. Reusable wide/compact requests make the Poor row quicker to review.
+Switching to a legacy rarity clears the previous Poor inspection.
+
+317 data-required app tests pass, including all 81 class/slot combinations,
+selection retention and existing preview validation. Clippy, formatting and native
+build pass. Native wide/compact checks verified direct inspection, switching to
+Epic, rejection of an invalid slot, and an unchanged fixture account file.
+
+![Direct Poor-gear preview](images/screenshots/2026-10-26-poor-preview/poor-1280.png)
+
+![Compact Poor-gear details](images/screenshots/2026-10-26-poor-preview/poor-640.png)
+
+
 ## 2026-10-26 — Bestial Wrath capstone
 
 Training Bestial Wrath upgrades the automatic milestone from +50% bite damage

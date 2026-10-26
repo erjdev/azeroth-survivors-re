@@ -394,9 +394,13 @@ Changing file contents is required to retry a rejected request after selecting a
 
 Collection accepts `piece = <band>:<slot>`, for example `piece = epic:hands`
 or `piece = legendary:main hand`. Names are case-insensitive and use the current
-catalog: Common, Uncommon, Rare, Epic, PvP, Legendary; Helm, Shoulders, Chest,
+catalog: Poor, Common, Uncommon, Rare, Epic, PvP, Legendary; Helm, Shoulders, Chest,
 Waist, Legs, Feet, Wrist, Hands, Main Hand. This selects the inspected cell for the
-current class, including unowned pieces, without granting or equipping it. Normal
+current class, including unowned pieces, without granting or equipping it. Poor
+resolves to the selected class’s supplemental catalog entry rather than a legacy
+quality index. `collection-poor-hands-1280.txt` and `collection-poor-hands-640.txt`
+provide direct Poor-quality previews. Switching back to a legacy rarity clears
+the supplemental inspection. Normal
 mouse/keyboard gear actions remain active; use an isolated account for interactions.
 Omitting `piece` preserves the manual selection. Invalid names, Off Hand, repeated
 keys or use outside Collection reject the entire request, preserving page and size.

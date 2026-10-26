@@ -5397,3 +5397,25 @@ Clippy, formatting and native build pass; coverage is 201/432 individual talents
 and 81/81 automatic milestones. Native 1280×720 and 640×720 captures show the
 capstone in a valid 34-point saved spec, embedded in CHANGELOG and README.
 Live combat and Windows behavior remain separate acceptance work.
+
+### Poor Collection fast previews — 2026-10-26
+
+Collection preview requests now accept `piece = poor:<slot>` alongside the six
+legacy qualities. Poor selections resolve through the selected class's actual
+supplemental catalog; all nine visible slots are supported. Applying a legacy
+rarity clears supplemental inspection, while omitting the piece preserves the
+current inspected item. Invalid slots, unsupported rarities and use on another
+page still reject the request. Preview changes do not mutate ownership, worn
+gear, appearances or saves. Reusable wide/compact requests are checked in under
+`docs/ui-previews/collection-poor-hands-*.txt`.
+
+Validation: 317 data-required app tests pass, including all 81 Poor class/slot
+resolutions, omitted-item retention and switching back to legacy inspection.
+Clippy, formatting and native build pass. Native checks verified Poor hands,
+Epic hands, and invalid `poor:off hand` retaining both selection and window size.
+The full compact item detail is reachable by scrolling. The isolated account
+file's hash remained unchanged after quit. Wide/compact captures are embedded
+in CHANGELOG; README's Collection image is refreshed. The three-column wide
+layout follows the Collection intention; the extra Poor row and stacked compact
+layout are intentional extensions. This does not close the full page/platform
+acceptance matrix or add unimplemented Raid Epic content.

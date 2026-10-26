@@ -54,6 +54,12 @@ enum Card {
     Passive(&'static data::PassiveDef, u8),
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Piece {
+    Legacy(usize),
+    Poor(usize),
+}
+
 struct Request {
     page: Page,
     width: u32,
@@ -61,7 +67,7 @@ struct Request {
     selected: bool,
     category: Option<u8>,
     talent: Option<u32>,
-    piece: Option<usize>,
+    piece: Option<Piece>,
     cards: Option<Vec<Card>>,
 }
 
@@ -154,13 +160,17 @@ impl Request {
                 "talent" if talent.is_none() => talent = Some(value.parse::<u32>().ok()?),
                 "piece" if piece.is_none() => {
                     let (band, slot) = value.split_once(':')?;
-                    let band = campaign::BANDS_NAMED
-                        .iter()
-                        .position(|name| name.eq_ignore_ascii_case(band.trim()))?;
                     let slot = campaign::SLOTS[..campaign::GRID_SLOTS]
                         .iter()
                         .position(|name| name.eq_ignore_ascii_case(slot.trim()))?;
-                    piece = Some(band * campaign::GRID_SLOTS + slot);
+                    piece = Some(if band.trim().eq_ignore_ascii_case("poor") {
+                        Piece::Poor(slot)
+                    } else {
+                        let band = campaign::BANDS_NAMED
+                            .iter()
+                            .position(|name| name.eq_ignore_ascii_case(band.trim()))?;
+                        Piece::Legacy(band * campaign::GRID_SLOTS + slot)
+                    });
                 }
                 "width" if width.is_none() => width = Some(value.parse::<u32>().ok()?),
                 "height" if height.is_none() => height = Some(value.parse::<u32>().ok()?),
@@ -213,11 +223,27 @@ impl Request {
             .then_some(request)
     }
 
-    fn apply(&self, armory: &mut Armory, typing: &mut Typing, window: &mut Window) {
+    fn apply(&self, armory: &mut Armory, typing: &mut Typing, window: &mut Window, class: usize) {
+        let supplemental = match self.piece {
+            Some(Piece::Poor(slot)) => {
+                let Some(piece) = survivors_core::supplemental_gear::piece(
+                    class,
+                    slot,
+                    survivors_core::gear_tier::GearTier::Poor,
+                ) else {
+                    return;
+                };
+                Some(piece.key)
+            }
+            _ => None,
+        };
         armory.page = self.page;
         if let Some(piece) = self.piece {
-            armory.piece = piece;
-            armory.supplemental_piece = None;
+            armory.piece = match piece {
+                Piece::Legacy(index) => index,
+                Piece::Poor(slot) => slot,
+            };
+            armory.supplemental_piece = supplemental;
         }
         if let Some(category) = self.category {
             match self.page {
@@ -308,7 +334,12 @@ fn reload(
     };
     preview.seen = text;
     preview.inspected = inspected;
-    request.apply(&mut armory, &mut typing, &mut window);
+    request.apply(
+        &mut armory,
+        &mut typing,
+        &mut window,
+        super::picked_class(&account, &selection),
+    );
     preview.hand(&request, &mut run, &mut offer, &mut hand, snapshot);
     info!("Survivors UI preview applied: {}", preview.seen.trim());
 }
@@ -403,18 +434,20 @@ mod tests {
                     "page=collection\nwidth=1280\nheight=720\npiece={name}:{name_slot}"
                 ))
                 .unwrap();
-                assert_eq!(request.piece, Some(band * campaign::GRID_SLOTS + slot));
+                assert_eq!(
+                    request.piece,
+                    Some(Piece::Legacy(band * campaign::GRID_SLOTS + slot))
+                );
             }
         }
         assert_eq!(
             Request::parse("page=collection\nwidth=640\nheight=720\npiece= LEGENDARY : main hand ")
                 .unwrap()
                 .piece,
-            Some(campaign::PIECES - 1)
+            Some(Piece::Legacy(campaign::PIECES - 1))
         );
         for extra in [
             "piece=epic:off hand",
-            "piece=poor:hands",
             "piece=raid epic:hands",
             "piece=epic:unknown",
             "piece=3:7",
@@ -447,6 +480,43 @@ mod tests {
     }
 
     #[test]
+    fn poor_piece_preview_uses_each_class_catalog_and_switches_back_to_legacy() {
+        for class in 0..data::CLASSES.len() {
+            for (slot, name) in campaign::SLOTS[..campaign::GRID_SLOTS].iter().enumerate() {
+                let request = Request::parse(&format!(
+                    "page=collection\nwidth=1280\nheight=720\npiece= PoOr : {name} "
+                ))
+                .unwrap();
+                assert_eq!(request.piece, Some(Piece::Poor(slot)));
+                let mut armory = Armory::default();
+                let mut typing = Typing(true);
+                let mut window = Window::default();
+                request.apply(&mut armory, &mut typing, &mut window, class);
+                let piece = armory
+                    .supplemental_piece
+                    .as_deref()
+                    .and_then(survivors_core::supplemental_gear::by_key)
+                    .unwrap();
+                assert_eq!((piece.class, piece.slot), (class, slot));
+                let key = armory.supplemental_piece.clone();
+                Request::parse("page=collection\nwidth=640\nheight=720")
+                    .unwrap()
+                    .apply(&mut armory, &mut typing, &mut window, class);
+                assert_eq!(armory.supplemental_piece, key);
+                Request::parse("page=collection\nwidth=640\nheight=720\npiece=epic:hands")
+                    .unwrap()
+                    .apply(&mut armory, &mut typing, &mut window, class);
+                assert!(armory.supplemental_piece.is_none());
+                assert_eq!(armory.piece, 3 * campaign::GRID_SLOTS + 7);
+            }
+        }
+        assert!(Request::parse("page=talents\nwidth=640\nheight=720\npiece=poor:hands").is_none());
+        assert!(
+            Request::parse("page=collection\nwidth=640\nheight=720\npiece=poor:off hand").is_none()
+        );
+    }
+
+    #[test]
     fn collection_piece_preview_changes_inspection_and_preserves_other_selections() {
         let mut armory = Armory {
             piece: 1,
@@ -459,7 +529,7 @@ mod tests {
         let mut window = Window::default();
         Request::parse("page=collection\nwidth=640\nheight=720\npiece=epic:hands")
             .unwrap()
-            .apply(&mut armory, &mut typing, &mut window);
+            .apply(&mut armory, &mut typing, &mut window, 0);
         assert_eq!(armory.piece, 3 * campaign::GRID_SLOTS + 7);
         assert!(armory.page == Page::Collection);
         assert_eq!((armory.drop_zone, armory.codex_entry), (4, Some(3)));
@@ -468,7 +538,7 @@ mod tests {
         assert!(!typing.0);
         Request::parse("page=collection\nwidth=1280\nheight=720")
             .unwrap()
-            .apply(&mut armory, &mut typing, &mut window);
+            .apply(&mut armory, &mut typing, &mut window, 0);
         assert_eq!(
             armory.piece,
             3 * campaign::GRID_SLOTS + 7,
@@ -690,7 +760,7 @@ mod tests {
                     "category={category}\npage={page}\nwidth=640\nheight=720"
                 ))
                 .unwrap();
-                request.apply(&mut armory, &mut typing, &mut window);
+                request.apply(&mut armory, &mut typing, &mut window, 0);
                 assert_eq!(
                     if page == "rewards" {
                         armory.reward_page
@@ -705,7 +775,7 @@ mod tests {
         }
         Request::parse("page=rewards\nwidth=1280\nheight=720")
             .unwrap()
-            .apply(&mut armory, &mut typing, &mut window);
+            .apply(&mut armory, &mut typing, &mut window, 0);
         assert_eq!(
             armory.reward_page, 2,
             "omission preserves manual category selection"
@@ -887,7 +957,7 @@ mod tests {
         };
         let mut typing = Typing(true);
         let mut window = Window::default();
-        request.apply(&mut armory, &mut typing, &mut window);
+        request.apply(&mut armory, &mut typing, &mut window, 0);
         assert!(armory.page == Page::Talents);
         assert_eq!(armory.focus, 0);
         assert!(!typing.0);
