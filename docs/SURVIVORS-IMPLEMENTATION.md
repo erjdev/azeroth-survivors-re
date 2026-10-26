@@ -4870,3 +4870,18 @@ preview presets (`page = heroes`) for all three sizes. Screenshots are inline in
 CHANGELOG and README. Native build (23 seconds), app Clippy, formatting and diff
 checks pass; no new rule tests are warranted for this layout-only bound. The full
 race/sex/equipment matrix, physical controllers and Windows DPI remain open.
+
+
+### 2026-10-26 — Character identity reference alignment
+
+Compared against intentions/survivors_character_tab.png, the central identity line
+was missing gender and race. It now describes the selected rendered body followed
+by the class name in its class color. Inline spans explicitly use the same font and
+body size. A class-catalog mismatch suppresses the body prefix while selection is
+loading, rather than describing an unrelated cached look. No save format changes.
+Native validation covers Male Human Warrior → Female Human Warrior → Female Tauren
+Warrior, then switching through Manage heroes to the saved Female Human Paladin.
+1280×720 and 640×480 captures verify identity, model fit and class coloring; these
+are embedded in CHANGELOG/README. The native build, app Clippy, formatting and diff
+checks pass. This presentation-only change does not add rule tests. Full race/sex/
+equipment coverage and Windows DPI remain open.

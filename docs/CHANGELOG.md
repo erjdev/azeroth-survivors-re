@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Character identity follows appearance
+
+Character now shows gender, race and a class-colored class name beneath the hero's
+name, matching the intention layout. The line follows appearance changes and saved
+hero selection, with consistent inline typography.
+
+![Human Warrior identity](images/screenshots/2026-10-26-character-identity/human-1280.png)
+
+![Changed Tauren appearance at 640×480](images/screenshots/2026-10-26-character-identity/tauren-640.png)
+
+![Switching to a saved Paladin](images/screenshots/2026-10-26-character-identity/paladin-640.png)
+
+Native checks cover male/female Human, female Tauren and switching to a saved
+Paladin at wide/minimum sizes. Native build and app Clippy pass. This does not
+complete the full race/model matrix or Windows DPI acceptance.
+
+
 ## 2026-10-26 — Character portrait on short windows
 
 The compact Character portrait now scales within both the column width and window

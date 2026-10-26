@@ -16,6 +16,10 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Character identity follows the selected gender, race and class.
+
+![Character identity](docs/images/screenshots/2026-10-26-character-identity/human-1280.png)
+
 Character portraits fit short windows with rotation controls visible.
 
 ![Character at 640×480](docs/images/screenshots/2026-10-26-character-short-viewport/character-640x480.png)

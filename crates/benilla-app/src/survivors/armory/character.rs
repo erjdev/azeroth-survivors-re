@@ -131,12 +131,36 @@ fn hero_panel(
         .map(|h| format!("{} {}", h.first, h.last))
         .unwrap_or_else(|| "Choose a hero".into());
     body.spawn(hud::centered_bundle(font, name, layout.title_size, GOLD));
+    // Describe the body actually selected for the model, not an unrelated cached look
+    // while another hero's class catalog is still loading.
+    let identity = hero
+        .filter(|hero| selection.class == Some(hero.class))
+        .and_then(|_| selection.look.and_then(|i| selection.looks.get(i)))
+        .map(|&(_, race, sex)| {
+            format!(
+                "{} {} ",
+                if sex == 0 { "Male" } else { "Female" },
+                crate::char_select::race_name(race)
+            )
+        })
+        .unwrap_or_default();
     body.spawn(hud::centered_bundle(
         font,
-        super::CLASSES[class].name,
+        identity,
         layout.body_size,
-        GOLD,
-    ));
+        Color::WHITE,
+    ))
+    .with_children(|line| {
+        line.spawn((
+            TextSpan::new(super::CLASSES[class].name),
+            TextFont {
+                font: font.clone(),
+                font_size: layout.body_size,
+                ..default()
+            },
+            TextColor(hud::rgb(super::CLASSES[class].color)),
+        ));
+    });
     let managing = armory.manage_heroes || hero.is_none();
     if hero.is_some() {
         body.spawn(Node {
