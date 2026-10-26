@@ -272,10 +272,27 @@ mod tests {
         );
         assert!(lines
             .iter()
-            .any(|(text, _)| text == "No change to this spell's bonuses"));
+            .any(|(text, color)| text == "Cooldown reduction bonus 0 » 15%" && *color == GAIN));
         assert!(!lines
             .iter()
             .any(|(text, _)| text.contains("Damage bonus") || text.contains("Critical")));
+        let mut worn = run;
+        worn.worn
+            .equip(campaign::JewelKind::Legend("divine_shield"));
+        let duplicate = describe(
+            Choice::Jewel(campaign::JewelKind::Legend("divine_shield")),
+            &worn,
+        );
+        assert!(duplicate
+            .iter()
+            .any(|(text, _)| text == "No change to this spell's bonuses"));
+        let replacement = describe(
+            Choice::Jewel(campaign::JewelKind::Legend("fireball")),
+            &worn,
+        );
+        assert!(replacement
+            .iter()
+            .any(|(text, color)| text == "Cooldown reduction bonus 15 » 0%" && *color == LOSS));
     }
 
     #[test]

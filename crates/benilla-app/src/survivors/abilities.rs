@@ -3507,6 +3507,44 @@ mod milestone_tests {
     }
 
     #[test]
+    fn divine_shield_legendary_recharges_only_its_spell_without_stacking() {
+        let mut run = Run::default();
+        let params = |key, rank, stats: &Stats| {
+            Params::new(
+                &Owned {
+                    def: data::ability(key),
+                    level: rank,
+                    cd: 0.0,
+                },
+                stats,
+                Milestones::default(),
+            )
+        };
+        let base = run.stats();
+        for _ in 0..2 {
+            run.worn.equip(campaign::JewelKind::Legend("divine_shield"));
+            let stats = run.stats();
+            assert_eq!(stats.cooldown, base.cooldown);
+            for rank in [1, 4, 8] {
+                let before = params("divine_shield", rank, &base);
+                let after = params("divine_shield", rank, &stats);
+                assert!((after.cooldown - before.cooldown * 0.85).abs() < 0.001);
+                assert_eq!(after.duration, before.duration);
+                assert_eq!(after.count, before.count);
+            }
+            assert_eq!(
+                params("fireball", 1, &stats).cooldown,
+                params("fireball", 1, &base).cooldown
+            );
+        }
+        run.worn.equip(campaign::JewelKind::Legend("fireball"));
+        assert_eq!(
+            params("divine_shield", 1, &run.stats()).cooldown,
+            params("divine_shield", 1, &base).cooldown
+        );
+    }
+
+    #[test]
     fn divine_storm_hits_one_hero_centered_area_even_with_extra_targets() {
         let mut world = World::new();
         let foes: Vec<Foe> = [2.0, 5.0, 10.0]

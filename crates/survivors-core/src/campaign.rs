@@ -1431,6 +1431,16 @@ impl Worn {
     /// Cast-local bonuses; excluded from the hero's shared stat sheet.
     pub fn legendary_bonus(&self) -> Option<(&'static str, Bonus)> {
         self.legend.map(|key| {
+            // Immunity consumes neither damage, critical damage nor extra targets.
+            if key == "divine_shield" {
+                return (
+                    key,
+                    Bonus {
+                        cooldown: 0.15,
+                        ..Bonus::default()
+                    },
+                );
+            }
             (
                 key,
                 Bonus {

@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — A useful Divine Shield legendary
+
+Divine Shield's amulet now grants 15% spell-local cooldown reduction, replacing
+bonuses immunity could not use. Cards and Codex show the same green benefit;
+duplicates do not stack and replacement removes it.
+
+![Divine Shield legendary offer](images/screenshots/2026-10-26-divine-legend/cards-1280.png)
+
+![Compact legendary offer](images/screenshots/2026-10-26-divine-legend/cards-640.png)
+
+![Divine Shield Codex detail](images/screenshots/2026-10-26-divine-legend/codex-1280.png)
+
+Native wide/compact previews and Codex selection checked on macOS. Combat balance
+and the remaining spell-specific legendary designs are still open.
+135 core and 271 app tests, native build, workspace Clippy, formatting and render lint pass.
+
 ## 2026-10-26 — Windows playtest corrections
 
 - Foliage reveal checks rendered scenery instead of collision hulls, with the existing 500 ms fade.

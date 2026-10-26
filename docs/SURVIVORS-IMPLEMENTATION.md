@@ -4485,3 +4485,21 @@ explicit checkout data. Regressions cover render-only foliage, authored Elwynn
 trunk spawn rejection, actual body movement around fences and all three chest
 models, bounded route scheduling, and elite-drop cadence. Native play build,
 workspace Clippy, formatting, and render lint pass.
+
+### Divine Shield legendary effect — 2026-10-26
+
+The previously ineffective generic amulet now adds 15 percentage points of
+spell-local cooldown reduction for Divine Shield. The existing cap/minimum timer,
+rank scaling and talent composition apply. Immunity duration is unchanged. The
+shared hero sheet and other spells do not gain this bonus, repeated copies do not
+stack, and replacement removes it. No save migration is needed for run-only jewelry.
+
+Native 1280×720 and 640×720 cards show the green benefit; selecting the undiscovered
+Divine Shield Codex entry shows the same effect without marking it discovered.
+Screenshots are embedded in CHANGELOG and README. This resolves the ineffective
+Divine Shield reward noted above; remaining spell-specific legendary designs and
+live combat balance still require work.
+
+Validation: 135 core and 271 app tests pass. New checks cover rank-one/four/eight
+cast timing, unrelated spells, duplicate equips, replacement removal, green gains
+and red losses. Native play build, workspace Clippy, formatting and render lint pass.

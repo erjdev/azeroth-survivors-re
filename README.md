@@ -144,6 +144,10 @@ Jewelry offers have live wide/compact preview presets, with resolved legendary s
 
 ![Jewelry card preview](docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png)
 
+Divine Shield's legendary amulet now improves its recharge, with matching card and Codex benefits.
+
+![Divine Shield legendary reward](docs/images/screenshots/2026-10-26-divine-legend/cards-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

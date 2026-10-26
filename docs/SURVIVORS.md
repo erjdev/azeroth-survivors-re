@@ -187,6 +187,11 @@ that floor, with unseen icons still drawn. Click an icon to read it.
 Luck still biases a chest card toward jewelry, and a boss chest more so with Keen Eye.
 Jewelry is never written into the class collection.
 
+Divine Shield's legendary amulet grants 15 percentage points of cooldown reduction
+to Divine Shield alone, using the existing cooldown cap and minimum timer. It does
+not change immunity duration or grant damage, critical damage, or extra targets.
+Repeated copies do not stack; replacing the legendary amulet removes this benefit.
+
 Reference: `docs/intentions/survivors_codex_tab.png`.
 
 ## Talents
