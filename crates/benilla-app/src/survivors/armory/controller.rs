@@ -216,18 +216,26 @@ pub(in crate::survivors) fn navigate(
                 ]
                 .into_iter()
                 .find(|(button, key, _)| pressed(*button) || keys.just_pressed(*key));
+                let had_focus = focus.focused.is_some();
                 if let Some((_, _, direction)) = direction {
                     focus.focused = step(&items, focus.focused, direction);
-                } else if pressed(GamepadButton::West) || keys.just_pressed(KeyCode::Backspace) {
+                }
+                if direction.is_none()
+                    && (pressed(GamepadButton::West) || keys.just_pressed(KeyCode::Backspace))
+                {
                     // Refund requests are filtered to talent actions by the shared handler.
                     focus.refund = focus.focused;
                 } else if pressed(GamepadButton::South) || (key_select && focus.focused.is_some()) {
                     // A first select establishes focus instead of firing an unseen action.
-                    if focus.focused.is_none() {
-                        focus.focused = step(&items, None, Vec2::Y);
+                    // Coalesced navigation and selection target the newly focused control.
+                    // Consume Enter even when first establishing focus so it cannot start a run.
+                    focus.keyboard_selected = key_select;
+                    if !had_focus {
+                        if focus.focused.is_none() {
+                            focus.focused = step(&items, None, Vec2::Y);
+                        }
                     } else {
                         focus.activated = focus.focused;
-                        focus.keyboard_selected = key_select;
                     }
                 }
             }
@@ -407,6 +415,83 @@ mod tests {
         press(&mut world, &mut schedule, GamepadButton::South);
         assert_eq!(world.resource::<ControllerFocus>().focused, None);
     }
+    #[test]
+    fn coalesced_navigation_and_selection_activate_the_destination_once() {
+        for keyboard in [true, false] {
+            let mut world = World::new();
+            world.init_resource::<ButtonInput<MouseButton>>();
+            world.init_resource::<ButtonInput<KeyCode>>();
+            world.insert_resource(State::new(Phase::Menu));
+            world.init_resource::<hud::PausePage>();
+            world.init_resource::<super::super::super::cards::PreviewHand>();
+            world.init_resource::<crate::loading_screen::LoadingScreen>();
+            world.init_resource::<Typing>();
+            world.init_resource::<Armory>();
+            world.init_resource::<ControllerFocus>();
+            let pad = world.spawn(Gamepad::default()).id();
+            let mut buttons = Vec::new();
+            for (index, x) in [0., 100.].into_iter().enumerate() {
+                buttons.push(
+                    world
+                        .spawn((
+                            Button,
+                            Act::Tabard(index as u8),
+                            ComputedNode {
+                                size: Vec2::splat(40.),
+                                ..default()
+                            },
+                            UiGlobalTransform::from_xy(x, 100.),
+                            InheritedVisibility::VISIBLE,
+                        ))
+                        .id(),
+                );
+            }
+            let mut schedule = Schedule::default();
+            schedule.add_systems(navigate);
+            let press = |world: &mut World| {
+                if keyboard {
+                    let mut keys = world.resource_mut::<ButtonInput<KeyCode>>();
+                    keys.reset_all();
+                    keys.press(KeyCode::ArrowRight);
+                    keys.press(KeyCode::Enter);
+                } else {
+                    let mut gamepad = world.get_mut::<Gamepad>(pad).unwrap();
+                    gamepad.digital_mut().reset_all();
+                    gamepad.digital_mut().press(GamepadButton::DPadRight);
+                    gamepad.digital_mut().press(GamepadButton::South);
+                }
+            };
+            press(&mut world);
+            schedule.run(&mut world);
+            let focus = world.resource::<ControllerFocus>();
+            assert_eq!(focus.focused, Some(buttons[0]));
+            assert_eq!(
+                focus.activated, None,
+                "first gesture only establishes focus"
+            );
+            assert_eq!(
+                focus.keyboard_selected, keyboard,
+                "consume the initial Enter"
+            );
+            press(&mut world);
+            schedule.run(&mut world);
+            let focus = world.resource::<ControllerFocus>();
+            assert_eq!(focus.focused, Some(buttons[1]));
+            assert_eq!(focus.activated, Some(buttons[1]));
+            assert_eq!(focus.keyboard_selected, keyboard);
+            world.resource_mut::<ButtonInput<KeyCode>>().clear();
+            world.get_mut::<Gamepad>(pad).unwrap().digital_mut().clear();
+            schedule.run(&mut world);
+            assert_eq!(world.resource::<ControllerFocus>().activated, None);
+            assert!(!world.resource::<ControllerFocus>().keyboard_selected);
+            world.resource_mut::<hud::PausePage>().open = true;
+            press(&mut world);
+            schedule.run(&mut world);
+            assert_eq!(world.resource::<ControllerFocus>().activated, None);
+            assert_eq!(world.resource::<ControllerFocus>().focused, None);
+        }
+    }
+
     #[test]
     fn talent_focus_survives_rebuild_and_layout_without_replaying_actions() {
         let mut world = World::new();

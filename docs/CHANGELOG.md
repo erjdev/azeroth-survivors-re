@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Rapid menu selection
+
+Fixed a dropped selection when a direction and Enter/Space (or controller South)
+arrive in the same frame. Navigation now runs first, then selects the destination.
+The first combined gesture only establishes focus and cannot accidentally start a run.
+
+![Rapid Left then Enter selects None](images/screenshots/2026-10-26-coalesced-input/selected-1280.png)
+
+Native rapid Right+Space and Left+Enter checks pass on the isolated preview account.
+260 app tests cover keyboard/controller coalescing, first-focus protection, one-time
+activation and modal blocking. Native build, workspace Clippy, formatting and render
+lint pass. Physical controller acceptance remains open.
+
 ## 2026-10-26 — Tabard selection feedback
 
 Tabard cards now share the Armory’s hover/pressed feedback, gold outlines and

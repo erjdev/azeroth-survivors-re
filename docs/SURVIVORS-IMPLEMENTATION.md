@@ -22,9 +22,13 @@ Tabard cards now use shared hover/pressed feedback, gold outlines and burgundy
 selection. Native wide/compact validation covers icon selection, removal, keyboard
 focus/selection, scrolling and saved appearance after restart. Inline screenshots
 are in CHANGELOG/README. The single verified Guild Tabard remains the catalog;
-in-world rendering and additional cosmetics remain open. Rapid direction-plus-select
-input in one automation batch needed a second Space press; investigate input ordering
-before claiming full keyboard/controller acceptance.
+in-world rendering and additional cosmetics remain open. The rapid direction-plus-select
+issue is now fixed: when both arrive in one frame, navigation runs before selection.
+An initial combined gesture establishes focus without activating; Enter is consumed
+so it cannot fall through to starting a run. Keyboard/controller ECS regression
+coverage verifies the destination, one-frame activation and modal blocking. Native
+Right+Space and Left+Enter sequences now work without a second press; this does not
+establish physical-controller or arbitrary multi-event ordering acceptance.
 
 Achievement category rows now share one full-width action/focus surface with
 separate label/count alignment and progress beneath, following the summary
