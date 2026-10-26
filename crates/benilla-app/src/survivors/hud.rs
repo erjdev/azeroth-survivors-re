@@ -2778,15 +2778,6 @@ fn ability_tip(
             card_growth::GAIN,
         ));
     }
-    if effect.heal_fraction > 0.0 {
-        lines.push(TipLine::new(
-            format!(
-                "Heals {} maximum health once per successful cast.",
-                pct(effect.heal_fraction)
-            ),
-            GOLD,
-        ));
-    }
     if let Some((key, seconds)) = effect.cooldown_advance {
         let target = super::data::ability(key);
         lines.push(TipLine::new(
@@ -3446,16 +3437,15 @@ mod talent_tooltip_tests {
             let lines = ability_tip(&owned, trained, &stats, None);
             let healing: Vec<_> = lines
                 .iter()
-                .filter(|line| line.left.starts_with("Heals "))
+                .filter(|line| line.left.contains("Heals "))
                 .collect();
             assert_eq!(healing.len(), 1);
-            assert_eq!(
-                healing[0].left,
-                format!("Heals {expected} maximum health once per successful cast.")
-            );
+            let expected = format!("Heals {expected} maximum health once per successful cast.");
+            assert!(healing[0].left.contains(&expected));
+            assert_eq!(healing[0].left.matches("Heals ").count(), 1);
             assert!(!ability_tip(&owned, Milestones::default(), &stats, None)
                 .iter()
-                .any(|line| line.left.starts_with("Heals ")));
+                .any(|line| line.left.contains("Heals ")));
         }
     }
 }

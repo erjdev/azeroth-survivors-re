@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Healing visible on upgrade cards
+
+Talent-triggered healing now appears in the shared card and tooltip description,
+including “once per successful cast.” Changed values use the existing green inline
+comparison; unchanged healing stays plain. Combat tuning is unchanged.
+
+![Holy Fire with trained healing](images/screenshots/2026-10-25-card-healing/holy-fire-1280.jpg)
+
+30 HUD tests, native build, workspace Clippy, formatting and render lint pass.
+The trained Holy Fire card fits at 1280×720; selecting it advances the spell to
+rank 2 and resumes combat. Compact talent-added descriptions remain to be checked.
+
 ## 2026-10-25 — Force of Will
 
 Priest Force of Will now grants 1% Holy/Shadow spell damage and one percentage

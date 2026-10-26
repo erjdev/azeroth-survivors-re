@@ -341,6 +341,10 @@ Upgrade cards now state effective casting distance separately from area radius.
 
 ![Smite card with trained casting range](docs/images/screenshots/2026-10-25-card-range/smite-1280.jpg)
 
+Talent-triggered healing is included inline, with its once-per-cast limit.
+
+![Holy Fire card with trained healing](docs/images/screenshots/2026-10-25-card-healing/holy-fire-1280.jpg)
+
 ![Force of Will damage and critical chance](docs/images/screenshots/2026-10-25-force-of-will/talent-1280.jpg)
 
 ![Priest range and area talent](docs/images/screenshots/2026-10-25-priest-reach/holy-1280.jpg)

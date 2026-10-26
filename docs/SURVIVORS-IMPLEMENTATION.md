@@ -3862,3 +3862,18 @@ The ranked engine regression passes at spell ranks 1/3/8. DBC audit, native buil
 workspace Clippy, formatting and render lint pass. Native 1280×720 purchase/refund
 shows the green 4→5% damage and critical preview, embedded in changelog/README.
 Live combat balancing and remaining Priest talents remain open.
+
+
+### Talent healing on cards — 2026-10-25
+
+The shared effective spell description includes cast healing for cards and tooltips,
+with the maximum-health percentage and once-per-successful-cast limit. The old
+separate tooltip line is removed. Changed healing follows green inline comparison
+rules; unchanged healing stays plain. Runtime healing behavior is unchanged.
+
+30 HUD tests cover trained Priest/Paladin healing and avoid duplicate tooltip
+rewards. Native build, workspace Clippy, formatting and render lint pass. A live
+Holy Fire rank 1 → 2 card with Holy talents fits at 1280×720; selection resumes
+combat with rank 2. The screenshot is embedded in the changelog and README.
+Compact talent-added descriptions and other healing card families still need
+visual acceptance.

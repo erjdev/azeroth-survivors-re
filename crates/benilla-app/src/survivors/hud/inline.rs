@@ -274,6 +274,17 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
             );
         }
     }
+    if b.heal_fraction > 0.0 {
+        prose!(
+            ". Heals ",
+            (
+                a.heal_fraction * 100.,
+                b.heal_fraction * 100.,
+                "% maximum health"
+            ),
+            " once per successful cast"
+        );
+    }
     if b.shield_fraction > 0.0 {
         prose!(
             ". Absorbs ",
@@ -432,6 +443,36 @@ mod tests {
         let text = plain(&ability(def, &a, &b));
         assert!(text.contains("of you"));
         assert!(!text.contains("casting range"));
+    }
+
+    #[test]
+    fn cast_healing_is_visible_inline_without_duplicate_tooltip_rewards() {
+        let stats = Run::default().stats();
+        for (class, points, key, expected) in [
+            (4, [0, 20, 0], "holy_fire", "3"),
+            (4, [0, 30, 0], "holy_nova", "5"),
+            (1, [20, 0, 0], "holy_shock", "3"),
+        ] {
+            let base = survivors_core::talents::Milestones {
+                class,
+                ..Default::default()
+            };
+            let trained = survivors_core::talents::Milestones { points, ..base };
+            let def = data::ability(key);
+            let a = cast_at(def, 1, &stats, base);
+            let b = cast_at(def, 1, &stats, trained);
+            let changed = ability(def, &a, &b);
+            assert!(
+                changed.contains(&(format!("0 » {expected}% maximum health"), card_growth::GAIN))
+            );
+            let current = ability(def, &b, &cast_at(def, 2, &stats, trained));
+            assert!(current.contains(&(format!("{expected}% maximum health"), PROSE)));
+            assert_eq!(
+                plain(&current).matches("once per successful cast").count(),
+                1
+            );
+            assert!(!plain(&ability(def, &a, &a)).contains("maximum health"));
+        }
     }
 
     #[test]

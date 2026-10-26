@@ -104,6 +104,7 @@ pub(super) struct Params {
     pub shield_fraction: f32,
     pub shield_seconds: f32,
     pub immune_seconds: f32,
+    pub heal_fraction: f32,
     pub effect: Effect,
 }
 
@@ -136,6 +137,7 @@ impl Params {
             shield_fraction: effect.shield_fraction,
             shield_seconds: effect.shield_seconds,
             immune_seconds: effect.immune_seconds,
+            heal_fraction: effect.heal_fraction,
         }
     }
 }
