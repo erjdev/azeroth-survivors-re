@@ -3718,3 +3718,21 @@ This does not establish class membership, catalog rank caps, row unlocks or prer
 those checks remain open. No runtime UI or design change is included.
 
 Validation: all 42 account tests, workspace Clippy, formatting and render-pass lint pass.
+
+### Saved DBC catalog validation — 2026-10-25
+
+Runtime specs now validate against the loaded class catalog before contributing
+stat adjustments, spell training or milestones. Class/tree membership, maximum
+ranks, earlier-row points and prerequisites share the purchase validator. Unknown
+IDs, wrong trees and duplicate entries introduced outside the parser invalidate
+the spec. Invalid ranks remain saved for refunds/reset; other specs are independent.
+A pending catalog suspends DBC effects before menu/run consumers execute. Validation
+is evaluated against current ranks, so refund/reset recovery does not need a restart.
+
+The talent sidebar adds repair guidance and inactive milestones stay dim, preserving
+the intentions' three-tree/sidebar structure. Native 1280×720 captures verify illegal
+Vigor and recovery after refund. All 207 Survivors app tests, native build, workspace
+Clippy, formatting and render-pass lint pass. This closes the DBC class/rank/row/
+prerequisite gap recorded above. Legacy non-DBC spread rules, required-spell semantics
+outside Survivors' talent prerequisites, and unfinished individual talent effects
+are not expanded by this checkpoint.

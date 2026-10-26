@@ -153,6 +153,7 @@ pub(super) struct Account {
     /// 0 is no tabard. 1 is the first checked cosmetic in [`campaign::TABARDS`].
     pub tabard: u8,
     dirty: bool,
+    pub(super) talent_rules: Option<std::sync::Arc<super::talent_validation::Rules>>,
 }
 
 impl Default for Account {
@@ -420,6 +421,14 @@ impl Account {
         }
     }
 
+    pub(super) fn talents_valid(&self, hero: &Character) -> bool {
+        hero.talent_budget_valid()
+            && self
+                .talent_rules
+                .as_ref()
+                .is_none_or(|rules| rules.valid(hero))
+    }
+
     /// Permanent bonuses for a character: class gear, set, cloak, and the legendary cloak once
     /// every class has its epic.
     pub fn bonus(&self, class: usize, id: u32) -> Bonus {
@@ -429,7 +438,7 @@ impl Account {
         let pieces = progress.equipment.worn_pieces(&progress.pieces);
         let hero = self
             .character(id)
-            .filter(|hero| hero.class == class && hero.talent_budget_valid());
+            .filter(|hero| hero.class == class && self.talents_valid(hero));
         let using_dbc = hero.is_some_and(|c| {
             c.dbc[usize::from(c.spec).min(2)]
                 .iter()
@@ -643,7 +652,7 @@ impl Account {
             Some(id) => self.character(id).filter(|hero| hero.class == class),
             None => self.characters.iter().find(|hero| hero.class == class),
         };
-        let hero = hero.filter(|hero| hero.talent_budget_valid());
+        let hero = hero.filter(|hero| self.talents_valid(hero));
         survivors_core::talents::Milestones {
             class,
             points: hero
@@ -910,6 +919,7 @@ pub(super) fn empty() -> Account {
         wins: 0,
         tabard: 0,
         dirty: false,
+        talent_rules: None,
     }
 }
 

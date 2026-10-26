@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Saved specs follow talent-tree rules
+
+Saved DBC specs now require valid class/tree membership, rank caps, earlier-row
+points and prerequisites before granting talent effects. Invalid ranks remain
+visible for repair; valid sibling specs still work. Effects wait for the catalog
+at startup, and the page explains invalid specs without changing its reference layout.
+
+![Invalid saved Vigor rank remains visible with repair guidance](images/screenshots/2026-10-25-talent-catalog/invalid-1280.jpg)
+
+![Refunding Vigor restores the remaining valid spec](images/screenshots/2026-10-25-talent-catalog/repaired-1280.jpg)
+
+Native 1280×720 checks verified the warning and refund recovery. All 207 Survivors
+app tests pass, including catalog rejection, preserved ranks, sibling specs,
+recovery and pending-catalog behavior. Native build, workspace Clippy, formatting
+and render-pass lint pass. Legacy non-DBC spreads retain their existing rules;
+this does not complete the remaining individual talent implementations.
+
 ## 2026-10-25 — Saved talent consistency
 
 Repeated talent rows now load once per spec at their highest saved rank, so they

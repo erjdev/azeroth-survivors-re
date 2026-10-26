@@ -1145,7 +1145,7 @@ fn fill_draft(
     }
 }
 
-fn class_trees(
+pub(super) fn class_trees(
     catalog: &benilla_formats::TalentCatalog,
     class_id: u8,
 ) -> Vec<(String, Vec<benilla_formats::Talent>)> {
@@ -1413,7 +1413,7 @@ fn draw_real_talents(
     true
 }
 
-fn talent_ranks_ok(list: &[benilla_formats::Talent], ranks: &[(u32, u8)]) -> bool {
+pub(super) fn talent_ranks_ok(list: &[benilla_formats::Talent], ranks: &[(u32, u8)]) -> bool {
     let nodes: Vec<_> = list
         .iter()
         .map(|talent| survivors_core::talents::RankedTalent {
@@ -1980,6 +1980,7 @@ fn signature(
     n = fold(n, u64::from(account.pets.look[1]));
     n = fold(n, u64::from(account.tabard));
     for hero in &account.characters {
+        n = fold(n, u64::from(account.talents_valid(hero)));
         for spec in &hero.dbc {
             for &(tree, id, rank) in spec {
                 n = fold(n, u64::from(tree));

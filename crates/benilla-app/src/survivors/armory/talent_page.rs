@@ -294,6 +294,7 @@ pub(super) fn build(
     let points = dbc_points(hero, active);
     let spent: u32 = points.iter().sum();
     let earned = campaign::talent_level(hero.talent_xp);
+    let valid = account.talents_valid(hero);
     let unspent = campaign::unspent_talents(hero.talent_xp, spent);
     text(
         ui,
@@ -372,13 +373,13 @@ pub(super) fn build(
                     .with_children(|line| {
                         let name = campaign::milestone_name(hero.class, tree, at);
                         if let Some(node) = nodes.first() {
-                            let dim = if spent <= earned && points[tree] >= at { 1.0 } else { 0.4 };
+                            let dim = if valid && points[tree] >= at { 1.0 } else { 0.4 };
                             line.spawn((MilestoneIcon { tab: node.tab, name }, hud::IconDim(dim),
                                 ImageNode { color: Color::srgba(1.0, 1.0, 1.0, dim), ..default() },
                                 Node { width: Val::Px(20.0), height: Val::Px(20.0), flex_shrink: 0.0, ..default() }));
                         }
                         text(line, font, format!("{at} points · {name}"), 12.0,
-                            if spent <= earned && points[tree] >= at { ACTIVE } else { DIM });
+                            if valid && points[tree] >= at { ACTIVE } else { DIM });
                     });
                 }
             });
@@ -396,6 +397,9 @@ pub(super) fn build(
             text(side, font, format!("{spent} of {earned} earned spent · 51 at most"), 12.0, DIM);
             if spent > earned {
                 text(side, font, "This saved spec exceeds your earned points. Its talent effects are inactive until you refund points, reset the spec, or earn enough points.", 12.0, Color::srgb(1.0, 0.45, 0.35));
+            }
+            if spent <= earned && !valid {
+                text(side, font, "This saved spec does not match the talent tree rules. Its effects are inactive. Refund invalid ranks or reset this spec to repair it.", 12.0, Color::srgb(1.0, 0.45, 0.35));
             }
             text(side, font, "Runs award talent experience for time survived, kills, bosses and victory. Later zones pay more. Respecs are free.", 12.0, DIM);
             side.spawn(Node { width: Val::Percent(100.0), ..default() }).with_children(|reset| {

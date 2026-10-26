@@ -327,6 +327,11 @@ navigation to Collection for full equipment details.
 
 ![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
+Saved talent specs now follow the catalog's class, rank, row and prerequisite rules.
+Invalid specs retain their ranks for repair and grant no talent effects.
+
+![Saved-spec repair guidance](docs/images/screenshots/2026-10-25-talent-catalog/invalid-1280.jpg)
+
 Compact hero switching restores each hero's saved appearance and class gear.
 
 ![Ten-hero management at 640×720](docs/images/screenshots/2026-10-25-character-acceptance/roster-640.jpg)

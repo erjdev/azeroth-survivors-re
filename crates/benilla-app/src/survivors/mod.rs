@@ -31,6 +31,7 @@ mod notes;
 mod renown;
 mod spawn;
 mod stash;
+mod talent_validation;
 #[cfg(feature = "survivors-text")]
 pub(crate) mod text_placement;
 mod tuning;
@@ -89,6 +90,7 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<renown::Renown>()
             .init_resource::<stash::Stash>()
             .init_resource::<account::Account>()
+            .add_systems(PreUpdate, talent_validation::load_rules)
             .init_resource::<armory::Armory>()
             .init_resource::<armory::TalentScrollMemory>()
             .add_systems(
