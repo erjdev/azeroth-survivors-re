@@ -697,15 +697,15 @@ impl Milestones {
         self.trained_value(TalentStat::Blackout)
     }
 
-    /// Healing from health actually removed: Priest talent or Warlock Affliction milestone.
+    /// Healing from health actually removed: Priest or Warlock training and milestones.
     pub fn vampiric_healing(self, key: &str, damage: f32) -> f32 {
         if self.class == 7
-            && self.points[0] >= 30
             && matches!(key, "corruption" | "curse_of_agony")
             && damage.is_finite()
             && damage > 0.0
         {
-            return damage * 0.05;
+            let milestone = if self.points[0] >= 30 { 0.05 } else { 0.0 };
+            return damage * (milestone + self.trained_value(TalentStat::SiphonLife));
         }
         if self.class != 4 || !damage.is_finite() || damage <= 0.0 || !PRIEST_SHADOW.contains(&key)
         {
@@ -1339,6 +1339,7 @@ pub enum TalentStat {
     Remorseless,
     SpiritTap,
     ImprovedRenew,
+    SiphonLife,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
     SecondaryRootDuration(&'static str),
@@ -1429,6 +1430,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
+            TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
@@ -2539,6 +2541,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::BloodCrazeHealing
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
+            | TalentStat::SiphonLife
             | TalentStat::Remorseless
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
@@ -3614,6 +3617,7 @@ mod stat_talent_tests {
                     | TalentStat::BloodCrazeHealing
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
+                    | TalentStat::SiphonLife
                     | TalentStat::Remorseless
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance

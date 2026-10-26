@@ -17,6 +17,7 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1041, max_rank: 1, name: "Siphon Life", description: "Corruption and Curse of Agony heal 5% of enemy health actually removed; adds to the 30-point Affliction milestone for 10% total. Excludes overkill and other spells (Survivors automatic conversion)", stat: TalentStat::SiphonLife, per_rank: 0.05 },
     TalentDefinition { id: 1021, max_rank: 2, name: "Grim Reach", description: "Corruption, Curse of Agony and Death Coil: +10% targeting range per rank; damage, duration and target counts are unchanged", stat: TalentStat::SpellGroupRange(&["corruption", "curse_of_agony", "death_coil"]), per_rank: 0.10 },
     TalentDefinition { id: 964, max_rank: 2, name: "Destructive Reach", description: "Shadow Bolt, Immolate, Searing Pain, Shadowburn and Rain of Fire: +10% targeting range per rank. Rain of Fire's radius is unchanged; excludes player-centered Hellfire", stat: TalentStat::SpellGroupRange(&["shadow_bolt", "immolate", "searing_pain", "shadowburn", "rain_of_fire"]), per_rank: 0.10 },
     TalentDefinition { id: 1003, max_rank: 5, name: "Improved Corruption", description: "Corruption: 4% shorter cooldown per rank (Survivors cast-time conversion)", stat: TalentStat::SpellCooldown("corruption"), per_rank: 0.04 },
@@ -249,6 +250,49 @@ mod milestone_tests {
                 .vampiric_healing("corruption", 100.),
                 0.
             );
+        }
+    }
+}
+
+#[cfg(test)]
+mod siphon_tests {
+    use crate::talents::Milestones;
+
+    #[test]
+    fn siphon_training_composes_with_milestone_and_clears_on_spec_reset() {
+        for points in [0, 20, 29, 30, 40] {
+            let base = Milestones {
+                class: 7,
+                points: [points, 0, 0],
+                ..Default::default()
+            };
+            for rank in [0, 1, 255] {
+                let trained = base.with_ranks(&[(0, 1041, rank)]);
+                let fraction =
+                    if points >= 30 { 0.05 } else { 0.0 } + if rank > 0 { 0.05 } else { 0.0 };
+                for key in ["corruption", "curse_of_agony"] {
+                    assert_eq!(trained.vampiric_healing(key, 100.), 100. * fraction);
+                    for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                        assert_eq!(trained.vampiric_healing(key, damage), 0.);
+                    }
+                    assert_eq!(
+                        trained.with_ranks(&[]).vampiric_healing(key, 100.),
+                        base.vampiric_healing(key, 100.)
+                    );
+                }
+                for key in ["death_coil", "shadow_bolt", "immolate", "shadow_word_pain"] {
+                    assert_eq!(trained.vampiric_healing(key, 100.), 0.);
+                }
+            }
+        }
+        for class in [0, 1, 2, 3, 4, 5, 6, 8] {
+            let trained = Milestones {
+                class,
+                points: [30; 3],
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 1041, 255)]);
+            assert_eq!(trained.vampiric_healing("corruption", 100.), 0.);
         }
     }
 }

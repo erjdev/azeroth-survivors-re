@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Trainable Siphon Life
+
+Warlock Siphon Life now heals 5% of Corruption/Curse of Agony damage actually dealt,
+adding to the Affliction milestone for 10% total. Overkill and dead targets add no
+healing. The talent description explains this automatic Survivors conversion.
+
+![Siphon Life trained and saved](images/screenshots/2026-10-26-siphon-life/talents-1280.png)
+
+![Compact Siphon Life details](images/screenshots/2026-10-26-siphon-life/talents-640.png)
+
+Native checks verify spending, persistence and wide/compact readability. 140 core
+and 281 app tests plus the native build pass. Definition coverage is 185/432;
+remaining talents and live balance acceptance stay open.
+
 ## 2026-10-26 — Browser build verification
 
 The WebGPU WebAssembly compile gate now passes locally. Browser startup tests now

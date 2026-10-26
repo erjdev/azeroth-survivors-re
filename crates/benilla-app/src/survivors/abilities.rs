@@ -2393,7 +2393,7 @@ mod milestone_tests {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
         for periodic in [false, true] {
-            for points in [29, 30] {
+            for (points, rank) in [(29, 0), (29, 1), (30, 0), (30, 1), (30, 255)] {
                 for hp in [0.0, 50.0, 99.0] {
                     let mut app = App::new();
                     let mut time = Time::<()>::default();
@@ -2404,7 +2404,8 @@ mod milestone_tests {
                             class: 7,
                             points: [points, 0, 0],
                             ..Default::default()
-                        },
+                        }
+                        .with_ranks(&[(0, 1041, rank)]),
                         ..Default::default()
                     };
                     app.insert_resource(time)
@@ -2474,7 +2475,10 @@ mod milestone_tests {
                     let expected = if hp == 0.0 {
                         0.0
                     } else {
-                        (hp + 5.0 * (if points >= 30 { 0.05 } else { 0. })).min(run.stats().max_hp)
+                        (hp + 5.0
+                            * ((if points >= 30 { 0.05 } else { 0. })
+                                + if rank > 0 { 0.05 } else { 0. }))
+                        .min(run.stats().max_hp)
                     };
                     assert!((run.hp - expected).abs() < 0.00001);
                     assert!(app.world().get::<Enemy>(enemy).unwrap().dead);

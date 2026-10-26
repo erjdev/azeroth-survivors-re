@@ -1,0 +1,5 @@
+# Select a Warlock first. Uses the saved spec without spending points.
+page = talents
+width = 1280
+height = 720
+talent = 1041

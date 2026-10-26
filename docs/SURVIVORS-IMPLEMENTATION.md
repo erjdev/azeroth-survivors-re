@@ -701,12 +701,12 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Paladin | 21 / 44 | 9 / 9 |
 | Hunter | 17 / 46 | 6 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
-| Priest | 19 / 47 | 9 / 9 |
+| Priest | 20 / 47 | 9 / 9 |
 | Shaman | 14 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
-| Warlock | 14 / 50 | 9 / 9 |
+| Warlock | 15 / 50 | 9 / 9 |
 | Druid | 18 / 47 | 9 / 9 |
-| Total | 183 / 432 | 78 / 81 |
+| Total | 185 / 432 | 78 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1200,10 +1200,13 @@ periodic and totem parameters. Native purchases verify green previews and persis
 ranks on an isolated character. The other 33 nodes and full live combat/balance
 acceptance remain open.
 
-Warlock has twelve audited individual effects. Values are per rank and provisional:
+Warlock has fifteen audited individual effects. Values are per rank and provisional:
 
 | Talent ID / name | Ranks | Effect |
 | --- | --- | --- |
+| 1041 Siphon Life | 1 | Corruption/Curse of Agony heal 5% of health actually removed; adds to the 30-point milestone for 10% total; automatic conversion |
+| 1021 Grim Reach | 2 | Corruption, Curse of Agony and Death Coil: +10% targeting range |
+| 964 Destructive Reach | 2 | Shadow Bolt, Immolate, Searing Pain, Shadowburn and Rain of Fire: +10% targeting range; no radius or Hellfire change |
 | 1003 Improved Corruption | 5 | Corruption: 4% shorter cooldown; cast-time conversion |
 | 1284 Improved Curse of Agony | 3 | Curse of Agony: +2% periodic damage |
 | 1042 Shadow Mastery | 5 | Shadow Bolt, Corruption, Curse of Agony, Death Coil, Shadowburn: +2% damage |
@@ -1220,7 +1223,7 @@ Warlock has twelve audited individual effects. Values are per rank and provision
 Destruction includes Shadow Bolt, Immolate, Rain of Fire, Hellfire, Searing Pain
 and Shadowburn. These definitions replace generic damage fallback and do not grant
 unowned abilities. Area locations, target counts and durations stay unchanged.
-The remaining 38 nodes and live balance acceptance remain open. No demon companion
+The remaining 35 nodes and live balance acceptance remain open. No demon companion
 system is claimed by this first group.
 
 All nine Warlock milestones now use explicit automatic Survivors adaptations:
@@ -4739,3 +4742,23 @@ pass using the bundled Node runtime; the system Node installation could not star
 because its llhttp dynamic library is missing. No application behavior or visual
 layout changed, so this checkpoint requires no new screenshot. Windows gameplay
 and browser runtime checks remain open.
+
+
+### 2026-10-26 — Individual Siphon Life training
+
+The checkout catalog identifies Siphon Life as Affliction talent 1041, one rank,
+row 4. Its Survivors conversion heals 5% of health actually removed by Corruption
+and Curse of Agony, adding to the independent 30-point milestone for 10% total.
+The shared direct/periodic hit pipeline already excludes overkill and dead targets
+and prevents reviving the hero. Training replaces the placeholder generic damage
+bonus; other spells/classes are excluded, and spec reset removes the trained part.
+
+140 core tests and 281 Survivors app tests pass, including individual/milestone
+composition, rank caps, invalid damage, class/spell scope, reset and actual hit
+processing. Native play build passes. Catalog coverage is 185/432 definitions and
+78/81 milestone descriptions. Native fixture checks verify purchase from 0/1 to
+1/1, one point spent, persisted spec 3, and readable wide/compact details after
+scrolling. Screenshots are embedded in CHANGELOG and README; preview presets pin
+talent 1041 without a run. The three-tree art/panel arrangement follows the
+intention reference and wraps at compact widths. Live combat balance remains open.
+Workspace Clippy, formatting and diff checks also pass.
