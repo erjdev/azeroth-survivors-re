@@ -327,7 +327,7 @@ navigation to Collection for full equipment details.
 
 ![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
-Priest now has eighteen individual talents and nine tree milestones with scoped previews.
+Priest now has nineteen individual talents and nine tree milestones with scoped previews.
 Fortitude, Inner Fire and Spell Warding now provide health, armor and damage reduction.
 
 ![Priest defensive talent preview](docs/images/screenshots/2026-10-25-priest-defenses/inner-fire-1280.jpg)
@@ -339,6 +339,10 @@ Blackout adds a stun chance to Shadow hits and Pain ticks, shown inline on cards
 Vampiric Embrace heals from Shadow damage, with both improvement ranks implemented.
 
 ![Shadow cards with healing and control](docs/images/screenshots/2026-10-25-vampiric-embrace/cards-1280.jpg)
+
+Shadow Weaving builds a separate, expiring vulnerability on each enemy.
+
+![Shadow Weaving and combined talent descriptions](docs/images/screenshots/2026-10-25-shadow-weaving/cards-1280.jpg)
 
 Long ground, chain and damage-over-time cards have checked [wide](docs/ui-previews/long-cards-1280.txt) and [compact](docs/ui-previews/long-cards-640.txt) preview presets.
 

@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Shadow Weaving
+
+Shadow Weaving now builds vulnerability on each enemy: 20% application chance per
+rank, +3% subsequent Shadow damage per stack, five stacks maximum. Shadow hits
+and Pain ticks refresh the 15-second duration after dealing their damage.
+
+![Shadow Weaving alongside healing and control](images/screenshots/2026-10-25-shadow-weaving/cards-1280.jpg)
+
+![Complete compact combined-effect description](images/screenshots/2026-10-25-shadow-weaving/scream-640.jpg)
+
+119 core tests, direct/periodic hit-order regression, DBC audit, native build,
+Clippy, formatting and render lint pass. Wide/compact card text is verified;
+live vulnerability balance and remaining talents are open.
+
 ## 2026-10-25 — Vampiric Embrace
 
 Vampiric Embrace now heals for 20% of enemy health removed by Priest Shadow

@@ -88,6 +88,29 @@ impl WintersChill {
     }
 }
 
+/// Per-enemy Shadow vulnerability, refreshed by qualifying damage.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct ShadowWeaving {
+    stacks: u8,
+    remaining: f32,
+}
+
+impl ShadowWeaving {
+    pub fn apply(&mut self) {
+        self.stacks = (self.stacks + 1).min(5);
+        self.remaining = 15.0;
+    }
+
+    pub fn advance(&mut self, seconds: f32) {
+        if seconds.is_finite() && seconds > 0.0 {
+            self.remaining = (self.remaining - seconds).max(0.0);
+            if self.remaining == 0.0 {
+                self.stacks = 0;
+            }
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CastEffect {
     pub damage: f32,
@@ -562,6 +585,22 @@ impl Milestones {
             return 0.0;
         }
         damage * (base + self.trained_value(TalentStat::ImprovedVampiricEmbrace))
+    }
+
+    pub fn shadow_weaving_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 4 || !damage.is_finite() || damage <= 0.0 || !PRIEST_SHADOW.contains(&key)
+        {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::ShadowWeaving)
+    }
+
+    pub fn shadow_damage_multiplier(self, key: &str, target: ShadowWeaving) -> f32 {
+        if self.class == 4 && PRIEST_SHADOW.contains(&key) && target.remaining > 0.0 {
+            1.0 + 0.03 * f32::from(target.stacks)
+        } else {
+            1.0
+        }
     }
 
     /// A positive frost hit can add one stack after its damage is resolved.
@@ -1074,6 +1113,7 @@ pub enum TalentStat {
     Frostbite,
     Impact,
     Blackout,
+    ShadowWeaving,
     VampiricEmbrace,
     ImprovedVampiricEmbrace,
     WintersChill,
@@ -1178,6 +1218,7 @@ impl TalentDefinition {
             TalentStat::WintersChill => (100.0, "% chance to apply Winter's Chill on frost damage"),
             TalentStat::Impact => (100.0, "% chance to stun on fire damage"),
             TalentStat::Blackout => (100.0, "% chance to stun on Shadow damage"),
+            TalentStat::ShadowWeaving => (100.0, "% chance to add Shadow vulnerability"),
             TalentStat::VampiricEmbrace => (100.0, "% Shadow damage healed"),
             TalentStat::ImprovedVampiricEmbrace => (100.0, "% additional Shadow damage healed"),
             TalentStat::Frostbite => (100.0, "% chance to freeze on frost damage"),
@@ -2105,6 +2146,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 461, max_rank: 5, name: "Shadow Weaving",
+        description: "Priest Shadow damage, including Pain ticks: 20% chance per rank to add 3% Shadow vulnerability for 15 sec, up to 15%; refreshes all stacks after the triggering damage",
+        stat: TalentStat::ShadowWeaving, per_rank: 0.20,
+    },
+    TalentDefinition {
         id: 484, max_rank: 1, name: "Vampiric Embrace",
         description: "Heal yourself for 20% of health removed by Priest Shadow damage, including Pain ticks; always active, excludes overkill (Survivors conversion)",
         stat: TalentStat::VampiricEmbrace, per_rank: 0.20,
@@ -2242,6 +2288,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::WintersChill
             | TalentStat::Impact
             | TalentStat::Blackout
+            | TalentStat::ShadowWeaving
             | TalentStat::VampiricEmbrace
             | TalentStat::ImprovedVampiricEmbrace
             | TalentStat::Frostbite
@@ -3152,6 +3199,7 @@ mod stat_talent_tests {
                     | TalentStat::WintersChill
                     | TalentStat::Impact
                     | TalentStat::Blackout
+                    | TalentStat::ShadowWeaving
                     | TalentStat::VampiricEmbrace
                     | TalentStat::ImprovedVampiricEmbrace
                     | TalentStat::Frostbite
@@ -3464,6 +3512,58 @@ mod stat_talent_tests {
         assert_eq!(chill.critical_bonus(), 0.02);
         chill.advance(15.);
         assert_eq!(chill, WintersChill::default());
+    }
+
+    #[test]
+    fn shadow_weaving_scopes_caps_refreshes_and_expires() {
+        let priest = Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        for rank in [0, 1, 3, 5, 255] {
+            let trained = priest.with_ranks(&[(2, 461, rank)]);
+            for key in PRIEST_SHADOW {
+                assert!(
+                    (trained.shadow_weaving_chance(key, 10.) - 0.20 * f32::from(rank.min(5))).abs()
+                        < 0.00001
+                );
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(trained.shadow_weaving_chance(key, damage), 0.);
+                }
+            }
+            assert_eq!(trained.shadow_weaving_chance("smite", 10.), 0.);
+            assert_eq!(trained.with_ranks(&[]), priest);
+        }
+        let mut target = ShadowWeaving::default();
+        for n in 1..=8 {
+            target.apply();
+            assert!(
+                (priest.shadow_damage_multiplier("mind_blast", target)
+                    - (1. + 0.03 * n.min(5) as f32))
+                    .abs()
+                    < 0.00001
+            );
+        }
+        target.advance(14.9);
+        target.apply();
+        target.advance(14.9);
+        assert_eq!(
+            priest.shadow_damage_multiplier("shadow_word_pain", target),
+            1.15
+        );
+        assert_eq!(priest.shadow_damage_multiplier("holy_fire", target), 1.);
+        for class in (0..9).filter(|class| *class != 4) {
+            let other = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 461, 5)]);
+            assert_eq!(other.shadow_damage_multiplier("mind_blast", target), 1.);
+            assert_eq!(other.shadow_weaving_chance("mind_blast", 10.), 0.);
+        }
+        target.advance(0.2);
+        assert_eq!(target, ShadowWeaving::default());
+        assert_eq!(priest.shadow_damage_multiplier("mind_blast", target), 1.);
     }
 
     #[test]

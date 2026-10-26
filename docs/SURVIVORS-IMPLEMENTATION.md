@@ -3958,3 +3958,22 @@ targets. DBC audit, native build, Clippy, formatting and render lint pass. Nativ
 1280×720 and 640×720 checks show combined healing/Blackout/shield text fits, with
 the third compact card reachable by scrolling. Screenshots are embedded in README
 and changelog. Live healing balance and remaining talents remain unverified.
+
+
+### Shadow Weaving — 2026-10-25
+
+DBC 461 (five ranks) replaces provisional damage with a 20% application chance per
+rank on Priest Shadow damage, including Pain ticks. Each enemy independently
+stores up to five 3% vulnerability stacks for 15 seconds. Successful application
+refreshes the full duration after the triggering damage. Direct hits and periodic
+ticks use the stacks present before that event; multistrike remains one event.
+Expiry clears all stacks. Holy/foreign-class spells do not apply or benefit.
+Vampiric Embrace receives the resulting health removed, still excluding overkill.
+
+119 core tests cover bounded rank chance, spell/class scopes, invalid damage,
+reset, stack cap, refresh and expiry. The engine regression verifies first-hit vs
+second-hit damage for direct/periodic sources, trained/untrained and normal/boss
+enemies. DBC audit, native build, Clippy, formatting and render lint pass. Native
+1280×720 and 640×720 previews show vulnerability plus healing/control/shield text;
+scrolling reaches the full compact third card. Screenshots are embedded in README
+and changelog. Live vulnerability balance and remaining talents remain open.

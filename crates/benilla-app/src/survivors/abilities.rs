@@ -107,6 +107,7 @@ pub(super) struct Params {
     pub heal_fraction: f32,
     pub blackout_chance: f32,
     pub vampiric_fraction: f32,
+    pub shadow_weaving_chance: f32,
     pub effect: Effect,
 }
 
@@ -142,6 +143,7 @@ impl Params {
             heal_fraction: effect.heal_fraction,
             blackout_chance: milestones.blackout_chance(o.def.key, 1.0),
             vampiric_fraction: milestones.vampiric_healing(o.def.key, 1.0),
+            shadow_weaving_chance: milestones.shadow_weaving_chance(o.def.key, 1.0),
         }
     }
 }
@@ -1013,7 +1015,10 @@ pub(super) fn apply_hits(
             continue;
         }
         let stats = run.stats();
-        let mut dmg = h.damage;
+        let mut dmg = h.damage
+            * run
+                .milestones
+                .shadow_damage_multiplier(h.source, en.shadow_weaving);
         if let Effect::Execute(threshold) = h.effect {
             if !en.boss && en.hp / en.max_hp <= threshold {
                 dmg = dmg.max(en.hp);
@@ -1053,6 +1058,10 @@ pub(super) fn apply_hits(
                 tick: 1.0,
                 source: h.source,
             });
+        }
+        let weaving = run.milestones.shadow_weaving_chance(h.source, h.damage);
+        if weaving > 0.0 && rng.f32() < weaving {
+            en.shadow_weaving.apply();
         }
         let chill_chance = run.milestones.winters_chill_chance(h.source, h.damage);
         if chill_chance > 0.0 && rng.f32() < chill_chance {
@@ -1117,21 +1126,29 @@ pub(super) fn apply_hits(
         let mut blackout = false;
         let mut vampiric_heal = 0.0;
         let mut remaining_hp = en.hp.max(0.0);
+        let mut weaving = en.shadow_weaving;
         for d in &mut en.dots {
             for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
-                let tick = d.dps * echoes as f32;
+                let tick = d.dps
+                    * echoes as f32
+                    * run.milestones.shadow_damage_multiplier(d.source, weaving);
                 let removed = tick.max(0.0).min(remaining_hp);
                 remaining_hp = (remaining_hp - removed).max(0.0);
                 vampiric_heal += run.milestones.vampiric_healing(d.source, removed);
                 dealt += tick;
                 run.add_damage(d.source, tick);
+                let chance = run.milestones.shadow_weaving_chance(d.source, tick);
+                if chance > 0.0 && rng.f32() < chance {
+                    weaving.apply();
+                }
                 let chance = run.milestones.blackout_chance(d.source, tick);
                 if chance > 0.0 && rng.f32() < chance {
                     blackout = true;
                 }
             }
         }
+        en.shadow_weaving = weaving;
         if blackout {
             apply_blackout(&mut en);
         }
@@ -1448,6 +1465,7 @@ mod milestone_tests {
                 root_t: 0.,
                 frozen_t: 0.,
                 winters_chill: Default::default(),
+                shadow_weaving: Default::default(),
                 stun_t: 0.,
                 fear_t: 0.,
                 weaken: 1.,
@@ -1678,6 +1696,7 @@ mod milestone_tests {
                         root_t: 8.,
                         frozen_t: if frozen { 3. } else { 0. },
                         winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
                         stun_t: 0.,
                         fear_t: 0.,
                         weaken: 1.,
@@ -2137,6 +2156,7 @@ mod milestone_tests {
                         root_t: 0.,
                         frozen_t: 0.,
                         winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
                         stun_t: 0.,
                         fear_t: 0.,
                         weaken: 1.,
@@ -2364,6 +2384,7 @@ mod milestone_tests {
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
                                 stun_t: 0.0,
                                 fear_t: 0.0,
                                 weaken: 1.0,
@@ -2402,6 +2423,113 @@ mod milestone_tests {
                         (app.world().resource::<Run>().hp - expected).abs() < 0.00001,
                         "dead targets cannot heal again"
                     );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn shadow_weaving_affects_subsequent_direct_and_periodic_hits() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for rank in [0, 5] {
+                for boss in [false, true] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        milestones: Milestones {
+                            class: 4,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 461, rank)]),
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 100.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slow: 1.0,
+                                slow_t: 0.0,
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source: "shadow_word_pain",
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source: "mind_blast",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().hp, 90.0);
+                    if !periodic {
+                        let mut hits = app.world_mut().resource_mut::<Messages<Hit>>();
+                        hits.clear();
+                        hits.write(Hit {
+                            source: "mind_blast",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let expected = if rank == 0 { 80.0 } else { 79.7 };
+                    assert!(
+                        (app.world().get::<Enemy>(enemy).unwrap().hp - expected).abs() < 0.00001
+                    );
+                    let marks = app.world().get::<Enemy>(enemy).unwrap().shadow_weaving;
+                    let multiplier = app
+                        .world()
+                        .resource::<Run>()
+                        .milestones
+                        .shadow_damage_multiplier("mind_blast", marks);
+                    assert!((multiplier - if rank == 0 { 1.0 } else { 1.06 }).abs() < 0.00001);
                 }
             }
         }
@@ -2462,6 +2590,7 @@ mod milestone_tests {
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
                                 stun_t: 0.0,
                                 fear_t: 0.0,
                                 weaken: 1.0,
@@ -2562,6 +2691,7 @@ mod milestone_tests {
                             root_t: 0.0,
                             frozen_t: 0.0,
                             winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
                             stun_t: 0.0,
                             fear_t: 0.0,
                             weaken: 1.0,
@@ -2676,6 +2806,7 @@ mod milestone_tests {
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
                                 stun_t: 0.0,
                                 fear_t: 0.0,
                                 weaken: 1.0,

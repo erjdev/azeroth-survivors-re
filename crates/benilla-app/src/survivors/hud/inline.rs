@@ -274,6 +274,17 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
             );
         }
     }
+    if b.shadow_weaving_chance > 0.0 {
+        prose!(
+            ". Shadow damage has ",
+            (
+                a.shadow_weaving_chance * 100.,
+                b.shadow_weaving_chance * 100.,
+                "% chance"
+            ),
+            " to add 3% Shadow vulnerability for 15 sec, up to 15%"
+        );
+    }
     if b.vampiric_fraction > 0.0 {
         prose!(
             ". Heals you for ",
