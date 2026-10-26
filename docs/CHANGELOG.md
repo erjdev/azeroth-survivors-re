@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Jeweler’s Eye follows the Codex
+
+Jeweler’s Eye now counts discovered rings, trinkets and amulets across the account,
+including class legendary amulets, as the reference intends. It requires half the
+current catalog, rounded up (56 of 112), and grants 10 points once. Existing awards
+remain earned. The separate 36-legendary achievement is now named Legendary discoveries.
+
+![Shared jewelry contributes to achievement progress](images/screenshots/2026-10-26-jewel-achievement/progress-1280.png)
+
+![Achievement earned from combined jewelry discoveries](images/screenshots/2026-10-26-jewel-achievement/earned-1280.png)
+
+131 core and 257 app tests, native build, workspace Clippy, formatting and render
+lint pass. Tests cover threshold boundaries, mixed families, duplicates, persistence
+and legacy rewards. Native synthetic fixtures verify 39 shared discoveries, then
+17 legendary discoveries reaching the threshold, the 10-point grant and saved date.
+
 ## 2026-10-26 — Achievement card artwork
 
 Achievement cards now use themed zone, class, equipment, jewelry, cloak and

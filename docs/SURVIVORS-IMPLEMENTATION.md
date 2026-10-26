@@ -29,6 +29,11 @@ wide/compact restart evidence and save compatibility/calendar tests verify this.
 The 57 catalog entries now use authored requirement-themed vanilla icons; related
 zone/class tiers share icons. The explicit-data `--achievement-art` audit checks
 all referenced files, and native summary/category captures document the artwork.
+Jeweler’s Eye now measures half the complete jewelry Codex (currently 56/112),
+combining deduplicated shared discoveries with valid class legendary discoveries.
+Legacy awards remain earned; the separate 36-legendary rule remains under the
+clearer Legendary discoveries name. Core/account tests and native before/after
+fixtures verify thresholds, persistence, duplicate protection and a single grant.
 Reference catalog expansion and broader per-page interaction acceptance remain open.
 
 Options now opens shared pause settings from the starter and all Armory pages.

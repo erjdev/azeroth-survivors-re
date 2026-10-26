@@ -909,6 +909,10 @@ impl Account {
                 epics += 1;
             }
         }
+        snap.jewelry = snap.legends
+            + (2..=4)
+                .map(|kind| self.shared_jewel_progress(kind).0 as u32)
+                .sum::<u32>();
         snap.epic_cloaks = epics;
         snap.legendary_cloak = campaign::legendary_cloak(epics as usize);
         snap.runs = self.runs;
@@ -2420,6 +2424,61 @@ pets 2 3 1 1 2 0 1
         assert_eq!(again.characters[0].last, "Wrynn");
         assert_eq!(again.pets.owned, 2);
         assert_eq!(again.classes[0].pieces[1], 1);
+    }
+
+    #[test]
+    fn jewelry_achievement_counts_all_codex_families_once_across_classes_and_reload() {
+        use campaign::JewelKind::{Amulet, Legend, Ring, Trinket};
+        let mut account = empty();
+        for class in 0..data::CLASSES.len() {
+            account.remember_jewelry(class, [Ring(0), Trinket(0), Amulet(0)]);
+        }
+        assert_eq!(account.snapshot().jewelry, 3);
+        assert!(!account.grant_new_on(Some(20_752)));
+        let target = rewards::jewelry_half_target();
+        let mut count = 3;
+        'classes: for (class, def) in data::CLASSES.iter().enumerate() {
+            for key in def.ability_keys() {
+                account.remember_jewelry(class, [Legend(key), Legend(key)]);
+                count += 1;
+                assert_eq!(account.snapshot().jewelry, count);
+                if count == target - 1 {
+                    assert!(
+                        !account
+                            .achievement_list()
+                            .iter()
+                            .find(|row| row.id == 44)
+                            .unwrap()
+                            .earned
+                    );
+                }
+                if count == target {
+                    break 'classes;
+                }
+            }
+        }
+        assert_eq!(count, target);
+        assert!(account.grant_new_on(Some(20_752)));
+        assert!(account.earned_ids().contains(&44));
+        let points = account.unspent();
+        let mut restored = parse(&encode(&account)).unwrap();
+        assert_eq!(restored.snapshot().jewelry, target);
+        assert_eq!(restored.earned_date(44), account.earned_date(44));
+        restored.remember_jewelry(8, [Ring(0), Trinket(0), Amulet(0), Ring(u8::MAX)]);
+        assert!(!restored.grant_new_on(Some(20_753)));
+        assert_eq!(restored.unspent(), points);
+        assert_eq!(restored.snapshot().jewelry, target);
+        let mut legacy = parse("earn 44\n").unwrap();
+        assert!(
+            legacy
+                .achievement_list()
+                .iter()
+                .find(|row| row.id == 44)
+                .unwrap()
+                .earned
+        );
+        assert!(!legacy.grant_new_on(Some(20_752)));
+        assert_eq!(legacy.unspent(), 10);
     }
 
     #[test]

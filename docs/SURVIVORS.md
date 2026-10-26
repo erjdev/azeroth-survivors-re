@@ -223,6 +223,12 @@ Account-wide. The summary shows points earned against the whole catalog, recentl
 and five bars: Zones, Classes, Collection, Feats, Lifetime. Each category has its own page.
 A row shows its reward in points and, where it is a count, how far along it is.
 
+Jeweler’s Eye grants 10 points for discovering half the combined jewelry Codex,
+rounded up: shared rings, trinkets and amulets plus every class-specific legendary
+amulet (currently 56 of 112 entries). Each entry counts once across the account.
+Existing awards from the earlier eight-legendary rule remain earned. Legendary
+discoveries separately grants 15 points for 36 class legendary amulets.
+
 The draft's catalog is the start (zone clears, a win on each class, talent cap, pieces,
 the set, legendary amulets, cloaks, runs, wins). It grows when a zone, a piece, or a feat
 from this file exists to be earned. Point totals on the pictures (645 of 1520, 40 of 73)

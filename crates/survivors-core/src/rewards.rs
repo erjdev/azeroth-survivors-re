@@ -219,6 +219,7 @@ pub struct Snapshot {
     pub pieces: u32,
     pub full_sets: u32,
     pub legends: u32,
+    pub jewelry: u32,
     pub talent_cap: [bool; 9],
     pub any_cloak: bool,
     pub epic_cloaks: u32,
@@ -234,6 +235,7 @@ impl Default for Snapshot {
             pieces: 0,
             full_sets: 0,
             legends: 0,
+            jewelry: 0,
             talent_cap: [false; 9],
             any_cloak: false,
             epic_cloaks: 0,
@@ -253,6 +255,21 @@ pub enum Category {
     Lifetime,
 }
 
+/// Shared jewelry plus every class-specific legendary amulet shown in the Codex.
+pub fn jewelry_catalog_len() -> u32 {
+    (campaign::RINGS
+        + campaign::TRINKETS
+        + campaign::AMULETS
+        + data::CLASSES
+            .iter()
+            .map(|class| class.ability_keys().len())
+            .sum::<usize>()) as u32
+}
+
+pub fn jewelry_half_target() -> u32 {
+    jewelry_catalog_len().div_ceil(2)
+}
+
 pub const DEATHLESS_HOUR: u16 = 54;
 pub const NO_U: u16 = 55;
 
@@ -265,6 +282,7 @@ enum Kind {
     Pieces(u32),
     FullSet,
     Legends(u32),
+    JewelryHalf,
     AnyCloak,
     EpicCloak,
     LegendaryCloak,
@@ -299,6 +317,7 @@ impl Kind {
             Kind::Pieces(n) => snap.pieces >= n,
             Kind::FullSet => snap.full_sets > 0,
             Kind::Legends(n) => snap.legends >= n,
+            Kind::JewelryHalf => snap.jewelry >= jewelry_half_target(),
             Kind::AnyCloak => snap.any_cloak,
             Kind::EpicCloak => snap.epic_cloaks > 0,
             Kind::LegendaryCloak => snap.legendary_cloak,
@@ -323,6 +342,11 @@ impl Kind {
             }
             Kind::FullSet => "Collect gear for all nine slots of one class.".into(),
             Kind::Legends(n) => format!("Discover {n} legendary amulets in the Codex."),
+            Kind::JewelryHalf => format!(
+                "Discover half the Codex’s rings, trinkets and amulets ({} of {}).",
+                jewelry_half_target(),
+                jewelry_catalog_len()
+            ),
             Kind::AnyCloak => "Collect a cloak of any quality.".into(),
             Kind::EpicCloak => "Collect an epic cloak.".into(),
             Kind::LegendaryCloak => "Collect a legendary cloak.".into(),
@@ -363,7 +387,7 @@ impl Kind {
             Kind::Pieces(10) => "INV_Sword_04",
             Kind::Pieces(_) => "INV_Misc_Bag_10",
             Kind::FullSet => "INV_Chest_Plate04",
-            Kind::Legends(8) => "INV_Jewelry_Ring_03",
+            Kind::JewelryHalf => "INV_Jewelry_Ring_03",
             Kind::Legends(_) => "INV_Jewelry_Necklace_01",
             Kind::AnyCloak => "INV_Misc_Cape_01",
             Kind::EpicCloak => "INV_Misc_Cape_11",
@@ -382,7 +406,9 @@ impl Kind {
         match self {
             Kind::ZoneAny(_) | Kind::ZoneAll(_) => Category::Zones,
             Kind::ClassClear(_) | Kind::TalentCap(_) => Category::Classes,
-            Kind::Pieces(_) | Kind::FullSet | Kind::Legends(_) => Category::Collection,
+            Kind::Pieces(_) | Kind::FullSet | Kind::Legends(_) | Kind::JewelryHalf => {
+                Category::Collection
+            }
             Kind::AnyCloak | Kind::EpicCloak | Kind::LegendaryCloak | Kind::Placeholder => {
                 Category::Feats
             }
@@ -402,6 +428,10 @@ impl Kind {
             }
             Kind::Pieces(n) => Some((snap.pieces.min(n), n)),
             Kind::Legends(n) => Some((snap.legends.min(n), n)),
+            Kind::JewelryHalf => Some((
+                snap.jewelry.min(jewelry_half_target()),
+                jewelry_half_target(),
+            )),
             Kind::Wins(n) => Some((snap.wins.min(n), n)),
             Kind::Runs(n) => Some((snap.runs.min(n), n)),
             _ => None,
@@ -461,11 +491,11 @@ fn catalog() -> Vec<Achievement> {
         id: 44,
         name: "Jeweler's Eye".into(),
         points: 10,
-        kind: Kind::Legends(8),
+        kind: Kind::JewelryHalf,
     });
     out.push(Achievement {
         id: 45,
-        name: "Half the jewels".into(),
+        name: "Legendary discoveries".into(),
         points: 15,
         kind: Kind::Legends(36),
     });
@@ -611,6 +641,47 @@ pub fn next_locked(snapshot: &Snapshot, earned: &[u16]) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn jewelers_eye_requires_half_the_combined_catalog_and_preserves_prior_awards() {
+        let target = jewelry_half_target();
+        assert!(target > campaign::RINGS as u32);
+        assert!(2 * target >= jewelry_catalog_len());
+        assert!(2 * (target - 1) < jewelry_catalog_len());
+        let mut snap = Snapshot {
+            jewelry: target - 1,
+            legends: 8,
+            ..Default::default()
+        };
+        let row = listed(&snap, &[])
+            .into_iter()
+            .find(|row| row.id == 44)
+            .unwrap();
+        assert!(!row.earned);
+        assert_eq!(row.progress, Some((target - 1, target)));
+        assert!(!fresh(&snap, &[]).iter().any(|(id, _)| *id == 44));
+        assert!(listed(&snap, &[44])
+            .iter()
+            .any(|row| row.id == 44 && row.earned));
+        snap.jewelry = target;
+        assert!(fresh(&snap, &[])
+            .iter()
+            .any(|&(id, points)| id == 44 && points == 10));
+        assert!(!fresh(&snap, &[44]).iter().any(|(id, _)| *id == 44));
+        snap.jewelry = u32::MAX;
+        assert_eq!(
+            listed(&snap, &[])
+                .into_iter()
+                .find(|row| row.id == 44)
+                .unwrap()
+                .progress,
+            Some((target, target))
+        );
+        snap.legends = 36;
+        assert!(fresh(&snap, &[])
+            .iter()
+            .any(|&(id, points)| id == 45 && points == 15));
+    }
 
     #[test]
     fn planned_achievements_never_complete_or_award_points() {
