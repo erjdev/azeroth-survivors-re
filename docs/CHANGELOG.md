@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Camera and zoom sensitivity
+
+Controls gains independent, saved camera and zoom speed sliders from 25% to 300%.
+Mouse dragging and keyboard steps share the same settings; Controls defaults
+restore 100% without changing Graphics. Compact guidance keeps the footer inside
+the panel.
+
+![Camera and zoom speed controls](images/screenshots/2026-10-26-controls-speed/controls-1280.png)
+
+![Compact Controls with keyboard focus](images/screenshots/2026-10-26-controls-speed/controls-640.png)
+
+238 Survivors tests, native build, workspace Clippy, formatting and render lint
+pass. Native checks cover clicks/dragging, keyboard steps and limits, category
+reset isolation, wide/compact fit and saved speeds after relaunch. Runtime tests
+cover rotation/zoom scaling; live in-world feel still needs acceptance.
+
 ## 2026-10-26 — Camera input isolation
 
 Camera controls now ignore gestures while the loading screen covers the world.

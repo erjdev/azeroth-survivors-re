@@ -7,6 +7,8 @@ pub(super) struct CameraSettings {
     pub cutaway: bool,
     pub invert_x: bool,
     pub invert_y: bool,
+    pub camera_speed: f32,
+    pub zoom_speed: f32,
     resolved_distance: Option<f32>,
 }
 
@@ -26,6 +28,8 @@ impl CameraSettings {
             cutaway: true,
             invert_x: false,
             invert_y: false,
+            camera_speed: 1.,
+            zoom_speed: 1.,
             resolved_distance: None,
         };
         for line in text.lines() {
@@ -38,6 +42,17 @@ impl CameraSettings {
                 ["invert_x", "1"] => settings.invert_x = true,
                 ["invert_y", "0"] => settings.invert_y = false,
                 ["invert_y", "1"] => settings.invert_y = true,
+                [key @ ("camera_speed" | "zoom_speed"), value] => {
+                    if let Ok(value) = value.parse::<f32>() {
+                        if value.is_finite() {
+                            if *key == "camera_speed" {
+                                settings.camera_speed = value.clamp(0.25, 3.);
+                            } else {
+                                settings.zoom_speed = value.clamp(0.25, 3.);
+                            }
+                        }
+                    }
+                }
                 _ => {}
             }
         }
@@ -46,11 +61,13 @@ impl CameraSettings {
 
     fn encode(&self) -> String {
         format!(
-            "auto_push {}\ncutaway {}\ninvert_x {}\ninvert_y {}\n",
+            "auto_push {}\ncutaway {}\ninvert_x {}\ninvert_y {}\ncamera_speed {}\nzoom_speed {}\n",
             u8::from(self.auto_push),
             u8::from(self.cutaway),
             u8::from(self.invert_x),
-            u8::from(self.invert_y)
+            u8::from(self.invert_y),
+            self.camera_speed,
+            self.zoom_speed
         )
     }
 
@@ -85,11 +102,30 @@ impl CameraSettings {
     pub fn restore_controls(&mut self) {
         self.invert_x = false;
         self.invert_y = false;
+        self.camera_speed = 1.;
+        self.zoom_speed = 1.;
         self.save();
+    }
+
+    pub fn set_speed(&mut self, zoom: bool, value: f32) {
+        if !value.is_finite() {
+            return;
+        }
+        let speed = if zoom {
+            &mut self.zoom_speed
+        } else {
+            &mut self.camera_speed
+        };
+        let value = value.clamp(0.25, 3.);
+        if *speed != value {
+            *speed = value;
+            self.save();
+        }
     }
 
     pub fn mouse_delta(&self, delta: Vec2) -> Vec2 {
         delta
+            * self.camera_speed
             * Vec2::new(
                 if self.invert_x { -1. } else { 1. },
                 if self.invert_y { -1. } else { 1. },
@@ -169,6 +205,26 @@ mod tests {
     use super::*;
 
     #[test]
+    fn speeds_load_safely_and_scale_mouse_input_without_changing_inversion() {
+        for (text, expected) in [
+            ("", (1., 1.)),
+            ("camera_speed 1.5\nzoom_speed 0.5", (1.5, 0.5)),
+            ("camera_speed -1\nzoom_speed 20", (0.25, 3.)),
+            ("camera_speed NaN\nzoom_speed inf", (1., 1.)),
+        ] {
+            let settings = CameraSettings::parse(text);
+            assert_eq!((settings.camera_speed, settings.zoom_speed), expected);
+            let loaded = CameraSettings::parse(&settings.encode());
+            assert_eq!((loaded.camera_speed, loaded.zoom_speed), expected);
+        }
+        let settings = CameraSettings::parse("camera_speed 2\ninvert_x 1");
+        assert_eq!(
+            settings.mouse_delta(Vec2::new(3., -4.)),
+            Vec2::new(-6., -8.)
+        );
+    }
+
+    #[test]
     fn saved_inversion_changes_only_the_selected_mouse_axis() {
         let delta = Vec2::new(12., -7.);
         for (text, expected) in [
@@ -196,6 +252,8 @@ mod tests {
                 cutaway: !enabled,
                 invert_x: enabled,
                 invert_y: !enabled,
+                camera_speed: 1.5,
+                zoom_speed: 0.5,
                 resolved_distance: Some(4.0),
             };
             let loaded = CameraSettings::parse(&settings.encode());
@@ -204,6 +262,7 @@ mod tests {
             assert_eq!(loaded.resolved_distance, None);
             assert_eq!(loaded.invert_x, enabled);
             assert_eq!(loaded.invert_y, !enabled);
+            assert_eq!((loaded.camera_speed, loaded.zoom_speed), (1.5, 0.5));
         }
         assert!(CameraSettings::parse("").auto_push);
         assert!(CameraSettings::parse("auto_push 0").cutaway);

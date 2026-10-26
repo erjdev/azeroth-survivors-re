@@ -27,6 +27,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
     col.spawn(Node {
         width: Val::Percent(100.0),
         flex_wrap: FlexWrap::Wrap,
+        flex_shrink: 0.0,
         column_gap: Val::Px(16.0),
         row_gap: Val::Px(12.0),
         ..default()
@@ -81,10 +82,10 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
                         Category::Controls => {
                             checkboxes::row(body, font, Knob::InvertX);
                             checkboxes::row(body, font, Knob::InvertY);
-                            body.spawn(text(font, "Mouse camera", 16., GOLD));
-                            body.spawn(text(font, "C switches between fixed and orbit camera. In orbit mode, hold either mouse button and drag to rotate. Scroll to zoom.", 14., DIM));
-                            body.spawn(text(font, "Movement", 16., GOLD));
-                            body.spawn(text(font, "WASD or arrow keys move. Movement follows the camera in orbit mode. Space jumps. Escape pauses the run.", 14., DIM));
+                            sliders::row(body, font, Knob::CameraSpeed);
+                            sliders::row(body, font, Knob::ZoomSpeed);
+                            body.spawn(text(font, "C: fixed / orbit camera. In orbit mode, drag either mouse button to rotate. Scroll to zoom.", 14., DIM));
+                            body.spawn(text(font, "WASD / arrows: move relative to the orbit camera. Space: jump. Escape: pause.", 14., DIM));
                         }
                         Category::Audio => {
                             for knob in [Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience] {

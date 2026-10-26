@@ -84,7 +84,13 @@ now has regression coverage for all non-playing phases, loading-screen coverage,
 blocked wheel-event consumption, independent inversion, fixed-view restoration,
 line/pixel zoom equivalence and pitch/zoom limits. Loading coverage also suppresses
 camera gestures while the world is not ready. All 236 Survivors tests, native
-build, workspace Clippy, formatting and render lint pass. Sensitivity, gamepad navigation,
+build, workspace Clippy, formatting and render lint pass. Controls now includes independent saved camera/zoom sensitivity (25–300%,
+100% default), with matching pointer and keyboard steps. Controls reset restores
+both speeds and inversion while preserving Graphics; Graphics reset preserves
+Controls. Old or invalid saves retain safe speed defaults. All 238 Survivors tests
+pass, including rotation/zoom scaling. Native wide/compact checks cover clicks,
+dragging, keyboard limits/steps, reset isolation and persistence after relaunch;
+new screenshots are embedded in CHANGELOG/README. In-world feel, gamepad navigation,
 bindings and other settings remain required.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing

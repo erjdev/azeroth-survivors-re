@@ -17,6 +17,16 @@ struct Spec {
 }
 fn spec(knob: Knob) -> Spec {
     let (label, name, steps): (_, _, &'static [f32]) = match knob {
+        Knob::CameraSpeed => (
+            "Camera speed",
+            "",
+            &[0.25, 0.5, 0.75, 1., 1.25, 1.5, 2., 2.5, 3.],
+        ),
+        Knob::ZoomSpeed => (
+            "Zoom speed",
+            "",
+            &[0.25, 0.5, 0.75, 1., 1.25, 1.5, 2., 2.5, 3.],
+        ),
         Knob::Master => ("Master", "MasterVolume", &[]),
         Knob::Effects => ("Effects", "SoundVolume", &[]),
         Knob::Music => ("Music", "MusicVolume", &[]),
@@ -40,6 +50,7 @@ fn spec(knob: Knob) -> Spec {
 fn category(knob: Knob) -> Category {
     match knob {
         Knob::Master | Knob::Effects | Knob::Music | Knob::Ambience => Category::Audio,
+        Knob::CameraSpeed | Knob::ZoomSpeed => Category::Controls,
         _ => Category::Graphics,
     }
 }
@@ -67,6 +78,23 @@ impl Spec {
     }
 }
 
+pub(in crate::survivors::hud) fn speed_value(knob: Knob, position: f32) -> Option<f32> {
+    (matches!(knob, Knob::CameraSpeed | Knob::ZoomSpeed) && position.is_finite())
+        .then(|| spec(knob).value(position))
+}
+
+pub(super) fn current(
+    cvars: &crate::cvars::Cvars,
+    camera: &super::super::super::camera::CameraSettings,
+    knob: Knob,
+) -> f32 {
+    match knob {
+        Knob::CameraSpeed => camera.camera_speed,
+        Knob::ZoomSpeed => camera.zoom_speed,
+        _ => cvars.num(spec(knob).name).unwrap_or(0.),
+    }
+}
+
 pub(in crate::survivors::hud) fn apply(cvars: &mut crate::cvars::Cvars, knob: Knob, position: f32) {
     if position.is_finite() {
         let spec = spec(knob);
@@ -75,9 +103,14 @@ pub(in crate::survivors::hud) fn apply(cvars: &mut crate::cvars::Cvars, knob: Kn
 }
 
 /// Keyboard arrows use the same scale and supported stops as pointer dragging.
-pub(super) fn nudge(cvars: &crate::cvars::Cvars, knob: Knob, direction: f32) -> f32 {
+pub(super) fn nudge(
+    cvars: &crate::cvars::Cvars,
+    camera: &super::super::super::camera::CameraSettings,
+    knob: Knob,
+    direction: f32,
+) -> f32 {
     let spec = spec(knob);
-    let current = cvars.num(spec.name).unwrap_or(0.);
+    let current = current(cvars, camera, knob);
     let count = if spec.steps.is_empty() {
         100.
     } else {
@@ -239,17 +272,17 @@ pub(in crate::survivors) fn input(
 
 pub(in crate::survivors) fn refresh(
     cvars: Res<crate::cvars::Cvars>,
+    camera: Res<super::super::super::camera::CameraSettings>,
     mut fills: Query<(&Fill, &mut Node)>,
     mut values: Query<(&Value, &mut Text)>,
 ) {
     for (fill, mut node) in &mut fills {
         let spec = spec(fill.0);
-        let value = cvars.num(spec.name).unwrap_or(0.);
+        let value = current(&cvars, &camera, fill.0);
         node.width = Val::Percent(spec.position(value) * 100.);
     }
     for (value, mut text) in &mut values {
-        let spec = spec(value.0);
-        let number = cvars.num(spec.name).unwrap_or(0.);
+        let number = current(&cvars, &camera, value.0);
         let label = match value.0 {
             Knob::Grass | Knob::Spells => match number.round() as i32 {
                 0 => "Low",

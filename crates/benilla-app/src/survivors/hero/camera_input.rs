@@ -28,7 +28,8 @@ pub(super) fn apply<'a>(
                 MouseScrollUnit::Line => event.y,
                 MouseScrollUnit::Pixel => event.y * 0.02,
             };
-            rig.dist = (rig.dist * (1. - 0.12 * notches).clamp(0.5, 1.5)).clamp(ZOOM_MIN, ZOOM_MAX);
+            rig.dist = (rig.dist * (1. - 0.12 * settings.zoom_speed * notches).clamp(0.5, 1.5))
+                .clamp(ZOOM_MIN, ZOOM_MAX);
         }
     }
     if active && rig.mode == CamMode::Orbit {
@@ -43,6 +44,26 @@ pub(super) fn apply<'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn zoom_speed_changes_distance_without_changing_camera_rotation() {
+        let mut settings = super::super::super::camera::CameraSettings::default();
+        for (speed, expected) in [(0.5, 28.2), (1., 26.4), (2., 22.8)] {
+            settings.zoom_speed = speed;
+            let mut rig = CamRig::default();
+            apply(
+                &mut rig,
+                &settings,
+                Phase::Playing,
+                false,
+                false,
+                None,
+                [wheel(MouseScrollUnit::Line, 1.)].iter(),
+            );
+            assert!((rig.dist - expected).abs() < 0.0001);
+            assert_eq!((rig.yaw, rig.pitch), (0., FIXED_PITCH));
+        }
+    }
 
     fn wheel(unit: MouseScrollUnit, y: f32) -> MouseWheel {
         MouseWheel {
@@ -92,6 +113,7 @@ mod tests {
     #[test]
     fn orbit_uses_each_inverted_axis_and_locking_restores_fixed_view() {
         let mut settings = super::super::super::camera::CameraSettings::default();
+        settings.camera_speed = 1.;
         for (invert_x, invert_y) in [(false, false), (true, false), (false, true), (true, true)] {
             settings.invert_x = invert_x;
             settings.invert_y = invert_y;
@@ -128,6 +150,8 @@ mod tests {
     #[test]
     fn zoom_units_match_and_extreme_gestures_stay_inside_limits() {
         let mut settings = super::super::super::camera::CameraSettings::default();
+        settings.camera_speed = 1.;
+        settings.zoom_speed = 1.;
         settings.invert_x = false;
         settings.invert_y = false;
         let mut line = CamRig::default();

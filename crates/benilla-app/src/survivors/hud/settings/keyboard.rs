@@ -27,14 +27,16 @@ fn order(category: Category, phase: Phase) -> Vec<Target> {
     let knobs: &[Knob] = match category {
         Category::Audio => &[Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience],
         Category::Graphics => &[Knob::View, Knob::Grass, Knob::Spells, Knob::Scale],
-        Category::Controls | Category::About => &[],
+        Category::Controls => &[Knob::CameraSpeed, Knob::ZoomSpeed],
+        Category::About => &[],
     };
+    if category == Category::Controls {
+        targets.push(Target::Action(UiAction::Toggle(Knob::InvertX)));
+        targets.push(Target::Action(UiAction::Toggle(Knob::InvertY)));
+    }
     targets.extend(knobs.iter().copied().map(Target::Slider));
     match category {
-        Category::Controls => {
-            targets.push(Target::Action(UiAction::Toggle(Knob::InvertX)));
-            targets.push(Target::Action(UiAction::Toggle(Knob::InvertY)));
-        }
+        Category::Controls => {}
         Category::Audio => {
             targets.push(Target::Action(UiAction::Toggle(Knob::Sound)));
             targets.push(Target::Action(UiAction::Toggle(Knob::MusicOn)));
@@ -78,6 +80,7 @@ pub(in crate::survivors) fn navigate(
     preview: Res<super::super::super::cards::PreviewHand>,
     mut page: ResMut<PausePage>,
     cvars: Res<crate::cvars::Cvars>,
+    camera: Res<super::super::super::camera::CameraSettings>,
     mut next: ResMut<NextState<Phase>>,
     mut exit: MessageWriter<AppExit>,
     mut edits: ResMut<SettingEdits>,
@@ -140,9 +143,9 @@ pub(in crate::survivors) fn navigate(
                     } else if keys.just_pressed(KeyCode::End) {
                         Some(1.)
                     } else if keys.just_pressed(KeyCode::ArrowLeft) {
-                        Some(sliders::nudge(&cvars, knob, -1.))
+                        Some(sliders::nudge(&cvars, &camera, knob, -1.))
                     } else if keys.just_pressed(KeyCode::ArrowRight) {
-                        Some(sliders::nudge(&cvars, knob, 1.))
+                        Some(sliders::nudge(&cvars, &camera, knob, 1.))
                     } else {
                         None
                     };
@@ -207,6 +210,7 @@ mod tests {
             world.init_resource::<Messages<AppExit>>();
             world.init_resource::<NextState<Phase>>();
             world.init_resource::<crate::cvars::Cvars>();
+            world.init_resource::<super::super::super::super::camera::CameraSettings>();
             world.init_resource::<SettingEdits>();
             world.init_resource::<super::super::super::super::armory::Armory>();
             world.insert_resource(State::new(phase));
@@ -268,10 +272,11 @@ mod tests {
             .any(|target| matches!(target, Target::Slider(_))));
         assert!(order(Category::About, Phase::Menu).contains(&Target::Action(UiAction::BuildNotes)));
         let mut cvars = crate::cvars::Cvars::default();
+        let camera = super::super::super::super::camera::CameraSettings::default();
         cvars.set("MasterVolume", "0.37");
-        assert_eq!(sliders::nudge(&cvars, Knob::Master, 1.), 0.38);
-        assert_eq!(sliders::nudge(&cvars, Knob::Master, -1.), 0.36);
-        let position = sliders::nudge(&cvars, Knob::View, 1.);
+        assert_eq!(sliders::nudge(&cvars, &camera, Knob::Master, 1.), 0.38);
+        assert_eq!(sliders::nudge(&cvars, &camera, Knob::Master, -1.), 0.36);
+        let position = sliders::nudge(&cvars, &camera, Knob::View, 1.);
         sliders::apply(&mut cvars, Knob::View, position);
         assert_eq!(cvars.num("farclip"), Some(500.));
     }
