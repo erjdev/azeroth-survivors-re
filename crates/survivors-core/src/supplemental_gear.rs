@@ -14,6 +14,30 @@ pub struct SupplementalPiece {
     pub visual: GearVisual,
 }
 
+/// Supplemental ownership is a set of validated stable keys, never a stack count.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Inventory {
+    owned: std::collections::BTreeSet<String>,
+}
+
+impl Inventory {
+    /// Returns true only for a newly acquired, catalogued piece of the requested class.
+    pub fn collect(&mut self, class: usize, key: &str) -> bool {
+        let Some(piece) = by_key(key).filter(|piece| piece.class == class) else {
+            return false;
+        };
+        self.owned.insert(piece.key)
+    }
+
+    pub fn owns(&self, class: usize, key: &str) -> bool {
+        by_key(key).is_some_and(|piece| piece.class == class && self.owned.contains(key))
+    }
+
+    pub fn keys(&self) -> impl Iterator<Item = &str> {
+        self.owned.iter().map(String::as_str)
+    }
+}
+
 const CLASS_KEYS: [&str; 9] = [
     "warrior", "paladin", "hunter", "rogue", "priest", "shaman", "mage", "warlock", "druid",
 ];
@@ -167,5 +191,38 @@ mod tests {
         assert!(piece(9, 0, GearTier::Poor).is_none());
         assert!(piece(0, 9, GearTier::Poor).is_none());
         assert!(piece(0, 0, GearTier::RaidEpic).is_none());
+    }
+}
+
+#[cfg(test)]
+mod inventory_tests {
+    use super::*;
+
+    #[test]
+    fn ownership_is_class_scoped_idempotent_and_deterministically_encoded() {
+        let mut owned = Inventory::default();
+        for class in (0..9).rev() {
+            for slot in (0..9).rev() {
+                let piece = piece(class, slot, GearTier::Poor).unwrap();
+                assert!(!owned.collect((class + 1) % 9, &piece.key));
+                assert!(owned.collect(class, &piece.key));
+                assert!(!owned.collect(class, &piece.key));
+                assert!(owned.owns(class, &piece.key));
+                assert!(!owned.owns((class + 1) % 9, &piece.key));
+            }
+        }
+        assert_eq!(owned.keys().count(), 81);
+        let keys: Vec<_> = owned.keys().collect();
+        assert!(keys.windows(2).all(|pair| pair[0] < pair[1]));
+        for invalid in [
+            "",
+            "poor:mage:hands:99",
+            "raid-epic:mage:hands",
+            "poor:unknown:hands",
+        ] {
+            assert!(!owned.collect(6, invalid));
+            assert!(!owned.owns(6, invalid));
+        }
+        assert_eq!(owned.keys().count(), 81);
     }
 }

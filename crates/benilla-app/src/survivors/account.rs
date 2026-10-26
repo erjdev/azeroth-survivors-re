@@ -145,6 +145,7 @@ pub(super) struct Account {
     pub characters: Vec<Character>,
     pub classes: Vec<ClassProgress>,
     seen_jewels: Vec<String>,
+    pub supplemental: survivors_core::supplemental_gear::Inventory,
     pub pets: PetRanks,
     pub perks: PerkRanks,
     earned: Vec<u16>,
@@ -941,6 +942,7 @@ pub(super) fn empty() -> Account {
         characters: Vec::new(),
         classes: vec![ClassProgress::default(); data::CLASSES.len()],
         seen_jewels: Vec::new(),
+        supplemental: Default::default(),
         pets: PetRanks::default(),
         perks: PerkRanks::default(),
         earned: Vec::new(),
@@ -1006,6 +1008,11 @@ fn encode(account: &Account) -> String {
         for name in &class.seen {
             out.push_str(&format!("seen {i} {}\n", escape(name)));
         }
+    }
+    for key in account.supplemental.keys() {
+        let piece = survivors_core::supplemental_gear::by_key(key)
+            .expect("inventory admits only catalogued keys");
+        out.push_str(&format!("supplemental {} {key}\n", piece.class));
     }
     for key in &account.seen_jewels {
         out.push_str(&format!("jewel_seen {key}\n"));
@@ -1332,6 +1339,13 @@ fn parse(text: &str) -> Result<Account, ()> {
                     }
                 }
             }
+            Some("supplemental") => {
+                if let (Some(class), Some(key), None) = (parts.next(), parts.next(), parts.next()) {
+                    if let Ok(class) = class.parse::<usize>() {
+                        account.supplemental.collect(class, key);
+                    }
+                }
+            }
             Some("jewel_seen") => {
                 let key = parts.collect::<Vec<_>>().join(" ");
                 if key
@@ -1649,6 +1663,40 @@ mod tests {
     }
 
     use super::*;
+
+    #[test]
+    fn supplemental_ownership_round_trips_without_changing_legacy_progress_or_power() {
+        let legacy = "who 1 0 5100 Saved Warrior\nclass 0 1 0 1\nequipment 0 100000000 000000000\n";
+        let base = parse(legacy).unwrap();
+        let rows = "supplemental 0 poor:warrior:hands\nsupplemental 0 poor:warrior:hands\nsupplemental 6 poor:mage:main-hand\nsupplemental 0 poor:mage:hands\nsupplemental 6 raid-epic:mage:hands\nsupplemental bad poor:warrior:head\nsupplemental 0 poor:warrior:head extra\n";
+        for text in [format!("{rows}{legacy}"), format!("{legacy}{rows}")] {
+            let account = parse(&text).unwrap();
+            assert_eq!(account.supplemental.keys().count(), 2);
+            assert!(account.supplemental.owns(0, "poor:warrior:hands"));
+            assert!(account.supplemental.owns(6, "poor:mage:main-hand"));
+            assert_eq!(account.classes[0].pieces, base.classes[0].pieces);
+            assert_eq!(
+                account.classes[0].equipment.encode(),
+                base.classes[0].equipment.encode()
+            );
+            assert_eq!(account.classes[0].clears, base.classes[0].clears);
+            assert_eq!(account.bonus(0, 1).health, base.bonus(0, 1).health);
+            assert_eq!(account.bonus(0, 1).might, base.bonus(0, 1).might);
+            assert_eq!(account.feats(0, 1).collection, base.feats(0, 1).collection);
+            assert_eq!(account.earned, base.earned);
+            assert!(!account.dirty);
+            let saved = encode(&account);
+            assert_eq!(
+                saved
+                    .lines()
+                    .filter(|line| line.starts_with("supplemental "))
+                    .count(),
+                2
+            );
+            assert_eq!(parse(&saved).unwrap().supplemental, account.supplemental);
+        }
+        assert_eq!(base.supplemental.keys().count(), 0);
+    }
 
     #[test]
     fn talent_rows_before_characters_preserve_specs_and_run_effects() {

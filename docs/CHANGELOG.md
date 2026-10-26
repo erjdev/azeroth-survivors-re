@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Supplemental gear ownership saves
+
+Added separate, stable-key ownership records for Poor gear. Duplicate records do
+not stack; unknown keys and class mismatches are rejected. Old saves default to
+empty supplemental ownership, and existing gear, stats and collection feats retain
+their original behavior.
+
+This prepares persistence only. Drops, equip/appearance actions and collection UI
+remain unfinished; supplemental ownership alone grants no power.
+All 150 core and 293 app tests, native build, Clippy, formatting and diff checks pass.
+
 ## 2026-10-26 — Poor gear identities
 
 Added all 81 Poor class/slot identities from the pinned vanilla catalog: four armor

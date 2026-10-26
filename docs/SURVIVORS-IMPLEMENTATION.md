@@ -5113,3 +5113,27 @@ remain open. No screenshot is presented as evidence for an unrendered catalog.
 Validation: 149 core tests and 292 visibility-enabled app tests pass with
 `WOW_DATA=wow-data/Data` and `BENILLA_REQUIRE_DATA=1`, including the expanded gear
 display/icon audit. Native build, core/app Clippy, formatting and diff checks pass.
+
+
+### 2026-10-26 — Supplemental ownership persistence
+
+Added a validated, ordered ownership set keyed by supplemental catalog identity.
+`collect(class, key)` only accepts an existing piece of that class and returns true
+once; duplicate grants never create ranks or stacks. Account rows use
+`supplemental <class> <stable-key>`, independent of legacy grid and equipment digits.
+Rows work before or after class records. Unknown keys, wrong classes, malformed IDs
+and trailing fields are ignored. Old saves have an empty supplemental inventory.
+
+Core coverage exercises all 81 keys, wrong-class attempts, duplicates, invalid keys
+and deterministic ordering. Account coverage checks mixed-class ownership, duplicate
+rows, row order and encode/decode persistence while preserving existing equipment,
+clear flags, combat bonuses, collection feats and achievement IDs. Loading does not
+mark the save dirty. Ownership alone does not equip a piece or grant stats.
+
+Remaining: acquisition must use the ownership set and dirty/save transaction; worn
+and appearance references must resolve supplemental identities with slot validation;
+collection/source UI and comparisons need actual native screenshot acceptance. No
+new obtainable gear or visual acceptance is claimed by this persistence checkpoint.
+
+Validation: 150 core and 293 visibility-enabled app tests, native build, core/app
+Clippy, formatting and diff checks pass.
