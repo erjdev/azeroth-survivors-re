@@ -5335,3 +5335,24 @@ Native menu captures at 1280×720 and 640×720 show Endurance Training's 12 to 1
 preview in a valid 29-point spec. They are embedded in CHANGELOG and README.
 The in-map HUD, wolf death animation and Windows combat behavior still require
 live acceptance; headless tests and menu screenshots do not establish those.
+
+### Hunter pet sustain — 2026-10-26
+
+Implement DBC nodes 1625 (Improved Revive Pet) and 1388 (Spirit Bond), each with
+two ranks. Recovery is snapshotted from the run's spec when the wolf spawns,
+reducing ten seconds by 20% per rank. Spirit Bond restores 1% of each recipient's
+own maximum health per rank at ten-second living-wolf intervals. Long frames
+retain pulse count and remainder; health caps prevent overhealing. Death clears
+the interval, recovery creates a fresh timer, and the Playing system gate freezes
+it during pauses and selections. These effects replace their placeholder global
+damage contribution. Full pet threat, remaining talents and live acceptance stay
+open.
+
+Validation: 158 core and 312 data-required app tests pass, covering rank bounds,
+class isolation, actual dual healing, interval boundary, overheal caps, defeated
+pet inactivity and six-second trained recovery. Clippy, formatting and native
+build pass. The local DBC audit reports 199/432 individual talents and 81/81
+automatic milestone definitions. Native previews show both new talents in a
+valid 32-point spec, including the full compact Spirit Bond description after
+scrolling. Captures are embedded in CHANGELOG and README; live combat and
+Windows presentation remain unverified by these menu checks.

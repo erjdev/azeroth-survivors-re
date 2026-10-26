@@ -30,7 +30,7 @@ These stay, and later phases read them instead of inventing a second copy.
   It cannot bite through solid scenery or across floors.
   The wolf has 60 health plus 6 per additional run level. Non-boss enemies can
   attack a closer living wolf within 4 yards and solid-world line of sight; bosses
-  keep targeting the hero. Defeat disables the wolf for 10 seconds of run time,
+  keep targeting the hero. Defeat disables the wolf for a base 10 seconds of run time,
   then it returns beside the hero when that position has safe floor support.
   The HUD reports wolf health or recovery time. Endurance Training adds 3% wolf
   maximum health per rank (5 ranks). Level changes preserve its health percentage.
@@ -464,3 +464,13 @@ Special named-elite chests are limited to five per run. The first can drop after
 60 seconds of gameplay; later drops require at least 90 seconds since the previous
 one. Killing many elites together does not bypass this pacing. Boss rewards and
 ordinary wooden chests use their own rules.
+
+### Hunter pet sustain
+
+Improved Revive Pet (two ranks) reduces the wolf’s ten-second recovery by 20%
+per rank: 8 or 6 seconds, still requiring a supported spawn position. Spirit Bond
+(two ranks) restores 1% of each recipient’s own maximum health per rank to the
+Hunter and wolf every ten seconds while the wolf lives. Healing caps at maximum
+health. Defeat resets the interval, and paused gameplay does not advance it.
+These are authored Survivors adaptations; no pet resurrection cast or mana cost
+is introduced.

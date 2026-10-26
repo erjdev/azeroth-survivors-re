@@ -18,6 +18,8 @@ pub(super) struct HunterPet {
     pub(super) hp: f32,
     max_hp: f32,
     revive_at: Option<f32>,
+    recovery: f32,
+    bond_elapsed: f32,
     cooldown: f32,
     frenzy: survivors_core::talents::PetFrenzy,
 }
@@ -28,6 +30,7 @@ impl HunterPet {
         Self {
             hp: max_hp,
             max_hp,
+            recovery: run.milestones.hunter_pet(run.elapsed).recovery,
             ..Default::default()
         }
     }
@@ -39,8 +42,9 @@ impl HunterPet {
         let removed = damage.min(self.hp);
         self.hp -= removed;
         if self.hp <= 0.0 {
-            self.revive_at = Some(now + 10.0);
+            self.revive_at = Some(now + self.recovery);
             self.frenzy = Default::default();
+            self.bond_elapsed = 0.0;
         }
         removed
     }
@@ -158,6 +162,15 @@ pub(super) fn fight(
         if max_hp != pet.max_hp {
             pet.hp = (pet.hp / pet.max_hp * max_hp).clamp(0.0, max_hp);
             pet.max_hp = max_hp;
+        }
+        if bonus.spirit_bond > 0.0 {
+            pet.bond_elapsed += dt;
+            let pulses = (pet.bond_elapsed / 10.0).floor();
+            if pulses > 0.0 {
+                pet.bond_elapsed %= 10.0;
+                pet.hp = (pet.hp + pet.max_hp * bonus.spirit_bond * pulses).min(pet.max_hp);
+                run.heal(stats.max_hp * bonus.spirit_bond * pulses, stats.max_hp);
+            }
         }
         pet.cooldown = (pet.cooldown - dt).max(0.0);
         pet.frenzy.advance(dt);
@@ -406,6 +419,73 @@ mod tests {
             .single(app.world())
             .unwrap();
         assert!((pet.hp - 69.0).abs() < 0.0001);
+    }
+
+    #[test]
+    fn spirit_bond_heals_both_on_interval_caps_health_and_stops_on_defeat() {
+        let mut app = setup();
+        app.world_mut().resource_mut::<Run>().milestones = survivors_core::talents::Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 1388, 2), (0, 1625, 2)]);
+        app.world_mut().run_system_once(fight).unwrap();
+        let entity = app
+            .world_mut()
+            .query_filtered::<Entity, With<HunterPet>>()
+            .single(app.world())
+            .unwrap();
+        app.world_mut()
+            .get_mut::<HunterPet>(entity)
+            .unwrap()
+            .hurt(30.0, 0.0);
+        let max = app.world().resource::<Run>().stats().max_hp;
+        app.world_mut().resource_mut::<Run>().hp = max * 0.5;
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_secs(9));
+        app.world_mut().run_system_once(fight).unwrap();
+        assert_eq!(app.world().get::<HunterPet>(entity).unwrap().hp, 30.0);
+        assert_eq!(app.world().resource::<Run>().hp, max * 0.5);
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_secs(1));
+        app.world_mut().run_system_once(fight).unwrap();
+        assert!((app.world().get::<HunterPet>(entity).unwrap().hp - 31.2).abs() < 0.0001);
+        assert!((app.world().resource::<Run>().hp - max * 0.52).abs() < 0.0001);
+        app.world_mut().get_mut::<HunterPet>(entity).unwrap().hp = 59.9;
+        app.world_mut().resource_mut::<Run>().hp = max - 0.1;
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_secs(20));
+        app.world_mut().run_system_once(fight).unwrap();
+        assert_eq!(app.world().get::<HunterPet>(entity).unwrap().hp, 60.0);
+        assert_eq!(app.world().resource::<Run>().hp, max);
+        app.world_mut()
+            .get_mut::<HunterPet>(entity)
+            .unwrap()
+            .hurt(100.0, 0.0);
+        assert!(
+            (app.world()
+                .get::<HunterPet>(entity)
+                .unwrap()
+                .revive_at
+                .unwrap()
+                - 6.0)
+                .abs()
+                < 0.0001
+        );
+        app.world_mut().resource_mut::<Run>().hp = max * 0.5;
+        app.world_mut().resource_mut::<Run>().elapsed = 5.99;
+        app.world_mut().run_system_once(fight).unwrap();
+        assert_eq!(app.world().resource::<Run>().hp, max * 0.5);
+        assert_eq!(
+            app.world().get::<HunterPet>(entity).unwrap().bond_elapsed,
+            0.0
+        );
+        app.world_mut().resource_mut::<Run>().elapsed = 6.0;
+        app.world_mut().run_system_once(fight).unwrap();
+        assert!(app.world().get::<HunterPet>(entity).is_none());
     }
 
     #[test]

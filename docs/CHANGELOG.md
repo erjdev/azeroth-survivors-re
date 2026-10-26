@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Spirit Bond and faster wolf recovery
+
+Spirit Bond restores 1% / 2% maximum health to Hunter and wolf every ten seconds
+while the wolf lives. Improved Revive Pet reduces recovery from ten seconds to
+eight / six seconds. Healing caps at full health, and defeat resets the bond timer.
+
+158 core and 312 data-required app tests pass, including actual healing, timing,
+overheal limits and recovery. Clippy and formatting pass; talent coverage is
+199/432. Native build passed; previews were inspected at 1280×720 and 640×720.
+Live combat and balance acceptance remain open.
+
+![Spirit Bond upgrade](images/screenshots/2026-10-26-pet-bond/spirit-bond-1280.png)
+
+![Improved Revive Pet](images/screenshots/2026-10-26-pet-bond/recovery-1280.png)
+
+![Compact Spirit Bond details](images/screenshots/2026-10-26-pet-bond/spirit-bond-640.png)
+
+
 ## 2026-10-26 — Combat wolf health and recovery
 
 The Hunter wolf now takes damage, draws nearby ordinary enemies, and recovers ten

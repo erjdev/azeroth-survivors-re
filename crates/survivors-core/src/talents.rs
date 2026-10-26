@@ -1374,6 +1374,8 @@ pub enum TalentStat {
     SpiritualHealing,
     TotemHealing,
     PetHealth,
+    PetRecovery,
+    SpiritBond,
     PetDamage,
     PetCrit,
     PetFrenzy,
@@ -1473,6 +1475,8 @@ impl TalentDefinition {
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
+            TalentStat::PetRecovery => (100.0, "% shorter combat wolf recovery"),
+            TalentStat::SpiritBond => (100.0, "% maximum health restored every 10 sec"),
             TalentStat::PetHealth => (100.0, "% combat wolf maximum health"),
             TalentStat::PetDamage => (100.0, "% combat wolf bite damage"),
             TalentStat::PetCrit => (100.0, " percentage points combat wolf critical chance"),
@@ -1980,8 +1984,14 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1625, max_rank: 2, name: "Improved Revive Pet",
+        description: "Combat wolf: 20% shorter recovery after defeat per rank, reducing the base 10 sec to 8 or 6 sec. Recovery still requires a safe position",
+        stat: TalentStat::PetRecovery, per_rank: 0.2 },
+    TalentDefinition { id: 1388, max_rank: 2, name: "Spirit Bond",
+        description: "While the combat wolf is alive, every 10 sec restore 1% of your and its own maximum health per rank. Defeat resets the interval; pauses preserve it",
+        stat: TalentStat::SpiritBond, per_rank: 0.01 },
     TalentDefinition { id: 1389, max_rank: 5, name: "Endurance Training",
-        description: "Combat wolf: +3% maximum health per rank. Does not increase hero health; the wolf recovers 10 sec after defeat",
+        description: "Combat wolf: +3% maximum health per rank. Does not increase hero health; the wolf has a base recovery of 10 sec after defeat",
         stat: TalentStat::PetHealth, per_rank: 0.03 },
     TalentDefinition { id: 1396, max_rank: 5, name: "Unleashed Fury",
         description: "Combat wolf: +4% bite damage per rank, multiplying the Unleashed Fury milestone and Bestial Wrath. Does not affect Hunter spells or pickup companions",
@@ -2619,6 +2629,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
+            | TalentStat::PetRecovery
+            | TalentStat::SpiritBond
             | TalentStat::PetHealth
             | TalentStat::PetDamage
             | TalentStat::PetCrit
@@ -3704,6 +3716,8 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing
+                    | TalentStat::PetRecovery
+                    | TalentStat::SpiritBond
                     | TalentStat::PetHealth
                     | TalentStat::PetDamage
                     | TalentStat::PetCrit

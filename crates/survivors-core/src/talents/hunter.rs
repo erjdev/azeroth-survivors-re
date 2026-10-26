@@ -4,6 +4,8 @@ use super::{Milestones, TalentStat};
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PetBonus {
     pub health: f32,
+    pub recovery: f32,
+    pub spirit_bond: f32,
     pub damage: f32,
     pub cooldown: f32,
     pub crit: f32,
@@ -15,6 +17,8 @@ impl Default for PetBonus {
     fn default() -> Self {
         Self {
             health: 1.0,
+            recovery: 10.0,
+            spirit_bond: 0.0,
             damage: 1.0,
             cooldown: 1.0,
             crit: 0.0,
@@ -56,6 +60,8 @@ impl Milestones {
         if self.class != 2 {
             return bonus;
         }
+        bonus.recovery *= 1.0 - self.trained_value(TalentStat::PetRecovery);
+        bonus.spirit_bond = self.trained_value(TalentStat::SpiritBond);
         bonus.health += self.trained_value(TalentStat::PetHealth);
         bonus.damage *= 1.0 + self.trained_value(TalentStat::PetDamage);
         bonus.crit = self.trained_value(TalentStat::PetCrit);
@@ -110,6 +116,32 @@ mod tests {
         for id in [1396, 1393, 1397, 1391] {
             let node = super::super::talent_definition(2, id).unwrap();
             assert!(!node.rank_preview(0).contains("pending"));
+        }
+    }
+
+    #[test]
+    fn recovery_and_bond_are_rank_bounded_and_pet_class_only() {
+        for (rank, recovery, bond) in [
+            (0, 10.0, 0.0),
+            (1, 8.0, 0.01),
+            (2, 6.0, 0.02),
+            (255, 6.0, 0.02),
+        ] {
+            let m = Milestones {
+                class: 2,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 1625, rank), (0, 1388, rank)]);
+            let b = m.hunter_pet(0.0);
+            assert!((b.recovery - recovery).abs() < 0.0001);
+            assert_eq!(b.spirit_bond, bond);
+            assert_eq!(m.with_ranks(&[]).hunter_pet(0.0), PetBonus::default());
+            for class in [0, 1, 3, 4, 5, 6, 7, 8] {
+                assert_eq!(
+                    Milestones { class, ..m }.hunter_pet(0.0),
+                    PetBonus::default()
+                );
+            }
         }
     }
 
