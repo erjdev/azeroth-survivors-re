@@ -699,14 +699,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
 | Paladin | 19 / 44 | 9 / 9 |
-| Hunter | 16 / 46 | 3 / 9 |
+| Hunter | 16 / 46 | 6 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
 | Priest | 19 / 47 | 9 / 9 |
 | Shaman | 13 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
 | Warlock | 12 / 50 | 9 / 9 |
 | Druid | 17 / 47 | 9 / 9 |
-| Total | 176 / 432 | 75 / 81 |
+| Total | 176 / 432 | 78 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -4372,3 +4372,29 @@ checks both slots and serialization; native screenshots verify repair, independe
 second-slot selection and restart persistence. All 262 app tests and the native
 build, workspace Clippy, formatting and render lint pass. In-world rendering
 acceptance remains open.
+
+### Hunter Survival milestones — 2026-10-26
+
+Three automatic Survivors adaptations complete Survival's milestone definitions:
+
+| Points / milestone | Effect |
+| --- | --- |
+| 10 · Monster Slaying | Serpent Sting and Explosive Trap direct/periodic damage ×1.2 |
+| 20 · Surefooted | Concussive Shot grants a 5% maximum-health absorb for 3 seconds once per successful cast; no stacking |
+| 30 · Wyvern Sting | Serpent Sting adds a 1-second stun (bosses: 0.3 seconds), additive with individual Wyvern Sting training |
+
+Monster Slaying applies to all enemy types as an authored poison/trap specialization;
+Surefooted uses an absorb as its defensive adaptation; Wyvern Sting uses the existing
+stun system rather than sleep. These provisional values require live combat and balance
+acceptance. Maximum individual training yields ×1.32 Serpent Sting damage, ×1.56
+Explosive Trap damage and a 2.5-second Serpent Sting stun (bosses: 0.75 seconds).
+No ability is granted by a milestone. Areas, range, targeting and periodic duration
+are unchanged; stronger existing shields are preserved. The absorb happens once per
+successful cast, and the stun is applied on the direct hit, not each periodic tick.
+
+135 core and 263 app tests pass, including threshold boundaries, rank composition,
+cast parameters, enemy control and non-stacking defenses. Native empty-spec previews
+verify all three descriptions; screenshots are inline in CHANGELOG/README. Native
+build, workspace Clippy, DBC coverage audit, formatting and render lint pass.
+Milestone coverage is 78/81. Hunter combat pets and the three Beast Mastery milestones
+remain open together, along with remaining individual talent nodes.

@@ -128,6 +128,10 @@ Companion appearance unlocks are checked when loading; valid independent choices
 
 ![Companion looks after restart](docs/images/screenshots/2026-10-26-companion-save/restarted-1280.png)
 
+Hunter Survival milestones preview poison/trap damage, defensive absorbs and control.
+
+![Hunter Survival milestone](docs/images/screenshots/2026-10-26-hunter-survival/surefooted-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

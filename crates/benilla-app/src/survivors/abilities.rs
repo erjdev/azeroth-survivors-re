@@ -1489,6 +1489,12 @@ mod milestone_tests {
             assert_eq!(enemy.stun_t, if boss { 0.3 } else { 1. });
             apply_secondary_control(&mut enemy, trained, "serpent_sting");
             assert!((enemy.stun_t - if boss { 0.45 } else { 1.5 }).abs() < 0.00001);
+            let survival = Milestones {
+                points: [0, 0, 30],
+                ..trained
+            };
+            apply_secondary_control(&mut enemy, survival, "serpent_sting");
+            assert!((enemy.stun_t - if boss { 0.75 } else { 2.5 }).abs() < 0.00001);
             apply_secondary_control(&mut enemy, trained, "explosive_trap");
             assert!((enemy.root_t - if boss { 0.6 } else { 2. }).abs() < 0.00001);
             enemy.stun_t = 4.;
@@ -1562,6 +1568,59 @@ mod milestone_tests {
             assert_eq!(after.radius, before.radius);
             assert_eq!(after.duration, before.duration);
         }
+    }
+
+    #[test]
+    fn hunter_survival_casts_apply_damage_and_nonstacking_defense() {
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [0, 0, 30],
+            ..base
+        }
+        .with_ranks(&[(1, 1348, 5), (2, 1306, 2), (2, 1325, 1)]);
+        let stats = Run::default().stats();
+        for level in [1, 5] {
+            for (key, multiplier) in [
+                ("serpent_sting", 1.32),
+                ("explosive_trap", 1.56),
+                ("concussive_shot", 1.),
+                ("volley", 1.),
+            ] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!(
+                    (after.dmg - before.dmg * multiplier).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(
+                    (after.count, after.radius, after.duration),
+                    (before.count, before.radius, before.duration)
+                );
+                assert_eq!(after.cooldown, before.cooldown);
+            }
+        }
+        let mut run = Run {
+            hp: 100.,
+            ..Default::default()
+        };
+        let effect = trained.cast("concussive_shot");
+        for _ in 0..4 {
+            finish_milestone_cast(&mut run, effect, 200.);
+        }
+        assert_eq!((run.shield, run.shield_t), (10., 3.));
+        run.shield = 30.;
+        run.shield_t = 2.;
+        finish_milestone_cast(&mut run, effect, 200.);
+        assert_eq!((run.shield, run.shield_t), (30., 2.));
+        assert_eq!(run.hp, 100.);
     }
 
     #[test]

@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Hunter Survival milestones
+
+Survival now improves poison/trap damage at 10 points, grants a Concussive Shot
+absorb at 20, and extends Serpent Sting control at 30. These provisional Survivors
+effects compose with individual training and have explicit green previews.
+
+![Monster Slaying preview](images/screenshots/2026-10-26-hunter-survival/slaying-1280.png)
+
+![Surefooted preview](images/screenshots/2026-10-26-hunter-survival/surefooted-1280.png)
+
+![Wyvern Sting preview](images/screenshots/2026-10-26-hunter-survival/wyvern-1280.png)
+
+135 core and 263 app tests pass, covering thresholds, damage parameters, boss-scaled
+stuns and non-stacking absorbs. Native empty-spec previews verify descriptions.
+Build, workspace Clippy, DBC audit, formatting and render lint pass. Milestones:
+78/81; Beast Mastery awaits combat pets. Live combat balance remains open.
+
 ## 2026-10-26 — Saved Companion unlocks
 
 Loading a save now checks both Companion looks against the completed achievement

@@ -312,6 +312,14 @@ impl Milestones {
         if self.class == 8 {
             druid::apply_milestones(self.points, key, &mut effect);
         }
+        if self.class == 2 {
+            if self.points[2] >= 10 && matches!(key, "serpent_sting" | "explosive_trap") {
+                effect.damage *= 1.2;
+            }
+            if self.points[2] >= 20 && key == "concussive_shot" {
+                effect.shield_fraction = 0.05;
+            }
+        }
         if self.class == 2 && HUNTER_SHOTS.contains(&key) {
             if self.points[1] >= 10 {
                 effect.cooldown *= 0.9;
@@ -499,7 +507,9 @@ impl Milestones {
     }
 
     pub fn secondary_stun(self, key: &'static str, boss: bool) -> f32 {
-        let milestone = if self.class == 0 && key == "heroic_strike" && self.points[2] >= 20 {
+        let milestone = if (self.class == 0 && key == "heroic_strike" && self.points[2] >= 20)
+            || (self.class == 2 && key == "serpent_sting" && self.points[2] >= 30)
+        {
             1.0
         } else {
             0.0
@@ -824,6 +834,9 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
                 Some("Shots: +20 percentage points critical damage; excludes Volley and traps")
             }
             (1, 30) => Some("Multi-Shot: +2 targets; Aimed Shot: +25% damage"),
+            (2, 10) => Some("Serpent Sting and Explosive Trap: +20% direct and periodic damage"),
+            (2, 20) => Some("Concussive Shot grants a 5% maximum-health absorb for 3 seconds once per successful cast; does not stack"),
+            (2, 30) => Some("Serpent Sting also stuns for 1 sec (bosses: 0.3 sec), added to individual Wyvern Sting training"),
             _ => None,
         };
     }
@@ -1131,6 +1144,54 @@ mod tests {
         }
         for threshold in [10, 20, 30] {
             assert!(description(2, 1, threshold).is_some());
+        }
+    }
+
+    #[test]
+    fn hunter_survival_thresholds_compose_without_changing_target_geometry() {
+        let at = |points| Milestones {
+            class: 2,
+            points: [0, 0, points],
+            ..Default::default()
+        };
+        for key in ["serpent_sting", "explosive_trap"] {
+            assert_eq!(at(9).cast(key).damage, 1.);
+            assert_eq!(at(10).cast(key).damage, 1.2);
+            assert_eq!(at(30).cast(key).extra_targets, 0);
+            assert_eq!(at(30).cast(key).radius, 1.);
+            assert_eq!(at(30).cast(key).duration, 1.);
+        }
+        assert_eq!(at(19).cast("concussive_shot").shield_fraction, 0.);
+        assert_eq!(at(20).cast("concussive_shot").shield_fraction, 0.05);
+        assert_eq!(at(20).cast("concussive_shot").shield_seconds, 3.);
+        for boss in [false, true] {
+            assert_eq!(at(29).secondary_stun("serpent_sting", boss), 0.);
+            assert_eq!(
+                at(30).secondary_stun("serpent_sting", boss),
+                if boss { 0.3 } else { 1. }
+            );
+            let trained = at(30).with_ranks(&[(2, 1325, 1)]);
+            assert_eq!(
+                trained.secondary_stun("serpent_sting", boss),
+                if boss { 0.75 } else { 2.5 }
+            );
+            assert_eq!(trained.secondary_stun("explosive_trap", boss), 0.);
+            assert_eq!(trained.with_ranks(&[]), at(30));
+        }
+        let trained = at(30).with_ranks(&[(1, 1348, 5), (2, 1306, 2)]);
+        assert!((trained.cast("serpent_sting").damage - 1.32).abs() < 0.00001);
+        assert!((trained.cast("explosive_trap").damage - 1.56).abs() < 0.00001);
+        for key in [
+            "arcane_shot",
+            "multi_shot",
+            "aimed_shot",
+            "volley",
+            "fireball",
+        ] {
+            assert_eq!(at(51).cast(key), CastEffect::default());
+        }
+        for threshold in [10, 20, 30] {
+            assert!(description(2, 2, threshold).is_some());
         }
     }
 
