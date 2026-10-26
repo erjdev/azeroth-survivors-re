@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Druid Restoration talents
+
+Nature's Swiftness now shortens Rejuvenation's cooldown by 15%. Swiftmend adds
+an immediate 5% maximum-health heal per successful Rejuvenation cast, combining
+with its tree milestone for 10% without consuming healing over time.
+
+![Trained Nature's Swiftness](images/screenshots/2026-10-26-druid-capstones/swiftness-1280.png)
+
+![Trained Swiftmend](images/screenshots/2026-10-26-druid-capstones/swiftmend-1280.png)
+
+![Compact Restoration details](images/screenshots/2026-10-26-druid-capstones/swiftmend-640.png)
+
+142 core and 288 app tests pass; native build and app Clippy pass. Native purchases
+persisted both ranks in spec 3. Catalog coverage: 188/432 individual talents;
+live combat balance and the remaining catalog are still open.
+
+
 ## 2026-10-26 — Direct Collection previews
 
 Live UI preview files can select gear by rarity and slot (`piece = epic:hands`),

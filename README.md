@@ -16,6 +16,10 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Druid Restoration now includes individual Nature's Swiftness and Swiftmend effects.
+
+![Restoration talent details](docs/images/screenshots/2026-10-26-druid-capstones/swiftmend-1280.png)
+
 Collection details can be selected directly from live UI preview files.
 
 ![Direct Collection preview](docs/images/screenshots/2026-10-26-piece-preview/epic-hands-1280.png)

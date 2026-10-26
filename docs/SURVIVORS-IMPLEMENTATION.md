@@ -4831,3 +4831,26 @@ with captures. The implemented route search is bounded incremental A*, not IDA*.
 Talent artwork must retain its 300:331 painted proportions with centered square
 icons at wide and compact sizes. Existing macOS captures and synthetic tests do not
 close these exact Windows reproduction checks.
+
+
+### 2026-10-26 — Individual Druid Restoration capstones
+
+Audited talent 831 (Nature's Swiftness, one rank) multiplies Rejuvenation cooldown
+by 0.85, composing with existing individual cooldown talents and the 20-point
+Restoration milestone. Talent 844 (Swiftmend, one rank) adds a 5% maximum-health
+immediate heal once per successful Rejuvenation cast, adding to the 30-point
+milestone for 10%. These are explicit automatic Survivors conversions. They do not
+change Rejuvenation's below-85%-health cast condition, grant the spell, consume its
+healing over time, change its geometry, or apply to other classes/spells.
+
+142 core and 288 visibility-enabled app tests pass. Coverage includes class/spell
+scope, rank caps, reset, milestone composition, cast parameters, capped healing,
+full/dead hero behavior and preservation of regeneration. The native play build
+(23 seconds), app Clippy, formatting and diff checks pass. Catalog audit confirms
+188/432 individual definitions and 78/81 milestone descriptions. Native fixture
+purchases spend two points (30→32) and persist 831/844 rank 1 in spec 3; wide and
+compact screenshots show the trained effects using the existing proportional
+art-backed trees. Fixture support includes the still-provisional Insect Swarm node;
+this milestone does not claim the full Restoration tree is complete. Screenshots
+are embedded in CHANGELOG/README, with Swiftmend preview presets for both widths.
+Live combat balance and Windows gameplay acceptance remain open.

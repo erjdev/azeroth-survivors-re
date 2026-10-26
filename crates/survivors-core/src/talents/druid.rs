@@ -2,6 +2,8 @@
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 831, max_rank: 1, name: "Nature's Swiftness", description: "Rejuvenation: 15% shorter cooldown, multiplying individual cooldown ranks and the 20-point Restoration milestone (Survivors automatic instant-cast conversion)", stat: TalentStat::SpellCooldown("rejuvenation"), per_rank: 0.15 },
+    TalentDefinition { id: 844, max_rank: 1, name: "Swiftmend", description: "Rejuvenation immediately heals 5% maximum health once per successful cast; adds to the 30-point Restoration milestone for 10% total. Does not consume healing over time (Survivors automatic conversion)", stat: TalentStat::SpellHeal("rejuvenation"), per_rank: 0.05 },
     TalentDefinition { id: 764, max_rank: 2, name: "Nature's Reach", description: "Wrath, Moonfire, Starfire, Entangling Roots and Hurricane: +10% targeting range per rank. Hurricane's radius and target counts are unchanged; excludes Insect Swarm, Thorns and healing", stat: TalentStat::SpellGroupRange(&["wrath", "moonfire", "starfire", "entangling_roots", "hurricane"]), per_rank: 0.10 },
     TalentDefinition { id: 762, max_rank: 5, name: "Improved Wrath", description: "Wrath: 4% shorter cooldown per rank (Survivors cast-time conversion)", stat: TalentStat::SpellCooldown("wrath"), per_rank: 0.04 },
     TalentDefinition { id: 763, max_rank: 5, name: "Improved Moonfire", description: "Moonfire: +2% direct and periodic damage and +2 percentage points critical chance per rank", stat: TalentStat::SpellDamageAndCrit("moonfire"), per_rank: 0.02 },
@@ -111,7 +113,10 @@ mod tests {
                 (
                     "rejuvenation",
                     (1. + 0.05 * short) * (1. + 0.02 * r).powi(2),
-                    (1. - 0.03 * short) * (1. - 0.03 * r) * (1. - 0.02 * r),
+                    (1. - 0.03 * short)
+                        * (1. - 0.03 * r)
+                        * (1. - 0.02 * r)
+                        * if rank > 0 { 0.85 } else { 1. },
                     0.,
                     0.,
                 ),
@@ -123,7 +128,16 @@ mod tests {
                 assert!((e.crit_damage - crit_damage).abs() < 0.00001, "{key}");
                 assert_eq!(
                     (e.radius, e.duration, e.extra_targets, e.heal_fraction),
-                    (1., 1., 0, 0.)
+                    (
+                        1.,
+                        1.,
+                        0,
+                        if key == "rejuvenation" && rank > 0 {
+                            0.05
+                        } else {
+                            0.
+                        }
+                    )
                 );
             }
             for key in ["hurricane", "entangling_roots", "insect_swarm", "fireball"] {
@@ -279,6 +293,59 @@ mod milestone_tests {
         }
         for key in ["hurricane", "insect_swarm"] {
             assert_eq!(all.cast(key), CastEffect::default());
+        }
+    }
+}
+
+#[cfg(test)]
+mod restoration_capstones {
+    use crate::talents::Milestones;
+
+    #[test]
+    fn individual_restoration_cooldown_and_heal_compose_and_reset() {
+        for class in 0..9 {
+            for points in [0, 19, 20, 29, 30, 40] {
+                let base = Milestones {
+                    class,
+                    points: [0, 0, points],
+                    ..Default::default()
+                };
+                for rank in [0, 1, 255] {
+                    let trained = base.with_ranks(&[(2, 831, rank), (2, 844, rank)]);
+                    let before = base.cast("rejuvenation");
+                    let after = trained.cast("rejuvenation");
+                    let active = class == 8 && rank > 0;
+                    assert!(
+                        (after.cooldown - before.cooldown * if active { 0.85 } else { 1. }).abs()
+                            < 0.00001
+                    );
+                    assert!(
+                        (after.heal_fraction
+                            - before.heal_fraction
+                            - if active { 0.05 } else { 0. })
+                        .abs()
+                            < 0.00001
+                    );
+                    assert_eq!(
+                        (
+                            after.damage,
+                            after.duration,
+                            after.radius,
+                            after.extra_targets
+                        ),
+                        (
+                            before.damage,
+                            before.duration,
+                            before.radius,
+                            before.extra_targets
+                        )
+                    );
+                    assert_eq!(trained.with_ranks(&[]).cast("rejuvenation"), before);
+                    for key in ["wrath", "thorns", "holy_shock", "renew"] {
+                        assert_eq!(trained.cast(key), base.cast(key));
+                    }
+                }
+            }
         }
     }
 }

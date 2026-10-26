@@ -3933,7 +3933,7 @@ mod milestone_tests {
                 ("moonfire", 1.21, 0.91, 0.1, 0.5),
                 ("starfire", 1.1, 0.7735, 0., 0.5),
                 ("thorns", 1.3, 1., 0., 0.),
-                ("rejuvenation", 1.3915, 0.69615, 0., 0.),
+                ("rejuvenation", 1.3915, 0.5917275, 0., 0.),
                 ("hurricane", 1., 1., 0., 0.),
                 ("insect_swarm", 1., 1., 0., 0.),
                 ("entangling_roots", 1., 1., 0., 0.),
@@ -3976,6 +3976,34 @@ mod milestone_tests {
                 let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
                 assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
             }
+        }
+    }
+
+    #[test]
+    fn druid_individual_swiftmend_heals_once_without_consuming_regeneration() {
+        let mut run = Run::default();
+        for points in [0, 29, 30] {
+            let base = Milestones {
+                class: 8,
+                points: [0, 0, points],
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(2, 831, 1), (2, 844, 1)]);
+            let effect = trained.cast("rejuvenation");
+            let expected = if points >= 30 { 10. } else { 5. };
+            run.hp = 50.;
+            run.heal_rate = 3.;
+            run.heal_t = 10.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), expected);
+            assert_eq!(run.hp, 50. + expected);
+            assert_eq!((run.heal_rate, run.heal_t), (3., 10.));
+            run.hp = 99.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 1.);
+            run.hp = 100.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 0.);
+            run.hp = 0.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 0.);
+            assert_eq!(run.hp, 0.);
         }
     }
 
