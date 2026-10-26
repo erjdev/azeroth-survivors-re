@@ -5356,3 +5356,25 @@ automatic milestone definitions. Native previews show both new talents in a
 valid 32-point spec, including the full compact Spirit Bond description after
 scrolling. Captures are embedded in CHANGELOG and README; live combat and
 Windows presentation remain unverified by these menu checks.
+
+### Intimidation — 2026-10-26
+
+DBC node 1387 now empowers one nearest wolf bite every 60 seconds: three seconds
+of stun through the normal Hit pipeline, and six seconds of forced pet attention
+for ordinary enemies. Extra targets still take normal bites. Bosses receive the
+existing 0.3 stun multiplier and never forced attention. The cooldown lives on
+Run, so death and recovery cannot refresh it. A taunt references the exact pet
+entity and expires against run time; a dead or replaced wolf invalidates it.
+Forced targets continue using grounded route planning around intervening solids.
+This is an authored Survivors automatic ability, not a complete threat table.
+
+Validation: 158 core and 315 data-required app tests pass. Tests cover one-target
+stun versus extra bite targets, forced attention despite a nearer hero, expiry,
+dead-wolf fallback, boss exclusion and reduced stun, plus cooldown persistence
+through recovery and reactivation at 60 seconds. Clippy and formatting pass.
+The DBC audit reports 200/432 individual talents and 81/81 milestone definitions.
+
+Native play build passed. Captures at 1280×720 and 640×720 show the full
+Intimidation description and aligned tree in a valid 33-point spec. Screenshots
+are embedded in CHANGELOG and the existing README gallery. These menu checks
+do not establish live combat or Windows gameplay acceptance.

@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Intimidation
+
+Intimidation empowers the wolf's nearest bite every 60 seconds, stunning for three
+seconds and forcing ordinary enemies to focus the wolf for six. Bosses receive a
+0.9-second stun and keep targeting the hero. Extra bite targets are unaffected;
+defeat and recovery cannot reset the cooldown.
+
+158 core and 315 data-required app tests pass, including boss stun reduction,
+targeting expiry and cooldown persistence. Clippy and formatting pass. Talent
+coverage is 200/432. Native build and 1280×720 / 640×720 menu checks pass;
+live combat and Windows acceptance remain open.
+
+![Intimidation talent](images/screenshots/2026-10-26-pet-intimidation/intimidation-1280.png)
+
+![Compact Intimidation details](images/screenshots/2026-10-26-pet-intimidation/intimidation-640.png)
+
+
 ## 2026-10-26 — Spirit Bond and faster wolf recovery
 
 Spirit Bond restores 1% / 2% maximum health to Hunter and wolf every ten seconds

@@ -345,7 +345,16 @@ pub(super) fn move_enemies(
     world: Floor,
     selection: Res<Selection>,
     hero: Query<(Entity, &Transform), (With<Hero>, Without<Enemy>)>,
-    mut enemies: Query<(Entity, &mut Transform, &mut Enemy, &mut MovementState), Without<Hero>>,
+    mut enemies: Query<
+        (
+            Entity,
+            &mut Transform,
+            &mut Enemy,
+            &mut MovementState,
+            Option<&super::hunter_pet::PetTaunt>,
+        ),
+        Without<Hero>,
+    >,
     mut navigation: Local<super::navigation::Navigation>,
     mut pets: Query<
         (
@@ -373,8 +382,8 @@ pub(super) fn move_enemies(
     const CELL: f32 = 3.0;
     let bodies: Vec<(Entity, Vec3, f32)> = enemies
         .iter()
-        .filter(|(_, _, e, _)| !e.dead)
-        .map(|(ent, tf, e, _)| (ent, tf.translation, e.radius))
+        .filter(|(_, _, e, _, _)| !e.dead)
+        .map(|(ent, tf, e, _, _)| (ent, tf.translation, e.radius))
         .collect();
     navigation.advance(dt, selection.map, &bodies, |from, to, radius| {
         let map = selection.map_def();
@@ -417,7 +426,7 @@ pub(super) fn move_enemies(
         push.insert(ent, acc);
     }
 
-    for (ent, mut tf, mut e, mut mv) in &mut enemies {
+    for (ent, mut tf, mut e, mut mv, taunt) in &mut enemies {
         let e = &mut *e;
         if e.dead {
             if mv.speed != 0.0 || mv.flags != 0 {
@@ -466,8 +475,15 @@ pub(super) fn move_enemies(
 
         // Ordinary foes engage a closer living wolf within four yards and line of sight.
         // Bosses keep pressure on the hero; there is no global pet threat table.
+        let forced_pet = taunt
+            .filter(|taunt| run.elapsed < taunt.until)
+            .and_then(|taunt| pets.get(taunt.pet).ok())
+            .filter(|(_, _, pet, _)| pet.hp > 0.0)
+            .map(|(entity, tf, _, _)| (entity, tf.translation));
         let pet_target = if e.boss {
             None
+        } else if forced_pet.is_some() {
+            forced_pet
         } else {
             pets.iter()
                 .filter(|(_, tf, pet, _)| {
@@ -488,7 +504,7 @@ pub(super) fn move_enemies(
                 (e, pos, super::hunter_pet::RADIUS)
             });
         let to_target = flat(target_pos - pos);
-        if pet_target.is_some() {
+        if pet_target.is_some() && world.line_clear(pos, target_pos) {
             navigation.forget(ent);
         }
 

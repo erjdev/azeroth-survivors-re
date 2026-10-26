@@ -1375,6 +1375,7 @@ pub enum TalentStat {
     TotemHealing,
     PetHealth,
     PetRecovery,
+    PetIntimidation,
     SpiritBond,
     PetDamage,
     PetCrit,
@@ -1475,6 +1476,7 @@ impl TalentDefinition {
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
+            TalentStat::PetIntimidation => (1.0, " empowered bite every 60 sec"),
             TalentStat::PetRecovery => (100.0, "% shorter combat wolf recovery"),
             TalentStat::SpiritBond => (100.0, "% maximum health restored every 10 sec"),
             TalentStat::PetHealth => (100.0, "% combat wolf maximum health"),
@@ -1984,6 +1986,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1387, max_rank: 1, name: "Intimidation",
+        description: "Every 60 sec, the wolf's next bite stuns its nearest victim for 3 sec and forces it to target the living wolf for 6 sec. Bosses: 0.9 sec stun, no forced targeting. Extra bite targets are unaffected",
+        stat: TalentStat::PetIntimidation, per_rank: 1.0 },
     TalentDefinition { id: 1625, max_rank: 2, name: "Improved Revive Pet",
         description: "Combat wolf: 20% shorter recovery after defeat per rank, reducing the base 10 sec to 8 or 6 sec. Recovery still requires a safe position",
         stat: TalentStat::PetRecovery, per_rank: 0.2 },
@@ -2629,6 +2634,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
+            | TalentStat::PetIntimidation
             | TalentStat::PetRecovery
             | TalentStat::SpiritBond
             | TalentStat::PetHealth
@@ -3716,6 +3722,7 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing
+                    | TalentStat::PetIntimidation
                     | TalentStat::PetRecovery
                     | TalentStat::SpiritBond
                     | TalentStat::PetHealth

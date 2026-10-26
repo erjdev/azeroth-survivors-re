@@ -55,6 +55,13 @@ fn maximum_health(run: &Run) -> f32 {
         * run.milestones.hunter_pet(run.elapsed).health
 }
 
+/// Forced attention expires in run time and never survives the wolf's defeat.
+#[derive(Component)]
+pub(super) struct PetTaunt {
+    pub pet: Entity,
+    pub until: f32,
+}
+
 #[derive(Component)]
 pub(super) struct PetStatusText;
 
@@ -220,7 +227,11 @@ pub(super) fn fight(
                         .distance_squared(at)
                         .total_cmp(&b.translation.distance_squared(at))
                 });
-                for (victim, _, _) in victims.into_iter().take(1 + stats.targets as usize) {
+                for (index, (victim, _, enemy)) in victims
+                    .into_iter()
+                    .take(1 + stats.targets as usize)
+                    .enumerate()
+                {
                     let critical = rng.f32() < (stats.crit + bonus.crit).clamp(0.0, 1.0);
                     let damage = damage * if critical { stats.crit_damage } else { 1.0 };
                     if critical && damage > 0.0 {
@@ -228,6 +239,19 @@ pub(super) fn fight(
                     }
                     let mut hit = Hit::direct(victim, damage, critical);
                     hit.source = SOURCE;
+                    if index == 0
+                        && bonus.intimidation
+                        && run.elapsed >= run.pet_intimidation_ready_at
+                    {
+                        hit.effect = super::data::Effect::Stun(3.0);
+                        if !enemy.boss {
+                            commands.entity(victim).insert(PetTaunt {
+                                pet: entity,
+                                until: run.elapsed + 6.0,
+                            });
+                        }
+                        run.pet_intimidation_ready_at = run.elapsed + 60.0;
+                    }
                     hits.write(hit);
                     fx.swing(entity, victim, damage);
                 }
@@ -486,6 +510,128 @@ mod tests {
         app.world_mut().resource_mut::<Run>().elapsed = 6.0;
         app.world_mut().run_system_once(fight).unwrap();
         assert!(app.world().get::<HunterPet>(entity).is_none());
+    }
+
+    #[test]
+    fn intimidation_stuns_only_nearest_bite_target_and_cooldown_survives_recovery() {
+        let mut app = setup();
+        app.world_mut().resource_mut::<Run>().milestones = survivors_core::talents::Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 1387, 1)]);
+        app.world_mut().resource_mut::<Run>().bonus.targets = 1;
+        let first = foe(&mut app, Vec3::X * 0.8);
+        let second = foe(&mut app, Vec3::X);
+        for entity in [first, second] {
+            let mut enemy = app.world_mut().get_mut::<Enemy>(entity).unwrap();
+            enemy.hp = 100.0;
+            enemy.max_hp = 100.0;
+        }
+        app.world_mut().run_system_once(fight).unwrap();
+        app.world_mut().run_system_once(fight).unwrap();
+        assert!(app.world().get::<PetTaunt>(first).is_some());
+        assert!(app.world().get::<PetTaunt>(second).is_none());
+        app.world_mut().run_system_once(apply_hits).unwrap();
+        assert_eq!(app.world().get::<Enemy>(first).unwrap().stun_t, 3.0);
+        assert_eq!(app.world().get::<Enemy>(second).unwrap().stun_t, 0.0);
+        assert_eq!(
+            app.world().resource::<Run>().pet_intimidation_ready_at,
+            60.0
+        );
+        app.world_mut()
+            .query::<&mut HunterPet>()
+            .single_mut(app.world_mut())
+            .unwrap()
+            .hurt(100.0, 0.0);
+        app.world_mut().resource_mut::<Run>().elapsed = 10.0;
+        app.world_mut().run_system_once(fight).unwrap();
+        app.world_mut().run_system_once(fight).unwrap();
+        app.world_mut().run_system_once(fight).unwrap();
+        assert_eq!(
+            app.world().resource::<Run>().pet_intimidation_ready_at,
+            60.0
+        );
+        app.world_mut().resource_mut::<Run>().elapsed = 60.0;
+        app.world_mut()
+            .query::<&mut HunterPet>()
+            .single_mut(app.world_mut())
+            .unwrap()
+            .cooldown = 0.0;
+        app.world_mut().run_system_once(fight).unwrap();
+        assert_eq!(
+            app.world().resource::<Run>().pet_intimidation_ready_at,
+            120.0
+        );
+    }
+
+    #[test]
+    fn intimidation_boss_stun_is_reduced_without_forced_attention() {
+        let mut app = setup();
+        app.world_mut().resource_mut::<Run>().milestones = survivors_core::talents::Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 1387, 1)]);
+        let boss = foe(&mut app, Vec3::X);
+        {
+            let mut enemy = app.world_mut().get_mut::<Enemy>(boss).unwrap();
+            enemy.hp = 100.0;
+            enemy.max_hp = 100.0;
+            enemy.boss = true;
+        }
+        app.world_mut().run_system_once(fight).unwrap();
+        app.world_mut().run_system_once(fight).unwrap();
+        app.world_mut().run_system_once(apply_hits).unwrap();
+        assert!((app.world().get::<Enemy>(boss).unwrap().stun_t - 0.9).abs() < 0.0001);
+        assert!(app.world().get::<PetTaunt>(boss).is_none());
+    }
+
+    #[test]
+    fn forced_attention_overrides_proximity_expires_and_ignores_dead_wolf() {
+        for (now, dead, boss, expected_pet_damage) in [
+            (5.9, false, false, true),
+            (6.0, false, false, false),
+            (0.0, true, false, false),
+            (0.0, false, true, false),
+        ] {
+            let mut app = setup();
+            app.world_mut().run_system_once(fight).unwrap();
+            let pet = app
+                .world_mut()
+                .query_filtered::<Entity, With<HunterPet>>()
+                .single(app.world())
+                .unwrap();
+            app.world_mut()
+                .get_mut::<Transform>(pet)
+                .unwrap()
+                .translation = Vec3::X;
+            if dead {
+                app.world_mut()
+                    .get_mut::<HunterPet>(pet)
+                    .unwrap()
+                    .hurt(100.0, 0.0);
+            }
+            let enemy = foe(&mut app, Vec3::X * 0.2);
+            app.world_mut().get_mut::<Enemy>(enemy).unwrap().boss = boss;
+            app.world_mut()
+                .entity_mut(enemy)
+                .insert(PetTaunt { pet, until: 6.0 });
+            app.world_mut().resource_mut::<Run>().elapsed = now;
+            let hp = app.world().get::<HunterPet>(pet).unwrap().hp;
+            let hero_hp = app.world().resource::<Run>().hp;
+            app.world_mut()
+                .run_system_once(super::super::enemies::move_enemies)
+                .unwrap();
+            assert_eq!(
+                app.world().get::<HunterPet>(pet).unwrap().hp < hp,
+                expected_pet_damage
+            );
+            assert_eq!(
+                app.world().resource::<Run>().hp < hero_hp,
+                !expected_pet_damage
+            );
+        }
     }
 
     #[test]

@@ -5,6 +5,7 @@ use super::{Milestones, TalentStat};
 pub struct PetBonus {
     pub health: f32,
     pub recovery: f32,
+    pub intimidation: bool,
     pub spirit_bond: f32,
     pub damage: f32,
     pub cooldown: f32,
@@ -18,6 +19,7 @@ impl Default for PetBonus {
         Self {
             health: 1.0,
             recovery: 10.0,
+            intimidation: false,
             spirit_bond: 0.0,
             damage: 1.0,
             cooldown: 1.0,
@@ -60,6 +62,7 @@ impl Milestones {
         if self.class != 2 {
             return bonus;
         }
+        bonus.intimidation = self.trained_value(TalentStat::PetIntimidation) > 0.0;
         bonus.recovery *= 1.0 - self.trained_value(TalentStat::PetRecovery);
         bonus.spirit_bond = self.trained_value(TalentStat::SpiritBond);
         bonus.health += self.trained_value(TalentStat::PetHealth);

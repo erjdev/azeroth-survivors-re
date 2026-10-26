@@ -474,3 +474,10 @@ Hunter and wolf every ten seconds while the wolf lives. Healing caps at maximum
 health. Defeat resets the interval, and paused gameplay does not advance it.
 These are authored Survivors adaptations; no pet resurrection cast or mana cost
 is introduced.
+
+Intimidation (one rank) empowers the next available wolf bite immediately and
+then at most once every 60 seconds of run time. Only the nearest bite victim
+receives a three-second stun and six seconds of forced attention toward the
+living wolf, even when the hero is closer. Bosses receive the existing 30% stun
+duration (0.9 seconds), but cannot be forced away from the hero. Recovery does
+not reset the cooldown. Solid-world collision and route planning still apply.
