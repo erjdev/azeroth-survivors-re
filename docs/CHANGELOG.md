@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Rogue proc combat regression
+
+The actual auto-cast system now has regression coverage for all four Remorseless
+Attacks spells: no target preserves the bonus, both targets share it on a
+successful cast, and the next cast uses ordinary critical chance. All 194
+Survivors app tests, workspace Clippy, formatting and render-pass lint pass.
+This is test-only; the UI captures below remain current. Live combat acceptance
+and an active-proc HUD indicator are still open.
+
 ## 2026-10-25 — Remorseless Attacks
 
 Rogue kills now grant +20% critical chance per rank to the next successful

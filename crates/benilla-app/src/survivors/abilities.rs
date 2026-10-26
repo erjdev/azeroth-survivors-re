@@ -2036,6 +2036,106 @@ mod milestone_tests {
     }
 
     #[test]
+    fn remorseless_bonus_reaches_actual_casts_and_survives_failed_target_selection() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["sinister_strike", "eviscerate", "gouge", "kidney_shot"] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[3],
+                milestones: Milestones {
+                    class: 3,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 272, 2)]),
+                ..Default::default()
+            };
+            run.bonus.targets = 1;
+            run.abilities.push(super::super::Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+            // Both target rolls lie above base crit and below the trained bonus.
+            let seed = (1..100000)
+                .find(|seed| {
+                    let mut rng = Rng(*seed);
+                    (0..2).all(|_| {
+                        let roll = rng.f32();
+                        roll > 0.10 && roll < 0.40
+                    })
+                })
+                .unwrap();
+            run.record_remorseless_kill();
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert_eq!(
+                app.world().resource::<Run>().remorseless_until,
+                20.,
+                "{key}: no target"
+            );
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            for x in [1., 2.] {
+                app.world_mut().spawn((
+                    Transform::from_xyz(x, 0., 0.),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 100.,
+                        max_hp: 100.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slow: 1.,
+                        slow_t: 0.,
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ));
+            }
+            for expected_crit in [true, false] {
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(hits.len(), 2, "{key}: extra target");
+                assert!(
+                    hits.iter().all(|hit| hit.crit == expected_crit),
+                    "{key}: bonus applies to entire cast exactly once"
+                );
+                assert_eq!(app.world().resource::<Run>().remorseless_until, 0.);
+            }
+        }
+    }
+
+    #[test]
     fn remorseless_kills_refresh_expire_and_consume_only_on_eligible_casts() {
         let mut run = Run {
             milestones: Milestones {

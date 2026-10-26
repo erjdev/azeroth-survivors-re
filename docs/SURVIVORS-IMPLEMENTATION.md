@@ -42,7 +42,10 @@ Camouflage/Deflection refund/rebuy checks and two screenshots cover 1280×720.
 Remorseless Attacks adds a non-stacking, 20-second kill-triggered bonus to the
 next successful eligible melee cast. 109 core and 193 app tests pass, including
 rank limits, expiry, refresh and consumption. Wide/compact captures document
-the description; native refund/rebuy was verified. An active-proc HUD indicator
+the description; native refund/rebuy was verified. An additional ECS regression
+exercises all four eligible auto-casts with two targets: failed target selection
+preserves the proc, the successful cast shares it, and the next cast loses it.
+An active-proc HUD indicator
 and live combat acceptance remain open, alongside other Rogue nodes and
 remaining compact descriptions.
 
