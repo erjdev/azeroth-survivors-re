@@ -17,6 +17,7 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1002, max_rank: 2, name: "Nightfall", description: "Corruption ticks: 2% chance per rank to ready an owned Shadow Bolt. Once per damaging tick, not per multistrike; no stored charge. Separate from the 20-point milestone (Survivors instant-cast conversion)", stat: TalentStat::Nightfall, per_rank: 0.02 },
     TalentDefinition { id: 1041, max_rank: 1, name: "Siphon Life", description: "Corruption and Curse of Agony heal 5% of enemy health actually removed; adds to the 30-point Affliction milestone for 10% total. Excludes overkill and other spells (Survivors automatic conversion)", stat: TalentStat::SiphonLife, per_rank: 0.05 },
     TalentDefinition { id: 1021, max_rank: 2, name: "Grim Reach", description: "Corruption, Curse of Agony and Death Coil: +10% targeting range per rank; damage, duration and target counts are unchanged", stat: TalentStat::SpellGroupRange(&["corruption", "curse_of_agony", "death_coil"]), per_rank: 0.10 },
     TalentDefinition { id: 964, max_rank: 2, name: "Destructive Reach", description: "Shadow Bolt, Immolate, Searing Pain, Shadowburn and Rain of Fire: +10% targeting range per rank. Rain of Fire's radius is unchanged; excludes player-centered Hellfire", stat: TalentStat::SpellGroupRange(&["shadow_bolt", "immolate", "searing_pain", "shadowburn", "rain_of_fire"]), per_rank: 0.10 },
@@ -293,6 +294,43 @@ mod siphon_tests {
             }
             .with_ranks(&[(0, 1041, 255)]);
             assert_eq!(trained.vampiric_healing("corruption", 100.), 0.);
+        }
+    }
+}
+
+#[cfg(test)]
+mod nightfall_tests {
+    use crate::talents::Milestones;
+
+    #[test]
+    fn nightfall_requires_individual_training_and_positive_corruption_damage() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 255] {
+                let base = Milestones {
+                    class,
+                    points: [30; 3],
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(0, 1002, rank)]);
+                assert_eq!(
+                    trained.nightfall_chance("corruption", 10.),
+                    if class == 7 {
+                        0.02 * f32::from(rank.min(2))
+                    } else {
+                        0.
+                    }
+                );
+                for key in ["curse_of_agony", "shadow_bolt", "immolate", "drain_life"] {
+                    assert_eq!(trained.nightfall_chance(key, 10.), 0.);
+                }
+                for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(trained.nightfall_chance("corruption", damage), 0.);
+                }
+                assert_eq!(
+                    trained.with_ranks(&[]).nightfall_chance("corruption", 10.),
+                    0.
+                );
+            }
         }
     }
 }

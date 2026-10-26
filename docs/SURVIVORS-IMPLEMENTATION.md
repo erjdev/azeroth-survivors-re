@@ -704,9 +704,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 20 / 47 | 9 / 9 |
 | Shaman | 14 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
-| Warlock | 15 / 50 | 9 / 9 |
+| Warlock | 16 / 50 | 9 / 9 |
 | Druid | 18 / 47 | 9 / 9 |
-| Total | 185 / 432 | 78 / 81 |
+| Total | 186 / 432 | 78 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1200,10 +1200,11 @@ periodic and totem parameters. Native purchases verify green previews and persis
 ranks on an isolated character. The other 33 nodes and full live combat/balance
 acceptance remain open.
 
-Warlock has fifteen audited individual effects. Values are per rank and provisional:
+Warlock has sixteen audited individual effects. Values are per rank and provisional:
 
 | Talent ID / name | Ranks | Effect |
 | --- | --- | --- |
+| 1002 Nightfall | 2 | Corruption ticks have a 2% chance per rank to ready an owned Shadow Bolt; instant-cast conversion, no stored charge |
 | 1041 Siphon Life | 1 | Corruption/Curse of Agony heal 5% of health actually removed; adds to the 30-point milestone for 10% total; automatic conversion |
 | 1021 Grim Reach | 2 | Corruption, Curse of Agony and Death Coil: +10% targeting range |
 | 964 Destructive Reach | 2 | Shadow Bolt, Immolate, Searing Pain, Shadowburn and Rain of Fire: +10% targeting range; no radius or Hellfire change |
@@ -1223,7 +1224,7 @@ Warlock has fifteen audited individual effects. Values are per rank and provisio
 Destruction includes Shadow Bolt, Immolate, Rain of Fire, Hellfire, Searing Pain
 and Shadowburn. These definitions replace generic damage fallback and do not grant
 unowned abilities. Area locations, target counts and durations stay unchanged.
-The remaining 35 nodes and live balance acceptance remain open. No demon companion
+The remaining 34 nodes and live balance acceptance remain open. No demon companion
 system is claimed by this first group.
 
 All nine Warlock milestones now use explicit automatic Survivors adaptations:
@@ -4762,3 +4763,25 @@ scrolling. Screenshots are embedded in CHANGELOG and README; preview presets pin
 talent 1041 without a run. The three-tree art/panel arrangement follows the
 intention reference and wraps at compact widths. Live combat balance remains open.
 Workspace Clippy, formatting and diff checks also pass.
+
+
+### 2026-10-26 — Individual Nightfall proc
+
+Nightfall (Affliction talent 1002, two ranks) replaces its generic damage fallback
+with a 2%/4% Corruption-tick chance to ready an owned Shadow Bolt. This Survivors
+instant-cast conversion does not grant the spell or bank a charge while it is ready.
+Each eligible tick rolls once after multistrike and actual health removal; direct
+hits, other spells, exhausted target health and dead heroes cannot trigger it.
+The 20-point Affliction milestone remains a separate guaranteed one-second advance
+on a successful Corruption cast. Spec changes remove individual training normally.
+
+141 core and 283 app tests pass, including a deterministic roll between the two
+rank probabilities, missing/ready spell ownership, single-roll consumption, direct
+versus periodic processing, invalid damage, class scope, caps and reset. The native
+play build, workspace Clippy, formatting and diff checks pass. Catalog audit verifies
+186/432 definitions and 78/81 milestone descriptions. Native fixture purchases
+0→1→2 spend two points and persist talent 1002 rank 2 in spec 3. Wide and compact
+screenshots show the next-rank preview and maximum-rank description without
+clipping, using the intention's art-backed trees and separate details panel.
+Screenshots are embedded in CHANGELOG/README and reusable preview presets are in
+docs/ui-previews. Live combat balance and the remaining talent catalog stay open.

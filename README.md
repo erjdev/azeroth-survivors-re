@@ -150,6 +150,8 @@ A completed class collection now grants its cloak feat at all 54 pieces.
 
 ![Passive upgrades with trained values](docs/images/screenshots/2026-10-26-passive-preview/renew-1280.png)
 
+![Nightfall proc talent preview](docs/images/screenshots/2026-10-26-nightfall/talents-1280.png)
+
 ![Trained Siphon Life talent](docs/images/screenshots/2026-10-26-siphon-life/talents-1280.png)
 
 ![Improved Renew talent](docs/images/screenshots/2026-10-26-renew-talent/talents-1280.png)

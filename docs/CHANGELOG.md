@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Nightfall procs
+
+Warlock Nightfall now gives Corruption ticks a 2%/4% chance to ready an owned
+Shadow Bolt. It rolls once per damaging tick, ignores dead-target overkill and
+keeps the separate Affliction milestone's cooldown reduction.
+
+![Nightfall rank-one upgrade preview](images/screenshots/2026-10-26-nightfall/talents-1280.png)
+
+![Maximum Nightfall rank at compact width](images/screenshots/2026-10-26-nightfall/talents-640.png)
+
+Native checks verify both purchases, saved ranks and wide/compact readability.
+141 core and 283 app tests, native build and workspace Clippy pass. Definition
+coverage is 186/432; remaining talents and live balance acceptance stay open.
+
 ## 2026-10-26 — Trainable Siphon Life
 
 Warlock Siphon Life now heals 5% of Corruption/Curse of Agony damage actually dealt,

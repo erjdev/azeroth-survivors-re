@@ -685,6 +685,24 @@ fn finish_milestone_cast(
     healed
 }
 
+/// A tick can ready an owned spell, but never grant one or bank an instant-cast charge.
+fn apply_nightfall(run: &mut Run, rng: &mut Rng, source: &str, removed: f32) {
+    let chance = run.milestones.nightfall_chance(source, removed);
+    if !run.alive() || chance <= 0.0 {
+        return;
+    }
+    let Some(bolt) = run
+        .abilities
+        .iter_mut()
+        .find(|owned| owned.def.key == "shadow_bolt")
+    else {
+        return;
+    };
+    if bolt.cd > 0.0 && rng.f32() < chance {
+        bolt.cd = 0.0;
+    }
+}
+
 /// Ground areas tick, and totems fight, until they run out.
 #[allow(clippy::type_complexity)]
 pub(super) fn tick_areas(
@@ -1137,6 +1155,7 @@ pub(super) fn apply_hits(
                 let removed = tick.max(0.0).min(remaining_hp);
                 remaining_hp = (remaining_hp - removed).max(0.0);
                 vampiric_heal += run.milestones.vampiric_healing(d.source, removed);
+                apply_nightfall(&mut run, &mut rng, d.source, removed);
                 dealt += tick;
                 run.add_damage(d.source, tick);
                 let chance = run.milestones.shadow_weaving_chance(d.source, tick);
@@ -2487,6 +2506,164 @@ mod milestone_tests {
                         (app.world().resource::<Run>().hp - expected).abs() < 0.00001,
                         "dead targets cannot heal again"
                     );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn nightfall_obeys_rank_probability_ownership_and_does_not_bank_charges() {
+        let seed = (1..1000)
+            .find(|seed| {
+                let roll = Rng(*seed).f32();
+                (0.02..0.04).contains(&roll)
+            })
+            .unwrap();
+        for rank in [1, 2] {
+            let mut run = Run {
+                milestones: Milestones {
+                    class: 7,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1002, rank)]),
+                ..Default::default()
+            };
+            run.abilities.clear();
+            let mut rng = Rng(seed);
+            apply_nightfall(&mut run, &mut rng, "corruption", 1.);
+            assert!(run.abilities.is_empty(), "does not grant Shadow Bolt");
+            assert_eq!(rng.0, seed, "no roll without an owned spell");
+            run.abilities.push(Owned {
+                def: data::ability("shadow_bolt"),
+                level: 1,
+                cd: 0.,
+            });
+            apply_nightfall(&mut run, &mut rng, "corruption", 1.);
+            assert_eq!(rng.0, seed, "no roll or charge for a ready spell");
+            run.abilities[0].cd = 8.;
+            apply_nightfall(&mut run, &mut rng, "corruption", 0.);
+            assert_eq!(rng.0, seed, "no roll after all target health is removed");
+            assert_eq!(run.abilities[0].cd, 8.);
+            apply_nightfall(&mut run, &mut rng, "corruption", 1.);
+            assert_eq!(run.abilities[0].cd, if rank == 2 { 0. } else { 8. });
+            let mut expected_rng = Rng(seed);
+            expected_rng.f32();
+            assert_eq!(rng.0, expected_rng.0, "exactly one roll per eligible tick");
+        }
+    }
+
+    #[test]
+    fn nightfall_only_readies_owned_shadow_bolt_from_living_hero_corruption_ticks() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (periodic, source) in [
+            (false, "corruption"),
+            (true, "corruption"),
+            (true, "curse_of_agony"),
+        ] {
+            for rank in [0, 1, 2, 255] {
+                for hp in [0.0, 50.0, 99.0] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        hp,
+                        abilities: vec![
+                            Owned {
+                                def: data::ability("shadow_bolt"),
+                                level: 1,
+                                cd: 8.,
+                            },
+                            Owned {
+                                def: data::ability("immolate"),
+                                level: 1,
+                                cd: 7.,
+                            },
+                        ],
+                        milestones: Milestones {
+                            class: 7,
+                            points: [20, 0, 0],
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(0, 1002, rank)]),
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 5.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slow: 1.0,
+                                slow_t: 0.0,
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source,
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source,
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let expected = if periodic && source == "corruption" && rank > 0 && hp > 0. {
+                        0.
+                    } else {
+                        8.
+                    };
+                    assert_eq!(run.abilities[0].cd, expected);
+                    assert_eq!(run.abilities[1].cd, 7.);
+                    // A later pass over the dead target cannot ready another cooldown.
+                    app.world_mut().resource_mut::<Run>().abilities[0].cd = 6.;
+                    assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert_eq!(app.world().resource::<Run>().abilities[0].cd, 6.);
                 }
             }
         }

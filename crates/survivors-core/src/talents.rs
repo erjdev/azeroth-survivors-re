@@ -697,6 +697,15 @@ impl Milestones {
         self.trained_value(TalentStat::Blackout)
     }
 
+    /// Individual Nightfall rolls only for Corruption ticks that remove health.
+    /// The adapter owns the RNG and readies only an already-owned Shadow Bolt.
+    pub fn nightfall_chance(self, key: &str, removed: f32) -> f32 {
+        if self.class != 7 || key != "corruption" || !removed.is_finite() || removed <= 0.0 {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::Nightfall)
+    }
+
     /// Healing from health actually removed: Priest or Warlock training and milestones.
     pub fn vampiric_healing(self, key: &str, damage: f32) -> f32 {
         if self.class == 7
@@ -1340,6 +1349,7 @@ pub enum TalentStat {
     SpiritTap,
     ImprovedRenew,
     SiphonLife,
+    Nightfall,
     SecondarySlowDuration(&'static str),
     SecondaryStunDuration(&'static str),
     SecondaryRootDuration(&'static str),
@@ -1430,6 +1440,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
+            TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
@@ -2542,6 +2553,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::SiphonLife
+            | TalentStat::Nightfall
             | TalentStat::Remorseless
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
@@ -3618,6 +3630,7 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::SiphonLife
+                    | TalentStat::Nightfall
                     | TalentStat::Remorseless
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance
