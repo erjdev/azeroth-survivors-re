@@ -553,6 +553,14 @@ obtainable; dead heroes cannot win simultaneously. UI and combat use the same dr
 
 ## Phase 2 — equipment and persistence
 
+2026-10-25 evidence: all 39 account tests pass, including a real temporary-file
+write failure that preserves the old save, keeps dirty state and succeeds on
+retry. A native full restart retained a common equipped helmet, a legendary
+cosmetic override and an explicitly empty shoulder slot with identical totals.
+The screenshot is inline in the changelog. Explicit appearance buttons work;
+automated Shift-right-click equipped the item instead, so modifier-shortcut
+acceptance remains unresolved. This does not prove all platform/model variants.
+
 Add per-class selected gear for all nine slots, with explicit empty slots. Migrate old
 saves to their former strongest-owned loadout once. New drops fill an empty slot but do
 not replace a deliberate choice. Reject unowned, invalid-slot and out-of-range choices.

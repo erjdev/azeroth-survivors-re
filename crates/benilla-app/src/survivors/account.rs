@@ -173,9 +173,17 @@ impl Account {
         let Some(home) = local_state::home() else {
             return;
         };
-        if local_state::write_atomic(&home.join(FILE), &encode(self)).is_ok() {
+        if let Err(error) = self.save_to(&home.join(FILE)) {
+            warn!("Survivors progress could not be saved; changes remain pending: {error}");
+        }
+    }
+
+    fn save_to(&mut self, path: &std::path::Path) -> std::io::Result<()> {
+        if self.dirty {
+            local_state::write_atomic(path, &encode(self))?;
             self.dirty = false;
         }
+        Ok(())
     }
 
     pub fn character(&self, id: u32) -> Option<&Character> {
@@ -1415,6 +1423,48 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
 
 #[cfg(test)]
 mod tests {
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn failed_disk_write_preserves_previous_save_and_retries_pending_equipment() {
+        use super::super::equipment::Look;
+        let dir = std::env::temp_dir().join(format!("survivors-save-retry-{}", std::process::id()));
+        std::fs::create_dir(&dir).unwrap();
+        let path = dir.join(FILE);
+        let mut account = parse(include_str!("../../testdata/survivors-ui/collected.txt")).unwrap();
+        account.dirty = true;
+        account.save_to(&path).unwrap();
+        assert!(!account.dirty);
+        let original = std::fs::read_to_string(&path).unwrap();
+        assert!(account.wear_piece(0, 0, None));
+        assert!(account.show_piece(0, 1, Look::Hidden));
+        let pending = encode(&account);
+        assert_ne!(pending, original);
+        // A directory at the temporary-file location forces a real atomic-writer error.
+        let obstacle = path.with_extension("tmp");
+        std::fs::create_dir(&obstacle).unwrap();
+        assert!(account.save_to(&path).is_err());
+        assert!(account.dirty);
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), original);
+        std::fs::remove_dir(&obstacle).unwrap();
+        account.save_to(&path).unwrap();
+        assert!(!account.dirty);
+        let disk = std::fs::read_to_string(&path).unwrap();
+        assert_eq!(disk, pending);
+        let restored = parse(&disk).unwrap();
+        assert_eq!(
+            encode(&restored),
+            pending,
+            "all heroes, specs and rewards survive"
+        );
+        assert_eq!(restored.classes[0].equipment.worn[0], None);
+        assert_eq!(restored.classes[0].equipment.looks[1], Look::Hidden);
+        // A clean account must not touch storage, even when a write would fail.
+        std::fs::create_dir(&obstacle).unwrap();
+        account.save_to(&path).unwrap();
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), pending);
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
     #[test]
     fn ui_fixtures_parse_and_round_trip_without_claiming_zone_clears() {
         let fresh = parse(include_str!("../../testdata/survivors-ui/fresh.txt")).unwrap();

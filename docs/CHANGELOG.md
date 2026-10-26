@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Save failure and restart verification
+
+Failed account writes now log a diagnostic while retaining pending changes. A
+real filesystem failure regression verifies the old save remains intact and a
+successful retry preserves equipment, looks, heroes, specs and rewards.
+
+![Common helmet equipped, legendary look selected, shoulder empty after restart](images/screenshots/2026-10-25-equipment-restart/restored-1280.jpg)
+
+All 39 account tests, native build, workspace Clippy, formatting and render-pass
+lint pass. A full native restart retained the deliberately weaker helmet, separate
+legendary appearance, empty shoulder slot and unchanged totals. The explicit
+“This piece” control was verified; automated Shift-right-click instead equipped
+the item, so that shortcut still needs investigation. This is not full appearance
+or platform acceptance.
+
 ## 2026-10-25 — Equipment change previews
 
 Collection now previews total equipment bonuses before equipping or removing an
