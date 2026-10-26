@@ -29,12 +29,19 @@ regressions cover modal key consumption and menu layout/input removal. All 226
 Survivors tests, native build, workspace Clippy, formatting and render lint pass.
 Inline screenshots are in CHANGELOG/README.
 
-Compared against `survivors_paused_options_gamepad.png`: category navigation,
-sliders, defaults, gamepad/key bindings and the other settings remain required.
+The category checkpoint adds three inline screenshots. Native wide/compact
+checks cover switching all three panels, MasterVolume 90→80%, auto-push Off→On,
+saved values, Enter isolation, Done and the About→build-notes route. All 33 focused
+HUD tests and workspace Clippy pass; the new regression guards the notes action
+against leaving a paused run. An actual restart and audible output were not retested.
+
+Compared against `survivors_paused_options_gamepad.png`: Audio, Graphics and About
+now use left-side category navigation and a focused bordered content panel.
+Sliders, defaults, gamepad/key bindings and the other settings remain required.
 This exposes existing controls; it does not complete the reference Options page
-or establish audible output/engine setting effectiveness. The former notes/restart
-page is retained in code but needs a dedicated About/update route now that Options
-opens real preferences. Run Options still only reports Normal difficulty.
+or establish audible output/engine setting effectiveness. About exposes the existing
+notes/restart page from the starter; it is unavailable during a paused run.
+Downloaded self-updates remain future work. Run Options still only reports Normal difficulty.
 
 
 Starter actions now use the shared gold-outline/burgundy control style. Armory,
@@ -44,8 +51,8 @@ Options/Quit share the new style on all Armory pages; Random/Look use text-sized
 controls. Native 1280×720 / 640×720 checks verified full-card Armory/Talents
 navigation, long Gates of Ahn'Qiraj text, lock preservation, Options navigation and
 Quit. Build, workspace Clippy, formatting and render lint pass. Screenshots are
-embedded in CHANGELOG/README. Options currently leads to placeholder notes, and
-Run Options only reports Normal difficulty; actual settings UI remains required.
+embedded in CHANGELOG/README. Options now opens shared preferences;
+Run Options still only reports Normal difficulty.
 Background and outdoor zone illustrations remain open.
 
 Starter portraits now include the reference's faction pill and circular class

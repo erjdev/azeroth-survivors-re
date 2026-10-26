@@ -202,7 +202,7 @@ impl Default for Armory {
 }
 
 impl Armory {
-    fn open_page(&mut self, page: Page) {
+    pub(super) fn open_page(&mut self, page: Page) {
         self.rename = None;
         self.page = page;
         self.focus = 0;

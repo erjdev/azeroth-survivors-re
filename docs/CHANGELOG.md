@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Options categories
+
+Options now uses the reference's category navigation with focused Audio, Graphics
+and About panels. About restores access to build notes and local restart controls
+from the starter. Done/Escape returns to the existing page.
+
+![Audio category](images/screenshots/2026-10-26-options-categories/audio-1280.png)
+
+![Compact Graphics category](images/screenshots/2026-10-26-options-categories/graphics-640.png)
+
+![About and build notes access](images/screenshots/2026-10-26-options-categories/about-640.png)
+
+Native 1280×720 / 640×720 checks cover category switching, saved edits, Enter
+isolation, Done and build-notes navigation. All 33 focused HUD tests, native build,
+workspace Clippy, formatting and render lint pass. Sliders, defaults, bindings,
+remaining categories and full reference styling are still open; audible output
+and an actual restart were not tested in this checkpoint.
+
 ## 2026-10-26 — Settings before a run
 
 Options now opens the shared audio, graphics and camera settings from the starter

@@ -4,6 +4,7 @@
 pub(super) mod card_growth;
 mod draft;
 pub(super) mod inline;
+mod settings;
 
 use std::collections::HashMap;
 
@@ -198,6 +199,8 @@ pub(super) enum UiAction {
     Quit,
     OpenSettings,
     CloseSettings,
+    SettingsCategory(settings::Category),
+    BuildNotes,
     Adjust(Knob, i8),
     Toggle(Knob),
 }
@@ -206,6 +209,7 @@ pub(super) enum UiAction {
 #[derive(Resource, Default)]
 pub(super) struct PausePage {
     pub open: bool,
+    category: settings::Category,
 }
 
 /// Knob clicks, applied by [`apply_settings`] so this screen does not share the cvar lock
@@ -884,60 +888,7 @@ pub(super) fn setup_hud(
                 BorderColor::all(EDGE),
             ))
             .with_children(|col| {
-                col.spawn(centered(f, "Settings", 36.0, GOLD));
-                col.spawn(Node {
-                    max_width: Val::Percent(100.0),
-                    flex_wrap: FlexWrap::Wrap,
-                    justify_content: JustifyContent::Center,
-                    row_gap: Val::Px(12.0),
-                    column_gap: Val::Px(28.0),
-                    ..default()
-                })
-                .with_children(|row| {
-                    row.spawn(Node {
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(6.0),
-                        ..default()
-                    })
-                    .with_children(|sound| {
-                        sound.spawn(text(f, "Sound", 16.0, GOLD));
-                        for knob in [Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience] {
-                            setting_row(sound, f, knob);
-                        }
-                        for knob in [Knob::Sound, Knob::MusicOn] {
-                            toggle_row(sound, f, knob);
-                        }
-                    });
-                    row.spawn(Node {
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(6.0),
-                        ..default()
-                    })
-                    .with_children(|gfx| {
-                        gfx.spawn(text(f, "Graphics", 16.0, GOLD));
-                        for knob in [Knob::View, Knob::Grass, Knob::Spells, Knob::Scale] {
-                            setting_row(gfx, f, knob);
-                        }
-                        toggle_row(gfx, f, Knob::AutoPush);
-                        if cfg!(feature = "survivors-visibility") {
-                            toggle_row(gfx, f, Knob::Cutaway);
-                        }
-                    });
-                });
-                col.spawn((
-                    button(UiAction::CloseSettings, BUTTON),
-                    Node {
-                        width: Val::Px(240.0),
-                        justify_content: JustifyContent::Center,
-                        padding: UiRect::axes(Val::Px(20.0), Val::Px(8.0)),
-                        border: UiRect::all(Val::Px(2.0)),
-                        border_radius: BorderRadius::all(Val::Px(4.0)),
-                        ..default()
-                    },
-                ))
-                .with_children(|b| {
-                    b.spawn(text(f, "Back", 20.0, Color::WHITE));
-                });
+                settings::build(col, f);
             });
         });
 
@@ -1425,6 +1376,7 @@ pub(super) fn buttons(
     mut edits: ResMut<SettingEdits>,
     mut page: ResMut<PausePage>,
     phase: Res<State<Phase>>,
+    mut armory: ResMut<super::armory::Armory>,
 ) {
     for (interaction, action, base, mut bg) in &mut presses {
         match interaction {
@@ -1440,6 +1392,15 @@ pub(super) fn buttons(
                     }
                     (UiAction::OpenSettings, Phase::Paused) => page.open = true,
                     (UiAction::CloseSettings, Phase::Paused | Phase::Menu) => page.open = false,
+                    (UiAction::SettingsCategory(category), Phase::Paused | Phase::Menu)
+                        if page.open =>
+                    {
+                        page.category = category;
+                    }
+                    (UiAction::BuildNotes, Phase::Menu) if page.open => {
+                        page.open = false;
+                        armory.open_page(super::armory::Page::Notes);
+                    }
                     (UiAction::Adjust(knob, dir), Phase::Paused | Phase::Menu) if page.open => {
                         edits.adjust.push((knob, dir));
                     }
@@ -1545,7 +1506,9 @@ pub(super) fn sync_pause_page(
     page: Res<PausePage>,
     mut main: Query<&mut Node, With<PauseMain>>,
     mut settings: Query<&mut Node, (With<SettingsPanel>, Without<PauseMain>)>,
+    categories: settings::Categories,
 ) {
+    categories.sync(&page);
     let main_display = if page.open {
         Display::None
     } else {
@@ -3570,7 +3533,10 @@ mod settings_navigation_tests {
                 ..default()
             });
             world.init_resource::<Run>();
-            world.insert_resource(PausePage { open: true });
+            world.insert_resource(PausePage {
+                open: true,
+                ..default()
+            });
             world
                 .resource_mut::<ButtonInput<KeyCode>>()
                 .press(KeyCode::Enter);
@@ -3610,7 +3576,10 @@ mod settings_navigation_tests {
     fn starter_settings_remove_menu_from_layout_and_back_restores_it() {
         let mut world = World::new();
         world.insert_resource(State::new(Phase::Menu));
-        world.insert_resource(PausePage { open: true });
+        world.insert_resource(PausePage {
+            open: true,
+            ..default()
+        });
         world.init_resource::<super::super::cards::PreviewHand>();
         let menu = world
             .spawn((MenuRoot, Visibility::Inherited, Node::default()))
