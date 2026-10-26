@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Keep Armory keyboard/controller focus
+
+Character, Collection and other Armory actions now retain focus through page
+rebuilds, extending the existing Rewards behavior. Repeated appearance changes no
+longer require navigating back to the same control. Page, hero and category changes
+clear focus, and restoration never repeats an action.
+
+![Skin control stays focused after repeated changes](images/screenshots/2026-10-26-armory-focus/character-1280.png)
+
+Native keyboard checks cover skin changes 2→1→10, wide-to-compact resizing and a
+compact hair-style change. The saved fixture reflects those changes. The reference
+Character layout is preserved; the white outline provides navigation feedback.
+282 app tests, native build, workspace Clippy, formatting and render lint pass.
+Physical-controller acceptance remains open.
+
 ## 2026-10-26 — Fast passive card previews
 
 Live UI previews now accept passive acquisitions and upgrades, including selected

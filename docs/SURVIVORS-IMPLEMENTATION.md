@@ -4699,3 +4699,26 @@ later instruction. This verifies preview presentation, not live run acquisition.
 Validation: all 12 preview tests pass, including catalog/rank/source rejection,
 trained versus baseline values, switching hand types and original-state restoration.
 Native build, workspace Clippy, formatting and render lint pass.
+
+
+### 2026-10-26 — Armory action focus retention
+
+Generalize the Rewards-only action identity to starter and Armory controls, scoped
+by page, selected hero/class and applicable category (Rewards, Achievements, hero
+management). Talent nodes retain their rank-independent identity. A unique visible
+replacement receives focus after layout without replaying its action. Missing,
+disabled or ambiguous replacements drop the identity; page/hero/category changes,
+modal UI, typing and pointer handoff clear it. This supports repeated appearance,
+loadout and navigation actions when a page rebuilds. Physical-controller acceptance
+and comprehensive per-page traversal remain open.
+
+Native keyboard checks confirm two successive skin changes (2→1→10) keep the same
+outline, resizing to 640×720 restores/reveals the control, and navigating to Hair
+style then selecting changes 2→1 while retaining focus. Saved fixture feature bytes
+confirm both values. The wide screenshot is embedded in CHANGELOG/README; Character
+layout follows the existing intention comparison. All 282 app tests pass, including
+replacement/layout-delay/no-replay/hero-page boundaries across seven page/action
+pairs and the existing Rewards category, disabled-control and pointer guards.
+Native play build passes. This does not establish every page's live traversal or
+physical controller acceptance.
+Workspace Clippy, formatting and render lint also pass.
