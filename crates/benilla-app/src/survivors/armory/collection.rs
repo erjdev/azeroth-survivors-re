@@ -280,7 +280,7 @@ pub(super) fn build(
                     text(
                         body,
                         font,
-                        format!("{found} / {} collected", campaign::PIECES),
+                        format!("Common–Legendary: {found} / {} collected", campaign::PIECES),
                         layout.body_size,
                         GOLD,
                     );
@@ -398,32 +398,6 @@ pub(super) fn equipment(
                 });
         });
     }
-    if account
-        .supplemental
-        .keys()
-        .any(|key| survivors_core::supplemental_gear::by_key(key).is_some_and(|p| p.class == class))
-    {
-        super::typography::heading(
-            ui,
-            font,
-            "Additional collected gear",
-            layout.body_size,
-            GOLD,
-        );
-    }
-    for key in account.supplemental.keys() {
-        if let Some(piece) =
-            survivors_core::supplemental_gear::by_key(key).filter(|p| p.class == class)
-        {
-            chip(
-                ui,
-                font,
-                piece.name,
-                Act::InspectSupplemental(key.to_owned()),
-                armory.supplemental_piece.as_deref() == Some(key),
-            );
-        }
-    }
     super::typography::heading(ui, font, "Equipment bonuses", layout.title_size, GOLD);
     text(
         ui,
@@ -492,11 +466,32 @@ fn grid(
             }
         });
     }
-    for band in 0..campaign::BANDS {
-        let found = progress.pieces[band * campaign::GRID_SLOTS..(band + 1) * campaign::GRID_SLOTS]
-            .iter()
-            .filter(|n| **n > 0)
-            .count();
+    let poor: Vec<_> = (0..campaign::GRID_SLOTS)
+        .filter_map(|slot| {
+            survivors_core::supplemental_gear::piece(
+                class,
+                slot,
+                survivors_core::gear_tier::GearTier::Poor,
+            )
+        })
+        .collect();
+    for band in std::iter::once(None).chain((0..campaign::BANDS).map(Some)) {
+        let color = band
+            .map(super::door::band_color)
+            .unwrap_or(Color::srgb(0.65, 0.65, 0.65));
+        let found = band.map_or_else(
+            || {
+                poor.iter()
+                    .filter(|piece| account.supplemental.owns(class, &piece.key))
+                    .count()
+            },
+            |band| {
+                progress.pieces[band * campaign::GRID_SLOTS..(band + 1) * campaign::GRID_SLOTS]
+                    .iter()
+                    .filter(|n| **n > 0)
+                    .count()
+            },
+        );
         ui.spawn(Node {
             width: Val::Percent(100.0),
             column_gap: Val::Px(3.0),
@@ -524,9 +519,10 @@ fn grid(
                 text(
                     label,
                     font,
-                    campaign::BANDS_NAMED[band],
+                    band.map(|band| campaign::BANDS_NAMED[band])
+                        .unwrap_or("Poor"),
                     layout.body_size,
-                    super::door::band_color(band),
+                    color,
                 );
                 text(
                     label,
@@ -536,7 +532,10 @@ fn grid(
                     DIM,
                 );
                 let mut zones = Vec::new();
-                for drop in campaign::DROPS.iter().filter(|drop| drop.band == band) {
+                for drop in campaign::DROPS
+                    .iter()
+                    .filter(|drop| Some(drop.band) == band)
+                {
                     let name = campaign::ZONES[drop.zone].name;
                     if !zones.contains(&name) {
                         zones.push(name);
@@ -546,14 +545,29 @@ fn grid(
                     text(label, font, zones.join(" · "), layout.body_size - 3.0, DIM);
                 }
             });
-            for slot in 0..campaign::GRID_SLOTS {
-                let index = band * campaign::GRID_SLOTS + slot;
-                let owned = progress.pieces[index] > 0;
-                let equipped = progress.equipment.worn[slot] == Some(band as u8);
-                let shown = progress.equipment.looks[slot] == Look::Piece(band as u8);
+            for (slot, piece) in poor.iter().enumerate() {
+                let index = band.map(|band| band * campaign::GRID_SLOTS + slot);
+                let owned = index.map_or_else(
+                    || account.supplemental.owns(class, &piece.key),
+                    |i| progress.pieces[i] > 0,
+                );
+                let equipped = band.map_or_else(
+                    || progress.equipment.supplemental_worn()[slot].as_deref() == Some(&piece.key),
+                    |band| progress.equipment.worn[slot] == Some(band as u8),
+                );
+                let shown = band.map_or_else(
+                    || progress.equipment.supplemental_looks()[slot].as_deref() == Some(&piece.key),
+                    |band| progress.equipment.looks[slot] == Look::Piece(band as u8),
+                );
+                let selected = index.map_or_else(
+                    || armory.supplemental_piece.as_deref() == Some(&piece.key),
+                    |index| armory.supplemental_piece.is_none() && armory.piece == index,
+                );
                 row.spawn((
                     Button,
-                    Act::InspectPiece(index),
+                    index
+                        .map(Act::InspectPiece)
+                        .unwrap_or_else(|| Act::InspectSupplemental(piece.key.clone())),
                     Node {
                         flex_grow: if compact { 0.0 } else { 1.0 },
                         flex_basis: if compact {
@@ -564,26 +578,18 @@ fn grid(
                         min_width: Val::Px(if compact { 54.0 } else { 0.0 }),
                         height: Val::Px(layout.cell_height + if compact { 20.0 } else { 0.0 }),
                         flex_direction: FlexDirection::Column,
-                        border: UiRect::all(Val::Px(
-                            if armory.supplemental_piece.is_none() && armory.piece == index {
-                                2.0
-                            } else {
-                                1.0
-                            },
-                        )),
+                        border: UiRect::all(Val::Px(if selected { 2.0 } else { 1.0 })),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    BorderColor::all(
-                        if armory.supplemental_piece.is_none() && armory.piece == index {
-                            GOLD
-                        } else if owned {
-                            super::door::band_color(band)
-                        } else {
-                            Color::srgb(0.20, 0.18, 0.12)
-                        },
-                    ),
+                    BorderColor::all(if selected {
+                        GOLD
+                    } else if owned {
+                        color
+                    } else {
+                        Color::srgb(0.20, 0.18, 0.12)
+                    }),
                     BackgroundColor(Color::srgb(0.07, 0.06, 0.04)),
                 ))
                 .with_children(|cell| {
@@ -600,14 +606,24 @@ fn grid(
                         ..default()
                     })
                     .with_children(|cell| {
-                        let has_icon = super::super::gear_icons::spawn_cell(
-                            cell,
-                            class,
-                            slot,
-                            band,
-                            layout.cell_height * 0.86,
-                            owned,
-                        );
+                        let has_icon = if let Some(band) = band {
+                            super::super::gear_icons::spawn_cell(
+                                cell,
+                                class,
+                                slot,
+                                band,
+                                layout.cell_height * 0.86,
+                                owned,
+                            )
+                        } else {
+                            super::super::gear_icons::spawn_visual_cell(
+                                cell,
+                                piece.visual,
+                                layout.cell_height * 0.86,
+                                owned,
+                            );
+                            true
+                        };
                         if !owned || !has_icon {
                             cell.spawn((
                                 hud::text_bundle(
@@ -668,7 +684,7 @@ pub(super) fn detail(
         .supplemental_piece
         .as_deref()
         .and_then(survivors_core::supplemental_gear::by_key)
-        .filter(|p| p.class == class && account.supplemental.owns(class, &p.key))
+        .filter(|p| p.class == class)
     {
         super::super::gear_icons::spawn_visual(ui, piece.visual, layout.title_size * 2.6);
         text(
@@ -692,34 +708,48 @@ pub(super) fn detail(
             layout.body_size,
             BONUS,
         );
-        let equipped =
-            progress.equipment.supplemental_worn()[piece.slot].as_deref() == Some(&piece.key);
-        let mut preview = progress.equipment.clone();
-        if equipped {
-            preview.wear(&progress.pieces, piece.slot, None);
-        } else {
-            preview.wear_supplemental(class, &account.supplemental, piece.slot, &piece.key);
-        }
-        for (line, color) in hud::card_growth::bonus_changes(
-            progress
-                .equipment
-                .bonus(class, &progress.pieces, &account.supplemental),
-            preview.bonus(class, &progress.pieces, &account.supplemental),
-            "No change to equipment bonuses",
-        ) {
-            text(ui, font, line, layout.body_size, color);
-        }
-        chip(
+        let owned = account.supplemental.owns(class, &piece.key);
+        text(
             ui,
             font,
-            if equipped { "Unequip" } else { "Equip" },
-            if equipped {
-                Act::WearPiece(piece.slot, None)
+            if owned {
+                "In your collection"
             } else {
-                Act::WearSupplemental(piece.key.clone())
+                "Not collected"
             },
-            equipped,
+            layout.body_size,
+            if owned { BONUS } else { DIM },
         );
+        if owned {
+            let equipped =
+                progress.equipment.supplemental_worn()[piece.slot].as_deref() == Some(&piece.key);
+            let mut preview = progress.equipment.clone();
+            if equipped {
+                preview.wear(&progress.pieces, piece.slot, None);
+            } else {
+                preview.wear_supplemental(class, &account.supplemental, piece.slot, &piece.key);
+            }
+            for (line, color) in hud::card_growth::bonus_changes(
+                progress
+                    .equipment
+                    .bonus(class, &progress.pieces, &account.supplemental),
+                preview.bonus(class, &progress.pieces, &account.supplemental),
+                "No change to equipment bonuses",
+            ) {
+                text(ui, font, line, layout.body_size, color);
+            }
+            chip(
+                ui,
+                font,
+                if equipped { "Unequip" } else { "Equip" },
+                if equipped {
+                    Act::WearPiece(piece.slot, None)
+                } else {
+                    Act::WearSupplemental(piece.key.clone())
+                },
+                equipped,
+            );
+        }
         text(
             ui,
             font,
@@ -727,13 +757,15 @@ pub(super) fn detail(
             layout.body_size,
             DIM,
         );
-        chip(
-            ui,
-            font,
-            "This piece",
-            Act::ShowSupplemental(piece.key.clone()),
-            progress.equipment.supplemental_looks()[piece.slot].as_deref() == Some(&piece.key),
-        );
+        if owned {
+            chip(
+                ui,
+                font,
+                "This piece",
+                Act::ShowSupplemental(piece.key.clone()),
+                progress.equipment.supplemental_looks()[piece.slot].as_deref() == Some(&piece.key),
+            );
+        }
         for (label, look) in [("Worn piece", Look::Worn), ("Hidden", Look::Hidden)] {
             chip(
                 ui,
@@ -1076,6 +1108,63 @@ mod tests {
     use super::*;
 
     #[test]
+    fn poor_inspector_only_offers_owned_equipment_and_appearance_actions() {
+        for owned in [false, true] {
+            let mut account = super::super::super::account::blank();
+            let key = "poor:hunter:hands";
+            if owned {
+                account.supplemental.collect(2, key);
+            }
+            let armory = Armory {
+                supplemental_piece: Some(key.into()),
+                ..default()
+            };
+            let selection = Selection {
+                class: Some(2),
+                ..default()
+            };
+            let mut world = World::new();
+            world
+                .commands()
+                .spawn(Node::default())
+                .with_children(|panel| {
+                    detail(
+                        panel,
+                        &Handle::default(),
+                        &armory,
+                        &account,
+                        &selection,
+                        &Layout::default(),
+                    );
+                });
+            world.flush();
+            let actions: Vec<_> = world.query::<&Act>().iter(&world).collect();
+            assert_eq!(
+                actions
+                    .iter()
+                    .any(|a| matches!(a, Act::WearSupplemental(k) if k == key)),
+                owned
+            );
+            assert_eq!(
+                actions
+                    .iter()
+                    .any(|a| matches!(a, Act::ShowSupplemental(k) if k == key)),
+                owned
+            );
+            assert!(world
+                .query::<&Text>()
+                .iter(&world)
+                .any(|t| t.0 == "Double Mail Gloves"));
+            assert!(world.query::<&Text>().iter(&world).any(|t| t.0
+                == if owned {
+                    "In your collection"
+                } else {
+                    "Not collected"
+                }));
+        }
+    }
+
+    #[test]
     fn empty_and_full_class_collections_build_without_using_the_legacy_off_hand() {
         for class in 0..super::super::CLASSES.len() {
             for (owned, compact) in [(false, false), (true, false), (false, true), (true, true)] {
@@ -1124,6 +1213,17 @@ mod tests {
                     assert!(actions
                         .iter()
                         .any(|act| matches!(act, Act::InspectPiece(found) if *found == index)));
+                }
+                for slot in 0..campaign::GRID_SLOTS {
+                    let piece = survivors_core::supplemental_gear::piece(
+                        class,
+                        slot,
+                        survivors_core::gear_tier::GearTier::Poor,
+                    )
+                    .unwrap();
+                    assert!(actions
+                        .iter()
+                        .any(|a| matches!(a, Act::InspectSupplemental(key) if key == &piece.key)));
                 }
                 let panels = world.query::<&CollectionScroll>().iter(&world).count();
                 assert_eq!(panels, if compact { 1 } else { 3 });

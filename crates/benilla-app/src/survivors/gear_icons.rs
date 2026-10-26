@@ -52,6 +52,16 @@ pub(super) fn spawn_cell(
     let Some(visual) = survivors_core::gear_visuals::piece(class, slot, band) else {
         return false;
     };
+    spawn_visual_cell(ui, visual, size, owned);
+    true
+}
+
+pub(super) fn spawn_visual_cell(
+    ui: &mut ChildSpawnerCommands,
+    visual: survivors_core::gear_visuals::GearVisual,
+    size: f32,
+    owned: bool,
+) {
     ui.spawn((
         GearIcon(
             visual.display_id,
@@ -73,7 +83,6 @@ pub(super) fn spawn_cell(
             ..default()
         },
     ));
-    true
 }
 
 pub(super) fn fill(

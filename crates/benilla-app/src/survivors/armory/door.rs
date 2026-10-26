@@ -183,7 +183,7 @@ fn armory_header(
                 ),
                 (
                     format!(
-                        " · {count} of {} pieces collected · gear and looks are kept per class",
+                        " · Common–Legendary: {count}/{} · gear and looks are kept per class",
                         campaign::PIECES
                     ),
                     DIM,

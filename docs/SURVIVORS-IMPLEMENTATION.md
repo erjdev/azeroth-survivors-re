@@ -5178,3 +5178,16 @@ UI invalidation includes supplemental ownership, worn and appearance choices.
 Still open: natural Poor acquisition, full catalog-row integration and completion
 semantics, raid-specific identities/acquisition/set builds, and Windows in-map
 appearance acceptance. This checkpoint does not grant Poor items to normal saves.
+
+### 2026-10-26 — Poor tier in the Collection grid
+
+Poor now occupies a nine-slot catalog row ahead of Common, using the same responsive
+cells, dim uncollected art, selection borders and E/L markers as the existing tiers.
+The temporary supplemental button list has been removed. Every class can inspect
+its nine Poor pieces, including unowned entries; ownership gates equip/look actions.
+Right-click equips or unequips owned Poor pieces; Shift-right-click selects their
+appearance, matching the existing grid interaction.
+
+The existing 54-piece count is explicitly labeled Common–Legendary; Poor has its own
+row count and does not silently change collection-achievement or cloak requirements.
+Natural acquisition and raid-specific catalog rows/sets still require implementation.

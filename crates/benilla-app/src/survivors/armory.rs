@@ -383,6 +383,26 @@ pub(super) fn input(
                     }
                     account.save();
                 }
+                Act::InspectSupplemental(key) => {
+                    let class = picked_class(&account, &selection);
+                    if let Some(piece) =
+                        survivors_core::supplemental_gear::by_key(key).filter(|piece| {
+                            piece.class == class && account.supplemental.owns(class, key)
+                        })
+                    {
+                        if cosmetic_click {
+                            account.select_supplemental(class, key, true);
+                        } else if account.classes[class].equipment.supplemental_worn()[piece.slot]
+                            .as_deref()
+                            == Some(key)
+                        {
+                            account.wear_piece(class, piece.slot, None);
+                        } else {
+                            account.select_supplemental(class, key, false);
+                        }
+                        account.save();
+                    }
+                }
                 Act::Learn(node) => {
                     if let Some(id) = selection.character {
                         if account.unlearn(id, *node) {

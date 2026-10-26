@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Poor rarity collection row
+
+Poor gear now appears in the Collection grid with nine slots, ownership counts,
+dim uncollected icons and equipment/appearance markers. Right-click and
+Shift-right-click work consistently across tiers. Removed the temporary extra
+button list; the existing 54-piece counter now clearly names Common–Legendary.
+
+Verified 296 data-required app tests, native build, Clippy and menu layouts at
+1280×720 and 640×720. The seeded preview confirmed unowned inspection and separate
+equipment/appearance changes. Natural Poor drops remain unfinished.
+
+![Poor rarity row with combined equipment and appearance marker](images/screenshots/2026-10-26-poor-grid/collection-1280.png)
+
+![Compact Collection grid with Poor tier](images/screenshots/2026-10-26-poor-grid/collection-640.png)
+
 ## 2026-10-26 — Poor gear equipment and appearance
 
 Owned Poor pieces now support inspection, equip/unequip and independent appearance

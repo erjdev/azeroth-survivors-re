@@ -45,7 +45,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-26-poor-loadout/collection-1280.png" alt="Collection"><br>2026-10-26 · Rarity grid, Poor gear inspection and equipment comparison.</td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-26-poor-grid/collection-1280.png" alt="Collection"><br>2026-10-26 · Poor–Legendary rarity rows, equipment and independent appearance markers.</td>
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-25-drop-tables-responsive/drops-1280.jpg" alt="Drop Tables"><br>2026-10-25 · Encounter sources, chances and item details.</td>
   </tr>
   <tr>
