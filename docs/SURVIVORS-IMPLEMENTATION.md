@@ -4562,3 +4562,26 @@ README. The data audit verifies 183/432 nodes; milestone coverage remains 78/81.
 
 Validation: 137 core and 273 app tests pass with checkout data. Native play build,
 workspace Clippy, formatting and render lint pass.
+
+### Talent icon scaling and responsive evidence — 2026-10-26
+
+Compared with `intentions/survivors_talent_tab.png`: retain the three illustrated
+trees, rank badges, centered prerequisite lines and separate detail panel. Compact
+screens intentionally wrap panels. Native 1024×768 inspection exposed fixed-size
+icons crowding adjacent rank badges as artwork shrank. Icons now use 12% of tree
+width (36/300), capped at 36 logical pixels, square and centered on their grid
+coordinates. Background aspect ratio and readable text sizes are preserved.
+
+Native Warlock checks at 640×720, 1024×768 and 1280×720 verify spacing, long green
+descriptions and reflow. Before the fix, compact interaction checks verified an
+independent Spec 1 purchase and restoration of Spec 3's lower-panel scroll position.
+After the fix, 4:3 left-click increased Improved Corruption from 1 to 2, right-click
+restored rank 1 and the unspent total, and a locked Destructive Reach refused spend.
+The updated compact page still reaches its lower tree and complete description.
+Screenshots include before/after and final compact/wide views; README is updated.
+These checks do not establish all-class, physical-controller or Windows acceptance.
+
+Native play build (43 seconds), workspace Clippy, formatting and render lint pass.
+No mechanics changed; the prior 137 core / 273 app result was not rerun for this
+layout-only change. Reusable `talents-640.txt`, `talents-1024.txt` and
+`talents-1280.txt` presets are under `docs/ui-previews/`.

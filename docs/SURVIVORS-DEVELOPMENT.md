@@ -363,6 +363,12 @@ focus but preserves name drafts and account data. Changes wait while a run is
 active and apply when returning to the menu. This opt-in native development tool
 is excluded from player and wasm builds. It does not seed fixture accounts.
 
+Talent viewport presets are available in `docs/ui-previews/talents-640.txt`,
+`talents-1024.txt` and `talents-1280.txt` for compact, 4:3 and wide checks. Copy one
+over the watched file to resize the same running menu. They use the selected hero
+and spec without spending points; manual clicks still perform normal talent actions,
+so use an isolated fixture account for interaction checks.
+
 Rewards and Achievements also accept an optional `category` key. Category changes
 apply with the page and dimensions in the same reload; omitting it preserves the
 last manually selected category. Unsupported categories, duplicate keys and a

@@ -138,7 +138,7 @@ Codex details describe healing and defensive spells with their actual effects.
 
 Talent artwork keeps its painted proportions at wide and compact sizes, without padded blank edges.
 
-![Proportioned talent backgrounds](docs/images/screenshots/2026-10-26-playtest-fixes/talents-1280.png)
+![Proportional talent layout at 4:3](docs/images/screenshots/2026-10-26-talent-responsive/warlock-1024.png)
 
 Paladin Retribution now includes Sanctity Aura and a timed Vengeance damage bonus.
 

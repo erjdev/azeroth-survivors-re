@@ -355,10 +355,13 @@ pub(super) fn build(
                         let available = unspent > 0 && super::talent_ranks_ok(nodes, &proposed);
                         let dim = if rank > 0 || available { 1.0 } else { 0.4 };
                         let (x,y) = center(node);
+                        // Scale the 36px icon with the 300px painted tree so rank labels
+                        // cannot crowd the next row when four panels fit a narrower window.
                         grid.spawn((Button, Act::Talent(node.id), TalentInfo { class: hero.class, id: node.id, spell: node.ranks[0], rank, max, milestone: None },
                             Node { position_type: PositionType::Absolute, left: Val::Percent(x), top: Val::Percent(y),
-                                margin: UiRect { left: Val::Px(-ICON/2.0), top: Val::Px(-ICON/2.0), ..default() },
-                                width: Val::Px(ICON), height: Val::Px(ICON), border: UiRect::all(Val::Px(2.0)), ..default() },
+                                width: Val::Percent(12.0), max_width: Val::Px(ICON), aspect_ratio: Some(1.0),
+                                border: UiRect::all(Val::Px(2.0)), ..default() },
+                            UiTransform { translation: Val2::percent(-50.0, -50.0), ..default() },
                             BorderColor::all(if rank == max { GOLD } else if available { Color::srgb(0.3, 0.8, 0.3) } else { DIM }),
                             ImageNode { color: Color::srgba(1.0, 1.0, 1.0, dim), ..default() }, hud::SpellIcon(node.ranks[0]), hud::IconDim(dim)))
                         .with_children(|icon| {

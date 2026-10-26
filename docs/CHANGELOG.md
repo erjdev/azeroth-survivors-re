@@ -3,6 +3,29 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Talent icons scale with their artwork
+
+Fixed crowded talent rows at 1024×768: icons now scale with tree width, capped at
+their existing size. Rank labels remain readable and prerequisite lines keep their
+centers. Added compact, 4:3 and wide live-preview presets.
+
+Before (fixed-size icons crowded rank labels):
+
+![Before at 1024×768](images/screenshots/2026-10-26-talent-responsive/before-1024.png)
+
+After:
+
+![Proportional talent icons at 1024×768](images/screenshots/2026-10-26-talent-responsive/warlock-1024.png)
+
+![Compact talent description](images/screenshots/2026-10-26-talent-responsive/warlock-640.png)
+
+![Wide talent layout](images/screenshots/2026-10-26-talent-responsive/warlock-1280.png)
+
+Native macOS checks cover all three sizes, long descriptions, lower-panel scrolling,
+spend/refund and independent spec state. Native build, workspace Clippy, formatting
+and render lint pass. Other classes, physical controllers and Windows visual
+acceptance remain open; this checkpoint changes layout only.
+
 ## 2026-10-26 — Targeting-range talents
 
 Hawk Eye, Storm Reach, Grim Reach, Destructive Reach and Nature’s Reach now extend
