@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Cosmetic shortcut release handling
+
+Right-click now remembers Shift from the start of the gesture and accepts a
+Shift release in the mouse-up frame. Two regressions cover both Shift keys,
+same-frame press/release and an ordinary following click without modifier leakage.
+Native build, workspace Clippy, formatting and render-pass lint pass.
+
+**Native acceptance remains open:** the automated macOS modified click still
+equips the item. The automation tool cannot issue a standalone held Shift key,
+so this does not establish the source of the remaining mismatch. Explicit look
+buttons remain usable; this checkpoint is not a claim that the observed shortcut
+problem is resolved.
+
+![Unresolved automated gesture equips the legendary helmet instead of choosing its look](images/screenshots/2026-10-25-shift-look/automated-unresolved-1280.jpg)
+
 ## 2026-10-25 — Save failure and restart verification
 
 Failed account writes now log a diagnostic while retaining pending changes. A

@@ -9,6 +9,7 @@ mod codex_page;
 pub(super) use codex_page::refresh_details as codex_details;
 mod collection;
 mod controls;
+mod shortcuts;
 pub(super) use controls::style as style_controls;
 mod door;
 mod drop_page;
@@ -278,6 +279,7 @@ pub(super) fn input(
     keyboard: (
         Res<ButtonInput<KeyCode>>,
         MessageReader<bevy::input::keyboard::KeyboardInput>,
+        Local<shortcuts::RightClickModifiers>,
     ),
     mut typing: ResMut<Typing>,
     mut armory: ResMut<Armory>,
@@ -293,12 +295,14 @@ pub(super) fn input(
     mut granted: Local<bool>,
     mut exit: MessageWriter<AppExit>,
 ) {
-    let (keys, mut keyboard) = keyboard;
+    let (keys, mut keyboard, mut shortcut) = keyboard;
     if *phase.get() != Phase::Menu {
         typing.0 = false;
         keyboard.clear();
+        *shortcut = default();
         return;
     }
+    let cosmetic_click = shortcut.update(&pointer.mouse, &keys);
     if !*granted {
         if account.grant_new() {
             account.save();
@@ -345,7 +349,7 @@ pub(super) fn input(
                     let class = picked_class(&account, &selection);
                     let slot = index % campaign::GRID_SLOTS;
                     let band = (index / campaign::GRID_SLOTS) as u8;
-                    if keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight) {
+                    if cosmetic_click {
                         account.show_piece(class, slot, super::equipment::Look::Piece(band));
                     } else {
                         let worn = account.classes[class].equipment.worn[slot];

@@ -560,6 +560,12 @@ cosmetic override and an explicitly empty shoulder slot with identical totals.
 The screenshot is inline in the changelog. Explicit appearance buttons work;
 automated Shift-right-click equipped the item instead, so modifier-shortcut
 acceptance remains unresolved. This does not prove all platform/model variants.
+Follow-up: gesture state now retains Shift through release, with two passing
+regressions for both Shift keys, coalesced events and no leakage. The automated
+macOS modified click still equips; standalone held-modifier automation is unsupported.
+Do not close shortcut acceptance without verifying actual native modifier delivery
+and the resulting appearance action. Explicit appearance buttons remain the verified path.
+
 
 Add per-class selected gear for all nine slots, with explicit empty slots. Migrate old
 saves to their former strongest-owned loadout once. New drops fill an empty slot but do
