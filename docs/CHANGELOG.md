@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Keep Rewards focus while editing
+
+Keyboard/controller focus now stays on the same Rewards control after staging or
+undoing an upgrade. Disabled controls clear focus; switching categories or using
+the pointer cannot restore an obsolete action. The reference Confirm/Undo flow is
+preserved, and the plan's stale per-card undo note is corrected.
+
+![Focus retained after two keyboard upgrades](images/screenshots/2026-10-26-reward-focus/two-upgrades-1280.png)
+
+![Focus retained after undoing one rank](images/screenshots/2026-10-26-reward-focus/undo-focused-1280.png)
+
+254 app tests, native build, workspace Clippy, formatting and render lint pass.
+Native checks cover consecutive upgrades/undos, repricing, disabled-control inactivity
+and an unchanged account file. Physical controller acceptance remains open.
+
 ## 2026-10-26 — Warlock milestone builds
 
 All nine Warlock milestones now have explicit Survivors effects: Affliction adds

@@ -71,6 +71,10 @@ All nine Warlock milestones now have implemented Survivors effects.
 
 ![Warlock Siphon Life milestone](docs/images/screenshots/2026-10-26-warlock-milestones/siphon-life-1280.png)
 
+Rewards keeps keyboard/controller focus while staging or undoing upgrades.
+
+![Rewards focus after two keyboard upgrades](docs/images/screenshots/2026-10-26-reward-focus/two-upgrades-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

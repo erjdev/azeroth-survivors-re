@@ -125,7 +125,12 @@ Backspace validation refunded rank 4→3, returned one point and verified the sa
 spec. Talent and milestone focus now survives tree entity replacement, including
 the intermediate layout frame, using rank-independent identity scoped to the hero.
 Restoration does not replay an action and clears on page/hero changes or modal
-and pointer handoff. General focus retention on other pages remains open.
+and pointer handoff. Rewards now also retains focus by action, hero and category
+through rebuild/layout delay. Repeated +/− actions preserve their outline; missing
+or disabled controls drop focus, and category/page changes, modals and pointer input
+clear the identity. Native 1280×720 checks verify two upgrades, two individual undos,
+correct repricing, disabled-control inactivity and an unchanged account file.
+Physical controller acceptance and focus retention on other pages remain open.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.
@@ -3932,7 +3937,9 @@ upgrades preview 245→215 at 1280×720 and 640×720. Restart retains the confir
 are embedded in CHANGELOG and README. Tests cover reset preview/Undo, atomic stale
 batch rejection, preserved intervening changes, insufficient points and duplicate
 confirmation. 177 Survivors tests, native build, workspace test compilation, Clippy,
-formatting and render-pass lint pass. Per-card minus controls remain open.
+formatting and render-pass lint pass. The subsequent per-card undo milestone
+implemented minus controls for pending perk/companion purchases and resets, with
+dependency-safe replay (see the 2026-10-25 changelog).
 
 ### Placeholder achievement gates — 2026-10-25
 

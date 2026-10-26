@@ -226,7 +226,7 @@ impl Armory {
 #[derive(Component)]
 pub(super) struct ArmoryRoot;
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, PartialEq, Eq)]
 pub(super) enum Act {
     Page(Page),
     ManageHeroes(bool),

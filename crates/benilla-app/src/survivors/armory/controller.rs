@@ -5,6 +5,7 @@ use super::*;
 pub(in crate::survivors) struct ControllerFocus {
     focused: Option<Entity>,
     talent: Option<(Option<u32>, TalentKey)>,
+    reward: Option<(Option<u32>, u8, Act)>,
     pub activated: Option<Entity>,
     pub refund: Option<Entity>,
     pub keyboard_selected: bool,
@@ -87,6 +88,7 @@ pub(in crate::survivors) fn navigate(
             &UiGlobalTransform,
             &InheritedVisibility,
             Option<&TalentInfo>,
+            Option<&Act>,
         ),
         (Or<(With<Act>, With<TalentInfo>)>, With<Button>),
     >,
@@ -109,6 +111,12 @@ pub(in crate::survivors) fn navigate(
         }
         focus.talent = None;
     }
+    if focus.reward.as_ref().is_some_and(|(owner, category, _)| {
+        armory.page != Page::Rewards || *owner != hero || *category != armory.reward_page
+    }) {
+        focus.focused = None;
+        focus.reward = None;
+    }
     let eligible = *phase.get() == Phase::Menu
         && !settings.open
         && !preview.0
@@ -117,29 +125,56 @@ pub(in crate::survivors) fn navigate(
     if !eligible || mouse.get_just_pressed().next().is_some() {
         focus.focused = None;
         focus.talent = None;
+        focus.reward = None;
     } else {
         let items: Vec<_> = buttons
             .iter()
-            .filter(|(_, node, _, visible, _)| visible.get() && node.size().min_element() > 0.)
-            .map(|(entity, node, transform, _, _)| Item {
+            .filter(|(_, node, _, visible, _, _)| visible.get() && node.size().min_element() > 0.)
+            .map(|(entity, node, transform, _, _, _)| Item {
                 entity,
                 center: transform.translation,
                 size: node.size(),
             })
             .collect();
         if !items.iter().any(|item| Some(item.entity) == focus.focused) {
-            focus.focused = focus.talent.and_then(|(_, key)| {
-                items
-                    .iter()
-                    .find(|item| {
+            focus.focused = focus
+                .talent
+                .and_then(|(_, key)| {
+                    items
+                        .iter()
+                        .find(|item| {
+                            buttons
+                                .get(item.entity)
+                                .ok()
+                                .and_then(|(_, _, _, _, info, _)| info)
+                                .is_some_and(|info| TalentKey::from(info) == key)
+                        })
+                        .map(|item| item.entity)
+                })
+                .or_else(|| {
+                    let (_, _, action) = focus.reward.as_ref()?;
+                    let mut matches = items.iter().filter(|item| {
                         buttons
                             .get(item.entity)
                             .ok()
-                            .and_then(|(_, _, _, _, info)| info)
-                            .is_some_and(|info| TalentKey::from(info) == key)
-                    })
-                    .map(|item| item.entity)
-            });
+                            .and_then(|(_, _, _, _, _, act)| act)
+                            .is_some_and(|act| act == action)
+                    });
+                    let candidate = matches.next()?.entity;
+                    matches.next().is_none().then_some(candidate)
+                });
+            // A missing/disabled action is not a promise to focus it if it returns later.
+            // Keep the identity only while its replacement is waiting for layout.
+            if focus.focused.is_none()
+                && !buttons.is_empty()
+                && focus.reward.as_ref().is_some_and(|(_, _, action)| {
+                    !buttons
+                        .iter()
+                        .any(|(_, _, _, visible, _, act)| visible.get() && act == Some(action))
+                })
+            {
+                focus.reward = None;
+            }
         }
         let pad = pads.iter().find(|pad| {
             [
@@ -162,6 +197,7 @@ pub(in crate::survivors) fn navigate(
                 // The shared Options handler owns this press later in the frame.
                 focus.focused = None;
                 focus.talent = None;
+                focus.reward = None;
             } else if pressed(GamepadButton::East) {
                 if armory.page == Page::Heroes && armory.manage_heroes {
                     armory.manage_heroes = false;
@@ -170,6 +206,7 @@ pub(in crate::survivors) fn navigate(
                 }
                 focus.focused = None;
                 focus.talent = None;
+                focus.reward = None;
             } else {
                 let direction = [
                     (GamepadButton::DPadUp, KeyCode::ArrowUp, Vec2::NEG_Y),
@@ -196,12 +233,21 @@ pub(in crate::survivors) fn navigate(
             }
         }
         if let Some(entity) = focus.focused {
+            focus.reward = (armory.page == Page::Rewards)
+                .then(|| {
+                    buttons
+                        .get(entity)
+                        .ok()
+                        .and_then(|(_, _, _, _, _, act)| act)
+                        .map(|act| (hero, armory.reward_page, act.clone()))
+                })
+                .flatten();
             focus.talent = (armory.page == Page::Talents)
                 .then(|| {
                     buttons
                         .get(entity)
                         .ok()
-                        .and_then(|(_, _, _, _, info)| info)
+                        .and_then(|(_, _, _, _, info, _)| info)
                         .map(|info| (hero, TalentKey::from(info)))
                 })
                 .flatten();
@@ -433,6 +479,107 @@ mod tests {
         schedule.run(&mut world);
         assert_eq!(world.resource::<ControllerFocus>().focused, None);
         assert_eq!(world.resource::<ControllerFocus>().refund, None);
+    }
+
+    #[test]
+    fn reward_focus_survives_rebuild_but_not_category_or_disabled_controls() {
+        let mut world = World::new();
+        world.init_resource::<ButtonInput<MouseButton>>();
+        world.init_resource::<ButtonInput<KeyCode>>();
+        world.insert_resource(State::new(Phase::Menu));
+        world.init_resource::<hud::PausePage>();
+        world.init_resource::<super::super::super::cards::PreviewHand>();
+        world.init_resource::<crate::loading_screen::LoadingScreen>();
+        world.init_resource::<Typing>();
+        world.init_resource::<Armory>();
+        world.resource_mut::<Armory>().page = Page::Rewards;
+        world.init_resource::<ControllerFocus>();
+        let spawn = |world: &mut World, _rank, size| {
+            world
+                .spawn((
+                    Button,
+                    Act::Reward(0),
+                    ComputedNode {
+                        size: Vec2::splat(size),
+                        ..default()
+                    },
+                    UiGlobalTransform::from_xy(100., 100.),
+                    InheritedVisibility::VISIBLE,
+                ))
+                .id()
+        };
+        let original = spawn(&mut world, 1, 40.);
+        let mut schedule = Schedule::default();
+        schedule.add_systems(navigate);
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::ArrowDown);
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, Some(original));
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world.despawn(original);
+        let replacement = spawn(&mut world, 2, 0.);
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, None);
+        world.get_mut::<ComputedNode>(replacement).unwrap().size = Vec2::splat(40.);
+        schedule.run(&mut world);
+        assert_eq!(
+            world.resource::<ControllerFocus>().focused,
+            Some(replacement)
+        );
+        assert!(world.get::<Outline>(replacement).is_some());
+        assert_eq!(world.resource::<ControllerFocus>().activated, None);
+        assert_eq!(world.resource::<ControllerFocus>().refund, None);
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Backspace);
+        schedule.run(&mut world);
+        assert_eq!(
+            world.resource::<ControllerFocus>().refund,
+            Some(replacement)
+        );
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world.resource_mut::<Armory>().reward_page = 1;
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, None);
+        world.resource_mut::<Armory>().reward_page = 0;
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, None);
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::ArrowDown);
+        schedule.run(&mut world);
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        let _navigation = world
+            .spawn((
+                Button,
+                Act::Page(Page::Door),
+                ComputedNode {
+                    size: Vec2::splat(40.),
+                    ..default()
+                },
+                UiGlobalTransform::from_xy(300., 300.),
+                InheritedVisibility::VISIBLE,
+            ))
+            .id();
+        world.entity_mut(replacement).remove::<Act>();
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, None);
+        assert!(world.resource::<ControllerFocus>().reward.is_none());
+        world.entity_mut(replacement).insert(Act::Reward(0));
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, None);
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::ArrowDown);
+        schedule.run(&mut world);
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world
+            .resource_mut::<ButtonInput<MouseButton>>()
+            .press(MouseButton::Left);
+        schedule.run(&mut world);
+        assert!(world.resource::<ControllerFocus>().reward.is_none());
+        assert_eq!(world.resource::<ControllerFocus>().focused, None);
     }
 
     #[test]
