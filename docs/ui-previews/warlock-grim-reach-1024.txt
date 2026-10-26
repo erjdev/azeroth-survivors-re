@@ -1,0 +1,5 @@
+# Select a Warlock hero first. Pins the description without spending points.
+page = talents
+talent = 1021
+width = 1024
+height = 768

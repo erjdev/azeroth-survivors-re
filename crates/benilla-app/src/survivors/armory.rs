@@ -1209,10 +1209,19 @@ pub(super) struct TalentInfo {
 pub(super) fn talent_details(
     nodes: Query<(Entity, &Interaction, &TalentInfo)>,
     focus: Res<controller::ControllerFocus>,
+    preview: Option<Res<preview::Preview>>,
     mut detail: Query<(&TalentDetail, &mut Text, &mut TextColor)>,
     spells: Option<Res<crate::ui_action::Spells>>,
 ) {
-    let selected = focus.focused().and_then(|entity| nodes.get(entity).ok());
+    let selected = preview
+        .as_ref()
+        .and_then(|preview| preview.inspected())
+        .and_then(|(class, id)| {
+            nodes.iter().find(|(_, _, info)| {
+                info.class == class && info.id == id && info.milestone.is_none()
+            })
+        })
+        .or_else(|| focus.focused().and_then(|entity| nodes.get(entity).ok()));
     let Some((_, _, node)) = selected.or_else(|| {
         nodes
             .iter()

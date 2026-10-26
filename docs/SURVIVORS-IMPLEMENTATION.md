@@ -698,15 +698,15 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
-| Paladin | 19 / 44 | 9 / 9 |
-| Hunter | 16 / 46 | 6 / 9 |
+| Paladin | 21 / 44 | 9 / 9 |
+| Hunter | 17 / 46 | 6 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
 | Priest | 19 / 47 | 9 / 9 |
-| Shaman | 13 / 46 | 9 / 9 |
+| Shaman | 14 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
-| Warlock | 12 / 50 | 9 / 9 |
-| Druid | 17 / 47 | 9 / 9 |
-| Total | 176 / 432 | 78 / 81 |
+| Warlock | 14 / 50 | 9 / 9 |
+| Druid | 18 / 47 | 9 / 9 |
+| Total | 183 / 432 | 78 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -4585,3 +4585,26 @@ Native play build (43 seconds), workspace Clippy, formatting and render lint pas
 No mechanics changed; the prior 137 core / 273 app result was not rerun for this
 layout-only change. Reusable `talents-640.txt`, `talents-1024.txt` and
 `talents-1280.txt` presets are under `docs/ui-previews/`.
+
+### Direct talent inspection previews — 2026-10-26
+
+The opt-in native development preview accepts a positive `talent` DBC ID only on
+Talents. Validate against the selected hero's loaded tree before applying any page,
+size or inspection changes; loading data waits, unknown/foreign nodes and absent
+heroes reject the whole request. A valid request pins the actual node description
+and saved rank without triggering controller actions, purchasing or refunding.
+A valid reload omitting the selector clears the pin. Manual gameplay actions remain
+normal, so interaction testing continues to require isolated accounts.
+
+Native 1024×768 direct launch shows Grim Reach without clicking. Requesting Hunter
+Hawk Eye while a Warlock is selected preserves the prior description and dimensions,
+with a rejection log. A valid live change shows Destructive Reach at 640×720;
+clearing the selector restores ordinary milestone inspection. Fixture hashes before
+launch and after shutdown are identical. Inline screenshots are in CHANGELOG and
+README; the production layout remains aligned to the existing talent intention.
+
+46 Armory tests pass, including parse rejection, pinned detail priority, unchanged
+ranks/actions and restoring ordinary detail/color handling. Native play build,
+workspace Clippy, formatting and render lint pass. The client-data audit was rerun
+and the main coverage table updated to 183/432. No new mechanics or all-platform
+acceptance is claimed.

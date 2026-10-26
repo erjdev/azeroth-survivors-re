@@ -23,6 +23,7 @@ pub(crate) fn plugin(app: &mut App) {
         seen: String::new(),
         poll: Timer::from_seconds(0.25, TimerMode::Repeating),
         saved: None,
+        inspected: None,
     })
     .add_systems(
         Update,
@@ -32,11 +33,18 @@ pub(crate) fn plugin(app: &mut App) {
 
 #[derive(Resource)]
 #[cfg_attr(not(feature = "dev"), allow(dead_code))]
-struct Preview {
+pub(in crate::survivors) struct Preview {
     path: std::path::PathBuf,
     seen: String,
     poll: Timer,
     saved: Option<(Run, Offer)>,
+    inspected: Option<(usize, u32)>,
+}
+
+impl Preview {
+    pub(super) fn inspected(&self) -> Option<(usize, u32)> {
+        self.inspected
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -51,6 +59,7 @@ struct Request {
     height: u32,
     selected: bool,
     category: Option<u8>,
+    talent: Option<u32>,
     cards: Option<Vec<Card>>,
 }
 
@@ -61,6 +70,7 @@ impl Request {
         let mut cards = None;
         let mut profile = None;
         let mut category = None;
+        let mut talent = None;
         for line in text.lines() {
             let line = line.split('#').next()?.trim();
             if line.is_empty() {
@@ -126,6 +136,7 @@ impl Request {
                     });
                 }
                 "category" if category.is_none() => category = Some(value),
+                "talent" if talent.is_none() => talent = Some(value.parse::<u32>().ok()?),
                 "width" if width.is_none() => width = Some(value.parse::<u32>().ok()?),
                 "height" if height.is_none() => height = Some(value.parse::<u32>().ok()?),
                 _ => return None,
@@ -140,6 +151,9 @@ impl Request {
             return None;
         }
         let page = page?;
+        if talent.is_some_and(|id| id == 0 || page != Page::Talents) {
+            return None;
+        }
         let category = match category {
             None => None,
             Some(name) => {
@@ -161,6 +175,7 @@ impl Request {
         let request = Self {
             page,
             category,
+            talent,
             width: width?,
             height: height?,
             cards,
@@ -225,6 +240,29 @@ fn reload(
     if request.cards.is_some() && rows.is_empty() {
         return;
     }
+    let inspected = if let Some(id) = request.talent {
+        let Some(talents) = talents.as_deref() else {
+            return;
+        };
+        let class = selection
+            .character
+            .and_then(|id| account.character(id))
+            .map(|hero| hero.class);
+        let Some(class) = class.filter(|&class| {
+            super::CLASSES.get(class).is_some_and(|definition| {
+                super::class_trees(&talents.catalog, definition.id)
+                    .iter()
+                    .any(|(_, nodes)| nodes.iter().any(|node| node.id == id))
+            })
+        }) else {
+            preview.seen = text;
+            warn!("Invalid Survivors talent preview for the selected hero; keeping current view");
+            return;
+        };
+        Some((class, id))
+    } else {
+        None
+    };
     let snapshot = if request.selected {
         if talents.is_none() {
             return;
@@ -237,6 +275,7 @@ fn reload(
         Run::default()
     };
     preview.seen = text;
+    preview.inspected = inspected;
     request.apply(&mut armory, &mut typing, &mut window);
     preview.hand(&request, &mut run, &mut offer, &mut hand, snapshot);
     info!("Survivors UI preview applied: {}", preview.seen.trim());
@@ -332,6 +371,88 @@ mod tests {
         ] {
             assert!(Request::parse(text).is_none(), "{text}");
         }
+    }
+
+    #[test]
+    fn talent_inspection_requires_one_positive_id_on_the_talent_page() {
+        let valid = Request::parse("talent=964\npage=talents\nwidth=640\nheight=720").unwrap();
+        assert_eq!(valid.talent, Some(964));
+        for input in [
+            "page=talents\ntalent=0",
+            "page=talents\ntalent=-1",
+            "page=talents\ntalent=abc",
+            "page=talents\ntalent=964\ntalent=1021",
+            "page=collection\ntalent=964",
+            "page=cards\nabilities=smite:1\ntalent=964",
+        ] {
+            assert!(Request::parse(&format!("{input}\nwidth=640\nheight=720")).is_none());
+        }
+        assert_eq!(
+            Request::parse("page=talents\nwidth=640\nheight=720")
+                .unwrap()
+                .talent,
+            None
+        );
+    }
+
+    #[test]
+    fn inspection_pins_the_requested_detail_without_changing_ranks_or_actions() {
+        use super::super::{controller::ControllerFocus, TalentDetail, TalentInfo};
+        let mut world = World::new();
+        world.insert_resource(ControllerFocus::default());
+        world.insert_resource(Preview {
+            path: "unused".into(),
+            seen: String::new(),
+            poll: Timer::from_seconds(0.25, TimerMode::Repeating),
+            saved: None,
+            inspected: Some((7, 964)),
+        });
+        let node = world
+            .spawn((
+                Interaction::None,
+                TalentInfo {
+                    class: 7,
+                    id: 964,
+                    spell: 0,
+                    rank: 1,
+                    max: 2,
+                    milestone: None,
+                },
+            ))
+            .id();
+        world.spawn((
+            Interaction::Hovered,
+            TalentInfo {
+                class: 7,
+                id: 0,
+                spell: 0,
+                rank: 0,
+                max: 5,
+                milestone: None,
+            },
+        ));
+        let effect = world
+            .spawn((TalentDetail::Effect, Text::new(""), TextColor(Color::WHITE)))
+            .id();
+        let mut schedule = Schedule::default();
+        schedule.add_systems(super::super::talent_details);
+        schedule.run(&mut world);
+        assert!(world
+            .get::<Text>(effect)
+            .unwrap()
+            .0
+            .contains("Rain of Fire"));
+        assert!(world.get::<Text>(effect).unwrap().0.contains("10 to 20%"));
+        assert_eq!(world.get::<TalentInfo>(node).unwrap().rank, 1);
+        assert_eq!(world.resource::<ControllerFocus>().activated, None);
+        world.resource_mut::<Preview>().inspected = None;
+        schedule.run(&mut world);
+        assert!(world
+            .get::<Text>(effect)
+            .unwrap()
+            .0
+            .contains("Individual effect pending"));
+        assert_eq!(world.get::<TextColor>(effect).unwrap().0, Color::WHITE);
     }
 
     #[test]
@@ -468,6 +589,7 @@ mod tests {
             seen: String::new(),
             poll: Timer::from_seconds(0.25, TimerMode::Repeating),
             saved: None,
+            inspected: None,
         };
         let mut run = Run {
             hp: 37.0,
@@ -520,6 +642,7 @@ mod tests {
             seen: String::new(),
             poll: Timer::from_seconds(0.25, TimerMode::Repeating),
             saved: None,
+            inspected: None,
         };
         let mut run = Run::default();
         let mut offer = Offer::default();

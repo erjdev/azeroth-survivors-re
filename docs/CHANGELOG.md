@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Direct talent inspection in live previews
+
+The development preview accepts a talent ID to pin its real description and saved
+rank without spending points. It validates against the selected hero's client-data
+tree; invalid requests preserve the current page and viewport. Removing the selector
+restores ordinary inspection. A reusable Grim Reach preset is included.
+
+![Direct Grim Reach preview](images/screenshots/2026-10-26-talent-preview/grim-reach-1024.png)
+
+![Live compact talent selection](images/screenshots/2026-10-26-talent-preview/destructive-reach-640.png)
+
+46 Armory tests pass. Native checks cover direct launch, live changes, cross-class
+rejection and clearing the selector; fixture files remain byte-for-byte unchanged.
+Native build, workspace Clippy, formatting and render lint pass. This improves the
+UI iteration workflow; full talent content and platform acceptance remain open.
+
 ## 2026-10-26 — Talent icons scale with their artwork
 
 Fixed crowded talent rows at 1024×768: icons now scale with tree width, capped at

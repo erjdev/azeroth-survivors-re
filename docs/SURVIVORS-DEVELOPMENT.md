@@ -369,6 +369,19 @@ over the watched file to resize the same running menu. They use the selected her
 and spec without spending points; manual clicks still perform normal talent actions,
 so use an isolated fixture account for interaction checks.
 
+To pin a particular talent description, add `talent = <Talent.dbc ID>` on the
+Talents page. For example, `docs/ui-previews/warlock-grim-reach-1024.txt` inspects
+Grim Reach (1021) for an already-selected Warlock. The ID must belong to that hero's
+loaded talent tree; missing heroes, unknown IDs, another class's nodes, duplicate
+keys and use on another page reject the entire request without resizing or changing
+pages. A loading catalog delays application until validation is possible.
+
+The description stays pinned even if the pointer rests over another node. It shows
+the actual saved rank and does not focus, train or refund a node. Removing the
+`talent` key in a valid reload restores normal pointer/keyboard inspection. Actual
+mouse/keyboard purchases still work, so use an isolated account when testing them.
+Changing file contents is required to retry a rejected request after selecting a hero.
+
 Rewards and Achievements also accept an optional `category` key. Category changes
 apply with the page and dimensions in the same reload; omitting it preserves the
 last manually selected category. Unsupported categories, duplicate keys and a
