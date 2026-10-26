@@ -99,6 +99,10 @@ Legendary rewards a complete legendary gear collection for one class.
 
 ![Legendary collection earned](docs/images/screenshots/2026-10-26-legendary-achievement/earned-1280.png)
 
+Tabard cards share Armory selection feedback and keyboard focus.
+
+![Tabard selection](docs/images/screenshots/2026-10-26-tabard-controls/worn-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

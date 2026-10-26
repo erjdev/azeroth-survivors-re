@@ -18,6 +18,14 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-26)
 
+Tabard cards now use shared hover/pressed feedback, gold outlines and burgundy
+selection. Native wide/compact validation covers icon selection, removal, keyboard
+focus/selection, scrolling and saved appearance after restart. Inline screenshots
+are in CHANGELOG/README. The single verified Guild Tabard remains the catalog;
+in-world rendering and additional cosmetics remain open. Rapid direction-plus-select
+input in one automation batch needed a second Space press; investigate input ordering
+before claiming full keyboard/controller acceptance.
+
 Achievement category rows now share one full-width action/focus surface with
 separate label/count alignment and progress beneath, following the summary
 reference. Native wide/compact checks cover icon and progress clicks, whole-row

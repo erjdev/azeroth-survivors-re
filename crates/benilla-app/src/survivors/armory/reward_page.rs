@@ -544,84 +544,76 @@ fn tabards(panel: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Acco
                 .enumerate()
             {
                 let selected = account.tabard == index as u8;
-                grid.spawn((
-                    Button,
+                super::controls::content_button(
+                    grid,
                     Act::Tabard(index as u8),
+                    selected,
                     Node {
                         min_width: Val::Px(0.0),
-                        align_items: AlignItems::Center,
                         padding: UiRect::all(Val::Px(10.0)),
                         column_gap: Val::Px(10.0),
-                        border: UiRect::all(Val::Px(1.0)),
-                        border_radius: BorderRadius::all(Val::Px(4.0)),
                         ..default()
                     },
-                    BackgroundColor(if selected {
-                        Color::srgb(0.14, 0.10, 0.035)
-                    } else {
-                        Color::srgb(0.025, 0.02, 0.012)
-                    }),
-                    BorderColor::all(if selected { GOLD } else { FRAME }),
-                ))
-                .with_children(|card| {
-                    if index != 0 {
-                        card.spawn((
-                            super::talent_page::Backdrop(
-                                "Interface\\Icons\\INV_Shirt_GuildTabard_01.blp".into(),
-                            ),
-                            ImageNode::default(),
-                            Node {
-                                width: Val::Px(34.0),
-                                height: Val::Px(34.0),
-                                flex_shrink: 0.0,
-                                ..default()
-                            },
-                        ));
-                    }
-                    card.spawn(Node {
-                        flex_direction: FlexDirection::Column,
-                        flex_grow: 1.0,
-                        flex_basis: Val::Px(0.0),
-                        min_width: Val::Px(0.0),
-                        row_gap: Val::Px(6.0),
-                        ..default()
-                    })
-                    .with_children(|label| {
-                        text(label, font, name, 16.0, GOLD);
-                        text(
-                            label,
-                            font,
-                            if index == 0 {
-                                "Show your equipped chest armor."
-                            } else {
-                                "Wear a tabard over your chest armor."
-                            },
-                            12.0,
-                            DIM,
-                        );
-                        text(
-                            label,
-                            font,
-                            if selected {
+                    |card| {
+                        if index != 0 {
+                            card.spawn((
+                                super::talent_page::Backdrop(
+                                    "Interface\\Icons\\INV_Shirt_GuildTabard_01.blp".into(),
+                                ),
+                                ImageNode::default(),
+                                Node {
+                                    width: Val::Px(34.0),
+                                    height: Val::Px(34.0),
+                                    flex_shrink: 0.0,
+                                    ..default()
+                                },
+                            ));
+                        }
+                        card.spawn(Node {
+                            flex_direction: FlexDirection::Column,
+                            flex_grow: 1.0,
+                            flex_basis: Val::Px(0.0),
+                            min_width: Val::Px(0.0),
+                            row_gap: Val::Px(6.0),
+                            ..default()
+                        })
+                        .with_children(|label| {
+                            text(label, font, name, 16.0, GOLD);
+                            text(
+                                label,
+                                font,
                                 if index == 0 {
-                                    "No tabard worn"
+                                    "Show your equipped chest armor."
                                 } else {
-                                    "Worn"
-                                }
-                            } else if index == 0 {
-                                "Remove tabard"
-                            } else {
-                                "Wear"
-                            },
-                            12.0,
-                            if selected {
-                                hud::card_growth::GAIN
-                            } else {
-                                DIM
-                            },
-                        );
-                    });
-                });
+                                    "Wear a tabard over your chest armor."
+                                },
+                                12.0,
+                                DIM,
+                            );
+                            text(
+                                label,
+                                font,
+                                if selected {
+                                    if index == 0 {
+                                        "No tabard worn"
+                                    } else {
+                                        "Worn"
+                                    }
+                                } else if index == 0 {
+                                    "Remove tabard"
+                                } else {
+                                    "Wear"
+                                },
+                                12.0,
+                                if selected {
+                                    hud::card_growth::GAIN
+                                } else {
+                                    DIM
+                                },
+                            );
+                        });
+                    },
+                );
             }
         });
 }

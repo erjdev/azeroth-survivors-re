@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Tabard selection feedback
+
+Tabard cards now share the Armory’s hover/pressed feedback, gold outlines and
+burgundy selected state. The whole card remains clickable; keyboard focus stays
+visible after selecting a look. Tabards remain free account cosmetics with no stats.
+
+![Guild Tabard selected](images/screenshots/2026-10-26-tabard-controls/worn-1280.png)
+
+![Compact tabard keyboard focus](images/screenshots/2026-10-26-tabard-controls/focus-640.png)
+
+Native 1280×720 and 640×720 checks cover icon selection, removal, scrolling,
+keyboard selection and the saved choice after restart, using a synthetic account.
+Build, workspace Clippy, formatting and render lint pass. The Rewards reference’s
+shared framing guides this page; there is no dedicated Tabards reference image.
+The catalog still has only the verified Guild Tabard; in-world rendering was not retested.
+
 ## 2026-10-26 — Legendary class collection
 
 The reference’s Legendary achievement now grants 25 points for collecting all
