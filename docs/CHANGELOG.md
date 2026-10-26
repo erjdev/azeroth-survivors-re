@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Hunter appearance verification
+
+Verified Dwarf and Night Elf, male and female, on the native Character page at
+1280×720. Body, identity and customization ranges follow each selection; the final
+appearance saves without changing equipment or talent ranks. The small starter
+portrait's suspected Human/Dwarf mismatch was not a model bug.
+
+![Female Dwarf Hunter](images/screenshots/2026-10-26-hunter-appearance/dwarf-female.png)
+
+![Male Dwarf Hunter](images/screenshots/2026-10-26-hunter-appearance/dwarf-male.png)
+
+![Male Night Elf Hunter](images/screenshots/2026-10-26-hunter-appearance/night-elf-male.png)
+
+![Female Night Elf Hunter](images/screenshots/2026-10-26-hunter-appearance/night-elf-female.png)
+
+Visual verification only; no runtime code changed. Equipped armor/weapons, other
+race/class combinations and Windows acceptance remain open.
+
+
 ## 2026-10-26 — Hunter Survivalist and full-health starts
 
 Survivalist now grants 2% maximum health per rank, up to 10%, scaling equipped

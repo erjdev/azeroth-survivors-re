@@ -4966,3 +4966,20 @@ preview files are included. All 144 core and 291 visibility-enabled app tests,
 native build, app Clippy, formatting and diff checks pass. Catalog coverage is
 190/432 individual talents and 78/81 milestones. No combat session was run; Windows
 and gameplay balance acceptance remain open.
+
+
+### 2026-10-26 — Hunter body identity visual verification
+
+A suspected Human/Dwarf mismatch in the previous small starter capture was checked
+at full size after a clean launch. It is the female Dwarf model; no renderer change
+was warranted. Native 1280×720 interaction then exercised female Dwarf → male Dwarf
+→ male Night Elf → female Night Elf on the same isolated Hunter. Each selection
+visibly updates the body, identity, race/gender selection and customization ranges;
+the full figure and turn controls fit. Four captures are embedded in CHANGELOG;
+README's Character cell now uses the Night Elf capture. The saved body ends at 4/1;
+the saved talent ranks and equipment selections remain unchanged.
+
+This adds evidence for these four unequipped Hunter bodies only. It does not prove
+all feature values, gear attachment combinations, every race/class, starter-panel
+resolution parity or Windows behavior. No runtime code changed and no code tests
+were rerun. The validation application was closed and its launcher restored.
