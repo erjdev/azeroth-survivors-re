@@ -16,6 +16,10 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Character portraits fit short windows with rotation controls visible.
+
+![Character at 640×480](docs/images/screenshots/2026-10-26-character-short-viewport/character-640x480.png)
+
 Druid Restoration now includes individual Nature's Swiftness and Swiftmend effects.
 
 ![Restoration talent details](docs/images/screenshots/2026-10-26-druid-capstones/swiftmend-1280.png)

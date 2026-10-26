@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Character portrait on short windows
+
+The compact Character portrait now scales within both the column width and window
+height. At 640×480 the full figure and rotation buttons fit without scrolling past
+an oversized portrait. Appearance and equipment remain available below.
+
+![Before: rotation controls below the viewport](images/screenshots/2026-10-26-character-short-viewport/before-640x480.png)
+
+![After: full figure and rotation controls at 640×480](images/screenshots/2026-10-26-character-short-viewport/character-640x480.png)
+
+![Character at 1024×768](images/screenshots/2026-10-26-character-short-viewport/character-1024x768.png)
+
+![Character at 640×720](images/screenshots/2026-10-26-character-short-viewport/character-640x720.png)
+
+Native checks cover these three sizes, both turn buttons and scrolling to appearance
+and equipment. Native build and app Clippy pass. Other races and Windows DPI remain
+open; this layout-only checkpoint does not change game rules.
+
+
 ## 2026-10-26 — Druid Restoration talents
 
 Nature's Swiftness now shortens Rejuvenation's cooldown by 15%. Swiftmend adds

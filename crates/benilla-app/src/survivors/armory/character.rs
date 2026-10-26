@@ -166,7 +166,9 @@ fn hero_panel(
         // Let the layout own the aspect ratio; the render texture's intrinsic size
         // must not inflate the scroll section when its image becomes available.
         body.spawn(Node {
+            // Keep the full figure and rotation controls reachable on short windows.
             width: Val::Percent(60.0),
+            max_width: Val::Vh(52.0),
             min_height: Val::Px(0.0),
             aspect_ratio: Some(1.0),
             align_self: AlignSelf::Center,

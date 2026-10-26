@@ -4854,3 +4854,19 @@ art-backed trees. Fixture support includes the still-provisional Insect Swarm no
 this milestone does not claim the full Restoration tree is complete. Screenshots
 are embedded in CHANGELOG/README, with Swiftmend preview presets for both widths.
 Live combat balance and Windows gameplay acceptance remain open.
+
+
+### 2026-10-26 — Character short-viewport acceptance
+
+At the supported minimum 640×480 viewport, the compact Character portrait's
+width-only sizing pushed its rotation controls below the initial view. Its square
+frame now uses the smaller of 60% column width and 52% viewport height. This keeps
+the reference's centered full-body figure while respecting short windows; the
+three-column wide layout is unchanged. Native before/after evidence verifies the
+full Human Warrior figure and both rotation controls, with actual left/right turn
+interaction and scrolling to appearance/equipment. Live resizing to 1024×768 and
+640×720 also keeps the full figure and controls visible. Added reusable Character
+preview presets (`page = heroes`) for all three sizes. Screenshots are inline in
+CHANGELOG and README. Native build (23 seconds), app Clippy, formatting and diff
+checks pass; no new rule tests are warranted for this layout-only bound. The full
+race/sex/equipment matrix, physical controllers and Windows DPI remain open.

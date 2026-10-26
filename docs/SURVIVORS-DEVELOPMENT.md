@@ -365,6 +365,10 @@ focus but preserves name drafts and account data. Changes wait while a run is
 active and apply when returning to the menu. This opt-in native development tool
 is excluded from player and wasm builds. It does not seed fixture accounts.
 
+Character presets (`page = heroes`) are available as `character-640x480.txt`,
+`character-640x720.txt` and `character-1024x768.txt` in `docs/ui-previews`.
+They inspect the selected saved hero; `look` opens the separate legacy screen.
+
 Talent viewport presets are available in `docs/ui-previews/talents-640.txt`,
 `talents-1024.txt` and `talents-1280.txt` for compact, 4:3 and wide checks. Copy one
 over the watched file to resize the same running menu. They use the selected hero
