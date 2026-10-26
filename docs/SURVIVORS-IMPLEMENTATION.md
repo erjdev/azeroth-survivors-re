@@ -63,7 +63,15 @@ Done runs after the HUD shortcut handler, preventing the same Enter from startin
 or resuming a run. ECS tests cover both phases; native wide/compact checks cover
 focus, slider steps/limits, category activation, Done, pointer handoff and build
 notes. Screenshots are embedded in CHANGELOG/README.
-Gamepad navigation, checkbox styling, bindings and the other settings remain required.
+Audio and camera switches now use reference-style labeled gold checkboxes,
+aligned with slider controls. The entire row accepts clicks and keyboard focus;
+checkmarks are drawn from two strokes rather than relying on a font glyph.
+Native wide/compact checks cover label/box clicks, Space activation, checkbox
+states, Graphics defaults and persisted music state after relaunch. All 38 focused
+HUD tests, native build, workspace Clippy, formatting and render lint pass. New
+screenshots are inline in CHANGELOG/README; audible output and in-world camera
+effects were not retested.
+Gamepad navigation, bindings and the other settings remain required.
 This exposes existing controls; it does not complete the reference Options page
 or establish audible output/engine setting effectiveness. About exposes the existing
 notes/restart page from the starter; it is unavailable during a paused run.

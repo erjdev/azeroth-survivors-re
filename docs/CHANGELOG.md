@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Options checkboxes
+
+Audio and camera switches now use labeled gold checkboxes aligned with the
+sliders, following the intention reference. The whole row accepts clicks and
+keyboard activation; compact labels remain readable.
+
+![Audio checkboxes](images/screenshots/2026-10-26-options-checkboxes/audio-1280.png)
+
+![Compact camera checkboxes](images/screenshots/2026-10-26-options-checkboxes/graphics-640.png)
+
+38 focused HUD tests, native build, workspace Clippy, formatting and render lint
+pass. Native checks cover label/box clicks, Space activation, checked/unchecked
+states, Graphics defaults and saved music state after relaunch. Audible output
+and in-world camera effects were not retested. Remaining categories and gamepad
+navigation are still open.
+
 ## 2026-10-26 — Keyboard Options
 
 Options now has visible keyboard focus: Tab/Shift-Tab or Up/Down moves between

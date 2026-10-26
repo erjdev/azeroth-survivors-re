@@ -1,4 +1,5 @@
 //! One focused settings category at a time, shared by the starter and pause menu.
+pub(super) mod checkboxes;
 pub(super) mod keyboard;
 pub(super) mod sliders;
 use super::*;
@@ -79,16 +80,16 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
                                 sliders::row(body, font, knob);
                             }
                             for knob in [Knob::Sound, Knob::MusicOn] {
-                                toggle_row(body, font, knob);
+                                checkboxes::row(body, font, knob);
                             }
                         }
                         Category::Graphics => {
                             for knob in [Knob::View, Knob::Grass, Knob::Spells, Knob::Scale] {
                                 sliders::row(body, font, knob);
                             }
-                            toggle_row(body, font, Knob::AutoPush);
+                            checkboxes::row(body, font, Knob::AutoPush);
                             if cfg!(feature = "survivors-visibility") {
-                                toggle_row(body, font, Knob::Cutaway);
+                                checkboxes::row(body, font, Knob::Cutaway);
                             }
                         }
                         Category::About => {

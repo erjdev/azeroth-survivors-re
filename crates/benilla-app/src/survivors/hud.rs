@@ -5,6 +5,7 @@ pub(super) mod card_growth;
 mod draft;
 pub(super) mod inline;
 mod settings;
+pub(super) use settings::checkboxes::refresh as refresh_settings;
 pub(super) use settings::keyboard::navigate as settings_keyboard;
 pub(super) use settings::sliders::{
     input as settings_slider_input, refresh as refresh_settings_sliders,
@@ -230,9 +231,6 @@ pub(super) struct PauseMain;
 
 #[derive(Component)]
 pub(super) struct SettingsPanel;
-
-#[derive(Component, Clone, Copy)]
-pub(super) struct SettingReadout(Knob);
 
 #[derive(Component)]
 pub(super) struct MeterRoot;
@@ -1473,22 +1471,6 @@ pub(super) fn apply_settings(
     }
 }
 
-fn toggle_row(ui: &mut ChildSpawnerCommands, f: &Handle<Font>, knob: Knob) {
-    ui.spawn((
-        button(UiAction::Toggle(knob), BUTTON),
-        Node {
-            width: Val::Px(244.0),
-            justify_content: JustifyContent::Center,
-            padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
-            border: UiRect::all(Val::Px(1.0)),
-            ..default()
-        },
-    ))
-    .with_children(|b| {
-        b.spawn((SettingReadout(knob), text(f, "", 14.0, Color::WHITE)));
-    });
-}
-
 pub(super) fn sync_pause_page(
     page: Res<PausePage>,
     mut main: Query<&mut Node, With<PauseMain>>,
@@ -1514,79 +1496,6 @@ pub(super) fn sync_pause_page(
     for mut node in &mut settings {
         if node.display != settings_display {
             node.display = settings_display;
-        }
-    }
-}
-
-pub(super) fn refresh_settings(
-    cvars: Res<crate::cvars::Cvars>,
-    camera: Res<super::camera::CameraSettings>,
-    mut readouts: Query<(&SettingReadout, &mut Text)>,
-) {
-    for (readout, mut text) in &mut readouts {
-        let want = if readout.0 == Knob::AutoPush {
-            format!(
-                "Auto-push camera in  {}",
-                if camera.auto_push { "On" } else { "Off" }
-            )
-        } else if readout.0 == Knob::Cutaway {
-            format!(
-                "Scenery cutaway  {}",
-                if camera.cutaway { "On" } else { "Off" }
-            )
-        } else {
-            knob_text(&cvars, readout.0)
-        };
-        if **text != want {
-            **text = want;
-        }
-    }
-}
-
-fn knob_text(cvars: &crate::cvars::Cvars, knob: Knob) -> String {
-    let pct = |name: &str, fallback: f32| {
-        let v = cvars.num(name).unwrap_or(fallback).clamp(0.0, 1.0);
-        (v * 100.0).round() as i32
-    };
-    match knob {
-        Knob::AutoPush | Knob::Cutaway => unreachable!("camera preference is not a CVar"),
-        Knob::Master => format!("Master  {}%", pct("MasterVolume", 1.0)),
-        Knob::Effects => format!("Effects  {}%", pct("SoundVolume", 1.0)),
-        Knob::Music => format!("Music  {}%", pct("MusicVolume", 0.4)),
-        Knob::Ambience => format!("Ambience  {}%", pct("AmbienceVolume", 0.6)),
-        Knob::Sound => {
-            let on = cvars.num("MasterSoundEffects").unwrap_or(1.0) != 0.0;
-            format!("Sound  {}", if on { "On" } else { "Off" })
-        }
-        Knob::MusicOn => {
-            let on = cvars.num("EnableMusic").unwrap_or(1.0) != 0.0;
-            format!("Music  {}", if on { "On" } else { "Off" })
-        }
-        Knob::View => {
-            let v = cvars.num("farclip").unwrap_or(350.0).round() as i32;
-            format!("View distance  {v}")
-        }
-        Knob::Grass => {
-            let v = cvars.num("WorldDetail").unwrap_or(1.0).round() as i32;
-            let name = match v {
-                0 => "Low",
-                1 => "Medium",
-                _ => "High",
-            };
-            format!("Grass  {name}")
-        }
-        Knob::Spells => {
-            let v = cvars.num("spellEffectLevel").unwrap_or(2.0).round() as i32;
-            let name = match v {
-                0 => "Low",
-                1 => "Medium",
-                _ => "High",
-            };
-            format!("Spell detail  {name}")
-        }
-        Knob::Scale => {
-            let v = cvars.num("renderScale").unwrap_or(1.0);
-            format!("Render scale  {}%", (v * 100.0).round() as i32)
         }
     }
 }
