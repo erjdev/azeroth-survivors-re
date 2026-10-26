@@ -228,6 +228,29 @@ impl Milestones {
             }
         }
         if self.class == 6 {
+            // Automatic Survivors adaptations of Arcane Focus, Presence of Mind and Arcane Power.
+            if MAGE_ARCANE.contains(&key) {
+                if self.points[0] >= 10 {
+                    effect.crit += 0.05;
+                }
+                if self.points[0] >= 30 {
+                    effect.damage *= 1.2;
+                }
+            }
+            if self.points[0] >= 20 && key == "arcane_missiles" {
+                effect.cooldown_advance = Some(("arcane_explosion", 2.0));
+            }
+            if self.points[1] >= 10 && key == "fireball" {
+                effect.damage *= 1.25;
+            }
+            if MAGE_FIRE.contains(&key) {
+                if self.points[1] >= 20 {
+                    effect.crit += 0.10;
+                }
+                if self.points[1] >= 30 {
+                    effect.crit_damage += 0.20;
+                }
+            }
             if self.points[2] >= 10 && key == "frostbolt" {
                 effect.extra_targets += 1;
             }
@@ -698,6 +721,12 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
     }
     if class == 6 {
         return match (tree, threshold) {
+            (0, 10) => Some("Arcane Missiles and Arcane Explosion: +5 percentage points critical chance (Survivors Arcane Focus)"),
+            (0, 20) => Some("Arcane Missiles advances an owned Arcane Explosion's cooldown by 2 seconds once per successful cast (Survivors automatic Presence of Mind)"),
+            (0, 30) => Some("Arcane Missiles and Arcane Explosion: +20% damage (Survivors automatic Arcane Power)"),
+            (1, 10) => Some("Fireball: +25% damage; includes its splash (Survivors Improved Fireball milestone)"),
+            (1, 20) => Some("Fire spells: +10 percentage points critical chance; adds to individual Critical Mass ranks"),
+            (1, 30) => Some("Fire spells: +20 percentage points critical damage (Survivors automatic Combustion)"),
             (2, 10) => Some("Frostbolt: +1 target; area spells remain one area"),
             (2, 20) => Some("Frost spells: +20 percentage points critical damage"),
             (2, 30) => Some("Frost Nova grants a 10% maximum-health absorb for 5 seconds once per successful cast; does not stack"),
@@ -3430,6 +3459,82 @@ mod stat_talent_tests {
                 .shatter("frostbolt", true),
             0.
         );
+    }
+
+    #[test]
+    fn mage_arcane_and_fire_milestones_unlock_at_thresholds_and_stay_scoped() {
+        for tree in 0..2 {
+            for points in [0, 9, 10, 19, 20, 29, 30, 51] {
+                let mut mage = Milestones {
+                    class: 6,
+                    ..Default::default()
+                };
+                mage.points[tree] = points;
+                let missiles = mage.cast("arcane_missiles");
+                let explosion = mage.cast("arcane_explosion");
+                let fireball = mage.cast("fireball");
+                assert_eq!(
+                    missiles.crit,
+                    if tree == 0 && points >= 10 { 0.05 } else { 0. }
+                );
+                assert_eq!(explosion.crit, missiles.crit);
+                assert_eq!(
+                    missiles.damage,
+                    if tree == 0 && points >= 30 { 1.2 } else { 1. }
+                );
+                assert_eq!(explosion.damage, missiles.damage);
+                assert_eq!(
+                    missiles.cooldown_advance,
+                    if tree == 0 && points >= 20 {
+                        Some(("arcane_explosion", 2.))
+                    } else {
+                        None
+                    }
+                );
+                assert_eq!(explosion.cooldown_advance, None);
+                assert_eq!(
+                    fireball.damage,
+                    if tree == 1 && points >= 10 { 1.25 } else { 1. }
+                );
+                for key in MAGE_FIRE {
+                    let effect = mage.cast(key);
+                    assert_eq!(
+                        effect.crit,
+                        if tree == 1 && points >= 20 { 0.10 } else { 0. }
+                    );
+                    assert_eq!(
+                        effect.crit_damage,
+                        if tree == 1 && points >= 30 { 0.20 } else { 0. }
+                    );
+                    assert_eq!(effect.extra_targets, 0);
+                    assert_eq!(effect.radius, 1.);
+                    if *key != "fireball" {
+                        assert_eq!(effect.damage, 1.);
+                    }
+                }
+                for key in MAGE_FROST.iter().copied().chain([
+                    "Ignite",
+                    "holy_fire",
+                    "smite",
+                    "shadow_bolt",
+                ]) {
+                    assert_eq!(mage.cast(key), CastEffect::default());
+                }
+            }
+            for threshold in [10, 20, 30] {
+                assert!(description(6, tree, threshold).is_some());
+            }
+        }
+        for class in [0, 1, 2, 3, 4, 5, 7, 8] {
+            let other = Milestones {
+                class,
+                points: [30, 30, 0],
+                ..Default::default()
+            };
+            for key in MAGE_ARCANE.iter().chain(MAGE_FIRE) {
+                assert_eq!(other.cast(key), CastEffect::default());
+            }
+        }
     }
 
     #[test]

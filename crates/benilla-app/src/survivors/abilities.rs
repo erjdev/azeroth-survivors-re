@@ -3488,6 +3488,68 @@ mod milestone_tests {
     }
 
     #[test]
+    fn mage_arcane_fire_milestones_reach_cast_parameters_and_cooldown_finish() {
+        let mut run = Run::default();
+        let stats = run.stats();
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [30, 30, 0],
+            ..base
+        }
+        .with_ranks(&[(0, 81, 3), (1, 33, 3), (1, 35, 5)]);
+        for level in [1, 5] {
+            for (key, damage, crit, critical_damage) in [
+                ("arcane_missiles", 1.2, 0.05, 0.),
+                ("arcane_explosion", 1.2, 0.11, 0.),
+                ("fireball", 1.375, 0.16, 0.20),
+                ("flamestrike", 1.1, 0.16, 0.20),
+                ("frostbolt", 1., 0., 0.),
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - critical_damage).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+            }
+        }
+        // Presence of Mind only advances an owned Explosion, once at cast completion.
+        run.abilities.clear();
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("arcane_explosion"),
+            level: 1,
+            cd: 3.,
+        });
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("fireball"),
+            level: 1,
+            cd: 3.,
+        });
+        finish_milestone_cast(&mut run, trained.cast("arcane_missiles"), stats.max_hp);
+        assert_eq!(run.abilities[0].cd, 1.);
+        assert_eq!(run.abilities[1].cd, 3.);
+        finish_milestone_cast(&mut run, trained.cast("arcane_missiles"), stats.max_hp);
+        assert_eq!(run.abilities[0].cd, 0.);
+        run.abilities.remove(0);
+        finish_milestone_cast(&mut run, trained.cast("arcane_missiles"), stats.max_hp);
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].cd, 3.);
+    }
+
+    #[test]
     fn paladin_cast_numbers_and_once_per_cast_benefits_reach_combat() {
         let mut run = Run::default();
         let stats = run.stats();

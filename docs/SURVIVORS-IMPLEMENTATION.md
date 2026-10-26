@@ -1060,6 +1060,23 @@ thresholds, mitigation across the threshold, healing cap, cooldown floor, class 
 spec selection and persistence. Remaining individual talent nodes and other classes require
 the same explicit behavior contract and combat integration.
 
+Mage now has implemented behavior for all nine tree milestones. Arcane and Fire
+use these provisional Survivors conversions, additional to individual node ranks
+and existing tree stat bonuses:
+
+| Tree | 10 points | 20 points | 30 points |
+| --- | --- | --- | --- |
+| Arcane | Arcane Focus: Arcane Missiles/Explosion gain 5 percentage points critical chance | Presence of Mind: each successful Arcane Missiles cast advances an owned Arcane Explosion cooldown by 2 seconds, never below zero | Arcane Power: Arcane Missiles/Explosion deal 20% more damage |
+| Fire | Improved Fireball: Fireball deals 25% more damage, including splash | Critical Mass: Fire spells gain 10 percentage points critical chance, additive with node ranks | Combustion: Fire spells gain 20 percentage points critical damage |
+
+Fire scope is Fireball, Fire Blast, Flamestrike, Pyroblast and Blast Wave; Ignite
+remains excluded from recursive cast benefits. The increased direct critical damage
+can still strengthen its existing Ignite seed. These milestones do not add targets
+or area locations. Presence of Mind never grants an unowned spell. Shared cast
+parameters and the completion handler drive both combat and tooltip descriptions.
+Frost's existing milestones remain unchanged; individual unimplemented Mage nodes
+and full live combat/balance acceptance remain open.
+
 Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
 threshold tests and representative combat tests prove those behaviors. Switching specs
 changes the next run without losing either spread. Free reset and right-click refund keep

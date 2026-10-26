@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Mage Arcane and Fire milestones
+
+The six pending Arcane/Fire milestone rows now describe implemented effects.
+Arcane gains critical chance, a Missiles→Explosion cooldown benefit and damage;
+Fire gains Fireball damage, critical chance and critical damage. All nine Mage
+milestones now work through the shared spell rules, with provisional tuning.
+
+![Presence of Mind milestone description](images/screenshots/2026-10-26-mage-milestones/presence-of-mind-1280.png)
+
+![Combustion milestone description](images/screenshots/2026-10-26-mage-milestones/combustion-1280.png)
+
+120 core and 246 Survivors app tests, native build, workspace Clippy, formatting
+and render lint pass. Coverage includes thresholds, class/spell isolation, node
+composition, cast parameters, cooldown floors and the green tooltip. Native checks
+confirm starter descriptions. Individual pending nodes and live combat/balance
+acceptance remain open; these screenshots do not claim a trained build.
+
 ## 2026-10-26 — Keep talent focus while editing a spec
 
 Buying or refunding a rank now keeps the talent focused and refreshes its green

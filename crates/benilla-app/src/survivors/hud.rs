@@ -3254,6 +3254,32 @@ mod talent_tooltip_tests {
     }
 
     #[test]
+    fn presence_of_mind_tooltip_explains_the_shared_cast_benefit() {
+        let stats = Run::default().stats();
+        let owned = super::super::Owned {
+            def: data::ability("arcane_missiles"),
+            level: 1,
+            cd: 0.,
+        };
+        for points in [19, 20, 30] {
+            let trained = Milestones {
+                class: 6,
+                points: [points, 0, 0],
+                ..Default::default()
+            };
+            let lines = ability_tip(&owned, trained, &stats, None);
+            let benefit = lines.iter().find(|line| {
+                line.left.contains("Advances")
+                    && line.left.contains("2 sec once per successful cast")
+            });
+            assert_eq!(benefit.is_some(), points >= 20);
+            if let Some(line) = benefit {
+                assert_eq!(line.color, card_growth::GAIN);
+            }
+        }
+    }
+
+    #[test]
     fn effect_description_uses_rank_and_talent_scaled_duration() {
         let stats = Run::default().stats();
         let def = data::ability("demoralizing_shout");
