@@ -1171,13 +1171,9 @@ pub fn piece_bonus(band: usize, slot: usize) -> Bonus {
         return Bonus::default();
     }
     if slot == 7 {
-        let quality = match band {
-            0 => Quality::Common,
-            1 => Quality::Uncommon,
-            2 => Quality::Rare,
-            3 | 4 => Quality::Epic,
-            _ => Quality::Legendary,
-        };
+        let quality = crate::gear_tier::GearTier::from_legacy_band(band)
+            .expect("collection band was checked above")
+            .quality();
         let mut bonus = glove_bonus(quality);
         if band == 4 {
             bonus.health = 30.0;

@@ -5056,3 +5056,39 @@ rank-budget or prerequisite validation. No interface or visual acceptance change
 
 Validation: 292 visibility-enabled Survivors app tests, native build, app Clippy,
 formatting and diff checks pass.
+
+
+### 2026-10-26 — Explicit gear tier rules and migration boundary
+
+Added `GearTier` to distinguish Poor, Common, Uncommon, Rare, ordinary Epic,
+Raid Epic, PvP and Legendary. Existing six collection bands keep their exact indexes
+and bonuses. Poor and Raid Epic deliberately have no legacy-band encoding: neither
+may alias an existing ownership cell or silently shift a saved equipment choice.
+Glove quality resolution now uses this shared tier mapping.
+
+All nine Poor profiles have one primary stat below Common. Raid Epic has six lines,
+strengthening ordinary Epic's five lines; initial tuning uses the existing PvP stat
+budget while retaining a distinct tier identity. Legendary remains seven lines.
+This is a rules foundation only: no new item is obtainable, no collection ownership
+is fabricated, and the existing collection remains 54 cells per class.
+
+Remaining integration sequence:
+1. Add stable named item identities for supplemental Poor and Raid Epic catalogs,
+   with class, slot, tier, verified display/icon and source references.
+2. Store supplemental ownership and worn/look references separately from legacy
+   band digits. Preserve legacy loadouts and the existing 54-piece collection feat;
+   give supplemental raid progression its own explicit completion rules.
+3. Add collection/source filters and comparison details using tier profiles;
+   duplicate supplemental drops remain ownership-only, never added stats.
+4. Author build-oriented raid sets with explicit 2/4/6-piece thresholds and scoped
+   effects, applied only from worn pieces. Cosmetic overrides cannot count.
+5. Connect verified encounter rewards and capture acquisition/equip/appearance,
+   save migration and duplicate-drop behavior at wide/compact resolutions.
+
+Regression coverage checks exact existing-band stats, distinct tier identities,
+invalid slots/bands, one added stat per progression step and strictly stronger
+existing lines for every slot. These checks are not catalog or gameplay acceptance.
+
+Validation: 148 core tests, all-target core Clippy, formatting and diff checks pass.
+Native play-profile build also passes; no runtime or visual session was needed for
+this rules-layer foundation.

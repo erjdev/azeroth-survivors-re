@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Explicit gear progression tiers
+
+Added separate Poor and Raid Epic rules without changing existing collection/save
+indexes. Poor profiles carry one stat; Raid Epic profiles carry six, strengthening
+ordinary Epic's five. Existing gear values remain unchanged.
+
+This is the rules foundation. New item catalogs, acquisition, save extensions and
+raid set builds remain unfinished; no new obtainable gear or UI is claimed.
+All 148 core tests, native build, core Clippy, formatting and diff checks pass.
+
 ## 2026-10-26 — Preserve talents in reordered saves
 
 Talent rows now load even when they precede their character row. All three specs
