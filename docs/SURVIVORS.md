@@ -345,10 +345,11 @@ similarly named individual talent nodes and reset when the selected spec changes
 
 ### Priest talent tuning (initial)
 
-Eleven individual Priest talents now replace their provisional general damage:
+Twelve individual Priest talents now replace their provisional general damage:
 
 | Talent | Per-rank Survivors effect |
 |---|---|
+| Force of Will (5 ranks) | +1% Priest Holy/Shadow damage and +1 percentage point direct critical chance; periodic damage cannot crit, shields/foreign-class/jewelry spells excluded |
 | Holy Reach (2 ranks) | +10% Smite/Holy Fire casting range and Holy Nova radius; Nova remains one area |
 | Shadow Reach (3 ranks) | +6⅔% Shadow Word: Pain/Mind Blast casting range, totaling 20%; Psychic Scream unchanged |
 | Spirit Tap (5 ranks) | +20 percentage points chance on kill to regenerate 1% maximum health/sec for 15 sec; refreshes without stacking |

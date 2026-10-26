@@ -316,6 +316,14 @@ impl Milestones {
                         effect.damage *= 1.0 + value;
                         effect.crit += value;
                     }
+                    TalentStat::ForceOfWill
+                        if PRIEST_HOLY.contains(&key) || PRIEST_SHADOW.contains(&key) =>
+                    {
+                        effect.damage *= 1.0 + value;
+                        if key != "shadow_word_pain" {
+                            effect.crit += value;
+                        }
+                    }
                     TalentStat::ElementalPrecision
                         if MAGE_FIRE.contains(&key) || MAGE_FROST.contains(&key) =>
                     {
@@ -1061,6 +1069,7 @@ pub enum TalentStat {
     Reduction,
     Speed,
     ArcaneInstability,
+    ForceOfWill,
     ElementalPrecision,
     SpellGroupDamage(&'static [&'static str]),
     SpellGroupCrit(&'static [&'static str]),
@@ -1090,7 +1099,10 @@ impl TalentDefinition {
                 format!("This talent: {} » {} percentage points stronger slows; {rank} » {} sec added duration next rank", strength(rank), strength(rank + 1), rank + 1)
             };
         }
-        if self.stat == TalentStat::ArcaneInstability {
+        if matches!(
+            self.stat,
+            TalentStat::ArcaneInstability | TalentStat::ForceOfWill
+        ) {
             let value = u32::from(rank);
             return if rank == self.max_rank {
                 format!("This talent: {value}% damage; {value}% critical chance (maximum rank)")
@@ -1103,7 +1115,9 @@ impl TalentDefinition {
             };
         }
         let (scale, unit) = match self.stat {
-            TalentStat::ArcaneInstability => unreachable!("handled above"),
+            TalentStat::ArcaneInstability | TalentStat::ForceOfWill => {
+                unreachable!("handled above")
+            }
             TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
             TalentStat::Armor => (1.0, " armor"),
             TalentStat::SpellShield(_) => (100.0, "% maximum health absorbed per cast"),
@@ -2061,6 +2075,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 1202, max_rank: 5, name: "Force of Will",
+        description: "Priest Holy and Shadow spells: +1% damage and +1% direct critical chance per rank; periodic damage does not crit. Excludes shields, other-class and jewelry spells",
+        stat: TalentStat::ForceOfWill, per_rank: 0.01,
+    },
+    TalentDefinition {
         id: 1635, max_rank: 2, name: "Holy Reach",
         description: "Smite and Holy Fire: +10% casting range per rank; Holy Nova: +10% radius per rank, still one player-centered area",
         stat: TalentStat::HolyReach, per_rank: 0.10,
@@ -2170,6 +2189,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::HolyReach
             | TalentStat::ShadowReach
             | TalentStat::ArcaneInstability
+            | TalentStat::ForceOfWill
             | TalentStat::ElementalPrecision
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellGroupCrit(_)
@@ -2510,6 +2530,49 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn force_of_will_scopes_damage_and_direct_critical_chance() {
+        let base = Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        for rank in 0..=5 {
+            let trained = base.with_ranks(&[(0, 1202, rank)]);
+            for key in crate::data::CLASSES[4].pool.iter().copied().chain([
+                "shadow_bolt",
+                "holy_shock",
+                "fireball",
+            ]) {
+                let cast = trained.cast(key);
+                let damaging = PRIEST_HOLY.contains(&key) || PRIEST_SHADOW.contains(&key);
+                let value = f32::from(rank) * 0.01;
+                assert!(
+                    (cast.damage - if damaging { 1.0 + value } else { 1.0 }).abs() < 0.00001,
+                    "{key}"
+                );
+                assert!(
+                    (cast.crit
+                        - if damaging && key != "shadow_word_pain" {
+                            value
+                        } else {
+                            0.0
+                        })
+                    .abs()
+                        < 0.00001,
+                    "{key}"
+                );
+                assert_eq!(cast.cooldown, 1.0);
+                assert_eq!(cast.duration, 1.0);
+                assert_eq!(cast.extra_targets, 0);
+            }
+            assert_eq!(trained.with_ranks(&[]), base);
+        }
+        assert_eq!(
+            talent_definition(4, 1202).unwrap().rank_preview(4),
+            "This talent: 4 » 5% damage; 4 » 5% critical chance next rank"
+        );
+    }
+
+    #[test]
     fn priest_training_is_scoped_bounded_and_replaces_provisional_damage() {
         let base = Milestones {
             class: 4,
@@ -2521,12 +2584,12 @@ mod stat_talent_tests {
             .collect();
         let trained = base.with_ranks(&ranks);
         for (key, damage, cooldown, duration, crit) in [
-            ("smite", 1.1, 0.8, 1.0, 0.05),
-            ("holy_fire", 1.1, 0.8, 1.0, 0.05),
-            ("holy_nova", 1.0, 1.0, 1.0, 0.05),
-            ("shadow_word_pain", 1.1, 1.0, 1.3, 0.0),
-            ("mind_blast", 1.1, 0.75, 1.0, 0.0),
-            ("psychic_scream", 1.1, 0.8, 1.0, 0.0),
+            ("smite", 1.155, 0.8, 1.0, 0.10),
+            ("holy_fire", 1.155, 0.8, 1.0, 0.10),
+            ("holy_nova", 1.05, 1.0, 1.0, 0.10),
+            ("shadow_word_pain", 1.155, 1.0, 1.3, 0.0),
+            ("mind_blast", 1.155, 0.75, 1.0, 0.05),
+            ("psychic_scream", 1.155, 0.8, 1.0, 0.05),
             ("power_word_shield", 1.15, 1.0, 1.0, 0.0),
             ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),
             ("holy_shock", 1.0, 1.0, 1.0, 0.0),
@@ -3032,6 +3095,7 @@ mod stat_talent_tests {
                     | TalentStat::HolyReach
                     | TalentStat::ShadowReach
                     | TalentStat::ArcaneInstability
+                    | TalentStat::ForceOfWill
                     | TalentStat::ElementalPrecision
                     | TalentStat::SpellGroupDamage(_)
                     | TalentStat::SpellGroupCrit(_)

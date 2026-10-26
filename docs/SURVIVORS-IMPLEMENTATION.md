@@ -3847,3 +3847,18 @@ native screenshots are embedded in the changelog and the README links the preset
 No engine code changed, so no rebuild was needed. This closes these three baseline
 card layouts at these two sizes only; extra talent text, other sizes and other
 card families retain their existing acceptance gaps.
+
+### Force of Will — 2026-10-25
+
+The twelfth individual Priest talent, DBC 1202 (five ranks), replaces provisional
+general damage with +1% Priest Holy/Shadow damage and +1 percentage point direct
+critical chance per rank. Shadow Word: Pain gains tick damage only; periodic ticks
+retain their existing non-critical execution. Shield absorption, foreign-class and
+jewelry spells remain unchanged. Damage multiplies with other scoped talents;
+critical chance adds and remains bounded by combat's existing cap.
+
+116 core tests pass, including all-rank scope, reset and combined training checks.
+The ranked engine regression passes at spell ranks 1/3/8. DBC audit, native build,
+workspace Clippy, formatting and render lint pass. Native 1280×720 purchase/refund
+shows the green 4→5% damage and critical preview, embedded in changelog/README.
+Live combat balancing and remaining Priest talents remain open.

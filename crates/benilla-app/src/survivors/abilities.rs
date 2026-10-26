@@ -2514,12 +2514,12 @@ mod milestone_tests {
         stats.haste = 0.25;
         stats.cooldown = 0.15;
         for (key, damage, cooldown, duration, crit) in [
-            ("smite", 1.1, 0.8, 1.0, 0.05),
-            ("holy_fire", 1.1, 0.8, 1.0, 0.05),
-            ("holy_nova", 1.0, 1.0, 1.0, 0.05),
-            ("shadow_word_pain", 1.1, 1.0, 1.3, 0.0),
-            ("mind_blast", 1.1, 0.75, 1.0, 0.0),
-            ("psychic_scream", 1.1, 0.8, 1.0, 0.0),
+            ("smite", 1.155, 0.8, 1.0, 0.10),
+            ("holy_fire", 1.155, 0.8, 1.0, 0.10),
+            ("holy_nova", 1.05, 1.0, 1.0, 0.10),
+            ("shadow_word_pain", 1.155, 1.0, 1.3, 0.0),
+            ("mind_blast", 1.155, 0.75, 1.0, 0.05),
+            ("psychic_scream", 1.155, 0.8, 1.0, 0.05),
             ("power_word_shield", 1.15, 1.0, 1.0, 0.0),
             ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),
         ] {

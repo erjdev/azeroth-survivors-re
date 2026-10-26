@@ -327,7 +327,7 @@ navigation to Collection for full equipment details.
 
 ![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
-Priest now has eleven individual talents and nine tree milestones with scoped previews.
+Priest now has twelve individual talents and nine tree milestones with scoped previews.
 
 Long ground, chain and damage-over-time cards have checked [wide](docs/ui-previews/long-cards-1280.txt) and [compact](docs/ui-previews/long-cards-640.txt) preview presets.
 
@@ -340,6 +340,8 @@ Card layouts can be opened and resized without a run using the [live UI preview]
 Upgrade cards now state effective casting distance separately from area radius.
 
 ![Smite card with trained casting range](docs/images/screenshots/2026-10-25-card-range/smite-1280.jpg)
+
+![Force of Will damage and critical chance](docs/images/screenshots/2026-10-25-force-of-will/talent-1280.jpg)
 
 ![Priest range and area talent](docs/images/screenshots/2026-10-25-priest-reach/holy-1280.jpg)
 

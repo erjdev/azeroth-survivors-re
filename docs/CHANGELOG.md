@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Force of Will
+
+Priest Force of Will now grants 1% Holy/Shadow spell damage and one percentage
+point of direct critical chance per rank. Periodic damage stays non-critical;
+shields and foreign-class/jewelry spells receive no bonus.
+
+![Force of Will next-rank preview](images/screenshots/2026-10-25-force-of-will/talent-1280.jpg)
+
+116 core tests, the ranked engine regression, DBC audit, native build, Clippy,
+formatting and render lint pass. Native purchase/refund is verified at 1280×720.
+Live combat balance and remaining individual talents are still open.
+
 ## 2026-10-25 — Long-card layout acceptance
 
 Checked high-rank ground, chain and damage-over-time descriptions at 1280×720 and
