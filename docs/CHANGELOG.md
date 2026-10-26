@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Starter action cards
+
+Starter actions now share the Armory's gold outlines and burgundy emphasis.
+Armory, Talents and entry controls include their supporting text inside the
+clickable card. Entry width is proportional, with wrapping for long zone names.
+
+![Starter action cards](images/screenshots/2026-10-25-starter-actions/starter-1280.png)
+
+![Compact long-name entry and lock](images/screenshots/2026-10-25-starter-actions/locked-zone-640.png)
+
+Native wide/compact checks cover Armory/Talents navigation, locked entry,
+Options navigation and Quit. Build, workspace Clippy, formatting and render lint
+pass. Options still opens placeholder notes; a complete settings interface,
+background and outdoor zone artwork remain open.
+
 ## 2026-10-25 — Starter portrait identity
 
 The starter portrait now carries the reference's faction label and circular class

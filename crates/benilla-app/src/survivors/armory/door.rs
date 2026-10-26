@@ -16,8 +16,7 @@ use crate::char_select::race_name;
 use crate::glue::art::{class_tc, tc_rect, GlueArt, DIM, GOLD, NAME_EDGE};
 use crate::glue::backdrop::{backdrop_border, tiled_bg_node};
 use crate::glue::widgets::{
-    glue_button, outlined_text, outlined_text_centered, overlay, GlueBtnKind, GlueText, Hilight,
-    LockHighlight,
+    outlined_text, outlined_text_centered, overlay, GlueText, Hilight, LockHighlight,
 };
 
 const FILL: Color = Color::srgba(0.05, 0.04, 0.02, 0.92);
@@ -41,10 +40,10 @@ pub(super) fn build(
     compact_collection: bool,
 ) {
     if armory.page == Page::Door {
-        header(ui, art, font);
+        header(ui, font);
         tabs(ui, font, armory.page, account.unspent());
     } else {
-        armory_header(ui, art, font, armory, account, selection);
+        armory_header(ui, font, armory, account, selection);
     }
     if !note.is_empty() && armory.page != Page::Codex {
         line(ui, font, note, 13.0, GOLD);
@@ -59,7 +58,7 @@ pub(super) fn build(
             selection,
             compact_collection,
         );
-        enter_bar(ui, art, font, armory, account, selection);
+        enter_bar(ui, font, armory, account, selection);
     } else if armory.page == Page::Talents {
         super::talent_page::build(ui, font, account, selection, talents, talent_scroll);
     } else if armory.page == Page::Rewards {
@@ -115,7 +114,6 @@ pub(super) fn build(
 
 fn armory_header(
     ui: &mut ChildSpawnerCommands,
-    art: &GlueArt,
     font: &Handle<Font>,
     armory: &Armory,
     account: &Account,
@@ -207,33 +205,13 @@ fn armory_header(
             ..default()
         })
         .with_children(|controls| {
-            glue_button(
-                controls,
-                art,
-                font,
-                Act::Options,
-                "Options",
-                96.0,
-                28.0,
-                GlueBtnKind::Small,
-                1.0,
-            );
-            glue_button(
-                controls,
-                art,
-                font,
-                Act::Quit,
-                "Quit",
-                72.0,
-                28.0,
-                GlueBtnKind::Small,
-                1.0,
-            );
+            tab_button(controls, font, "Options", Act::Options, false);
+            tab_button(controls, font, "Quit", Act::Quit, false);
         });
     });
 }
 
-fn header(ui: &mut ChildSpawnerCommands, art: &GlueArt, font: &Handle<Font>) {
+fn header(ui: &mut ChildSpawnerCommands, font: &Handle<Font>) {
     ui.spawn(Node {
         width: Val::Percent(100.0),
         height: Val::Px(40.0),
@@ -268,28 +246,8 @@ fn header(ui: &mut ChildSpawnerCommands, art: &GlueArt, font: &Handle<Font>) {
             ..default()
         })
         .with_children(|b| {
-            glue_button(
-                b,
-                art,
-                font,
-                Act::Options,
-                "Options",
-                96.0,
-                28.0,
-                GlueBtnKind::Small,
-                1.0,
-            );
-            glue_button(
-                b,
-                art,
-                font,
-                Act::Quit,
-                "Quit",
-                72.0,
-                28.0,
-                GlueBtnKind::Small,
-                1.0,
-            );
+            tab_button(b, font, "Options", Act::Options, false);
+            tab_button(b, font, "Quit", Act::Quit, false);
         });
     });
 }
@@ -797,17 +755,7 @@ fn hero_column(
                     if hero.is_some() {
                         super::chip(row, font, "Name", Act::EditName, false);
                     }
-                    glue_button(
-                        row,
-                        art,
-                        font,
-                        Act::RandomName,
-                        "Random",
-                        88.0,
-                        26.0,
-                        GlueBtnKind::Small,
-                        1.0,
-                    );
+                    tab_button(row, font, "Random", Act::RandomName, false);
                 });
             let look_line = match look {
                 Some((race, sex)) => {
@@ -827,17 +775,7 @@ fn hero_column(
                 })
                 .with_children(|row| {
                     line(row, font, &look_line, 13.0, Color::WHITE);
-                    glue_button(
-                        row,
-                        art,
-                        font,
-                        Act::Page(Page::Heroes),
-                        "Look",
-                        72.0,
-                        26.0,
-                        GlueBtnKind::Small,
-                        1.0,
-                    );
+                    tab_button(row, font, "Look", Act::Page(Page::Heroes), false);
                 });
         });
     });
@@ -865,7 +803,6 @@ fn hero_column(
     .with_children(|row| {
         door_button(
             row,
-            art,
             font,
             Act::Page(Page::Heroes),
             "Armory",
@@ -873,7 +810,6 @@ fn hero_column(
         );
         door_button(
             row,
-            art,
             font,
             Act::Page(Page::Talents),
             "Talents",
@@ -894,33 +830,26 @@ fn hero_column(
 
 fn door_button(
     row: &mut ChildSpawnerCommands,
-    art: &GlueArt,
     font: &Handle<Font>,
     act: Act,
     caption: &str,
     under: &str,
 ) {
-    row.spawn(Node {
-        flex_grow: 1.0,
-        flex_direction: FlexDirection::Column,
-        align_items: AlignItems::Center,
-        row_gap: Val::Px(2.0),
-        ..default()
-    })
-    .with_children(|col| {
-        glue_button(
-            col,
-            art,
-            font,
-            act,
-            caption,
-            150.0,
-            32.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
-        line(col, font, under, 11.0, DIM);
-    });
+    super::controls::action_card(
+        row,
+        font,
+        caption,
+        under,
+        act,
+        false,
+        Node {
+            flex_grow: 1.0,
+            flex_basis: Val::Px(0.0),
+            min_width: Val::Px(0.0),
+            min_height: Val::Px(48.0),
+            ..default()
+        },
+    );
 }
 
 fn shown_zone<'a>(armory: &Armory, selection: &Selection) -> Option<(usize, &'a campaign::Zone)> {
@@ -1045,7 +974,6 @@ fn zone_column(
 
 fn enter_bar(
     ui: &mut ChildSpawnerCommands,
-    art: &GlueArt,
     font: &Handle<Font>,
     armory: &Armory,
     account: &Account,
@@ -1054,52 +982,43 @@ fn enter_bar(
     let (title, under) = enter_copy(armory, account, selection);
     ui.spawn(Node {
         width: Val::Percent(100.0),
-        flex_direction: FlexDirection::Row,
+        flex_wrap: FlexWrap::Wrap,
         justify_content: JustifyContent::Center,
-        align_items: AlignItems::FlexStart,
+        align_items: AlignItems::Center,
         column_gap: Val::Px(12.0),
+        row_gap: Val::Px(6.0),
         margin: UiRect::top(Val::Px(8.0)),
         ..default()
     })
     .with_children(|row| {
-        row.spawn(Node {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..default()
-        })
-        .with_children(|col| {
-            glue_button(
-                col,
-                art,
-                font,
-                Act::RunOptions,
-                "Run Options",
-                130.0,
-                36.0,
-                GlueBtnKind::Small,
-                1.0,
-            );
-            line(col, font, "Normal difficulty", 11.0, DIM);
-        });
-        row.spawn(Node {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..default()
-        })
-        .with_children(|col| {
-            glue_button(
-                col,
-                art,
-                font,
-                Act::Enter,
-                &title,
-                280.0,
-                44.0,
-                GlueBtnKind::Normal,
-                1.0,
-            );
-            line(col, font, &under, 12.0, GOLD);
-        });
+        super::controls::action_card(
+            row,
+            font,
+            "Run Options",
+            "Normal difficulty",
+            Act::RunOptions,
+            false,
+            Node {
+                min_height: Val::Px(48.0),
+                max_width: Val::Percent(100.0),
+                ..default()
+            },
+        );
+        super::controls::action_card(
+            row,
+            font,
+            &title,
+            &under,
+            Act::Enter,
+            true,
+            Node {
+                width: Val::Percent(45.0),
+                min_width: Val::Px(260.0),
+                max_width: Val::Percent(100.0),
+                min_height: Val::Px(60.0),
+                ..default()
+            },
+        );
     });
 }
 

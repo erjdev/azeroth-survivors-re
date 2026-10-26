@@ -27,6 +27,10 @@ Starter portraits now show faction and class badges, with wide/compact checks.
 
 ![Starter portrait identity](docs/images/screenshots/2026-10-25-starter-badges/alliance-1280.png)
 
+Starter actions now use outlined cards with their supporting text inside the button.
+
+![Starter action cards](docs/images/screenshots/2026-10-25-starter-actions/starter-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.

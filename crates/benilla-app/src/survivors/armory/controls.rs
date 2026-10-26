@@ -56,6 +56,56 @@ pub(super) fn button(
         });
 }
 
+/// A single action surface contains its title and supporting copy, including wrapped zone names.
+pub(super) fn action_card(
+    parent: &mut impl ChipParent,
+    font: &Handle<Font>,
+    title: &str,
+    subtitle: &str,
+    act: Act,
+    primary: bool,
+    node: Node,
+) {
+    let (fill, border) = colors(true, Interaction::None);
+    parent
+        .spawn((
+            Button,
+            act,
+            Control { selected: true },
+            Node {
+                border: UiRect::all(Val::Px(if primary { 2.0 } else { 1.0 })),
+                border_radius: BorderRadius::all(Val::Px(4.0)),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                padding: UiRect::axes(Val::Px(10.0), Val::Px(6.0)),
+                row_gap: Val::Px(2.0),
+                ..node
+            },
+            BackgroundColor(fill),
+            BorderColor::all(border),
+        ))
+        .with_children(|body| {
+            body.spawn((
+                hud::text_bundle(font, title, if primary { 24.0 } else { 18.0 }, super::GOLD),
+                super::typography::DisplayHeading,
+                TextLayout::new_with_justify(Justify::Center),
+                Node {
+                    max_width: Val::Percent(100.0),
+                    ..default()
+                },
+            ));
+            body.spawn((
+                hud::text_bundle(font, subtitle, 11.0, super::DIM),
+                TextLayout::new_with_justify(Justify::Center),
+                Node {
+                    max_width: Val::Percent(100.0),
+                    ..default()
+                },
+            ));
+        });
+}
+
 /// Unavailable actions keep their place without receiving input.
 pub(super) fn disabled(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, node: Node) {
     parent

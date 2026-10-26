@@ -18,6 +18,17 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-25)
 
+Starter actions now use the shared gold-outline/burgundy control style. Armory,
+Talents and entry actions contain both title and subtitle within the button.
+Enter uses proportional width with bounded wrapping rather than a fixed texture.
+Options/Quit share the new style on all Armory pages; Random/Look use text-sized
+controls. Native 1280×720 / 640×720 checks verified full-card Armory/Talents
+navigation, long Gates of Ahn'Qiraj text, lock preservation, Options navigation and
+Quit. Build, workspace Clippy, formatting and render lint pass. Screenshots are
+embedded in CHANGELOG/README. Options currently leads to placeholder notes, and
+Run Options only reports Normal difficulty; actual settings UI remains required.
+Background and outdoor zone illustrations remain open.
+
 Starter portraits now include the reference's faction pill and circular class
 badge, derived from the selected race/class and runtime class atlas. Badge size
 and corner offsets follow the portrait. Native Horde Warrior → Alliance Mage
