@@ -1236,6 +1236,7 @@ fn parse(text: &str) -> Result<Account, ()> {
     let mut account = empty();
     let mut equipment_rows = Vec::new();
     let mut body_rows = Vec::new();
+    let mut talent_rows = Vec::new();
     let mut feature_rows = Vec::new();
     for line in text.lines() {
         let line = line.trim();
@@ -1298,10 +1299,8 @@ fn parse(text: &str) -> Result<Account, ()> {
                 }
             }
             Some("dbc") => {
-                let id: u32 = parts.next().unwrap_or("0").parse().unwrap_or(0);
-                let payload = parts.next().unwrap_or("");
-                if let Some(hero) = account.characters.iter_mut().find(|c| c.id == id) {
-                    hero.dbc = read_dbc(payload);
+                if let Some(id) = parts.next().and_then(|id| id.parse::<u32>().ok()) {
+                    talent_rows.push((id, read_dbc(parts.next().unwrap_or(""))));
                 }
             }
             Some("class") => {
@@ -1401,6 +1400,12 @@ fn parse(text: &str) -> Result<Account, ()> {
                 }
             }
             _ => {}
+        }
+    }
+    // Resolve references after all characters exist; later rows retain replacement semantics.
+    for (id, specs) in talent_rows {
+        if let Some(hero) = account.characters.iter_mut().find(|hero| hero.id == id) {
+            hero.dbc = specs;
         }
     }
     for (id, body) in body_rows {
@@ -1644,6 +1649,43 @@ mod tests {
     }
 
     use super::*;
+
+    #[test]
+    fn talent_rows_before_characters_preserve_specs_and_run_effects() {
+        let characters = "who 1 3 5100 First Rogue\nwho 2 3 5100 Second Rogue\n";
+        let talents = "dbc 1 0:270:2,0:270:5|1:187:5|0:270:1\ndbc 2 0:270:3||1:187:2\n";
+        let mut ordered = parse(&format!("{characters}{talents}")).unwrap();
+        let mut reordered = parse(&format!("{talents}{characters}")).unwrap();
+        for id in [1, 2] {
+            for spec in 0..3 {
+                ordered.select_spec(id, spec);
+                reordered.select_spec(id, spec);
+                assert_eq!(
+                    ordered.character(id).unwrap().dbc,
+                    reordered.character(id).unwrap().dbc
+                );
+                assert_eq!(
+                    ordered.milestones_picked(3, Some(id)),
+                    reordered.milestones_picked(3, Some(id))
+                );
+                assert_eq!(ordered.bonus(3, id).armor, reordered.bonus(3, id).armor);
+            }
+        }
+        let round_trip = parse(&encode(&reordered)).unwrap();
+        for id in [1, 2] {
+            assert_eq!(
+                round_trip.character(id).unwrap().dbc,
+                reordered.character(id).unwrap().dbc
+            );
+        }
+        let replacement = parse("dbc 0 0:270:1\ndbc bad 0:270:5\ndbc 99 0:270:5\nwho 0 3 5100 Legacy Rogue\nwho 1 3 5100 Saved Rogue\ndbc 1 0:270:3\ndbc 1 |1:187:2|\n").unwrap();
+        assert_eq!(replacement.character(0).unwrap().dbc[0], vec![(0, 270, 1)]);
+        assert_eq!(
+            replacement.character(1).unwrap().dbc,
+            [vec![], vec![(1, 187, 2)], vec![]]
+        );
+        assert_eq!(replacement.characters.len(), 2);
+    }
 
     #[test]
     fn imported_duplicate_talents_do_not_inflate_tree_points_or_effects() {

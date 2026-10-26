@@ -5039,3 +5039,20 @@ acceptance are claimed, and talent definition coverage is unchanged.
 
 Validation: all 146 core and 291 visibility-enabled Survivors app tests, native
 build, core/app Clippy, formatting and diff checks pass.
+
+
+### 2026-10-26 — Order-independent talent save references
+
+Talent rows are staged until all character records have loaded, matching appearance
+reference handling. This prevents silent rank loss when a valid save's talent rows
+precede character rows. The parser preserves last-row replacement behavior and
+ignores nonexistent references; malformed IDs no longer fall back to hero 0.
+
+The regression compares two heroes across all three specs in ordered/reordered
+saves, including duplicate-rank normalization, milestone snapshots, armor effects,
+and encode/decode persistence. It also checks duplicate row replacement, unknown
+hero IDs and malformed IDs alongside a legacy hero 0. This does not alter catalog,
+rank-budget or prerequisite validation. No interface or visual acceptance changed.
+
+Validation: 292 visibility-enabled Survivors app tests, native build, app Clippy,
+formatting and diff checks pass.

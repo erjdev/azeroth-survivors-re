@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Preserve talents in reordered saves
+
+Talent rows now load even when they precede their character row. All three specs
+retain their ranks and run effects; unknown hero references are ignored and later
+talent rows still replace earlier ones. Malformed hero IDs no longer target hero 0.
+
+All 292 Survivors app tests, native build, Clippy, formatting and diff checks pass.
+This is a save-loading correction with no interface change or new visual claim.
+
 ## 2026-10-26 — Consistent Druid healing bonuses
 
 Improved Rejuvenation, Gift of Nature and Nature's Focus now scale Rejuvenation's
