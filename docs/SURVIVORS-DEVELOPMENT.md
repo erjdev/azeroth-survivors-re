@@ -34,10 +34,13 @@ cargo survivors-build
 WOW_DATA="$PWD/wow-data/Data" cargo survivors
 cargo test -p benilla-app --lib survivors:: --no-default-features
 cargo run -p survivors-audit -- "$PWD/wow-data/Data"
+cargo run -p survivors-audit -- "$PWD/wow-data/Data" --achievement-art
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --floor 533 3005.87 -3435.01 293.88
 ```
 
 The content auditor requires an explicit data directory and never discovers another install.
+`--achievement-art` checks every catalog icon file for presence/readability; rendered
+appearance and visual suitability still require native screenshots.
 It checks campaign map rows, terrain under start coordinates, roster model files, item names
 and drop coverage. The optional `--floor <map> <x> <y> <z>` probe loads all walking collision
 groups of WMO placements referenced by the point's ADT, applies the MODF transform, reports

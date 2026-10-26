@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Achievement card artwork
+
+Achievement cards now use themed zone, class, equipment, jewelry, cloak and
+lifetime icons instead of repeating each category's icon. Related tiers share a
+visual identity. Both placeholder achievements retain their pending criteria.
+
+![Recently earned artwork](images/screenshots/2026-10-26-achievement-art/summary-1280.png)
+
+![Collection achievement artwork](images/screenshots/2026-10-26-achievement-art/collection-1280.png)
+
+![Zone achievement artwork](images/screenshots/2026-10-26-achievement-art/zones-1280.png)
+
+![Class achievement artwork](images/screenshots/2026-10-26-achievement-art/classes-1280.png)
+
+![Cloak and placeholder artwork](images/screenshots/2026-10-26-achievement-art/feats-1280.png)
+
+The new `--achievement-art` audit verifies all 57 catalog icon files against the
+explicit checkout data folder. 130 core tests, native build, workspace Clippy,
+formatting and render lint pass. Native 1280×720 captures use a synthetic account;
+these authored vanilla icon choices follow the reference's illustrated-card style.
+
 ## 2026-10-26 — Achievement earned dates
 
 New achievements save their first-earned UTC date and show it on summary/category

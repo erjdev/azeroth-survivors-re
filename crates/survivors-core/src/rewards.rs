@@ -332,6 +332,52 @@ impl Kind {
         }
     }
 
+    /// Authored icon choices from the vanilla icon set, shared by related achievement tiers.
+    fn icon(&self, id: u16) -> &'static str {
+        match *self {
+            Kind::ZoneAny(z) | Kind::ZoneAll(z) => [
+                "INV_Misc_Bandana_01",
+                "INV_Misc_Bone_HumanSkull_01",
+                "INV_BannerPVP_02",
+                "Ability_Mount_Raptor",
+                "INV_BannerPVP_01",
+                "Spell_Nature_ProtectionformNature",
+                "Ability_Warrior_BattleShout",
+                "Spell_Holy_SealOfSalvation",
+                "Spell_Frost_ChillingBlast",
+                "Spell_Fire_Volcano",
+                "INV_Misc_AhnQirajTrinket_01",
+                "Spell_Shadow_DeathAndDecay",
+            ][z],
+            Kind::ClassClear(c) | Kind::TalentCap(c) => [
+                "Ability_Warrior_SavageBlow",
+                "Spell_Holy_HolyBolt",
+                "Ability_Hunter_AimedShot",
+                "Ability_BackStab",
+                "Spell_Holy_PowerWordShield",
+                "Spell_Nature_Lightning",
+                "Spell_Frost_FrostBolt02",
+                "Spell_Shadow_ShadowBolt",
+                "Spell_Nature_Rejuvenation",
+            ][c],
+            Kind::Pieces(10) => "INV_Sword_04",
+            Kind::Pieces(_) => "INV_Misc_Bag_10",
+            Kind::FullSet => "INV_Chest_Plate04",
+            Kind::Legends(8) => "INV_Jewelry_Ring_03",
+            Kind::Legends(_) => "INV_Jewelry_Necklace_01",
+            Kind::AnyCloak => "INV_Misc_Cape_01",
+            Kind::EpicCloak => "INV_Misc_Cape_11",
+            Kind::LegendaryCloak => "INV_Misc_Cape_18",
+            Kind::Wins(1) => "Ability_BackStab",
+            Kind::Wins(10) => "INV_BannerPVP_01",
+            Kind::Wins(_) => "INV_BannerPVP_02",
+            Kind::Runs(10) => "INV_Shield_05",
+            Kind::Runs(_) => "INV_Shield_06",
+            Kind::Placeholder if id == DEATHLESS_HOUR => "Spell_Holy_BlessingOfProtection",
+            Kind::Placeholder => "Spell_Frost_FrostArmor02",
+        }
+    }
+
     fn category(&self) -> Category {
         match self {
             Kind::ZoneAny(_) | Kind::ZoneAll(_) => Category::Zones,
@@ -522,6 +568,7 @@ pub fn catalog_len() -> usize {
 }
 
 pub struct Listed {
+    pub icon: &'static str,
     pub id: u16,
     pub name: String,
     pub description: String,
@@ -537,6 +584,7 @@ pub fn listed(snapshot: &Snapshot, earned: &[u16]) -> Vec<Listed> {
     catalog()
         .into_iter()
         .map(|a| Listed {
+            icon: a.kind.icon(a.id),
             id: a.id,
             earned: !matches!(a.kind, Kind::Placeholder)
                 && (earned.contains(&a.id) || a.kind.met(snapshot)),

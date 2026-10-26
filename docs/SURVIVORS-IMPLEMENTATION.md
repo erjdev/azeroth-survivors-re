@@ -26,7 +26,10 @@ changelog/README. First-earned UTC dates now persist for new grants and appear o
 summary/category cards. Legacy achievements remain undated; date metadata never
 grants points or unlocks, and repeated grants preserve the original date. Native
 wide/compact restart evidence and save compatibility/calendar tests verify this.
-Distinct per-achievement artwork remains open; cards still use category icons.
+The 57 catalog entries now use authored requirement-themed vanilla icons; related
+zone/class tiers share icons. The explicit-data `--achievement-art` audit checks
+all referenced files, and native summary/category captures document the artwork.
+Reference catalog expansion and broader per-page interaction acceptance remain open.
 
 Options now opens shared pause settings from the starter and all Armory pages.
 The menu leaves layout while settings is visible; its mouse/keyboard actions are

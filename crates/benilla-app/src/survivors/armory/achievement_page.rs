@@ -50,8 +50,12 @@ fn text(
 }
 
 fn icon(ui: &mut ChildSpawnerCommands, category: usize, size: f32) {
+    artwork(ui, ICONS[category], size);
+}
+
+fn artwork(ui: &mut ChildSpawnerCommands, name: &str, size: f32) {
     ui.spawn((
-        super::talent_page::Backdrop(format!("Interface\\Icons\\{}.blp", ICONS[category])),
+        super::talent_page::Backdrop(format!("Interface\\Icons\\{name}.blp")),
         ImageNode::default(),
         Node {
             width: Val::Px(size),
@@ -67,17 +71,6 @@ fn category(page: usize) -> Option<rewards::Category> {
     [Zones, Classes, Collection, Feats, Lifetime]
         .get(page.checked_sub(1)?)
         .copied()
-}
-
-fn page(category: rewards::Category) -> usize {
-    use rewards::Category::*;
-    match category {
-        Zones => 1,
-        Classes => 2,
-        Collection => 3,
-        Feats => 4,
-        Lifetime => 5,
-    }
 }
 
 fn counts(
@@ -310,7 +303,7 @@ fn card(
         }),
     ))
     .with_children(|card| {
-        icon(card, page(entry.category), 32.0);
+        artwork(card, entry.icon, 32.0);
         card.spawn(Node {
             flex_direction: FlexDirection::Column,
             flex_grow: 1.0,
