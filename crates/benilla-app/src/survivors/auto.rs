@@ -245,8 +245,7 @@ pub(super) fn drive(
                     account.bonus_for(auto.class),
                 )
             {
-                run.apply_perks(account.perks);
-                run.milestones = account.milestones_picked(auto.class, None);
+                run.finish_start(account.perks, account.milestones_picked(auto.class, None));
                 info!(
                     "survivors auto: run begins as {} at {}",
                     run.class.name,

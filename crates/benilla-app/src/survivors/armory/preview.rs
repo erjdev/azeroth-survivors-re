@@ -338,8 +338,10 @@ fn selected_run(
     ) {
         return None;
     }
-    run.apply_perks(account.perks);
-    run.milestones = account.milestones_picked(class, selection.character);
+    run.finish_start(
+        account.perks,
+        account.milestones_picked(class, selection.character),
+    );
     Some(run)
 }
 

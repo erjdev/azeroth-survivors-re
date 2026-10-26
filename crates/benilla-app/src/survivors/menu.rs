@@ -813,8 +813,7 @@ pub(super) fn menu_clicks(
                     stash.gear(),
                     account.bonus_picked(class, hero),
                 ) {
-                    run.apply_perks(account.perks);
-                    run.milestones = account.milestones_picked(class, hero);
+                    run.finish_start(account.perks, account.milestones_picked(class, hero));
                     next.set(Phase::Playing);
                 }
             }

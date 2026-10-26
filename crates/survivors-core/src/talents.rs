@@ -508,6 +508,11 @@ impl Milestones {
         }
     }
 
+    /// Applied after flat gear, passive, renown and racial health contributions.
+    pub fn health_multiplier(self) -> f32 {
+        1.0 + self.trained_value(TalentStat::MaximumHealth)
+    }
+
     fn trained_value(self, stat: TalentStat) -> f32 {
         definitions(self.class)
             .iter()
@@ -1324,6 +1329,7 @@ pub struct TalentDefinition {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
     Health,
+    MaximumHealth,
     Damage,
     Cooldown,
     Armor,
@@ -1420,6 +1426,7 @@ impl TalentDefinition {
             }
             TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
             TalentStat::Health => (1.0, " maximum health"),
+            TalentStat::MaximumHealth => (100.0, "% maximum health"),
             TalentStat::Armor => (1.0, " armor"),
             TalentStat::SpellShield(_) => (100.0, "% maximum health absorbed per cast"),
             TalentStat::SpellImmune(_) => (1.0, " sec immunity per successful cast"),
@@ -1945,6 +1952,11 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1622, max_rank: 5, name: "Survivalist",
+        description: "+2% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health",
+        stat: TalentStat::MaximumHealth, per_rank: 0.02,
+    },
     TalentDefinition {
         id: 1352, max_rank: 3, name: "Hawk Eye",
         description: "Shots, stings and Volley: +2 yd targeting range per rank. Volley's radius and target counts are unchanged; excludes Explosive Trap",
@@ -2564,6 +2576,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::SpiritualHealing
+            | TalentStat::MaximumHealth
             | TalentStat::SiphonLife
             | TalentStat::Nightfall
             | TalentStat::Remorseless
@@ -3642,6 +3655,7 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::SpiritualHealing
+                    | TalentStat::MaximumHealth
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
                     | TalentStat::Remorseless
@@ -4553,6 +4567,37 @@ mod spiritual_healing_tests {
         assert_eq!(
             talent_definition(4, 404).unwrap().rank_preview(1),
             "This talent: 2 to 4% Renew and Holy Nova healing next rank"
+        );
+    }
+}
+
+#[cfg(test)]
+mod health_talent_tests {
+    use super::*;
+
+    #[test]
+    fn survivalist_is_capped_class_scoped_and_resettable() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, 5, 255] {
+                let trained = base.with_ranks(&[(2, 1622, rank), (2, 1622, rank)]);
+                let expected = if class == 2 {
+                    1. + 0.02 * f32::from(rank.min(5))
+                } else {
+                    1.
+                };
+                assert_eq!(trained.health_multiplier(), expected);
+                assert_eq!(trained.with_ranks(&[]).health_multiplier(), 1.);
+                assert_eq!(trained.cast("arcane_shot"), base.cast("arcane_shot"));
+                assert_eq!(trained.passive_multiplier("renew"), 1.);
+            }
+        }
+        assert_eq!(
+            talent_definition(2, 1622).unwrap().rank_preview(4),
+            "This talent: 8 to 10% maximum health next rank"
         );
     }
 }

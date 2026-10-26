@@ -699,14 +699,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
 | Paladin | 21 / 44 | 9 / 9 |
-| Hunter | 17 / 46 | 6 / 9 |
+| Hunter | 18 / 46 | 6 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
 | Priest | 21 / 47 | 9 / 9 |
 | Shaman | 14 / 46 | 9 / 9 |
 | Mage | 30 / 49 | 9 / 9 |
 | Warlock | 16 / 50 | 9 / 9 |
 | Druid | 20 / 47 | 9 / 9 |
-| Total | 189 / 432 | 78 / 81 |
+| Total | 190 / 432 | 78 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -4941,3 +4941,28 @@ The checkout-data audit reports 189/432 definitions and 78/81 milestone descript
 This does not complete Priest talents, combat balance or Windows acceptance.
 Validation: 143 core tests, 290 visibility-enabled app tests, native play build
 (59 seconds), app Clippy, formatting and diff checks pass.
+
+
+### 2026-10-26 — Hunter Survivalist and completed startup health
+
+DBC 1622 replaces the generic damage placeholder with 2% final maximum health per
+rank (five ranks). A dedicated talent multiplier is applied after flat gear, passive,
+renown and racial health; no Bonus/save schema changes are needed. Core tests cover
+rank caps, duplicate saved entries, class isolation and reset. App tests combine
+Tauren health, renown, a health passive and flat gear bonuses, verify later flat
+bonuses scale, and verify stat queries do not alter current health.
+
+Startup previously filled health before setting the saved talent snapshot. All five
+entry/preview sites now finish through one startup helper that installs perks and
+talents before filling health. This helper is explicitly startup-only. The starter
+shows the talent percentage separately from the class card's base-health number.
+The latter is not a complete equipped character sheet.
+
+Native isolated fixture survivalist has ten supported prerequisite points (Deflection
+and Entrapment). Purchasing rank 1 persists; 1280×720 and 640×720 descriptions and
+the starter +2% summary were captured in CHANGELOG/README. The starter capture is
+bonus-text evidence, not acceptance of the full body/model matrix. Reusable talent
+preview files are included. All 144 core and 291 visibility-enabled app tests,
+native build, app Clippy, formatting and diff checks pass. Catalog coverage is
+190/432 individual talents and 78/81 milestones. No combat session was run; Windows
+and gameplay balance acceptance remain open.

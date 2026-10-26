@@ -856,8 +856,7 @@ fn try_enter(
         stash.gear(),
         account.bonus_picked(class, hero),
     ) {
-        run.apply_perks(account.perks);
-        run.milestones = account.milestones_picked(class, hero);
+        run.finish_start(account.perks, account.milestones_picked(class, hero));
         next.set(Phase::Playing);
     } else {
         armory.note = "Pick a class and a look before entering.".into();

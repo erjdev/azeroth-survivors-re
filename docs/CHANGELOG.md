@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Hunter Survivalist and full-health starts
+
+Survivalist now grants 2% maximum health per rank, up to 10%, scaling equipped
+health and composing with passive, renown and racial bonuses. The starter shows
+its percentage. All entry paths fill health after saved talents are applied;
+recalculating stats during a run does not heal the player.
+
+![Survivalist purchase](images/screenshots/2026-10-26-survivalist/talent-1280.png)
+
+![Compact Survivalist details](images/screenshots/2026-10-26-survivalist/talent-640.png)
+
+![Starter talent health summary](images/screenshots/2026-10-26-survivalist/starter-1280.png)
+
+144 core and 291 Survivors app tests, native build, app Clippy and catalog audit
+pass. Native checks cover purchase, persistence, wide/compact descriptions and the
+starter bonus. Live combat and Windows acceptance remain open.
+
+
 ## 2026-10-26 — Priest healing talent
 
 Spiritual Healing now increases Renew and Holy Nova's unlocked healing by 2% per

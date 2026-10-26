@@ -624,6 +624,18 @@ impl Run {
         healed
     }
 
+    /// Complete a newly created run after its saved talents and perks are known.
+    /// Never use this to refresh an active run: filling health is startup-only.
+    pub(in crate::survivors) fn finish_start(
+        &mut self,
+        perks: rewards::PerkRanks,
+        milestones: survivors_core::talents::Milestones,
+    ) {
+        self.apply_perks(perks);
+        self.milestones = milestones;
+        self.hp = self.stats().max_hp;
+    }
+
     pub(in crate::survivors) fn apply_perks(&mut self, perks: rewards::PerkRanks) {
         self.rerolls = perks.second_thoughts;
         self.banishes = perks.banish;
@@ -738,6 +750,7 @@ impl Run {
         let racial = survivors_core::racials::effects(self.race, self.elapsed);
         apply_sheet(&mut s, racial.bonus);
         s.max_hp *= racial.health_multiplier;
+        s.max_hp *= self.milestones.health_multiplier();
         s.regen += racial.regen;
         s.haste += racial.haste;
         let damage_buff =
@@ -891,6 +904,58 @@ mod stat_tests {
         assert!(
             (run.stats().regen - baseline - 0.5 * f32::from(data::MAX_PASSIVE_LEVEL)).abs()
                 < 0.00001
+        );
+    }
+
+    #[test]
+    fn survivalist_scales_final_equipped_health_without_healing_current_hp() {
+        let fortitude = data::PASSIVES
+            .iter()
+            .find(|p| matches!(p.stat, Stat::MaxHp))
+            .unwrap();
+        let mut run = Run {
+            class: &data::CLASSES[2],
+            race: 6,
+            renown_fortitude: 2,
+            hp: 30.,
+            passives: vec![(fortitude, 3)],
+            bonus: campaign::Bonus {
+                health: 25.,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let base = run.stats();
+        run.milestones = survivors_core::talents::Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 1622, 5)]);
+        assert!((run.stats().max_hp - base.max_hp * 1.1).abs() < 0.00001);
+        assert_eq!(run.hp, 30.);
+        let mut starting = Run {
+            bonus: run.bonus,
+            ..Default::default()
+        };
+        starting.finish_start(Default::default(), run.milestones);
+        assert_eq!(starting.hp, starting.stats().max_hp);
+        assert_eq!(run.stats().might, base.might);
+        run.bonus.health += 35.;
+        assert!(
+            (run.stats().max_hp
+                - (base.max_hp
+                    + 35. * survivors_core::racials::effects(run.race, 0.).health_multiplier)
+                    * 1.1)
+                .abs()
+                < 0.0001
+        );
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(
+            (run.stats().max_hp
+                - base.max_hp
+                - 35. * survivors_core::racials::effects(run.race, 0.).health_multiplier)
+                .abs()
+                < 0.0001
         );
     }
 

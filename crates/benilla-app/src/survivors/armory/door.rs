@@ -792,6 +792,21 @@ fn hero_column(
     bar(body, owned as f32 / total as f32);
     let bonus = account.bonus_picked(class_i, selection.character);
     line(body, font, &bonus_line(bonus), 12.0, BONUS);
+    let health = account
+        .milestones_picked(class_i, selection.character)
+        .health_multiplier();
+    if health > 1.0 {
+        line(
+            body,
+            font,
+            &format!(
+                "Talents: +{:.0}% total maximum health",
+                (health - 1.0) * 100.0
+            ),
+            12.0,
+            BONUS,
+        );
+    }
     let spent = hero.map(|c| c.active_points()).unwrap_or(0);
     body.spawn(Node {
         width: Val::Percent(100.0),
