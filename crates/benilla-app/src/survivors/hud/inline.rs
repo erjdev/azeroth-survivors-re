@@ -644,7 +644,7 @@ mod tests {
         let same = describe(Choice::Jewel(JewelKind::Legend("fireball")), &run);
         assert_eq!(
             same,
-            vec![("No change to current jewelry bonuses.".into(), DIM)]
+            vec![("No change to this spell's bonuses.".into(), DIM)]
         );
     }
 }

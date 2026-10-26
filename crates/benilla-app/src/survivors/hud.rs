@@ -2466,6 +2466,18 @@ fn ability_body(def: &AbilityDef, c: &Cast) -> String {
         .collect()
 }
 
+/// Catalog prose uses rank one without a hero's equipment, training or run upgrades.
+pub(super) fn base_ability_body(def: &'static AbilityDef) -> String {
+    let base = Run::default();
+    let cast = cast_at(def, 1, &base.stats(), base.milestones);
+    let body = ability_body(def, &cast);
+    if matches!(def.kind, Kind::Aura | Kind::Orbit) {
+        body
+    } else {
+        format!("{body} Recharges in {} sec.", num(cast.cooldown))
+    }
+}
+
 /// What the next rank changes, at the current stats.
 fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast) -> String {
     let what = match def.kind {

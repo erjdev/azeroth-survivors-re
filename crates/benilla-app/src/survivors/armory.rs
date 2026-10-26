@@ -1862,19 +1862,20 @@ fn codex_text(account: &Account, id: u16) -> String {
             let Some(key) = keys.get(slot).copied() else {
                 return "Unknown spell".into();
             };
-            let def = data::ability(key);
             let amulet = campaign::legendary_amulet(key);
             let seen = account
                 .classes
                 .get(class_i)
                 .is_some_and(|progress| progress.seen.iter().any(|name| name == &amulet));
-            let mark = if seen { "seen" } else { "not seen yet" };
+            let mark = if seen {
+                "Previously offered"
+            } else {
+                "Not offered yet"
+            };
             format!(
-                "Amulet of {}\n{} · {} damage, {}s cooldown\n{mark}",
+                "Amulet of {}\n{mark}\n\nSpell at rank 1 · before equipment and talents\n{}",
                 spell_title(key),
-                kind_name(def.kind),
-                def.damage,
-                def.cooldown
+                hud::base_ability_body(data::ability(key))
             )
         }
         2 => jewel_text(
@@ -1911,27 +1912,6 @@ pub(super) fn spell_title(key: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
-}
-
-fn kind_name(kind: data::Kind) -> &'static str {
-    match kind {
-        data::Kind::Bolt => "Bolt",
-        data::Kind::Strike => "Strike",
-        data::Kind::Melee => "Melee",
-        data::Kind::Nova => "Nova",
-        data::Kind::Cone => "Cone",
-        data::Kind::Ground => "Ground",
-        data::Kind::GroundSelf => "Ground",
-        data::Kind::Chain => "Chain",
-        data::Kind::Dot => "Damage over time",
-        data::Kind::Aura => "Aura",
-        data::Kind::Orbit => "Orbit",
-        data::Kind::Shield => "Shield",
-        data::Kind::Immune => "Immune",
-        data::Kind::Thorns => "Thorns",
-        data::Kind::Heal => "Heal",
-        data::Kind::Totem => "Totem",
-    }
 }
 
 fn notes_page(panel: &mut impl ChipParent, font: &Handle<Font>) {

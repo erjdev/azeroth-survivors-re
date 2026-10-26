@@ -384,11 +384,16 @@ fn effect_text(armory: &Armory) -> String {
     };
     let mut worn = campaign::Worn::default();
     worn.equip(kind);
-    let (heading, bonus) = match hud::card_growth::legend_effect(worn) {
-        Some((key, bonus)) => (format!("{} only", super::spell_title(key)), bonus),
-        None => ("Bonuses when worn alone".into(), worn.bonus()),
+    let (heading, lines) = match hud::card_growth::legend_effect(worn) {
+        Some((key, bonus)) => (
+            format!("{} only", super::spell_title(key)),
+            hud::card_growth::legendary_changes(key, campaign::Bonus::default(), bonus),
+        ),
+        None => (
+            "Bonuses when worn alone".into(),
+            hud::card_growth::jewelry_changes(campaign::Bonus::default(), worn.bonus()),
+        ),
     };
-    let lines = hud::card_growth::jewelry_changes(campaign::Bonus::default(), bonus);
     format!(
         "{heading}\n{}",
         lines
@@ -507,6 +512,48 @@ mod tests {
                 .count(),
             0
         );
+    }
+
+    #[test]
+    fn legendary_details_describe_healing_defense_and_control_as_spell_effects() {
+        let account = super::super::super::account::blank();
+        let entry = |key| {
+            let (class, slot) = CLASSES
+                .iter()
+                .enumerate()
+                .find_map(|(i, class)| {
+                    class
+                        .ability_keys()
+                        .iter()
+                        .position(|candidate| *candidate == key)
+                        .map(|slot| (i, slot))
+                })
+                .unwrap();
+            let armory = Armory {
+                codex_entry: Some(codex_legend(class, slot)),
+                ..Default::default()
+            };
+            detail_text(&armory, &account)
+        };
+        let heal = entry("rejuvenation");
+        assert!(heal.contains("heals you for"), "{heal}");
+        assert!(heal.contains(" health over "), "{heal}");
+        assert!(!heal.contains(" damage"), "{heal}");
+        let shield = entry("power_word_shield");
+        assert!(shield.contains("Absorbs the next"), "{shield}");
+        let immune = entry("divine_shield");
+        assert!(immune.contains("immune to all damage for"), "{immune}");
+        for class in CLASSES.iter() {
+            for key in class.ability_keys() {
+                let text = entry(key);
+                assert!(text.contains("Spell at rank 1 · before equipment and talents"));
+                assert!(text.contains("Not offered yet"));
+                assert!(
+                    !text.contains(" » "),
+                    "base preview should not imply an upgrade: {text}"
+                );
+            }
+        }
     }
 
     #[test]

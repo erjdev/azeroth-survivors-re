@@ -53,7 +53,7 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, 
                 .legendary_bonus()
                 .is_some_and(|(old, _)| old == key)
             {
-                return jewelry_changes(next.1, next.1);
+                return legendary_changes(key, next.1, next.1);
             }
             let mut lines = Vec::new();
             if let Some((old, bonus)) = legend_effect(run.worn) {
@@ -64,13 +64,13 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Vec<(String, 
                     ),
                     LOSS,
                 ));
-                lines.extend(jewelry_changes(bonus, campaign::Bonus::default()));
+                lines.extend(legendary_changes(old, bonus, campaign::Bonus::default()));
             }
             lines.push((
                 format!("{} only", crate::survivors::armory::spell_title(key)),
                 GAIN,
             ));
-            lines.extend(jewelry_changes(campaign::Bonus::default(), next.1));
+            lines.extend(legendary_changes(key, campaign::Bonus::default(), next.1));
             lines
         }
         Choice::Jewel(kind) => {
@@ -88,8 +88,34 @@ pub(in crate::survivors) fn legend_effect(
     worn.legendary_bonus().map(|(key, mut bonus)| {
         let def = data::ability(key);
         bonus.targets = super::super::sheet::extra_targets(def.kind, def.count, bonus.targets);
+        if matches!(
+            def.kind,
+            Kind::Heal | Kind::Shield | Kind::Immune | Kind::Thorns
+        ) {
+            bonus.crit_damage = 0.0;
+        }
+        if def.kind == Kind::Immune {
+            bonus.might = 0.0;
+        }
         (key, bonus)
     })
+}
+
+/// The same power multiplier heals or absorbs for defensive spells; it is not damage.
+pub(in crate::survivors) fn legendary_changes(
+    key: &str,
+    before: campaign::Bonus,
+    after: campaign::Bonus,
+) -> Vec<(String, Color)> {
+    let label = match data::ability(key).kind {
+        Kind::Heal => "Healing bonus",
+        Kind::Shield => "Absorb bonus",
+        _ => "Damage bonus",
+    };
+    bonus_changes(before, after, "No change to this spell's bonuses")
+        .into_iter()
+        .map(|(text, color)| (text.replacen("Damage bonus", label, 1), color))
+        .collect()
 }
 
 fn passive_value(stat: Stat, value: f32) -> String {
@@ -211,6 +237,47 @@ pub(in crate::survivors) fn bonus_changes(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn defensive_legendaries_report_only_effective_power_and_replacement_losses() {
+        for (key, label) in [
+            ("rejuvenation", "Healing"),
+            ("power_word_shield", "Absorb"),
+            ("thorns", "Damage"),
+        ] {
+            let run = Run::default();
+            let lines = describe(Choice::Jewel(campaign::JewelKind::Legend(key)), &run);
+            assert!(
+                lines
+                    .iter()
+                    .any(|(text, _)| text == &format!("{label} bonus 0 » 5%")),
+                "{key}: {lines:?}"
+            );
+            assert!(!lines
+                .iter()
+                .any(|(text, _)| text.contains("Critical") || text.contains("targets")));
+            let mut worn = run;
+            worn.worn.equip(campaign::JewelKind::Legend(key));
+            let lines = describe(
+                Choice::Jewel(campaign::JewelKind::Legend("fireball")),
+                &worn,
+            );
+            assert!(lines
+                .iter()
+                .any(|(text, color)| text == &format!("{label} bonus 5 » 0%") && *color == LOSS));
+        }
+        let run = Run::default();
+        let lines = describe(
+            Choice::Jewel(campaign::JewelKind::Legend("divine_shield")),
+            &run,
+        );
+        assert!(lines
+            .iter()
+            .any(|(text, _)| text == "No change to this spell's bonuses"));
+        assert!(!lines
+            .iter()
+            .any(|(text, _)| text.contains("Damage bonus") || text.contains("Critical")));
+    }
+
     #[test]
     fn legendary_replacement_reports_scoped_losses_and_gains() {
         let mut run = Run::default();

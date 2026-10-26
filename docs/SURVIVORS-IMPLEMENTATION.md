@@ -4398,3 +4398,26 @@ verify all three descriptions; screenshots are inline in CHANGELOG/README. Nativ
 build, workspace Clippy, DBC coverage audit, formatting and render lint pass.
 Milestone coverage is 78/81. Hunter combat pets and the three Beast Mastery milestones
 remain open together, along with remaining individual talent nodes.
+
+### Codex spell prose and defensive legendary labels — 2026-10-26
+
+Legendary entries now use the shared card/tooltip spell prose for an explicitly
+unmodified rank-one preview, including recharge timing. Healing, absorbs, immunity,
+control and damage retain their actual meaning rather than displaying every base
+value as damage. Discovery labels match shared jewelry: previously offered/not offered.
+
+Codex and legendary offer comparisons share contextual Healing/Absorb labels. They
+omit critical-damage bonuses for Heal, Shield, Immune and Thorns, whose cast handlers
+do not roll critical strikes; immunity also omits the unused power multiplier.
+Replacement comparisons retain their red losses and green gains. This is a display
+correction, with no change to the underlying generic legendary bonus or save format.
+Distinct spell-specific legendary designs remain required: notably Divine Shield's
+current generic amulet has no effective benefit and now reports that honestly.
+
+Native 1280×720 healing and 640×720 absorb details fit with readable text and unchanged
+catalog selection behavior. Screenshots are embedded in CHANGELOG/README. Tests cover
+all catalog spell descriptions, defensive wording and legendary replacement/duplicate
+comparisons. Full catalog content and legendary balance acceptance remain open.
+
+Validation for this checkpoint: 265 app tests, native play build, workspace Clippy,
+formatting and render lint pass.

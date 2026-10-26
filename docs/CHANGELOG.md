@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Clearer Codex spell details
+
+Legendary entries now describe the actual rank-one spell effect and recharge time.
+Healing and shields no longer appear as generic damage. Codex and legendary cards
+label healing/absorb bonuses correctly and omit critical bonuses those spells cannot
+use; replacement losses stay red.
+
+![Rejuvenation healing detail](images/screenshots/2026-10-26-codex-prose/healing-1280.png)
+
+![Compact absorb detail](images/screenshots/2026-10-26-codex-prose/shield-640.png)
+
+265 app tests, native build, workspace Clippy, formatting and render lint pass.
+Native wide/compact checks verify readable details with a synthetic account. This
+corrects presentation; authored spell-specific legendary effects and balance remain
+unfinished, including an effective benefit for Divine Shield's generic amulet.
+
 ## 2026-10-26 — Hunter Survival milestones
 
 Survival now improves poison/trap damage at 10 points, grants a Concussive Shot
