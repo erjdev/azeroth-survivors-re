@@ -3752,3 +3752,19 @@ unchanged. Native 1280×720 Searing Light refund/repurchase and 640×720 Pain pr
 are captured inline in the changelog, using legal saved specs and the intention's
 three-tree/sidebar layout. Native build, workspace Clippy, formatting and render-pass
 lint pass. Priest milestones, remaining nodes and live combat balance remain open.
+
+### Priest tree milestones — 2026-10-25
+
+All nine Priest 10/20/30 milestones now have explicit spell interactions and readable
+Survivors conversion descriptions. Discipline links shield protection and Mind Blast;
+Holy adds scoped critical chance and successful-cast healing; Shadow adds a Mind Blast
+target, Pain cooldown advancement and a Psychic Scream absorb. Exact initial rules
+are in the spec. Existing tree-point bonuses remain, as with other implemented classes.
+
+113 core tests pass, covering exact thresholds, foreign-spell isolation, individual
+rank composition and AoE target invariants. Two Priest app tests pass, including
+actual cast-system execution with zero/three targets to verify once-per-cast healing,
+cooldown advances, shielding and immunity. Native 1280×720 Lightwell and 640×720
+Shadow Weaving descriptions are captured in the changelog from legal 30-point specs.
+Native build, workspace Clippy, formatting and render-pass lint pass. Remaining
+individual Priest talents, live combat balance and presentation refinement remain open.

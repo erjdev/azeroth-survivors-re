@@ -360,5 +360,27 @@ Eight individual Priest talents now replace their provisional general damage:
 
 These effects stay with the selected hero/spec and do not affect foreign-class or
 jewelry spells. Duration/cooldown conversions use the existing Survivors spell
-cadence and are initial balance values. Remaining Priest talents and individual
-10/20/30-point milestones retain explicitly provisional behavior.
+cadence and are initial balance values. Remaining individual Priest talents retain explicitly provisional behavior.
+
+### Priest tree milestones (initial)
+
+These automatic Survivors conversions supplement the existing tree-point bonuses.
+They apply only to the named spells and the selected valid spec; they do not grant
+unowned spells. Successful-cast rewards apply once, regardless of targets hit.
+
+| Tree / points | Milestone | Effect |
+|---|---|---|
+| Discipline / 10 | Unbreakable Will | Power Word: Shield grants 1 sec immunity |
+| Discipline / 20 | Mental Agility | Shield and Psychic Scream cooldowns ×0.85 |
+| Discipline / 30 | Power Infusion | Shield advances Mind Blast cooldown by 2 sec |
+| Holy / 10 | Holy Specialization | Smite, Holy Fire, Holy Nova gain 5 percentage points critical chance, additive with individual ranks |
+| Holy / 20 | Spiritual Guidance | Holy Fire heals 3% maximum health per successful cast |
+| Holy / 30 | Lightwell | Holy Nova heals 5% maximum health per successful cast; automatic healing pulse |
+| Shadow / 10 | Shadow Affinity | Mind Blast gains one target; AoEs remain single areas |
+| Shadow / 20 | Shadow Weaving | Mind Blast advances Shadow Word: Pain cooldown by 2 sec |
+| Shadow / 30 | Shadowform | Psychic Scream grants a 5% maximum-health absorb for 3 sec; no stacking or replacement of a stronger shield |
+
+Healing cannot exceed maximum health or revive a dead hero. Cooldown advances clamp
+to zero. Lightwell is a cast-triggered pulse here, not a placed world object;
+Shadowform is a defensive cast interaction, not a model transformation. Combat
+balance and presentation refinement remain open.

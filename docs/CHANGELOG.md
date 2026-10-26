@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-25 — Priest tree milestones
+
+All nine Priest milestones now have explicit effects: shield protection, linked
+spell cooldowns, Holy healing and critical chance, and Shadow targeting/absorption.
+The UI describes each automatic Survivors conversion.
+
+![Holy Lightwell healing milestone](images/screenshots/2026-10-25-priest-milestones/lightwell-1280.jpg)
+
+![Compact Shadow Weaving interaction](images/screenshots/2026-10-25-priest-milestones/shadow-weaving-640.jpg)
+
+113 core tests and two Priest combat tests pass. Actual casts verify no-target and
+multi-target behavior; native UI, build, Clippy, formatting and render lint pass.
+Initial balance, presentation refinement and remaining individual talents stay open.
+
 ## 2026-10-25 — Priest spell training
 
 Eight Priest talents now improve their named spells: Holy damage/critical chance,

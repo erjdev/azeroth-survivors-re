@@ -327,9 +327,11 @@ navigation to Collection for full equipment details.
 
 ![Character appearance controls and Look section](docs/images/screenshots/2026-10-25-character-look/character-1280.jpg)
 
-Priest now has eight individual spell-training talents with green, scoped previews.
+Priest now has eight individual spell-training talents and nine tree milestones with scoped previews.
 
 ![Priest spell-training preview](docs/images/screenshots/2026-10-25-priest-training/searing-light-1280.jpg)
+
+![Priest Holy milestone](docs/images/screenshots/2026-10-25-priest-milestones/lightwell-1280.jpg)
 
 Saved talent specs now follow the catalog's class, rank, row and prerequisite rules.
 Invalid specs retain their ranks for repair and grant no talent effects.

@@ -171,6 +171,39 @@ impl Milestones {
                 effect.cooldown *= 0.85;
             }
         }
+        if self.class == 4 {
+            if key == "power_word_shield" {
+                if self.points[0] >= 10 {
+                    effect.immune_seconds = 1.0;
+                }
+                if self.points[0] >= 30 {
+                    effect.cooldown_advance = Some(("mind_blast", 2.0));
+                }
+            }
+            if self.points[0] >= 20 && matches!(key, "power_word_shield" | "psychic_scream") {
+                effect.cooldown *= 0.85;
+            }
+            if self.points[1] >= 10 && PRIEST_HOLY.contains(&key) {
+                effect.crit += 0.05;
+            }
+            if self.points[1] >= 20 && key == "holy_fire" {
+                effect.heal_fraction += 0.03;
+            }
+            if self.points[1] >= 30 && key == "holy_nova" {
+                effect.heal_fraction += 0.05;
+            }
+            if key == "mind_blast" {
+                if self.points[2] >= 10 {
+                    effect.extra_targets += 1;
+                }
+                if self.points[2] >= 20 {
+                    effect.cooldown_advance = Some(("shadow_word_pain", 2.0));
+                }
+            }
+            if self.points[2] >= 30 && key == "psychic_scream" {
+                effect.shield_fraction = 0.05;
+            }
+        }
         if self.class == 6 {
             if self.points[2] >= 10 && key == "frostbolt" {
                 effect.extra_targets += 1;
@@ -550,6 +583,20 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
             (2, 10) => Some("Gouge grants a 3% maximum-health absorb for 3 seconds once per successful cast; does not stack"),
             (2, 20) => Some("Kidney Shot advances Gouge's cooldown by 2 seconds once per successful cast"),
             (2, 30) => Some("Gouge advances Eviscerate's cooldown by 1 second once per successful cast"),
+            _ => None,
+        };
+    }
+    if class == 4 {
+        return match (tree, threshold) {
+            (0, 10) => Some("Power Word: Shield grants 1 second of immunity once per cast (Survivors Unbreakable Will)"),
+            (0, 20) => Some("Power Word: Shield and Psychic Scream: 15% shorter cooldown (Survivors Mental Agility)"),
+            (0, 30) => Some("Power Word: Shield advances Mind Blast's cooldown by 2 seconds once per cast (Survivors automatic Power Infusion)"),
+            (1, 10) => Some("Smite, Holy Fire and Holy Nova: +5 percentage points critical chance; adds to individual Holy Specialization ranks"),
+            (1, 20) => Some("Holy Fire heals 3% maximum health once per successful cast, not per target or burn tick (Survivors Spiritual Guidance)"),
+            (1, 30) => Some("Holy Nova heals 5% maximum health once per successful cast, not per enemy (Survivors Lightwell healing pulse)"),
+            (2, 10) => Some("Mind Blast: +1 target; area spells remain one area (Survivors Shadow Affinity)"),
+            (2, 20) => Some("Mind Blast advances Shadow Word: Pain's cooldown by 2 seconds once per successful cast (Survivors Shadow Weaving)"),
+            (2, 30) => Some("Psychic Scream grants a 5% maximum-health absorb for 3 seconds once per successful cast; does not stack (Survivors defensive Shadowform)"),
             _ => None,
         };
     }
@@ -2283,6 +2330,65 @@ mod stat_talent_tests {
             .with_ranks(&ranks);
             assert_eq!(other.cast("eviscerate"), CastEffect::default());
         }
+    }
+
+    #[test]
+    fn priest_milestones_unlock_at_exact_thresholds_and_compose_with_training() {
+        for tree in 0..3 {
+            for (threshold, key) in match tree {
+                0 => [
+                    (10, "power_word_shield"),
+                    (20, "psychic_scream"),
+                    (30, "power_word_shield"),
+                ],
+                1 => [(10, "smite"), (20, "holy_fire"), (30, "holy_nova")],
+                _ => [
+                    (10, "mind_blast"),
+                    (20, "mind_blast"),
+                    (30, "psychic_scream"),
+                ],
+            } {
+                let mut below = Milestones {
+                    class: 4,
+                    ..Default::default()
+                };
+                below.points[tree] = threshold - 1;
+                let mut at = below;
+                at.points[tree] = threshold;
+                assert_ne!(
+                    below.cast(key),
+                    at.cast(key),
+                    "tree {tree} threshold {threshold}"
+                );
+                assert!(description(4, tree, threshold).is_some());
+                assert_eq!(at.cast("shadow_bolt"), CastEffect::default());
+                assert_eq!(at.cast("holy_shock"), CastEffect::default());
+            }
+        }
+        let full = Milestones {
+            class: 4,
+            points: [30; 3],
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 401, 5), (0, 343, 3), (2, 542, 2)]);
+        assert_eq!(full.cast("power_word_shield").immune_seconds, 1.0);
+        assert_eq!(
+            full.cast("power_word_shield").cooldown_advance,
+            Some(("mind_blast", 2.0))
+        );
+        assert!((full.cast("power_word_shield").damage - 1.15).abs() < 0.00001);
+        assert!((full.cast("psychic_scream").cooldown - 0.85 * 0.8).abs() < 0.00001);
+        assert!((full.cast("holy_fire").crit - 0.10).abs() < 0.00001);
+        assert_eq!(full.cast("holy_fire").heal_fraction, 0.03);
+        assert_eq!(full.cast("holy_nova").heal_fraction, 0.05);
+        assert_eq!(full.cast("holy_nova").extra_targets, 0);
+        assert_eq!(full.cast("mind_blast").extra_targets, 1);
+        assert_eq!(
+            full.cast("mind_blast").cooldown_advance,
+            Some(("shadow_word_pain", 2.0))
+        );
+        assert_eq!(full.cast("psychic_scream").shield_fraction, 0.05);
+        assert_eq!(full.cast("psychic_scream").shield_seconds, 3.0);
     }
 
     #[test]
