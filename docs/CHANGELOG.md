@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-26 — Achievement category navigation
+
+Achievement categories now use full-width action rows, matching the intention
+reference: icon, label, count and progress share one click/focus surface. Counts
+align separately from labels, and selection uses the shared burgundy/gold style.
+
+![Achievement summary and category rows](images/screenshots/2026-10-26-achievement-nav/summary-1280.png)
+
+![Whole-row keyboard focus at compact size](images/screenshots/2026-10-26-achievement-nav/focus-640.png)
+
+Native 1280×720 / 640×720 checks cover icon/progress-bar clicks, keyboard focus,
+Space activation and scrolling to the compact summary. Captures use a synthetic
+account. Native build (34 seconds), workspace Clippy, formatting and render lint
+pass. Unique achievement artwork and earned dates remain separate work;
+physical controller acceptance was not performed.
+
 ## 2026-10-26 — Keep Rewards focus while editing
 
 Keyboard/controller focus now stays on the same Rewards control after staging or

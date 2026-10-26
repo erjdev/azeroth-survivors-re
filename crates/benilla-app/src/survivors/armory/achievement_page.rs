@@ -1,5 +1,5 @@
 //! Reference achievement rail, progress summary and wrapping cards over the live catalog.
-use super::{chip, hud, rewards, Account, Act, Armory, ChipParent, DIM, GOLD};
+use super::{hud, rewards, Account, Act, Armory, ChipParent, DIM, GOLD};
 use bevy::prelude::*;
 use bevy::ui::RelativeCursorPosition;
 
@@ -201,39 +201,49 @@ pub(super) fn build(
                 );
                 meter(side, fraction(pts, all));
                 for (i, name) in NAMES.iter().enumerate() {
-                    side.spawn((
+                    super::controls::content_button(
+                        side,
+                        Act::Achieve(i as u8),
+                        selected == i,
                         Node {
                             width: Val::Percent(100.0),
-                            padding: UiRect::all(Val::Px(6.0)),
-                            column_gap: Val::Px(6.0),
-                            border: UiRect::all(Val::Px(1.0)),
+                            min_height: Val::Px(42.0),
+                            padding: UiRect::all(Val::Px(8.0)),
+                            column_gap: Val::Px(8.0),
                             ..default()
                         },
-                        BorderColor::all(FRAME),
-                    ))
-                    .with_children(|nav| {
-                        icon(nav, i, 24.0);
-                        nav.spawn(Node {
-                            flex_grow: 1.0,
-                            flex_basis: Val::Px(0.0),
-                            min_width: Val::Px(0.0),
-                            flex_direction: FlexDirection::Column,
-                            row_gap: Val::Px(4.0),
-                            ..default()
-                        })
-                        .with_children(|content| {
-                            let (n, total, pts, all) = counts(&rows, category(i));
-                            let label = if i == 0 {
-                                name.to_string()
-                            } else {
-                                format!("{name}  {n}/{total}")
-                            };
-                            chip(content, font, &label, Act::Achieve(i as u8), selected == i);
-                            if i > 0 {
-                                meter(content, fraction(pts, all));
-                            }
-                        });
-                    });
+                        |nav| {
+                            icon(nav, i, 24.0);
+                            nav.spawn(Node {
+                                flex_grow: 1.0,
+                                flex_basis: Val::Px(0.0),
+                                min_width: Val::Px(0.0),
+                                flex_direction: FlexDirection::Column,
+                                row_gap: Val::Px(4.0),
+                                ..default()
+                            })
+                            .with_children(|content| {
+                                let (n, total, pts, all) = counts(&rows, category(i));
+                                content
+                                    .spawn(Node {
+                                        width: Val::Percent(100.0),
+                                        flex_wrap: FlexWrap::Wrap,
+                                        justify_content: JustifyContent::SpaceBetween,
+                                        column_gap: Val::Px(6.0),
+                                        ..default()
+                                    })
+                                    .with_children(|label| {
+                                        text(label, font, *name, 13.0, GOLD);
+                                        if i > 0 {
+                                            text(label, font, format!("{n}/{total}"), 12.0, DIM);
+                                        }
+                                    });
+                                if i > 0 {
+                                    meter(content, fraction(pts, all));
+                                }
+                            });
+                        },
+                    );
                 }
                 text(side, font, format!("{have} of {total} earned"), 13.0, GOLD);
                 text(

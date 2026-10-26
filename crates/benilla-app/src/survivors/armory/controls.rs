@@ -31,6 +31,24 @@ pub(super) fn button(
     selected: bool,
     node: Node,
 ) {
+    content_button(parent, act, selected, node, |body| {
+        body.spawn(hud::text_bundle(
+            font,
+            label,
+            13.0,
+            Color::srgb(0.91, 0.78, 0.40),
+        ));
+    });
+}
+
+/// Custom contents share one action surface and the standard hover/focus styling.
+pub(super) fn content_button(
+    parent: &mut impl ChipParent,
+    act: Act,
+    selected: bool,
+    node: Node,
+    content: impl FnOnce(&mut ChildSpawnerCommands),
+) {
     let (fill, border) = colors(selected, Interaction::None);
     parent
         .spawn((
@@ -46,14 +64,7 @@ pub(super) fn button(
             BackgroundColor(fill),
             BorderColor::all(border),
         ))
-        .with_children(|body| {
-            body.spawn(hud::text_bundle(
-                font,
-                label,
-                13.0,
-                Color::srgb(0.91, 0.78, 0.40),
-            ));
-        });
+        .with_children(content);
 }
 
 /// A single action surface contains its title and supporting copy, including wrapped zone names.

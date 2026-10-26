@@ -18,6 +18,13 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Current priority — starter interface first (2026-10-26)
 
+Achievement category rows now share one full-width action/focus surface with
+separate label/count alignment and progress beneath, following the summary
+reference. Native wide/compact checks cover icon and progress clicks, whole-row
+focus, Space selection and compact summary scrolling. Inline evidence is in the
+changelog/README. Distinct per-achievement artwork and persisted earned dates
+remain open; current cards still use category icons and an Earned label.
+
 Options now opens shared pause settings from the starter and all Armory pages.
 The menu leaves layout while settings is visible; its mouse/keyboard actions are
 blocked. Back/Escape restores the existing page/draft; Enter cannot start a run.

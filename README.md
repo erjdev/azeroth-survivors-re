@@ -75,6 +75,10 @@ Rewards keeps keyboard/controller focus while staging or undoing upgrades.
 
 ![Rewards focus after two keyboard upgrades](docs/images/screenshots/2026-10-26-reward-focus/two-upgrades-1280.png)
 
+Achievements uses full-row category controls for pointer and keyboard navigation.
+
+![Achievement category navigation](docs/images/screenshots/2026-10-26-achievement-nav/summary-1280.png)
+
 Character retains the reference's three-pane layout on wide screens and stacks a
 proportional preview, appearance and equipment on narrow screens. Captures use an
 isolated synthetic account; saved appearance and tab-return scrolling were checked.
