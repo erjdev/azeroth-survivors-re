@@ -33,6 +33,17 @@ exposed fixed-height talent-panel clipping; panels now grow with their contents.
 Native 640×720 and 1024×720/125% captures verify the full green description,
 purchase persistence and tree proportions. Windows and live balance remain open.
 
+## Rogue Precision — 2026-10-27
+
+Precision (181) now adds 1% Rogue direct/periodic damage per rank, capped at five.
+This explicit Survivors hit-chance conversion excludes foreign and neutral abilities.
+Core tests cover rank bounds, class/spell scope, milestone composition and refunds;
+app parameter tests cover damage with unchanged timing and targeting. Native
+1280×720 purchase and 640×720 scrolling captures verify the green preview, saved
+rank 1, six Combat points and 45 unspent. The existing reference-aligned three-tree
+layout is unchanged. 200 core/383 app tests, both Clippy gates and native build pass.
+Coverage is 246/432 (Rogue 22/51); live balance and Windows acceptance remain open.
+
 ## Hero identity at run entry — 2026-10-27
 
 Explicit stale or cross-class hero selections now fail the shared menu entry gate.
@@ -799,13 +810,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 34 / 52 | 9 / 9 |
 | Paladin | 24 / 44 | 9 / 9 |
 | Hunter | 30 / 46 | 9 / 9 |
-| Rogue | 21 / 51 | 9 / 9 |
+| Rogue | 22 / 51 | 9 / 9 |
 | Priest | 24 / 47 | 9 / 9 |
 | Shaman | 30 / 46 | 9 / 9 |
 | Mage | 32 / 49 | 9 / 9 |
 | Warlock | 27 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 245 / 432 | 81 / 81 |
+| Total | 246 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing

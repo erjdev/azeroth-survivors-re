@@ -380,6 +380,7 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Improved Sinister Strike (201) | 2 | 5% shorter Sinister Strike cooldown; energy-cost conversion |
 | Serrated Blades (1123) | 3 | +10% Rupture damage; no armor penetration |
 | Deadliness (1702) | 5 | +2% Rogue spell damage; attack-power conversion |
+| Precision (181) | 5 | +1% Rogue direct and periodic damage; hit-chance conversion, no miss roll |
 
 Rogue spell membership is Sinister Strike, Eviscerate, Blade Flurry, Rupture,
 Gouge and Kidney Shot. Other-class and neutral jewelry abilities are excluded.

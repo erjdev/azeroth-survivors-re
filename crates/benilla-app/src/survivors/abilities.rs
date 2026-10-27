@@ -6181,6 +6181,58 @@ mod milestone_tests {
     }
 
     #[test]
+    fn precision_reaches_rogue_damage_without_changing_targeting_or_timing() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        for rank in [1, 5, 255] {
+            let trained = base.with_ranks(&[(1, 181, rank)]);
+            for key in super::super::data::CLASSES[3]
+                .pool
+                .iter()
+                .copied()
+                .chain(["fireball"])
+            {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level: 3,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                let multiplier = if key == "fireball" {
+                    1.
+                } else {
+                    1. + 0.01 * f32::from(rank.min(5))
+                };
+                assert!((after.dmg - before.dmg * multiplier).abs() < 0.001, "{key}");
+                assert_eq!(
+                    (
+                        after.cooldown,
+                        after.count,
+                        after.radius,
+                        after.range,
+                        after.duration,
+                        after.crit
+                    ),
+                    (
+                        before.cooldown,
+                        before.count,
+                        before.radius,
+                        before.range,
+                        before.duration,
+                        before.crit
+                    )
+                );
+                let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                assert_eq!(reset.dmg, before.dmg);
+            }
+        }
+    }
+
+    #[test]
     fn shaman_milestones_reach_combat_and_deployment_benefits_are_bounded() {
         let mut run = Run::default();
         let stats = run.stats();

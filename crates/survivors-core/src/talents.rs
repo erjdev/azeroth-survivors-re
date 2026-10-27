@@ -2736,6 +2736,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 181, max_rank: 5, name: "Precision",
+        description: "Rogue abilities: +1% direct and periodic damage per rank; excludes other-class and neutral jewelry abilities (Survivors hit-chance conversion; attacks have no miss roll)",
+        stat: TalentStat::SpellGroupDamage(ROGUE_SPELLS), per_rank: 0.01,
+    },
+    TalentDefinition {
         id: 284, max_rank: 1, name: "Preparation",
         description: "Grants 1 automatic reset of owned Sinister Strike, Eviscerate, Blade Flurry, Rupture, Gouge and Kidney Shot cooldowns every 180 sec of run time; first at 180 sec. Does not grant spells, store charges or reset Cold Blood recovery (Survivors automatic conversion)",
         stat: TalentStat::Preparation, per_rank: 1.0,
@@ -3201,6 +3206,50 @@ mod stat_talent_tests {
                 .remorseless_crit("gouge"),
             0.0
         );
+    }
+
+    #[test]
+    fn rogue_precision_caps_ranks_scopes_damage_and_refunds_cleanly() {
+        for class in [0, 3, 6] {
+            let base = Milestones {
+                class,
+                points: [30, 30, 30],
+                ..Default::default()
+            };
+            for rank in [0, 1, 5, 255] {
+                let trained = base.with_ranks(&[(1, 181, rank)]);
+                for key in ROGUE_SPELLS
+                    .iter()
+                    .copied()
+                    .chain(["fireball", "holy_nova", "unknown"])
+                {
+                    let before = base.cast(key);
+                    let after = trained.cast(key);
+                    let multiplier = if class == 3 && ROGUE_SPELLS.contains(&key) {
+                        1.0 + 0.01 * f32::from(rank.min(5))
+                    } else {
+                        1.0
+                    };
+                    assert!(
+                        (after.damage - before.damage * multiplier).abs() < 0.00001,
+                        "{key}"
+                    );
+                    assert_eq!(
+                        CastEffect {
+                            damage: before.damage,
+                            ..after
+                        },
+                        before
+                    );
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+        assert!(talent_definition(3, 181)
+            .unwrap()
+            .inline_description(1)
+            .unwrap()
+            .starts_with("Rogue abilities: +1 » 2% direct and periodic damage"));
     }
 
     #[test]

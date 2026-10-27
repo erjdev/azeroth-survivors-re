@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Rogue Precision
+
+Precision now grants +1% Rogue ability damage per rank, up to 5%, including
+periodic damage. It multiplies other talent bonuses and excludes foreign abilities.
+The description identifies this as a hit-chance conversion; attacks have no miss roll.
+
+200 core/383 app tests and both Clippy gates pass; native build took 17 seconds.
+Native wide/compact captures verify the inline preview, purchase and saved rank.
+Talent definitions reach 246/432. Live balance and Windows acceptance remain open.
+
+![Precision preview](images/screenshots/2026-10-27-rogue-precision/preview.png)
+![Precision purchased](images/screenshots/2026-10-27-rogue-precision/purchased.png)
+![Compact Precision description](images/screenshots/2026-10-27-rogue-precision/compact.png)
+
 ## 2026-10-27 — Consistent hero selection at run entry
 
 An explicit missing or wrong-class hero now refuses run entry and cannot borrow
