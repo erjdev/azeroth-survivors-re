@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Character body and saved appearance checks
+
+Expanded native Character acceptance to dressed Orc female and Undead male
+Warlocks at 1280×720, plus Gnome female at 640×720. Race/sex changes preserve
+worn gear and independent looks. Compact hairstyle adjustment survives a full
+restart; the hidden helm and alternate shoulder appearance remain intact.
+
+Disposable full-collection fixture, runtime `25ebf07`; no gameplay changes.
+363 app tests passed at this runtime. These captures extend macOS UI coverage;
+the complete race/resolution matrix and Windows gameplay acceptance remain open.
+
+![Dressed Orc in the reference-shaped three-column layout](images/screenshots/2026-10-27-warlock-character/orc-1280.png)
+![Dressed Undead after race and sex changes](images/screenshots/2026-10-27-warlock-character/undead-1280.png)
+![Compact customization after changing hairstyle](images/screenshots/2026-10-27-warlock-character/features-640.png)
+![Gnome appearance restored after restart](images/screenshots/2026-10-27-warlock-character/restarted-640.png)
+
 ## 2026-10-27 — Curse of Exhaustion
 
 Curse of Exhaustion now adds a 12-second slow to Curse of Agony applications.

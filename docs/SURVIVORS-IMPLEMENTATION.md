@@ -801,6 +801,14 @@ legacy migration, malformed references and round trips have regression tests.
 
 ## Phase 3 — collection and character surfaces
 
+Native body acceptance (2026-10-27, runtime `25ebf07`): disposable full-collection
+Warlock fixture verifies dressed Orc female and Undead male at 1280×720, Gnome
+female at 640×720, and compact hairstyle adjustment from 2/7 to 3/7. A full
+restart restores Gnome female and the changed hairstyle. Saved equipment remains
+`123456123 170000000` throughout (including hidden helm and independent shoulder
+look). Captures are inline in CHANGELOG and the README gallery. This extends
+macOS model/UI acceptance only; full body/resolution and Windows checks stay open.
+
 Equipment comparison addition (2026-10-27): both item-detail paths explain
 full nine-slot and Raid Epic 2/4/6-piece bonuses gained/lost, alongside aggregate
 stat changes. Replacements preserving thresholds produce no warning. Headless

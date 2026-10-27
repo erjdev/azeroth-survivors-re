@@ -86,6 +86,13 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
 </table>
 
+<table>
+  <tr>
+    <td width="50%"><strong>Dressed Orc Warlock · 1280×720</strong><br><img src="docs/images/screenshots/2026-10-27-warlock-character/orc-1280.png" alt="Dressed female Orc and separate equipment and appearance controls"><br>2026-10-27 · Three-column Character layout with independent gear looks.</td>
+    <td width="50%"><strong>Gnome after restart · 640×720</strong><br><img src="docs/images/screenshots/2026-10-27-warlock-character/restarted-640.png" alt="Compact female Gnome with restored hairstyle and equipped gear"><br>2026-10-27 · Compact appearance changes persist without replacing gear.</td>
+  </tr>
+</table>
+
 ### Earlier gameplay captures
 
 <table>
