@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Imported reward accounting
+
+Loaded accounts now cap remaining perk resets at two. A refund subtotal larger
+than total spending enters protected recovery instead of risking companion
+investment. Valid historical costs remain unchanged.
+
+331 app tests, Clippy and native build pass. Regression checks cover zero/excess
+resets, refund conservation, repeated-refund refusal, save round trips and preservation
+of an invalid source file. No visual change or new screenshot for this accounting fix.
+
 ## 2026-10-26 — Reject ambiguous saved hero identities
 
 Duplicate hero IDs now open the existing recovery flow instead of allowing XP,

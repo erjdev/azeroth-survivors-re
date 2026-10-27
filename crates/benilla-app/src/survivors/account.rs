@@ -1507,7 +1507,12 @@ fn parse(text: &str) -> Result<Account, ()> {
                 account.wins = parts.next().unwrap_or("0").parse().unwrap_or(0);
                 account.spent = parts.next().unwrap_or("0").parse().unwrap_or(0);
                 account.perk_spent = parts.next().unwrap_or("0").parse().unwrap_or(0);
-                account.resets = parts.next().unwrap_or("2").parse().unwrap_or(2);
+                account.resets = parts
+                    .next()
+                    .unwrap_or("2")
+                    .parse::<u8>()
+                    .unwrap_or(2)
+                    .min(2);
                 account.tabard = parts.next().unwrap_or("0").parse().unwrap_or(0);
             }
             Some("perk") => {
@@ -1547,6 +1552,11 @@ fn parse(text: &str) -> Result<Account, ()> {
             }
             _ => {}
         }
+    }
+    // Refunds are a subset of total spending; never erase companion investment
+    // by interpreting an impossible imported subtotal as refundable points.
+    if account.perk_spent > account.spent {
+        return Err(());
     }
     // Resolve references after all characters exist; later rows retain replacement semantics.
     for (id, specs) in talent_rows {
@@ -1682,6 +1692,7 @@ mod tests {
         let path = dir.join("account.txt");
         for bytes in [
             b"who broken\n".as_slice(),
+            b"meta 0 0 40 41 2 0\n",
             &[0xff, 0xfe],
             b"who 1 0 100 First Hero\nwho 1 0 200 Second Hero\n",
             b"who 1 0 100 First Hero\nwho 1 1 200 Second Hero\n",
@@ -1713,6 +1724,37 @@ mod tests {
         assert_eq!(encode(&account), encode(&restored));
         std::fs::remove_dir_all(dir).unwrap();
     }
+    #[test]
+    fn imported_reward_counters_bound_resets_and_preserve_nonperk_spending() {
+        for resets in [0, 1, 2, 3, 255] {
+            let mut account = parse(&format!(
+                "meta 0 0 55 15 {resets} 0\nperk 1 0 0 0 0 0\npets 2 0 0 0 0 0 0 0\n"
+            ))
+            .unwrap();
+            assert_eq!(account.resets_left(), resets.min(2));
+            if resets == 0 {
+                assert!(account.reset_perks().is_err());
+                assert_eq!(account.spent, 55);
+            } else {
+                account.reset_perks().unwrap();
+                assert_eq!(account.spent, 40);
+                assert_eq!(account.perk_spent, 0);
+                assert_eq!(account.pets.owned, 2);
+                assert_eq!(account.resets_left(), resets.min(2) - 1);
+                assert!(account.reset_perks().is_err());
+            }
+            let restored = parse(&encode(&account)).unwrap();
+            assert_eq!(encode(&account), encode(&restored));
+        }
+        // Row ordering cannot conceal an impossible refund subtotal.
+        for text in [
+            "perk 1 0 0 0 0 0\nmeta 0 0 0 15 2 0\n",
+            "meta 0 0 0 15 2 0\nperk 1 0 0 0 0 0\n",
+        ] {
+            assert!(parse(text).is_err());
+        }
+    }
+
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn failed_disk_write_preserves_previous_save_and_retries_pending_equipment() {

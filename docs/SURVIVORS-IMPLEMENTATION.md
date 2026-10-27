@@ -5812,3 +5812,14 @@ is preserved, saving and run entry are blocked, and distinct legacy IDs still lo
 330 app tests, Clippy and native build pass. New temporary-file cases verify original
 bytes and refusal behavior; existing round-trip tests cover separate heroes/specs.
 Automatic repair remains open; this is a persistence change with no new layout.
+
+
+### Imported reward accounting — 2026-10-26
+
+Loaded reset counts now respect the two-reset limit. Impossible perk subtotals
+(greater than total spent) enter protected account recovery; valid historical costs
+are not recalculated. 331 app tests, Clippy and native build pass. Tests exercise
+reset counts 0/1/2/3/255, preservation of companion investment, repeat-refund refusal,
+round trips, row ordering and original-file preservation on impossible accounting.
+This validates accounting boundaries, not authenticity of manually edited offline
+achievement records. Existing recovery UI is unchanged.
