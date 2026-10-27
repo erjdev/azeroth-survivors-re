@@ -193,7 +193,8 @@ navigation, long Gates of Ahn'Qiraj text, lock preservation, Options navigation 
 Quit. Build, workspace Clippy, formatting and render lint pass. Screenshots are
 embedded in CHANGELOG/README. Options now opens shared preferences;
 Run Options still only reports Normal difficulty.
-Background and outdoor zone illustrations remain open.
+The starter now has an original silhouette backdrop (see Stable starter backdrop below).
+Outdoor zone illustrations remain open.
 
 Starter portraits now include the reference's faction pill and circular class
 badge, derived from the selected race/class and runtime class atlas. Badge size
@@ -5474,3 +5475,22 @@ Poor helm with the matching descriptions, sources and controls. Equipped gloves
 and their +8 health stayed unchanged; the account file SHA-256 before launch and
 after quitting matched. Screenshots are inline in CHANGELOG and the README
 Collection image is refreshed. Physical controller and Windows acceptance remain open.
+
+### Stable starter backdrop — 2026-10-26
+
+The main-menu intention uses a warm distant mountain scene. The previous live
+orbit around the hero put nearby trees/buildings behind the interface and changed
+composition while reading. Starter/Armory now uses an original procedural sunset
+and layered mountain silhouettes, drawn in normalized UI coordinates. It is a
+stylized interpretation, not extracted art or a screenshot of an authored zone.
+The legacy body-selection screen retains its world preview; gameplay and camera
+collision behavior are unchanged. Menu visibility owns the backdrop, so it does
+not cover gameplay or level-up previews. Outdoor zone illustrations remain open.
+
+Validation: scoped Clippy, native play build, formatting and diff checks pass.
+Native macOS 1280×720 and 640×720 previews confirm proportional coverage and readable
+panels. Zone selection works; the Character portrait remains visible; switching to
+the legacy Look page restores the live world and returning restores the backdrop.
+The runtime log has no shader errors. Three screenshots accompany CHANGELOG and the
+README starter/character images are refreshed. No gameplay, Windows or full test-suite
+acceptance is claimed for this presentation-only checkpoint.

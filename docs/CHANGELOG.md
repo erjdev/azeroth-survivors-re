@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Stable starter and Armory backdrop
+
+Replaced the moving close-up world scenery behind starter/Armory pages with an
+original sunset and mountain silhouette shader inspired by the intention reference.
+The backdrop scales with the UI; portraits and the legacy Look preview remain visible.
+
+Verified native 1280×720 and 640×720 layouts, zone selection, Character and legacy
+Look transitions. Scoped Clippy, native build and formatting pass; no shader errors
+were logged. This is macOS menu validation, not Windows or gameplay acceptance.
+
+![Starter sunset backdrop](images/screenshots/2026-10-26-menu-backdrop/starter-1280.png)
+
+![Character portrait over the stable backdrop](images/screenshots/2026-10-26-menu-backdrop/character-1280.png)
+
+![Compact starter backdrop](images/screenshots/2026-10-26-menu-backdrop/starter-640.png)
+
 ## 2026-10-26 — Inspect gear while navigating
 
 The Collection detail panel now follows keyboard/controller focus, showing the

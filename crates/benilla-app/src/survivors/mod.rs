@@ -9,6 +9,7 @@ mod account;
 mod appearance;
 mod armory;
 mod auto;
+mod backdrop;
 mod camera;
 mod cards;
 mod companions;
@@ -79,6 +80,7 @@ impl Plugin for SurvivorsPlugin {
         // Present before `OnEnter(InWorld)`, where the UI lifecycle decides not to load FrameXML.
         app.insert_resource(crate::run_mode::CaptureMode)
             .add_plugins((
+                backdrop::plugin,
                 grade::plugin,
                 tuning::plugin,
                 crate::entities::survivors_look::plugin,
