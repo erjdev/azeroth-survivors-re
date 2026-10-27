@@ -145,25 +145,35 @@ impl Loadout {
         }
     }
 
+    /// Count owned raid armor in distinct equipped slots, independently of appearances.
+    pub fn raid_pieces(&self, class: usize, owned: &Inventory) -> usize {
+        self.worn
+            .iter()
+            .enumerate()
+            .filter(|(slot, key)| {
+                key.as_deref().is_some_and(|key| {
+                    supplemental(class, owned, *slot, key).is_some()
+                        && supplemental_gear::by_key(key)
+                            .is_some_and(|piece| piece.tier == crate::gear_tier::GearTier::RaidEpic)
+                })
+            })
+            .count()
+    }
+
     /// Cosmetics never enter the power calculation. A full nine-slot loadout gets one set bonus.
     pub fn bonus(&self, class: usize, pieces: &[u8], owned: &Inventory) -> Bonus {
         let mut total = Bonus::default();
         let mut worn = 0;
-        let mut raid = 0;
         for slot in 0..GRID_SLOTS {
             if let Some(piece) = self.worn(class, pieces, owned, slot) {
                 total.add(piece.bonus);
                 worn += 1;
-                if self.worn[slot]
-                    .as_deref()
-                    .and_then(supplemental_gear::by_key)
-                    .is_some_and(|p| p.tier == crate::gear_tier::GearTier::RaidEpic)
-                {
-                    raid += 1;
-                }
             }
         }
-        total.add(crate::raid_sets::bonus(class, raid));
+        total.add(crate::raid_sets::bonus(
+            class,
+            self.raid_pieces(class, owned),
+        ));
         if worn == GRID_SLOTS {
             total.add(campaign::set_bonus());
         }

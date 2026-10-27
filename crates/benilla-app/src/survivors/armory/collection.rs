@@ -603,22 +603,42 @@ fn grid(
             }
         });
     }
-    let poor: Vec<_> = (0..campaign::GRID_SLOTS)
-        .filter_map(|slot| {
-            survivors_core::supplemental_gear::piece(
-                class,
-                slot,
-                survivors_core::gear_tier::GearTier::Poor,
-            )
-        })
-        .collect();
-    for band in std::iter::once(None).chain((0..campaign::BANDS).map(Some)) {
-        let color = band
-            .map(super::door::band_color)
-            .unwrap_or(Color::srgb(0.65, 0.65, 0.65));
+    use survivors_core::gear_tier::GearTier;
+    for tier in [
+        GearTier::Poor,
+        GearTier::Common,
+        GearTier::Uncommon,
+        GearTier::Rare,
+        GearTier::Epic,
+        GearTier::RaidEpic,
+        GearTier::Pvp,
+        GearTier::Legendary,
+    ] {
+        let band = tier.legacy_band();
+        let raid = tier == GearTier::RaidEpic;
+        let cells: Vec<_> = (0..campaign::GRID_SLOTS)
+            .filter_map(|slot| {
+                survivors_core::supplemental_gear::piece(
+                    class,
+                    slot,
+                    if raid {
+                        GearTier::RaidEpic
+                    } else {
+                        GearTier::Poor
+                    },
+                )
+            })
+            .collect();
+        let color = if raid {
+            super::door::band_color(3)
+        } else {
+            band.map(super::door::band_color)
+                .unwrap_or(Color::srgb(0.65, 0.65, 0.65))
+        };
         let found = band.map_or_else(
             || {
-                poor.iter()
+                cells
+                    .iter()
                     .filter(|piece| account.supplemental.owns(class, &piece.key))
                     .count()
             },
@@ -657,17 +677,20 @@ fn grid(
                     label,
                     font,
                     band.map(|band| campaign::BANDS_NAMED[band])
-                        .unwrap_or("Poor"),
+                        .unwrap_or(if raid { "Raid Epic" } else { "Poor" }),
                     layout.body_size,
                     color,
                 );
                 text(
                     label,
                     font,
-                    format!("{found}/9"),
+                    format!("{found}/{}", if raid { 8 } else { 9 }),
                     layout.body_size - 2.0,
                     DIM,
                 );
+                if raid {
+                    text(label, font, "Sources pending", layout.body_size - 3.0, DIM);
+                }
                 let mut zones = Vec::new();
                 for drop in campaign::DROPS
                     .iter()
@@ -682,7 +705,7 @@ fn grid(
                     text(label, font, zones.join(" · "), layout.body_size - 3.0, DIM);
                 }
             });
-            for (slot, piece) in poor.iter().enumerate() {
+            for (slot, piece) in cells.iter().enumerate() {
                 let index = band.map(|band| band * campaign::GRID_SLOTS + slot);
                 let owned = index.map_or_else(
                     || account.supplemental.owns(class, &piece.key),
@@ -802,6 +825,18 @@ fn grid(
                     if compact {
                         cell.spawn(hud::centered_bundle(font, campaign::SLOTS[slot], 9.0, DIM));
                     }
+                });
+            }
+            if raid {
+                row.spawn(Node {
+                    flex_grow: if compact { 0.0 } else { 1.0 },
+                    flex_basis: if compact {
+                        Val::Percent(10.0)
+                    } else {
+                        Val::Px(0.0)
+                    },
+                    min_width: Val::Px(if compact { 54.0 } else { 0.0 }),
+                    ..default()
                 });
             }
         });
@@ -939,16 +974,29 @@ pub(super) fn detail(
                 layout.body_size,
                 DIM,
             );
+            let equipped_count = progress.equipment.raid_pieces(class, &account.supplemental);
+            text(
+                ui,
+                font,
+                format!("{equipped_count}/8 raid armor equipped"),
+                layout.body_size,
+                GOLD,
+            );
             for count in [2, 4, 6] {
                 text(
                     ui,
                     font,
                     format!(
-                        "{count} pieces: {}",
+                        "{count} pieces · {}: {}",
+                        if equipped_count >= count {
+                            "Active"
+                        } else {
+                            "Inactive"
+                        },
                         super::door::bonus_line(survivors_core::raid_sets::bonus(class, count))
                     ),
                     layout.body_size,
-                    BONUS,
+                    if equipped_count >= count { BONUS } else { DIM },
                 );
             }
         }
@@ -1431,6 +1479,19 @@ mod tests {
                 assert!(actions
                     .iter()
                     .any(|act| matches!(act, Act::InspectPiece(53))));
+                let raid: Vec<_> = actions
+                    .iter()
+                    .filter_map(|action| match action {
+                        Act::InspectSupplemental(key) if key.starts_with("raid-epic:") => {
+                            survivors_core::supplemental_gear::by_key(key)
+                        }
+                        _ => None,
+                    })
+                    .collect();
+                assert_eq!(raid.len(), 8);
+                assert!(raid
+                    .iter()
+                    .all(|piece| piece.class == class && piece.slot < 8));
                 for index in 0..campaign::PIECES {
                     assert!(actions
                         .iter()
@@ -1447,8 +1508,67 @@ mod tests {
                         .iter()
                         .any(|a| matches!(a, Act::InspectSupplemental(key) if key == &piece.key)));
                 }
+                assert!(world
+                    .query::<&Text>()
+                    .iter(&world)
+                    .any(|text| text.0 == "Raid Epic"));
                 let panels = world.query::<&CollectionScroll>().iter(&world).count();
                 assert_eq!(panels, if compact { 1 } else { 3 });
+            }
+        }
+    }
+
+    #[test]
+    fn raid_inspector_counts_equipped_armor_and_marks_thresholds() {
+        use survivors_core::{gear_tier::GearTier, supplemental_gear};
+        for count in [0, 1, 2, 3, 4, 5, 6, 8] {
+            let mut account = super::super::super::account::blank();
+            for slot in 0..8 {
+                let piece = supplemental_gear::piece(0, slot, GearTier::RaidEpic).unwrap();
+                account.supplemental.collect(0, &piece.key);
+                account.select_supplemental(0, &piece.key, true);
+                if slot < count {
+                    account.select_supplemental(0, &piece.key, false);
+                }
+            }
+            let armory = Armory {
+                supplemental_piece: Some("raid-epic:warrior:head".into()),
+                ..default()
+            };
+            let selection = Selection {
+                class: Some(0),
+                ..default()
+            };
+            let mut world = World::new();
+            world
+                .commands()
+                .spawn(Node::default())
+                .with_children(|panel| {
+                    detail(
+                        panel,
+                        &Handle::default(),
+                        &armory,
+                        &account,
+                        &selection,
+                        &Layout::default(),
+                    );
+                });
+            world.flush();
+            let texts: Vec<_> = world.query::<(&Text, &TextColor)>().iter(&world).collect();
+            assert!(texts
+                .iter()
+                .any(|(text, _)| text.0 == format!("{count}/8 raid armor equipped")));
+            for threshold in [2, 4, 6] {
+                let active = count >= threshold;
+                let prefix = format!(
+                    "{threshold} pieces · {}:",
+                    if active { "Active" } else { "Inactive" }
+                );
+                let (_, color) = texts
+                    .iter()
+                    .find(|(text, _)| text.0.starts_with(&prefix))
+                    .unwrap();
+                assert_eq!(color.0, if active { BONUS } else { DIM });
             }
         }
     }

@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Raid Collection browsing
+
+Raid Epic now has its own eight-slot Collection row and ownership count, separate
+from the legacy 54-piece total. The inspector shows equipped armor count and
+active/inactive cumulative 2/4/6-piece bonuses; cosmetic ownership cannot activate
+them. Unowned pieces remain inspectable without equip actions.
+
+171 core and 339 app tests, app Clippy and native build pass. Synthetic native
+1280×720/640×720 checks cover aligned rows, scrolling, unowned inspection and
+six-to-five-to-six equip updates. Raid encounter acquisition, completion rewards,
+Windows and live balance remain pending.
+
+![Raid row with active set thresholds](images/screenshots/2026-10-27-raid-browser/collection-1280.png)
+![Six-piece threshold becomes inactive after unequipping](images/screenshots/2026-10-27-raid-browser/inactive-1280.png)
+![Compact raid Collection browsing](images/screenshots/2026-10-27-raid-browser/collection-640.png)
+
 ## 2026-10-27 — Raid armor and set rules
 
 Added 72 distinct Raid Epic armor variants using verified class armor art, with

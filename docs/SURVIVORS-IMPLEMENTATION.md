@@ -6051,3 +6051,25 @@ Next: dedicated raid Collection browsing, current set-count/active-threshold
 presentation, explicit supplemental completion rules, and verified encounter
 acquisition. No normal run can currently acquire these variants. Other class
 bodies, live combat balance, Windows and full content acceptance remain open.
+
+### 2026-10-27 — Dedicated raid Collection row
+
+Added the eight armor cells between ordinary Epic and PvP, preserving slot-column
+alignment with an inert main-hand spacer. Raid ownership has its own count out of
+eight; legacy Common–Legendary progress still counts 54 cells. All 72 raid variants
+are inspectable even without ownership, with acquisition explicitly pending.
+The inspector reads the same owned/worn count used by combat set bonuses and
+labels each cumulative threshold Active/Inactive, coloring inactive effects dimly.
+
+171 core tests and 339 app tests pass, including all-class wide/compact row
+construction and inspector thresholds at 0/1/2/3/4/5/6/8 equipped pieces while all
+cosmetics are owned. App Clippy, native build, formatting and diff checks pass.
+Native synthetic Warrior validation at 1280×720 and 640×720 checks row alignment,
+scrolling and unowned gloves without equip controls; right-click removal and
+restoration changes 6→5→6 equipped, the sixth threshold and stats together. The
+saved loadout retains six pieces. CHANGELOG embeds three captures and README
+refreshes Collection. Reference: intentions/survivors_collection_tab.png.
+
+Raid encounter acquisition and supplemental completion rewards remain open.
+No natural drop, full class/race appearance matrix, physical controller or Windows
+acceptance is claimed.

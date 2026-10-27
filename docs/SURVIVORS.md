@@ -494,8 +494,10 @@ Raid Epic armor uses separate `raid-epic:<class>:<slot>` identities for eight ar
 slots. These are empowered Survivors variants of the verified ordinary Epic art
 and names, not imported vanilla set powers. Main hand is excluded from these sets.
 Each piece has the six-stat Raid Epic budget; ordinary Epic remains five stats.
-Encounter acquisition and the dedicated Collection row are still pending, so these
-variants are not yet obtainable during a normal run.
+The dedicated Raid Epic Collection row tracks these eight armor slots separately.
+Encounter acquisition is still pending, so these variants are not yet obtainable
+during a normal run. The inspector reports equipped armor count and active versus
+inactive cumulative thresholds; owning or displaying a piece does not activate it.
 
 Bonuses activate cumulatively at 2/4/6 distinct owned, equipped armor slots of the
 class set. Ownership alone, duplicates, hidden appearances and transmog cannot
