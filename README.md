@@ -104,6 +104,8 @@ Collection and Talents also support compact scrolling at enlarged interface size
 
 ![Compact talent trees at 125% interface size](docs/images/screenshots/2026-10-27-scaled-armory/trees-640-125.png)
 
+![Compact companion rewards at 125% interface size](docs/images/screenshots/2026-10-27-scaled-rewards/companions-640-125.png)
+
 ### Earlier gameplay captures
 
 <table>

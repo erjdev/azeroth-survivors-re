@@ -876,8 +876,11 @@ persistence and restoration. Additional `e254ce2` native checks cover full
 Collection and Warlock Talents at 640×720/125%: wrapping equipment rows,
 scrolling details, unequip/re-equip with preserved cosmetic overrides, proportional
 tree artwork and a saved Demonic Embrace purchase. Disposable fixture; no new
-runtime changes. Captures are inline in CHANGELOG. Remaining Armory pages,
-card drafts and combat HUD at every scale still require acceptance.
+runtime changes. Further 640×720/125% checks verify Feats cards and placeholder
+criteria, companion locks, and a staged/confirmed Banish purchase (285→270 points,
+rank 1 persisted in the disposable save). Captures are inline in CHANGELOG.
+Tabards, remaining Armory pages, card drafts and combat HUD at every scale still
+require acceptance.
 
 
 Collection shares Character’s inline faction portraits and race/sex controls. Live

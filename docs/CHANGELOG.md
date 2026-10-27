@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Enlarged achievement and reward checks
+
+At 640×720/125%, achievement cards, companion locks and green perk previews
+remain readable and scrollable. Confirming Banish spends 15 points and saves
+rank 1; the balance changes from 285 to 270. Deathless Hour and no u retain
+pending criteria and locked companions.
+
+Native macOS preview on `e254ce2`, disposable fixture; save-file comparison
+confirms the purchase. No code change or new test run. Tabards, other scales
+and Windows acceptance remain open.
+
+![Compact achievement criteria](images/screenshots/2026-10-27-scaled-rewards/achievements-640-125.png)
+![Pending perk with inline upgrade](images/screenshots/2026-10-27-scaled-rewards/perks-pending-640-125.png)
+![Confirmed reward balance](images/screenshots/2026-10-27-scaled-rewards/confirmed-640-125.png)
+![Companion appearance locks](images/screenshots/2026-10-27-scaled-rewards/companions-640-125.png)
+
 ## 2026-10-27 — Enlarged Collection and Talents checks
 
 Verified full Collection and Warlock Talents at 640×720 with 125% interface
