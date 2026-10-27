@@ -4953,6 +4953,11 @@ body-clear A* detours from four directions (24 routes), with endpoints outside
 the model bounds. All pass alongside the fence/chest fixtures in the 368-test
 Survivors app suite. These unrotated flat-ground fixtures do not establish
 placement/terrain/crowd behavior in the reported Windows scene.
+A render-only regression also loads the four Elwynn canopy models and tests a
+nondegenerate triangle from each batch from both sides, with rotated/scaled
+placements on ordinary and merged pick paths. All 371 app tests pass. This verifies
+WorldPick mesh handling without colliders, not alpha-pixel visibility, streaming
+state, or the final GPU cutaway in the reported Windows scene.
 
 
 ### 2026-10-26 — Individual Druid Restoration capstones

@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Elwynn canopy visibility coverage
+
+Added render-only regressions for all four Elwynn canopy models, from both sides,
+with rotated/scaled placements and ordinary/merged geometry. All 371 app tests
+and app-test Clippy pass. The actual Windows scene remains unverified; these tests do not check alpha
+pixels, streaming visibility or the rendered fade. No interface change.
+
 ## 2026-10-27 — Direct saved-spec previews
 
 The fixture launcher accepts paired `--hero` / `--spec` options with a talent

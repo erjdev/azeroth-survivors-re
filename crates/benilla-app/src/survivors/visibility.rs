@@ -122,6 +122,93 @@ mod tests {
     use std::sync::Arc;
 
     #[test]
+    fn elwynn_canopy_batches_occlude_from_both_sides_without_colliders() {
+        use benilla_world::interact::PickMember;
+        use bevy::camera::visibility::SetViewVisibility;
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|path| !path.is_empty()) else {
+            eprintln!("SKIP authored canopy visibility: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        for model in [
+            "elwynntreecanopy01",
+            "elwynntreecanopy02",
+            "elwynntreecanopy03",
+            "elwynntreecanopy04",
+        ] {
+            let path = format!("World/azeroth/elwynn/passivedoodads/trees/{model}.m2");
+            let meshes = benilla_formats::load_m2_mesh(&mut chain, &path).unwrap();
+            let mut checked = 0;
+            for mesh in meshes {
+                let triangle = mesh.indices.as_chunks::<3>().0.iter().find_map(|indices| {
+                    let a =
+                        benilla_assets::coords::wow_to_bevy(mesh.positions[indices[0] as usize]);
+                    let b =
+                        benilla_assets::coords::wow_to_bevy(mesh.positions[indices[1] as usize]);
+                    let c =
+                        benilla_assets::coords::wow_to_bevy(mesh.positions[indices[2] as usize]);
+                    let normal = (b - a).cross(c - a).try_normalize()?;
+                    Some(((a + b + c) / 3.0, normal))
+                });
+                let Some((center, normal)) = triangle else {
+                    continue;
+                };
+                checked += 1;
+                let geometry = Arc::new(mesh);
+                for merged in [false, true] {
+                    let mut world = World::new();
+                    let pose = Transform::from_xyz(13.0, 4.0, -7.0)
+                        .with_rotation(Quat::from_rotation_y(0.7))
+                        .with_scale(Vec3::splat(1.3));
+                    let object = WorldObject {
+                        kind: ModelKind::Doodad,
+                        label: model.into(),
+                        id: 1,
+                        detail: String::new(),
+                    };
+                    let entity = world
+                        .spawn((GlobalTransform::IDENTITY, ViewVisibility::HIDDEN))
+                        .id();
+                    if merged {
+                        world
+                            .entity_mut(entity)
+                            .insert(PickBlob(Arc::from([PickMember {
+                                object: Arc::new(object),
+                                geometry: geometry.clone(),
+                                transform: pose,
+                            }])));
+                    } else {
+                        world.entity_mut(entity).insert((
+                            PickMesh(geometry.clone()),
+                            object,
+                            GlobalTransform::from(pose),
+                        ));
+                    }
+                    world
+                        .get_mut::<ViewVisibility>(entity)
+                        .unwrap()
+                        .set_visible();
+                    let center = pose.transform_point(center);
+                    let normal = pose.rotation * normal;
+                    for side in [-1.0, 1.0] {
+                        let eye = center + normal * side * 2.0;
+                        let focus = center - normal * side * 2.0;
+                        assert!(
+                            world
+                                .run_system_once(move |pick: WorldPick| {
+                                    visually_blocked(&pick, &HashSet::from([entity]), eye, focus)
+                                })
+                                .unwrap(),
+                            "{model}: merged={merged}, side={side}"
+                        );
+                    }
+                }
+            }
+            assert!(checked > 0, "{model}: no nondegenerate render batches");
+        }
+    }
+
+    #[test]
     fn rendered_foliage_without_colliders_blocks_only_in_front_of_hero() {
         let mut world = World::new();
         use bevy::camera::visibility::SetViewVisibility;
