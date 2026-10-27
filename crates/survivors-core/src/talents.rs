@@ -874,6 +874,12 @@ impl Milestones {
     /// These percentage-point reductions preserve the existing baseline Blizzard slow.
     pub fn control(self, key: &str, effect: crate::data::Effect) -> crate::data::Effect {
         use crate::data::Effect;
+        if self.class == 8 && key == "insect_swarm" && matches!(effect, Effect::None) {
+            let reduction = self.trained_value(TalentStat::InsectSwarmWeakening);
+            if reduction > 0.0 {
+                return Effect::Weaken(1.0 - reduction, 10.0);
+            }
+        }
         if key == "death_coil" {
             if let Effect::Drain(fraction) = effect {
                 return Effect::Drain(
@@ -1437,6 +1443,7 @@ pub enum TalentStat {
     CriticalBurn,
     Frostbite,
     WingClipRoot,
+    InsectSwarmWeakening,
     Impact,
     Blackout,
     ShadowWeaving,
@@ -1541,6 +1548,7 @@ fn inline_stat_label(tail: &str) -> &str {
         " direct critical chance",
         " regeneration",
         " reduced damage taken",
+        " reduced outgoing damage",
         " more damage",
         " drain healing",
         " additional slow",
@@ -1673,6 +1681,7 @@ impl TalentDefinition {
             | TalentStat::DivineFavor
             | TalentStat::Aftermath
             | TalentStat::WingClipRoot
+            | TalentStat::InsectSwarmWeakening
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
             | TalentStat::Pyroclasm
@@ -1929,6 +1938,9 @@ impl TalentDefinition {
             TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
+            TalentStat::InsectSwarmWeakening => {
+                (100.0, "% reduced outgoing enemy damage from Insect Swarm")
+            }
             TalentStat::WingClipRoot => (100.0, "% chance to root Wing Clip targets"),
             TalentStat::Aftermath => (100.0, "% chance to slow Destruction targets"),
             TalentStat::CurseExhaustion => (100.0, "% Curse of Agony slow"),
@@ -3275,6 +3287,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Nightfall
             | TalentStat::Aftermath
             | TalentStat::WingClipRoot
+            | TalentStat::InsectSwarmWeakening
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
             | TalentStat::Pyroclasm
@@ -4755,6 +4768,7 @@ mod stat_talent_tests {
                     | TalentStat::Nightfall
                     | TalentStat::Aftermath
                     | TalentStat::WingClipRoot
+                    | TalentStat::InsectSwarmWeakening
                     | TalentStat::CurseExhaustion
                     | TalentStat::ImprovedCurseExhaustion
                     | TalentStat::Pyroclasm

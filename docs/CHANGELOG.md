@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Insect Swarm talent
+
+The Restoration node now makes Insect Swarm reduce affected enemies' damage by
+2% for 10 seconds. It preserves stronger reductions, including Scorpid Sting;
+periodic ticks do not refresh it. Trained card descriptions show the fixed debuff
+alongside green ability-rank changes.
+
+![Restoration talent purchase at 800×600](images/screenshots/2026-10-27-insect-swarm/talent.png)
+
+![Trained Insect Swarm cards at 1280×720](images/screenshots/2026-10-27-insect-swarm/cards.png)
+
+![Compact card at 640×480](images/screenshots/2026-10-27-insect-swarm/compact.png)
+
+224 core tests, 440 app tests and core/app Clippy pass. Native incremental build:
+17 seconds. Definition coverage is 271/432; live combat balance and Windows
+acceptance remain open.
+
 ## 2026-10-27 — Wing Clip and its root talent
 
 Hunter offers now include Wing Clip, a close-range slow. Improved Wing Clip adds

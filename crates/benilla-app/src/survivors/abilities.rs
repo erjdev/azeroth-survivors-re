@@ -8320,4 +8320,141 @@ mod milestone_tests {
             }
         }
     }
+    #[test]
+    fn insect_swarm_training_reaches_applications_but_ticks_do_not_refresh_weakening() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 8] {
+                for rank in [0, 1, 255] {
+                    let trained = Milestones {
+                        class: 8,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(2, 827, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+
+                    let owned = Owned {
+                        def: data::ability("insect_swarm"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let p = Params::new(&owned, &stats, trained);
+                    let base = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    assert_eq!(
+                        (p.dmg, p.dot, p.duration, p.cooldown, p.count, p.range),
+                        (
+                            base.dmg,
+                            base.dot,
+                            base.duration,
+                            base.cooldown,
+                            base.count,
+                            base.range
+                        )
+                    );
+                    let hit = hit_for(owned.def, &p, enemy, p.dmg, false);
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 1000.);
+                    assert_eq!(
+                        (en.weaken, en.weaken_t),
+                        if rank > 0 { (0.98, 10.) } else { (1., 0.) }
+                    );
+                    assert_eq!(en.dots.len(), 1);
+                    // Tick damage continues without reapplying or extending the penalty.
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().weaken_t = 3.;
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs(1));
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert!(en.hp < 1000.);
+                    assert_eq!(en.weaken_t, 3.);
+                    // Scorpid Sting or other stronger reductions retain their own expiry.
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::ZERO);
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.weaken = 0.75;
+                        en.weaken_t = 1.;
+                    }
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    assert_eq!(
+                        (
+                            app.world().get::<Enemy>(enemy).unwrap().weaken,
+                            app.world().get::<Enemy>(enemy).unwrap().weaken_t
+                        ),
+                        (0.75, 1.)
+                    );
+                    if rank > 0 {
+                        app.world_mut().get_mut::<Enemy>(enemy).unwrap().weaken_t = 0.;
+                        app.world_mut().write_message(hit);
+                        app.update();
+                        assert_eq!(
+                            (
+                                app.world().get::<Enemy>(enemy).unwrap().weaken,
+                                app.world().get::<Enemy>(enemy).unwrap().weaken_t
+                            ),
+                            (0.98, 10.)
+                        );
+                    }
+                }
+            }
+        }
+    }
 }

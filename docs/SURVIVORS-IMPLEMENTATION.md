@@ -839,8 +839,8 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
-| Druid | 25 / 47 | 9 / 9 |
-| Total | 270 / 432 | 81 / 81 |
+| Druid | 26 / 47 | 9 / 9 |
+| Total | 271 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -7848,3 +7848,17 @@ content to that layout, not another layout redesign.
 Definition coverage: 270/432, Hunter 37/46; 162 definitions remain. This does not
 close live combat balance, animation, Windows reproduction or the full seven-phase
 acceptance contract. Final validation results are recorded in CHANGELOG.
+
+
+### 2026-10-27 checkpoint — Insect Swarm talent
+
+Druid node 827 now applies a scoped 2% outgoing-damage reduction for 10 seconds
+through the production cast parameters and existing weakening priority rules.
+224 core/440 app tests and core/app Clippy pass, including actual applications,
+periodic ticks, boss behavior, rank caps and real-data purchase/spec/refund checks.
+Native build: 17 seconds. Talent purchase at 800×600 and trained cards at
+1280×720 / 640×480 have inline CHANGELOG evidence; README gallery refreshed.
+The existing reference-style tree art/spec layout is unchanged.
+
+Coverage is 271/432 definitions (Druid 26/47), leaving 161. Live balance, Windows
+acceptance and all remaining seven-phase requirements stay open.

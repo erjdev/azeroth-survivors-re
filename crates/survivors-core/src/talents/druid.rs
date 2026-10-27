@@ -2,6 +2,7 @@
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 827, max_rank: 1, name: "Insect Swarm", description: "Insect Swarm applies +2% reduced outgoing damage to affected enemies for 10 sec, including bosses. Stronger reductions take priority. Damage, cooldown and targeting are unchanged; does not grant the spell (Survivors hit-chance conversion)", stat: TalentStat::InsectSwarmWeakening, per_rank: 0.02 },
     TalentDefinition { id: 808, max_rank: 5, name: "Heart of the Wild", description: "+4% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health (Survivors stamina conversion; no form required)", stat: TalentStat::MaximumHealth, per_rank: 0.04 },
     TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "+3 percentage points hero critical chance, adding to Sharpened Claws and equipped bonuses (Survivors self-only conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.03 },
     TalentDefinition { id: 761, max_rank: 1, name: "Nature's Grasp", description: "Entangling Roots: 15% shorter cooldown, multiplying Improved Entangling Roots and the 10-point Balance milestone (Survivors automatic defensive-root conversion)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.15 },
@@ -497,5 +498,50 @@ mod heart_tests {
             .inline_description(0)
             .unwrap()
             .starts_with("+0 » 4% maximum health"));
+    }
+}
+
+#[cfg(test)]
+mod swarm_tests {
+    use crate::{
+        data::Effect,
+        talents::{talent_definition, Milestones},
+    };
+    #[test]
+    fn weakening_is_scoped_capped_and_does_not_change_damage_or_other_control() {
+        for class in 0..9 {
+            for rank in [0, 1, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 827, rank)]);
+                for key in ["insect_swarm", "moonfire", "thorns", "scorpid_sting"] {
+                    let active = class == 8 && rank > 0 && key == "insect_swarm";
+                    match trained.control(key, Effect::None) {
+                        Effect::Weaken(m, t) if active => {
+                            assert_eq!(m, 0.98);
+                            assert_eq!(t, 10.);
+                        }
+                        Effect::None if !active => {}
+                        _ => panic!("unexpected control for class {class}, rank {rank}, {key}"),
+                    }
+                    assert!(matches!(
+                        trained.with_ranks(&[]).control(key, Effect::None),
+                        Effect::None
+                    ));
+                    assert!(matches!(
+                        trained.control(key, Effect::Weaken(0.5, 3.)),
+                        Effect::Weaken(0.5, 3.)
+                    ));
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+        let node = talent_definition(8, 827).unwrap();
+        let (text, ranges) = node.inline_description_with_values(0).unwrap();
+        assert_eq!(&text[ranges[0].clone()], "+0 » 2% reduced outgoing damage");
+        assert!(text.contains("for 10 sec"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }

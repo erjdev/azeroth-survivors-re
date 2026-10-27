@@ -785,3 +785,14 @@ direct damaging Wing Clip hit. Roots last 5 seconds, or 1.5 seconds on bosses,
 and preserve longer existing roots. The baseline slow remains. Roots do not count
 as frost freezes; periodic ticks cannot trigger the talent. This talent grants
 neither the ability nor extra damage, range or slow strength.
+
+
+### Druid Insect Swarm talent
+
+Insect Swarm (827, one rank) makes applications of the already-owned Insect Swarm
+ability reduce enemy outgoing damage by 2% for a fixed 10 seconds, including
+bosses. This is a Survivors hit-chance conversion; the mode has no miss roll.
+Ability-rank damage/duration, cooldown and targeting are unchanged. Periodic
+damage ticks do not refresh weakening. Stronger reductions retain their own
+expiry; equal-strength applications retain the longer duration. This replaces
+the provisional damage bonus and does not grant the ability.
