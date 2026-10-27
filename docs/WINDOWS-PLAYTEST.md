@@ -1,6 +1,6 @@
 # Windows playtest follow-up
 
-Current implementation reviewed at `1ad6616`. These reports remain open for
+Current implementation reviewed at `5b664d5`. These reports remain open for
 Windows scene acceptance; the checks below are not a claim that the reported
 scenes have been reproduced.
 
@@ -57,8 +57,12 @@ the log and screenshots together with the exact build commit. It distinguishes
 missing rendered blockers from an active reveal that fails to appear on screen;
 camera collision alone cannot establish whether foliage hides the hero.
 
-Recheck on 2026-10-27, working tree based on `6e05622`: foliage, navigation,
-spawn clearance, elite chest batches and talent artwork regression checks pass.
-The full Survivors app run reports 392 passes and two failures in the unfinished
-Raid Epic Collection/Drop Tables source expectations. No new runtime screenshot
-or Windows scene acceptance is claimed.
+Latest recheck on 2026-10-27 at `5b664d5`: **398 app tests pass, zero failures**
+with checkout-local data and `survivors-visibility` enabled. This supersedes the
+earlier 392-pass/two-failure result; the Raid Epic source expectations now pass.
+Foliage, navigation, spawn clearance, elite death batches and talent artwork
+remain covered. No new runtime screenshot or Windows scene acceptance is claimed.
+
+The reported Windows commit and affected talent class are still unknown. Compare
+those with this reviewed revision before treating existing fixes as a resolution
+of that playtest. Keep all four reports open until the same scenes are replayed.
