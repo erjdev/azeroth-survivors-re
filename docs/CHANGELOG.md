@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Browser integration and accurate credit
+
+Current WebGPU package verifies Naxxramas source selection, Raid Epic stats and
+set details in the browser. The readiness gate stays visible. Loading now credits
+Aethus's game as inspiration rather than presenting this checkout as its source.
+PR description updated to current features, validation and outstanding work.
+
+![Browser raid source selection](images/screenshots/2026-10-27-browser-raid/drops-1280.png)
+
+![Corrected browser loading credit](images/screenshots/2026-10-27-browser-raid/loading-credit.png)
+
+WebGPU target check and linked play package pass with five existing warnings;
+seven browser tests pass. UI checked at 1280×720; broader browser and Windows
+acceptance remain open. No PR-triggered Actions runs were returned for this head.
+
 ## 2026-10-27 — Druid Heart of the Wild
 
 Heart of the Wild replaces placeholder damage with 4% maximum health per rank,

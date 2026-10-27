@@ -63,6 +63,13 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 </table>
 
 
+### Browser source inspection
+
+![Raid armor source and set details in the browser](docs/images/screenshots/2026-10-27-browser-raid/drops-1280.png)
+
+2026-10-27 · WebGPU at 1280×720; actual source-row selection. Naxxramas remains
+locked pending world readiness. This capture does not establish raid gameplay.
+
 ### Options and upgrade previews
 
 <table>

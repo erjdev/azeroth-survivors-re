@@ -7219,3 +7219,19 @@ the changelog. The 20-point Feral milestone remains independent.
 207 core / 398 app tests, both Clippy gates, native play build (17 seconds),
 formatting and diff checks pass. Definition coverage is 251/432, Druid 25/47;
 181 node definitions and broader gameplay/platform acceptance remain open.
+
+
+### Current browser integration checkpoint — 2026-10-27
+
+WebGPU target check and linked incremental package pass through `5b41473`, with
+five existing warnings. The link took 73 seconds. Actual in-app browser clicks
+at 1280×720 reached Naxxramas, selected Helm of Wrath, and displayed its six stat
+lines, cumulative set thresholds and guaranteed finale source. The world-readiness
+warning remained visible; no raid run or narrow-browser acceptance is implied.
+The loading overlay now labels Aethus's game as inspiration, matching this
+independent implementation's README. Seven browser tests pass using the bundled
+Node runtime; Homebrew Node could not start because its llhttp dylib is missing.
+No system installation was changed. Screenshots are inline in the changelog and
+the PR description now reflects raid settlement and 251/432 talent definitions.
+The GitHub connector returned no PR-triggered workflow runs for `5b41473`; this
+limited query does not establish the state of every repository workflow.
