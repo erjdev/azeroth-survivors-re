@@ -2882,7 +2882,21 @@ mod tests {
 
     #[test]
     fn hunter_milestones_follow_the_selected_spec_and_survive_save() {
-        let mut account = empty();
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let restore = |account: &Account| {
+            let mut loaded = parse(&encode(account)).unwrap();
+            loaded.talent_rules = Some(rules.clone());
+            loaded
+        };
         let first = account.ensure(2);
         let second = account.create("Test", "Hunter", 2).unwrap();
         let hero = account
@@ -2900,30 +2914,88 @@ mod tests {
             (1, 1347, 3),
             (1, 1362, 2),
         ];
+        assert!(account.talents_valid(account.character(second).unwrap()));
+        let baseline = account.milestones_picked(2, Some(second));
+        assert_eq!(baseline.points, [0, 30, 0]);
+        assert!(account.learn_talent(second, 1, 1361, 1, 6, true));
+        assert!(!account.learn_talent(second, 1, 1361, 1, 6, true));
+        assert!(account.talents_valid(account.character(second).unwrap()));
         let trained = account.milestones_picked(2, Some(second));
-        assert_eq!(trained.points, [0, 30, 0]);
-        assert_eq!(trained.cast("multi_shot").extra_targets, 2);
+        assert_eq!(trained.points, [0, 31, 0]);
+        let check = |actual: survivors_core::talents::Milestones| {
+            for key in [
+                "arcane_shot",
+                "multi_shot",
+                "serpent_sting",
+                "concussive_shot",
+                "aimed_shot",
+                "volley",
+                "explosive_trap",
+                "fireball",
+            ] {
+                let factor = if matches!(key, "volley" | "explosive_trap" | "fireball") {
+                    1.
+                } else {
+                    1.1
+                };
+                assert!(
+                    (actual.cast(key).damage - baseline.cast(key).damage * factor).abs() < 0.00001,
+                    "{key}"
+                );
+            }
+            assert_eq!(actual.hunter_pet(0.), baseline.hunter_pet(0.));
+            assert_eq!(actual.cast("multi_shot").extra_targets, 2);
+        };
+        check(trained);
         assert_eq!(account.milestones_picked(2, Some(first)).points, [0; 3]);
-        account.select_spec(second, 1);
         assert_eq!(
             account
-                .milestones_picked(2, Some(second))
-                .cast("multi_shot")
-                .extra_targets,
-            0
+                .milestones_picked(0, Some(second))
+                .cast("arcane_shot")
+                .damage,
+            1.
         );
-        account.select_spec(second, 0);
-        let loaded = parse(&encode(&account)).unwrap();
+        let run = super::super::Run {
+            class: &data::CLASSES[2],
+            milestones: trained,
+            bonus: account.bonus(2, second),
+            ..Default::default()
+        };
+        let mut loaded = restore(&account);
         assert_eq!(loaded.milestones_picked(2, Some(second)), trained);
-        account.respec(second);
-        assert_eq!(account.milestones_picked(2, Some(second)).points, [0; 3]);
+        for spec in [1, 2] {
+            loaded.select_spec(second, spec);
+            loaded = restore(&loaded);
+            assert_eq!(loaded.character(second).unwrap().spec, spec);
+            assert_eq!(loaded.milestones_picked(2, Some(second)).points, [0; 3]);
+            assert_eq!(
+                loaded
+                    .milestones_picked(2, Some(second))
+                    .cast("arcane_shot")
+                    .damage,
+                1.
+            );
+        }
+        loaded.select_spec(second, 0);
+        check(loaded.milestones_picked(2, Some(second)));
+        assert!(loaded.unlearn_talent(second, 1361, true));
+        assert!(!loaded.unlearn_talent(second, 1361, true));
+        assert!(loaded.talents_valid(loaded.character(second).unwrap()));
+        loaded = restore(&loaded);
+        assert_eq!(loaded.milestones_picked(2, Some(second)), baseline);
+        // An active run retains its original snapshot through menu edits.
+        check(run.milestones);
+        loaded.respec(second);
+        loaded = restore(&loaded);
+        assert_eq!(loaded.milestones_picked(2, Some(second)).points, [0; 3]);
         assert_eq!(
-            account
+            loaded
                 .milestones_picked(2, Some(second))
                 .cast("multi_shot")
                 .extra_targets,
             0
         );
+        check(run.milestones);
     }
 
     #[test]

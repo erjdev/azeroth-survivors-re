@@ -12,6 +12,9 @@ pets are excluded. It multiplies existing damage talents and the separate
 
 202 core tests, 387 app tests, both Clippy gates and native build pass. Definition
 coverage is 248/432 (Hunter 31/46). Live balance and Windows acceptance remain open.
+Saved-spec follow-up: the real-catalog regression now verifies hero/spec isolation,
+refund persistence, unchanged pet bonuses and immutable active-run training.
+All 387 app tests and app/test Clippy pass; no visual behavior changed.
 
 ![Trueshot Aura inline preview](images/screenshots/2026-10-27-trueshot/preview.png)
 ![Purchased Trueshot Aura](images/screenshots/2026-10-27-trueshot/purchased.png)

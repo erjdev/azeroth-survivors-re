@@ -7049,3 +7049,15 @@ Marksmanship points and Barrage 3, then restart at 640×720 with rank 1 retained
 All three screenshots are embedded in CHANGELOG and README Talents is refreshed.
 This remains an automatic Survivors conversion, not a party aura implementation.
 Live balance, Windows and the remaining 184 definitions are still open.
+
+
+### 2026-10-27 — Hunter save/spec integration acceptance
+
+Extended the existing Hunter milestone regression to load the real DBC validation
+rules and purchase Trueshot at its legal row/prerequisite spread. Checks cover rank
+cap rejection, multiplicative shot damage, unaffected pets/foreign spells, separate
+hero and class selection, saved active spec across both empty alternatives, refund
+and full reset across reloads, and an unchanged active-run snapshot. All 387 app
+tests, app/test Clippy, formatting and diff checks pass. This adds integration
+coverage to the preceding native screenshots; it changes no runtime UI and does
+not establish Windows or live balance acceptance.
