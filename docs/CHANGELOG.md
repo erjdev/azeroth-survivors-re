@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Tabards now dress the hero
+
+Fixed a missing connection between saved tabard selection and the character
+compositor. Guild Tabard now appears over chest armor; removing it restores
+the equipped chest look. The shared menu/run hero path receives the cosmetic
+slot without changing gear or stats.
+
+366 app tests, app-test Clippy and native build pass. Native 640×720/125%
+checks reproduce the missing garment, verify the saved tabard after restart,
+and verify removal. Live combat and other bodies remain acceptance work.
+
+![Compact tabard selection](images/screenshots/2026-10-27-scaled-rewards/tabards-640-125.png)
+![Before: saved tabard absent](images/screenshots/2026-10-27-scaled-rewards/tabard-before.png)
+![After: saved tabard rendered](images/screenshots/2026-10-27-scaled-rewards/tabard-after.png)
+![Removing the tabard restores chest armor](images/screenshots/2026-10-27-scaled-rewards/tabard-removed.png)
+
 ## 2026-10-27 — Enlarged achievement and reward checks
 
 At 640×720/125%, achievement cards, companion locks and green perk previews

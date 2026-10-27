@@ -68,6 +68,7 @@ pub(super) fn sync(
         entries[target] = visual.item_id;
         ranged |= target == 17;
     }
+    apply_tabard(account.tabard, &mut entries, &mut items);
     let custom = selection
         .character
         .and_then(|id| account.character(id))
@@ -125,6 +126,35 @@ pub(super) fn sync(
     }
 }
 
+// Tabards are account cosmetics, outside the nine power-bearing collection slots.
+// Feed the same public descriptor used by both the menu hero and the run hero.
+fn apply_tabard(index: u8, entries: &mut [u32; 19], items: &mut crate::items::Items) {
+    entries[18] = 0;
+    let Some(tabard) = index
+        .checked_sub(1)
+        .and_then(|i| campaign::TABARDS.get(i as usize))
+    else {
+        return;
+    };
+    // The shipped Guild Tabard: item 5976, ItemDisplayInfo 20621.
+    let visual = survivors_core::gear_visuals::GearVisual {
+        item_id: 5976,
+        display_id: tabard.display,
+        inventory_type: 19,
+        item_class: 4,
+        subclass: 0,
+        material: 7,
+        sheath: 0,
+    };
+    if items.template_cached(visual.item_id).is_none() {
+        items.insert_template(
+            visual.item_id,
+            Some(super::gear_template::template(tabard.name, visual)),
+        );
+    }
+    entries[18] = visual.item_id;
+}
+
 fn render_slot(slot: usize, inventory: u8) -> Option<usize> {
     match slot {
         0..=7 => Some([0, 2, 4, 5, 6, 7, 8, 9][slot]),
@@ -139,6 +169,23 @@ fn render_slot(slot: usize, inventory: u8) -> Option<usize> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn tabard_descriptor_uses_cosmetic_template_and_clears_without_replacing_gear() {
+        let mut items = crate::items::Items::default();
+        let mut entries = [42; 19];
+        super::apply_tabard(1, &mut entries, &mut items);
+        assert_eq!(entries[18], 5976);
+        assert_eq!(&entries[..18], &[42; 18]);
+        let item = items.template_cached(5976).unwrap();
+        assert_eq!((item.display_info_id, item.inventory_type), (20621, 19));
+        assert!(item.stats.is_empty() && item.spells.is_empty());
+        for index in [0, 255] {
+            super::apply_tabard(index, &mut entries, &mut items);
+            assert_eq!(entries[18], 0);
+            assert_eq!(&entries[..18], &[42; 18]);
+        }
+    }
+
     #[test]
     fn armor_and_ranged_weapons_use_player_descriptor_slots() {
         assert_eq!(super::render_slot(0, 1), Some(0));

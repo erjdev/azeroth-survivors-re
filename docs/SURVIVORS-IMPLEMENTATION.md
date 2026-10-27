@@ -34,8 +34,13 @@ Broader fixture automation and remaining page-specific preview controls stay ope
 Tabard cards now use shared hover/pressed feedback, gold outlines and burgundy
 selection. Native wide/compact validation covers icon selection, removal, keyboard
 focus/selection, scrolling and saved appearance after restart. Inline screenshots
-are in CHANGELOG/README. The single verified Guild Tabard remains the catalog;
-in-world rendering and additional cosmetics remain open. The rapid direction-plus-select
+are in CHANGELOG/README. The single verified Guild Tabard remains the catalog.
+The 2026-10-27 compact/125% check exposed a missing render connection despite
+saved selection: `gear_body` now supplies slot 18 and the visual-only item 5976
+(display 20621) to the shared menu/run hero compositor. Native Gnome female
+before/after captures verify restart restoration and removal; 366 app tests,
+Clippy and native build pass. Live combat, other bodies and additional cosmetics
+remain open. The rapid direction-plus-select
 issue is now fixed: when both arrive in one frame, navigation runs before selection.
 An initial combined gesture establishes focus without activating; Enter is consumed
 so it cannot fall through to starting a run. Keyboard/controller ECS regression
@@ -879,8 +884,9 @@ tree artwork and a saved Demonic Embrace purchase. Disposable fixture; no new
 runtime changes. Further 640×720/125% checks verify Feats cards and placeholder
 criteria, companion locks, and a staged/confirmed Banish purchase (285→270 points,
 rank 1 persisted in the disposable save). Captures are inline in CHANGELOG.
-Tabards, remaining Armory pages, card drafts and combat HUD at every scale still
-require acceptance.
+Tabards also have compact/125% selection and rendered removal evidence (see
+current-priority notes). Remaining Armory pages, card drafts and combat HUD at
+every scale still require acceptance.
 
 
 Collection shares Character’s inline faction portraits and race/sex controls. Live
