@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Pet, range and duration previews
+
+Ten more talents now explain upgrades inline: six wolf talents, Hawk Eye, Flame
+Throwing, Entrapment and Improved Shield Block. Green values distinguish the
+upgrade from fixed effect numbers; seconds/yards appear once, with correct
+second/seconds wording. Mechanics are unchanged.
+
+176 core tests, 349 app tests, core Clippy and native build pass. Native macOS
+wide/compact previews verify Frenzy and shield duration; remaining complex
+previews and Windows acceptance stay open.
+
+![Frenzy chance highlighted independently](images/screenshots/2026-10-27-pet-inline/hunter-1280.png)
+![Compact shield duration upgrade](images/screenshots/2026-10-27-pet-inline/warrior-640.png)
+
 ## 2026-10-27 — More upgrades explained inline
 
 Arcane Instability, Force of Will, Spiritual Healing, Improved Renew, Restorative

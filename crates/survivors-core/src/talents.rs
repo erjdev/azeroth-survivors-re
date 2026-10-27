@@ -1443,6 +1443,12 @@ impl TalentDefinition {
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
         let (scale, unit) = match self.stat {
             TalentStat::Health | TalentStat::Armor => (1.0, ""),
+            TalentStat::SpellShieldDuration(_)
+            | TalentStat::SecondaryRootDuration(_)
+            | TalentStat::SecondaryStunDuration(_)
+            | TalentStat::SecondarySlowDuration(_)
+            | TalentStat::SpellImmune(_) => (1.0, "time"),
+            TalentStat::SpellGroupRangeYards(_) => (1.0, "distance"),
             TalentStat::Damage
             | TalentStat::MaximumHealth
             | TalentStat::Cooldown
@@ -1452,6 +1458,13 @@ impl TalentDefinition {
             | TalentStat::Speed
             | TalentStat::FlurryHaste
             | TalentStat::GuardianTotems
+            | TalentStat::PetHealth
+            | TalentStat::PetRecovery
+            | TalentStat::SpiritBond
+            | TalentStat::PetDamage
+            | TalentStat::PetCrit
+            | TalentStat::PetFrenzy
+            | TalentStat::FlameThrowing
             | TalentStat::ArcaneInstability
             | TalentStat::ForceOfWill
             | TalentStat::TotemHealing
@@ -1482,10 +1495,11 @@ impl TalentDefinition {
             let value = format!("{:.1}", self.per_rank * f32::from(rank) * scale);
             value.strip_suffix(".0").unwrap_or(&value).to_owned()
         };
-        let units: &[&str] = if unit == "%" {
-            &["%", " percentage point", " percentage points"]
-        } else {
-            &[""]
+        let units: &[&str] = match unit {
+            "%" => &["%", " percentage point", " percentage points"],
+            "time" => &[" sec", " second", " seconds"],
+            "distance" => &[" yd"],
+            _ => &[""],
         };
         let mut candidates = Vec::new();
         for &unit in units {
@@ -1538,6 +1552,12 @@ impl TalentDefinition {
                     " percentage point"
                 } else {
                     " percentage points"
+                }
+            } else if matches!(unit, " second" | " seconds") {
+                if amount(next) == "1" {
+                    " second"
+                } else {
+                    " seconds"
                 }
             } else {
                 unit
@@ -5094,5 +5114,58 @@ mod additional_inline_tests {
             ..*talent_definition(6, 421).unwrap()
         };
         assert!(ambiguous.inline_description(0).is_none());
+    }
+}
+
+#[cfg(test)]
+mod duration_pet_inline_tests {
+    use super::*;
+
+    #[test]
+    fn pet_range_and_duration_previews_keep_fixed_numbers_and_single_units() {
+        for (class, id) in [
+            (2, 1625),
+            (2, 1388),
+            (2, 1389),
+            (2, 1396),
+            (2, 1393),
+            (2, 1397),
+            (2, 1352),
+            (6, 28),
+        ] {
+            let node = talent_definition(class, id).unwrap();
+            for rank in 0..=node.max_rank {
+                let (text, ranges) = node.inline_description_with_values(rank).unwrap();
+                assert_eq!(ranges.len(), 1);
+                assert_eq!(
+                    text.matches(" » ").count(),
+                    usize::from(rank < node.max_rank)
+                );
+                assert!(!text.contains("per rank"));
+                assert!(!text[ranges[0].clone()].contains("% »"));
+            }
+        }
+        let find = |stat| definitions(0).iter().find(|d| d.stat == stat).unwrap();
+        let shield = find(TalentStat::SpellShieldDuration("heroic_strike"));
+        assert_eq!(shield.inline_description(1).unwrap(), "Heroic Strike's absorb lasts 0.5 » 1 second longer; requires an absorb talent or milestone");
+        assert!(shield
+            .inline_description(3)
+            .unwrap()
+            .contains("1.5 seconds longer"));
+        let root = definitions(2)
+            .iter()
+            .find(|d| d.stat == TalentStat::SecondaryRootDuration("explosive_trap"))
+            .unwrap();
+        assert_eq!(root.inline_description(1).unwrap(), "Explosive Trap hits add 0.4 » 0.8 sec of root (bosses: 30% duration; Survivors conversion)");
+        assert!(talent_definition(2, 1397)
+            .unwrap()
+            .inline_description(3)
+            .unwrap()
+            .contains("60 » 80% chance to grant 30% bite haste for 8 sec"));
+        assert!(talent_definition(2, 1352)
+            .unwrap()
+            .inline_description(1)
+            .unwrap()
+            .contains("+2 » 4 yd targeting range"));
     }
 }

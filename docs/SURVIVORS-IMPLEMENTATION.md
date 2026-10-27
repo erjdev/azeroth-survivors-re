@@ -6255,3 +6255,19 @@ pass. Compared with intentions/survivors_talent_tab.png: the tree/art arrangemen
 is retained, with the requested inline detail presentation. Native macOS wide Mage
 and compact Shaman captures are embedded in CHANGELOG. Other compound descriptions,
 full UI acceptance and Windows verification remain open.
+
+### 2026-10-27 — Pet, range and duration inline values
+
+Add exact-token formatting for seconds and yards, singularizing “second” only at
+one, and recognize six ranked pet contributions plus Flame Throwing. This enables
+inline previews for Improved Revive Pet, Spirit Bond, Endurance Training, Unleashed
+Fury, Ferocity, Frenzy, Hawk Eye, Flame Throwing, Entrapment and Improved Shield
+Block. Fixed proc strength/duration and boss modifiers stay untouched. Single-rank
+unlock descriptions without a per-rank token still use the existing fallback.
+
+176 core tests, 349 app tests, core Clippy, native build and formatting/diff checks
+pass. Tests cover ranks/caps, single units, fractional seconds, grammar and fixed
+numbers. Native macOS wide Frenzy and compact Improved Shield Block captures are
+embedded in CHANGELOG, retaining the intention-based illustrated tree layout.
+This changes presentation only; complex multi-scale previews and broader UI/
+Windows acceptance remain incomplete.
