@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Intensity and reliable area pulses
+
+Intensity now extends Rain of Fire by 10% per rank, completing the effect for
+Pyroclasm's prerequisite. Ground areas also deliver every pulse due during a
+long frame, bounded by their remaining lifetime; expired areas cannot keep hitting.
+Pulse rate, damage per pulse and radius are unchanged.
+
+186 core tests, 362 app tests, core/app-test Clippy and native build pass.
+Cast-to-area tests count actual hits across 0.1/0.6/2.5/20-second steps. Native
+captures verify inline upgrades, the capped description and a saved rank-two
+purchase. Catalog coverage: 232/432 nodes (Warlock 22/50). Live balance and
+Windows combat acceptance remain open.
+
+![Intensity inline duration upgrade](images/screenshots/2026-10-27-warlock-intensity/talents-1280.png)
+![Compact capped Intensity](images/screenshots/2026-10-27-warlock-intensity/talents-640.png)
+
 ## 2026-10-27 — Warlock Destruction control
 
 Aftermath now gives Destruction hits a chance to slow enemies; Pyroclasm gives

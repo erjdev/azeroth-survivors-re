@@ -744,9 +744,15 @@ pub(super) fn tick_areas(
         let training = run.milestones.cast(area.source);
         let crit_chance = (stats.crit + training.crit).min(1.0);
         let crit_damage = stats.crit_damage + training.crit_damage;
+        if area.left <= 0.0 {
+            commands.entity(e).despawn();
+            continue;
+        }
+        // Deliver all pulses due while the area was alive, even across a long frame.
+        let active_dt = dt.min(area.left);
         area.left -= dt;
-        area.next_tick -= dt;
-        if area.next_tick <= 0.0 {
+        area.next_tick -= active_dt;
+        while area.next_tick <= 0.00001 {
             area.next_tick += area.every;
             for (i, f) in around(&live, tf.translation, area.radius)
                 .into_iter()
@@ -4595,6 +4601,147 @@ mod milestone_tests {
     }
 
     #[test]
+    fn intensity_reaches_spawned_rain_and_delivers_all_pulses_across_frame_sizes() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for frame_seconds in [0.1, 0.6, 2.5, 20.0] {
+            for level in [1, 5] {
+                for rank in [0, 1, 2, 255] {
+                    let base = Milestones {
+                        class: 7,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(2, 985, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                    let owned = Owned {
+                        def: data::ability("rain_of_fire"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let p = Params::new(&owned, &stats, trained);
+                    let before = Params::new(&owned, &stats, base);
+                    assert!(
+                        (p.duration - before.duration * (1. + 0.1 * f32::from(rank.min(2)))).abs()
+                            < 0.00001
+                    );
+                    assert_eq!(
+                        (p.radius, p.dmg, p.cooldown),
+                        (before.radius, before.dmg, before.cooldown)
+                    );
+                    app.world_mut().resource_mut::<Run>().abilities.push(owned);
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs_f32(0.1));
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let area_entity = app
+                        .world_mut()
+                        .query_filtered::<Entity, With<GroundArea>>()
+                        .single(app.world())
+                        .unwrap();
+                    let area = app.world().get::<GroundArea>(area_entity).unwrap();
+                    assert_eq!(
+                        (area.left, area.every, area.next_tick),
+                        (p.duration, 1., 0.4)
+                    );
+                    let expected = ((p.duration - 0.4 + 0.00001).floor() as usize) + 1;
+                    app.world_mut().insert_resource(Time::<()>::default());
+                    // No simulation time means no pulse and no loss of area lifetime.
+                    app.world_mut().run_system_once(tick_areas).unwrap();
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                    assert_eq!(
+                        app.world().get::<GroundArea>(area_entity).unwrap().left,
+                        p.duration
+                    );
+                    let mut count = 0;
+                    for _ in 0..1000 {
+                        app.world_mut()
+                            .resource_mut::<Time>()
+                            .advance_by(std::time::Duration::from_secs_f32(frame_seconds));
+                        app.world_mut().run_system_once(tick_areas).unwrap();
+                        for hit in app.world_mut().resource_mut::<Messages<Hit>>().drain() {
+                            assert_eq!(hit.target, enemy);
+                            assert_eq!(hit.source, "rain_of_fire");
+                            assert_eq!(hit.splash, 0.);
+                            assert!(
+                                (hit.damage
+                                    - p.dmg * if hit.crit { stats.crit_damage } else { 1. })
+                                .abs()
+                                    < 0.0001
+                            );
+                            count += 1;
+                        }
+                        if app.world().get::<GroundArea>(area_entity).is_none() {
+                            break;
+                        }
+                    }
+                    assert!(app.world().get::<GroundArea>(area_entity).is_none());
+                    assert_eq!(
+                        count, expected,
+                        "rank={rank}, level={level}, dt={frame_seconds}"
+                    );
+                    app.world_mut().run_system_once(tick_areas).unwrap();
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                }
+            }
+        }
+    }
+
+    #[test]
     fn trained_druid_roots_reach_normal_and_boss_control_without_stacking() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         for boss in [false, true] {
@@ -4988,7 +5135,11 @@ mod milestone_tests {
                 );
                 assert_eq!(
                     (after.count, after.radius, after.duration),
-                    (before.count, before.radius, before.duration)
+                    (
+                        before.count,
+                        before.radius,
+                        before.duration * if key == "rain_of_fire" { 1.2 } else { 1. }
+                    )
                 );
                 assert!(
                     (after.heal_fraction - if key == "death_coil" { 0.02 } else { 0.0 }).abs()

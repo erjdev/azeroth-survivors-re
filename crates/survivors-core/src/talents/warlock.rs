@@ -17,6 +17,7 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 985, max_rank: 2, name: "Intensity", description: "Rain of Fire: +10% active duration per rank. Pulse interval, damage per pulse, radius and cooldown are unchanged (Survivors channel-resilience conversion; no channel required)", stat: TalentStat::SpellDuration("rain_of_fire"), per_rank: 0.10 },
     TalentDefinition { id: 982, max_rank: 5, name: "Aftermath", description: "Destruction hits and area pulses: 2% chance per rank to slow enemies by 50% for 5 sec. Bosses are slowed by 25%; stronger slows are preserved. Excludes attached damage-over-time ticks; refreshes without stacking (Survivors daze conversion)", stat: TalentStat::Aftermath, per_rank: 0.02 },
     TalentDefinition { id: 986, max_rank: 2, name: "Pyroclasm", description: "Rain of Fire and Hellfire pulses: 13% chance per rank to stun each damaged enemy for 3 sec. Boss duration is reduced; longer stuns are preserved. One roll per hit, not per multistrike; refreshes without stacking (Survivors conversion)", stat: TalentStat::Pyroclasm, per_rank: 0.13 },
     TalentDefinition { id: 1061, max_rank: 1, name: "Amplify Curse", description: "Curse of Agony: +20% periodic damage, multiplying other training. Requires acquiring the spell during the run (Survivors automatic conversion)", stat: TalentStat::SpellDamage("curse_of_agony"), per_rank: 0.20 },
@@ -140,7 +141,15 @@ mod tests {
                 assert_eq!(effect.crit_damage, crit_damage);
                 assert_eq!(
                     (effect.radius, effect.duration, effect.extra_targets),
-                    (1., 1., 0)
+                    (
+                        1.,
+                        if key == "rain_of_fire" {
+                            1. + 0.1 * f32::from(rank.min(2))
+                        } else {
+                            1.
+                        },
+                        0
+                    )
                 );
             }
             assert_eq!(trained.cast("fireball"), CastEffect::default());
@@ -450,5 +459,47 @@ mod control_tests {
                 .unwrap()
                 .contains('»'));
         }
+    }
+}
+
+#[cfg(test)]
+mod intensity_tests {
+    use super::*;
+    use crate::talents::{talent_definition, CastEffect, Milestones};
+    #[test]
+    fn intensity_extends_only_rain_of_fire_and_refunds_cleanly() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 255] {
+                let base = Milestones {
+                    class,
+                    points: [30; 3],
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 985, rank)]);
+                for key in FIRE.iter().copied().chain(["shadow_bolt", "blizzard"]) {
+                    let before = base.cast(key);
+                    let after = trained.cast(key);
+                    let duration = if class == 7 && key == "rain_of_fire" {
+                        1. + 0.1 * f32::from(rank.min(2))
+                    } else {
+                        1.
+                    };
+                    assert_eq!(after.duration, before.duration * duration);
+                    assert_eq!(
+                        CastEffect {
+                            duration: before.duration,
+                            ..after
+                        },
+                        before
+                    );
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+        assert!(talent_definition(7, 985)
+            .unwrap()
+            .inline_description(1)
+            .unwrap()
+            .starts_with("Rain of Fire: +10 » 20% active duration"));
     }
 }

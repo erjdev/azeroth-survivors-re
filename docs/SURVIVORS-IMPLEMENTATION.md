@@ -708,9 +708,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 23 / 47 | 9 / 9 |
 | Shaman | 29 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
-| Warlock | 21 / 50 | 9 / 9 |
+| Warlock | 22 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 231 / 432 | 81 / 81 |
+| Total | 232 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -6509,3 +6509,23 @@ CHANGELOG; a rank-one Pyroclasm purchase persists in the disposable fixture.
 Catalog audit confirms 231/432 definitions, Warlock 21/50. Intensity, Pyroclasm's
 DBC prerequisite, remains an unimplemented effect; its catalog rank requirement
 is still enforced. Live balance and Windows combat acceptance remain open.
+
+### 2026-10-27 — Intensity and ground-area timing
+
+Intensity (985, two ranks) extends Rain of Fire's active duration by 10% per rank
+as an explicit Survivors channel-resilience conversion. Other spells, pulse
+interval, damage per pulse, radius and cooldown remain unchanged. This supersedes
+the preceding checkpoint's pending Intensity effect; the DBC prerequisite remains.
+
+Ground areas now catch up all pulses due within their remaining lifetime,
+including the expiry boundary, instead of emitting at most one pulse per frame.
+Already-expired areas despawn without hitting. The initial delay and one-shot
+burst interval remain authored values. No extra AoE locations are introduced.
+
+186 core tests, 362 app tests, core/app-test Clippy and native build pass.
+The actual Rain of Fire cast/area pipeline verifies spell ranks 1/5, talent ranks
+0/1/2/255, unchanged radius/damage/cooldown, zero-delta preservation, exact pulse
+counts at 0.1/0.6/2.5/20-second steps, despawn and no later hits. Native wide and
+compact captures verify inline/capped text and a saved rank-two purchase.
+Catalog coverage: 232/432, Warlock 22/50. Other class content, live movement during
+long frames, balance and Windows combat acceptance remain open.
