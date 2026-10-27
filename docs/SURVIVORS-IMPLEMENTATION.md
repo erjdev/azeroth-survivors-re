@@ -5948,3 +5948,22 @@ The native visual check caught default-font inheritance, corrected before the
 final captures. Verified 1280×720 and scrolled 640×720 screenshots are embedded in
 CHANGELOG and refreshed in README. The intention's illustrated trees and separate
 details panel are retained. Windows and full interface acceptance remain open.
+
+
+### Combined damage/critical-chance descriptions — 2026-10-27
+
+The rich-description API now returns ordered value ranges. SpellDamageAndCrit
+supports exactly one percent damage token and one percentage-point critical token,
+sharing the authored rank scale. Improved Moonfire renders both current/next
+comparisons inline; maximum rank renders both totals. Duplicate or mismatched
+tokens still fall back rather than guessing. Remove the per-rank phrase before
+computing ranges so it cannot displace later highlights. The Armory uses separate
+green spans with white explanatory text and retains the shared font.
+
+167 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+Core checks cover both ranges, capped totals and ambiguity; the controller test
+covers switching from a single value to two values and cleanup on a milestone.
+Native 1280×720 and scrolled 640×720 previews verify both values before/after a
+rank-two purchase, including saved rank persistence. CHANGELOG embeds both captures
+and README previews are refreshed. Other compound effects, the remaining talent
+catalog, live balance and Windows acceptance remain unfinished.

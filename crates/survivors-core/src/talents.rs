@@ -1422,17 +1422,17 @@ pub enum TalentStat {
 
 impl TalentDefinition {
     /// Inline this node's linear contribution; retain authored scope and caveats.
-    /// Compound/proc descriptions keep the explicit rank breakdown instead.
+    /// Supported coupled effects share their rank scale; other compounds/procs retain a breakdown.
     pub fn inline_description(&self, rank: u8) -> Option<String> {
-        self.inline_description_with_value(rank)
+        self.inline_description_with_values(rank)
             .map(|(text, _)| text)
     }
 
-    /// Byte range of the changing value and unit, for rich-text highlighting.
-    pub fn inline_description_with_value(
+    /// Byte ranges of changing values and units, for rich-text highlighting.
+    pub fn inline_description_with_values(
         &self,
         rank: u8,
-    ) -> Option<(String, std::ops::Range<usize>)> {
+    ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
         let (scale, unit) = match self.stat {
             TalentStat::Health | TalentStat::Armor => (1.0, ""),
             TalentStat::Damage
@@ -1443,6 +1443,7 @@ impl TalentDefinition {
             | TalentStat::Reduction
             | TalentStat::Speed
             | TalentStat::SpellDamage(_)
+            | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellGroupDamage(_)
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -1461,6 +1462,7 @@ impl TalentDefinition {
         if self.description.matches(" per rank").count() != 1 {
             return None;
         }
+        let source = self.description.replacen(" per rank", "", 1);
         let amount = |rank| {
             let value = format!("{:.1}", self.per_rank * f32::from(rank) * scale);
             value.strip_suffix(".0").unwrap_or(&value).to_owned()
@@ -1473,9 +1475,9 @@ impl TalentDefinition {
         let mut candidates = Vec::new();
         for &unit in units {
             let token = format!("{}{unit}", amount(1));
-            for (index, _) in self.description.match_indices(&token) {
-                let before = self.description[..index].chars().next_back();
-                let after = self.description[index + token.len()..].chars().next();
+            for (index, _) in source.match_indices(&token) {
+                let before = source[..index].chars().next_back();
+                let after = source[index + token.len()..].chars().next();
                 if !before.is_some_and(|c| c.is_ascii_digit() || c == '.')
                     && !after.is_some_and(|c| c.is_ascii_alphanumeric() || c == '.')
                 {
@@ -1483,36 +1485,54 @@ impl TalentDefinition {
                 }
             }
         }
-        let [(index, token_len, unit)] = candidates.as_slice() else {
+        let compound = matches!(self.stat, TalentStat::SpellDamageAndCrit(_));
+        if compound {
+            if candidates.len() != 2
+                || candidates
+                    .iter()
+                    .filter(|(_, _, unit)| *unit == "%")
+                    .count()
+                    != 1
+                || candidates
+                    .iter()
+                    .filter(|(_, _, unit)| unit.starts_with(" percentage point"))
+                    .count()
+                    != 1
+            {
+                return None;
+            }
+        } else if candidates.len() != 1 {
             return None;
-        };
+        }
+        candidates.sort_by_key(|(index, _, _)| *index);
         let rank = rank.min(self.max_rank);
         let next = rank.saturating_add(1).min(self.max_rank);
-        let unit = if unit.starts_with(" percentage point") {
-            if amount(next) == "1" {
-                " percentage point"
+        let mut text = String::new();
+        let mut ranges = Vec::new();
+        let mut cursor = 0;
+        for (index, token_len, unit) in candidates {
+            let unit = if unit.starts_with(" percentage point") {
+                if amount(next) == "1" {
+                    " percentage point"
+                } else {
+                    " percentage points"
+                }
             } else {
-                " percentage points"
-            }
-        } else {
-            unit
-        };
-        let value = if rank == self.max_rank {
-            format!("{}{unit}", amount(rank))
-        } else {
-            format!("{} » {}{unit}", amount(rank), amount(next))
-        };
-        let mut description = self.description.to_owned();
-        description.replace_range(*index..index + token_len, &value);
-        let start = if self.description[..*index].ends_with('+') {
-            index - 1
-        } else {
-            *index
-        };
-        Some((
-            description.replacen(" per rank", "", 1),
-            start..index + value.len(),
-        ))
+                unit
+            };
+            let value = if rank == self.max_rank {
+                format!("{}{unit}", amount(rank))
+            } else {
+                format!("{} » {}{unit}", amount(rank), amount(next))
+            };
+            text.push_str(&source[cursor..index]);
+            let start = text.len() - usize::from(source[..index].ends_with('+'));
+            text.push_str(&value);
+            ranges.push(start..text.len());
+            cursor = index + token_len;
+        }
+        text.push_str(&source[cursor..]);
+        Some((text, ranges))
     }
 
     /// This node's contribution only, before other talents, equipment and milestones.
@@ -3309,9 +3329,9 @@ mod stat_talent_tests {
                 assert!(text.contains(" » "), "{}", node.name);
                 assert!(!text.contains("per rank"));
                 assert!(!text.contains("This talent:"));
-                let (rich, range) = node.inline_description_with_value(0).unwrap();
+                let (rich, range) = node.inline_description_with_values(0).unwrap();
                 assert_eq!(rich, text);
-                assert!(rich[range].contains(" » "));
+                assert!(range.iter().all(|r| rich[r.clone()].contains(" » ")));
                 assert!(!node.inline_description(255).unwrap().contains(" » "));
             }
         }
@@ -3342,11 +3362,22 @@ mod stat_talent_tests {
             ambiguous.inline_description(1).unwrap(),
             "11 percentage points damage and 1 » 2 percentage points critical chance"
         );
-        // Compound effects still need an explicit contribution breakdown.
-        assert!(talent_definition(8, 763)
-            .unwrap()
-            .inline_description(1)
-            .is_none());
+        let moonfire = talent_definition(8, 763).unwrap();
+        let (text, ranges) = moonfire.inline_description_with_values(1).unwrap();
+        assert_eq!(text, "Moonfire: +2 » 4% direct and periodic damage and +2 » 4 percentage points critical chance");
+        assert_eq!(
+            ranges.iter().map(|r| &text[r.clone()]).collect::<Vec<_>>(),
+            ["+2 » 4%", "+2 » 4 percentage points"]
+        );
+        let (text, ranges) = moonfire.inline_description_with_values(255).unwrap();
+        assert_eq!(
+            text,
+            "Moonfire: +10% direct and periodic damage and +10 percentage points critical chance"
+        );
+        assert_eq!(ranges.len(), 2);
+        let mut ambiguous = *moonfire;
+        ambiguous.description = "+2% damage and +2% chance per rank";
+        assert!(ambiguous.inline_description(1).is_none());
     }
 
     #[test]

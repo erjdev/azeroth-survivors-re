@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Combined talent upgrades inline
+
+Improved Moonfire now shows both damage and critical-chance upgrades in its
+sentence, each with a separate green value span and one unit. Buying a rank
+updates both comparisons; maximum rank shows both totals without arrows.
+Other unsupported compound descriptions retain their explicit breakdown.
+
+167 core and 336 app tests, Clippy and native build pass. Native macOS checks
+at 1280×720 and 640×720 confirm both spans, wrapping and rank-two persistence.
+Screenshots also refresh README. Gameplay values and intention-based layout
+are unchanged; Windows acceptance remains open.
+
+![Combined Moonfire upgrades](images/screenshots/2026-10-27-moonfire-inline/talents-1280.png)
+![Purchased rank at compact size](images/screenshots/2026-10-27-moonfire-inline/talents-640.png)
+
 ## 2026-10-27 — Talent value highlighting
 
 Linear talent descriptions now highlight just the values, arrow and unit in green;

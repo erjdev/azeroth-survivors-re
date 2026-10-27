@@ -1009,6 +1009,30 @@ mod tests {
         assert_eq!(world.get::<Children>(effect).unwrap().to_vec(), children);
         assert_eq!(world.get::<TalentInfo>(focused).unwrap().rank, 1);
         assert_eq!(world.resource::<ControllerFocus>().activated, None);
+        {
+            let mut node = world.get_mut::<TalentInfo>(focused).unwrap();
+            node.class = 8;
+            node.id = 763;
+        }
+        schedule.run(&mut world);
+        assert_eq!(world.get::<Text>(effect).unwrap().0, "Moonfire: ");
+        let spans = world.get::<Children>(effect).unwrap();
+        let expected = [
+            "+2 » 4%",
+            " direct and periodic damage and ",
+            "+2 » 4 percentage points",
+            " critical chance",
+        ];
+        assert_eq!(spans.len(), expected.len());
+        for (index, child) in spans.iter().enumerate() {
+            assert_eq!(world.get::<TextSpan>(child).unwrap().0, expected[index]);
+            let color = if index % 2 == 0 {
+                crate::survivors::hud::card_growth::GAIN
+            } else {
+                Color::WHITE
+            };
+            assert_eq!(world.get::<TextColor>(child).unwrap().0, color);
+        }
         world.resource_mut::<ControllerFocus>().focused = Some(hovered);
         world.get_mut::<TalentInfo>(hovered).unwrap().milestone = Some((0, 10));
         schedule.run(&mut world);

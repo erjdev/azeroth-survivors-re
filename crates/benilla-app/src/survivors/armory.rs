@@ -1273,7 +1273,7 @@ pub(super) struct TalentInfo {
 }
 
 #[derive(Component, PartialEq)]
-pub(super) struct TalentDetailContent(String, Option<std::ops::Range<usize>>);
+pub(super) struct TalentDetailContent(String, Option<Vec<std::ops::Range<usize>>>);
 
 type TalentDetailQuery<'w, 's> = Query<
     'w,
@@ -1357,7 +1357,7 @@ pub(super) fn talent_details(
         .is_none()
         .then(|| {
             survivors_core::talents::talent_definition(node.class, node.id)
-                .and_then(|def| def.inline_description_with_value(node.rank))
+                .and_then(|def| def.inline_description_with_values(node.rank))
                 .map(|(_, range)| range)
         })
         .flatten();
@@ -1372,19 +1372,22 @@ pub(super) fn talent_details(
         }
         commands.entity(entity).despawn_children().insert(content);
         color.0 = Color::WHITE;
-        if let Some(range) = range {
-            **text = value[..range.start].to_owned();
+        if let Some(ranges) = range {
+            **text = value[..ranges[0].start].to_owned();
             commands.entity(entity).with_children(|parent| {
-                parent.spawn((
-                    TextSpan::new(&value[range.clone()]),
-                    TextColor(hud::card_growth::GAIN),
-                    font.clone(),
-                ));
-                parent.spawn((
-                    TextSpan::new(&value[range.end..]),
-                    TextColor(Color::WHITE),
-                    font.clone(),
-                ));
+                for (index, range) in ranges.iter().enumerate() {
+                    parent.spawn((
+                        TextSpan::new(&value[range.clone()]),
+                        TextColor(hud::card_growth::GAIN),
+                        font.clone(),
+                    ));
+                    let end = ranges.get(index + 1).map_or(value.len(), |next| next.start);
+                    parent.spawn((
+                        TextSpan::new(&value[range.end..end]),
+                        TextColor(Color::WHITE),
+                        font.clone(),
+                    ));
+                }
             });
         } else {
             **text = value.clone();
