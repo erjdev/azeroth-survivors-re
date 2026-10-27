@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Reward message localization
+
+Duplicate companion instincts now return a typed purchase result, translated by
+the Armory without changing costs or draft behavior. Starter progress counts use
+compact ratios. 443 Survivors app tests and all-target app Clippy pass; the
+reference-string audit is down to five remaining literals, so the full gate stays open.
+
 ## 2026-10-27 — Localized settings and level labels
 
 Audio switches and Character rotation buttons now resolve their text after startup,

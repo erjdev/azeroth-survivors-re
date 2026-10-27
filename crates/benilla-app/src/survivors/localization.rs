@@ -7,6 +7,7 @@ use bevy::prelude::*;
 use std::collections::HashMap;
 
 const KEYS: &[&str] = &[
+    "ALREADY_LEARNED",
     "UNIT_LEVEL_TEMPLATE",
     "ENABLE_SOUND",
     "ENABLE_MUSIC",

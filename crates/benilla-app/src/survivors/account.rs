@@ -10,6 +10,19 @@ use super::data;
 use super::rewards::{self, Perk, PerkRanks};
 use crate::local_state;
 
+/// Purchase outcome independent of the language used by the Armory.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum PurchaseError {
+    AlreadyLearned,
+    Message(&'static str),
+}
+
+impl From<&'static str> for PurchaseError {
+    fn from(message: &'static str) -> Self {
+        Self::Message(message)
+    }
+}
+
 const FILE: &str = "benilla-config/survivors-account.txt";
 
 #[derive(Clone, Debug)]
@@ -907,16 +920,18 @@ impl Account {
             .or_else(|| (self.pets.owned > 0).then_some(0))
     }
 
-    pub fn buy_instinct(&mut self, kind: u8) -> Result<(), &'static str> {
+    pub fn buy_instinct(&mut self, kind: u8) -> Result<(), PurchaseError> {
         if !(1..=3).contains(&kind) {
-            return Err("Unknown instinct");
+            return Err("Unknown instinct".into());
         }
         if !super::companions::instinct_available(kind) {
-            return Err("Rune-hound is unavailable until battleground runes are implemented");
+            return Err(
+                "Rune-hound is unavailable until battleground runes are implemented".into(),
+            );
         }
         let slot = self.instinct_target().ok_or("Unlock a companion first")?;
         if self.pets.instinct[slot] == kind {
-            return Err("Already learned");
+            return Err(PurchaseError::AlreadyLearned);
         }
         self.pay(30)?;
         self.pets.instinct[slot] = kind;

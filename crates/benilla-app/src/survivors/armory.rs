@@ -47,7 +47,7 @@ pub(super) mod controller;
 
 use bevy::prelude::*;
 
-use super::account::Account;
+use super::account::{Account, PurchaseError};
 use super::campaign::{self, ZONES};
 use super::data::{self, CLASSES};
 use super::hud::{self, HudFont, MenuRoot};
@@ -71,6 +71,7 @@ pub(super) struct Pointer<'w> {
 /// Creature looks and the talent catalog, one system parameter so the menu stays within Bevy's limit.
 #[derive(SystemParam)]
 pub(super) struct MenuBooks<'w> {
+    globals: Option<Res<'w, super::localization::Strings>>,
     strings: Option<Res<'w, crate::glue_strings::GlueStrings>>,
     creatures: Option<Res<'w, crate::entities::Creatures>>,
     bodies: Option<Res<'w, crate::entities::CharCreate>>,
@@ -594,19 +595,19 @@ pub(super) fn input(
             Act::Reward(code) => {
                 armory.note = match armory.reward_draft.stage(&account, code) {
                     Ok(()) => "Pending — Confirm to apply, or Undo to discard.".into(),
-                    Err(reason) => reason.into(),
+                    Err(reason) => purchase_error(reason, books.globals.as_deref()),
                 };
             }
             Act::RemoveReward(code) => {
                 armory.note = match armory.reward_draft.remove(&account, code) {
                     Ok(()) => "Pending upgrade removed. Confirm to apply remaining changes.".into(),
-                    Err(reason) => reason.into(),
+                    Err(reason) => purchase_error(reason, books.globals.as_deref()),
                 };
             }
             Act::ConfirmRewards => {
                 armory.note = match armory.reward_draft.confirm(&mut account) {
                     Ok(()) => "Rewards confirmed.".into(),
-                    Err(reason) => reason.into(),
+                    Err(reason) => purchase_error(reason, books.globals.as_deref()),
                 };
             }
             Act::UndoRewards => {
@@ -719,7 +720,21 @@ pub(super) fn input(
     account.save();
 }
 
-fn buy_reward(account: &mut Account, code: u8) -> Result<(), &'static str> {
+fn purchase_error(error: PurchaseError, strings: Option<&super::localization::Strings>) -> String {
+    let fallback = super::localization::Strings::default();
+    let strings = strings.unwrap_or(&fallback);
+    match error {
+        PurchaseError::AlreadyLearned => strings
+            .text("ALREADY_LEARNED", "Already learned")
+            .to_owned(),
+        PurchaseError::Message(message) => message.to_owned(),
+    }
+}
+
+fn buy_reward(account: &mut Account, code: u8) -> Result<(), PurchaseError> {
+    if (8..=10).contains(&code) {
+        return account.buy_instinct(code - 7);
+    }
     match code {
         0 => account.buy_perk(Perk::SecondThoughts),
         1 => account.buy_perk(Perk::Skip),
@@ -729,13 +744,11 @@ fn buy_reward(account: &mut Account, code: u8) -> Result<(), &'static str> {
         5 => account.buy_perk(Perk::KeenEye),
         6 => account.buy_leash(),
         7 => account.buy_paws(),
-        8 => account.buy_instinct(1),
-        9 => account.buy_instinct(2),
-        10 => account.buy_instinct(3),
         11 => account.buy_second(),
         12 => account.reset_perks(),
         _ => Err("Unknown reward"),
     }
+    .map_err(PurchaseError::Message)
 }
 
 fn create_hero(armory: &mut Armory, account: &mut Account, selection: &mut Selection) {

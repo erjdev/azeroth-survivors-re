@@ -1,5 +1,6 @@
 //! Reference Confirm/Undo flow: replay purchases without touching the live account or disk.
 use super::{buy_reward, Account};
+use crate::survivors::account::PurchaseError;
 
 #[derive(Default)]
 pub(super) struct Draft(Vec<u8>);
@@ -17,7 +18,7 @@ impl Draft {
         self.0.clear();
     }
 
-    pub fn preview(&self, account: &Account) -> Result<Account, &'static str> {
+    pub fn preview(&self, account: &Account) -> Result<Account, PurchaseError> {
         let mut preview = account.clone();
         for &code in &self.0 {
             buy_reward(&mut preview, code)?;
@@ -25,7 +26,7 @@ impl Draft {
         Ok(preview)
     }
 
-    pub fn stage(&mut self, account: &Account, code: u8) -> Result<(), &'static str> {
+    pub fn stage(&mut self, account: &Account, code: u8) -> Result<(), PurchaseError> {
         let mut preview = self.preview(account)?;
         buy_reward(&mut preview, code)?;
         self.0.push(code);
@@ -34,7 +35,7 @@ impl Draft {
 
     /// Remove one pending purchase without changing the destination of later instincts.
     /// Replay both histories so dependency failures leave the entire draft untouched.
-    pub fn remove(&mut self, account: &Account, code: u8) -> Result<(), &'static str> {
+    pub fn remove(&mut self, account: &Account, code: u8) -> Result<(), PurchaseError> {
         let index = self
             .0
             .iter()
@@ -47,7 +48,7 @@ impl Draft {
                 if (8..=10).contains(&pending)
                     && original.instinct_target() != revised.instinct_target()
                 {
-                    return Err("Undo later instinct purchases first");
+                    return Err("Undo later instinct purchases first".into());
                 }
                 buy_reward(&mut revised, pending).map_err(|_| "Undo dependent purchases first")?;
             }
@@ -58,9 +59,9 @@ impl Draft {
     }
 
     /// Revalidate against the current account; a failed batch never partially applies.
-    pub fn confirm(&mut self, account: &mut Account) -> Result<(), &'static str> {
+    pub fn confirm(&mut self, account: &mut Account) -> Result<(), PurchaseError> {
         if self.is_empty() {
-            return Err("No pending rewards");
+            return Err("No pending rewards".into());
         }
         *account = self.preview(account)?;
         self.clear();
@@ -113,6 +114,19 @@ mod tests {
     }
 
     #[test]
+    fn duplicate_instinct_rejection_preserves_draft_and_balance() {
+        let account = funded();
+        let points = account.unspent();
+        let mut draft = Draft::default();
+        draft.stage(&account, 6).unwrap();
+        draft.stage(&account, 8).unwrap();
+        assert_eq!(draft.stage(&account, 8), Err(PurchaseError::AlreadyLearned));
+        assert_eq!(draft.codes(), &[6, 8]);
+        assert_eq!(account.unspent(), points);
+        assert_eq!(draft.preview(&account).unwrap().unspent(), points - 45);
+    }
+
+    #[test]
     fn confirm_revalidates_atomically_and_preserves_intervening_changes() {
         let mut account = funded();
         let mut draft = Draft::default();
@@ -120,7 +134,7 @@ mod tests {
         draft.stage(&account, 11).unwrap();
         account.buy_second().unwrap();
         let points = account.unspent();
-        assert_eq!(draft.confirm(&mut account), Err("Max rank"));
+        assert_eq!(draft.confirm(&mut account), Err("Max rank".into()));
         assert_eq!(account.unspent(), points);
         assert_eq!(account.pets.leash, 0);
         assert_eq!(draft.codes(), &[6, 11]);

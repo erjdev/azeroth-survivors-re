@@ -590,12 +590,7 @@ fn class_column(
     .with_children(|row| {
         stat(row, font, "Health", &class_health(class.id).to_string());
         stat(row, font, "Starts with", &super::spell_title(class.start));
-        stat(
-            row,
-            font,
-            "Zones open",
-            &format!("{open} of {}", ZONES.len()),
-        );
+        stat(row, font, "Zones open", &format!("{open}/{}", ZONES.len()));
     });
     line(body, font, "Spell pool", 12.0, GOLD);
     spell_row(body, class);
@@ -963,7 +958,7 @@ fn hero_column(
             font,
             Act::Page(Page::Talents),
             "Talents",
-            &format!("{spent} of {}", campaign::TALENT_CAP),
+            &format!("{spent}/{}", campaign::TALENT_CAP),
         );
     });
     if let Some((race, sex)) = look {
