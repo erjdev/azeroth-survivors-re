@@ -119,6 +119,53 @@ class FixtureTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("hero=2", (home / "view.txt").read_text())
 
+    def test_existing_executable_bypasses_cargo_and_preserves_isolation_and_exit_status(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = fixture.prepare("partial", Path(temp) / "preview with spaces")
+            request = fixture.preview(home, "talents-640.txt")
+            executable = Path(temp) / "build with spaces" / "warcraft-survivors.exe"
+            with patch.object(fixture.subprocess, "run") as run:
+                run.return_value.returncode = 17
+                self.assertEqual(fixture.launch(home, "talents", request, executable), 17)
+                args, kwargs = run.call_args
+                self.assertEqual(args, ([str(executable)],))
+                self.assertFalse(kwargs.get("shell", False))
+                self.assertEqual(kwargs["cwd"], fixture.ROOT)
+                self.assertEqual(kwargs["env"]["BENILLA_HOME"], str(home))
+                self.assertEqual(kwargs["env"]["WOW_SURVIVORS_UI_PREVIEW"], str(request))
+                self.assertNotIn("WOW_SURVIVORS_AUTO", kwargs["env"])
+
+    def test_invalid_executable_cli_leaves_fixture_absent(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp) / "unused"
+            base = [sys.executable, str(Path(fixture.__file__)), "fresh",
+                    "--output", str(home), "--executable"]
+            for path, flags, message in [
+                (sys.executable, [], "requires --run"),
+                (str(Path(temp) / "missing"), ["--run"], "No such file"),
+                (temp, ["--run"], "Not an executable file"),
+            ]:
+                result = subprocess.run(base + [path] + flags, capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(message, result.stderr)
+                self.assertFalse(home.exists())
+            self.assertEqual(fixture.existing_executable(Path(sys.executable)), Path(sys.executable).resolve())
+
+    def test_executable_cli_dispatches_prepared_preview_without_building(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp) / "preview"
+            executable = Path(sys.executable).resolve()
+            args = [str(Path(fixture.__file__)), "partial", "--output", str(home),
+                    "--preset", "talents-640.txt", "--run", "--executable", str(executable)]
+            with patch.object(sys, "argv", args), patch.object(fixture.subprocess, "run") as run:
+                run.return_value.returncode = 19
+                self.assertEqual(fixture.main(), 19)
+                run.assert_called_once()
+                self.assertEqual(run.call_args.args[0], [str(executable)])
+                self.assertEqual((home / "view.txt").read_bytes(),
+                                 (fixture.PREVIEWS / "talents-640.txt").read_bytes())
+                self.assertTrue((home / "benilla-config/survivors-account.txt").is_file())
+
     def test_launch_is_isolated_shell_free_and_propagates_failure(self):
         with tempfile.TemporaryDirectory() as temp:
             home = fixture.prepare("partial", Path(temp) / "preview with spaces")

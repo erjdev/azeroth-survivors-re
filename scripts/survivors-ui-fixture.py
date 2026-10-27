@@ -110,10 +110,20 @@ def launch_environment(home, page, request=None):
     return env
 
 
-def launch(home, page, request=None):
+def existing_executable(path):
+    """Resolve before creating fixture state; do not infer a build's freshness."""
+    executable = path.expanduser().resolve(strict=True)
+    if not executable.is_file():
+        raise ValueError(f"Not an executable file: {executable}")
+    if not os.access(executable, os.X_OK):
+        raise ValueError(f"File is not executable: {executable}")
+    return executable
+
+
+def launch(home, page, request=None, executable=None):
     # No shell: paths with spaces and Windows drive letters remain single arguments.
     return subprocess.run(
-        ["cargo", "survivors"], cwd=ROOT,
+        ([str(executable)] if executable is not None else ["cargo", "survivors"]), cwd=ROOT,
         env=launch_environment(home, page, request), check=False,
     ).returncode
 
@@ -127,12 +137,17 @@ def main():
                         help="Copy a watched UI request; takes precedence over --page")
     parser.add_argument("--run", action="store_true",
                         help="Build incrementally and launch the isolated preview (all platforms)")
+    parser.add_argument("--executable", type=Path,
+                        help="With --run, launch this existing native development executable without Cargo; rebuild Rust changes first")
     parser.add_argument("--hero", type=int, help="Fixture hero id; requires --spec and a talent --preset")
     parser.add_argument("--spec", type=int, choices=(1, 2, 3), help="Saved spec in the disposable fixture")
     args = parser.parse_args()
     if (args.hero is None) != (args.spec is None) or (args.spec is not None and not args.preset):
         parser.error("--hero and --spec require each other and a talent --preset")
+    if args.executable is not None and not args.run:
+        parser.error("--executable requires --run")
     try:
+        executable = existing_executable(args.executable) if args.executable is not None else None
         contents = preview_contents(args.preset, args.hero) if args.preset else None
         home = prepare(args.profile, args.output, args.hero, args.spec)
         request = write_preview(home, contents) if contents is not None else None
@@ -145,9 +160,12 @@ def main():
         print(f"Live preview request: {request} (edit this file while the app is open)")
     if args.run:
         try:
-            return launch(home, args.page, request)
+            if executable is not None:
+                print(f"Launching existing executable without rebuilding: {executable}", flush=True)
+                print("Rust changes are not checked; rebuild before validating changed code.", flush=True)
+            return launch(home, args.page, request, executable)
         except OSError as error:
-            parser.error(f"Could not launch cargo: {error}. Fixture retained at {home}")
+            parser.error(f"Could not launch {executable or 'cargo'}: {error}. Fixture retained at {home}")
     print("Add --run to launch directly on Windows, macOS or Linux.")
     if os.name != "nt":
         launch_command = command(home, args.page)

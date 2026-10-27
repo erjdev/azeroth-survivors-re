@@ -651,6 +651,22 @@ To prepare and launch a watched preset in one command (Python 3 and Cargo on PAT
 python3 scripts/survivors-ui-fixture.py partial --preset talents-640.txt --run
 ```
 
+For layout/content iteration with an already-built native development executable,
+bypass Cargo and its build lock explicitly:
+
+```sh
+cargo survivors-build
+python3 scripts/survivors-ui-fixture.py partial --preset talents-640.txt --run --executable target/play/warcraft-survivors
+```
+
+On Windows, use `py -3` and `--executable target/play/warcraft-survivors.exe`.
+An explicit path also supports custom target directories or a copied development
+build. This mode checks that the file exists and is executable before creating
+fixture state, but does **not** check source freshness. Rebuild after Rust changes;
+edit the isolated `view.txt` for supported live page/layout changes. Shipping
+builds disable development preview switches and are not suitable here. Each launch
+still creates a new isolated account and returns the executable’s exit code.
+
 Open a particular saved spec without editing save records:
 
 ```sh
@@ -665,7 +681,7 @@ talent inspection in the preset must still match the chosen hero. Preset validat
 happens before creating the home, so a rejected non-talent preset can be corrected
 and retried at the same output path.
 
-On Windows use `py -3` instead of `python3`. `--run` invokes `cargo survivors`
+On Windows use `py -3` instead of `python3`. By default, `--run` invokes `cargo survivors`
 directly, using the incremental play profile and no shell. It clears inherited
 autoplay/capture and old page/preview settings, then sets checkout `wow-data/Data`
 and the new fixture home. Cargo's exit code is returned; a launch failure retains

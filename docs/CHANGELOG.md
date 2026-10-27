@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Preview without waiting for Cargo
+
+The fixture launcher accepts `--run --executable <path>` to open a previously
+built development app directly, bypassing Cargo’s build lock. Isolated saves,
+watched presets and exit codes are preserved. Rust changes still require rebuilding.
+
+Twelve fixture/launcher tests pass on macOS. Windows execution remains unverified.
+No interface appearance changed; the existing screenshots remain current.
+
 ## 2026-10-27 — Mage Combustion
 
 Combustion now builds Fire critical chance from landed direct hits, ends after

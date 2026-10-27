@@ -7442,3 +7442,14 @@ Live balance, actual combat HUD rendering and Windows scene acceptance remain op
 
 Validation: 216 core tests, 418 app tests, core/app Clippy, native build, formatting
 and diff checks pass. Existing block-crate future-compatibility warning remains.
+
+### 2026-10-27 — Existing-executable UI preview
+
+The fixture CLI can launch an explicit development executable without invoking
+Cargo, allowing preview startup while a separate test build holds Cargo’s lock.
+It validates the path before creating state and retains isolated accounts, watched
+requests, shell-free invocation and exit-code propagation. Missing files and
+invalid option combinations leave no fixture behind. Twelve Python tests pass on
+macOS; the existing Linux CI fixture suite includes them. Windows execution is
+not claimed. No appearance change or native rebuild was needed. This does not
+reduce Rust compilation time; shrinking the large app crate remains future work.
