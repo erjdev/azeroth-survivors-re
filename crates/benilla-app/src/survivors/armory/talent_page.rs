@@ -308,8 +308,11 @@ pub(super) fn build(
     );
     // Wrapping keeps the four-column talent grids readable on narrower aspect ratios.
     // Only this outer surface scrolls, so a wheel event cannot move two nested panels.
-    ui.spawn((super::collection::CollectionScroll, ScrollKey(hero.id, hero.spec), RelativeCursorPosition::default(), ScrollPosition(scroll),
-        Node { width: Val::Percent(100.0), flex_grow: 1.0, flex_basis: Val::Px(0.0), min_height: Val::Px(0.0),
+    ui.spawn(Node { width: Val::Percent(100.0), flex_grow: 1.0,
+        flex_basis: Val::Px(0.0), min_height: Val::Px(0.0), ..default() })
+    .with_children(|frame| {
+    let viewport = frame.spawn((super::collection::CollectionScroll, ScrollKey(hero.id, hero.spec), RelativeCursorPosition::default(), ScrollPosition(scroll),
+        Node { width: Val::Percent(100.0), height: Val::Percent(100.0), padding: UiRect::right(Val::Px(16.0)),
             flex_wrap: FlexWrap::Wrap, align_content: AlignContent::Start,
             column_gap: Val::Px(10.0), row_gap: Val::Px(10.0), overflow: Overflow::scroll_y(), ..default() }))
     .with_children(|row| {
@@ -416,5 +419,7 @@ pub(super) fn build(
                 text(side, font, "Spending on these trees returns the legacy spread to unspent points.", 12.0, DIM);
             }
         });
+    }).id();
+    super::scrollbar::spawn(frame, viewport);
     });
 }

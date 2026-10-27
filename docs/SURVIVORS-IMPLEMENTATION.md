@@ -5656,3 +5656,20 @@ scrolled to details. No menu-pick save was created. Two inline CHANGELOG capture
 and a refreshed README compact preview record the unchanged reference-based layout.
 Clippy, native build, formatting and diff checks pass. This improves the iteration
 workflow; remaining interface, content and Windows acceptance are still open.
+
+### 2026-10-26 — Talent scrollbar
+
+Compared against the three illustrated trees plus detail column in
+`intentions/survivors_talent_tab.png`. The existing responsive wrap remains; its
+single scroll surface now has a fixed sibling scrollbar and reserved right gutter.
+The existing per-hero/spec ScrollKey remains on the viewport. Fitted pages hide
+the scrollbar; the addition makes compact overflow visible and draggable.
+
+Native macOS validation dragged to the bottom at 640×720, refunded Totemic Mastery
+without losing the lower view, and checked a fitted Priest layout at 1280×720.
+Two inline CHANGELOG screenshots and refreshed README previews record the result.
+Clippy, incremental native build (24 seconds), formatting and diff checks pass.
+No input/rules changes; app tests were not rerun. Windows/controller acceptance
+remains open. Follow-ups observed during validation: preview hero switches retain
+the previous hero's action note, and talent background tile seams remain visible
+at some fractional display sizes; both need further interface work.

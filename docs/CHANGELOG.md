@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Draggable talent scrolling
+
+Overflowing talent pages now show a fixed gold scrollbar. Dragging reaches the
+remaining trees and details on compact screens; fitted wide pages hide the bar.
+The reference's illustrated panels and existing hero/spec scroll memory remain.
+
+Native macOS checks cover dragging to the bottom at 640×720, refunding without
+losing that view, and the fitted 1280×720 layout. Clippy, incremental native build
+(24 seconds), formatting and diff checks pass. No input or talent rules changed;
+the app suite was not rerun for this layout-only checkpoint.
+
+![Compact talent details reached by dragging](images/screenshots/2026-10-26-talent-scrollbar/talents-640.png)
+
+![Wide talents with no unnecessary scrollbar](images/screenshots/2026-10-26-talent-scrollbar/talents-1280.png)
+
 ## 2026-10-26 — Direct hero UI previews
 
 UI preview files can now select an existing fixture hero with `hero=<ID>`, together
