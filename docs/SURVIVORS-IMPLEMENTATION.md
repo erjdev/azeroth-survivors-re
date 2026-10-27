@@ -872,8 +872,12 @@ height-relative UI baseline, independent of render scale, through persistent
 `uiScale`/`useUiScale` settings. Graphics defaults restores automatic sizing.
 365 app tests and Clippy pass, including three window heights at 1×/2× DPI.
 Native 1280×720 and 640×720 checks verify 125% Options/Character, full restart
-persistence and restoration. Captures are inline in CHANGELOG; other Armory
-pages, card drafts and combat HUD at every scale still require acceptance.
+persistence and restoration. Additional `e254ce2` native checks cover full
+Collection and Warlock Talents at 640×720/125%: wrapping equipment rows,
+scrolling details, unequip/re-equip with preserved cosmetic overrides, proportional
+tree artwork and a saved Demonic Embrace purchase. Disposable fixture; no new
+runtime changes. Captures are inline in CHANGELOG. Remaining Armory pages,
+card drafts and combat HUD at every scale still require acceptance.
 
 
 Collection shares Character’s inline faction portraits and race/sex controls. Live

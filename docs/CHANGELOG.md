@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Enlarged Collection and Talents checks
+
+Verified full Collection and Warlock Talents at 640×720 with 125% interface
+size. Equipment rows wrap; item details and talent panels scroll. Unequip and
+re-equip preserve cosmetic overrides, and a talent purchase saves correctly.
+Talent art retains its proportions with aligned icons and connectors.
+
+Native macOS preview on `e254ce2`, disposable full-account fixture; no code
+changes or new test run. Exact Windows foliage, fence and chest scenes remain
+open in the implementation plan.
+
+![Compact Collection at 125 percent](images/screenshots/2026-10-27-scaled-armory/collection-640-125.png)
+![Unequipped item with inline comparisons](images/screenshots/2026-10-27-scaled-armory/unequipped-640-125.png)
+![Proportional talent artwork at 125 percent](images/screenshots/2026-10-27-scaled-armory/trees-640-125.png)
+![Purchased talent and scrolling details](images/screenshots/2026-10-27-scaled-armory/talents-640-125.png)
+
 ## 2026-10-27 — Adjustable interface size
 
 Options → Graphics now offers Interface size at 75%, 85%, 100%, 110% and 125%,

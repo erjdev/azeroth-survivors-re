@@ -100,6 +100,10 @@ without changing render resolution. The setting is saved between launches.
 
 ![Compact Options at 125% interface size](docs/images/screenshots/2026-10-27-interface-scale/options-640-125.png)
 
+Collection and Talents also support compact scrolling at enlarged interface size.
+
+![Compact talent trees at 125% interface size](docs/images/screenshots/2026-10-27-scaled-armory/trees-640-125.png)
+
 ### Earlier gameplay captures
 
 <table>
