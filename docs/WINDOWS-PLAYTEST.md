@@ -1,6 +1,6 @@
 # Windows playtest follow-up
 
-Current implementation reviewed at `5b664d5`. These reports remain open for
+Current implementation reviewed at `03db910`. These reports remain open for
 Windows scene acceptance; the checks below are not a claim that the reported
 scenes have been reproduced.
 
@@ -11,11 +11,11 @@ scenes have been reproduced.
 | Excessive elite chests obstruct enemies | Elite rewards begin after 60 seconds, require 90 seconds between drops and stop at five per run. Boss rewards are independent. Chest geometry remains solid and participates in detours. | Verify live routing around clustered chests and confirm boss encounters do not overwhelm the intended reward cadence. |
 | Talent artwork stretches or misaligns | Four stock tiles compose into one 300×331 painted image; panels retain that aspect ratio and icons use relative positions. | Review all classes on Windows at normal and enlarged UI scales, including compact and wide windows. |
 
-Verification on 2026-10-27 at `1ad6616`: all **390 Survivors app tests passed** on macOS with
-checkout-local WoW data and `survivors-visibility` enabled. Coverage includes real
-canopy geometry, tree/chest collision hull detours, bounded routing, elite death
-batches, and talent tile composition. No new Windows execution or GPU capture
-is claimed in this review.
+Verification on 2026-10-27 at `03db910`: **422 Survivors app tests pass** on
+macOS with checkout-local WoW data and `survivors-visibility` enabled. Coverage
+includes canopy geometry, tree/chest hull detours, bounded routing, elite death
+batches and talent tile composition. No Windows execution or new GPU capture is
+claimed. The reported Windows build and affected talent class remain unknown.
 
 Existing native visual evidence (not new captures):
 
@@ -57,21 +57,9 @@ the log and screenshots together with the exact build commit. It distinguishes
 missing rendered blockers from an active reveal that fails to appear on screen;
 camera collision alone cannot establish whether foliage hides the hero.
 
-Latest recheck on 2026-10-27 at `5b664d5`: **398 app tests pass, zero failures**
-with checkout-local data and `survivors-visibility` enabled. This supersedes the
-earlier 392-pass/two-failure result; the Raid Epic source expectations now pass.
-Foliage, navigation, spawn clearance, elite death batches and talent artwork
-remain covered. No new runtime screenshot or Windows scene acceptance is claimed.
+## Additional talent artwork evidence
 
-The reported Windows commit and affected talent class are still unknown. Compare
-those with this reviewed revision before treating existing fixes as a resolution
-of that playtest. Keep all four reports open until the same scenes are replayed.
+The existing Paladin capture below shows the composed artwork and aligned talent
+rows on macOS. It is not a new capture or Windows acceptance evidence.
 
-
-The Sanctuary checkpoint on 2026-10-27 passes **407 app tests**, including the
-existing foliage, navigation, spawn and chest regressions. A fresh Paladin menu
-capture confirms the current artwork composition and aligned rows on macOS:
-
-![Current Paladin talent artwork and alignment](images/screenshots/2026-10-27-sanctuary/preview.png)
-
-This menu capture does not close the Windows scene acceptance items above.
+![Paladin talent artwork and alignment](images/screenshots/2026-10-27-sanctuary/preview.png)
