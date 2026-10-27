@@ -951,6 +951,8 @@ fn zone_column(
                 );
             }
             if on {
+                line(row, font, zone.title, 13.0, Color::srgb(0.95, 0.55, 0.25));
+                line(row, font, zone.briefing, 12.0, Color::WHITE);
                 if zone.name != zone.map {
                     line(row, font, zone.map, 12.0, DIM);
                 }
@@ -961,12 +963,7 @@ fn zone_column(
                     } else {
                         format!("{}. {elites}.", zone.boss)
                     };
-                    line(row, font, &stakes, 13.0, Color::WHITE);
-                }
-                if let Some(map) = data::MAPS.iter().find(|m| m.name == zone.map) {
-                    if !map.victory.is_empty() {
-                        line(row, font, map.victory, 12.0, DIM);
-                    }
+                    line(row, font, &stakes, 11.0, DIM);
                 }
             }
         });
@@ -981,9 +978,13 @@ fn zone_column(
             12.0,
             DIM,
         );
-        if !map.victory.is_empty() {
-            line(body, font, map.victory, 12.0, Color::WHITE);
-        }
+        line(
+            body,
+            font,
+            "Survive the enemy waves and defeat the scheduled bosses.",
+            12.0,
+            Color::WHITE,
+        );
     }
 }
 
@@ -1058,7 +1059,10 @@ fn enter_copy(armory: &Armory, account: &Account, selection: &Selection) -> (Str
         (format!("Enter {}", zone.name), under)
     } else {
         let map = selection.map_def();
-        (format!("Enter {}", map.name), map.victory.to_string())
+        (
+            format!("Enter {}", map.name),
+            "Survive the enemy waves".into(),
+        )
     }
 }
 

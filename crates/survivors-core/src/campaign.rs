@@ -63,6 +63,9 @@ pub fn quality_name(quality: Quality) -> &'static str {
 
 /// One zone on the path. `map` matches [`super::data::MapDef::name`] when the battleground exists.
 pub struct Zone {
+    /// Pre-run narrative, separate from a map's victory message.
+    pub title: &'static str,
+    pub briefing: &'static str,
     pub name: &'static str,
     pub map: &'static str,
     /// Talent level required, in addition to clearing the preceding campaign zone.
@@ -83,6 +86,8 @@ pub const CLEAR_COUNT: usize = 12;
 
 pub static ZONES: &[Zone] = &[
     Zone {
+        title: "The Forest Under Siege",
+        briefing: "Gnolls gather at the forest edge while Defias raiders and kobolds threaten the roads. Hold your ground until their assault breaks.",
         name: "Elwynn Forest",
         map: "Elwynn Forest",
         talent: 0,
@@ -94,6 +99,8 @@ pub static ZONES: &[Zone] = &[
         points: 10,
     },
     Zone {
+        title: "Nightfall in Darkshire",
+        briefing: "The woods stir with restless dead and prowling worgen. Face the creatures of the night before they reach Darkshire.",
         name: "Duskwood",
         map: "Duskwood",
         talent: 5,
@@ -105,6 +112,8 @@ pub static ZONES: &[Zone] = &[
         points: 10,
     },
     Zone {
+        title: "Battle Beneath the Boughs",
+        briefing: "Warsong and Silverwing forces clash beneath the ancient trees. Survive waves of faction champions as the battle closes around you.",
         name: "Warsong Gulch",
         map: "Warsong Gulch",
         talent: 8,
@@ -116,6 +125,8 @@ pub static ZONES: &[Zone] = &[
         points: 15,
     },
     Zone {
+        title: "The Crater Awakens",
+        briefing: "Primal beasts roam beneath the volcanic ridge. Endure the stampede and face the predators drawn to the fighting.",
         name: "Un'Goro Crater",
         map: "Fire Plume Ridge",
         talent: 12,
@@ -127,6 +138,8 @@ pub static ZONES: &[Zone] = &[
         points: 15,
     },
     Zone {
+        title: "The Basin Under Fire",
+        briefing: "Defilers and the League of Arathor contest the basin. Hold out against successive assaults from their field forces.",
         name: "Arathi Basin",
         map: "Arathi Basin",
         talent: 16,
@@ -138,6 +151,8 @@ pub static ZONES: &[Zone] = &[
         points: 15,
     },
     Zone {
+        title: "Trouble in the Deepwood",
+        briefing: "Ogres and ancient forest creatures stir beneath the canopy. Push through the gathering threats in the deepwood.",
         name: "Feralas",
         map: "Feralas",
         talent: 20,
@@ -149,6 +164,8 @@ pub static ZONES: &[Zone] = &[
         points: 15,
     },
     Zone {
+        title: "The Arena Calls",
+        briefing: "The arena draws raiders, berserkers and challengers hungry for glory. Stand your ground as each new contender enters the fight.",
         name: "Gurubashi Arena",
         map: "Gurubashi Arena",
         talent: 24,
@@ -160,6 +177,8 @@ pub static ZONES: &[Zone] = &[
         points: 20,
     },
     Zone {
+        title: "Zealotry Unbound",
+        briefing: "The Scarlet Crusade rallies its champions and holy warriors. Survive their relentless advance through the monastery.",
         name: "Scarlet Monastery",
         map: "Scarlet Monastery",
         talent: 28,
@@ -171,6 +190,8 @@ pub static ZONES: &[Zone] = &[
         points: 20,
     },
     Zone {
+        title: "War in the Snow",
+        briefing: "Frostwolf and Stormpike forces muster in the frozen valley. Weather their assaults and the commanders who lead them.",
         name: "Alterac Valley",
         map: "Alterac Valley",
         talent: 32,
@@ -182,6 +203,8 @@ pub static ZONES: &[Zone] = &[
         points: 20,
     },
     Zone {
+        title: "Into the Mountain",
+        briefing: "Beyond the mountain gates, a new trial awaits. This campaign is still being prepared.",
         name: "Blackrock Mountain",
         map: "Blackrock Mountain",
         talent: 36,
@@ -193,6 +216,8 @@ pub static ZONES: &[Zone] = &[
         points: 20,
     },
     Zone {
+        title: "The Old God Stirs",
+        briefing: "Silithid swarm near the Scarab Wall as Qiraji forces gather. Survive the onslaught at the gates before the desert is overrun.",
         name: "Gates of Ahn'Qiraj",
         map: "Gates of Ahn'Qiraj",
         talent: 42,
@@ -204,6 +229,8 @@ pub static ZONES: &[Zone] = &[
         points: 30,
     },
     Zone {
+        title: "The Necropolis Ascends",
+        briefing: "The Scourge gathers beneath the shadow of Naxxramas. Face its plague-born horrors and the servants of Kel'Thuzad.",
         name: "Naxxramas",
         map: "Naxxramas",
         talent: 48,

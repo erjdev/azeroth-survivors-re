@@ -5494,3 +5494,18 @@ the legacy Look page restores the live world and returning restores the backdrop
 The runtime log has no shader errors. Three screenshots accompany CHANGELOG and the
 README starter/character images are refreshed. No gameplay, Windows or full test-suite
 acceptance is claimed for this presentation-only checkpoint.
+
+### Pre-run zone briefings — 2026-10-26
+
+Each of the twelve campaign zones now has an authored title and briefing, separate
+from the map's victory text. The starter shows the title, threat and encounter
+roster for the selected zone, while preserving lock reasons and the schedule-derived
+final fight under Enter. Battleground briefings describe faction-themed survival
+assaults; Blackrock explicitly remains in preparation. Non-campaign selections no
+longer display victory text before play either. This adds presentation copy, not
+zone readiness, bosses, loot or progression changes.
+
+Validation: 159 core tests, scoped app Clippy, native play build and formatting pass.
+Native 1280×720 and 640×720 screenshots verify briefing wrapping and Duskwood lock
+messaging; no run was entered. CHANGELOG embeds all three captures and README
+refreshes the Starter gallery. Windows and gameplay acceptance remain open.

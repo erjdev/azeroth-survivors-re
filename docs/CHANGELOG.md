@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Pre-run zone briefings
+
+All twelve campaign zones now show an authored title and threat briefing instead
+of victory text before play. Battlegrounds describe faction-themed survival;
+Blackrock remains in preparation. Existing lock reasons and final-fight timing remain.
+
+159 core tests, scoped app Clippy, native build and formatting pass. Native wide
+and compact menu checks cover Elwynn copy and Duskwood's lock messaging; this is
+macOS presentation validation, not a gameplay or Windows acceptance pass.
+
+![Elwynn pre-run briefing](images/screenshots/2026-10-26-zone-briefing/elwynn-1280.png)
+
+![Locked Duskwood briefing](images/screenshots/2026-10-26-zone-briefing/duskwood-1280.png)
+
+![Compact Duskwood briefing](images/screenshots/2026-10-26-zone-briefing/duskwood-640.png)
+
 ## 2026-10-26 — Stable starter and Armory backdrop
 
 Replaced the moving close-up world scenery behind starter/Armory pages with an
