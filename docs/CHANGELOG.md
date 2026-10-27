@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Building reveal eligibility
+
+Removed the WMO exclusion from both Survivors scenery shader paths. Buildings
+between the camera and hero can now use the same circular reveal as static trees;
+the shared depth limit preserves surfaces behind the hero. Actor/UI exclusions
+and physical collision remain unchanged.
+
+The scheduled visibility regression now covers WMO and doodad identities on
+ordinary and merged paths, including the 500 ms fade and behind-hero reversal.
+All 372 Survivors app tests, app-test Clippy and the native play build pass.
+Rendered building screenshots and the exact Windows foliage replay remain open;
+this correction does not establish the cause of the foliage report.
+
 ## 2026-10-27 — Cold Snap
 
 Mage Cold Snap automatically resets owned Frostbolt, Frost Nova, Blizzard and

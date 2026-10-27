@@ -6704,3 +6704,22 @@ unrelated Fireball/Frost Shock, zero-delta pause and no repeated/banked reset.
 1024×720 at 125% verifies purchase and save in spec 3 (18→19 Frost points), with
 inline screenshots in the changelog/README. Coverage is 239/432, Mage 32/49.
 Remaining talent definitions, live balance and Windows acceptance remain open.
+
+
+### 2026-10-27 — WMO reveal shader eligibility
+
+The visual probe already treated WMO buildings as scenery, but the ordinary
+model shader required a non-WMO flag and the retained shader explicitly skipped
+WORD_WMO surfaces. Removed these exclusions inside SURVIVORS_CUTAWAY only.
+The ordinary path still excludes actor lighting, clutter and UI model tiles;
+the retained path contains scenery only. Both use the existing camera-to-focus
+depth boundary, projected circle and 500 ms strength; collision is unchanged.
+The scheduled adapter regression now exercises WMO and doodad identities across
+ordinary and merged paths, including fade-out with the obstruction behind the
+hero. This is a code-level building correction, not acceptance of the reported
+Windows foliage scene. GPU building captures (front/behind, both renderer paths),
+alpha-aware foliage and the exact Windows reproduction remain outstanding.
+
+Validation: all 372 visibility-enabled Survivors app tests, app-test Clippy, native
+play build, formatting and diff checks pass on macOS. No GPU visual acceptance or
+Windows run is claimed for this checkpoint.

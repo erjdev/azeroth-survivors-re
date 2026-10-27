@@ -192,11 +192,10 @@ fn vertex(v: GxVertex) -> GxVsOut {
 fn fragment(in: GxVsOut) -> @location(0) vec4<f32> {
 #ifdef SURVIVORS_CUTAWAY
     let tail = arrayLength(&wow_light.palettes) - 2u;
-    if ((in.word & WORD_WMO) == 0u) {
-        if (!cutaway_keep(in.world_position.xyz, in.position.xy,
-            wow_light.palettes[tail], wow_light.palettes[tail + 1u])) {
-            discard;
-        }
+    // This pass contains only scenery, including WMO buildings.
+    if (!cutaway_keep(in.world_position.xyz, in.position.xy,
+        wow_light.palettes[tail], wow_light.palettes[tail + 1u])) {
+        discard;
     }
 #endif
     // The hard farclip wall: per-pixel planar eye-Z, the same plane as the entity path.

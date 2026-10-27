@@ -423,7 +423,8 @@ fn vertex(vertex: WowVertex) -> WowVsOut {
 fn fragment(in: WowVsOut, @builtin(front_facing) is_front: bool) -> WowFragOut {
 #ifdef SURVIVORS_CUTAWAY
     let tail = arrayLength(&wow_light.palettes) - 2u;
-    if (m.model_flags.x < 0.5 && m.sun_scale.x < 0.85 && m.clutter_fade.w < 0.5 && m.anim_slots.w < 0.5) {
+    // WMO surfaces and static M2 scenery can obscure the hero. Exclude actors and UI tiles.
+    if ((m.model_flags.x > 0.5 || m.sun_scale.x < 0.85) && m.clutter_fade.w < 0.5 && m.anim_slots.w < 0.5) {
         if (!cutaway_keep(in.world_position.xyz, in.position.xy,
             wow_light.palettes[tail], wow_light.palettes[tail + 1u])) {
             discard;

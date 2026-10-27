@@ -266,7 +266,10 @@ mod tests {
         use benilla_world::interact::PickMember;
         use bevy::camera::visibility::SetViewVisibility;
         use std::time::Duration;
-        for merged in [false, true] {
+        for (merged, kind) in [false, true]
+            .into_iter()
+            .flat_map(|merged| [ModelKind::Doodad, ModelKind::Wmo].map(|kind| (merged, kind)))
+        {
             let mut world = World::new();
             world.insert_resource(State::new(Phase::Playing));
             world.insert_resource(Time::<Real>::default());
@@ -290,8 +293,8 @@ mod tests {
                 ..default()
             });
             let object = WorldObject {
-                kind: ModelKind::Doodad,
-                label: "Canopy without collision".into(),
+                kind,
+                label: "Scenery without collision".into(),
                 id: 1,
                 detail: String::new(),
             };
