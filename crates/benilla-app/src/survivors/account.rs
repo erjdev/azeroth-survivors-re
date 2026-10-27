@@ -2078,6 +2078,111 @@ mod tests {
     }
 
     #[test]
+    fn saved_raid_sets_reach_run_stats_for_every_class_without_cosmetic_power() {
+        use super::super::{Run, Stats};
+        use survivors_core::gear_tier::GearTier;
+        let values = |s: Stats| {
+            [
+                s.max_hp,
+                s.magnet,
+                s.armor,
+                s.might,
+                s.crit,
+                s.multistrike,
+                s.speed,
+                s.leech,
+                s.area,
+                s.crit_damage,
+                s.reduction,
+                s.cooldown,
+            ]
+        };
+        let check = |actual: Stats, expected: Stats| {
+            for (actual, expected) in values(actual).into_iter().zip(values(expected)) {
+                assert!((actual - expected).abs() < 0.0001, "{actual} != {expected}");
+            }
+            assert_eq!(actual.targets, expected.targets);
+        };
+        for class in 0..data::CLASSES.len() {
+            let mut account = empty();
+            let id = account.ensure(class);
+            let make_run = |account: &Account| Run {
+                class: &data::CLASSES[class],
+                race: 0, // No racial multipliers obscure the equipment contract.
+                bonus: account.bonus(class, id),
+                ..Default::default()
+            };
+            let baseline = make_run(&account).stats();
+            for slot in 0..6 {
+                let piece =
+                    survivors_core::supplemental_gear::piece(class, slot, GearTier::RaidEpic)
+                        .unwrap();
+                assert!(account.supplemental.collect(class, &piece.key));
+                assert!(account.select_supplemental(class, &piece.key, true));
+            }
+            account = parse(&encode(&account)).unwrap();
+            check(make_run(&account).stats(), baseline);
+            let mut items = account.bonus(class, id);
+            for slot in 0..6 {
+                let piece =
+                    survivors_core::supplemental_gear::piece(class, slot, GearTier::RaidEpic)
+                        .unwrap();
+                assert!(account.select_supplemental(class, &piece.key, false));
+                items.add(piece.tier.piece_bonus(slot));
+                // Spell out the build contract independently of raid_sets::bonus.
+                let mut expected = items;
+                if slot >= 1 {
+                    match class {
+                        0 | 1 => expected.armor += 24.,
+                        2 | 3 => expected.speed += 0.04,
+                        4 | 8 => expected.health += 30.,
+                        _ => expected.pickup += 0.15,
+                    }
+                }
+                if slot >= 3 {
+                    match class {
+                        0 | 3 => expected.crit += 0.04,
+                        1 | 5 | 6 => expected.area += 0.10,
+                        2 => expected.multistrike += 0.08,
+                        4 | 8 => expected.cooldown += 0.06,
+                        7 => expected.leech += 0.02,
+                        _ => unreachable!(),
+                    }
+                }
+                if slot >= 5 {
+                    match class {
+                        0 | 2 | 3 => expected.crit_damage += 0.25,
+                        1 | 4 | 8 => expected.reduction += 0.04,
+                        5 | 6 => expected.cooldown += 0.08,
+                        7 => expected.might += 0.10,
+                        _ => unreachable!(),
+                    }
+                }
+                account = parse(&encode(&account)).unwrap();
+                let expected_run = Run {
+                    bonus: expected,
+                    ..make_run(&account)
+                };
+                check(make_run(&account).stats(), expected_run.stats());
+            }
+            let snapshot = make_run(&account);
+            let before = snapshot.stats();
+            for slot in 0..6 {
+                assert!(account.wear_piece(class, slot, None));
+            }
+            account = parse(&encode(&account)).unwrap();
+            check(make_run(&account).stats(), baseline);
+            check(snapshot.stats(), before);
+            assert!(account.classes[class]
+                .equipment
+                .supplemental_looks()
+                .iter()
+                .take(6)
+                .all(Option::is_some));
+        }
+    }
+
+    #[test]
     fn supplemental_loadout_rejects_unowned_foreign_and_wrong_slot_save_references() {
         let rows = "supplemental 0 poor:warrior:hands\nsupplemental_worn 0 0 poor:warrior:hands\nsupplemental_worn 1 7 poor:warrior:hands\nsupplemental_worn 0 1 poor:warrior:shoulders\nsupplemental_look 0 7 poor:warrior:hands extra\n";
         let mut account = parse(rows).unwrap();

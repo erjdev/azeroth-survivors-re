@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Saved raid-build integration coverage
+
+Verified all nine classes' raid sets from saved equipment into run stats, including
+every piece count through six, cosmetic-only ownership, unequipping, and preserving
+an already-started run's stats. All 352 Survivors app tests pass. No gameplay or UI
+change; raid acquisition and live balance remain unfinished.
+
 ## 2026-10-27 — Browser Survivors feature parity
 
 The browser launcher now enables the same foliage visibility, terrain-height and

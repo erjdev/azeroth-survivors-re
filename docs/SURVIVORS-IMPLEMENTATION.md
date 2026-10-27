@@ -6341,3 +6341,14 @@ descriptions. Native macOS wide menu screenshot verifies the green rank preview
 and is embedded in CHANGELOG. This is automated combat integration plus menu
 visual evidence, not a live combat or Windows acceptance claim. Remaining talent
 rules, balance and full interface/content acceptance stay open.
+
+### 2026-10-27 — Saved raid-set combat stat integration
+
+Added account → save/reload → Run.stats coverage for all nine classes at each
+equipped count from one through six. Expected 2/4/6-piece build bonuses are
+specified independently of the production set lookup. The check covers twelve
+stat fields plus target count, cosmetic-only ownership, retained appearances after
+unequipping, and an existing run keeping its snapshot while the next run loses
+removed equipment power. All 352 Survivors app tests and app/test Clippy pass.
+This adds integration evidence without changing gameplay or visuals; raid
+acquisition, live balance and Windows scene acceptance remain open.
