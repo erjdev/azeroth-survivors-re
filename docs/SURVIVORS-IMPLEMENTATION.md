@@ -5704,3 +5704,19 @@ Priest/Holy Nova. The note persisted for the first two requests and cleared only
 on the valid hero switch. Inline screenshots document both states. Clippy, native
 build, formatting and diff checks pass; no app-suite rerun for this small display
 correction. Layout, account data and gameplay rules are unchanged.
+
+### 2026-10-26 — Scoped spell-efficiency talents
+
+Efficiency (Hunter 1342, five ranks), Mental Agility (Priest 341, five ranks) and
+Frost Channeling (Mage 66, three ranks) now use the existing multiplicative spell
+cooldown path. Their descriptions explicitly label the mana-cost conversion and
+spell scope. Rank caps and identities match local DBC data. Tests cover all classes,
+reset, milestone stacking and existing spell training, with damage, targeting and
+area geometry preserved. Coverage is 206/432 individual talents and 81/81 milestones;
+226 individual talents remain without definitions.
+
+Validation: 162 core and 326 app tests, Clippy, native build, formatting and diff
+checks pass. The initial aggregate Priest check needed its expected cooldowns
+updated for Mental Agility. Native macOS 1280×720 purchases verified final ranks
+5/5, 5/5 and 3/3, saved to an isolated fixture. Three inline changelog images record
+the existing reference-based layout. Windows and live balance remain unverified.

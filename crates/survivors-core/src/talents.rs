@@ -1997,6 +1997,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1342, max_rank: 5, name: "Efficiency",
+        description: "Shots and Serpent Sting: 2% shorter cooldown per rank. Excludes Volley, traps and the combat wolf (Survivors mana-cost conversion)",
+        stat: TalentStat::SpellGroupCooldown(HUNTER_SHOTS), per_rank: 0.02 },
     TalentDefinition { id: 1386, max_rank: 1, name: "Bestial Wrath",
         description: "Upgrades the 30-point milestone: combat wolf bite damage rises from +50 to +100%, and its window from 10 to 18 sec in each 30 sec cycle. Replaces the base Wrath bonus; no immunity or hero spell bonus",
         stat: TalentStat::PetWrath, per_rank: 1.0 },
@@ -2179,6 +2182,9 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 66, max_rank: 3, name: "Frost Channeling",
+        description: "Frostbolt, Frost Nova, Blizzard and Cone of Cold: 5% shorter cooldown per rank. Does not change area duration or tick rate (Survivors mana-cost conversion)",
+        stat: TalentStat::SpellGroupCooldown(MAGE_FROST), per_rank: 0.05 },
     TalentDefinition {
         id: 421, max_rank: 3, name: "Arcane Instability",
         description: "Mage spells: +1% damage and +1% critical chance per rank; excludes other-class and neutral jewelry spells",
@@ -2497,6 +2503,9 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 // Vanilla identities and rank caps; automatic-cast conversions are labeled in descriptions.
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 341, max_rank: 5, name: "Mental Agility",
+        description: "Shadow Word: Pain, Holy Nova, Psychic Scream and Power Word: Shield: 2% shorter cooldown per rank. Multiplies the Discipline 20-point milestone; does not change duration or tick rate (Survivors mana-cost conversion)",
+        stat: TalentStat::SpellGroupCooldown(&["shadow_word_pain", "holy_nova", "psychic_scream", "power_word_shield"]), per_rank: 0.02 },
     TalentDefinition {
         id: 442, max_rank: 1, name: "Holy Nova",
         description: "Holy Nova heals 5% maximum health once per successful cast. Adds to the Holy 30-point milestone for 10% before Spiritual Healing. Requires acquiring Holy Nova during the run; damage and lifesteal are unchanged (Survivors conversion)",
@@ -3111,11 +3120,11 @@ mod stat_talent_tests {
         for (key, damage, cooldown, duration, crit) in [
             ("smite", 1.155, 0.8, 1.0, 0.10),
             ("holy_fire", 1.155, 0.8, 1.0, 0.10),
-            ("holy_nova", 1.05, 1.0, 1.0, 0.10),
-            ("shadow_word_pain", 1.155, 1.0, 1.3, 0.0),
+            ("holy_nova", 1.05, 0.9, 1.0, 0.10),
+            ("shadow_word_pain", 1.155, 0.9, 1.3, 0.0),
             ("mind_blast", 1.155, 0.75, 1.0, 0.05),
-            ("psychic_scream", 1.155, 0.8, 1.0, 0.05),
-            ("power_word_shield", 1.15, 1.0, 1.0, 0.0),
+            ("psychic_scream", 1.155, 0.72, 1.0, 0.05),
+            ("power_word_shield", 1.15, 0.9, 1.0, 0.0),
             ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),
             ("holy_shock", 1.0, 1.0, 1.0, 0.0),
         ] {
@@ -4725,6 +4734,54 @@ mod holy_nova_training_tests {
                     assert_eq!(trained.cast("holy_nova"), expected);
                     for key in ["holy_fire", "smite", "power_word_shield", "rejuvenation"] {
                         assert_eq!(trained.cast(key), base.cast(key));
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod efficiency_tests {
+    use super::*;
+    #[test]
+    fn cost_conversions_are_scoped_capped_multiplicative_and_resettable() {
+        for (owner, id, maximum, per_rank, spells) in [
+            (2, 1342, 5, 0.02, HUNTER_SHOTS),
+            (
+                4,
+                341,
+                5,
+                0.02,
+                &[
+                    "shadow_word_pain",
+                    "holy_nova",
+                    "psychic_scream",
+                    "power_word_shield",
+                ][..],
+            ),
+            (6, 66, 3, 0.05, MAGE_FROST),
+        ] {
+            for class in 0..9 {
+                let base = Milestones {
+                    class,
+                    points: [30; 3],
+                    ..Default::default()
+                };
+                for rank in [0, 1, 3, 5, 255] {
+                    let trained = base.with_ranks(&[(0, id, rank)]);
+                    for def in crate::data::ABILITIES {
+                        let mut expected = base.cast(def.key);
+                        if class == owner && spells.contains(&def.key) {
+                            expected.cooldown *= 1.0 - per_rank * f32::from(rank.min(maximum));
+                        }
+                        assert_eq!(
+                            trained.cast(def.key),
+                            expected,
+                            "class {class} talent {id} {}",
+                            def.key
+                        );
                     }
                     assert_eq!(trained.with_ranks(&[]), base);
                 }

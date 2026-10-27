@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Spell efficiency talents
+
+Hunter Efficiency, Priest Mental Agility and Mage Frost Channeling now shorten
+cooldowns for their listed spells, adapting mana-cost talents to automatic combat.
+Maximum reductions are 10%, 10% and 15%, multiplied with existing training.
+Talent coverage reaches 206/432 individual nodes; 81/81 milestones remain implemented.
+
+162 core tests, 326 app tests, Clippy and native build pass. Native macOS menu
+checks confirm all three final-rank purchases and saved ranks at 1280×720.
+Live balance and Windows acceptance remain open; the illustrated layout is unchanged.
+
+![Hunter Efficiency at maximum rank](images/screenshots/2026-10-26-cost-talents/hunter-1280.png)
+
+![Priest Mental Agility and its unlocked milestone](images/screenshots/2026-10-26-cost-talents/priest-1280.png)
+
+![Mage Frost Channeling at maximum rank](images/screenshots/2026-10-26-cost-talents/mage-1280.png)
+
 ## 2026-10-26 — Hero-specific preview feedback
 
 Switching heroes through UI previews now clears the previous hero's action message.

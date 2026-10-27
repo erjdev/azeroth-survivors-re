@@ -3342,11 +3342,11 @@ mod milestone_tests {
         for (key, damage, cooldown, duration, crit) in [
             ("smite", 1.155, 0.8, 1.0, 0.10),
             ("holy_fire", 1.155, 0.8, 1.0, 0.10),
-            ("holy_nova", 1.05, 1.0, 1.0, 0.10),
-            ("shadow_word_pain", 1.155, 1.0, 1.3, 0.0),
+            ("holy_nova", 1.05, 0.9, 1.0, 0.10),
+            ("shadow_word_pain", 1.155, 0.9, 1.3, 0.0),
             ("mind_blast", 1.155, 0.75, 1.0, 0.05),
-            ("psychic_scream", 1.155, 0.8, 1.0, 0.05),
-            ("power_word_shield", 1.15, 1.0, 1.0, 0.0),
+            ("psychic_scream", 1.155, 0.72, 1.0, 0.05),
+            ("power_word_shield", 1.15, 0.9, 1.0, 0.0),
             ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),
         ] {
             for level in [1, 3, 8] {
@@ -4506,6 +4506,113 @@ mod milestone_tests {
                             original.duration,
                             original.cooldown,
                             original.count
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn cost_talents_compose_with_existing_cast_cooldowns_without_changing_geometry() {
+        for (class, node, max, other, other_rank, keys, reduction) in [
+            (
+                2,
+                1342,
+                5,
+                1346,
+                5,
+                &[
+                    "arcane_shot",
+                    "multi_shot",
+                    "serpent_sting",
+                    "concussive_shot",
+                    "aimed_shot",
+                ][..],
+                0.10,
+            ),
+            (
+                4,
+                341,
+                5,
+                542,
+                2,
+                &[
+                    "shadow_word_pain",
+                    "holy_nova",
+                    "psychic_scream",
+                    "power_word_shield",
+                ][..],
+                0.10,
+            ),
+            (
+                6,
+                66,
+                3,
+                37,
+                5,
+                &["frostbolt", "frost_nova", "blizzard", "cone_of_cold"][..],
+                0.15,
+            ),
+        ] {
+            let base = Milestones {
+                class,
+                points: [30; 3],
+                ..Default::default()
+            }
+            .with_ranks(&[(0, other, other_rank)]);
+            let trained = base.with_ranks(&[(0, other, other_rank), (0, node, max)]);
+            let mut run = Run::default();
+            run.bonus.targets = 2;
+            let stats = run.stats();
+            for level in [1, 5] {
+                for key in data::CLASSES[class].pool {
+                    let owned = super::super::Owned {
+                        def: data::ability(key),
+                        level,
+                        cd: 0.,
+                    };
+                    let before = Params::new(&owned, &stats, base);
+                    let after = Params::new(&owned, &stats, trained);
+                    let factor = if keys.contains(key) {
+                        1. - reduction
+                    } else {
+                        1.
+                    };
+                    assert!(
+                        (after.cooldown - before.cooldown * factor).abs() < 0.0001,
+                        "{key}"
+                    );
+                    assert_eq!(
+                        (
+                            after.dmg,
+                            after.dot,
+                            after.count,
+                            after.range,
+                            after.radius,
+                            after.duration
+                        ),
+                        (
+                            before.dmg,
+                            before.dot,
+                            before.count,
+                            before.range,
+                            before.radius,
+                            before.duration
+                        )
+                    );
+                    assert_eq!(
+                        (
+                            after.heal_fraction,
+                            after.shield_fraction,
+                            after.shield_seconds,
+                            after.immune_seconds
+                        ),
+                        (
+                            before.heal_fraction,
+                            before.shield_fraction,
+                            before.shield_seconds,
+                            before.immune_seconds
                         )
                     );
                 }
