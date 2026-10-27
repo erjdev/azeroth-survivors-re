@@ -701,15 +701,15 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
-| Paladin | 21 / 44 | 9 / 9 |
-| Hunter | 18 / 46 | 6 / 9 |
+| Paladin | 23 / 44 | 9 / 9 |
+| Hunter | 28 / 46 | 9 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
-| Priest | 21 / 47 | 9 / 9 |
-| Shaman | 14 / 46 | 9 / 9 |
-| Mage | 30 / 49 | 9 / 9 |
-| Warlock | 16 / 50 | 9 / 9 |
+| Priest | 23 / 47 | 9 / 9 |
+| Shaman | 17 / 46 | 9 / 9 |
+| Mage | 31 / 49 | 9 / 9 |
+| Warlock | 19 / 50 | 9 / 9 |
 | Druid | 20 / 47 | 9 / 9 |
-| Total | 190 / 432 | 78 / 81 |
+| Total | 211 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -5789,3 +5789,15 @@ files, and valid reload. Native wide/compact captures verify the notice and refu
 entry; the damaged fixture is byte-identical after shutdown. Recovery instructions
 are in SURVIVORS-DEVELOPMENT. Automatic repair, full semantic validation of legacy
 rows and Windows acceptance remain outside this checkpoint.
+
+
+### Paladin seal training — 2026-10-26
+
+Benediction and Improved Seal of Righteousness now train Judgement's cooldown and
+damage respectively, with explicit Survivors conversions. Core tests cover all
+classes, rank caps, stacking and unchanged cast fields; app tests verify rank 1/5
+spell parameters. All 164 core and 330 app tests, Clippy and native build pass.
+Native purchases persist both ranks, with inline changelog screenshots. The current
+coverage table above is refreshed from the audit: 211/432 individual talents,
+81/81 milestones. The remaining 221 individual talents, balance and Windows
+acceptance are still required; counts alone do not establish combat completion.

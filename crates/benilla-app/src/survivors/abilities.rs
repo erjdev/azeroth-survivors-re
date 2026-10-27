@@ -4842,6 +4842,61 @@ mod milestone_tests {
     }
 
     #[test]
+    fn paladin_seal_training_reaches_ranked_judgement_parameters() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 1,
+            points: [30; 3],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 1631, 2), (2, 1409, 1)]);
+        let trained = Milestones {
+            class: 1,
+            points: [30; 3],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 1631, 2), (2, 1409, 1), (2, 1407, 5), (0, 1463, 5)]);
+        for level in [1, 5] {
+            for key in [
+                "judgement",
+                "holy_shock",
+                "consecration",
+                "divine_shield",
+                "smite",
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                let (damage, cooldown) = if key == "judgement" {
+                    (1.15, 0.85)
+                } else {
+                    (1.0, 1.0)
+                };
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001);
+                assert!((after.cooldown - before.cooldown * cooldown).abs() < 0.001);
+                assert_eq!(
+                    (
+                        after.count,
+                        after.radius,
+                        after.duration,
+                        after.heal_fraction
+                    ),
+                    (
+                        before.count,
+                        before.radius,
+                        before.duration,
+                        before.heal_fraction
+                    )
+                );
+            }
+        }
+    }
+
+    #[test]
     fn paladin_cast_numbers_and_once_per_cast_benefits_reach_combat() {
         let mut run = Run::default();
         let stats = run.stats();

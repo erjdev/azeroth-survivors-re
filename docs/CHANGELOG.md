@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Paladin seal training
+
+Benediction now shortens Judgement's cooldown by 3% per rank. Improved Seal of
+Righteousness increases its damage by 3% per rank. Both explicitly describe their
+Survivors conversions and multiply existing training without changing other spells,
+targets, area or healing.
+
+164 core tests, 330 app tests, Clippy and native build pass. Native macOS purchases
+and saved ranks are verified; the existing intention-based talent layout is unchanged.
+The catalog audit reports 211/432 individual talents and 81/81 milestones. Live
+balance and Windows acceptance remain open.
+
+![Improved Seal of Righteousness](images/screenshots/2026-10-26-paladin-seals/righteousness.png)
+
+![Benediction](images/screenshots/2026-10-26-paladin-seals/benediction.png)
+
 ## 2026-10-26 — Preserve accounts after load failures
 
 Unreadable or unparseable accounts now retain their original file, disable saving

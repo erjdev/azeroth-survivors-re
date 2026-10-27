@@ -1825,6 +1825,16 @@ pub const PALADIN_HOLY: &[&str] = &[
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 1407, max_rank: 5, name: "Benediction",
+        description: "Judgement: 3% shorter cooldown per rank, multiplying Improved Judgement and milestone training (Survivors seal mana-cost conversion)",
+        stat: TalentStat::SpellCooldown("judgement"), per_rank: 0.03,
+    },
+    TalentDefinition {
+        id: 1463, max_rank: 5, name: "Improved Seal of Righteousness",
+        description: "Judgement: +3% damage per rank, multiplying other training. Requires acquiring Judgement during the run (Survivors seal conversion)",
+        stat: TalentStat::SpellDamage("judgement"), per_rank: 0.03,
+    },
+    TalentDefinition {
         id: 1409, max_rank: 1, name: "Sanctity Aura",
         description: "Paladin Holy attacks: +10% damage, including Consecration; always active (Survivors aura conversion). Excludes other-class and jewelry spells",
         stat: TalentStat::SpellGroupDamage(PALADIN_HOLY), per_rank: 0.10,
@@ -3428,6 +3438,55 @@ mod stat_talent_tests {
                         foreign,
                         Milestones {
                             class: other,
+                            ..Default::default()
+                        }
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn paladin_seal_training_stacks_without_changing_other_cast_fields() {
+        for class in 0..9 {
+            for points in [[0; 3], [30; 3]] {
+                for rank in [0, 1, 5, 255] {
+                    let base = Milestones {
+                        class,
+                        points,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(2, 1631, 2), (2, 1409, 1)]);
+                    let trained = Milestones {
+                        class,
+                        points,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[
+                        (2, 1631, 2),
+                        (2, 1409, 1),
+                        (2, 1407, rank),
+                        (0, 1463, rank),
+                    ]);
+                    for ability in crate::data::ABILITIES {
+                        let mut expected = base.cast(ability.key);
+                        if class == 1 && ability.key == "judgement" {
+                            let value = 0.03 * f32::from(rank.min(5));
+                            expected.damage *= 1.0 + value;
+                            expected.cooldown *= 1.0 - value;
+                        }
+                        let mut actual = trained.cast(ability.key);
+                        assert!((actual.damage - expected.damage).abs() < 0.00001);
+                        assert!((actual.cooldown - expected.cooldown).abs() < 0.00001);
+                        actual.damage = expected.damage;
+                        actual.cooldown = expected.cooldown;
+                        assert_eq!(actual, expected, "{class} {}", ability.key);
+                    }
+                    assert_eq!(
+                        trained.with_ranks(&[]),
+                        Milestones {
+                            class,
+                            points,
                             ..Default::default()
                         }
                     );
