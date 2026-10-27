@@ -624,6 +624,15 @@ impl Milestones {
         }
     }
 
+    /// Exposure belongs to Kidney Shot's own timer, not any other stun on the target.
+    pub fn kidney_exposure_multiplier(self, remaining: f32) -> f32 {
+        1.0 + if self.class == 3 && remaining > 0.0 {
+            self.trained_value(TalentStat::KidneyExposure)
+        } else {
+            0.0
+        }
+    }
+
     pub fn vengeance_bonus(self, active: bool) -> f32 {
         if self.class == 1 && active {
             self.trained_value(TalentStat::Vengeance)
@@ -1391,6 +1400,7 @@ pub enum TalentStat {
     FlurryHaste,
     Vengeance,
     Remorseless,
+    KidneyExposure,
     SpiritTap,
     ImprovedRenew,
     SpiritualHealing,
@@ -1490,6 +1500,7 @@ impl TalentDefinition {
             | TalentStat::SpellImmune(_) => (1.0, "time"),
             TalentStat::SpellGroupRangeYards(_) => (1.0, "distance"),
             TalentStat::Damage
+            | TalentStat::KidneyExposure
             | TalentStat::MaximumHealth
             | TalentStat::Cooldown
             | TalentStat::Crit
@@ -1710,6 +1721,7 @@ impl TalentDefinition {
             TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
+            TalentStat::KidneyExposure => (100.0, "% damage taken during Kidney Shot"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
@@ -2635,6 +2647,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 279, max_rank: 3, name: "Improved Kidney Shot",
+        description: "Kidney Shot: enemies take +3% damage per rank during its stun, starting after the triggering hit. Includes periodic damage; refreshes without stacking. Boss duration is reduced; other stuns do not extend this effect.",
+        stat: TalentStat::KidneyExposure, per_rank: 0.03,
+    },
+    TalentDefinition {
         id: 273, max_rank: 3, name: "Ruthlessness",
         description: "Eviscerate, Rupture and Kidney Shot: 4% shorter cooldown per rank, multiplying other cooldown bonuses (Survivors finisher recovery conversion; no combo points)",
         stat: TalentStat::SpellGroupCooldown(&["eviscerate", "rupture", "kidney_shot"]), per_rank: 0.04,
@@ -2909,6 +2926,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::MaximumHealth
             | TalentStat::SiphonLife
             | TalentStat::Nightfall
+            | TalentStat::KidneyExposure
             | TalentStat::Remorseless
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
@@ -2957,6 +2975,36 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
 #[cfg(test)]
 mod stat_talent_tests {
     use super::*;
+
+    #[test]
+    fn kidney_exposure_requires_rogue_training_and_an_active_timer() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, 2, 3, 255] {
+                let trained = base.with_ranks(&[(0, 279, rank)]);
+                for time in [-1.0, 0.0, 0.001, 3.5] {
+                    let bonus = if class == 3 && time > 0.0 {
+                        0.03 * f32::from(rank.min(3))
+                    } else {
+                        0.0
+                    };
+                    assert_eq!(trained.kidney_exposure_multiplier(time), 1.0 + bonus);
+                    assert_eq!(
+                        trained.with_ranks(&[]).kidney_exposure_multiplier(time),
+                        1.0
+                    );
+                }
+            }
+        }
+        assert!(talent_definition(3, 279)
+            .unwrap()
+            .inline_description(1)
+            .unwrap()
+            .starts_with("Kidney Shot: enemies take +3 » 6% damage"));
+    }
 
     #[test]
     fn rogue_finisher_recovery_is_scoped_capped_and_composes() {
@@ -4160,6 +4208,7 @@ mod stat_talent_tests {
                     | TalentStat::MaximumHealth
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
+                    | TalentStat::KidneyExposure
                     | TalentStat::Remorseless
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance

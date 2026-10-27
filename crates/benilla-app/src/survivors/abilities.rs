@@ -1047,7 +1047,8 @@ pub(super) fn apply_hits(
         let mut dmg = h.damage
             * run
                 .milestones
-                .shadow_damage_multiplier(h.source, en.shadow_weaving);
+                .shadow_damage_multiplier(h.source, en.shadow_weaving)
+            * run.milestones.kidney_exposure_multiplier(en.kidney_t);
         if let Effect::Execute(threshold) = h.effect {
             if !en.boss && en.hp / en.max_hp <= threshold {
                 dmg = dmg.max(en.hp);
@@ -1111,6 +1112,11 @@ pub(super) fn apply_hits(
         }
         let boss = en.boss;
         apply_secondary_control(&mut en, run.milestones, h.source);
+        if h.source == "kidney_shot" && run.milestones.kidney_exposure_multiplier(1.0) > 1.0 {
+            if let Effect::Stun(t) = h.effect {
+                en.kidney_t = en.kidney_t.max(if boss { t * 0.3 } else { t });
+            }
+        }
         match h.effect {
             Effect::Slow(m, t) => {
                 let m = if boss { m.max(0.75) } else { m };
@@ -1157,12 +1163,14 @@ pub(super) fn apply_hits(
         let mut vampiric_heal = 0.0;
         let mut remaining_hp = en.hp.max(0.0);
         let mut weaving = en.shadow_weaving;
+        let kidney_multiplier = run.milestones.kidney_exposure_multiplier(en.kidney_t);
         for d in &mut en.dots {
             for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
                 let tick = d.dps
                     * echoes as f32
-                    * run.milestones.shadow_damage_multiplier(d.source, weaving);
+                    * run.milestones.shadow_damage_multiplier(d.source, weaving)
+                    * kidney_multiplier;
                 let removed = tick.max(0.0).min(remaining_hp);
                 remaining_hp = (remaining_hp - removed).max(0.0);
                 vampiric_heal += run.milestones.vampiric_healing(d.source, removed);
@@ -1497,6 +1505,7 @@ mod milestone_tests {
                 frozen_t: 0.,
                 winters_chill: Default::default(),
                 shadow_weaving: Default::default(),
+                kidney_t: 0.0,
                 stun_t: 0.,
                 fear_t: 0.,
                 weaken: 1.,
@@ -1787,6 +1796,7 @@ mod milestone_tests {
                         frozen_t: if frozen { 3. } else { 0. },
                         winters_chill: Default::default(),
                         shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
                         stun_t: 0.,
                         fear_t: 0.,
                         weaken: 1.,
@@ -2247,6 +2257,7 @@ mod milestone_tests {
                         frozen_t: 0.,
                         winters_chill: Default::default(),
                         shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
                         stun_t: 0.,
                         fear_t: 0.,
                         weaken: 1.,
@@ -2476,6 +2487,7 @@ mod milestone_tests {
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
                                 shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
                                 weaken: 1.0,
@@ -2637,6 +2649,7 @@ mod milestone_tests {
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
                                 shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
                                 weaken: 1.0,
@@ -2749,6 +2762,7 @@ mod milestone_tests {
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
                                 shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
                                 weaken: 1.,
@@ -2865,6 +2879,7 @@ mod milestone_tests {
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
                                 shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
                                 weaken: 1.0,
@@ -2964,6 +2979,7 @@ mod milestone_tests {
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
                                 shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
                                 weaken: 1.0,
@@ -3071,6 +3087,7 @@ mod milestone_tests {
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
                                 shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
                                 weaken: 1.0,
@@ -3171,6 +3188,7 @@ mod milestone_tests {
                             frozen_t: 0.0,
                             winters_chill: Default::default(),
                             shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
                             stun_t: 0.0,
                             fear_t: 0.0,
                             weaken: 1.0,
@@ -3275,6 +3293,7 @@ mod milestone_tests {
                             frozen_t: 0.0,
                             winters_chill: Default::default(),
                             shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
                             stun_t: 0.0,
                             fear_t: 0.0,
                             weaken: 1.0,
@@ -3394,6 +3413,7 @@ mod milestone_tests {
                                     frozen_t: 0.0,
                                     winters_chill: Default::default(),
                                     shadow_weaving: Default::default(),
+                                    kidney_t: 0.0,
                                     stun_t: 0.0,
                                     fear_t: 0.0,
                                     weaken: 1.0,
@@ -4240,6 +4260,147 @@ mod milestone_tests {
     }
 
     #[test]
+    fn kidney_exposure_affects_later_hits_and_ticks_without_extending_other_stuns() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 5] {
+                for rank in [0, 1, 3, 255] {
+                    let base = Milestones {
+                        class: 3,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(0, 279, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let owned = Owned {
+                        def: data::ability("kidney_shot"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let p = Params::new(&owned, &stats, trained);
+                    let expected_time = p.effect.duration() * if boss { 0.3 } else { 1. };
+                    let multiplier = 1. + 0.03 * f32::from(rank.min(3));
+                    let hit = hit_for(owned.def, &p, enemy, 10., false);
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 990., "triggering hit must not amplify itself");
+                    assert_eq!(en.kidney_t, if rank > 0 { expected_time } else { 0. });
+                    // Same-frame follow-ups see exposure; reapplication refreshes, never stacks.
+                    app.world_mut().write_message(hit);
+                    app.world_mut().write_message(Hit {
+                        source: "sinister_strike",
+                        ..Hit::direct(enemy, 10., false)
+                    });
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert!((en.hp - (990. - 20. * multiplier)).abs() < 0.0001);
+                    assert_eq!(en.kidney_t, if rank > 0 { expected_time } else { 0. });
+                    // Gouge can outlast Kidney Shot, but cannot prolong its vulnerability.
+                    app.world_mut().write_message(Hit {
+                        source: "gouge",
+                        effect: Effect::Stun(30.),
+                        ..Hit::direct(enemy, 0., false)
+                    });
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.kidney_t, if rank > 0 { expected_time } else { 0. });
+                    assert!(en.stun_t > expected_time);
+                    let hp = en.hp;
+                    app.world_mut()
+                        .get_mut::<Enemy>(enemy)
+                        .unwrap()
+                        .dots
+                        .push(enemies::Dot {
+                            dps: 10.,
+                            left: 1.,
+                            tick: 1.,
+                            source: "rupture",
+                        });
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs(1));
+                    app.update();
+                    assert!(
+                        (app.world().get::<Enemy>(enemy).unwrap().hp - (hp - 10. * multiplier))
+                            .abs()
+                            < 0.0001
+                    );
+                    // Expiry is independent of the longer stun; a refund is immediately inert.
+                    for refund in [false, true] {
+                        app.world_mut().get_mut::<Enemy>(enemy).unwrap().kidney_t =
+                            if refund { expected_time } else { 0. };
+                        if refund {
+                            app.world_mut().resource_mut::<Run>().milestones =
+                                trained.with_ranks(&[]);
+                        }
+                        let hp = app.world().get::<Enemy>(enemy).unwrap().hp;
+                        app.world_mut()
+                            .write_message(Hit::direct(enemy, 10., false));
+                        app.update();
+                        assert!(
+                            (app.world().get::<Enemy>(enemy).unwrap().hp - (hp - 10.)).abs()
+                                < 0.0001
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
     fn trained_druid_roots_reach_normal_and_boss_control_without_stacking() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         for boss in [false, true] {
@@ -4293,6 +4454,7 @@ mod milestone_tests {
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
                                 shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
                                 weaken: 1.,
@@ -4733,6 +4895,7 @@ mod milestone_tests {
                                     frozen_t: 0.,
                                     winters_chill: Default::default(),
                                     shadow_weaving: Default::default(),
+                                    kidney_t: 0.0,
                                     stun_t: 0.,
                                     fear_t: 0.,
                                     weaken: 1.,
@@ -4863,6 +5026,7 @@ mod milestone_tests {
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
                                 shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
                                 weaken: 1.,

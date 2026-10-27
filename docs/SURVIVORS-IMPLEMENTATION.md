@@ -6472,3 +6472,18 @@ Holy Nova and Vigor; capped text and unrelated combined-heal constants are
 preserved. 183 core tests, core Clippy and native build pass. Native wide and
 compact captures are embedded in CHANGELOG. This improves existing talent
 presentation; it does not increase the 228/432 implementation coverage.
+
+### 2026-10-27 — Kidney Shot vulnerability
+
+Improved Kidney Shot (279, three ranks) gives the target +3% damage taken per
+rank for that hit's Kidney Shot stun duration, starting after its own damage.
+An independent timer prevents Gouge or other stuns from extending the effect;
+bosses retain the 0.3 duration multiplier. Reapplication refreshes without
+stacking, periodic damage benefits, and refunds immediately remove the bonus.
+
+184 core tests and 359 app tests pass, including actual hit/tick resolution,
+normal/boss targets, spell ranks 1/5, talent rank caps, same-frame follow-ups,
+unrelated stuns, expired-state damage and refunds. Core/app-test Clippy and
+native build pass. Native 1280×720 and 640×720 captures show inline values and
+a saved purchase; both are embedded in CHANGELOG. Catalog coverage is 229/432
+(Rogue 19/51). Live timing/balance and Windows combat acceptance remain open.

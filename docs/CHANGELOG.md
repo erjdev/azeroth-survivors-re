@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Improved Kidney Shot
+
+The Rogue talent now increases the target's damage taken by 3% per rank during
+Kidney Shot's stun. It affects subsequent hits and periodic damage, refreshes
+without stacking, uses shorter boss duration, and is not extended by other
+stuns. Refunding the talent removes its damage bonus immediately.
+
+184 core tests, 359 app tests, core/app-test Clippy and native build pass.
+Native wide/compact previews verify green inline upgrades and a saved rank-one
+purchase. Catalog coverage is 229/432 nodes (Rogue 19/51); live balance and
+Windows combat acceptance remain open.
+
+![Improved Kidney Shot upgrade](images/screenshots/2026-10-27-rogue-kidney/talents-1280.png)
+![Compact view after training rank one](images/screenshots/2026-10-27-rogue-kidney/talents-640.png)
+
 ## 2026-10-27 — Explain equipment set changes
 
 Item comparisons now name full-loadout and Raid Epic set bonuses gained or lost

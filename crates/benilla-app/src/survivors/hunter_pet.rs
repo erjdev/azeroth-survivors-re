@@ -345,6 +345,7 @@ mod tests {
                     frozen_t: 0.0,
                     winters_chill: Default::default(),
                     shadow_weaving: Default::default(),
+                    kidney_t: 0.0,
                     stun_t: 0.0,
                     fear_t: 0.0,
                     weaken: 1.0,
