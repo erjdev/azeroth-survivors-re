@@ -1531,7 +1531,12 @@ impl TalentDefinition {
         };
         let paired_ranges = matches!(self.stat, TalentStat::ArcticReach | TalentStat::HolyReach);
         let expected_clauses = if paired_ranges { 2 } else { 1 };
-        if self.description.matches(" per rank").count() != expected_clauses {
+        let clauses = self.description.matches(" per rank").count();
+        // One-rank unlocks naturally omit "per rank". Their typed bonus still
+        // identifies the changing value; the candidate check below rejects
+        // ambiguous repeated numbers instead of coloring unrelated constants.
+        let single_rank = self.max_rank == 1 && clauses == 0 && !paired_ranges;
+        if clauses != expected_clauses && !single_rank {
             return None;
         }
         let source = self.description.replace(" per rank", "");
@@ -5181,6 +5186,45 @@ mod efficiency_tests {
 #[cfg(test)]
 mod additional_inline_tests {
     use super::*;
+
+    #[test]
+    fn single_rank_unlocks_inline_the_bonus_and_preserve_other_numbers() {
+        for (class, id, value) in [
+            (8, 761, "15%"),
+            (8, 831, "15%"),
+            (8, 844, "5%"),
+            (4, 442, "5%"),
+            (3, 382, "10%"),
+        ] {
+            let node = talent_definition(class, id).unwrap();
+            let (untrained, spans) = node.inline_description_with_values(0).unwrap();
+            assert_eq!(spans.len(), 1);
+            assert_eq!(&untrained[spans[0].clone()], format!("0 » {value}"));
+            assert!(!untrained.contains("This talent"));
+            for rank in [1, 255] {
+                let (trained, spans) = node.inline_description_with_values(rank).unwrap();
+                assert_eq!(trained, node.description);
+                assert_eq!(&trained[spans[0].clone()], value);
+            }
+        }
+        let node = talent_definition(8, 844).unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .contains("for 10% total"));
+        let ambiguous = TalentDefinition {
+            description: "Deal 5% damage and gain 5% armor",
+            stat: TalentStat::Damage,
+            per_rank: 0.05,
+            ..*node
+        };
+        assert!(ambiguous.inline_description(0).is_none());
+        let multiple_ranks = TalentDefinition {
+            max_rank: 3,
+            ..*node
+        };
+        assert!(multiple_ranks.inline_description(0).is_none());
+    }
 
     #[test]
     fn healing_and_paired_damage_crit_values_are_inline_at_every_rank() {

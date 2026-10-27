@@ -6447,3 +6447,14 @@ Clippy and native build pass. Wide and compact native captures in CHANGELOG
 verify inline green values; the Relentless Strikes purchase persisted to the
 fixture save. Catalog coverage is 228/432 nodes (Rogue 18/51), 81/81 milestone
 descriptions. Remaining content, live balance and Windows acceptance stay open.
+
+
+### 2026-10-27 — Single-rank inline formatting
+
+The typed numeric formatter now accepts one-rank descriptions without the
+otherwise-required "per rank" phrase. Candidate ambiguity checks remain in
+place. Regression cases cover Nature's Grasp, Nature's Swiftness, Swiftmend,
+Holy Nova and Vigor; capped text and unrelated combined-heal constants are
+preserved. 183 core tests, core Clippy and native build pass. Native wide and
+compact captures are embedded in CHANGELOG. This improves existing talent
+presentation; it does not increase the 228/432 implementation coverage.

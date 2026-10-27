@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Inline one-rank talent bonuses
+
+One-rank talents with an unambiguous numeric bonus now show green changes inside
+the description instead of a separate summary. Fixed explanatory numbers stay
+unchanged; capped talents show only their current bonus. No mechanics changed.
+
+183 core tests, core Clippy and native build pass. Native wide/compact captures
+verify Swiftmend's upgrade and capped Nature's Grasp. Broader UI acceptance remains open.
+
+![Swiftmend inline healing upgrade](images/screenshots/2026-10-27-single-rank-inline/swiftmend-1280.png)
+![Capped Nature's Grasp without redundant summary](images/screenshots/2026-10-27-single-rank-inline/grasp-640.png)
+
 ## 2026-10-27 — Rogue finisher recovery
 
 Ruthlessness and Relentless Strikes now shorten Eviscerate, Rupture and Kidney
