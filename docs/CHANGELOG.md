@@ -10,10 +10,13 @@ Smite, Holy Fire, Holy Nova or Mind Blast, then recovers after 180 active second
 Failed targeting preserves the charge; periodic damage and defensive spells are
 excluded. Native previews verify the green inline value, purchase and saved rank.
 
-198 core and 378 app tests pass, including actual multi-target casts, recovery,
+198 core and 379 app tests pass, including actual multi-target casts, recovery,
 pause and unchanged attached burns. Core/app-test Clippy pass; the native
 incremental build took 17 seconds.
 Definition coverage is 244/432 (Priest 24/47); live balance remains open.
+Save/catalog integration also verifies that effects wait for the real DBC rules,
+invalid sibling specs remain inactive and repairable, hero/spec switches stay
+isolated, and a running snapshot survives a later respec unchanged.
 
 ![Inner Focus inline preview](images/screenshots/2026-10-27-inner-focus/preview.png)
 ![Purchased Inner Focus and remaining points](images/screenshots/2026-10-27-inner-focus/purchased.png)

@@ -430,7 +430,7 @@ automatic Survivors conversion; there are no mana costs. The bonus adds to norma
 critical chance, capped at 100%, rather than guaranteeing a critical hit.
 
 
-Nineteen individual Priest talents now replace their provisional general damage:
+Implemented individual Priest talents include these replacements for provisional general damage:
 
 | Talent | Per-rank Survivors effect |
 |---|---|

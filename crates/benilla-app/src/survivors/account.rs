@@ -1913,6 +1913,69 @@ mod tests {
     }
 
     #[test]
+    fn inner_focus_reload_catalog_and_spec_selection_produce_isolated_run_snapshots() {
+        use survivors_core::talents::CriticalCastClock;
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        // Spec 1 satisfies the real Discipline row gate; spec 2 lacks it; spec 3 is empty.
+        let account = parse("who 1 4 5100 Saved Priest\ndbc 1 0:342:5,0:344:2,0:343:3,0:348:1|0:348:1|\nwho 2 4 5100 Other Priest\n").unwrap();
+        let saved = encode(&account);
+        let account = parse(&saved).unwrap();
+        assert_eq!(encode(&account), saved);
+        let bonus = |snapshot| CriticalCastClock::default().bonus(snapshot, "smite", 0.0);
+        let mut app = App::new();
+        app.insert_resource(account)
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        assert_eq!(
+            bonus(
+                app.world()
+                    .resource::<Account>()
+                    .milestones_picked(4, Some(1))
+            ),
+            0.0,
+            "saved ranks must wait for catalog validation"
+        );
+        app.insert_resource(crate::ui_talent::Talents { catalog });
+        app.update();
+        let mut account = app.world_mut().resource_mut::<Account>();
+        let active = account.milestones_picked(4, Some(1));
+        assert_eq!(active.points, [11, 0, 0]);
+        assert_eq!(bonus(active), 0.25);
+        assert_eq!(
+            bonus(account.milestones_picked(4, Some(2))),
+            0.0,
+            "other hero"
+        );
+        assert_eq!(
+            bonus(account.milestones_picked(3, Some(1))),
+            0.0,
+            "wrong class"
+        );
+        for spec in [1, 2] {
+            account.select_spec(1, spec);
+            assert_eq!(bonus(account.milestones_picked(4, Some(1))), 0.0);
+            assert_eq!(bonus(active), 0.25, "an existing run keeps its snapshot");
+        }
+        account.select_spec(1, 1);
+        assert!(!account.talents_valid(account.character(1).unwrap()));
+        assert_eq!(
+            account.character(1).unwrap().dbc[1],
+            vec![(0, 348, 1)],
+            "invalid imported ranks stay available for repair"
+        );
+        account.select_spec(1, 0);
+        assert_eq!(bonus(account.milestones_picked(4, Some(1))), 0.25);
+        account.respec(1);
+        assert_eq!(bonus(account.milestones_picked(4, Some(1))), 0.0);
+        assert_eq!(bonus(active), 0.25);
+        let reloaded = parse(&encode(&account)).unwrap();
+        assert!(reloaded.character(1).unwrap().dbc[0].is_empty());
+        assert_eq!(reloaded.character(1).unwrap().dbc[1], vec![(0, 348, 1)]);
+    }
+
+    #[test]
     fn custom_features_round_trip_by_hero_and_body_with_legacy_defaults() {
         let mut account = empty();
         let a = account.create("First", "Hero", 0).unwrap();

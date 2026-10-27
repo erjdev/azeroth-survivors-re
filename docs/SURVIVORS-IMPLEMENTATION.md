@@ -49,6 +49,10 @@ retention, paused frames, multiple direct targets, unchanged burns and recovery.
 Native reference-aligned Talents captures verify the green inline preview, purchase
 (10 → 11 Discipline points, 41 → 40 unspent) and saved rank. Definition coverage
 reaches 244/432, Priest 24/47; this is not complete talent or live-balance acceptance.
+The reload/catalog integration test additionally covers pending catalog suspension,
+valid/invalid/empty spec selection, cross-hero/class isolation, respec persistence
+and unchanged active-run snapshots. The main coverage table below is reconciled
+with the current DBC audit, rather than only recording counts in milestone notes.
 
 ## Current priority — starter interface first (2026-10-26)
 
@@ -759,14 +763,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
 | Paladin | 23 / 44 | 9 / 9 |
-| Hunter | 28 / 46 | 9 / 9 |
-| Rogue | 19 / 51 | 9 / 9 |
-| Priest | 23 / 47 | 9 / 9 |
-| Shaman | 29 / 46 | 9 / 9 |
-| Mage | 31 / 49 | 9 / 9 |
+| Hunter | 30 / 46 | 9 / 9 |
+| Rogue | 21 / 51 | 9 / 9 |
+| Priest | 24 / 47 | 9 / 9 |
+| Shaman | 30 / 46 | 9 / 9 |
+| Mage | 32 / 49 | 9 / 9 |
 | Warlock | 27 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 237 / 432 | 81 / 81 |
+| Total | 244 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
