@@ -452,6 +452,17 @@ hit after armor and percentage reduction, before temporary shields. Damage canno
 fall below zero. This is an always-active self-only Survivors conversion; it
 grants neither block chance nor retaliation damage.
 
+### Scoped caster accuracy conversions
+
+Shadow Focus (Priest 463, five ranks) adds 2% direct and periodic damage per
+rank to Mind Blast and Shadow Word: Pain. Suppression (Warlock 1005, five ranks)
+adds 2% per rank to Corruption, Curse of Agony and Death Coil. Nature’s Guidance
+(Shaman 583, three ranks) adds 1% per rank to Lightning Bolt, Chain Lightning
+and the three shocks. These explicitly labeled Survivors hit-chance conversions
+replace provisional global damage; they do not introduce misses or affect other
+spells, cooldowns, range, targets or critical chance. Refunds and inactive specs
+remove their bonuses.
+
 ### Priest talent tuning (initial)
 
 Inner Focus (one rank, node 348) adds 25 percentage points critical chance to the

@@ -4309,8 +4309,8 @@ mod milestone_tests {
             ("smite", 1.155, 0.8, 1.0, 0.10),
             ("holy_fire", 1.155, 0.8, 1.0, 0.10),
             ("holy_nova", 1.05, 0.9, 1.0, 0.10),
-            ("shadow_word_pain", 1.155, 0.9, 1.3, 0.0),
-            ("mind_blast", 1.155, 0.75, 1.0, 0.05),
+            ("shadow_word_pain", 1.155 * 1.1, 0.9, 1.3, 0.0),
+            ("mind_blast", 1.155 * 1.1, 0.75, 1.0, 0.05),
             ("psychic_scream", 1.155, 0.72, 1.0, 0.05),
             ("power_word_shield", 1.15, 0.9, 1.0, 0.0),
             ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),
@@ -6308,14 +6308,14 @@ mod milestone_tests {
         for level in [1, 5] {
             for (key, damage, cooldown, crit, crit_damage) in [
                 ("shadow_bolt", 1.32, 0.72, 0.05, 0.5),
-                ("corruption", 1.1, 0.8, 0., 0.),
-                ("curse_of_agony", 1.3992, 1., 0., 0.),
+                ("corruption", 1.1 * 1.1, 0.8, 0., 0.),
+                ("curse_of_agony", 1.3992 * 1.1, 1., 0., 0.),
                 ("immolate", 1.375, 0.72, 0.05, 0.5),
                 ("rain_of_fire", 1.1, 0.9, 0.05, 0.5),
                 ("hellfire", 1.1, 0.9, 0.05, 0.5),
                 ("searing_pain", 1.1, 0.9, 0.15, 0.5),
                 ("shadowburn", 1.32, 0.9, 0.05, 0.5),
-                ("death_coil", 1.1, 1., 0., 0.),
+                ("death_coil", 1.1 * 1.1, 1., 0., 0.),
                 ("fireball", 1., 1., 0., 0.),
             ] {
                 let owned = super::super::Owned {
@@ -7005,6 +7005,91 @@ mod milestone_tests {
                     let original =
                         hit_for(owned.def, &before, Entity::PLACEHOLDER, before.dmg, false);
                     assert!((hit.dot - original.dot * factor).abs() < 0.001, "{key}");
+                    let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    assert_eq!((reset.dmg, reset.dot), (before.dmg, before.dot));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn caster_accuracy_reaches_direct_and_periodic_parameters_without_other_changes() {
+        type AccuracyCase = (usize, u8, u32, u8, f32, &'static [&'static str]);
+        let cases: &[AccuracyCase] = &[
+            (4, 2, 463, 5, 0.02, &["mind_blast", "shadow_word_pain"]),
+            (
+                5,
+                2,
+                583,
+                3,
+                0.01,
+                &[
+                    "lightning_bolt",
+                    "chain_lightning",
+                    "earth_shock",
+                    "flame_shock",
+                    "frost_shock",
+                ],
+            ),
+            (
+                7,
+                0,
+                1005,
+                5,
+                0.02,
+                &["corruption", "curse_of_agony", "death_coil"],
+            ),
+        ];
+        let stats = Run::default().stats();
+        for &(class, tree, id, cap, per_rank, affected) in cases {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, cap, 255] {
+                let trained = base.with_ranks(&[(tree, id, rank)]);
+                for key in data::CLASSES
+                    .iter()
+                    .flat_map(|class| class.pool.iter().copied())
+                {
+                    let owned = Owned {
+                        def: data::ability(key),
+                        level: 3,
+                        cd: 0.,
+                    };
+                    let before = Params::new(&owned, &stats, base);
+                    let after = Params::new(&owned, &stats, trained);
+                    let factor = if affected.contains(&key) {
+                        1. + per_rank * f32::from(rank.min(cap))
+                    } else {
+                        1.
+                    };
+                    assert!(
+                        (after.dmg - before.dmg * factor).abs() < 0.001,
+                        "{id}/{key}"
+                    );
+                    assert!(
+                        (after.dot - before.dot * factor).abs() < 0.001,
+                        "{id}/{key}"
+                    );
+                    assert_eq!(
+                        (
+                            after.cooldown,
+                            after.count,
+                            after.radius,
+                            after.range,
+                            after.duration,
+                            after.crit
+                        ),
+                        (
+                            before.cooldown,
+                            before.count,
+                            before.radius,
+                            before.range,
+                            before.duration,
+                            before.crit
+                        )
+                    );
                     let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
                     assert_eq!((reset.dmg, reset.dot), (before.dmg, before.dot));
                 }

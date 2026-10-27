@@ -2972,6 +2972,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 463, max_rank: 5, name: "Shadow Focus",
+        description: "Mind Blast and Shadow Word: Pain: +2% direct and periodic damage per rank. Excludes Holy spells, Psychic Scream and other-class abilities (Survivors hit-chance conversion)",
+        stat: TalentStat::SpellGroupDamage(&["mind_blast", "shadow_word_pain"]), per_rank: 0.02,
+    },
+    TalentDefinition {
         id: 361, max_rank: 3, name: "Inspiration",
         description: "Holy Nova restoring health grants +8% armor per rank for 15 sec. Refreshes without stacking; full-health casts, regeneration and other healing do not trigger it. Requires acquiring Holy Nova and unlocking its healing (Survivors conversion: no healing critical required)",
         stat: TalentStat::InspirationArmor, per_rank: 0.08,
@@ -3400,6 +3405,76 @@ mod stat_talent_tests {
     }
 
     #[test]
+    fn caster_accuracy_conversions_are_capped_scoped_and_only_change_damage() {
+        type AccuracyCase = (usize, u8, u32, u8, f32, &'static [&'static str]);
+        let cases: &[AccuracyCase] = &[
+            (4, 2, 463, 5, 0.02, &["mind_blast", "shadow_word_pain"]),
+            (
+                5,
+                2,
+                583,
+                3,
+                0.01,
+                &[
+                    "lightning_bolt",
+                    "chain_lightning",
+                    "earth_shock",
+                    "flame_shock",
+                    "frost_shock",
+                ],
+            ),
+            (
+                7,
+                0,
+                1005,
+                5,
+                0.02,
+                &["corruption", "curse_of_agony", "death_coil"],
+            ),
+        ];
+        for &(owner, tree, id, cap, per_rank, affected) in cases {
+            for class in 0..9 {
+                let base = Milestones {
+                    class,
+                    points: [30, 30, 30],
+                    ..Default::default()
+                };
+                for rank in [0, 1, cap, 255] {
+                    let trained = base.with_ranks(&[(tree, id, rank)]);
+                    for key in crate::data::CLASSES
+                        .iter()
+                        .flat_map(|class| class.pool.iter().copied())
+                        .chain(["unknown"])
+                    {
+                        let before = base.cast(key);
+                        let after = trained.cast(key);
+                        let multiplier = if class == owner && affected.contains(&key) {
+                            1. + per_rank * f32::from(rank.min(cap))
+                        } else {
+                            1.
+                        };
+                        assert!(
+                            (after.damage - before.damage * multiplier).abs() < 0.00001,
+                            "{id}/{class}/{key}"
+                        );
+                        assert_eq!(
+                            CastEffect {
+                                damage: before.damage,
+                                ..after
+                            },
+                            before
+                        );
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+            let node = talent_definition(owner, id).unwrap();
+            assert!(node.inline_description(0).unwrap().contains(" » "));
+            assert!(!node.inline_description(cap).unwrap().contains(" » "));
+        }
+    }
+
+    #[test]
     fn rogue_precision_caps_ranks_scopes_damage_and_refunds_cleanly() {
         for class in [0, 3, 6] {
             let base = Milestones {
@@ -3806,8 +3881,8 @@ mod stat_talent_tests {
             ("smite", 1.155, 0.8, 1.0, 0.10),
             ("holy_fire", 1.155, 0.8, 1.0, 0.10),
             ("holy_nova", 1.05, 0.9, 1.0, 0.10),
-            ("shadow_word_pain", 1.155, 0.9, 1.3, 0.0),
-            ("mind_blast", 1.155, 0.75, 1.0, 0.05),
+            ("shadow_word_pain", 1.155 * 1.1, 0.9, 1.3, 0.0),
+            ("mind_blast", 1.155 * 1.1, 0.75, 1.0, 0.05),
             ("psychic_scream", 1.155, 0.72, 1.0, 0.05),
             ("power_word_shield", 1.15, 0.9, 1.0, 0.0),
             ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),

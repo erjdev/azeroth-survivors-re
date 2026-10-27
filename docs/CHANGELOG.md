@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Scoped caster talents
+
+Shadow Focus, Nature’s Guidance and Suppression now strengthen their named
+spells instead of provisional global damage. Green inline previews identify the
+bonus and exclusions. Purchases, saves, spec changes, caps and refunds are covered.
+
+![Priest Shadow Focus inline upgrade](images/screenshots/2026-10-27-caster-accuracy/priest.png)
+
+![Shaman Nature’s Guidance and continuous tree artwork](images/screenshots/2026-10-27-caster-accuracy/shaman.png)
+
+![Warlock Suppression and aligned talent rows](images/screenshots/2026-10-27-caster-accuracy/warlock.png)
+
+215 core and 415 app tests, core/app Clippy and formatting checks pass.
+Definition coverage reaches 260/432; 172 talents remain. Native build: 19 seconds.
+Three class menus checked at 1280×720, including a Priest purchase. Windows
+foliage, routing, chest cadence and talent-layout acceptance remain open.
+
 ## 2026-10-27 — Browser Priest and compact-layout validation
 
 The current WebGPU package renders Inspiration, Blessed Recovery and provisional

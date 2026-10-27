@@ -7409,3 +7409,17 @@ bonus labels and 640×720 two-column reflow with the full scrolled description.
 1280×720 and 640×720 captures are embedded in the changelog and README. The browser
 reported no warnings/errors during the UI check; viewport override was restored
 and the local host stopped. This is menu evidence, not combat or Windows acceptance.
+
+### 2026-10-27 — Scoped caster accuracy conversions
+
+Shadow Focus (463), Nature’s Guidance (583) and Suppression (1005) replace
+provisional global damage with explicitly named spell bonuses. Core and app
+regressions check rank caps, direct/periodic damage, excluded spells, unchanged
+cast parameters, real-DBC purchases, persistence, spec switching and refunds.
+The catalog now matches 260/432 nodes: Priest 29/47, Shaman 31/46 and Warlock
+28/50; 172 individual definitions remain. Native 1280×720 screenshots of all
+three classes are embedded in the changelog; a Priest purchase was checked.
+This does not close the Windows scene reports in WINDOWS-PLAYTEST.md.
+
+Validation: 215 core tests, 415 app tests, core/app Clippy, native build, formatting
+and diff checks pass. Existing block-crate future-compatibility warning remains.

@@ -2791,6 +2791,88 @@ mod tests {
     }
 
     #[test]
+    fn caster_accuracy_purchases_persist_and_refund_without_global_damage() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let rules = app
+            .world()
+            .resource::<Account>()
+            .talent_rules
+            .clone()
+            .unwrap();
+        for (class, tree, id, cap, row, ranks, key, rate) in [
+            (
+                4,
+                2,
+                463,
+                5,
+                1,
+                vec![(2, 465, 5), (2, 464, 5)],
+                "mind_blast",
+                0.02,
+            ),
+            (
+                5,
+                2,
+                583,
+                3,
+                2,
+                vec![(2, 586, 5), (2, 593, 5)],
+                "lightning_bolt",
+                0.01,
+            ),
+            (7, 0, 1005, 5, 0, vec![], "corruption", 0.02),
+        ] {
+            let mut account = empty();
+            account.talent_rules = Some(rules.clone());
+            let hero = account.ensure(class);
+            let character = account
+                .characters
+                .iter_mut()
+                .find(|c| c.id == hero)
+                .unwrap();
+            character.talent_xp = 5100;
+            character.dbc[0] = ranks;
+            assert!(account.talents_valid(account.character(hero).unwrap()));
+            let base = account
+                .milestones_picked(class, Some(hero))
+                .cast(key)
+                .damage;
+            let before = account.bonus(class, hero);
+            for _ in 0..cap {
+                assert!(account.learn_talent(hero, tree, id, cap, row, true));
+            }
+            assert!(!account.learn_talent(hero, tree, id, cap, row, true));
+            assert!((account.bonus(class, hero).might - before.might).abs() < 0.00001);
+            let damage = |account: &Account| {
+                account
+                    .milestones_picked(class, Some(hero))
+                    .cast(key)
+                    .damage
+            };
+            let expected = base * (1. + rate * f32::from(cap));
+            assert!((damage(&account) - expected).abs() < 0.00001);
+            let mut loaded = parse(&encode(&account)).unwrap();
+            loaded.talent_rules = Some(rules.clone());
+            assert!((damage(&loaded) - expected).abs() < 0.00001);
+            loaded.select_spec(hero, 1);
+            assert_eq!(damage(&loaded), 1.);
+            loaded.select_spec(hero, 0);
+            assert!((damage(&loaded) - expected).abs() < 0.00001);
+            for _ in 0..cap {
+                assert!(loaded.unlearn_talent(hero, id, true));
+            }
+            assert_eq!(damage(&loaded), base);
+        }
+    }
+
+    #[test]
     fn inspiration_purchase_persists_and_spec_refund_restore_armor() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

@@ -13,6 +13,7 @@ pub(super) const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 583, max_rank: 3, name: "Nature's Guidance", description: "Lightning Bolt, Chain Lightning and shocks: +1% direct and periodic damage per rank. Excludes totems, Lightning Shield and other-class abilities (Survivors hit-chance conversion)", stat: TalentStat::SpellGroupDamage(CASTS), per_rank: 0.01 },
     TalentDefinition { id: 573, max_rank: 1, name: "Elemental Mastery", description: "Automatically adds +100% critical chance to the next successful Lightning Bolt, Chain Lightning or shock cast, including extra targets. Ready at run start; recovers 180 sec after use. Pauses stop recovery. Excludes totems, Lightning Shield and periodic ticks (Survivors automatic conversion).", stat: TalentStat::ElementalMastery, per_rank: 1.0 },
     TalentDefinition { id: 591, max_rank: 1, name: "Nature's Swiftness", description: "Earth, Flame and Frost Shock: 15% shorter cooldown per rank, multiplying Convection, Reverberation and the 20-point Restoration milestone. Totem deployment, pulse rate and healing are unchanged (Survivors instant-cast conversion)", stat: TalentStat::SpellGroupCooldown(SHOCKS), per_rank: 0.15 },
     TalentDefinition { id: 581, max_rank: 3, name: "Ancestral Healing", description: "When Searing or Magma Totem deployment restores health: +12 armor per rank for 10 sec. Refreshes without stacking; excludes overhealing, regeneration and totem attacks (Survivors healing-critical conversion)", stat: TalentStat::AncestralHealingArmor, per_rank: 12.0 },
@@ -63,7 +64,7 @@ mod tests {
             let r = f32::from(rank.min(5));
             let short = f32::from(rank.min(3));
             let lightning = trained.cast("lightning_bolt");
-            assert!((lightning.damage - (1. + 0.02 * r)).abs() < 0.00001);
+            assert!((lightning.damage - (1. + 0.02 * r) * (1. + 0.01 * short)).abs() < 0.00001);
             assert!((lightning.cooldown - 0.9 * (1. - 0.02 * r) * (1. - 0.04 * r)).abs() < 0.00001);
             assert!((lightning.crit - 0.1 - 0.02 * r).abs() < 0.00001);
             assert_eq!(lightning.crit_damage, if rank == 0 { 0. } else { 0.5 });

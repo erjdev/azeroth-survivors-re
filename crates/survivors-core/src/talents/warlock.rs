@@ -17,6 +17,7 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1005, max_rank: 5, name: "Suppression", description: "Corruption, Curse of Agony and Death Coil: +2% direct and periodic damage per rank. Excludes other Warlock spells and other-class abilities (Survivors hit-chance conversion)", stat: TalentStat::SpellGroupDamage(&["corruption", "curse_of_agony", "death_coil"]), per_rank: 0.02 },
     TalentDefinition { id: 968, max_rank: 1, name: "Conflagrate", description: "Immolate advances an owned Shadowburn cooldown by 2 sec once per successful cast; adds to the 30-point Destruction milestone for 4 sec total. Does not consume the burn, grant Shadowburn or store a charge (Survivors automatic conversion)", stat: TalentStat::Conflagrate, per_rank: 2.0 },
     TalentDefinition { id: 1004, max_rank: 5, name: "Improved Drain Life", description: "Death Coil: +2% drain healing per rank, based on enemy health actually removed. Damage, cooldown and Healthstone healing are unchanged. Requires acquiring Death Coil (Survivors Drain Life conversion)", stat: TalentStat::ImprovedDrainLife, per_rank: 0.02 },
     TalentDefinition { id: 1282, max_rank: 1, name: "Soul Link", description: "Death Coil grants a non-stacking absorb for 5% maximum health lasting 3 sec, once per successful cast. Adds to the Demonology 30-point milestone for 10% total. Requires acquiring Death Coil; preserves stronger shields (Survivors automatic conversion; no demon required)", stat: TalentStat::SpellShield("death_coil"), per_rank: 0.05 },
@@ -209,10 +210,17 @@ mod tests {
                     0.01 * r,
                     if rank > 0 { 0.5 } else { 0. },
                 ),
-                ("corruption", 1. + 0.02 * r, 1. - 0.04 * r, 0., 0.),
+                (
+                    "corruption",
+                    (1. + 0.02 * r) * (1. + 0.02 * r),
+                    1. - 0.04 * r,
+                    0.,
+                    0.,
+                ),
                 (
                     "curse_of_agony",
                     (1. + 0.02 * f32::from(rank.min(3)))
+                        * (1. + 0.02 * r)
                         * (1. + 0.02 * r)
                         * if rank > 0 { 1.2 } else { 1.0 },
                     1.,
@@ -226,7 +234,7 @@ mod tests {
                     0.03 * r,
                     if rank > 0 { 0.5 } else { 0. },
                 ),
-                ("death_coil", 1. + 0.02 * r, 1., 0., 0.),
+                ("death_coil", (1. + 0.02 * r) * (1. + 0.02 * r), 1., 0., 0.),
             ] {
                 let effect = trained.cast(key);
                 assert!((effect.damage - damage).abs() < 0.00001, "{key}");
