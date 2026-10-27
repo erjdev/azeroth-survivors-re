@@ -35,6 +35,7 @@ pub(super) fn chance_label(drop: &campaign::DropRow, account: &Account) -> Strin
 }
 
 pub(super) fn build(
+    strings: &crate::survivors::localization::Strings,
     ui: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
@@ -58,11 +59,11 @@ pub(super) fn build(
                     sources(body, font, armory, account, selection, layout)
                 });
                 collection::section(body, layout, |body| {
-                    collection::detail(body, font, armory, account, selection, layout)
+                    collection::detail(strings, body, font, armory, account, selection, layout)
                 });
                 collection::section(body, layout, |body| {
                     character::body_controls(body, art, font, account, selection, layout);
-                    collection::equipment(body, font, armory, account, selection, layout);
+                    collection::equipment(strings, body, font, armory, account, selection, layout);
                 });
             },
         );
@@ -86,7 +87,7 @@ pub(super) fn build(
             ),
             |body| {
                 character::body_controls(body, art, font, account, selection, layout);
-                collection::equipment(body, font, armory, account, selection, layout);
+                collection::equipment(strings, body, font, armory, account, selection, layout);
             },
         );
         collection::column(
@@ -117,7 +118,7 @@ pub(super) fn build(
                 collection::CompactScroll::DropColumn(3),
                 armory.drop_columns[3],
             ),
-            |body| collection::detail(body, font, armory, account, selection, layout),
+            |body| collection::detail(strings, body, font, armory, account, selection, layout),
         );
     });
 }
@@ -507,6 +508,7 @@ mod tests {
             };
             world.commands().spawn(Node::default()).with_children(|ui| {
                 build(
+                    &crate::survivors::localization::Strings::default(),
                     ui,
                     &GlueArt::default(),
                     &Handle::default(),

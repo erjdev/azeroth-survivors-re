@@ -24,6 +24,7 @@ const FRAME: Color = Color::srgb(0.78, 0.62, 0.22);
 const BONUS: Color = Color::srgb(0.45, 0.9, 0.4);
 
 pub(super) fn build(
+    strings: &crate::survivors::localization::Strings,
     ui: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
@@ -110,6 +111,7 @@ pub(super) fn build(
     }
     if armory.page == Page::Door {
         columns(
+            strings,
             ui,
             art,
             font,
@@ -127,6 +129,7 @@ pub(super) fn build(
         super::achievements(ui, font, armory, account);
     } else if armory.page == Page::Heroes {
         super::character::build(
+            strings,
             ui,
             art,
             font,
@@ -141,6 +144,7 @@ pub(super) fn build(
         );
     } else if armory.page == Page::Collection {
         super::collection::build(
+            strings,
             ui,
             art,
             font,
@@ -162,6 +166,7 @@ pub(super) fn build(
         );
     } else if armory.page == Page::DropTables {
         super::drop_page::build(
+            strings,
             ui,
             art,
             font,
@@ -174,7 +179,7 @@ pub(super) fn build(
     } else {
         panel(ui, art, false, None, |body| {
             super::fill_draft(
-                body, font, armory, account, selection, renown, stash, talents,
+                strings, body, font, armory, account, selection, renown, stash, talents,
             )
         });
     }
@@ -377,6 +382,7 @@ fn tab_button(
 }
 
 fn columns(
+    strings: &crate::survivors::localization::Strings,
     ui: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
@@ -433,7 +439,7 @@ fn columns(
                 art,
                 compact,
                 Some((1, armory.starter_panel_scroll[1])),
-                |body| hero_column(body, art, font, armory, account, selection),
+                |body| hero_column(strings, body, art, font, armory, account, selection),
             );
             panel(
                 row,
@@ -754,6 +760,7 @@ fn portrait_badges(
 }
 
 fn hero_column(
+    strings: &crate::survivors::localization::Strings,
     body: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
@@ -921,7 +928,7 @@ fn hero_column(
     );
     bar(body, owned as f32 / total as f32);
     let bonus = account.bonus_picked(class_i, selection.character);
-    line(body, font, &bonus_line(bonus), 12.0, BONUS);
+    line(body, font, &bonus_line(strings, bonus), 12.0, BONUS);
     let health = account
         .milestones_picked(class_i, selection.character)
         .health_multiplier();
@@ -1579,20 +1586,35 @@ pub(super) fn band_color(band: usize) -> Color {
     }
 }
 
-pub(super) fn bonus_line(bonus: campaign::Bonus) -> String {
+pub(super) fn bonus_line(
+    strings: &crate::survivors::localization::Strings,
+    bonus: campaign::Bonus,
+) -> String {
     let mut parts = Vec::new();
     let pct = |v: f32| format!("{:+.1}%", v * 100.0);
     if bonus.health.abs() > 0.01 {
-        parts.push(format!("{:+.0} health", bonus.health));
+        parts.push(strings.by_key(
+            "HP_TEMPLATE",
+            "%s health",
+            &[format!("{:+.0}", bonus.health).as_str().into()],
+        ));
     }
     if bonus.pickup.abs() > 0.0001 {
         parts.push(format!("{} pickup range", pct(bonus.pickup)));
     }
     if bonus.armor.abs() > 0.01 {
-        parts.push(format!("{:+.0} armor", bonus.armor));
+        parts.push(strings.by_key(
+            "ARMOR_TEMPLATE",
+            "%s armor",
+            &[format!("{:+.0}", bonus.armor).as_str().into()],
+        ));
     }
     if bonus.might.abs() > 0.0001 {
-        parts.push(format!("{} damage", pct(bonus.might)));
+        parts.push(strings.by_key(
+            "SINGLE_DAMAGE_TEMPLATE",
+            "%s damage",
+            &[pct(bonus.might).as_str().into()],
+        ));
     }
     if bonus.crit.abs() > 0.0001 {
         parts.push(format!("{} crit", pct(bonus.crit)));
@@ -1634,5 +1656,31 @@ pub(super) fn bonus_line(bonus: campaign::Bonus) -> String {
         "No bonuses yet.".into()
     } else {
         parts.join("   ")
+    }
+}
+
+#[cfg(test)]
+mod localization_tests {
+    use super::*;
+
+    #[test]
+    fn equipment_templates_preserve_signed_and_percentage_values() {
+        let script = benilla_ui::script::UiScript::new().unwrap();
+        script.lua().load("HP_TEMPLATE = '%s points de vie'; ARMOR_TEMPLATE = 'Armure : %s'; SINGLE_DAMAGE_TEMPLATE = '%s dégâts'").exec().unwrap();
+        let strings = crate::survivors::localization::Strings::from_script(&script);
+        let bonus = campaign::Bonus {
+            health: 8.0,
+            armor: 3.0,
+            might: 0.195,
+            ..Default::default()
+        };
+        assert_eq!(
+            bonus_line(&strings, bonus),
+            "+8 points de vie   Armure : +3   +19.5% dégâts"
+        );
+        assert_eq!(
+            bonus_line(&crate::survivors::localization::Strings::default(), bonus),
+            "+8 health   +3 armor   +19.5% damage"
+        );
     }
 }

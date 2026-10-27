@@ -325,6 +325,7 @@ pub(super) fn compact_column(
 }
 
 pub(super) fn build(
+    strings: &crate::survivors::localization::Strings,
     panel: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
@@ -346,11 +347,11 @@ pub(super) fn build(
                     text(body, font, "Select a piece; its details follow the collection. E: worn · L: shown as a look", layout.body_size, DIM);
                 });
                 section(body, layout, |body| {
-                    detail(body, font, armory, account, selection, layout)
+                    detail(strings, body, font, armory, account, selection, layout)
                 });
                 section(body, layout, |body| {
                     super::character::body_controls(body, art, font, account, selection, layout);
-                    equipment(body, font, armory, account, selection, layout);
+                    equipment(strings, body, font, armory, account, selection, layout);
                 });
                 section(body, layout, |body| {
                     missing(body, font, armory, account, selection, layout)
@@ -380,7 +381,7 @@ pub(super) fn build(
                 ),
                 |body| {
                     super::character::body_controls(body, art, font, account, selection, layout);
-                    equipment(body, font, armory, account, selection, layout)
+                    equipment(strings, body, font, armory, account, selection, layout)
                 },
             );
             column(
@@ -438,12 +439,13 @@ pub(super) fn build(
                     CompactScroll::CollectionColumn(2),
                     armory.collection_columns[2],
                 ),
-                |body| detail(body, font, armory, account, selection, layout),
+                |body| detail(strings, body, font, armory, account, selection, layout),
             );
         });
 }
 
 pub(super) fn equipment(
+    strings: &crate::survivors::localization::Strings,
     ui: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
     armory: &Armory,
@@ -539,15 +541,16 @@ pub(super) fn equipment(
     text(
         ui,
         font,
-        super::door::bonus_line(progress.equipment.bonus(
-            class,
-            &progress.pieces,
-            &account.supplemental,
-        )),
+        super::door::bonus_line(
+            strings,
+            progress
+                .equipment
+                .bonus(class, &progress.pieces, &account.supplemental),
+        ),
         layout.body_size,
         BONUS,
     );
-    super::cloak::build(ui, font, account, selection, layout);
+    super::cloak::build(strings, ui, font, account, selection, layout);
 }
 
 fn grid(
@@ -913,6 +916,7 @@ fn item_header(
 }
 
 pub(super) fn detail(
+    strings: &crate::survivors::localization::Strings,
     ui: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
     armory: &Armory,
@@ -955,7 +959,7 @@ pub(super) fn detail(
         text(
             ui,
             font,
-            super::door::bonus_line(piece.tier.piece_bonus(piece.slot)),
+            super::door::bonus_line(strings, piece.tier.piece_bonus(piece.slot)),
             layout.body_size,
             BONUS,
         );
@@ -993,7 +997,10 @@ pub(super) fn detail(
                         } else {
                             "Inactive"
                         },
-                        super::door::bonus_line(survivors_core::raid_sets::bonus(class, count))
+                        super::door::bonus_line(
+                            strings,
+                            survivors_core::raid_sets::bonus(class, count)
+                        )
                     ),
                     layout.body_size,
                     if equipped_count >= count { BONUS } else { DIM },
@@ -1046,6 +1053,7 @@ pub(super) fn detail(
                 GOLD,
             );
             for (line, color) in set_changes(
+                strings,
                 class,
                 &progress.pieces,
                 &account.supplemental,
@@ -1148,7 +1156,7 @@ pub(super) fn detail(
         text(
             ui,
             font,
-            super::door::bonus_line(campaign::piece_bonus(band, slot)),
+            super::door::bonus_line(strings, campaign::piece_bonus(band, slot)),
             layout.body_size,
             BONUS,
         );
@@ -1209,6 +1217,7 @@ pub(super) fn detail(
                 GOLD,
             );
             for (line, color) in set_changes(
+                strings,
                 class,
                 &progress.pieces,
                 &account.supplemental,
@@ -1243,6 +1252,7 @@ pub(super) fn detail(
 
 /// Explain threshold effects separately from the aggregate equipment stat comparison.
 fn set_changes(
+    strings: &crate::survivors::localization::Strings,
     class: usize,
     pieces: &[u8],
     owned: &survivors_core::supplemental_gear::Inventory,
@@ -1265,7 +1275,7 @@ fn set_changes(
         lines.push((
             format!(
                 "Full loadout bonus {verb} (all 9 slots): {}",
-                super::door::bonus_line(campaign::set_bonus())
+                super::door::bonus_line(strings, campaign::set_bonus())
             ),
             color,
         ));
@@ -1478,6 +1488,7 @@ mod tests {
             let mut replacement = original.clone();
             replacement.wear(&[1; campaign::PIECES], 0, Some(1));
             assert!(set_changes(
+                &crate::survivors::localization::Strings::default(),
                 class,
                 &[1; campaign::PIECES],
                 &account.supplemental,
@@ -1512,6 +1523,7 @@ mod tests {
                     .spawn(Node::default())
                     .with_children(|panel| {
                         detail(
+                            &crate::survivors::localization::Strings::default(),
                             panel,
                             &Handle::default(),
                             &armory,
@@ -1549,6 +1561,7 @@ mod tests {
                 let mut removed = before.clone();
                 removed.wear(&[1; campaign::PIECES], raid_count.saturating_sub(1), None);
                 let restored = set_changes(
+                    &crate::survivors::localization::Strings::default(),
                     class,
                     &[1; campaign::PIECES],
                     &account.supplemental,
@@ -1597,6 +1610,7 @@ mod tests {
                             .spawn(Node::default())
                             .with_children(|panel| {
                                 detail(
+                                    &crate::survivors::localization::Strings::default(),
                                     panel,
                                     &Handle::default(),
                                     &armory,
@@ -1652,6 +1666,7 @@ mod tests {
                 .spawn(Node::default())
                 .with_children(|panel| {
                     detail(
+                        &crate::survivors::localization::Strings::default(),
                         panel,
                         &Handle::default(),
                         &armory,
@@ -1706,6 +1721,7 @@ mod tests {
                 .spawn(Node::default())
                 .with_children(|panel| {
                     detail(
+                        &crate::survivors::localization::Strings::default(),
                         panel,
                         &Handle::default(),
                         &armory,
@@ -1766,6 +1782,7 @@ mod tests {
                     .spawn(Node::default())
                     .with_children(|panel| {
                         build(
+                            &crate::survivors::localization::Strings::default(),
                             panel,
                             &GlueArt::default(),
                             &Handle::default(),
@@ -1852,6 +1869,7 @@ mod tests {
                 .spawn(Node::default())
                 .with_children(|panel| {
                     detail(
+                        &crate::survivors::localization::Strings::default(),
                         panel,
                         &Handle::default(),
                         &armory,

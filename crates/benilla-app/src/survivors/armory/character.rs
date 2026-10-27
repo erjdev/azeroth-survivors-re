@@ -7,6 +7,7 @@ use survivors_core::layout::Layout;
 
 #[allow(clippy::too_many_arguments)]
 pub(super) fn build(
+    strings: &crate::survivors::localization::Strings,
     panel: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
@@ -38,7 +39,7 @@ pub(super) fn build(
                     }
                 });
                 collection::section(body, layout, |body| {
-                    collection::equipment(body, font, armory, account, selection, layout)
+                    collection::equipment(strings, body, font, armory, account, selection, layout)
                 });
                 collection::section(body, layout, |body| {
                     look_panel(body, font, armory, account, selection, layout)
@@ -66,7 +67,7 @@ pub(super) fn build(
                 ),
                 |body| {
                     body_controls(body, art, font, account, selection, layout);
-                    collection::equipment(body, font, armory, account, selection, layout);
+                    collection::equipment(strings, body, font, armory, account, selection, layout);
                 },
             );
             collection::column(

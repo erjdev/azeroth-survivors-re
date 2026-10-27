@@ -977,6 +977,7 @@ pub(super) fn hero_gate(
 
 #[derive(SystemParam)]
 pub(super) struct ArmoryArt<'w> {
+    globals: Option<Res<'w, super::localization::Strings>>,
     strings: Option<Res<'w, crate::glue_strings::GlueStrings>>,
     font: Res<'w, HudFont>,
     art: Res<'w, GlueArt>,
@@ -1099,7 +1100,12 @@ pub(super) fn refresh(
             ),
         ),
     );
-    if *drawn == Some(sig) {
+    if *drawn == Some(sig)
+        && !assets
+            .globals
+            .as_ref()
+            .is_some_and(|strings| strings.is_changed())
+    {
         return;
     }
     let Ok(menu) = menus.single() else {
@@ -1144,9 +1150,12 @@ pub(super) fn refresh(
         }));
     commands.entity(root).despawn_related::<Children>();
     let font = assets.font.0.clone();
+    let fallback = super::localization::Strings::default();
+    let strings = assets.globals.as_deref().unwrap_or(&fallback);
     let note = account.recovery_notice().unwrap_or(armory.note.as_str());
     commands.entity(root).with_children(|panel| {
         door::build(
+            strings,
             panel,
             &assets.art,
             &font,
@@ -1291,6 +1300,7 @@ fn heroes(
 }
 
 fn fill_draft(
+    strings: &crate::survivors::localization::Strings,
     panel: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
     armory: &Armory,
@@ -1302,7 +1312,7 @@ fn fill_draft(
 ) {
     match armory.page {
         Page::Heroes => heroes(panel, font, armory, account, selection, renown, stash),
-        Page::Talents => talents(panel, font, account, selection, catalog),
+        Page::Talents => talents(strings, panel, font, account, selection, catalog),
         Page::Rewards => rewards_page(panel, font, armory, account),
         Page::Collection => {}
         Page::Codex => {}
@@ -1815,6 +1825,7 @@ fn spend_talent(
 }
 
 fn talents(
+    strings: &crate::survivors::localization::Strings,
     panel: &mut impl ChipParent,
     font: &Handle<Font>,
     account: &Account,
@@ -1913,7 +1924,7 @@ fn talents(
                             let id_node = tree * campaign::NODES_PER_TREE + node;
                             let rank = active.get(id_node).copied().unwrap_or(0);
                             let max = campaign::NODE_RANKS[node];
-                            let label = milestone_label(hero.class, tree, node, rank, max);
+                            let label = milestone_label(strings, hero.class, tree, node, rank, max);
                             chip(grid, font, &label, Act::Learn(id_node), rank > 0);
                         }
                     });
@@ -1943,13 +1954,27 @@ fn talents(
     ));
 }
 
-fn milestone_label(class: usize, tree: usize, node: usize, rank: u8, max: u8) -> String {
+fn milestone_label(
+    strings: &crate::survivors::localization::Strings,
+    class: usize,
+    tree: usize,
+    node: usize,
+    rank: u8,
+    max: u8,
+) -> String {
     for at in [10, 20, 30] {
         if campaign::milestone_node(at) == Some(node) {
             return format!("{} {rank}/{max}", campaign::milestone_name(class, tree, at));
         }
     }
-    format!("Rank {rank}/{max}")
+    strings.by_key(
+        "TOOLTIP_TALENT_RANK",
+        "Rank %s/%s",
+        &[
+            rank.to_string().as_str().into(),
+            max.to_string().as_str().into(),
+        ],
+    )
 }
 
 fn rewards_page(
@@ -2335,6 +2360,20 @@ fn chip(parent: &mut impl ChipParent, font: &Handle<Font>, label: &str, act: Act
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn legacy_rank_template_resolves_translated_argument_order() {
+        let script = benilla_ui::script::UiScript::new().unwrap();
+        script
+            .lua()
+            .load("TOOLTIP_TALENT_RANK = 'Maximum %2$s, rang %1$s'")
+            .exec()
+            .unwrap();
+        let strings = super::super::localization::Strings::from_script(&script);
+        assert_eq!(
+            super::milestone_label(&strings, 0, 0, 0, 2, 5),
+            "Maximum 5, rang 2"
+        );
+    }
     use super::super::account;
     use super::super::data;
     use super::super::Selection;

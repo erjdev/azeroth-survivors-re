@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Equipment and rank localization
+
+Health, armor and damage summaries now use shared runtime templates throughout
+the Armory, including cloaks and set-bonus previews. Signs, percentage units and
+translated rank argument order are preserved.
+
+![Collection totals and set-bonus preview](images/screenshots/2026-10-27-equipment-localization/collection.png)
+
+446 Survivors app tests, app Clippy and the reference-string audit pass. Native
+English Collection checked at 1280×720; build: 1m07s. The full integration chain
+has been restarted and remains pending; live translated-layout acceptance is open.
+
 ## 2026-10-27 — Localized regeneration card values
 
 Renew's inline health values use the shared runtime health template, preserving

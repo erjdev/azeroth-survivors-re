@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use survivors_core::layout::Layout;
 
 pub(super) fn build(
+    strings: &crate::survivors::localization::Strings,
     ui: &mut ChildSpawnerCommands,
     font: &Handle<Font>,
     account: &Account,
@@ -31,7 +32,7 @@ pub(super) fn build(
     if let Some(quality) = quality {
         ui.spawn(hud::text_bundle(
             font,
-            super::door::bonus_line(campaign::cloak_bonus(quality)),
+            super::door::bonus_line(strings, campaign::cloak_bonus(quality)),
             layout.body_size,
             hud::card_growth::GAIN,
         ));
@@ -88,7 +89,7 @@ pub(super) fn build(
     if campaign::legendary_cloak(epics) {
         ui.spawn(hud::text_bundle(
             font,
-            super::door::bonus_line(campaign::cloak_bonus(campaign::Quality::Legendary)),
+            super::door::bonus_line(strings, campaign::cloak_bonus(campaign::Quality::Legendary)),
             layout.body_size,
             hud::card_growth::GAIN,
         ));

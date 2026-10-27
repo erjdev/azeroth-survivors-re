@@ -7913,3 +7913,14 @@ one green unit. English 1280×720 native preview confirms new/ranked cards and r
 to Talents; translated value/order/color behavior is tested. 444 app tests and
 app Clippy pass. Four reference-string findings remain in equipment bonuses and
 the legacy talent-rank label; the full integration goal remains incomplete.
+
+
+### Shared equipment templates — 2026-10-27
+
+The runtime string catalog now reaches starter, Character, Collection, Drop Tables,
+cloak and set-bonus summaries, plus the legacy rank fallback. Health, armor and
+damage templates preserve signs and percentage units; translated rank templates
+can reorder their arguments. Armory refresh invalidates when the catalog changes.
+The source reference-string audit passes with no allowance changes. Native English
+Collection preview at 1280×720 confirms equipment totals, item bonuses and the
+full-loadout loss preview. Live translated-layout acceptance remains open.
