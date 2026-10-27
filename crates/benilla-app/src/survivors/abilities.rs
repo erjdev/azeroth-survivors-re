@@ -106,6 +106,7 @@ pub(super) struct Params {
     pub immune_seconds: f32,
     pub heal_fraction: f32,
     pub blackout_chance: f32,
+    pub wing_clip_root_chance: f32,
     pub vampiric_fraction: f32,
     pub shadow_weaving_chance: f32,
     pub effect: Effect,
@@ -142,6 +143,7 @@ impl Params {
             immune_seconds: effect.immune_seconds,
             heal_fraction: effect.heal_fraction,
             blackout_chance: milestones.blackout_chance(o.def.key, 1.0),
+            wing_clip_root_chance: milestones.wing_clip_root_chance(o.def.key, o.def.damage * mult),
             vampiric_fraction: milestones.vampiric_healing(o.def.key, 1.0),
             shadow_weaving_chance: milestones.shadow_weaving_chance(o.def.key, 1.0),
         }
@@ -1243,6 +1245,10 @@ pub(super) fn apply_hits(
             apply_impact(&mut en);
         }
         apply_destruction_control(&mut en, run.milestones, &h, &mut rng);
+        let root_chance = run.milestones.wing_clip_root_chance(h.source, h.damage);
+        if root_chance > 0.0 && rng.f32() < root_chance {
+            en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
+        }
         let freeze_chance = run.milestones.frostbite_chance(h.source, h.damage);
         if freeze_chance > 0.0 && rng.f32() < freeze_chance {
             apply_frostbite(&mut en);
@@ -4900,7 +4906,7 @@ mod milestone_tests {
     fn hunter_melee_casts_require_close_targets_and_apply_scoped_crit() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for key in ["raptor_strike", "mongoose_bite"] {
+        for key in ["raptor_strike", "mongoose_bite", "wing_clip"] {
             for rank in [0, 1, 2, 255] {
                 let mut app = App::new();
                 let mut time = Time::<()>::default();
@@ -4920,6 +4926,12 @@ mod milestone_tests {
                     level: 3,
                     cd: 0.0,
                 });
+                let has_crit_bonus = rank > 0 && key != "wing_clip";
+                let bonus = if key == "wing_clip" {
+                    0.
+                } else {
+                    0.1 * f32::from(rank.min(2))
+                };
                 let base_crit = run.stats().crit;
                 let seed = (1..100000)
                     .find(|seed| {
@@ -5002,16 +5014,21 @@ mod milestone_tests {
                     .drain()
                     .collect();
                 assert_eq!(hits.len(), 2, "extra targets stay in melee reach");
-                assert!(hits
-                    .iter()
-                    .all(|hit| hit.crit == (rank > 0) && hit.splash == 0.0 && hit.source == key));
+                assert!(hits.iter().all(|hit| hit.crit == has_crit_bonus
+                    && hit.splash == 0.0
+                    && hit.source == key));
                 assert!(hits.iter().all(|hit| hit.target != foes[2]));
                 assert!(app.world().resource::<PendingHits>().0.is_empty());
                 let run = app.world().resource::<Run>();
                 let params = Params::new(&run.abilities[0], &run.stats(), run.milestones);
-                assert!((params.crit - base_crit - 0.1 * f32::from(rank.min(2))).abs() < 0.00001);
+                assert!((params.crit - base_crit - bonus).abs() < 0.00001);
                 assert!(hits.iter().all(|hit| (hit.damage
-                    - params.dmg * if rank > 0 { params.crit_damage } else { 1.0 })
+                    - params.dmg
+                        * if has_crit_bonus {
+                            params.crit_damage
+                        } else {
+                            1.0
+                        })
                 .abs()
                     < 0.0001));
                 assert!(run.abilities[0].cd > 0.0);
@@ -8166,5 +8183,141 @@ mod milestone_tests {
         assert_eq!(run.shield, 0.0);
         run.immune_t = 1.0;
         assert_eq!(hero::hurt_hero(&mut run, 30.0), 0.0);
+    }
+    #[test]
+    fn wing_clip_hits_slow_and_roll_roots_without_freezing_or_tick_refresh() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for rank in [0, 1, 5, 255] {
+                let trained = Milestones {
+                    class: 2,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 1305, rank)]);
+                let mut app = App::new();
+                app.insert_resource(Time::<()>::default())
+                    .insert_resource(Run {
+                        milestones: trained,
+                        ..Default::default()
+                    })
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .init_resource::<super::super::Selection>()
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>()
+                    .add_systems(Update, apply_hits);
+                let enemy = app
+                    .world_mut()
+                    .spawn((
+                        Guid(123),
+                        Transform::default(),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp: 1000.,
+                            max_hp: 1000.,
+                            speed: 3.,
+                            damage: 1.,
+                            radius: 0.6,
+                            xp: 1,
+                            boss,
+                            elite: false,
+                            attack_cd: 0.,
+                            slow: 1.,
+                            slow_t: 0.,
+                            root_t: 0.,
+                            frozen_t: 0.,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.,
+                            fear_t: 0.,
+                            weaken: 1.,
+                            weaken_t: 0.,
+                            dots: vec![],
+                            dead: false,
+                        },
+                    ))
+                    .id();
+
+                let owned = Owned {
+                    def: data::ability("wing_clip"),
+                    level: 1,
+                    cd: 0.,
+                };
+                let params = Params::new(&owned, &app.world().resource::<Run>().stats(), trained);
+                let hit = Hit {
+                    source: "wing_clip",
+                    effect: params.effect,
+                    ..Hit::direct(enemy, params.dmg, false)
+                };
+                app.world_mut().write_message(hit.clone());
+                app.update();
+                let en = app.world().get::<Enemy>(enemy).unwrap();
+                assert_eq!(en.hp, 995.);
+                assert_eq!((en.slow, en.slow_t), (if boss { 0.75 } else { 0.5 }, 5.));
+                assert_eq!(
+                    en.root_t,
+                    if rank == 0 {
+                        0.
+                    } else if boss {
+                        1.5
+                    } else {
+                        5.
+                    }
+                );
+                assert_eq!(en.frozen_t, 0.);
+                // A successful roll cannot shorten an existing root or stronger slow.
+                {
+                    let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                    en.root_t = 8.;
+                    en.slow = 0.2;
+                    en.slow_t = 9.;
+                }
+                app.world_mut().write_message(hit.clone());
+                app.update();
+                let en = app.world().get::<Enemy>(enemy).unwrap();
+                assert_eq!((en.root_t, en.slow, en.slow_t), (8., 0.2, 9.));
+                // A failed roll still applies the spell's baseline slow.
+                let seed = (1..1000).find(|seed| Rng(*seed).f32() >= 0.2).unwrap();
+                app.world_mut().resource_mut::<Rng>().0 = seed;
+                app.world_mut().get_mut::<Enemy>(enemy).unwrap().root_t = 0.;
+                app.world_mut().write_message(hit.clone());
+                app.update();
+                assert_eq!(app.world().get::<Enemy>(enemy).unwrap().root_t, 0.);
+                // Attached ticks never roll the direct-hit talent.
+                app.world_mut().resource_mut::<Rng>().0 = 0;
+                app.world_mut()
+                    .get_mut::<Enemy>(enemy)
+                    .unwrap()
+                    .dots
+                    .push(enemies::Dot {
+                        dps: 10.,
+                        left: 1.,
+                        tick: 1.,
+                        source: "wing_clip",
+                    });
+                app.world_mut()
+                    .resource_mut::<Time>()
+                    .advance_by(std::time::Duration::from_secs(1));
+                app.update();
+                assert_eq!(app.world().get::<Enemy>(enemy).unwrap().root_t, 0.);
+                app.world_mut().resource_mut::<Run>().milestones = Milestones {
+                    class: 2,
+                    ..Default::default()
+                };
+                app.world_mut().write_message(hit);
+                app.update();
+                assert_eq!(app.world().get::<Enemy>(enemy).unwrap().root_t, 0.);
+            }
+        }
     }
 }

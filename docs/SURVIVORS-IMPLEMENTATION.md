@@ -833,14 +833,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
-| Hunter | 36 / 46 | 9 / 9 |
+| Hunter | 37 / 46 | 9 / 9 |
 | Rogue | 24 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 25 / 47 | 9 / 9 |
-| Total | 269 / 432 | 81 / 81 |
+| Total | 270 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -7828,3 +7828,23 @@ Audit coverage is 269/432 definitions, Hunter 36/46; 163 definitions remain.
 This is definition coverage, not full combat/balance acceptance. Windows talent
 spacing, foliage visibility, obstacle routing and chest pacing remain open as
 recorded above; no combat session was used for this checkpoint.
+
+
+### 2026-10-27 checkpoint — Wing Clip crowd control
+
+Wing Clip is now an acquired Hunter melee ability with normal upgrades and a
+spell-specific legendary Codex entry. Improved Wing Clip rolls 4% per rank on
+its direct damaging hits; roots preserve longer effects and do not mark enemies
+as frozen. Boss roots last 1.5 seconds; ordinary roots last 5 seconds. Baseline
+slow and damage remain independent. The typed cast preview exposes the trained
+chance without implying ability ranks improve it.
+
+Native talent purchase at 800×600 and trained cards at 1280×720 / 640×480 are
+captured inline in CHANGELOG and the README gallery. Compared with the talent
+intention, the smaller viewport deliberately wraps the trees while retaining
+artwork proportions and the adjacent spec/details panel. This checkpoint adds
+content to that layout, not another layout redesign.
+
+Definition coverage: 270/432, Hunter 37/46; 162 definitions remain. This does not
+close live combat balance, animation, Windows reproduction or the full seven-phase
+acceptance contract. Final validation results are recorded in CHANGELOG.

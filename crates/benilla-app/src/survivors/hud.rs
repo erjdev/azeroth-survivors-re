@@ -3551,7 +3551,12 @@ mod card_icon_tests {
 
     #[test]
     fn hunter_can_acquire_and_upgrade_sting_and_melee_through_normal_offers() {
-        for key in ["scorpid_sting", "raptor_strike", "mongoose_bite"] {
+        for key in [
+            "scorpid_sting",
+            "raptor_strike",
+            "mongoose_bite",
+            "wing_clip",
+        ] {
             let mut run = Run {
                 class: &data::CLASSES[2],
                 hp: 100.,

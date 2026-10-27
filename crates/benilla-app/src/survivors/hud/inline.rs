@@ -296,6 +296,17 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
             " by this spell, including periodic ticks"
         );
     }
+    if b.wing_clip_root_chance > 0.0 {
+        prose!(
+            ". Each direct hit has ",
+            (
+                a.wing_clip_root_chance * 100.,
+                b.wing_clip_root_chance * 100.,
+                "% chance"
+            ),
+            " to root for 5 sec (bosses: 1.5 sec); this does not freeze the target"
+        );
+    }
     if b.blackout_chance > 0.0 {
         prose!(
             ". Shadow damage has ",
@@ -678,5 +689,27 @@ mod tests {
             same,
             vec![("No change to this spell's bonuses.".into(), DIM)]
         );
+    }
+    #[test]
+    fn wing_clip_preview_shows_trained_root_as_fixed_and_slow_growth_inline() {
+        let mut run = Run::default();
+        run.milestones = survivors_core::talents::Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 1305, 3)]);
+        let spans = describe(Choice::NewAbility(data::ability("wing_clip")), &run);
+        let text = plain(&spans);
+        assert!(
+            text.contains("12% chance to root for 5 sec (bosses: 1.5 sec)"),
+            "{text}"
+        );
+        assert!(spans.contains(&("12% chance".into(), PROSE)));
+        assert!(spans.contains(&("5 » 5.5 sec".into(), card_growth::GAIN)));
+        let other = plain(&describe(
+            Choice::NewAbility(data::ability("raptor_strike")),
+            &run,
+        ));
+        assert!(!other.contains("chance to root"));
     }
 }

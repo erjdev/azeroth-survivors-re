@@ -75,7 +75,7 @@ locked pending world readiness. This capture does not establish raid gameplay.
 <table>
   <tr>
     <td width="50%"><strong>Options</strong><br><img src="docs/images/screenshots/2026-10-27-menu-options/after.png" alt="Options"><br>2026-10-27 · Starter Options retains the landscape; shown at 800×600 and 125% UI size.</td>
-    <td width="50%"><strong>Spell and passive upgrades</strong><br><img src="docs/images/screenshots/2026-10-27-hunter-melee/cards.png" alt="Spell and passive upgrades"><br>2026-10-27 · Hunter melee damage and cooldown upgrades shown inline.</td>
+    <td width="50%"><strong>Spell and passive upgrades</strong><br><img src="docs/images/screenshots/2026-10-27-wing-clip/cards.png" alt="Spell and passive upgrades"><br>2026-10-27 · Trained Wing Clip: inline damage/slow/cooldown upgrades and fixed root chance.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>

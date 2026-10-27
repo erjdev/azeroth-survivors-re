@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Wing Clip and its root talent
+
+Hunter offers now include Wing Clip, a close-range slow. Improved Wing Clip adds
+4% root chance per rank (five ranks), with shorter roots on bosses. Cards show
+trained root chance alongside green damage, slow-duration and cooldown upgrades.
+
+![Purchased Improved Wing Clip at 800×600](images/screenshots/2026-10-27-wing-clip/talent.png)
+
+![Trained new-spell and rank-up cards at 1280×720](images/screenshots/2026-10-27-wing-clip/cards.png)
+
+![Complete description at 640×480](images/screenshots/2026-10-27-wing-clip/compact.png)
+
+223 core tests, 438 app tests, core/app Clippy and formatting pass. Native
+incremental build: 32 seconds. Local catalog coverage is 270/432 definitions; balance, combat visuals and Windows
+acceptance remain open.
+
 ## 2026-10-27 — Hunter melee and Savage Strikes
 
 Raptor Strike and Mongoose Bite join normal Hunter ability offers, inline upgrades

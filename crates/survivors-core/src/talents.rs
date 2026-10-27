@@ -768,6 +768,14 @@ impl Milestones {
         self.trained_value(TalentStat::Frostbite)
     }
 
+    /// Wing Clip roots on direct damaging hits; attached periodic ticks never roll.
+    pub fn wing_clip_root_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 2 || key != "wing_clip" || !damage.is_finite() || damage <= 0.0 {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::WingClipRoot)
+    }
+
     /// Fire hit proc; periodic Ignite ticks and non-Mage sources cannot trigger it.
     pub fn impact_chance(self, key: &str, damage: f32) -> f32 {
         if self.class != 6 || !damage.is_finite() || damage <= 0.0 || !MAGE_FIRE.contains(&key) {
@@ -1428,6 +1436,7 @@ pub enum TalentStat {
     CriticalBleed,
     CriticalBurn,
     Frostbite,
+    WingClipRoot,
     Impact,
     Blackout,
     ShadowWeaving,
@@ -1663,6 +1672,7 @@ impl TalentDefinition {
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
             | TalentStat::Aftermath
+            | TalentStat::WingClipRoot
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
             | TalentStat::Pyroclasm
@@ -1919,6 +1929,7 @@ impl TalentDefinition {
             TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
+            TalentStat::WingClipRoot => (100.0, "% chance to root Wing Clip targets"),
             TalentStat::Aftermath => (100.0, "% chance to slow Destruction targets"),
             TalentStat::CurseExhaustion => (100.0, "% Curse of Agony slow"),
             TalentStat::ImprovedCurseExhaustion => (100.0, "% additional curse slow"),
@@ -2454,6 +2465,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1305, max_rank: 5, name: "Improved Wing Clip",
+        description: "Wing Clip: +4% chance per rank on each direct hit to root for 5 sec (bosses: 1.5 sec). Preserves its slow; does not freeze enemies or grant the ability",
+        stat: TalentStat::WingClipRoot, per_rank: 0.04 },
     TalentDefinition { id: 1621, max_rank: 2, name: "Savage Strikes",
         description: "Raptor Strike and Mongoose Bite: +10 percentage points critical chance per rank. Excludes shots, traps, Volley and the combat wolf; requires acquiring either melee ability",
         stat: TalentStat::SpellGroupCrit(&["raptor_strike", "mongoose_bite"]), per_rank: 0.10 },
@@ -3260,6 +3274,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SiphonLife
             | TalentStat::Nightfall
             | TalentStat::Aftermath
+            | TalentStat::WingClipRoot
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
             | TalentStat::Pyroclasm
@@ -4739,6 +4754,7 @@ mod stat_talent_tests {
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
                     | TalentStat::Aftermath
+                    | TalentStat::WingClipRoot
                     | TalentStat::CurseExhaustion
                     | TalentStat::ImprovedCurseExhaustion
                     | TalentStat::Pyroclasm
@@ -6113,6 +6129,40 @@ mod savage_strikes_tests {
             &text[ranges[0].clone()],
             "+10 » 20 percentage points critical chance"
         );
+        assert!(!node.inline_description(255).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod wing_clip_tests {
+    use super::*;
+    #[test]
+    fn root_chance_is_capped_class_and_hit_scoped_without_other_cast_changes() {
+        for class in 0..9 {
+            for rank in [0, 1, 4, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 1305, rank)]);
+                for key in crate::data::CLASSES[2].ability_keys() {
+                    for damage in [0., -1., f32::NAN, f32::INFINITY, 5.] {
+                        let expected = if class == 2 && key == "wing_clip" && damage == 5. {
+                            0.04 * f32::from(rank.min(5))
+                        } else {
+                            0.
+                        };
+                        assert_eq!(trained.wing_clip_root_chance(key, damage), expected);
+                    }
+                    assert_eq!(trained.cast(key), base.cast(key));
+                    assert_eq!(trained.with_ranks(&[]).wing_clip_root_chance(key, 5.), 0.);
+                }
+            }
+        }
+        let node = talent_definition(2, 1305).unwrap();
+        let (text, ranges) = node.inline_description_with_values(1).unwrap();
+        assert_eq!(&text[ranges[0].clone()], "+4 » 8% chance");
+        assert!(text.contains("5 sec (bosses: 1.5 sec)"));
         assert!(!node.inline_description(255).unwrap().contains(" » "));
     }
 }

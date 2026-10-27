@@ -294,7 +294,7 @@ A row shows its reward in points and, where it is a count, how far along it is.
 
 Jeweler’s Eye grants 10 points for discovering half the combined jewelry Codex,
 rounded up: shared rings, trinkets and amulets plus every class-specific legendary
-amulet (currently 56 of 112 entries). Each entry counts once across the account.
+amulet (rounded up from the current catalog; 59 of 117 entries at this checkpoint). Each entry counts once across the account.
 Existing awards from the earlier eight-legendary rule remain earned. Legendary
 discoveries separately grants 15 points for 36 class legendary amulets.
 
@@ -770,3 +770,18 @@ Single-target additions apply; shot, trap and pet-specific training does not.
 Savage Strikes (1621, two ranks) grants these two abilities 10 percentage points
 of critical chance per rank. It grants neither ability and does not increase
 generic critical chance. Saved specs and refunds retain the normal talent rules.
+
+
+### Hunter Wing Clip
+
+Wing Clip (2974) is a normal Hunter melee offer, with an associated legendary
+amulet/Codex entry. Rank 1 deals 5 damage within 4 yd, slows by 50% for 5 seconds,
+and recharges in 4 seconds. Normal ranks scale damage, slow duration and cooldown;
+additional targets remain within melee reach. Bosses retain 75% movement speed.
+These are draft Survivors balance values. Shot bonuses and Savage Strikes exclude it.
+
+Improved Wing Clip (1305, five ranks) grants a 4% root chance per rank on each
+direct damaging Wing Clip hit. Roots last 5 seconds, or 1.5 seconds on bosses,
+and preserve longer existing roots. The baseline slow remains. Roots do not count
+as frost freezes; periodic ticks cannot trigger the talent. This talent grants
+neither the ability nor extra damage, range or slow strength.

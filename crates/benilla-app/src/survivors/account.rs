@@ -3064,6 +3064,53 @@ mod tests {
     }
 
     #[test]
+    fn wing_clip_metadata_training_specs_and_refunds() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let spells = benilla_formats::load_spell_catalog(&mut chain).unwrap();
+        assert_eq!(spells.get(2974).unwrap().name, "Wing Clip");
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(2);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(2, 1311, 5)];
+        let before = account.bonus(2, hero);
+        for _ in 0..5 {
+            assert!(account.learn_talent(hero, 2, 1305, 5, 1, true));
+        }
+        assert!(!account.learn_talent(hero, 2, 1305, 5, 1, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        assert_eq!(account.bonus(2, hero).crit, before.crit);
+        let chance = |account: &Account, key| {
+            account
+                .milestones_picked(2, Some(hero))
+                .wing_clip_root_chance(key, 5.)
+        };
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert!((chance(&loaded, "wing_clip") - 0.2).abs() < 0.00001);
+        assert_eq!(chance(&loaded, "arcane_shot"), 0.0);
+        loaded.select_spec(hero, 1);
+        assert_eq!(chance(&loaded, "wing_clip"), 0.0);
+        loaded.select_spec(hero, 0);
+        assert!(loaded.unlearn_talent(hero, 1305, true));
+        assert_eq!(chance(&loaded, "wing_clip"), 0.16);
+        assert!(loaded.unlearn_talent(hero, 1305, true));
+        assert_eq!(chance(&loaded, "wing_clip"), 0.12);
+    }
+
+    #[test]
     fn scorpid_metadata_purchase_saved_specs_and_refund_match_runtime() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

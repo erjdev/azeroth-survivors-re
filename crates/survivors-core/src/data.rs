@@ -602,6 +602,17 @@ pub static ABILITIES: &[AbilityDef] = &[
     ),
     // --- Hunter ---
     ability!(
+        "wing_clip",
+        2974,
+        Melee {
+            damage: 5.0,
+            cooldown: 4.0,
+            range: 4.0,
+            effect: Effect::Slow(0.5, 5.0),
+            mark: 2974
+        }
+    ),
+    ability!(
         "raptor_strike",
         2973,
         Melee {
@@ -1127,6 +1138,7 @@ pub static CLASSES: &[ClassDef] = &[
             "scorpid_sting",
             "raptor_strike",
             "mongoose_bite",
+            "wing_clip",
         ],
         looks: &[
             1373, 1703, 1723, 1882, 2066, 2087, 2105, 2112, 2205, 2206, 2251, 3056, 3072, 3073,

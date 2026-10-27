@@ -610,7 +610,9 @@ height = 720
 abilities = smite:1, holy_fire:3, holy_nova:0
 ```
 
-One to four comma-separated ability keys are supported. Rank `0` shows a new spell;
+One to four comma-separated ability keys are supported. Repeating a key at different
+ranks allows side-by-side comparisons. A new spell deliberately shows its rank 1→2
+preview, as required by the inline-upgrade design. Rank `0` shows a new spell;
 `1`–`7` shows that rank's upgrade. Unknown keys, malformed ranks, and maximum-rank
 upgrades are rejected. The preview defaults to baseline run stats. Add
 `profile = selected` to snapshot the selected character using the production
