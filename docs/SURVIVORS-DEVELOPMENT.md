@@ -7,6 +7,12 @@ is a conceptual reference only: do not inspect, decompile, or use it as an imple
 
 ## Compile once, reuse the engine
 
+Both Survivors launchers (`warcraft-survivors` and browser `wenilla`) explicitly
+enable `survivors-visibility`, `survivors-terrain` and `survivors-text` on
+`benilla-app`. Keep these aligned: the browser build uses `--no-default-features`,
+so gameplay carries must not depend on launcher defaults. `scripts/web-build.sh`
+defaults to WebGPU; `WEB_BACKEND=webgl2` is the glue-screen-only fallback.
+
 Cargo already stores compiled dependencies under `target/`. The existing `play` profile
 inherits release optimization, enables incremental compilation and disables LTO. Keep that
 cache, the toolchain, feature selection and profile stable. Do not run `cargo clean` during

@@ -4451,6 +4451,12 @@ Screenshots are embedded in CHANGELOG and README.
 
 ### Windows playtest follow-up — 2026-10-26
 
+Browser parity correction, 2026-10-27: `wenilla` already called `run_survivors`
+but omitted the visibility, terrain and combat-text feature carries. Its dependency
+now enables the same three features as the native launcher. The WebGPU wasm check
+passes (five existing warnings), and Cargo's feature graph confirms propagation.
+This does not establish browser visual/gameplay acceptance or Windows scene closure.
+
 Platform gate added 2026-10-27: CI now checks `warcraft-survivors` on Windows
 (which enables the native visibility, terrain and text carries) and runs
 `survivors-core` tests there. The 179 rules tests pass locally and workflow YAML

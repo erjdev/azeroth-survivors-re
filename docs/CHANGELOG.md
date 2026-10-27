@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Browser Survivors feature parity
+
+The browser launcher now enables the same foliage visibility, terrain-height and
+combat-text placement features as the native game. Previously, its Survivors entry
+point compiled without those carries. WebGPU wasm compilation passes with the same
+five existing warnings; Cargo's feature graph confirms all three features are enabled.
+Browser rendering and gameplay validation remain open; no new visual capture is claimed.
+
 ## 2026-10-27 — Windows build coverage
 
 Added a Windows CI gate for the native Survivors launcher, including its visibility,
