@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Windows launcher failure reporting
+
+PowerShell now forwards Cargo's exit status; the cmd wrapper explicitly returns
+it too. Windows CI gains a no-game-data launcher smoke test covering paths with
+spaces, checkout-relative execution and data overrides. Python syntax and diff
+checks pass locally; execution skips on macOS. GitHub still reports no workflow
+runs, so Windows acceptance remains open. No UI change.
+
 ## 2026-10-27 — Accurate periodic amulet descriptions
 
 Rupture, Shadow Word: Pain, Corruption, Curse of Agony, Insect Swarm and Entangling

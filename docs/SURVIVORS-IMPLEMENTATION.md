@@ -7150,3 +7150,15 @@ remain limited by the existing single-target eligibility rule.
 
 Verification: 394 app tests, app-test Clippy, formatting and native play build
 pass. No Windows or live combat acceptance is claimed for this display correction.
+
+
+### Windows launcher status checkpoint — 2026-10-27
+
+Both checkout wrappers explicitly forward the Cargo/game process exit code;
+PowerShell previously did not. Windows CI now exercises both wrappers with a
+mock Cargo from an external working directory, paths containing spaces, three
+data-path cases and success/failure statuses. No game files or GPU are needed.
+Local Python compilation and diff validation pass; the actual execution test
+skips on macOS, where neither Windows shell is available. GitHub's repository
+Actions endpoint still reports zero runs. This is implemented CI coverage, not
+a claim of a passing Windows run; the platform gate remains open.

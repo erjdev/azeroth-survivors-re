@@ -12,3 +12,5 @@ if (-not $env:WOW_DATA) {
 }
 
 cargo survivors
+# Native commands do not turn a nonzero status into a PowerShell script failure.
+exit $LASTEXITCODE

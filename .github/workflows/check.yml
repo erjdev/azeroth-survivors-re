@@ -22,6 +22,8 @@ jobs:
       CARGO_PROFILE_TEST_DEBUG: 0
     steps:
       - uses: actions/checkout@v4
+      - name: Windows launcher exit codes and data paths
+        run: python -m unittest discover -s scripts -p test_survivors_launchers.py -v
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:

@@ -63,6 +63,21 @@ cargo run -p survivors-audit -- "$PWD/wow-data/Data" --achievement-art
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --floor 533 3005.87 -3435.01 293.88
 ```
 
+### Windows checkout launchers
+
+Run `scripts\survivors.cmd` from cmd, or `./scripts/survivors.ps1` from PowerShell.
+Both change to this checkout's root, use its `wow-data/Data` when `WOW_DATA` is
+unset, and preserve an explicit `WOW_DATA` override. They invoke `cargo survivors`
+on the incremental play profile and return Cargo/the game's exit status to the
+caller. PowerShell callers can inspect `$LASTEXITCODE`; cmd callers can inspect
+`%ERRORLEVEL%`. A failed build does not start an older executable.
+
+The Windows CI job runs `python -m unittest discover -s scripts -p test_survivors_launchers.py -v` before compiling. Its temporary mock Cargo checks
+both launchers from outside the checkout, paths containing spaces, absent/local/
+explicit data paths, and successful/failing native exit codes without a game
+install. This test deliberately skips on non-Windows hosts; a local skip is not
+Windows validation.
+
 ### Windows build artifacts
 
 The `check` workflow's `windows-survivors` job checks the development launcher,
