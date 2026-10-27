@@ -4650,6 +4650,7 @@ mod milestone_tests {
                         ..Default::default()
                     };
                     let mut run = Run {
+                        class: &data::CLASSES[5],
                         milestones: if trained {
                             base.with_ranks(&[(2, 582, 1)])
                         } else {
@@ -4665,6 +4666,7 @@ mod milestone_tests {
                     };
                     let original = Params::new(&owned, &run.stats(), base);
                     let params = Params::new(&owned, &run.stats(), run.milestones);
+                    run.abilities.push(owned);
                     let pulse = key == "magma_totem";
                     let distance = if pulse {
                         original.radius
@@ -4684,6 +4686,8 @@ mod milestone_tests {
                         .add_message::<SwingMessage>()
                         .add_message::<crate::combat_text::CombatTextSpawn>()
                         .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
                     for sign in [-1., 1.] {
                         app.world_mut().spawn((
                             Transform::from_xyz(sign * distance * distance_scale, 0., 0.),
@@ -4713,19 +4717,30 @@ mod milestone_tests {
                             },
                         ));
                     }
-                    app.world_mut().spawn((
-                        Transform::default(),
-                        Totem {
-                            cast: 0,
-                            damage: params.dmg,
-                            range: params.range,
-                            radius: params.radius,
-                            left: 10.,
-                            tick: 0.,
-                            pulse,
-                            source: key,
-                        },
-                    ));
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let world = app.world_mut();
+                    let mut deployed = world.query::<(&Transform, &Totem)>();
+                    let (transform, totem) = deployed.single(world).unwrap();
+                    assert!((transform.translation.length() - 2.).abs() < 0.0001);
+                    assert_eq!(totem.source, key);
+                    assert_eq!(totem.cast, data::ability(key).totem.1);
+                    assert_eq!(totem.pulse, pulse);
+                    assert_eq!(
+                        (totem.damage, totem.range, totem.radius, totem.left),
+                        (params.dmg, params.range, params.radius, params.duration)
+                    );
+                    let origin = transform.translation;
+                    assert_eq!(world.resource::<Run>().abilities[0].cd, params.cooldown);
+                    // Keep attack distances exact without replacing the deployed component.
+                    for mut transform in world
+                        .query_filtered::<&mut Transform, With<Enemy>>()
+                        .iter_mut(world)
+                    {
+                        transform.translation += origin;
+                    }
+                    world
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs_f32(0.4));
                     app.world_mut().run_system_once(tick_areas).unwrap();
                     let reachable = distance_scale < if trained { 1.2 } else { 1. };
                     assert_eq!(

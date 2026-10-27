@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Totem cast integration
+
+Totemic Mastery's regression now casts Searing and Magma through production
+spell deployment before checking attack reach. It verifies spawned geometry,
+damage, lifetime, cooldown and one deployed totem despite extra-target gear;
+Searing selects one target and Magma hits every target in its single pulse area.
+
+337 app tests and Clippy pass. This strengthens integration coverage without
+changing gameplay or UI; existing screenshots remain current. Windows combat
+acceptance and balance remain open.
+
 ## 2026-10-27 — Implementation review opened
 
 [Draft PR #1](https://github.com/erjdev/azeroth-survivors-re/pull/1) now tracks the

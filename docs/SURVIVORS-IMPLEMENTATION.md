@@ -6013,3 +6013,16 @@ and Windows acceptance work; it is not a merge-readiness claim. At b4951ff, the
 wasm32 wenilla check passes (five warnings), and all 337 visibility-enabled app
 tests pass with checkout data. Existing screenshots remain current because this
 checkpoint changes no UI. GitHub CI must be assessed independently.
+
+### 2026-10-27 — Totemic Mastery deployment integration
+
+Replaced the range fixture's manually constructed totem with production
+cast_abilities deployment for a Shaman owning Searing/Magma. The test checks
+exactly one deployment, placement, source/cast identity, pulse mode, damage,
+range/radius, lifetime and consumed cooldown. It positions enemies relative to
+the deployed totem and advances time through its first attack, covering baseline,
+extended-only and unreachable distances with and without training. Extra-target
+gear cannot duplicate a totem or turn Searing into a multi-target attack; Magma
+hits both enemies inside its single area. All 337 app tests, app Clippy, formatting
+and diff checks pass. No runtime/UI change or new screenshot; this does not
+establish live Windows combat or balance acceptance.
