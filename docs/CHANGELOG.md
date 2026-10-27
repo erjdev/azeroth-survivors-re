@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Reproducible talent builds
+
+The `trained` UI fixture now provides two Shaman heroes with Enhancement,
+Restoration and empty specs. Matching presets reproduce these screenshots from
+one command, without editing saves or playing a run. No gear or clears are granted.
+
+345 app tests pass with checkout data, including actual talent-catalog validation
+for every saved spec; five fixture-tool tests pass. Native macOS checks cover both
+sizes and switching builds. Other classes and Windows acceptance remain open.
+
+![Packaged Enhancement build](images/screenshots/2026-10-27-trained-fixture/enhancement-1280.png)
+![Packaged compact Restoration build](images/screenshots/2026-10-27-trained-fixture/restoration-640.png)
+
 ## 2026-10-27 — One-command isolated UI previews
 
 The fixture helper now accepts `--preset` and `--run`: copy a watched UI request,

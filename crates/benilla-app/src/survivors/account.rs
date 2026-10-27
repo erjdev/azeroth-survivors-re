@@ -1856,6 +1856,63 @@ mod tests {
     }
 
     #[test]
+    fn trained_ui_fixture_has_independent_specs_without_earned_content() {
+        let mut account = parse(include_str!("../../testdata/survivors-ui/trained.txt")).unwrap();
+        assert_eq!(account.characters.len(), 2);
+        assert!(account
+            .classes
+            .iter()
+            .all(|c| c.pieces == [0; campaign::PIECES] && c.clears.iter().all(|&v| !v)));
+        assert!(account.supplemental.keys().next().is_none());
+        assert!(account.earned.is_empty());
+        for (id, points) in [(1, [29, 13, 0]), (2, [13, 29, 0])] {
+            for (spec, expected) in points.into_iter().enumerate() {
+                account.select_spec(id, spec as u8);
+                let hero = account.character(id).unwrap();
+                assert_eq!(hero.active_points(), expected);
+                assert!(hero.talent_budget_valid());
+            }
+            account.select_spec(id, 0);
+        }
+        let canonical = encode(&account);
+        assert_eq!(encode(&parse(&canonical).unwrap()), canonical);
+        account.respec(1);
+        assert_eq!(account.character(1).unwrap().active_points(), 0);
+        assert_eq!(account.character(2).unwrap().active_points(), 13);
+        account.select_spec(1, 1);
+        assert_eq!(account.character(1).unwrap().active_points(), 13);
+    }
+
+    #[test]
+    fn trained_ui_fixture_specs_pass_the_checkout_talent_catalog() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let account = parse(include_str!("../../testdata/survivors-ui/trained.txt")).unwrap();
+        let mut app = App::new();
+        app.insert_resource(account)
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().resource_mut::<Account>();
+        for id in [1, 2] {
+            for spec in 0..3 {
+                account.select_spec(id, spec);
+                let hero = account.character(id).unwrap();
+                assert!(account.talents_valid(hero), "hero {id} spec {spec}");
+                assert_eq!(
+                    account
+                        .milestones_picked(5, Some(id))
+                        .points
+                        .iter()
+                        .sum::<u32>(),
+                    hero.active_points()
+                );
+            }
+        }
+    }
+
+    #[test]
     fn custom_features_round_trip_by_hero_and_body_with_legacy_defaults() {
         let mut account = empty();
         let a = account.create("First", "Hero", 0).unwrap();

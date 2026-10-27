@@ -1,0 +1,6 @@
+# Use the trained fixture profile. Inspection never spends points.
+page=talents
+hero=2
+talent=593
+width=640
+height=720

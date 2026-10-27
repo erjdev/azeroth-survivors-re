@@ -12,7 +12,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "crates/benilla-app/testdata/survivors-ui"
 PREVIEWS = ROOT / "docs/ui-previews"
-PROFILES = ("fresh", "partial", "collected")
+PROFILES = ("fresh", "partial", "collected", "trained")
 PAGES = ("starter", "heroes", "talents", "rewards", "collection", "codex",
          "achievements", "notes", "drops", "look")
 

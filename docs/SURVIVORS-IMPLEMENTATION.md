@@ -6155,3 +6155,18 @@ preparation, path spaces, source preservation, invalid requests and mocked launc
 environment/exit status. Development docs include macOS/Linux and Windows command
 forms. No UI change, new rendering evidence or Windows execution claim. Populated
 talent-build fixtures and full platform/interface acceptance remain open.
+
+### 2026-10-27 — Reproducible populated talent fixtures
+
+Added a trained profile with two independent Shaman heroes, each holding legal
+29-point Enhancement, 13-point Restoration and empty builds in complementary
+spec slots. No gear, clears or encounter history is granted. Named presets open
+Weapon Mastery at 1280×720 or Tidal Focus at 640×720 through the one-command helper.
+Account regressions verify parsing, budgets, save round-trip and reset isolation;
+a checkout-data test installs production catalog validation and checks every spec.
+Native macOS captures confirm both presets and switching the first hero between
+builds without affecting the second. CHANGELOG embeds both captures. Other classes'
+populated fixtures, purchased rewards, Windows and full acceptance remain open.
+
+All 345 app tests pass with explicit checkout data, alongside five Python fixture
+tests. No runtime code changed; the existing native build was used for captures.

@@ -557,14 +557,26 @@ page/viewport control above when comparing screen sizes in one session.
 | `fresh` | No named heroes, no collection, default account state. |
 | `partial` | Warrior and Mage heroes, 18/54 pieces each, 12 and 6 unspent talent points, mixed worn/empty slots, hidden head and independent shoulder appearance. |
 | `collected` | All 54 pieces for all nine classes, ten heroes including two Warriors, 51 unspent points for each class's first hero, varied worn rarities and independent appearance. |
+| `trained` | Two Shaman heroes, each with 30 earned points: a 29-point Enhancement build, a 13-point Restoration build and an empty spec. Hero 1 starts Enhancement; hero 2 starts Restoration. No equipment or clears. |
+
+Reproduce the populated talent captures directly:
+
+```sh
+python3 scripts/survivors-ui-fixture.py trained --preset shaman-enhancement-1280.txt --run
+python3 scripts/survivors-ui-fixture.py trained --preset shaman-restoration-640.txt --run
+```
+
+Use `py -3` on Windows. In an existing preview, copy either preset over its printed
+`view.txt` to switch hero, inspected talent and viewport without recompiling. Saved
+spec edits remain local to that fixture; create a new copy for the original state.
 
 These are explicit synthetic save fixtures, validated by the real Rust account
 parser and round-trip tests. They do not add a cheat path to the player build.
-They intentionally contain no zone clears, spent talent builds, or fabricated
-encounter history. The normal achievement rules may award collection achievements
+They contain no zone clears or fabricated encounter history. Only `trained`
+contains spent talent builds. The normal achievement rules may award collection achievements
 when the menu loads. Full ownership is not proof that every item model, source,
 talent or zone is ready. Granted/locked achievements and collection states can be
-inspected, but populated talent specs and purchased reward fixtures remain future
+inspected; purchased reward fixtures and other classes' populated builds remain future
 extensions. The fresh account may acquire normal defaults when the app initializes.
 
 
