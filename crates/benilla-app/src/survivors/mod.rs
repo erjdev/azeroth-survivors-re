@@ -23,6 +23,7 @@ mod hero;
 mod hud;
 mod hunter_pet;
 mod jewel_icons;
+#[path = "../ui_survivors_strings.rs"]
 mod localization;
 mod look_catalog;
 mod menu;

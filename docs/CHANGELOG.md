@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Restore the UI VM boundary
+
+VM-backed tests now live in test files; runtime localization and the browser
+bridge live under UI-feed paths. Test bodies and the public bridge API are
+unchanged. The VM-boundary audit passes at its original 40-gameplay-file ceiling.
+
+446 Survivors tests, app Clippy and WebGPU compilation pass (five existing browser
+warnings). The restarted full chain has passed formatting/workspace Clippy and is
+running workspace tests. No visible UI change; existing milestone captures apply.
+
 ## 2026-10-27 — Equipment and rank localization
 
 Health, armor and damage summaries now use shared runtime templates throughout

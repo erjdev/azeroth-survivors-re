@@ -25,18 +25,18 @@ pause screens. Preview activation uses `run_mode::dev_affordances()`; a test in 
 player configuration proves a preview environment variable cannot install state
 or the watcher. Runtime preview activation remains native-only.
 
-The full gate is **not green**: it now reaches `reference_strings`, which flags
-Survivors labels duplicating existing game localization keys. Appearance labels and
-Enter World now resolve glue keys, reducing the flagged literals from 31 to 24. Shared boot-VM lookup now covers
-tooltip rank headings, ranges, durations and cooldowns, leaving 15 flagged literals. Deferred bindings for Audio switches and Character
-rotation labels, plus shared level/range templates, reduce the remaining count to
-eight. 442 Survivors app tests and native 800×720 screenshots cover that checkpoint.
-441 Survivors app tests verify the tooltip update, including translated order,
-fractional values and green upgrade lines. Live translated-tooltip layout remains open.
-Native English layout checks and injected translation/fallback tests pass; this is
-not complete localization. Resolve the remaining keys
-through the existing string resources, then rerun the full gate, including
-no-install and the complete player suite. Browser compilation previously passed
+The reference-string audit now passes without allowance changes. Appearance,
+tooltip, settings, level, regeneration, equipment and legacy rank labels resolve
+runtime keys. The latest checkpoint passes 446 Survivors app tests, app Clippy,
+and native Collection validation. Injected translations cover argument order,
+signs, fractional values, percentage units and green upgrade spans.
+
+The full integration chain has been restarted: formatting and workspace-wide
+Clippy passed; workspace testing then stopped at the VM-boundary source audit.
+Dedicated test files and UI-feed paths now restore its original 40-file ceiling
+without changing test bodies or relaxing the gate. A fresh full run is active;
+no-install and complete player-suite results remain pending. This does not establish complete localization: live
+translated-layout acceptance remains open. Browser compilation previously passed
 with five warnings. Addon-corpus coverage and Windows visual acceptance remain open.
 
 ## Healing correctness — 2026-10-27
@@ -7924,3 +7924,18 @@ can reorder their arguments. Armory refresh invalidates when the catalog changes
 The source reference-string audit passes with no allowance changes. Native English
 Collection preview at 1280×720 confirms equipment totals, item bonuses and the
 full-loadout loss preview. Live translated-layout acceptance remains open.
+
+
+### VM boundary integration checkpoint — 2026-10-27
+
+The first post-localization full run passed formatting/workspace Clippy and
+advanced beyond reference_strings, then stopped at ui_script_wall (47 gameplay
+files; ceiling 40). Five unchanged test modules now live in dedicated test files.
+Localization is a UI feed at ui_survivors_strings.rs; the bridge is at
+ui_webbridge/ with its prior module API retained. Source audit now reports 40 game,
+100 feed, 18 probe and 20 test files, without modifying the boundary gate.
+
+446 Survivors tests, native app Clippy and WebGPU compilation pass. The five
+previous browser warnings persist. Full integration rerun is active and has passed
+workspace Clippy; no-install/player-suite outcomes and addon-corpus coverage remain
+open. This source organization change does not alter UI appearance.

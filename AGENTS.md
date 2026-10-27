@@ -25,7 +25,7 @@ changing client code, and treat this file as authoritative for the fork's crates
 | path | what | whose |
 |---|---|---|
 | `crates/benilla-*` | the client: formats, world, UI, protocol, app | upstream's, plus our `#[cfg]`-gated carries |
-| `crates/benilla-app/src/webbridge/` | the JavaScript bridge, wasm side | ours |
+| `crates/benilla-app/src/ui_webbridge/` | the JavaScript bridge, wasm side | ours |
 | `crates/wenilla` | the wasm entry crate (`#[wasm_bindgen(start)]`) | ours |
 | `crates/wenilla-host` | local dev server: static files, `/data/*`, `/ws/*` relay. Loopback only. | ours |
 | `crates/wenilla-realm` | the realm service: login, play page, admin panel, relay. This runs in prod. | ours |
