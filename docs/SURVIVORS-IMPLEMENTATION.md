@@ -6837,3 +6837,23 @@ play build, WebGPU check (five existing warnings), formatting and diff checks.
 Native 1280×720 preview/purchase confirms 30 → 31 Elemental points and saved
 DBC 573 rank 1; changelog embeds both captures. Coverage is 242/432 definitions
 (Shaman 30/46). This does not establish browser combat or live balance.
+
+
+### Starter hero identity — 2026-10-27
+
+Compared directly with `intentions/survivors_main_menu.png`: replace the separate
+small Name action with a proportional, bordered name control beside Random.
+Selecting it opens the existing first/last-name draft with explicit Save/Cancel;
+that split editor is an intentional departure from the single reference field.
+Show race/class/sex together below it, keeping faction on the portrait badge.
+Add the runtime race atlas portrait, matched to body sex, beside a gold race
+heading and wrapping green bonus bullets. Portrait width is proportional and
+capped; the bonus column can shrink and wrap without displacing the portrait.
+
+Native 1280×720 and 640×720 checks verify direct rename (Mira → Mirabel), Cancel
+preserving the saved name, Random saving another name, switching female Mage to
+male Warrior, and compact scroll reachability. The isolated save contains the
+expected names. Native play build (34.13 sec), app-test Clippy, formatting and
+diff checks pass. Presentation-only change; no new combat test run. Three inline
+changelog captures and the README starter image document the result. Broader
+resolution/controller acceptance and outdoor illustration remain open.

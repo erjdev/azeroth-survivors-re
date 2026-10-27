@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Starter hero identity
+
+The starter now follows the main-menu reference with a prominent clickable name
+field and a body-matched racial portrait beside the bonus list. Race, class and
+sex appear together below the name; Random remains adjacent.
+
+Native 1280×720/640×720 checks cover direct rename, Save/Cancel, saved names,
+Random, male/female portrait changes and compact scrolling. Native build and
+app-test Clippy pass. The existing split first/last-name editor is retained;
+remaining starter artwork and wider resolution/controller acceptance stay open.
+
+![Starter hero identity](images/screenshots/2026-10-27-starter-identity/starter-1280.png)
+![Compact name control](images/screenshots/2026-10-27-starter-identity/starter-640.png)
+![Compact racial summary](images/screenshots/2026-10-27-starter-identity/racials-640.png)
+
 ## 2026-10-27 — Shaman Elemental Mastery
 
 Elemental Mastery guarantees the next successful lightning/shock cast's direct

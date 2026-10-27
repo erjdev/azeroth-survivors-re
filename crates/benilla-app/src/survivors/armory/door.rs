@@ -13,7 +13,7 @@ use super::super::stash::Stash;
 use super::super::{Selection, BASE_HP};
 use super::{Act, Armory, Page};
 use crate::char_select::race_name;
-use crate::glue::art::{class_tc, tc_rect, GlueArt, DIM, GOLD, NAME_EDGE};
+use crate::glue::art::{class_tc, race_tc, tc_rect, GlueArt, DIM, GOLD, NAME_EDGE};
 use crate::glue::backdrop::{backdrop_border, tiled_bg_node};
 use crate::glue::widgets::{
     outlined_text, outlined_text_centered, overlay, GlueText, Hilight, LockHighlight,
@@ -797,15 +797,42 @@ fn hero_column(
                         super::chip(row, font, "Cancel", Act::CancelName, false);
                         return;
                     }
-                    line(row, font, &name, 18.0, name_color);
                     if hero.is_some() {
-                        super::chip(row, font, "Name", Act::EditName, false);
+                        super::controls::content_button(
+                            row,
+                            Act::EditName,
+                            false,
+                            Node {
+                                flex_basis: Val::Percent(65.0),
+                                flex_grow: 1.0,
+                                min_width: Val::Px(0.0),
+                                min_height: Val::Px(36.0),
+                                padding: UiRect::axes(Val::Px(8.0), Val::Px(5.0)),
+                                ..default()
+                            },
+                            |field| {
+                                field.spawn((
+                                    hud::text_bundle(font, &name, 18.0, name_color),
+                                    Node {
+                                        max_width: Val::Percent(100.0),
+                                        ..default()
+                                    },
+                                ));
+                            },
+                        );
+                    } else {
+                        line(row, font, &name, 18.0, name_color);
                     }
                     tab_button(row, font, "Random", Act::RandomName, false);
                 });
             let look_line = match look {
                 Some((race, sex)) => {
-                    format!("{} {} {}", faction(race), race_name(race), sex_name(sex))
+                    format!(
+                        "{} {} · {}",
+                        race_name(race),
+                        class.map_or("", |c| c.name),
+                        sex_name(sex)
+                    )
                 }
                 None => "No look chosen".to_string(),
             };
@@ -877,16 +904,65 @@ fn hero_column(
             &format!("{spent} of {}", campaign::TALENT_CAP),
         );
     });
-    if let Some((race, _)) = look {
-        line(body, font, race_name(race), 14.0, GOLD);
-        if let Some(racials) = survivors_core::racials::description(race) {
-            for racial in racials {
-                line(body, font, &racial, 12.0, BONUS);
-            }
-        } else {
-            line(body, font, "Racial bonuses are not yet defined.", 12.0, DIM);
-        }
+    if let Some((race, sex)) = look {
+        race_summary(body, art, font, race, sex);
     }
+}
+
+/// The starter reference pairs a body-matched race portrait with a compact bonus list.
+fn race_summary(
+    body: &mut ChildSpawnerCommands,
+    art: &GlueArt,
+    font: &Handle<Font>,
+    race: u8,
+    sex: u8,
+) {
+    body.spawn(Node {
+        width: Val::Percent(100.0),
+        column_gap: Val::Px(8.0),
+        margin: UiRect::top(Val::Px(6.0)),
+        align_items: AlignItems::Start,
+        ..default()
+    })
+    .with_children(|row| {
+        if let Some(((image, size), tc)) = art.races.as_ref().zip(race_tc(race, sex)) {
+            row.spawn((
+                ImageNode {
+                    image: image.clone(),
+                    rect: Some(tc_rect(*size, tc)),
+                    ..default()
+                },
+                Node {
+                    width: Val::Percent(14.0),
+                    max_width: Val::Px(40.0),
+                    aspect_ratio: Some(1.0),
+                    flex_shrink: 0.0,
+                    border: UiRect::all(Val::Px(1.0)),
+                    border_radius: BorderRadius::all(Val::Px(3.0)),
+                    ..default()
+                },
+                BorderColor::all(FRAME),
+            ));
+        }
+        row.spawn(Node {
+            flex_grow: 1.0,
+            flex_basis: Val::Px(0.0),
+            min_width: Val::Px(0.0),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(3.0),
+            ..default()
+        })
+        .with_children(|copy| {
+            line(copy, font, race_name(race), 18.0, GOLD);
+            if let Some(racials) = survivors_core::racials::description(race) {
+                for racial in racials {
+                    line(copy, font, &format!("• {racial}"), 12.0, BONUS);
+                }
+            } else {
+                line(copy, font, "Racial bonuses are not yet defined.", 12.0, DIM);
+            }
+        });
+    });
 }
 
 fn door_button(
