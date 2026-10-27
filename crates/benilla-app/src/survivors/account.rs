@@ -2385,6 +2385,72 @@ mod tests {
     }
 
     #[test]
+    fn shaman_enhancement_stats_survive_reload_spec_switch_and_reset_into_run_stats() {
+        let mut account = empty();
+        let first = account.ensure(5);
+        let second = account.create("Mura", "Training", 5).unwrap();
+        let baseline = vec![
+            (1, 614, 5),
+            (1, 613, 5),
+            (1, 605, 2),
+            (1, 607, 3),
+            (1, 602, 5),
+        ];
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|h| h.id == second)
+            .unwrap();
+        hero.talent_xp = 3000;
+        hero.dbc[0] = baseline.clone();
+        hero.dbc[1] = baseline;
+        hero.dbc[1].extend([(1, 601, 5), (1, 1643, 4)]);
+        let make_run = |account: &Account, id| super::super::Run {
+            class: &data::CLASSES[5],
+            bonus: account.bonus(5, id),
+            milestones: account.milestones_picked(5, Some(id)),
+            ..Default::default()
+        };
+        let base = make_run(&account, second).stats();
+        account.select_spec(second, 1);
+        let run = make_run(&account, second);
+        let trained = run.stats();
+        assert!((trained.might - base.might - 0.08).abs() < 0.00001);
+        assert!((trained.reduction - base.reduction - 0.05).abs() < 0.00001);
+        assert_eq!(trained.targets, base.targets);
+        assert_eq!(trained.cooldown, base.cooldown);
+        assert_eq!(trained.multistrike, base.multistrike);
+        assert_eq!(make_run(&account, first).stats().reduction, 0.);
+        assert_eq!(account.bonus(0, second).reduction, 0.);
+        let mut restored = parse(&encode(&account)).unwrap();
+        assert_eq!(make_run(&restored, second).stats().might, trained.might);
+        assert_eq!(
+            make_run(&restored, second).stats().reduction,
+            trained.reduction
+        );
+        restored.select_spec(second, 0);
+        assert_eq!(make_run(&restored, second).stats().might, base.might);
+        assert_eq!(
+            make_run(&restored, second).stats().reduction,
+            base.reduction
+        );
+        restored.select_spec(second, 1);
+        restored.respec(second);
+        let reset = make_run(&restored, second).stats();
+        let untrained = make_run(&restored, first).stats();
+        assert_eq!(reset.might, untrained.might);
+        assert_eq!(reset.reduction, untrained.reduction);
+        assert_eq!(run.stats().might, trained.might);
+        assert_eq!(run.stats().reduction, trained.reduction);
+        let reloaded = parse(&encode(&restored)).unwrap();
+        assert_eq!(make_run(&reloaded, second).stats().might, untrained.might);
+        assert_eq!(
+            make_run(&reloaded, second).stats().reduction,
+            untrained.reduction
+        );
+    }
+
+    #[test]
     fn rogue_training_survives_save_and_stays_with_hero_and_active_spec() {
         let mut account = empty();
         let first = account.ensure(3);

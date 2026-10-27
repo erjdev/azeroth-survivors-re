@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Saved Shaman builds reach run stats
+
+Verified Anticipation and Weapon Mastery through account saves and actual run stat
+calculation. Switching specs and resetting removes their bonuses; other heroes do
+not inherit them, and an ongoing run retains its original build.
+
+343 app tests pass. No UI change; the Enhancement screenshots below remain current.
+Live combat balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Shaman Enhancement training
 
 Anticipation now grants 1% damage reduction per rank; Weapon Mastery grants 2%

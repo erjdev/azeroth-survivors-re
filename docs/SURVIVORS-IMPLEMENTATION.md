@@ -6110,3 +6110,16 @@ identity audit and native build pass. Audit now matches 216/432 individual nodes
 Native macOS 1280×720 Weapon Mastery and 640×720 Anticipation captures confirm
 readable green values against the intentions talent-page layout; both are embedded
 in CHANGELOG. Live balance, Windows acceptance and 216 individual nodes remain open.
+
+### 2026-10-27 — Shaman saved-spec stat integration
+
+Added account-to-run regression coverage for the legal 20-point Enhancement base
+and its 29-point Anticipation/Weapon Mastery extension. The selected hero's saved
+spec supplies +8% damage and +5% reduction through Run::stats, without changing
+targets, cooldown or the existing multistrike milestone. A second same-class hero
+and foreign class cannot inherit the bonuses. Save/reload, spec switching and
+reset remove/restore the appropriate stats, while a previously captured run stays
+unchanged. This does not replace live combat or Windows acceptance. No UI change;
+the previous milestone's screenshots remain current.
+
+All 343 visibility-enabled app tests pass for this checkpoint.
