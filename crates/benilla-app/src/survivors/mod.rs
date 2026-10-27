@@ -485,6 +485,7 @@ pub(super) struct Run {
     pub immune_t: f32,
     pub enrage_t: f32,
     pub ancestral_healing_t: f32,
+    pub inspiration_t: f32,
     pub flurry_t: f32,
     pub vengeance_t: f32,
     pub remorseless_until: f32,
@@ -582,6 +583,7 @@ impl Default for Run {
             immune_t: 0.0,
             enrage_t: 0.0,
             ancestral_healing_t: 0.0,
+            inspiration_t: 0.0,
             flurry_t: 0.0,
             vengeance_t: 0.0,
             remorseless_until: 0.0,
@@ -707,6 +709,17 @@ impl Run {
         }
     }
 
+    pub(super) fn record_inspiration_healing(&mut self, source: &str, healed: f32) {
+        if self.alive()
+            && source == "holy_nova"
+            && healed.is_finite()
+            && healed > 0.
+            && self.milestones.inspiration_multiplier(true) > 1.
+        {
+            self.inspiration_t = 15.;
+        }
+    }
+
     pub(super) fn record_totem_healing(&mut self, source: &str, healed: f32) {
         if self.alive()
             && healed.is_finite()
@@ -802,6 +815,9 @@ impl Run {
             .ancestral_healing_armor(self.alive() && self.ancestral_healing_t > 0.);
         let racial = survivors_core::racials::effects(self.race, self.elapsed);
         apply_sheet(&mut s, racial.bonus);
+        s.armor *= self
+            .milestones
+            .inspiration_multiplier(self.alive() && self.inspiration_t > 0.);
         s.max_hp *= racial.health_multiplier;
         s.max_hp *= self.milestones.health_multiplier();
         s.regen += racial.regen;

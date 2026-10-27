@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Priest Inspiration
+
+Inspiration now grants 8% more armor per rank for 15 seconds after Holy Nova
+actually restores health. It refreshes without stacking, replaces provisional
+damage, and does not grant Holy Nova or its healing. Other healing and full-health
+casts do not trigger it. The HUD reports the active armor bonus and duration.
+
+![Inspiration inline armor upgrade](images/screenshots/2026-10-27-inspiration/preview.png)
+
+![Maximum Inspiration rank saved to the Holy spec](images/screenshots/2026-10-27-inspiration/purchased.png)
+
+214 core and 413 app tests, core/app Clippy and formatting checks pass.
+Definition coverage: 257/432 (Priest 28/47). Native menu and purchase checked
+at 1280×720; native build: 61 seconds.
+Combat HUD rendering, live balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Consistent provisional talent previews
 
 Talents awaiting individual mechanics now show their existing fallback bonus as

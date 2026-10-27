@@ -550,6 +550,14 @@ impl Milestones {
         1.0 + self.trained_value(TalentStat::MaximumHealth)
     }
 
+    pub fn inspiration_multiplier(self, active: bool) -> f32 {
+        if self.class == 4 && active {
+            1.0 + self.trained_value(TalentStat::InspirationArmor)
+        } else {
+            1.0
+        }
+    }
+
     pub fn ancestral_healing_armor(self, active: bool) -> f32 {
         if self.class == 5 && active {
             self.trained_value(TalentStat::AncestralHealingArmor)
@@ -1431,6 +1439,7 @@ pub enum TalentStat {
     EnrageDamage,
     BloodCrazeHealing,
     BlessedRecovery,
+    InspirationArmor,
     FlurryHaste,
     Vengeance,
     Remorseless,
@@ -1623,6 +1632,7 @@ impl TalentDefinition {
             | TalentStat::Pyroclasm
             | TalentStat::KidneyExposure
             | TalentStat::BlessedRecovery
+            | TalentStat::InspirationArmor
             | TalentStat::MaximumHealth
             | TalentStat::Cooldown
             | TalentStat::Crit
@@ -1884,6 +1894,7 @@ impl TalentDefinition {
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
+            TalentStat::InspirationArmor => (100.0, "% armor after Holy Nova healing"),
             TalentStat::BlessedRecovery => (100.0, "% health damage restored over 6 sec"),
             TalentStat::BloodCrazeHealing => {
                 (100.0, "% maximum health over 6 seconds after health damage")
@@ -2961,6 +2972,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 361, max_rank: 3, name: "Inspiration",
+        description: "Holy Nova restoring health grants +8% armor per rank for 15 sec. Refreshes without stacking; full-health casts, regeneration and other healing do not trigger it. Requires acquiring Holy Nova and unlocking its healing (Survivors conversion: no healing critical required)",
+        stat: TalentStat::InspirationArmor, per_rank: 0.08,
+    },
+    TalentDefinition {
         id: 1636, max_rank: 3, name: "Blessed Recovery",
         description: "Restore 7% of health damage taken per rank over 6 sec after any nonlethal hit. Further hits add their healing to the unhealed amount and restart the duration. Shields and immunity do not trigger it; cannot revive you (Survivors conversion: incoming critical hits are not modeled)",
         stat: TalentStat::BlessedRecovery, per_rank: 0.07,
@@ -3135,6 +3151,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::EnrageDamage
             | TalentStat::BloodCrazeHealing
             | TalentStat::BlessedRecovery
+            | TalentStat::InspirationArmor
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
@@ -4534,6 +4551,7 @@ mod stat_talent_tests {
                     | TalentStat::EnrageDamage
                     | TalentStat::BloodCrazeHealing
                     | TalentStat::BlessedRecovery
+                    | TalentStat::InspirationArmor
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing

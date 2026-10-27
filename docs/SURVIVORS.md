@@ -465,6 +465,14 @@ critical chance, capped at 100%, rather than guaranteeing a critical hit.
 
 Implemented individual Priest talents include these replacements for provisional general damage:
 
+Inspiration (361, three ranks) grants 8% / 16% / 24% more armor for 15 seconds
+when Holy Nova restores health. It multiplies armor after flat contributions,
+refreshes without stacking, and ends on expiry or death. Full-health casts,
+regeneration and other healing cannot trigger it. The player must acquire Holy
+Nova and unlock its healing through training or the Holy milestone; Inspiration
+does not grant either. This scaled Survivors conversion requires effective healing
+rather than a healing critical.
+
 Blessed Recovery (1636, three ranks) restores 7% / 14% / 21% of health damage
 taken over six seconds after any nonlethal hit. Each new hit adds its healing to
 the unpaid amount and restarts the six seconds; already delivered healing is

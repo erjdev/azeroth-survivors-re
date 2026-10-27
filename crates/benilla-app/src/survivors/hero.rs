@@ -425,6 +425,7 @@ fn advance_buffs(run: &mut Run, dt: f32) {
         &mut run.thorns_t,
         &mut run.enrage_t,
         &mut run.ancestral_healing_t,
+        &mut run.inspiration_t,
         &mut run.flurry_t,
         &mut run.vengeance_t,
     ] {
@@ -545,6 +546,49 @@ pub(super) fn reach(hero: Vec3, other: Vec3) -> f32 {
 #[cfg(test)]
 mod reactive_talent_tests {
     use super::*;
+
+    #[test]
+    fn inspiration_refreshes_armor_without_stacking_and_expires() {
+        let mut run = Run {
+            class: &data::CLASSES[4],
+            milestones: Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 361, 3)]),
+            ..Default::default()
+        };
+        run.bonus.armor = 100.;
+        let base = run.stats().armor;
+        for (key, healed) in [
+            ("renew", 10.),
+            ("holy_shock", 10.),
+            ("holy_nova", 0.),
+            ("holy_nova", -1.),
+            ("holy_nova", f32::NAN),
+        ] {
+            run.record_inspiration_healing(key, healed);
+            assert_eq!(run.inspiration_t, 0.);
+        }
+        run.record_inspiration_healing("holy_nova", 1.);
+        assert!((run.stats().armor - base * 1.24).abs() < 0.0001);
+        advance_buffs(&mut run, 6.);
+        assert_eq!(run.inspiration_t, 9.);
+        run.record_inspiration_healing("holy_nova", 2.);
+        assert_eq!(run.inspiration_t, 15.);
+        assert!((run.stats().armor - base * 1.24).abs() < 0.0001);
+        advance_buffs(&mut run, 20.);
+        assert_eq!(run.stats().armor, base);
+        run.record_inspiration_healing("holy_nova", 1.);
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert_eq!(run.stats().armor, base);
+        run.milestones = run.milestones.with_ranks(&[(1, 361, 3)]);
+        run.hp = 0.;
+        assert_eq!(run.stats().armor, base);
+        run.inspiration_t = 0.;
+        run.record_inspiration_healing("holy_nova", 1.);
+        assert_eq!(run.inspiration_t, 0.);
+    }
 
     #[test]
     fn blessed_recovery_tracks_only_nonlethal_health_damage_and_never_banks_overheal() {

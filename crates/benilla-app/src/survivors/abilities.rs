@@ -678,6 +678,7 @@ pub(super) fn cast_abilities(
             run.consume_remorseless(def.key);
             let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
             run.record_totem_healing(def.key, healed);
+            run.record_inspiration_healing(def.key, healed);
             if healed > 0.0 {
                 fx.number(me, healed, false, COLOR_HEAL);
             }
@@ -6368,6 +6369,115 @@ mod milestone_tests {
                 );
                 let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
                 assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
+            }
+        }
+    }
+
+    #[test]
+    fn inspiration_requires_successful_effective_nova_healing_once_per_cast() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for rank in [0, 1, 3, 255] {
+            for nova_rank in [0, 1] {
+                for (enemy_count, initial_hp, cooldown, dt) in [
+                    (0, 20., 0., 0.1),
+                    (2, 20., 0., 0.1),
+                    (2, 0., 0., 0.1),
+                    (2, 1000., 0., 0.1),
+                    (2, 20., 5., 0.1),
+                    (2, 20., 0., 0.),
+                ] {
+                    let mut run = Run {
+                        class: &data::CLASSES[4],
+                        hp: initial_hp,
+                        milestones: Milestones {
+                            class: 4,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(1, 361, rank), (1, 442, nova_rank)]),
+                        ..Default::default()
+                    };
+                    run.bonus.armor = 100.;
+                    run.bonus.targets = 3;
+                    let base_armor = run.stats().armor;
+                    run.hp = initial_hp.min(run.stats().max_hp);
+                    let initial_hp = run.hp;
+                    let max_hp = run.stats().max_hp;
+                    run.abilities.push(Owned {
+                        def: data::ability("holy_nova"),
+                        level: 1,
+                        cd: cooldown,
+                    });
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(dt));
+                    let mut app = App::new();
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(42))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                    for index in 0..enemy_count {
+                        app.world_mut().spawn((
+                            Transform::from_xyz(1. + index as f32, 0., 0.),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 100.,
+                                max_hp: 100.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: Vec::new(),
+                                dead: false,
+                            },
+                        ));
+                    }
+
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let healed = enemy_count > 0
+                        && initial_hp > 0.
+                        && initial_hp < max_hp
+                        && cooldown == 0.
+                        && dt > 0.
+                        && nova_rank > 0;
+                    let active = healed && rank > 0;
+                    assert_eq!(run.inspiration_t, if active { 15. } else { 0. });
+                    let armor = base_armor
+                        * if active {
+                            1. + 0.08 * f32::from(rank.min(3))
+                        } else {
+                            1.
+                        };
+                    assert!((run.stats().armor - armor).abs() < 0.0001);
+                    assert_eq!(run.hp > initial_hp, healed);
+                    if active {
+                        app.world_mut().resource_mut::<Run>().inspiration_t = 7.;
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        assert_eq!(app.world().resource::<Run>().inspiration_t, 7.);
+                    }
+                }
             }
         }
     }

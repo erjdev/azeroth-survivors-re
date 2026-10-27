@@ -228,3 +228,36 @@ mod recovery_tests {
         assert!(node.inline_description(2).unwrap().contains("14 » 21%"));
     }
 }
+
+#[cfg(test)]
+mod inspiration_tests {
+    use super::*;
+    #[test]
+    fn inspiration_is_capped_scoped_and_does_not_grant_healing_or_spells() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, 2, 3, 255] {
+                let trained = base.with_ranks(&[(1, 361, rank), (1, 361, rank)]);
+                let expected = if class == 4 {
+                    1. + f32::from(rank.min(3)) * 0.08
+                } else {
+                    1.
+                };
+                assert_eq!(trained.inspiration_multiplier(true), expected);
+                assert_eq!(trained.inspiration_multiplier(false), 1.);
+                assert_eq!(trained.with_ranks(&[]).inspiration_multiplier(true), 1.);
+                for key in ["holy_nova", "renew", "smite", "holy_shock"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+        let node = super::super::talent_definition(4, 361).unwrap();
+        assert!(node
+            .inline_description(2)
+            .unwrap()
+            .contains("16 » 24% armor"));
+    }
+}

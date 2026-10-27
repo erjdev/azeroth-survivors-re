@@ -7377,3 +7377,23 @@ Definition coverage stays 256/432; no pending talent is counted as implemented.
 
 409 app tests, app Clippy, formatting and diff checks pass. The existing core
 rules are unchanged; this checkpoint does not claim new gameplay acceptance.
+
+
+### 2026-10-27 — Priest Inspiration
+
+Node 361 replaces provisional damage with 8% more armor per rank for 15 seconds
+after effective Holy Nova healing. The three-rank conversion multiplies final flat
+armor, refreshes without stacking, and explicitly does not grant the spell or its
+healing. Full-health casts, regeneration and other healing do not trigger it.
+The HUD names the armor bonus and remaining duration. Acceptance includes real
+cast-system success/failure, no-target and paused frames, healing unlocks, rank
+caps, refresh/expiry/death, saved specs/refunds and scoped HUD status.
+
+Native 1280×720 captures verify the full green armor comparison, maximum-rank
+purchase and saved 14-point Holy spec. Changelog embeds both screenshots and
+README is refreshed. The native build passes in 61 seconds. These menu captures
+do not establish combat HUD rendering, live balance or Windows scene acceptance.
+
+Verified: 214 core and 413 app tests, core/app Clippy, formatting and diff checks.
+The real-data audit matches 257/432 definitions (Priest 28/47) and all 81 milestone
+descriptions; 175 individual talent definitions remain.

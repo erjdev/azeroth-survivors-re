@@ -1863,6 +1863,17 @@ fn reactive_buff_status(run: &Run) -> String {
             infusion_remaining.ceil()
         ));
     }
+    let inspiration = run
+        .milestones
+        .inspiration_multiplier(run.inspiration_t > 0.)
+        - 1.;
+    if inspiration > 0. {
+        active.push(format!(
+            "Inspiration +{:.0}% armor ({:.0}s)",
+            inspiration * 100.,
+            run.inspiration_t.ceil()
+        ));
+    }
     let ancestral = run
         .milestones
         .ancestral_healing_armor(run.ancestral_healing_t > 0.);
@@ -1924,6 +1935,28 @@ fn reactive_buff_status(run: &Run) -> String {
 #[cfg(test)]
 mod reactive_buff_tests {
     use super::*;
+
+    #[test]
+    fn inspiration_status_expires_on_refund_and_death() {
+        let mut run = Run {
+            inspiration_t: 14.2,
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 361, 3)]),
+            ..Default::default()
+        };
+        assert_eq!(reactive_buff_status(&run), "Inspiration +24% armor (15s)");
+        run.inspiration_t = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.inspiration_t = 8.;
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 10.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
 
     #[test]
     fn spirit_tap_status_reports_regeneration_and_expiry() {
