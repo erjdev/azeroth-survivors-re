@@ -4451,6 +4451,12 @@ Screenshots are embedded in CHANGELOG and README.
 
 ### Windows playtest follow-up — 2026-10-26
 
+Platform gate added 2026-10-27: CI now checks `warcraft-survivors` on Windows
+(which enables the native visibility, terrain and text carries) and runs
+`survivors-core` tests there. The 179 rules tests pass locally and workflow YAML
+parses; the Windows runner result remains pending. This is compile/rules coverage,
+not visual acceptance of the reported scenes below.
+
 - **Foliage reveal:** replace the collision-only activation probe with rendered
   scenery triangles from all three pick/render paths. Probe at 10 Hz after visibility
   classification, ignore units and scenery behind the hero, and retain the 500 ms

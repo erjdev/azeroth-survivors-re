@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Windows build coverage
+
+Added a Windows CI gate for the native Survivors launcher, including its visibility,
+terrain and text features, plus the engine-independent rules suite. Local validation:
+179 rules tests pass and workflow YAML parses. The Windows job has not yet been
+verified on its runner; foliage reveal, fence/chest navigation and crowded-wave
+performance still require Windows scene replay. No visual changes in this checkpoint.
+
 
 ## 2026-10-27 — Ancestral Healing
 
