@@ -5,12 +5,9 @@ use super::{
     Phase,
 };
 use benilla_world::{
-    interact::{PickBlob, WorldObject, WorldPick},
-    model_render::ModelKind,
-    survivors_visibility::SceneryCutaway,
+    survivors_visibility::{SceneryCutaway, SceneryProbe},
     view::WorldCamera,
 };
-use bevy::platform::collections::HashSet;
 use bevy::prelude::*;
 
 // Diameter as a fraction of the shorter viewport side, independent of UI/render scaling.
@@ -32,46 +29,11 @@ struct VisualProbe {
     blocked: bool,
 }
 
-fn scenery(kind: ModelKind) -> bool {
-    matches!(
-        kind,
-        ModelKind::Doodad | ModelKind::Wmo | ModelKind::GameObject
-    )
-}
-
-/// Render triangles include leaf canopies omitted from walking/camera collision hulls.
-/// WorldPick covers ordinary entities, merged blobs and the retained static renderer.
-fn visually_blocked(world: &WorldPick, pickable: &HashSet<Entity>, eye: Vec3, focus: Vec3) -> bool {
-    let Ok((direction, distance)) = Dir3::new_and_length(focus - eye) else {
-        return false;
-    };
-    let hits = world.cast(Ray3d::new(eye, direction), pickable, true);
-    let blocker = hits.iter().find(|hit| {
-        hit.hit.distance < distance - 0.5
-            && hit
-                .object
-                .as_ref()
-                .is_some_and(|object| scenery(object.kind))
-    });
-    trace!(
-        target: "survivors_visibility",
-        ?eye, ?focus, distance,
-        entity_candidates = pickable.len(),
-        render_hits = hits.len(),
-        blocked = blocker.is_some(),
-        blocker = ?blocker.and_then(|hit| hit.object.as_ref()),
-        hit_distance = ?blocker.map(|hit| hit.hit.distance),
-        "camera-to-hero render probe (entity candidates exclude retained static sources)"
-    );
-    blocker.is_some()
-}
-
-#[allow(clippy::too_many_arguments, clippy::type_complexity)]
+#[allow(clippy::too_many_arguments)]
 fn sync(
     phase: Res<State<Phase>>,
     time: Res<Time<Real>>,
-    world: WorldPick,
-    objects: Query<(Entity, Option<&WorldObject>), Or<(With<WorldObject>, With<PickBlob>)>>,
+    probe_world: SceneryProbe,
     mut probe: Local<VisualProbe>,
     mut fade: Local<survivors_core::visibility::CutawayFade>,
     settings: Res<CameraSettings>,
@@ -106,15 +68,7 @@ fn sync(
         cutaway.focus = focus.extend(radius);
         probe.elapsed -= time.delta_secs();
         if probe.elapsed <= 0.0 {
-            let pickable = objects
-                .iter()
-                .filter_map(|(entity, object)| {
-                    object
-                        .is_none_or(|object| scenery(object.kind))
-                        .then_some(entity)
-                })
-                .collect();
-            let blocked = visually_blocked(&world, &pickable, eye, focus);
+            let blocked = probe_world.blocked(eye, focus);
             if blocked != probe.blocked {
                 debug!(target: "survivors_visibility", blocked, ?eye, ?focus,
                     "scenery reveal target changed");
@@ -133,7 +87,10 @@ fn sync(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use benilla_world::interact::PickMesh;
+    use benilla_world::{
+        interact::{PickBlob, PickMesh, WorldObject},
+        model_render::ModelKind,
+    };
     use bevy::ecs::system::RunSystemOnce;
     use std::sync::Arc;
 
@@ -211,9 +168,7 @@ mod tests {
                         let focus = center - normal * side * 2.0;
                         assert!(
                             world
-                                .run_system_once(move |pick: WorldPick| {
-                                    visually_blocked(&pick, &HashSet::from([entity]), eye, focus)
-                                })
+                                .run_system_once(move |pick: SceneryProbe| pick.blocked(eye, focus))
                                 .unwrap(),
                             "{model}: merged={merged}, side={side}"
                         );
@@ -250,9 +205,7 @@ mod tests {
             .get_mut::<ViewVisibility>(entity)
             .unwrap()
             .set_visible();
-        let check = move |pick: WorldPick| {
-            visually_blocked(&pick, &HashSet::from([entity]), Vec3::ZERO, Vec3::Z * 10.)
-        };
+        let check = |pick: SceneryProbe| pick.blocked(Vec3::ZERO, Vec3::Z * 10.);
         assert!(
             world.run_system_once(check).unwrap(),
             "render-only leaves activate aperture"

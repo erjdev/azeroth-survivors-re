@@ -38,12 +38,13 @@ now follow this checkout's standalone launcher, reject missing source modules,
 and verify generated glue and optional storage initialization. Two Rust packaging,
 six build-script and seven browser tests pass.
 
-Workspace testing now stops at the world-API audit: 111 unpublished items against
-its unchanged ceiling of 107. Review the engine crossings before continuing;
-no-install and complete player-suite results remain pending. This does not
-establish complete localization: live translated-layout acceptance remains open.
-Browser compilation passed with five warnings. Addon-corpus coverage and Windows
-visual acceptance remain open.
+The world-API audit now passes at its original 107-leak ceiling. Render-candidate
+selection lives behind `SceneryProbe`; gameplay no longer enumerates merged blobs.
+The intentional fork visibility surface and existing startup-map setter have an
+[API record](SURVIVORS-ENGINE-API.md). All 449 feature-enabled Survivors tests and all-target app Clippy pass, including the installed Elwynn
+canopy regressions. The next full chain, no-install and complete player-suite
+results remain pending. Live translated-layout, addon-corpus and Windows visual acceptance remain
+open. Browser compilation previously passed with five warnings.
 
 ## Healing correctness — 2026-10-27
 

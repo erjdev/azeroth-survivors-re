@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Encapsulate scenery visibility queries
+
+The engine now owns render-candidate selection for foliage reveal; gameplay no
+longer inspects merged mesh storage. The fork's intentional visibility/start-map
+APIs have an [explicit contract](SURVIVORS-ENGINE-API.md). The boundary audit passes
+at its unchanged 107-leak ceiling.
+
+449 feature-enabled Survivors tests and all-target app Clippy pass, including
+regressions for real Elwynn canopy geometry,
+behind-player exclusion and the 500 ms fade/reset lifecycle. This preserves the
+existing effect; no new visual milestone or Windows scene acceptance is claimed.
+Full integration validation remains pending.
+
 ## 2026-10-27 — Browser packaging checks
 
 The asset checks now follow this checkout's standalone launcher and reject missing
