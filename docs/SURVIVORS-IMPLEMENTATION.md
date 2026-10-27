@@ -828,12 +828,12 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Paladin | 24 / 44 | 9 / 9 |
 | Hunter | 31 / 46 | 9 / 9 |
 | Rogue | 22 / 51 | 9 / 9 |
-| Priest | 24 / 47 | 9 / 9 |
+| Priest | 25 / 47 | 9 / 9 |
 | Shaman | 30 / 46 | 9 / 9 |
 | Mage | 33 / 49 | 9 / 9 |
 | Warlock | 27 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 248 / 432 | 81 / 81 |
+| Total | 249 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -7074,3 +7074,21 @@ were needed. This supersedes the old packaged-head limitation for compilation
 and these menu paths only; full browser content/input/resolution acceptance,
 WebGL2 and Windows remain open. GitHub reports zero repository workflow runs;
 configured Windows checks and artifact upload still lack runner evidence.
+
+
+### 2026-10-27 — Priest Power Infusion
+
+Node 322 now owns a pause-safe 15-second burst with 180-second recovery, consumed
+only by a successful damaging Priest cast. Direct damage and attached periodic
+payloads retain 20%; unlocked Holy Nova healing uses the same cast multiplier.
+Owned Renew dynamically checks the active window, composing with healing ranks;
+Troll racial regeneration remains unchanged. Shields and foreign spells are
+excluded. Inner Focus and the separate Discipline milestone remain independent.
+Core timing/rank/refund/inline tests and actual cast-system tests cover initial
+failure, pause, multiple targets, expiry and recovery. Renew scope and HUD text
+have separate app regressions. All 203 core and 390 app tests, both Clippy gates and native build
+pass. DBC coverage is 249/432 (Priest 25/47). Real prerequisite purchase (Mental
+Strength 5 and 30 Discipline points), restart and full compact text are verified
+at 1280×720/640×720; all three captures are inline in CHANGELOG and README is
+refreshed. In-combat HUD rendering, live balance, Windows and 183 remaining talent
+definitions stay open. The previous browser build evidence predates this change.

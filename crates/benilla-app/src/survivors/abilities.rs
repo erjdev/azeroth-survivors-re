@@ -314,9 +314,18 @@ pub(super) fn cast_abilities(
         }
         let o = &run.abilities[i];
         let def = o.def;
-        let milestone = run.milestones.cast(def.key);
+        let mut milestone = run.milestones.cast(def.key);
         let mut p = Params::new(o, &stats, run.milestones);
         let power = 1.0 + run.arcane_power.bonus(run.milestones, def.key, run.elapsed);
+        let infusion = 1.
+            + run
+                .power_infusion
+                .bonus(run.milestones, def.key, run.elapsed);
+        if def.key == "holy_nova" {
+            milestone.heal_fraction *= infusion;
+        }
+        p.dmg *= infusion;
+        p.dot *= infusion;
         p.dmg *= power;
         p.dot *= power;
         let crit_chance = (p.crit
@@ -657,6 +666,7 @@ pub(super) fn cast_abilities(
             let elapsed = run.elapsed;
             run.critical_cast.consume(talents, def.key, elapsed);
             run.arcane_power.consume(talents, def.key, elapsed);
+            run.power_infusion.consume(talents, def.key, elapsed);
             run.consume_remorseless(def.key);
             let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
             run.record_totem_healing(def.key, healed);
@@ -2410,6 +2420,159 @@ mod milestone_tests {
                     assert!((areas[0].1 - baseline.dmg * factor).abs() < 0.001);
                     assert_eq!(areas[0].2, baseline.duration);
                     world.despawn(areas[0].0);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn power_infusion_boosts_priest_casts_and_unlocked_nova_healing() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in [
+            "smite",
+            "holy_fire",
+            "mind_blast",
+            "holy_nova",
+            "shadow_word_pain",
+            "fireball",
+        ] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[4],
+                milestones: Milestones {
+                    class: 4,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 322, 1), (1, 442, 1)]),
+                ..Default::default()
+            };
+            run.bonus.targets = 1;
+            run.abilities.push(super::super::Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+            // Keep direct hits noncritical so the burst multiplier is measured exactly.
+            let seed = (1..100000)
+                .find(|seed| {
+                    let mut rng = Rng(*seed);
+                    (0..2).all(|_| {
+                        let roll = rng.f32();
+                        roll > 0.5
+                    })
+                })
+                .unwrap();
+
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            let run = app.world().resource::<Run>();
+            assert_eq!(
+                run.power_infusion.remaining(run.milestones, 0.0),
+                0.0,
+                "failed targeting cannot start the burst"
+            );
+            for x in [1., 2.] {
+                app.world_mut().spawn((
+                    Transform::from_xyz(x, 0., 0.),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 100.,
+                        max_hp: 100.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slow: 1.,
+                        slow_t: 0.,
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ));
+            }
+
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            for (elapsed, boosted) in [
+                (0.0, true),
+                (14.99, true),
+                (15.0, false),
+                (179.99, false),
+                (180.0, true),
+            ] {
+                app.world_mut().resource_mut::<Run>().elapsed = elapsed;
+                app.world_mut().resource_mut::<Run>().hp = 20.;
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(hits.len(), 2, "{key}");
+                let run = app.world().resource::<Run>();
+                let baseline = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+                let factor = if boosted && key != "fireball" {
+                    1.2
+                } else {
+                    1.0
+                };
+                for hit in hits {
+                    assert!(!hit.crit);
+                    assert!(
+                        (hit.damage - baseline.dmg * factor).abs() < 0.001,
+                        "{key} at {elapsed}"
+                    );
+                    assert!(
+                        (hit.dot - baseline.dot * factor).abs() < 0.001,
+                        "{key} burn at {elapsed}"
+                    );
+                }
+                assert_eq!(run.abilities[0].cd, baseline.cooldown);
+                let heal = if key == "holy_nova" {
+                    run.stats().max_hp * 0.05 * factor
+                } else {
+                    0.
+                };
+                assert!(
+                    (run.hp - 20. - heal).abs() < 0.001,
+                    "{key} healing at {elapsed}"
+                );
+                if key == "fireball" {
+                    assert_eq!(run.power_infusion.remaining(run.milestones, elapsed), 0.0);
                 }
             }
         }

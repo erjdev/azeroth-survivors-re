@@ -516,6 +516,7 @@ pub(super) struct Run {
     cold_snap: survivors_core::talents::ColdSnapClock,
     preparation: survivors_core::talents::PreparationClock,
     critical_cast: survivors_core::talents::CriticalCastClock,
+    power_infusion: survivors_core::talents::PowerInfusionClock,
     arcane_power: survivors_core::talents::ArcanePowerClock,
     /// Rings, trinkets and amulets worn this run.
     worn: campaign::Worn,
@@ -605,6 +606,7 @@ impl Default for Run {
             preparation: default(),
             critical_cast: default(),
             arcane_power: default(),
+            power_infusion: default(),
             worn: campaign::Worn::default(),
             dead_t: None,
             next_guid: 1,
@@ -722,7 +724,16 @@ impl Run {
     }
 
     pub fn passive_value(&self, passive: &PassiveDef, rank: u8) -> f32 {
-        passive.per_level * f32::from(rank) * self.milestones.passive_multiplier(passive.key)
+        let infusion = if passive.key == "renew" && self.alive() {
+            self.power_infusion
+                .active_bonus(self.milestones, self.elapsed)
+        } else {
+            0.
+        };
+        passive.per_level
+            * f32::from(rank)
+            * self.milestones.passive_multiplier(passive.key)
+            * (1. + infusion)
     }
 
     pub fn stats(&self) -> Stats {
@@ -1105,5 +1116,40 @@ mod stat_tests {
         run.bonus = campaign::Bonus::default();
         assert_eq!(run.stats().max_hp, base.max_hp);
         assert_eq!(run.stats().magnet, base.magnet);
+    }
+}
+
+#[cfg(test)]
+mod power_infusion_tests {
+    use super::*;
+    #[test]
+    fn infusion_scales_only_owned_renew_during_the_active_window() {
+        let renew = data::PASSIVES.iter().find(|p| p.key == "renew").unwrap();
+        let mut run = Run {
+            class: &data::CLASSES[4],
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 322, 1), (1, 406, 3), (1, 404, 5)]),
+            ..Default::default()
+        };
+        run.race = 8; // Troll regeneration must remain outside the healing multiplier.
+        let without_renew = run.stats().regen;
+        run.passives = vec![(renew, 3)];
+        let normal = run.passive_value(renew, 3);
+        assert!((run.stats().regen - without_renew - normal).abs() < 0.0001);
+        run.power_infusion.consume(run.milestones, "smite", 0.);
+        for elapsed in [0., 14.99, 15., 180.] {
+            run.elapsed = elapsed;
+            let factor = if elapsed < 15. { 1.2 } else { 1. };
+            assert!((run.passive_value(renew, 3) - normal * factor).abs() < 0.0001);
+            assert!((run.stats().regen - without_renew - normal * factor).abs() < 0.0001);
+        }
+        run.elapsed = 1.;
+        run.passives.clear();
+        assert_eq!(run.stats().regen, without_renew);
+        run.milestones = run.milestones.with_ranks(&[(1, 406, 3), (1, 404, 5)]);
+        assert_eq!(run.passive_value(renew, 3), normal);
     }
 }

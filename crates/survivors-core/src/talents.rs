@@ -4,6 +4,8 @@ mod critical_cast;
 mod druid;
 mod hunter;
 mod mage;
+mod priest;
+pub use priest::PowerInfusionClock;
 mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::{PetBonus, PetFrenzy};
@@ -1454,6 +1456,7 @@ pub enum TalentStat {
     PetMend,
     ColdSnap,
     ArcanePower,
+    PowerInfusion,
     Preparation,
     SiphonLife,
     Nightfall,
@@ -1549,6 +1552,7 @@ impl TalentDefinition {
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
             | TalentStat::ArcanePower
+            | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
             | TalentStat::Aftermath
             | TalentStat::CurseExhaustion
@@ -1778,6 +1782,9 @@ impl TalentDefinition {
                 "% chance per wolf critical for 30% bite haste for 8 sec",
             ),
             TalentStat::ColdSnap => (1.0, " automatic frost reset every 90 sec"),
+            TalentStat::PowerInfusion => {
+                (100.0, "% Priest damage and healing during Power Infusion")
+            }
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
             TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
             TalentStat::PetMend => (100.0, "% combat wolf maximum health restored per sec"),
@@ -2863,6 +2870,9 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 // Vanilla identities and rank caps; automatic-cast conversions are labeled in descriptions.
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 322, max_rank: 1, name: "Power Infusion",
+        description: "Automatically grants +20% Priest direct and periodic damage, unlocked Holy Nova healing and owned Renew healing for 15 sec after a successful damaging Priest cast. Ready at run start; recovers 180 sec after use. Pauses stop timers. Cast damage keeps its bonus; Renew checks the active window. Excludes shields, lifesteal, other regeneration and other-class spells (Survivors self-only conversion)",
+        stat: TalentStat::PowerInfusion, per_rank: 0.20 },
     TalentDefinition {
         id: 348, max_rank: 1, name: "Inner Focus",
         description: "The next successful Smite, Holy Fire, Holy Nova or Mind Blast gains 25 percentage points critical chance for all its direct hits, then recovers after 180 sec of active run time. Ready at run start; no stored charges. Excludes periodic ticks, shields, fear and other-class spells (Survivors automatic conversion; no mana costs)",
@@ -3058,6 +3068,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
             | TalentStat::ArcanePower
+            | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
@@ -4451,6 +4462,7 @@ mod stat_talent_tests {
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus
                     | TalentStat::ArcanePower
+                    | TalentStat::PowerInfusion
                     | TalentStat::DivineFavor
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance

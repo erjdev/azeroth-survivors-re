@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Priest Power Infusion
+
+Power Infusion now automatically boosts Priest damage, unlocked Holy Nova healing
+and owned Renew by 20% for 15 seconds, with three-minute recovery. Failed targeting
+preserves readiness; pauses stop timers. HUD status shows the active countdown.
+Shields and unrelated regeneration receive no bonus.
+
+203 core tests, 390 app tests, both Clippy gates and native build pass. Native 1280×720/640×720
+captures verify the inline preview, legal purchase and saved rank after restart.
+Coverage is 249/432 (Priest 25/47). HUD rendering in combat, live balance and
+Windows acceptance remain open.
+
+![Power Infusion inline preview](images/screenshots/2026-10-27-power-infusion/preview.png)
+![Purchased Power Infusion](images/screenshots/2026-10-27-power-infusion/purchased.png)
+![Compact saved Power Infusion](images/screenshots/2026-10-27-power-infusion/compact.png)
+
 ## 2026-10-27 — Current browser build acceptance
 
 Rebuilt WebGPU from `5a1294f`: target check and linked incremental package pass

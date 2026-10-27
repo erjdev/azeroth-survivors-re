@@ -50,7 +50,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-26-codex-compact/trinket-1280.png" alt="Codex"><br>2026-10-26 · Readable jewelry details with responsive catalog panels.<br><a href="docs/images/screenshots/2026-10-26-codex-compact/legendary-640.png">Compact Codex preview</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-trueshot/preview.png" alt="Talents"><br>2026-10-27 · Hunter Trueshot Aura with inline green shot-damage preview; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-trueshot/compact.png">Compact description</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-power-infusion/preview.png" alt="Talents"><br>2026-10-27 · Priest Power Infusion with inline green damage/healing preview; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-power-infusion/compact.png">Compact description</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

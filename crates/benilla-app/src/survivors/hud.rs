@@ -1849,6 +1849,13 @@ fn reactive_buff_status(run: &Run) -> String {
             power_remaining.ceil()
         ));
     }
+    let infusion_remaining = run.power_infusion.remaining(run.milestones, run.elapsed);
+    if infusion_remaining > 0.0 {
+        active.push(format!(
+            "Power Infusion +20% Priest damage/healing ({:.0}s)",
+            infusion_remaining.ceil()
+        ));
+    }
     let ancestral = run
         .milestones
         .ancestral_healing_armor(run.ancestral_healing_t > 0.);
@@ -3631,6 +3638,37 @@ mod arcane_power_status_tests {
         assert_eq!(
             reactive_buff_status(&run),
             "Arcane Power +30% Mage damage (14s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.elapsed = 15.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 1.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod power_infusion_status_tests {
+    use super::*;
+    #[test]
+    fn infusion_status_expires_and_hides_on_death_or_refund() {
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 322, 1)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.power_infusion.consume(run.milestones, "smite", 0.);
+        run.elapsed = 1.2;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Power Infusion +20% Priest damage/healing (14s)"
         );
         run.hp = 0.;
         assert!(reactive_buff_status(&run).is_empty());

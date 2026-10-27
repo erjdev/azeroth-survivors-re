@@ -600,3 +600,19 @@ Volley, traps, pets and other-class abilities are unaffected. It multiplies othe
 trained damage bonuses and the distinct 30-point milestone (Multi-Shot targets and
 Aimed Shot damage). It changes neither targeting nor timing, grants no new spell,
 and disappears when the node is refunded or another spec is selected.
+
+
+### Priest Power Infusion
+
+The individual Discipline node (322) automatically starts a 15-second window
+on a successful damaging Priest cast, with 180 seconds of active-run recovery
+from activation. It is ready at run start; failed targeting and pauses preserve
+readiness. During the window, Priest direct/periodic cast damage and unlocked
+Holy Nova healing multiply by 1.20. Cast damage retains the multiplier through
+impact and attached periodic ticks; subsequent casts do not refresh the window.
+Owned Renew healing checks the window dynamically, multiplying Improved Renew
+and Spiritual Healing. It does not unlock Renew or Holy Nova healing, amplify
+shields, other regeneration or other-class spells, or add a healing multiplier
+to lifesteal/Vampiric Embrace (higher damage can still increase health drained).
+This is a self-only automatic Survivors conversion, separate from Inner Focus
+and the 30-point Discipline milestone. HUD status shows the active countdown.
