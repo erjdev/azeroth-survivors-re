@@ -6286,3 +6286,22 @@ pass. Native macOS wide Permafrost and compact Holy Reach captures verify wrappi
 and independent value coloring and are embedded in CHANGELOG. The intention-based
 tree layout is retained. Other unhandled descriptions, full talent rules, broader
 interface validation and Windows acceptance remain incomplete.
+
+### 2026-10-27 — Shaman shield and parry training
+
+Audited Shield Specialization (612, five ranks) and Parry (616, one rank) now have
+explicit Survivors rules. Shield Specialization adds 5% absorb strength per rank
+to Guardian Totems' 10% per rank. Both require the 10-point Enhancement shield;
+max training yields 4.35% maximum-health absorption for the existing three seconds.
+Parry converts to 5% general damage reduction, adding to Anticipation and Elemental
+Warding. Neither requires an equipped shield or a separate parry simulation.
+
+The shared shield contribution was renamed ShamanShieldAbsorption; saves continue
+to store unchanged DBC node IDs. Core tests cover classes, unlock boundaries,
+ranks/caps, reset, other spell fields and additive mitigation. Runtime cast tests
+cover combined absorption, refresh without stacking, stronger shields and death.
+178 core and 349 app tests, core/app Clippy, native build and formatting/diff checks
+pass. Install audit matches 221/432 definitions, Shaman 27/46, and 81/81 milestone
+descriptions. Native macOS wide/compact captures verify inline text and Parry
+purchase, with the saved rank checked on disk. Screenshots are embedded in CHANGELOG.
+Live balance, Windows acceptance and the remaining 211 definitions remain open.

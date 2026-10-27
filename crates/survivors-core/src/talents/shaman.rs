@@ -13,7 +13,9 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
-    TalentDefinition { id: 609, max_rank: 2, name: "Guardian Totems", description: "Earth Shock: +10% shield absorption per rank. Requires the 10-point Enhancement shield milestone; shield duration and damage are unchanged (Survivors defensive-totem conversion)", stat: TalentStat::GuardianTotems, per_rank: 0.10 },
+    TalentDefinition { id: 612, max_rank: 5, name: "Shield Specialization", description: "Earth Shock: +5% shield absorption per rank, adding to Guardian Totems. Requires the 10-point Enhancement shield milestone; no equipped shield required (Survivors block conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.05 },
+    TalentDefinition { id: 616, max_rank: 1, name: "Parry", description: "+5% hero damage reduction per rank (Survivors parry conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.05 },
+    TalentDefinition { id: 609, max_rank: 2, name: "Guardian Totems", description: "Earth Shock: +10% shield absorption per rank. Requires the 10-point Enhancement shield milestone; shield duration and damage are unchanged (Survivors defensive-totem conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.10 },
     TalentDefinition { id: 586, max_rank: 5, name: "Improved Healing Wave", description: "Searing Totem and Magma Totem: 4% shorter deployment cooldown per rank (Survivors healing cast-time conversion). Healing still requires the 10-point Restoration milestone; pulse rate and healing per deployment are unchanged", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.04 },
     TalentDefinition { id: 593, max_rank: 5, name: "Tidal Focus", description: "Searing Totem and Magma Totem: 2% shorter deployment cooldown per rank, multiplying other cooldown training (Survivors healing mana-cost conversion). Healing per deployment is unchanged", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.02 },
     TalentDefinition { id: 601, max_rank: 5, name: "Anticipation", description: "+1% hero damage reduction per rank (Survivors dodge conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.01 },
@@ -96,7 +98,11 @@ mod tests {
             assert_eq!(bonus.health, 4. * r);
             assert_eq!(bonus.armor, 8. * r);
             assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
-            assert!((bonus.reduction - 0.02 * short - 0.01 * r).abs() < 0.00001);
+            assert!(
+                (bonus.reduction - 0.02 * short - 0.01 * r - if rank > 0 { 0.05 } else { 0. })
+                    .abs()
+                    < 0.00001
+            );
             assert!((bonus.crit - 0.01 * r).abs() < 0.00001);
             let supported: u32 = DEFINITIONS
                 .iter()
@@ -412,5 +418,50 @@ mod guardian_tests {
             .inline_description(1)
             .unwrap()
             .contains("10 » 20% shield absorption"));
+    }
+}
+
+#[cfg(test)]
+mod shield_specialization_tests {
+    use crate::talents::{stat_adjustment, talent_definition, Milestones};
+
+    #[test]
+    fn shield_training_adds_guardian_totems_and_parry_is_class_scoped() {
+        for class in 0..9 {
+            for points in [0, 9, 10, 30] {
+                for rank in [0, 1, 4, 5, 255] {
+                    let base = Milestones {
+                        class,
+                        points: [0, points, 0],
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 612, rank), (1, 609, 2)]);
+                    for key in crate::data::CLASSES[5].pool {
+                        let mut expected = base.cast(key);
+                        if class == 5 && *key == "earth_shock" {
+                            expected.shield_fraction *= 1. + 0.05 * f32::from(rank.min(5)) + 0.2;
+                        }
+                        let actual = trained.cast(key);
+                        assert!(
+                            (actual.shield_fraction - expected.shield_fraction).abs() < 0.000001
+                        );
+                        expected.shield_fraction = actual.shield_fraction;
+                        assert_eq!(actual, expected);
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                    assert_eq!(
+                        stat_adjustment(class, &[(1, 616, rank)]).reduction,
+                        if class == 5 && rank > 0 { 0.05 } else { 0. }
+                    );
+                }
+            }
+        }
+        let stacked = stat_adjustment(5, &[(1, 616, 1), (1, 601, 5), (0, 1640, 3)]);
+        assert!((stacked.reduction - 0.16).abs() < 0.000001);
+        assert!(talent_definition(5, 612)
+            .unwrap()
+            .inline_description(4)
+            .unwrap()
+            .contains("+20 » 25% shield absorption"));
     }
 }

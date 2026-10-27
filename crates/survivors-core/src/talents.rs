@@ -507,7 +507,7 @@ impl Milestones {
             effect.heal_fraction *= 1.0 + self.trained_value(TalentStat::SpiritualHealing);
         }
         if self.class == 5 && key == "earth_shock" {
-            effect.shield_fraction *= 1.0 + self.trained_value(TalentStat::GuardianTotems);
+            effect.shield_fraction *= 1.0 + self.trained_value(TalentStat::ShamanShieldAbsorption);
         }
         if effect.shield_fraction > 0.0 {
             // All talent-granted absorbs start with three seconds; duration ranks add to it.
@@ -1388,7 +1388,7 @@ pub enum TalentStat {
     SpiritualHealing,
     TotemHealing,
     TotemicMastery,
-    GuardianTotems,
+    ShamanShieldAbsorption,
     PetHealth,
     PetRecovery,
     PetIntimidation,
@@ -1488,7 +1488,7 @@ impl TalentDefinition {
             | TalentStat::Reduction
             | TalentStat::Speed
             | TalentStat::FlurryHaste
-            | TalentStat::GuardianTotems
+            | TalentStat::ShamanShieldAbsorption
             | TalentStat::PetHealth
             | TalentStat::PetRecovery
             | TalentStat::SpiritBond
@@ -1677,7 +1677,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
-            TalentStat::GuardianTotems => (100.0, "% Earth Shock shield absorption"),
+            TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
@@ -2868,7 +2868,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
-            | TalentStat::GuardianTotems
+            | TalentStat::ShamanShieldAbsorption
             | TalentStat::TotemicMastery
             | TalentStat::PetWrath
             | TalentStat::PetIntimidation
@@ -4071,7 +4071,7 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing
-                    | TalentStat::GuardianTotems
+                    | TalentStat::ShamanShieldAbsorption
                     | TalentStat::TotemicMastery
                     | TalentStat::PetWrath
                     | TalentStat::PetIntimidation

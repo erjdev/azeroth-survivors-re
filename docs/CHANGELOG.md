@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Shaman defensive training
+
+Shield Specialization now adds up to 25% Earth Shock absorb strength, combining
+with Guardian Totems after the shield milestone unlocks. Parry grants 5% damage
+reduction. Both use green inline previews; the shield retains its existing
+refresh and stronger-shield protection.
+
+178 core tests, 349 app tests, core/app Clippy and native build pass. Install audit:
+221/432 individual talent definitions. Native macOS wide/compact checks verify
+preview, Parry purchase and saved rank. Combat balance and Windows acceptance remain open.
+
+![Shield Specialization preview](images/screenshots/2026-10-27-shaman-defense/shield-1280.png)
+![Trained Parry in compact layout](images/screenshots/2026-10-27-shaman-defense/parry-640.png)
+
 ## 2026-10-27 — Compound talent previews
 
 Permafrost now shows both slow duration and strength changes inline. Arctic Reach

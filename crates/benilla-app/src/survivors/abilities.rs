@@ -5081,7 +5081,7 @@ mod milestone_tests {
                     points: [0, points, 0],
                     ..Default::default()
                 }
-                .with_ranks(&[(1, 609, rank)]);
+                .with_ranks(&[(1, 609, rank), (1, 612, rank)]);
                 let mut run = Run {
                     hp: 50.,
                     milestones,
@@ -5094,7 +5094,7 @@ mod milestone_tests {
                 };
                 let params = Params::new(&owned, &run.stats(), milestones);
                 let expected = if points >= 10 {
-                    3. * (1. + 0.1 * f32::from(rank.min(2)))
+                    3. * (1. + 0.1 * f32::from(rank.min(2)) + 0.05 * f32::from(rank.min(5)))
                 } else {
                     0.
                 };
