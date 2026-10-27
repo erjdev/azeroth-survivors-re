@@ -2423,9 +2423,13 @@ const HUNTER_SHOTS: &[&str] = &[
     "serpent_sting",
     "concussive_shot",
     "aimed_shot",
+    "scorpid_sting",
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1351, max_rank: 3, name: "Improved Scorpid Sting",
+        description: "Scorpid Sting: +20% damage-reduction duration per rank. Its 25% enemy damage reduction, hit damage and target count are unchanged; requires acquiring the spell (Survivors stamina-reduction conversion)",
+        stat: TalentStat::SpellDuration("scorpid_sting"), per_rank: 0.20 },
     TalentDefinition { id: 1361, max_rank: 1, name: "Trueshot Aura",
         description: "Your Hunter shots: +10% direct and periodic damage, multiplying other damage talents. Excludes Volley, traps, pets and other-class abilities (Survivors passive ranged-attack-power conversion; self only)",
         stat: TalentStat::SpellGroupDamage(HUNTER_SHOTS), per_rank: 0.10 },
@@ -2478,7 +2482,7 @@ static HUNTER_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
         id: 1352, max_rank: 3, name: "Hawk Eye",
         description: "Shots, stings and Volley: +2 yd targeting range per rank. Volley's radius and target counts are unchanged; excludes Explosive Trap",
-        stat: TalentStat::SpellGroupRangeYards(&["arcane_shot", "multi_shot", "serpent_sting", "concussive_shot", "aimed_shot", "volley"]), per_rank: 2.0,
+        stat: TalentStat::SpellGroupRangeYards(&["arcane_shot", "multi_shot", "serpent_sting", "concussive_shot", "aimed_shot", "scorpid_sting", "volley"]), per_rank: 2.0,
     },
     TalentDefinition {
         id: 1353,
@@ -4228,6 +4232,7 @@ mod stat_talent_tests {
                     "serpent_sting",
                     "concussive_shot",
                     "aimed_shot",
+                    "scorpid_sting",
                     "volley",
                 ],
                 true,
@@ -4531,6 +4536,7 @@ mod stat_talent_tests {
                     "serpent_sting",
                     "concussive_shot",
                     "aimed_shot",
+                    "scorpid_sting",
                     "volley",
                     "explosive_trap",
                     "fireball",

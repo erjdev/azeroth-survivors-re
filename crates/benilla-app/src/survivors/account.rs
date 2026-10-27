@@ -2959,6 +2959,56 @@ mod tests {
     }
 
     #[test]
+    fn scorpid_metadata_purchase_saved_specs_and_refund_match_runtime() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let spells = benilla_formats::load_spell_catalog(&mut chain).unwrap();
+        assert_eq!(spells.get(3043).unwrap().name, "Scorpid Sting");
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(2);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(1, 1344, 5), (1, 1341, 5), (1, 1346, 5), (1, 1348, 5)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(2, hero);
+        for _ in 0..3 {
+            assert!(account.learn_talent(hero, 1, 1351, 3, 4, true));
+        }
+        assert!(!account.learn_talent(hero, 1, 1351, 3, 4, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        assert_eq!(account.bonus(2, hero).reduction, before.reduction);
+        let factor = |account: &Account| {
+            account
+                .milestones_picked(2, Some(hero))
+                .cast("scorpid_sting")
+                .duration
+        };
+        assert!((factor(&account) - 1.6).abs() < 0.00001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert!((factor(&loaded) - 1.6).abs() < 0.00001);
+        loaded.select_spec(hero, 1);
+        assert_eq!(factor(&loaded), 1.);
+        loaded.select_spec(hero, 0);
+        assert!((factor(&loaded) - 1.6).abs() < 0.00001);
+        for _ in 0..3 {
+            assert!(loaded.unlearn_talent(hero, 1351, true));
+        }
+        assert_eq!(factor(&loaded), 1.);
+    }
+
+    #[test]
     fn mana_shield_metadata_purchase_and_saved_specs_match_the_runtime() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

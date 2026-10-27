@@ -418,3 +418,39 @@ mod deterrence_tests {
         assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }
+
+#[cfg(test)]
+mod scorpid_tests {
+    use super::*;
+    #[test]
+    fn scorpid_training_changes_only_its_duration_and_obeys_rank_caps() {
+        let spell = crate::data::ability("scorpid_sting");
+        assert_eq!(spell.spell, 3043);
+        assert_eq!(spell.effect, crate::data::Effect::Weaken(0.75, 6.));
+        assert!(crate::data::CLASSES[2].pool.contains(&spell.key));
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 1351, rank)]);
+                for other in crate::data::CLASSES {
+                    for key in other.pool {
+                        let mut expected = base.cast(key);
+                        if class == 2 && *key == spell.key {
+                            expected.duration *= 1. + 0.2 * f32::from(rank.min(3));
+                        }
+                        assert_eq!(trained.cast(key), expected, "{key}");
+                    }
+                }
+            }
+        }
+        let node = super::super::talent_definition(2, 1351).unwrap();
+        assert!(node
+            .inline_description(1)
+            .unwrap()
+            .contains("20 » 40% damage-reduction duration"));
+        assert!(!node.inline_description(3).unwrap().contains(" » "));
+    }
+}

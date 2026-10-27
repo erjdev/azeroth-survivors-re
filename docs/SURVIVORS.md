@@ -710,3 +710,20 @@ the hit. The combat wolf and pickup companions receive no protection from it.
 The HUD shows the remaining active duration. Gameplay time controls the windows,
 so pauses and selection screens do not consume them; missed intervals do not
 accumulate charges. An untrained or inactive spec grants no protection.
+
+
+### Hunter Scorpid Sting
+
+Scorpid Sting (3043) is a normal Hunter ability offer with its own legendary amulet
+and Codex entry. Rank 1 hits one nearby enemy within 26 yd for 4 damage, reducing
+that enemy's outgoing damage by 25% for 6 seconds, with a 4-second cooldown.
+This is a Survivors strength/agility-reduction conversion. Normal ability ranks
+scale hit damage, debuff duration and cooldown; additional targets apply because
+it is a single-target attack. Shot talents, Efficiency and Hawk Eye include it.
+
+Improved Scorpid Sting (1351, three ranks) increases only its debuff duration by
+20% per rank, multiplying ability-rank scaling. This explicitly replaces the
+original stamina-reduction effect; it does not increase damage reduction strength
+or grant the spell. Bosses retain the full damage-reduction duration. A weaker
+sting cannot replace or extend a stronger active reduction; equal-strength
+refreshes retain the longer duration. Neither debuff stacks multiplicatively.

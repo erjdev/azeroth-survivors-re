@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Scorpid Sting and duration training
+
+Hunters can acquire and upgrade Scorpid Sting: a targeted hit that reduces enemy
+damage by 25%. Improved Scorpid Sting extends that debuff by 20% per rank, with
+three ranks. The spell has its own Codex amulet and green inline upgrades.
+Weaker debuffs cannot overwrite or prolong stronger active damage reductions.
+
+![Scorpid Sting acquisition and upgrades](images/screenshots/2026-10-27-scorpid-sting/cards.png)
+
+![Scorpid Sting Codex entry](images/screenshots/2026-10-27-scorpid-sting/codex.png)
+
+![Improved Scorpid Sting purchased](images/screenshots/2026-10-27-scorpid-sting/talent.png)
+
+220 core tests, 428 app tests, 12 preview-launcher tests, core/app Clippy and
+formatting checks pass. Native 1280×720 cards, Codex and purchase checked;
+build: 24 seconds. Definitions: 266/432 (Hunter 33/46); 166 remain.
+Live projectile visuals, balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Hunter Deterrence
 
 Deterrence now grants an automatic 10-second window of 50% damage reduction at

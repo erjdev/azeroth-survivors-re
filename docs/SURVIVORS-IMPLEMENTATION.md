@@ -7640,3 +7640,33 @@ The talent reference was inspected for the three-tree/sidebar layout.
 Definition coverage is 265/432 (Hunter 32/46), with 167 definitions remaining.
 This is not attended combat balance, Windows rendering or complete talent-catalog
 acceptance. The other phases and reported Windows scenes remain open.
+
+
+### 2026-10-27 — Scorpid Sting and Improved Scorpid Sting
+
+Added spell 3043 to the end of the Hunter ability pool, preserving existing amulet
+indices. Rank 1 deals 4 damage to one target within 26 yd and reduces enemy damage
+by 25% for six seconds, with a four-second cooldown. Normal upgrades and the
+legendary amulet use the existing single-target path. Shot damage/critical/cooldown
+talents and Hawk Eye include it. The Codex now has 114 entries, eight for Hunter.
+
+Node 1351 has three ranks of +20% debuff duration, multiplying spell-rank scaling
+without changing strength or damage. Local Talent.dbc places it on row 4; purchase
+validation uses 20 earlier points. Weakening refreshes retain stronger active
+reductions and do not extend them through weaker casts. Equal effects retain the
+longer duration; expired effects can be replaced normally.
+
+220 core tests, 428 app tests and 12 preview-launcher tests pass. Coverage includes
+local spell identity, real DBC purchase/save/spec/refund, normal offers/upgrades,
+trained hit effects and markers, bosses and preserving stronger reductions.
+Initial checks caught stale shot lists and a row-3 test fixture; these were fixed
+and the relevant suites rerun. Core/app Clippy, formatting and diff checks pass.
+Native play build: 23.60 seconds. Actual isolated 1280×720 cards, Codex and talent
+purchase were inspected and captured; the purchased rank is saved to disk. The
+changelog embeds all three captures and README is refreshed. Reusable card and
+Codex preview requests are included.
+
+Definition coverage is 266/432 (Hunter 33/46), leaving 166 definitions. Creature-
+specific slaying talents still need authored encounter classifications; this
+change does not substitute global damage bonuses for them. Live projectiles,
+combat balance, Windows and the other acceptance phases remain open.

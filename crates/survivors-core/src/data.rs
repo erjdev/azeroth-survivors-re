@@ -621,6 +621,17 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "scorpid_sting",
+        3043,
+        Bolt {
+            damage: 4.0,
+            cooldown: 4.0,
+            range: 26.0,
+            effect: Effect::Weaken(0.75, 6.0),
+            mark: 3043
+        }
+    ),
+    ability!(
         "serpent_sting",
         1978,
         Bolt {
@@ -1094,6 +1105,7 @@ pub static CLASSES: &[ClassDef] = &[
             "explosive_trap",
             "concussive_shot",
             "aimed_shot",
+            "scorpid_sting",
         ],
         looks: &[
             1373, 1703, 1723, 1882, 2066, 2087, 2105, 2112, 2205, 2206, 2251, 3056, 3072, 3073,

@@ -965,6 +965,16 @@ fn refresh_ignite(dots: &mut Vec<enemies::Dot>, added: f32) {
     }
 }
 
+/// Weaker debuffs cannot replace or prolong a stronger active damage reduction.
+fn refresh_weaken(en: &mut Enemy, multiplier: f32, duration: f32) {
+    if en.weaken_t <= 0.0 || multiplier < en.weaken {
+        en.weaken = multiplier;
+        en.weaken_t = duration;
+    } else if multiplier == en.weaken {
+        en.weaken_t = en.weaken_t.max(duration);
+    }
+}
+
 fn apply_freeze(en: &mut Enemy, duration: f32) {
     let duration = if en.boss { duration * 0.3 } else { duration };
     en.root_t = en.root_t.max(duration);
@@ -1251,8 +1261,7 @@ pub(super) fn apply_hits(
             Effect::Stun(t) => en.stun_t = en.stun_t.max(if boss { t * 0.3 } else { t }),
             Effect::Fear(t) if !boss => en.fear_t = en.fear_t.max(t),
             Effect::Weaken(m, t) => {
-                en.weaken = m;
-                en.weaken_t = t;
+                refresh_weaken(&mut en, m, t);
             }
             _ => {}
         }
@@ -5342,6 +5351,112 @@ mod milestone_tests {
     }
 
     #[test]
+    fn scorpid_hits_apply_trained_weakening_without_replacing_stronger_debuffs() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 5] {
+                for rank in [0, 1, 3, 255] {
+                    let base = Milestones {
+                        class: 2,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 1351, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let owned = Owned {
+                        def: data::ability("scorpid_sting"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let p = Params::new(&owned, &stats, trained);
+                    let expected = 6.
+                        * (1. + 0.1 * f32::from(level - 1))
+                        * (1. + 0.2 * f32::from(rank.min(3)));
+                    assert!(
+                        matches!(p.effect, Effect::Weaken(m, t) if m == 0.75 && (t - expected).abs() < 0.0001)
+                    );
+                    let hit = hit_for(owned.def, &p, enemy, p.dmg, false);
+                    assert!((hit.mark_dur - expected).abs() < 0.0001);
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 1000. - p.dmg);
+                    assert_eq!(en.weaken, 0.75);
+                    assert!((en.weaken_t - expected).abs() < 0.0001);
+                    // Recasts preserve stronger active reductions, even if their duration is shorter.
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.weaken = 0.5;
+                        en.weaken_t = 1.;
+                    }
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!((en.weaken, en.weaken_t), (0.5, 1.));
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().weaken_t = 0.;
+                    app.world_mut().write_message(hit);
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.weaken, 0.75);
+                    assert!((en.weaken_t - expected).abs() < 0.0001);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn kidney_exposure_affects_later_hits_and_ticks_without_extending_other_stuns() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         for boss in [false, true] {
@@ -7082,6 +7197,7 @@ mod milestone_tests {
                     "serpent_sting",
                     "concussive_shot",
                     "aimed_shot",
+                    "scorpid_sting",
                 ][..],
                 0.10,
             ),
@@ -7260,6 +7376,7 @@ mod milestone_tests {
                                 | "serpent_sting"
                                 | "concussive_shot"
                                 | "aimed_shot"
+                                | "scorpid_sting"
                         ) {
                         1.10
                     } else {
