@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Starter panel bounds and 16:10 validation
+
+Starter scroll content now stays inside the visible panel borders. Checked a
+synthetic full collection at 1280×800, then live-resized to 640×720: final zones
+remain reachable and the bottom actions remain visible.
+
+![Populated 16:10 starter](images/screenshots/2026-10-27-starter-16-10/starter.png)
+
+![Last zone within the frame](images/screenshots/2026-10-27-starter-16-10/zones.png)
+
+![Compact final zones and actions](images/screenshots/2026-10-27-starter-16-10/compact-zones.png)
+
+Native macOS visual/scroll checks, app Clippy and formatting pass. Incremental
+build: 23 seconds. Run Options still only reports Normal difficulty; Windows,
+other resolutions and zone readiness remain open. No gameplay changes or new
+combat-test run in this checkpoint.
+
 ## 2026-10-27 — Complete haste upgrade highlighting
 
 Talent descriptions now color the full changing haste stat green, including

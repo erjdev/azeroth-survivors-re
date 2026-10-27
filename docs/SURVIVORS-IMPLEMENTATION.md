@@ -7749,3 +7749,26 @@ or 10% proc chance. All 221 core tests and core Clippy pass. Native build took
 were not rerun for this formatting-only change; the 431-test result remains
 from fd0dbb7. The session exited through Quit and the launcher was restored.
 Full responsive/platform acceptance and remaining mechanics are still open.
+
+
+### 2026-10-27 — Starter panel bounds at 16:10
+
+Reviewed the main-menu intention and checked a separate synthetic collected
+account in the native starter at 1280×800 (2560×1656 screenshot including macOS
+title bar, Retina 2×). Reproduced the Blackrock row extending below the visible
+zone frame. Outer clipping alone was insufficient because the painted border
+is inset. Split the existing 14px total content inset into 8px frame padding
+and 6px scroll-content padding, retaining overall placement while moving the
+scroll boundary inside the decorative border. The outer frame also clips.
+
+The fixed capture shows no spill; scrolling exposes the complete Naxxramas row.
+Live resize to 640×720 retains stacked class/hero/zone panels, reaches the final
+zone and preserves fixed bottom actions. Run Options input responds with its
+existing Normal-difficulty notice; it is not a finished options dialog. The
+README starter image and inline changelog evidence are updated. The original
+failure is retained as before.png alongside fixed wide/compact captures.
+Native build (final): 22.76 sec. App Clippy, formatting and diff checks pass.
+No new gameplay tests were needed for this layout-only change; earlier test
+counts are not claimed as rerun. Validation exited through Quit and restored
+the launcher. Windows, controller input, the other resolution/page combinations,
+zone readiness and all remaining seven-phase requirements stay open.

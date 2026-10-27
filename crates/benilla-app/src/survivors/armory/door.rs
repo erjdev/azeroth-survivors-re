@@ -407,6 +407,8 @@ fn panel(
                 Val::Percent(100.0)
             },
             min_height: Val::Px(0.0),
+            overflow: Overflow::clip(),
+            padding: UiRect::all(Val::Px(8.0)),
             ..default()
         })
         .with_children(|frame| {
@@ -446,7 +448,7 @@ fn panel(
                     Val::Percent(100.0)
                 },
                 flex_direction: FlexDirection::Column,
-                padding: UiRect::all(Val::Px(14.0)),
+                padding: UiRect::all(Val::Px(6.0)),
                 overflow: if compact {
                     Overflow::visible()
                 } else {
