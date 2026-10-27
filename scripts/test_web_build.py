@@ -22,6 +22,9 @@ if name == 'cargo':
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(version)
 elif name == 'wasm-bindgen':
+    if args == ['--version']:
+        print('wasm-bindgen ' + os.environ.get('BUILD_TEST_BINDGEN_VERSION', '0.2.122'))
+        sys.exit(0)
     source = next(pathlib.Path(a) for a in args if a.endswith('.wasm'))
     assert source.read_text() == version
     out = pathlib.Path(args[args.index('--out-dir') + 1])
@@ -44,6 +47,7 @@ class WebBuildTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        (self.root / 'Cargo.lock').write_text('[[package]]\nname = \"wasm-bindgen\"\nversion = \"0.2.122\"\n')
         (self.root / 'scripts').mkdir()
         shutil.copyfile(ROOT / 'scripts/web-build.sh', self.root / 'scripts/web-build.sh')
         (self.root / 'web/examples').mkdir(parents=True)
@@ -58,10 +62,10 @@ class WebBuildTests(unittest.TestCase):
             stub.chmod(0o755)
         self.log = self.root / 'calls.jsonl'
 
-    def run_build(self, profile=None, version='first', debug=False):
+    def run_build(self, profile=None, version='first', debug=False, bindgen='0.2.122'):
         env = {k: v for k, v in os.environ.items()
                if k not in ['WEB_PROFILE', 'WEB_DEBUG', 'WEB_BACKEND', 'WASI_SDK', 'WASM_OPT']}
-        env.update(PATH=f'{self.bin}:/usr/bin:/bin', BUILD_TEST_LOG=str(self.log), BUILD_TEST_VERSION=version)
+        env.update(PATH=f'{self.bin}:/usr/bin:/bin', BUILD_TEST_LOG=str(self.log), BUILD_TEST_VERSION=version, BUILD_TEST_BINDGEN_VERSION=bindgen)
         if profile is not None:
             env['WEB_PROFILE'] = profile
         if debug:
@@ -72,6 +76,25 @@ class WebBuildTests(unittest.TestCase):
     def calls(self):
         return [json.loads(line) for line in self.log.read_text().splitlines()] if self.log.exists() else []
 
+    def test_bindgen_version_mismatch_fails_before_compiling(self):
+        result = self.run_build(profile='play', bindgen='0.2.121')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('does not match Cargo.lock', result.stderr)
+        self.assertFalse(any(call[0] == 'cargo' for call in self.calls()))
+        self.assertFalse((self.root / 'web/dist').exists())
+
+    def test_crlf_lock_pin_is_supported_and_missing_pin_rejected(self):
+        lock = self.root / 'Cargo.lock'
+        lock.write_bytes(lock.read_bytes().replace(b'\n', b'\r\n'))
+        result = self.run_build('play')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.log.unlink()
+        lock.write_text('[[package]]\nname = "other"\nversion = "1.0"\n')
+        result = self.run_build('play')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('Cargo.lock (missing)', result.stderr)
+        self.assertFalse(any(call[0] == 'cargo' for call in self.calls()))
+
     def test_default_release_and_ship_keep_shipping_postprocessing(self):
         for profile in [None, 'ship']:
             with self.subTest(profile=profile):
@@ -79,7 +102,8 @@ class WebBuildTests(unittest.TestCase):
                 result = self.run_build(profile)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 calls = self.calls()
-                self.assertEqual(calls[0], ['cargo', 'build', '--profile', profile or 'release',
+                self.assertEqual(calls[0], ['wasm-bindgen', '--version'])
+                self.assertEqual(calls[1], ['cargo', 'build', '--profile', profile or 'release',
                                            '--target', 'wasm32-unknown-unknown', '-p', 'wenilla',
                                            '--no-default-features', '--features', 'webgpu'])
                 self.assertIn('wasm-opt', [call[0] for call in calls])
@@ -92,8 +116,8 @@ class WebBuildTests(unittest.TestCase):
         result = self.run_build('play', 'edited')
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.calls()
-        self.assertEqual([call[0] for call in calls], ['cargo', 'wasm-bindgen'])
-        self.assertEqual(calls[0][3], 'play')
+        self.assertEqual([call[0] for call in calls], ['wasm-bindgen', 'cargo', 'wasm-bindgen'])
+        self.assertEqual(calls[1][3], 'play')
         dist = self.root / 'web/dist'
         self.assertEqual((dist / 'wenilla_bg.wasm').read_text(), 'edited')
         self.assertEqual((dist / 'wenilla.js').read_text(), 'edited')
@@ -109,7 +133,7 @@ class WebBuildTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.calls()
         self.assertNotIn('wasm-opt', [call[0] for call in calls])
-        self.assertNotIn('--remove-name-section', calls[1])
+        self.assertNotIn('--remove-name-section', calls[2])
         self.assertTrue((self.root / 'web/dist/wenilla_bg.wasm.gz').exists())
 
     def test_invalid_profile_fails_before_build_or_output_changes(self):

@@ -6761,3 +6761,19 @@ CI follow-up: the host/UI PR job now runs all nine Python fixture-isolation test
 including invalid-request retry and source/save preservation. The exact command
 passes locally. GitHub returned no PR-triggered workflow runs for afa9f96; the
 configured Windows check and new fixture step do not yet have verified CI results.
+
+
+### 2026-10-27 — Linked browser development package
+
+At 1c996f6 plus the early CLI-version check, the WebGPU wasm check passes with
+five existing warnings. A first linked play-profile wasm build succeeds in
+5m 05s. Installed wasm-bindgen-cli 0.2.122 under ignored tools/wasm-bindgen,
+matching Cargo.lock, and ran the real WEB_PROFILE=play packaging script through
+glue generation and asset copying into ignored web/dist. An unchanged repeat
+succeeds in 6.85s wall time, Cargo 0.30s with no crates compiled. The generated
+wenilla_bg.wasm is 91,142,068 bytes. This supersedes the missing-CLI development
+packaging blocker; release optimization/compression and browser runtime/visual
+acceptance remain open. It does not measure latency after a Rust source edit.
+The early version check rejects incompatible generators before Cargo runs; all
+six orchestration tests and shell syntax/diff checks pass, including CRLF and
+missing lockfile pins. No interface rendering changed in this checkpoint.

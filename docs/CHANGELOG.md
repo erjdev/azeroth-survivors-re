@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Browser build validation
+
+Browser builds now reject a mismatched wasm-bindgen CLI before compiling. Six
+script tests pass, including CRLF lockfiles and missing/mismatched pins. A local
+0.2.122 CLI is documented and ignored alongside the existing build tools.
+
+Current WebGPU check, linked play build and real development packaging pass
+(five existing wasm warnings). First target/profile build: 5m 05s. An unchanged
+cached package repeat: 6.85s total, Cargo 0.30s with no crates rebuilt. This proves
+cache reuse, not Rust-edit latency, release optimization or browser gameplay.
+
 ## 2026-10-27 — Improved Mend Pet
 
 The living combat wolf regenerates 1% maximum health per second per rank (two

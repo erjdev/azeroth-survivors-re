@@ -26,6 +26,13 @@ WASM="target/wasm32-unknown-unknown/${PROFILE}/wenilla.wasm"
 export WASI_SDK="${WASI_SDK:-$(pwd)/tools/wasi-sdk}"
 
 command -v wasm-bindgen >/dev/null || { echo "wasm-bindgen not found — run scripts/web-setup.sh" >&2; exit 1; }
+# Fail before compiling if PATH resolves a generator for a different schema version.
+want=$(awk '{sub(/\r/,"")} /^name = "wasm-bindgen"$/{getline; sub(/\r/,""); sub(/version = /,""); gsub(/"/,""); print; exit}' Cargo.lock)
+have=$(wasm-bindgen --version | awk '{print $2}')
+if [ -z "${want}" ] || [ "${have}" != "${want}" ]; then
+  echo "wasm-bindgen ${have:-unknown} does not match Cargo.lock (${want:-missing}); run scripts/web-setup.sh" >&2
+  exit 1
+fi
 [ -d "${WASI_SDK}" ] || { echo "wasi-sdk not at ${WASI_SDK} — run scripts/web-setup.sh (or set WASI_SDK)" >&2; exit 1; }
 
 cargo build --profile "${PROFILE}" --target wasm32-unknown-unknown -p wenilla --no-default-features --features "${BACKEND}"

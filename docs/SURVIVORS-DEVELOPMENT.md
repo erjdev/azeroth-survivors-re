@@ -18,6 +18,17 @@ and deletes stale compressed siblings before the local host can serve them.
 The first build still compiles this target/profile. Rebuild then reload the browser;
 this is not Rust hot reload. Default release/ship builds retain distribution
 postprocessing, and `WEB_DEBUG=1` preserves symbols in either mode.
+The build script checks the `wasm-bindgen` CLI against `Cargo.lock` before compiling.
+For a checkout-local CLI (current pin 0.2.122), use:
+
+```sh
+cargo install wasm-bindgen-cli --version 0.2.122 --locked --root tools/wasm-bindgen --target-dir target/wasm-bindgen-tools
+PATH="$PWD/tools/wasm-bindgen/bin:$PATH" WEB_PROFILE=play scripts/web-build.sh
+```
+
+Keep the version aligned with `Cargo.lock` when updating dependencies. The local
+CLI and its build cache are ignored; this does not alter a global CLI installation.
+
 
 Cargo already stores compiled dependencies under `target/`. The existing `play` profile
 inherits release optimization, enables incremental compilation and disables LTO. Keep that
