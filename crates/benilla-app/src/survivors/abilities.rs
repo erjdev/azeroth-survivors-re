@@ -6336,6 +6336,68 @@ mod milestone_tests {
     }
 
     #[test]
+    fn trueshot_reaches_shots_and_periodic_hits_without_affecting_traps() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        for rank in [0, 1, 255] {
+            let trained = base.with_ranks(&[(1, 1361, rank)]);
+            for key in data::CLASSES[2].pool.iter().copied().chain(["fireball"]) {
+                for level in [1, 3] {
+                    let owned = Owned {
+                        def: data::ability(key),
+                        level,
+                        cd: 0.,
+                    };
+                    let before = Params::new(&owned, &stats, base);
+                    let after = Params::new(&owned, &stats, trained);
+                    let factor = if rank > 0
+                        && matches!(
+                            key,
+                            "arcane_shot"
+                                | "multi_shot"
+                                | "serpent_sting"
+                                | "concussive_shot"
+                                | "aimed_shot"
+                        ) {
+                        1.10
+                    } else {
+                        1.0
+                    };
+                    assert!((after.dmg - before.dmg * factor).abs() < 0.001, "{key}");
+                    assert!((after.dot - before.dot * factor).abs() < 0.001, "{key}");
+                    assert_eq!(
+                        (
+                            after.cooldown,
+                            after.count,
+                            after.radius,
+                            after.range,
+                            after.duration,
+                            after.crit
+                        ),
+                        (
+                            before.cooldown,
+                            before.count,
+                            before.radius,
+                            before.range,
+                            before.duration,
+                            before.crit
+                        )
+                    );
+                    let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, after.dmg, false);
+                    let original =
+                        hit_for(owned.def, &before, Entity::PLACEHOLDER, before.dmg, false);
+                    assert!((hit.dot - original.dot * factor).abs() < 0.001, "{key}");
+                    let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    assert_eq!((reset.dmg, reset.dot), (before.dmg, before.dot));
+                }
+            }
+        }
+    }
+
+    #[test]
     fn precision_reaches_rogue_damage_without_changing_targeting_or_timing() {
         let stats = Run::default().stats();
         let base = Milestones {

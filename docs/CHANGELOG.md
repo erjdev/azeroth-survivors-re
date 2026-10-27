@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Hunter Trueshot Aura
+
+Trueshot Aura now grants 10% more direct and periodic Hunter shot damage, with an
+inline green preview. The passive applies to the Hunter only; traps, Volley and
+pets are excluded. It multiplies existing damage talents and the separate
+30-point milestone. Purchase and restart verified at 1280×720 and 640×720.
+
+202 core tests, 387 app tests, both Clippy gates and native build pass. Definition
+coverage is 248/432 (Hunter 31/46). Live balance and Windows acceptance remain open.
+
+![Trueshot Aura inline preview](images/screenshots/2026-10-27-trueshot/preview.png)
+![Purchased Trueshot Aura](images/screenshots/2026-10-27-trueshot/purchased.png)
+![Compact saved Trueshot Aura](images/screenshots/2026-10-27-trueshot/compact.png)
+
 ## 2026-10-27 — Consistent starter Options backdrop
 
 Opening Options from the starter or Armory now retains the landscape instead of

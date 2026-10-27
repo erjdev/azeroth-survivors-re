@@ -589,3 +589,14 @@ after use in run time. Empty target selections and paused frames cannot consume 
 missed time does not bank charges. Totems, Lightning Shield, periodic ticks and
 other-class spells are excluded. It grants no mana benefit because Survivors has
 no mana resource. Existing Elemental milestones remain independent.
+
+
+### Hunter Trueshot Aura
+
+The individual one-rank Marksmanship node (1361) passively multiplies the Hunter's
+Arcane Shot, Multi-Shot, Serpent Sting, Concussive Shot and Aimed Shot direct and
+periodic damage by 1.10. This is a self-only Survivors ranged-attack-power conversion;
+Volley, traps, pets and other-class abilities are unaffected. It multiplies other
+trained damage bonuses and the distinct 30-point milestone (Multi-Shot targets and
+Aimed Shot damage). It changes neither targeting nor timing, grants no new spell,
+and disappears when the node is refunded or another spec is selected.

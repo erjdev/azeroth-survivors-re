@@ -826,14 +826,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
 | Paladin | 24 / 44 | 9 / 9 |
-| Hunter | 30 / 46 | 9 / 9 |
+| Hunter | 31 / 46 | 9 / 9 |
 | Rogue | 22 / 51 | 9 / 9 |
 | Priest | 24 / 47 | 9 / 9 |
 | Shaman | 30 / 46 | 9 / 9 |
 | Mage | 33 / 49 | 9 / 9 |
 | Warlock | 27 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 247 / 432 | 81 / 81 |
+| Total | 248 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -7034,3 +7034,18 @@ pause and return to menu. All 386 app tests, app/test Clippy, native build,
 formatting and diff checks pass. Native 800×600/125% before/after captures and
 Done-to-Collection interaction are verified in CHANGELOG; README Options is
 refreshed. In-game rendering and Windows remain outside this visual checkpoint.
+
+
+### 2026-10-27 — Hunter Trueshot Aura individual node
+
+Node 1361 now adds a passive self-only 10% shot damage multiplier, using the existing
+Hunter shot group. It includes periodic damage and composes with Ranged Weapon
+Specialization, Barrage and the distinct 30-point milestone. Core tests cover rank
+clamping, foreign classes/spells, composition, refund and inline/capped wording;
+app tests exercise actual spell parameters and periodic hit payloads at ranks 1/3.
+202 core/387 app tests, both Clippy gates and native build pass. DBC coverage is
+248/432, Hunter 31/46. Native screenshots verify legal purchase with 30 earlier
+Marksmanship points and Barrage 3, then restart at 640×720 with rank 1 retained.
+All three screenshots are embedded in CHANGELOG and README Talents is refreshed.
+This remains an automatic Survivors conversion, not a party aura implementation.
+Live balance, Windows and the remaining 184 definitions are still open.

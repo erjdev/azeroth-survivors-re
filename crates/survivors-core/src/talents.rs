@@ -2312,6 +2312,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1361, max_rank: 1, name: "Trueshot Aura",
+        description: "Your Hunter shots: +10% direct and periodic damage, multiplying other damage talents. Excludes Volley, traps, pets and other-class abilities (Survivors passive ranged-attack-power conversion; self only)",
+        stat: TalentStat::SpellGroupDamage(HUNTER_SHOTS), per_rank: 0.10 },
     TalentDefinition { id: 1385, max_rank: 2, name: "Improved Mend Pet",
         description: "Living combat wolf: regenerate 1% maximum health per sec per rank. Does not heal the Hunter, revive the wolf or shorten recovery (Survivors automatic Mend Pet conversion; no dispel)",
         stat: TalentStat::PetMend, per_rank: 0.01 },
@@ -3213,6 +3216,58 @@ mod stat_talent_tests {
                 .remorseless_crit("gouge"),
             0.0
         );
+    }
+
+    #[test]
+    fn trueshot_is_self_scoped_composes_and_refunds() {
+        for class in [0, 2, 6] {
+            let base = Milestones {
+                class,
+                points: [30, 30, 30],
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 1362, 5), (1, 1347, 3)]);
+            for rank in [0, 1, 255] {
+                let trained = Milestones {
+                    class,
+                    points: [30, 30, 30],
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 1362, 5), (1, 1347, 3), (1, 1361, rank)]);
+                for key in HUNTER_SHOTS.iter().copied().chain([
+                    "volley",
+                    "explosive_trap",
+                    "fireball",
+                    "unknown",
+                ]) {
+                    let before = base.cast(key);
+                    let after = trained.cast(key);
+                    let factor = if class == 2 && rank > 0 && HUNTER_SHOTS.contains(&key) {
+                        1.10
+                    } else {
+                        1.0
+                    };
+                    assert!(
+                        (after.damage - before.damage * factor).abs() < 0.00001,
+                        "{key}"
+                    );
+                    assert_eq!(
+                        CastEffect {
+                            damage: before.damage,
+                            ..after
+                        },
+                        before
+                    );
+                }
+                assert_eq!(trained.with_ranks(&[(1, 1362, 5), (1, 1347, 3)]), base);
+            }
+        }
+        let node = talent_definition(2, 1361).unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .starts_with("Your Hunter shots: +0 » 10% direct and periodic damage"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 
     #[test]
