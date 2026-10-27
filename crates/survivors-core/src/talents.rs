@@ -2,7 +2,9 @@
 
 mod druid;
 mod hunter;
+mod mage;
 pub use hunter::{PetBonus, PetFrenzy};
+pub use mage::ColdSnapClock;
 mod shaman;
 mod warlock;
 
@@ -1441,6 +1443,7 @@ pub enum TalentStat {
     PetFrenzy,
     PetSpeed,
     PetCooldown,
+    ColdSnap,
     SiphonLife,
     Nightfall,
     SecondarySlowDuration(&'static str),
@@ -1518,7 +1521,10 @@ impl TalentDefinition {
             return Some((text, vec![duration, strength]));
         }
         let (scale, unit) = match self.stat {
-            TalentStat::Health | TalentStat::Armor | TalentStat::AncestralHealingArmor => (1.0, ""),
+            TalentStat::Health
+            | TalentStat::Armor
+            | TalentStat::AncestralHealingArmor
+            | TalentStat::ColdSnap => (1.0, ""),
             TalentStat::Conflagrate
             | TalentStat::SpellShieldDuration(_)
             | TalentStat::SecondaryRootDuration(_)
@@ -1753,6 +1759,7 @@ impl TalentDefinition {
                 100.0,
                 "% chance per wolf critical for 30% bite haste for 8 sec",
             ),
+            TalentStat::ColdSnap => (1.0, " automatic frost reset every 90 sec"),
             TalentStat::PetCooldown => (100.0, "% shorter combat wolf bite cooldown"),
             TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
@@ -2457,6 +2464,9 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 69, max_rank: 1, name: "Cold Snap",
+        description: "Grants 1 automatic reset of owned Frostbolt, Frost Nova, Blizzard and Cone of Cold cooldowns every 90 sec of run time; first at 90 sec. Does not grant spells or store charges (Survivors automatic conversion)",
+        stat: TalentStat::ColdSnap, per_rank: 1.0 },
     TalentDefinition { id: 66, max_rank: 3, name: "Frost Channeling",
         description: "Frostbolt, Frost Nova, Blizzard and Cone of Cold: 5% shorter cooldown per rank. Does not change area duration or tick rate (Survivors mana-cost conversion)",
         stat: TalentStat::SpellGroupCooldown(MAGE_FROST), per_rank: 0.05 },
@@ -2964,6 +2974,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::PetDamage
             | TalentStat::PetCrit
             | TalentStat::PetFrenzy
+            | TalentStat::ColdSnap
             | TalentStat::PetCooldown
             | TalentStat::PetSpeed
             | TalentStat::SpiritualHealing
@@ -4253,6 +4264,7 @@ mod stat_talent_tests {
                     | TalentStat::PetDamage
                     | TalentStat::PetCrit
                     | TalentStat::PetFrenzy
+                    | TalentStat::ColdSnap
                     | TalentStat::PetCooldown
                     | TalentStat::PetSpeed
                     | TalentStat::SpiritualHealing

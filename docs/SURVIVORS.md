@@ -49,6 +49,10 @@ These stay, and later phases read them instead of inventing a second copy.
   30% wolf movement speed (1 rank). Bites use global critical chance/damage;
   Bestial Discipline shortens bite cooldown by 10% per rank (2 ranks), multiplying
   the 20-point milestone. Frenzy haste divides that adjusted cooldown by 1.3 while active.
+- Mage Cold Snap automatically resets owned Frostbolt, Frost Nova, Blizzard and
+  Cone of Cold cooldowns every 90 seconds of run time, first at 90 seconds. Pauses
+  do not advance its clock. Missed intervals do not bank charges; it does not grant
+  spells or remove existing areas. This is the Survivors automatic conversion.
 - Achievement points buy perks and companion ranks. Two perk resets refund perk points and
   leave companion ranks. The first companion is free.
 - Cloak quality follows feats: talent cap, raid clear, a finished collection, every legendary

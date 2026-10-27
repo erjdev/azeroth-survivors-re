@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Cold Snap
+
+Mage Cold Snap automatically resets owned Frostbolt, Frost Nova, Blizzard and
+Cone of Cold cooldowns every 90 seconds of run time, first at 90 seconds. It
+neither grants spells nor banks missed resets; other spells and existing areas
+remain unchanged. This is an explicit automatic Survivors conversion.
+
+193 core tests, 372 app tests, core/app-test Clippy and native build pass. Native
+1024×720 at 125% verifies the inline preview and saved purchase (18→19 Frost
+points). Coverage is 239/432 definitions, Mage 32/49. Live balance remains open.
+
+![Mage talent trees](images/screenshots/2026-10-27-cold-snap/trees.png)
+![Cold Snap preview](images/screenshots/2026-10-27-cold-snap/preview.png)
+![Cold Snap purchased in spec 3](images/screenshots/2026-10-27-cold-snap/purchased.png)
+
 ## 2026-10-27 — Elwynn canopy visibility coverage
 
 Added render-only regressions for all four Elwynn canopy models, from both sides,

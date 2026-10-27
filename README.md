@@ -116,7 +116,7 @@ Collection and Talents also support compact scrolling at enlarged interface size
 
 ![Saved Conflagrate at 125% interface size](docs/images/screenshots/2026-10-27-conflagrate/restarted-640-125.png)
 
-![Bestial Discipline training and inline upgrade](docs/images/screenshots/2026-10-27-bestial-discipline/purchased.png)
+![Cold Snap training and saved spec](docs/images/screenshots/2026-10-27-cold-snap/purchased.png)
 
 ### Earlier gameplay captures
 

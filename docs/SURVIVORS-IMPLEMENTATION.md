@@ -6688,3 +6688,19 @@ It verifies emitted damage, no early second bite, a bite after cooldown expiry,
 zero-delta cooldown preservation and unchanged recovery. All 370 app tests and
 app-test Clippy pass. Production scheduling is gated to Playing and no loading
 screen; this headless regression is not a live Windows combat acceptance claim.
+
+
+### 2026-10-27 — Cold Snap training
+
+Mage node 69 (one rank) resets cooldowns of owned Frostbolt, Frost Nova, Blizzard
+and Cone of Cold every 90 run-time seconds, first at 90 seconds. The per-run clock
+consumes at most one reset after a long frame and schedules the next boundary;
+other spells, active areas and ownership stay unchanged. Production casting's
+alive/positive-delta guard prevents reset consumption while paused or dead.
+Core tests cover timing boundaries, malformed ranks, class/spell scope and inline
+values. The real casting-system regression checks all four Frost cooldowns,
+unrelated Fireball/Frost Shock, zero-delta pause and no repeated/banked reset.
+193 core tests, 372 app tests, core/app-test Clippy and native build pass. Native
+1024×720 at 125% verifies purchase and save in spec 3 (18→19 Frost points), with
+inline screenshots in the changelog/README. Coverage is 239/432, Mage 32/49.
+Remaining talent definitions, live balance and Windows acceptance remain open.
