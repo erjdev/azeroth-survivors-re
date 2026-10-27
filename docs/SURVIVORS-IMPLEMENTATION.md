@@ -7135,3 +7135,18 @@ This improves UI iteration; it does not close Windows or broader Codex acceptanc
 
 Verification: 393 Survivors app tests, app-test Clippy, formatting and native
 play-profile build pass. The build took 45 seconds; core rules are unchanged.
+
+
+### Periodic amulet description correctness — 2026-10-27
+
+Audit found that pure `Kind::Dot` applications and subsequent ticks never roll
+critical damage, but legendary previews advertised +15% critical damage. The
+shared effective-bonus formatter now excludes it for all six periodic spells,
+including replacement losses and duplicate selections. The existing 5% periodic
+damage increase and all gameplay/save behavior remain unchanged. Native Rupture
+Codex before/after and Rupture/Fireball/Entangling Roots choice-card captures verify
+the corrected display; screenshots are inline in the changelog. Extra targets
+remain limited by the existing single-target eligibility rule.
+
+Verification: 394 app tests, app-test Clippy, formatting and native play build
+pass. No Windows or live combat acceptance is claimed for this display correction.

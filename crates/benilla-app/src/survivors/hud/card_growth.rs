@@ -90,7 +90,7 @@ pub(in crate::survivors) fn legend_effect(
         bonus.targets = super::super::sheet::extra_targets(def.kind, def.count, bonus.targets);
         if matches!(
             def.kind,
-            Kind::Heal | Kind::Shield | Kind::Immune | Kind::Thorns
+            Kind::Heal | Kind::Shield | Kind::Immune | Kind::Thorns | Kind::Dot
         ) {
             bonus.crit_damage = 0.0;
         }
@@ -238,6 +238,49 @@ pub(in crate::survivors) fn bonus_changes(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn periodic_legendaries_show_effective_damage_without_critical_or_target_bonuses() {
+        let pure_dots: Vec<_> = data::ABILITIES
+            .iter()
+            .filter(|def| def.kind == Kind::Dot)
+            .collect();
+        assert!(!pure_dots.is_empty());
+        for def in pure_dots {
+            let choice = Choice::Jewel(campaign::JewelKind::Legend(def.key));
+            let run = Run::default();
+            let lines = describe(choice, &run);
+            assert!(
+                lines.iter().any(|(text, _)| text == "Damage bonus 0 » 5%"),
+                "{}: {lines:?}",
+                def.key
+            );
+            assert!(
+                !lines
+                    .iter()
+                    .any(|(text, _)| text.contains("Critical") || text.contains("targets")),
+                "{}: {lines:?}",
+                def.key
+            );
+            let mut replaced = Run::default();
+            replaced.worn.equip(campaign::JewelKind::Legend(def.key));
+            let lines = describe(
+                Choice::Jewel(campaign::JewelKind::Legend("fireball")),
+                &replaced,
+            );
+            assert!(lines.iter().any(|(text, _)| text == "Damage bonus 5 » 0%"));
+            assert!(!lines
+                .iter()
+                .any(|(text, _)| text == "Critical damage bonus 15 » 0%"));
+            assert!(lines
+                .iter()
+                .any(|(text, _)| text == "Critical damage bonus 0 » 15%"));
+            let identical = describe(choice, &replaced);
+            assert!(identical
+                .iter()
+                .any(|(text, _)| text == "No change to this spell's bonuses"));
+        }
+    }
+
     #[test]
     fn defensive_legendaries_report_only_effective_power_and_replacement_losses() {
         for (key, label) in [

@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Accurate periodic amulet descriptions
+
+Rupture, Shadow Word: Pain, Corruption, Curse of Agony, Insect Swarm and Entangling
+Roots amulets no longer advertise ineffective critical damage. Their 5% damage
+bonus remains; replacement comparisons omit the same misleading loss. Direct-hit
+amulets retain their critical bonuses. Combat and save rules are unchanged.
+
+Native before/after Codex captures and a mixed choice-card preview verify the fix.
+All 394 app tests, app-test Clippy, formatting and native build pass.
+
+![Before: ineffective critical bonus](images/screenshots/2026-10-27-periodic-amulets/before.png)
+![After: effective periodic bonus](images/screenshots/2026-10-27-periodic-amulets/after.png)
+![Periodic and direct-hit amulet cards](images/screenshots/2026-10-27-periodic-amulets/cards.png)
+
 ## 2026-10-27 — Direct Codex UI previews
 
 Fast menu previews can now select any catalog spell or shared jewelry detail.
