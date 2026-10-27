@@ -96,7 +96,7 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
                             }
                         }
                         Category::Graphics => {
-                            for knob in [Knob::View, Knob::Grass, Knob::Spells, Knob::Scale] {
+                            for knob in [Knob::View, Knob::Grass, Knob::Spells, Knob::Scale, Knob::InterfaceScale] {
                                 sliders::row(body, font, knob);
                             }
                             checkboxes::row(body, font, Knob::AutoPush);
@@ -157,7 +157,14 @@ pub(super) fn restore_cvars(cvars: &mut crate::cvars::Cvars, category: Category)
             "MasterSoundEffects",
             "EnableMusic",
         ],
-        Category::Graphics => &["farclip", "WorldDetail", "spellEffectLevel", "renderScale"],
+        Category::Graphics => &[
+            "farclip",
+            "WorldDetail",
+            "spellEffectLevel",
+            "renderScale",
+            "uiScale",
+            "useUiScale",
+        ],
         Category::Controls | Category::About => &[],
     };
     for name in names {

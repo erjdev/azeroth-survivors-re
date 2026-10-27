@@ -93,6 +93,13 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
 </table>
 
+### Interface sizing
+
+Options → Graphics → **Interface size** adjusts readability from 75% to 125%
+without changing render resolution. The setting is saved between launches.
+
+![Compact Options at 125% interface size](docs/images/screenshots/2026-10-27-interface-scale/options-640-125.png)
+
 ### Earlier gameplay captures
 
 <table>

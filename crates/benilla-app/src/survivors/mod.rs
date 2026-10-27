@@ -235,7 +235,7 @@ impl Plugin for SurvivorsPlugin {
             .add_systems(
                 Update,
                 (
-                    hud::apply_ui_scale,
+                    hud::apply_ui_scale.after(hud::apply_settings),
                     cards::scroll_hand,
                     hud::fill_art,
                     hud::xp_hover,

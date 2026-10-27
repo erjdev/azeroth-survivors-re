@@ -26,7 +26,13 @@ fn order(category: Category, phase: Phase) -> Vec<Target> {
     .to_vec();
     let knobs: &[Knob] = match category {
         Category::Audio => &[Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience],
-        Category::Graphics => &[Knob::View, Knob::Grass, Knob::Spells, Knob::Scale],
+        Category::Graphics => &[
+            Knob::View,
+            Knob::Grass,
+            Knob::Spells,
+            Knob::Scale,
+            Knob::InterfaceScale,
+        ],
         Category::Controls => &[Knob::CameraSpeed, Knob::ZoomSpeed],
         Category::About => &[],
     };

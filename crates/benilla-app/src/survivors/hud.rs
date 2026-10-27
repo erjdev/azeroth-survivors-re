@@ -199,6 +199,7 @@ pub(super) enum Knob {
     Grass,
     Spells,
     Scale,
+    InterfaceScale,
 }
 
 #[derive(Component, Clone, Copy, PartialEq)]
@@ -2255,13 +2256,23 @@ pub(super) fn fill_art(
     }
 }
 
-/// The reference lays its UI out on a screen 768 units tall at any resolution (`useUiScale` off).
+/// Height-relative sizing, with an optional persistent readability multiplier.
 pub(super) fn apply_ui_scale(
+    cvars: Res<crate::cvars::Cvars>,
     windows: Query<&Window, With<PrimaryWindow>>,
     mut scale: ResMut<UiScale>,
 ) {
     let Ok(window) = windows.single() else { return };
-    let want = window.height() / 768.0;
+    let multiplier = if cvars.num("useUiScale").unwrap_or(0.) != 0. {
+        cvars
+            .num("uiScale")
+            .filter(|v| v.is_finite())
+            .unwrap_or(1.)
+            .clamp(0.75, 1.25)
+    } else {
+        1.
+    };
+    let want = window.height() / 768.0 * multiplier;
     if want > 0.0 && (scale.0 - want).abs() > 1e-4 {
         scale.0 = want;
     }

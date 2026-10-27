@@ -38,6 +38,7 @@ fn spec(knob: Knob) -> Spec {
         ),
         Knob::Grass => ("Grass", "WorldDetail", &[0., 1., 2.]),
         Knob::Spells => ("Spell detail", "spellEffectLevel", &[0., 1., 2.]),
+        Knob::InterfaceScale => ("Interface size", "uiScale", &[0.75, 0.85, 1., 1.1, 1.25]),
         Knob::Scale => (
             "Render scale",
             "renderScale",
@@ -89,6 +90,7 @@ pub(super) fn current(
     knob: Knob,
 ) -> f32 {
     match knob {
+        Knob::InterfaceScale if cvars.num("useUiScale").unwrap_or(0.) == 0. => 1.,
         Knob::CameraSpeed => camera.camera_speed,
         Knob::ZoomSpeed => camera.zoom_speed,
         _ => cvars.num(spec(knob).name).unwrap_or(0.),
@@ -99,6 +101,9 @@ pub(in crate::survivors::hud) fn apply(cvars: &mut crate::cvars::Cvars, knob: Kn
     if position.is_finite() {
         let spec = spec(knob);
         cvars.set(spec.name, &spec.value(position).to_string());
+        if knob == Knob::InterfaceScale {
+            cvars.set("useUiScale", "1");
+        }
     }
 }
 
@@ -302,6 +307,73 @@ pub(in crate::survivors) fn refresh(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn interface_size_tracks_resolution_and_restores_automatic_sizing() {
+        use bevy::ecs::system::RunSystemOnce;
+        use bevy::window::{PrimaryWindow, WindowResolution};
+        for height in [480, 720, 1080] {
+            for dpi in [1., 2.] {
+                let mut world = World::new();
+                world.init_resource::<crate::cvars::Cvars>();
+                world.init_resource::<UiScale>();
+                world.spawn((
+                    PrimaryWindow,
+                    Window {
+                        resolution: WindowResolution::new(1280, height)
+                            .with_scale_factor_override(dpi),
+                        ..default()
+                    },
+                ));
+                let baseline = height as f32 / dpi / 768.;
+                world
+                    .run_system_once(super::super::super::apply_ui_scale)
+                    .unwrap();
+                assert!((world.resource::<UiScale>().0 - baseline).abs() < 0.00001);
+                let camera = super::super::super::super::camera::CameraSettings::default();
+                for (position, expected) in [(0., 0.75), (0.5, 1.), (1., 1.25)] {
+                    apply(
+                        &mut world.resource_mut::<crate::cvars::Cvars>(),
+                        Knob::InterfaceScale,
+                        position,
+                    );
+                    world
+                        .run_system_once(super::super::super::apply_ui_scale)
+                        .unwrap();
+                    assert!((world.resource::<UiScale>().0 - baseline * expected).abs() < 0.00001);
+                    let cvars = world.resource::<crate::cvars::Cvars>();
+                    assert_eq!(current(cvars, &camera, Knob::InterfaceScale), expected);
+                    assert_eq!(cvars.get("useUiScale"), Some("1"));
+                    assert_eq!(cvars.get("renderScale"), cvars.default_of("renderScale"));
+                }
+                apply(
+                    &mut world.resource_mut::<crate::cvars::Cvars>(),
+                    Knob::InterfaceScale,
+                    f32::NAN,
+                );
+                assert_eq!(
+                    world.resource::<crate::cvars::Cvars>().num("uiScale"),
+                    Some(1.25)
+                );
+                super::super::restore_cvars(
+                    &mut world.resource_mut::<crate::cvars::Cvars>(),
+                    Category::Graphics,
+                );
+                world
+                    .run_system_once(super::super::super::apply_ui_scale)
+                    .unwrap();
+                assert!((world.resource::<UiScale>().0 - baseline).abs() < 0.00001);
+                assert_eq!(
+                    current(
+                        world.resource::<crate::cvars::Cvars>(),
+                        &camera,
+                        Knob::InterfaceScale
+                    ),
+                    1.
+                );
+            }
+        }
+    }
+
     #[test]
     fn short_drag_preserves_order_at_both_display_scales_and_stops_on_release() {
         use bevy::ecs::system::RunSystemOnce;

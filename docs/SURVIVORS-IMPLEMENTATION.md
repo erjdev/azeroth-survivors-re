@@ -867,6 +867,15 @@ with the intention images; compilation alone does not establish visual completio
 Apply the responsive-layout contract below to every surface, including the combat HUD
 and draft cards, rather than treating these two resolutions as fixed design canvases.
 
+Interface-size control (2026-10-27): Graphics exposes 75/85/100/110/125% of the
+height-relative UI baseline, independent of render scale, through persistent
+`uiScale`/`useUiScale` settings. Graphics defaults restores automatic sizing.
+365 app tests and Clippy pass, including three window heights at 1×/2× DPI.
+Native 1280×720 and 640×720 checks verify 125% Options/Character, full restart
+persistence and restoration. Captures are inline in CHANGELOG; other Armory
+pages, card drafts and combat HUD at every scale still require acceptance.
+
+
 Collection shares Character’s inline faction portraits and race/sex controls. Live
 1280×720 edits carried through to the Character model, with all nine empty equipment
 slots visible. The full account/resolution matrix remains outstanding.

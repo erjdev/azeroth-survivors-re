@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Adjustable interface size
+
+Options → Graphics now offers Interface size at 75%, 85%, 100%, 110% and 125%,
+independently of render resolution. The preference survives restart and remains
+relative to window height. Graphics defaults restores automatic sizing.
+
+365 app tests, app-test Clippy and native build pass. Tests cover 480/720/1080
+heights at 1×/2× display scale, bounded adjustments and default restoration.
+Native 1280×720 and 640×720 checks verify 125% Options, Character reflow,
+restart persistence and reset. Other pages and gameplay at every scale remain
+acceptance work.
+
+![Enlarged interface with independent render scale](images/screenshots/2026-10-27-interface-scale/options-125.png)
+![Compact Options at 125 percent](images/screenshots/2026-10-27-interface-scale/options-640-125.png)
+![Compact Character after restarting at 125 percent](images/screenshots/2026-10-27-interface-scale/restarted-640-125.png)
+
 ## 2026-10-27 — Soul Link talent
 
 Soul Link now adds a three-second, 5% maximum-health absorb to successful
