@@ -708,9 +708,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 23 / 47 | 9 / 9 |
 | Shaman | 29 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
-| Warlock | 24 / 50 | 9 / 9 |
+| Warlock | 25 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 234 / 432 | 81 / 81 |
+| Total | 235 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -1252,6 +1252,14 @@ and Shadowburn. These definitions replace generic damage fallback and do not gra
 unowned abilities. Area locations, target counts and durations stay unchanged.
 The remaining 34 nodes and live balance acceptance remain open. No demon companion
 system is claimed by this first group.
+
+Soul Link node (1282, one rank) adds a 5% maximum-health absorb to each
+successful Death Coil cast, for three seconds. It combines with the 30-point
+Demonology milestone for 10%, refreshes without stacking, and preserves stronger
+active absorbs. This follows the existing automatic milestone conversion: it
+requires an acquired Death Coil, does not summon a demon, and leaves damage,
+drain healing, cooldown and targeting unchanged. Refunding removes the node's
+contribution to future casts while retaining any earned milestone.
 
 All nine Warlock milestones now use explicit automatic Survivors adaptations:
 

@@ -17,6 +17,7 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1282, max_rank: 1, name: "Soul Link", description: "Death Coil grants a non-stacking absorb for 5% maximum health lasting 3 sec, once per successful cast. Adds to the Demonology 30-point milestone for 10% total. Requires acquiring Death Coil; preserves stronger shields (Survivors automatic conversion; no demon required)", stat: TalentStat::SpellShield("death_coil"), per_rank: 0.05 },
     TalentDefinition { id: 1081, max_rank: 1, name: "Curse of Exhaustion", description: "Curse of Agony applications slow targets by 10% for 12 sec. Requires acquiring Curse of Agony; damage and target count are unchanged. Refreshes without stacking and preserves stronger slows (Survivors curse conversion)", stat: TalentStat::CurseExhaustion, per_rank: 0.10 },
     TalentDefinition { id: 1082, max_rank: 4, name: "Improved Curse of Exhaustion", description: "Curse of Exhaustion: +5% additional slow per rank. Requires the base talent; bosses cannot be slowed by more than 25%. Duration and damage are unchanged (Survivors conversion)", stat: TalentStat::ImprovedCurseExhaustion, per_rank: 0.05 },
     TalentDefinition { id: 985, max_rank: 2, name: "Intensity", description: "Rain of Fire: +10% active duration per rank. Pulse interval, damage per pulse, radius and cooldown are unchanged (Survivors channel-resilience conversion; no channel required)", stat: TalentStat::SpellDuration("rain_of_fire"), per_rank: 0.10 },
@@ -92,6 +93,32 @@ pub(super) fn description(tree: usize, threshold: u32) -> Option<&'static str> {
 mod tests {
     use super::*;
     use crate::talents::{stat_adjustment, CastEffect, Milestones};
+    #[test]
+    fn soul_link_adds_to_milestone_and_refunds_independently() {
+        for points in [0, 29, 30] {
+            let base = Milestones {
+                class: 7,
+                points: [0, points, 0],
+                ..Default::default()
+            };
+            for rank in [0, 1, 255] {
+                let trained = base.with_ranks(&[(1, 1282, rank)]);
+                let before = base.cast("death_coil");
+                let mut expected = before;
+                expected.shield_fraction += if rank > 0 { 0.05 } else { 0. };
+                expected.shield_seconds = if expected.shield_fraction > 0. {
+                    3.
+                } else {
+                    0.
+                };
+                assert_eq!(trained.cast("death_coil"), expected);
+                assert_eq!(trained.with_ranks(&[]).cast("death_coil"), before);
+                for key in ["corruption", "shadow_bolt", "fireball"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+    }
     #[test]
     fn warlock_ranks_compose_cap_and_reset_without_changing_geometry() {
         let base = Milestones {

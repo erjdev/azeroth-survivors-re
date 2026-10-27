@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Soul Link talent
+
+Soul Link now adds a three-second, 5% maximum-health absorb to successful
+Death Coil casts, combining with the Demonology milestone for 10%. Refreshes
+do not stack, and stronger active shields are preserved. Green inline text
+explains the upgrade; damage, cooldown and targeting are unchanged.
+
+188 core tests, 364 app tests, core/app-test Clippy and native build pass.
+Wide/compact native captures verify the description and saved purchase in a
+seeded prerequisite fixture. Catalog coverage: 235/432 nodes (Warlock 25/50).
+Demonology prerequisites still include unfinished talents; live balance remains open.
+
+![Soul Link inline upgrade](images/screenshots/2026-10-27-soul-link/talents-1280.png)
+![Compact purchased Soul Link](images/screenshots/2026-10-27-soul-link/talents-640.png)
+
 ## 2026-10-27 — Character body and saved appearance checks
 
 Expanded native Character acceptance to dressed Orc female and Undead male

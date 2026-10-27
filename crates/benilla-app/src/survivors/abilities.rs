@@ -5870,6 +5870,54 @@ mod milestone_tests {
     }
 
     #[test]
+    fn soul_link_absorb_composes_and_refreshes_without_stacking() {
+        for points in [0, 29, 30] {
+            for rank in [0, 1, 255] {
+                let base = Milestones {
+                    class: 7,
+                    points: [0, points, 0],
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 1282, rank)]);
+                let expected = if points >= 30 { 5. } else { 0. } + if rank > 0 { 5. } else { 0. };
+                for level in [1, 5] {
+                    let mut run = Run {
+                        hp: 50.,
+                        milestones: trained,
+                        ..Default::default()
+                    };
+                    let owned = Owned {
+                        def: data::ability("death_coil"),
+                        level,
+                        cd: 0.,
+                    };
+                    let before = Params::new(&owned, &run.stats(), base);
+                    let after = Params::new(&owned, &run.stats(), trained);
+                    assert!((after.shield_fraction * 100. - expected).abs() < 0.00001);
+                    assert_eq!(
+                        (after.dmg, after.cooldown, after.count, after.range),
+                        (before.dmg, before.cooldown, before.count, before.range)
+                    );
+                    for _ in 0..3 {
+                        finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+                        assert!((run.shield - expected).abs() < 0.00001);
+                        assert_eq!(run.shield_t, if expected > 0. { 3. } else { 0. });
+                    }
+                    run.shield = 20.;
+                    run.shield_t = 8.;
+                    finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+                    assert_eq!((run.shield, run.shield_t), (20., 8.));
+                    run.shield = 0.;
+                    run.shield_t = 0.;
+                    run.hp = 0.;
+                    finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+                    assert_eq!((run.shield, run.shield_t), (0., 0.));
+                }
+            }
+        }
+    }
+
+    #[test]
     fn guardian_totems_refresh_absorption_without_stacking_or_extending_stronger_shields() {
         for points in [9, 10, 30] {
             for rank in [0, 1, 2, 255] {
