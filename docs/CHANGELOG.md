@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Starter heading alignment
+
+Class, Hero, Equipment and Zone now share the intention reference's centered
+headings and fading gold dividers. Flexible lines follow each panel's width,
+including the compact stacked layout. Native 1280×720 and 640×720 checks verify
+all four headings and scrolling; native build and app-test Clippy pass.
+
+![Before: starter headings](images/screenshots/2026-10-27-starter-dividers/before-1280.png)
+![After: starter headings](images/screenshots/2026-10-27-starter-dividers/after-1280.png)
+![Compact starter](images/screenshots/2026-10-27-starter-dividers/after-640.png)
+![Compact equipment and zone sections](images/screenshots/2026-10-27-starter-dividers/scrolled-640.png)
+
 ## 2026-10-27 — Building reveal eligibility
 
 Removed the WMO exclusion from both Survivors scenery shader paths. Buildings

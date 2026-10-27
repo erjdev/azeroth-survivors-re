@@ -31,7 +31,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Starter</strong><br><img src="docs/images/screenshots/2026-10-26-starter-scrollbars/zones-1280.png" alt="Starter"><br>2026-10-26 · Campaign stages and briefings with draggable scrollbars.<br><a href="docs/images/screenshots/2026-10-26-compact-scrollbar/starter-640.png">Compact starter preview</a></td>
+    <td width="50%"><strong>Starter</strong><br><img src="docs/images/screenshots/2026-10-27-starter-dividers/after-1280.png" alt="Starter"><br>2026-10-27 · Reference-aligned headings and flexible gold dividers.<br><a href="docs/images/screenshots/2026-10-27-starter-dividers/after-640.png">Compact starter preview</a></td>
     <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-27-raid-foundation/character-1280.png" alt="Character"><br>2026-10-27 · Synthetic raid loadout with independent appearance; raid acquisition remains pending.</td>
   </tr>
   <tr>

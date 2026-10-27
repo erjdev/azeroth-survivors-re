@@ -1334,25 +1334,7 @@ fn bar(body: &mut ChildSpawnerCommands, frac: f32) {
 }
 
 fn heading(body: &mut ChildSpawnerCommands, font: &Handle<Font>, text: &str) {
-    outlined_text_centered(
-        body,
-        Node {
-            width: Val::Percent(100.0),
-            margin: UiRect::top(Val::Px(2.0)),
-            justify_content: JustifyContent::Center,
-            ..default()
-        },
-        super::typography::DisplayHeading,
-        (),
-        GlueText {
-            text,
-            size: 18.0,
-            color: GOLD,
-            wrap: false,
-        },
-        font,
-        1.0,
-    );
+    super::typography::section(body, font, text, 18.0, GOLD);
 }
 
 fn line(body: &mut ChildSpawnerCommands, font: &Handle<Font>, text: &str, size: f32, color: Color) {

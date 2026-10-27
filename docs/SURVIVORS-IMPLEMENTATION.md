@@ -6728,3 +6728,14 @@ UI preview launcher follow-up: validate/read the selected preset before creating
 the disposable account. A rejected non-talent preset with saved-spec selection
 leaves the destination absent and permits a corrected retry. All nine Python
 fixture isolation tests pass; no Rust or rendered interface change.
+
+
+### 2026-10-27 — Starter panel heading alignment
+
+Reused Collection's flexible centered section heading for starter Class, Hero,
+Equipment and Zone, matching the gold divider treatment in
+`intentions/survivors_main_menu.png`. Native 1280×720 and 640×720 previews at the
+default interface scale verify the four headings, panel wrapping and scrolling.
+Before/after and compact captures are embedded in CHANGELOG; README's starter
+image is current. Native build and app-test Clippy pass. No gameplay behavior
+changed; outdoor illustration and broader starter fidelity remain open.
