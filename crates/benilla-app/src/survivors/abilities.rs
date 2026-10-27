@@ -4401,6 +4401,116 @@ mod milestone_tests {
     }
 
     #[test]
+    fn totem_deployment_heals_once_only_after_success_and_restoration_unlock() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["searing_totem", "magma_totem"] {
+            for points in [0, 9, 10, 30] {
+                for rank in [0, 1, 5, 255] {
+                    // No enemy, successful cast, cooldown, dead hero, and healing cap.
+                    for (enemy_count, initial_hp, cooldown) in [
+                        (0, 20., 0.),
+                        (1, 20., 0.),
+                        (3, 20., 0.),
+                        (3, 20., 5.),
+                        (3, 0., 0.),
+                        (3, 159., 0.),
+                    ] {
+                        let mut run = Run {
+                            class: &data::CLASSES[5],
+                            hp: initial_hp,
+                            milestones: Milestones {
+                                class: 5,
+                                points: [0, 0, points],
+                                ..Default::default()
+                            }
+                            .with_ranks(&[(2, 588, rank), (2, 592, rank)]),
+                            ..Default::default()
+                        };
+                        run.bonus.targets = 3;
+                        let max_hp = run.stats().max_hp;
+                        run.hp = initial_hp.min(max_hp - 1.);
+                        let initial_hp = run.hp;
+                        run.abilities.push(Owned {
+                            def: data::ability(key),
+                            level: 1,
+                            cd: cooldown,
+                        });
+                        let mut time = Time::<()>::default();
+                        time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                        let mut app = App::new();
+                        app.insert_resource(time)
+                            .insert_resource(run)
+                            .insert_resource(Rng(42))
+                            .init_resource::<PlaySeq>()
+                            .init_resource::<PendingHits>()
+                            .add_message::<CastEvent>()
+                            .add_message::<SpellGoTargets>()
+                            .add_message::<SwingMessage>()
+                            .add_message::<crate::combat_text::CombatTextSpawn>()
+                            .add_message::<Hit>();
+                        app.world_mut()
+                            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                        for index in 0..enemy_count {
+                            app.world_mut().spawn((
+                                Transform::from_xyz(1. + index as f32, 0., 0.),
+                                Enemy {
+                                    def: &data::roster(0).enemies[0],
+                                    hp: 100.,
+                                    max_hp: 100.,
+                                    speed: 3.,
+                                    damage: 1.,
+                                    radius: 0.6,
+                                    xp: 1,
+                                    boss: false,
+                                    elite: false,
+                                    attack_cd: 0.,
+                                    slow: 1.,
+                                    slow_t: 0.,
+                                    root_t: 0.,
+                                    frozen_t: 0.,
+                                    winters_chill: Default::default(),
+                                    shadow_weaving: Default::default(),
+                                    stun_t: 0.,
+                                    fear_t: 0.,
+                                    weaken: 1.,
+                                    weaken_t: 0.,
+                                    dots: Vec::new(),
+                                    dead: false,
+                                },
+                            ));
+                        }
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        let fired = enemy_count > 0 && initial_hp > 0. && cooldown == 0.;
+                        let healing = if fired && points >= 10 {
+                            max_hp * 0.03 * (1. + 0.07 * f32::from(rank.min(5)))
+                        } else {
+                            0.
+                        };
+                        let expected_hp = (initial_hp + healing).min(max_hp);
+                        assert!((app.world().resource::<Run>().hp - expected_hp).abs() < 0.0001,
+                            "{key}: points={points}, rank={rank}, enemies={enemy_count}, hp={initial_hp}, cd={cooldown}");
+                        assert_eq!(
+                            app.world_mut().query::<&Totem>().iter(app.world()).count(),
+                            usize::from(fired)
+                        );
+                        // A later update and attacks from the deployed totem must not repeat its heal.
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        for _ in 0..25 {
+                            app.world_mut().run_system_once(tick_areas).unwrap();
+                        }
+                        assert!((app.world().resource::<Run>().hp - expected_hp).abs() < 0.0001);
+                        assert_eq!(
+                            app.world_mut().query::<&Totem>().iter(app.world()).count(),
+                            usize::from(fired)
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
     fn totemic_mastery_reaches_targets_only_inside_extended_distance() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;

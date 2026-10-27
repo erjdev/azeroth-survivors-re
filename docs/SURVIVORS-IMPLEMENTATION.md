@@ -5883,3 +5883,18 @@ saved instincts. This is an interim safeguard, not completion of the reward.
 clicking the disabled control spends nothing and creates no pending purchase.
 Inline changelog evidence is included. Rune design/spawning, live collection and
 Windows acceptance remain open.
+
+
+### Totem deployment healing integration — 2026-10-27
+
+Exercise the production cast_abilities and tick_areas systems for Searing and
+Magma Totem rather than calling the healing helper directly. The matrix covers
+Restoration points below/at/above the unlock, ranks 0/1/5/255, no targets, one or
+three targets with +target gear, cooldown rejection, a dead hero and health caps.
+A successful deployment creates one totem and heals once; a subsequent cast
+update and 25 area updates cannot repeat that healing. This supplies integration
+evidence for Restorative Totems and Purification, without changing their rules
+or claiming Windows combat or balance acceptance.
+
+Validation: all 336 app tests, app Clippy, formatting and diff checks pass.
+Runtime code is unchanged; no native rebuild or visual checkpoint is claimed.

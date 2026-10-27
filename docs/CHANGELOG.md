@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Totem healing integration
+
+Verified Restorative Totems and Purification through actual totem deployment:
+healing requires the Restoration unlock and a successful cast, happens once
+regardless of extra targets, and respects cooldowns, death and maximum health.
+Later totem updates do not repeat deployment healing.
+
+336 app tests, Clippy, formatting and diff checks pass. This test-only checkpoint
+changes no UI or runtime behavior; no new screenshot or native build is needed.
+Windows combat and balance acceptance remain open.
+
 ## 2026-10-27 — Unavailable Rune-hound purchase
 
 Rune-hound no longer charges points while rune spawning is unfinished. Its card
