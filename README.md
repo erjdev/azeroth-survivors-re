@@ -274,3 +274,7 @@ Entertainment. World of Warcraft is a trademark of Blizzard Entertainment, Inc. 
 this repository is licensed under
 [MIT](LICENSE-MIT) or [Apache 2.0](LICENSE-APACHE), at your option; the vendored components under
 `third_party/` keep their own upstream licenses.
+
+### Run Options
+
+![Run Options](docs/images/screenshots/2026-10-27-run-options/wide.png)

@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Run Options page
+
+Run Options now shows the selected zone, Normal difficulty and normal game speed,
+with working Settings and return actions. Enter cannot start a run from this page.
+Native macOS navigation checked at 1280×720 and 640×480; 432 app tests, 12 preview
+fixture tests and app Clippy pass. Incremental build: 1m18s. Fast modes remain planned.
+
+![Run Options](images/screenshots/2026-10-27-run-options/wide.png)
+
+![Compact Run Options](images/screenshots/2026-10-27-run-options/compact.png)
+
 ## 2026-10-27 — Starter panel bounds and 16:10 validation
 
 Starter scroll content now stays inside the visible panel borders. Checked a

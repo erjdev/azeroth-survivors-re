@@ -88,6 +88,7 @@ pub(super) enum Page {
     Notes,
     DropTables,
     Look,
+    RunOptions,
 }
 
 impl Page {
@@ -95,6 +96,7 @@ impl Page {
     fn preview(name: &str) -> Option<Self> {
         Some(match name {
             "starter" => Self::Door,
+            "run-options" => Self::RunOptions,
             "heroes" => Self::Heroes,
             "talents" => Self::Talents,
             "rewards" => Self::Rewards,
@@ -127,6 +129,7 @@ mod preview_tests {
     fn direct_ui_pages_are_explicit_and_unknown_names_do_not_start_gameplay() {
         for name in [
             "starter",
+            "run-options",
             "heroes",
             "talents",
             "rewards",
@@ -222,6 +225,10 @@ impl Default for Armory {
 }
 
 impl Armory {
+    pub(super) fn is_run_options(&self) -> bool {
+        self.page == Page::RunOptions
+    }
+
     fn open_drop_source(&mut self, zone: usize) {
         if zone < campaign::ZONES.len() {
             self.drop_zone = zone;
@@ -637,7 +644,7 @@ pub(super) fn input(
                 &stash,
                 &mut next,
             ),
-            Act::RunOptions => armory.note = "Difficulty is Normal.".into(),
+            Act::RunOptions => armory.open_page(Page::RunOptions),
             Act::Options => settings.open = true,
             Act::Quit => {
                 exit.write(AppExit::Success);
@@ -1274,7 +1281,7 @@ fn fill_draft(
         Page::Achievements => achievements(panel, font, armory, account),
         Page::Notes => notes_page(panel, font),
         Page::DropTables => {}
-        Page::Door | Page::Look => {}
+        Page::Door | Page::Look | Page::RunOptions => {}
     }
 }
 
@@ -2162,6 +2169,7 @@ fn signature(
         Page::Notes => 8,
         Page::DropTables => 9,
         Page::Look => 10,
+        Page::RunOptions => 11,
     };
     n = fold(n, u64::from(account.unspent()));
     n = fold(n, account.earned_ids().len() as u64);

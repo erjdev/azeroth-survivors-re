@@ -1639,6 +1639,9 @@ pub(super) fn keys(
     }
     match phase.get() {
         Phase::Menu => {
+            if armory.is_run_options() {
+                return;
+            }
             let ranks = selection.class.map(|i| renown.ranks(i)).unwrap_or([0; 3]);
             let class = selection.class.unwrap_or(0);
             let hero = selection.character;
@@ -3670,6 +3673,59 @@ mod card_icon_tests {
 mod settings_navigation_tests {
     use super::*;
     use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn run_options_blocks_enter_until_returning_to_starter() {
+        for phase in [Phase::Menu] {
+            let mut world = World::new();
+            world.insert_resource(State::new(phase));
+            world.init_resource::<NextState<Phase>>();
+            world.init_resource::<ButtonInput<KeyCode>>();
+            world.init_resource::<super::super::renown::Renown>();
+            world.init_resource::<super::super::stash::Stash>();
+            world.insert_resource(super::super::account::empty());
+            world.init_resource::<super::super::Typing>();
+            world.init_resource::<super::super::armory::Armory>();
+            world.insert_resource(Selection {
+                class: Some(0),
+                looks: vec![(49, 1, 0)],
+                look: Some(0),
+                map: data::MAPS
+                    .iter()
+                    .position(|map| map.name == "Elwynn Forest")
+                    .unwrap(),
+                ..default()
+            });
+            world.init_resource::<Run>();
+            world.insert_resource(PausePage {
+                open: false,
+                ..default()
+            });
+            world
+                .resource_mut::<super::super::armory::Armory>()
+                .open_page(super::super::armory::Page::RunOptions);
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(KeyCode::Enter);
+            world.run_system_once(keys).unwrap();
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Unchanged
+            ));
+            world
+                .resource_mut::<super::super::armory::Armory>()
+                .open_page(super::super::armory::Page::Door);
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(KeyCode::Enter);
+            world.run_system_once(keys).unwrap();
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Pending(Phase::Playing)
+            ));
+        }
+    }
 
     #[test]
     fn settings_consume_enter_and_escape_without_starting_or_resuming_a_run() {

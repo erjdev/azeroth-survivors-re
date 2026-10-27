@@ -91,7 +91,9 @@ The front door is three columns.
   bonus.
 - Zone: every campaign zone in order. A locked zone says why. The selected zone shows its
   title and its stakes. Enter World names that zone. Run Options sits beside it. Difficulty
-  is Normal until a second difficulty exists.
+  is Normal until a second difficulty exists. Run Options shows the selected zone,
+  Normal difficulty and Normal (1×) speed, links to Settings, and returns with Done.
+  Enter on this page must not start a run.
 
 Reference: `docs/intentions/survivors_main_menu.png`.
 

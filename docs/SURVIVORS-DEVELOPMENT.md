@@ -463,7 +463,7 @@ WOW_DATA="$PWD/wow-data/Data" BENILLA_HOME="$PWD/target/ui-preview-state" \
 WOW_SURVIVORS_UI_PAGE=collection cargo survivors
 ```
 
-Page names: `starter`, `heroes`, `talents`, `rewards`, `collection`, `codex`,
+Page names: `starter`, `run-options`, `heroes`, `talents`, `rewards`, `collection`, `codex`,
 `achievements`, `notes`, `drops`, `look`. This selects the initial Armory page;
 it does not start autoplay or a run, seed progression, or bypass unlock rules.
 Use an isolated fixture account when a page needs earned content. Unknown names
@@ -770,3 +770,7 @@ accepted by the legacy-compatible parser.
 Raid finale source previews: `docs/ui-previews/drops-naxx-raid-1280.txt` and
 `docs/ui-previews/drops-naxx-raid-640.txt` select Naxxramas and Raid Epic hands.
 These are read-only menu previews; they neither grant gear nor unlock the zone.
+
+Run Options can be inspected without entering gameplay using `run-options-1280.txt`
+or `run-options-640.txt` from `docs/ui-previews`. It displays the currently supported
+Normal difficulty and 1× speed; fast-mode unlocks remain later work.

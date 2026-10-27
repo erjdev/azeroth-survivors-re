@@ -7772,3 +7772,14 @@ No new gameplay tests were needed for this layout-only change; earlier test
 counts are not claimed as rerun. Validation exited through Quit and restored
 the launcher. Windows, controller input, the other resolution/page combinations,
 zone readiness and all remaining seven-phase requirements stay open.
+
+### Run Options checkpoint (2026-10-27)
+
+The starter now opens a dedicated Normal difficulty / 1× speed page. Settings
+returns to it, Done returns to the starter, and Enter cannot launch gameplay here.
+Native navigation and 1280×720 / 640×480 layouts verified; 432 app tests, 12 fixture
+tests and app Clippy pass. Faster modes remain future work.
+
+Talent readability follow-up: preserve the 300:331 artwork ratio while increasing
+tree height and icon spacing through wider wrapping columns and vertical scrolling.
+Do not compress all trees merely to fit a narrow window. Windows acceptance remains open.

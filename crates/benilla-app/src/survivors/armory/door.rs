@@ -39,6 +39,66 @@ pub(super) fn build(
     talent_scroll: Vec2,
     compact_collection: bool,
 ) {
+    if armory.page == Page::RunOptions {
+        header(ui, font);
+        panel(ui, art, false, None, |body| {
+            heading(body, font, "Run Options");
+            line(
+                body,
+                font,
+                &format!(
+                    "Selected zone: {}",
+                    shown_zone(armory, selection)
+                        .map_or(selection.stage_def().name, |(_, zone)| zone.name)
+                ),
+                18.0,
+                GOLD,
+            );
+            heading(body, font, "Difficulty");
+            line(body, font, "Normal", 22.0, BONUS);
+            line(
+                body,
+                font,
+                "Standard enemy strength and rewards.",
+                15.0,
+                DIM,
+            );
+            heading(body, font, "Game speed");
+            line(body, font, "Normal (1×)", 22.0, BONUS);
+            line(
+                body,
+                font,
+                "Combat and run timers advance at normal speed.",
+                15.0,
+                DIM,
+            );
+            body.spawn(Node {
+                width: Val::Percent(100.0),
+                flex_wrap: FlexWrap::Wrap,
+                column_gap: Val::Px(12.0),
+                row_gap: Val::Px(8.0),
+                margin: UiRect::top(Val::Px(20.0)),
+                ..default()
+            })
+            .with_children(|row| {
+                door_button(
+                    row,
+                    font,
+                    Act::Options,
+                    "Settings",
+                    "Display, sound and controls",
+                );
+                door_button(
+                    row,
+                    font,
+                    Act::Page(Page::Door),
+                    "Done",
+                    "Return to your hero and zone",
+                );
+            });
+        });
+        return;
+    }
     if armory.page == Page::Door {
         header(ui, font);
         tabs(ui, font, armory.page, account.unspent());

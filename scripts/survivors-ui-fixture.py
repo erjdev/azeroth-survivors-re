@@ -13,7 +13,7 @@ FIXTURES = ROOT / "crates/benilla-app/testdata/survivors-ui"
 PREVIEWS = ROOT / "docs/ui-previews"
 PROFILES = ("fresh", "partial", "collected", "trained")
 PAGES = ("starter", "heroes", "talents", "rewards", "collection", "codex",
-         "achievements", "notes", "drops", "look")
+         "achievements", "notes", "drops", "look", "run-options")
 
 
 def prepare(profile, output=None, hero=None, selected_spec=None):
