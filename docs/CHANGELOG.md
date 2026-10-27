@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Druid root-control training
+
+Nature's Grasp and Improved Entangling Roots now shorten Entangling Roots'
+cooldown; Improved Nature's Grasp extends its root duration. Bonuses compose
+with the Balance milestone and preserve boss duration reduction. These are
+explicit Survivors conversions, with green inline upgrade values.
+
+181 core tests, 356 app tests, core/app-test Clippy and native build pass.
+Native wide/compact previews verify wrapping and a saved rank-two purchase.
+Catalog coverage: 226/432 individual talents, including 23/47 Druid nodes.
+Live balance and Windows combat acceptance remain open.
+
+![Druid root duration upgrade](images/screenshots/2026-10-27-druid-roots/talents-1280.png)
+![Compact preview after training rank two](images/screenshots/2026-10-27-druid-roots/talents-640.png)
+
 ## 2026-10-27 — Chest reward burst verification
 
 Actual death-event batches now verify elite chest spacing and the five-per-run

@@ -4190,7 +4190,7 @@ mod milestone_tests {
                 ("rejuvenation", 1.3915, 0.5917275, 0., 0.),
                 ("hurricane", 1., 1., 0., 0.),
                 ("insect_swarm", 1., 1., 0., 0.),
-                ("entangling_roots", 1., 1., 0., 0.),
+                ("entangling_roots", 1., 0.7735, 0., 0.),
                 ("fireball", 1., 1., 0., 0.),
             ] {
                 let owned = super::super::Owned {
@@ -4223,10 +4223,14 @@ mod milestone_tests {
                     (after.range - before.range * range_multiplier).abs() < 0.001,
                     "{key}"
                 );
-                assert_eq!(
-                    (after.count, after.radius, after.duration),
-                    (before.count, before.radius, before.duration)
-                );
+                assert_eq!((after.count, after.radius), (before.count, before.radius));
+                let duration_scale = if key == "entangling_roots" { 1.4 } else { 1. };
+                assert!((after.duration - before.duration * duration_scale).abs() < 0.001);
+                if let (Effect::Root(before_seconds), Effect::Root(after_seconds)) =
+                    (before.effect, after.effect)
+                {
+                    assert!((after_seconds - before_seconds * duration_scale).abs() < 0.001);
+                }
                 let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
                 assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
             }

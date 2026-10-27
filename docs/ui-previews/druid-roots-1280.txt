@@ -1,0 +1,5 @@
+# Select a Druid; inspect duration training without spending points.
+page=talents
+talent=921
+width=1280
+height=720

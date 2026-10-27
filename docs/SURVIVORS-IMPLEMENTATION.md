@@ -6412,3 +6412,20 @@ boss chest entities, and no replay on a subsequent idle frame. All 356 app tests
 pass. This closes the gap between the pacing helper and deferred reward spawning;
 it does not verify Windows scene routing or foliage rendering. Those acceptance
 checks remain open pending the playtested build and scene reproduction.
+
+
+### 2026-10-27 — Druid root-control nodes
+
+Implemented audited Balance identities 761 (Nature's Grasp, one rank), 921
+(Improved Nature's Grasp, four ranks), and 787 (Improved Entangling Roots,
+three ranks). Survivors conversions: 15% cooldown reduction; +10% root duration
+per rank; and 3% cooldown reduction per rank respectively. Cooldown reductions
+multiply with each other and the 10-point Balance milestone. The normal boss
+30% control-duration rule remains in effect; radius and target count are unchanged.
+
+181 core and 356 app tests pass, including rank caps, milestone boundaries,
+foreign-class isolation, spec reset, inline values, and level-one/five cast
+parameters. Core/app-test Clippy and native build pass. Native screenshots in
+CHANGELOG show wide and compact details plus a persisted rank-two purchase.
+Catalog audit: 226/432 nodes (Druid 23/47), 81/81 milestone descriptions.
+The remaining 206 nodes, live balance, and Windows combat acceptance stay open.

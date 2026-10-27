@@ -2,6 +2,9 @@
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 761, max_rank: 1, name: "Nature's Grasp", description: "Entangling Roots: 15% shorter cooldown, multiplying Improved Entangling Roots and the 10-point Balance milestone (Survivors automatic defensive-root conversion)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.15 },
+    TalentDefinition { id: 921, max_rank: 4, name: "Improved Nature's Grasp", description: "Entangling Roots: +10% root duration per rank; bosses retain 30% duration (Survivors automatic-root reliability conversion)", stat: TalentStat::SpellDuration("entangling_roots"), per_rank: 0.10 },
+    TalentDefinition { id: 787, max_rank: 3, name: "Improved Entangling Roots", description: "Entangling Roots: 3% shorter cooldown per rank, multiplying Nature's Grasp and the 10-point Balance milestone (Survivors cast reliability conversion; no spell pushback)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.03 },
     TalentDefinition { id: 831, max_rank: 1, name: "Nature's Swiftness", description: "Rejuvenation: 15% shorter cooldown, multiplying individual cooldown ranks and the 20-point Restoration milestone (Survivors automatic instant-cast conversion)", stat: TalentStat::SpellCooldown("rejuvenation"), per_rank: 0.15 },
     TalentDefinition { id: 844, max_rank: 1, name: "Swiftmend", description: "Rejuvenation immediately heals 5% maximum health once per successful cast; adds to the 30-point Restoration milestone for 10% total before healing bonuses. Does not consume healing over time (Survivors automatic conversion)", stat: TalentStat::SpellHeal("rejuvenation"), per_rank: 0.05 },
     TalentDefinition { id: 764, max_rank: 2, name: "Nature's Reach", description: "Wrath, Moonfire, Starfire, Entangling Roots and Hurricane: +10% targeting range per rank. Hurricane's radius and target counts are unchanged; excludes Insect Swarm, Thorns and healing", stat: TalentStat::SpellGroupRange(&["wrath", "moonfire", "starfire", "entangling_roots", "hurricane"]), per_rank: 0.10 },
@@ -144,6 +147,16 @@ mod tests {
                     trained.cast(key),
                     CastEffect {
                         range,
+                        cooldown: if key == "entangling_roots" {
+                            (1. - 0.15 * f32::from(rank.min(1))) * (1. - 0.03 * short)
+                        } else {
+                            1.
+                        },
+                        duration: if key == "entangling_roots" {
+                            1. + 0.10 * f32::from(rank.min(4))
+                        } else {
+                            1.
+                        },
                         ..Default::default()
                     }
                 );
@@ -217,7 +230,10 @@ mod tests {
                 ..Default::default()
             }
             .with_ranks(&ranks);
-            for key in BALANCE.iter().chain(["thorns", "rejuvenation"].iter()) {
+            for key in BALANCE
+                .iter()
+                .chain(["thorns", "rejuvenation", "entangling_roots"].iter())
+            {
                 assert_eq!(trained.cast(key), CastEffect::default());
             }
         }
@@ -385,5 +401,41 @@ mod healing_composition_tests {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod root_training_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn roots_compose_at_milestone_boundaries_and_reset() {
+        for points in [0, 9, 10, 30] {
+            let base = Milestones {
+                class: 8,
+                points: [points, 0, 0],
+                ..Default::default()
+            };
+            for rank in [0, 1, 3, 4, 255] {
+                let ranks = [(0, 761, rank), (0, 921, rank), (0, 787, rank)];
+                let trained = base.with_ranks(&ranks);
+                let before = base.cast("entangling_roots");
+                let after = trained.cast("entangling_roots");
+                let scale =
+                    (1. - 0.15 * f32::from(rank.min(1))) * (1. - 0.03 * f32::from(rank.min(3)));
+                assert!((after.cooldown - before.cooldown * scale).abs() < 0.00001);
+                assert!((after.duration - (1. + 0.1 * f32::from(rank.min(4)))).abs() < 0.00001);
+                assert_eq!(
+                    (after.damage, after.radius, after.extra_targets),
+                    (before.damage, before.radius, before.extra_targets)
+                );
+                assert_eq!(trained.with_ranks(&[]), base);
+                for key in ["wrath", "moonfire", "hurricane", "thorns", "frost_nova"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+        let duration = talent_definition(8, 921).unwrap();
+        assert_eq!(duration.inline_description(1).unwrap(), "Entangling Roots: +10 » 20% root duration; bosses retain 30% duration (Survivors automatic-root reliability conversion)");
     }
 }
