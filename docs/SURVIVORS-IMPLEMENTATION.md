@@ -5529,3 +5529,20 @@ native play build and formatting pass. Native 1280/1100/640×720 checks cover st
 marker clicks, late-zone selection without returning to the top, existing lock
 messaging and independent hero scrolling. Four screenshots are embedded in
 CHANGELOG; README Starter is refreshed. Windows acceptance remains open.
+
+### Visible starter scrollbars — 2026-10-26
+
+Wide starter columns now show fixed gold scrollbars only when their content
+exceeds the viewport. Thumb length reflects the visible fraction; dragging keeps
+the initial grab offset, and clicking the track centers the thumb there within
+scroll bounds. The ordered window-event stream preserves complete short drags
+within one frame and releases on mouse-up, focus loss or cursor exit. Existing
+wheel scrolling and independent column memory remain in use. Unchanged geometry
+and colors are not rewritten while idle. Compact mode retains its existing single
+wheel-scroll surface; a compact scrollbar and wider Armory adoption remain open.
+
+Validation: 321 app tests, scoped Clippy, native build and formatting pass. Native 1280×720
+and 1100×720 checks cover bidirectional dragging, track clicks, hidden fitted-column
+bars and independent hero scrolling. Windows and compact scrollbar acceptance
+remain open.
+Two captures are embedded in CHANGELOG and the README Starter gallery is refreshed.

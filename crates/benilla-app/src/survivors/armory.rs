@@ -10,8 +10,10 @@ mod codex_page;
 pub(super) use codex_page::refresh_details as codex_details;
 mod collection;
 mod controls;
+mod scrollbar;
 mod shortcuts;
 pub(super) use controls::style as style_controls;
+pub(super) use scrollbar::{input as scrollbar_input, update as update_scrollbars};
 mod door;
 mod drop_page;
 #[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))]

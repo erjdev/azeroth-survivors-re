@@ -114,6 +114,12 @@ impl Plugin for SurvivorsPlugin {
             )
             .add_plugins(crate::portrait::survivors_pane::SurvivorsPanePlugin)
             .add_systems(Update, armory::character_subject.after(hud::menu_preview))
+            .add_systems(
+                Update,
+                (armory::scrollbar_input, armory::update_scrollbars)
+                    .chain()
+                    .run_if(in_state(Phase::Menu)),
+            )
             .add_systems(PreUpdate, gear_body::sync)
             .init_resource::<Typing>()
             .init_resource::<hud::PausePage>()

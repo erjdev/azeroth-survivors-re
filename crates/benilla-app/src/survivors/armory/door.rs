@@ -445,7 +445,11 @@ fn panel(
             if let Some((index, _)) = scroll.filter(|_| !compact) {
                 content.insert(super::collection::CompactScroll::StarterPanel(index));
             }
+            let viewport = content.id();
             content.with_children(body);
+            if !compact {
+                super::scrollbar::spawn(frame, viewport);
+            }
         });
 }
 

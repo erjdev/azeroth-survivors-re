@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Draggable starter scrollbars
+
+Overflowing wide starter columns now show gold scrollbars inspired by the reference.
+Thumbs reflect the visible content fraction, support dragging and track clicks, and
+hide when content fits. Short press–move–release gestures use ordered input events.
+
+321 app tests, scoped Clippy, native build and formatting pass. Native 1280×720
+and 1100×720 checks cover bidirectional dragging, track clicks, hidden fitted-column
+bars and independent hero scrolling. Windows and compact scrollbar acceptance
+remain open.
+
+![Zone scrollbar at the late campaign stages](images/screenshots/2026-10-26-starter-scrollbars/zones-1280.png)
+
+![Independent hero and zone scrollbars](images/screenshots/2026-10-26-starter-scrollbars/columns-1100.png)
+
 ## 2026-10-26 — Campaign markers and reachable starter columns
 
 Zone banners now show the reference's twelve campaign markers, labeled “Stage X
