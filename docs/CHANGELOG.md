@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Hero-specific preview feedback
+
+Switching heroes through UI previews now clears the previous hero's action message.
+Same-hero reloads and rejected requests preserve current feedback. Native macOS
+checks cover all three paths after buying Totemic Mastery, then switching to Priest.
+Clippy, native build, formatting and diff checks pass; no gameplay changed and the
+app suite was not rerun for this display-state correction.
+
+![Same-hero reload retains its action message](images/screenshots/2026-10-26-preview-notes/shaman-note.png)
+
+![Switching heroes clears the previous action message](images/screenshots/2026-10-26-preview-notes/priest-cleared.png)
+
 ## 2026-10-26 — Continuous talent backgrounds
 
 Talent artwork now scales as one cached image per tree instead of four independent

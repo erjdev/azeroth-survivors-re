@@ -366,6 +366,9 @@ fn reload(
     } else {
         Run::default()
     };
+    if selection.character != candidate.character || selection.class != candidate.class {
+        armory.note.clear();
+    }
     *selection = candidate;
     preview.seen = text;
     preview.inspected = inspected;

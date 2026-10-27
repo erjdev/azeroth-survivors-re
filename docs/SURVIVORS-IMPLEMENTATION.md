@@ -5693,3 +5693,14 @@ embedded in CHANGELOG and the README wide talent preview is refreshed. Layout
 continues to follow the intention's illustrated panels; no new proportional change
 was made. Other classes/resolutions and Windows remain unverified. The separate
 stale preview action-note follow-up remains open.
+
+### 2026-10-26 — Preview action-message ownership
+
+Resolved the stale-note follow-up: after full request validation, changing hero or
+class clears the previous action message. Same-hero reloads retain it; rejected
+requests do not mutate it. Native macOS 1280×720 checks bought Totemic Mastery,
+reloaded Shaman, rejected Priest with the Shaman talent ID, then switched to valid
+Priest/Holy Nova. The note persisted for the first two requests and cleared only
+on the valid hero switch. Inline screenshots document both states. Clippy, native
+build, formatting and diff checks pass; no app-suite rerun for this small display
+correction. Layout, account data and gameplay rules are unchanged.
