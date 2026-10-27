@@ -772,8 +772,8 @@ fn pick_zone(armory: &mut Armory, account: &Account, selection: &mut Selection, 
     armory.note = campaign::zone_lock_reason(index, level, &clears).unwrap_or_default();
 }
 
-/// Why Enter World must refuse the selected battleground. An open zone, and any map that is not
-/// on the campaign path, returns nothing.
+/// Shared menu entry gate: account recovery, explicit hero identity and campaign access.
+/// An available map returns nothing only after the selected hero has been validated.
 pub(super) fn enter_refused(
     account: &Account,
     selection: &Selection,
@@ -781,6 +781,14 @@ pub(super) fn enter_refused(
 ) -> Option<String> {
     if let Some(notice) = account.recovery_notice() {
         return Some(notice.into());
+    }
+    if let Some(id) = selection.character {
+        let Some(hero) = account.character(id) else {
+            return Some("This hero is no longer available. Choose a hero before entering.".into());
+        };
+        if selection.class != Some(hero.class) {
+            return Some("Choose this hero again to load their class before entering.".into());
+        }
     }
 
     let (level, clears) = hero_gate(account, selection);
@@ -2502,6 +2510,50 @@ mod tests {
         );
         assert_eq!(run.milestones.points, [0; 3]);
         assert_eq!(run.milestones.enrage_damage(true), 1.);
+    }
+
+    #[test]
+    fn stale_or_cross_class_hero_cannot_start_or_reset_the_previous_run() {
+        let mut account = account::empty();
+        let paladin = account.create("Selected", "Paladin", 1).unwrap();
+        let mut selection = Selection {
+            class: Some(0),
+            character: Some(paladin),
+            look: Some(0),
+            looks: vec![(20318, 1, 0)],
+            map: data::MAPS
+                .iter()
+                .position(|map| map.name == "Elwynn Forest")
+                .unwrap(),
+            ..Default::default()
+        };
+        let mut run = super::Run {
+            elapsed: 123.0,
+            hp: 37.0,
+            ..Default::default()
+        };
+        for id in [paladin, u32::MAX] {
+            selection.character = Some(id);
+            let mut armory = super::Armory::default();
+            let mut next = bevy::prelude::NextState::Unchanged;
+            super::try_enter(
+                &mut armory,
+                &account,
+                &mut selection,
+                &mut run,
+                &super::Renown::default(),
+                &super::Stash::default(),
+                &mut next,
+            );
+            assert!(matches!(next, bevy::prelude::NextState::Unchanged));
+            assert!(armory.note.contains("hero"));
+            assert_eq!(run.elapsed, 123.0);
+            assert_eq!(run.hp, 37.0);
+        }
+        // A valid re-selection clears the refusal without changing account progress.
+        selection.character = Some(paladin);
+        selection.class = Some(1);
+        assert!(enter_refused(&account, &selection, None).is_none());
     }
 
     #[test]

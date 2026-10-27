@@ -33,6 +33,16 @@ exposed fixed-height talent-panel clipping; panels now grow with their contents.
 Native 640×720 and 1024×720/125% captures verify the full green description,
 purchase persistence and tree proportions. Windows and live balance remain open.
 
+## Hero identity at run entry — 2026-10-27
+
+Explicit stale or cross-class hero selections now fail the shared menu entry gate.
+Their stat lookup returns no bonuses, matching the already-empty talent snapshot,
+instead of falling back to the first hero or another class. Regression coverage
+exercises the real front-door start helper and checks that refusal preserves the
+previous run. Re-selecting a matching hero restores entry. No-hero class previews
+retain their existing fallback. This is a boundary-state fix; normal UI selection
+and appearance restoration remain covered by their separate acceptance checks.
+
 ## Windows build acceptance — 2026-10-27
 
 The CI gate now links the player executable in addition to checking the development

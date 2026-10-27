@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Consistent hero selection at run entry
+
+An explicit missing or wrong-class hero now refuses run entry and cannot borrow
+another hero's bonuses. The refusal preserves the previous run. Selecting a valid
+hero restores entry; the existing class-only fallback remains available when no
+hero was explicitly selected. This closes a state-consistency gap found in the
+entry code, not a claimed reproduction of a normal UI selection failure.
+
+382 app tests and the native build pass; app-test Clippy passes.
+
 ## 2026-10-27 — Windows executable gate
 
 The Windows CI job now links the player executable after the development check

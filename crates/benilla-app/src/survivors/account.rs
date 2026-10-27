@@ -771,14 +771,17 @@ impl Account {
         self.bonus(class, id)
     }
 
-    /// The picked character's sheet when one is selected, otherwise the class's first hero.
+    /// The matching picked hero's sheet, or the class's first hero when no ID was selected.
+    /// Explicit missing or wrong-class IDs grant no bonuses.
     pub fn bonus_picked(&self, class: usize, character: Option<u32>) -> Bonus {
-        if let Some(id) = character {
-            if let Some(hero_class) = self.character(id).map(|c| c.class) {
-                return self.bonus(hero_class, id);
+        match character {
+            Some(id) if self.character(id).is_some_and(|hero| hero.class == class) => {
+                self.bonus(class, id)
             }
+            // An explicit stale/mismatched selection must never borrow another hero's sheet.
+            Some(_) => Bonus::default(),
+            None => self.bonus_for(class),
         }
-        self.bonus_for(class)
     }
 
     pub fn epic_cloaks(&self) -> usize {
@@ -3683,6 +3686,28 @@ pets 2 3 1 1 2 0 1
             assert_eq!(loaded.character(created).unwrap().talent_xp, 100);
             assert_eq!(loaded.character(starter).unwrap().body, Some((3, 0)));
             assert_eq!(loaded.next_id, account.next_id);
+        }
+    }
+
+    #[test]
+    fn explicit_invalid_hero_selection_cannot_borrow_another_sheet() {
+        let mut account = empty();
+        let id = account.create("Trained", "Paladin", 1).unwrap();
+        account.add_talent_xp(id, 500);
+        assert!(account.learn(id, 0));
+        assert!(account.bonus_picked(1, Some(id)).might > 0.0);
+        assert_eq!(
+            account.bonus_picked(1, None).might,
+            account.bonus(1, id).might
+        );
+        for (class, picked) in [(0, id), (1, u32::MAX)] {
+            let bonus = account.bonus_picked(class, Some(picked));
+            assert_eq!(bonus.might, 0.0);
+            assert_eq!(bonus.health, 0.0);
+            assert_eq!(
+                account.milestones_picked(class, Some(picked)).points,
+                [0; 3]
+            );
         }
     }
 
