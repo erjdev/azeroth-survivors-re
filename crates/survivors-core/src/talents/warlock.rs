@@ -17,6 +17,8 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 982, max_rank: 5, name: "Aftermath", description: "Destruction hits and area pulses: 2% chance per rank to slow enemies by 50% for 5 sec. Bosses are slowed by 25%; stronger slows are preserved. Excludes attached damage-over-time ticks; refreshes without stacking (Survivors daze conversion)", stat: TalentStat::Aftermath, per_rank: 0.02 },
+    TalentDefinition { id: 986, max_rank: 2, name: "Pyroclasm", description: "Rain of Fire and Hellfire pulses: 13% chance per rank to stun each damaged enemy for 3 sec. Boss duration is reduced; longer stuns are preserved. One roll per hit, not per multistrike; refreshes without stacking (Survivors conversion)", stat: TalentStat::Pyroclasm, per_rank: 0.13 },
     TalentDefinition { id: 1061, max_rank: 1, name: "Amplify Curse", description: "Curse of Agony: +20% periodic damage, multiplying other training. Requires acquiring the spell during the run (Survivors automatic conversion)", stat: TalentStat::SpellDamage("curse_of_agony"), per_rank: 0.20 },
     TalentDefinition { id: 963, max_rank: 1, name: "Shadowburn", description: "Shadowburn: +20% damage, multiplying other training. Requires acquiring Shadowburn during the run; does not grant the spell (Survivors conversion)", stat: TalentStat::SpellDamage("shadowburn"), per_rank: 0.20 },
     TalentDefinition { id: 1221, max_rank: 2, name: "Improved Healthstone", description: "Death Coil heals an additional 1% maximum health per rank once per successful cast. Adds to the Demonology 10-point milestone; drain healing is unchanged (Survivors automatic conversion)", stat: TalentStat::SpellHeal("death_coil"), per_rank: 0.01 },
@@ -371,6 +373,82 @@ mod additional_training_tests {
                     assert_eq!(trained.with_ranks(&[]), base);
                 }
             }
+        }
+    }
+}
+
+impl super::Milestones {
+    /// Direct hits and area pulse messages only; attached DoT ticks have no control rolls.
+    pub fn aftermath_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class == 7 && damage.is_finite() && damage > 0. && DESTRUCTION.contains(&key) {
+            self.trained_value(TalentStat::Aftermath)
+        } else {
+            0.
+        }
+    }
+
+    pub fn pyroclasm_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class == 7
+            && damage.is_finite()
+            && damage > 0.
+            && matches!(key, "rain_of_fire" | "hellfire")
+        {
+            self.trained_value(TalentStat::Pyroclasm)
+        } else {
+            0.
+        }
+    }
+}
+
+#[cfg(test)]
+mod control_tests {
+    use super::*;
+    use crate::talents::{talent_definition, Milestones};
+    #[test]
+    fn destruction_control_is_scoped_capped_and_resets() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 982, rank), (2, 986, rank)]);
+                for key in DESTRUCTION.iter().copied().chain([
+                    "corruption",
+                    "curse_of_agony",
+                    "death_coil",
+                    "fireball",
+                ]) {
+                    for damage in [0., -1., f32::NAN, f32::INFINITY, 10.] {
+                        let valid = class == 7 && damage.is_finite() && damage > 0.;
+                        assert_eq!(
+                            trained.aftermath_chance(key, damage),
+                            if valid && DESTRUCTION.contains(&key) {
+                                0.02 * f32::from(rank.min(5))
+                            } else {
+                                0.
+                            }
+                        );
+                        assert_eq!(
+                            trained.pyroclasm_chance(key, damage),
+                            if valid && matches!(key, "rain_of_fire" | "hellfire") {
+                                0.13 * f32::from(rank.min(2))
+                            } else {
+                                0.
+                            }
+                        );
+                    }
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+        for id in [982, 986] {
+            let node = talent_definition(7, id).unwrap();
+            assert!(node.inline_description(0).unwrap().contains("0 »"));
+            assert!(!node
+                .inline_description(node.max_rank)
+                .unwrap()
+                .contains('»'));
         }
     }
 }

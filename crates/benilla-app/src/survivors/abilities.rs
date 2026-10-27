@@ -907,6 +907,28 @@ fn apply_impact(en: &mut Enemy) {
     en.stun_t = en.stun_t.max(if en.boss { 0.3 } else { 1.0 });
 }
 
+fn apply_destruction_control(
+    en: &mut Enemy,
+    milestones: survivors_core::talents::Milestones,
+    hit: &Hit,
+    rng: &mut Rng,
+) {
+    let chance = milestones.aftermath_chance(hit.source, hit.damage);
+    if chance > 0. && rng.f32() < chance {
+        let speed = if en.boss { 0.75 } else { 0.5 };
+        en.slow = if en.slow_t > 0. {
+            en.slow.min(speed)
+        } else {
+            speed
+        };
+        en.slow_t = en.slow_t.max(5.);
+    }
+    let chance = milestones.pyroclasm_chance(hit.source, hit.damage);
+    if chance > 0. && rng.f32() < chance {
+        en.stun_t = en.stun_t.max(if en.boss { 0.9 } else { 3. });
+    }
+}
+
 fn apply_frostbite(en: &mut enemies::Enemy) {
     apply_freeze(en, 5.0);
 }
@@ -1106,6 +1128,7 @@ pub(super) fn apply_hits(
         if impact_chance > 0.0 && rng.f32() < impact_chance {
             apply_impact(&mut en);
         }
+        apply_destruction_control(&mut en, run.milestones, &h, &mut rng);
         let freeze_chance = run.milestones.frostbite_chance(h.source, h.damage);
         if freeze_chance > 0.0 && rng.f32() < freeze_chance {
             apply_frostbite(&mut en);
@@ -4395,6 +4418,177 @@ mod milestone_tests {
                                 < 0.0001
                         );
                     }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn destruction_control_reaches_hits_but_not_attached_ticks() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for key in [
+                "shadow_bolt",
+                "rain_of_fire",
+                "hellfire",
+                "immolate",
+                "corruption",
+                "fireball",
+            ] {
+                for rank in [0, 1, 2, 5, 255] {
+                    let base = Milestones {
+                        class: 7,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(2, 982, rank), (2, 986, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let slow = rank > 0
+                        && matches!(
+                            key,
+                            "shadow_bolt" | "rain_of_fire" | "hellfire" | "immolate"
+                        );
+                    let stun = rank > 0 && matches!(key, "rain_of_fire" | "hellfire");
+                    let hit = Hit {
+                        source: key,
+                        ..Hit::direct(enemy, 10., false)
+                    };
+                    app.world_mut().write_message(hit.clone());
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 980.);
+                    assert_eq!(
+                        en.slow,
+                        if slow {
+                            if boss {
+                                0.75
+                            } else {
+                                0.5
+                            }
+                        } else {
+                            1.
+                        }
+                    );
+                    assert_eq!(en.slow_t, if slow { 5. } else { 0. });
+                    assert_eq!(
+                        en.stun_t,
+                        if stun {
+                            if boss {
+                                0.9
+                            } else {
+                                3.
+                            }
+                        } else {
+                            0.
+                        }
+                    );
+                    // Do not weaken or shorten control already present.
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.slow = 0.2;
+                        en.slow_t = 9.;
+                        en.stun_t = 10.;
+                    }
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!((en.slow, en.slow_t, en.stun_t), (0.2, 9., 10.));
+                    // Attached DoT ticks do not roll these procs, even with an eligible source.
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.slow = 1.;
+                        en.slow_t = 0.;
+                        en.stun_t = 0.;
+                        en.dots.push(enemies::Dot {
+                            dps: 10.,
+                            left: 1.,
+                            tick: 1.,
+                            source: key,
+                        });
+                    }
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs(1));
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 960.);
+                    assert_eq!((en.slow_t, en.stun_t), (0., 0.));
+                    app.world_mut().resource_mut::<Run>().milestones = base;
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!((en.slow_t, en.stun_t), (0., 0.));
+                    // Failed chance rolls preserve state and perform only eligible rolls.
+                    let seed = (1..1000)
+                        .find(|seed| {
+                            let mut rng = Rng(*seed);
+                            rng.f32() > 0.1 && rng.f32() > 0.26
+                        })
+                        .unwrap();
+                    let mut rng = Rng(seed);
+                    let mut expected_rng = Rng(seed);
+                    if slow {
+                        expected_rng.f32();
+                    }
+                    if stun {
+                        expected_rng.f32();
+                    }
+                    let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                    apply_destruction_control(&mut en, trained, &hit, &mut rng);
+                    assert_eq!((en.slow_t, en.stun_t), (0., 0.));
+                    assert_eq!(rng.0, expected_rng.0);
                 }
             }
         }

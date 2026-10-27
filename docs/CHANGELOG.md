@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Warlock Destruction control
+
+Aftermath now gives Destruction hits a chance to slow enemies; Pyroclasm gives
+Rain of Fire and Hellfire pulses a chance to stun. Both preserve stronger control
+and apply boss adjustments. Attached damage-over-time ticks do not trigger them.
+Green inline descriptions show the next rank's chance.
+
+185 core tests, 361 app tests, core/app-test Clippy and native build pass.
+Native previews verify wide/compact text and a saved Pyroclasm purchase.
+Catalog coverage: 231/432 nodes (Warlock 21/50). Live balance and Windows
+combat acceptance remain open.
+
+![Pyroclasm inline upgrade](images/screenshots/2026-10-27-warlock-control/pyroclasm-1280.png)
+![Compact Aftermath description](images/screenshots/2026-10-27-warlock-control/aftermath-640.png)
+
 ## 2026-10-27 — Improved Kidney Shot
 
 The Rogue talent now increases the target's damage taken by 3% per rank during

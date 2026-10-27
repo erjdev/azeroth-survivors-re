@@ -708,9 +708,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 23 / 47 | 9 / 9 |
 | Shaman | 29 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
-| Warlock | 19 / 50 | 9 / 9 |
+| Warlock | 21 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 229 / 432 | 81 / 81 |
+| Total | 231 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -6491,3 +6491,21 @@ Core/app-test Clippy and
 native build pass. Native 1280×720 and 640×720 captures show inline values and
 a saved purchase; both are embedded in CHANGELOG. Catalog coverage is 229/432
 (Rogue 19/51). Live timing/balance and Windows combat acceptance remain open.
+
+### 2026-10-27 — Destruction control talents
+
+Aftermath (982, five ranks) rolls 2% per rank on positive Destruction hit messages,
+including area pulses, for a five-second 50% slow (25% on bosses). Pyroclasm
+(986, two ranks) rolls 13% per rank on Rain of Fire/Hellfire hits for a three-second
+stun (0.9 seconds on bosses). Both refresh without stacking and preserve stronger
+or longer existing control. Attached DoT ticks do not roll either effect.
+Chance is evaluated once per hit, independently of multistrike damage multiplication.
+
+185 core tests, 361 app tests, core/app-test Clippy and native build pass. Actual
+hit-resolution coverage checks eligible/ineligible sources, rank caps, boss
+adjustments, repeated hits, stronger control, DoT exclusion, refunds and failed
+rolls. Native 1280×720 Pyroclasm and 640×720 Aftermath captures are inline in
+CHANGELOG; a rank-one Pyroclasm purchase persists in the disposable fixture.
+Catalog audit confirms 231/432 definitions, Warlock 21/50. Intensity, Pyroclasm's
+DBC prerequisite, remains an unimplemented effect; its catalog rank requirement
+is still enforced. Live balance and Windows combat acceptance remain open.

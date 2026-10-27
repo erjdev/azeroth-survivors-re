@@ -1401,6 +1401,8 @@ pub enum TalentStat {
     Vengeance,
     Remorseless,
     KidneyExposure,
+    Aftermath,
+    Pyroclasm,
     SpiritTap,
     ImprovedRenew,
     SpiritualHealing,
@@ -1500,6 +1502,8 @@ impl TalentDefinition {
             | TalentStat::SpellImmune(_) => (1.0, "time"),
             TalentStat::SpellGroupRangeYards(_) => (1.0, "distance"),
             TalentStat::Damage
+            | TalentStat::Aftermath
+            | TalentStat::Pyroclasm
             | TalentStat::KidneyExposure
             | TalentStat::MaximumHealth
             | TalentStat::Cooldown
@@ -1721,6 +1725,8 @@ impl TalentDefinition {
             TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
+            TalentStat::Aftermath => (100.0, "% chance to slow Destruction targets"),
+            TalentStat::Pyroclasm => (100.0, "% chance to stun fire-area targets"),
             TalentStat::KidneyExposure => (100.0, "% damage taken during Kidney Shot"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
@@ -2926,6 +2932,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::MaximumHealth
             | TalentStat::SiphonLife
             | TalentStat::Nightfall
+            | TalentStat::Aftermath
+            | TalentStat::Pyroclasm
             | TalentStat::KidneyExposure
             | TalentStat::Remorseless
             | TalentStat::FlurryHaste
@@ -4208,6 +4216,8 @@ mod stat_talent_tests {
                     | TalentStat::MaximumHealth
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
+                    | TalentStat::Aftermath
+                    | TalentStat::Pyroclasm
                     | TalentStat::KidneyExposure
                     | TalentStat::Remorseless
                     | TalentStat::FlurryHaste
