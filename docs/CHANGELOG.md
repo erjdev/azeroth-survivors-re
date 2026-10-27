@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Shaman Elemental Mastery
+
+Elemental Mastery guarantees the next successful lightning/shock cast's direct
+critical hits, including delayed Chain Lightning bounces. Ready at run start,
+180-second recovery after use; pauses and empty target selections preserve it.
+Flame Shock's burn, totems and Lightning Shield receive no bonus.
+
+196 core and 375 app tests, core/app-test Clippy, native build and WebGPU check
+pass (five existing wasm warnings). Definition coverage: 242/432, Shaman 30/46.
+Native 1280×720 preview/purchase checks confirm
+the green inline bonus, 30 → 31 Elemental points, and saved rank 1. Live balance
+remains open.
+
+![Elemental Mastery inline preview](images/screenshots/2026-10-27-elemental-mastery/preview.png)
+![Elemental Mastery purchased and saved](images/screenshots/2026-10-27-elemental-mastery/purchased.png)
+
 ## 2026-10-27 — Rogue Cold Blood
 
 Cold Blood now guarantees the next eligible Rogue direct cast's critical hits,

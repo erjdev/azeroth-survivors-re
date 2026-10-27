@@ -6814,3 +6814,26 @@ Validation: 195 core and 374 app tests, core/app-test Clippy, native play build,
 formatting and diff checks pass. Definition coverage is 241/432 (Rogue 20/51).
 Native purchase saved DBC 280 rank 1 in the isolated first spec; before/after
 captures are embedded in CHANGELOG and the README talent gallery is current.
+
+
+### Shaman Elemental Mastery — 2026-10-27
+
+Implement DBC node 573 using the class-scoped next-cast critical clock shared with
+Rogue Cold Blood. Only the five Shaman direct lightning/shock casts qualify. Its
+180-second recovery starts after successful consumption; missed casts and paused
+frames preserve the charge. Extra targets and scheduled Chain Lightning bounces
+receive the critical result; Flame Shock burn damage is unchanged. No totem,
+Lightning Shield, foreign-spell or mana bonus. Keep the existing row/prerequisite
+gates and the independent Elemental milestones.
+
+Core tests cover scope, rank caps, invalid times, recovery boundaries and no banked
+charges. App regressions cover each eligible spell, empty targets, paused frames,
+consumption/recovery, Chain Lightning scheduling and Flame Shock burn payloads.
+Native purchase screenshots and final check results belong in the changelog.
+Live balance and the full content/Windows acceptance work remain open.
+
+Validation: 196 core and 375 app tests pass, as do core/app-test Clippy, native
+play build, WebGPU check (five existing warnings), formatting and diff checks.
+Native 1280×720 preview/purchase confirms 30 → 31 Elemental points and saved
+DBC 573 rank 1; changelog embeds both captures. Coverage is 242/432 definitions
+(Shaman 30/46). This does not establish browser combat or live balance.

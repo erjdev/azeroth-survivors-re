@@ -360,6 +360,7 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Improved Slice and Dice (277) | 3 | Blade Flurry: 5% shorter cooldown per rank; automatic Slice and Dice conversion |
 | Elusiveness (247) | 2 | Gouge and Kidney Shot: 10% shorter cooldown per rank; defensive cooldown conversion, no stealth required |
 | Vigor (382) | 1 | Rogue spells: 10% shorter cooldown; energy-capacity conversion |
+| Cold Blood (280) | 1 | Next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast: +100 percentage points critical chance; ready at run start, 180 sec recovery after use |
 | Remorseless Attacks (272) | 2 | After a kill, +20 percentage points critical chance on the next successful Rogue melee cast; 20 sec window |
 | Lightning Reflexes (186) | 5 | +1 percentage point damage reduction; dodge conversion |
 | Deflection (187) | 5 | +3 armor; parry conversion |
@@ -537,3 +538,15 @@ a main hand of any supported quality from that same class completes it. A weapon
 owned by another class cannot fill the gap. Raid armor does not advance Legendary,
 which requires the nine legacy Legendary pieces. No separate raid-completion
 point reward is currently defined; raid set power remains based on worn armor.
+
+
+### Elemental Mastery individual talent
+
+Shaman DBC node 573 grants an automatic critical charge for the next successful
+Lightning Bolt, Chain Lightning, Earth Shock, Flame Shock or Frost Shock cast.
+It adds 100 percentage points critical chance to every direct target, including
+Chain Lightning's delayed bounces. The charge starts ready and recovers 180 seconds
+after use in run time. Empty target selections and paused frames cannot consume it;
+missed time does not bank charges. Totems, Lightning Shield, periodic ticks and
+other-class spells are excluded. It grants no mana benefit because Survivors has
+no mana resource. Existing Elemental milestones remain independent.

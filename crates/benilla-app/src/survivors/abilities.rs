@@ -311,7 +311,9 @@ pub(super) fn cast_abilities(
         let p = Params::new(o, &stats, run.milestones);
         let crit_chance = (p.crit
             + run.remorseless_crit(def.key)
-            + run.cold_blood.bonus(run.milestones, def.key, run.elapsed))
+            + run
+                .critical_cast
+                .bonus(run.milestones, def.key, run.elapsed))
         .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
@@ -643,7 +645,7 @@ pub(super) fn cast_abilities(
         if fired {
             let talents = run.milestones;
             let elapsed = run.elapsed;
-            run.cold_blood.consume(talents, def.key, elapsed);
+            run.critical_cast.consume(talents, def.key, elapsed);
             run.consume_remorseless(def.key);
             let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
             run.record_totem_healing(def.key, healed);
@@ -2233,25 +2235,41 @@ mod milestone_tests {
 
     #[test]
     fn remorseless_bonus_reaches_actual_casts_and_survives_failed_target_selection() {
-        next_cast_critical_bonus(272, 2);
+        next_cast_critical_bonus(3, 272, 2);
     }
 
     #[test]
     fn cold_blood_reaches_actual_casts_and_survives_failed_target_selection() {
-        next_cast_critical_bonus(280, 1);
+        next_cast_critical_bonus(3, 280, 1);
     }
 
-    fn next_cast_critical_bonus(talent: u32, rank: u8) {
+    #[test]
+    fn elemental_mastery_reaches_actual_casts_and_survives_failed_target_selection() {
+        next_cast_critical_bonus(5, 573, 1);
+    }
+
+    fn next_cast_critical_bonus(class: usize, talent: u32, rank: u8) {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for key in ["sinister_strike", "eviscerate", "gouge", "kidney_shot"] {
+        let keys: &[&str] = if class == 3 {
+            &["sinister_strike", "eviscerate", "gouge", "kidney_shot"]
+        } else {
+            &[
+                "lightning_bolt",
+                "chain_lightning",
+                "earth_shock",
+                "flame_shock",
+                "frost_shock",
+            ]
+        };
+        for &key in keys {
             let mut app = App::new();
             let mut time = Time::<()>::default();
             time.advance_by(std::time::Duration::from_secs_f32(0.1));
             let mut run = Run {
-                class: &data::CLASSES[3],
+                class: &data::CLASSES[class],
                 milestones: Milestones {
-                    class: 3,
+                    class,
                     ..Default::default()
                 }
                 .with_ranks(&[(0, talent, rank)]),
@@ -2293,9 +2311,12 @@ mod milestone_tests {
                 "{key}: no target"
             );
             assert!(app.world().resource::<Messages<Hit>>().is_empty());
-            if talent == 280 {
+            if talent != 272 {
                 let run = app.world().resource::<Run>();
-                assert_eq!(run.cold_blood.bonus(run.milestones, key, run.elapsed), 1.0);
+                assert_eq!(
+                    run.critical_cast.bonus(run.milestones, key, run.elapsed),
+                    1.0
+                );
             }
             for x in [1., 2.] {
                 app.world_mut().spawn((
@@ -2336,17 +2357,33 @@ mod milestone_tests {
             app.world_mut()
                 .resource_mut::<Time>()
                 .advance_by(std::time::Duration::from_secs_f32(0.1));
-            for (elapsed, expected_crit) in [(0.0, true), (179.99, false), (180.0, talent == 280)] {
+            for (elapsed, expected_crit) in [(0.0, true), (179.99, false), (180.0, talent != 272)] {
                 app.world_mut().resource_mut::<Run>().elapsed = elapsed;
                 app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
                 app.world_mut().insert_resource(Rng(seed));
                 app.world_mut().run_system_once(cast_abilities).unwrap();
-                let hits: Vec<_> = app
+                let mut hits: Vec<_> = app
                     .world_mut()
                     .resource_mut::<Messages<Hit>>()
                     .drain()
                     .collect();
+                let delayed = std::mem::take(&mut app.world_mut().resource_mut::<PendingHits>().0);
+                assert_eq!(delayed.len(), usize::from(key == "chain_lightning"));
+                for (due, hit) in delayed {
+                    assert!((due - elapsed - 0.08).abs() < 0.0001);
+                    hits.push(hit);
+                }
                 assert_eq!(hits.len(), 2, "{key}: extra target");
+                if key == "flame_shock" {
+                    let run = app.world().resource::<Run>();
+                    let expected_dot =
+                        Params::new(&run.abilities[0], &run.stats(), run.milestones).dot;
+                    assert!(
+                        hits.iter()
+                            .all(|hit| (hit.dot - expected_dot).abs() < 0.0001),
+                        "Mastery cannot multiply the attached burn"
+                    );
+                }
                 assert!(
                     hits.iter().all(|hit| hit.crit == expected_crit),
                     "{key}: bonus applies to entire cast exactly once"

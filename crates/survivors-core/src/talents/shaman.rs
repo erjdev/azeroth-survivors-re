@@ -4,7 +4,7 @@ use super::{TalentDefinition, TalentStat};
 pub(super) const LIGHTNING: &[&str] = &["lightning_bolt", "chain_lightning"];
 pub(super) const SHOCKS: &[&str] = &["earth_shock", "flame_shock", "frost_shock"];
 pub(super) const TOTEMS: &[&str] = &["searing_totem", "magma_totem"];
-const CASTS: &[&str] = &[
+pub(super) const CASTS: &[&str] = &[
     "lightning_bolt",
     "chain_lightning",
     "earth_shock",
@@ -13,6 +13,7 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 573, max_rank: 1, name: "Elemental Mastery", description: "Automatically adds +100% critical chance to the next successful Lightning Bolt, Chain Lightning or shock cast, including extra targets. Ready at run start; recovers 180 sec after use. Pauses stop recovery. Excludes totems, Lightning Shield and periodic ticks (Survivors automatic conversion).", stat: TalentStat::ElementalMastery, per_rank: 1.0 },
     TalentDefinition { id: 591, max_rank: 1, name: "Nature's Swiftness", description: "Earth, Flame and Frost Shock: 15% shorter cooldown per rank, multiplying Convection, Reverberation and the 20-point Restoration milestone. Totem deployment, pulse rate and healing are unchanged (Survivors instant-cast conversion)", stat: TalentStat::SpellGroupCooldown(SHOCKS), per_rank: 0.15 },
     TalentDefinition { id: 581, max_rank: 3, name: "Ancestral Healing", description: "When Searing or Magma Totem deployment restores health: +12 armor per rank for 10 sec. Refreshes without stacking; excludes overhealing, regeneration and totem attacks (Survivors healing-critical conversion)", stat: TalentStat::AncestralHealingArmor, per_rank: 12.0 },
     TalentDefinition { id: 612, max_rank: 5, name: "Shield Specialization", description: "Earth Shock: +5% shield absorption per rank, adding to Guardian Totems. Requires the 10-point Enhancement shield milestone; no equipped shield required (Survivors block conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.05 },

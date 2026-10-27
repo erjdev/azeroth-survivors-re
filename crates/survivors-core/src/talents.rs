@@ -1,12 +1,12 @@
 //! Survivors talent effects and dependency rules, independent of engine spell visuals.
 
+mod critical_cast;
 mod druid;
 mod hunter;
 mod mage;
-mod rogue;
+pub use critical_cast::CriticalCastClock;
 pub use hunter::{PetBonus, PetFrenzy};
 pub use mage::ColdSnapClock;
-pub use rogue::ColdBloodClock;
 mod shaman;
 mod warlock;
 
@@ -1424,6 +1424,7 @@ pub enum TalentStat {
     Vengeance,
     Remorseless,
     ColdBlood,
+    ElementalMastery,
     KidneyExposure,
     Aftermath,
     Pyroclasm,
@@ -1538,6 +1539,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, "distance"),
             TalentStat::Damage
             | TalentStat::ColdBlood
+            | TalentStat::ElementalMastery
             | TalentStat::Aftermath
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
@@ -1776,7 +1778,9 @@ impl TalentDefinition {
             TalentStat::ImprovedCurseExhaustion => (100.0, "% additional curse slow"),
             TalentStat::Pyroclasm => (100.0, "% chance to stun fire-area targets"),
             TalentStat::KidneyExposure => (100.0, "% damage taken during Kidney Shot"),
-            TalentStat::ColdBlood => (100.0, "% next-cast critical chance; 180 sec recovery"),
+            TalentStat::ColdBlood | TalentStat::ElementalMastery => {
+                (100.0, "% next-cast critical chance; 180 sec recovery")
+            }
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
@@ -3005,6 +3009,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::KidneyExposure
             | TalentStat::Remorseless
             | TalentStat::ColdBlood
+            | TalentStat::ElementalMastery
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
             | TalentStat::CriticalBleed
@@ -4297,6 +4302,7 @@ mod stat_talent_tests {
                     | TalentStat::KidneyExposure
                     | TalentStat::Remorseless
                     | TalentStat::ColdBlood
+                    | TalentStat::ElementalMastery
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance
                     | TalentStat::CriticalBleed
