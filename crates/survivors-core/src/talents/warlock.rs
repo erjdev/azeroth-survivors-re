@@ -17,6 +17,7 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 968, max_rank: 1, name: "Conflagrate", description: "Immolate advances an owned Shadowburn cooldown by 2 sec once per successful cast; adds to the 30-point Destruction milestone for 4 sec total. Does not consume the burn, grant Shadowburn or store a charge (Survivors automatic conversion)", stat: TalentStat::Conflagrate, per_rank: 2.0 },
     TalentDefinition { id: 1004, max_rank: 5, name: "Improved Drain Life", description: "Death Coil: +2% drain healing per rank, based on enemy health actually removed. Damage, cooldown and Healthstone healing are unchanged. Requires acquiring Death Coil (Survivors Drain Life conversion)", stat: TalentStat::ImprovedDrainLife, per_rank: 0.02 },
     TalentDefinition { id: 1282, max_rank: 1, name: "Soul Link", description: "Death Coil grants a non-stacking absorb for 5% maximum health lasting 3 sec, once per successful cast. Adds to the Demonology 30-point milestone for 10% total. Requires acquiring Death Coil; preserves stronger shields (Survivors automatic conversion; no demon required)", stat: TalentStat::SpellShield("death_coil"), per_rank: 0.05 },
     TalentDefinition { id: 1081, max_rank: 1, name: "Curse of Exhaustion", description: "Curse of Agony applications slow targets by 10% for 12 sec. Requires acquiring Curse of Agony; damage and target count are unchanged. Refreshes without stacking and preserves stronger slows (Survivors curse conversion)", stat: TalentStat::CurseExhaustion, per_rank: 0.10 },
@@ -94,6 +95,39 @@ pub(super) fn description(tree: usize, threshold: u32) -> Option<&'static str> {
 mod tests {
     use super::*;
     use crate::talents::{stat_adjustment, CastEffect, Milestones};
+    #[test]
+    fn conflagrate_composes_with_milestone_without_changing_immolate() {
+        for points in [0, 29, 30] {
+            let base = Milestones {
+                class: 7,
+                points: [0, 0, points],
+                ..Default::default()
+            };
+            for rank in [0, 1, 255] {
+                let trained = base.with_ranks(&[(2, 968, rank)]);
+                let mut expected = base.cast("immolate");
+                if rank > 0 {
+                    expected.cooldown_advance =
+                        Some(("shadowburn", if points >= 30 { 4. } else { 2. }));
+                }
+                assert_eq!(trained.cast("immolate"), expected);
+                assert_eq!(
+                    trained.with_ranks(&[]).cast("immolate"),
+                    base.cast("immolate")
+                );
+                for key in ["corruption", "shadowburn", "rain_of_fire", "fireball"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+        let node = DEFINITIONS.iter().find(|node| node.id == 968).unwrap();
+        let (text, values) = node.inline_description_with_values(0).unwrap();
+        assert_eq!(&text[values[0].clone()], "0 » 2 sec");
+        assert!(text.contains("4 sec total"));
+        let (text, values) = node.inline_description_with_values(1).unwrap();
+        assert_eq!(&text[values[0].clone()], "2 sec");
+    }
+
     #[test]
     fn improved_drain_life_changes_only_owned_spell_drain_and_resets() {
         use crate::data::Effect;

@@ -733,9 +733,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 23 / 47 | 9 / 9 |
 | Shaman | 29 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
-| Warlock | 26 / 50 | 9 / 9 |
+| Warlock | 27 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 236 / 432 | 81 / 81 |
+| Total | 237 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -6611,3 +6611,16 @@ zero-direct-damage applications, real damage ticks, repeated applications and
 stronger control. Native wide/compact screenshots and saved base/improvement
 purchases are recorded in CHANGELOG. Catalog audit: 234/432 definitions,
 Warlock 24/50. Live balance and Windows combat acceptance remain open.
+
+
+### Conflagrate training — 2026-10-27
+
+DBC 968 adds 2 seconds of owned Shadowburn cooldown advancement per successful
+Immolate cast, composing with the 30-point Destruction milestone for 4 seconds.
+The burn and other cast parameters are preserved; no spell or stored charge is
+granted. Core tests cover rank caps, refund and inline units; the actual cast
+system verifies multiple targets, absent targets, unready casts, cooldown caps
+and unrelated spells. 191 core/369 app tests, core/app-test Clippy and native build
+pass. Native 1024×720 and 640×720 at 125% verify green inline values and purchased
+rank restoration after restart; screenshots are inline in CHANGELOG. Coverage is
+237/432 (Warlock 27/50). Live balance and Windows acceptance remain open.

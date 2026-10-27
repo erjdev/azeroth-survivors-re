@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Conflagrate training
+
+Conflagrate makes successful Immolate casts advance an owned Shadowburn cooldown
+by 2 seconds, adding to the Destruction milestone for 4 seconds total. It triggers
+once per cast, preserves the burn, and cannot grant a spell or bank a charge.
+
+191 core tests, 369 app tests, core/app-test Clippy and native build pass.
+Native previews verify green inline values, purchase/save/restart, and readable
+1024×720/640×720 layouts at 125%. Coverage: 237/432 nodes, Warlock 27/50.
+Live balance and Windows acceptance remain open.
+
+![Proportional Warlock talent trees](images/screenshots/2026-10-27-conflagrate/trees-1024-125.png)
+![Conflagrate inline upgrade preview](images/screenshots/2026-10-27-conflagrate/preview-1024-125.png)
+![Saved Conflagrate in the compact layout](images/screenshots/2026-10-27-conflagrate/restarted-640-125.png)
+
 ## 2026-10-27 — Elwynn tree route regression
 
 Added movement playback around six actual Elwynn tree hulls from four directions

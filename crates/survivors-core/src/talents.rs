@@ -395,6 +395,10 @@ impl Milestones {
             for (index, node) in definitions(self.class).iter().enumerate() {
                 let value = node.per_rank * f32::from(self.training[index].min(node.max_rank));
                 match node.stat {
+                    TalentStat::Conflagrate if key == "immolate" && value > 0. => {
+                        let milestone = effect.cooldown_advance.map_or(0., |(_, seconds)| seconds);
+                        effect.cooldown_advance = Some(("shadowburn", milestone + value));
+                    }
                     TalentStat::FlameThrowing if MAGE_FIRE.contains(&key) => {
                         effect.range *= 1.0 + value
                     }
@@ -1456,6 +1460,7 @@ pub enum TalentStat {
     SpellAbsorb(&'static str),
     SpellHealing(&'static str),
     ImprovedDrainLife,
+    Conflagrate,
     SpellDamageAndCrit(&'static str),
     SpellCooldown(&'static str),
     SpellCrit(&'static str),
@@ -1513,7 +1518,8 @@ impl TalentDefinition {
         }
         let (scale, unit) = match self.stat {
             TalentStat::Health | TalentStat::Armor | TalentStat::AncestralHealingArmor => (1.0, ""),
-            TalentStat::SpellShieldDuration(_)
+            TalentStat::Conflagrate
+            | TalentStat::SpellShieldDuration(_)
             | TalentStat::SecondaryRootDuration(_)
             | TalentStat::SecondaryStunDuration(_)
             | TalentStat::SecondarySlowDuration(_)
@@ -1712,6 +1718,7 @@ impl TalentDefinition {
             TalentStat::SpellAbsorb(_) => (100.0, "% absorption"),
             TalentStat::SpellHealing(_) => (100.0, "% healing"),
             TalentStat::ImprovedDrainLife => (100.0, "% drain healing"),
+            TalentStat::Conflagrate => (1.0, " sec Shadowburn cooldown advanced per Immolate cast"),
             TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
                 (100.0, "% damage")
             }
@@ -2991,6 +2998,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellGroupRangeYards(_)
             | TalentStat::SpellAbsorb(_)
             | TalentStat::ImprovedDrainLife
+            | TalentStat::Conflagrate
             | TalentStat::SpellHealing(_)
             | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellDamage(_)
@@ -4278,6 +4286,7 @@ mod stat_talent_tests {
                     | TalentStat::SpellGroupRangeYards(_)
                     | TalentStat::SpellAbsorb(_)
                     | TalentStat::ImprovedDrainLife
+                    | TalentStat::Conflagrate
                     | TalentStat::SpellHealing(_)
                     | TalentStat::SpellDamageAndCrit(_)
                     | TalentStat::SpellDamage(_)
