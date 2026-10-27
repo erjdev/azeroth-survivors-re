@@ -1373,6 +1373,11 @@ fn parse(text: &str) -> Result<Account, ()> {
                 let last = unescape(parts.next().ok_or(())?);
                 let (spec, specs) = read_specs(parts.next().unwrap_or(""));
                 if class < data::CLASSES.len() {
+                    // All saved progression/body rows address heroes by ID, not class or name.
+                    // Ambiguous identities must preserve the file for recovery, never merge heroes.
+                    if account.character(id).is_some() {
+                        return Err(());
+                    }
                     account.characters.push(Character {
                         id,
                         first,
@@ -1675,7 +1680,12 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("survivors-load-guard-{}", std::process::id()));
         std::fs::create_dir(&dir).unwrap();
         let path = dir.join("account.txt");
-        for bytes in [b"who broken\n".as_slice(), &[0xff, 0xfe]] {
+        for bytes in [
+            b"who broken\n".as_slice(),
+            &[0xff, 0xfe],
+            b"who 1 0 100 First Hero\nwho 1 0 200 Second Hero\n",
+            b"who 1 0 100 First Hero\nwho 1 1 200 Second Hero\n",
+        ] {
             std::fs::write(&path, bytes).unwrap();
             let mut account = Account::load_from(&path);
             assert!(account.recovery_notice().is_some());

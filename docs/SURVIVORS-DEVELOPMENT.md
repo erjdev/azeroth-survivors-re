@@ -548,7 +548,8 @@ extensions. The fresh account may acquire normal defaults when the app initializ
 
 ### Account recovery after a failed load
 
-If `survivors-account.txt` cannot be read or parsed, the Armory displays a recovery
+If `survivors-account.txt` cannot be read or parsed, or contains duplicate hero IDs,
+the Armory displays a recovery
 notice and disables saving and run entry for that session. The original file remains
 untouched. Quit, preserve a copy of that file, then restore a known-good backup or
 correct its access permissions and restart. To deliberately start over, move the

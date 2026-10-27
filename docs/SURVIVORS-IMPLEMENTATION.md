@@ -5801,3 +5801,14 @@ Native purchases persist both ranks, with inline changelog screenshots. The curr
 coverage table above is refreshed from the audit: 211/432 individual talents,
 81/81 milestones. The remaining 221 individual talents, balance and Windows
 acceptance are still required; counts alone do not establish combat completion.
+
+
+### Saved hero identity validation — 2026-10-26
+
+Duplicate loaded hero IDs now fail into the existing protected recovery session,
+including same-class and cross-class duplicates. IDs are not reassigned because
+saved body/spec references cannot distinguish the original owners. The source file
+is preserved, saving and run entry are blocked, and distinct legacy IDs still load.
+330 app tests, Clippy and native build pass. New temporary-file cases verify original
+bytes and refusal behavior; existing round-trip tests cover separate heroes/specs.
+Automatic repair remains open; this is a persistence change with no new layout.

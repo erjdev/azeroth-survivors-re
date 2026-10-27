@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Reject ambiguous saved hero identities
+
+Duplicate hero IDs now open the existing recovery flow instead of allowing XP,
+talents or appearance updates to address the wrong hero. The original save remains
+untouched; automatic ID reassignment would leave ambiguous references unresolved.
+
+330 app tests, Clippy and native build pass. File regressions cover duplicates
+within one class and across classes; distinct legacy identities remain supported.
+No layout change; the account-recovery screenshots below still show this flow.
+
 ## 2026-10-26 — Paladin seal training
 
 Benediction now shortens Judgement's cooldown by 3% per rank. Improved Seal of
