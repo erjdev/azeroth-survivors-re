@@ -47,6 +47,26 @@ impl PowerInfusionClock {
 mod tests {
     use super::*;
     #[test]
+    fn infusion_and_inner_focus_recover_independently() {
+        let trained = Milestones {
+            class: 4,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 322, 1), (0, 348, 1)]);
+        let mut infusion = PowerInfusionClock::default();
+        let mut focus = super::super::CriticalCastClock::default();
+        infusion.consume(trained, "shadow_word_pain", 0.);
+        focus.consume(trained, "shadow_word_pain", 0.);
+        assert_eq!(focus.bonus(trained, "smite", 1.), 0.25);
+        infusion.consume(trained, "smite", 1.);
+        focus.consume(trained, "smite", 1.);
+        assert_eq!(infusion.remaining(trained, 1.), 14.);
+        assert_eq!(focus.bonus(trained, "smite", 180.), 0.);
+        assert_eq!(infusion.bonus(trained, "smite", 180.), 0.2);
+        assert_eq!(focus.bonus(trained, "smite", 181.), 0.25);
+    }
+
+    #[test]
     fn infusion_waits_for_success_and_cannot_refresh_or_bank_charges() {
         for class in [0, 4, 6] {
             for rank in [0, 1, 255] {

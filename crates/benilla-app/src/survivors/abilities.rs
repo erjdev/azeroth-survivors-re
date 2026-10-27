@@ -2575,6 +2575,59 @@ mod milestone_tests {
                     assert_eq!(run.power_infusion.remaining(run.milestones, elapsed), 0.0);
                 }
             }
+            if key == "smite" {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.elapsed = 181.;
+                    run.abilities[0] = Owned {
+                        def: data::ability("power_word_shield"),
+                        level: 3,
+                        cd: 0.,
+                    };
+                }
+                for ready in [false, true] {
+                    if ready {
+                        let mut run = app.world_mut().resource_mut::<Run>();
+                        run.power_infusion = default();
+                        run.abilities[0].cd = 0.;
+                    }
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let shield = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+                    assert_eq!((run.shield, run.shield_t), (shield.dmg, shield.duration));
+                    assert_eq!(
+                        run.power_infusion.remaining(run.milestones, run.elapsed),
+                        if ready { 0. } else { 14. }
+                    );
+                }
+            }
+            if key == "holy_nova" {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.elapsed = 181.;
+                    run.hp = run.stats().max_hp - 0.1;
+                    run.abilities[0].cd = 0.;
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let run = app.world().resource::<Run>();
+                assert_eq!(
+                    run.hp,
+                    run.stats().max_hp,
+                    "boosted healing cannot exceed maximum health"
+                );
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.milestones = run.milestones.with_ranks(&[(0, 322, 1)]);
+                    run.hp = 20.;
+                    run.abilities[0].cd = 0.;
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                assert_eq!(
+                    app.world().resource::<Run>().hp,
+                    20.,
+                    "Infusion cannot unlock Nova healing"
+                );
+            }
         }
     }
 

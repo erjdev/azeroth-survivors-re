@@ -7092,3 +7092,15 @@ Strength 5 and 30 Discipline points), restart and full compact text are verified
 at 1280×720/640×720; all three captures are inline in CHANGELOG and README is
 refreshed. In-combat HUD rendering, live balance, Windows and 183 remaining talent
 definitions stay open. The previous browser build evidence predates this change.
+
+
+### 2026-10-27 — Power Infusion interaction boundaries
+
+The actual cast-system regression now casts Power Word: Shield during an active
+burst and while Infusion is ready: absorb and duration stay unchanged, and the
+shield neither starts nor refreshes the window. Boosted Holy Nova caps at maximum
+health and cannot heal without its separate unlock. A core sequence starts
+Infusion with Pain, consumes Inner Focus later with Smite, and verifies independent
+recovery boundaries. All 204 core and 390 app tests, both Clippy gates, formatting
+and diff checks pass. No production code or UI changes in this follow-up; the
+previous screenshots remain the relevant visual evidence.

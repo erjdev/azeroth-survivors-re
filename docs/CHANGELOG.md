@@ -14,6 +14,9 @@ Shields and unrelated regeneration receive no bonus.
 captures verify the inline preview, legal purchase and saved rank after restart.
 Coverage is 249/432 (Priest 25/47). HUD rendering in combat, live balance and
 Windows acceptance remain open.
+Boundary follow-up verifies independent Inner Focus recovery, unchanged shields,
+Holy Nova's maximum-health cap and no healing without its unlock. All 204 core
+and 390 app tests and both Clippy gates pass. No UI change.
 
 ![Power Infusion inline preview](images/screenshots/2026-10-27-power-infusion/preview.png)
 ![Purchased Power Infusion](images/screenshots/2026-10-27-power-infusion/purchased.png)
