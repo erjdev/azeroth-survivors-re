@@ -4238,6 +4238,115 @@ mod milestone_tests {
     }
 
     #[test]
+    fn trained_druid_roots_reach_normal_and_boss_control_without_stacking() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 5] {
+                for rank in [0, 1, 4, 255] {
+                    let base = Milestones {
+                        class: 8,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(0, 921, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let owned = Owned {
+                        def: data::ability("entangling_roots"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let original = Params::new(&owned, &stats, base);
+                    let p = Params::new(&owned, &stats, trained);
+                    let Effect::Root(original_seconds) = original.effect else {
+                        panic!("roots must carry root control")
+                    };
+                    let expected = original_seconds
+                        * (1. + 0.1 * f32::from(rank.min(4)))
+                        * if boss { 0.3 } else { 1. };
+                    let hit = hit_for(owned.def, &p, enemy, 0., false);
+                    for _ in 0..2 {
+                        app.world_mut().write_message(hit.clone());
+                    }
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert!((en.root_t - expected).abs() < 0.00001);
+                    assert_eq!((en.frozen_t, en.stun_t, en.fear_t), (0., 0., 0.));
+                    // A shorter reapplication preserves stronger control already active.
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().root_t = expected + 2.;
+                    app.world_mut().write_message(hit);
+                    app.update();
+                    assert_eq!(
+                        app.world().get::<Enemy>(enemy).unwrap().root_t,
+                        expected + 2.
+                    );
+                    // A refunded spec supplies baseline duration to subsequent hits.
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().root_t = 0.;
+                    let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    app.world_mut()
+                        .write_message(hit_for(owned.def, &reset, enemy, 0., false));
+                    app.update();
+                    let baseline = original_seconds * if boss { 0.3 } else { 1. };
+                    assert!(
+                        (app.world().get::<Enemy>(enemy).unwrap().root_t - baseline).abs()
+                            < 0.00001
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn spiritual_healing_reaches_unlocked_nova_heal_and_respects_health_caps() {
         for points in [0, 29, 30] {
             let trained = Milestones {

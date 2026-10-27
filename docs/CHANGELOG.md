@@ -10,8 +10,10 @@ cooldown; Improved Nature's Grasp extends its root duration. Bonuses compose
 with the Balance milestone and preserve boss duration reduction. These are
 explicit Survivors conversions, with green inline upgrade values.
 
-181 core tests, 356 app tests, core/app-test Clippy and native build pass.
-Native wide/compact previews verify wrapping and a saved rank-two purchase.
+181 core tests, 357 app tests, core/app-test Clippy and native build pass.
+Hit-resolution coverage verifies normal/boss duration, non-stacking refreshes,
+preservation of stronger roots and baseline duration after refunds. Native
+wide/compact previews verify wrapping and a saved rank-two purchase.
 Catalog coverage: 226/432 individual talents, including 23/47 Druid nodes.
 Live balance and Windows combat acceptance remain open.
 

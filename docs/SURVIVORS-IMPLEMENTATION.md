@@ -6423,9 +6423,11 @@ per rank; and 3% cooldown reduction per rank respectively. Cooldown reductions
 multiply with each other and the 10-point Balance milestone. The normal boss
 30% control-duration rule remains in effect; radius and target count are unchanged.
 
-181 core and 356 app tests pass, including rank caps, milestone boundaries,
+181 core and 357 app tests pass, including rank caps, milestone boundaries,
 foreign-class isolation, spec reset, inline values, and level-one/five cast
-parameters. Core/app-test Clippy and native build pass. Native screenshots in
+parameters. Actual hit resolution also verifies normal/boss root duration at
+ability ranks one/five, repeated hits without stacking, preservation of a
+stronger active root, and baseline duration on subsequent hits after refunds. Core/app-test Clippy and native build pass. Native screenshots in
 CHANGELOG show wide and compact details plus a persisted rank-two purchase.
 Catalog audit: 226/432 nodes (Druid 23/47), 81/81 milestone descriptions.
 The remaining 206 nodes, live balance, and Windows combat acceptance stay open.
