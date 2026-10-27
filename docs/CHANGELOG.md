@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Clearer hero creation
+
+Hero creation now labels both name fields and presents all nine classes directly.
+The form wraps at compact widths and separates creation from account upgrades.
+Creating a hero opens their appearance controls without obsolete “Open Look” guidance.
+
+369 app tests, app-test Clippy and the native build pass. Native checks at
+640×720 and 1024×720, both at 125%, verify name entry, Druid creation, appearance
+persistence after restart, and draft class changes leaving the saved hero unchanged.
+
+![Previous compact creation controls](images/screenshots/2026-10-27-hero-creation/before-640-125.png)
+![Labeled compact hero creation](images/screenshots/2026-10-27-hero-creation/form-640-125.png)
+![Independent class selection with an existing hero](images/screenshots/2026-10-27-hero-creation/form-1024-125.png)
+![Saved appearance after restart](images/screenshots/2026-10-27-hero-creation/restarted-1024-125.png)
+
 ## 2026-10-27 — Incremental browser development builds
 
 `WEB_PROFILE=play scripts/web-build.sh` now reuses incremental compilation and

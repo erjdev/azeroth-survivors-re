@@ -260,7 +260,7 @@ pub(super) enum Act {
     Feature(usize, i8),
     RandomFeatures,
     Focus(u8),
-    Class,
+    DraftClass(usize),
     Create,
     Zone(usize),
     BrowseDrops(usize),
@@ -279,7 +279,6 @@ pub(super) enum Act {
     EditName,
     SaveName,
     CancelName,
-    Look,
     Enter,
     RunOptions,
     Options,
@@ -527,8 +526,10 @@ pub(super) fn input(
                 }
             }
             Act::Focus(slot) => armory.focus = slot,
-            Act::Class => {
-                armory.draft_class = (armory.draft_class + 1) % CLASSES.len();
+            Act::DraftClass(class) => {
+                if class < CLASSES.len() {
+                    armory.draft_class = class;
+                }
             }
             Act::Create => create_hero(&mut armory, &mut account, &mut selection),
             Act::Pick(id) => {
@@ -620,9 +621,6 @@ pub(super) fn input(
                 armory.note.clear();
             }
             Act::RandomName => random_name(&mut armory, &mut account, &selection, &mut rng),
-            Act::Look => {
-                armory.open_page(Page::Look);
-            }
             Act::Enter if armory.rename.is_some() => {
                 armory.note = "Save or Cancel the name edit before entering a run.".into();
             }
@@ -728,17 +726,12 @@ fn buy_reward(account: &mut Account, code: u8) -> Result<(), &'static str> {
 fn create_hero(armory: &mut Armory, account: &mut Account, selection: &mut Selection) {
     match account.create(&armory.draft_first, &armory.draft_last, armory.draft_class) {
         Some(id) => {
-            let needs_look = pick_hero(selection, account, id);
+            pick_hero(selection, account, id);
             account.save();
             armory.note = format!(
-                "Created {} {}{}",
+                "Created {} {}",
                 armory.draft_first.trim(),
-                armory.draft_last.trim(),
-                if needs_look {
-                    ". Open Look for their appearance"
-                } else {
-                    ""
-                }
+                armory.draft_last.trim()
             );
             armory.focus = 0;
             armory.manage_heroes = false;
@@ -1159,26 +1152,68 @@ fn heroes(
                 chip(row, font, &label, Act::Pick(hero.id), on);
             }
         });
-    let class = CLASSES
-        .get(armory.draft_class)
-        .map(|c| c.name)
-        .unwrap_or("Class");
-    let first = field_label(&armory.draft_first, armory.focus == 1);
-    let last = field_label(&armory.draft_last, armory.focus == 2);
+    typography::section(panel, font, "Create a hero", 20.0, GOLD);
     panel
         .spawn(Node {
-            flex_direction: FlexDirection::Row,
-            margin: UiRect::top(Val::Px(4.0)),
+            width: Val::Percent(100.0),
             flex_wrap: FlexWrap::Wrap,
+            column_gap: Val::Px(8.0),
+            row_gap: Val::Px(6.0),
+            margin: UiRect::vertical(Val::Px(6.0)),
             ..default()
         })
         .with_children(|row| {
-            chip(row, font, &first, Act::Focus(1), armory.focus == 1);
-            chip(row, font, &last, Act::Focus(2), armory.focus == 2);
-            chip(row, font, class, Act::Class, false);
-            chip(row, font, "Create", Act::Create, false);
-            chip(row, font, "Appearance", Act::Look, false);
+            for (slot, title, value) in [
+                (1, "First name", &armory.draft_first),
+                (2, "Last name", &armory.draft_last),
+            ] {
+                row.spawn(Node {
+                    flex_direction: FlexDirection::Column,
+                    flex_basis: Val::Percent(45.0),
+                    flex_grow: 1.0,
+                    min_width: Val::Px(0.0),
+                    ..default()
+                })
+                .with_children(|field| {
+                    field.spawn(hud::text_bundle(font, title, 13.0, GOLD));
+                    chip(
+                        field,
+                        font,
+                        &field_label(value, armory.focus == slot),
+                        Act::Focus(slot),
+                        armory.focus == slot,
+                    );
+                });
+            }
         });
+    panel.spawn(hud::text_bundle(font, "Class", 13.0, GOLD));
+    panel
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            flex_wrap: FlexWrap::Wrap,
+            row_gap: Val::Px(4.0),
+            margin: UiRect::bottom(Val::Px(6.0)),
+            ..default()
+        })
+        .with_children(|row| {
+            for (index, class) in CLASSES.iter().enumerate() {
+                chip(
+                    row,
+                    font,
+                    class.name,
+                    Act::DraftClass(index),
+                    armory.draft_class == index,
+                );
+            }
+        });
+    chip(panel, font, "Create hero", Act::Create, false);
+    panel.spawn(hud::text_bundle(
+        font,
+        "Choose race and appearance after creating your hero.",
+        12.0,
+        Color::WHITE,
+    ));
+    typography::section(panel, font, "Account upgrades", 20.0, GOLD);
     panel.spawn(hud::text_bundle(
         font,
         renown.status_line(selection.class),

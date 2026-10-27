@@ -878,6 +878,15 @@ Character run could not be inspected because the Mac was locked and was stopped.
 Rendered fit, Manage/Back/Escape interaction, large-roster scrolling and updated
 README screenshots still need verification; this is not visual acceptance.
 
+Hero creation acceptance (2026-10-27): labeled first/last names and nine direct
+class choices replace the unlabeled cycling controls. Creation returns to the
+Character appearance controls; account upgrades have their own section. Native
+640×720 and 1024×720 at 125% verify keyboard name entry, Druid creation, saved
+female Night Elf appearance after restart, and a new Mage draft leaving the saved
+Druid/account bytes unchanged. 369 app tests, app-test Clippy and native build pass.
+Before/after/restart screenshots are inline in the changelog; README is updated.
+This does not close the full race/controller/Windows DPI matrix.
+
 Build the nine-by-six collection grid with quality headers, owned/unseen states and
 selected-item detail. Use catalog-backed item icons, names, source, chance, stats, worn
 state and appearance controls. Show real collection counts, never 54 named placeholders.
