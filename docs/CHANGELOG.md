@@ -4,6 +4,13 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Saved Restoration builds verified
+
+The packaged Shaman builds now have save-to-cast regression coverage: stacked
+totem cooldowns and milestone healing survive reload and spec switching; reset
+stays local to its hero/spec and leaves existing runs intact. Geometry stays
+unchanged. 348 app tests with checkout data and Clippy pass. No visual changes.
+
 ## 2026-10-27 — Clearer milestone values
 
 Talent milestone descriptions now highlight numeric effects and their units in

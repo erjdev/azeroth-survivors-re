@@ -6207,3 +6207,16 @@ Validation: 347 app tests with checkout data, app Clippy, incremental native bui
 formatting and diff checks pass. Native macOS Paladin 1280×720 and Hunter 640×720
 captures verify inline values and wrapping; embedded in CHANGELOG. README's wide
 Talents image is refreshed. Windows and full talent acceptance remain open.
+
+### 2026-10-27 — Saved Restoration cast integration
+
+The packaged trained fixture now feeds Account → selected hero/spec → Run →
+Params in a regression test. Its 4/4/5 Restoration allocation yields the expected
+0.84 × 0.92 × 0.85 deployment cooldown factor for Searing and Magma Totems,
+with 3% maximum-health deployment healing from the 13-point tree total. Lightning
+Bolt receives neither benefit, and radius/duration remain unchanged. Coverage
+includes save/reload, empty-spec switching, returning to the trained spec, reset,
+second-hero isolation and the pre-reset run snapshot. All 348 app tests with
+checkout data, app Clippy and diff checks pass. This is cast-parameter integration
+evidence alongside the existing actual-deployment ECS tests, not new Windows
+playtest evidence or full talent completion. No rendering changes or new captures.

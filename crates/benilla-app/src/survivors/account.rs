@@ -2508,6 +2508,61 @@ mod tests {
     }
 
     #[test]
+    fn restoration_fixture_reaches_cast_parameters_after_reload_and_spec_changes() {
+        use super::super::{abilities::Params, Owned, Run};
+        let mut account = parse(include_str!("../../testdata/survivors-ui/trained.txt")).unwrap();
+        let make_run = |account: &Account, id| Run {
+            class: &data::CLASSES[5],
+            bonus: account.bonus(5, id),
+            milestones: account.milestones_picked(5, Some(id)),
+            ..Default::default()
+        };
+        let snapshot = make_run(&account, 2);
+        assert_eq!(snapshot.milestones.points, [0, 0, 13]);
+        let check = |run: &Run, trained: bool| {
+            for key in ["searing_totem", "magma_totem", "lightning_bolt"] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level: 3,
+                    cd: 0.,
+                };
+                let stats = run.stats();
+                let params = Params::new(&owned, &stats, run.milestones);
+                let totem = key != "lightning_bolt";
+                let expected = owned.cooldown(&stats)
+                    * if trained && totem {
+                        0.84 * 0.92 * 0.85
+                    } else {
+                        1.
+                    };
+                assert!((params.cooldown - expected).abs() < 0.00001, "{key}");
+                assert_eq!(
+                    params.heal_fraction,
+                    if trained && totem { 0.03 } else { 0. }
+                );
+                assert_eq!(params.radius, owned.radius(&stats));
+                assert_eq!(params.duration, owned.duration());
+            }
+        };
+        check(&snapshot, true);
+        account = parse(&encode(&account)).unwrap();
+        check(&make_run(&account, 2), true);
+        account.select_spec(2, 2);
+        check(&make_run(&account, 2), false);
+        account.select_spec(2, 0);
+        check(&make_run(&account, 2), true);
+        account.respec(2);
+        check(&make_run(&account, 2), false);
+        // The other hero keeps its own Restoration build, and the active run is immutable.
+        account.select_spec(1, 1);
+        check(&make_run(&account, 1), true);
+        check(&snapshot, true);
+        let restored = parse(&encode(&account)).unwrap();
+        check(&make_run(&restored, 2), false);
+        check(&make_run(&restored, 1), true);
+    }
+
+    #[test]
     fn rogue_training_survives_save_and_stays_with_hero_and_active_spec() {
         let mut account = empty();
         let first = account.ensure(3);
