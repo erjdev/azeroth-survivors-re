@@ -54,6 +54,7 @@ pub(super) fn feed(
         }
         _ => return,
     };
+    let previous_len = field.len();
     if event.key_code == KeyCode::Backspace {
         field.pop();
     } else if let Some(text) = &event.text {
@@ -62,6 +63,9 @@ pub(super) fn feed(
                 field.push(ch);
             }
         }
+    }
+    if field.len() != previous_len {
+        armory.note.clear();
     }
 }
 
@@ -120,6 +124,7 @@ mod tests {
         let mut armory = Armory {
             focus: 1,
             draft_first: String::new(),
+            note: "A hero needs a first and last name".into(),
             ..Default::default()
         };
         let mut account = crate::survivors::account::empty();
@@ -131,6 +136,7 @@ mod tests {
             &selection,
         );
         assert_eq!(armory.draft_first, "Abc-def' ghijklm");
+        assert!(armory.note.is_empty());
         let mut released = event(KeyCode::Backspace, None);
         released.state = ButtonState::Released;
         feed(&released, &mut armory, &mut account, &selection);

@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Creation feedback at minimum window size
+
+Fixed stale name-validation feedback after correcting a creation or rename field.
+Rejected input leaves feedback visible. Native 640×480 checks verify reachable
+creation controls, empty-name rejection, longer names and Tab navigation, with
+unchanged saved account bytes. 369 app tests, app-test Clippy and the native build
+pass. Windows DPI and controller acceptance remain open.
+
+![Empty-name rejection at minimum window size](images/screenshots/2026-10-27-creation-minimum/empty-name-640-480.png)
+![Stale error before the fix](images/screenshots/2026-10-27-creation-minimum/stale-error-before.png)
+![Corrected name clears the message](images/screenshots/2026-10-27-creation-minimum/corrected-name-640-480.png)
+
 ## 2026-10-27 — Clearer hero creation
 
 Hero creation now labels both name fields and presents all nine classes directly.

@@ -885,6 +885,10 @@ Character appearance controls; account upgrades have their own section. Native
 female Night Elf appearance after restart, and a new Mage draft leaving the saved
 Druid/account bytes unchanged. 369 app tests, app-test Clippy and native build pass.
 Before/after/restart screenshots are inline in the changelog; README is updated.
+Minimum-window follow-up at 640×480 verifies reachable creation controls,
+empty-name rejection, longer-name entry and Tab navigation without changing account
+bytes. Correcting a name now clears stale feedback; rejected input preserves it.
+Before/after screenshots are embedded in the changelog.
 This does not close the full race/controller/Windows DPI matrix.
 
 Build the nine-by-six collection grid with quality headers, owned/unseen states and
