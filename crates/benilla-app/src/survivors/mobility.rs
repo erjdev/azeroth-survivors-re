@@ -185,6 +185,9 @@ impl Run {
             def.cooldown *= effect.cooldown;
             def.secs *= effect.duration;
         }
+        if self.class.id == 4 {
+            def.cooldown *= self.milestones.cast("sprint").cooldown;
+        }
         Some(def)
     }
 
@@ -313,6 +316,29 @@ pub(super) fn cast_mobility(
 mod tests {
     use super::*;
     use survivors_core::talents::Milestones;
+
+    #[test]
+    fn endurance_changes_only_learned_sprint_cooldown_and_refunds() {
+        for rank in [0, 1, 2, 255] {
+            let mut run = Run {
+                class: &super::super::data::CLASSES[3],
+                milestones: Milestones {
+                    class: 3,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 204, rank)]),
+                ..Default::default()
+            };
+            assert!(run.mobility().is_none());
+            run.level = LEARN_LEVEL;
+            let sprint = run.mobility().unwrap();
+            assert!((sprint.cooldown - (15.0 - 1.5 * f32::from(rank.min(2)))).abs() < 0.00001);
+            assert_eq!(sprint.kind, Move::Haste(1.8));
+            assert_eq!(sprint.secs, 4.0);
+            run.milestones = run.milestones.with_ranks(&[]);
+            assert_eq!(run.mobility().unwrap().cooldown, 15.0);
+        }
+    }
 
     #[test]
     fn charge_talents_resolve_for_cast_sweep_and_tooltip() {

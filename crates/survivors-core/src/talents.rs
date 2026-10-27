@@ -2810,6 +2810,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 204, max_rank: 2, name: "Endurance",
+        description: "Sprint: 10% shorter cooldown per rank. Does not change its speed or duration; learned at hero level 5 and activated with F (Survivors cooldown conversion; Evasion is not an owned ability)",
+        stat: TalentStat::SpellCooldown("sprint"), per_rank: 0.10,
+    },
+    TalentDefinition {
         id: 181, max_rank: 5, name: "Precision",
         description: "Rogue abilities: +1% direct and periodic damage per rank; excludes other-class and neutral jewelry abilities (Survivors hit-chance conversion; attacks have no miss roll)",
         stat: TalentStat::SpellGroupDamage(ROGUE_SPELLS), per_rank: 0.01,

@@ -7251,3 +7251,18 @@ captures show the corrected phrases; no gameplay or save changes.
 
 Verification: 208 core / 398 app tests, both Clippy gates, formatting and native
 play build (16 seconds) pass. No new platform/gameplay acceptance is claimed.
+
+
+### 2026-10-27 — Rogue Endurance mobility integration
+
+DBC node 204 (Combat, two ranks) now applies 10% Sprint cooldown reduction per
+rank: 15 / 13.5 / 12 seconds. This is a scaled Survivors conversion; Evasion
+is not an owned ability. It does not grant Sprint before level five, change
+its speed/duration, or modify offensive spells. Runtime mobility and HUD consume
+the same definition. Purchase/save/spec/refund checks use the real DBC catalog;
+native menu evidence is inline in the changelog. Remaining talent definitions,
+Windows scene replay and the broader seven-phase acceptance remain open.
+
+Verification: 209 core tests, 400 app tests, both scoped Clippy checks and the
+18-second native build pass. Real-data coverage: 252/432 definitions, including
+23/51 Rogue nodes. 180 talent definitions remain unimplemented.

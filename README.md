@@ -50,7 +50,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-27-codex-preview/wrath.png" alt="Codex"><br>2026-10-27 · Direct spell and jewelry previews with live viewport changes.<br><a href="docs/images/screenshots/2026-10-27-codex-preview/ring-compact.png">Compact Codex preview</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-stat-labels/health.png" alt="Talents"><br>2026-10-27 · Druid Heart of the Wild with complete inline green maximum-health phrase; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-heart-of-the-wild/compact.png">Compact description</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-endurance/purchased.png" alt="Talents"><br>2026-10-27 · Rogue Endurance purchase with inline green Sprint cooldown preview; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-heart-of-the-wild/compact.png">Compact description</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

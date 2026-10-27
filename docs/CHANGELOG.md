@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Rogue Endurance and Sprint recovery
+
+Endurance now reduces Sprint's 15-second cooldown to 13.5 / 12 seconds,
+replacing placeholder damage. Speed, duration and the level-five unlock stay
+unchanged. Saved specs and refunds carry the correct cooldown into the next run.
+
+![Purchased Endurance and inline next-rank preview](images/screenshots/2026-10-27-endurance/purchased.png)
+
+209 core / 400 app tests, both Clippy checks and native build pass. Native
+1280×720 capture verifies purchase and green preview. Definitions: 252/432.
+Windows and live combat acceptance remain open.
+
 ## 2026-10-27 — Complete green talent stat phrases
 
 Talent upgrade highlights now include their stat labels: “4 » 8% maximum health”

@@ -37,6 +37,35 @@ impl Milestones {
 mod tests {
     use super::*;
     #[test]
+    fn endurance_is_capped_and_scoped_to_sprint() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 204, rank)]);
+                for key in ROGUE_SPELLS
+                    .iter()
+                    .copied()
+                    .chain(["sprint", "charge", "fireball"])
+                {
+                    let mut expected = base.cast(key);
+                    if class == 3 && key == "sprint" {
+                        expected.cooldown *= 1.0 - 0.1 * f32::from(rank.min(2));
+                    }
+                    assert_eq!(trained.cast(key), expected);
+                }
+            }
+        }
+        let node = super::super::talent_definition(3, 204).unwrap();
+        assert!(node
+            .inline_description(1)
+            .unwrap()
+            .starts_with("Sprint: 10 » 20% shorter cooldown"));
+        assert!(!node.inline_description(2).unwrap().contains(" » "));
+    }
+    #[test]
     fn preparation_obeys_run_time_rank_scope_and_does_not_bank_missed_intervals() {
         for rank in [0, 1, 255] {
             let trained = Milestones {
