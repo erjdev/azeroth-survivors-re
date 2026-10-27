@@ -3566,6 +3566,8 @@ mod milestone_tests {
         };
         let trained = base.with_ranks(&[
             (0, 276, 3),
+            (0, 273, 3),
+            (0, 281, 1),
             (0, 270, 5),
             (0, 269, 5),
             (1, 201, 2),
@@ -3582,10 +3584,10 @@ mod milestone_tests {
         stats.targets = 4;
         for (key, damage, critical_damage, cooldown) in [
             ("sinister_strike", 1.10 * 1.06, 2.5, 0.9),
-            ("eviscerate", 1.10 * 1.15 * 1.06, 2.2, 1.0),
+            ("eviscerate", 1.10 * 1.15 * 1.06, 2.2, 0.748),
             ("gouge", 1.10, 2.5, 1.0),
-            ("kidney_shot", 1.10, 2.2, 1.0),
-            ("rupture", 1.10 * 1.30, 2.2, 1.0),
+            ("kidney_shot", 1.10, 2.2, 0.748),
+            ("rupture", 1.10 * 1.30, 2.2, 0.748),
             ("blade_flurry", 1.10, 2.2, 1.0),
             ("fireball", 1.0, 2.2, 1.0),
         ] {

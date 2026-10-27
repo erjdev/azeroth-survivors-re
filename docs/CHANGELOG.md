@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Rogue finisher recovery
+
+Ruthlessness and Relentless Strikes now shorten Eviscerate, Rupture and Kidney
+Shot cooldowns, composing with existing training. Both explicitly describe their
+Survivors conversions and show green inline upgrades. Native checks verify a
+saved Relentless Strikes purchase and compact Ruthlessness details.
+
+182 core tests, 357 app tests, core/app-test Clippy and native build pass.
+Catalog coverage: 228/432 individual talents (Rogue 18/51). Live balance and
+Windows acceptance remain open.
+
+![Relentless Strikes inline preview](images/screenshots/2026-10-27-rogue-finishers/talents-1280.png)
+![Compact Ruthlessness upgrade](images/screenshots/2026-10-27-rogue-finishers/talents-640.png)
+
 ## 2026-10-27 — Druid root-control training
 
 Nature's Grasp and Improved Entangling Roots now shorten Entangling Roots'

@@ -6431,3 +6431,19 @@ stronger active root, and baseline duration on subsequent hits after refunds. Co
 CHANGELOG show wide and compact details plus a persisted rank-two purchase.
 Catalog audit: 226/432 nodes (Druid 23/47), 81/81 milestone descriptions.
 The remaining 206 nodes, live balance, and Windows combat acceptance stay open.
+
+
+### 2026-10-27 — Rogue finisher recovery
+
+Audited identities 273 (Ruthlessness, three ranks) and 281 (Relentless Strikes,
+one rank) now reduce Eviscerate, Rupture and Kidney Shot cooldowns by 4% per
+rank and 15% respectively. They multiply with existing cooldown training and
+milestones. Descriptions explicitly label combo-point/energy-return conversions;
+poison and stealth mechanics remain separate unfinished work.
+
+182 core and 357 app tests pass, including class isolation, bounded ranks,
+composition, refunds and ability-rank one/three/eight parameters. Core/app-test
+Clippy and native build pass. Wide and compact native captures in CHANGELOG
+verify inline green values; the Relentless Strikes purchase persisted to the
+fixture save. Catalog coverage is 228/432 nodes (Rogue 18/51), 81/81 milestone
+descriptions. Remaining content, live balance and Windows acceptance stay open.

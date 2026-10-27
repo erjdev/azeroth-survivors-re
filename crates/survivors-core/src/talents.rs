@@ -2630,6 +2630,16 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 273, max_rank: 3, name: "Ruthlessness",
+        description: "Eviscerate, Rupture and Kidney Shot: 4% shorter cooldown per rank, multiplying other cooldown bonuses (Survivors finisher recovery conversion; no combo points)",
+        stat: TalentStat::SpellGroupCooldown(&["eviscerate", "rupture", "kidney_shot"]), per_rank: 0.04,
+    },
+    TalentDefinition {
+        id: 281, max_rank: 1, name: "Relentless Strikes",
+        description: "Eviscerate, Rupture and Kidney Shot: 15% shorter cooldown per rank, multiplying other cooldown bonuses (Survivors finisher energy-return conversion; no energy resource)",
+        stat: TalentStat::SpellGroupCooldown(&["eviscerate", "rupture", "kidney_shot"]), per_rank: 0.15,
+    },
+    TalentDefinition {
         id: 277, max_rank: 3, name: "Improved Slice and Dice",
         description: "Blade Flurry: 5% shorter cooldown per rank (Survivors automatic Slice and Dice conversion)",
         stat: TalentStat::SpellCooldown("blade_flurry"), per_rank: 0.05,
@@ -2942,6 +2952,53 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
 #[cfg(test)]
 mod stat_talent_tests {
     use super::*;
+
+    #[test]
+    fn rogue_finisher_recovery_is_scoped_capped_and_composes() {
+        assert!(talent_definition(3, 281)
+            .unwrap()
+            .inline_description(0)
+            .unwrap()
+            .starts_with("Eviscerate, Rupture and Kidney Shot: 0 » 15% shorter cooldown"));
+        for class in 0..9 {
+            for rank in [0, 1, 3, 255] {
+                let base = Milestones {
+                    class,
+                    points: [30; 3],
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 382, 1), (2, 247, 2)]);
+                let trained =
+                    base.with_ranks(&[(0, 382, 1), (2, 247, 2), (0, 273, rank), (0, 281, rank)]);
+                for key in ROGUE_SPELLS
+                    .iter()
+                    .copied()
+                    .chain(["fireball", "holy_nova"])
+                {
+                    let mut expected = base.cast(key);
+                    if class == 3 && ["eviscerate", "rupture", "kidney_shot"].contains(&key) {
+                        expected.cooldown *= (1. - 0.04 * f32::from(rank.min(3)))
+                            * (1. - 0.15 * f32::from(rank.min(1)));
+                    }
+                    let actual = trained.cast(key);
+                    assert!((actual.cooldown - expected.cooldown).abs() < 0.00001);
+                    assert_eq!(
+                        CastEffect {
+                            cooldown: expected.cooldown,
+                            ..actual
+                        },
+                        expected
+                    );
+                }
+                assert_eq!(trained.with_ranks(&[(0, 382, 1), (2, 247, 2)]), base);
+            }
+        }
+        assert!(talent_definition(3, 273)
+            .unwrap()
+            .inline_description(1)
+            .unwrap()
+            .starts_with("Eviscerate, Rupture and Kidney Shot: 4 » 8% shorter cooldown"));
+    }
 
     #[test]
     fn remorseless_chance_is_rank_bounded_and_excludes_areas_and_bleeds() {
