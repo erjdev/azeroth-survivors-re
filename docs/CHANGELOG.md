@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Browser talent layouts at 5:4 and ultrawide
+
+At 1280×1024, three proportional trees sit above the scrollable details panel;
+Combustion's full green preview and zero-point purchase gate were checked.
+At 2560×1080, the trees and complete details fit side by side.
+
+![5:4 talent trees](images/screenshots/2026-10-27-browser-resolutions/talents-1280x1024.png)
+
+![Scrollable Combustion details](images/screenshots/2026-10-27-browser-resolutions/combustion-1280x1024.png)
+
+![Ultrawide talent artwork and details](images/screenshots/2026-10-27-browser-resolutions/talents-2560x1080.png)
+
+Checkout `7aa09ef`: WebGPU check (28 seconds), linked package (76 seconds),
+seven browser tests and six build-script tests pass. Browser console was clear.
+Ultrawide pointer interactions remain unverified; this checkpoint adds visual
+coverage, not Windows gameplay acceptance. No layout code changed.
+
 ## 2026-10-27 — Preview without waiting for Cargo
 
 The fixture launcher accepts `--run --executable <path>` to open a previously

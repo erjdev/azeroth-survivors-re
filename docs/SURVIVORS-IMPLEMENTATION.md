@@ -7453,3 +7453,29 @@ invalid option combinations leave no fixture behind. Twelve Python tests pass on
 macOS; the existing Linux CI fixture suite includes them. Windows execution is
 not claimed. No appearance change or native rebuild was needed. This does not
 reduce Rust compilation time; shrinking the large app crate remains future work.
+
+
+### 2026-10-27 — Browser 5:4 and ultrawide evidence
+
+The current package (checkout 7aa09ef, Combustion runtime 3bc0f88) was checked at
+1280×1024 and 2560×1080. At 5:4, the starter renders, a Mage can be created using
+individual key events, three proportioned talent trees reflow above the details,
+zero points block purchase, and scrolling reaches the complete Combustion text,
+spec controls and reset. At ultrawide, a full-page capture shows all three trees
+and complete details side by side. Automated Spec 2 clicks did not establish a
+selection change at that viewport; pointer acceptance remains open rather than
+being inferred from the screenshot. Full-page capture avoids the automation's
+cropped viewport screenshots at this width.
+
+Automation text insertion of “Vale” produced truncated input; individual key
+presses produced and saved the complete name. Paste/IME behavior needs independent
+verification; no product input fix is claimed. Test heroes remain in the local
+browser validation account. Four screenshots are stored under
+images/screenshots/2026-10-27-browser-resolutions, with inline changelog evidence
+and a refreshed README gallery. Viewport override was reset and local host stopped.
+
+WebGPU check (28 seconds), linked play build (76 seconds), seven browser tests
+and six build-script tests pass. Five existing compiler warnings remain; the
+observed browser console had no warnings/errors. No runtime code changed; talent
+coverage stays 261/432 with 171 definitions remaining. Windows foliage, routing,
+chest cadence and platform-specific talent acceptance remain open.

@@ -127,14 +127,17 @@ Collection and Talents also support compact scrolling at enlarged interface size
 
 ### Browser starter checkpoint
 
-2026-10-27 · WebGPU package at `d9d010a` verifies the saved Priest, current talent
-descriptions and zero-point purchase blocking at 1280×720. At 640×720, trees
-reflow and the full description remains scrollable. In-map browser gameplay and
-broader platform coverage remain unverified.
+2026-10-27 · WebGPU package at `7aa09ef`: 1280×1024 talent trees reflow above
+scrollable details, with green Combustion scaling and zero-point purchase blocking.
+At 2560×1080, all three trees and complete details fit side by side; ultrawide
+pointer acceptance remains open. In-map browser gameplay and Windows scene
+acceptance remain unverified.
+
+![Ultrawide Mage talents](docs/images/screenshots/2026-10-27-browser-resolutions/talents-2560x1080.png)
 
 <table><tr>
-<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-priest/inspiration.png" alt="Browser Inspiration description and blocked purchase"></td>
-<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-priest/compact.png" alt="Complete Blessed Recovery description at 640 by 720"></td>
+<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-resolutions/starter-1280x1024.png" alt="Starter at 1280 by 1024"></td>
+<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-resolutions/combustion-1280x1024.png" alt="Full Combustion description reached by scrolling at 1280 by 1024"></td>
 </tr></table>
 
 ### Earlier gameplay captures
