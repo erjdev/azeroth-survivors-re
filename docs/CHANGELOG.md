@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Windows executable gate
+
+The Windows CI job now links the player executable after the development check
+and core rules, and uploads that executable alone as a seven-day playtest artifact.
+This catches linker failures that `cargo check` cannot catch. Artifact names identify
+the checked-out SHA; game data and local saves are excluded.
+
+Workflow YAML parses; the no-default-features player check and all 199 core tests
+under the play profile pass locally on macOS (five non-dev compiler warnings).
+GitHub currently reports zero workflow runs. This is configured coverage, not a
+successful Windows build or available download; execution remains unverified.
+
 ## 2026-10-27 — Paladin Divine Favor
 
 Divine Favor readies one guaranteed-critical Holy Shock, recovering 120 active

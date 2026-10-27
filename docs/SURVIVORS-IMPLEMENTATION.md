@@ -33,6 +33,18 @@ exposed fixed-height talent-panel clipping; panels now grow with their contents.
 Native 640×720 and 1024×720/125% captures verify the full green description,
 purchase persistence and tree proportions. Windows and live balance remain open.
 
+## Windows build acceptance — 2026-10-27
+
+The CI gate now links the player executable in addition to checking the development
+launcher and testing core rules. A successful run uploads only the executable under
+its checkout SHA for attended playtesting. GitHub reports zero repository workflow
+runs at this audit; runner execution, artifact availability and GPU acceptance are
+still unproven. The [artifact workflow](SURVIVORS-DEVELOPMENT.md#windows-build-artifacts)
+documents the build mode and data-path requirement.
+Local validation: YAML parses, the no-default-features player check passes on macOS
+with five non-dev warnings, and 199 core tests pass under the same play profile.
+These checks do not substitute for Windows compilation or linking.
+
 ## Windows foliage reproduction evidence — 2026-10-27
 
 The opt-in `survivors_visibility=trace` target records rendered blockers and fade

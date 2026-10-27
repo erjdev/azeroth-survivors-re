@@ -63,6 +63,36 @@ cargo run -p survivors-audit -- "$PWD/wow-data/Data" --achievement-art
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --floor 533 3005.87 -3435.01 293.88
 ```
 
+### Windows build artifacts
+
+The `check` workflow's `windows-survivors` job checks the development launcher,
+runs the core rules, and links a player executable with:
+
+```powershell
+cargo build --locked --profile play -p warcraft-survivors --no-default-features
+```
+
+After a successful job, its run page offers a `survivors-windows-<sha>` artifact
+containing only `warcraft-survivors.exe`, retained for seven days. The SHA identifies
+the checked-out commit (for PR runs, normally GitHub's test merge). Extract the
+archive into a writable playtest folder and point it at your own 1.12.1 data:
+
+```powershell
+$env:WOW_DATA = 'C:\path\to\WoW\Data'
+.\warcraft-survivors.exe
+```
+
+The player build uses embedded layout defaults and does not watch source edits.
+It contains no game data, credentials or account saves. It is a playtest artifact,
+not a signed release or an automatic update. CI linking does not establish GPU,
+foliage, navigation or live gameplay acceptance.
+
+As of the 2026-10-27 audit, GitHub reports zero repository workflow runs. Workflow
+registration is visible, but Actions enablement/approval settings could not be
+verified with the available access. No Windows artifact or passing Windows build
+is claimed until an actual run completes. Check the repository's Actions page for
+an enablement or approval prompt when signed in as its owner.
+
 ### Diagnosing scenery reveal on Windows
 
 For a manual playtest from this checkout, enable the dedicated visibility trace in

@@ -29,7 +29,16 @@ jobs:
       - name: native Survivors launcher and feature carries
         run: cargo check -p warcraft-survivors
       - name: Survivors rules
-        run: cargo test -p survivors-core
+        run: cargo test --locked --profile play -p survivors-core
+      - name: link Windows player executable
+        run: cargo build --locked --profile play -p warcraft-survivors --no-default-features
+      - name: upload Windows playtest executable
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: survivors-windows-${{ github.sha }}
+          path: target/play/warcraft-survivors.exe
+          if-no-files-found: error
+          retention-days: 7
       # This gate needs no install data or GPU. Live foliage and navigation
       # acceptance still requires an attended Windows playtest.
   wasm:
