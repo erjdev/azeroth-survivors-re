@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Druid Character at 1024×768
+
+Native acceptance checks cover a full legacy Druid collection: dressed male and
+female Night Elves, drag rotation, saved appearance changes without changing
+selected gear, lower equipment/appearance controls, and the same shoulder item
+after opening Collection. At this size the reference's three columns stack into
+a scrollable page. No code changed; other race/resolution combinations and in-run
+appearance remain open.
+
+![Rotated dressed male Night Elf](images/screenshots/2026-10-27-druid-character/rotated-1024.png)
+![Female Night Elf with the same equipment](images/screenshots/2026-10-27-druid-character/female-1024.png)
+![Equipment and readable bonuses](images/screenshots/2026-10-27-druid-character/equipment-1024.png)
+![Same shoulder item opened in Collection](images/screenshots/2026-10-27-druid-character/collection-1024.png)
+
 ## 2026-10-27 — Inline one-rank talent bonuses
 
 One-rank talents with an unambiguous numeric bonus now show green changes inside

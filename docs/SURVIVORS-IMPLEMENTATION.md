@@ -800,6 +800,14 @@ legacy migration, malformed references and round trips have regression tests.
 
 ## Phase 3 — collection and character surfaces
 
+Native acceptance addition (2026-10-27, runtime `6de93e9`): a disposable full
+54-piece Druid fixture at 1024×768 verifies dressed male/female Night Elf models,
+drag rotation, reachable lower controls, persisted sex change with unchanged
+selected equipment, and Character→Collection preserving Feralheart Spaulders.
+The reference's three columns deliberately stack at this width. Four actual
+captures are embedded in CHANGELOG; README includes the model and equipment view.
+This adds one class/race/resolution case, not full matrix or in-run acceptance.
+
 Character Look checkpoint (2026-10-25): the wide Features column now ends in
 shared appearance actions rather than repeating the full Collection detail panel.
 “Inspect in Collection” retains the selected item and exposes its full sources,

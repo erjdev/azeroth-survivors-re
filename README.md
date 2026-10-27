@@ -77,6 +77,15 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 </table>
 
 
+### Additional responsive Character check
+
+<table>
+  <tr>
+    <td width="50%"><strong>Character at 1024×768</strong><br><img src="docs/images/screenshots/2026-10-27-druid-character/female-1024.png" alt="Dressed female Night Elf Druid"><br>2026-10-27 · Dressed Night Elf model; appearance changes retain equipped gear.</td>
+    <td width="50%"><strong>Scrolled equipment</strong><br><img src="docs/images/screenshots/2026-10-27-druid-character/equipment-1024.png" alt="Druid equipment and bonuses"><br>2026-10-27 · All nine slots and summed bonuses in the responsive single-column layout.</td>
+  </tr>
+</table>
+
 ### Earlier gameplay captures
 
 <table>
