@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Direct saved-spec previews
+
+The fixture launcher accepts paired `--hero` / `--spec` options with a talent
+preset. It opens a chosen saved build in a new disposable account without manual
+save edits. Eight isolation tests pass; native 640×720 confirms hero 2, spec 2,
+and the expected 29-point Enhancement spread. No Rust rebuild is needed.
+
+![Selected hero and saved spec from the fixture command](images/screenshots/2026-10-27-spec-previews/selected-spec.png)
+
 ## 2026-10-27 — Bestial Discipline
 
 Hunter training now shortens the combat wolf's bite cooldown by 10% per rank

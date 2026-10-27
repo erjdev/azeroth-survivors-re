@@ -544,6 +544,18 @@ To prepare and launch a watched preset in one command (Python 3 and Cargo on PAT
 python3 scripts/survivors-ui-fixture.py partial --preset talents-640.txt --run
 ```
 
+Open a particular saved spec without editing save records:
+
+```sh
+python3 scripts/survivors-ui-fixture.py trained --hero 2 --spec 2 --preset talents-640.txt --run
+```
+
+`--hero` and `--spec` are paired; specs are numbered 1–3. They require a talent
+preset. Only the selected hero's active spec in the new disposable account changes;
+all saved spreads, other heroes and the source fixture remain intact. The watched
+request selects that hero, replacing any preset hero selection. A class-specific
+talent inspection in the preset must still match the chosen hero.
+
 On Windows use `py -3` instead of `python3`. `--run` invokes `cargo survivors`
 directly, using the incremental play profile and no shell. It clears inherited
 autoplay/capture and old page/preview settings, then sets checkout `wow-data/Data`

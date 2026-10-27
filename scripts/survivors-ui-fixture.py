@@ -5,7 +5,6 @@ import argparse
 import os
 from pathlib import Path
 import shlex
-import shutil
 import subprocess
 import tempfile
 
@@ -17,13 +16,31 @@ PAGES = ("starter", "heroes", "talents", "rewards", "collection", "codex",
          "achievements", "notes", "drops", "look")
 
 
-def prepare(profile, output=None):
+def prepare(profile, output=None, hero=None, selected_spec=None):
     """Never replace an existing directory, even if it looks like a preview."""
     if profile not in PROFILES:
         raise ValueError(f"Unknown fixture: {profile}")
     source = FIXTURES / f"{profile}.txt"
     if not source.is_file():
         raise FileNotFoundError(source)
+    contents = source.read_bytes().decode("utf-8")
+    if (hero is None) != (selected_spec is None):
+        raise ValueError("Hero and spec must be selected together")
+    if hero is not None:
+        if hero <= 0 or selected_spec not in (1, 2, 3):
+            raise ValueError("Hero must be positive; spec must be 1, 2 or 3")
+        lines = contents.splitlines(keepends=True)
+        matches = [i for i, line in enumerate(lines)
+                   if line.startswith(f"who {hero} ")]
+        if len(matches) != 1:
+            raise ValueError(f"Hero {hero} is not in the {profile} fixture")
+        index = matches[0]
+        fields = lines[index].split(maxsplit=6)
+        _, separator, spreads = fields[6].partition("|")
+        if not separator:
+            raise ValueError("Invalid fixture hero record")
+        lines[index] = " ".join(fields[:6]) + f" {selected_spec - 1}|" + spreads
+        contents = "".join(lines)
     if output is None:
         parent = ROOT / "target/ui-fixtures"
         parent.mkdir(parents=True, exist_ok=True)
@@ -33,7 +50,7 @@ def prepare(profile, output=None):
         home.mkdir(parents=True, exist_ok=False)
     config = home / "benilla-config"
     config.mkdir()
-    shutil.copyfile(source, config / "survivors-account.txt")
+    (config / "survivors-account.txt").write_bytes(contents.encode("utf-8"))
     (home / "UI-FIXTURE.txt").write_text(
         f"Synthetic Survivors UI account: {profile}\n"
         "Changes here are disposable. This is not player progress or content acceptance.\n",
@@ -53,13 +70,20 @@ def command(home, page):
     ])
 
 
-def preview(home, name):
+def preview(home, name, hero=None):
     """Copy a repository preset; later edits affect only the isolated request."""
     if Path(name).name != name or name not in {p.name for p in PREVIEWS.glob("*.txt")}:
         raise ValueError(f"Unknown preview preset: {name}")
+    contents = (PREVIEWS / name).read_bytes().decode("utf-8")
+    if hero is not None:
+        lines = contents.splitlines()
+        if not any(line.split("#", 1)[0].strip().replace(" ", "") == "page=talents" for line in lines):
+            raise ValueError("Saved spec selection requires a talent preview preset")
+        lines = [line for line in lines if line.split("=", 1)[0].strip() != "hero"]
+        contents = "\n".join(lines) + f"\nhero={hero}\n"
     destination = home / "view.txt"
     with destination.open("xb") as output:
-        output.write((PREVIEWS / name).read_bytes())
+        output.write(contents.encode("utf-8"))
     return destination
 
 
@@ -94,13 +118,19 @@ def main():
                         help="Copy a watched UI request; takes precedence over --page")
     parser.add_argument("--run", action="store_true",
                         help="Build incrementally and launch the isolated preview (all platforms)")
+    parser.add_argument("--hero", type=int, help="Fixture hero id; requires --spec and a talent --preset")
+    parser.add_argument("--spec", type=int, choices=(1, 2, 3), help="Saved spec in the disposable fixture")
     args = parser.parse_args()
+    if (args.hero is None) != (args.spec is None) or (args.spec is not None and not args.preset):
+        parser.error("--hero and --spec require each other and a talent --preset")
     try:
-        home = prepare(args.profile, args.output)
-        request = preview(home, args.preset) if args.preset else None
+        home = prepare(args.profile, args.output, args.hero, args.spec)
+        request = preview(home, args.preset, args.hero) if args.preset else None
     except (OSError, ValueError) as error:
         parser.error(str(error))
     print(f"Prepared synthetic {args.profile} account: {home}")
+    if args.spec is not None:
+        print(f"Selected fixture hero {args.hero}, saved spec {args.spec}")
     if request:
         print(f"Live preview request: {request} (edit this file while the app is open)")
     if args.run:

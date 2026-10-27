@@ -582,6 +582,13 @@ pass. Rendered 16:9/4:3/narrow comparisons, icon/label fit, wheel behavior and
 scroll-position behavior after spending/refunding or switching specs remain to be
 verified. No new screenshot or responsive visual acceptance is claimed.
 
+Saved-spec preview follow-up (2026-10-27): paired `--hero` / `--spec` options
+select a saved build inside a newly created fixture, preserve all ranks and other
+heroes, and set the watched talent request to the selected hero. Eight Python
+isolation tests pass; the native 640×720 preview confirms Nara/spec 2 with 29
+Enhancement points. The development guide documents the command and the changelog
+embeds its screenshot. This speeds menu acceptance without gameplay sessions.
+
 Preview fixture checkpoint: `scripts/survivors-ui-fixture.py` now copies checked-in
 synthetic fresh/partial/collected saves into new isolated state directories and
 prints a direct-page launch command. Existing directories and symlink destinations

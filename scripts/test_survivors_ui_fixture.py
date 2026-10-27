@@ -70,6 +70,40 @@ class FixtureTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse(missing.exists())
 
+    def test_saved_spec_changes_only_selected_fixture_hero_and_preserves_source(self):
+        original = (fixture.FIXTURES / "trained.txt").read_bytes()
+        with tempfile.TemporaryDirectory() as temp:
+            for selected in (1, 2, 3):
+                home = fixture.prepare("trained", Path(temp) / str(selected), 2, selected)
+                actual = (home / "benilla-config/survivors-account.txt").read_bytes()
+                expected = original.replace(b"who 2 5 3000 Nara Restoration 0|||",
+                                            f"who 2 5 3000 Nara Restoration {selected - 1}|||".encode())
+                self.assertEqual(actual, expected)
+                request = fixture.preview(home, "talents-640.txt", 2)
+                self.assertIn("hero=2", request.read_text())
+                self.assertEqual(request.read_text().count("hero="), 1)
+            self.assertEqual((fixture.FIXTURES / "trained.txt").read_bytes(), original)
+
+    def test_invalid_hero_or_spec_leaves_destination_absent(self):
+        with tempfile.TemporaryDirectory() as temp:
+            for hero, selected in [(999, 1), (0, 1), (2, 0), (2, 4), (None, 1), (2, None)]:
+                home = Path(temp) / "unused"
+                with self.assertRaises(ValueError):
+                    fixture.prepare("trained", home, hero, selected)
+                self.assertFalse(home.exists())
+
+    def test_spec_cli_targets_hero_and_requires_paired_options(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp) / "spec"
+            base = [sys.executable, str(Path(fixture.__file__)), "trained", "--output", str(home)]
+            invalid = subprocess.run(base + ["--spec", "2"], capture_output=True, text=True)
+            self.assertNotEqual(invalid.returncode, 0)
+            self.assertFalse(home.exists())
+            result = subprocess.run(base + ["--hero", "2", "--spec", "2", "--preset", "talents-640.txt"], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("hero=2", (home / "view.txt").read_text())
+            self.assertIn("who 2 5 3000 Nara Restoration 1|||", (home / "benilla-config/survivors-account.txt").read_text())
+
     def test_launch_is_isolated_shell_free_and_propagates_failure(self):
         with tempfile.TemporaryDirectory() as temp:
             home = fixture.prepare("partial", Path(temp) / "preview with spaces")
