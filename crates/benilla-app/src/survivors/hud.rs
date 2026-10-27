@@ -5,6 +5,7 @@ pub(super) mod card_growth;
 mod draft;
 pub(super) mod inline;
 mod settings;
+use super::localization::Strings;
 pub(super) use settings::checkboxes::refresh as refresh_settings;
 pub(super) use settings::keyboard::navigate as settings_keyboard;
 pub(super) use settings::sliders::{
@@ -2612,7 +2613,7 @@ pub(super) fn base_ability_body(def: &'static AbilityDef) -> String {
 }
 
 /// What the next rank changes, at the current stats.
-fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast) -> String {
+fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> String {
     let what = match def.kind {
         Kind::Shield => "absorbed",
         Kind::Heal => "healing",
@@ -2640,9 +2641,17 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast) -> String {
         gains.push(format!("{} yd", num(next.radius)));
     }
     if next.duration > 0.0 {
-        gains.push(format!("{} sec", num(next.duration)));
+        gains.push(strings.by_key(
+            "SPELL_DURATION_SEC",
+            "%s sec",
+            &[num(next.duration).as_str().into()],
+        ));
     }
-    gains.push(format!("{} sec cooldown", num(next.cooldown)));
+    gains.push(strings.by_key(
+        "SPELL_RECAST_TIME_SEC",
+        "%s sec cooldown",
+        &[num(next.cooldown).as_str().into()],
+    ));
     gains.join(", ")
 }
 
@@ -2651,6 +2660,7 @@ fn ability_tip(
     milestones: survivors_core::talents::Milestones,
     stats: &Stats,
     spells: Option<&crate::ui_action::Spells>,
+    strings: &Strings,
 ) -> Vec<TipLine> {
     let def = o.def;
     let now = cast_at(def, o.level, stats, milestones);
@@ -2662,7 +2672,11 @@ fn ability_tip(
     let range = match def.kind {
         Kind::Melee => Some("Melee Range".to_string()),
         Kind::Bolt | Kind::Strike | Kind::Chain | Kind::Dot | Kind::Ground | Kind::Totem => {
-            Some(format!("{} yd range", num(now.range)))
+            Some(strings.by_key(
+                "SPELL_RANGE",
+                "%s yd range",
+                &[num(now.range).as_str().into()],
+            ))
         }
         _ => None,
     };
@@ -2671,10 +2685,14 @@ fn ability_tip(
         cast = cast.right(range, Color::WHITE);
     }
     lines.push(cast);
-    lines.push(
-        TipLine::new("Instant", Color::WHITE)
-            .right(format!("{} sec cooldown", num(now.cooldown)), Color::WHITE),
-    );
+    lines.push(TipLine::new("Instant", Color::WHITE).right(
+        strings.by_key(
+            "SPELL_RECAST_TIME_SEC",
+            "%s sec cooldown",
+            &[num(now.cooldown).as_str().into()],
+        ),
+        Color::WHITE,
+    ));
     lines.push(TipLine::new(ability_body(def, &now), GOLD));
     for (verb, duration, boss_duration) in [
         (
@@ -2805,10 +2823,19 @@ fn ability_tip(
     }
     if o.level < data::MAX_ABILITY_LEVEL {
         let next = cast_at(def, o.level + 1, stats, milestones);
-        lines.push(TipLine::new("Next rank:", Color::WHITE));
-        lines.push(TipLine::new(next_rank(def, &now, &next), card_growth::GAIN));
+        lines.push(TipLine::new(
+            strings.text("TOOLTIP_TALENT_NEXT_RANK", "Next rank:"),
+            Color::WHITE,
+        ));
+        lines.push(TipLine::new(
+            next_rank(def, &now, &next, strings),
+            card_growth::GAIN,
+        ));
     } else {
-        lines.push(TipLine::new("Highest rank", DIM));
+        lines.push(TipLine::new(
+            strings.text("HONOR_HIGHEST_RANK", "Highest rank"),
+            DIM,
+        ));
     }
     lines
 }
@@ -2861,7 +2888,13 @@ fn stat_total(stat: Stat, s: &Stats) -> String {
     }
 }
 
-fn passive_tip(p: &PassiveDef, level: u8, stats: &Stats, run: &Run) -> Vec<TipLine> {
+fn passive_tip(
+    p: &PassiveDef,
+    level: u8,
+    stats: &Stats,
+    run: &Run,
+    strings: &Strings,
+) -> Vec<TipLine> {
     let mut lines = vec![
         TipLine::new(p.name, Color::WHITE)
             .header()
@@ -2870,13 +2903,19 @@ fn passive_tip(p: &PassiveDef, level: u8, stats: &Stats, run: &Run) -> Vec<TipLi
         TipLine::new(stat_total(p.stat, stats), Color::WHITE),
     ];
     if level < data::MAX_PASSIVE_LEVEL {
-        lines.push(TipLine::new("Next rank:", Color::WHITE));
+        lines.push(TipLine::new(
+            strings.text("TOOLTIP_TALENT_NEXT_RANK", "Next rank:"),
+            Color::WHITE,
+        ));
         lines.push(TipLine::new(
             passive_text(p.stat, run.passive_value(p, level + 1)),
             card_growth::GAIN,
         ));
     } else {
-        lines.push(TipLine::new("Highest rank", DIM));
+        lines.push(TipLine::new(
+            strings.text("HONOR_HIGHEST_RANK", "Highest rank"),
+            DIM,
+        ));
     }
     lines
 }
@@ -2948,6 +2987,7 @@ pub(super) fn icon_tooltip(
     run: Res<Run>,
     spells: Option<Res<crate::ui_action::Spells>>,
     font: Res<HudFont>,
+    strings: Option<Res<Strings>>,
     ui_scale: Res<UiScale>,
     mut assets: Option<ResMut<benilla_assets::WorldAssets>>,
     mut images: ResMut<Assets<Image>>,
@@ -2961,6 +3001,8 @@ pub(super) fn icon_tooltip(
     mut built: Local<Option<(Entity, Entity)>>,
     mut shown: Local<Option<(TipFor, u32)>>,
 ) {
+    let fallback = Strings::default();
+    let strings = strings.as_deref().unwrap_or(&fallback);
     let Some((frame, body)) = *built else {
         if let Some(assets) = assets.as_deref_mut() {
             *built = Some(spawn_tooltip(
@@ -3007,16 +3049,22 @@ pub(super) fn icon_tooltip(
         TipFor::Ability(i) => run
             .abilities
             .get(i)
-            .map(|o| ability_tip(o, run.milestones, &stats, spells.as_deref())),
+            .map(|o| ability_tip(o, run.milestones, &stats, spells.as_deref(), strings)),
         TipFor::Passive(i) => run
             .passives
             .get(i)
-            .map(|&(p, level)| passive_tip(p, level, &stats, &run)),
+            .map(|&(p, level)| passive_tip(p, level, &stats, &run, strings)),
         TipFor::Mobility => run.mobility().map(|m| {
             vec![
                 TipLine::new(spell_name(spells.as_deref(), m.spell, m.name), Color::WHITE).header(),
-                TipLine::new("Press F", Color::WHITE)
-                    .right(format!("{} sec cooldown", num(m.cooldown)), Color::WHITE),
+                TipLine::new("Press F", Color::WHITE).right(
+                    strings.by_key(
+                        "SPELL_RECAST_TIME_SEC",
+                        "%s sec cooldown",
+                        &[num(m.cooldown).as_str().into()],
+                    ),
+                    Color::WHITE,
+                ),
                 TipLine::new(m.description(), GOLD),
             ]
         }),
@@ -3128,6 +3176,46 @@ mod talent_tooltip_tests {
     use survivors_core::talents::Milestones;
 
     #[test]
+    fn translated_tooltip_templates_preserve_green_upgrade_lines() {
+        let script = benilla_ui::script::UiScript::new().unwrap();
+        script
+            .lua()
+            .load(
+                r#"
+            SPELL_RANGE = "Portée : %s yd"
+            SPELL_RECAST_TIME_SEC = "Recharge : %s sec"
+            TOOLTIP_TALENT_NEXT_RANK = "Rang suivant :"
+            HONOR_HIGHEST_RANK = "Rang maximal"
+        "#,
+            )
+            .exec()
+            .unwrap();
+        let strings = Strings::from_script(&script);
+        let owned = Owned {
+            def: data::ability("fireball"),
+            level: 1,
+            cd: 0.,
+        };
+        let run = Run::default();
+        let tip = ability_tip(&owned, run.milestones, &run.stats(), None, &strings);
+        assert!(tip.iter().any(|line| line
+            .right
+            .as_ref()
+            .is_some_and(|(s, _)| s.starts_with("Portée : "))));
+        assert!(tip.iter().any(|line| line.left == "Rang suivant :"));
+        assert!(tip
+            .iter()
+            .any(|line| line.left.contains("Recharge : ") && line.color == card_growth::GAIN));
+        let maxed = Owned {
+            level: data::MAX_ABILITY_LEVEL,
+            ..owned
+        };
+        let tip = ability_tip(&maxed, run.milestones, &run.stats(), None, &strings);
+        assert!(tip.iter().any(|line| line.left == "Rang maximal"));
+        assert!(!tip.iter().any(|line| line.left == "Rang suivant :"));
+    }
+
+    #[test]
     fn mage_range_tooltips_use_the_same_trained_range_as_targeting() {
         let mage = Milestones {
             class: 6,
@@ -3145,7 +3233,7 @@ mod talent_tooltip_tests {
                 level: 1,
                 cd: 0.,
             };
-            let tip = ability_tip(&owned, mage, &stats, None);
+            let tip = ability_tip(&owned, mage, &stats, None, &Strings::default());
             assert!(
                 tip.iter().any(|line| line
                     .right
@@ -3169,7 +3257,13 @@ mod talent_tooltip_tests {
             level: 1,
             cd: 0.,
         };
-        let tip = ability_tip(&owned, trained, &Run::default().stats(), None);
+        let tip = ability_tip(
+            &owned,
+            trained,
+            &Run::default().stats(),
+            None,
+            &Strings::default(),
+        );
         for text in [
             "Grants 0.5 sec immunity once per successful cast; preserves longer immunity.",
             "Absorbs 15% maximum health for 5 sec once per successful cast; does not stack.",
@@ -3200,16 +3294,18 @@ mod talent_tooltip_tests {
                 level: 1,
                 cd: 0.,
             };
-            let tip = ability_tip(&owned, trained, &stats, None);
+            let tip = ability_tip(&owned, trained, &stats, None, &Strings::default());
             let line = tip.iter().find(|line| line.left.starts_with("Shatter:"));
             assert_eq!(line.is_some(), shown);
             if let Some(line) = line {
                 assert!(line.left.contains("50%"));
                 assert_eq!(line.color, card_growth::GAIN);
             }
-            assert!(!ability_tip(&owned, mage, &stats, None)
-                .iter()
-                .any(|line| line.left.starts_with("Shatter:")));
+            assert!(
+                !ability_tip(&owned, mage, &stats, None, &Strings::default())
+                    .iter()
+                    .any(|line| line.left.starts_with("Shatter:"))
+            );
         }
     }
 
@@ -3232,16 +3328,18 @@ mod talent_tooltip_tests {
                 level: 1,
                 cd: 0.,
             };
-            let tip = ability_tip(&owned, trained, &stats, None);
+            let tip = ability_tip(&owned, trained, &stats, None, &Strings::default());
             let line = tip.iter().find(|line| line.left.starts_with("Impact:"));
             assert_eq!(line.is_some(), shown);
             if let Some(line) = line {
                 assert!(line.left.contains("10%"));
                 assert_eq!(line.color, card_growth::GAIN);
             }
-            assert!(!ability_tip(&owned, mage, &stats, None)
-                .iter()
-                .any(|line| line.left.starts_with("Impact:")));
+            assert!(
+                !ability_tip(&owned, mage, &stats, None, &Strings::default())
+                    .iter()
+                    .any(|line| line.left.starts_with("Impact:"))
+            );
         }
     }
 
@@ -3264,7 +3362,7 @@ mod talent_tooltip_tests {
                 level: 1,
                 cd: 0.,
             };
-            let tip = ability_tip(&owned, trained, &stats, None);
+            let tip = ability_tip(&owned, trained, &stats, None, &Strings::default());
             let line = tip
                 .iter()
                 .find(|line| line.left.starts_with("Winter's Chill:"));
@@ -3273,9 +3371,11 @@ mod talent_tooltip_tests {
                 assert!(line.left.contains("100%"));
                 assert_eq!(line.color, card_growth::GAIN);
             }
-            assert!(!ability_tip(&owned, mage, &stats, None)
-                .iter()
-                .any(|line| line.left.starts_with("Winter's Chill:")));
+            assert!(
+                !ability_tip(&owned, mage, &stats, None, &Strings::default())
+                    .iter()
+                    .any(|line| line.left.starts_with("Winter's Chill:"))
+            );
         }
     }
 
@@ -3298,16 +3398,18 @@ mod talent_tooltip_tests {
                 level: 1,
                 cd: 0.,
             };
-            let tip = ability_tip(&owned, trained, &stats, None);
+            let tip = ability_tip(&owned, trained, &stats, None, &Strings::default());
             let line = tip.iter().find(|line| line.left.starts_with("Frostbite:"));
             assert_eq!(line.is_some(), shown);
             if let Some(line) = line {
                 assert!(line.left.contains("15%"));
                 assert_eq!(line.color, card_growth::GAIN);
             }
-            assert!(!ability_tip(&owned, mage, &stats, None)
-                .iter()
-                .any(|line| line.left.starts_with("Frostbite:")));
+            assert!(
+                !ability_tip(&owned, mage, &stats, None, &Strings::default())
+                    .iter()
+                    .any(|line| line.left.starts_with("Frostbite:"))
+            );
         }
     }
 
@@ -3330,16 +3432,18 @@ mod talent_tooltip_tests {
                 level: 1,
                 cd: 0.,
             };
-            let tip = ability_tip(&owned, trained, &stats, None);
+            let tip = ability_tip(&owned, trained, &stats, None, &Strings::default());
             let line = tip.iter().find(|line| line.left.starts_with("Ignite:"));
             assert_eq!(line.is_some(), shown);
             if let Some(line) = line {
                 assert!(line.left.contains("40%"));
                 assert_eq!(line.color, card_growth::GAIN);
             }
-            assert!(!ability_tip(&owned, mage, &stats, None)
-                .iter()
-                .any(|line| line.left.starts_with("Ignite:")));
+            assert!(
+                !ability_tip(&owned, mage, &stats, None, &Strings::default())
+                    .iter()
+                    .any(|line| line.left.starts_with("Ignite:"))
+            );
         }
     }
 
@@ -3367,12 +3471,20 @@ mod talent_tooltip_tests {
                 level: 1,
                 cd: 0.,
             };
-            assert!(ability_tip(&owned, trained, &stats, None)
-                .iter()
-                .any(|line| line.left == text));
-            assert!(!ability_tip(&owned, trained.with_ranks(&[]), &stats, None)
-                .iter()
-                .any(|line| line.left == text));
+            assert!(
+                ability_tip(&owned, trained, &stats, None, &Strings::default())
+                    .iter()
+                    .any(|line| line.left == text)
+            );
+            assert!(!ability_tip(
+                &owned,
+                trained.with_ranks(&[]),
+                &stats,
+                None,
+                &Strings::default()
+            )
+            .iter()
+            .any(|line| line.left == text));
         }
     }
 
@@ -3388,7 +3500,7 @@ mod talent_tooltip_tests {
         };
         for (multiplier, expected) in [(2.0, "200%"), (2.2, "220%"), (0.5, "100%")] {
             stats.crit_damage = multiplier;
-            let lines = ability_tip(&owned, trained, &stats, None);
+            let lines = ability_tip(&owned, trained, &stats, None, &Strings::default());
             assert!(lines.iter().any(|line| line.left
                 == format!("100% chance to critically strike for {expected} damage")));
         }
@@ -3411,7 +3523,7 @@ mod talent_tooltip_tests {
             points: [0, 0, 30],
             ..Default::default()
         };
-        let lines = ability_tip(&owned, trained, &stats, None);
+        let lines = ability_tip(&owned, trained, &stats, None, &Strings::default());
         assert!(lines.iter().any(|line| line
             .left
             .contains("Heals 3% maximum health once per successful cast.")));
@@ -3434,7 +3546,7 @@ mod talent_tooltip_tests {
                 points: [points, 0, 0],
                 ..Default::default()
             };
-            let lines = ability_tip(&owned, trained, &stats, None);
+            let lines = ability_tip(&owned, trained, &stats, None, &Strings::default());
             let benefit = lines.iter().find(|line| {
                 line.left.contains("Advances")
                     && line.left.contains("2 sec once per successful cast")
@@ -3477,7 +3589,7 @@ mod talent_tooltip_tests {
                 level: 1,
                 cd: 0.0,
             };
-            let lines = ability_tip(&owned, trained, &stats, None);
+            let lines = ability_tip(&owned, trained, &stats, None, &Strings::default());
             let healing: Vec<_> = lines
                 .iter()
                 .filter(|line| line.left.contains("Heals "))
@@ -3486,9 +3598,15 @@ mod talent_tooltip_tests {
             let expected = format!("Heals {expected} maximum health once per successful cast.");
             assert!(healing[0].left.contains(&expected));
             assert_eq!(healing[0].left.matches("Heals ").count(), 1);
-            assert!(!ability_tip(&owned, Milestones::default(), &stats, None)
-                .iter()
-                .any(|line| line.left.contains("Heals ")));
+            assert!(!ability_tip(
+                &owned,
+                Milestones::default(),
+                &stats,
+                None,
+                &Strings::default()
+            )
+            .iter()
+            .any(|line| line.left.contains("Heals ")));
         }
     }
 }

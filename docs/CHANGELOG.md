@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Shared tooltip localization
+
+Ability and passive tooltip rank headings, ranges, durations and cooldowns now
+resolve the engine's boot-VM string keys. The shared formatter preserves fractional
+Survivors values, translated template order, and green upgrade lines. Missing or
+empty strings retain readable English fallbacks.
+
+All-target app Clippy and 441 Survivors app tests pass with game data, including startup loading and
+translated tooltip/color regressions. The reference-string gate has 15 remaining
+literals, down from 24. Live translated-tooltip layout acceptance remains open;
+this checkpoint uses regression evidence, not new gameplay screenshots.
+
 ## 2026-10-27 — Appearance label localization
 
 Character feature labels and the appearance screen's Enter World button now use

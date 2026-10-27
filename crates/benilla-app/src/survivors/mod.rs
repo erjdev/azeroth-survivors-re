@@ -23,6 +23,7 @@ mod hero;
 mod hud;
 mod hunter_pet;
 mod jewel_icons;
+mod localization;
 mod look_catalog;
 mod menu;
 mod minimap;
@@ -81,6 +82,7 @@ impl Plugin for SurvivorsPlugin {
         app.insert_resource(crate::run_mode::CaptureMode)
             .add_plugins((
                 backdrop::plugin,
+                localization::plugin,
                 grade::plugin,
                 tuning::plugin,
                 crate::entities::survivors_look::plugin,

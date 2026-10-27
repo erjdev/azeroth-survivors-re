@@ -27,7 +27,10 @@ or the watcher. Runtime preview activation remains native-only.
 
 The full gate is **not green**: it now reaches `reference_strings`, which flags
 Survivors labels duplicating existing game localization keys. Appearance labels and
-Enter World now resolve glue keys, reducing the flagged literals from 31 to 24.
+Enter World now resolve glue keys, reducing the flagged literals from 31 to 24. Shared boot-VM lookup now covers
+tooltip rank headings, ranges, durations and cooldowns, leaving 15 flagged literals.
+441 Survivors app tests verify the tooltip update, including translated order,
+fractional values and green upgrade lines. Live translated-tooltip layout remains open.
 Native English layout checks and injected translation/fallback tests pass; this is
 not complete localization. Resolve the remaining keys
 through the existing string resources, then rerun the full gate, including
