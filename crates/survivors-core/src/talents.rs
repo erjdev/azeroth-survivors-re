@@ -1428,6 +1428,7 @@ pub enum TalentStat {
     ColdBlood,
     ElementalMastery,
     InnerFocus,
+    DivineFavor,
     KidneyExposure,
     Aftermath,
     Pyroclasm,
@@ -1546,6 +1547,7 @@ impl TalentDefinition {
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
+            | TalentStat::DivineFavor
             | TalentStat::Aftermath
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
@@ -1789,6 +1791,9 @@ impl TalentDefinition {
                 100.0,
                 "% additional next-cast critical chance; 180 sec recovery",
             ),
+            TalentStat::DivineFavor => {
+                (100.0, "% next Holy Shock critical chance; 120 sec recovery")
+            }
             TalentStat::ColdBlood | TalentStat::ElementalMastery => {
                 (100.0, "% next-cast critical chance; 180 sec recovery")
             }
@@ -2116,6 +2121,11 @@ pub const PALADIN_HOLY: &[&str] = &[
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1433, max_rank: 1, name: "Divine Favor",
+        description: "Your next successful Holy Shock has 100% direct critical chance for every target, then recovers after 120 sec of active run time. Ready at run start; no stored charges. Requires acquiring Holy Shock; healing, other spells and periodic damage are unchanged",
+        stat: TalentStat::DivineFavor, per_rank: 1.0,
+    },
     TalentDefinition {
         id: 1407, max_rank: 5, name: "Benediction",
         description: "Judgement: 3% shorter cooldown per rank, multiplying Improved Judgement and milestone training (Survivors seal mana-cost conversion)",
@@ -3033,6 +3043,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
+            | TalentStat::DivineFavor
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
             | TalentStat::CriticalBleed
@@ -4328,6 +4339,7 @@ mod stat_talent_tests {
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus
+                    | TalentStat::DivineFavor
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance
                     | TalentStat::CriticalBleed

@@ -419,6 +419,16 @@ trigger while dead. A smaller absorb does not replace or extend a stronger one.
 Milestones are independent of the
 similarly named individual talent nodes and reset when the selected spec changes.
 
+### Paladin Divine Favor
+
+Divine Favor (node 1433, one rank) automatically guarantees direct critical hits
+for the next successful owned Holy Shock, including additional single-target hits.
+It starts ready and recovers 120 seconds after use in active run time; missed
+opportunities never accumulate charges. Other spells and periodic damage neither
+benefit nor consume it. Holy Shock's cast healing is unchanged. The real DBC row
+and Illumination prerequisite still apply; this talent does not grant Holy Shock.
+The separate ten-point Holy milestone continues to add its ordinary critical chance.
+
 ### Priest talent tuning (initial)
 
 Inner Focus (one rank, node 348) adds 25 percentage points critical chance to the

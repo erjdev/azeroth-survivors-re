@@ -41,6 +41,15 @@ to pair the obscured and clear camera states with the exact build. Existing cano
 and fade tests pass; closure still requires the reported runtime scene, not those
 synthetic rays alone. Texture-alpha accuracy remains a known probe limitation.
 
+## Paladin Divine Favor — 2026-10-27
+
+Node 1433 now readies one guaranteed-critical Holy Shock with 120-second recovery.
+Core and actual cast tests cover bounded ranks, exclusions, no-target retention,
+paused frames and additional targets. Other classes retain their three-minute
+critical-charge recovery. Native 1280×720 purchase and 640×720 scrolling captures
+verify the green value, 20 → 21 Holy points, 31 → 30 unspent and saved rank 1.
+The live-balance and full talent acceptance requirements remain open.
+
 ## Priest Inner Focus — 2026-10-27
 
 Node 348 now has an automatic 25-percentage-point next-cast critical bonus with
@@ -766,7 +775,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
-| Paladin | 23 / 44 | 9 / 9 |
+| Paladin | 24 / 44 | 9 / 9 |
 | Hunter | 30 / 46 | 9 / 9 |
 | Rogue | 21 / 51 | 9 / 9 |
 | Priest | 24 / 47 | 9 / 9 |
@@ -774,7 +783,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Mage | 32 / 49 | 9 / 9 |
 | Warlock | 27 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 244 / 432 | 81 / 81 |
+| Total | 245 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing

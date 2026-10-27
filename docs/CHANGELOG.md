@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Paladin Divine Favor
+
+Divine Favor readies one guaranteed-critical Holy Shock, recovering 120 active
+seconds after a successful cast. All direct targets benefit; other spells cannot
+consume it. Healing remains separate. Other classes retain their 180-second timers.
+
+199 core and 380 app tests pass, including actual multi-target casts and failed-target
+retention. Core/app-test Clippy and native build pass (16-second build).
+Native wide/compact captures verify
+the inline value, purchase, saved rank and full description. Definition coverage
+reaches 245/432 (Paladin 24/44); live balance remains open.
+
+![Divine Favor inline preview](images/screenshots/2026-10-27-divine-favor/preview.png)
+![Divine Favor purchase](images/screenshots/2026-10-27-divine-favor/purchased.png)
+![Compact Divine Favor description](images/screenshots/2026-10-27-divine-favor/compact.png)
+
 ## 2026-10-27 — Priest Inner Focus
 
 Inner Focus adds 25 percentage points critical chance to the next successful

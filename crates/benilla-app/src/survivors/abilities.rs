@@ -2260,10 +2260,17 @@ mod milestone_tests {
         next_cast_critical_bonus(4, 348, 1);
     }
 
+    #[test]
+    fn divine_favor_reaches_holy_shock_casts_and_uses_two_minute_recovery() {
+        next_cast_critical_bonus(1, 1433, 1);
+    }
+
     fn next_cast_critical_bonus(class: usize, talent: u32, rank: u8) {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        let keys: &[&str] = if class == 3 {
+        let keys: &[&str] = if class == 1 {
+            &["holy_shock"]
+        } else if class == 3 {
             &["sinister_strike", "eviscerate", "gouge", "kidney_shot"]
         } else if class == 4 {
             &["smite", "holy_fire", "holy_nova", "mind_blast"]
@@ -2371,7 +2378,12 @@ mod milestone_tests {
             app.world_mut()
                 .resource_mut::<Time>()
                 .advance_by(std::time::Duration::from_secs_f32(0.1));
-            for (elapsed, expected_crit) in [(0.0, true), (179.99, false), (180.0, talent != 272)] {
+            let recovery = if class == 1 { 120.0 } else { 180.0 };
+            for (elapsed, expected_crit) in [
+                (0.0, true),
+                (recovery - 0.01, false),
+                (recovery, talent != 272),
+            ] {
                 app.world_mut().resource_mut::<Run>().elapsed = elapsed;
                 app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
                 app.world_mut().insert_resource(Rng(seed));
