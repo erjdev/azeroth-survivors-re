@@ -7,7 +7,7 @@ mod mage;
 mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::{PetBonus, PetFrenzy};
-pub use mage::ColdSnapClock;
+pub use mage::{ArcanePowerClock, ColdSnapClock};
 pub use rogue::PreparationClock;
 mod shaman;
 mod warlock;
@@ -1453,6 +1453,7 @@ pub enum TalentStat {
     PetCooldown,
     PetMend,
     ColdSnap,
+    ArcanePower,
     Preparation,
     SiphonLife,
     Nightfall,
@@ -1547,6 +1548,7 @@ impl TalentDefinition {
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
+            | TalentStat::ArcanePower
             | TalentStat::DivineFavor
             | TalentStat::Aftermath
             | TalentStat::CurseExhaustion
@@ -1776,6 +1778,7 @@ impl TalentDefinition {
                 "% chance per wolf critical for 30% bite haste for 8 sec",
             ),
             TalentStat::ColdSnap => (1.0, " automatic frost reset every 90 sec"),
+            TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
             TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
             TalentStat::PetMend => (100.0, "% combat wolf maximum health restored per sec"),
             TalentStat::PetCooldown => (100.0, "% shorter combat wolf bite cooldown"),
@@ -2500,6 +2503,9 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 87, max_rank: 1, name: "Arcane Power",
+        description: "Mage spells: +30% direct and periodic damage for 15 sec, starting with the next successful Mage cast. Ready at run start; recovers 180 sec after activation. Casts snapshot the bonus for their full duration. Pauses stop both timers. Excludes foreign spells (Survivors automatic conversion; no mana surcharge)",
+        stat: TalentStat::ArcanePower, per_rank: 0.30 },
     TalentDefinition { id: 69, max_rank: 1, name: "Cold Snap",
         description: "Grants 1 automatic reset of owned Frostbolt, Frost Nova, Blizzard and Cone of Cold cooldowns every 90 sec of run time; first at 90 sec. Does not grant spells or store charges (Survivors automatic conversion)",
         stat: TalentStat::ColdSnap, per_rank: 1.0 },
@@ -3048,6 +3054,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
+            | TalentStat::ArcanePower
             | TalentStat::DivineFavor
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
@@ -4388,6 +4395,7 @@ mod stat_talent_tests {
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus
+                    | TalentStat::ArcanePower
                     | TalentStat::DivineFavor
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance

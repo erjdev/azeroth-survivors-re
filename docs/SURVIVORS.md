@@ -420,6 +420,19 @@ trigger while dead. A smaller absorb does not replace or extend a stronger one.
 Milestones are independent of the
 similarly named individual talent nodes and reset when the selected spec changes.
 
+### Mage Arcane Power
+
+Arcane Power (node 87, one rank) automatically starts on the next successful Mage
+cast: +30% direct and periodic damage for 15 active seconds, with 180-second
+recovery measured from activation. It is ready at run start; unsuccessful targeting
+and foreign abilities cannot activate it. Later casts do not extend the window.
+Each cast retains its damage multiplier for projectiles, attached burns and ground
+areas; expiry does not weaken an existing effect. Pauses stop both timers, missed
+windows do not accumulate charges, and new runs reset the clock. The HUD shows
+remaining active seconds. This Survivors conversion has no mana surcharge and
+stacks multiplicatively with existing damage talents and milestones. Cold Snap
+resets ability cooldowns only, not this recovery clock.
+
 ### Paladin Divine Favor
 
 Divine Favor (node 1433, one rank) automatically guarantees direct critical hits

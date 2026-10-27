@@ -1842,6 +1842,13 @@ fn reactive_buff_status(run: &Run) -> String {
         return String::new();
     }
     let mut active = Vec::new();
+    let power_remaining = run.arcane_power.remaining(run.milestones, run.elapsed);
+    if power_remaining > 0.0 {
+        active.push(format!(
+            "Arcane Power +30% Mage damage ({:.0}s)",
+            power_remaining.ceil()
+        ));
+    }
     let ancestral = run
         .milestones
         .ancestral_healing_armor(run.ancestral_healing_t > 0.);
@@ -3602,5 +3609,36 @@ mod ancestral_status_tests {
         run.ancestral_healing_t = 5.;
         run.hp = 0.;
         assert_eq!(reactive_buff_status(&run), "");
+    }
+}
+
+#[cfg(test)]
+mod arcane_power_status_tests {
+    use super::*;
+    #[test]
+    fn power_status_only_shows_a_trained_living_hero_during_the_burst() {
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 87, 1)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.arcane_power.consume(run.milestones, "fireball", 0.0);
+        run.elapsed = 1.2;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Arcane Power +30% Mage damage (14s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.elapsed = 15.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 1.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
     }
 }

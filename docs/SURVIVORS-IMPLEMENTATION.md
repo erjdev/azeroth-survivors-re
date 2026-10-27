@@ -33,6 +33,19 @@ exposed fixed-height talent-panel clipping; panels now grow with their contents.
 Native 640×720 and 1024×720/125% captures verify the full green description,
 purchase persistence and tree proportions. Windows and live balance remain open.
 
+## Mage Arcane Power — 2026-10-27
+
+Node 87 now starts a 15-second, +30% Mage damage window on a successful cast,
+recovering 180 active seconds after activation. Cast damage, burns and ground
+areas retain their multiplier; subsequent casts cannot refresh the window. HUD
+status exposes the remaining duration. Core and actual cast tests cover targeting
+failure, pause, extra targets, expiry/recovery, foreign spells and Blizzard damage.
+Native 1280×720 and 640×720 captures verify the green preview, purchase, full text
+and saved rank, using the real Arcane prerequisite chain (30 → 31 points).
+201 core/385 app tests, both Clippy gates and native build pass. Definition coverage
+is 247/432 (Mage 33/49). HUD rendering in combat, live balance and Windows gameplay
+remain unverified; these captures cover the starter talent page.
+
 ## Rogue Precision — 2026-10-27
 
 Precision (181) now adds 1% Rogue direct/periodic damage per rank, capped at five.
@@ -817,10 +830,10 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Rogue | 22 / 51 | 9 / 9 |
 | Priest | 24 / 47 | 9 / 9 |
 | Shaman | 30 / 46 | 9 / 9 |
-| Mage | 32 / 49 | 9 / 9 |
+| Mage | 33 / 49 | 9 / 9 |
 | Warlock | 27 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 246 / 432 | 81 / 81 |
+| Total | 247 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing

@@ -516,6 +516,7 @@ pub(super) struct Run {
     cold_snap: survivors_core::talents::ColdSnapClock,
     preparation: survivors_core::talents::PreparationClock,
     critical_cast: survivors_core::talents::CriticalCastClock,
+    arcane_power: survivors_core::talents::ArcanePowerClock,
     /// Rings, trinkets and amulets worn this run.
     worn: campaign::Worn,
     /// Seconds since the hero fell, while the death plays out.
@@ -603,6 +604,7 @@ impl Default for Run {
             cold_snap: default(),
             preparation: default(),
             critical_cast: default(),
+            arcane_power: default(),
             worn: campaign::Worn::default(),
             dead_t: None,
             next_guid: 1,

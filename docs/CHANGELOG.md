@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Mage Arcane Power
+
+Arcane Power now grants +30% Mage damage for 15 seconds after a successful cast,
+with three-minute recovery and an active-buff countdown. Failed targeting preserves
+readiness; pauses stop timers. Casts retain their damage bonus until they end.
+
+201 core/385 app tests, both Clippy gates and native build pass. Native wide/compact
+captures verify the green preview, purchase and saved rank. Definitions reach
+247/432; combat HUD appearance, Windows playtesting and live balance remain open.
+
+![Arcane Power preview](images/screenshots/2026-10-27-arcane-power/preview.png)
+![Arcane Power purchase](images/screenshots/2026-10-27-arcane-power/purchased.png)
+![Compact Arcane Power description](images/screenshots/2026-10-27-arcane-power/compact.png)
+
 ## 2026-10-27 — Rogue Precision
 
 Precision now grants +1% Rogue ability damage per rank, up to 5%, including
