@@ -176,6 +176,7 @@ const PICK_SECS: f32 = 0.28;
 pub(super) fn deal_cards(
     mut commands: Commands,
     offer: Res<Offer>,
+    strings: Option<Res<super::localization::Strings>>,
     preview: Res<PreviewHand>,
     run: Res<Run>,
     mut account: ResMut<super::account::Account>,
@@ -241,6 +242,8 @@ pub(super) fn deal_cards(
     }
     scroll.0 = Vec2::ZERO;
     commands.entity(row).despawn_related::<Children>();
+    let fallback = super::localization::Strings::default();
+    let strings = strings.as_deref().unwrap_or(&fallback);
     let f = &font.0;
     commands.entity(row).with_children(|row| {
         for (i, &choice) in offer.choices().iter().enumerate() {
@@ -444,7 +447,7 @@ pub(super) fn deal_cards(
                                 },
                             ));
                         }
-                        for (text, color) in hud::inline::describe(choice, &run) {
+                        for (text, color) in hud::inline::describe(choice, &run, strings) {
                             paragraph.spawn((
                                 TextSpan::new(text),
                                 TextColor(color),

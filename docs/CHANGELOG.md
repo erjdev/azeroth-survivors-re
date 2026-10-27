@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Localized regeneration card values
+
+Renew's inline health values use the shared runtime health template, preserving
+fractional upgrades, green highlighting and a single unit after the arrow.
+
+![New and upgraded Renew cards](images/screenshots/2026-10-27-regen-localization/cards.png)
+
+444 Survivors app tests and all-target app Clippy pass. Native English preview
+checked at 1280×720; translated fractional-value/color behavior has regression
+coverage. Native build: 1m15s. Four reference-string findings remain; full-gate
+and live translated-layout acceptance are still open.
+
 ## 2026-10-27 — More room between talent ranks
 
 Talent grids are about 27% taller at the same width, with larger icons and a

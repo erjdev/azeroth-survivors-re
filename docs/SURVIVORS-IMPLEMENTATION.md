@@ -7903,3 +7903,13 @@ Verified native macOS previews at 1600×900 and 800×600, including the final
 talent rows and saved-spec controls through scrolling. Inline evidence is in the
 changelog and README gallery. 443 app tests and app Clippy pass. No gameplay
 acceptance claim; five reference-string findings still block the full gate.
+
+
+### Inline regeneration localization — 2026-10-27
+
+Card generation now receives the runtime string catalog. Renew formats its complete
+old/new numeric span through HP_TEMPLATE, retaining fractional trained values and
+one green unit. English 1280×720 native preview confirms new/ranked cards and return
+to Talents; translated value/order/color behavior is tested. 444 app tests and
+app Clippy pass. Four reference-string findings remain in equipment bonuses and
+the legacy talent-rank label; the full integration goal remains incomplete.

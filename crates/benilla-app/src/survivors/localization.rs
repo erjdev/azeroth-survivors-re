@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 const KEYS: &[&str] = &[
     "ALREADY_LEARNED",
+    "HP_TEMPLATE",
     "UNIT_LEVEL_TEMPLATE",
     "ENABLE_SOUND",
     "ENABLE_MUSIC",

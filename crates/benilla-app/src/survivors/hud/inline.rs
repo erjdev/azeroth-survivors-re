@@ -1,5 +1,6 @@
 //! One paragraph of prose with typed numeric changes, shared with plain tooltips.
 use super::*;
+use crate::survivors::localization::Strings;
 
 pub(in crate::survivors) const PROSE: Color = Color::srgb(0.92, 0.9, 0.84);
 pub(in crate::survivors) type Spans = Vec<(String, Color)>;
@@ -356,7 +357,7 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
     out.0
 }
 
-fn passive(stat: Stat, a: f32, b: f32) -> Spans {
+fn passive(stat: Stat, a: f32, b: f32, strings: &Strings) -> Spans {
     let mut out = Sentence::default();
     macro_rules! prose { ($($p:expr),* $(,)?) => { $(out.add($p);)* }; }
     let percent = (a * 100., b * 100., "%");
@@ -374,10 +375,11 @@ fn passive(stat: Stat, a: f32, b: f32) -> Spans {
             prose!("Restores ");
             let changed = (b - a).abs() > 0.0001;
             let value = if changed {
-                format!("{} » {} health", regen_num(a), regen_num(b))
+                format!("{} » {}", regen_num(a), regen_num(b))
             } else {
-                format!("{} health", regen_num(a))
+                regen_num(a)
             };
+            let value = strings.by_key("HP_TEMPLATE", "%s health", &[value.as_str().into()]);
             out.0
                 .push((value, if changed { card_growth::GAIN } else { PROSE }));
             prose!(" every second");
@@ -405,7 +407,7 @@ fn passive(stat: Stat, a: f32, b: f32) -> Spans {
     out.0
 }
 
-pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
+pub(in crate::survivors) fn describe(choice: Choice, run: &Run, strings: &Strings) -> Spans {
     let stats = run.stats();
     match choice {
         Choice::NewAbility(def) => {
@@ -421,13 +423,19 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
                 &cast_at(o.def, o.level + 1, &stats, run.milestones),
             )
         }
-        Choice::NewPassive(p) => passive(p.stat, run.passive_value(p, 1), run.passive_value(p, 2)),
+        Choice::NewPassive(p) => passive(
+            p.stat,
+            run.passive_value(p, 1),
+            run.passive_value(p, 2),
+            strings,
+        ),
         Choice::UpPassive(i) => {
             let (p, rank) = run.passives[i];
             passive(
                 p.stat,
                 run.passive_value(p, rank),
                 run.passive_value(p, rank + 1),
+                strings,
             )
         }
         Choice::Heal if run.hp >= stats.max_hp => {
@@ -462,6 +470,35 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run) -> Spans {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn describe(choice: Choice, run: &Run) -> Spans {
+        super::describe(choice, run, &Strings::default())
+    }
+
+    fn passive(stat: Stat, a: f32, b: f32) -> Spans {
+        super::passive(stat, a, b, &Strings::default())
+    }
+
+    #[test]
+    fn translated_regeneration_keeps_fractional_values_and_one_green_unit() {
+        let script = benilla_ui::script::UiScript::new().unwrap();
+        script
+            .lua()
+            .load("HP_TEMPLATE = '%s points de vie'")
+            .exec()
+            .unwrap();
+        let strings = Strings::from_script(&script);
+        let changed = super::passive(Stat::Regen, 0.525, 1.05, &strings);
+        assert_eq!(
+            plain(&changed),
+            "Restores 0.525 » 1.05 points de vie every second."
+        );
+        assert!(changed.contains(&("0.525 » 1.05 points de vie".into(), card_growth::GAIN)));
+        let current = super::passive(Stat::Regen, 0.525, 0.525, &strings);
+        assert!(current.contains(&("0.525 points de vie".into(), PROSE)));
+        assert!(!current.iter().any(|(_, color)| *color == card_growth::GAIN));
+    }
+
     #[test]
     fn renew_preview_matches_trained_regeneration_without_rounding_away_ranks() {
         let renew = data::PASSIVES.iter().find(|p| p.key == "renew").unwrap();
