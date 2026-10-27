@@ -540,6 +540,11 @@ impl Milestones {
         }
     }
 
+    /// Prevent flat damage after mitigation and before temporary shields.
+    pub fn after_flat_absorption(self, damage: f32) -> f32 {
+        (damage - self.trained_value(TalentStat::FlatAbsorption)).max(0.0)
+    }
+
     /// Applied after flat gear, passive, renown and racial health contributions.
     pub fn health_multiplier(self) -> f32 {
         1.0 + self.trained_value(TalentStat::MaximumHealth)
@@ -1401,6 +1406,7 @@ pub struct TalentDefinition {
 pub enum TalentStat {
     Health,
     MaximumHealth,
+    FlatAbsorption,
     Damage,
     Cooldown,
     Armor,
@@ -1592,6 +1598,7 @@ impl TalentDefinition {
             TalentStat::Health
             | TalentStat::Armor
             | TalentStat::AncestralHealingArmor
+            | TalentStat::FlatAbsorption
             | TalentStat::Preparation
             | TalentStat::ColdSnap => (1.0, ""),
             TalentStat::Conflagrate
@@ -1798,6 +1805,7 @@ impl TalentDefinition {
             TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
             TalentStat::Health => (1.0, " maximum health"),
             TalentStat::MaximumHealth => (100.0, "% maximum health"),
+            TalentStat::FlatAbsorption => (1.0, " damage prevented per hit"),
             TalentStat::Armor => (1.0, " armor"),
             TalentStat::SpellShield(_) => (100.0, "% maximum health absorbed per cast"),
             TalentStat::SpellImmune(_) => (1.0, " sec immunity per successful cast"),
@@ -2195,6 +2203,11 @@ pub const PALADIN_HOLY: &[&str] = &[
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1431, max_rank: 1, name: "Blessing of Sanctuary",
+        description: "Prevents 2 damage per incoming hit after armor and percentage reduction, before shields. Cannot reduce damage below zero. Always active on you; grants no block chance or retaliation damage (Survivors passive blessing conversion)",
+        stat: TalentStat::FlatAbsorption, per_rank: 2.0,
+    },
     TalentDefinition {
         id: 1433, max_rank: 1, name: "Divine Favor",
         description: "Your next successful Holy Shock has 100% direct critical chance for every target, then recovers after 120 sec of active run time. Ready at run start; no stored charges. Requires acquiring Holy Shock; healing, other spells and periodic damage are unchanged",
@@ -3110,6 +3123,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             TalentStat::SecondarySlowDuration(_)
             | TalentStat::SecondaryStunDuration(_)
             | TalentStat::SecondaryRootDuration(_)
+            | TalentStat::FlatAbsorption
             | TalentStat::EnrageDamage
             | TalentStat::BloodCrazeHealing
             | TalentStat::SpiritTap
@@ -4531,6 +4545,7 @@ mod stat_talent_tests {
                     | TalentStat::PetSpeed
                     | TalentStat::SpiritualHealing
                     | TalentStat::MaximumHealth
+                    | TalentStat::FlatAbsorption
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
                     | TalentStat::Aftermath
@@ -5463,6 +5478,32 @@ mod spiritual_healing_tests {
 #[cfg(test)]
 mod health_talent_tests {
     use super::*;
+
+    #[test]
+    fn sanctuary_is_capped_class_scoped_and_resettable() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, 255] {
+                let trained = base.with_ranks(&[(1, 1431, rank), (1, 1431, rank)]);
+                for damage in [0.0_f32, 1., 2., 10.] {
+                    let prevented = if class == 1 && rank > 0 { 2. } else { 0. };
+                    assert_eq!(
+                        trained.after_flat_absorption(damage),
+                        (damage - prevented).max(0.)
+                    );
+                    assert_eq!(
+                        trained.with_ranks(&[]).after_flat_absorption(damage),
+                        damage
+                    );
+                }
+                assert_eq!(trained.health_multiplier(), 1.);
+                assert_eq!(trained.cast("holy_shock"), base.cast("holy_shock"));
+            }
+        }
+    }
 
     #[test]
     fn survivalist_is_capped_class_scoped_and_resettable() {

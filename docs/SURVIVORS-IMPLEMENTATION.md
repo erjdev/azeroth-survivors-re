@@ -7323,3 +7323,18 @@ rejection and persisted hero restoration after reload. Captures are inline in th
 changelog and README. Draft PR validation is refreshed to 211 core / 405 app tests
 and 254/432 definitions. No PR-triggered workflow runs were returned for this head;
 Windows CI/artifacts, live gameplay and the remaining acceptance contract remain open.
+
+
+### 2026-10-27 — Blessing of Sanctuary
+
+Node 1431 now prevents 2 damage per hit after armor/general reduction, before
+shields, with a zero-damage floor. The one-rank, self-only passive conversion
+explicitly grants no block or retaliation. Core class/rank/reset checks and actual
+DBC purchase, save, spec and refund tests cover the mechanic; the hero damage test
+covers repeated hits, shield consumption, immunity and death. 212 core and 407 app
+tests pass; native build takes 20 seconds. Native preview and purchase screenshots
+at 1280×720 are embedded in the changelog and the README gallery is refreshed.
+The four Windows playtest reports remain open; this is not live combat acceptance.
+
+Core/app Clippy pass. The real-data audit now matches 255/432 talent definitions
+(Paladin 25/44); 177 remain. All 81 milestone descriptions remain matched.

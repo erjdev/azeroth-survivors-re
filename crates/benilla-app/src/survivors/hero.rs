@@ -394,7 +394,11 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
     let retaliation =
         run.thorns_t > 0.0 && run.thorns_spell == super::data::ability("retaliation").spell;
     let raw = raw * run.milestones.retaliation_risk(retaliation);
-    let mut dmg = super::sheet::mitigate(raw, stats.armor, stats.reduction);
+    let mut dmg = run.milestones.after_flat_absorption(super::sheet::mitigate(
+        raw,
+        stats.armor,
+        stats.reduction,
+    ));
     if run.shield_t > 0.0 && run.shield > 0.0 {
         let absorbed = dmg.min(run.shield);
         run.shield -= absorbed;
@@ -538,6 +542,49 @@ pub(super) fn reach(hero: Vec3, other: Vec3) -> f32 {
 #[cfg(test)]
 mod reactive_talent_tests {
     use super::*;
+
+    #[test]
+    fn sanctuary_prevents_each_hit_before_shields_without_healing_or_refreshing() {
+        for class in [0, 1, 4] {
+            for rank in [0, 1, 255] {
+                for raw in [0., 1., 2., 5., 30.] {
+                    let mut run = Run {
+                        class: &super::super::data::CLASSES[class],
+                        milestones: survivors_core::talents::Milestones {
+                            class,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(1, 1431, rank)]),
+                        hp: 100.,
+                        shield: 3.,
+                        shield_t: 2.,
+                        ..Default::default()
+                    };
+                    run.bonus.armor = 40.;
+                    run.bonus.reduction = 0.1;
+                    let stats = run.stats();
+                    let expected =
+                        (super::super::sheet::mitigate(raw, stats.armor, stats.reduction)
+                            - if class == 1 && rank > 0 { 2. } else { 0. })
+                        .max(0.);
+                    assert!((hurt_hero(&mut run, raw) - (expected - 3.).max(0.)).abs() < 0.00001);
+                    assert!((run.shield - (3. - expected).max(0.)).abs() < 0.00001);
+                    assert_eq!(run.shield_t, 2.);
+                    assert!(run.hp <= 100.);
+                    run.shield = 0.;
+                    assert!((hurt_hero(&mut run, raw) - expected).abs() < 0.00001);
+                    run.immune_t = 1.;
+                    let hp = run.hp;
+                    assert_eq!(hurt_hero(&mut run, 100.), 0.);
+                    assert_eq!(run.hp, hp);
+                    run.immune_t = 0.;
+                    run.hp = 0.;
+                    assert_eq!(hurt_hero(&mut run, 100.), 0.);
+                }
+            }
+        }
+    }
+
     use survivors_core::talents::Milestones;
 
     #[test]

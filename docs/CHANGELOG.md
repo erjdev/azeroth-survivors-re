@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Blessing of Sanctuary
+
+Paladins can train Sanctuary to prevent 2 damage per incoming hit after armor
+and general reduction, before shields. This passive self-only conversion replaces
+placeholder damage and grants no block chance or retaliation damage.
+
+![Sanctuary inline upgrade preview](images/screenshots/2026-10-27-sanctuary/preview.png)
+
+![Sanctuary purchased and saved in the Protection spec](images/screenshots/2026-10-27-sanctuary/purchased.png)
+
+212 core and 407 app tests pass, including shield ordering, rank caps, saved specs
+and refunds. Core/app Clippy pass. Definitions: 255/432 (Paladin 25/44).
+Native build: 20 seconds. Native menu checked at 1280×720;
+Windows scenes and live combat remain unverified.
+
 ## 2026-10-27 — Browser talent and saved-hero integration
 
 Current WebGPU package verifies Priest creation from the empty talent page,

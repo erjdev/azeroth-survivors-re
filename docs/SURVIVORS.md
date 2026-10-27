@@ -445,6 +445,11 @@ benefit nor consume it. Holy Shock's cast healing is unchanged. The real DBC row
 and Illumination prerequisite still apply; this talent does not grant Holy Shock.
 The separate ten-point Holy milestone continues to add its ordinary critical chance.
 
+Blessing of Sanctuary (1431, one rank) prevents 2 damage from every incoming
+hit after armor and percentage reduction, before temporary shields. Damage cannot
+fall below zero. This is an always-active self-only Survivors conversion; it
+grants neither block chance nor retaliation damage.
+
 ### Priest talent tuning (initial)
 
 Inner Focus (one rank, node 348) adds 25 percentage points critical chance to the

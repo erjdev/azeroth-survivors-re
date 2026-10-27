@@ -66,3 +66,12 @@ remain covered. No new runtime screenshot or Windows scene acceptance is claimed
 The reported Windows commit and affected talent class are still unknown. Compare
 those with this reviewed revision before treating existing fixes as a resolution
 of that playtest. Keep all four reports open until the same scenes are replayed.
+
+
+The Sanctuary checkpoint on 2026-10-27 passes **407 app tests**, including the
+existing foliage, navigation, spawn and chest regressions. A fresh Paladin menu
+capture confirms the current artwork composition and aligned rows on macOS:
+
+![Current Paladin talent artwork and alignment](images/screenshots/2026-10-27-sanctuary/preview.png)
+
+This menu capture does not close the Windows scene acceptance items above.
