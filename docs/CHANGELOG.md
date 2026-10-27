@@ -12,6 +12,8 @@ The description identifies this as a hit-chance conversion; attacks have no miss
 200 core/383 app tests and both Clippy gates pass; native build took 17 seconds.
 Native wide/compact captures verify the inline preview, purchase and saved rank.
 Talent definitions reach 246/432. Live balance and Windows acceptance remain open.
+Save integration additionally checks Precision against the real DBC row rules,
+spec switching, reload, respec and unchanged active-run snapshots.
 
 ![Precision preview](images/screenshots/2026-10-27-rogue-precision/preview.png)
 ![Precision purchased](images/screenshots/2026-10-27-rogue-precision/purchased.png)

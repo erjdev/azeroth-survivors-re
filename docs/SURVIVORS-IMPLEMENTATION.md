@@ -43,6 +43,10 @@ app parameter tests cover damage with unchanged timing and targeting. Native
 rank 1, six Combat points and 45 unspent. The existing reference-aligned three-tree
 layout is unchanged. 200 core/383 app tests, both Clippy gates and native build pass.
 Coverage is 246/432 (Rogue 22/51); live balance and Windows acceptance remain open.
+The Rogue save integration now loads the real DBC catalog and covers a legal
+Precision build across hero/spec selection, reload and respec. It distinguishes
+the generic ten-point damage bonus from Precision, verifies milestone cooldown
+stacking and preserves snapshots already copied into active runs.
 
 ## Hero identity at run entry — 2026-10-27
 

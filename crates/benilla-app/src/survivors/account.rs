@@ -2735,7 +2735,20 @@ mod tests {
 
     #[test]
     fn rogue_training_survives_save_and_stays_with_hero_and_active_spec() {
-        let mut account = empty();
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let validate = |mut account: Account| {
+            account.talent_rules = Some(rules.clone());
+            account
+        };
         let first = account.ensure(3);
         let second = account.create("Second", "Rogue", 3).unwrap();
         let baseline = account.bonus(3, second);
@@ -2745,9 +2758,10 @@ mod tests {
             .find(|h| h.id == second)
             .unwrap();
         hero.talent_xp = 1200;
-        // Both builds are legal first-row allocations, independent of deeper row gates.
+        // Combat meets Precision's real five-point earlier-row gate.
         hero.dbc[0] = vec![(0, 276, 3), (0, 270, 5)];
-        hero.dbc[1] = vec![(1, 201, 2)];
+        hero.dbc[1] = vec![(1, 201, 2), (1, 186, 3), (1, 181, 5)];
+        assert!(account.talents_valid(account.character(second).unwrap()));
         let assassination = account.milestones_picked(3, Some(second));
         assert!((assassination.cast("eviscerate").damage - 1.15).abs() < 0.00001);
         assert!((assassination.cast("sinister_strike").crit - 0.05).abs() < 0.00001);
@@ -2774,13 +2788,19 @@ mod tests {
         };
         account.select_spec(second, 1);
         let combat = account.milestones_picked(3, Some(second));
-        assert_eq!(combat.cast("eviscerate").damage, 1.0);
+        assert!(account.talents_valid(account.character(second).unwrap()));
+        assert_eq!(combat.points, [0, 10, 0]);
+        assert!((combat.cast("eviscerate").damage - 1.05).abs() < 0.00001);
+        assert!((combat.cast("rupture").damage - 1.05).abs() < 0.00001);
+        assert_eq!(combat.cast("fireball").damage, 1.0);
         assert_eq!(combat.cast("eviscerate").crit, 0.0);
-        assert!((combat.cast("sinister_strike").cooldown - 0.9).abs() < 0.00001);
-        assert!((account.bonus(3, second).might - baseline.might).abs() < 0.00001);
+        assert!((combat.cast("sinister_strike").cooldown - 0.81).abs() < 0.00001);
+        // Precision adds no global damage; reaching ten tree points retains the
+        // separate generic +4% milestone shared by every class.
+        assert!((account.bonus(3, second).might - baseline.might - 0.04).abs() < 0.00001);
         // Changing the account must not rewrite the snapshot of a run already in progress.
         assert_eq!(run.milestones, assassination);
-        let mut loaded = parse(&encode(&account)).unwrap();
+        let mut loaded = validate(parse(&encode(&account)).unwrap());
         assert_eq!(loaded.milestones_picked(3, Some(second)), combat);
         loaded.select_spec(second, 0);
         assert_eq!(loaded.milestones_picked(3, Some(second)), assassination);
@@ -2801,9 +2821,20 @@ mod tests {
                 .cooldown,
             1.0
         );
+        assert_eq!(
+            loaded
+                .milestones_picked(3, Some(second))
+                .cast("rupture")
+                .damage,
+            1.0
+        );
+        assert!(
+            (combat.cast("rupture").damage - 1.05).abs() < 0.00001,
+            "a Combat run retains its saved snapshot after respec"
+        );
         loaded.select_spec(second, 0);
         assert_eq!(loaded.milestones_picked(3, Some(second)), assassination);
-        let reloaded = parse(&encode(&loaded)).unwrap();
+        let reloaded = validate(parse(&encode(&loaded)).unwrap());
         assert_eq!(reloaded.milestones_picked(3, Some(second)), assassination);
         assert_eq!(reloaded.character(second).unwrap().dbc[1], Vec::new());
     }
