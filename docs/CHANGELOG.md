@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Campaign markers and reachable starter columns
+
+Zone banners now show the reference's twelve campaign markers, labeled “Stage X
+of 12.” Fixed wide starter columns ignoring the mouse wheel: later zones and
+long hero details can now be reached, with independent positions retained through
+selection rebuilds. Compact mode keeps its separate scroll position.
+
+319 app tests (including independent scroll memory), scoped Clippy and native build
+pass. Native 1280/1100/640×720 checks cover marker clicks, late-zone selection,
+lock messaging and independent hero scrolling. Windows acceptance remains open.
+
+![Starter campaign order](images/screenshots/2026-10-26-zone-stages/starter-1280.png)
+
+![Late zones remain visible after selection](images/screenshots/2026-10-26-zone-stages/late-zones-1280.png)
+
+![Independent hero and zone scrolling](images/screenshots/2026-10-26-zone-stages/columns-1100.png)
+
+![Compact campaign markers](images/screenshots/2026-10-26-zone-stages/late-zones-640.png)
+
 ## 2026-10-26 — Pre-run zone briefings
 
 All twelve campaign zones now show an authored title and threat briefing instead

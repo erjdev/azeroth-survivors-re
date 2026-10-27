@@ -31,7 +31,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Starter</strong><br><img src="docs/images/screenshots/2026-10-26-zone-briefing/elwynn-1280.png" alt="Starter"><br>2026-10-26 · Class, hero and zone selection with pre-run threat briefings.</td>
+    <td width="50%"><strong>Starter</strong><br><img src="docs/images/screenshots/2026-10-26-zone-stages/starter-1280.png" alt="Starter"><br>2026-10-26 · Campaign stage markers, threat briefings and independently scrolling columns.</td>
     <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-26-menu-backdrop/character-1280.png" alt="Character"><br>2026-10-26 · Selected identity, equipment and independent appearance.</td>
   </tr>
   <tr>

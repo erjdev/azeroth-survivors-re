@@ -20,6 +20,7 @@ pub(in crate::survivors) enum CompactScroll {
     Drops,
     Character,
     Starter,
+    StarterPanel(usize),
 }
 
 pub(in crate::survivors) fn remember_scroll(
@@ -33,6 +34,7 @@ pub(in crate::survivors) fn remember_scroll(
                 CompactScroll::Drops => &mut armory.drop_scroll,
                 CompactScroll::Character => &mut armory.character_scroll,
                 CompactScroll::Starter => &mut armory.starter_scroll,
+                CompactScroll::StarterPanel(index) => &mut armory.starter_panel_scroll[*index],
             };
             if *saved != position.0 {
                 *saved = position.0;
@@ -84,7 +86,25 @@ mod scroll_restore_tests {
             CompactScroll::Character,
             ScrollPosition(Vec2::new(0.0, 730.0)),
         ));
+        app.world_mut().spawn((
+            CompactScroll::Starter,
+            ScrollPosition(Vec2::new(0.0, 900.0)),
+        ));
+        for index in 0..3 {
+            app.world_mut().spawn((
+                CompactScroll::StarterPanel(index),
+                ScrollPosition(Vec2::new(0.0, 100.0 * (index + 1) as f32)),
+            ));
+        }
         app.update();
+        assert_eq!(app.world().resource::<Armory>().starter_scroll.y, 900.0);
+        assert_eq!(
+            app.world()
+                .resource::<Armory>()
+                .starter_panel_scroll
+                .map(|p| p.y),
+            [100.0, 200.0, 300.0],
+        );
         assert_eq!(app.world().resource::<Armory>().character_scroll.y, 730.0);
         assert_eq!(app.world().resource::<Armory>().collection_scroll.y, 120.0);
         assert_eq!(app.world().resource::<Armory>().drop_scroll.y, 460.0);

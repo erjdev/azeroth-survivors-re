@@ -5509,3 +5509,23 @@ Validation: 159 core tests, scoped app Clippy, native play build and formatting 
 Native 1280×720 and 640×720 screenshots verify briefing wrapping and Duskwood lock
 messaging; no run was entered. CHANGELOG embeds all three captures and README
 refreshes the Starter gallery. Windows and gameplay acceptance remain open.
+
+### Starter campaign stage indicators — 2026-10-26
+
+The intention reference's twelve-marker zone headers now show campaign order:
+one lit marker for Elwynn through twelve for Naxxramas. A visible “Stage X of 12”
+label disambiguates order from clears, unlocks or selectable difficulty. Headers
+wrap at narrow widths and keep existing lock reasons and selected-zone briefings.
+This does not change readiness, progression requirements or encounter tuning.
+
+Native review exposed that wide starter panels had scroll overflow but no wheel
+handler components, leaving later zone rows clipped. All three wide columns now
+use the shared wheel handler and keep separate in-session offsets through page
+rebuilds. Compact starter scrolling retains its own offset. These are view offsets,
+not saved character/account changes.
+
+Validation: 319 app tests including independent scroll memory, scoped app Clippy,
+native play build and formatting pass. Native 1280/1100/640×720 checks cover stage
+marker clicks, late-zone selection without returning to the top, existing lock
+messaging and independent hero scrolling. Four screenshots are embedded in
+CHANGELOG; README Starter is refreshed. Windows acceptance remains open.

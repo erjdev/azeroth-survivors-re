@@ -104,7 +104,7 @@ pub(super) fn build(
             compact_collection,
         );
     } else {
-        panel(ui, art, false, |body| {
+        panel(ui, art, false, None, |body| {
             super::fill_draft(
                 body, font, armory, account, selection, renown, stash, talents,
             )
@@ -345,15 +345,27 @@ fn columns(
         ));
     }
     content.with_children(|row| {
-        panel(row, art, compact, |body| {
-            class_column(body, art, font, account, selection, compact)
-        });
-        panel(row, art, compact, |body| {
-            hero_column(body, art, font, armory, account, selection)
-        });
-        panel(row, art, compact, |body| {
-            zone_column(body, font, armory, account, selection)
-        });
+        panel(
+            row,
+            art,
+            compact,
+            Some((0, armory.starter_panel_scroll[0])),
+            |body| class_column(body, art, font, account, selection, compact),
+        );
+        panel(
+            row,
+            art,
+            compact,
+            Some((1, armory.starter_panel_scroll[1])),
+            |body| hero_column(body, art, font, armory, account, selection),
+        );
+        panel(
+            row,
+            art,
+            compact,
+            Some((2, armory.starter_panel_scroll[2])),
+            |body| zone_column(body, font, armory, account, selection),
+        );
     });
 }
 
@@ -361,6 +373,7 @@ fn panel(
     parent: &mut ChildSpawnerCommands,
     art: &GlueArt,
     compact: bool,
+    scroll: Option<(usize, Vec2)>,
     body: impl FnOnce(&mut ChildSpawnerCommands),
 ) {
     parent
@@ -405,25 +418,34 @@ fn panel(
                     },
                 ));
             }
-            frame
-                .spawn(Node {
-                    width: Val::Percent(100.0),
-                    height: if compact {
-                        Val::Auto
-                    } else {
-                        Val::Percent(100.0)
-                    },
-                    flex_direction: FlexDirection::Column,
-                    padding: UiRect::all(Val::Px(14.0)),
-                    overflow: if compact {
-                        Overflow::visible()
-                    } else {
-                        Overflow::scroll_y()
-                    },
-                    row_gap: Val::Px(4.0),
-                    ..default()
-                })
-                .with_children(body);
+            let mut content = frame.spawn(Node {
+                width: Val::Percent(100.0),
+                height: if compact {
+                    Val::Auto
+                } else {
+                    Val::Percent(100.0)
+                },
+                flex_direction: FlexDirection::Column,
+                padding: UiRect::all(Val::Px(14.0)),
+                overflow: if compact {
+                    Overflow::visible()
+                } else {
+                    Overflow::scroll_y()
+                },
+                row_gap: Val::Px(4.0),
+                ..default()
+            });
+            if !compact {
+                content.insert((
+                    super::collection::CollectionScroll,
+                    bevy::ui::RelativeCursorPosition::default(),
+                    ScrollPosition(scroll.map_or(Vec2::ZERO, |(_, position)| position)),
+                ));
+            }
+            if let Some((index, _)) = scroll.filter(|_| !compact) {
+                content.insert(super::collection::CompactScroll::StarterPanel(index));
+            }
+            content.with_children(body);
         });
 }
 
@@ -930,13 +952,25 @@ fn zone_column(
                 ));
             }
             let color = if reason.is_some() { DIM } else { GOLD };
-            display_line(
-                row,
-                font,
-                zone.name,
-                if on { 18.0 } else { 16.0 },
-                if on { GOLD } else { color },
-            );
+            row.spawn(Node {
+                width: Val::Percent(100.0),
+                flex_wrap: FlexWrap::Wrap,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::SpaceBetween,
+                column_gap: Val::Px(8.0),
+                row_gap: Val::Px(2.0),
+                ..default()
+            })
+            .with_children(|header| {
+                display_line(
+                    header,
+                    font,
+                    zone.name,
+                    if on { 18.0 } else { 16.0 },
+                    if on { GOLD } else { color },
+                );
+                zone_stage(header, font, index);
+            });
             if let Some(reason) = &reason {
                 line(
                     row,
@@ -1034,6 +1068,56 @@ fn enter_bar(
                 min_height: Val::Px(60.0),
                 ..default()
             },
+        );
+    });
+}
+
+/// Campaign order, not clear progress or an independently selectable difficulty.
+fn zone_stage(row: &mut ChildSpawnerCommands, font: &Handle<Font>, index: usize) {
+    row.spawn((
+        Node {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::End,
+            flex_shrink: 0.0,
+            row_gap: Val::Px(2.0),
+            ..default()
+        },
+        bevy::ui::FocusPolicy::Pass,
+    ))
+    .with_children(|stage| {
+        stage
+            .spawn(Node {
+                width: Val::Px(96.0),
+                height: Val::Px(7.0),
+                justify_content: JustifyContent::SpaceBetween,
+                ..default()
+            })
+            .with_children(|dots| {
+                for position in 0..ZONES.len() {
+                    dots.spawn((
+                        Node {
+                            width: Val::Px(6.0),
+                            height: Val::Px(6.0),
+                            border: UiRect::all(Val::Px(1.0)),
+                            border_radius: BorderRadius::MAX,
+                            ..default()
+                        },
+                        BackgroundColor(if position <= index {
+                            Color::srgb(0.95, 0.36, 0.20)
+                        } else {
+                            Color::srgb(0.10, 0.08, 0.04)
+                        }),
+                        BorderColor::all(Color::BLACK),
+                        bevy::ui::FocusPolicy::Pass,
+                    ));
+                }
+            });
+        line(
+            stage,
+            font,
+            &format!("Stage {} of {}", index + 1, ZONES.len()),
+            9.0,
+            DIM,
         );
     });
 }
