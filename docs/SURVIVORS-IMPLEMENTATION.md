@@ -6883,3 +6883,19 @@ Native 1280×720 preview/purchase confirms inline green 0 → 1, Subtlety 20 →
 unspent 10 → 9 and persisted `2:284:1`. CHANGELOG embeds both captures and README
 includes the saved purchase. Live balance, Windows acceptance and remaining
 unimplemented talents stay open.
+
+### Current WebGPU package acceptance — 2026-10-27
+
+Built and packaged code at cd44c39 with WEB_PROFILE=play: Cargo 87 seconds,
+five existing wasm warnings, wasm-bindgen succeeded. Served only checkout data
+through loopback 8098. Browser restored Adventurer Stormwind, female Human Mage,
+and rendered the new embedded landscape. Requested 1280×720/640×720 preview
+captures are in CHANGELOG. The preview tool's override/display-scale transition
+made pointer coordinates unreliable, so these sizes prove rendering only.
+After resetting the override, the actual 551×751 CSS viewport supports Talents
+navigation, scrolling to Frost and the details panel, rejection of an unavailable
+purchase, and scrolling the full green inline Cold Snap description into view.
+Sampled browser error/warning logs were empty; no combat was started. Closed the
+temporary tab and stopped the loopback host. This replaces the older linked-build
+limitation through Preparation, but gameplay, Windows, browser input at the larger
+sizes, release optimization and long-session behavior remain unverified.

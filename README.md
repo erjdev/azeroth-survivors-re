@@ -120,12 +120,14 @@ Collection and Talents also support compact scrolling at enlarged interface size
 
 ### Browser starter checkpoint
 
-2026-10-27 · WebGPU at 1280×720: hero creation and appearance survive reload;
-Talents renders from the same package. In-map browser gameplay remains unverified.
+2026-10-27 · Current WebGPU package restores the saved Mage and renders the new
+landscape. Narrow-browser talent navigation, scrolling and inline details are
+verified; larger preview captures establish rendering only. In-map browser
+gameplay remains unverified.
 
 <table><tr>
-<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-starter/reloaded.png" alt="Browser starter restores the created Mage after reload"></td>
-<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-starter/talents.png" alt="Browser Mage talent trees"></td>
+<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-current/starter-1280.png" alt="Browser starter restores the created Mage after reload"></td>
+<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-current/talent-details-551.png" alt="Browser Mage talent trees"></td>
 </tr></table>
 
 ### Earlier gameplay captures

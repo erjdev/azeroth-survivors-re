@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Current browser UI checkpoint
+
+The current WebGPU package includes the painted starter and latest talent rules.
+It restores the previously created female Human Mage and renders the starter at
+requested 1280×720 and 640×720 preview sizes. In the normal narrow browser viewport
+(551×751 CSS pixels), Talents navigation, scrolling, purchase rejection without
+points and the full green inline Cold Snap description were verified.
+
+The incremental wasm build took 87 seconds; packaging passed with five existing
+wasm warnings. Sampled browser error/warning logs were empty. The preview tool's
+viewport override interfered with click coordinates after a display-scale change;
+interaction was verified after clearing that override. These captures do not
+establish gameplay, Windows behavior or interaction at the overridden sizes.
+
+![Current browser starter](images/screenshots/2026-10-27-browser-current/starter-1280.png)
+![Compact browser starter](images/screenshots/2026-10-27-browser-current/starter-640.png)
+![Scrollable browser talent details](images/screenshots/2026-10-27-browser-current/talent-details-551.png)
+
 ## 2026-10-27 — Rogue Preparation
 
 Preparation now resets owned Rogue ability cooldowns every 180 seconds of active
