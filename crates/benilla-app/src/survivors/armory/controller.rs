@@ -981,12 +981,11 @@ mod tests {
         let mut schedule = Schedule::default();
         schedule.add_systems(super::super::talent_details);
         schedule.run(&mut world);
-        let definition = survivors_core::talents::talent_definition(0, 150).unwrap();
         assert!(world
             .get::<Text>(effect)
             .unwrap()
             .0
-            .contains(&definition.rank_preview(1)));
+            .contains("Retaliation: +15 » 30% duration (Survivors conversion)"));
         assert_eq!(
             world.get::<TextColor>(effect).unwrap().0,
             Color::srgb(0.45, 1., 0.45)

@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Inline talent comparisons
+
+Linear talent descriptions now put current » next values inside the effect sentence,
+with the unit once. At maximum rank, the sentence shows the trained total. This
+removes the repeated per-rank description and separate summary for supported effects;
+compound or ambiguous descriptions retain their explicit breakdown.
+
+165 core tests, 331 app tests, Clippy and native build pass. Native macOS checks cover
+wide comparison text, purchase/save persistence, and compact maximum-rank text.
+The intention-based tree layout is unchanged. Compound formatting and Windows
+acceptance remain open.
+
+![Inline talent comparison](images/screenshots/2026-10-26-talent-inline/talents-1280.png)
+
+![Compact maximum-rank description](images/screenshots/2026-10-26-talent-inline/talents-640.png)
+
 ## 2026-10-26 — Imported reward accounting
 
 Loaded accounts now cap remaining perk resets at two. A refund subtotal larger

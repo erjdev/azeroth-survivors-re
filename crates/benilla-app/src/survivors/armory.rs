@@ -1324,7 +1324,11 @@ pub(super) fn talent_details(
         (
             format!("{name}  {}/{}", node.rank, node.max),
             definition
-                .map(|def| format!("{}\n{}", def.description, def.rank_preview(node.rank)))
+                .map(|def| {
+                    def.inline_description(node.rank).unwrap_or_else(|| {
+                        format!("{}\n{}", def.description, def.rank_preview(node.rank))
+                    })
+                })
                 .unwrap_or_else(|| {
                     "Individual effect pending; currently +1% damage per rank.".to_owned()
                 }),

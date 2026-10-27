@@ -5823,3 +5823,15 @@ reset counts 0/1/2/3/255, preservation of companion investment, repeat-refund re
 round trips, row ordering and original-file preservation on impossible accounting.
 This validates accounting boundaries, not authenticity of manually edited offline
 achievement records. Existing recovery UI is unchanged.
+
+
+### Inline talent comparisons — 2026-10-26
+
+Supported linear descriptions now substitute current » next contribution inline,
+remove the per-rank suffix, and use one unit. Maximum rank shows only the total.
+Authored spell scope and caveats remain intact. Ambiguous/compound effects retain
+explicit breakdowns rather than substituting an uncertain number. 165 core and
+331 app tests, Clippy and native build pass. Focus/preview regressions verify the
+new wording; native wide/compact screenshots show comparison and maximum rank,
+with purchase/save persistence confirmed. Compound formatting and Windows remain
+open. No talent values, purchase rules or tree geometry changed.

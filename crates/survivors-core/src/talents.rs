@@ -1421,6 +1421,63 @@ pub enum TalentStat {
 }
 
 impl TalentDefinition {
+    /// Inline this node's linear contribution; retain authored scope and caveats.
+    /// Compound/proc descriptions keep the explicit rank breakdown instead.
+    pub fn inline_description(&self, rank: u8) -> Option<String> {
+        let (scale, unit) = match self.stat {
+            TalentStat::Health | TalentStat::Armor => (1.0, ""),
+            TalentStat::Damage
+            | TalentStat::MaximumHealth
+            | TalentStat::Cooldown
+            | TalentStat::Crit
+            | TalentStat::CritDamage
+            | TalentStat::Reduction
+            | TalentStat::Speed
+            | TalentStat::SpellDamage(_)
+            | TalentStat::SpellGroupDamage(_)
+            | TalentStat::SpellCooldown(_)
+            | TalentStat::SpellGroupCooldown(_)
+            | TalentStat::SpellCrit(_)
+            | TalentStat::SpellGroupCrit(_)
+            | TalentStat::SpellGroupCritDamage(_)
+            | TalentStat::SpellDuration(_)
+            | TalentStat::SpellHeal(_)
+            | TalentStat::SpellShield(_)
+            | TalentStat::SpellAbsorb(_)
+            | TalentStat::SpellHealing(_)
+            | TalentStat::SpellRadius(_)
+            | TalentStat::SpellGroupRange(_) => (100.0, "%"),
+            _ => return None,
+        };
+        if self.description.matches(" per rank").count() != 1 {
+            return None;
+        }
+        let amount = |rank| {
+            let value = format!("{:.1}", self.per_rank * f32::from(rank) * scale);
+            value.strip_suffix(".0").unwrap_or(&value).to_owned()
+        };
+        let token = format!("{}{unit}", amount(1));
+        let mut matches = self.description.match_indices(&token).filter(|(index, _)| {
+            let before = self.description[..*index].chars().next_back();
+            let after = self.description[*index + token.len()..].chars().next();
+            !before.is_some_and(|c| c.is_ascii_digit() || c == '.')
+                && !after.is_some_and(|c| c.is_ascii_digit() || c == '.')
+        });
+        let (index, _) = matches.next()?;
+        if matches.next().is_some() {
+            return None;
+        }
+        let rank = rank.min(self.max_rank);
+        let value = if rank == self.max_rank {
+            format!("{}{unit}", amount(rank))
+        } else {
+            format!("{} » {}{unit}", amount(rank), amount(rank + 1))
+        };
+        let mut description = self.description.to_owned();
+        description.replace_range(index..index + token.len(), &value);
+        Some(description.replacen(" per rank", "", 1))
+    }
+
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
         let rank = rank.min(self.max_rank);
@@ -3201,6 +3258,31 @@ mod stat_talent_tests {
                 assert!(!nodes[..index].iter().any(|other| other.id == node.id));
             }
         }
+    }
+
+    #[test]
+    fn linear_talent_descriptions_embed_values_without_repeating_units_or_rank_labels() {
+        let cooldown = talent_definition(1, 1407).unwrap();
+        assert_eq!(cooldown.inline_description(4).unwrap(), "Judgement: 12 » 15% shorter cooldown, multiplying Improved Judgement and milestone training (Survivors seal mana-cost conversion)");
+        let armor = talent_definition(0, 140).unwrap();
+        assert_eq!(armor.inline_description(0).unwrap(), "+0 » 6 armor");
+        assert_eq!(armor.inline_description(255).unwrap(), "+30 armor");
+        for node in (0..9).flat_map(definitions) {
+            if let Some(text) = node.inline_description(0) {
+                assert!(text.contains(" » "), "{}", node.name);
+                assert!(!text.contains("per rank"));
+                assert!(!text.contains("This talent:"));
+                assert!(!node.inline_description(255).unwrap().contains(" » "));
+            }
+        }
+        let mut ambiguous = *cooldown;
+        ambiguous.description = "Judgement: 13% damage and 3% cooldown per rank";
+        assert!(ambiguous
+            .inline_description(1)
+            .unwrap()
+            .contains("13% damage and 3 » 6%"));
+        ambiguous.description = "3% damage and 3% cooldown per rank";
+        assert!(ambiguous.inline_description(1).is_none());
     }
 
     #[test]
