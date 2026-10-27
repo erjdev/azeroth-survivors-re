@@ -1424,6 +1424,15 @@ impl TalentDefinition {
     /// Inline this node's linear contribution; retain authored scope and caveats.
     /// Compound/proc descriptions keep the explicit rank breakdown instead.
     pub fn inline_description(&self, rank: u8) -> Option<String> {
+        self.inline_description_with_value(rank)
+            .map(|(text, _)| text)
+    }
+
+    /// Byte range of the changing value and unit, for rich-text highlighting.
+    pub fn inline_description_with_value(
+        &self,
+        rank: u8,
+    ) -> Option<(String, std::ops::Range<usize>)> {
         let (scale, unit) = match self.stat {
             TalentStat::Health | TalentStat::Armor => (1.0, ""),
             TalentStat::Damage
@@ -1495,7 +1504,15 @@ impl TalentDefinition {
         };
         let mut description = self.description.to_owned();
         description.replace_range(*index..index + token_len, &value);
-        Some(description.replacen(" per rank", "", 1))
+        let start = if self.description[..*index].ends_with('+') {
+            index - 1
+        } else {
+            *index
+        };
+        Some((
+            description.replacen(" per rank", "", 1),
+            start..index + value.len(),
+        ))
     }
 
     /// This node's contribution only, before other talents, equipment and milestones.
@@ -3292,6 +3309,9 @@ mod stat_talent_tests {
                 assert!(text.contains(" » "), "{}", node.name);
                 assert!(!text.contains("per rank"));
                 assert!(!text.contains("This talent:"));
+                let (rich, range) = node.inline_description_with_value(0).unwrap();
+                assert_eq!(rich, text);
+                assert!(rich[range].contains(" » "));
                 assert!(!node.inline_description(255).unwrap().contains(" » "));
             }
         }

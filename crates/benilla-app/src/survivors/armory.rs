@@ -1272,14 +1272,31 @@ pub(super) struct TalentInfo {
     milestone: Option<(usize, u32)>,
 }
 
+#[derive(Component, PartialEq)]
+pub(super) struct TalentDetailContent(String, Option<std::ops::Range<usize>>);
+
+type TalentDetailQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Entity,
+        &'static TalentDetail,
+        &'static mut Text,
+        &'static mut TextColor,
+        Option<&'static TalentDetailContent>,
+        &'static TextFont,
+    ),
+>;
+
 /// Inspect focused talents before purchase, or the hovered talent in pointer mode.
 pub(super) fn talent_details(
+    mut commands: Commands,
     nodes: Query<(Entity, &Interaction, &TalentInfo)>,
     focus: Res<controller::ControllerFocus>,
     #[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))] preview: Option<
         Res<preview::Preview>,
     >,
-    mut detail: Query<(&TalentDetail, &mut Text, &mut TextColor)>,
+    mut detail: TalentDetailQuery,
     spells: Option<Res<crate::ui_action::Spells>>,
 ) {
     let selected = focus.focused().and_then(|entity| nodes.get(entity).ok());
@@ -1335,22 +1352,46 @@ pub(super) fn talent_details(
             definition.is_some(),
         )
     };
-    for (part, mut text, mut color) in &mut detail {
-        let (value, tint) = match part {
-            TalentDetail::Title => (&title, Color::WHITE),
-            TalentDetail::Effect => (
-                &effect,
-                if supported {
-                    Color::srgb(0.45, 1.0, 0.45)
-                } else {
-                    Color::WHITE
-                },
-            ),
+    let highlight = node
+        .milestone
+        .is_none()
+        .then(|| {
+            survivors_core::talents::talent_definition(node.class, node.id)
+                .and_then(|def| def.inline_description_with_value(node.rank))
+                .map(|(_, range)| range)
+        })
+        .flatten();
+    for (entity, part, mut text, mut color, previous, font) in &mut detail {
+        let (value, range) = match part {
+            TalentDetail::Title => (&title, None),
+            TalentDetail::Effect => (&effect, highlight.clone()),
         };
-        if **text != *value {
-            **text = value.clone();
+        let content = TalentDetailContent(value.clone(), range.clone());
+        if previous == Some(&content) {
+            continue;
         }
-        color.0 = tint;
+        commands.entity(entity).despawn_children().insert(content);
+        color.0 = Color::WHITE;
+        if let Some(range) = range {
+            **text = value[..range.start].to_owned();
+            commands.entity(entity).with_children(|parent| {
+                parent.spawn((
+                    TextSpan::new(&value[range.clone()]),
+                    TextColor(hud::card_growth::GAIN),
+                    font.clone(),
+                ));
+                parent.spawn((
+                    TextSpan::new(&value[range.end..]),
+                    TextColor(Color::WHITE),
+                    font.clone(),
+                ));
+            });
+        } else {
+            **text = value.clone();
+            if matches!(part, TalentDetail::Effect) && supported {
+                color.0 = Color::srgb(0.45, 1.0, 0.45);
+            }
+        }
     }
 }
 

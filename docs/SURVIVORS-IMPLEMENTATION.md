@@ -5931,3 +5931,20 @@ Native 1280×720 Thundering Strikes preview shows 0 » 1 percentage point and th
 1 » 2 percentage points after purchase, with rank one saved to the isolated
 account. Both screenshots are embedded in CHANGELOG. The intention-based layout
 is retained; compound inline formatting and Windows acceptance remain open.
+
+
+### Talent value-only coloring — 2026-10-27
+
+Linear descriptions expose the exact byte range of their value/arrow/unit. The
+Armory renders that range green and the surrounding text white, copying the
+parent font into each span. Cached content avoids recreating child spans every
+frame; changing to a milestone or unsupported node removes stale spans.
+Controller and direct-preview tests cover selection, colors, font preservation,
+unchanged-span reuse and cleanup. Compound effects and milestone coloring remain
+separate follow-up work; this checkpoint does not change gameplay rules.
+
+167 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+The native visual check caught default-font inheritance, corrected before the
+final captures. Verified 1280×720 and scrolled 640×720 screenshots are embedded in
+CHANGELOG and refreshed in README. The intention's illustrated trees and separate
+details panel are retained. Windows and full interface acceptance remain open.

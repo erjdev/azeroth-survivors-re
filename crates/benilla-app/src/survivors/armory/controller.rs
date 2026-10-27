@@ -981,15 +981,32 @@ mod tests {
         let mut schedule = Schedule::default();
         schedule.add_systems(super::super::talent_details);
         schedule.run(&mut world);
-        assert!(world
-            .get::<Text>(effect)
-            .unwrap()
-            .0
-            .contains("Retaliation: +15 » 30% duration (Survivors conversion)"));
+        assert_eq!(world.get::<Text>(effect).unwrap().0, "Retaliation: ");
+        let spans = world.get::<Children>(effect).unwrap();
+        assert_eq!(world.get::<TextSpan>(spans[0]).unwrap().0, "+15 » 30%");
         assert_eq!(
-            world.get::<TextColor>(effect).unwrap().0,
-            Color::srgb(0.45, 1., 0.45)
+            world.get::<TextSpan>(spans[1]).unwrap().0,
+            " duration (Survivors conversion)"
         );
+        assert_eq!(world.get::<TextColor>(effect).unwrap().0, Color::WHITE);
+        assert_eq!(
+            world.get::<TextColor>(spans[0]).unwrap().0,
+            crate::survivors::hud::card_growth::GAIN
+        );
+        assert_eq!(world.get::<TextColor>(spans[1]).unwrap().0, Color::WHITE);
+        for child in spans.iter() {
+            assert_eq!(
+                world.get::<TextFont>(child).unwrap().font_size,
+                world.get::<TextFont>(effect).unwrap().font_size
+            );
+            assert_eq!(
+                world.get::<TextFont>(child).unwrap().font,
+                world.get::<TextFont>(effect).unwrap().font
+            );
+        }
+        let children = spans.to_vec();
+        schedule.run(&mut world);
+        assert_eq!(world.get::<Children>(effect).unwrap().to_vec(), children);
         assert_eq!(world.get::<TalentInfo>(focused).unwrap().rank, 1);
         assert_eq!(world.resource::<ControllerFocus>().activated, None);
         world.resource_mut::<ControllerFocus>().focused = Some(hovered);
@@ -999,6 +1016,9 @@ mod tests {
             world.get::<Text>(effect).unwrap().0,
             survivors_core::talents::description(0, 0, 10).unwrap()
         );
+        assert!(world
+            .get::<Children>(effect)
+            .is_none_or(|children| children.is_empty()));
         world.resource_mut::<ControllerFocus>().focused = None;
         world.get_mut::<TalentInfo>(hovered).unwrap().milestone = None;
         schedule.run(&mut world);

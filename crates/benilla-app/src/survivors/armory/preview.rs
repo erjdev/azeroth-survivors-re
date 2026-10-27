@@ -877,7 +877,12 @@ mod tests {
             .unwrap()
             .0
             .contains("Rain of Fire"));
-        assert!(world.get::<Text>(effect).unwrap().0.contains("10 » 20%"));
+        let spans = world.get::<Children>(effect).unwrap();
+        assert!(world
+            .get::<TextSpan>(spans[0])
+            .unwrap()
+            .0
+            .contains("10 » 20%"));
         assert_eq!(world.get::<TalentInfo>(node).unwrap().rank, 1);
         assert_eq!(world.resource::<ControllerFocus>().activated, None);
         world.resource_mut::<Preview>().inspected = None;

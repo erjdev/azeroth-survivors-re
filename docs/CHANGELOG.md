@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Talent value highlighting
+
+Linear talent descriptions now highlight just the values, arrow and unit in green;
+explanatory text stays white. Text spans preserve the existing font and size and
+wrap together. Switching talents clears old highlights without rebuilding spans
+on every unchanged frame. Compound effects and milestones retain their existing
+presentation.
+
+167 core and 336 app tests, Clippy and native build pass. Native macOS checks at
+1280×720 and 640×720 confirm typography, coloring and wrapping. README previews
+are refreshed; the intention-based illustrated layout is retained.
+
+![Wide talent value highlights](images/screenshots/2026-10-27-talent-value-color/talents-1280.png)
+![Compact talent value highlights](images/screenshots/2026-10-27-talent-value-color/talents-640.png)
+
 ## 2026-10-27 — Inline percentage-point upgrades
 
 Linear talents written in percentage points now show their current and next values
