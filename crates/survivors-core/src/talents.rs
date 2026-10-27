@@ -1441,6 +1441,37 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::Permafrost {
+            let (prefix, tail) = self.description.split_once("1 sec")?;
+            let token = format!(
+                "{} additional percentage points per rank",
+                (self.per_rank * 100.).round() as u32
+            );
+            let (middle, suffix) = tail.split_once(&token)?;
+            let rank = rank.min(self.max_rank);
+            let next = rank.saturating_add(1).min(self.max_rank);
+            let value = |current: u32, next: u32, unit: &str| {
+                if rank == self.max_rank {
+                    format!("{current}{unit}")
+                } else {
+                    format!("{current} » {next}{unit}")
+                }
+            };
+            let mut text = prefix.to_owned();
+            let start = text.len();
+            text.push_str(&value(u32::from(rank), u32::from(next), " sec"));
+            let duration = start..text.len();
+            text.push_str(middle);
+            let start = text.len();
+            text.push_str(&value(
+                (self.per_rank * f32::from(rank) * 100.).round() as u32,
+                (self.per_rank * f32::from(next) * 100.).round() as u32,
+                " additional percentage points",
+            ));
+            let strength = start..text.len();
+            text.push_str(suffix);
+            return Some((text, vec![duration, strength]));
+        }
         let (scale, unit) = match self.stat {
             TalentStat::Health | TalentStat::Armor => (1.0, ""),
             TalentStat::SpellShieldDuration(_)
@@ -1465,6 +1496,8 @@ impl TalentDefinition {
             | TalentStat::PetCrit
             | TalentStat::PetFrenzy
             | TalentStat::FlameThrowing
+            | TalentStat::ArcticReach
+            | TalentStat::HolyReach
             | TalentStat::ArcaneInstability
             | TalentStat::ForceOfWill
             | TalentStat::TotemHealing
@@ -1487,10 +1520,12 @@ impl TalentDefinition {
             | TalentStat::SpellGroupRange(_) => (100.0, "%"),
             _ => return None,
         };
-        if self.description.matches(" per rank").count() != 1 {
+        let paired_ranges = matches!(self.stat, TalentStat::ArcticReach | TalentStat::HolyReach);
+        let expected_clauses = if paired_ranges { 2 } else { 1 };
+        if self.description.matches(" per rank").count() != expected_clauses {
             return None;
         }
-        let source = self.description.replacen(" per rank", "", 1);
+        let source = self.description.replace(" per rank", "");
         let amount = |rank| {
             let value = format!("{:.1}", self.per_rank * f32::from(rank) * scale);
             value.strip_suffix(".0").unwrap_or(&value).to_owned()
@@ -1532,7 +1567,10 @@ impl TalentDefinition {
             }
         } else if matches!(
             self.stat,
-            TalentStat::ArcaneInstability | TalentStat::ForceOfWill
+            TalentStat::ArcaneInstability
+                | TalentStat::ForceOfWill
+                | TalentStat::ArcticReach
+                | TalentStat::HolyReach
         ) {
             if candidates.len() != 2 || candidates.iter().any(|(_, _, unit)| *unit != "%") {
                 return None;
@@ -5167,5 +5205,38 @@ mod duration_pet_inline_tests {
             .inline_description(1)
             .unwrap()
             .contains("+2 » 4 yd targeting range"));
+    }
+}
+
+#[cfg(test)]
+mod compound_range_inline_tests {
+    use super::*;
+
+    #[test]
+    fn compound_ranges_and_slow_dimensions_have_independent_inline_values() {
+        for (class, id) in [(6, 741), (4, 1635), (6, 65)] {
+            let node = talent_definition(class, id).unwrap();
+            for rank in 0..=node.max_rank {
+                let (text, spans) = node.inline_description_with_values(rank).unwrap();
+                assert_eq!(spans.len(), 2);
+                assert!(spans[0].end < spans[1].start);
+                assert_eq!(
+                    text.matches(" » ").count(),
+                    if rank == node.max_rank { 0 } else { 2 }
+                );
+                assert!(!text.contains("per rank"));
+                assert!(spans.iter().all(|r| !text[r.clone()].is_empty()));
+            }
+        }
+        let frost = talent_definition(6, 65).unwrap();
+        let (text, spans) = frost.inline_description_with_values(1).unwrap();
+        assert_eq!(text, "Frost slows last 1 » 2 sec longer and reduce movement by 3 » 6 additional percentage points; does not extend freezes");
+        assert_eq!(&text[spans[0].clone()], "1 » 2 sec");
+        assert_eq!(
+            &text[spans[1].clone()],
+            "3 » 6 additional percentage points"
+        );
+        assert_eq!(frost.inline_description(255).unwrap(), "Frost slows last 3 sec longer and reduce movement by 9 additional percentage points; does not extend freezes");
+        assert_eq!(talent_definition(4, 1635).unwrap().inline_description(1).unwrap(), "Smite and Holy Fire: +10 » 20% casting range; Holy Nova: +10 » 20% radius, still one player-centered area");
     }
 }

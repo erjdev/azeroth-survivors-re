@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Compound talent previews
+
+Permafrost now shows both slow duration and strength changes inline. Arctic Reach
+and Holy Reach show their targeting-range and area-radius upgrades separately,
+with green values and no repeated summary. Mechanics and area targeting are unchanged.
+
+177 core tests, 349 app tests, core Clippy and native build pass. Native macOS
+wide/compact checks verify multi-value wrapping; Windows acceptance remains open.
+
+![Permafrost duration and strength inline](images/screenshots/2026-10-27-compound-inline/permafrost-1280.png)
+![Holy Reach's separate range and radius upgrades](images/screenshots/2026-10-27-compound-inline/holy-reach-640.png)
+
 ## 2026-10-27 — Pet, range and duration previews
 
 Ten more talents now explain upgrades inline: six wolf talents, Hawk Eye, Flame

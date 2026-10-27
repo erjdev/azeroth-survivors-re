@@ -6271,3 +6271,18 @@ numbers. Native macOS wide Frenzy and compact Improved Shield Block captures are
 embedded in CHANGELOG, retaining the intention-based illustrated tree layout.
 This changes presentation only; complex multi-scale previews and broader UI/
 Windows acceptance remain incomplete.
+
+### 2026-10-27 — Compound slow and range previews
+
+Permafrost formats its two independently scaled values (one second and three
+percentage points per rank) inside the authored scope text. Arctic Reach and Holy
+Reach accept exactly their two percentage clauses and remove both per-rank suffixes.
+All values expose separate green ranges, retain units once and omit arrows at cap.
+Regression coverage checks every rank, distinct ranges, exact wording and capped
+Permafrost behavior. Existing mechanics remain unchanged.
+
+177 core tests, 349 app tests, core Clippy, native build and formatting/diff checks
+pass. Native macOS wide Permafrost and compact Holy Reach captures verify wrapping
+and independent value coloring and are embedded in CHANGELOG. The intention-based
+tree layout is retained. Other unhandled descriptions, full talent rules, broader
+interface validation and Windows acceptance remain incomplete.
