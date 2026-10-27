@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Windows playtest replay checklist
+
+Rechecked the four reported areas against `1ad6616`; all 390 Survivors app tests
+pass on macOS. The [Windows tracker](WINDOWS-PLAYTEST.md) now includes concrete
+replay steps for foliage, stuck enemies, chest cadence and talent proportions.
+Windows scene acceptance remains open. No runtime or visual change in this checkpoint;
+the existing talent captures remain inline in the tracker.
+
 ## 2026-10-27 — Priest Power Infusion
 
 Power Infusion now automatically boosts Priest damage, unlocked Holy Nova healing
