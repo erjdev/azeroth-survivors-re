@@ -1038,8 +1038,49 @@ mod tests {
         schedule.run(&mut world);
         assert_eq!(
             world.get::<Text>(effect).unwrap().0,
+            "Direct attack criticals bleed for "
+        );
+        let spans = world.get::<Children>(effect).unwrap();
+        let expected = [
+            "12%",
+            " damage over ",
+            "3 seconds",
+            "; refreshes, does not stack",
+        ];
+        assert_eq!(spans.len(), expected.len());
+        let mut reconstructed = world.get::<Text>(effect).unwrap().0.clone();
+        for (index, child) in spans.iter().enumerate() {
+            let span = &world.get::<TextSpan>(child).unwrap().0;
+            assert_eq!(span, expected[index]);
+            reconstructed.push_str(span);
+            assert_eq!(
+                world.get::<TextColor>(child).unwrap().0,
+                if index % 2 == 0 {
+                    crate::survivors::hud::card_growth::GAIN
+                } else {
+                    Color::WHITE
+                }
+            );
+            assert_eq!(
+                world.get::<TextFont>(child).unwrap().font,
+                world.get::<TextFont>(effect).unwrap().font
+            );
+        }
+        assert_eq!(
+            reconstructed,
             survivors_core::talents::description(0, 0, 10).unwrap()
         );
+        {
+            let mut node = world.get_mut::<TalentInfo>(hovered).unwrap();
+            node.class = 5;
+            node.milestone = Some((0, 30));
+        }
+        schedule.run(&mut world);
+        assert_eq!(
+            world.get::<Text>(effect).unwrap().0,
+            survivors_core::talents::description(5, 0, 30).unwrap()
+        );
+        assert_eq!(world.get::<TextColor>(effect).unwrap().0, Color::WHITE);
         assert!(world
             .get::<Children>(effect)
             .is_none_or(|children| children.is_empty()));

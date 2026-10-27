@@ -6191,3 +6191,19 @@ Three captures are embedded in CHANGELOG and README talent images are refreshed.
 Reference: intentions/survivors_talent_tab.png. App Clippy, native build, formatting
 and diff checks pass. Windows, full talent mechanics and broader UI acceptance
 remain incomplete.
+
+### 2026-10-27 — Milestone value highlighting
+
+Milestone details now reuse the individual-talent rich-text presentation: numeric
+values and recognized units are green, while spell names and explanatory prose
+remain white. Multiple signed values, decimal seconds, percentages, percentage
+points and target counts are handled independently. Non-numeric milestones stay
+plain white instead of coloring the entire sentence. The shared span renderer
+retains explicit fonts and clears old spans when inspection changes. Regressions
+cover representative compound descriptions, UTF-8 byte boundaries and all 81
+milestone descriptions. No milestone mechanics or unlock thresholds change.
+
+Validation: 347 app tests with checkout data, app Clippy, incremental native build,
+formatting and diff checks pass. Native macOS Paladin 1280×720 and Hunter 640×720
+captures verify inline values and wrapping; embedded in CHANGELOG. README's wide
+Talents image is refreshed. Windows and full talent acceptance remain open.

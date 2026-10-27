@@ -11,6 +11,100 @@ const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
 const ICON: f32 = 36.0;
 
+/// Numeric effect values and their units; prose and spell names retain normal text color.
+pub(super) fn milestone_value_ranges(text: &str) -> Option<Vec<std::ops::Range<usize>>> {
+    let bytes = text.as_bytes();
+    let mut ranges = Vec::new();
+    let mut i = 0;
+    while i < bytes.len() {
+        if !bytes[i].is_ascii_digit() {
+            i += 1;
+            continue;
+        }
+        let mut start = i;
+        if i > 0 && matches!(bytes[i - 1], b'+' | b'-') {
+            start -= 1;
+        }
+        while i < bytes.len() && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        if bytes.get(i) == Some(&b'.') && bytes.get(i + 1).is_some_and(u8::is_ascii_digit) {
+            i += 1;
+            while i < bytes.len() && bytes[i].is_ascii_digit() {
+                i += 1;
+            }
+        }
+        for unit in [
+            " percentage points",
+            " seconds",
+            " second",
+            " targets",
+            " target",
+            " sec",
+            "%",
+        ] {
+            if text[i..].starts_with(unit) {
+                let end = i + unit.len();
+                if !bytes.get(end).is_some_and(u8::is_ascii_alphabetic) {
+                    i = end;
+                    break;
+                }
+            }
+        }
+        ranges.push(start..i);
+    }
+    (!ranges.is_empty()).then_some(ranges)
+}
+
+#[cfg(test)]
+mod milestone_value_tests {
+    use super::*;
+
+    #[test]
+    fn values_keep_units_signs_and_decimals_without_coloring_prose() {
+        for (text, expected) in [
+            ("Consecration: +25% radius and duration", vec!["+25%"]),
+            (
+                "Critical chance: +5 percentage points",
+                vec!["+5 percentage points"],
+            ),
+            (
+                "Shock: +25% damage and +1 direct target",
+                vec!["+25%", "+1"],
+            ),
+            (
+                "Stuns for 1 sec (bosses: 0.3 sec)",
+                vec!["1 sec", "0.3 sec"],
+            ),
+            ("Wolf: from 2 to 1.6 sec", vec!["2", "1.6 sec"]),
+            (
+                "Éclair: +2 targets for 3 seconds",
+                vec!["+2 targets", "3 seconds"],
+            ),
+        ] {
+            let ranges = milestone_value_ranges(text).unwrap();
+            assert_eq!(
+                ranges.iter().map(|r| &text[r.clone()]).collect::<Vec<_>>(),
+                expected
+            );
+            assert!(ranges.windows(2).all(|r| r[0].end <= r[1].start));
+        }
+        assert!(milestone_value_ranges("Always critically strikes").is_none());
+        for class in 0..9 {
+            for tree in 0..3 {
+                for at in [10, 20, 30] {
+                    let text = survivors_core::talents::description(class, tree, at).unwrap();
+                    if let Some(ranges) = milestone_value_ranges(text) {
+                        for range in ranges {
+                            assert!(!text[range].is_empty());
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod scroll_tests {
     use super::*;

@@ -1352,15 +1352,13 @@ pub(super) fn talent_details(
             definition.is_some(),
         )
     };
-    let highlight = node
-        .milestone
-        .is_none()
-        .then(|| {
-            survivors_core::talents::talent_definition(node.class, node.id)
-                .and_then(|def| def.inline_description_with_values(node.rank))
-                .map(|(_, range)| range)
-        })
-        .flatten();
+    let highlight = if node.milestone.is_some() {
+        talent_page::milestone_value_ranges(&effect)
+    } else {
+        survivors_core::talents::talent_definition(node.class, node.id)
+            .and_then(|def| def.inline_description_with_values(node.rank))
+            .map(|(_, range)| range)
+    };
     for (entity, part, mut text, mut color, previous, font) in &mut detail {
         let (value, range) = match part {
             TalentDetail::Title => (&title, None),
@@ -1391,7 +1389,7 @@ pub(super) fn talent_details(
             });
         } else {
             **text = value.clone();
-            if matches!(part, TalentDetail::Effect) && supported {
+            if matches!(part, TalentDetail::Effect) && supported && node.milestone.is_none() {
                 color.0 = Color::srgb(0.45, 1.0, 0.45);
             }
         }

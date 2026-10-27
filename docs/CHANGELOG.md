@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Clearer milestone values
+
+Talent milestone descriptions now highlight numeric effects and their units in
+green, keeping the surrounding explanation white. Percentages, signed bonuses,
+decimal times and multiple effects remain readable inline.
+
+347 app tests with checkout data, Clippy and native build pass. Native macOS
+checks cover wide Paladin and compact Hunter details; Windows acceptance remains open.
+
+![Paladin milestone value highlighting](images/screenshots/2026-10-27-milestone-values/paladin-1280.png)
+![Compact Hunter milestone values](images/screenshots/2026-10-27-milestone-values/hunter-640.png)
+
 ## 2026-10-27 — Paladin milestone artwork
 
 Seven custom Paladin milestones now use themed, verified vanilla spell icons,
