@@ -45,16 +45,25 @@ fn visually_blocked(world: &WorldPick, pickable: &HashSet<Entity>, eye: Vec3, fo
     let Ok((direction, distance)) = Dir3::new_and_length(focus - eye) else {
         return false;
     };
-    world
-        .cast(Ray3d::new(eye, direction), pickable, true)
-        .iter()
-        .any(|hit| {
-            hit.hit.distance < distance - 0.5
-                && hit
-                    .object
-                    .as_ref()
-                    .is_some_and(|object| scenery(object.kind))
-        })
+    let hits = world.cast(Ray3d::new(eye, direction), pickable, true);
+    let blocker = hits.iter().find(|hit| {
+        hit.hit.distance < distance - 0.5
+            && hit
+                .object
+                .as_ref()
+                .is_some_and(|object| scenery(object.kind))
+    });
+    trace!(
+        target: "survivors_visibility",
+        ?eye, ?focus, distance,
+        entity_candidates = pickable.len(),
+        render_hits = hits.len(),
+        blocked = blocker.is_some(),
+        blocker = ?blocker.and_then(|hit| hit.object.as_ref()),
+        hit_distance = ?blocker.map(|hit| hit.hit.distance),
+        "camera-to-hero render probe (entity candidates exclude retained static sources)"
+    );
+    blocker.is_some()
 }
 
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
@@ -105,7 +114,14 @@ fn sync(
                         .then_some(entity)
                 })
                 .collect();
-            probe.blocked = visually_blocked(&world, &pickable, eye, focus);
+            let blocked = visually_blocked(&world, &pickable, eye, focus);
+            if blocked != probe.blocked {
+                debug!(target: "survivors_visibility", blocked, ?eye, ?focus,
+                    "scenery reveal target changed");
+            }
+            probe.blocked = blocked;
+            trace!(target: "survivors_visibility", radius, strength = fade.0,
+                "scenery reveal before this frame's 500ms fade step");
             probe.elapsed = 0.1;
         }
         cutaway.camera = eye.extend(fade.advance(probe.blocked, time.delta_secs()));

@@ -33,6 +33,14 @@ exposed fixed-height talent-panel clipping; panels now grow with their contents.
 Native 640×720 and 1024×720/125% captures verify the full green description,
 purchase persistence and tree proportions. Windows and live balance remain open.
 
+## Windows foliage reproduction evidence — 2026-10-27
+
+The opt-in `survivors_visibility=trace` target records rendered blockers and fade
+inputs. Follow the [Windows capture workflow](SURVIVORS-DEVELOPMENT.md#diagnosing-scenery-reveal-on-windows)
+to pair the obscured and clear camera states with the exact build. Existing canopy
+and fade tests pass; closure still requires the reported runtime scene, not those
+synthetic rays alone. Texture-alpha accuracy remains a known probe limitation.
+
 ## Current priority — starter interface first (2026-10-26)
 
 Talents typography, panel padding and gaps now participate in validated native

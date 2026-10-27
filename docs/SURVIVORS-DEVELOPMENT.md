@@ -63,6 +63,37 @@ cargo run -p survivors-audit -- "$PWD/wow-data/Data" --achievement-art
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --floor 533 3005.87 -3435.01 293.88
 ```
 
+### Diagnosing scenery reveal on Windows
+
+For a manual playtest from this checkout, enable the dedicated visibility trace in
+PowerShell (use the checkout's own data path):
+
+```powershell
+$env:WOW_DATA = Join-Path $PWD 'wow-data/Data'
+$env:RUST_LOG = 'info,survivors_visibility=trace'
+cargo survivors 2>&1 | Tee-Object -FilePath target/visibility-playtest.log
+```
+
+Enable **Scenery cutaway** in Options. Record `git rev-parse HEAD`, the zone,
+and a screenshot where foliage hides the hero. Hold the camera still for a second, then move it until the hero is visible
+and capture that adjacent state. Quit normally. Restore your previous `RUST_LOG`
+value afterward (or remove it with `Remove-Item Env:RUST_LOG` if previously unset).
+
+At each 100ms probe, the trace records camera/focus coordinates, render-hit count,
+nearest qualifying blocker identity/distance, aperture radius and reveal strength
+before that frame's fade step. `blocked=true` should approach strength 1 over
+500ms; a clear sightline should approach 0. Debug level records only blocked/clear
+transitions. Entity candidate counts exclude the retained static renderer, which
+is still queried; zero candidates alone does not mean there is no scenery.
+
+A hidden hero with `blocked=false` points to the sightline/geometry path. Sustained
+`blocked=true`, positive radius and strength near 1 without a visible aperture
+points to the rendering path. Render triangles are not texture-alpha samples, so
+transparent leaf texels remain a separate accuracy limitation. These diagnostics
+do not themselves establish that a reported Windows scene is fixed.
+
+### Content audits
+
 The content auditor requires an explicit data directory and never discovers another install.
 `--achievement-art` checks every catalog icon file for presence/readability; rendered
 appearance and visual suitability still require native screenshots.

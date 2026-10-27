@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Foliage reveal diagnostics
+
+An opt-in visibility trace records the rendered blocker, camera/hero positions,
+probe hits, reveal radius and fade strength. A documented Windows capture workflow
+helps separate missed sightlines from shader failures without changing gameplay.
+The three visibility tests pass against checkout Elwynn canopy assets, including
+both triangle sides, behind-hero exclusion and real-time fading. Native build and
+app-test Clippy pass. The reported
+Windows scene remains unverified; this checkpoint does not claim a visual fix.
+
 ## 2026-10-27 — Live talent layout tuning
 
 Talents now uses the live Armory typography, padding and gap settings in
