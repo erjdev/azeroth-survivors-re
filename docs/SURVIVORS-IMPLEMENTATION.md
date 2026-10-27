@@ -25,6 +25,14 @@ covers direct/periodic lethal hits, multistrike, stacked Siphon ranks/milestones
 maximum-health caps, dead heroes and a second update against the dead target.
 This is combat-accounting coverage; live balance remains open.
 
+Improved Drain Life (1004, five ranks) now multiplies Death Coil's drain by
+1 + 0.02 per rank; damage, cooldown, targeting and cast-healing milestones are
+unchanged. Rules and real-hit tests cover rank caps, refund, overkill and healing
+caps. 189 core/366 app tests, Clippy and native build pass. The compact preview
+exposed fixed-height talent-panel clipping; panels now grow with their contents.
+Native 640×720 and 1024×720/125% captures verify the full green description,
+purchase persistence and tree proportions. Windows and live balance remain open.
+
 ## Current priority — starter interface first (2026-10-26)
 
 Achievement cards now keep the same proportional column width on incomplete rows,
@@ -722,9 +730,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 23 / 47 | 9 / 9 |
 | Shaman | 29 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
-| Warlock | 25 / 50 | 9 / 9 |
+| Warlock | 26 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 235 / 432 | 81 / 81 |
+| Total | 236 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing

@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Improved Drain Life and readable talent details
+
+Improved Drain Life strengthens Death Coil drain healing by 2% per rank (10%
+at rank five), without increasing damage or Healthstone healing. Overkill is
+excluded. Long talent descriptions now expand their panels so compact scrolling
+can reach the entire explanation instead of clipping its ending.
+
+189 core tests, 366 app tests, core/app-test Clippy and native build pass.
+Native 640×720 and 1024×720 at 125% verify green inline text, saved purchase,
+full descriptions and proportional trees. Coverage: 236/432 nodes, Warlock 26/50.
+Live balance and Windows acceptance remain open.
+
+![Before: talent explanation clipped](images/screenshots/2026-10-27-drain-life/clipped-before.png)
+![Full compact talent explanation](images/screenshots/2026-10-27-drain-life/talents-640-125.png)
+![Three proportional talent trees](images/screenshots/2026-10-27-drain-life/trees-1024-125.png)
+![Readable expanded details](images/screenshots/2026-10-27-drain-life/talents-1024-125.png)
+
 ## 2026-10-27 — Drain and leech exclude overkill
 
 Drain and gear leech now heal from enemy health actually removed, matching

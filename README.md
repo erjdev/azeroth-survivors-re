@@ -108,6 +108,8 @@ Collection and Talents also support compact scrolling at enlarged interface size
 
 ![Saved tabard rendered on the character](docs/images/screenshots/2026-10-27-scaled-rewards/tabard-after.png)
 
+![Long talent descriptions remain scrollable at enlarged interface size](docs/images/screenshots/2026-10-27-drain-life/talents-640-125.png)
+
 ### Earlier gameplay captures
 
 <table>

@@ -2466,7 +2466,7 @@ mod milestone_tests {
     fn drain_leech_and_siphon_heal_only_removed_health_without_revival() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for (leech, drain, multistrike) in [(0.0, 0.0, 0.0), (0.2, 0.3, 1.0)] {
+        for (leech, drain, multistrike) in [(0.0, 0.0, 0.0), (0.2, 0.5, 1.0)] {
             for periodic in [false, true] {
                 for (points, rank) in [(29, 0), (29, 1), (30, 0), (30, 1), (30, 255)] {
                     for hp in [0.0, 50.0, 99.0] {
@@ -2485,7 +2485,7 @@ mod milestone_tests {
                                 points: [points, 0, 0],
                                 ..Default::default()
                             }
-                            .with_ranks(&[(0, 1041, rank)]),
+                            .with_ranks(&[(0, 1041, rank), (0, 1004, rank)]),
                             ..Default::default()
                         };
                         app.insert_resource(time)
@@ -2548,11 +2548,35 @@ mod milestone_tests {
                             ))
                             .id();
                         if !periodic {
-                            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
-                                source: "curse_of_agony",
-                                effect: Effect::Drain(drain),
-                                ..Hit::direct(enemy, 10.0, false)
-                            });
+                            let hit = if drain > 0.0 {
+                                let run = app.world().resource::<Run>();
+                                let owned = Owned {
+                                    def: data::ability("death_coil"),
+                                    level: 5,
+                                    cd: 0.0,
+                                };
+                                let params = Params::new(&owned, &run.stats(), run.milestones);
+                                let base = Params::new(
+                                    &owned,
+                                    &run.stats(),
+                                    Milestones {
+                                        class: 7,
+                                        points: [points, 0, 0],
+                                        ..Default::default()
+                                    },
+                                );
+                                assert_eq!(
+                                    (params.dmg, params.cooldown, params.count, params.radius),
+                                    (base.dmg, base.cooldown, base.count, base.radius)
+                                );
+                                hit_for(owned.def, &params, enemy, params.dmg, false)
+                            } else {
+                                Hit {
+                                    source: "curse_of_agony",
+                                    ..Hit::direct(enemy, 10.0, false)
+                                }
+                            };
+                            app.world_mut().resource_mut::<Messages<Hit>>().write(hit);
                         }
                         app.world_mut().run_system_once(apply_hits).unwrap();
                         let run = app.world().resource::<Run>();
@@ -2560,10 +2584,17 @@ mod milestone_tests {
                             0.0
                         } else {
                             (hp + 5.0
-                                * ((if points >= 30 { 0.05 } else { 0. })
-                                    + if rank > 0 { 0.05 } else { 0. }
-                                    + run.stats().leech
-                                    + if periodic { 0.0 } else { drain }))
+                                * ((if periodic || drain == 0.0 {
+                                    (if points >= 30 { 0.05 } else { 0. })
+                                        + if rank > 0 { 0.05 } else { 0. }
+                                } else {
+                                    0.0
+                                }) + run.stats().leech
+                                    + if periodic {
+                                        0.0
+                                    } else {
+                                        drain * (1.0 + 0.02 * f32::from(rank.min(5)))
+                                    }))
                             .min(run.stats().max_hp)
                         };
                         assert!((run.hp - expected).abs() < 0.00001);

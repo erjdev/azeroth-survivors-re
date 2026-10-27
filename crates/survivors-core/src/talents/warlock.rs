@@ -17,6 +17,7 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1004, max_rank: 5, name: "Improved Drain Life", description: "Death Coil: +2% drain healing per rank, based on enemy health actually removed. Damage, cooldown and Healthstone healing are unchanged. Requires acquiring Death Coil (Survivors Drain Life conversion)", stat: TalentStat::ImprovedDrainLife, per_rank: 0.02 },
     TalentDefinition { id: 1282, max_rank: 1, name: "Soul Link", description: "Death Coil grants a non-stacking absorb for 5% maximum health lasting 3 sec, once per successful cast. Adds to the Demonology 30-point milestone for 10% total. Requires acquiring Death Coil; preserves stronger shields (Survivors automatic conversion; no demon required)", stat: TalentStat::SpellShield("death_coil"), per_rank: 0.05 },
     TalentDefinition { id: 1081, max_rank: 1, name: "Curse of Exhaustion", description: "Curse of Agony applications slow targets by 10% for 12 sec. Requires acquiring Curse of Agony; damage and target count are unchanged. Refreshes without stacking and preserves stronger slows (Survivors curse conversion)", stat: TalentStat::CurseExhaustion, per_rank: 0.10 },
     TalentDefinition { id: 1082, max_rank: 4, name: "Improved Curse of Exhaustion", description: "Curse of Exhaustion: +5% additional slow per rank. Requires the base talent; bosses cannot be slowed by more than 25%. Duration and damage are unchanged (Survivors conversion)", stat: TalentStat::ImprovedCurseExhaustion, per_rank: 0.05 },
@@ -93,6 +94,36 @@ pub(super) fn description(tree: usize, threshold: u32) -> Option<&'static str> {
 mod tests {
     use super::*;
     use crate::talents::{stat_adjustment, CastEffect, Milestones};
+    #[test]
+    fn improved_drain_life_changes_only_owned_spell_drain_and_resets() {
+        use crate::data::Effect;
+        let base = Milestones {
+            class: 7,
+            points: [30; 3],
+            ..Default::default()
+        };
+        for rank in [0, 1, 5, 255] {
+            let trained = base.with_ranks(&[(0, 1004, rank)]);
+            let Effect::Drain(fraction) = trained.control("death_coil", Effect::Drain(0.5)) else {
+                panic!("drain lost")
+            };
+            assert!((fraction - 0.5 * (1.0 + 0.02 * f32::from(rank.min(5)))).abs() < 0.00001);
+            for key in SHADOW.iter().chain(FIRE) {
+                assert_eq!(trained.cast(key), base.cast(key));
+            }
+            assert_eq!(
+                trained.control("corruption", Effect::Drain(0.5)),
+                Effect::Drain(0.5)
+            );
+            assert_eq!(trained.control("death_coil", Effect::None), Effect::None);
+            assert_eq!(
+                trained
+                    .with_ranks(&[])
+                    .control("death_coil", Effect::Drain(0.5)),
+                Effect::Drain(0.5)
+            );
+        }
+    }
     #[test]
     fn soul_link_adds_to_milestone_and_refunds_independently() {
         for points in [0, 29, 30] {

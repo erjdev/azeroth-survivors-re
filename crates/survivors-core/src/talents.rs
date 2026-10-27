@@ -836,6 +836,13 @@ impl Milestones {
     /// These percentage-point reductions preserve the existing baseline Blizzard slow.
     pub fn control(self, key: &str, effect: crate::data::Effect) -> crate::data::Effect {
         use crate::data::Effect;
+        if key == "death_coil" {
+            if let Effect::Drain(fraction) = effect {
+                return Effect::Drain(
+                    fraction * (1.0 + self.trained_value(TalentStat::ImprovedDrainLife)),
+                );
+            }
+        }
         if self.class != 6 || !MAGE_FROST.contains(&key) {
             return effect;
         }
@@ -1448,6 +1455,7 @@ pub enum TalentStat {
     SpellDamage(&'static str),
     SpellAbsorb(&'static str),
     SpellHealing(&'static str),
+    ImprovedDrainLife,
     SpellDamageAndCrit(&'static str),
     SpellCooldown(&'static str),
     SpellCrit(&'static str),
@@ -1551,6 +1559,7 @@ impl TalentDefinition {
             | TalentStat::SpellHeal(_)
             | TalentStat::SpellShield(_)
             | TalentStat::SpellAbsorb(_)
+            | TalentStat::ImprovedDrainLife
             | TalentStat::SpellHealing(_)
             | TalentStat::SpellRadius(_)
             | TalentStat::SpellGroupRange(_) => (100.0, "%"),
@@ -1702,6 +1711,7 @@ impl TalentDefinition {
             TalentStat::SecondaryRootDuration(_) => (1.0, " s added root duration"),
             TalentStat::SpellAbsorb(_) => (100.0, "% absorption"),
             TalentStat::SpellHealing(_) => (100.0, "% healing"),
+            TalentStat::ImprovedDrainLife => (100.0, "% drain healing"),
             TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
                 (100.0, "% damage")
             }
@@ -2980,6 +2990,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellGroupRange(_)
             | TalentStat::SpellGroupRangeYards(_)
             | TalentStat::SpellAbsorb(_)
+            | TalentStat::ImprovedDrainLife
             | TalentStat::SpellHealing(_)
             | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellDamage(_)
@@ -4266,6 +4277,7 @@ mod stat_talent_tests {
                     | TalentStat::SpellGroupRange(_)
                     | TalentStat::SpellGroupRangeYards(_)
                     | TalentStat::SpellAbsorb(_)
+                    | TalentStat::ImprovedDrainLife
                     | TalentStat::SpellHealing(_)
                     | TalentStat::SpellDamageAndCrit(_)
                     | TalentStat::SpellDamage(_)

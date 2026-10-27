@@ -314,7 +314,8 @@ fn panel(ui: &mut ChildSpawnerCommands, weight: f32, body: impl FnOnce(&mut Chil
             flex_grow: weight,
             flex_basis: Val::Px(240.0),
             min_width: Val::Px(200.0),
-            height: Val::Percent(100.0),
+            // Let long descriptions grow the shared scroll content. A viewport-sized
+            // panel clips its own overflow before the outer scroll area can reach it.
             min_height: Val::Px(440.0),
             overflow: Overflow::clip(),
             border: UiRect::all(Val::Px(1.0)),
@@ -328,7 +329,7 @@ fn panel(ui: &mut ChildSpawnerCommands, weight: f32, body: impl FnOnce(&mut Chil
         frame
             .spawn(Node {
                 width: Val::Percent(100.0),
-                min_height: Val::Px(0.0),
+                flex_shrink: 0.0,
                 padding: UiRect::all(Val::Px(10.0)),
                 flex_direction: FlexDirection::Column,
                 row_gap: Val::Px(6.0),
