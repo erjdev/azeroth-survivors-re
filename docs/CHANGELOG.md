@@ -10,7 +10,9 @@ Kidney Shot's stun. It affects subsequent hits and periodic damage, refreshes
 without stacking, uses shorter boss duration, and is not extended by other
 stuns. Refunding the talent removes its damage bonus immediately.
 
-184 core tests, 359 app tests, core/app-test Clippy and native build pass.
+184 core tests, 360 app tests, core/app-test Clippy and native build pass.
+Enemy-update coverage also verifies independent expiry at three frame sizes and
+a frozen simulation delta.
 Native wide/compact previews verify green inline upgrades and a saved rank-one
 purchase. Catalog coverage is 229/432 nodes (Rogue 19/51); live balance and
 Windows combat acceptance remain open.

@@ -862,6 +862,91 @@ mod spawn_tests {
     use bevy::ecs::system::RunSystemOnce;
 
     #[test]
+    fn enemy_updates_expire_kidney_exposure_independently_of_longer_control() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use survivors_core::talents::Milestones;
+        for boss in [false, true] {
+            for frame_seconds in [0.05, 0.25, 1.0] {
+                let mut app = App::new();
+                app.add_plugins((
+                    MinimalPlugins,
+                    TransformPlugin,
+                    AssetPlugin::default(),
+                    bevy::scene::ScenePlugin,
+                    PhysicsPlugins::new(PostUpdate),
+                ));
+                app.init_asset::<Mesh>();
+                app.init_resource::<MoverTraceExclusions>();
+                app.init_resource::<Run>();
+                app.init_resource::<Selection>();
+                app.init_resource::<PlaySeq>();
+                app.add_message::<CastEvent>();
+                app.add_message::<SpellGoTargets>();
+                app.add_message::<SwingMessage>();
+                app.add_message::<crate::combat_text::CombatTextSpawn>();
+                app.add_message::<Hit>();
+                app.world_mut()
+                    .spawn((Hero { vy: 0., air: 0. }, Transform::default()));
+                app.finish();
+                app.cleanup();
+                app.update();
+                app.world_mut()
+                    .run_system_once(move |mut commands: Commands, mut run: ResMut<Run>| {
+                        spawn_enemy(
+                            &mut commands,
+                            &mut run,
+                            &data::roster(0).enemies[0],
+                            Vec3::X * 5.,
+                            Vec3::ZERO,
+                            boss,
+                            false,
+                        );
+                    })
+                    .unwrap();
+                let entity = app
+                    .world_mut()
+                    .query_filtered::<Entity, With<Enemy>>()
+                    .single(app.world())
+                    .unwrap();
+                let duration = if boss { 3.5 * 0.3 } else { 3.5 };
+                {
+                    let mut enemy = app.world_mut().get_mut::<Enemy>(entity).unwrap();
+                    assert_eq!(enemy.kidney_t, 0., "new enemies cannot inherit exposure");
+                    enemy.kidney_t = duration;
+                    enemy.stun_t = 20.;
+                    enemy.root_t = 30.;
+                }
+                let trained = Milestones {
+                    class: 3,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 279, 3)]);
+                // A frozen simulation delta cannot consume the vulnerability window.
+                app.world_mut().insert_resource(Time::<()>::default());
+                app.world_mut().run_system_once(move_enemies).unwrap();
+                assert_eq!(app.world().get::<Enemy>(entity).unwrap().kidney_t, duration);
+                let mut elapsed = 0.;
+                while elapsed < duration + frame_seconds {
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs_f32(frame_seconds));
+                    app.world_mut().run_system_once(move_enemies).unwrap();
+                    elapsed += frame_seconds;
+                    let enemy = app.world().get::<Enemy>(entity).unwrap();
+                    let remaining = (duration - elapsed).max(0.);
+                    assert!((enemy.kidney_t - remaining).abs() < 0.00001);
+                    assert!(enemy.stun_t > 0. && enemy.root_t > 0.);
+                    assert_eq!(
+                        trained.kidney_exposure_multiplier(enemy.kidney_t),
+                        if enemy.kidney_t > 0. { 1.09 } else { 1. }
+                    );
+                }
+                assert_eq!(app.world().get::<Enemy>(entity).unwrap().kidney_t, 0.);
+            }
+        }
+    }
+
+    #[test]
     fn streaming_floor_defers_bosses_and_initial_chests_without_losing_or_duplicating_them() {
         let mut app = App::new();
         app.add_plugins((

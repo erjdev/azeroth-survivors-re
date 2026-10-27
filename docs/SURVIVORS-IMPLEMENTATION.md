@@ -680,8 +680,9 @@ Current source audit (2026-10-26): all six existing bands have named gear entrie
 Selected worn equipment and independent cosmetic choices persist; only worn pieces
 supply bonuses (`account.rs`, `survivors-core/gear_loadout.rs`). Collection and drop
 pages use icons and detail panes. Poor gear has 81 class/slot identities, a grid
-row, stable-key saves and ordinary-enemy starter-zone acquisition. A distinct
-raid-Epic catalog, acquisition and build sets remain open.
+row, stable-key saves and ordinary-enemy starter-zone acquisition. Raid Epic has
+72 armor identities, six-stat pieces, persistent selection and class-specific
+2/4/6-piece bonuses; acquisition and live balance remain open.
 
 Settlement credits the selected valid hero and guards repeated awards; regression
 coverage includes save/reload and invalid references. This supersedes the original
@@ -689,7 +690,7 @@ first-hero settlement defect. Zone/content and full run acceptance remain open.
 Individual talents remain substantially incomplete; the coverage table below is
 catalog evidence, not a substitute for combat or visual acceptance.
 
-### Talent definition coverage — 2026-10-26
+### Talent definition coverage — 2026-10-27
 
 Read from this checkout's `wow-data/Data` using:
 
@@ -703,13 +704,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 34 / 52 | 9 / 9 |
 | Paladin | 23 / 44 | 9 / 9 |
 | Hunter | 28 / 46 | 9 / 9 |
-| Rogue | 16 / 51 | 9 / 9 |
+| Rogue | 19 / 51 | 9 / 9 |
 | Priest | 23 / 47 | 9 / 9 |
-| Shaman | 24 / 46 | 9 / 9 |
+| Shaman | 29 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
 | Warlock | 19 / 50 | 9 / 9 |
-| Druid | 20 / 47 | 9 / 9 |
-| Total | 218 / 432 | 81 / 81 |
+| Druid | 23 / 47 | 9 / 9 |
+| Total | 229 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -6481,9 +6482,12 @@ An independent timer prevents Gouge or other stuns from extending the effect;
 bosses retain the 0.3 duration multiplier. Reapplication refreshes without
 stacking, periodic damage benefits, and refunds immediately remove the bonus.
 
-184 core tests and 359 app tests pass, including actual hit/tick resolution,
+184 core tests and 360 app tests pass, including actual hit/tick resolution,
 normal/boss targets, spell ranks 1/5, talent rank caps, same-frame follow-ups,
-unrelated stuns, expired-state damage and refunds. Core/app-test Clippy and
+unrelated stuns, expired-state damage and refunds. The real enemy update also
+verifies independent timer expiry at 0.05/0.25/1-second steps and preservation
+with zero simulation delta. This does not constitute interactive pause acceptance.
+Core/app-test Clippy and
 native build pass. Native 1280×720 and 640×720 captures show inline values and
 a saved purchase; both are embedded in CHANGELOG. Catalog coverage is 229/432
 (Rogue 19/51). Live timing/balance and Windows combat acceptance remain open.
