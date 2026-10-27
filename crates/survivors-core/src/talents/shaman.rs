@@ -13,6 +13,8 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 605, max_rank: 2, name: "Improved Ghost Wolf", description: "+5% hero movement speed per rank (Survivors Ghost Wolf conversion; no form required)", stat: TalentStat::Speed, per_rank: 0.05 },
+    TalentDefinition { id: 1640, max_rank: 3, name: "Elemental Warding", description: "+2% hero damage reduction per rank (Survivors elemental-resistance conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.02 },
     TalentDefinition { id: 582, max_rank: 1, name: "Totemic Mastery", description: "Searing Totem: +20% attack range. Magma Totem: +20% pulse radius. Damage, duration, deployment healing and target count are unchanged (Survivors totem-range conversion)", stat: TalentStat::TotemicMastery, per_rank: 0.20 },
     TalentDefinition { id: 588, max_rank: 5, name: "Restorative Totems", description: "Searing Totem and Magma Totem deployment: +5% healing per rank, adding to Purification. Requires the 10-point Restoration healing milestone; excludes damage, shields and regeneration (Survivors healing-totem conversion)", stat: TalentStat::TotemHealing, per_rank: 0.05 },
     TalentDefinition { id: 592, max_rank: 5, name: "Purification", description: "Searing Totem and Magma Totem deployment: +2% healing per rank, adding to Restorative Totems. Requires the 10-point Restoration healing milestone; excludes damage, shields and regeneration (Survivors healing scope)", stat: TalentStat::TotemHealing, per_rank: 0.02 },
@@ -84,6 +86,8 @@ mod tests {
             let bonus = stat_adjustment(5, &ranks);
             assert_eq!(bonus.health, 4. * r);
             assert_eq!(bonus.armor, 8. * r);
+            assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
+            assert!((bonus.reduction - 0.02 * short).abs() < 0.00001);
             assert!((bonus.crit - 0.01 * r).abs() < 0.00001);
             let supported: u32 = DEFINITIONS
                 .iter()
@@ -211,5 +215,37 @@ mod mastery_tests {
             talent_definition(5, 582).unwrap().rank_preview(0),
             "This talent: 0 to 20% Searing range and Magma radius next rank"
         );
+    }
+}
+
+#[cfg(test)]
+mod survival_tests {
+    use crate::talents::{stat_adjustment, talent_definition};
+
+    #[test]
+    fn survival_training_is_class_scoped_and_previews_each_rank() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 255] {
+                let bonus = stat_adjustment(class, &[(0, 1640, rank), (1, 605, rank)]);
+                let (speed, reduction) = if class == 5 {
+                    (0.05 * f32::from(rank.min(2)), 0.02 * f32::from(rank.min(3)))
+                } else {
+                    (0., 0.)
+                };
+                assert_eq!(bonus.speed, speed);
+                assert_eq!(bonus.reduction, reduction);
+                assert_eq!(stat_adjustment(class, &[]).speed, 0.);
+                assert_eq!(stat_adjustment(class, &[]).reduction, 0.);
+            }
+        }
+        assert_eq!(
+            talent_definition(5, 605)
+                .unwrap()
+                .inline_description(1)
+                .unwrap(),
+            "+5 » 10% hero movement speed (Survivors Ghost Wolf conversion; no form required)"
+        );
+        assert_eq!(talent_definition(5, 1640).unwrap().inline_description(2).unwrap(),
+            "+4 » 6% hero damage reduction (Survivors elemental-resistance conversion; applies to all incoming damage)");
     }
 }

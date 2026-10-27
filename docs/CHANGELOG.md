@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Shaman survival talents
+
+Improved Ghost Wolf now grants 5% movement speed per rank (two ranks, no form
+required). Elemental Warding grants 2 percentage points of damage reduction per
+rank (three ranks). Both are explicit Survivors conversions, with inline green
+upgrade values and rank caps.
+
+166 core and 336 app tests, Clippy and native build pass. The local catalog audit
+matches 213/432 individual talents. Native macOS previews confirm both final-rank
+purchases persist; Windows combat and balance remain unverified. The intention's
+illustrated three-tree layout is retained.
+
+![Improved Ghost Wolf upgrade](images/screenshots/2026-10-27-shaman-survival/ghost-wolf.png)
+![Elemental Warding upgrade](images/screenshots/2026-10-27-shaman-survival/elemental-warding.png)
+
 ## 2026-10-27 — Totem healing integration
 
 Verified Restorative Totems and Purification through actual totem deployment:

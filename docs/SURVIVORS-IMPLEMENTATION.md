@@ -705,11 +705,11 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Hunter | 28 / 46 | 9 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
 | Priest | 23 / 47 | 9 / 9 |
-| Shaman | 17 / 46 | 9 / 9 |
+| Shaman | 19 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
 | Warlock | 19 / 50 | 9 / 9 |
 | Druid | 20 / 47 | 9 / 9 |
-| Total | 211 / 432 | 81 / 81 |
+| Total | 213 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -5898,3 +5898,20 @@ or claiming Windows combat or balance acceptance.
 
 Validation: all 336 app tests, app Clippy, formatting and diff checks pass.
 Runtime code is unchanged; no native rebuild or visual checkpoint is claimed.
+
+
+### Shaman survival talents — 2026-10-27
+
+Audited DBC identities/rank caps: Improved Ghost Wolf (605, two ranks) grants
+5% movement speed per rank without requiring a form; Elemental Warding (1640,
+three ranks) grants two percentage points of hero damage reduction per rank.
+These explicit Survivors conversions use the existing movement/mitigation bonus
+pipeline. Class-scoping, capped ranks, reset and inline descriptions are tested.
+
+166 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+The install audit reports 213/432 matching definitions and 81/81 milestones;
+219 individual talent definitions remain, alongside broader acceptance work.
+Native 1280×720 preview purchases reached 2/2 and 3/3 respectively and both ranks
+were written to the isolated account. CHANGELOG embeds both inline-upgrade
+screenshots. The intention's illustrated tree layout is retained; this does not
+establish live combat balance, compact layout or Windows acceptance.
