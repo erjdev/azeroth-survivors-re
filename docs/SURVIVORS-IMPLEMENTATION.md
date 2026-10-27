@@ -7012,3 +7012,12 @@ paths, unchanged saved specs, a successful purchase/refund and legacy-point retu
 377 app tests, app-test Clippy and native build pass. Native 1280×720 captures of
 zero-budget and funded-but-row-locked cases are embedded in CHANGELOG. Browser
 revalidation of this copy change and broader interface acceptance remain open.
+
+
+### 2026-10-27 — Windows playtest acceptance tracker
+
+The four reported foliage, navigation, chest and talent-art issues are consolidated
+in [the Windows playtest tracker](WINDOWS-PLAYTEST.md), with current mechanisms,
+limits and remaining scene checks. All 385 Survivors app tests pass with local
+data; this does not close Windows or GPU scene acceptance. Existing talent
+captures are embedded in the tracker with their original dates.

@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Windows playtest review
+
+Consolidated foliage reveal, enemy routing, elite chest cadence and talent art
+into a [playtest acceptance tracker](WINDOWS-PLAYTEST.md). All 385 Survivors app
+tests pass with checkout-local data. No runtime changes in this checkpoint;
+reported Windows scenes remain open. Earlier talent screenshots are retained
+inline below and in the tracker, not presented as new captures.
+
 ## 2026-10-27 — Short-window Collection acceptance
 
 Verified Collection at 800×600 with 125% interface size: item actions remain
