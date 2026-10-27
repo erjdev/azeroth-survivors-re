@@ -7235,3 +7235,19 @@ No system installation was changed. Screenshots are inline in the changelog and
 the PR description now reflects raid settlement and 251/432 talent definitions.
 The GitHub connector returned no PR-triggered workflow runs for `5b41473`; this
 limited query does not establish the state of every repository workflow.
+
+
+### Talent stat-label highlighting — 2026-10-27
+
+The typed inline talent formatter now extends each changing-value range across
+its associated stat phrase, using complete phrase boundaries and the longest
+matching label. This preserves plain description text, fixed secondary bonuses,
+rank bounds, single-unit formatting and separate damage/critical-chance ranges.
+It does not color arbitrary prose up to punctuation. Core cases cover health,
+armor, critical chance, speed, range, fixed haste/duration exclusions and word
+boundaries. The existing Bevy detail test checks green/white spans, font retention
+and unchanged child entities on repeat updates. Native health and Moonfire
+captures show the corrected phrases; no gameplay or save changes.
+
+Verification: 208 core / 398 app tests, both Clippy gates, formatting and native
+play build (16 seconds) pass. No new platform/gameplay acceptance is claimed.

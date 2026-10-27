@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Complete green talent stat phrases
+
+Talent upgrade highlights now include their stat labels: “4 » 8% maximum health”
+and Moonfire's damage/critical-chance phrases are green together. Fixed secondary
+bonuses and connective prose stay white; numbers, mechanics and saves are unchanged.
+
+![Complete health phrase highlighted](images/screenshots/2026-10-27-talent-stat-labels/health.png)
+
+![Both Moonfire changes highlighted inline](images/screenshots/2026-10-27-talent-stat-labels/moonfire.png)
+
+208 core / 398 app tests, both Clippy checks, formatting and native build pass.
+
 ## 2026-10-27 — Browser integration and accurate credit
 
 Current WebGPU package verifies Naxxramas source selection, Raid Epic stats and

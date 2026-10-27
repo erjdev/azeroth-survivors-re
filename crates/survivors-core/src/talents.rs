@@ -1490,6 +1490,59 @@ pub enum TalentStat {
     SpellRadius(&'static str),
 }
 
+/// Match complete stat phrases, longest first by length, rather than coloring
+/// everything up to punctuation (which can include unrelated fixed effects).
+fn inline_stat_label(tail: &str) -> &str {
+    const LABELS: &[&str] = &[
+        " maximum health",
+        " hero health",
+        " health",
+        " hero armor",
+        " armor",
+        " hero critical chance",
+        " critical chance",
+        " critical damage",
+        " hero movement speed",
+        " movement speed",
+        " hero damage reduction",
+        " damage reduction",
+        " direct and periodic damage",
+        " direct damage",
+        " periodic damage",
+        " damage",
+        " healing",
+        " shorter cooldown",
+        " cooldown reduction",
+        " cooldown",
+        " pickup range",
+        " targeting range",
+        " casting range",
+        " radius",
+        " area",
+        " root duration",
+        " stun duration",
+        " slow duration",
+        " duration",
+        " bite damage",
+        " bite critical chance",
+        " bite haste",
+        " bite speed",
+    ];
+    LABELS
+        .iter()
+        .copied()
+        .filter(|label| {
+            tail.strip_prefix(label).is_some_and(|rest| {
+                !rest
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_alphanumeric() || c == '_')
+            })
+        })
+        .max_by_key(|label| label.len())
+        .unwrap_or("")
+}
+
 impl TalentDefinition {
     /// Inline this node's linear contribution; retain authored scope and caveats.
     /// Supported coupled effects share their rank scale; other compounds/procs retain a breakdown.
@@ -1694,8 +1747,13 @@ impl TalentDefinition {
             text.push_str(&source[cursor..index]);
             let start = text.len() - usize::from(source[..index].ends_with('+'));
             text.push_str(&value);
-            ranges.push(start..text.len());
             cursor = index + token_len;
+            // Keep the stat label with its changing number, without consuming
+            // connective prose, fixed secondary bonuses or punctuation.
+            let label = inline_stat_label(&source[cursor..]);
+            text.push_str(label);
+            cursor += label.len();
+            ranges.push(start..text.len());
         }
         text.push_str(&source[cursor..]);
         Some((text, ranges))
@@ -3810,7 +3868,10 @@ mod stat_talent_tests {
         assert_eq!(text, "Moonfire: +2 » 4% direct and periodic damage and +2 » 4 percentage points critical chance");
         assert_eq!(
             ranges.iter().map(|r| &text[r.clone()]).collect::<Vec<_>>(),
-            ["+2 » 4%", "+2 » 4 percentage points"]
+            [
+                "+2 » 4% direct and periodic damage",
+                "+2 » 4 percentage points critical chance"
+            ]
         );
         let (text, ranges) = moonfire.inline_description_with_values(255).unwrap();
         assert_eq!(
@@ -5495,11 +5556,11 @@ mod additional_inline_tests {
     #[test]
     fn single_rank_unlocks_inline_the_bonus_and_preserve_other_numbers() {
         for (class, id, value) in [
-            (8, 761, "15%"),
-            (8, 831, "15%"),
-            (8, 844, "5%"),
-            (4, 442, "5%"),
-            (3, 382, "10%"),
+            (8, 761, "15% shorter cooldown"),
+            (8, 831, "15% shorter cooldown"),
+            (8, 844, "5% maximum health"),
+            (4, 442, "5% maximum health"),
+            (3, 382, "10% shorter cooldown"),
         ] {
             let node = talent_definition(class, id).unwrap();
             let (untrained, spans) = node.inline_description_with_values(0).unwrap();
@@ -5553,7 +5614,6 @@ mod additional_inline_tests {
                 );
                 for span in spans {
                     let value = &text[span];
-                    assert!(value.ends_with('%'));
                     assert_eq!(value.matches('%').count(), 1);
                 }
             }
@@ -5656,5 +5716,38 @@ mod compound_range_inline_tests {
         );
         assert_eq!(frost.inline_description(255).unwrap(), "Frost slows last 3 sec longer and reduce movement by 9 additional percentage points; does not extend freezes");
         assert_eq!(talent_definition(4, 1635).unwrap().inline_description(1).unwrap(), "Smite and Holy Fire: +10 » 20% casting range; Holy Nova: +10 » 20% radius, still one player-centered area");
+    }
+}
+
+#[cfg(test)]
+mod inline_stat_label_tests {
+    use super::*;
+    #[test]
+    fn stat_labels_share_green_ranges_without_coloring_fixed_effects() {
+        for (class, id, expected) in [
+            (8, 808, "+0 » 4% maximum health"),
+            (8, 794, "+0 » 8 hero armor"),
+            (8, 798, "+0 » 2 percentage points hero critical chance"),
+            (8, 807, "+0 » 5% hero movement speed"),
+            (2, 1352, "+0 » 2 yd targeting range"),
+        ] {
+            let node = talent_definition(class, id).unwrap();
+            let (text, ranges) = node.inline_description_with_values(0).unwrap();
+            assert_eq!(&text[ranges[0].clone()], expected);
+            assert!(!text.contains("per rank"));
+            let (max, ranges) = node.inline_description_with_values(255).unwrap();
+            assert!(!max.contains(" » "));
+            assert!(!max[ranges[0].clone()].contains("Survivors"));
+        }
+        let node = talent_definition(2, 1397).unwrap();
+        let (text, ranges) = node.inline_description_with_values(1).unwrap();
+        assert_eq!(&text[ranges[0].clone()], "20 » 40%");
+        assert!(text.contains("30% bite haste for 8 sec"));
+        assert_eq!(
+            inline_stat_label(" damage reduction, unchanged armor"),
+            " damage reduction"
+        );
+        assert_eq!(inline_stat_label(" damageable objects"), "");
+        assert_eq!(inline_stat_label(" healing_thing"), "");
     }
 }

@@ -983,10 +983,13 @@ mod tests {
         schedule.run(&mut world);
         assert_eq!(world.get::<Text>(effect).unwrap().0, "Retaliation: ");
         let spans = world.get::<Children>(effect).unwrap();
-        assert_eq!(world.get::<TextSpan>(spans[0]).unwrap().0, "+15 » 30%");
+        assert_eq!(
+            world.get::<TextSpan>(spans[0]).unwrap().0,
+            "+15 » 30% duration"
+        );
         assert_eq!(
             world.get::<TextSpan>(spans[1]).unwrap().0,
-            " duration (Survivors conversion)"
+            " (Survivors conversion)"
         );
         assert_eq!(world.get::<TextColor>(effect).unwrap().0, Color::WHITE);
         assert_eq!(
@@ -1018,10 +1021,10 @@ mod tests {
         assert_eq!(world.get::<Text>(effect).unwrap().0, "Moonfire: ");
         let spans = world.get::<Children>(effect).unwrap();
         let expected = [
-            "+2 » 4%",
-            " direct and periodic damage and ",
-            "+2 » 4 percentage points",
-            " critical chance",
+            "+2 » 4% direct and periodic damage",
+            " and ",
+            "+2 » 4 percentage points critical chance",
+            "",
         ];
         assert_eq!(spans.len(), expected.len());
         for (index, child) in spans.iter().enumerate() {
