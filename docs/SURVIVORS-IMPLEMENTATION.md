@@ -6220,3 +6220,22 @@ second-hero isolation and the pre-reset run snapshot. All 348 app tests with
 checkout data, app Clippy and diff checks pass. This is cast-parameter integration
 evidence alongside the existing actual-deployment ECS tests, not new Windows
 playtest evidence or full talent completion. No rendering changes or new captures.
+
+### 2026-10-27 — Guardian Totems
+
+Vanilla node 609 (two ranks, Enhancement row 1) now has an explicit Survivors
+conversion: +10% Earth Shock shield absorption per rank, requiring the existing
+10-point Enhancement milestone. The 3%-maximum-health shield becomes 3.3%/3.6%;
+its three-second duration is unchanged. This deliberately maps defensive totems
+to the existing shield, rather than introducing unsupported totem spells.
+
+Core coverage verifies all classes, milestone boundaries, capped ranks, reset and
+unchanged other cast fields/spells. App coverage checks runtime Params and cast
+completion, repeated refresh, stronger shields, no healing and dead heroes.
+174 core tests and 349 app tests pass; core/app Clippy, incremental native build
+and formatting/diff checks pass. The checkout identity audit matches 219/432
+individual definitions (Shaman 25/46), with 81/81 milestone descriptions.
+
+Native macOS 1280×720 and 640×720 captures verify green inline rank previews,
+rank-2 spending and capped text. Both are embedded in CHANGELOG. Windows combat,
+balance and the remaining 213 individual definitions remain incomplete.

@@ -13,6 +13,7 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 609, max_rank: 2, name: "Guardian Totems", description: "Earth Shock: +10% shield absorption per rank. Requires the 10-point Enhancement shield milestone; shield duration and damage are unchanged (Survivors defensive-totem conversion)", stat: TalentStat::GuardianTotems, per_rank: 0.10 },
     TalentDefinition { id: 586, max_rank: 5, name: "Improved Healing Wave", description: "Searing Totem and Magma Totem: 4% shorter deployment cooldown per rank (Survivors healing cast-time conversion). Healing still requires the 10-point Restoration milestone; pulse rate and healing per deployment are unchanged", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.04 },
     TalentDefinition { id: 593, max_rank: 5, name: "Tidal Focus", description: "Searing Totem and Magma Totem: 2% shorter deployment cooldown per rank, multiplying other cooldown training (Survivors healing mana-cost conversion). Healing per deployment is unchanged", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.02 },
     TalentDefinition { id: 601, max_rank: 5, name: "Anticipation", description: "+1% hero damage reduction per rank (Survivors dodge conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.01 },
@@ -372,5 +373,44 @@ mod healing_cadence_tests {
             .inline_description(4)
             .unwrap()
             .contains("8 » 10% shorter deployment cooldown"));
+    }
+}
+
+#[cfg(test)]
+mod guardian_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn guardian_totems_amplify_only_an_unlocked_earth_shock_shield() {
+        for class in 0..9 {
+            for points in [0, 9, 10, 20, 30] {
+                for rank in [0, 1, 2, 3, 255] {
+                    let base = Milestones {
+                        class,
+                        points: [0, points, 0],
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 609, rank)]);
+                    for key in crate::data::CLASSES[5]
+                        .pool
+                        .iter()
+                        .copied()
+                        .chain(["power_word_shield", "retaliation"])
+                    {
+                        let mut expected = base.cast(key);
+                        if class == 5 && key == "earth_shock" {
+                            expected.shield_fraction *= 1. + 0.1 * f32::from(rank.min(2));
+                        }
+                        assert_eq!(trained.cast(key), expected);
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+        assert!(talent_definition(5, 609)
+            .unwrap()
+            .inline_description(1)
+            .unwrap()
+            .contains("10 » 20% shield absorption"));
     }
 }

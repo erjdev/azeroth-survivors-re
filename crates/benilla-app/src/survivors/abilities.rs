@@ -5073,6 +5073,52 @@ mod milestone_tests {
     }
 
     #[test]
+    fn guardian_totems_refresh_absorption_without_stacking_or_extending_stronger_shields() {
+        for points in [9, 10, 30] {
+            for rank in [0, 1, 2, 255] {
+                let milestones = Milestones {
+                    class: 5,
+                    points: [0, points, 0],
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 609, rank)]);
+                let mut run = Run {
+                    hp: 50.,
+                    milestones,
+                    ..Default::default()
+                };
+                let owned = Owned {
+                    def: data::ability("earth_shock"),
+                    level: 1,
+                    cd: 0.,
+                };
+                let params = Params::new(&owned, &run.stats(), milestones);
+                let expected = if points >= 10 {
+                    3. * (1. + 0.1 * f32::from(rank.min(2)))
+                } else {
+                    0.
+                };
+                assert!((params.shield_fraction * 100. - expected).abs() < 0.00001);
+                for _ in 0..3 {
+                    finish_milestone_cast(&mut run, milestones.cast("earth_shock"), 100.);
+                    assert!((run.shield - expected).abs() < 0.00001);
+                    assert_eq!(run.shield_t, if points >= 10 { 3. } else { 0. });
+                    assert_eq!(run.hp, 50.);
+                }
+                run.shield = 20.;
+                run.shield_t = 8.;
+                finish_milestone_cast(&mut run, milestones.cast("earth_shock"), 100.);
+                assert_eq!((run.shield, run.shield_t), (20., 8.));
+                run.shield = 0.;
+                run.shield_t = 0.;
+                run.hp = 0.;
+                finish_milestone_cast(&mut run, milestones.cast("earth_shock"), 100.);
+                assert_eq!((run.shield, run.shield_t), (0., 0.));
+            }
+        }
+    }
+
+    #[test]
     fn mage_arcane_fire_milestones_reach_cast_parameters_and_cooldown_finish() {
         let mut run = Run::default();
         let stats = run.stats();

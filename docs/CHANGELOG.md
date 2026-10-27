@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Guardian Totems
+
+Shaman Guardian Totems now strengthens the unlocked Earth Shock shield by 10% per
+rank, up to 20%. Duration stays fixed; repeated casts refresh without stacking,
+and stronger existing shields are preserved. Inline green previews show each rank.
+
+174 core tests, 349 app tests, core/app Clippy and native build pass. Install audit:
+219/432 individual talent definitions. Native macOS wide/compact checks cover
+rank preview and spending; Windows combat acceptance remains open.
+
+![Guardian Totems inline upgrade](images/screenshots/2026-10-27-guardian-totems/talents-1280.png)
+![Guardian Totems trained at compact size](images/screenshots/2026-10-27-guardian-totems/talents-640.png)
+
 ## 2026-10-27 — Saved Restoration builds verified
 
 The packaged Shaman builds now have save-to-cast regression coverage: stacked
