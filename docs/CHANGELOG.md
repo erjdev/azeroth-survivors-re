@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Explain equipment set changes
+
+Item comparisons now name full-loadout and Raid Epic set bonuses gained or lost
+when changing equipment. This explains stat changes beyond the item's own
+bonuses; equipment mechanics are unchanged. Both legacy and supplemental item
+panels share the explanation.
+
+358 app tests, app-test Clippy and native build pass. Native 1024×768 captures
+verify removing a shoulder piece and previewing its replacement; headless UI
+coverage checks raid thresholds across all nine classes.
+
+![Removing shoulders also loses the full-loadout bonus](images/screenshots/2026-10-27-set-comparison/loss-1024.png)
+![Equipping shoulders restores the full-loadout bonus](images/screenshots/2026-10-27-set-comparison/gain-1024.png)
+
 ## 2026-10-27 — Druid Character at 1024×768
 
 Native acceptance checks cover a full legacy Druid collection: dressed male and

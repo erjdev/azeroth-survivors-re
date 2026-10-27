@@ -1037,6 +1037,15 @@ pub(super) fn detail(
                 layout.body_size,
                 GOLD,
             );
+            for (line, color) in set_changes(
+                class,
+                &progress.pieces,
+                &account.supplemental,
+                &progress.equipment,
+                &preview,
+            ) {
+                text(ui, font, line, layout.body_size, color);
+            }
             for (line, color) in hud::card_growth::bonus_changes(
                 progress
                     .equipment
@@ -1174,13 +1183,12 @@ pub(super) fn detail(
     if owned {
         let equipped = progress.equipment.worn[slot] == Some(band as u8);
         let target = if equipped { None } else { Some(band as u8) };
-        if let Some((before, after)) = progress.equipment.preview_wear_bonus(
-            class,
-            &progress.pieces,
-            &account.supplemental,
-            slot,
-            target,
-        ) {
+        let mut preview = progress.equipment.clone();
+        if preview.wear(&progress.pieces, slot, target) {
+            let before = progress
+                .equipment
+                .bonus(class, &progress.pieces, &account.supplemental);
+            let after = preview.bonus(class, &progress.pieces, &account.supplemental);
             text(
                 ui,
                 font,
@@ -1192,6 +1200,15 @@ pub(super) fn detail(
                 layout.body_size,
                 GOLD,
             );
+            for (line, color) in set_changes(
+                class,
+                &progress.pieces,
+                &account.supplemental,
+                &progress.equipment,
+                &preview,
+            ) {
+                text(ui, font, line, layout.body_size, color);
+            }
             for (line, color) in
                 hud::card_growth::bonus_changes(before, after, "No change to equipment bonuses")
             {
@@ -1214,6 +1231,48 @@ pub(super) fn detail(
         DIM,
     );
     look_controls(ui, font, armory, account, selection, layout);
+}
+
+/// Explain threshold effects separately from the aggregate equipment stat comparison.
+fn set_changes(
+    class: usize,
+    pieces: &[u8],
+    owned: &survivors_core::supplemental_gear::Inventory,
+    before: &survivors_core::gear_loadout::Loadout,
+    after: &survivors_core::gear_loadout::Loadout,
+) -> Vec<(String, Color)> {
+    let mut lines = Vec::new();
+    let complete = |loadout: &survivors_core::gear_loadout::Loadout| {
+        (0..campaign::GRID_SLOTS).all(|slot| loadout.worn(class, pieces, owned, slot).is_some())
+    };
+    let transition = |active| {
+        if active {
+            ("gained", hud::card_growth::GAIN)
+        } else {
+            ("lost", Color::srgb(1.0, 0.4, 0.35))
+        }
+    };
+    if complete(before) != complete(after) {
+        let (verb, color) = transition(complete(after));
+        lines.push((
+            format!(
+                "Full loadout bonus {verb} (all 9 slots): {}",
+                super::door::bonus_line(campaign::set_bonus())
+            ),
+            color,
+        ));
+    }
+    let old_count = before.raid_pieces(class, owned);
+    let new_count = after.raid_pieces(class, owned);
+    if let Some(name) = survivors_core::raid_sets::NAMES.get(class) {
+        for threshold in [2, 4, 6] {
+            if (old_count >= threshold) != (new_count >= threshold) {
+                let (verb, color) = transition(new_count >= threshold);
+                lines.push((format!("{name} {threshold}-piece bonus {verb} ({old_count} » {new_count} raid armor equipped)"), color));
+            }
+        }
+    }
+    lines
 }
 
 fn source_button(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, zone: usize) {
@@ -1394,6 +1453,110 @@ fn missing(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn set_previews_explain_full_loadout_and_raid_thresholds_in_both_item_paths() {
+        use survivors_core::{gear_tier::GearTier, supplemental_gear};
+        for class in 0..9 {
+            let mut account = super::super::super::account::blank();
+            account.classes[class].pieces.fill(1);
+            for slot in 0..9 {
+                account.classes[class]
+                    .equipment
+                    .wear(&[1; campaign::PIECES], slot, Some(0));
+            }
+            // Replacing a worn piece preserves the complete loadout bonus.
+            let original = account.classes[class].equipment.clone();
+            let mut replacement = original.clone();
+            replacement.wear(&[1; campaign::PIECES], 0, Some(1));
+            assert!(set_changes(
+                class,
+                &[1; campaign::PIECES],
+                &account.supplemental,
+                &original,
+                &replacement
+            )
+            .is_empty());
+            for raid_count in 0..=6 {
+                if raid_count > 0 {
+                    let piece = supplemental_gear::piece(class, raid_count - 1, GearTier::RaidEpic)
+                        .unwrap();
+                    account.supplemental.collect(class, &piece.key);
+                    account.classes[class].equipment.wear_supplemental(
+                        class,
+                        &account.supplemental,
+                        piece.slot,
+                        &piece.key,
+                    );
+                }
+                let armory = Armory {
+                    piece: 0,
+                    supplemental_piece: (raid_count > 0).then(|| {
+                        supplemental_gear::piece(class, raid_count - 1, GearTier::RaidEpic)
+                            .unwrap()
+                            .key
+                    }),
+                    ..default()
+                };
+                let mut world = World::new();
+                world
+                    .commands()
+                    .spawn(Node::default())
+                    .with_children(|panel| {
+                        detail(
+                            panel,
+                            &Handle::default(),
+                            &armory,
+                            &account,
+                            &Selection {
+                                class: Some(class),
+                                ..default()
+                            },
+                            &Layout::default(),
+                        );
+                    });
+                world.flush();
+                let lines: Vec<_> = world
+                    .query::<&Text>()
+                    .iter(&world)
+                    .map(|text| text.0.clone())
+                    .collect();
+                assert!(
+                    lines
+                        .iter()
+                        .any(|line| line.starts_with("Full loadout bonus lost (all 9 slots):")),
+                    "{class}: {raid_count}: {lines:?}"
+                );
+                let raid_lines: Vec<_> = lines
+                    .iter()
+                    .filter(|line| line.contains("raid armor equipped)"))
+                    .collect();
+                if [2, 4, 6].contains(&raid_count) {
+                    assert_eq!(raid_lines.len(), 1);
+                    assert!(raid_lines[0].contains(&format!("{raid_count}-piece bonus lost")));
+                } else {
+                    assert!(raid_lines.is_empty());
+                }
+                let before = &account.classes[class].equipment;
+                let mut removed = before.clone();
+                removed.wear(&[1; campaign::PIECES], raid_count.saturating_sub(1), None);
+                let restored = set_changes(
+                    class,
+                    &[1; campaign::PIECES],
+                    &account.supplemental,
+                    &removed,
+                    before,
+                );
+                assert!(restored.iter().all(
+                    |(line, color)| line.contains("gained") && *color == hud::card_growth::GAIN
+                ));
+                assert_eq!(
+                    restored.len(),
+                    1 + usize::from([2, 4, 6].contains(&raid_count))
+                );
+            }
+        }
+    }
 
     #[test]
     fn supplemental_sources_link_only_obtainable_zones_and_skip_current_destination() {

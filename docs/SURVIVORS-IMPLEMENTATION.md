@@ -800,6 +800,12 @@ legacy migration, malformed references and round trips have regression tests.
 
 ## Phase 3 — collection and character surfaces
 
+Equipment comparison addition (2026-10-27): both item-detail paths explain
+full nine-slot and Raid Epic 2/4/6-piece bonuses gained/lost, alongside aggregate
+stat changes. Replacements preserving thresholds produce no warning. Headless
+UI coverage spans all nine classes; native 1024×768 loss/restoration captures
+are inline in CHANGELOG. 358 app tests, app-test Clippy and native build pass.
+
 Native acceptance addition (2026-10-27, runtime `6de93e9`): a disposable full
 54-piece Druid fixture at 1024×768 verifies dressed male/female Night Elf models,
 drag rotation, reachable lower controls, persisted sex change with unchanged
