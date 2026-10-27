@@ -891,6 +891,9 @@ impl Account {
         if !(1..=3).contains(&kind) {
             return Err("Unknown instinct");
         }
+        if !super::companions::instinct_available(kind) {
+            return Err("Rune-hound is unavailable until battleground runes are implemented");
+        }
         let slot = self.instinct_target().ok_or("Unlock a companion first")?;
         if self.pets.instinct[slot] == kind {
             return Err("Already learned");
@@ -1724,6 +1727,15 @@ mod tests {
         assert_eq!(encode(&account), encode(&restored));
         std::fs::remove_dir_all(dir).unwrap();
     }
+    #[test]
+    fn saved_rune_instinct_is_retained_without_allowing_new_purchases() {
+        let mut account = parse("pets 2 0 0 3 1 0 0 0\n").unwrap();
+        let before = encode(&account);
+        assert!(account.buy_instinct(3).is_err());
+        assert_eq!(encode(&account), before);
+        assert_eq!(parse(&before).unwrap().pets.instinct, [3, 1]);
+    }
+
     #[test]
     fn imported_reward_counters_bound_resets_and_preserve_nonperk_spending() {
         for resets in [0, 1, 2, 3, 255] {
@@ -3312,7 +3324,7 @@ pets 2 3 1 1 2 0 1
         }
         account.grant_new();
         let before = encode(&account);
-        for kind in [0, 4, 255] {
+        for kind in [0, 3, 4, 255] {
             assert!(account.buy_instinct(kind).is_err());
             assert_eq!(encode(&account), before);
         }
@@ -3331,15 +3343,15 @@ pets 2 3 1 1 2 0 1
         account.buy_instinct(1).unwrap();
         assert_eq!(account.pets.instinct, [2, 1]);
         assert_eq!(account.instinct_target(), Some(0));
-        account.buy_instinct(3).unwrap();
-        assert_eq!(account.pets.instinct, [3, 1]);
+        account.buy_instinct(1).unwrap();
+        assert_eq!(account.pets.instinct, [1, 1]);
         assert_eq!(account.unspent(), points - 130);
         account.buy_perk(Perk::SecondThoughts).unwrap();
         account.reset_perks().unwrap();
-        assert_eq!(account.pets.instinct, [3, 1]);
+        assert_eq!(account.pets.instinct, [1, 1]);
         assert_eq!(account.unspent(), points - 130);
         let restored = parse(&encode(&account)).unwrap();
-        assert_eq!(restored.pets.instinct, [3, 1]);
+        assert_eq!(restored.pets.instinct, [1, 1]);
         assert_eq!(restored.pets.owned, 2);
         let mut poor = empty();
         assert!(poor.buy_instinct(1).is_err());

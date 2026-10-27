@@ -5872,3 +5872,14 @@ and dead heroes, hero-pulled versus unclaimed coins, correct 10/11 gold ownershi
 and no duplicate payout on a second update. All 333 app tests and Clippy pass.
 Runtime code is unchanged, so the native build was not repeated. These checks do
 not replace live pickup/navigation acceptance or finish Rune-hound behavior.
+
+
+### Rune-hound purchase safeguard — 2026-10-27
+
+Until battleground runes have implemented spawning/effects, Rune-hound cannot be
+purchased or staged in a reward draft. Its card states Unavailable and preserves
+saved instincts. This is an interim safeguard, not completion of the reward.
+335 app tests, Clippy and native build pass; a funded native preview confirms
+clicking the disabled control spends nothing and creates no pending purchase.
+Inline changelog evidence is included. Rune design/spawning, live collection and
+Windows acceptance remain open.

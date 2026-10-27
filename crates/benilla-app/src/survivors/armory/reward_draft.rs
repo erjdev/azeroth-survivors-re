@@ -73,6 +73,14 @@ mod tests {
     use super::*;
     use crate::survivors::{account, campaign};
 
+    #[test]
+    fn unavailable_rune_instinct_cannot_enter_a_funded_draft() {
+        let account = funded();
+        let mut draft = Draft::default();
+        assert!(draft.stage(&account, 10).is_err());
+        assert!(draft.is_empty());
+    }
+
     fn funded() -> Account {
         let mut account = account::blank();
         for class in 0..9 {

@@ -382,7 +382,8 @@ pub(super) fn companions(
                 10 => ("Rune-hound", "INV_Misc_Rune_01", u8::from(current == 3), 1),
                 _ => ("Second Companion", "INV_Box_PetCarrier_01", u8::from(pets.owned >= 2), 1),
             };
-            let cost = if rank == max || code == 13 { None } else { Some(match code { 6 | 7 => [15, 25, 35][usize::from(rank)], 11 => 40, _ => 30 }) };
+            let available = !(8..=10).contains(&code) || super::super::companions::instinct_available(code - 7);
+            let cost = if !available || rank == max || code == 13 { None } else { Some(match code { 6 | 7 => [15, 25, 35][usize::from(rank)], 11 => 40, _ => 30 }) };
             let now = trip(0.0, pets.leash, pets.paws, current);
             let next = trip(0.0, if code == 6 { rank.saturating_add(1) } else { pets.leash }, if code == 7 { rank.saturating_add(1) } else { pets.paws }, if (8..=10).contains(&code) { code - 7 } else { current });
             let parts = match code {
@@ -391,7 +392,7 @@ pub(super) fn companions(
                 7 => vec![("Run ".into(), DIM), (comparison((now.speed / trip(0.0, 0, 0, 0).speed - 1.0) * 100.0, (next.speed / trip(0.0, 0, 0, 0).speed - 1.0) * 100.0, "%"), hud::card_growth::GAIN), (" faster and rest ".into(), DIM), (comparison(now.rest, next.rest, " sec"), hud::card_growth::GAIN), (" between trips.".into(), DIM)],
                 8 => vec![("Prioritize coins, worth ".into(), DIM), (comparison((now.gold_bonus - 1.0) * 100.0, (next.gold_bonus - 1.0) * 100.0, "% more"), hud::card_growth::GAIN), (" when fetched.".into(), DIM)],
                 9 => vec![("Prioritize experience wisps with ".into(), DIM), (comparison(now.wisp_reach / now.reach, next.wisp_reach / next.reach, "× reach"), hud::card_growth::GAIN), (".".into(), DIM)],
-                10 => vec![("Prioritize and fetch battleground runes. Rune spawning is not yet available.".into(), DIM)],
+                10 => vec![("Unavailable: battleground runes are not implemented. Existing saved instincts are retained.".into(), DIM)],
                 _ => vec![("Travel with ".into(), DIM), (comparison(f32::from(pets.owned.min(2)), 2.0, " companions"), hud::card_growth::GAIN), (", each with its own instinct.".into(), DIM)],
             };
             let pending = armory.reward_draft.codes().iter().filter(|&&value| value == code).count();
@@ -412,7 +413,7 @@ pub(super) fn companions(
                     }
                 });
                 card.spawn(Node { flex_direction: FlexDirection::Column, align_items: AlignItems::FlexEnd, width: Val::Px(78.0), flex_shrink: 0.0, row_gap: Val::Px(4.0), ..default() }).with_children(|actions| {
-                    text(actions, font, cost.map_or_else(|| if code == 13 { "Included" } else if (8..=10).contains(&code) { "Learned" } else { "Max rank" }.into(), |value| format!("{value} points")), 12.0, DIM);
+                    text(actions, font, cost.map_or_else(|| if !available { "Unavailable" } else if code == 13 { "Included" } else if (8..=10).contains(&code) { "Learned" } else { "Max rank" }.into(), |value| format!("{value} points")), 12.0, DIM);
                     actions.spawn(Node { column_gap: Val::Px(4.0), ..default() }).with_children(|buttons| {
                         perk_step(buttons, font, "−", (pending > 0).then_some(Act::RemoveReward(code)));
                         perk_step(buttons, font, "+", cost.filter(|&value| account.unspent() >= value && (!(8..=10).contains(&code) || target.is_some())).map(|_| Act::Reward(code)));

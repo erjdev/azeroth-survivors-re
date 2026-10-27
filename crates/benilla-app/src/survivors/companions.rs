@@ -156,6 +156,11 @@ pub(super) struct Trip {
     pub instinct: u8,
 }
 
+/// Only instincts backed by spawned pickups may charge achievement points.
+pub(super) fn instinct_available(kind: u8) -> bool {
+    matches!(kind, 1 | 2)
+}
+
 /// `instinct`: 0 none, 1 gold-sniffer, 2 wisp-herder, 3 rune-hound.
 pub(super) fn trip(magnet: f32, leash_rank: u8, paws_rank: u8, instinct: u8) -> Trip {
     let leash = leash_rank.min(3);

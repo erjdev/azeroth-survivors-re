@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Unavailable Rune-hound purchase
+
+Rune-hound no longer charges points while rune spawning is unfinished. Its card
+shows Unavailable; both direct purchases and staged rewards reject it. Existing
+saved instincts remain intact. This safeguard does not complete rune gameplay.
+
+335 app tests, Clippy and native build pass. A funded macOS preview confirms the
+disabled control leaves all 35 points and the empty purchase draft unchanged.
+The intention-based rewards layout is retained; Windows acceptance remains open.
+
+![Unavailable Rune-hound in funded Rewards](images/screenshots/2026-10-27-rune-availability/companions-1280.png)
+
 ## 2026-10-27 — Hero/companion collection integration
 
 Added a regression running the production companion → hero collection chain.
