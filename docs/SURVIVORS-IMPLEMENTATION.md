@@ -832,15 +832,15 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
 | Warrior | 34 / 52 | 9 / 9 |
-| Paladin | 24 / 44 | 9 / 9 |
-| Hunter | 31 / 46 | 9 / 9 |
-| Rogue | 22 / 51 | 9 / 9 |
-| Priest | 25 / 47 | 9 / 9 |
-| Shaman | 30 / 46 | 9 / 9 |
-| Mage | 33 / 49 | 9 / 9 |
-| Warlock | 27 / 50 | 9 / 9 |
-| Druid | 23 / 47 | 9 / 9 |
-| Total | 249 / 432 | 81 / 81 |
+| Paladin | 25 / 44 | 9 / 9 |
+| Hunter | 36 / 46 | 9 / 9 |
+| Rogue | 24 / 51 | 9 / 9 |
+| Priest | 29 / 47 | 9 / 9 |
+| Shaman | 31 / 46 | 9 / 9 |
+| Mage | 37 / 49 | 9 / 9 |
+| Warlock | 28 / 50 | 9 / 9 |
+| Druid | 25 / 47 | 9 / 9 |
+| Total | 269 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -7809,3 +7809,22 @@ Vengeance now uses the inline comparison path. Representative first/capped ranks
 compound damage/critical bonuses, word boundaries and unchanged fixed values pass
 221 core tests; native Warrior and Paladin captures are inline in the changelog.
 This is presentation evidence, not new talent mechanics or balance acceptance.
+
+
+### 2026-10-27 checkpoint — Hunter melee and Savage Strikes
+
+Added Raptor Strike and Mongoose Bite to normal Hunter acquisition/upgrade offers,
+using existing close-range melee casting and spell-specific Codex jewelry. Added
+Savage Strikes with capped, class-scoped critical chance for exactly those two
+abilities. Mongoose Bite is explicitly converted to an automatic cooldown attack.
+
+222 core tests and 435 app tests pass, including actual cast range/retry/pause,
+extra targets, scoped critical hits, saved-spec switching/refunds and real DBC
+identity checks. Core/app Clippy, formatting and native build pass (26 seconds).
+Native previews verify a legal talent purchase at 800×600 and cards/Codex at
+1280×720. Screenshots are embedded in CHANGELOG; README gallery refreshed.
+
+Audit coverage is 269/432 definitions, Hunter 36/46; 163 definitions remain.
+This is definition coverage, not full combat/balance acceptance. Windows talent
+spacing, foliage visibility, obstacle routing and chest pacing remain open as
+recorded above; no combat session was used for this checkpoint.

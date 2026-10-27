@@ -3550,54 +3550,51 @@ mod card_icon_tests {
     }
 
     #[test]
-    fn hunter_can_acquire_and_upgrade_scorpid_sting_through_normal_offers() {
-        let mut run = Run {
-            class: &data::CLASSES[2],
-            hp: 100.,
-            ..Default::default()
-        };
-        let mut rng = Rng(42);
-        let mut offer = Offer {
-            choices: choices_for(&run, &mut rng, 100),
-            ..Default::default()
-        };
-        let slot = offer
-            .choices
-            .iter()
-            .position(
-                |choice| matches!(choice, Choice::NewAbility(def) if def.key == "scorpid_sting"),
-            )
-            .unwrap();
-        pick(
-            slot,
-            &mut run,
-            &mut offer,
-            &mut rng,
-            &mut NextState::default(),
-        );
-        assert_eq!(run.abilities.len(), 1);
-        assert_eq!(
-            (run.abilities[0].def.key, run.abilities[0].level),
-            ("scorpid_sting", 1)
-        );
-        offer.choices = choices_for(&run, &mut rng, 100);
-        assert!(!offer
-            .choices
-            .iter()
-            .any(|choice| matches!(choice, Choice::NewAbility(def) if def.key == "scorpid_sting")));
-        let slot = offer
-            .choices
-            .iter()
-            .position(|choice| matches!(choice, Choice::Upgrade(0)))
-            .unwrap();
-        pick(
-            slot,
-            &mut run,
-            &mut offer,
-            &mut rng,
-            &mut NextState::default(),
-        );
-        assert_eq!(run.abilities[0].level, 2);
+    fn hunter_can_acquire_and_upgrade_sting_and_melee_through_normal_offers() {
+        for key in ["scorpid_sting", "raptor_strike", "mongoose_bite"] {
+            let mut run = Run {
+                class: &data::CLASSES[2],
+                hp: 100.,
+                ..Default::default()
+            };
+            let mut rng = Rng(42);
+            let mut offer = Offer {
+                choices: choices_for(&run, &mut rng, 100),
+                ..Default::default()
+            };
+            let slot = offer
+                .choices
+                .iter()
+                .position(|choice| matches!(choice, Choice::NewAbility(def) if def.key == key))
+                .unwrap();
+            pick(
+                slot,
+                &mut run,
+                &mut offer,
+                &mut rng,
+                &mut NextState::default(),
+            );
+            assert_eq!(run.abilities.len(), 1);
+            assert_eq!((run.abilities[0].def.key, run.abilities[0].level), (key, 1));
+            offer.choices = choices_for(&run, &mut rng, 100);
+            assert!(!offer
+                .choices
+                .iter()
+                .any(|choice| matches!(choice, Choice::NewAbility(def) if def.key == key)));
+            let slot = offer
+                .choices
+                .iter()
+                .position(|choice| matches!(choice, Choice::Upgrade(0)))
+                .unwrap();
+            pick(
+                slot,
+                &mut run,
+                &mut offer,
+                &mut rng,
+                &mut NextState::default(),
+            );
+            assert_eq!(run.abilities[0].level, 2);
+        }
     }
 
     #[test]

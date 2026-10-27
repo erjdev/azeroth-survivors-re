@@ -756,3 +756,17 @@ original stamina-reduction effect; it does not increase damage reduction strengt
 or grant the spell. Bosses retain the full damage-reduction duration. A weaker
 sting cannot replace or extend a stronger active reduction; equal-strength
 refreshes retain the longer duration. Neither debuff stacks multiplicatively.
+
+
+### Hunter melee and Savage Strikes
+
+Raptor Strike (2973) and Mongoose Bite (1495) are normal Hunter offers with their
+own Codex/legendary amulet entries. Rank 1 uses 4 yd targeting range: Raptor Strike
+has 30 damage and a 3-second cooldown; Mongoose Bite has 22 damage and a 2.5-second
+cooldown. Normal ranks scale damage/cooldown. These are draft Survivors values;
+Mongoose Bite is an automatic cooldown attack, without a dodge prerequisite.
+Single-target additions apply; shot, trap and pet-specific training does not.
+
+Savage Strikes (1621, two ranks) grants these two abilities 10 percentage points
+of critical chance per rank. It grants neither ability and does not increase
+generic critical chance. Saved specs and refunds retain the normal talent rules.

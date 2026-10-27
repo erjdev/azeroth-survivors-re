@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Hunter melee and Savage Strikes
+
+Raptor Strike and Mongoose Bite join normal Hunter ability offers, inline upgrades
+and the Codex. Savage Strikes adds 10 percentage points of critical chance per
+rank to these two attacks only. Mongoose Bite uses an automatic cooldown conversion.
+
+![Savage Strikes purchase in the taller Survival tree](images/screenshots/2026-10-27-hunter-melee/talent.png)
+
+![Hunter melee inline upgrades](images/screenshots/2026-10-27-hunter-melee/cards.png)
+
+![Raptor Strike Codex entry](images/screenshots/2026-10-27-hunter-melee/codex.png)
+
+222 core tests, 435 app tests, core/app Clippy and formatting pass. Native previews
+checked at 800×600 and 1280×720; incremental build: 26 seconds. Coverage reaches
+269/432 talent definitions. Live balance, combat animation and Windows acceptance
+remain open.
+
 ## 2026-10-27 — Complete talent stat highlighting
 
 Inline upgrades now keep full stat phrases green, including bleed/reflected damage,

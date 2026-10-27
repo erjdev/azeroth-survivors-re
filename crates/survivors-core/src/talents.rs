@@ -2454,6 +2454,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1621, max_rank: 2, name: "Savage Strikes",
+        description: "Raptor Strike and Mongoose Bite: +10 percentage points critical chance per rank. Excludes shots, traps, Volley and the combat wolf; requires acquiring either melee ability",
+        stat: TalentStat::SpellGroupCrit(&["raptor_strike", "mongoose_bite"]), per_rank: 0.10 },
     TalentDefinition { id: 1382, max_rank: 5, name: "Improved Aspect of the Hawk",
         description: "Hunter shots: +3% haste per rank for 12 sec after a 10% chance on each successful shot cast. Refreshes without stacking; affects subsequent shot cooldowns. Excludes Volley, traps, pets and periodic ticks (Survivors automatic aspect conversion)",
         stat: TalentStat::ImprovedHawk, per_rank: 0.03 },
@@ -6049,5 +6052,67 @@ mod inline_stat_label_tests {
             ranges.iter().map(|r| &text[r.clone()]).collect::<Vec<_>>(),
             ["+1 » 2% damage", "+1 » 2% direct critical chance"]
         );
+    }
+}
+
+#[cfg(test)]
+mod savage_strikes_tests {
+    use super::*;
+    #[test]
+    fn savage_strikes_is_capped_melee_only_and_does_not_inherit_shot_training() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 1621, rank)]);
+                for key in crate::data::CLASSES[2]
+                    .ability_keys()
+                    .into_iter()
+                    .chain(["heroic_strike", "sinister_strike"])
+                {
+                    let mut expected = base.cast(key);
+                    if class == 2 && matches!(key, "raptor_strike" | "mongoose_bite") {
+                        expected.crit += 0.1 * f32::from(rank.min(2));
+                    }
+                    assert_eq!(
+                        trained.cast(key),
+                        expected,
+                        "class={class} rank={rank} key={key}"
+                    );
+                    assert_eq!(trained.with_ranks(&[]).cast(key), base.cast(key));
+                }
+            }
+        }
+        let hunter = Milestones {
+            class: 2,
+            points: [0, 30, 0],
+            ..Default::default()
+        }
+        .with_ranks(&[
+            (1, 1361, 1),
+            (1, 1342, 5),
+            (1, 1352, 3),
+            (1, 1344, 5),
+            (1, 1349, 5),
+        ]);
+        for key in ["raptor_strike", "mongoose_bite"] {
+            assert_eq!(
+                hunter.cast(key),
+                Milestones {
+                    class: 2,
+                    ..Default::default()
+                }
+                .cast(key)
+            );
+        }
+        let node = talent_definition(2, 1621).unwrap();
+        let (text, ranges) = node.inline_description_with_values(1).unwrap();
+        assert_eq!(
+            &text[ranges[0].clone()],
+            "+10 » 20 percentage points critical chance"
+        );
+        assert!(!node.inline_description(255).unwrap().contains(" » "));
     }
 }

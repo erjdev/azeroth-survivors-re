@@ -3017,6 +3017,53 @@ mod tests {
     }
 
     #[test]
+    fn hunter_melee_metadata_and_savage_strikes_survive_specs_and_refunds() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let spells = benilla_formats::load_spell_catalog(&mut chain).unwrap();
+        for (id, name) in [(2973, "Raptor Strike"), (1495, "Mongoose Bite")] {
+            assert_eq!(spells.get(id).unwrap().name, name);
+        }
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(2);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(2, 1311, 5)];
+        let before = account.bonus(2, hero);
+        for _ in 0..2 {
+            assert!(account.learn_talent(hero, 2, 1621, 2, 1, true));
+        }
+        assert!(!account.learn_talent(hero, 2, 1621, 2, 1, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        assert_eq!(account.bonus(2, hero).crit, before.crit);
+        let crit = |account: &Account, key| account.milestones_picked(2, Some(hero)).cast(key).crit;
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        for key in ["raptor_strike", "mongoose_bite"] {
+            assert_eq!(crit(&loaded, key), 0.2);
+        }
+        assert_eq!(crit(&loaded, "arcane_shot"), 0.0);
+        loaded.select_spec(hero, 1);
+        assert_eq!(crit(&loaded, "raptor_strike"), 0.0);
+        loaded.select_spec(hero, 0);
+        assert!(loaded.unlearn_talent(hero, 1621, true));
+        assert_eq!(crit(&loaded, "mongoose_bite"), 0.1);
+        assert!(loaded.unlearn_talent(hero, 1621, true));
+        assert_eq!(crit(&loaded, "raptor_strike"), 0.0);
+    }
+
+    #[test]
     fn scorpid_metadata_purchase_saved_specs_and_refund_match_runtime() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

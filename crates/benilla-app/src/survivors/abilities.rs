@@ -4897,6 +4897,129 @@ mod milestone_tests {
     }
 
     #[test]
+    fn hunter_melee_casts_require_close_targets_and_apply_scoped_crit() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["raptor_strike", "mongoose_bite"] {
+            for rank in [0, 1, 2, 255] {
+                let mut app = App::new();
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(0.2));
+                let mut run = Run {
+                    class: &data::CLASSES[2],
+                    milestones: Milestones {
+                        class: 2,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(2, 1621, rank)]),
+                    ..Default::default()
+                };
+                run.bonus.targets = 1;
+                run.abilities.push(Owned {
+                    def: data::ability(key),
+                    level: 3,
+                    cd: 0.0,
+                });
+                let base_crit = run.stats().crit;
+                let seed = (1..100000)
+                    .find(|seed| {
+                        let mut rng = Rng(*seed);
+                        (0..2).all(|_| {
+                            let value = rng.f32();
+                            value > base_crit && value < base_crit + 0.1
+                        })
+                    })
+                    .unwrap();
+                app.insert_resource(time)
+                    .insert_resource(run)
+                    .insert_resource(Rng(seed))
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>();
+                app.world_mut()
+                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                let mut foes = Vec::new();
+                for x in [10., 11., 12.] {
+                    foes.push(
+                        app.world_mut()
+                            .spawn((
+                                Transform::from_xyz(x, 0., 0.),
+                                Enemy {
+                                    def: &data::roster(0).enemies[0],
+                                    hp: 100.,
+                                    max_hp: 100.,
+                                    speed: 3.,
+                                    damage: 5.,
+                                    radius: 0.6,
+                                    xp: 1,
+                                    boss: false,
+                                    elite: false,
+                                    attack_cd: 0.,
+                                    slow: 1.,
+                                    slow_t: 0.,
+                                    root_t: 0.,
+                                    frozen_t: 0.,
+                                    winters_chill: Default::default(),
+                                    shadow_weaving: Default::default(),
+                                    kidney_t: 0.,
+                                    stun_t: 0.,
+                                    fear_t: 0.,
+                                    weaken: 1.,
+                                    weaken_t: 0.,
+                                    dots: Vec::new(),
+                                    dead: false,
+                                },
+                            ))
+                            .id(),
+                    );
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                assert_eq!(app.world().resource::<Run>().abilities[0].cd, 0.2);
+                for (entity, x) in foes.iter().zip([1., 2., 8.]) {
+                    app.world_mut()
+                        .get_mut::<Transform>(*entity)
+                        .unwrap()
+                        .translation
+                        .x = x;
+                }
+                app.world_mut()
+                    .resource_mut::<Time>()
+                    .advance_by(std::time::Duration::ZERO);
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                app.world_mut()
+                    .resource_mut::<Time>()
+                    .advance_by(std::time::Duration::from_secs_f32(0.2));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(hits.len(), 2, "extra targets stay in melee reach");
+                assert!(hits
+                    .iter()
+                    .all(|hit| hit.crit == (rank > 0) && hit.splash == 0.0 && hit.source == key));
+                assert!(hits.iter().all(|hit| hit.target != foes[2]));
+                assert!(app.world().resource::<PendingHits>().0.is_empty());
+                let run = app.world().resource::<Run>();
+                let params = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+                assert!((params.crit - base_crit - 0.1 * f32::from(rank.min(2))).abs() < 0.00001);
+                assert!(hits.iter().all(|hit| (hit.damage
+                    - params.dmg * if rank > 0 { params.crit_damage } else { 1.0 })
+                .abs()
+                    < 0.0001));
+                assert!(run.abilities[0].cd > 0.0);
+            }
+        }
+    }
+
+    #[test]
     fn hunter_training_reaches_direct_periodic_and_control_casts() {
         let base = Milestones {
             class: 2,

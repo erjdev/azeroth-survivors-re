@@ -1,0 +1,4 @@
+page=cards
+width=1280
+height=720
+abilities=raptor_strike:1,mongoose_bite:1

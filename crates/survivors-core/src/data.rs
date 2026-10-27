@@ -602,6 +602,25 @@ pub static ABILITIES: &[AbilityDef] = &[
     ),
     // --- Hunter ---
     ability!(
+        "raptor_strike",
+        2973,
+        Melee {
+            damage: 30.0,
+            cooldown: 3.0,
+            range: 4.0
+        }
+    ),
+    // Automatic close attack: Survivors has no dodge-triggered action bar.
+    ability!(
+        "mongoose_bite",
+        1495,
+        Melee {
+            damage: 22.0,
+            cooldown: 2.5,
+            range: 4.0
+        }
+    ),
+    ability!(
         "arcane_shot",
         3044,
         Bolt {
@@ -1106,6 +1125,8 @@ pub static CLASSES: &[ClassDef] = &[
             "concussive_shot",
             "aimed_shot",
             "scorpid_sting",
+            "raptor_strike",
+            "mongoose_bite",
         ],
         looks: &[
             1373, 1703, 1723, 1882, 2066, 2087, 2105, 2112, 2205, 2206, 2251, 3056, 3072, 3073,
