@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Ancestral Healing
+
+Shaman totem deployment healing now activates Ancestral Healing: 12 armor per
+rank for 10 seconds. Effective healing refreshes without stacking; full-health
+casts, regeneration and totem attacks cannot trigger it. The HUD shows the active
+armor and countdown, and the talent screen previews ranks inline.
+
+179 core tests, 351 app tests, core/app Clippy and native build pass. Tests cover
+actual deployment, overhealing, refresh, expiry, death and HUD status. Native macOS
+menu capture below; live balance and Windows acceptance remain open. Install audit:
+222/432 individual talent definitions.
+
+![Ancestral Healing inline armor upgrade](images/screenshots/2026-10-27-ancestral-healing/talents-1280.png)
+
 ## 2026-10-27 — Shaman defensive training
 
 Shield Specialization now adds up to 25% Earth Shock absorb strength, combining

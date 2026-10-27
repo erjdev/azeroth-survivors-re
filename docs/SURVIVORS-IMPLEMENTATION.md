@@ -6305,3 +6305,27 @@ pass. Install audit matches 221/432 definitions, Shaman 27/46, and 81/81 milesto
 descriptions. Native macOS wide/compact captures verify inline text and Parry
 purchase, with the saved rank checked on disk. Screenshots are embedded in CHANGELOG.
 Live balance, Windows acceptance and the remaining 211 definitions remain open.
+
+### 2026-10-27 — Ancestral Healing timed armor
+
+Vanilla node 581 (three Restoration ranks) now grants 12 armor per rank for ten
+seconds after Searing/Magma deployment actually restores health. This explicitly
+converts healing criticals to effective deployment healing because these heals
+cannot critically strike. The existing Restoration milestone remains necessary
+for deployment healing; no healing is added by this talent. Repeated qualifying
+heals refresh without stacking. Regeneration, overhealing, unrelated spells and
+attacks from deployed totems do not activate or refresh it.
+
+The run stores a transient timer, the Playing vitals path advances it, stats add
+armor only while the hero is alive and the timer is active, and reactive HUD status
+shows armor and remaining time. New runs initialize it to zero. Core tests cover
+class scope/rank caps/reset and inline text. App tests cover successful and rejected
+deployments, full-health and capped healing, subsequent totem attacks, direct
+refresh/expiry/death behavior and HUD visibility. 179 core tests, 351 app tests,
+core/app Clippy, incremental native build, formatting and diff checks pass.
+
+Install audit matches 222/432 definitions (Shaman 28/46) and 81/81 milestone
+descriptions. Native macOS wide menu screenshot verifies the green rank preview
+and is embedded in CHANGELOG. This is automated combat integration plus menu
+visual evidence, not a live combat or Windows acceptance claim. Remaining talent
+rules, balance and full interface/content acceptance stay open.

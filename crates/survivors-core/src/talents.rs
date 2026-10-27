@@ -533,6 +533,14 @@ impl Milestones {
         1.0 + self.trained_value(TalentStat::MaximumHealth)
     }
 
+    pub fn ancestral_healing_armor(self, active: bool) -> f32 {
+        if self.class == 5 && active {
+            self.trained_value(TalentStat::AncestralHealingArmor)
+        } else {
+            0.
+        }
+    }
+
     fn trained_value(self, stat: TalentStat) -> f32 {
         definitions(self.class)
             .iter()
@@ -1389,6 +1397,7 @@ pub enum TalentStat {
     TotemHealing,
     TotemicMastery,
     ShamanShieldAbsorption,
+    AncestralHealingArmor,
     PetHealth,
     PetRecovery,
     PetIntimidation,
@@ -1473,7 +1482,7 @@ impl TalentDefinition {
             return Some((text, vec![duration, strength]));
         }
         let (scale, unit) = match self.stat {
-            TalentStat::Health | TalentStat::Armor => (1.0, ""),
+            TalentStat::Health | TalentStat::Armor | TalentStat::AncestralHealingArmor => (1.0, ""),
             TalentStat::SpellShieldDuration(_)
             | TalentStat::SecondaryRootDuration(_)
             | TalentStat::SecondaryStunDuration(_)
@@ -1677,6 +1686,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
+            TalentStat::AncestralHealingArmor => (1.0, " armor after effective totem healing"),
             TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
@@ -2869,6 +2879,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
             | TalentStat::ShamanShieldAbsorption
+            | TalentStat::AncestralHealingArmor
             | TalentStat::TotemicMastery
             | TalentStat::PetWrath
             | TalentStat::PetIntimidation
@@ -4072,6 +4083,7 @@ mod stat_talent_tests {
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing
                     | TalentStat::ShamanShieldAbsorption
+                    | TalentStat::AncestralHealingArmor
                     | TalentStat::TotemicMastery
                     | TalentStat::PetWrath
                     | TalentStat::PetIntimidation

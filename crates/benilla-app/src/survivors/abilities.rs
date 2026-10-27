@@ -632,6 +632,7 @@ pub(super) fn cast_abilities(
         if fired {
             run.consume_remorseless(def.key);
             let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
+            run.record_totem_healing(def.key, healed);
             if healed > 0.0 {
                 fx.number(me, healed, false, COLOR_HEAL);
             }
@@ -4543,6 +4544,7 @@ mod milestone_tests {
                         (3, 20., 5.),
                         (3, 0., 0.),
                         (3, 159., 0.),
+                        (3, 110., 0.),
                     ] {
                         let mut run = Run {
                             class: &data::CLASSES[5],
@@ -4557,12 +4559,13 @@ mod milestone_tests {
                                 (2, 592, rank),
                                 (2, 586, rank),
                                 (2, 593, rank),
+                                (2, 581, rank),
                             ]),
                             ..Default::default()
                         };
                         run.bonus.targets = 3;
                         let max_hp = run.stats().max_hp;
-                        run.hp = initial_hp.min(max_hp - 1.);
+                        run.hp = initial_hp.min(max_hp);
                         let initial_hp = run.hp;
                         run.abilities.push(Owned {
                             def: data::ability(key),
@@ -4638,18 +4641,33 @@ mod milestone_tests {
                             0.
                         };
                         let expected_hp = (initial_hp + healing).min(max_hp);
+                        assert_eq!(
+                            app.world().resource::<Run>().ancestral_healing_t,
+                            if expected_hp > initial_hp && rank > 0 {
+                                10.
+                            } else {
+                                0.
+                            }
+                        );
                         assert!((app.world().resource::<Run>().hp - expected_hp).abs() < 0.0001,
                             "{key}: points={points}, rank={rank}, enemies={enemy_count}, hp={initial_hp}, cd={cooldown}");
                         assert_eq!(
                             app.world_mut().query::<&Totem>().iter(app.world()).count(),
                             usize::from(fired)
                         );
-                        // A later update and attacks from the deployed totem must not repeat its heal.
+                        // A later update and attacks must neither repeat healing nor refresh armor.
+                        let remaining = if app.world().resource::<Run>().ancestral_healing_t > 0. {
+                            4.
+                        } else {
+                            0.
+                        };
+                        app.world_mut().resource_mut::<Run>().ancestral_healing_t = remaining;
                         app.world_mut().run_system_once(cast_abilities).unwrap();
                         for _ in 0..25 {
                             app.world_mut().run_system_once(tick_areas).unwrap();
                         }
                         assert!((app.world().resource::<Run>().hp - expected_hp).abs() < 0.0001);
+                        assert_eq!(app.world().resource::<Run>().ancestral_healing_t, remaining);
                         assert_eq!(
                             app.world_mut().query::<&Totem>().iter(app.world()).count(),
                             usize::from(fired)

@@ -1841,6 +1841,15 @@ fn reactive_buff_status(run: &Run) -> String {
         return String::new();
     }
     let mut active = Vec::new();
+    let ancestral = run
+        .milestones
+        .ancestral_healing_armor(run.ancestral_healing_t > 0.);
+    if ancestral > 0. {
+        active.push(format!(
+            "Ancestral Healing +{ancestral:.0} armor ({:.0}s)",
+            run.ancestral_healing_t.ceil()
+        ));
+    }
     let enrage = run.milestones.enrage_damage(run.enrage_t > 0.0) - 1.0;
     if enrage > 0.0 {
         active.push(format!(
@@ -3555,5 +3564,32 @@ mod settings_navigation_tests {
         world.run_system_once(show_panels).unwrap();
         assert_eq!(world.get::<Node>(menu).unwrap().display, Display::Flex);
         assert_eq!(world.get::<Node>(pause).unwrap().display, Display::None);
+    }
+}
+
+#[cfg(test)]
+mod ancestral_status_tests {
+    use super::*;
+    #[test]
+    fn ancestral_status_requires_a_living_hero_and_active_training() {
+        let mut run = Run {
+            hp: 50.,
+            ancestral_healing_t: 9.2,
+            milestones: survivors_core::talents::Milestones {
+                class: 5,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 581, 2)]),
+            ..Default::default()
+        };
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Ancestral Healing +24 armor (10s)"
+        );
+        run.ancestral_healing_t = 0.;
+        assert_eq!(reactive_buff_status(&run), "");
+        run.ancestral_healing_t = 5.;
+        run.hp = 0.;
+        assert_eq!(reactive_buff_status(&run), "");
     }
 }

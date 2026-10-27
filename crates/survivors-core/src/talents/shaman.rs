@@ -13,6 +13,7 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 581, max_rank: 3, name: "Ancestral Healing", description: "When Searing or Magma Totem deployment restores health: +12 armor per rank for 10 sec. Refreshes without stacking; excludes overhealing, regeneration and totem attacks (Survivors healing-critical conversion)", stat: TalentStat::AncestralHealingArmor, per_rank: 12.0 },
     TalentDefinition { id: 612, max_rank: 5, name: "Shield Specialization", description: "Earth Shock: +5% shield absorption per rank, adding to Guardian Totems. Requires the 10-point Enhancement shield milestone; no equipped shield required (Survivors block conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.05 },
     TalentDefinition { id: 616, max_rank: 1, name: "Parry", description: "+5% hero damage reduction per rank (Survivors parry conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.05 },
     TalentDefinition { id: 609, max_rank: 2, name: "Guardian Totems", description: "Earth Shock: +10% shield absorption per rank. Requires the 10-point Enhancement shield milestone; shield duration and damage are unchanged (Survivors defensive-totem conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.10 },
@@ -463,5 +464,37 @@ mod shield_specialization_tests {
             .inline_description(4)
             .unwrap()
             .contains("+20 » 25% shield absorption"));
+    }
+}
+
+#[cfg(test)]
+mod ancestral_healing_tests {
+    use crate::talents::{talent_definition, Milestones};
+    #[test]
+    fn armor_is_temporary_class_scoped_and_rank_capped() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 581, rank)]);
+                assert_eq!(trained.ancestral_healing_armor(false), 0.);
+                assert_eq!(
+                    trained.ancestral_healing_armor(true),
+                    if class == 5 {
+                        12. * f32::from(rank.min(3))
+                    } else {
+                        0.
+                    }
+                );
+                assert_eq!(trained.with_ranks(&[]).ancestral_healing_armor(true), 0.);
+            }
+        }
+        assert!(talent_definition(5, 581)
+            .unwrap()
+            .inline_description(1)
+            .unwrap()
+            .contains("+12 » 24 armor"));
     }
 }

@@ -484,6 +484,7 @@ pub(super) struct Run {
     pub shield_t: f32,
     pub immune_t: f32,
     pub enrage_t: f32,
+    pub ancestral_healing_t: f32,
     pub flurry_t: f32,
     pub vengeance_t: f32,
     pub remorseless_until: f32,
@@ -573,6 +574,7 @@ impl Default for Run {
             shield_t: 0.0,
             immune_t: 0.0,
             enrage_t: 0.0,
+            ancestral_healing_t: 0.0,
             flurry_t: 0.0,
             vengeance_t: 0.0,
             remorseless_until: 0.0,
@@ -691,6 +693,17 @@ impl Run {
         }
     }
 
+    pub(super) fn record_totem_healing(&mut self, source: &str, healed: f32) {
+        if self.alive()
+            && healed.is_finite()
+            && healed > 0.
+            && matches!(source, "searing_totem" | "magma_totem")
+            && self.milestones.ancestral_healing_armor(true) > 0.
+        {
+            self.ancestral_healing_t = 10.;
+        }
+    }
+
     pub(super) fn record_flurry_hit(&mut self, source: &str, damage: f32, critical: bool) {
         if self.hp > 0.0
             && self.dead_t.is_none()
@@ -761,6 +774,9 @@ impl Run {
         apply_sheet(&mut s, self.bonus);
         apply_sheet(&mut s, self.worn.bonus());
         s.haste += self.milestones.flurry_haste(self.flurry_t > 0.0);
+        s.armor += self
+            .milestones
+            .ancestral_healing_armor(self.alive() && self.ancestral_healing_t > 0.);
         let racial = survivors_core::racials::effects(self.race, self.elapsed);
         apply_sheet(&mut s, racial.bonus);
         s.max_hp *= racial.health_multiplier;

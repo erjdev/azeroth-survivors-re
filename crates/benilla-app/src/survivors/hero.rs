@@ -417,6 +417,7 @@ fn advance_buffs(run: &mut Run, dt: f32) {
         &mut run.immune_t,
         &mut run.thorns_t,
         &mut run.enrage_t,
+        &mut run.ancestral_healing_t,
         &mut run.flurry_t,
         &mut run.vengeance_t,
     ] {
@@ -610,6 +611,43 @@ mod reactive_talent_tests {
         run.vengeance_t = 0.;
         run.record_vengeance_hit("judgement", 10., true);
         assert_eq!(run.vengeance_t, 0.);
+    }
+
+    #[test]
+    fn ancestral_healing_requires_effective_totem_healing_and_expires() {
+        let mut run = Run {
+            hp: 50.,
+            milestones: survivors_core::talents::Milestones {
+                class: 5,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 581, 3)]),
+            ..Default::default()
+        };
+        let base = run.stats().armor;
+        for (source, amount) in [
+            ("renew", 10.),
+            ("searing_totem", 0.),
+            ("magma_totem", f32::NAN),
+        ] {
+            run.record_totem_healing(source, amount);
+            assert_eq!(run.ancestral_healing_t, 0.);
+        }
+        run.record_totem_healing("searing_totem", 1.);
+        assert_eq!(run.stats().armor, base + 36.);
+        advance_buffs(&mut run, 6.);
+        assert_eq!(run.ancestral_healing_t, 4.);
+        run.record_totem_healing("magma_totem", 2.);
+        assert_eq!(run.ancestral_healing_t, 10.);
+        assert_eq!(run.stats().armor, base + 36.);
+        advance_buffs(&mut run, 11.);
+        assert_eq!(run.stats().armor, base);
+        run.record_totem_healing("searing_totem", 1.);
+        run.hp = 0.;
+        assert_eq!(run.stats().armor, base);
+        run.ancestral_healing_t = 0.;
+        run.record_totem_healing("searing_totem", 1.);
+        assert_eq!(run.ancestral_healing_t, 0.);
     }
 
     #[test]
