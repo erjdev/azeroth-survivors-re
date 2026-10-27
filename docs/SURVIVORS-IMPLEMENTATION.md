@@ -18,16 +18,18 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 
 ## Integration audit — 2026-10-27
 
-The full workspace gate is not green. All-target Clippy passes after test setup
-cleanup, but app tests report three failures: `an_empty_account_parks_at_select_without_creating_a_character`,
-`every_material_lane_has_a_warm_contributor`, and `the_dev_plane_has_exactly_one_door`.
-The account-selection test passes outside the sandbox (loopback socket permission).
-Register or justify the `Backdrop` material warm-up,
-and reconcile Survivors preview compilation with the development-mode boundary.
-Do not weaken architecture assertions to obtain a pass. Then rerun the full gate,
-including no-install and player-build checks; the first failure currently prevents
-those later stages. Browser compilation passes with five warnings. The addon corpus
-and Windows visual acceptance are still unavailable here.
+Full-workspace Clippy and app unit tests now pass. Account selection passes with
+local mock-server socket permission. The starter-only `Backdrop` material has an
+explicit menu exemption, supported by its test removing the material from in-run
+pause screens. Preview activation uses `run_mode::dev_affordances()`; a test in the
+player configuration proves a preview environment variable cannot install state
+or the watcher. Runtime preview activation remains native-only.
+
+The full gate is **not green**: it now reaches `reference_strings`, which flags
+Survivors labels duplicating existing game localization keys. Resolve those keys
+through the existing string resources, then rerun the full gate, including
+no-install and the complete player suite. Browser compilation previously passed
+with five warnings. Addon-corpus coverage and Windows visual acceptance remain open.
 
 ## Healing correctness — 2026-10-27
 

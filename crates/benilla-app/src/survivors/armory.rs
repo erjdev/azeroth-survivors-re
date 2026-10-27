@@ -16,7 +16,7 @@ pub(super) use controls::style as style_controls;
 pub(super) use scrollbar::{input as scrollbar_input, update as update_scrollbars};
 mod door;
 mod drop_page;
-#[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))]
+#[cfg(any(test, not(target_arch = "wasm32")))]
 pub(super) mod preview;
 mod reward_draft;
 mod reward_page;
@@ -93,7 +93,7 @@ pub(super) enum Page {
 }
 
 impl Page {
-    #[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))]
+    #[cfg(any(test, not(target_arch = "wasm32")))]
     fn preview(name: &str) -> Option<Self> {
         Some(match name {
             "starter" => Self::Door,
@@ -112,12 +112,14 @@ impl Page {
     }
 
     fn initial() -> Self {
-        #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
-        if let Ok(name) = std::env::var("WOW_SURVIVORS_UI_PAGE") {
-            if let Some(page) = Self::preview(&name) {
-                return page;
+        #[cfg(not(target_arch = "wasm32"))]
+        if crate::run_mode::dev_affordances() {
+            if let Ok(name) = std::env::var("WOW_SURVIVORS_UI_PAGE") {
+                if let Some(page) = Self::preview(&name) {
+                    return page;
+                }
+                warn!("Unknown WOW_SURVIVORS_UI_PAGE {name:?}; opening starter page");
             }
-            warn!("Unknown WOW_SURVIVORS_UI_PAGE {name:?}; opening starter page");
         }
         Self::Door
     }
@@ -1354,14 +1356,12 @@ pub(super) fn talent_details(
     mut commands: Commands,
     nodes: Query<(Entity, &Interaction, &TalentInfo)>,
     focus: Res<controller::ControllerFocus>,
-    #[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))] preview: Option<
-        Res<preview::Preview>,
-    >,
+    #[cfg(any(test, not(target_arch = "wasm32")))] preview: Option<Res<preview::Preview>>,
     mut detail: TalentDetailQuery,
     spells: Option<Res<crate::ui_action::Spells>>,
 ) {
     let selected = focus.focused().and_then(|entity| nodes.get(entity).ok());
-    #[cfg(any(test, all(feature = "dev", not(target_arch = "wasm32"))))]
+    #[cfg(any(test, not(target_arch = "wasm32")))]
     let selected = preview
         .as_ref()
         .and_then(|preview| preview.inspected())

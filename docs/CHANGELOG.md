@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Preview activation and pipeline coverage
+
+UI preview activation now follows the engine's development-mode boundary. Player
+builds ignore preview environment variables and never install the watcher; the
+player-build regression test passes. The starter-only backdrop has a documented
+menu-material exemption, backed by its gameplay/pause lifecycle test.
+
+Full-workspace Clippy and app unit tests pass. The full gate now reaches a later
+failure: Survivors labels must resolve existing localization keys. No-install and
+full player-suite acceptance remain pending. This checkpoint has no visual changes.
+
 ## 2026-10-27 — Broader integration audit
 
 Fixed four test-target Clippy errors missed by library-only checks. Full-workspace

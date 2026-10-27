@@ -872,10 +872,13 @@ mod tests {
         // Lanes that never need the menagerie:
         // - TerrainMaterial / WdlMaterial: always drawn under the entry cover, no variant axis.
         // - AddUiMaterial: glue screens only, and every pre-world frame counts as covered.
+        // - Backdrop: Survivors starter/settings only, before combat starts. Its lifecycle
+        //   test removes it from the pause root in Playing/Paused, so opening an in-run
+        //   menu cannot introduce this pipeline. It is already drawn on the starter.
         let families: [(&str, &[&str]); 3] = [
             ("MaterialPlugin::<", &["TerrainMaterial", "WdlMaterial"]),
             ("Material2dPlugin::<", &[]),
-            ("UiMaterialPlugin::<", &["AddUiMaterial"]),
+            ("UiMaterialPlugin::<", &["AddUiMaterial", "Backdrop"]),
         ];
         let own_src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
         // Anywhere in the pipe_warm module folder.

@@ -1,5 +1,5 @@
 //! Opt-in live controls for the production menu, independent of gameplay and saves.
-#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 use super::Phase;
 use super::{Armory, Page, Typing};
 use crate::survivors::{
@@ -10,11 +10,16 @@ use crate::survivors::{
     Owned, Run,
 };
 use bevy::prelude::*;
-#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 use bevy::window::PrimaryWindow;
 
-#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn plugin(app: &mut App) {
+    // The engine owns the build seam. A player build never reads the preview path
+    // or installs the polling system, even if these environment variables are set.
+    if !crate::run_mode::dev_affordances() {
+        return;
+    }
     let Some(path) = std::env::var_os("WOW_SURVIVORS_UI_PREVIEW") else {
         return;
     };
@@ -32,7 +37,6 @@ pub(crate) fn plugin(app: &mut App) {
 }
 
 #[derive(Resource)]
-#[cfg_attr(not(feature = "dev"), allow(dead_code))]
 pub(in crate::survivors) struct Preview {
     path: std::path::PathBuf,
     seen: String,
@@ -351,7 +355,7 @@ impl Request {
 }
 
 #[allow(clippy::too_many_arguments)]
-#[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 fn reload(
     time: Res<Time<Real>>,
     mut preview: ResMut<Preview>,
@@ -525,6 +529,27 @@ impl Preview {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    fn preview_watcher_respects_the_engine_development_boundary() {
+        use crate::local_state::test_env::{EnvGuard, ENV_LOCK};
+        let _lock = ENV_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let _path = EnvGuard::set("WOW_SURVIVORS_UI_PREVIEW", "unused-preview-path");
+        let mut app = App::new();
+        plugin(&mut app);
+        assert_eq!(
+            app.world().contains_resource::<Preview>(),
+            crate::run_mode::dev_affordances()
+        );
+        if !crate::run_mode::dev_affordances() {
+            // No polling system was registered: this world deliberately has none
+            // of the time, window, account or menu resources it would require.
+            app.update();
+        }
+    }
 
     #[test]
     fn hero_preview_validates_before_changing_selection_and_preserves_world() {

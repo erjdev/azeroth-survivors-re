@@ -73,7 +73,7 @@ impl Plugin for SurvivorsPlugin {
         if !app.is_plugin_added::<bevy::gilrs::GilrsPlugin>() {
             app.add_plugins(bevy::gilrs::GilrsPlugin);
         }
-        #[cfg(all(feature = "dev", not(target_arch = "wasm32")))]
+        #[cfg(not(target_arch = "wasm32"))]
         app.add_plugins(armory::preview::plugin);
         #[cfg(feature = "survivors-visibility")]
         app.add_plugins(visibility::plugin);
