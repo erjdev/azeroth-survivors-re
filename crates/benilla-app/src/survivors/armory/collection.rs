@@ -1012,6 +1012,11 @@ pub(super) fn detail(
             layout.body_size,
             DIM,
         );
+        if piece.tier == survivors_core::gear_tier::GearTier::Poor {
+            for zone in survivors_core::supplemental_gear::POOR_DROP_ZONES {
+                source_button(ui, font, armory, zone);
+            }
+        }
         if owned {
             let equipped =
                 progress.equipment.supplemental_worn()[piece.slot].as_deref() == Some(&piece.key);
@@ -1161,15 +1166,7 @@ pub(super) fn detail(
             layout.body_size,
             DIM,
         );
-        if armory.page != super::Page::DropTables || armory.drop_zone != drop.zone {
-            chip(
-                ui,
-                font,
-                &format!("View {} drops", campaign::ZONES[drop.zone].name),
-                Act::OpenDropSource(drop.zone),
-                false,
-            );
-        }
+        source_button(ui, font, armory, drop.zone);
     }
     if sources == 0 {
         text(ui, font, "Source not yet available", layout.body_size, DIM);
@@ -1217,6 +1214,18 @@ pub(super) fn detail(
         DIM,
     );
     look_controls(ui, font, armory, account, selection, layout);
+}
+
+fn source_button(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, zone: usize) {
+    if armory.page != super::Page::DropTables || armory.drop_zone != zone {
+        chip(
+            ui,
+            font,
+            &format!("View {} drops", campaign::ZONES[zone].name),
+            Act::OpenDropSource(zone),
+            false,
+        );
+    }
 }
 
 pub(super) fn look_controls(
@@ -1385,6 +1394,68 @@ fn missing(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn supplemental_sources_link_only_obtainable_zones_and_skip_current_destination() {
+        use survivors_core::{gear_tier::GearTier, supplemental_gear};
+        let account = super::super::super::account::blank();
+        for class in 0..9 {
+            for tier in [GearTier::Poor, GearTier::RaidEpic] {
+                for slot in 0..9 {
+                    let Some(piece) = supplemental_gear::piece(class, slot, tier) else {
+                        continue;
+                    };
+                    for current in [None, Some(0), Some(1)] {
+                        let armory = Armory {
+                            page: if current.is_some() {
+                                super::super::Page::DropTables
+                            } else {
+                                super::super::Page::Collection
+                            },
+                            drop_zone: current.unwrap_or(0),
+                            supplemental_piece: Some(piece.key.clone()),
+                            ..default()
+                        };
+                        let selection = Selection {
+                            class: Some(class),
+                            ..default()
+                        };
+                        let mut world = World::new();
+                        world
+                            .commands()
+                            .spawn(Node::default())
+                            .with_children(|panel| {
+                                detail(
+                                    panel,
+                                    &Handle::default(),
+                                    &armory,
+                                    &account,
+                                    &selection,
+                                    &Layout::default(),
+                                );
+                            });
+                        world.flush();
+                        let actual: Vec<_> = world
+                            .query::<&Act>()
+                            .iter(&world)
+                            .filter_map(|act| {
+                                if let Act::OpenDropSource(zone) = act {
+                                    Some(*zone)
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect();
+                        let expected: Vec<_> = supplemental_gear::POOR_DROP_ZONES
+                            .into_iter()
+                            .filter(|&zone| tier == GearTier::Poor && Some(zone) != current)
+                            .collect();
+                        assert_eq!(actual, expected, "{} at {current:?}", piece.key);
+                    }
+                }
+            }
+        }
+    }
 
     #[test]
     fn legacy_item_sources_offer_navigation_to_their_actual_zones() {

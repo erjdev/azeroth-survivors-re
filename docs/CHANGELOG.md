@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Ordinary-enemy source shortcuts
+
+Poor gear details now link directly to both Elwynn and Duskwood drop tables,
+preserving the inspected item and progression locks. Raid gear still clearly
+shows that acquisition is pending. Drop rates and ownership rules are unchanged.
+
+355 app tests, app/test Clippy and native build pass. Native wide/compact captures
+verify the two source links and Duskwood destination; Windows acceptance remains open.
+
+![Poor gear’s two source links](images/screenshots/2026-10-27-poor-source-navigation/collection-1280.png)
+![Duskwood source with the same item selected](images/screenshots/2026-10-27-poor-source-navigation/duskwood-1280.png)
+![Compact Poor gear inspector](images/screenshots/2026-10-27-poor-source-navigation/collection-640.png)
+
 ## 2026-10-27 — Item source navigation
 
 Collection item details now open the matching zone's Drop Tables directly. The

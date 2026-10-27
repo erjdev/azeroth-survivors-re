@@ -6385,3 +6385,19 @@ app/test Clippy pass; the incremental native build passes. Native 1280×720 and
 640×720 clicks verified Elwynn navigation, item retention and compact layout.
 Three screenshots are embedded in CHANGELOG; README's Drop Tables image is
 updated. Supplemental raid acquisition and remaining page acceptance stay open.
+
+### 2026-10-27 — Ordinary-enemy gear source navigation
+
+Poor item details now expose the same direct source navigation as scheduled gear,
+using the actual POOR_DROP_ZONES list for Elwynn and Duskwood. On Drop Tables, only
+the other source zone is offered. Raid Epic details retain the unavailable-source
+message and expose no invented destination. Ownership, chances and encounter
+rules are unchanged. This completes source shortcuts for the currently obtainable
+gear catalogs; it does not complete raid acquisition or zone implementation.
+
+Validation: all 355 app tests pass, including all-class/all-slot Poor and Raid Epic
+source actions in Collection and both starter-zone Drop Tables. App/test Clippy
+and native build pass. Native wide/compact captures verify both source links;
+opening Duskwood retains the inspected Poor gloves and its progression lock.
+Three screenshots are embedded in CHANGELOG. Physical-controller and Windows
+visual acceptance remain open.
