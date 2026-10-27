@@ -2734,6 +2734,72 @@ mod tests {
     }
 
     #[test]
+    fn leader_of_the_pack_purchase_save_specs_and_refund_reach_run_stats() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(8);
+        let other = account.create("Other", "Druid", 8).unwrap();
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (1, 796, 5),
+            (1, 795, 5),
+            (1, 799, 5),
+            (1, 794, 5),
+            (1, 807, 2),
+            (1, 798, 3),
+            (1, 803, 3),
+            (1, 802, 2),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(8, hero);
+        let other_before = account.bonus(8, other);
+        assert!(account.learn_talent(hero, 1, 809, 1, 6, true));
+        assert!(!account.learn_talent(hero, 1, 809, 1, 6, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let after = account.bonus(8, hero);
+        assert!((after.crit - before.crit - 0.03).abs() < 0.00001);
+        assert!((after.might - before.might).abs() < 0.00001);
+        assert_eq!(account.bonus(8, other).crit, other_before.crit);
+        let snapshot = super::super::Run {
+            class: &data::CLASSES[8],
+            bonus: after,
+            ..Default::default()
+        };
+        let baseline = super::super::Run {
+            class: &data::CLASSES[8],
+            bonus: before,
+            ..Default::default()
+        };
+        assert!((snapshot.stats().crit - baseline.stats().crit - 0.03).abs() < 0.00001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(loaded.bonus(8, hero).crit, after.crit);
+        for spec in [1, 2] {
+            loaded.select_spec(hero, spec);
+            assert_eq!(loaded.bonus(8, hero).crit, other_before.crit);
+        }
+        loaded.select_spec(hero, 0);
+        assert_eq!(loaded.bonus(8, hero).crit, after.crit);
+        assert!(loaded.unlearn_talent(hero, 809, true));
+        assert_eq!(loaded.bonus(8, hero).crit, before.crit);
+        assert!(!loaded.unlearn_talent(hero, 809, true));
+        assert_eq!(snapshot.bonus.crit, after.crit);
+    }
+
+    #[test]
     fn rogue_training_survives_save_and_stays_with_hero_and_active_spec() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

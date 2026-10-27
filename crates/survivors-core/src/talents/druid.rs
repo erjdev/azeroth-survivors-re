@@ -2,6 +2,7 @@
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "+3 percentage points hero critical chance, adding to Sharpened Claws and equipped bonuses (Survivors self-only conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.03 },
     TalentDefinition { id: 761, max_rank: 1, name: "Nature's Grasp", description: "Entangling Roots: 15% shorter cooldown, multiplying Improved Entangling Roots and the 10-point Balance milestone (Survivors automatic defensive-root conversion)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.15 },
     TalentDefinition { id: 921, max_rank: 4, name: "Improved Nature's Grasp", description: "Entangling Roots: +10% root duration per rank; bosses retain 30% duration (Survivors automatic-root reliability conversion)", stat: TalentStat::SpellDuration("entangling_roots"), per_rank: 0.10 },
     TalentDefinition { id: 787, max_rank: 3, name: "Improved Entangling Roots", description: "Entangling Roots: 3% shorter cooldown per rank, multiplying Nature's Grasp and the 10-point Balance milestone (Survivors cast reliability conversion; no spell pushback)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.03 },
@@ -165,7 +166,7 @@ mod tests {
             assert_eq!(bonus.armor, 12. * r);
             assert!((bonus.reduction - 0.01 * r).abs() < 0.00001);
             assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
-            assert!((bonus.crit - 0.02 * short).abs() < 0.00001);
+            assert!((bonus.crit - 0.02 * short - 0.03 * f32::from(rank.min(1))).abs() < 0.00001);
             assert_eq!(trained.with_ranks(&[]), base);
         }
     }
@@ -437,5 +438,29 @@ mod root_training_tests {
         }
         let duration = talent_definition(8, 921).unwrap();
         assert_eq!(duration.inline_description(1).unwrap(), "Entangling Roots: +10 » 20% root duration; bosses retain 30% duration (Survivors automatic-root reliability conversion)");
+    }
+}
+
+#[cfg(test)]
+mod leader_tests {
+    use super::super::{stat_adjustment, talent_definition};
+
+    #[test]
+    fn leader_adds_to_claws_caps_and_removes_its_placeholder_damage() {
+        for rank in [0, 1, 255] {
+            let base = stat_adjustment(8, &[(1, 798, 3)]);
+            let trained = stat_adjustment(8, &[(1, 798, 3), (1, 809, rank)]);
+            let effective = f32::from(rank.min(1));
+            assert!((trained.crit - base.crit - 0.03 * effective).abs() < 0.00001);
+            assert!((trained.might - base.might + 0.01 * effective).abs() < 0.00001);
+            assert_eq!(stat_adjustment(0, &[(1, 809, rank)]).crit, 0.0);
+        }
+        assert_eq!(stat_adjustment(8, &[]).crit, 0.0);
+        let node = talent_definition(8, 809).unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .starts_with("+0 » 3 percentage points hero critical chance"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }

@@ -7104,3 +7104,18 @@ Infusion with Pain, consumes Inner Focus later with Smite, and verifies independ
 recovery boundaries. All 204 core and 390 app tests, both Clippy gates, formatting
 and diff checks pass. No production code or UI changes in this follow-up; the
 previous screenshots remain the relevant visual evidence.
+
+
+### Leader of the Pack checkpoint — 2026-10-27
+
+Druid node 809 now adds three percentage points of hero critical chance, with
+an explicit self-only/no-form Survivors conversion consistent with Sharpened
+Claws. It removes the node's placeholder damage and adds to existing critical
+bonuses. The 30-point Thorns healing milestone remains separate.
+Real-catalog tests cover the 30-point prerequisite build, purchase cap, saved
+rank, other-hero and spec isolation, refund, and immutable run stats. Core tests
+cover rank clamping, class scope, composition and inline preview.
+205 core / 391 app tests, both Clippy gates and native build pass; catalog
+250/432 (Druid 24/47). Native 1280×720 purchase and 640×720 saved restart screenshots
+are inline in the changelog. No Windows or live combat claim. The remaining 182
+node definitions and broader seven-phase acceptance are still required.

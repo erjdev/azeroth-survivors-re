@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Druid Leader of the Pack
+
+Leader of the Pack now grants three percentage points of hero critical chance,
+adding to Sharpened Claws and gear. Its description explicitly identifies the
+Survivors self-only, no-form conversion. Purchase replaces placeholder damage;
+saves, spec switching and refunds preserve the intended bonus.
+
+205 core tests, 391 app tests, both Clippy gates and the native build pass.
+Native purchase at 1280×720 and restart at 640×720 verify the green inline preview
+and saved rank. Catalog coverage is 250/432 (Druid 24/47); Windows and live combat
+acceptance remain open.
+
+![Leader of the Pack preview](images/screenshots/2026-10-27-leader-of-the-pack/preview.png)
+![Purchased Druid capstone](images/screenshots/2026-10-27-leader-of-the-pack/purchased.png)
+![Saved compact Druid talent](images/screenshots/2026-10-27-leader-of-the-pack/compact.png)
+
 ## 2026-10-27 — Windows playtest replay checklist
 
 Rechecked the four reported areas against `1ad6616`; all 390 Survivors app tests
