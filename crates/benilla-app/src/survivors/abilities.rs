@@ -319,6 +319,7 @@ pub(super) fn cast_abilities(
         let def = o.def;
         let mut milestone = run.milestones.cast(def.key);
         let mut p = Params::new(o, &stats, run.milestones);
+        p.cooldown /= 1.0 + run.hawk.haste(run.milestones, def.key, run.elapsed);
         p.cooldown *= 1.0
             - run
                 .adrenaline_rush
@@ -673,6 +674,9 @@ pub(super) fn cast_abilities(
         if fired {
             let talents = run.milestones;
             let elapsed = run.elapsed;
+            if survivors_core::talents::HawkClock::eligible(talents, def.key) {
+                run.hawk.proc(talents, def.key, elapsed, rng.f32());
+            }
             run.critical_cast.consume(talents, def.key, elapsed);
             run.arcane_power.consume(talents, def.key, elapsed);
             run.adrenaline_rush.consume(talents, def.key, elapsed);
@@ -2450,6 +2454,121 @@ mod milestone_tests {
     #[test]
     fn inner_focus_reaches_direct_casts_and_survives_failed_target_selection() {
         next_cast_critical_bonus(4, 348, 1);
+    }
+
+    #[test]
+    fn hawk_waits_for_success_and_only_hastens_subsequent_shots() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        let mut app = App::new();
+        let mut time = Time::<()>::default();
+        time.advance_by(std::time::Duration::from_secs_f32(0.1));
+        let mut run = Run {
+            class: &data::CLASSES[2],
+            milestones: Milestones {
+                class: 2,
+                points: [0, 0, 0],
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 1382, 5)]),
+            ..Default::default()
+        };
+        for key in ["arcane_shot", "explosive_trap", "fireball"] {
+            run.abilities.push(Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+        }
+        run.mobile.cd = 9.;
+        app.insert_resource(time)
+            .insert_resource(run)
+            .insert_resource(Rng(0)) // Zero roll forces a proc after a successful shot.
+            .init_resource::<PlaySeq>()
+            .init_resource::<PendingHits>()
+            .add_message::<CastEvent>()
+            .add_message::<SpellGoTargets>()
+            .add_message::<SwingMessage>()
+            .add_message::<crate::combat_text::CombatTextSpawn>()
+            .add_message::<Hit>();
+        app.world_mut()
+            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(
+            app.world()
+                .resource::<Run>()
+                .hawk
+                .remaining(app.world().resource::<Run>().milestones, 0.),
+            0.
+        );
+        app.world_mut().spawn((
+            Transform::from_xyz(1., 0., 0.),
+            Enemy {
+                def: &data::roster(0).enemies[0],
+                hp: 100.,
+                max_hp: 100.,
+                speed: 3.,
+                damage: 5.,
+                radius: 0.6,
+                xp: 1,
+                boss: false,
+                elite: false,
+                attack_cd: 0.,
+                slow: 1.,
+                slow_t: 0.,
+                root_t: 0.,
+                frozen_t: 0.,
+                winters_chill: Default::default(),
+                shadow_weaving: Default::default(),
+                kidney_t: 0.0,
+                stun_t: 0.,
+                fear_t: 0.,
+                weaken: 1.,
+                weaken_t: 0.,
+                dots: Vec::new(),
+                dead: false,
+            },
+        ));
+        for elapsed in [0., 1., 13.] {
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.elapsed = elapsed;
+                for owned in &mut run.abilities {
+                    owned.cd = 0.;
+                }
+            }
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app
+                .world()
+                .resource::<Run>()
+                .abilities
+                .iter()
+                .all(|o| o.cd == 0.));
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let run = app.world().resource::<Run>();
+            for owned in &run.abilities {
+                let base = Params::new(owned, &run.stats(), run.milestones);
+                let haste = if owned.def.key == "arcane_shot" && elapsed == 1. {
+                    0.15
+                } else {
+                    0.
+                };
+                assert!(
+                    (owned.cd - base.cooldown / (1. + haste)).abs() < 0.00001,
+                    "{} at {}",
+                    owned.def.key,
+                    elapsed
+                );
+            }
+            assert_eq!(run.hawk.remaining(run.milestones, elapsed), 12.);
+            assert_eq!(run.mobile.cd, 9.);
+        }
     }
 
     #[test]

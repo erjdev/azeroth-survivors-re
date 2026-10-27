@@ -8,6 +8,7 @@ mod priest;
 pub use priest::{BlessedRecovery, PowerInfusionClock};
 mod rogue;
 pub use critical_cast::CriticalCastClock;
+pub use hunter::HawkClock;
 pub use hunter::{PetBonus, PetFrenzy};
 pub use mage::{ArcanePowerClock, ColdSnapClock, CombustionClock};
 pub use rogue::{AdrenalineRushClock, PreparationClock};
@@ -1478,6 +1479,7 @@ pub enum TalentStat {
     ArcanePower,
     Combustion,
     AdrenalineRush,
+    ImprovedHawk,
     Deterrence,
     PowerInfusion,
     Preparation,
@@ -1630,6 +1632,7 @@ impl TalentDefinition {
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
+            | TalentStat::ImprovedHawk
             | TalentStat::AdrenalineRush
             | TalentStat::Deterrence
             | TalentStat::Combustion
@@ -1883,6 +1886,7 @@ impl TalentDefinition {
                 100.0,
                 "% shorter Rogue cast cooldown during Adrenaline Rush",
             ),
+            TalentStat::ImprovedHawk => (100.0, "% Hunter shot haste during Improved Hawk"),
             TalentStat::Deterrence => (100.0, "% less incoming damage during Deterrence"),
             TalentStat::Combustion => (100.0, "% Fire critical chance per direct hit"),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
@@ -2427,6 +2431,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1382, max_rank: 5, name: "Improved Aspect of the Hawk",
+        description: "Hunter shots: +3% haste per rank for 12 sec after a 10% chance on each successful shot cast. Refreshes without stacking; affects subsequent shot cooldowns. Excludes Volley, traps, pets and periodic ticks (Survivors automatic aspect conversion)",
+        stat: TalentStat::ImprovedHawk, per_rank: 0.03 },
     TalentDefinition { id: 1322, max_rank: 2, name: "Trap Mastery",
         description: "Explosive Trap: +5% direct and periodic damage per rank, multiplying Clever Traps. Radius, cooldown and Entrapment root duration are unchanged (Survivors trap-resistance conversion)",
         stat: TalentStat::SpellDamage("explosive_trap"), per_rank: 0.05 },
@@ -3235,6 +3242,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
+            | TalentStat::ImprovedHawk
             | TalentStat::AdrenalineRush
             | TalentStat::Deterrence
             | TalentStat::Combustion
@@ -4713,6 +4721,7 @@ mod stat_talent_tests {
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus
+                    | TalentStat::ImprovedHawk
                     | TalentStat::AdrenalineRush
                     | TalentStat::Deterrence
                     | TalentStat::Combustion

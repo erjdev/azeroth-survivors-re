@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Improved Aspect of the Hawk
+
+Hunter shots can now trigger 12 seconds of shot haste, scaling from 3% to 15%
+with talent ranks. The buff refreshes without stacking and shows its remaining
+time in the HUD. Volley, traps and pet attacks are excluded.
+
+![Improved Hawk preview](images/screenshots/2026-10-27-improved-hawk/preview.png)
+
+![Improved Hawk purchased](images/screenshots/2026-10-27-improved-hawk/purchased.png)
+
+221 core tests, 431 app tests and core/app Clippy pass. Native macOS purchase
+checked at 1280×720; incremental build: 1m45s. Definitions: 268/432;
+164 remain. Live combat balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Hunter Trap Mastery
 
 Trap Mastery now strengthens Explosive Trap by 5% per rank (two ranks),

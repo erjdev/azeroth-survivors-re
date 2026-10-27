@@ -476,6 +476,18 @@ replace provisional global damage; they do not introduce misses or affect other
 spells, cooldowns, range, targets or critical chance. Refunds and inactive specs
 remove their bonuses.
 
+### Improved Aspect of the Hawk
+
+Hunter Beast Mastery node 1382 has five ranks. Each successful shot cast has a
+10% chance to grant 3% shot haste per rank for 12 seconds of gameplay time.
+It refreshes without stacking. Subsequent shot casts snapshot their cooldown
+as `cooldown / (1 + haste)`; the triggering cast is unchanged. It affects Arcane
+Shot, Multi-Shot, Serpent Sting, Concussive Shot, Aimed Shot and Scorpid Sting.
+Volley, traps, pets, periodic ticks and other-class spells neither trigger nor
+benefit. Pauses stop its timer; failed casts do not roll. A HUD status shows the
+active percentage and remaining time. This is an automatic Survivors aspect
+conversion with no separate aspect toggle or auto-shot requirement.
+
 ### Hunter Trap Mastery
 
 Trap Mastery (Survival node 1322, two ranks) adds 5% Explosive Trap direct and

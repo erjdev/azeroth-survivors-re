@@ -454,3 +454,101 @@ mod scorpid_tests {
         assert!(!node.inline_description(3).unwrap().contains(" » "));
     }
 }
+
+/// A shot-cast proc, timed in gameplay seconds; cooldowns snapshot haste at cast time.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct HawkClock {
+    until: f32,
+}
+impl HawkClock {
+    pub fn eligible(talents: Milestones, key: &str) -> bool {
+        talents.class == 2
+            && talents.trained_value(TalentStat::ImprovedHawk) > 0.0
+            && super::HUNTER_SHOTS.contains(&key)
+    }
+    pub fn proc(&mut self, talents: Milestones, key: &str, elapsed: f32, roll: f32) {
+        if Self::eligible(talents, key)
+            && elapsed.is_finite()
+            && elapsed >= 0.0
+            && (0.0..0.1).contains(&roll)
+        {
+            self.until = elapsed + 12.0;
+        }
+    }
+    pub fn remaining(self, talents: Milestones, elapsed: f32) -> f32 {
+        if !Self::eligible(talents, "arcane_shot") || !elapsed.is_finite() || elapsed < 0.0 {
+            return 0.0;
+        }
+        (self.until - elapsed).max(0.0)
+    }
+    pub fn haste(self, talents: Milestones, key: &str, elapsed: f32) -> f32 {
+        if Self::eligible(talents, key) && self.remaining(talents, elapsed) > 0.0 {
+            talents.trained_value(TalentStat::ImprovedHawk)
+        } else {
+            0.0
+        }
+    }
+}
+
+#[cfg(test)]
+mod hawk_tests {
+    use super::*;
+    #[test]
+    fn hawk_is_scoped_rank_capped_refreshable_and_uses_gameplay_time() {
+        for class in 0..9 {
+            for rank in [0, 1, 5, 255] {
+                let talents = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1382, rank)]);
+                let mut clock = HawkClock::default();
+                assert_eq!(clock.haste(talents, "arcane_shot", 0.), 0.);
+                for elapsed in [-1., f32::NAN, f32::INFINITY] {
+                    clock.proc(talents, "arcane_shot", elapsed, 0.);
+                    assert_eq!(clock.remaining(talents, elapsed), 0.);
+                }
+                for roll in [-1., 0.1, 1., f32::NAN] {
+                    clock.proc(talents, "arcane_shot", 0., roll);
+                    assert_eq!(clock.remaining(talents, 0.), 0.);
+                }
+                for key in ["volley", "explosive_trap", "fireball", "unknown"] {
+                    clock.proc(talents, key, 0., 0.);
+                    assert_eq!(clock.remaining(talents, 0.), 0.);
+                }
+                clock.proc(talents, "arcane_shot", 2., 0.099);
+                let expected = if class == 2 {
+                    0.03 * f32::from(rank.min(5))
+                } else {
+                    0.
+                };
+                for key in crate::data::CLASSES
+                    .iter()
+                    .flat_map(|c| c.pool.iter().copied())
+                {
+                    assert_eq!(
+                        clock.haste(talents, key, 2.),
+                        if super::super::HUNTER_SHOTS.contains(&key) {
+                            expected
+                        } else {
+                            0.
+                        }
+                    );
+                }
+                if expected > 0. {
+                    assert_eq!(clock.remaining(talents, 2.), 12.);
+                    assert_eq!(clock.remaining(talents, 10.), 4.);
+                    clock.proc(talents, "multi_shot", 10., 0.);
+                    assert_eq!(clock.remaining(talents, 10.), 12.);
+                    assert_eq!(clock.haste(talents, "arcane_shot", 21.99), expected);
+                    assert_eq!(clock.haste(talents, "arcane_shot", 22.), 0.);
+                    assert_eq!(clock.remaining(talents.with_ranks(&[]), 10.), 0.);
+                }
+            }
+        }
+        let node = super::super::talent_definition(2, 1382).unwrap();
+        assert!(node.inline_description(0).unwrap().contains("0 » 3%"));
+        assert!(node.inline_description(4).unwrap().contains("12 » 15%"));
+        assert!(!node.inline_description(5).unwrap().contains(" » "));
+    }
+}

@@ -1849,6 +1849,14 @@ fn reactive_buff_status(run: &Run) -> String {
             deterrence_remaining.ceil()
         ));
     }
+    let hawk_remaining = run.hawk.remaining(run.milestones, run.elapsed);
+    if hawk_remaining > 0.0 {
+        active.push(format!(
+            "Improved Hawk: +{:.0}% shot haste ({:.0}s)",
+            100.0 * run.hawk.haste(run.milestones, "arcane_shot", run.elapsed),
+            hawk_remaining.ceil()
+        ));
+    }
     let rush_remaining = run.adrenaline_rush.remaining(run.milestones, run.elapsed);
     if rush_remaining > 0.0 {
         active.push(format!(
@@ -3828,6 +3836,38 @@ mod power_infusion_status_tests {
         assert_eq!(
             reactive_buff_status(&run),
             "Power Infusion +20% Priest damage/healing (14s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.elapsed = 15.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 1.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod hawk_status_tests {
+    use super::*;
+    #[test]
+    fn active_hawk_status_expires_and_hides_on_death_or_refund() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[2],
+            milestones: survivors_core::talents::Milestones {
+                class: 2,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 1382, 5)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hawk.proc(run.milestones, "arcane_shot", 0., 0.);
+        run.elapsed = 1.2;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Improved Hawk: +15% shot haste (11s)"
         );
         run.hp = 0.;
         assert!(reactive_buff_status(&run).is_empty());

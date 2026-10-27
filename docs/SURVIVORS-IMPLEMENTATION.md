@@ -7716,3 +7716,23 @@ Quit and the launcher was restored.
 Coverage is now 267/432 definitions (Hunter 34/46), leaving 165 definitions.
 This is not full gameplay acceptance: live trap balance, Windows reports,
 remaining talents and the other seven-phase requirements remain open.
+
+
+### 2026-10-27 — Improved Hawk proc and purchase
+
+Hunter node 1382 now has a gameplay-time proc clock wired to successful shot
+casts, subsequent cooldown snapshots and a visible HUD status. The authored
+rule is 10% proc chance, 12 seconds, and 3% haste per rank (five ranks), with
+refresh but no stacking. Volley, traps, pets and periodic ticks are excluded.
+Core checks pass (221 tests), as do 431 app tests and core/app Clippy. Actual
+cast-system tests verify failed targeting, paused frames, subsequent-cast
+cooldowns and expiry; HUD checks cover expiry/death/refund. Real-data account
+checks cover all five purchases, cap, saved specs and refunds. Native play
+build: 1m45s. An initial test-source syntax error was repaired before these
+passing checks.
+
+Native macOS 1280×720 preview and purchase show green 0 » 3% then 3 » 6%,
+rank 1/5, and 50 points remaining. Both captures are embedded in the changelog.
+The session exited through Quit and its launcher was restored. Coverage is
+268/432 definitions (Hunter 35/46), leaving 164. Live combat balance, Windows
+acceptance, remaining talents and the other seven-phase requirements stay open.
