@@ -6262,96 +6262,115 @@ mod milestone_tests {
     }
 
     #[test]
-    fn conflagrate_advances_owned_shadowburn_once_only_after_a_successful_cast() {
+    fn trained_cooldown_advances_apply_once_only_after_a_successful_cast() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for rank in [0, 1, 255] {
-            for points in [0, 30] {
-                for targets in [0, 3] {
-                    for cooldown in [0., 1.] {
-                        for shadowburn_cd in [0.5_f32, 5.] {
-                            let mut run = Run {
-                                class: &data::CLASSES[7],
-                                hp: 100.,
-                                milestones: Milestones {
-                                    class: 7,
-                                    points: [0, 0, points],
+        for (class, tree, id, threshold, trigger, target, unrelated) in [
+            (7, 2, 968, 30, "immolate", "shadowburn", "searing_pain"),
+            (
+                6,
+                0,
+                86,
+                20,
+                "arcane_missiles",
+                "arcane_explosion",
+                "fireball",
+            ),
+        ] {
+            for rank in [0, 1, 255] {
+                for points in [0, threshold] {
+                    for targets in [0, 3] {
+                        for cooldown in [0., 1.] {
+                            for shadowburn_cd in [0.5_f32, 5.] {
+                                let mut run = Run {
+                                    class: &data::CLASSES[class],
+                                    hp: 100.,
+                                    milestones: Milestones {
+                                        class,
+                                        points: std::array::from_fn(|index| {
+                                            if index == tree as usize {
+                                                points
+                                            } else {
+                                                0
+                                            }
+                                        }),
+                                        ..Default::default()
+                                    }
+                                    .with_ranks(&[(tree, id, rank)]),
                                     ..Default::default()
+                                };
+                                run.bonus.targets = 2;
+                                // Visit the target first so newly readied spells wait until next update.
+                                for (key, cd) in [
+                                    (target, shadowburn_cd),
+                                    (trigger, cooldown),
+                                    (unrelated, 8.),
+                                ] {
+                                    run.abilities.push(Owned {
+                                        def: data::ability(key),
+                                        level: 1,
+                                        cd,
+                                    });
                                 }
-                                .with_ranks(&[(2, 968, rank)]),
-                                ..Default::default()
-                            };
-                            run.bonus.targets = 2;
-                            // Visit Shadowburn first so a newly readied spell waits until next update.
-                            for (key, cd) in [
-                                ("shadowburn", shadowburn_cd),
-                                ("immolate", cooldown),
-                                ("searing_pain", 8.),
-                            ] {
-                                run.abilities.push(Owned {
-                                    def: data::ability(key),
-                                    level: 1,
-                                    cd,
-                                });
-                            }
-                            let mut time = Time::<()>::default();
-                            time.advance_by(std::time::Duration::from_secs_f32(0.1));
-                            let mut app = App::new();
-                            app.insert_resource(time)
-                                .insert_resource(run)
-                                .insert_resource(Rng(42))
-                                .init_resource::<PlaySeq>()
-                                .init_resource::<PendingHits>()
-                                .add_message::<CastEvent>()
-                                .add_message::<SpellGoTargets>()
-                                .add_message::<SwingMessage>()
-                                .add_message::<crate::combat_text::CombatTextSpawn>()
-                                .add_message::<Hit>();
-                            app.world_mut()
-                                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
-                            for x in 0..targets {
-                                app.world_mut().spawn((
-                                    Transform::from_xyz(1. + x as f32, 0., 0.),
-                                    Enemy {
-                                        def: &data::roster(0).enemies[0],
-                                        hp: 100.0,
-                                        max_hp: 100.0,
-                                        speed: 3.0,
-                                        damage: 1.0,
-                                        radius: 0.6,
-                                        xp: 1,
-                                        boss: false,
-                                        elite: false,
-                                        attack_cd: 0.0,
-                                        slow: 1.0,
-                                        slow_t: 0.0,
-                                        root_t: 0.0,
-                                        frozen_t: 0.0,
-                                        winters_chill: Default::default(),
-                                        shadow_weaving: Default::default(),
-                                        kidney_t: 0.0,
-                                        stun_t: 0.0,
-                                        fear_t: 0.0,
-                                        weaken: 1.0,
-                                        weaken_t: 0.0,
-                                        dots: Vec::new(),
-                                        dead: false,
-                                    },
-                                ));
-                            }
-                            app.world_mut().run_system_once(cast_abilities).unwrap();
-                            let fired = targets > 0 && cooldown == 0.;
-                            let advance = if fired {
-                                (if rank > 0 { 2. } else { 0. })
-                                    + if points >= 30 { 2. } else { 0. }
-                            } else {
-                                0.
-                            };
-                            let run = app.world().resource::<Run>();
-                            assert!((run.abilities[0].cd - (shadowburn_cd - 0.1 - advance).max(0.)).abs() < 0.0001,
+                                let mut time = Time::<()>::default();
+                                time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                                let mut app = App::new();
+                                app.insert_resource(time)
+                                    .insert_resource(run)
+                                    .insert_resource(Rng(42))
+                                    .init_resource::<PlaySeq>()
+                                    .init_resource::<PendingHits>()
+                                    .add_message::<CastEvent>()
+                                    .add_message::<SpellGoTargets>()
+                                    .add_message::<SwingMessage>()
+                                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                                    .add_message::<Hit>();
+                                app.world_mut()
+                                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                                for x in 0..targets {
+                                    app.world_mut().spawn((
+                                        Transform::from_xyz(1. + x as f32, 0., 0.),
+                                        Enemy {
+                                            def: &data::roster(0).enemies[0],
+                                            hp: 100.0,
+                                            max_hp: 100.0,
+                                            speed: 3.0,
+                                            damage: 1.0,
+                                            radius: 0.6,
+                                            xp: 1,
+                                            boss: false,
+                                            elite: false,
+                                            attack_cd: 0.0,
+                                            slow: 1.0,
+                                            slow_t: 0.0,
+                                            root_t: 0.0,
+                                            frozen_t: 0.0,
+                                            winters_chill: Default::default(),
+                                            shadow_weaving: Default::default(),
+                                            kidney_t: 0.0,
+                                            stun_t: 0.0,
+                                            fear_t: 0.0,
+                                            weaken: 1.0,
+                                            weaken_t: 0.0,
+                                            dots: Vec::new(),
+                                            dead: false,
+                                        },
+                                    ));
+                                }
+                                app.world_mut().run_system_once(cast_abilities).unwrap();
+                                let fired = targets > 0 && cooldown == 0.;
+                                let advance = if fired {
+                                    (if rank > 0 { 2. } else { 0. })
+                                        + if points >= threshold { 2. } else { 0. }
+                                } else {
+                                    0.
+                                };
+                                let run = app.world().resource::<Run>();
+                                assert!((run.abilities[0].cd - (shadowburn_cd - 0.1 - advance).max(0.)).abs() < 0.0001,
                                 "rank={rank}, points={points}, targets={targets}, cooldown={cooldown}");
-                            assert!((run.abilities[2].cd - 7.9).abs() < 0.0001);
-                            assert_eq!(run.abilities.len(), 3);
+                                assert!((run.abilities[2].cd - 7.9).abs() < 0.0001);
+                                assert_eq!(run.abilities.len(), 3);
+                            }
                         }
                     }
                 }

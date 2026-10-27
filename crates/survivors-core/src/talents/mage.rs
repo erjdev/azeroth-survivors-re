@@ -284,3 +284,49 @@ mod combustion_tests {
         assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }
+
+#[cfg(test)]
+mod presence_tests {
+    use super::*;
+    #[test]
+    fn presence_adds_to_the_milestone_only_for_mage_missiles() {
+        for class in 0..9 {
+            for points in [0, 19, 20, 30] {
+                let base = Milestones {
+                    class,
+                    points: [points, 0, 0],
+                    ..Default::default()
+                };
+                for rank in [0, 1, 255] {
+                    let trained = base.with_ranks(&[(0, 86, rank)]);
+                    for key in crate::data::CLASSES
+                        .iter()
+                        .flat_map(|c| c.pool.iter().copied())
+                    {
+                        let before = base.cast(key);
+                        let after = trained.cast(key);
+                        if class == 6 && key == "arcane_missiles" && rank > 0 {
+                            assert_eq!(
+                                after.cooldown_advance,
+                                Some(("arcane_explosion", if points >= 20 { 4. } else { 2. }))
+                            );
+                            assert_eq!(
+                                super::super::CastEffect {
+                                    cooldown_advance: before.cooldown_advance,
+                                    ..after
+                                },
+                                before
+                            );
+                        } else {
+                            assert_eq!(after, before);
+                        }
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+        let node = super::super::talent_definition(6, 86).unwrap();
+        assert!(node.inline_description(0).unwrap().contains("0 » 2 sec"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
+}

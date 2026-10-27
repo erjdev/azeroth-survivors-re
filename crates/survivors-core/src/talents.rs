@@ -403,6 +403,10 @@ impl Milestones {
             for (index, node) in definitions(self.class).iter().enumerate() {
                 let value = node.per_rank * f32::from(self.training[index].min(node.max_rank));
                 match node.stat {
+                    TalentStat::PresenceOfMind if key == "arcane_missiles" && value > 0. => {
+                        let milestone = effect.cooldown_advance.map_or(0., |(_, seconds)| seconds);
+                        effect.cooldown_advance = Some(("arcane_explosion", milestone + value));
+                    }
                     TalentStat::Conflagrate if key == "immolate" && value > 0. => {
                         let milestone = effect.cooldown_advance.map_or(0., |(_, seconds)| seconds);
                         effect.cooldown_advance = Some(("shadowburn", milestone + value));
@@ -1497,6 +1501,7 @@ pub enum TalentStat {
     SpellHealing(&'static str),
     ImprovedDrainLife,
     Conflagrate,
+    PresenceOfMind,
     SpellDamageAndCrit(&'static str),
     SpellCooldown(&'static str),
     SpellCrit(&'static str),
@@ -1613,6 +1618,7 @@ impl TalentDefinition {
             | TalentStat::Preparation
             | TalentStat::ColdSnap => (1.0, ""),
             TalentStat::Conflagrate
+            | TalentStat::PresenceOfMind
             | TalentStat::SpellShieldDuration(_)
             | TalentStat::SecondaryRootDuration(_)
             | TalentStat::SecondaryStunDuration(_)
@@ -1831,6 +1837,10 @@ impl TalentDefinition {
             TalentStat::SpellHealing(_) => (100.0, "% healing"),
             TalentStat::ImprovedDrainLife => (100.0, "% drain healing"),
             TalentStat::Conflagrate => (1.0, " sec Shadowburn cooldown advanced per Immolate cast"),
+            TalentStat::PresenceOfMind => (
+                1.0,
+                " sec Arcane Explosion cooldown advanced per Arcane Missiles cast",
+            ),
             TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
                 (100.0, "% damage")
             }
@@ -2608,6 +2618,11 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 86, max_rank: 1, name: "Presence of Mind",
+        description: "Arcane Missiles advances an owned Arcane Explosion cooldown by 2 sec once per successful cast; adds to the 20-point Arcane milestone for 4 sec total. Does not trigger per missile, grant Explosion or store a charge (Survivors automatic instant-cast conversion)",
+        stat: TalentStat::PresenceOfMind, per_rank: 2.0,
+    },
+    TalentDefinition {
         id: 74, max_rank: 2, name: "Arcane Subtlety",
         description: "Arcane Missiles and Arcane Explosion: +5% direct and periodic damage per rank. Excludes Fire, Frost and other-class spells (Survivors resistance-penetration conversion; no resistance or threat roll)",
         stat: TalentStat::SpellGroupDamage(MAGE_ARCANE), per_rank: 0.05,
@@ -3235,6 +3250,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellAbsorb(_)
             | TalentStat::ImprovedDrainLife
             | TalentStat::Conflagrate
+            | TalentStat::PresenceOfMind
             | TalentStat::SpellHealing(_)
             | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellDamage(_)
@@ -4708,6 +4724,7 @@ mod stat_talent_tests {
                     | TalentStat::SpellAbsorb(_)
                     | TalentStat::ImprovedDrainLife
                     | TalentStat::Conflagrate
+                    | TalentStat::PresenceOfMind
                     | TalentStat::SpellHealing(_)
                     | TalentStat::SpellDamageAndCrit(_)
                     | TalentStat::SpellDamage(_)

@@ -7533,3 +7533,25 @@ No new UI was added; the existing recovery notice handles this failure.
 Validation: all 418 app tests, app Clippy, formatting and diff checks pass on
 macOS. The integration build took 2m08 and execution 1.62 seconds. No Windows or
 browser execution is claimed for this parser change.
+
+
+### 2026-10-27 — Individual Presence of Mind
+
+Mage node 86 replaces provisional global damage with a two-second advance of an
+owned Arcane Explosion cooldown after a successful Arcane Missiles cast. It adds
+to the existing 20-point milestone for four seconds total. The automatic
+instant-cast conversion is named explicitly in the description, with green inline
+seconds and no repeated unit. Rank caps, class/spell scope and milestone boundaries
+are covered in core tests. The existing cast-level Conflagrate test now also checks
+Presence of Mind across failed targeting, cooling casts, multiple targets and
+cooldown floors; the shared completion path advances once per cast, not per missile.
+Real-data purchase, persistence, spec switching and refund checks verify that a
+refund removes the individual effect while retaining the earned milestone.
+
+Native 1280×720 preview and purchase were captured and embedded in the changelog;
+the saved fixture has node 86 at rank one. Build time: 28 seconds. Live balance,
+Windows acceptance and in-map visual evidence remain separate work.
+
+Validation: 217 core tests, 419 app tests, core/app Clippy, native build, formatting
+and diff checks pass. Real-data definition coverage is 263/432 (Mage 36/49), with
+169 individual definitions remaining. Existing block-crate warning remains.

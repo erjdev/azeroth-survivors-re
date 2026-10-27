@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Presence of Mind
+
+The individual Mage talent now advances an owned Arcane Explosion cooldown by
+two seconds per successful Arcane Missiles cast. It adds to the Arcane milestone
+for four seconds total, without granting spells or triggering per missile.
+
+![Presence of Mind upgrade preview](images/screenshots/2026-10-27-presence-of-mind/preview.png)
+
+![Purchased Presence of Mind](images/screenshots/2026-10-27-presence-of-mind/purchased.png)
+
+217 core and 419 app tests, core/app Clippy, formatting and diff checks pass.
+Definition coverage: 263/432 (Mage 36/49); 169 definitions remain.
+Native 1280×720 preview, purchase and saved rank checked. Native build: 28 seconds.
+Live balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Preserve unsupported class saves
 
 Loading an unsupported class in a hero or class-progress record now enters the

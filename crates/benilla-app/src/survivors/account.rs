@@ -2874,6 +2874,49 @@ mod tests {
     }
 
     #[test]
+    fn presence_purchase_persists_and_refund_retains_only_the_milestone() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(6);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(0, 76, 5), (0, 80, 5), (0, 1650, 5), (0, 75, 5)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(6, hero);
+        assert!(account.learn_talent(hero, 0, 86, 1, 4, true));
+        assert!(!account.learn_talent(hero, 0, 86, 1, 4, true));
+        assert!((account.bonus(6, hero).might - before.might).abs() < 0.00001);
+        let bonus = |account: &Account| {
+            account
+                .milestones_picked(6, Some(hero))
+                .cast("arcane_missiles")
+                .cooldown_advance
+        };
+        assert_eq!(bonus(&account), Some(("arcane_explosion", 4.)));
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(bonus(&loaded), Some(("arcane_explosion", 4.)));
+        loaded.select_spec(hero, 1);
+        assert_eq!(bonus(&loaded), None);
+        loaded.select_spec(hero, 0);
+        assert_eq!(bonus(&loaded), Some(("arcane_explosion", 4.)));
+        assert!(loaded.unlearn_talent(hero, 86, true));
+        assert_eq!(bonus(&loaded), Some(("arcane_explosion", 2.)));
+    }
+
+    #[test]
     fn combustion_purchase_persists_and_spec_refund_remove_the_burst() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();
