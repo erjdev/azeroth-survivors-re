@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Consistent starter Options backdrop
+
+Opening Options from the starter or Armory now retains the landscape instead of
+revealing the world camera. In-game pause keeps its translucent world overlay.
+Native macOS before/after captures verify the Collection transition and return at
+800×600 with 125% interface size. Gameplay transition coverage is headless.
+All 386 Survivors app tests, app/test Clippy and native build pass.
+
+![Before: Options exposed the world camera](images/screenshots/2026-10-27-menu-options/before.png)
+![After: Options retains the starter landscape](images/screenshots/2026-10-27-menu-options/after.png)
+
 ## 2026-10-27 — Windows playtest review
 
 Consolidated foliage reveal, enemy routing, elite chest cadence and talent art

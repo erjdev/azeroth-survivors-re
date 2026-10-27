@@ -67,7 +67,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Options</strong><br><img src="docs/images/screenshots/2026-10-26-controls-speed/controls-1280.png" alt="Options"><br>2026-10-26 · Shared menu/pause controls and camera preferences.</td>
+    <td width="50%"><strong>Options</strong><br><img src="docs/images/screenshots/2026-10-27-menu-options/after.png" alt="Options"><br>2026-10-27 · Starter Options retains the landscape; shown at 800×600 and 125% UI size.</td>
     <td width="50%"><strong>Spell and passive upgrades</strong><br><img src="docs/images/screenshots/2026-10-26-passive-preview/renew-1280.png" alt="Spell and passive upgrades"><br>2026-10-26 · Green inline comparisons include trained values.</td>
   </tr>
   <tr>

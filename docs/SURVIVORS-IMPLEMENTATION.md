@@ -7021,3 +7021,16 @@ in [the Windows playtest tracker](WINDOWS-PLAYTEST.md), with current mechanisms,
 limits and remaining scene checks. All 385 Survivors app tests pass with local
 data; this does not close Windows or GPU scene acceptance. Existing talent
 captures are embedded in the tracker with their original dates.
+
+
+### 2026-10-27 — Starter Options backdrop continuity
+
+The shared pause root now receives the starter landscape only in Menu phase;
+Playing/Paused removes that material and retains the original translucent tint.
+Character preview still exposes its model on the menu root. The two surfaces
+reuse one cached image and unchanged materials are not dirtied each frame.
+An ECS transition regression covers character preview, menu Options, gameplay,
+pause and return to menu. All 386 app tests, app/test Clippy, native build,
+formatting and diff checks pass. Native 800×600/125% before/after captures and
+Done-to-Collection interaction are verified in CHANGELOG; README Options is
+refreshed. In-game rendering and Windows remain outside this visual checkpoint.
