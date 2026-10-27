@@ -5588,3 +5588,20 @@ scrolling equipment to the bottom, then switched to Drop Tables and back; the
 equipment offset survived both rebuilds. Screenshot embedded in CHANGELOG and
 README Collection refreshed. App Clippy, native build, formatting and diff checks
 pass. This is menu-state evidence, not Windows/controller or complete UI acceptance.
+
+### 2026-10-26 — Compact Codex reading layout
+
+Compared the live 640×720 Codex against the wide intention reference. The fixed
+74/26 horizontal split squeezed descriptions into a narrow sidebar. Under the
+existing 1100-logical-pixel compact threshold, Codex now uses a 62/38 vertical split,
+keeping both independently scrollable panels present. Compact detail art sits beside
+the text; wide presentation remains side-by-side. Added Codex to the responsive
+rebuild signature and allowed shared columns to shrink vertically.
+
+Native macOS checks cover Arcane Shot's legendary description, independent catalog
+dragging to the final shared rows, Eye of the Beast selection and 640→1280→640 resizing
+with selected details retained. Three inline changelog screenshots and the README
+Codex preview record this intentional responsive departure from the wide reference.
+Clippy, native build, formatting and diff checks pass. No new gameplay or discovery
+logic changed and the app suite was not rerun. Catalog expansion and full resolution,
+controller and Windows acceptance remain required.

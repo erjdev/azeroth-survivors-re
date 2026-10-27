@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Readable compact Codex
+
+Compact screens stack the jewelry catalog above a full-width details panel instead
+of squeezing descriptions into a narrow sidebar. The catalog and details scroll
+independently; selected artwork sits beside its description. Wide screens retain
+the reference's side-by-side layout. Crossing the layout threshold now rebuilds Codex.
+
+Native macOS 640×720 checks cover legendary/shared jewelry selection and dragging
+to the catalog's final rows. Resizing to 1280×720 and back retains selected details.
+App Clippy, native build, formatting and diff checks pass. This layout-only change
+did not rerun the app suite; Windows/controller acceptance remains open.
+
+![Compact legendary description](images/screenshots/2026-10-26-codex-compact/legendary-640.png)
+
+![Compact shared jewelry after scrolling](images/screenshots/2026-10-26-codex-compact/trinket-640.png)
+
+![Wide Codex after resizing](images/screenshots/2026-10-26-codex-compact/trinket-1280.png)
+
 ## 2026-10-26 — Armory keeps your place
 
 Wide Collection, Drop Tables, Character and Codex columns now remember their own

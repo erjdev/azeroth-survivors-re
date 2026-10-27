@@ -91,7 +91,15 @@ pub(super) fn build(
             compact_collection,
         );
     } else if armory.page == Page::Codex {
-        super::codex_page::build(ui, font, armory, account, selection, layout);
+        super::codex_page::build(
+            ui,
+            font,
+            armory,
+            account,
+            selection,
+            layout,
+            compact_collection,
+        );
     } else if armory.page == Page::DropTables {
         super::drop_page::build(
             ui,

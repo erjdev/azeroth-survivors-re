@@ -49,7 +49,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-26-poor-drops/drop-tables.png" alt="Drop Tables"><br>2026-10-26 · Ordinary-enemy Poor gear, scheduled encounters and item details.<br><a href="docs/images/screenshots/2026-10-26-armory-scrollbars/drops-640.png">Compact scrolling preview</a></td>
   </tr>
   <tr>
-    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-26-champion-icon/codex-1280.png" alt="Codex"><br>2026-10-26 · Jewelry catalog and spell artwork.</td>
+    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-26-codex-compact/trinket-1280.png" alt="Codex"><br>2026-10-26 · Readable jewelry details with responsive catalog panels.<br><a href="docs/images/screenshots/2026-10-26-codex-compact/legendary-640.png">Compact Codex preview</a></td>
     <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-26-pet-wrath/wrath-1280.png" alt="Talents"><br>2026-10-26 · Saved specs and trained Bestial Wrath; talent catalog incomplete.</td>
   </tr>
   <tr>

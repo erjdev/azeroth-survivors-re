@@ -1038,7 +1038,11 @@ pub(super) fn refresh(
                 compact_collection
                     && matches!(
                         armory.page,
-                        Page::Collection | Page::DropTables | Page::Heroes | Page::Door
+                        Page::Collection
+                            | Page::DropTables
+                            | Page::Heroes
+                            | Page::Door
+                            | Page::Codex
                     ),
             ),
         ),

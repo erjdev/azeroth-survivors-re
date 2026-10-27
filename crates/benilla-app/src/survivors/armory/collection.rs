@@ -251,6 +251,7 @@ pub(super) fn column(
             flex_grow: weight,
             flex_basis: Val::Px(0.0),
             min_width: Val::Px(0.0),
+            min_height: Val::Px(0.0),
             height: Val::Percent(100.0),
             border: UiRect::all(Val::Px(1.0)),
             border_radius: BorderRadius::all(Val::Px(6.0)),

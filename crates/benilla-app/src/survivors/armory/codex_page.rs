@@ -138,18 +138,25 @@ pub(super) fn build(
     account: &Account,
     selection: &Selection,
     layout: &Layout,
+    compact: bool,
 ) {
     ui.spawn(Node {
         width: Val::Percent(100.0),
         flex_grow: 1.0,
         min_height: Val::Px(0.0),
         column_gap: Val::Px(layout.gap),
+        row_gap: Val::Px(layout.gap),
+        flex_direction: if compact {
+            FlexDirection::Column
+        } else {
+            FlexDirection::Row
+        },
         ..default()
     })
     .with_children(|panes| {
         collection::column(
             panes,
-            74.0,
+            if compact { 62.0 } else { 74.0 },
             layout,
             (
                 collection::CompactScroll::CodexColumn(0),
@@ -324,7 +331,7 @@ pub(super) fn build(
         );
         collection::column(
             panes,
-            26.0,
+            if compact { 38.0 } else { 26.0 },
             layout,
             (
                 collection::CompactScroll::CodexColumn(1),
@@ -333,20 +340,60 @@ pub(super) fn build(
             |details| {
                 super::typography::section(details, font, "Details", layout.title_size, GOLD);
                 details
-                    .spawn((DetailArt(armory.codex_entry), Node::default()))
-                    .with_children(|image| {
-                        if let Some(id) = armory.codex_entry {
-                            entry_icon(image, font, id, layout.title_size * 3.0, true);
-                        }
+                    .spawn(Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: if compact {
+                            FlexDirection::Row
+                        } else {
+                            FlexDirection::Column
+                        },
+                        column_gap: Val::Px(layout.gap),
+                        row_gap: Val::Px(layout.gap * 0.5),
+                        ..default()
+                    })
+                    .with_children(|content| {
+                        content
+                            .spawn((
+                                DetailArt(armory.codex_entry),
+                                Node {
+                                    flex_shrink: 0.0,
+                                    ..default()
+                                },
+                            ))
+                            .with_children(|image| {
+                                if let Some(id) = armory.codex_entry {
+                                    entry_icon(image, font, id, layout.title_size * 3.0, true);
+                                }
+                            });
+                        content
+                            .spawn(Node {
+                                flex_grow: 1.0,
+                                min_width: Val::Px(0.0),
+                                flex_direction: FlexDirection::Column,
+                                row_gap: Val::Px(layout.gap * 0.5),
+                                ..default()
+                            })
+                            .with_children(|text| {
+                                text.spawn((
+                                    DetailText(false),
+                                    hud::text_bundle(
+                                        font,
+                                        detail_text(armory, account),
+                                        layout.body_size,
+                                        DIM,
+                                    ),
+                                ));
+                                text.spawn((
+                                    DetailText(true),
+                                    hud::text_bundle(
+                                        font,
+                                        effect_text(armory),
+                                        layout.body_size,
+                                        GREEN,
+                                    ),
+                                ));
+                            });
                     });
-                details.spawn((
-                    DetailText(false),
-                    hud::text_bundle(font, detail_text(armory, account), layout.body_size, DIM),
-                ));
-                details.spawn((
-                    DetailText(true),
-                    hud::text_bundle(font, effect_text(armory), layout.body_size, GREEN),
-                ));
             },
         );
     });
