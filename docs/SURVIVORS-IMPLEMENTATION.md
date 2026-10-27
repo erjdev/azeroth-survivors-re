@@ -7297,3 +7297,17 @@ This integration does not close live combat or Windows scene acceptance.
 
 Verification: 210 core / 403 app tests, both scoped Clippy checks, formatting
 and native build (25 seconds) pass. Talent definitions remain 253/432.
+
+
+### 2026-10-27 — Priest Improved Fade
+
+Node 483 now reduces only Fade cooldown, 10% per rank up to two ranks. Runtime
+mobility and its HUD tooltip share the adjusted definition; escape duration,
+speed and level-five gating remain intact. Core scope/cap tests and real-DBC
+purchase/save/spec/refund tests cover the replacement of placeholder damage.
+Native purchase evidence with the green next-rank phrase is in the changelog.
+Windows, live combat and the remaining talent catalog are not closed by this check.
+
+Verification: 211 core / 405 app tests, both scoped Clippy checks, formatting
+and native build (18 seconds) pass. Real-data coverage: 254/432 definitions,
+including 26/47 Priest nodes; 178 definitions remain.

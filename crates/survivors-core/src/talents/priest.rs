@@ -47,6 +47,37 @@ impl PowerInfusionClock {
 mod tests {
     use super::*;
     #[test]
+    fn improved_fade_is_capped_and_scoped_to_escape() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 483, rank)]);
+                for key in PRIEST_HOLY
+                    .iter()
+                    .chain(PRIEST_SHADOW)
+                    .copied()
+                    .chain(["fade", "charge", "fireball"])
+                {
+                    let mut expected = base.cast(key);
+                    if class == 4 && key == "fade" {
+                        expected.cooldown *= 1.0 - 0.1 * f32::from(rank.min(2));
+                    }
+                    assert_eq!(trained.cast(key), expected);
+                }
+            }
+        }
+        let node = super::super::talent_definition(4, 483).unwrap();
+        assert!(node
+            .inline_description(1)
+            .unwrap()
+            .starts_with("Fade: 10 » 20% shorter cooldown"));
+        assert!(!node.inline_description(2).unwrap().contains(" » "));
+    }
+
+    #[test]
     fn infusion_and_inner_focus_recover_independently() {
         let trained = Milestones {
             class: 4,

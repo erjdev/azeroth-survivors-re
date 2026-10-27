@@ -2841,6 +2841,56 @@ mod tests {
     }
 
     #[test]
+    fn improved_fade_purchase_persists_and_spec_refund_restore_escape() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(4);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(2, 465, 5), (2, 464, 5), (2, 481, 5)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(4, hero);
+        for _ in 0..2 {
+            assert!(account.learn_talent(hero, 2, 483, 2, 3, true));
+        }
+        assert!(!account.learn_talent(hero, 2, 483, 2, 3, true));
+        assert!((account.bonus(4, hero).might - before.might).abs() < 0.00001);
+        let cooldown = |account: &Account| {
+            let run = super::super::Run {
+                class: &data::CLASSES[4],
+                level: 5,
+                milestones: account.milestones_picked(4, Some(hero)),
+                ..Default::default()
+            };
+            run.mobility().unwrap().cooldown
+        };
+        assert!((cooldown(&account) - 14.4).abs() < 0.00001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert!((cooldown(&loaded) - 14.4).abs() < 0.00001);
+        loaded.select_spec(hero, 1);
+        assert!((cooldown(&loaded) - 18.0).abs() < 0.00001);
+        loaded.select_spec(hero, 0);
+        assert!((cooldown(&loaded) - 14.4).abs() < 0.00001);
+        assert!(loaded.unlearn_talent(hero, 483, true));
+        assert!((cooldown(&loaded) - 16.2).abs() < 0.00001);
+        assert!(loaded.unlearn_talent(hero, 483, true));
+        assert!((cooldown(&loaded) - 18.0).abs() < 0.00001);
+    }
+
+    #[test]
     fn adrenaline_rush_purchase_save_and_refund_reach_clock() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

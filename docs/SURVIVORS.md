@@ -458,6 +458,10 @@ critical chance, capped at 100%, rather than guaranteeing a critical hit.
 
 Implemented individual Priest talents include these replacements for provisional general damage:
 
+Improved Fade (483, two ranks) reduces the learned level-five Fade cooldown by
+10% per rank: 18 / 16.2 / 14.4 seconds. Its four-second escape and 40% movement
+speed bonus are unchanged. This is a scaled Survivors cooldown conversion.
+
 | Talent | Per-rank Survivors effect |
 |---|---|
 | Vampiric Embrace (1 rank) | Always-active self-healing for 20% of health removed by Priest Shadow damage, including Pain ticks; excludes overkill |

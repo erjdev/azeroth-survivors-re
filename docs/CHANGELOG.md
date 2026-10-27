@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Priest Improved Fade
+
+Improved Fade replaces placeholder damage with 10% shorter Fade cooldown per
+rank: 18 / 16.2 / 14.4 seconds. Its four-second escape, movement bonus and
+level-five unlock stay unchanged. Saved specs and refunds update the next run.
+
+![Improved Fade purchase and inline cooldown preview](images/screenshots/2026-10-27-improved-fade/purchased.png)
+
+211 core / 405 app tests, both Clippy checks and native build pass. Definitions:
+254/432. Native 1280×720 purchase capture; Windows and live combat acceptance
+remain open.
+
 ## 2026-10-27 — Preparation resets learned Sprint
 
 Preparation's automatic reset now includes Sprint after its level-five unlock.

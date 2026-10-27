@@ -2944,6 +2944,9 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 // Vanilla identities and rank caps; automatic-cast conversions are labeled in descriptions.
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 483, max_rank: 2, name: "Improved Fade",
+        description: "Fade: 10% shorter cooldown per rank. Preserves its 4 sec escape and 40% movement speed bonus; learned at hero level 5 and activated with F (Survivors scaled cooldown conversion)",
+        stat: TalentStat::SpellCooldown("fade"), per_rank: 0.10 },
     TalentDefinition { id: 322, max_rank: 1, name: "Power Infusion",
         description: "Automatically grants +20% Priest direct and periodic damage, unlocked Holy Nova healing and owned Renew healing for 15 sec after a successful damaging Priest cast. Ready at run start; recovers 180 sec after use. Pauses stop timers. Cast damage keeps its bonus; Renew checks the active window. Excludes shields, lifesteal, other regeneration and other-class spells (Survivors self-only conversion)",
         stat: TalentStat::PowerInfusion, per_rank: 0.20 },

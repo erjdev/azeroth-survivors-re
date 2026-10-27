@@ -188,6 +188,9 @@ impl Run {
         if self.class.id == 4 {
             def.cooldown *= self.milestones.cast("sprint").cooldown;
         }
+        if self.class.id == 5 {
+            def.cooldown *= self.milestones.cast("fade").cooldown;
+        }
         Some(def)
     }
 
@@ -337,6 +340,29 @@ mod tests {
             assert_eq!(sprint.secs, 4.0);
             run.milestones = run.milestones.with_ranks(&[]);
             assert_eq!(run.mobility().unwrap().cooldown, 15.0);
+        }
+    }
+
+    #[test]
+    fn improved_fade_changes_only_learned_escape_cooldown_and_refunds() {
+        for rank in [0, 1, 2, 255] {
+            let mut run = Run {
+                class: &super::super::data::CLASSES[4],
+                milestones: Milestones {
+                    class: 4,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 483, rank)]),
+                ..Default::default()
+            };
+            assert!(run.mobility().is_none());
+            run.level = LEARN_LEVEL;
+            let fade = run.mobility().unwrap();
+            assert!((fade.cooldown - (18.0 - 1.8 * f32::from(rank.min(2)))).abs() < 0.00001);
+            assert_eq!(fade.kind, Move::Vanish(1.4));
+            assert_eq!(fade.secs, 4.0);
+            run.milestones = run.milestones.with_ranks(&[]);
+            assert_eq!(run.mobility().unwrap().cooldown, 18.0);
         }
     }
 
