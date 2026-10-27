@@ -5988,3 +5988,18 @@ reports 214/432 individual definitions and 81/81 milestone descriptions. Native
 1280×720 inspection and a 4→5 purchase confirm the authored rules and saved rank;
 CHANGELOG embeds the screenshot. Live combat balance, dedicated buff art, Windows
 acceptance and the remaining 218 individual talent definitions are unfinished.
+
+
+### Flurry damage-resolution integration — 2026-10-27
+
+A scheduled production apply_hits regression now covers both classes, trained and
+untrained states, eligible/foreign sources, direct critical/noncritical damage,
+periodic damage, dead heroes and dead targets. It verifies actual target health
+changes alongside activation, two same-update criticals refreshing one timer,
+and a second scheduled update not replaying consumed hits. Shaman HUD assertions
+cover the displayed haste/time and removal on expiry. This supplements the prior
+core source/rank checks and runtime cooldown/timer tests.
+
+All 337 app tests, Clippy, formatting and diff checks pass. Runtime code is
+unchanged, so no native rebuild or new visual checkpoint is claimed. These tests
+do not replace live Windows combat or balance acceptance.

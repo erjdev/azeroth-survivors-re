@@ -2680,6 +2680,134 @@ mod milestone_tests {
     }
 
     #[test]
+    fn flurry_damage_resolution_excludes_ticks_dead_units_and_foreign_sources() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for (class, talent, source, eligible) in [
+            (0, 156, "cleave", true),
+            (0, 156, "lightning_bolt", false),
+            (5, 602, "lightning_bolt", true),
+            (5, 602, "flame_shock", true),
+            (5, 602, "magma_totem", false),
+            (5, 602, "cleave", false),
+        ] {
+            for rank in [0, 5] {
+                for (critical, periodic, hero_dead, target_dead) in [
+                    (true, false, false, false),
+                    (false, false, false, false),
+                    (true, true, false, false),
+                    (true, false, true, false),
+                    (true, false, false, true),
+                ] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs(1));
+                    app.insert_resource(time)
+                        .insert_resource(Run {
+                            class: &data::CLASSES[class],
+                            hp: if hero_dead { 0. } else { 100. },
+                            milestones: Milestones {
+                                class,
+                                ..Default::default()
+                            }
+                            .with_ranks(&[(1, talent, rank)]),
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        dps: 10.,
+                                        left: 3.,
+                                        tick: 1.,
+                                        source,
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: target_dead,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        // Multiple critical hits in the same update refresh one timer.
+                        for _ in 0..2 {
+                            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                                source,
+                                ..Hit::direct(enemy, 10., critical)
+                            });
+                        }
+                    }
+                    let mut schedule = Schedule::default();
+                    schedule.add_systems(apply_hits);
+                    schedule.run(app.world_mut());
+                    let triggered =
+                        rank > 0 && eligible && critical && !periodic && !hero_dead && !target_dead;
+                    assert_eq!(
+                        app.world().resource::<Run>().flurry_t,
+                        if triggered { 3. } else { 0. },
+                        "{class} {source}"
+                    );
+                    let removed = if target_dead {
+                        0.
+                    } else if periodic {
+                        10.
+                    } else {
+                        20.
+                    };
+                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().hp, 1000. - removed);
+                    if triggered {
+                        app.world_mut().resource_mut::<Run>().flurry_t = 1.;
+                    }
+                    schedule.run(app.world_mut());
+                    assert_eq!(
+                        app.world().resource::<Run>().flurry_t,
+                        if triggered { 1. } else { 0. },
+                        "old hits or ticks must not refresh"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn vampiric_embrace_heals_actual_direct_and_periodic_damage_without_reviving() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;

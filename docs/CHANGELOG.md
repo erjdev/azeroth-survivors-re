@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Flurry combat integration
+
+Verified Warrior and Shaman Flurry through production damage resolution: eligible
+criticals deal damage and refresh one timer; ticks, dead units, untrained talents
+and foreign sources cannot activate it. Subsequent updates cannot replay old hits.
+Shaman HUD text shows the active haste/time and disappears on expiry.
+
+337 app tests and Clippy pass. This test-only checkpoint changes no UI or runtime
+behavior; the preceding Flurry screenshot remains current. No native rebuild was
+needed. Live Windows combat and balance acceptance remain open.
+
 ## 2026-10-27 — Shaman Flurry
 
 Shaman Flurry now grants up to 25% haste for three seconds after a direct lightning

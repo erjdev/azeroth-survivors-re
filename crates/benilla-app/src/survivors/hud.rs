@@ -1940,6 +1940,15 @@ mod reactive_buff_tests {
         run.dead_t = None;
         run.milestones = run.milestones.with_ranks(&[]);
         assert!(reactive_buff_status(&run).is_empty());
+        run.milestones = survivors_core::talents::Milestones {
+            class: 5,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 602, 5)]);
+        run.flurry_t = 2.1;
+        assert_eq!(reactive_buff_status(&run), "Flurry +25% haste (3s)");
+        run.flurry_t = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
     }
 }
 
