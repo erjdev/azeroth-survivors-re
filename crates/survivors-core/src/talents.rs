@@ -1443,6 +1443,7 @@ pub enum TalentStat {
     PetFrenzy,
     PetSpeed,
     PetCooldown,
+    PetMend,
     ColdSnap,
     SiphonLife,
     Nightfall,
@@ -1548,6 +1549,7 @@ impl TalentDefinition {
             | TalentStat::ShamanShieldAbsorption
             | TalentStat::PetHealth
             | TalentStat::PetRecovery
+            | TalentStat::PetMend
             | TalentStat::PetCooldown
             | TalentStat::SpiritBond
             | TalentStat::PetDamage
@@ -1760,6 +1762,7 @@ impl TalentDefinition {
                 "% chance per wolf critical for 30% bite haste for 8 sec",
             ),
             TalentStat::ColdSnap => (1.0, " automatic frost reset every 90 sec"),
+            TalentStat::PetMend => (100.0, "% combat wolf maximum health restored per sec"),
             TalentStat::PetCooldown => (100.0, "% shorter combat wolf bite cooldown"),
             TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
@@ -2276,6 +2279,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1385, max_rank: 2, name: "Improved Mend Pet",
+        description: "Living combat wolf: regenerate 1% maximum health per sec per rank. Does not heal the Hunter, revive the wolf or shorten recovery (Survivors automatic Mend Pet conversion; no dispel)",
+        stat: TalentStat::PetMend, per_rank: 0.01 },
     TalentDefinition { id: 1390, max_rank: 2, name: "Bestial Discipline",
         description: "Combat wolf: 10% shorter bite cooldown per rank, multiplying the 20-point milestone and Frenzy haste. Does not affect Hunter spells, recovery or pickup companions (Survivors pet-focus regeneration conversion)",
         stat: TalentStat::PetCooldown, per_rank: 0.1 },
@@ -2975,6 +2981,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::PetCrit
             | TalentStat::PetFrenzy
             | TalentStat::ColdSnap
+            | TalentStat::PetMend
             | TalentStat::PetCooldown
             | TalentStat::PetSpeed
             | TalentStat::SpiritualHealing
@@ -4265,6 +4272,7 @@ mod stat_talent_tests {
                     | TalentStat::PetCrit
                     | TalentStat::PetFrenzy
                     | TalentStat::ColdSnap
+                    | TalentStat::PetMend
                     | TalentStat::PetCooldown
                     | TalentStat::PetSpeed
                     | TalentStat::SpiritualHealing

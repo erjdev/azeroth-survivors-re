@@ -6739,3 +6739,19 @@ default interface scale verify the four headings, panel wrapping and scrolling.
 Before/after and compact captures are embedded in CHANGELOG; README's starter
 image is current. Native build and app-test Clippy pass. No gameplay behavior
 changed; outdoor illustration and broader starter fidelity remain open.
+
+
+### 2026-10-27 — Improved Mend Pet
+
+Hunter talent 1385 now regenerates the living combat wolf's maximum health at
+1% per second per rank (two ranks), using game-time delta in the actual pet fight
+system. This is an explicit automatic Mend Pet conversion without dispel. Hero
+health, recovery and pickup companions are unaffected; the defeated-pet branch
+runs before regeneration. Health is capped and the paused system does not advance.
+194 core and 373 app tests pass, including rank caps/reset/class scope and actual
+pet-system healing over ten frames, zero delta, full health and defeated state.
+Core/app-test Clippy, native build, formatting and diff checks pass. Native
+1024×720 at 125% verifies the inline green upgrade and saved spec-3 purchase,
+35→36 Beast Mastery points. Three captures are embedded in CHANGELOG and README's
+latest talent image is updated. Coverage is 240/432, Hunter 30/46. Live combat
+balance and the rest of the talent catalog remain open.

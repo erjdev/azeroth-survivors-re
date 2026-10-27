@@ -4,6 +4,7 @@ use super::{Milestones, TalentStat};
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PetBonus {
     pub health: f32,
+    pub mend: f32,
     pub recovery: f32,
     pub intimidation: bool,
     pub spirit_bond: f32,
@@ -18,6 +19,7 @@ impl Default for PetBonus {
     fn default() -> Self {
         Self {
             health: 1.0,
+            mend: 0.0,
             recovery: 10.0,
             intimidation: false,
             spirit_bond: 0.0,
@@ -64,6 +66,7 @@ impl Milestones {
         }
         bonus.intimidation = self.trained_value(TalentStat::PetIntimidation) > 0.0;
         bonus.recovery *= 1.0 - self.trained_value(TalentStat::PetRecovery);
+        bonus.mend = self.trained_value(TalentStat::PetMend);
         bonus.spirit_bond = self.trained_value(TalentStat::SpiritBond);
         bonus.health += self.trained_value(TalentStat::PetHealth);
         bonus.damage *= 1.0 + self.trained_value(TalentStat::PetDamage);
@@ -93,6 +96,47 @@ impl Milestones {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn mend_is_rank_bounded_pet_only_and_removed_with_training() {
+        let node = super::super::definitions(2)
+            .iter()
+            .find(|n| n.id == 1385)
+            .unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .contains("0 » 1% maximum health"));
+        assert!(node
+            .inline_description(1)
+            .unwrap()
+            .contains("1 » 2% maximum health"));
+        for rank in [0u8, 1, 2, 255] {
+            let base = Milestones {
+                class: 2,
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(0, 1385, rank)]);
+            let mut expected = base.hunter_pet(0.0);
+            expected.mend = 0.01 * f32::from(rank.min(2));
+            assert_eq!(trained.hunter_pet(0.0), expected);
+            assert_eq!(
+                trained.with_ranks(&[]).hunter_pet(0.0),
+                base.hunter_pet(0.0)
+            );
+            for key in ["arcane_shot", "volley", "frostbolt"] {
+                assert_eq!(trained.cast(key), base.cast(key));
+            }
+        }
+        for class in [0, 1, 3, 4, 5, 6, 7, 8] {
+            let other = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 1385, 2)]);
+            assert_eq!(other.hunter_pet(0.0), PetBonus::default());
+        }
+    }
+
     #[test]
     fn discipline_composes_with_milestone_and_frenzy_without_affecting_hero() {
         let node = super::super::definitions(2)

@@ -170,6 +170,7 @@ pub(super) fn fight(
             pet.hp = (pet.hp / pet.max_hp * max_hp).clamp(0.0, max_hp);
             pet.max_hp = max_hp;
         }
+        pet.hp = (pet.hp + pet.max_hp * bonus.mend * dt).min(pet.max_hp);
         if bonus.spirit_bond > 0.0 {
             pet.bond_elapsed += dt;
             let pulses = (pet.bond_elapsed / 10.0).floor();
@@ -444,6 +445,54 @@ mod tests {
             .single(app.world())
             .unwrap();
         assert!((pet.hp - 69.0).abs() < 0.0001);
+    }
+
+    #[test]
+    fn mend_regenerates_only_living_wolf_in_game_time_and_caps_at_maximum() {
+        for rank in [0u8, 1, 2, 255] {
+            let mut app = setup();
+            app.world_mut().resource_mut::<Run>().milestones =
+                survivors_core::talents::Milestones {
+                    class: 2,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1385, rank)]);
+            app.world_mut().run_system_once(fight).unwrap();
+            let pet = app
+                .world_mut()
+                .query_filtered::<Entity, With<HunterPet>>()
+                .single(app.world())
+                .unwrap();
+            let max_hp = app.world().get::<HunterPet>(pet).unwrap().max_hp;
+            app.world_mut().get_mut::<HunterPet>(pet).unwrap().hp = max_hp / 2.0;
+            let hero_hp = app.world().resource::<Run>().hp;
+            // Ten 100 ms frames heal exactly one second of trained regeneration.
+            for _ in 0..10 {
+                app.world_mut().run_system_once(fight).unwrap();
+            }
+            let expected = max_hp * (0.5 + 0.01 * f32::from(rank.min(2)));
+            assert!((app.world().get::<HunterPet>(pet).unwrap().hp - expected).abs() < 0.0001);
+            assert_eq!(app.world().resource::<Run>().hp, hero_hp);
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(fight).unwrap();
+            assert!((app.world().get::<HunterPet>(pet).unwrap().hp - expected).abs() < 0.0001);
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs(1));
+            app.world_mut().get_mut::<HunterPet>(pet).unwrap().hp = max_hp;
+            app.world_mut().run_system_once(fight).unwrap();
+            assert_eq!(app.world().get::<HunterPet>(pet).unwrap().hp, max_hp);
+            app.world_mut()
+                .get_mut::<HunterPet>(pet)
+                .unwrap()
+                .hurt(max_hp, 0.0);
+            app.world_mut().run_system_once(fight).unwrap();
+            let defeated = app.world().get::<HunterPet>(pet).unwrap();
+            assert_eq!(defeated.hp, 0.0);
+            assert_eq!(defeated.revive_at, Some(10.0));
+        }
     }
 
     #[test]

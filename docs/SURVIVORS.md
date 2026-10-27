@@ -36,6 +36,9 @@ These stay, and later phases read them instead of inventing a second copy.
   then it returns beside the hero when that position has safe floor support.
   The HUD reports wolf health or recovery time. Endurance Training adds 3% wolf
   maximum health per rank (5 ranks). Level changes preserve its health percentage.
+  Improved Mend Pet regenerates 1% of the living wolf’s maximum health per second
+  per rank (2 ranks), using run time. It does not heal the Hunter, revive the wolf
+  or alter recovery. This automatic Mend Pet conversion has no dispel.
   It does not occupy a collectible companion slot. Further pet talents and balance
   acceptance remain unfinished.
   Beast Mastery milestones: 10 points grants +20% bite damage; 20 points shortens

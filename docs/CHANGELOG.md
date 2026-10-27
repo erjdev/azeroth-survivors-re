@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Improved Mend Pet
+
+The living combat wolf regenerates 1% maximum health per second per rank (two
+ranks). This automatic Survivors conversion does not heal the Hunter, revive a
+defeated wolf, shorten recovery or dispel effects; pauses stop regeneration.
+
+194 core tests, 373 app tests, core/app-test Clippy and native build pass. The
+actual pet-system regression checks healing over time, rank bounds, pause,
+health cap and defeat. Native 1024×720 at 125% verifies the inline preview and
+saved spec-3 purchase (35→36 points). Coverage is 240/432, Hunter 30/46;
+live balance remains open.
+
+![Hunter trees](images/screenshots/2026-10-27-mend-pet/trees.png)
+![Mend Pet preview](images/screenshots/2026-10-27-mend-pet/preview.png)
+![Saved Mend Pet purchase](images/screenshots/2026-10-27-mend-pet/purchased.png)
+
 ## 2026-10-27 — Starter heading alignment
 
 Class, Hero, Equipment and Zone now share the intention reference's centered
