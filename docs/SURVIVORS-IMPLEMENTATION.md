@@ -885,6 +885,12 @@ Character appearance controls; account upgrades have their own section. Native
 female Night Elf appearance after restart, and a new Mage draft leaving the saved
 Druid/account bytes unchanged. 369 app tests, app-test Clippy and native build pass.
 Before/after/restart screenshots are inline in the changelog; README is updated.
+Fresh-account Talents now offers a direct creation action and explains earned
+points, three specs and free resets. Native 640×480 at 125% verifies navigation to
+the form without account mutations; native build and app-test Clippy pass. Inline
+before/after/navigation captures are in the changelog. Populated talent trees retain
+their reference-derived layout; remaining individual effects are still incomplete.
+
 Minimum-window follow-up at 640×480 verifies reachable creation controls,
 empty-name rejection, longer-name entry and Tab navigation without changing account
 bytes. Correcting a name now clears stale feedback; rejected input preserves it.

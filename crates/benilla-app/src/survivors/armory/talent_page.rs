@@ -413,13 +413,26 @@ pub(super) fn build(
     scroll: Vec2,
 ) {
     let Some(hero) = selection.character.and_then(|id| account.character(id)) else {
-        text(
-            ui,
-            font,
-            "Create a hero before spending talents.",
-            16.0,
-            GOLD,
-        );
+        ui.spawn(Node {
+            width: Val::Percent(100.0),
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            row_gap: Val::Px(12.0),
+            padding: UiRect::all(Val::Px(16.0)),
+            ..default()
+        })
+        .with_children(|empty| {
+            super::typography::section(empty, font, "Your hero's talents", 22.0, GOLD);
+            text(empty, font, "Create a hero to explore their three talent trees.", 16.0, Color::WHITE);
+            text(empty, font, "Runs earn talent experience. Spend points across three saved specs and reset them for free.", 13.0, DIM);
+            empty.spawn(Node {
+                width: Val::Percent(100.0),
+                max_width: Val::Px(320.0),
+                ..default()
+            }).with_children(|action| {
+                button(action, font, "Create a hero".into(), Act::Page(super::Page::Heroes), false);
+            });
+        });
         return;
     };
     let Some(catalog) = catalog else {

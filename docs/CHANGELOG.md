@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Talent onboarding
+
+Fresh accounts now get a direct **Create a hero** action on Talents, with a short
+explanation of earned points, three saved specs and free resets. The heading and
+action use the Armory's existing gold/black design.
+
+Native 640×480 at 125% verifies the action opens the creation form without changing
+saved account bytes. Native build and app-test Clippy pass; no gameplay rules changed.
+
+![Previous empty talent page](images/screenshots/2026-10-27-talent-onboarding/before.png)
+![Talent onboarding](images/screenshots/2026-10-27-talent-onboarding/after.png)
+![Direct route to hero creation](images/screenshots/2026-10-27-talent-onboarding/create-route.png)
+
 ## 2026-10-27 — Creation feedback at minimum window size
 
 Fixed stale name-validation feedback after correcting a creation or rename field.
