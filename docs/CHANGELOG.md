@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Achievable completion totals
+
+Completion now counts the 56 achievements with defined criteria. Deathless Hour
+and no u remain visible and locked without preventing 100% completion; completed
+Feats correctly shows 3/3. Old saved placeholder IDs cannot award credit.
+
+190 core tests, 367 app tests, core/app-test Clippy and native build pass.
+Seeded native previews at 640×720/125% verify completed Feats and the Rewards total.
+
+![Completed available Feats with pending cards retained](images/screenshots/2026-10-27-achievement-completion/feats-640-125.png)
+![Rewards counts available achievements](images/screenshots/2026-10-27-achievement-completion/rewards-640-125.png)
+
 ## 2026-10-27 — Enlarged Codex and source navigation
 
 Verified populated Codex and Drop Tables at 640×720/125%. All 39 shared jewelry

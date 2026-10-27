@@ -81,7 +81,7 @@ pub(super) fn build(
             });
             let earned = rewards::points_of(account.earned_ids());
             text(side, font, format!("{earned} earned · {} spent", earned.saturating_sub(account.unspent())), 12.0, DIM);
-            text(side, font, format!("{} of {} achievements", rewards::earned_count(account.earned_ids()), rewards::catalog_len()), 12.0, DIM);
+            text(side, font, format!("{} of {} available achievements", rewards::earned_count(account.earned_ids()), rewards::available_count()), 12.0, DIM);
             let pending = !armory.reward_draft.is_empty();
             if pending {
                 text(side, font, format!("{} pending {}", armory.reward_draft.codes().len(), if armory.reward_draft.codes().len() == 1 { "change" } else { "changes" }), 13.0, hud::card_growth::GAIN);

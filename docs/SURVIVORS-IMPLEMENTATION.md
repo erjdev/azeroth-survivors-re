@@ -502,7 +502,10 @@ Three regression tests cover repricing and dependency/destination preservation.
 User clarification implemented: Deathless Hour and no u are visible placeholder
 achievements with no satisfiable criterion or points. Panda Cub and Sapphiron remain
 locked behind those entries until future criteria are implemented; rules are not
-inferred from their names.
+inferred from their names. Completion totals exclude these two pending entries:
+56 available achievements, with Feats completable at 3/3 while all five cards
+remain visible. Core/UI regressions and native 640×720/125% screenshots verify
+the totals, including saves containing placeholder IDs.
 
 
 Rewards scroll checkpoint: session offsets are tracked independently for the three

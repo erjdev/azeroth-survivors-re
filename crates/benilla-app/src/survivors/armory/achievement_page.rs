@@ -78,7 +78,7 @@ fn counts(
     category: Option<rewards::Category>,
 ) -> (usize, usize, u32, u32) {
     rows.iter()
-        .filter(|r| category.is_none_or(|c| r.category == c))
+        .filter(|r| r.available && category.is_none_or(|c| r.category == c))
         .fold((0, 0, 0, 0), |(have, total, pts, all), row| {
             (
                 have + usize::from(row.earned),
@@ -484,6 +484,31 @@ fn summary(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn available_completion_does_not_require_placeholder_achievements() {
+        let snapshot = rewards::Snapshot::default();
+        let all_ids: Vec<_> = rewards::listed(&snapshot, &[])
+            .iter()
+            .map(|r| r.id)
+            .collect();
+        let rows = rewards::listed(&snapshot, &all_ids);
+        let (have, total, points, all_points) = counts(&rows, None);
+        assert_eq!(
+            (have, total),
+            (rewards::available_count(), rewards::available_count())
+        );
+        assert_eq!(points, all_points);
+        let feats = counts(&rows, Some(rewards::Category::Feats));
+        assert_eq!(feats, (3, 3, 75, 75));
+        assert_eq!(
+            rows.iter()
+                .filter(|r| r.category == rewards::Category::Feats)
+                .count(),
+            5
+        );
+        assert_eq!(rows.iter().filter(|r| !r.available && !r.earned).count(), 2);
+    }
+
     #[test]
     fn almost_there_excludes_zero_progress_earned_and_placeholders_and_sorts_ratios() {
         let snap = rewards::Snapshot {

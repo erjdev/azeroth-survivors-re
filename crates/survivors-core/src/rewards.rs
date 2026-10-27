@@ -607,6 +607,14 @@ pub fn earned_count(earned: &[u16]) -> usize {
         .count()
 }
 
+/// Achievements with defined criteria; pending cards remain in the full catalog.
+pub fn available_count() -> usize {
+    catalog()
+        .iter()
+        .filter(|a| !matches!(a.kind, Kind::Placeholder))
+        .count()
+}
+
 pub fn catalog_len() -> usize {
     catalog().len()
 }
@@ -655,6 +663,23 @@ pub fn next_locked(snapshot: &Snapshot, earned: &[u16]) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn completion_total_excludes_pending_even_when_saved_as_earned() {
+        let mut ids: Vec<_> = catalog().iter().map(|a| a.id).collect();
+        ids.extend([DEATHLESS_HOUR, NO_U, u16::MAX]);
+        assert_eq!(earned_count(&ids), available_count());
+        assert_eq!(available_count() + 2, catalog_len());
+        let rows = listed(&Snapshot::default(), &ids);
+        assert_eq!(
+            rows.iter().filter(|r| r.available && r.earned).count(),
+            available_count()
+        );
+        assert!(rows
+            .iter()
+            .filter(|r| !r.available)
+            .all(|r| !r.earned && r.points == 0));
+    }
 
     #[test]
     fn jewelers_eye_requires_half_the_combined_catalog_and_preserves_prior_awards() {
