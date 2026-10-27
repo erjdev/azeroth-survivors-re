@@ -11,6 +11,22 @@ const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
 const ICON: f32 = 36.0;
 
+/// Keep provisional effects honest while showing the same inline purchase comparison.
+pub(super) fn provisional_description(rank: u8, max: u8) -> (String, Vec<std::ops::Range<usize>>) {
+    let rank = rank.min(max);
+    let next = rank.saturating_add(1).min(max);
+    let mut text = "Individual effect pending; provisional bonus: ".to_owned();
+    let start = text.len();
+    if rank < next {
+        text.push_str(&format!("+{rank} » {next}% damage"));
+    } else {
+        text.push_str(&format!("+{rank}% damage"));
+    }
+    let end = text.len();
+    text.push('.');
+    (text, std::iter::once(start..end).collect())
+}
+
 /// Numeric effect values and their units; prose and spell names retain normal text color.
 pub(super) fn milestone_value_ranges(text: &str) -> Option<Vec<std::ops::Range<usize>>> {
     let bytes = text.as_bytes();

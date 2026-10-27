@@ -7358,3 +7358,22 @@ Verified: 213 core and 409 app tests, core/app Clippy, native build (96 seconds)
 formatting and diff checks. Native 1280×720 purchase and 640×720 scrolled description
 captures are embedded in the changelog; README refreshed. Definition audit: 256/432
 (Priest 27/47), leaving 176 definitions, with all 81 milestone descriptions matched.
+
+
+### 2026-10-27 — Provisional talent upgrade readability
+
+Unimplemented individual talents retain their explicit pending notice and existing
+one-percent damage-per-rank fallback. That fallback now uses the same inline green
+current-to-next comparison as authored talents, with one percentage unit and the
+full damage phrase colored. Maximum ranks show only the current bonus. This is a
+readability correction, not additional mechanic coverage or a change to purchases.
+The existing ECS inspection regression now checks the fallback spans after moving
+from an authored talent, including color and unchanged rank.
+
+Native 1280×720 inspection and last-rank purchase confirm the green comparison,
+white pending notice, correct saved points and maximum-rank text. Captures are
+embedded in the changelog and README is refreshed. Native build: 79 seconds.
+Definition coverage stays 256/432; no pending talent is counted as implemented.
+
+409 app tests, app Clippy, formatting and diff checks pass. The existing core
+rules are unchanged; this checkpoint does not claim new gameplay acceptance.

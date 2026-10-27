@@ -50,7 +50,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-27-codex-preview/wrath.png" alt="Codex"><br>2026-10-27 · Direct spell and jewelry previews with live viewport changes.<br><a href="docs/images/screenshots/2026-10-27-codex-preview/ring-compact.png">Compact Codex preview</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-blessed-recovery/purchased.png" alt="Talents"><br>2026-10-27 · Priest Blessed Recovery purchase with inline green healing scaling; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-blessed-recovery/compact.png">Compact description</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-provisional-preview/preview.png" alt="Talents"><br>2026-10-27 · Inline green comparisons also cover provisional bonuses, with pending effects labeled; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-blessed-recovery/compact.png">Compact description</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

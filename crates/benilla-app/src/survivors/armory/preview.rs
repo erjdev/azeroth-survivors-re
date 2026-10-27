@@ -1055,6 +1055,14 @@ mod tests {
             .0
             .contains("Individual effect pending"));
         assert_eq!(world.get::<TextColor>(effect).unwrap().0, Color::WHITE);
+        let spans = world.get::<Children>(effect).unwrap();
+        assert_eq!(world.get::<TextSpan>(spans[0]).unwrap().0, "+0 » 1% damage");
+        assert_eq!(
+            world.get::<TextColor>(spans[0]).unwrap().0,
+            crate::survivors::hud::card_growth::GAIN
+        );
+        assert_eq!(world.get::<TextSpan>(spans[1]).unwrap().0, ".");
+        assert_eq!(world.get::<TalentInfo>(node).unwrap().rank, 1);
     }
 
     #[test]

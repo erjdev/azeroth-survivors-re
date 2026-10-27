@@ -1399,18 +1399,19 @@ pub(super) fn talent_details(
                         format!("{}\n{}", def.description, def.rank_preview(node.rank))
                     })
                 })
-                .unwrap_or_else(|| {
-                    "Individual effect pending; currently +1% damage per rank.".to_owned()
-                }),
+                .unwrap_or_else(|| talent_page::provisional_description(node.rank, node.max).0),
             definition.is_some(),
         )
     };
     let highlight = if node.milestone.is_some() {
         talent_page::milestone_value_ranges(&effect)
     } else {
-        survivors_core::talents::talent_definition(node.class, node.id)
-            .and_then(|def| def.inline_description_with_values(node.rank))
-            .map(|(_, range)| range)
+        match survivors_core::talents::talent_definition(node.class, node.id) {
+            Some(def) => def
+                .inline_description_with_values(node.rank)
+                .map(|(_, range)| range),
+            None => Some(talent_page::provisional_description(node.rank, node.max).1),
+        }
     };
     for (entity, part, mut text, mut color, previous, font) in &mut detail {
         let (value, range) = match part {

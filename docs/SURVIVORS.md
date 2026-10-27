@@ -137,7 +137,9 @@ Upgrade cards show changes inline in their description: `Deal 20 » 43 damage to
 within 5 » 7yd of the player.` Both values, the arrow and their units/stat wording are green;
 surrounding prose keeps its normal color. This replaces a separate change summary below the
 description. See [upgrade readability](SURVIVORS-IMPLEMENTATION.md#upgrade-readability-checkpoint)
-for scope and acceptance requirements.
+for scope and acceptance requirements. Provisional talent bonuses follow the same
+inline comparison and single-unit formatting; their pending-effect notice stays
+visible. At maximum rank, only the current bonus is shown.
 
 World readability includes localized see-through scenery around the hero, independently
 selectable red enemy and green player/friendly silhouettes behind objects, and a separate

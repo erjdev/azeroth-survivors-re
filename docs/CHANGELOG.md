@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Consistent provisional talent previews
+
+Talents awaiting individual mechanics now show their existing fallback bonus as
+an inline green comparison, with the unit shown once. Their pending notice stays
+visible. Maximum ranks show the current value without an upgrade arrow.
+
+![Provisional bonus before the last rank](images/screenshots/2026-10-27-provisional-preview/preview.png)
+
+![Maximum rank shows its current bonus](images/screenshots/2026-10-27-provisional-preview/max-rank.png)
+
+409 app tests, app Clippy and formatting checks pass. Native 1280×720 purchase
+flow checked; native build passes in 79 seconds.
+Mechanics and definition coverage are unchanged. Broader platform acceptance
+remains open.
+
 ## 2026-10-27 — Blessed Recovery
 
 Priest Blessed Recovery now heals 7% of health damage taken per rank over six
