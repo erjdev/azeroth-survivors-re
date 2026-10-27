@@ -5720,3 +5720,19 @@ checks pass. The initial aggregate Priest check needed its expected cooldowns
 updated for Mental Agility. Native macOS 1280×720 purchases verified final ranks
 5/5, 5/5 and 3/3, saved to an isolated fixture. Three inline changelog images record
 the existing reference-based layout. Windows and live balance remain unverified.
+
+### 2026-10-26 — Inspectable ordinary-enemy drop catalog
+
+The Poor acquisition summary now leads to nine named, icon-backed rows in each
+supported starter zone. Selection uses the existing supplemental inspector, owned
+item equipment controls and independent looks. Per-slot odds derive from the shared
+2% aggregate chance divided over nine slots; scheduled encounter rows stay first.
+This extends the intention's list/detail layout to the supplemental catalog.
+
+All 326 app tests, Clippy and native build pass. The zone/layout regression now
+checks supplemental row identities and absence outside the two supported zones.
+Native macOS 1280×720 validation selected owned gloves, equipped them, confirmed
+saved state, then inspected an unowned weapon with no equip action. Compact
+640×720 scrolling and scrollbar dragging expose the new rows. CHANGELOG embeds
+both screenshots and README refreshes Drop Tables. Windows/controller and actual
+in-world drop acceptance are not established by this menu checkpoint.

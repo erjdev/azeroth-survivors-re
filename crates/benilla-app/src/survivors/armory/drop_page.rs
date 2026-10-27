@@ -214,16 +214,6 @@ fn sources(
         label(body, font, reason, layout.body_size, GOLD);
     }
     label(body, font, "Scheduled encounter drops roll independently. Duplicates add no stats. Boss chances include your Keen Eye bonus.", layout.body_size, DIM);
-    if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&armory.drop_zone) {
-        super::typography::heading(body, font, "Poor gear", layout.title_size, GOLD);
-        label(
-            body,
-            font,
-            survivors_core::supplemental_gear::poor_source_label(),
-            layout.body_size,
-            DIM,
-        );
-    }
     let rows: Vec<_> = campaign::DROPS
         .iter()
         .filter(|d| d.zone == armory.drop_zone)
@@ -336,6 +326,91 @@ fn sources(
                 });
         });
     }
+    if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&armory.drop_zone) {
+        super::typography::heading(
+            body,
+            font,
+            "Poor gear · ordinary enemies",
+            layout.title_size,
+            GOLD,
+        );
+        label(
+            body,
+            font,
+            survivors_core::supplemental_gear::poor_source_label(),
+            layout.body_size,
+            DIM,
+        );
+        for slot in 0..campaign::GRID_SLOTS {
+            let Some(piece) = survivors_core::supplemental_gear::piece(
+                class,
+                slot,
+                survivors_core::gear_tier::GearTier::Poor,
+            ) else {
+                continue;
+            };
+            let owned = account.supplemental.owns(class, &piece.key);
+            let selected = armory.supplemental_piece.as_deref() == Some(piece.key.as_str());
+            body.spawn((
+                Button,
+                Act::InspectSupplemental(piece.key.clone()),
+                Node {
+                    width: Val::Percent(100.0),
+                    flex_shrink: 0.0,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(layout.gap),
+                    padding: UiRect::all(Val::Px(layout.padding)),
+                    border: UiRect::all(Val::Px(1.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.035, 0.025, 0.015)),
+                BorderColor::all(if selected { GOLD } else { DIM }),
+            ))
+            .with_children(|entry| {
+                super::super::gear_icons::spawn_visual_cell(
+                    entry,
+                    piece.visual,
+                    layout.body_size * 3.0,
+                    owned,
+                );
+                entry
+                    .spawn(Node {
+                        flex_direction: FlexDirection::Column,
+                        flex_grow: 1.0,
+                        min_width: Val::Px(0.0),
+                        ..default()
+                    })
+                    .with_children(|text| {
+                        label(
+                            text,
+                            font,
+                            piece.name,
+                            layout.body_size,
+                            Color::srgb(0.65, 0.65, 0.65),
+                        );
+                        label(
+                            text,
+                            font,
+                            format!(
+                                "{} · ~{:.2}% per ordinary enemy",
+                                campaign::SLOTS[slot],
+                                survivors_core::supplemental_gear::POOR_DROP_CHANCE * 100.0
+                                    / campaign::GRID_SLOTS as f32
+                            ),
+                            layout.body_size - 2.0,
+                            DIM,
+                        );
+                        label(
+                            text,
+                            font,
+                            if owned { "Collected" } else { "Not collected" },
+                            layout.body_size - 2.0,
+                            if owned { GREEN } else { DIM },
+                        );
+                    });
+            });
+        }
+    }
 }
 
 #[cfg(test)]
@@ -408,6 +483,33 @@ mod tests {
             assert_eq!(
                 inspected.len(),
                 9 + campaign::DROPS.iter().filter(|d| d.zone == zone).count()
+            );
+            let supplemental: Vec<_> = actions
+                .iter()
+                .filter_map(|action| match action {
+                    Act::InspectSupplemental(key) => Some(key.as_str()),
+                    _ => None,
+                })
+                .collect();
+            let expected: Vec<_> =
+                if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&zone) {
+                    (0..campaign::GRID_SLOTS)
+                        .map(|slot| {
+                            survivors_core::supplemental_gear::piece(
+                                0,
+                                slot,
+                                survivors_core::gear_tier::GearTier::Poor,
+                            )
+                            .unwrap()
+                            .key
+                        })
+                        .collect()
+                } else {
+                    Vec::new()
+                };
+            assert_eq!(
+                supplemental,
+                expected.iter().map(String::as_str).collect::<Vec<_>>()
             );
             for row in campaign::DROPS.iter().filter(|d| d.zone == zone) {
                 assert!(inspected.contains(&(row.band * 9 + row.slot)));

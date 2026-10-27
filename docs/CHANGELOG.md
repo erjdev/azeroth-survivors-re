@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Inspect ordinary-enemy drops
+
+Drop Tables now lists all nine class-specific Poor items in Elwynn and Duskwood,
+with icons, ownership and approximate per-item odds. Selecting a row opens its
+existing inspector and equipment controls. Scheduled encounters remain first.
+
+326 app tests, Clippy and native build pass. Native macOS checks cover scrolling
+at 1280×720 and 640×720, owned/missing item inspection, and equipping gloves with
+saved state. The reference's list/detail arrangement is retained; Poor rows extend
+its original catalog. Windows/controller acceptance remains open.
+
+![Poor source list with gloves equipped](images/screenshots/2026-10-26-poor-drop-browser/drops-1280.png)
+
+![Compact ordinary-enemy catalog](images/screenshots/2026-10-26-poor-drop-browser/drops-640.png)
+
 ## 2026-10-26 — Spell efficiency talents
 
 Hunter Efficiency, Priest Mental Agility and Mage Frost Channeling now shorten
