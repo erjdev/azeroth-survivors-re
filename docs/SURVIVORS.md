@@ -686,7 +686,10 @@ health multiplier for subsequent runs without changing an active run's snapshot.
 
 Mana Shield is an acquirable Mage ability: rank one absorbs 40 damage for 10 seconds
 with an 18-second cooldown. Ordinary ability upgrades scale absorption, duration
-and cooldown. It uses the shared non-stacking shield pool and refreshes on casting;
+and cooldown. It uses the shared non-stacking shield pool. Automatic casts wait
+while a stronger shield is active, or an equal shield has at least as much duration remaining;
+unsuccessful refreshes retry after 0.2 seconds without spending the full cooldown.
+A useful refresh replaces the absorb without adding the two amounts;
 this mode has no mana resource or damage-school restriction. Its legendary amulet
 and discovery entry follow the existing per-spell Codex rules. Appending it to the
 Mage pool preserves existing Codex spell positions.

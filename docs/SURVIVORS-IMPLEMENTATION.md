@@ -7579,3 +7579,23 @@ claimed for the new spell; shield visuals and balance remain open.
 Validation: 218 core tests, 422 app tests, 12 preview-launcher tests, core/app
 Clippy, formatting and diff checks pass. Talent definitions: 264/432 (Mage 37/49);
 168 remain. Existing block-crate future-compatibility warning remains.
+
+
+### 2026-10-27 — Shared shield replacement semantics
+
+Ordinary shield casts previously overwrote stronger talent shields. The shared
+refresh helper now preserves stronger active absorbs and prevents equal absorbs
+from shortening remaining duration. Expired shields are replaceable regardless of
+their stale absorption amount. Mana Shield and Power Word: Shield only cast and
+spend their full cooldown when a refresh is useful; otherwise they retry after
+0.2 seconds. Talent-granted shields use the same replacement rule while their
+triggering spell still completes normally. No absorption values stack.
+
+The cast regression covers both shield spells at multiple ability ranks, Mage
+training caps, partial consumption/refill, stronger and equal-longer shields,
+retry timing and refresh after expiry. Existing milestone tests cover preservation
+and damage handling. This does not establish live overlapping visual behavior or
+balance; no menu appearance changed and no replacement UI screenshot is needed.
+
+Validation: all 422 app tests, app Clippy, formatting and diff checks pass on
+macOS. No additional platform or rendered-combat acceptance is claimed.

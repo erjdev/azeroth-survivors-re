@@ -592,10 +592,11 @@ pub(super) fn cast_abilities(
                 }
             }
             Kind::Shield => {
-                run.shield = p.dmg;
-                run.shield_t = p.duration;
-                fx.cast(me, def.spell, &[me], None);
-                true
+                let refreshed = refresh_shield(&mut run, p.dmg, p.duration);
+                if refreshed {
+                    fx.cast(me, def.spell, &[me], None);
+                }
+                refreshed
             }
             Kind::Immune => {
                 if foes.first().is_some_and(|f| f.dist <= 5.0) {
@@ -706,6 +707,23 @@ fn storm_hits(foes: &[Foe], center: Vec3, area: f32, damage: f32) -> Vec<Hit> {
         .collect()
 }
 
+/// Share one absorb pool without weakening or extending a stronger shield.
+fn refresh_shield(run: &mut Run, absorb: f32, seconds: f32) -> bool {
+    if absorb <= 0.0 {
+        return false;
+    }
+    if run.shield_t <= 0.0 || absorb > run.shield {
+        run.shield = absorb;
+        run.shield_t = seconds;
+        true
+    } else if absorb == run.shield && seconds > run.shield_t {
+        run.shield_t = seconds;
+        true
+    } else {
+        false
+    }
+}
+
 /// Once per successful cast, not once per hit or extra target.
 fn finish_milestone_cast(
     run: &mut Run,
@@ -718,11 +736,7 @@ fn finish_milestone_cast(
     run.immune_t = run.immune_t.max(effect.immune_seconds);
     let healed = run.heal(max_hp * effect.heal_fraction, max_hp);
     let absorb = max_hp * effect.shield_fraction;
-    if absorb > 0.0 && (run.shield_t <= 0.0 || absorb >= run.shield) {
-        // Refresh this small absorb without stacking or extending a stronger existing shield.
-        run.shield = absorb;
-        run.shield_t = effect.shield_seconds;
-    }
+    refresh_shield(run, absorb, effect.shield_seconds);
     if let Some((key, seconds)) = effect.cooldown_advance {
         for owned in &mut run.abilities {
             if owned.def.key == key {
@@ -1357,76 +1371,113 @@ mod milestone_tests {
     }
 
     #[test]
-    fn mana_shield_casts_without_targets_refreshes_and_absorbs_damage() {
+    fn shield_spells_refresh_only_when_useful_and_absorb_damage() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for rank in [0, 1, 2, 255] {
-            for level in [1, 5] {
-                let mut run = Run {
-                    class: &data::CLASSES[6],
-                    hp: 100.,
-                    milestones: Milestones {
-                        class: 6,
+        for (key, class) in [("mana_shield", 6), ("power_word_shield", 4)] {
+            for rank in [0, 1, 2, 255] {
+                for level in [1, 5] {
+                    let mut run = Run {
+                        class: &data::CLASSES[class],
+                        hp: 100.,
+                        milestones: Milestones {
+                            class,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(0, 83, rank)]),
                         ..Default::default()
-                    }
-                    .with_ranks(&[(0, 83, rank)]),
-                    ..Default::default()
-                };
-                run.bonus.targets = 10;
-                let owned = Owned {
-                    def: data::ability("mana_shield"),
-                    level,
-                    cd: 0.,
-                };
-                let expected = Params::new(&owned, &run.stats(), run.milestones);
-                let untrained = Params::new(
-                    &owned,
-                    &run.stats(),
-                    Milestones {
-                        class: 6,
-                        ..Default::default()
-                    },
-                );
-                assert_eq!(
-                    (expected.dmg, expected.duration),
-                    (untrained.dmg, untrained.duration)
-                );
-                assert!(
-                    (expected.cooldown - untrained.cooldown * (1. - 0.1 * f32::from(rank.min(2))))
+                    };
+                    run.bonus.targets = 10;
+                    let owned = Owned {
+                        def: data::ability(key),
+                        level,
+                        cd: 0.,
+                    };
+                    let expected = Params::new(&owned, &run.stats(), run.milestones);
+                    let untrained = Params::new(
+                        &owned,
+                        &run.stats(),
+                        Milestones {
+                            class,
+                            ..Default::default()
+                        },
+                    );
+                    assert_eq!(
+                        (expected.dmg, expected.duration),
+                        (untrained.dmg, untrained.duration)
+                    );
+                    assert!(
+                        (expected.cooldown
+                            - untrained.cooldown
+                                * (1.
+                                    - if class == 6 {
+                                        0.1 * f32::from(rank.min(2))
+                                    } else {
+                                        0.
+                                    }))
                         .abs()
-                        < 0.001
-                );
-                run.abilities.push(owned);
-                let mut time = Time::<()>::default();
-                time.advance_by(std::time::Duration::from_secs_f32(0.1));
-                let mut app = App::new();
-                app.insert_resource(time)
-                    .insert_resource(run)
-                    .insert_resource(Rng(42))
-                    .init_resource::<PlaySeq>()
-                    .init_resource::<PendingHits>()
-                    .add_message::<CastEvent>()
-                    .add_message::<SpellGoTargets>()
-                    .add_message::<SwingMessage>()
-                    .add_message::<crate::combat_text::CombatTextSpawn>()
-                    .add_message::<Hit>();
-                app.world_mut()
-                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
-                for _ in 0..2 {
-                    app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                            < 0.001
+                    );
+                    run.abilities.push(owned);
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                    let mut app = App::new();
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(42))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                    for _ in 0..2 {
+                        app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        let mut run = app.world_mut().resource_mut::<Run>();
+                        assert_eq!(
+                            (run.shield, run.shield_t),
+                            (expected.dmg, expected.duration)
+                        );
+                        assert!((run.abilities[0].cd - expected.cooldown).abs() < 0.001);
+                        let hp = run.hp;
+                        assert_eq!(hero::hurt_hero(&mut run, 5.), 0.);
+                        assert_eq!(run.hp, hp);
+                        assert!(run.shield < expected.dmg);
+                    }
+                    // Neither a stronger absorb nor an equally strong, longer-lived one is weakened.
+                    for (absorb, seconds) in [
+                        (expected.dmg * 2., 1.),
+                        (expected.dmg, expected.duration + 1.),
+                    ] {
+                        {
+                            let mut run = app.world_mut().resource_mut::<Run>();
+                            run.shield = absorb;
+                            run.shield_t = seconds;
+                            run.abilities[0].cd = 0.;
+                        }
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        let run = app.world().resource::<Run>();
+                        assert_eq!((run.shield, run.shield_t), (absorb, seconds));
+                        assert_eq!(run.abilities[0].cd, 0.2); // Retry; no full cooldown spent.
+                    }
+                    {
+                        let mut run = app.world_mut().resource_mut::<Run>();
+                        run.shield_t = 0.;
+                        run.abilities[0].cd = 0.;
+                    }
                     app.world_mut().run_system_once(cast_abilities).unwrap();
-                    let mut run = app.world_mut().resource_mut::<Run>();
+                    let run = app.world().resource::<Run>();
                     assert_eq!(
                         (run.shield, run.shield_t),
                         (expected.dmg, expected.duration)
                     );
                     assert!((run.abilities[0].cd - expected.cooldown).abs() < 0.001);
-                    let hp = run.hp;
-                    assert_eq!(hero::hurt_hero(&mut run, 5.), 0.);
-                    assert_eq!(run.hp, hp);
-                    assert!(run.shield < expected.dmg);
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
                 }
-                assert!(app.world().resource::<Messages<Hit>>().is_empty());
             }
         }
     }

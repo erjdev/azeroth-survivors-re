@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Shield refreshes preserve stronger defenses
+
+Mana Shield and Power Word: Shield now wait when a stronger absorb is active,
+instead of overwriting it. Equal absorbs no longer shorten a longer shield.
+A declined refresh retries after 0.2 seconds without spending the full cooldown;
+successful refreshes still use one shared, non-stacking pool.
+
+The existing talent-shield path uses the same replacement rule. No menu appearance
+changed; live overlapping-shield visuals and balance remain unverified.
+All 422 app tests, Clippy, formatting and diff checks pass on macOS.
+
 ## 2026-10-27 — Mana Shield and defensive training
 
 Mages can now acquire and upgrade Mana Shield. Its initial rank absorbs 40 damage
