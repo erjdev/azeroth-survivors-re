@@ -708,9 +708,9 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Priest | 23 / 47 | 9 / 9 |
 | Shaman | 29 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
-| Warlock | 22 / 50 | 9 / 9 |
+| Warlock | 24 / 50 | 9 / 9 |
 | Druid | 23 / 47 | 9 / 9 |
-| Total | 232 / 432 | 81 / 81 |
+| Total | 234 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -6529,3 +6529,19 @@ counts at 0.1/0.6/2.5/20-second steps, despawn and no later hits. Native wide an
 compact captures verify inline/capped text and a saved rank-two purchase.
 Catalog coverage: 232/432, Warlock 22/50. Other class content, live movement during
 long frames, balance and Windows combat acceptance remain open.
+
+### 2026-10-27 — Curse of Exhaustion training
+
+Curse of Exhaustion (1081, one rank) adds a 10% slow for 12 seconds to Curse of
+Agony applications. Improved Curse of Exhaustion (1082, four ranks) adds five
+percentage points per rank, requiring the base talent. This curse is capped at
+25% slow on bosses and preserves stronger/longer existing slows. Tick damage,
+application count, range, cooldown and damage duration remain unchanged; ticks
+do not refresh the slow. The active DBC prerequisite chain is preserved.
+
+187 core tests, 363 app tests, core/app-test Clippy and native build pass.
+Coverage checks class scope, missing unlock, caps, refunds, spell ranks 1/5,
+zero-direct-damage applications, real damage ticks, repeated applications and
+stronger control. Native wide/compact screenshots and saved base/improvement
+purchases are recorded in CHANGELOG. Catalog audit: 234/432 definitions,
+Warlock 24/50. Live balance and Windows combat acceptance remain open.

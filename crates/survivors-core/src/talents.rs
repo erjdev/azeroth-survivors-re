@@ -550,8 +550,16 @@ impl Milestones {
             .sum()
     }
 
-    /// Piercing Howl supplements, rather than replaces, the shout's damage weakening.
+    /// Supplemental slows preserve the source spell's damage and other control.
     pub fn secondary_slow(self, key: &str, boss: bool) -> Option<(f32, f32)> {
+        if self.class == 7 && key == "curse_of_agony" {
+            let base = self.trained_value(TalentStat::CurseExhaustion);
+            if base <= 0. {
+                return None;
+            }
+            let speed = 1. - base - self.trained_value(TalentStat::ImprovedCurseExhaustion);
+            return Some((if boss { speed.max(0.75) } else { speed }, 12.));
+        }
         if self.class != 0 || key != "demoralizing_shout" {
             return None;
         }
@@ -1403,6 +1411,8 @@ pub enum TalentStat {
     KidneyExposure,
     Aftermath,
     Pyroclasm,
+    CurseExhaustion,
+    ImprovedCurseExhaustion,
     SpiritTap,
     ImprovedRenew,
     SpiritualHealing,
@@ -1503,6 +1513,8 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, "distance"),
             TalentStat::Damage
             | TalentStat::Aftermath
+            | TalentStat::CurseExhaustion
+            | TalentStat::ImprovedCurseExhaustion
             | TalentStat::Pyroclasm
             | TalentStat::KidneyExposure
             | TalentStat::MaximumHealth
@@ -1726,6 +1738,8 @@ impl TalentDefinition {
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
             TalentStat::Aftermath => (100.0, "% chance to slow Destruction targets"),
+            TalentStat::CurseExhaustion => (100.0, "% Curse of Agony slow"),
+            TalentStat::ImprovedCurseExhaustion => (100.0, "% additional curse slow"),
             TalentStat::Pyroclasm => (100.0, "% chance to stun fire-area targets"),
             TalentStat::KidneyExposure => (100.0, "% damage taken during Kidney Shot"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
@@ -2933,6 +2947,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SiphonLife
             | TalentStat::Nightfall
             | TalentStat::Aftermath
+            | TalentStat::CurseExhaustion
+            | TalentStat::ImprovedCurseExhaustion
             | TalentStat::Pyroclasm
             | TalentStat::KidneyExposure
             | TalentStat::Remorseless
@@ -4217,6 +4233,8 @@ mod stat_talent_tests {
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
                     | TalentStat::Aftermath
+                    | TalentStat::CurseExhaustion
+                    | TalentStat::ImprovedCurseExhaustion
                     | TalentStat::Pyroclasm
                     | TalentStat::KidneyExposure
                     | TalentStat::Remorseless

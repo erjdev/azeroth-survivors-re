@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Curse of Exhaustion
+
+Curse of Exhaustion now adds a 12-second slow to Curse of Agony applications.
+Its improvement adds slow strength, requires the base talent and caps this
+curse's boss slow at 25%. Damage ticks do not refresh it; stronger existing
+slows are preserved. Green inline values explain both upgrades.
+
+187 core tests, 363 app tests, core/app-test Clippy and native build pass.
+Native wide/compact captures verify prerequisite unlocking and saved purchases.
+Catalog coverage: 234/432 nodes (Warlock 24/50). Live balance and Windows combat
+acceptance remain open.
+
+![Curse of Exhaustion unlock](images/screenshots/2026-10-27-warlock-exhaustion/unlock-1280.png)
+![Improved curse after purchase](images/screenshots/2026-10-27-warlock-exhaustion/improved-640.png)
+
 ## 2026-10-27 — Intensity and reliable area pulses
 
 Intensity now extends Rain of Fire by 10% per rank, completing the effect for

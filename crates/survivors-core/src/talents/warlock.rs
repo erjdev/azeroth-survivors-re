@@ -17,6 +17,8 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1081, max_rank: 1, name: "Curse of Exhaustion", description: "Curse of Agony applications slow targets by 10% for 12 sec. Requires acquiring Curse of Agony; damage and target count are unchanged. Refreshes without stacking and preserves stronger slows (Survivors curse conversion)", stat: TalentStat::CurseExhaustion, per_rank: 0.10 },
+    TalentDefinition { id: 1082, max_rank: 4, name: "Improved Curse of Exhaustion", description: "Curse of Exhaustion: +5% additional slow per rank. Requires the base talent; bosses cannot be slowed by more than 25%. Duration and damage are unchanged (Survivors conversion)", stat: TalentStat::ImprovedCurseExhaustion, per_rank: 0.05 },
     TalentDefinition { id: 985, max_rank: 2, name: "Intensity", description: "Rain of Fire: +10% active duration per rank. Pulse interval, damage per pulse, radius and cooldown are unchanged (Survivors channel-resilience conversion; no channel required)", stat: TalentStat::SpellDuration("rain_of_fire"), per_rank: 0.10 },
     TalentDefinition { id: 982, max_rank: 5, name: "Aftermath", description: "Destruction hits and area pulses: 2% chance per rank to slow enemies by 50% for 5 sec. Bosses are slowed by 25%; stronger slows are preserved. Excludes attached damage-over-time ticks; refreshes without stacking (Survivors daze conversion)", stat: TalentStat::Aftermath, per_rank: 0.02 },
     TalentDefinition { id: 986, max_rank: 2, name: "Pyroclasm", description: "Rain of Fire and Hellfire pulses: 13% chance per rank to stun each damaged enemy for 3 sec. Boss duration is reduced; longer stuns are preserved. One roll per hit, not per multistrike; refreshes without stacking (Survivors conversion)", stat: TalentStat::Pyroclasm, per_rank: 0.13 },
@@ -501,5 +503,49 @@ mod intensity_tests {
             .inline_description(1)
             .unwrap()
             .starts_with("Rain of Fire: +10 » 20% active duration"));
+    }
+}
+
+#[cfg(test)]
+mod exhaustion_tests {
+    use crate::talents::{talent_definition, Milestones};
+    #[test]
+    fn exhaustion_requires_unlock_and_is_scoped_capped_and_refundable() {
+        for class in 0..9 {
+            for unlocked in [false, true] {
+                for rank in [0, 1, 4, 255] {
+                    let base = Milestones {
+                        class,
+                        ..Default::default()
+                    };
+                    let trained =
+                        base.with_ranks(&[(0, 1081, u8::from(unlocked)), (0, 1082, rank)]);
+                    for boss in [false, true] {
+                        let expected = if class == 7 && unlocked {
+                            let speed = 0.9 - 0.05 * f32::from(rank.min(4));
+                            Some((if boss { speed.max(0.75) } else { speed }, 12.))
+                        } else {
+                            None
+                        };
+                        assert_eq!(trained.secondary_slow("curse_of_agony", boss), expected);
+                        for key in ["corruption", "death_coil", "immolate", "demoralizing_shout"] {
+                            assert_eq!(
+                                trained.secondary_slow(key, boss),
+                                base.secondary_slow(key, boss)
+                            );
+                        }
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+        for id in [1081, 1082] {
+            let node = talent_definition(7, id).unwrap();
+            assert!(node.inline_description(0).unwrap().contains("0 »"));
+            assert!(!node
+                .inline_description(node.max_rank)
+                .unwrap()
+                .contains('»'));
+        }
     }
 }
