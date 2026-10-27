@@ -50,7 +50,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-27-mana-shield/codex.png" alt="Codex"><br>2026-10-27 · Mana Shield base values and its spell-specific amulet.<br><a href="docs/images/screenshots/2026-10-27-codex-preview/ring-compact.png">Compact Codex preview</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-mana-shield/talent.png" alt="Talents"><br>2026-10-27 · Improved Mana Shield cooldown training; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-blessed-recovery/compact.png">Compact description</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-deterrence/preview.png" alt="Talents"><br>2026-10-27 · Hunter Deterrence inline upgrade; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-blessed-recovery/compact.png">Compact description</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

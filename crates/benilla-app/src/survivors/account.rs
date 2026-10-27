@@ -2916,6 +2916,49 @@ mod tests {
     }
 
     #[test]
+    fn deterrence_purchase_saved_specs_and_refund_match_runtime() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(2);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(2, 1304, 5), (2, 1311, 5)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(2, hero);
+        assert!(account.learn_talent(hero, 2, 1308, 1, 2, true));
+        assert!(!account.learn_talent(hero, 2, 1308, 1, 2, true));
+        assert_eq!(account.bonus(2, hero).reduction, before.reduction);
+        let factor = |account: &Account, elapsed| {
+            account
+                .milestones_picked(2, Some(hero))
+                .deterrence_multiplier(elapsed)
+        };
+        assert_eq!(factor(&account, 0.), 0.5);
+        assert_eq!(factor(&account, 10.), 1.);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(factor(&loaded, 180.), 0.5);
+        loaded.select_spec(hero, 1);
+        assert_eq!(factor(&loaded, 180.), 1.);
+        loaded.select_spec(hero, 0);
+        assert_eq!(factor(&loaded, 180.), 0.5);
+        assert!(loaded.unlearn_talent(hero, 1308, true));
+        assert_eq!(factor(&loaded, 180.), 1.);
+    }
+
+    #[test]
     fn mana_shield_metadata_purchase_and_saved_specs_match_the_runtime() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

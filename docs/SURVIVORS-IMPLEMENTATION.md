@@ -7617,3 +7617,26 @@ Validation: 422 app tests pass with checkout-local data, including actual disk
 preservation and run/save refusal. Clippy then prompted a type-alias-only cleanup;
 Clippy passes after that cleanup. Formatting and diff checks pass. No new native
 menu, Windows, browser or gameplay validation is claimed for this persistence fix.
+
+
+### 2026-10-27 — Hunter Deterrence
+
+Survival node 1308 now has a functional one-rank automatic defense: 50% incoming
+damage reduction during the first ten seconds of each 180-second run-time cycle.
+The multiplier applies in the shared hero damage path before armor/reduction and
+temporary shields; it is multiplicative with those defenses. It never protects
+the combat wolf or becomes a permanent sheet bonus. Class/rank checks, finite
+time checks and fixed windows prevent foreign-class effects or banked charges.
+The HUD reports remaining active time and hides it on death or without training.
+
+219 core tests and 425 app tests pass, covering interval edges, skipped intervals,
+class/rank boundaries, shield absorption, immunity, HUD text, DBC-backed purchase,
+save round-trip, spec switching and refund. Core/app Clippy, formatting and diff
+checks pass. Native play build: 30.87 seconds. An isolated 1280×720 Hunter menu
+shows green inline 0 » 50%, purchases to rank 1/1 with one point spent, and writes
+the rank to disk. Both screenshots are inline in the changelog; README updated.
+The talent reference was inspected for the three-tree/sidebar layout.
+
+Definition coverage is 265/432 (Hunter 32/46), with 167 definitions remaining.
+This is not attended combat balance, Windows rendering or complete talent-catalog
+acceptance. The other phases and reported Windows scenes remain open.

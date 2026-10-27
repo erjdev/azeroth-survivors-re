@@ -1478,6 +1478,7 @@ pub enum TalentStat {
     ArcanePower,
     Combustion,
     AdrenalineRush,
+    Deterrence,
     PowerInfusion,
     Preparation,
     SiphonLife,
@@ -1630,6 +1631,7 @@ impl TalentDefinition {
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
             | TalentStat::AdrenalineRush
+            | TalentStat::Deterrence
             | TalentStat::Combustion
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
@@ -1881,6 +1883,7 @@ impl TalentDefinition {
                 100.0,
                 "% shorter Rogue cast cooldown during Adrenaline Rush",
             ),
+            TalentStat::Deterrence => (100.0, "% less incoming damage during Deterrence"),
             TalentStat::Combustion => (100.0, "% Fire critical chance per direct hit"),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
             TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
@@ -2462,6 +2465,11 @@ static HUNTER_TALENTS: &[TalentDefinition] = &[
     TalentDefinition { id: 1391, max_rank: 1, name: "Bestial Swiftness",
         description: "Combat wolf: +30% movement speed; melee reach, leash and pickup companions are unchanged",
         stat: TalentStat::PetSpeed, per_rank: 0.3 },
+    TalentDefinition {
+        id: 1308, max_rank: 1, name: "Deterrence",
+        description: "Automatically take 50% less incoming damage for 10 sec at run start and every 180 sec of gameplay time. Multiplies armor and other damage reduction before shields. Pauses stop the window; missed windows are not stored (Survivors dodge/parry conversion)",
+        stat: TalentStat::Deterrence, per_rank: 0.50,
+    },
     TalentDefinition {
         id: 1622, max_rank: 5, name: "Survivalist",
         description: "+2% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health",
@@ -3221,6 +3229,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
             | TalentStat::AdrenalineRush
+            | TalentStat::Deterrence
             | TalentStat::Combustion
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
@@ -4695,6 +4704,7 @@ mod stat_talent_tests {
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus
                     | TalentStat::AdrenalineRush
+                    | TalentStat::Deterrence
                     | TalentStat::Combustion
                     | TalentStat::ArcanePower
                     | TalentStat::PowerInfusion

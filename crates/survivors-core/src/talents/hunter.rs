@@ -58,6 +58,26 @@ impl PetFrenzy {
 }
 
 impl Milestones {
+    /// Fixed windows use gameplay time; skipped intervals never accumulate charges.
+    pub fn deterrence_remaining(self, elapsed: f32) -> f32 {
+        if self.class != 2
+            || self.trained_value(TalentStat::Deterrence) <= 0.0
+            || !elapsed.is_finite()
+            || elapsed < 0.0
+        {
+            return 0.0;
+        }
+        (10.0 - elapsed % 180.0).max(0.0)
+    }
+
+    pub fn deterrence_multiplier(self, elapsed: f32) -> f32 {
+        if self.deterrence_remaining(elapsed) > 0.0 {
+            1.0 - self.trained_value(TalentStat::Deterrence)
+        } else {
+            1.0
+        }
+    }
+
     /// Run time drives Wrath, so pause and selection screens cannot consume the buff.
     pub fn hunter_pet(self, elapsed: f32) -> PetBonus {
         let mut bonus = PetBonus::default();
@@ -346,5 +366,55 @@ mod tests {
         for threshold in [10, 20, 30] {
             assert!(super::super::description(2, 0, threshold).is_some());
         }
+    }
+}
+
+#[cfg(test)]
+mod deterrence_tests {
+    use super::*;
+    #[test]
+    fn deterrence_windows_use_run_time_and_capped_hunter_training() {
+        for class in 0..9 {
+            for rank in [0, 1, 255] {
+                let trained = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 1308, rank)]);
+                for (elapsed, remaining) in [
+                    (0., 10.),
+                    (1.5, 8.5),
+                    (9.99, 0.01),
+                    (10., 0.),
+                    (179.99, 0.),
+                    (180., 10.),
+                    (189., 1.),
+                    (190., 0.),
+                    (905., 5.),
+                    (920., 0.),
+                ] {
+                    let expected = if class == 2 && rank > 0 {
+                        remaining
+                    } else {
+                        0.
+                    };
+                    assert!((trained.deterrence_remaining(elapsed) - expected).abs() < 0.0001);
+                    assert_eq!(
+                        trained.deterrence_multiplier(elapsed),
+                        if expected > 0. { 0.5 } else { 1. }
+                    );
+                }
+                for elapsed in [-1., f32::NAN, f32::INFINITY] {
+                    assert_eq!(trained.deterrence_remaining(elapsed), 0.);
+                    assert_eq!(trained.deterrence_multiplier(elapsed), 1.);
+                }
+            }
+        }
+        let node = super::super::talent_definition(2, 1308).unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .contains("0 » 50% less incoming damage"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }

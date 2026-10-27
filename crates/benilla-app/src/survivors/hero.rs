@@ -393,7 +393,9 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
     let stats = run.stats();
     let retaliation =
         run.thorns_t > 0.0 && run.thorns_spell == super::data::ability("retaliation").spell;
-    let raw = raw * run.milestones.retaliation_risk(retaliation);
+    let raw = raw
+        * run.milestones.retaliation_risk(retaliation)
+        * run.milestones.deterrence_multiplier(run.elapsed);
     let mut dmg = run.milestones.after_flat_absorption(super::sheet::mitigate(
         raw,
         stats.armor,
@@ -641,6 +643,48 @@ mod reactive_talent_tests {
         regenerate(&mut run, &stats, 6.);
         assert_eq!(run.hp, hp);
         assert!(!run.alive());
+    }
+
+    #[test]
+    fn deterrence_reduces_hits_before_shields_only_during_trained_windows() {
+        for class in [0, 2, 3] {
+            for rank in [0, 1, 255] {
+                for elapsed in [0., 9.99, 10., 180., 190., 905., 920.] {
+                    let mut run = Run {
+                        class: &super::super::data::CLASSES[class],
+                        milestones: survivors_core::talents::Milestones {
+                            class,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 1308, rank)]),
+                        elapsed,
+                        hp: 100.,
+                        shield: 3.,
+                        shield_t: 2.,
+                        ..Default::default()
+                    };
+                    run.bonus.armor = 40.;
+                    run.bonus.reduction = 0.1;
+                    let stats = run.stats();
+                    let active = class == 2 && rank > 0 && elapsed % 180. < 10.;
+                    let mitigated = super::super::sheet::mitigate(
+                        if active { 15. } else { 30. },
+                        stats.armor,
+                        stats.reduction,
+                    );
+                    let damage = hurt_hero(&mut run, 30.);
+                    assert!((damage - (mitigated - 3.).max(0.)).abs() < 0.00001);
+                    assert!((run.hp - (100. - damage)).abs() < 0.00001);
+                    assert!((run.shield - (3. - mitigated).max(0.)).abs() < 0.00001);
+                    assert_eq!(run.shield_t, 2.);
+                    run.immune_t = 1.;
+                    assert_eq!(hurt_hero(&mut run, 100.), 0.);
+                    run.immune_t = 0.;
+                    run.hp = 0.;
+                    assert_eq!(hurt_hero(&mut run, 100.), 0.);
+                }
+            }
+        }
     }
 
     #[test]

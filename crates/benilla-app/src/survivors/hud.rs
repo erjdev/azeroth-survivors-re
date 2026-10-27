@@ -1842,6 +1842,13 @@ fn reactive_buff_status(run: &Run) -> String {
         return String::new();
     }
     let mut active = Vec::new();
+    let deterrence_remaining = run.milestones.deterrence_remaining(run.elapsed);
+    if deterrence_remaining > 0.0 {
+        active.push(format!(
+            "Deterrence: 50% less incoming damage ({:.0}s)",
+            deterrence_remaining.ceil()
+        ));
+    }
     let rush_remaining = run.adrenaline_rush.remaining(run.milestones, run.elapsed);
     if rush_remaining > 0.0 {
         active.push(format!(
@@ -3844,6 +3851,40 @@ mod combustion_status_tests {
         run.milestones = trained;
         run.combustion.hit(trained, "fireball", 10., true, 0.);
         run.combustion.hit(trained, "fireball", 10., true, 0.);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod deterrence_status_tests {
+    use super::*;
+    #[test]
+    fn deterrence_status_tracks_windows_and_hides_on_death_or_refund() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[2],
+            milestones: survivors_core::talents::Milestones {
+                class: 2,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 1308, 1)]),
+            elapsed: 1.2,
+            ..Default::default()
+        };
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Deterrence: 50% less incoming damage (9s)"
+        );
+        run.elapsed = 10.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 180.;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Deterrence: 50% less incoming damage (10s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.milestones = run.milestones.with_ranks(&[]);
         assert!(reactive_buff_status(&run).is_empty());
     }
 }

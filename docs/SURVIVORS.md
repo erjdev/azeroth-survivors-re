@@ -698,3 +698,15 @@ Improved Mana Shield (node 83, two ranks) reduces only its cooldown by 10% per r
 using an explicitly labeled Survivors mana-cost conversion. It does not grant the
 spell or increase absorption/duration. Arcane Instability, Arcane Power and offensive
 school talents exclude Mana Shield. Initial values require live balance validation.
+
+
+### Hunter Deterrence
+
+The one-rank Survival talent (1308) automatically reduces incoming damage by 50%
+for the first 10 seconds of a run and for 10 seconds every 180 seconds thereafter.
+This is an explicit Survivors dodge/parry conversion, without random avoidance
+rolls. It multiplies armor and other reduction before temporary shields absorb
+the hit. The combat wolf and pickup companions receive no protection from it.
+The HUD shows the remaining active duration. Gameplay time controls the windows,
+so pauses and selection screens do not consume them; missed intervals do not
+accumulate charges. An untrained or inactive spec grants no protection.

@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Hunter Deterrence
+
+Deterrence now grants an automatic 10-second window of 50% damage reduction at
+run start and every 180 seconds of gameplay time. It applies before shields;
+pauses freeze the window. The HUD reports its active duration, and saved specs
+and refunds control whether it applies.
+
+![Deterrence inline upgrade](images/screenshots/2026-10-27-deterrence/preview.png)
+
+![Deterrence purchased](images/screenshots/2026-10-27-deterrence/purchased.png)
+
+219 core tests, 425 app tests, core/app Clippy and formatting checks pass.
+Native 1280×720 preview and purchase verified; build: 31 seconds.
+Definitions: 265/432 (Hunter 32/46); 167 remain. Live combat balance and Windows
+acceptance remain open; these captures show the menu only.
+
 ## 2026-10-27 — Preserve damaged talent saves
 
 Malformed talent rows, extra spec groups and references to missing heroes now
