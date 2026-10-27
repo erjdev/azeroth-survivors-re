@@ -5765,3 +5765,14 @@ regression loads missing/zero/stale/maximum counters, creates both kinds of hero
 updates the new heroes independently, then serializes/reloads and checks all four
 heroes' identities, XP and bodies. This is persistence evidence, not live UI or
 Windows acceptance; no visual change warrants a new screenshot.
+
+
+### Warlock training checkpoint — 2026-10-26
+
+Amplify Curse, Shadowburn and Improved Healthstone now have explicit Survivors
+adaptations: scoped damage increases and additive Death Coil healing. Spell acquisition
+remains separate. Rank caps, class/spell scope, milestone stacking and unchanged cast
+fields have core coverage; app parameter tests cover ranked spells. All 163 core and
+328 app tests, Clippy and the native build pass. Native menu purchases persist all
+three ranks, with inline changelog captures. Coverage is 209/432 individual talents
+and 81/81 milestones; 223 individual nodes and live balance acceptance remain open.

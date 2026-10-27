@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Warlock curse, burst and healing training
+
+Amplify Curse strengthens Curse of Agony by 20%; Shadowburn training strengthens
+an acquired Shadowburn by 20%. Improved Healthstone adds 1% maximum-health healing
+per rank to successful Death Coil casts, stacking with the Demonology milestone.
+Descriptions explicitly identify these Survivors adaptations; training does not grant spells.
+
+163 core tests, 328 app tests, Clippy and the native build pass. Native macOS menu
+purchases and saved ranks were verified for all three nodes. Coverage is 209/432
+individual talents and 81/81 milestones; live balance and Windows acceptance remain open.
+The reference-based three-tree layout is unchanged.
+
+![Improved Healthstone training](images/screenshots/2026-10-26-warlock-training/healthstone.png)
+
+![Amplify Curse training](images/screenshots/2026-10-26-warlock-training/amplify-curse.png)
+
+![Shadowburn training](images/screenshots/2026-10-26-warlock-training/shadowburn.png)
+
 ## 2026-10-26 — Preserve hero identity after stale save counters
 
 Named and automatic starter creation now skip existing hero IDs, reserve zero,

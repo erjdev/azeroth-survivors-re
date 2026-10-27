@@ -17,6 +17,9 @@ const DESTRUCTION: &[&str] = &[
     "shadowburn",
 ];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1061, max_rank: 1, name: "Amplify Curse", description: "Curse of Agony: +20% periodic damage, multiplying other training. Requires acquiring the spell during the run (Survivors automatic conversion)", stat: TalentStat::SpellDamage("curse_of_agony"), per_rank: 0.20 },
+    TalentDefinition { id: 963, max_rank: 1, name: "Shadowburn", description: "Shadowburn: +20% damage, multiplying other training. Requires acquiring Shadowburn during the run; does not grant the spell (Survivors conversion)", stat: TalentStat::SpellDamage("shadowburn"), per_rank: 0.20 },
+    TalentDefinition { id: 1221, max_rank: 2, name: "Improved Healthstone", description: "Death Coil heals an additional 1% maximum health per rank once per successful cast. Adds to the Demonology 10-point milestone; drain healing is unchanged (Survivors automatic conversion)", stat: TalentStat::SpellHeal("death_coil"), per_rank: 0.01 },
     TalentDefinition { id: 1002, max_rank: 2, name: "Nightfall", description: "Corruption ticks: 2% chance per rank to ready an owned Shadow Bolt. Once per damaging tick, not per multistrike; no stored charge. Separate from the 20-point milestone (Survivors instant-cast conversion)", stat: TalentStat::Nightfall, per_rank: 0.02 },
     TalentDefinition { id: 1041, max_rank: 1, name: "Siphon Life", description: "Corruption and Curse of Agony heal 5% of enemy health actually removed; adds to the 30-point Affliction milestone for 10% total. Excludes overkill and other spells (Survivors automatic conversion)", stat: TalentStat::SiphonLife, per_rank: 0.05 },
     TalentDefinition { id: 1021, max_rank: 2, name: "Grim Reach", description: "Corruption, Curse of Agony and Death Coil: +10% targeting range per rank; damage, duration and target counts are unchanged", stat: TalentStat::SpellGroupRange(&["corruption", "curse_of_agony", "death_coil"]), per_rank: 0.10 },
@@ -112,7 +115,9 @@ mod tests {
                 ("corruption", 1. + 0.02 * r, 1. - 0.04 * r, 0., 0.),
                 (
                     "curse_of_agony",
-                    (1. + 0.02 * f32::from(rank.min(3))) * (1. + 0.02 * r),
+                    (1. + 0.02 * f32::from(rank.min(3)))
+                        * (1. + 0.02 * r)
+                        * if rank > 0 { 1.2 } else { 1.0 },
                     1.,
                     0.,
                     0.,
@@ -330,6 +335,42 @@ mod nightfall_tests {
                     trained.with_ranks(&[]).nightfall_chance("corruption", 10.),
                     0.
                 );
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod additional_training_tests {
+    use super::*;
+    use crate::talents::Milestones;
+
+    #[test]
+    fn new_nodes_are_scoped_capped_and_preserve_other_cast_fields() {
+        for class in 0..9 {
+            for points in [[0; 3], [30; 3]] {
+                let base = Milestones {
+                    class,
+                    points,
+                    ..Default::default()
+                };
+                for rank in [0, 1, 2, 255] {
+                    let trained =
+                        base.with_ranks(&[(0, 1061, rank), (1, 1221, rank), (2, 963, rank)]);
+                    for spell in crate::data::ABILITIES {
+                        let mut expected = base.cast(spell.key);
+                        if class == 7 {
+                            if rank > 0 && matches!(spell.key, "curse_of_agony" | "shadowburn") {
+                                expected.damage *= 1.2;
+                            }
+                            if spell.key == "death_coil" {
+                                expected.heal_fraction += 0.01 * f32::from(rank.min(2));
+                            }
+                        }
+                        assert_eq!(trained.cast(spell.key), expected, "{class} {}", spell.key);
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
             }
         }
     }

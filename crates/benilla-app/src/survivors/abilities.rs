@@ -4340,12 +4340,12 @@ mod milestone_tests {
             for (key, damage, cooldown, crit, crit_damage) in [
                 ("shadow_bolt", 1.32, 0.72, 0.05, 0.5),
                 ("corruption", 1.1, 0.8, 0., 0.),
-                ("curse_of_agony", 1.166, 1., 0., 0.),
+                ("curse_of_agony", 1.3992, 1., 0., 0.),
                 ("immolate", 1.375, 0.72, 0.05, 0.5),
                 ("rain_of_fire", 1.1, 0.9, 0.05, 0.5),
                 ("hellfire", 1.1, 0.9, 0.05, 0.5),
                 ("searing_pain", 1.1, 0.9, 0.15, 0.5),
-                ("shadowburn", 1.1, 0.9, 0.05, 0.5),
+                ("shadowburn", 1.32, 0.9, 0.05, 0.5),
                 ("death_coil", 1.1, 1., 0., 0.),
                 ("fireball", 1., 1., 0., 0.),
             ] {
@@ -4389,6 +4389,10 @@ mod milestone_tests {
                 assert_eq!(
                     (after.count, after.radius, after.duration),
                     (before.count, before.radius, before.duration)
+                );
+                assert!(
+                    (after.heal_fraction - if key == "death_coil" { 0.02 } else { 0.0 }).abs()
+                        < 0.0001
                 );
                 let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
                 assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
