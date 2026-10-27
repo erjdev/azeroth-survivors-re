@@ -3190,124 +3190,136 @@ mod milestone_tests {
     fn priest_milestones_trigger_once_per_successful_cast_and_preserve_target_rules() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for key in [
-            "holy_fire",
-            "holy_nova",
-            "psychic_scream",
-            "mind_blast",
-            "power_word_shield",
-        ] {
-            for with_targets in [false, true] {
-                let mut app = App::new();
-                let mut time = Time::<()>::default();
-                time.advance_by(std::time::Duration::from_secs_f32(0.1));
-                let mut run = Run {
-                    class: &data::CLASSES[4],
-                    hp: 20.0,
-                    milestones: Milestones {
-                        class: 4,
-                        points: [30; 3],
+        for trained_nova in [false, true] {
+            for key in [
+                "holy_fire",
+                "holy_nova",
+                "psychic_scream",
+                "mind_blast",
+                "power_word_shield",
+            ] {
+                for with_targets in [false, true] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                    let mut run = Run {
+                        class: &data::CLASSES[4],
+                        hp: 20.0,
+                        milestones: Milestones {
+                            class: 4,
+                            points: [30; 3],
+                            ..Default::default()
+                        },
                         ..Default::default()
-                    },
-                    ..Default::default()
-                };
-                let max_hp = run.stats().max_hp;
-                run.bonus.targets = 2;
-                run.abilities.push(Owned {
-                    def: data::ability(key),
-                    level: 1,
-                    cd: 0.0,
-                });
-                let advanced = if key == "power_word_shield" {
-                    "mind_blast"
-                } else {
-                    "shadow_word_pain"
-                };
-                run.abilities.push(Owned {
-                    def: data::ability(advanced),
-                    level: 1,
-                    cd: 5.0,
-                });
-                app.insert_resource(time)
-                    .insert_resource(run)
-                    .insert_resource(Rng(42))
-                    .init_resource::<PlaySeq>()
-                    .init_resource::<PendingHits>()
-                    .add_message::<CastEvent>()
-                    .add_message::<SpellGoTargets>()
-                    .add_message::<SwingMessage>()
-                    .add_message::<crate::combat_text::CombatTextSpawn>()
-                    .add_message::<Hit>();
-                app.world_mut()
-                    .spawn((Transform::default(), Hero { vy: 0.0, air: 0.0 }));
-                if with_targets {
-                    for x in [1.0, 2.0, 3.0] {
-                        app.world_mut().spawn((
-                            Transform::from_xyz(x, 0.0, 0.0),
-                            Enemy {
-                                def: &data::roster(0).enemies[0],
-                                hp: 100.0,
-                                max_hp: 100.0,
-                                speed: 3.0,
-                                damage: 1.0,
-                                radius: 0.6,
-                                xp: 1,
-                                boss: false,
-                                elite: false,
-                                attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
-                                root_t: 0.0,
-                                frozen_t: 0.0,
-                                winters_chill: Default::default(),
-                                shadow_weaving: Default::default(),
-                                stun_t: 0.0,
-                                fear_t: 0.0,
-                                weaken: 1.0,
-                                weaken_t: 0.0,
-                                dots: Vec::new(),
-                                dead: false,
-                            },
-                        ));
+                    };
+                    if trained_nova {
+                        run.milestones = run.milestones.with_ranks(&[(1, 442, 1), (1, 404, 5)]);
                     }
-                }
-                app.world_mut().run_system_once(cast_abilities).unwrap();
-                let run = app.world().resource::<Run>();
-                let success = with_targets || key == "power_word_shield";
-                let healing = if success {
-                    match key {
-                        "holy_fire" => 0.03,
-                        "holy_nova" => 0.05,
-                        _ => 0.0,
+                    let max_hp = run.stats().max_hp;
+                    run.bonus.targets = 2;
+                    run.abilities.push(Owned {
+                        def: data::ability(key),
+                        level: 1,
+                        cd: 0.0,
+                    });
+                    let advanced = if key == "power_word_shield" {
+                        "mind_blast"
+                    } else {
+                        "shadow_word_pain"
+                    };
+                    run.abilities.push(Owned {
+                        def: data::ability(advanced),
+                        level: 1,
+                        cd: 5.0,
+                    });
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(42))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0.0, air: 0.0 }));
+                    if with_targets {
+                        for x in [1.0, 2.0, 3.0] {
+                            app.world_mut().spawn((
+                                Transform::from_xyz(x, 0.0, 0.0),
+                                Enemy {
+                                    def: &data::roster(0).enemies[0],
+                                    hp: 100.0,
+                                    max_hp: 100.0,
+                                    speed: 3.0,
+                                    damage: 1.0,
+                                    radius: 0.6,
+                                    xp: 1,
+                                    boss: false,
+                                    elite: false,
+                                    attack_cd: 0.0,
+                                    slow: 1.0,
+                                    slow_t: 0.0,
+                                    root_t: 0.0,
+                                    frozen_t: 0.0,
+                                    winters_chill: Default::default(),
+                                    shadow_weaving: Default::default(),
+                                    stun_t: 0.0,
+                                    fear_t: 0.0,
+                                    weaken: 1.0,
+                                    weaken_t: 0.0,
+                                    dots: Vec::new(),
+                                    dead: false,
+                                },
+                            ));
+                        }
                     }
-                } else {
-                    0.0
-                };
-                assert!(
-                    (run.hp - (20.0 + max_hp * healing)).abs() < 0.0001,
-                    "{key}: heal once"
-                );
-                let advance = success && matches!(key, "mind_blast" | "power_word_shield");
-                assert!(
-                    (run.abilities[1].cd - if advance { 2.9 } else { 4.9 }).abs() < 0.0001,
-                    "{key}: advance once"
-                );
-                if key == "psychic_scream" {
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let success = with_targets || key == "power_word_shield";
+                    let healing = if success {
+                        match key {
+                            "holy_fire" => 0.03,
+                            "holy_nova" => {
+                                if trained_nova {
+                                    0.11
+                                } else {
+                                    0.05
+                                }
+                            }
+                            _ => 0.0,
+                        }
+                    } else {
+                        0.0
+                    };
                     assert!(
-                        (run.shield - if success { max_hp * 0.05 } else { 0.0 }).abs() < 0.0001
+                        (run.hp - (20.0 + max_hp * healing)).abs() < 0.0001,
+                        "{key}: heal once"
                     );
-                    assert_eq!(run.shield_t, if success { 3.0 } else { 0.0 });
-                }
-                if key == "power_word_shield" {
-                    assert_eq!(run.immune_t, 1.0);
-                    assert!(run.shield > 0.0);
-                }
-                if with_targets && matches!(key, "holy_nova" | "psychic_scream" | "mind_blast") {
-                    assert_eq!(
-                        app.world().resource::<Messages<Hit>>().len(),
-                        3,
-                        "{key}: targets hit once"
+                    let advance = success && matches!(key, "mind_blast" | "power_word_shield");
+                    assert!(
+                        (run.abilities[1].cd - if advance { 2.9 } else { 4.9 }).abs() < 0.0001,
+                        "{key}: advance once"
                     );
+                    if key == "psychic_scream" {
+                        assert!(
+                            (run.shield - if success { max_hp * 0.05 } else { 0.0 }).abs() < 0.0001
+                        );
+                        assert_eq!(run.shield_t, if success { 3.0 } else { 0.0 });
+                    }
+                    if key == "power_word_shield" {
+                        assert_eq!(run.immune_t, 1.0);
+                        assert!(run.shield > 0.0);
+                    }
+                    if with_targets && matches!(key, "holy_nova" | "psychic_scream" | "mind_blast")
+                    {
+                        assert_eq!(
+                            app.world().resource::<Messages<Hit>>().len(),
+                            3,
+                            "{key}: targets hit once"
+                        );
+                    }
                 }
             }
         }

@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Holy Nova talent
+
+Priest Holy Nova now heals 5% maximum health once per successful cast. It adds to
+the Holy 30-point milestone for 10%, before Spiritual Healing. This Survivors
+adaptation requires acquiring the spell during the run; damage and lifesteal stay unchanged.
+
+160 core and 322 app tests pass, including empty casts, multiple targets, rank
+clamping and healing modifiers. Native macOS menu validation confirms purchase,
+saved rank and readable details. Clippy, native build and formatting pass.
+Talent coverage is now 202/432; Windows combat and balance validation remain open.
+
+![Purchased Holy Nova talent and healing description](images/screenshots/2026-10-26-holy-nova-talent/talents-1280.png)
+
 ## 2026-10-26 — Readable compact Codex
 
 Compact screens stack the jewelry catalog above a full-width details panel instead

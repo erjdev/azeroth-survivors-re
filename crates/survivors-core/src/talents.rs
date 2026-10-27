@@ -2489,6 +2489,12 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 442, max_rank: 1, name: "Holy Nova",
+        description: "Holy Nova heals 5% maximum health once per successful cast. Adds to the Holy 30-point milestone for 10% before Spiritual Healing. Requires acquiring Holy Nova during the run; damage and lifesteal are unchanged (Survivors conversion)",
+        stat: TalentStat::SpellHeal("holy_nova"), per_rank: 0.05,
+    },
+
+    TalentDefinition {
         id: 404, max_rank: 5, name: "Spiritual Healing",
         description: "Renew and Holy Nova's unlocked healing: +2% healing per rank, multiplying Improved Renew. Does not unlock either effect; excludes damage, shields, Spirit Tap, lifesteal and other regeneration (Survivors healing scope)",
         stat: TalentStat::SpiritualHealing, per_rank: 0.02,
@@ -4682,5 +4688,36 @@ mod health_talent_tests {
             talent_definition(2, 1622).unwrap().rank_preview(4),
             "This talent: 8 to 10% maximum health next rank"
         );
+    }
+}
+
+#[cfg(test)]
+mod holy_nova_training_tests {
+    use super::*;
+
+    #[test]
+    fn trained_nova_adds_one_heal_and_scales_with_spiritual_healing() {
+        for class in 0..9 {
+            for points in [0, 29, 30, 40] {
+                let base = Milestones {
+                    class,
+                    points: [0, points, 0],
+                    ..Default::default()
+                };
+                for rank in [0, 1, 255] {
+                    let trained = base.with_ranks(&[(1, 442, rank), (1, 404, 5)]);
+                    let mut expected = base.cast("holy_nova");
+                    if class == 4 {
+                        expected.heal_fraction =
+                            (expected.heal_fraction + if rank > 0 { 0.05 } else { 0. }) * 1.1;
+                    }
+                    assert_eq!(trained.cast("holy_nova"), expected);
+                    for key in ["holy_fire", "smite", "power_word_shield", "rejuvenation"] {
+                        assert_eq!(trained.cast(key), base.cast(key));
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
     }
 }

@@ -5605,3 +5605,18 @@ Codex preview record this intentional responsive departure from the wide referen
 Clippy, native build, formatting and diff checks pass. No new gameplay or discovery
 logic changed and the app suite was not rerun. Catalog expansion and full resolution,
 controller and Windows acceptance remain required.
+
+### 2026-10-26 — Holy Nova individual talent
+
+Implemented Priest Holy node 442 as an authored Survivors conversion: +5% maximum
+health healed once per successful Holy Nova cast, additive with the existing Holy
+30-point milestone and then multiplied by Spiritual Healing. The talent does not
+grant the run spell, change damage/lifesteal or multiply healing by targets hit.
+
+160 core tests and 322 app tests pass. Coverage includes rank caps, other-class and
+other-spell isolation, removing ranks, milestone stacking, empty casts and multiple
+targets through the real cast system. Native macOS 1280×720 preview confirms buying
+the talent, the persisted rank and readable supported description. Screenshot is
+embedded in CHANGELOG and README. Clippy/native build/fmt pass. The DBC audit now
+reports 202/432 individual definitions and 81/81 milestones; remaining talents and
+Windows/live balance acceptance are still open.
