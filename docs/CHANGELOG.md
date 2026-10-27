@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Enlarged Codex and source navigation
+
+Verified populated Codex and Drop Tables at 640×720/125%. All 39 shared jewelry
+entries wrap within the catalog; selecting an amulet preserves its scroll position
+and shows the green bonus. Collection's source button opens Elwynn's table with
+the matching item selected and its chance visible.
+
+Native macOS preview on `7d054a5`, seeded disposable account; no code changes or
+new test run. These captures verify layout/navigation, not natural acquisition or
+completion of the unfinished zone tables.
+
+![Populated compact Codex](images/screenshots/2026-10-27-scaled-codex/codex-640-125.png)
+![Collection source navigation](images/screenshots/2026-10-27-scaled-codex/source-640-125.png)
+![Matching drop-table destination](images/screenshots/2026-10-27-scaled-codex/drops-640-125.png)
+
 ## 2026-10-27 — Improved Drain Life and readable talent details
 
 Improved Drain Life strengthens Death Coil drain healing by 2% per rank (10%

@@ -902,8 +902,11 @@ runtime changes. Further 640×720/125% checks verify Feats cards and placeholder
 criteria, companion locks, and a staged/confirmed Banish purchase (285→270 points,
 rank 1 persisted in the disposable save). Captures are inline in CHANGELOG.
 Tabards also have compact/125% selection and rendered removal evidence (see
-current-priority notes). Remaining Armory pages, card drafts and combat HUD at
-every scale still require acceptance.
+current-priority notes). Codex/Drop Tables at 640×720/125% also have native
+`7d054a5` evidence: 39 seeded shared jewelry entries wrap, amulet selection retains
+catalog scroll, and Collection's source button opens the matching Elwynn drop row.
+This does not verify natural acquisition or unfinished zone tables. Other scales,
+card drafts and combat HUD still require acceptance.
 
 
 Collection shares Character’s inline faction portraits and race/sex controls. Live
