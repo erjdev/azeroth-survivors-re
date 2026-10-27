@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Preserve hero identity after stale save counters
+
+Named and automatic starter creation now skip existing hero IDs, reserve zero,
+and wrap safely at the counter limit. Missing or stale save counters can no longer
+make a newly created hero share another hero's progression reference.
+
+328 app tests, Clippy and native build pass. Save round-trip checks cover missing,
+zero, stale and maximum counters while preserving existing XP and appearances.
+This prevents new collisions; it does not repair pre-existing duplicate hero IDs.
+No visual change or new screenshot for this persistence correction.
+
 ## 2026-10-26 — Direct drop-table previews
 
 UI preview files can now select a named drop-table zone and inspected item together.

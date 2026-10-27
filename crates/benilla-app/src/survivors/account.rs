@@ -201,14 +201,28 @@ impl Account {
         self.characters.iter().find(|c| c.id == id)
     }
 
+    /// Saved allocation cursors may be absent or stale; hero references must stay unique.
+    fn allocate_character_id(&mut self) -> u32 {
+        let start = self.next_id.max(1);
+        let mut id = start;
+        loop {
+            let next = id.checked_add(1).unwrap_or(1);
+            if self.character(id).is_none() {
+                self.next_id = next;
+                return id;
+            }
+            id = next;
+            assert_ne!(id, start, "character ID space exhausted");
+        }
+    }
+
     /// The first character of a class, creating "Adventurer" of that class when none exists.
     /// The character screen will add named ones beside this.
     pub fn ensure(&mut self, class: usize) -> u32 {
         if let Some(c) = self.characters.iter().find(|c| c.class == class) {
             return c.id;
         }
-        let id = self.next_id;
-        self.next_id += 1;
+        let id = self.allocate_character_id();
         let name = data::CLASSES.get(class).map(|c| c.name).unwrap_or("Hero");
         self.characters.push(Character {
             id,
@@ -664,8 +678,7 @@ impl Account {
         if first.is_empty() || last.is_empty() || class >= data::CLASSES.len() {
             return None;
         }
-        let id = self.next_id;
-        self.next_id += 1;
+        let id = self.allocate_character_id();
         self.characters.push(Character {
             id,
             first: first.to_string(),
@@ -3062,6 +3075,33 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.character(id).unwrap().ranks()[0], 0);
         let bonus = account.bonus(0, 1);
         assert!(bonus.crit_damage > 0.0);
+    }
+
+    #[test]
+    fn stale_or_wrapped_character_cursors_never_alias_existing_heroes() {
+        for cursor in ["", "next 0\n", "next 1\n", "next 4294967295\n"] {
+            let mut account = parse(&format!(
+                "{cursor}who 1 0 500 First Hero 0|||\nwho 4294967295 1 900 Last Hero 0|||\nbody 1 1 0\nbody 4294967295 3 1\n"
+            )).unwrap();
+            let created = account.create("New", "Hero", 0).unwrap();
+            let starter = account.ensure(2);
+            assert_ne!(created, 0);
+            assert_ne!(starter, 0);
+            assert_ne!(created, starter);
+            assert!(![1, u32::MAX].contains(&created));
+            assert!(![1, u32::MAX].contains(&starter));
+            account.add_talent_xp(created, 100);
+            account.set_body(starter, (3, 0));
+            let loaded = parse(&encode(&account)).unwrap();
+            assert_eq!(loaded.characters.len(), 4);
+            assert_eq!(loaded.character(1).unwrap().talent_xp, 500);
+            assert_eq!(loaded.character(1).unwrap().body, Some((1, 0)));
+            assert_eq!(loaded.character(u32::MAX).unwrap().talent_xp, 900);
+            assert_eq!(loaded.character(u32::MAX).unwrap().body, Some((3, 1)));
+            assert_eq!(loaded.character(created).unwrap().talent_xp, 100);
+            assert_eq!(loaded.character(starter).unwrap().body, Some((3, 0)));
+            assert_eq!(loaded.next_id, account.next_id);
+        }
     }
 
     #[test]

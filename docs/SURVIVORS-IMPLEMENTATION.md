@@ -5751,3 +5751,17 @@ macOS validation launched Duskwood/Poor gloves at 1280×720, rejected an unknown
 zone without resizing, then reloaded Elwynn/Common helm at 640×720 and scrolled to
 its inspector. Two inline changelog screenshots and reusable presets document the
 workflow. No layout or loot tuning change; Windows validation remains open.
+
+### 2026-10-26 — Collision-free hero ID allocation
+
+Both named creation and automatic starter creation previously trusted the saved
+`next` counter, so a missing/stale value could duplicate an existing hero ID and
+misdirect later progression or appearance updates. A shared allocator now selects
+an unused positive ID and wraps the maximum counter safely. Existing hero IDs and
+references remain unchanged; pre-existing duplicate IDs are not migrated.
+
+328 app tests, Clippy, native macOS build, formatting and diff checks pass. The new
+regression loads missing/zero/stale/maximum counters, creates both kinds of hero,
+updates the new heroes independently, then serializes/reloads and checks all four
+heroes' identities, XP and bodies. This is persistence evidence, not live UI or
+Windows acceptance; no visual change warrants a new screenshot.
