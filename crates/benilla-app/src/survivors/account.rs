@@ -2791,6 +2791,53 @@ mod tests {
     }
 
     #[test]
+    fn blessed_recovery_purchase_persists_and_spec_refund_restore_healing() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(4);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(1, 401, 5), (1, 1181, 5)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(4, hero);
+        for _ in 0..3 {
+            assert!(account.learn_talent(hero, 1, 1636, 3, 2, true));
+        }
+        assert!(!account.learn_talent(hero, 1, 1636, 3, 2, true));
+        assert!((account.bonus(4, hero).might - before.might).abs() < 0.00001);
+        let healing = |account: &Account| {
+            let talents = account.milestones_picked(4, Some(hero));
+            let mut recovery = survivors_core::talents::BlessedRecovery::default();
+            recovery.hit(talents, 100.);
+            recovery.advance(talents, 6.)
+        };
+        assert!((healing(&account) - 21.).abs() < 0.0001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert!((healing(&loaded) - 21.).abs() < 0.0001);
+        loaded.select_spec(hero, 1);
+        assert_eq!(healing(&loaded), 0.);
+        loaded.select_spec(hero, 0);
+        assert!((healing(&loaded) - 21.).abs() < 0.0001);
+        for _ in 0..3 {
+            assert!(loaded.unlearn_talent(hero, 1636, true));
+        }
+        assert_eq!(healing(&loaded), 0.);
+    }
+
+    #[test]
     fn sanctuary_purchase_persists_and_spec_refund_restore_damage() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

@@ -7338,3 +7338,23 @@ The four Windows playtest reports remain open; this is not live combat acceptanc
 
 Core/app Clippy pass. The real-data audit now matches 255/432 talent definitions
 (Paladin 25/44); 177 remain. All 81 milestone descriptions remain matched.
+
+
+### 2026-10-27 — Priest Blessed Recovery
+
+Node 1636 replaces provisional damage with healing for 7% of health damage taken
+per rank, delivered over six active seconds. New nonlethal hits add their healing
+to the unpaid balance and restart the duration; shield absorption and immunity
+cannot add healing. Recovery never repeats paid healing, banks overheal or revives
+a dead hero. The description explicitly identifies the all-hit conversion while
+incoming critical hits are absent. The combat HUD exposes remaining recovery time.
+
+Acceptance includes capped/class-scoped rules, refresh and large-frame conservation,
+actual hero damage/regeneration, and real-DBC purchase/save/spec/refund coverage.
+Native menu evidence belongs to this checkpoint; combat HUD rendering, live balance
+and Windows scene acceptance remain separate requirements.
+
+Verified: 213 core and 409 app tests, core/app Clippy, native build (96 seconds),
+formatting and diff checks. Native 1280×720 purchase and 640×720 scrolled description
+captures are embedded in the changelog; README refreshed. Definition audit: 256/432
+(Priest 27/47), leaving 176 definitions, with all 81 milestone descriptions matched.

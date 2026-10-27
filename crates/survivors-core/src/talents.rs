@@ -5,7 +5,7 @@ mod druid;
 mod hunter;
 mod mage;
 mod priest;
-pub use priest::PowerInfusionClock;
+pub use priest::{BlessedRecovery, PowerInfusionClock};
 mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::{PetBonus, PetFrenzy};
@@ -1430,6 +1430,7 @@ pub enum TalentStat {
     ShadowReach,
     EnrageDamage,
     BloodCrazeHealing,
+    BlessedRecovery,
     FlurryHaste,
     Vengeance,
     Remorseless,
@@ -1621,6 +1622,7 @@ impl TalentDefinition {
             | TalentStat::ImprovedCurseExhaustion
             | TalentStat::Pyroclasm
             | TalentStat::KidneyExposure
+            | TalentStat::BlessedRecovery
             | TalentStat::MaximumHealth
             | TalentStat::Cooldown
             | TalentStat::Crit
@@ -1882,6 +1884,7 @@ impl TalentDefinition {
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
+            TalentStat::BlessedRecovery => (100.0, "% health damage restored over 6 sec"),
             TalentStat::BloodCrazeHealing => {
                 (100.0, "% maximum health over 6 seconds after health damage")
             }
@@ -2957,6 +2960,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 // Vanilla identities and rank caps; automatic-cast conversions are labeled in descriptions.
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1636, max_rank: 3, name: "Blessed Recovery",
+        description: "Restore 7% of health damage taken per rank over 6 sec after any nonlethal hit. Further hits add their healing to the unhealed amount and restart the duration. Shields and immunity do not trigger it; cannot revive you (Survivors conversion: incoming critical hits are not modeled)",
+        stat: TalentStat::BlessedRecovery, per_rank: 0.07,
+    },
     TalentDefinition { id: 483, max_rank: 2, name: "Improved Fade",
         description: "Fade: 10% shorter cooldown per rank. Preserves its 4 sec escape and 40% movement speed bonus; learned at hero level 5 and activated with F (Survivors scaled cooldown conversion)",
         stat: TalentStat::SpellCooldown("fade"), per_rank: 0.10 },
@@ -3126,6 +3134,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::FlatAbsorption
             | TalentStat::EnrageDamage
             | TalentStat::BloodCrazeHealing
+            | TalentStat::BlessedRecovery
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
@@ -4524,6 +4533,7 @@ mod stat_talent_tests {
                     | TalentStat::SecondaryRootDuration(_)
                     | TalentStat::EnrageDamage
                     | TalentStat::BloodCrazeHealing
+                    | TalentStat::BlessedRecovery
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing

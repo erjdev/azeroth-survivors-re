@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Blessed Recovery
+
+Priest Blessed Recovery now heals 7% of health damage taken per rank over six
+seconds. Repeated hits carry unpaid healing forward; shields, immunity and lethal
+hits cannot trigger recovery. The description identifies the all-hit Survivors
+conversion and the combat HUD shows its remaining time.
+
+![Recovery purchase and inline next-rank scaling](images/screenshots/2026-10-27-blessed-recovery/purchased.png)
+
+![Full recovery description in a compact window](images/screenshots/2026-10-27-blessed-recovery/compact.png)
+
+213 core and 409 app tests pass, along with core/app Clippy. Talent definitions
+reach 256/432 (Priest 27/47). Native menus checked at 1280×720 and 640×720;
+build passed in 96 seconds.
+Combat HUD rendering, live balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Blessing of Sanctuary
 
 Paladins can train Sanctuary to prevent 2 damage per incoming hit after armor

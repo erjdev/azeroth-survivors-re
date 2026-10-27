@@ -1898,6 +1898,10 @@ fn reactive_buff_status(run: &Run) -> String {
             run.vengeance_t.ceil()
         ));
     }
+    let recovery = run.blessed_recovery.remaining(run.milestones);
+    if recovery > 0. {
+        active.push(format!("Blessed Recovery ({:.0}s)", recovery.ceil()));
+    }
     let healing = run.milestones.blood_craze_fraction();
     if healing > 0.0 && run.blood_craze_t > 0.0 {
         active.push(format!(

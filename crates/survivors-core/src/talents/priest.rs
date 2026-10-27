@@ -138,3 +138,93 @@ mod tests {
         assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }
+
+/// Outstanding healing rolls forward without multiplying or replaying paid healing.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BlessedRecovery {
+    amount: f32,
+    remaining: f32,
+}
+
+impl BlessedRecovery {
+    fn fraction(talents: Milestones) -> f32 {
+        if talents.class == 4 {
+            talents.trained_value(TalentStat::BlessedRecovery)
+        } else {
+            0.
+        }
+    }
+
+    pub fn hit(&mut self, talents: Milestones, health_damage: f32) {
+        let fraction = Self::fraction(talents);
+        if fraction > 0. && health_damage.is_finite() && health_damage > 0. {
+            self.amount += health_damage * fraction;
+            self.remaining = 6.;
+        }
+    }
+
+    pub fn advance(&mut self, talents: Milestones, dt: f32) -> f32 {
+        if Self::fraction(talents) <= 0. {
+            *self = Self::default();
+            return 0.;
+        }
+        if !dt.is_finite() || dt <= 0. || self.remaining <= 0. {
+            return 0.;
+        }
+        let elapsed = dt.min(self.remaining);
+        let heal = self.amount * (elapsed / self.remaining);
+        self.amount = (self.amount - heal).max(0.);
+        self.remaining = (self.remaining - elapsed).max(0.);
+        heal
+    }
+
+    pub fn remaining(self, talents: Milestones) -> f32 {
+        if Self::fraction(talents) > 0. {
+            self.remaining
+        } else {
+            0.
+        }
+    }
+}
+
+#[cfg(test)]
+mod recovery_tests {
+    use super::*;
+
+    #[test]
+    fn recovery_conserves_healing_across_refreshes_and_large_frames() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 255] {
+                let talents = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 1636, rank)]);
+                let fraction = if class == 4 {
+                    f32::from(rank.min(3)) * 0.07
+                } else {
+                    0.
+                };
+                let mut recovery = BlessedRecovery::default();
+                recovery.hit(talents, 100.);
+                for invalid in [0., -1., f32::NAN, f32::INFINITY] {
+                    recovery.hit(talents, invalid);
+                    assert_eq!(recovery.advance(talents, invalid), 0.);
+                }
+                let first = recovery.advance(talents, 3.);
+                assert!((first - 50. * fraction).abs() < 0.0001);
+                recovery.hit(talents, 50.);
+                let rest = recovery.advance(talents, 30.);
+                assert!((first + rest - 150. * fraction).abs() < 0.0001);
+                assert_eq!(recovery.advance(talents, 6.), 0.);
+                assert_eq!(recovery.remaining(talents), 0.);
+                recovery.hit(talents, 100.);
+                assert_eq!(recovery.advance(talents.with_ranks(&[]), 1.), 0.);
+                assert_eq!(recovery.remaining(talents), 0.);
+            }
+        }
+        let node = super::super::talent_definition(4, 1636).unwrap();
+        assert!(node.inline_description(0).unwrap().contains("0 » 7%"));
+        assert!(node.inline_description(2).unwrap().contains("14 » 21%"));
+    }
+}

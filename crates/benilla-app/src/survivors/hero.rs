@@ -406,6 +406,9 @@ pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
     }
     dmg = run.milestones.incoming(dmg, run.hp, stats.max_hp);
     run.hp -= dmg;
+    if run.alive() {
+        run.blessed_recovery.hit(run.milestones, dmg);
+    }
     if dmg > 0.0 && run.hp > 0.0 && run.milestones.enrage_damage(true) > 1.0 {
         run.enrage_t = 4.0;
     }
@@ -434,7 +437,7 @@ fn regenerate(run: &mut Run, stats: &super::Stats, dt: f32) {
     if run.hp <= 0.0 || run.dead_t.is_some() {
         return;
     }
-    let mut heal = stats.regen * dt;
+    let mut heal = stats.regen * dt + run.blessed_recovery.advance(run.milestones, dt);
     if run.heal_t > 0.0 {
         heal += run.heal_rate * dt.min(run.heal_t);
         run.heal_t = (run.heal_t - dt).max(0.0);
@@ -542,6 +545,59 @@ pub(super) fn reach(hero: Vec3, other: Vec3) -> f32 {
 #[cfg(test)]
 mod reactive_talent_tests {
     use super::*;
+
+    #[test]
+    fn blessed_recovery_tracks_only_nonlethal_health_damage_and_never_banks_overheal() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[4],
+            milestones: Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 1636, 3)]),
+            hp: 80.,
+            ..Default::default()
+        };
+        let mut stats = run.stats();
+        stats.regen = 0.;
+        for shielded in [true, false] {
+            run.shield = if shielded { 100. } else { 0. };
+            run.shield_t = 10.;
+            run.immune_t = if shielded { 0. } else { 1. };
+            assert_eq!(hurt_hero(&mut run, 10.), 0.);
+            assert_eq!(run.blessed_recovery.remaining(run.milestones), 0.);
+        }
+        run.immune_t = 0.;
+        let damage = hurt_hero(&mut run, 20.);
+        let after_hit = run.hp;
+        assert_eq!(run.blessed_recovery.remaining(run.milestones), 6.);
+        regenerate(&mut run, &stats, 0.);
+        assert_eq!(run.hp, after_hit);
+        regenerate(&mut run, &stats, 3.);
+        assert!((run.hp - after_hit - damage * 0.105).abs() < 0.0001);
+        let second_damage = hurt_hero(&mut run, 10.);
+        let before_heal = run.hp;
+        regenerate(&mut run, &stats, 30.);
+        assert!((run.hp - before_heal - damage * 0.105 - second_damage * 0.21).abs() < 0.0001);
+        assert_eq!(run.blessed_recovery.remaining(run.milestones), 0.);
+        hurt_hero(&mut run, 10.);
+        run.hp = stats.max_hp;
+        regenerate(&mut run, &stats, 6.);
+        assert_eq!(run.hp, stats.max_hp);
+        assert_eq!(run.blessed_recovery.remaining(run.milestones), 0.);
+        hurt_hero(&mut run, 10.);
+        run.milestones = run.milestones.with_ranks(&[]);
+        let hp = run.hp;
+        regenerate(&mut run, &stats, 6.);
+        assert_eq!(run.hp, hp);
+        run.milestones = run.milestones.with_ranks(&[(1, 1636, 3)]);
+        hurt_hero(&mut run, 10.);
+        hurt_hero(&mut run, 10000.);
+        let hp = run.hp;
+        regenerate(&mut run, &stats, 6.);
+        assert_eq!(run.hp, hp);
+        assert!(!run.alive());
+    }
 
     #[test]
     fn sanctuary_prevents_each_hit_before_shields_without_healing_or_refreshing() {

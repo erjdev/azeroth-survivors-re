@@ -463,6 +463,14 @@ critical chance, capped at 100%, rather than guaranteeing a critical hit.
 
 Implemented individual Priest talents include these replacements for provisional general damage:
 
+Blessed Recovery (1636, three ranks) restores 7% / 14% / 21% of health damage
+taken over six seconds after any nonlethal hit. Each new hit adds its healing to
+the unpaid amount and restarts the six seconds; already delivered healing is
+never repeated. Shields and immunity do not trigger it. Healing caps at maximum
+health, expires even while full, pauses with the run and cannot revive a dead hero.
+This explicit Survivors conversion uses all health-damaging hits until incoming
+critical hits are modeled.
+
 Improved Fade (483, two ranks) reduces the learned level-five Fade cooldown by
 10% per rank: 18 / 16.2 / 14.4 seconds. Its four-second escape and 40% movement
 speed bonus are unchanged. This is a scaled Survivors cooldown conversion.
