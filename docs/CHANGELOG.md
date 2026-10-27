@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Direct Codex UI previews
+
+Fast menu previews can now select any catalog spell or shared jewelry detail.
+Checked-in wide/compact presets switch entry and resolution without a restart;
+invalid requests preserve the current view. Inspection leaves discovery and the
+account save unchanged. Native captures below verify both layouts.
+All 393 app tests, app-test Clippy, formatting and the native build pass.
+
+![Direct Wrath Codex preview](images/screenshots/2026-10-27-codex-preview/wrath.png)
+![Live compact ring preview](images/screenshots/2026-10-27-codex-preview/ring-compact.png)
+
 ## 2026-10-27 — Druid Leader of the Pack
 
 Leader of the Pack now grants three percentage points of hero critical chance,

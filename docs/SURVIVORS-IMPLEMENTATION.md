@@ -7119,3 +7119,19 @@ cover rank clamping, class scope, composition and inline preview.
 250/432 (Druid 24/47). Native 1280×720 purchase and 640×720 saved restart screenshots
 are inline in the changelog. No Windows or live combat claim. The remaining 182
 node definitions and broader seven-phase acceptance are still required.
+
+
+### Direct Codex preview checkpoint — 2026-10-27
+
+Fast native menu previews now accept an optional `entry` selector on Codex:
+legendary ability keys or shared ring/trinket/amulet indices. All entries resolve
+through the production catalog. Omitting the selector preserves the manual
+selection; invalid, duplicate or wrong-page selectors reject the whole request.
+Reusable wide Wrath and compact ring presets are documented in
+SURVIVORS-DEVELOPMENT.md. Same-process native 1280×720 → 640×720 captures verify
+selection, artwork, description and layout. An invalid legendary request retained
+the compact ring view, and the account file was byte-identical after quit.
+This improves UI iteration; it does not close Windows or broader Codex acceptance.
+
+Verification: 393 Survivors app tests, app-test Clippy, formatting and native
+play-profile build pass. The build took 45 seconds; core rules are unchanged.

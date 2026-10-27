@@ -68,6 +68,7 @@ struct Request {
     selected: bool,
     category: Option<u8>,
     talent: Option<u32>,
+    entry: Option<u16>,
     hero: Option<u32>,
     piece: Option<Piece>,
     zone: Option<usize>,
@@ -82,6 +83,7 @@ impl Request {
         let mut profile = None;
         let mut category = None;
         let mut talent = None;
+        let mut entry = None;
         let mut hero = None;
         let mut piece = None;
         let mut zone = None;
@@ -161,6 +163,34 @@ impl Request {
                         _ => return None,
                     });
                 }
+                "entry" if entry.is_none() => {
+                    let (kind, key) = value.split_once(':')?;
+                    entry =
+                        Some(match kind.trim() {
+                            "legend" => data::CLASSES.iter().enumerate().find_map(
+                                |(class, definition)| {
+                                    definition
+                                        .ability_keys()
+                                        .iter()
+                                        .position(|ability| *ability == key.trim())
+                                        .map(|slot| super::codex_legend(class, slot))
+                                },
+                            )?,
+                            kind => {
+                                let (kind, count) = match kind {
+                                    "ring" => (2, campaign::RINGS),
+                                    "trinket" => (3, campaign::TRINKETS),
+                                    "amulet" => (4, campaign::AMULETS),
+                                    _ => return None,
+                                };
+                                let index = key.trim().parse::<usize>().ok()?;
+                                if index >= count {
+                                    return None;
+                                }
+                                super::codex_jewel(kind, index)
+                            }
+                        });
+                }
                 "category" if category.is_none() => category = Some(value),
                 "hero" if hero.is_none() => {
                     hero = Some(value.parse::<u32>().ok().filter(|id| *id > 0)?)
@@ -209,7 +239,8 @@ impl Request {
             return None;
         }
         let page = page?;
-        if talent.is_some_and(|id| id == 0 || page != Page::Talents)
+        if (entry.is_some() && page != Page::Codex)
+            || talent.is_some_and(|id| id == 0 || page != Page::Talents)
             || (piece.is_some() && !matches!(page, Page::Collection | Page::DropTables))
             || (zone.is_some() && page != Page::DropTables)
         {
@@ -237,6 +268,7 @@ impl Request {
             page,
             category,
             talent,
+            entry,
             hero,
             piece,
             zone,
@@ -289,6 +321,9 @@ impl Request {
             _ => None,
         };
         armory.page = self.page;
+        if let Some(entry) = self.entry {
+            armory.codex_entry = Some(entry);
+        }
         if let Some(zone) = self.zone {
             armory.drop_zone = zone;
         }
@@ -645,6 +680,72 @@ mod tests {
             "page=talents\nzone=Duskwood",
         ] {
             assert!(Request::parse(&format!("{text}\nwidth=640\nheight=720")).is_none());
+        }
+    }
+
+    #[test]
+    fn codex_entry_previews_cover_catalog_and_preserve_other_selections() {
+        let mut entries = Vec::new();
+        for (class, definition) in data::CLASSES.iter().enumerate() {
+            for (slot, key) in definition.ability_keys().iter().enumerate() {
+                entries.push((
+                    format!("legend:{key}"),
+                    super::super::codex_legend(class, slot),
+                ));
+            }
+        }
+        for (name, kind, count) in [
+            ("ring", 2, campaign::RINGS),
+            ("trinket", 3, campaign::TRINKETS),
+            ("amulet", 4, campaign::AMULETS),
+        ] {
+            for index in 0..count {
+                entries.push((
+                    format!("{name}:{index}"),
+                    super::super::codex_jewel(kind, index),
+                ));
+            }
+        }
+        for (entry, id) in entries {
+            let request =
+                Request::parse(&format!("page=codex\nwidth=640\nheight=720\nentry={entry}"))
+                    .unwrap();
+            let mut armory = Armory {
+                piece: 7,
+                drop_zone: 2,
+                achieve: 4,
+                ..default()
+            };
+            let mut typing = Typing(true);
+            let mut window = Window::default();
+            request.apply(&mut armory, &mut typing, &mut window, 0);
+            assert_eq!(armory.codex_entry, Some(id));
+            assert_eq!((armory.piece, armory.drop_zone, armory.achieve), (7, 2, 4));
+            assert_eq!(window.resolution.width(), 640.);
+            assert!(!typing.0);
+            Request::parse("page=codex\nwidth=1280\nheight=720")
+                .unwrap()
+                .apply(&mut armory, &mut typing, &mut window, 0);
+            assert_eq!(armory.codex_entry, Some(id));
+        }
+    }
+
+    #[test]
+    fn codex_entry_rejects_wrong_pages_unknown_keys_and_duplicate_requests() {
+        for fields in [
+            "page=collection\nentry=ring:0",
+            "page=cards\nabilities=wrath:1\nentry=ring:0",
+            "page=codex\nentry=legend:missing",
+            "page=codex\nentry=ring:-1",
+            "page=codex\nentry=ring:999999",
+            "page=codex\nentry=ring:0\nentry=amulet:0",
+            "page=codex\nentry=spell:wrath",
+            "page=codex\nentry=legend:strength",
+        ] {
+            assert!(
+                Request::parse(&format!("{fields}\nwidth=640\nheight=720")).is_none(),
+                "{fields}"
+            );
         }
     }
 

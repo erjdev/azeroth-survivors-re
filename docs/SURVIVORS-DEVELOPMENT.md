@@ -431,6 +431,16 @@ Collection's existing `crates/survivors-core/ui.txt` controls can be edited whil
 this page remains open; broader page hot reload and deterministic fixture presets
 still need implementation.
 
+Codex previews can select a detail directly with `entry = legend:wrath`,
+`entry = ring:0`, `entry = trinket:0`, or `entry = amulet:0`. Legendary keys come
+from the actual class ability catalogs; shared jewelry uses zero-based catalog
+indices. This key is valid only with `page = codex`. Omit it to preserve the manual
+selection. Unknown keys, out-of-range indices and duplicate `entry` lines reject
+the entire request, preserving the current view and size. Inspection does not
+mark an item discovered, grant it, or alter the saved hero. Use the checked-in
+`codex-wrath-1280.txt` and `codex-ring-640.txt` presets to compare descriptions
+without navigating the catalog or playing a run.
+
 For page and viewport changes without restarting, create a local control file:
 
 ```sh
