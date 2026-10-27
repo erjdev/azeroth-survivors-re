@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Browser talent and saved-hero integration
+
+Current WebGPU package verifies Priest creation from the empty talent page,
+Improved Fade's green description, the no-points purchase gate, and hero
+persistence after reload. Draft PR validation and remaining scope refreshed.
+
+![Current browser talent description and purchase gate](images/screenshots/2026-10-27-browser-talents/fade.png)
+
+![Created Priest restored after browser reload](images/screenshots/2026-10-27-browser-talents/reloaded.png)
+
+At `9d6c0ba`: WebGPU check and linked play package pass; seven browser tests
+and six build-script tests pass. Five existing wasm warnings remain. Captures
+are 1280×720; Windows CI, gameplay and broader resolution acceptance remain open.
+
 ## 2026-10-27 — Priest Improved Fade
 
 Improved Fade replaces placeholder damage with 10% shorter Fade cooldown per

@@ -7311,3 +7311,15 @@ Windows, live combat and the remaining talent catalog are not closed by this che
 Verification: 211 core / 405 app tests, both scoped Clippy checks, formatting
 and native build (18 seconds) pass. Real-data coverage: 254/432 definitions,
 including 26/47 Priest nodes; 178 definitions remain.
+
+
+### 2026-10-27 — Current browser integration at 9d6c0ba
+
+WebGPU target check and linked incremental package pass after the Rogue/Priest
+cooldown work. Seven browser tests and six build-script tests pass; five existing
+wasm warnings remain. Actual 1280×720 navigation verifies the empty talent page,
+Priest creation, Improved Fade's scoped green description, no-points purchase
+rejection and persisted hero restoration after reload. Captures are inline in the
+changelog and README. Draft PR validation is refreshed to 211 core / 405 app tests
+and 254/432 definitions. No PR-triggered workflow runs were returned for this head;
+Windows CI/artifacts, live gameplay and the remaining acceptance contract remain open.
