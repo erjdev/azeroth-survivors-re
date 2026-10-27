@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Current browser build acceptance
+
+Rebuilt WebGPU from `5a1294f`: target check and linked incremental package pass
+with five existing warnings (86-second Cargo build). Browser startup and real
+clicks verify starter/Armory Options retain the landscape and Done returns to
+the originating page at 1280×720. No gameplay or Windows acceptance is claimed;
+GitHub still reports zero workflow runs, so no Windows artifact is verified.
+
+![Browser Options landscape](images/screenshots/2026-10-27-browser-options/options.png)
+![Returned to browser Character management](images/screenshots/2026-10-27-browser-options/returned.png)
+
 ## 2026-10-27 — Hunter Trueshot Aura
 
 Trueshot Aura now grants 10% more direct and periodic Hunter shot damage, with an

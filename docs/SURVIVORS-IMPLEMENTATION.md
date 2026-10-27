@@ -7061,3 +7061,16 @@ and full reset across reloads, and an unchanged active-run snapshot. All 387 app
 tests, app/test Clippy, formatting and diff checks pass. This adds integration
 coverage to the preceding native screenshots; it changes no runtime UI and does
 not establish Windows or live balance acceptance.
+
+
+### 2026-10-27 — Browser build refreshed through 5a1294f
+
+Wasm WebGPU check and `WEB_PROFILE=play` packaging pass with five existing warnings;
+Cargo's linked build took 86 seconds. The loopback host used only checkout Data.
+Current browser startup and coordinate interactions verify Options from starter
+and Character management, landscape continuity, and return to the origin page
+at 1280×720. Both captures are inline in CHANGELOG. No account mutations or combat
+were needed. This supersedes the old packaged-head limitation for compilation
+and these menu paths only; full browser content/input/resolution acceptance,
+WebGL2 and Windows remain open. GitHub reports zero repository workflow runs;
+configured Windows checks and artifact upload still lack runner evidence.
