@@ -705,11 +705,11 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Hunter | 28 / 46 | 9 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
 | Priest | 23 / 47 | 9 / 9 |
-| Shaman | 20 / 46 | 9 / 9 |
+| Shaman | 22 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
 | Warlock | 19 / 50 | 9 / 9 |
 | Druid | 20 / 47 | 9 / 9 |
-| Total | 214 / 432 | 81 / 81 |
+| Total | 216 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -6096,3 +6096,17 @@ cosmetic choices, achievement thresholds, wrong-class weapons, and save/reload.
 All 342 app tests pass. No runtime/UI changes or new visual capture. Raid encounter
 acquisition remains the next raid-content gap; broader talents, interface, zones
 and Windows acceptance remain unfinished.
+
+### 2026-10-27 — Shaman Enhancement stat training
+
+Anticipation (601, five ranks) now grants 1% hero damage reduction per rank as an
+explicit dodge conversion. Weapon Mastery (1643, five ranks) grants 2% hero damage
+per rank including spells and totems. Both replace their generic fallback damage;
+Anticipation adds to Elemental Warding. Shared hero stats carry the effects into
+runs without altering target counts, cooldowns or spell-specific multipliers.
+Core regressions cover rank caps, class isolation, reset and stacking, with exact
+inline next-rank descriptions. 172 core and 342 app tests, core all-target Clippy,
+identity audit and native build pass. Audit now matches 216/432 individual nodes.
+Native macOS 1280×720 Weapon Mastery and 640×720 Anticipation captures confirm
+readable green values against the intentions talent-page layout; both are embedded
+in CHANGELOG. Live balance, Windows acceptance and 216 individual nodes remain open.

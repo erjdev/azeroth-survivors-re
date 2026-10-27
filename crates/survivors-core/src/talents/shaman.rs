@@ -13,6 +13,8 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 601, max_rank: 5, name: "Anticipation", description: "+1% hero damage reduction per rank (Survivors dodge conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.01 },
+    TalentDefinition { id: 1643, max_rank: 5, name: "Weapon Mastery", description: "+2% hero damage per rank, including spells and totems (Survivors weapon-damage conversion)", stat: TalentStat::Damage, per_rank: 0.02 },
     TalentDefinition { id: 602, max_rank: 5, name: "Flurry", description: "Direct lightning and shock criticals grant 5% haste per rank for 3 seconds; further criticals refresh without stacking. Totems, Lightning Shield and periodic damage cannot trigger it (Survivors spell-critical conversion)", stat: TalentStat::FlurryHaste, per_rank: 0.05 },
     TalentDefinition { id: 605, max_rank: 2, name: "Improved Ghost Wolf", description: "+5% hero movement speed per rank (Survivors Ghost Wolf conversion; no form required)", stat: TalentStat::Speed, per_rank: 0.05 },
     TalentDefinition { id: 1640, max_rank: 3, name: "Elemental Warding", description: "+2% hero damage reduction per rank (Survivors elemental-resistance conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.02 },
@@ -88,13 +90,13 @@ mod tests {
             assert_eq!(bonus.health, 4. * r);
             assert_eq!(bonus.armor, 8. * r);
             assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
-            assert!((bonus.reduction - 0.02 * short).abs() < 0.00001);
+            assert!((bonus.reduction - 0.02 * short - 0.01 * r).abs() < 0.00001);
             assert!((bonus.crit - 0.01 * r).abs() < 0.00001);
             let supported: u32 = DEFINITIONS
                 .iter()
                 .map(|node| u32::from(rank.min(node.max_rank)))
                 .sum();
-            assert!((bonus.might + 0.01 * supported as f32).abs() < 0.00001);
+            assert!((bonus.might + 0.01 * supported as f32 - 0.02 * r).abs() < 0.00001);
             assert_eq!(trained.with_ranks(&[]), base);
         }
     }
@@ -291,5 +293,34 @@ mod flurry_tests {
                 assert_eq!(trained.with_ranks(&[]).flurry_haste(true), 0.);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod enhancement_tests {
+    use crate::talents::{stat_adjustment, talent_definition};
+
+    #[test]
+    fn enhancement_stats_cap_stack_and_replace_fallback_damage() {
+        for class in 0..9 {
+            for rank in [0, 1, 4, 5, 255] {
+                let trained = stat_adjustment(class, &[(1, 601, rank), (1, 1643, rank)]);
+                let r = if class == 5 {
+                    f32::from(rank.min(5))
+                } else {
+                    0.
+                };
+                assert!((trained.reduction - 0.01 * r).abs() < 0.000001);
+                // The two supported nodes remove their old 1%-per-point fallback.
+                assert!(trained.might.abs() < 0.000001);
+                assert_eq!(stat_adjustment(class, &[]).reduction, 0.);
+            }
+        }
+        let stacked = stat_adjustment(5, &[(1, 601, 5), (0, 1640, 3)]);
+        assert!((stacked.reduction - 0.11).abs() < 0.000001);
+        assert_eq!(talent_definition(5, 601).unwrap().inline_description(4).unwrap(),
+            "+4 » 5% hero damage reduction (Survivors dodge conversion; applies to all incoming damage)");
+        assert_eq!(talent_definition(5, 1643).unwrap().inline_description(4).unwrap(),
+            "+8 » 10% hero damage, including spells and totems (Survivors weapon-damage conversion)");
     }
 }
