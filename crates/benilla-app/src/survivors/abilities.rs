@@ -4952,13 +4952,16 @@ mod milestone_tests {
             (1, 607, 3),
             (2, 595, 5),
             (2, 594, 5),
+            (2, 591, 1),
         ]);
         let stats = Run::default().stats();
         for level in [1, 5] {
             for (key, damage, cooldown, crit, crit_damage) in [
                 ("lightning_bolt", 1.1, 0.72, 0.10, 0.5),
                 ("chain_lightning", 1.1, 0.72, 0.10, 0.5),
-                ("flame_shock", 1.1, 0.765, 0.05, 0.5),
+                ("earth_shock", 1.1, 0.65025, 0.05, 0.5),
+                ("flame_shock", 1.1, 0.65025, 0.05, 0.5),
+                ("frost_shock", 1.1, 0.65025, 0.05, 0.5),
                 ("searing_totem", 1.15, 0.85, 0., 0.),
                 ("magma_totem", 1.15, 0.85, 0., 0.),
                 ("lightning_shield", 1.15, 1., 0., 0.),

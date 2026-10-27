@@ -13,6 +13,7 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 591, max_rank: 1, name: "Nature's Swiftness", description: "Earth, Flame and Frost Shock: 15% shorter cooldown per rank, multiplying Convection, Reverberation and the 20-point Restoration milestone. Totem deployment, pulse rate and healing are unchanged (Survivors instant-cast conversion)", stat: TalentStat::SpellGroupCooldown(SHOCKS), per_rank: 0.15 },
     TalentDefinition { id: 581, max_rank: 3, name: "Ancestral Healing", description: "When Searing or Magma Totem deployment restores health: +12 armor per rank for 10 sec. Refreshes without stacking; excludes overhealing, regeneration and totem attacks (Survivors healing-critical conversion)", stat: TalentStat::AncestralHealingArmor, per_rank: 12.0 },
     TalentDefinition { id: 612, max_rank: 5, name: "Shield Specialization", description: "Earth Shock: +5% shield absorption per rank, adding to Guardian Totems. Requires the 10-point Enhancement shield milestone; no equipped shield required (Survivors block conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.05 },
     TalentDefinition { id: 616, max_rank: 1, name: "Parry", description: "+5% hero damage reduction per rank (Survivors parry conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.05 },
@@ -67,7 +68,14 @@ mod tests {
             assert_eq!(lightning.crit_damage, if rank == 0 { 0. } else { 0.5 });
             let shock = trained.cast("flame_shock");
             assert!(
-                (shock.cooldown - 0.9 * 0.85 * (1. - 0.02 * r) * (1. - 0.03 * r)).abs() < 0.00001
+                (shock.cooldown
+                    - 0.9
+                        * 0.85
+                        * (1. - 0.02 * r)
+                        * (1. - 0.03 * r)
+                        * if rank > 0 { 0.85 } else { 1. })
+                .abs()
+                    < 0.00001
             );
             assert!((shock.crit - 0.01 * r).abs() < 0.00001);
             for key in TOTEMS {
@@ -496,5 +504,52 @@ mod ancestral_healing_tests {
             .inline_description(1)
             .unwrap()
             .contains("+12 » 24 armor"));
+    }
+}
+
+#[cfg(test)]
+mod swiftness_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn swiftness_only_shortens_shocks_and_composes_with_restoration() {
+        for class in 0..9 {
+            for points in [0, 19, 20, 30] {
+                let base = Milestones {
+                    class,
+                    points: [20, 20, points],
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 564, 5), (0, 575, 5)]);
+                for rank in [0, 1, 2, 255] {
+                    let trained = base.with_ranks(&[(0, 564, 5), (0, 575, 5), (2, 591, rank)]);
+                    for key in [
+                        "earth_shock",
+                        "flame_shock",
+                        "frost_shock",
+                        "lightning_bolt",
+                        "chain_lightning",
+                        "searing_totem",
+                        "magma_totem",
+                        "lightning_shield",
+                        "rejuvenation",
+                    ] {
+                        let mut expected = base.cast(key);
+                        if class == 5 && rank > 0 && super::SHOCKS.contains(&key) {
+                            expected.cooldown *= 0.85;
+                        }
+                        assert_eq!(
+                            trained.cast(key),
+                            expected,
+                            "class {class}, {key}, rank {rank}"
+                        );
+                    }
+                    assert_eq!(trained.with_ranks(&[(0, 564, 5), (0, 575, 5)]), base);
+                }
+            }
+        }
+        let node = talent_definition(5, 591).unwrap();
+        assert!(node.inline_description(0).unwrap().contains("15%"));
+        assert!(!node.inline_description(1).unwrap().contains('»'));
     }
 }

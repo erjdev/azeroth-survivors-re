@@ -6352,3 +6352,21 @@ unequipping, and an existing run keeping its snapshot while the next run loses
 removed equipment power. All 352 Survivors app tests and app/test Clippy pass.
 This adds integration evidence without changing gameplay or visuals; raid
 acquisition, live balance and Windows scene acceptance remain open.
+
+### 2026-10-27 — Shaman Nature's Swiftness
+
+Verified DBC talent 591 (one rank) now provides a 0.85 shock cooldown multiplier,
+composing with Convection, Reverberation and the 20-point Restoration milestone.
+The individual node converts instant casting to shorter cooldowns, consistent with
+the existing Survivors milestone; it does not add an active spell. Totem deployment,
+pulse rate, healing, geometry, damage and unrelated abilities are unchanged.
+
+Core coverage checks all classes, zero/capped/imported ranks, milestone thresholds,
+reset and inline text. App coverage checks all three shocks at ranks 1 and 5 through
+cast parameters, composition with other training, and reset. 180 core tests, 352
+app tests, core/app-test Clippy and native incremental build pass. Install audit:
+223/432 individual definitions, Shaman 29/46; milestone descriptions remain 81/81.
+Native macOS 1280×720 and 640×720 previews confirm green inline values, a successful
+purchase, persisted rank 1 and readable compact wrapping against the intentions
+layout. Screenshots are embedded in CHANGELOG. Live combat balance and Windows
+acceptance remain open, along with the remaining individual talent rules.

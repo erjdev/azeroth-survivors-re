@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Shaman Nature's Swiftness
+
+Nature's Swiftness now shortens Earth, Flame and Frost Shock cooldowns by 15%,
+multiplying existing training and the Restoration milestone. Its green inline
+preview shows the upgrade; buying it saves rank 1. This is the documented Survivors
+instant-cast conversion, not a new active spell.
+
+180 core tests, 352 app tests, core/app-test Clippy and native build pass. Native
+wide/compact previews verify text, purchase and saved rank. Install audit: 223/432
+individual talent definitions (Shaman 29/46). Live balance remains open.
+
+![Nature's Swiftness upgrade preview](images/screenshots/2026-10-27-shaman-swiftness/talents-1280.png)
+![Trained talent in the compact layout](images/screenshots/2026-10-27-shaman-swiftness/talents-640.png)
+
 ## 2026-10-27 — Saved raid-build integration coverage
 
 Verified all nine classes' raid sets from saved equipment into run stats, including
