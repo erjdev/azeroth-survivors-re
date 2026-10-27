@@ -16,6 +16,18 @@ unfinished details. Keep README screenshots current. Follow the
 The 2026-10-25 starter checkpoint captures Character, ten-hero management, Talents
 and Companions at 1280×720. Responsive variants and interaction acceptance remain open.
 
+## Integration audit — 2026-10-27
+
+The full workspace gate is not green. All-target Clippy passes after test setup
+cleanup, but app tests report three failures: `an_empty_account_parks_at_select_without_creating_a_character`,
+`every_material_lane_has_a_warm_contributor`, and `the_dev_plane_has_exactly_one_door`.
+Resolve account-selection behavior, register or justify custom material warm-up,
+and reconcile Survivors preview compilation with the development-mode boundary.
+Do not weaken architecture assertions to obtain a pass. Then rerun the full gate,
+including no-install and player-build checks; the first failure currently prevents
+those later stages. Browser compilation passes with five warnings. The addon corpus
+and Windows visual acceptance are still unavailable here.
+
 ## Healing correctness — 2026-10-27
 
 Drain and gear leech now use enemy health actually removed, matching Siphon Life

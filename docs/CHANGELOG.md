@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Broader integration audit
+
+Fixed four test-target Clippy errors missed by library-only checks. Full-workspace
+Clippy and formatting pass. Browser tests (7), launcher fixtures (12; one Windows
+check skipped), build-script tests (6), and WebGPU compilation pass.
+
+The workspace test gate remains **failing**: 4,672 app tests passed, three failed
+(account selection, material warm-up coverage, and development-preview boundaries),
+and ten were ignored. Addon-corpus coverage and Windows acceptance remain open.
+This checkpoint changes test setup only; the visual milestones below remain current.
+
 ## 2026-10-27 — Insect Swarm talent
 
 The Restoration node now makes Insect Swarm reduce affected enemies' damage by

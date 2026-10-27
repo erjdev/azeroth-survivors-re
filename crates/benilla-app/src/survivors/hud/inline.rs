@@ -692,12 +692,14 @@ mod tests {
     }
     #[test]
     fn wing_clip_preview_shows_trained_root_as_fixed_and_slow_growth_inline() {
-        let mut run = Run::default();
-        run.milestones = survivors_core::talents::Milestones {
-            class: 2,
+        let run = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 2,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 1305, 3)]),
             ..Default::default()
-        }
-        .with_ranks(&[(2, 1305, 3)]);
+        };
         let spans = describe(Choice::NewAbility(data::ability("wing_clip")), &run);
         let text = plain(&spans);
         assert!(
