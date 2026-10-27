@@ -5915,3 +5915,19 @@ Native 1280×720 preview purchases reached 2/2 and 3/3 respectively and both ran
 were written to the isolated account. CHANGELOG embeds both inline-upgrade
 screenshots. The intention's illustrated tree layout is retained; this does not
 establish live combat balance, compact layout or Windows acceptance.
+
+
+### Inline percentage-point descriptions — 2026-10-27
+
+Extend linear talent descriptions to authored percentage-point units as well as
+percent signs. Require a unique exact numeric/unit token across both notations;
+reject ambiguous matches and retain the existing compound-effect fallback.
+Use the next displayed value to select point/points, show the unit once, and
+remove the next-value arrow at the rank cap. Numeric boundaries prevent a one-point
+value from replacing the suffix of an eleven-point value. Mechanics do not change.
+
+167 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+Native 1280×720 Thundering Strikes preview shows 0 » 1 percentage point and then
+1 » 2 percentage points after purchase, with rank one saved to the isolated
+account. Both screenshots are embedded in CHANGELOG. The intention-based layout
+is retained; compound inline formatting and Windows acceptance remain open.

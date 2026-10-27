@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Inline percentage-point upgrades
+
+Linear talents written in percentage points now show their current and next values
+inside the description, with the unit once: `0 » 1 percentage point`, then
+`1 » 2 percentage points`. Maximum ranks show only their total. Ambiguous and
+compound effects retain the explicit breakdown; mechanics are unchanged.
+
+167 core and 336 app tests, Clippy and native build pass. A native macOS purchase
+check confirms both inline forms and the saved rank. The intention-based layout
+is unchanged; Windows presentation remains unverified.
+
+![First critical-chance rank](images/screenshots/2026-10-27-percentage-inline/critical-chance-first-rank.png)
+![Next critical-chance rank](images/screenshots/2026-10-27-percentage-inline/critical-chance-next-rank.png)
+
 ## 2026-10-27 — Shaman survival talents
 
 Improved Ghost Wolf now grants 5% movement speed per rank (two ranks, no form

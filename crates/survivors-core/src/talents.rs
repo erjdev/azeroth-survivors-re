@@ -1456,25 +1456,45 @@ impl TalentDefinition {
             let value = format!("{:.1}", self.per_rank * f32::from(rank) * scale);
             value.strip_suffix(".0").unwrap_or(&value).to_owned()
         };
-        let token = format!("{}{unit}", amount(1));
-        let mut matches = self.description.match_indices(&token).filter(|(index, _)| {
-            let before = self.description[..*index].chars().next_back();
-            let after = self.description[*index + token.len()..].chars().next();
-            !before.is_some_and(|c| c.is_ascii_digit() || c == '.')
-                && !after.is_some_and(|c| c.is_ascii_digit() || c == '.')
-        });
-        let (index, _) = matches.next()?;
-        if matches.next().is_some() {
-            return None;
+        let units: &[&str] = if unit == "%" {
+            &["%", " percentage point", " percentage points"]
+        } else {
+            &[""]
+        };
+        let mut candidates = Vec::new();
+        for &unit in units {
+            let token = format!("{}{unit}", amount(1));
+            for (index, _) in self.description.match_indices(&token) {
+                let before = self.description[..index].chars().next_back();
+                let after = self.description[index + token.len()..].chars().next();
+                if !before.is_some_and(|c| c.is_ascii_digit() || c == '.')
+                    && !after.is_some_and(|c| c.is_ascii_alphanumeric() || c == '.')
+                {
+                    candidates.push((index, token.len(), unit));
+                }
+            }
         }
+        let [(index, token_len, unit)] = candidates.as_slice() else {
+            return None;
+        };
         let rank = rank.min(self.max_rank);
+        let next = rank.saturating_add(1).min(self.max_rank);
+        let unit = if unit.starts_with(" percentage point") {
+            if amount(next) == "1" {
+                " percentage point"
+            } else {
+                " percentage points"
+            }
+        } else {
+            unit
+        };
         let value = if rank == self.max_rank {
             format!("{}{unit}", amount(rank))
         } else {
-            format!("{} » {}{unit}", amount(rank), amount(rank + 1))
+            format!("{} » {}{unit}", amount(rank), amount(next))
         };
         let mut description = self.description.to_owned();
-        description.replace_range(index..index + token.len(), &value);
+        description.replace_range(*index..index + token_len, &value);
         Some(description.replacen(" per rank", "", 1))
     }
 
@@ -3283,6 +3303,30 @@ mod stat_talent_tests {
             .contains("13% damage and 3 » 6%"));
         ambiguous.description = "3% damage and 3% cooldown per rank";
         assert!(ambiguous.inline_description(1).is_none());
+    }
+
+    #[test]
+    fn percentage_point_upgrades_keep_the_unit_once_and_agree_with_the_next_value() {
+        let crit = talent_definition(5, 613).unwrap();
+        assert_eq!(crit.inline_description(0).unwrap(), "+0 » 1 percentage point hero critical chance, including spells and totems (Survivors conversion)");
+        assert_eq!(crit.inline_description(1).unwrap(), "+1 » 2 percentage points hero critical chance, including spells and totems (Survivors conversion)");
+        assert_eq!(crit.inline_description(255).unwrap(), "+5 percentage points hero critical chance, including spells and totems (Survivors conversion)");
+        let claws = talent_definition(8, 798).unwrap();
+        assert_eq!(claws.inline_description(1).unwrap(), "+2 » 4 percentage points hero critical chance (Survivors conversion; no form required)");
+        let mut ambiguous = *crit;
+        ambiguous.description = "1% damage and 1 percentage point critical chance per rank";
+        assert!(ambiguous.inline_description(0).is_none());
+        ambiguous.description =
+            "11 percentage points damage and 1 percentage point critical chance per rank";
+        assert_eq!(
+            ambiguous.inline_description(1).unwrap(),
+            "11 percentage points damage and 1 » 2 percentage points critical chance"
+        );
+        // Compound effects still need an explicit contribution breakdown.
+        assert!(talent_definition(8, 763)
+            .unwrap()
+            .inline_description(1)
+            .is_none());
     }
 
     #[test]
