@@ -202,7 +202,7 @@ pub(super) fn column(
         BorderColor::all(Color::srgb(0.5, 0.4, 0.14)),
     ))
     .with_children(|frame| {
-        frame
+        let viewport = frame
             .spawn((
                 CollectionScroll,
                 RelativeCursorPosition::default(),
@@ -211,13 +211,56 @@ pub(super) fn column(
                     width: Val::Percent(100.0),
                     height: Val::Percent(100.0),
                     flex_direction: FlexDirection::Column,
-                    padding: UiRect::all(Val::Px(layout.padding)),
+                    padding: UiRect {
+                        right: Val::Px(layout.padding.max(16.0)),
+                        ..UiRect::all(Val::Px(layout.padding))
+                    },
                     row_gap: Val::Px(layout.gap * 0.5),
                     overflow: Overflow::scroll_y(),
                     ..default()
                 },
             ))
-            .with_children(body);
+            .with_children(body)
+            .id();
+        super::scrollbar::spawn(frame, viewport);
+    });
+}
+
+/// Keep the scrollbar outside the moving content and retain each page's offset.
+pub(super) fn compact_column(
+    ui: &mut ChildSpawnerCommands,
+    marker: CompactScroll,
+    offset: Vec2,
+    layout: &Layout,
+    body: impl FnOnce(&mut ChildSpawnerCommands),
+) {
+    ui.spawn(Node {
+        width: Val::Percent(100.0),
+        flex_grow: 1.0,
+        flex_basis: Val::Px(0.0),
+        min_height: Val::Px(0.0),
+        ..default()
+    })
+    .with_children(|frame| {
+        let viewport = frame
+            .spawn((
+                CollectionScroll,
+                marker,
+                RelativeCursorPosition::default(),
+                ScrollPosition(offset),
+                Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Column,
+                    padding: UiRect::right(Val::Px(16.0)),
+                    row_gap: Val::Px(layout.gap),
+                    overflow: Overflow::scroll_y(),
+                    ..default()
+                },
+            ))
+            .with_children(body)
+            .id();
+        super::scrollbar::spawn(frame, viewport);
     });
 }
 
@@ -232,24 +275,12 @@ pub(super) fn build(
     compact: bool,
 ) {
     if compact {
-        panel
-            .spawn((
-                CollectionScroll,
-                CompactScroll::Collection,
-                RelativeCursorPosition::default(),
-                ScrollPosition(armory.collection_scroll),
-                Node {
-                    width: Val::Percent(100.0),
-                    flex_grow: 1.0,
-                    flex_basis: Val::Px(0.0),
-                    min_height: Val::Px(0.0),
-                    flex_direction: FlexDirection::Column,
-                    row_gap: Val::Px(layout.gap),
-                    overflow: Overflow::scroll_y(),
-                    ..default()
-                },
-            ))
-            .with_children(|body| {
+        compact_column(
+            panel,
+            CompactScroll::Collection,
+            armory.collection_scroll,
+            layout,
+            |body| {
                 section(body, layout, |body| {
                     grid(body, font, armory, account, selection, layout, true);
                     text(body, font, "Select a piece; its details follow the collection. E: worn · L: shown as a look", layout.body_size, DIM);
@@ -264,7 +295,8 @@ pub(super) fn build(
                 section(body, layout, |body| {
                     missing(body, font, armory, account, selection, layout)
                 });
-            });
+            },
+        );
         return;
     }
     let class = picked_class(account, selection);

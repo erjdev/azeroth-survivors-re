@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Visible Armory scrollbars
+
+Collection, Drop Tables, Character and Codex now share fixed draggable scrollbars
+on overflowing columns. Compact Collection, Drop Tables and Character keep one
+page scrollbar with space beside the content; fitted panels hide the bar.
+
+Native macOS menu checks confirm Collection equipment and compact list bottoms,
+Drop Tables item details, and Character appearance controls remain reachable by
+dragging. Wide Collection/Drop Tables and Codex retain their column layouts.
+App Clippy, incremental native build (24 seconds), formatting and diff checks pass.
+The input handler is unchanged; the app suite was not rerun for this layout-only
+checkpoint. Windows and physical-controller acceptance remain open.
+
+![Wide Collection equipment scrollbar](images/screenshots/2026-10-26-armory-scrollbars/collection-1280.png)
+
+![Compact Collection at the end of the list](images/screenshots/2026-10-26-armory-scrollbars/collection-640.png)
+
+![Compact Drop Tables item details](images/screenshots/2026-10-26-armory-scrollbars/drops-640.png)
+
 ## 2026-10-26 — Compact starter scrollbar
 
 Small-window starter layouts now expose the same draggable scrollbar as wide

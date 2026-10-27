@@ -20,24 +20,12 @@ pub(super) fn build(
     compact: bool,
 ) {
     if compact {
-        panel
-            .spawn((
-                collection::CollectionScroll,
-                collection::CompactScroll::Character,
-                bevy::ui::RelativeCursorPosition::default(),
-                ScrollPosition(armory.character_scroll),
-                Node {
-                    width: Val::Percent(100.0),
-                    flex_grow: 1.0,
-                    flex_basis: Val::Px(0.0),
-                    min_height: Val::Px(0.0),
-                    flex_direction: FlexDirection::Column,
-                    row_gap: Val::Px(layout.gap),
-                    overflow: Overflow::scroll_y(),
-                    ..default()
-                },
-            ))
-            .with_children(|body| {
+        collection::compact_column(
+            panel,
+            collection::CompactScroll::Character,
+            armory.character_scroll,
+            layout,
+            |body| {
                 collection::section(body, layout, |body| {
                     hero_panel(
                         body, font, armory, account, selection, renown, stash, layout, compact,
@@ -55,7 +43,8 @@ pub(super) fn build(
                 collection::section(body, layout, |body| {
                     look_panel(body, font, armory, account, selection, layout)
                 });
-            });
+            },
+        );
         return;
     }
     panel

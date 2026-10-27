@@ -45,37 +45,27 @@ pub(super) fn build(
     compact: bool,
 ) {
     if compact {
-        ui.spawn((
-            collection::CollectionScroll,
+        collection::compact_column(
+            ui,
             collection::CompactScroll::Drops,
-            bevy::ui::RelativeCursorPosition::default(),
-            ScrollPosition(armory.drop_scroll),
-            Node {
-                width: Val::Percent(100.0),
-                flex_grow: 1.0,
-                flex_basis: Val::Px(0.0),
-                min_height: Val::Px(0.0),
-                flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(layout.gap),
-                overflow: Overflow::scroll_y(),
-                ..default()
+            armory.drop_scroll,
+            layout,
+            |body| {
+                collection::section(body, layout, |body| {
+                    zones(body, font, armory, account, selection, layout, compact)
+                });
+                collection::section(body, layout, |body| {
+                    sources(body, font, armory, account, selection, layout)
+                });
+                collection::section(body, layout, |body| {
+                    collection::detail(body, font, armory, account, selection, layout)
+                });
+                collection::section(body, layout, |body| {
+                    character::body_controls(body, art, font, account, selection, layout);
+                    collection::equipment(body, font, armory, account, selection, layout);
+                });
             },
-        ))
-        .with_children(|body| {
-            collection::section(body, layout, |body| {
-                zones(body, font, armory, account, selection, layout, compact)
-            });
-            collection::section(body, layout, |body| {
-                sources(body, font, armory, account, selection, layout)
-            });
-            collection::section(body, layout, |body| {
-                collection::detail(body, font, armory, account, selection, layout)
-            });
-            collection::section(body, layout, |body| {
-                character::body_controls(body, art, font, account, selection, layout);
-                collection::equipment(body, font, armory, account, selection, layout);
-            });
-        });
+        );
         return;
     }
     ui.spawn(Node {

@@ -5558,3 +5558,19 @@ and formatting pass; the unchanged input handler retains the prior 321-test
 checkpoint, without claiming a fresh test-suite run. Two screenshots are embedded
 in CHANGELOG and linked from the README gallery. Other Armory scrollbars and
 Windows acceptance remain open.
+
+### 2026-10-26 — Armory scrollbars
+
+Extended the shared framed column to attach a fixed scrollbar sibling and reserve
+a right gutter. This covers wide Collection, Drop Tables, Character and Codex.
+Compact Collection/Drop Tables/Character now share a viewport wrapper with the
+same scrollbar and retain their existing page-specific scroll positions.
+
+Native menu validation at 1280×720 and 640×720 confirms wide Collection equipment
+and compact Collection bottom reachability, compact Drop Tables detail access,
+compact Character look controls, and fitted Codex columns without unnecessary bars.
+Three inline CHANGELOG captures document the checkpoint; README links the compact
+examples. Clippy, play build (24 seconds), formatting and diff checks pass. No
+input logic changed and no app-suite rerun was needed after the prior 321-test pass.
+Wide-column offsets still reset on rebuild; full resolution/controller/Windows
+acceptance and other remaining interface requirements are not closed by this work.
