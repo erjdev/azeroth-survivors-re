@@ -12,6 +12,12 @@ enable `survivors-visibility`, `survivors-terrain` and `survivors-text` on
 `benilla-app`. Keep these aligned: the browser build uses `--no-default-features`,
 so gameplay carries must not depend on launcher defaults. `scripts/web-build.sh`
 defaults to WebGPU; `WEB_BACKEND=webgl2` is the glue-screen-only fallback.
+Use `WEB_PROFILE=play scripts/web-build.sh` for incremental browser iteration.
+It retains `target/wasm32-unknown-unknown/play`, skips optimization/compression,
+and deletes stale compressed siblings before the local host can serve them.
+The first build still compiles this target/profile. Rebuild then reload the browser;
+this is not Rust hot reload. Default release/ship builds retain distribution
+postprocessing, and `WEB_DEBUG=1` preserves symbols in either mode.
 
 Cargo already stores compiled dependencies under `target/`. The existing `play` profile
 inherits release optimization, enables incremental compilation and disables LTO. Keep that

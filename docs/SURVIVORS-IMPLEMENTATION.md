@@ -6624,3 +6624,16 @@ and unrelated spells. 191 core/369 app tests, core/app-test Clippy and native bu
 pass. Native 1024×720 and 640×720 at 125% verify green inline values and purchased
 rank restoration after restart; screenshots are inline in CHANGELOG. Coverage is
 237/432 (Warlock 27/50). Live balance and Windows acceptance remain open.
+
+
+### Incremental browser build path — 2026-10-27
+
+`WEB_PROFILE=play scripts/web-build.sh` uses the existing incremental profile and
+skips wasm-opt/compression; release remains the distribution default. Stale
+compressed siblings are removed to prevent the local host serving an old build.
+The debug path also avoids empty-array expansion under macOS Bash 3.2.
+Four isolated build-orchestration tests cover release/ship, profile switching,
+debug symbols and invalid profiles, and are included in the host CI job.
+WebGPU `cargo check` passed at bc04604 with five existing warnings. Full wasm
+packaging/timing is unverified here (wasm-bindgen CLI is absent); no browser
+runtime or Windows CI result is claimed. GitHub reports no runs for that head.

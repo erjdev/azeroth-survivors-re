@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Incremental browser development builds
+
+`WEB_PROFILE=play scripts/web-build.sh` now reuses incremental compilation and
+skips optimization/compression. Stale compressed files are removed so the local
+host serves the new build. Also fixed `WEB_DEBUG=1` on macOS Bash 3.2.
+Default release/ship packaging retains its postprocessing.
+
+Four build-orchestration regressions and shell syntax checks pass; CI includes
+the tests. WebGPU compilation passes with five existing warnings. Full wasm
+packaging/timing and Windows CI remain unverified. No interface change.
+
 ## 2026-10-27 — Conflagrate training
 
 Conflagrate makes successful Immolate casts advance an owned Shadowburn cooldown
