@@ -6755,3 +6755,9 @@ Core/app-test Clippy, native build, formatting and diff checks pass. Native
 35→36 Beast Mastery points. Three captures are embedded in CHANGELOG and README's
 latest talent image is updated. Coverage is 240/432, Hunter 30/46. Live combat
 balance and the rest of the talent catalog remain open.
+
+
+CI follow-up: the host/UI PR job now runs all nine Python fixture-isolation tests,
+including invalid-request retry and source/save preservation. The exact command
+passes locally. GitHub returned no PR-triggered workflow runs for afa9f96; the
+configured Windows check and new fixture step do not yet have verified CI results.
