@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Raid collection reward boundaries
+
+Documented and verified raid ownership across all nine classes: distinct pieces
+advance Armed/Hoarder, while Full set also needs a same-class weapon. Duplicates,
+cosmetic choices and save/reload cannot inflate progress or complete legacy
+Legendary/54-piece cloak feats. No separate raid completion reward is defined.
+
+342 app tests pass. This adds regression coverage and rules documentation without
+changing UI or runtime behavior; existing screenshots remain current. Raid drops
+and Windows gameplay acceptance remain pending.
+
 ## 2026-10-27 — Direct raid item previews
 
 Live UI previews can open any class's Raid Epic armor directly, with reusable

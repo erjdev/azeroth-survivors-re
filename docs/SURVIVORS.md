@@ -519,3 +519,11 @@ are initial Survivors tuning and affect the hero's shared stats:
 
 The existing nine-slot loadout bonus remains separate. Supplemental raid ownership
 does not fill any of the legacy 54 collection cells or grant their completion feat.
+
+Raid armor counts once per distinct class/slot identity toward Armed and Hoarder,
+regardless of equipment or cosmetic selection. Full set still requires ownership
+in all nine slots of one class: eight raid armor pieces alone cannot earn it, but
+a main hand of any supported quality from that same class completes it. A weapon
+owned by another class cannot fill the gap. Raid armor does not advance Legendary,
+which requires the nine legacy Legendary pieces. No separate raid-completion
+point reward is currently defined; raid set power remains based on worn armor.

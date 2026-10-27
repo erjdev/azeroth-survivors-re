@@ -6084,3 +6084,15 @@ supplemental inspection. All nine classes and eight armor slots are covered.
 1280×720/640×720 confirms readable details, switching and invalid-request rejection;
 the account file remains byte-identical after closing. CHANGELOG embeds both
 captures. Raid acquisition, completion rewards and Windows acceptance remain open.
+
+### 2026-10-27 — Supplemental collection reward contract
+
+Raid ownership follows general distinct-piece achievements and same-class nine-slot
+Full set rules. Eight raid armor pieces alone cannot complete Full set; a same-class
+weapon can. Legacy Legendary and 54-cell cloak completion remain independent. No
+separate raid-completion point reward is currently defined. Two account integration
+regressions cover all nine classes, every raid identity, duplicate collection,
+cosmetic choices, achievement thresholds, wrong-class weapons, and save/reload.
+All 342 app tests pass. No runtime/UI changes or new visual capture. Raid encounter
+acquisition remains the next raid-content gap; broader talents, interface, zones
+and Windows acceptance remain unfinished.

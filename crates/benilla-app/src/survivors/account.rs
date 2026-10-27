@@ -3039,6 +3039,80 @@ pets 2 3 1 1 2 0 1
     }
 
     #[test]
+    fn raid_collection_rewards_count_distinct_ownership_without_completing_legacy_feats() {
+        use survivors_core::{gear_tier::GearTier, supplemental_gear};
+        let mut account = empty();
+        for class in 0..9 {
+            let hero = account.ensure(class);
+            for slot in 0..8 {
+                let piece = supplemental_gear::piece(class, slot, GearTier::RaidEpic).unwrap();
+                assert!(account.supplemental.collect(class, &piece.key));
+                assert!(!account.supplemental.collect(class, &piece.key));
+                assert!(account.select_supplemental(class, &piece.key, true));
+                let count = (class * 8 + slot + 1) as u32;
+                let snap = account.snapshot();
+                assert_eq!(snap.pieces, count);
+                assert_eq!(snap.full_sets, 0, "raid armor has no main hand");
+                assert_eq!(snap.best_legendary_set, 0);
+                assert!(!snap.any_cloak);
+                assert!(!account.feats(class, hero).collection);
+                account.grant_new_on(Some(20_752));
+                assert_eq!(account.earned.contains(&41), count >= 10);
+                assert_eq!(account.earned.contains(&42), count >= 40);
+                for id in [43, 46, 51] {
+                    assert!(!account.earned.contains(&id));
+                }
+                account = parse(&encode(&account)).unwrap();
+                assert_eq!(account.snapshot().pieces, count);
+            }
+        }
+        for id in [41, 42] {
+            assert_eq!(
+                account
+                    .earned
+                    .iter()
+                    .filter(|&&earned| earned == id)
+                    .count(),
+                1
+            );
+        }
+        assert!(account
+            .classes
+            .iter()
+            .all(|class| class.pieces.iter().all(|&n| n == 0)));
+    }
+
+    #[test]
+    fn raid_full_set_requires_same_class_weapon_and_not_equipped_or_visible_choices() {
+        use survivors_core::{gear_tier::GearTier, supplemental_gear};
+        for class in 0..9 {
+            let mut account = empty();
+            for slot in 0..8 {
+                let piece = supplemental_gear::piece(class, slot, GearTier::RaidEpic).unwrap();
+                assert!(account.supplemental.collect(class, &piece.key));
+            }
+            let other = (class + 1) % 9;
+            account.classes[other].pieces[8] = 1;
+            assert_eq!(account.snapshot().full_sets, 0);
+            let weapon = supplemental_gear::piece(class, 8, GearTier::Poor).unwrap();
+            assert!(account.supplemental.collect(class, &weapon.key));
+            assert_eq!(account.snapshot().full_sets, 1);
+            account.grant_new_on(Some(20_752));
+            assert!(account.earned.contains(&43));
+            assert!(!account.snapshot().any_cloak);
+            let restored = parse(&encode(&account)).unwrap();
+            assert_eq!(restored.snapshot().full_sets, 1);
+            assert_eq!(restored.earned.iter().filter(|&&id| id == 43).count(), 1);
+            assert_eq!(
+                restored.classes[class]
+                    .equipment
+                    .raid_pieces(class, &restored.supplemental),
+                0
+            );
+        }
+    }
+
+    #[test]
     fn cloak_collection_requires_every_quality_while_full_set_still_means_nine_slots() {
         let mut account = empty();
         let hero = account.ensure(0);
