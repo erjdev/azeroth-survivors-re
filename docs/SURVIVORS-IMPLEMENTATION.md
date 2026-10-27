@@ -5546,3 +5546,15 @@ and 1100×720 checks cover bidirectional dragging, track clicks, hidden fitted-c
 bars and independent hero scrolling. Windows and compact scrollbar acceptance
 remain open.
 Two captures are embedded in CHANGELOG and the README Starter gallery is refreshed.
+
+### Compact starter scrollbar — 2026-10-26
+
+The compact starter now uses a fixed scrollbar beside its single stacked-panel
+viewport, with a reserved gutter so it does not cover content. Wide columns keep
+independent scrollbars and offsets. Native 640×720 checks verify dragging to both
+ends, selecting Naxxramas with its existing lock message, and preserving compact
+scroll position through a 1280×720 transition and back. Scoped Clippy, native build
+and formatting pass; the unchanged input handler retains the prior 321-test
+checkpoint, without claiming a fresh test-suite run. Two screenshots are embedded
+in CHANGELOG and linked from the README gallery. Other Armory scrollbars and
+Windows acceptance remain open.

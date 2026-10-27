@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Compact starter scrollbar
+
+Small-window starter layouts now expose the same draggable scrollbar as wide
+columns, with reserved space beside the stacked panels. The fixed header and
+entry controls remain accessible while browsing all twelve zones.
+
+Native 640×720 checks cover dragging to both ends, last-zone selection, lock
+messaging and scroll restoration after switching to 1280×720 and back. Scoped
+Clippy, native build and formatting pass. This layout-only change reuses the
+previously tested scrollbar handler; the app test suite was not rerun. Windows
+acceptance and scrollbar adoption on other Armory pages remain open.
+
+![Compact starter with a visible scrollbar](images/screenshots/2026-10-26-compact-scrollbar/starter-640.png)
+
+![Last zone selected without losing compact scroll position](images/screenshots/2026-10-26-compact-scrollbar/zones-640.png)
+
 ## 2026-10-26 — Draggable starter scrollbars
 
 Overflowing wide starter columns now show gold scrollbars inspired by the reference.

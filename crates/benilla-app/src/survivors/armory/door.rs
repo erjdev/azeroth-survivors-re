@@ -317,55 +317,67 @@ fn columns(
     selection: &Selection,
     compact: bool,
 ) {
-    let mut content = ui.spawn(Node {
+    ui.spawn(Node {
         width: Val::Percent(100.0),
         flex_grow: 1.0,
         flex_basis: Val::Px(0.0),
         min_height: Val::Px(0.0),
-        flex_direction: if compact {
-            FlexDirection::Column
-        } else {
-            FlexDirection::Row
-        },
-        overflow: if compact {
-            Overflow::scroll_y()
-        } else {
-            Overflow::visible()
-        },
-        row_gap: Val::Px(8.0),
-        column_gap: Val::Px(8.0),
         ..default()
-    });
-    if compact {
-        content.insert((
-            super::collection::CollectionScroll,
-            super::collection::CompactScroll::Starter,
-            bevy::ui::RelativeCursorPosition::default(),
-            ScrollPosition(armory.starter_scroll),
-        ));
-    }
-    content.with_children(|row| {
-        panel(
-            row,
-            art,
-            compact,
-            Some((0, armory.starter_panel_scroll[0])),
-            |body| class_column(body, art, font, account, selection, compact),
-        );
-        panel(
-            row,
-            art,
-            compact,
-            Some((1, armory.starter_panel_scroll[1])),
-            |body| hero_column(body, art, font, armory, account, selection),
-        );
-        panel(
-            row,
-            art,
-            compact,
-            Some((2, armory.starter_panel_scroll[2])),
-            |body| zone_column(body, font, armory, account, selection),
-        );
+    })
+    .with_children(|frame| {
+        let mut content = frame.spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            padding: UiRect::right(Val::Px(if compact { 16.0 } else { 0.0 })),
+            flex_direction: if compact {
+                FlexDirection::Column
+            } else {
+                FlexDirection::Row
+            },
+            overflow: if compact {
+                Overflow::scroll_y()
+            } else {
+                Overflow::visible()
+            },
+            row_gap: Val::Px(8.0),
+            column_gap: Val::Px(8.0),
+            ..default()
+        });
+        if compact {
+            content.insert((
+                super::collection::CollectionScroll,
+                super::collection::CompactScroll::Starter,
+                bevy::ui::RelativeCursorPosition::default(),
+                ScrollPosition(armory.starter_scroll),
+            ));
+        }
+        let viewport = content.id();
+        content.with_children(|row| {
+            panel(
+                row,
+                art,
+                compact,
+                Some((0, armory.starter_panel_scroll[0])),
+                |body| class_column(body, art, font, account, selection, compact),
+            );
+            panel(
+                row,
+                art,
+                compact,
+                Some((1, armory.starter_panel_scroll[1])),
+                |body| hero_column(body, art, font, armory, account, selection),
+            );
+            panel(
+                row,
+                art,
+                compact,
+                Some((2, armory.starter_panel_scroll[2])),
+                |body| zone_column(body, font, armory, account, selection),
+            );
+        });
+        if compact {
+            super::scrollbar::spawn(frame, viewport);
+        }
     });
 }
 
