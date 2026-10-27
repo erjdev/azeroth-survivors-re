@@ -1357,6 +1357,81 @@ mod milestone_tests {
     }
 
     #[test]
+    fn mana_shield_casts_without_targets_refreshes_and_absorbs_damage() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for rank in [0, 1, 2, 255] {
+            for level in [1, 5] {
+                let mut run = Run {
+                    class: &data::CLASSES[6],
+                    hp: 100.,
+                    milestones: Milestones {
+                        class: 6,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(0, 83, rank)]),
+                    ..Default::default()
+                };
+                run.bonus.targets = 10;
+                let owned = Owned {
+                    def: data::ability("mana_shield"),
+                    level,
+                    cd: 0.,
+                };
+                let expected = Params::new(&owned, &run.stats(), run.milestones);
+                let untrained = Params::new(
+                    &owned,
+                    &run.stats(),
+                    Milestones {
+                        class: 6,
+                        ..Default::default()
+                    },
+                );
+                assert_eq!(
+                    (expected.dmg, expected.duration),
+                    (untrained.dmg, untrained.duration)
+                );
+                assert!(
+                    (expected.cooldown - untrained.cooldown * (1. - 0.1 * f32::from(rank.min(2))))
+                        .abs()
+                        < 0.001
+                );
+                run.abilities.push(owned);
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                let mut app = App::new();
+                app.insert_resource(time)
+                    .insert_resource(run)
+                    .insert_resource(Rng(42))
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>();
+                app.world_mut()
+                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                for _ in 0..2 {
+                    app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    assert_eq!(
+                        (run.shield, run.shield_t),
+                        (expected.dmg, expected.duration)
+                    );
+                    assert!((run.abilities[0].cd - expected.cooldown).abs() < 0.001);
+                    let hp = run.hp;
+                    assert_eq!(hero::hurt_hero(&mut run, 5.), 0.);
+                    assert_eq!(run.hp, hp);
+                    assert!(run.shield < expected.dmg);
+                }
+                assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            }
+        }
+    }
+
+    #[test]
     fn mage_nova_defenses_preserve_longer_buffs_and_absorb_real_damage() {
         let trained = Milestones {
             class: 6,
@@ -2272,7 +2347,7 @@ mod milestone_tests {
             .copied()
             .chain(["holy_shock", "consecration"])
         {
-            let mage = data::CLASSES[6].pool.contains(&key);
+            let mage = data::CLASSES[6].pool.contains(&key) && key != "mana_shield";
             let elemental = mage && !matches!(key, "arcane_missiles" | "arcane_explosion");
             let factor = if mage { 1.03 } else { 1.0 } * if elemental { 1.03 } else { 1.0 };
             for level in [1, 3, 8] {

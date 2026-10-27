@@ -2618,6 +2618,11 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 83, max_rank: 2, name: "Improved Mana Shield",
+        description: "Mana Shield: 10% shorter cooldown per rank. Absorption and duration are unchanged; requires acquiring Mana Shield during the run (Survivors mana-cost conversion; no mana resource)",
+        stat: TalentStat::SpellCooldown("mana_shield"), per_rank: 0.10,
+    },
+    TalentDefinition {
         id: 86, max_rank: 1, name: "Presence of Mind",
         description: "Arcane Missiles advances an owned Arcane Explosion cooldown by 2 sec once per successful cast; adds to the 20-point Arcane milestone for 4 sec total. Does not trigger per missile, grant Explosion or store a charge (Survivors automatic instant-cast conversion)",
         stat: TalentStat::PresenceOfMind, per_rank: 2.0,
@@ -2631,7 +2636,7 @@ static MAGE_TALENTS: &[TalentDefinition] = &[
         description: "Mage Fire spells: +10% critical chance initially and per landed damaging direct hit, capped at 100%. Ends after three direct critical hits; recovers 180 sec after ending. Area targets count separately; burns and multistrike echoes do not count. Pauses stop recovery (Survivors automatic conversion)",
         stat: TalentStat::Combustion, per_rank: 0.10 },
     TalentDefinition { id: 87, max_rank: 1, name: "Arcane Power",
-        description: "Mage spells: +30% direct and periodic damage for 15 sec, starting with the next successful Mage cast. Ready at run start; recovers 180 sec after activation. Casts snapshot the bonus for their full duration. Pauses stop both timers. Excludes foreign spells (Survivors automatic conversion; no mana surcharge)",
+        description: "Mage spells: +30% direct and periodic damage for 15 sec, starting with the next successful damaging Mage cast. Ready at run start; recovers 180 sec after activation. Casts snapshot the bonus for their full duration. Pauses stop both timers. Excludes Mana Shield and foreign spells (Survivors automatic conversion; no mana surcharge)",
         stat: TalentStat::ArcanePower, per_rank: 0.30 },
     TalentDefinition { id: 69, max_rank: 1, name: "Cold Snap",
         description: "Grants 1 automatic reset of owned Frostbolt, Frost Nova, Blizzard and Cone of Cold cooldowns every 90 sec of run time; first at 90 sec. Does not grant spells or store charges (Survivors automatic conversion)",
@@ -2641,7 +2646,7 @@ static MAGE_TALENTS: &[TalentDefinition] = &[
         stat: TalentStat::SpellGroupCooldown(MAGE_FROST), per_rank: 0.05 },
     TalentDefinition {
         id: 421, max_rank: 3, name: "Arcane Instability",
-        description: "Mage spells: +1% damage and +1% critical chance per rank; excludes other-class and neutral jewelry spells",
+        description: "Mage spells: +1% damage and +1% critical chance per rank; excludes Mana Shield, other-class and neutral jewelry spells",
         stat: TalentStat::ArcaneInstability, per_rank: 0.01,
     },
     TalentDefinition {
@@ -5443,6 +5448,10 @@ mod stat_talent_tests {
             let value = f32::from(rank.min(3)) * 0.01;
             for key in crate::data::CLASSES[6].pool {
                 let effect = trained.cast(key);
+                if *key == "mana_shield" {
+                    assert_eq!(effect, CastEffect::default());
+                    continue;
+                }
                 let multiplier = (1.0 + value)
                     * if MAGE_ARCANE.contains(key) {
                         1.0
@@ -5819,7 +5828,7 @@ mod additional_inline_tests {
             );
         }
         assert_eq!(talent_definition(6, 421).unwrap().inline_description(1).unwrap(),
-            "Mage spells: +1 » 2% damage and +1 » 2% critical chance; excludes other-class and neutral jewelry spells");
+            "Mage spells: +1 » 2% damage and +1 » 2% critical chance; excludes Mana Shield, other-class and neutral jewelry spells");
         assert!(talent_definition(5, 588).unwrap().inline_description(4).unwrap().starts_with("Searing Totem and Magma Totem deployment: +20 » 25% healing, adding to Purification."));
         let ambiguous = TalentDefinition {
             description: "+1% damage and +1% critical chance per rank; adds another 1%",

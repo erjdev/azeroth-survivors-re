@@ -162,6 +162,15 @@ macro_rules! ability {
 pub static ABILITIES: &[AbilityDef] = &[
     // --- Mage ---
     ability!(
+        "mana_shield",
+        1463,
+        Shield {
+            damage: 40.0,
+            cooldown: 18.0,
+            duration: 10.0
+        }
+    ),
+    ability!(
         "frostbolt",
         116,
         Bolt {
@@ -1178,6 +1187,7 @@ pub static CLASSES: &[ClassDef] = &[
             "cone_of_cold",
             "blast_wave",
             "pyroblast",
+            "mana_shield",
         ],
         looks: &[
             1294, 1470, 1484, 1592, 1600, 2134, 2135, 2644, 2657, 2810, 3108, 3109, 3292, 3293,

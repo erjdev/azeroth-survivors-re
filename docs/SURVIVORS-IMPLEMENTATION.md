@@ -7555,3 +7555,27 @@ Windows acceptance and in-map visual evidence remain separate work.
 Validation: 217 core tests, 419 app tests, core/app Clippy, native build, formatting
 and diff checks pass. Real-data definition coverage is 263/432 (Mage 36/49), with
 169 individual definitions remaining. Existing block-crate warning remains.
+
+
+### 2026-10-27 — Mana Shield ability, Codex and training
+
+The Mage pool now includes Mana Shield rather than mapping its talent onto an
+unrelated offensive spell. Rank-one tuning is 40 absorption, 10 seconds duration,
+18 seconds cooldown; ability ranks use the existing shield scaling and shared pool.
+Improved Mana Shield (83) grants 10% shorter cooldown per rank, capped at two, as an
+explicit mana-cost conversion. Arcane damage/critical talents do not improve it;
+Arcane Power and Arcane Instability descriptions now name that exclusion.
+
+Coverage includes class-pool membership, all-class/all-spell talent scope, rank
+caps, normal offer acquisition/upgrading, target-free shield casts, refresh without
+stacking, real damage absorption, local spell identity (1463), DBC purchase gates,
+saved specs and refunds. Mage Codex entries grow to twelve, with existing positions
+preserved; total jewelry discovery entries become 113. Native 1280×720 menu captures
+verify cards, the Codex description and purchased talent; all three are embedded
+in the changelog. Reusable card and Codex presets are in docs/ui-previews. The
+native build took 20 seconds. No attended combat, Windows or browser result is
+claimed for the new spell; shield visuals and balance remain open.
+
+Validation: 218 core tests, 422 app tests, 12 preview-launcher tests, core/app
+Clippy, formatting and diff checks pass. Talent definitions: 264/432 (Mage 37/49);
+168 remain. Existing block-crate future-compatibility warning remains.

@@ -680,3 +680,18 @@ recalculating stats does not heal current health. New runs start at full health.
 The individual node is separate from the existing 20-point Feral milestone.
 Its former placeholder damage is removed; refunds and spec changes remove the
 health multiplier for subsequent runs without changing an active run's snapshot.
+
+
+### Mage Mana Shield (initial)
+
+Mana Shield is an acquirable Mage ability: rank one absorbs 40 damage for 10 seconds
+with an 18-second cooldown. Ordinary ability upgrades scale absorption, duration
+and cooldown. It uses the shared non-stacking shield pool and refreshes on casting;
+this mode has no mana resource or damage-school restriction. Its legendary amulet
+and discovery entry follow the existing per-spell Codex rules. Appending it to the
+Mage pool preserves existing Codex spell positions.
+
+Improved Mana Shield (node 83, two ranks) reduces only its cooldown by 10% per rank,
+using an explicitly labeled Survivors mana-cost conversion. It does not grant the
+spell or increase absorption/duration. Arcane Instability, Arcane Power and offensive
+school talents exclude Mana Shield. Initial values require live balance validation.

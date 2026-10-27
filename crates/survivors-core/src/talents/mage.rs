@@ -330,3 +330,56 @@ mod presence_tests {
         assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }
+
+#[cfg(test)]
+mod mana_shield_tests {
+    use super::*;
+    #[test]
+    fn mana_shield_is_in_mage_offers_and_training_only_changes_its_cooldown() {
+        let shield = crate::data::ability("mana_shield");
+        assert_eq!(shield.kind, crate::data::Kind::Shield);
+        assert_eq!(
+            (
+                shield.spell,
+                shield.damage,
+                shield.cooldown,
+                shield.duration
+            ),
+            (1463, 40., 18., 10.)
+        );
+        for (class, catalog) in crate::data::CLASSES.iter().enumerate() {
+            assert_eq!(catalog.ability_keys().contains(&"mana_shield"), class == 6);
+            for rank in [0, 1, 2, 255] {
+                let base = Milestones {
+                    class,
+                    points: [30; 3],
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(0, 83, rank)]);
+                for def in crate::data::ABILITIES {
+                    let before = base.cast(def.key);
+                    let after = trained.cast(def.key);
+                    if class == 6 && def.key == "mana_shield" {
+                        assert!(
+                            (after.cooldown
+                                - before.cooldown * (1. - 0.1 * f32::from(rank.min(2))))
+                            .abs()
+                                < 0.00001
+                        );
+                        assert_eq!(
+                            super::super::CastEffect {
+                                cooldown: before.cooldown,
+                                ..after
+                            },
+                            before
+                        );
+                    } else {
+                        assert_eq!(after, before);
+                    }
+                }
+            }
+        }
+        let node = super::super::talent_definition(6, 83).unwrap();
+        assert!(node.inline_description(1).unwrap().contains("10 » 20%"));
+    }
+}

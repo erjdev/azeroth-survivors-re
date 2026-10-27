@@ -3481,6 +3481,57 @@ mod card_icon_tests {
     use super::*;
 
     #[test]
+    fn mage_can_acquire_and_upgrade_mana_shield_through_normal_offers() {
+        let mut run = Run {
+            class: &data::CLASSES[6],
+            hp: 100.,
+            ..Default::default()
+        };
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+            ..Default::default()
+        };
+        let slot = offer
+            .choices
+            .iter()
+            .position(
+                |choice| matches!(choice, Choice::NewAbility(def) if def.key == "mana_shield"),
+            )
+            .unwrap();
+        pick(
+            slot,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(
+            (run.abilities[0].def.key, run.abilities[0].level),
+            ("mana_shield", 1)
+        );
+        offer.choices = choices_for(&run, &mut rng, 100);
+        assert!(!offer
+            .choices
+            .iter()
+            .any(|choice| matches!(choice, Choice::NewAbility(def) if def.key == "mana_shield")));
+        let slot = offer
+            .choices
+            .iter()
+            .position(|choice| matches!(choice, Choice::Upgrade(0)))
+            .unwrap();
+        pick(
+            slot,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities[0].level, 2);
+    }
+
+    #[test]
     fn chest_jewelry_resolves_item_art_and_keeps_legend_spell_art() {
         let mut run = Run::default();
         for (names, kind) in [

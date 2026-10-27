@@ -604,8 +604,10 @@ mod tests {
         assert!(heal.contains("heals you for"), "{heal}");
         assert!(heal.contains(" health over "), "{heal}");
         assert!(!heal.contains(" damage"), "{heal}");
-        let shield = entry("power_word_shield");
-        assert!(shield.contains("Absorbs the next"), "{shield}");
+        for key in ["power_word_shield", "mana_shield"] {
+            let shield = entry(key);
+            assert!(shield.contains("Absorbs the next"), "{shield}");
+        }
         let immune = entry("divine_shield");
         assert!(immune.contains("immune to all damage for"), "{immune}");
         for class in CLASSES.iter() {

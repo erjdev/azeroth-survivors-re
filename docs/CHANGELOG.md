@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Mana Shield and defensive training
+
+Mages can now acquire and upgrade Mana Shield. Its initial rank absorbs 40 damage
+for 10 seconds and recharges in 18 seconds. Improved Mana Shield reduces its
+cooldown by 10% per rank, with two ranks maximum; no mana resource is simulated.
+The spell has its own Codex amulet entry and green inline upgrade values.
+
+![Mana Shield acquisition and upgrade cards](images/screenshots/2026-10-27-mana-shield/cards.png)
+
+![Mana Shield in the Codex](images/screenshots/2026-10-27-mana-shield/codex.png)
+
+![Improved Mana Shield purchased](images/screenshots/2026-10-27-mana-shield/talent.png)
+
+218 core tests, 422 app tests, 12 preview-launcher tests, core/app Clippy and
+formatting checks pass. Definitions: 264/432 (Mage 37/49); 168 remain.
+Native 1280×720 cards, Codex and talent purchase checked; build: 20 seconds.
+These are menu captures; live shield visuals, balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Presence of Mind
 
 The individual Mage talent now advances an owned Arcane Explosion cooldown by

@@ -2874,6 +2874,55 @@ mod tests {
     }
 
     #[test]
+    fn mana_shield_metadata_purchase_and_saved_specs_match_the_runtime() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let spells = benilla_formats::load_spell_catalog(&mut chain).unwrap();
+        assert_eq!(spells.get(1463).unwrap().name, "Mana Shield");
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(6);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(0, 76, 5), (0, 80, 5), (0, 1650, 5)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(6, hero);
+        for _ in 0..2 {
+            assert!(account.learn_talent(hero, 0, 83, 2, 3, true));
+        }
+        assert!(!account.learn_talent(hero, 0, 83, 2, 3, true));
+        assert!((account.bonus(6, hero).might - before.might).abs() < 0.00001);
+        let bonus = |account: &Account| {
+            account
+                .milestones_picked(6, Some(hero))
+                .cast("mana_shield")
+                .cooldown
+        };
+        assert_eq!(bonus(&account), 0.8);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(bonus(&loaded), 0.8);
+        loaded.select_spec(hero, 1);
+        assert_eq!(bonus(&loaded), 1.0);
+        loaded.select_spec(hero, 0);
+        assert_eq!(bonus(&loaded), 0.8);
+        for _ in 0..2 {
+            assert!(loaded.unlearn_talent(hero, 83, true));
+        }
+        assert_eq!(bonus(&loaded), 1.0);
+    }
+
+    #[test]
     fn presence_purchase_persists_and_refund_retains_only_the_milestone() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();
