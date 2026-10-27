@@ -1452,6 +1452,11 @@ impl TalentDefinition {
             | TalentStat::Speed
             | TalentStat::FlurryHaste
             | TalentStat::GuardianTotems
+            | TalentStat::ArcaneInstability
+            | TalentStat::ForceOfWill
+            | TalentStat::TotemHealing
+            | TalentStat::SpiritualHealing
+            | TalentStat::ImprovedRenew
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellGroupDamage(_)
@@ -1509,6 +1514,13 @@ impl TalentDefinition {
                     .count()
                     != 1
             {
+                return None;
+            }
+        } else if matches!(
+            self.stat,
+            TalentStat::ArcaneInstability | TalentStat::ForceOfWill
+        ) {
+            if candidates.len() != 2 || candidates.iter().any(|(_, _, unit)| *unit != "%") {
                 return None;
             }
         } else if candidates.len() != 1 {
@@ -5036,5 +5048,51 @@ mod efficiency_tests {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod additional_inline_tests {
+    use super::*;
+
+    #[test]
+    fn healing_and_paired_damage_crit_values_are_inline_at_every_rank() {
+        for (class, id, count) in [
+            (6, 421, 2),
+            (4, 1202, 2),
+            (4, 404, 1),
+            (4, 406, 1),
+            (5, 588, 1),
+            (5, 592, 1),
+        ] {
+            let node = talent_definition(class, id).unwrap();
+            for rank in 0..=node.max_rank {
+                let (text, spans) = node.inline_description_with_values(rank).unwrap();
+                assert_eq!(spans.len(), count);
+                assert!(!text.contains("per rank"));
+                assert!(!text.contains("This talent"));
+                assert_eq!(
+                    text.matches(" » ").count(),
+                    if rank == node.max_rank { 0 } else { count }
+                );
+                for span in spans {
+                    let value = &text[span];
+                    assert!(value.ends_with('%'));
+                    assert_eq!(value.matches('%').count(), 1);
+                }
+            }
+            assert_eq!(
+                node.inline_description(255),
+                node.inline_description(node.max_rank)
+            );
+        }
+        assert_eq!(talent_definition(6, 421).unwrap().inline_description(1).unwrap(),
+            "Mage spells: +1 » 2% damage and +1 » 2% critical chance; excludes other-class and neutral jewelry spells");
+        assert!(talent_definition(5, 588).unwrap().inline_description(4).unwrap().starts_with("Searing Totem and Magma Totem deployment: +20 » 25% healing, adding to Purification."));
+        let ambiguous = TalentDefinition {
+            description: "+1% damage and +1% critical chance per rank; adds another 1%",
+            ..*talent_definition(6, 421).unwrap()
+        };
+        assert!(ambiguous.inline_description(0).is_none());
     }
 }

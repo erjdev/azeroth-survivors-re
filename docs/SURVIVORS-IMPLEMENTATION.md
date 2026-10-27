@@ -6239,3 +6239,19 @@ individual definitions (Shaman 25/46), with 81/81 milestone descriptions.
 Native macOS 1280×720 and 640×720 captures verify green inline rank previews,
 rank-2 spending and capped text. Both are embedded in CHANGELOG. Windows combat,
 balance and the remaining 213 individual definitions remain incomplete.
+
+### 2026-10-27 — Healing and paired-stat inline upgrades
+
+Extend the existing exact-token formatter to TotemHealing, SpiritualHealing and
+ImprovedRenew, and explicitly accept two percentage tokens for Arcane Instability
+and Force of Will. Both values expose independent green ranges; ambiguous extra
+matches still fall back rather than replacing unrelated numbers. Every rank and
+rank cap of the six affected definitions is covered, including single-unit output
+and removal of the separate summary. This closes another part of the user's inline
+upgrade requirement without changing talent effects.
+
+175 core tests, 349 app tests, core Clippy, native build, formatting and diff checks
+pass. Compared with intentions/survivors_talent_tab.png: the tree/art arrangement
+is retained, with the requested inline detail presentation. Native macOS wide Mage
+and compact Shaman captures are embedded in CHANGELOG. Other compound descriptions,
+full UI acceptance and Windows verification remain open.

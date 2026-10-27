@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — More upgrades explained inline
+
+Arcane Instability, Force of Will, Spiritual Healing, Improved Renew, Restorative
+Totems and Purification now show current → next values inside their descriptions.
+Changing values are green, units appear once, and maximum ranks omit the arrow.
+The separate “This talent” summary is removed for these six talents.
+
+175 core tests, 349 app tests, core Clippy and native build pass. Native macOS
+wide/compact captures verify paired values and healing text wrapping. Mechanics
+are unchanged; other complex descriptions and Windows acceptance remain open.
+
+![Paired Mage talent values inline](images/screenshots/2026-10-27-healing-inline/mage-1280.png)
+![Compact healing upgrade inline](images/screenshots/2026-10-27-healing-inline/shaman-640.png)
+
 ## 2026-10-27 — Guardian Totems
 
 Shaman Guardian Totems now strengthens the unlocked Earth Shock shield by 10% per
