@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Druid Heart of the Wild
+
+Heart of the Wild replaces placeholder damage with 4% maximum health per rank,
+up to 20%. It includes equipped health, requires no form and does not heal current
+health. Purchase, saved specs, refunds and inline green previews are verified.
+
+![Heart of the Wild purchase and next rank](images/screenshots/2026-10-27-heart-of-the-wild/purchased.png)
+
+![Saved rank and compact description after restart](images/screenshots/2026-10-27-heart-of-the-wild/compact.png)
+
+207 core / 398 app tests, both Clippy checks and native build pass. Talent
+definitions: 251/432. No Windows or live combat acceptance is claimed.
+
 ## 2026-10-27 — Raid Epic finale rewards and sources
 
 Kel'Thuzad now settles one random Raid Epic armor piece for the active class:

@@ -1009,6 +1009,58 @@ mod stat_tests {
     }
 
     #[test]
+    fn heart_of_the_wild_scales_final_health_without_healing_current_hp() {
+        let fortitude = data::PASSIVES
+            .iter()
+            .find(|p| matches!(p.stat, Stat::MaxHp))
+            .unwrap();
+        let mut run = Run {
+            class: &data::CLASSES[8],
+            race: 6,
+            renown_fortitude: 2,
+            hp: 30.,
+            passives: vec![(fortitude, 3)],
+            bonus: campaign::Bonus {
+                health: 25.,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let base = run.stats();
+        run.milestones = survivors_core::talents::Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 808, 5)]);
+        assert!((run.stats().max_hp - base.max_hp * 1.2).abs() < 0.00001);
+        assert_eq!(run.hp, 30.);
+        let mut starting = Run {
+            bonus: run.bonus,
+            ..Default::default()
+        };
+        starting.finish_start(Default::default(), run.milestones);
+        assert_eq!(starting.hp, starting.stats().max_hp);
+        assert_eq!(run.stats().might, base.might);
+        run.bonus.health += 35.;
+        assert!(
+            (run.stats().max_hp
+                - (base.max_hp
+                    + 35. * survivors_core::racials::effects(run.race, 0.).health_multiplier)
+                    * 1.2)
+                .abs()
+                < 0.0001
+        );
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(
+            (run.stats().max_hp
+                - base.max_hp
+                - 35. * survivors_core::racials::effects(run.race, 0.).health_multiplier)
+                .abs()
+                < 0.0001
+        );
+    }
+
+    #[test]
     fn all_racial_bonuses_reach_combat_and_race_changes_remove_them() {
         let mut run = Run {
             race: 0,

@@ -2857,6 +2857,76 @@ mod tests {
     }
 
     #[test]
+    fn heart_of_the_wild_purchase_save_specs_and_refund_reach_run_stats() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(8);
+        let other = account.create("Other", "Druid", 8).unwrap();
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (1, 796, 5),
+            (1, 795, 5),
+            (1, 799, 5),
+            (1, 794, 5),
+            (1, 807, 2),
+            (1, 798, 3),
+            (1, 803, 3),
+            (1, 802, 2),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let baseline = account.milestones_picked(8, Some(hero));
+        for _ in 0..5 {
+            assert!(account.learn_talent(hero, 1, 808, 5, 5, true));
+        }
+        assert!(!account.learn_talent(hero, 1, 808, 5, 5, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let trained = account.milestones_picked(8, Some(hero));
+        assert_eq!(trained.health_multiplier(), 1.2);
+        assert_eq!(
+            account
+                .milestones_picked(8, Some(other))
+                .health_multiplier(),
+            1.0
+        );
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(
+            loaded.milestones_picked(8, Some(hero)).health_multiplier(),
+            1.2
+        );
+        for spec in [1, 2] {
+            loaded.select_spec(hero, spec);
+            assert_eq!(
+                loaded.milestones_picked(8, Some(hero)).health_multiplier(),
+                1.0
+            );
+        }
+        loaded.select_spec(hero, 0);
+        for _ in 0..5 {
+            assert!(loaded.unlearn_talent(hero, 808, true));
+        }
+        assert_eq!(
+            loaded.milestones_picked(8, Some(hero)).health_multiplier(),
+            baseline.health_multiplier()
+        );
+        assert!(!loaded.unlearn_talent(hero, 808, true));
+        assert_eq!(trained.health_multiplier(), 1.2, "run snapshot stays fixed");
+    }
+
+    #[test]
     fn rogue_training_survives_save_and_stays_with_hero_and_active_spec() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

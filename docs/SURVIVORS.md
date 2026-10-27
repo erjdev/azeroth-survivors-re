@@ -616,3 +616,14 @@ shields, other regeneration or other-class spells, or add a healing multiplier
 to lifesteal/Vampiric Embrace (higher damage can still increase health drained).
 This is a self-only automatic Survivors conversion, separate from Inner Focus
 and the 30-point Discipline milestone. HUD status shows the active countdown.
+
+
+### Heart of the Wild individual talent
+
+Druid node 808 grants 4% maximum health per rank, capped at 20%. This is an
+explicit Survivors stamina conversion without a form requirement. It multiplies
+the final health total after equipment, passive, renown and racial contributions;
+recalculating stats does not heal current health. New runs start at full health.
+The individual node is separate from the existing 20-point Feral milestone.
+Its former placeholder damage is removed; refunds and spec changes remove the
+health multiplier for subsequent runs without changing an active run's snapshot.

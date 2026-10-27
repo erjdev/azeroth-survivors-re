@@ -2,6 +2,7 @@
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 808, max_rank: 5, name: "Heart of the Wild", description: "+4% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health (Survivors stamina conversion; no form required)", stat: TalentStat::MaximumHealth, per_rank: 0.04 },
     TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "+3 percentage points hero critical chance, adding to Sharpened Claws and equipped bonuses (Survivors self-only conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.03 },
     TalentDefinition { id: 761, max_rank: 1, name: "Nature's Grasp", description: "Entangling Roots: 15% shorter cooldown, multiplying Improved Entangling Roots and the 10-point Balance milestone (Survivors automatic defensive-root conversion)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.15 },
     TalentDefinition { id: 921, max_rank: 4, name: "Improved Nature's Grasp", description: "Entangling Roots: +10% root duration per rank; bosses retain 30% duration (Survivors automatic-root reliability conversion)", stat: TalentStat::SpellDuration("entangling_roots"), per_rank: 0.10 },
@@ -462,5 +463,39 @@ mod leader_tests {
             .unwrap()
             .starts_with("+0 » 3 percentage points hero critical chance"));
         assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod heart_tests {
+    use crate::talents::{stat_adjustment, talent_definition, Milestones};
+    #[test]
+    fn heart_scales_health_only_with_bounded_ranks() {
+        for rank in [0, 1, 3, 5, 255] {
+            let ranks = [(1, 808, rank)];
+            for class in 0..9 {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&ranks);
+                let r = if class == 8 {
+                    f32::from(rank.min(5))
+                } else {
+                    0.0
+                };
+                assert!((trained.health_multiplier() - 1.0 - 0.04 * r).abs() < 0.00001);
+                assert!((stat_adjustment(class, &ranks).might + 0.01 * r).abs() < 0.00001);
+                assert_eq!(trained.with_ranks(&[]).health_multiplier(), 1.0);
+                for key in ["wrath", "rejuvenation", "thorns", "moonfire"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+        assert!(talent_definition(8, 808)
+            .unwrap()
+            .inline_description(0)
+            .unwrap()
+            .starts_with("+0 » 4% maximum health"));
     }
 }

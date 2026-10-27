@@ -7203,3 +7203,19 @@ contract remain outstanding.
 
 Verification: 206 core / 396 app tests, app/core Clippy, formatting, native
 play build (33 seconds) and the real-data Collection audit pass.
+
+
+### Heart of the Wild checkpoint — 2026-10-27
+
+Druid node 808 now supplies 4% maximum health per rank (five ranks) through the
+shared final-health multiplier, replacing placeholder damage. Local DBC verifies
+row 5, column 1 and the three-rank Predatory Strikes prerequisite. Core coverage
+checks rank bounds, class scope, spell invariance and inline preview. Real-catalog
+account tests cover purchase cap, save/reload, other heroes, specs and refund;
+runtime stat tests cover equipment/racial/passive composition and no current-HP
+healing. Native 1280×720 purchase and 640×720 saved restart captures are inline in
+the changelog. The 20-point Feral milestone remains independent.
+
+207 core / 398 app tests, both Clippy gates, native play build (17 seconds),
+formatting and diff checks pass. Definition coverage is 251/432, Druid 25/47;
+181 node definitions and broader gameplay/platform acceptance remain open.
