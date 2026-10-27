@@ -103,6 +103,16 @@ pub(super) struct Gem {
     speed: f32,
 }
 
+impl Gem {
+    pub(super) fn new(kind: GemKind) -> Self {
+        Self {
+            kind,
+            pulled: false,
+            speed: 6.0,
+        }
+    }
+}
+
 /// The `GameObjectDisplayInfo` row and scale a pickup wears: a wisp per experience tier, the
 /// bigger tiers rarer, and a turkey leg for health.
 fn look_for(kind: GemKind) -> (u32, f32) {
@@ -705,11 +715,7 @@ pub(super) fn drop_loot(
 fn spawn_gem(commands: &mut Commands, serial: u64, pos: Vec3, kind: GemKind) {
     let (display, scale) = look_for(kind);
     let e = units::spawn_object(commands, serial, display, scale, pos + Vec3::Y * 0.5);
-    commands.entity(e).insert(Gem {
-        kind,
-        pulled: false,
-        speed: 6.0,
-    });
+    commands.entity(e).insert(Gem::new(kind));
 }
 
 /// Gems in the magnet's reach fly to the hero; levels bank as they land.

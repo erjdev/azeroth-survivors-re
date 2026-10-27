@@ -115,8 +115,12 @@ pub(super) static LOOKS: &[Look] = &[
 ];
 
 const BASE_LEASH: f32 = 25.0;
-type PickupQuery<'w, 's> =
-    Query<'w, 's, (Entity, &'static Transform, &'static Gem), (Without<Hero>, Without<Fetcher>)>;
+type PickupQuery<'w, 's> = Query<
+    'w,
+    's,
+    (Entity, &'static Transform, &'static mut Gem),
+    (Without<Hero>, Without<Fetcher>),
+>;
 
 const MAX_LEASH: f32 = 55.0;
 const BASE_SPEED: f32 = 9.0;
@@ -230,7 +234,7 @@ pub(super) fn herd(
     world: Floor,
     hero: Query<&Transform, (With<Hero>, Without<Fetcher>)>,
     mut pets: Query<(Entity, &mut Transform, &mut MovementState, &mut Fetcher), Without<Hero>>,
-    gems: PickupQuery<'_, '_>,
+    mut gems: PickupQuery<'_, '_>,
 ) {
     let Ok(hero_tf) = hero.single() else { return };
     if !run.alive() {
@@ -319,6 +323,10 @@ pub(super) fn herd(
                 }
             }
             for (e, kind) in taken {
+                // Despawn is deferred; reserve now so a second companion cannot bank it again.
+                if let Ok((_, _, mut gem)) = gems.get_mut(e) {
+                    gem.pulled = true;
+                }
                 enemies::bank_gem(&mut run, &mut stash, &mut next, kind, plan.gold_bonus);
                 commands.entity(e).despawn();
             }
@@ -419,6 +427,61 @@ fn spawn_fetcher(commands: &mut Commands, run: &mut Run, pos: Vec3, slot: u8, ra
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn two_companions_bank_each_shared_pickup_once_before_deferred_despawn() {
+        use bevy::ecs::system::RunSystemOnce;
+        for slots in [[0, 1], [1, 0]] {
+            let mut app = super::super::floor::tests::fixture(&[]);
+            let mut account = super::super::account::empty();
+            account.pets.owned = 2;
+            account.pets.instinct = [1, 1];
+            app.insert_resource(account);
+            app.insert_resource(Run::default());
+            app.insert_resource(super::super::stash::Stash::blank());
+            app.init_resource::<NextState<Phase>>();
+            app.world_mut()
+                .spawn((Hero { vy: 0.0, air: 0.0 }, Transform::default()));
+            let at = Vec3::X * 10.0;
+            for slot in slots {
+                app.world_mut().spawn((
+                    Fetcher { slot, rest: 0.0 },
+                    Transform::from_translation(at),
+                    MovementState::default(),
+                ));
+            }
+            let coin = app
+                .world_mut()
+                .spawn((Gem::new(GemKind::Gold(10)), Transform::from_translation(at)))
+                .id();
+            let xp = app
+                .world_mut()
+                .spawn((Gem::new(GemKind::Xp(1)), Transform::from_translation(at)))
+                .id();
+            let heal = app
+                .world_mut()
+                .spawn((
+                    Gem::new(GemKind::Heal(10.0)),
+                    Transform::from_translation(at),
+                ))
+                .id();
+            app.world_mut().run_system_once(herd).unwrap();
+            assert!(app.world().get_entity(coin).is_err());
+            assert!(app.world().get_entity(xp).is_err());
+            assert!(app.world().get_entity(heal).is_ok());
+            assert_eq!(app.world().resource::<Run>().gold_found, 11);
+            assert_eq!(
+                app.world().resource::<super::super::stash::Stash>().gold,
+                11
+            );
+            assert_eq!(
+                app.world().resource::<Run>().xp,
+                super::super::data::XP_RATE
+            );
+            app.world_mut().run_system_once(herd).unwrap();
+            assert_eq!(app.world().resource::<Run>().gold_found, 11);
+        }
+    }
 
     #[test]
     fn companion_displays_models_and_icons_exist_in_the_patch_chain() {

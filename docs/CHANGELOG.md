@@ -4,6 +4,17 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Shared companion pickups pay once
+
+Companions now reserve collected pickups immediately, preventing both pets from
+banking the same coin or experience wisp before deferred removal. Gold-sniffer's
+bonus applies once; healing pickups remain untouched.
+
+332 app tests, Clippy and native build pass. A real companion-system regression covers both pet
+spawn orders, overlapping coins/wisps, the 10 → 11 gold-sniffer payout, and no payout
+on a second update. No UI change
+or screenshot; live Windows gameplay remains unverified. Rune spawning is still open.
+
 ## 2026-10-26 — Browser compilation checkpoint
 
 The current branch passes the PR's wasm build check and all seven web startup/journal

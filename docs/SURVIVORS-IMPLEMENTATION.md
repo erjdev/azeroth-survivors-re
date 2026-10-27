@@ -5852,3 +5852,13 @@ The reward review also confirms a functional gap: Rune-hound is purchasable whil
 its reward description says rune spawning is unavailable. Complete battleground
 rune spawning and collection, or make the unavailable purchase explicitly disabled
 until implemented; do not count its present reach helper as a functioning reward.
+
+
+### Companion pickup ownership — 2026-10-27
+
+The real collection loop now marks a pickup taken before queuing its despawn.
+Without this, the second companion could bank the same pickup while commands were
+still deferred. The ECS regression overlaps both pets with coins/wisps in both
+spawn orders and verifies one sniffer bonus, one XP award, healing exclusion and
+no repeat payout next update. All 332 app tests, Clippy and native build pass. This is accounting evidence, not live Windows companion
+navigation acceptance. Rune-hound spawning/effects remain unfinished.

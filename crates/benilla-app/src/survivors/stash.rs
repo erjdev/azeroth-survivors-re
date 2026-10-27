@@ -127,7 +127,7 @@ impl Stash {
         text.map(|t| parse(&t)).unwrap_or_else(Self::blank)
     }
 
-    fn blank() -> Self {
+    pub(super) fn blank() -> Self {
         Self {
             gold: 0,
             ranks: vec![0; RELICS.len()],
