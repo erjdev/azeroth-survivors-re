@@ -6857,3 +6857,16 @@ expected names. Native play build (34.13 sec), app-test Clippy, formatting and
 diff checks pass. Presentation-only change; no new combat test run. Three inline
 changelog captures and the README starter image document the result. Broader
 resolution/controller acceptance and outdoor illustration remain open.
+
+### Painted starter landscape — 2026-10-27
+
+Replaced the procedural starter silhouette with an embedded original landscape,
+generated with the built-in imagegen tool; provenance and exact prompt live beside
+the asset in `backdrop/ARTWORK.md`. The shader preserves proportions with centered
+cover cropping and a dark vignette. Native 1280×720/640×720 captures verify readable
+starter controls and the separate talent artwork. Native build (67 seconds),
+app-test Clippy and format checks pass; no shader errors in the preview log.
+CHANGELOG embeds all three screenshots and README shows the current starter.
+Windows/browser rendering, broader resolution acceptance and the reported world
+occlusion/navigation reproduction remain open. This is a presentation checkpoint,
+not completion of starter or gameplay acceptance.

@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Painted starter landscape
+
+An original sunset valley replaces the starter's procedural mountain silhouette.
+The embedded artwork crops proportionally at different window sizes, with a dark
+vignette keeping the gold headings and controls readable. [Artwork provenance and prompt](../crates/benilla-app/src/survivors/backdrop/ARTWORK.md).
+
+Native build and app-test Clippy pass. Native previews verify 1280×720 and
+640×720 starter crops and the separate talent-tree artwork; no shader errors
+appeared in the validation log. Windows and browser rendering remain unverified
+for this change.
+
+![Wide starter landscape](images/screenshots/2026-10-27-starter-landscape/starter-1280.png)
+![Compact starter landscape](images/screenshots/2026-10-27-starter-landscape/starter-640.png)
+![Talent artwork check](images/screenshots/2026-10-27-starter-landscape/talents-1280.png)
+
 ## 2026-10-27 — Starter hero identity
 
 The starter now follows the main-menu reference with a prominent clickable name

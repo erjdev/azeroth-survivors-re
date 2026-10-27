@@ -1,14 +1,18 @@
-//! Stable, asset-free mountain silhouettes inspired by the starter intention reference.
+//! Original embedded landscape inspired by the starter intention reference.
 use bevy::prelude::*;
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
 use bevy::ui_render::ui_material::{MaterialNode, UiMaterial};
 use bevy::ui_render::UiMaterialPlugin;
+use bevy::{asset::RenderAssetUsages, image::ImageSampler};
 
 #[derive(Asset, TypePath, AsBindGroup, Clone)]
 struct Backdrop {
     #[uniform(0)]
     opacity: f32,
+    #[texture(1)]
+    #[sampler(2)]
+    landscape: Handle<Image>,
 }
 
 impl UiMaterial for Backdrop {
@@ -26,6 +30,8 @@ pub(super) fn plugin(app: &mut App) {
 fn attach(
     mut commands: Commands,
     mut materials: ResMut<Assets<Backdrop>>,
+    mut images: ResMut<Assets<Image>>,
+    mut landscape: Local<Option<Handle<Image>>>,
     looks: Query<&Node, With<super::menu::LookScreen>>,
     menus: Query<(Entity, Option<&MaterialNode<Backdrop>>), With<super::hud::MenuRoot>>,
 ) {
@@ -46,9 +52,20 @@ fn attach(
                 }
             }
         } else {
+            let landscape = landscape
+                .get_or_insert_with(|| {
+                    let pixels =
+                        image::load_from_memory(include_bytes!("backdrop/sunset-valley-v1.png"))
+                            .expect("valid embedded starter landscape");
+                    let mut image =
+                        Image::from_dynamic(pixels, true, RenderAssetUsages::RENDER_WORLD);
+                    image.sampler = ImageSampler::linear();
+                    images.add(image)
+                })
+                .clone();
             commands
                 .entity(menu)
-                .insert(MaterialNode(materials.add(Backdrop { opacity })));
+                .insert(MaterialNode(materials.add(Backdrop { opacity, landscape })));
         }
     }
 }
