@@ -118,6 +118,16 @@ Collection and Talents also support compact scrolling at enlarged interface size
 
 ![Improved Mend Pet training and saved spec](docs/images/screenshots/2026-10-27-mend-pet/purchased.png)
 
+### Browser starter checkpoint
+
+2026-10-27 · WebGPU at 1280×720: hero creation and appearance survive reload;
+Talents renders from the same package. In-map browser gameplay remains unverified.
+
+<table><tr>
+<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-starter/reloaded.png" alt="Browser starter restores the created Mage after reload"></td>
+<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-starter/talents.png" alt="Browser Mage talent trees"></td>
+</tr></table>
+
 ### Earlier gameplay captures
 
 <table>

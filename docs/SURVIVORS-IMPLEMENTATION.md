@@ -6777,3 +6777,18 @@ acceptance remain open. It does not measure latency after a Rust source edit.
 The early version check rejects incompatible generators before Cargo runs; all
 six orchestration tests and shell syntax/diff checks pass, including CRLF and
 missing lockfile pins. No interface rendering changed in this checkpoint.
+
+
+### 2026-10-27 — Browser starter runtime checkpoint
+
+Served the linked WebGPU play package through checkout wenilla-host at
+127.0.0.1:8098, using only wow-data/Data. In the in-app browser at 1280×720,
+with nosound=1 and unattended=1, verified the empty starter and Character
+creation form, created Adventurer Stormwind as a Mage, selected female Human,
+reloaded the page and observed the same hero/class/body restored on the starter.
+Talents then rendered all three illustrated Mage trees and empty saved specs.
+The sampled browser error/warning logs were empty. Captures are embedded in
+CHANGELOG and the README browser gallery. Closed the temporary tab and stopped
+the loopback host; no combat run was started. This establishes basic browser
+startup/navigation/persistence on this host, not all pages, controller input,
+compact layouts, WebGL2, Windows, gameplay or long-session memory behavior.

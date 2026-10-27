@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Browser starter and saved hero
+
+The real WebGPU development package boots through the loopback host using this
+checkout's data. At 1280×720, verified starter → Character → create Mage → choose
+female Human → reload → restored hero, then Talents. The sampled browser error/
+warning logs were empty. No combat run or broader browser acceptance is claimed.
+
+![Browser starter](images/screenshots/2026-10-27-browser-starter/starter.png)
+![Created browser hero](images/screenshots/2026-10-27-browser-starter/created.png)
+![Hero restored after browser reload](images/screenshots/2026-10-27-browser-starter/reloaded.png)
+![Browser talent trees](images/screenshots/2026-10-27-browser-starter/talents.png)
+
 ## 2026-10-27 — Browser build validation
 
 Browser builds now reject a mismatched wasm-bindgen CLI before compiling. Six
