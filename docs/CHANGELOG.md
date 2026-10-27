@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Browser compilation checkpoint
+
+The current branch passes the PR's wasm build check and all seven web startup/journal
+tests. The latter ran with an available bundled Node because the system Homebrew
+Node has a missing llhttp library. No system installation was changed.
+
+The wasm check retains five warnings (four unused imports and a Rune lint
+expectation). This is compilation/helper-test evidence, not browser rendering,
+save recovery, or gameplay acceptance. No visual change or screenshot.
+
 ## 2026-10-26 — Inline talent comparisons
 
 Linear talent descriptions now put current » next values inside the effect sentence,

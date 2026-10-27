@@ -5835,3 +5835,20 @@ explicit breakdowns rather than substituting an uncertain number. 165 core and
 new wording; native wide/compact screenshots show comparison and maximum rank,
 with purchase/save persistence confirmed. Compound formatting and Windows remain
 open. No talent values, purchase rules or tree geometry changed.
+
+
+### Browser compilation checkpoint — 2026-10-26
+
+At implementation commit `acfdae2`, the current wasm target passes
+`cargo check --target wasm32-unknown-unknown -p wenilla --no-default-features --features webgpu`.
+Five warnings remain: BodyPartsDesc, ATTACH_SLOT_NAMES, CoverInput and ground_derived
+unused imports, plus the companions Rune dead-code expectation. All seven
+`node --test web/tests/*.test.mjs` startup/journal regressions pass using bundled
+Node; system Homebrew Node cannot launch due to its missing llhttp 9.3 dylib.
+No system repair was attempted. Browser render/interaction and storage recovery
+acceptance remain unverified by these checks.
+
+The reward review also confirms a functional gap: Rune-hound is purchasable while
+its reward description says rune spawning is unavailable. Complete battleground
+rune spawning and collection, or make the unavailable purchase explicitly disabled
+until implemented; do not count its present reach helper as a functioning reward.
