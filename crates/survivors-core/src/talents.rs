@@ -1552,6 +1552,7 @@ fn inline_stat_label(tail: &str) -> &str {
         " bite damage",
         " bite critical chance",
         " bite haste",
+        " haste",
         " bite speed",
     ];
     LABELS
@@ -5964,6 +5965,7 @@ mod inline_stat_label_tests {
             (8, 798, "+0 » 2 percentage points hero critical chance"),
             (8, 807, "+0 » 5% hero movement speed"),
             (2, 1352, "+0 » 2 yd targeting range"),
+            (2, 1382, "+0 » 3% haste"),
         ] {
             let node = talent_definition(class, id).unwrap();
             let (text, ranges) = node.inline_description_with_values(0).unwrap();
@@ -5983,5 +5985,14 @@ mod inline_stat_label_tests {
         );
         assert_eq!(inline_stat_label(" damageable objects"), "");
         assert_eq!(inline_stat_label(" healing_thing"), "");
+        let hawk = talent_definition(2, 1382).unwrap();
+        for (rank, expected) in [(1, "+3 » 6% haste"), (5, "+15% haste"), (255, "+15% haste")] {
+            let (text, ranges) = hawk.inline_description_with_values(rank).unwrap();
+            assert_eq!(ranges.len(), 1);
+            assert_eq!(&text[ranges[0].clone()], expected);
+            assert!(text.contains("12 sec"));
+            assert!(text.contains("10% chance"));
+        }
+        assert_eq!(inline_stat_label(" hastened attacks"), "");
     }
 }

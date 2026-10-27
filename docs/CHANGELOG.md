@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Complete haste upgrade highlighting
+
+Talent descriptions now color the full changing haste stat green, including
+“haste,” while fixed proc chance and duration remain white. Verified on the
+native Hunter page at 1280×720; 221 core tests and core Clippy pass.
+Incremental native build: 14 seconds. No gameplay mechanics changed.
+
+![Full haste upgrade highlighted](images/screenshots/2026-10-27-haste-label/talent.png)
+
 ## 2026-10-27 — Improved Aspect of the Hawk
 
 Hunter shots can now trigger 12 seconds of shot haste, scaling from 3% to 15%

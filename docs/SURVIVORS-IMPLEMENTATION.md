@@ -7736,3 +7736,16 @@ rank 1/5, and 50 points remaining. Both captures are embedded in the changelog.
 The session exited through Quit and its launcher was restored. Coverage is
 268/432 definitions (Hunter 35/46), leaving 164. Live combat balance, Windows
 acceptance, remaining talents and the other seven-phase requirements stay open.
+
+
+### 2026-10-27 — Haste stat highlighting
+
+The native Improved Hawk capture exposed a missing stat-label match: only the
+percentage was green. Added the complete haste label to the shared formatter.
+Regression coverage checks first, intermediate, capped and over-cap ranks;
+only the changing percentage and haste label are highlighted, not fixed 12 sec
+or 10% proc chance. All 221 core tests and core Clippy pass. Native build took
+14 seconds; 1280×720 screenshot confirms the corrected rich text. App tests
+were not rerun for this formatting-only change; the 431-test result remains
+from fd0dbb7. The session exited through Quit and the launcher was restored.
+Full responsive/platform acceptance and remaining mechanics are still open.
