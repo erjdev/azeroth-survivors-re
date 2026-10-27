@@ -361,8 +361,8 @@ pub(super) fn input(
         for (entity, act, interaction) in &acts {
             let pointer_refund = pointer.mouse.just_released(MouseButton::Right)
                 && *interaction != Interaction::None;
-            let focused_refund = pointer.controller.refund == Some(entity)
-                && matches!(act, Act::Talent(_) | Act::Learn(_));
+            let focused_refund =
+                pointer.controller.refund == Some(entity) && controller::secondary_action(act);
             if !pointer_refund && !focused_refund {
                 continue;
             }
@@ -371,7 +371,7 @@ pub(super) fn input(
                     let class = picked_class(&account, &selection);
                     let slot = index % campaign::GRID_SLOTS;
                     let band = (index / campaign::GRID_SLOTS) as u8;
-                    if cosmetic_click {
+                    if pointer_refund && cosmetic_click {
                         account.show_piece(class, slot, super::equipment::Look::Piece(band));
                     } else {
                         let worn = account.classes[class].equipment.worn[slot];
@@ -390,7 +390,7 @@ pub(super) fn input(
                             piece.class == class && account.supplemental.owns(class, key)
                         })
                     {
-                        if cosmetic_click {
+                        if pointer_refund && cosmetic_click {
                             account.select_supplemental(class, key, true);
                         } else if account.classes[class].equipment.supplemental_worn()[piece.slot]
                             .as_deref()

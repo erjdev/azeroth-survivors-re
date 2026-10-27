@@ -5,7 +5,7 @@ use super::*;
 pub(in crate::survivors) struct ControllerFocus {
     focused: Option<Entity>,
     talent: Option<(Option<u32>, TalentKey)>,
-    action: Option<(ActionContext, Act)>,
+    action: Option<(ActionContext, Act, bool)>,
     pub activated: Option<Entity>,
     pub refund: Option<Entity>,
     pub keyboard_selected: bool,
@@ -15,6 +15,17 @@ impl ControllerFocus {
     pub(super) fn focused(&self) -> Option<Entity> {
         self.focused
     }
+}
+
+#[derive(Component)]
+pub(in crate::survivors) struct CollectionGridItem;
+
+/// Secondary selection never activates purchases, appearance controls or navigation.
+pub(super) fn secondary_action(act: &Act) -> bool {
+    matches!(
+        act,
+        Act::Talent(_) | Act::Learn(_) | Act::InspectPiece(_) | Act::InspectSupplemental(_)
+    )
 }
 
 /// An action belongs to one page, hero and category, even when its entity is replaced.
@@ -117,6 +128,7 @@ pub(in crate::survivors) fn navigate(
         ),
         (Or<(With<Act>, With<TalentInfo>)>, With<Button>),
     >,
+    grid_items: Query<(), With<CollectionGridItem>>,
     parents: Query<&ChildOf>,
     mut scrolls: Query<(
         &Node,
@@ -140,7 +152,7 @@ pub(in crate::survivors) fn navigate(
     if focus
         .action
         .as_ref()
-        .is_some_and(|(owner, _)| *owner != context)
+        .is_some_and(|(owner, _, _)| *owner != context)
     {
         focus.focused = None;
         focus.action = None;
@@ -180,13 +192,14 @@ pub(in crate::survivors) fn navigate(
                         .map(|item| item.entity)
                 })
                 .or_else(|| {
-                    let (_, action) = focus.action.as_ref()?;
+                    let (_, action, grid) = focus.action.as_ref()?;
                     let mut matches = items.iter().filter(|item| {
                         buttons
                             .get(item.entity)
                             .ok()
                             .and_then(|(_, _, _, _, _, act)| act)
                             .is_some_and(|act| act == action)
+                            && grid_items.contains(item.entity) == *grid
                     });
                     let candidate = matches.next()?.entity;
                     matches.next().is_none().then_some(candidate)
@@ -195,10 +208,14 @@ pub(in crate::survivors) fn navigate(
             // Keep the identity only while its replacement is waiting for layout.
             if focus.focused.is_none()
                 && !buttons.is_empty()
-                && focus.action.as_ref().is_some_and(|(_, action)| {
+                && focus.action.as_ref().is_some_and(|(_, action, grid)| {
                     buttons
                         .iter()
-                        .filter(|(_, _, _, visible, _, act)| visible.get() && act == &Some(action))
+                        .filter(|(entity, _, _, visible, _, act)| {
+                            visible.get()
+                                && act == &Some(action)
+                                && grid_items.contains(*entity) == *grid
+                        })
                         .count()
                         != 1
                 })
@@ -253,7 +270,7 @@ pub(in crate::survivors) fn navigate(
                 if direction.is_none()
                     && (pressed(GamepadButton::West) || keys.just_pressed(KeyCode::Backspace))
                 {
-                    // Refund requests are filtered to talent actions by the shared handler.
+                    // The shared handler filters this to talent refunds and item equip toggles.
                     focus.refund = focus.focused;
                 } else if pressed(GamepadButton::South) || (key_select && focus.focused.is_some()) {
                     // A first select establishes focus instead of firing an unseen action.
@@ -276,7 +293,7 @@ pub(in crate::survivors) fn navigate(
                 .ok()
                 .filter(|(_, _, _, _, info, _)| info.is_none())
                 .and_then(|(_, _, _, _, _, act)| act)
-                .map(|act| (context, act.clone()));
+                .map(|act| (context, act.clone(), grid_items.contains(entity)));
             focus.talent = (armory.page == Page::Talents)
                 .then(|| {
                     buttons
@@ -442,6 +459,92 @@ mod tests {
         assert_eq!(step(&items, first, Vec2::NEG_Y), first);
         assert_eq!(step(&[], first, Vec2::Y), None);
     }
+    #[test]
+    fn collection_grid_focus_survives_equipped_sidebar_duplicate() {
+        let mut world = World::new();
+        world.init_resource::<ButtonInput<MouseButton>>();
+        world.init_resource::<ButtonInput<KeyCode>>();
+        world.insert_resource(State::new(Phase::Menu));
+        world.init_resource::<hud::PausePage>();
+        world.init_resource::<super::super::super::cards::PreviewHand>();
+        world.init_resource::<crate::loading_screen::LoadingScreen>();
+        world.init_resource::<Typing>();
+        world.init_resource::<Armory>();
+        world.resource_mut::<Armory>().page = Page::Collection;
+        world.init_resource::<ControllerFocus>();
+        let spawn = |world: &mut World, grid, size| {
+            let mut entity = world.spawn((
+                Button,
+                Act::InspectSupplemental("poor:hunter:hands".into()),
+                ComputedNode {
+                    size: Vec2::splat(size),
+                    ..default()
+                },
+                UiGlobalTransform::from_xy(100., 100.),
+                InheritedVisibility::VISIBLE,
+            ));
+            if grid {
+                entity.insert(CollectionGridItem);
+            }
+            entity.id()
+        };
+        let original = spawn(&mut world, true, 40.);
+        let mut schedule = Schedule::default();
+        schedule.add_systems(navigate);
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::ArrowDown);
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, Some(original));
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world.despawn(original);
+        let sidebar = spawn(&mut world, false, 40.);
+        let replacement = spawn(&mut world, true, 0.);
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, None);
+        world.get_mut::<ComputedNode>(replacement).unwrap().size = Vec2::splat(40.);
+        schedule.run(&mut world);
+        assert_eq!(
+            world.resource::<ControllerFocus>().focused,
+            Some(replacement)
+        );
+        assert!(world.get::<Outline>(replacement).is_some());
+        assert!(world.get::<Outline>(sidebar).is_none());
+        assert_eq!(world.resource::<ControllerFocus>().refund, None);
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Backspace);
+        schedule.run(&mut world);
+        assert_eq!(
+            world.resource::<ControllerFocus>().refund,
+            Some(replacement)
+        );
+        world.resource_mut::<ButtonInput<KeyCode>>().clear();
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().refund, None);
+    }
+
+    #[test]
+    fn secondary_selection_is_limited_to_inspected_gear_and_talent_refunds() {
+        for act in [
+            Act::InspectPiece(0),
+            Act::InspectSupplemental("poor:hunter:hands".into()),
+            Act::Talent(150),
+            Act::Learn(0),
+        ] {
+            assert!(secondary_action(&act));
+        }
+        for act in [
+            Act::Reward(0),
+            Act::Page(Page::Door),
+            Act::WearPiece(0, Some(0)),
+            Act::ShowPiece(0, super::super::super::equipment::Look::Hidden),
+            Act::ShowSupplemental("poor:hunter:hands".into()),
+        ] {
+            assert!(!secondary_action(&act));
+        }
+    }
+
     #[test]
     fn controller_focus_reveals_content_and_activation_is_one_frame_and_modal_safe() {
         let mut world = World::new();

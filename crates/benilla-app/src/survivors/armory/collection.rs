@@ -565,6 +565,7 @@ fn grid(
                 );
                 row.spawn((
                     Button,
+                    super::controller::CollectionGridItem,
                     index
                         .map(Act::InspectPiece)
                         .unwrap_or_else(|| Act::InspectSupplemental(piece.key.clone())),
@@ -827,7 +828,7 @@ pub(super) fn detail(
                 equipped,
             );
         }
-        text(ui, font, "Right-click a collected piece to equip or unequip it. Shift-right-click chooses its look.", layout.body_size, DIM);
+        text(ui, font, "Right-click or focus a collected piece and press Backspace / controller west to equip or unequip. Shift-right-click chooses its look.", layout.body_size, DIM);
         super::typography::heading(
             ui,
             font,
@@ -977,7 +978,7 @@ pub(super) fn detail(
     text(
         ui,
         font,
-        "Right-click a collected piece to equip or unequip it. Shift-right-click chooses its look.",
+        "Right-click or focus a collected piece and press Backspace / controller west to equip or unequip. Shift-right-click chooses its look.",
         layout.body_size,
         DIM,
     );

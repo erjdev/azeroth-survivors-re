@@ -5436,3 +5436,25 @@ headers, sections and appearance actions. Hidden/This piece toggles update the
 look marker while preserving the equipment marker and +8 health. Screenshots
 are embedded in the changelog and the README Collection cell is refreshed.
 This is menu validation on macOS, not in-world or Windows acceptance.
+
+### Collection secondary navigation — 2026-10-26
+
+Backspace/controller west on a focused Collection item now toggles equipment
+through the same ownership checks as right-click, including Poor items. Talent
+refunds keep their existing shortcut. Purchases, navigation and appearance buttons
+cannot be activated by this secondary gesture. Appearance remains independently
+selected through the Look controls or Shift-right-click. The Collection help
+names the new shortcut. Physical-controller acceptance remains open.
+
+Native checking exposed duplicate inspection actions in the collection grid and
+equipped sidebar. Grid controls now carry a distinct navigation identity so the
+focus is restored to the grid after an equip rebuild, including the layout delay.
+A regression test covers duplicate actions, delayed layout and one-frame requests.
+
+Validation: 319 Survivors app tests, scoped Clippy, native play build, formatting
+and diff checks pass. Native macOS menu checking rejected an unowned Poor item,
+then toggled gloves off/on with Backspace: +8 health disappeared/reappeared,
+the chosen look remained selected, and the final build retained grid focus with
+the equipped sidebar duplicate present. Compact 640×720 help wraps cleanly.
+Screenshots are inline in CHANGELOG and the README Collection image is refreshed.
+No physical controller or Windows runtime claim is made by this checkpoint.

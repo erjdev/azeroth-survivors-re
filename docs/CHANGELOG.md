@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Equip gear with keyboard or controller
+
+Backspace/controller west now equips or unequips the focused Collection item.
+The grid keeps focus when equipped items also appear in the sidebar. Ownership
+checks and independent appearance selections are preserved.
+
+Verified native keyboard equip/unequip and retained focus at 1280×720, plus
+compact help at 640×720. All 319 app tests, scoped Clippy and native build pass.
+Physical-controller acceptance remains open.
+
+![Keyboard unequip keeps the selected appearance](images/screenshots/2026-10-26-gear-secondary/unequipped-1280.png)
+
+![Keyboard re-equip retains grid focus](images/screenshots/2026-10-26-gear-secondary/equipped-1280.png)
+
+![Compact equipment shortcut help](images/screenshots/2026-10-26-gear-secondary/help-640.png)
+
 ## 2026-10-26 — Consistent Collection item details
 
 Poor gear now uses the same bordered item header and section hierarchy as other
