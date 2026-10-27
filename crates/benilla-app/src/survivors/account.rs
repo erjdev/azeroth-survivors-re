@@ -1393,25 +1393,23 @@ fn parse(text: &str) -> Result<Account, ()> {
                 let first = unescape(parts.next().ok_or(())?);
                 let last = unescape(parts.next().ok_or(())?);
                 let (spec, specs) = read_specs(parts.next().unwrap_or(""));
-                if class < data::CLASSES.len() {
-                    // All saved progression/body rows address heroes by ID, not class or name.
-                    // Ambiguous identities must preserve the file for recovery, never merge heroes.
-                    if account.character(id).is_some() {
-                        return Err(());
-                    }
-                    account.characters.push(Character {
-                        id,
-                        first,
-                        last,
-                        class,
-                        talent_xp,
-                        spec,
-                        specs,
-                        dbc: blank_dbc(),
-                        body: None,
-                        features: None,
-                    });
+                // A newer or damaged class identity cannot be dropped on the next save.
+                // Preserve the whole file through the existing load-failure recovery path.
+                if class >= data::CLASSES.len() || account.character(id).is_some() {
+                    return Err(());
                 }
+                account.characters.push(Character {
+                    id,
+                    first,
+                    last,
+                    class,
+                    talent_xp,
+                    spec,
+                    specs,
+                    dbc: blank_dbc(),
+                    body: None,
+                    features: None,
+                });
             }
             Some("features") => {
                 let values: Vec<_> = parts.collect();
@@ -1453,10 +1451,9 @@ fn parse(text: &str) -> Result<Account, ()> {
                 let gear = parts.next().unwrap_or("");
                 let legendary = parts.next().unwrap_or("0") == "1";
                 let clears = parts.next().unwrap_or("");
-                if let Some(progress) = account.classes.get_mut(index) {
-                    read_pieces(progress, gear, legendary);
-                    progress.clears = read_clears(clears);
-                }
+                let progress = account.classes.get_mut(index).ok_or(())?;
+                read_pieces(progress, gear, legendary);
+                progress.clears = read_clears(clears);
             }
             Some("equipment") => {
                 if let Some(index) = parts.next().and_then(|value| value.parse::<usize>().ok()) {
@@ -1717,6 +1714,9 @@ mod tests {
             &[0xff, 0xfe],
             b"who 1 0 100 First Hero\nwho 1 0 200 Second Hero\n",
             b"who 1 0 100 First Hero\nwho 1 1 200 Second Hero\n",
+            b"who 1 0 100 First Hero\nwho 2 9 200 Future Hero\ndbc 2 0:74:2||\n",
+            b"who 1 4294967295 200 Broken Hero\n",
+            b"who 1 0 100 First Hero\nclass 9 111111 1 111111111111\n",
         ] {
             std::fs::write(&path, bytes).unwrap();
             let mut account = Account::load_from(&path);

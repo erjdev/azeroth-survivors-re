@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Preserve unsupported class saves
+
+Loading an unsupported class in a hero or class-progress record now enters the
+existing recovery mode instead of silently dropping that progress on the next
+save. The original file stays untouched and saving/runs remain disabled.
+Supported classes and missing-save creation keep their existing behavior.
+
+Disk-level regressions cover valid heroes mixed with unsupported records, talent
+references, extreme class indices and refused writes. No interface appearance
+changed; the existing recovery notice is reused.
+All 418 app tests and Clippy pass on macOS, including byte-preservation checks.
+
 ## 2026-10-27 — Consistent cached integration checks
 
 `cargo survivors-test` now matches the PR gate, including visibility features;

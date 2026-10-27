@@ -7515,3 +7515,21 @@ Measured on macOS after 33c0e08: warm integration build 0.47 seconds, 418 tests 
 These demonstrate retained engine dependencies, not a speedup for changed app
 source. Cold bootstrap, Windows timings and architectural extraction remain open.
 No UI changed; this workflow checkpoint requires no replacement screenshots.
+
+
+### 2026-10-27 — Unsupported class records preserve the save
+
+The parser previously skipped out-of-range `who` and `class` rows, accepted the
+remaining account, then allowed a subsequent save to erase the skipped records.
+Both known record types now reject unsupported class identities and use the
+existing load-failure recovery path. This preserves the original bytes, refuses
+writes and prevents entry into a run; it does not reinterpret future classes as
+existing ones. Unknown extension records and other legacy parsing rules are
+unchanged. Disk-level regression cases include a valid hero beside a future-class
+hero with talent references, an extreme numeric class and an unsupported class
+progress row. The existing missing-file and valid round-trip checks remain.
+No new UI was added; the existing recovery notice handles this failure.
+
+Validation: all 418 app tests, app Clippy, formatting and diff checks pass on
+macOS. The integration build took 2m08 and execution 1.62 seconds. No Windows or
+browser execution is claimed for this parser change.
