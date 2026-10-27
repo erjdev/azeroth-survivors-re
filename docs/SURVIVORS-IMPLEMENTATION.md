@@ -6899,3 +6899,14 @@ Sampled browser error/warning logs were empty; no combat was started. Closed the
 temporary tab and stopped the loopback host. This replaces the older linked-build
 limitation through Preparation, but gameplay, Windows, browser input at the larger
 sizes, release optimization and long-session behavior remain unverified.
+
+### Talent purchase feedback — 2026-10-27
+
+Resolved the ambiguous rejection found during browser acceptance: purchases now
+report maximum rank, no available points, a named prerequisite or exact earlier-row
+required/current totals. Catalog validation remains authoritative, with repair
+guidance for an invalid saved tree. A real-DBC regression covers all rejection
+paths, unchanged saved specs, a successful purchase/refund and legacy-point return.
+377 app tests, app-test Clippy and native build pass. Native 1280×720 captures of
+zero-budget and funded-but-row-locked cases are embedded in CHANGELOG. Browser
+revalidation of this copy change and broader interface acceptance remain open.

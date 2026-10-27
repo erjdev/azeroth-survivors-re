@@ -1701,6 +1701,19 @@ fn spend_talent(
         }
         return format!("{name} rank {}", current - 1);
     }
+    if u32::from(current) >= talent.max_rank() {
+        return format!("{name} is already at maximum rank {}", talent.max_rank());
+    }
+    let character = account.character(hero).expect("selected hero exists");
+    // Match learn_talent: legacy skeleton ranks return to the pool on the first DBC spend.
+    let spent = character.dbc[usize::from(character.spec).min(2)]
+        .iter()
+        .map(|entry| u32::from(entry.2))
+        .sum();
+    if campaign::unspent_talents(character.talent_xp, spent) == 0 {
+        return "No talent points to spend. Earn talent experience in runs or refund a point."
+            .into();
+    }
     let prereq_met = if talent.prereq_talent == 0 {
         true
     } else {
@@ -1710,6 +1723,20 @@ fn spend_talent(
             .map(|c| c.dbc_rank(talent.prereq_talent) >= need)
             .unwrap_or(false)
     };
+    if !prereq_met {
+        return requirement(talent);
+    }
+    let earlier: u32 = list
+        .iter()
+        .filter(|entry| entry.row < talent.row)
+        .map(|entry| u32::from(character.dbc_rank(entry.id)))
+        .sum();
+    let required = talent.row.saturating_mul(5);
+    if earlier < required {
+        return format!(
+            "{name} requires {required} points in earlier rows of this tree; {earlier} spent."
+        );
+    }
     let proposed: Vec<_> = list
         .iter()
         .map(|entry| {
@@ -1727,11 +1754,7 @@ fn spend_talent(
         })
         .collect();
     if !talent_ranks_ok(list, &proposed) {
-        return if !prereq_met {
-            requirement(talent)
-        } else {
-            "That talent needs more points in earlier rows or is already full".into()
-        };
+        return "This saved tree is invalid. Refund conflicting ranks or reset this spec.".into();
     }
     if account.learn_talent(
         hero,
@@ -2294,6 +2317,77 @@ mod tests {
         armory.open_drop_source(usize::MAX);
         assert_eq!(armory.drop_zone, 1);
         assert_eq!(armory.piece, 17);
+    }
+
+    #[test]
+    fn talent_purchase_feedback_identifies_the_blocker_without_changing_saved_ranks() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        for (xp, ranks, id, expected) in [
+            (
+                0,
+                vec![],
+                69,
+                "No talent points to spend. Earn talent experience in runs or refund a point.",
+            ),
+            (
+                200,
+                vec![(2, 70, 2)],
+                70,
+                "Talent 70 is already at maximum rank 2",
+            ),
+            (
+                5100,
+                vec![],
+                69,
+                "Talent 69 requires 10 points in earlier rows of this tree; 0 spent.",
+            ),
+            (
+                5100,
+                vec![(2, 37, 5)],
+                69,
+                "Talent 69 requires 10 points in earlier rows of this tree; 5 spent.",
+            ),
+            (5100, vec![], 421, "Talent 421 requires Talent 86 rank 1"),
+            (
+                5100,
+                vec![(2, 37, 6)],
+                70,
+                "This saved tree is invalid. Refund conflicting ranks or reset this spec.",
+            ),
+        ] {
+            let mut account = account::empty();
+            let hero = account.ensure(6);
+            account.characters[0].talent_xp = xp;
+            account.characters[0].dbc[0] = ranks;
+            account.characters[0].dbc[1] = vec![(2, 37, 1)];
+            let before = account.characters[0].dbc.clone();
+            assert_eq!(
+                super::spend_talent(&mut account, hero, Some(&catalog), None, id, false),
+                expected
+            );
+            assert_eq!(account.characters[0].dbc, before);
+        }
+        let mut account = account::empty();
+        let hero = account.ensure(6);
+        account.characters[0].talent_xp = 100;
+        account.characters[0].specs[0][0] = 1;
+        assert_eq!(
+            super::spend_talent(&mut account, hero, Some(&catalog), None, 70, false),
+            "Talent 70 rank 1"
+        );
+        assert_eq!(account.characters[0].dbc_rank(70), 1);
+        assert_eq!(
+            account.characters[0].spent(),
+            0,
+            "first DBC purchase returns legacy points"
+        );
+        assert_eq!(
+            super::spend_talent(&mut account, hero, Some(&catalog), None, 70, true),
+            "Talent 70 rank 0"
+        );
+        assert_eq!(account.characters[0].dbc_rank(70), 0);
     }
 
     #[test]

@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Clear talent purchase feedback
+
+Unavailable purchases now distinguish no points, maximum rank, missing
+prerequisites and earlier-row requirements (including required/current totals).
+Invalid saved trees receive repair guidance. Rejections preserve saved ranks;
+the first real-tree purchase still returns legacy-spec points to the pool.
+
+377 app tests, app-test Clippy and the native build pass (27-second incremental
+build). Native 1280×720 captures verify the no-points and row-gate cases.
+
+![No points available](images/screenshots/2026-10-27-talent-feedback/no-points-1280.png)
+![Exact earlier-row requirement](images/screenshots/2026-10-27-talent-feedback/row-gate-1280.png)
+
 ## 2026-10-27 — Current browser UI checkpoint
 
 The current WebGPU package includes the painted starter and latest talent rules.
