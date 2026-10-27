@@ -348,7 +348,13 @@ mod tests {
             .all(|(entity, _, _)| !nav.routes[entity].path.is_empty()));
     }
 
-    fn route_around_solid(collider: avian3d::prelude::Collider, transform: Transform, fence: bool) {
+    fn route_around_solid(
+        collider: avian3d::prelude::Collider,
+        transform: Transform,
+        rejects_direct_spawn: bool,
+        start: Vec3,
+        goal: Vec3,
+    ) {
         use super::super::Floor;
         use avian3d::prelude::*;
         use benilla_world::collision::MoverTraceExclusions;
@@ -367,10 +373,10 @@ mod tests {
             RigidBody::Static,
             Collider::trimesh(
                 vec![
-                    Vec3::new(-20., 0., -20.),
-                    Vec3::new(20., 0., -20.),
-                    Vec3::new(20., 0., 20.),
-                    Vec3::new(-20., 0., 20.),
+                    Vec3::new(-100., 0., -100.),
+                    Vec3::new(100., 0., -100.),
+                    Vec3::new(100., 0., 100.),
+                    Vec3::new(-100., 0., 100.),
                 ],
                 vec![[0, 2, 1], [0, 3, 2]],
             ),
@@ -383,17 +389,16 @@ mod tests {
         app.update();
         app.world_mut()
             .run_system_once(move |floor: Floor| {
-                let goal = Vec3::X * 8.;
+                assert!(floor.can_spawn(start, 0.6));
                 assert!(floor.can_spawn(goal, 0.6));
-                if fence {
+                if rejects_direct_spawn {
                     assert!(
-                        !floor.can_spawn_from(Vec3::ZERO, goal, 0.6),
-                        "do not spawn beyond an unverified fence connection"
+                        !floor.can_spawn_from(start, goal, 0.6),
+                        "do not spawn beyond an obstructed direct connection"
                     );
                 }
-                assert!(floor.can_spawn_from(Vec3::X * 6., goal, 0.6));
-                assert!(floor.travel(Vec3::ZERO, goal, 0.6).x < 7.5);
-                let mut search = Search::new(Vec3::ZERO, goal);
+                assert!(floor.travel(start, goal, 0.6).distance(goal) > 0.5);
+                let mut search = Search::new(start, goal);
                 let mut found = None;
                 for _ in 0..400 {
                     match search.advance(8, |a, b| {
@@ -409,7 +414,7 @@ mod tests {
                     }
                 }
                 let path = found.expect("bounded search completes");
-                let mut at = Vec3::ZERO;
+                let mut at = start;
                 for waypoint in path {
                     for _ in 0..100 {
                         if flat(waypoint - at).length() <= 0.05 {
@@ -435,7 +440,59 @@ mod tests {
             avian3d::prelude::Collider::cuboid(1., 4., 6.),
             Transform::from_xyz(4., 2., 0.),
             true,
+            Vec3::ZERO,
+            Vec3::X * 8.,
         );
+    }
+
+    #[test]
+    fn authored_elwynn_trees_allow_body_clear_detours() {
+        let Some(data) = std::env::var_os("WOW_DATA").filter(|path| !path.is_empty()) else {
+            eprintln!("SKIP authored tree routes: set WOW_DATA explicitly");
+            return;
+        };
+        let mut chain = benilla_formats::open_chain(std::path::Path::new(&data)).unwrap();
+        for model in [
+            "canopylesstree01",
+            "elwynntreecanopy01",
+            "elwynntreecanopy02",
+            "elwynntreecanopy03",
+            "elwynntreecanopy04",
+            "elwynntreemid01",
+        ] {
+            let path = format!("World/azeroth/elwynn/passivedoodads/trees/{model}.m2");
+            let hull = benilla_formats::load_m2_collision_hull(&mut chain, &path).unwrap();
+            assert!(!hull.is_empty(), "{model}");
+            let extent = hull
+                .positions
+                .iter()
+                .map(|p| {
+                    flat(benilla_assets::coords::wow_to_bevy(*p))
+                        .abs()
+                        .max_element()
+                })
+                .fold(0_f32, f32::max)
+                + 4.;
+            for axis in [Vec3::X, Vec3::NEG_X, Vec3::Z, Vec3::NEG_Z] {
+                eprintln!("tree route: {model}, approach {axis:?}");
+                let vertices = hull
+                    .positions
+                    .iter()
+                    .map(|p| benilla_assets::coords::wow_to_bevy(*p))
+                    .collect();
+                let collider = avian3d::prelude::Collider::trimesh(
+                    vertices,
+                    hull.indices.as_chunks::<3>().0.to_vec(),
+                );
+                route_around_solid(
+                    collider,
+                    Transform::default(),
+                    false,
+                    axis * extent,
+                    -axis * extent,
+                );
+            }
+        }
     }
 
     #[test]
@@ -465,7 +522,13 @@ mod tests {
                 vertices,
                 hull.indices.as_chunks::<3>().0.to_vec(),
             );
-            route_around_solid(collider, Transform::from_xyz(4., 0., 0.), false);
+            route_around_solid(
+                collider,
+                Transform::from_xyz(4., 0., 0.),
+                false,
+                Vec3::ZERO,
+                Vec3::X * 8.,
+            );
         }
     }
 }

@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Elwynn tree route regression
+
+Added movement playback around six actual Elwynn tree hulls from four directions
+(24 routes). Each case requires clear endpoints, a blocked direct body sweep, a
+bounded A* detour, and body-clear steps all the way to the destination. Existing
+fence and three chest-model cases remain covered.
+
+368 Survivors app tests, app-test Clippy and formatting pass with checkout-local
+data. This is headless validation
+on flat ground, not Windows scene acceptance; no runtime or visual change.
+Rotated placements, terrain, crowds and foliage rendering remain live checks.
+
 ## 2026-10-27 — Achievable completion totals
 
 Completion now counts the 56 achievements with defined criteria. Deathless Hour

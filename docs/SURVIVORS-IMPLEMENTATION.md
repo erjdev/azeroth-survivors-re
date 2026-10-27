@@ -4922,6 +4922,11 @@ with captures. The implemented route search is bounded incremental A*, not IDA*.
 Talent artwork must retain its 300:331 painted proportions with centered square
 icons at wide and compact sizes. Existing macOS captures and synthetic tests do not
 close these exact Windows reproduction checks.
+A further headless regression loads six Elwynn source tree hulls and plays back
+body-clear A* detours from four directions (24 routes), with endpoints outside
+the model bounds. All pass alongside the fence/chest fixtures in the 368-test
+Survivors app suite. These unrotated flat-ground fixtures do not establish
+placement/terrain/crowd behavior in the reported Windows scene.
 
 
 ### 2026-10-26 — Individual Druid Restoration capstones
