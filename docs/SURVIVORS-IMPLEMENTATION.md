@@ -7266,3 +7266,20 @@ Windows scene replay and the broader seven-phase acceptance remain open.
 Verification: 209 core tests, 400 app tests, both scoped Clippy checks and the
 18-second native build pass. Real-data coverage: 252/432 definitions, including
 23/51 Rogue nodes. 180 talent definitions remain unimplemented.
+
+
+### 2026-10-27 — Rogue Adrenaline Rush
+
+DBC node 205 now starts an automatic 15-second burst on a successful Rogue cast,
+with 300-second recovery from activation. New Rogue casts receive 50% shorter
+cooldowns, multiplying the existing Combat milestone and individual reductions.
+Existing cooldowns, Sprint, Cold Blood recovery and other-class abilities stay
+unchanged. This explicitly documented conversion replaces energy regeneration;
+there is no energy resource. Run time pauses freeze the window. HUD status reports
+active time; the real-data purchase/spec/refund path and native menu capture are
+part of this checkpoint. The existing 30-point milestone remains separate.
+
+Validation: 210 core / 403 app tests, both scoped Clippy checks, formatting and
+native build pass. Real-data catalog audit: 253/432 definitions (Rogue 24/51);
+179 remain. Native menu preview and purchase screenshots are in the changelog;
+these do not close live combat, balance, Windows or full interface acceptance.

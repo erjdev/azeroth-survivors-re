@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Rogue Adrenaline Rush
+
+Adrenaline Rush now grants a 15-second burst of 50% shorter Rogue cast
+cooldowns, starting on a successful cast and recovering after five minutes.
+It replaces placeholder damage and adds an active HUD timer. Failed targeting
+does not spend it; Sprint and existing cooldowns are unchanged.
+
+![Adrenaline Rush inline upgrade preview](images/screenshots/2026-10-27-adrenaline-rush/preview.png)
+
+![Purchased talent in the Combat tree](images/screenshots/2026-10-27-adrenaline-rush/purchased.png)
+
+210 core / 403 app tests, both Clippy checks and native build pass.
+Definitions: 253/432. Native 1280×720 menu capture; live combat balance and
+Windows acceptance remain open.
+
 ## 2026-10-27 — Rogue Endurance and Sprint recovery
 
 Endurance now reduces Sprint's 15-second cooldown to 13.5 / 12 seconds,

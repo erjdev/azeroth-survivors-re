@@ -362,6 +362,8 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 
 | Talent (DBC ID) | Ranks | Survivors effect per rank |
 |---|---|---|
+| Adrenaline Rush (205) | 1 | First successful Rogue cast starts a 15 sec burst: casts assign 50% shorter cooldowns, multiplying other bonuses. Ready at run start; 300 sec recovery. Existing cooldowns, Sprint and Cold Blood recovery unchanged; energy-regeneration conversion |
+| Endurance (204) | 2 | Sprint cooldown reduced by 10% per rank: 15 / 13.5 / 12 sec; speed, duration and level-five unlock unchanged |
 | Improved Slice and Dice (277) | 3 | Blade Flurry: 5% shorter cooldown per rank; automatic Slice and Dice conversion |
 | Elusiveness (247) | 2 | Gouge and Kidney Shot: 10% shorter cooldown per rank; defensive cooldown conversion, no stealth required |
 | Vigor (382) | 1 | Rogue spells: 10% shorter cooldown; energy-capacity conversion |

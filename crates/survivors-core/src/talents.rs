@@ -10,7 +10,7 @@ mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::{PetBonus, PetFrenzy};
 pub use mage::{ArcanePowerClock, ColdSnapClock};
-pub use rogue::PreparationClock;
+pub use rogue::{AdrenalineRushClock, PreparationClock};
 mod shaman;
 mod warlock;
 
@@ -1456,6 +1456,7 @@ pub enum TalentStat {
     PetMend,
     ColdSnap,
     ArcanePower,
+    AdrenalineRush,
     PowerInfusion,
     Preparation,
     SiphonLife,
@@ -1604,6 +1605,7 @@ impl TalentDefinition {
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
+            | TalentStat::AdrenalineRush
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
@@ -1843,6 +1845,10 @@ impl TalentDefinition {
             TalentStat::PowerInfusion => {
                 (100.0, "% Priest damage and healing during Power Infusion")
             }
+            TalentStat::AdrenalineRush => (
+                100.0,
+                "% shorter Rogue cast cooldown during Adrenaline Rush",
+            ),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
             TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
             TalentStat::PetMend => (100.0, "% combat wolf maximum health restored per sec"),
@@ -2810,6 +2816,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 205, max_rank: 1, name: "Adrenaline Rush",
+        description: "Rogue abilities: 50% shorter cooldown for casts during a 15 sec burst, starting with the first successful cast. Ready at run start; recovers 300 sec after use. Multiplies other cooldown bonuses. Existing cooldowns, Sprint and Cold Blood recovery are unchanged; pauses stop timers (Survivors automatic energy-regeneration conversion)",
+        stat: TalentStat::AdrenalineRush, per_rank: 0.50,
+    },
+    TalentDefinition {
         id: 204, max_rank: 2, name: "Endurance",
         description: "Sprint: 10% shorter cooldown per rank. Does not change its speed or duration; learned at hero level 5 and activated with F (Survivors cooldown conversion; Evasion is not an owned ability)",
         stat: TalentStat::SpellCooldown("sprint"), per_rank: 0.10,
@@ -3130,6 +3141,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
+            | TalentStat::AdrenalineRush
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
@@ -4527,6 +4539,7 @@ mod stat_talent_tests {
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus
+                    | TalentStat::AdrenalineRush
                     | TalentStat::ArcanePower
                     | TalentStat::PowerInfusion
                     | TalentStat::DivineFavor

@@ -2841,6 +2841,63 @@ mod tests {
     }
 
     #[test]
+    fn adrenaline_rush_purchase_save_and_refund_reach_clock() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(3);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (1, 203, 3),
+            (1, 201, 2),
+            (1, 181, 5),
+            (1, 187, 5),
+            (1, 204, 2),
+            (1, 221, 5),
+            (1, 223, 1),
+            (1, 242, 5),
+            (1, 1703, 2),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(3, hero);
+        for _ in 0..1 {
+            assert!(account.learn_talent(hero, 1, 205, 1, 6, true));
+        }
+        assert!(!account.learn_talent(hero, 1, 205, 1, 6, true));
+        assert!((account.bonus(3, hero).might - before.might).abs() < 0.00001);
+        let bonus = |account: &Account| {
+            survivors_core::talents::AdrenalineRushClock::default().bonus(
+                account.milestones_picked(3, Some(hero)),
+                "sinister_strike",
+                0.,
+            )
+        };
+        assert_eq!(bonus(&account), 0.5);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(bonus(&loaded), 0.5);
+        loaded.select_spec(hero, 1);
+        assert_eq!(bonus(&loaded), 0.0);
+        loaded.select_spec(hero, 0);
+        assert_eq!(bonus(&loaded), 0.5);
+        assert!(loaded.unlearn_talent(hero, 205, true));
+        assert_eq!(bonus(&loaded), 0.0);
+        assert!(!loaded.unlearn_talent(hero, 205, true));
+    }
+
+    #[test]
     fn leader_of_the_pack_purchase_save_specs_and_refund_reach_run_stats() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

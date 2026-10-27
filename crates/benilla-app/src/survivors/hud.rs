@@ -1842,6 +1842,13 @@ fn reactive_buff_status(run: &Run) -> String {
         return String::new();
     }
     let mut active = Vec::new();
+    let rush_remaining = run.adrenaline_rush.remaining(run.milestones, run.elapsed);
+    if rush_remaining > 0.0 {
+        active.push(format!(
+            "Adrenaline Rush: 50% shorter Rogue cast cooldown ({:.0}s)",
+            rush_remaining.ceil()
+        ));
+    }
     let power_remaining = run.arcane_power.remaining(run.milestones, run.elapsed);
     if power_remaining > 0.0 {
         active.push(format!(
@@ -3669,6 +3676,39 @@ mod power_infusion_status_tests {
         assert_eq!(
             reactive_buff_status(&run),
             "Power Infusion +20% Priest damage/healing (14s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.elapsed = 15.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 1.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod adrenaline_rush_status_tests {
+    use super::*;
+    #[test]
+    fn active_rush_status_expires_and_hides_on_death_or_refund() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[3],
+            milestones: survivors_core::talents::Milestones {
+                class: 3,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 205, 1)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.adrenaline_rush
+            .consume(run.milestones, "sinister_strike", 0.);
+        run.elapsed = 1.2;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Adrenaline Rush: 50% shorter Rogue cast cooldown (14s)"
         );
         run.hp = 0.;
         assert!(reactive_buff_status(&run).is_empty());

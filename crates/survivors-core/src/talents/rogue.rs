@@ -110,3 +110,88 @@ mod tests {
         assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }
+
+/// One automatic burst window, consumed only after a successful Rogue cast.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct AdrenalineRushClock {
+    next: f32,
+    until: f32,
+}
+
+impl AdrenalineRushClock {
+    pub fn bonus(self, talents: Milestones, key: &str, elapsed: f32) -> f32 {
+        if !elapsed.is_finite()
+            || elapsed < 0.0
+            || talents.class != 3
+            || !ROGUE_SPELLS.contains(&key)
+            || (elapsed >= self.until && elapsed < self.next)
+        {
+            return 0.0;
+        }
+        talents.trained_value(TalentStat::AdrenalineRush)
+    }
+
+    pub fn consume(&mut self, talents: Milestones, key: &str, elapsed: f32) {
+        if elapsed >= self.next && self.bonus(talents, key, elapsed) > 0.0 {
+            self.until = elapsed + 15.0;
+            self.next = elapsed + 300.0;
+        }
+    }
+
+    pub fn remaining(self, talents: Milestones, elapsed: f32) -> f32 {
+        if !elapsed.is_finite()
+            || elapsed < 0.0
+            || talents.class != 3
+            || talents.trained_value(TalentStat::AdrenalineRush) <= 0.0
+        {
+            return 0.0;
+        }
+        (self.until - elapsed).max(0.0)
+    }
+}
+
+#[cfg(test)]
+mod adrenaline_rush_tests {
+    use super::*;
+    #[test]
+    fn burst_waits_for_a_cast_expires_and_recovers_without_banked_charges() {
+        for rank in [0, 1, 255] {
+            let base = Milestones {
+                class: 3,
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(1, 205, rank)]);
+            let expected = if rank == 0 { 0.0 } else { 0.5 };
+            let mut clock = AdrenalineRushClock::default();
+            for elapsed in [-1.0, f32::NAN, f32::INFINITY] {
+                clock.consume(trained, "sinister_strike", elapsed);
+                assert_eq!(clock.bonus(trained, "sinister_strike", elapsed), 0.0);
+                assert_eq!(clock.remaining(trained, elapsed), 0.0);
+            }
+            clock.consume(trained, "smite", 0.0);
+            assert_eq!(clock.remaining(trained, 0.0), 0.0);
+            assert_eq!(clock.bonus(trained, "sinister_strike", 1000.0), expected);
+            clock.consume(trained, "sinister_strike", 1000.0);
+            for key in ROGUE_SPELLS {
+                assert_eq!(clock.bonus(trained, key, 1014.99), expected);
+            }
+            clock.consume(trained, "rupture", 1014.0);
+            assert_eq!(clock.bonus(trained, "sinister_strike", 1015.0), 0.0);
+            assert_eq!(clock.bonus(trained, "sinister_strike", 1299.99), 0.0);
+            assert_eq!(clock.bonus(trained, "sinister_strike", 1300.0), expected);
+            assert_eq!(clock.bonus(base, "sinister_strike", 1300.0), 0.0);
+            assert_eq!(clock.bonus(trained, "smite", 1001.0), 0.0);
+            for class in [0, 6, 8] {
+                assert_eq!(
+                    clock.bonus(Milestones { class, ..trained }, "sinister_strike", 1001.0),
+                    0.0
+                );
+            }
+        }
+        assert!(super::super::talent_definition(3, 205)
+            .unwrap()
+            .inline_description(0)
+            .unwrap()
+            .starts_with("Rogue abilities: 0 » 50% shorter cooldown"));
+    }
+}
