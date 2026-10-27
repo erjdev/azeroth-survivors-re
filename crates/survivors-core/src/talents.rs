@@ -9,7 +9,7 @@ pub use priest::{BlessedRecovery, PowerInfusionClock};
 mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::{PetBonus, PetFrenzy};
-pub use mage::{ArcanePowerClock, ColdSnapClock};
+pub use mage::{ArcanePowerClock, ColdSnapClock, CombustionClock};
 pub use rogue::{AdrenalineRushClock, PreparationClock};
 mod shaman;
 mod warlock;
@@ -1472,6 +1472,7 @@ pub enum TalentStat {
     PetMend,
     ColdSnap,
     ArcanePower,
+    Combustion,
     AdrenalineRush,
     PowerInfusion,
     Preparation,
@@ -1623,6 +1624,7 @@ impl TalentDefinition {
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
             | TalentStat::AdrenalineRush
+            | TalentStat::Combustion
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
@@ -1869,6 +1871,7 @@ impl TalentDefinition {
                 100.0,
                 "% shorter Rogue cast cooldown during Adrenaline Rush",
             ),
+            TalentStat::Combustion => (100.0, "% Fire critical chance per direct hit"),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
             TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
             TalentStat::PetMend => (100.0, "% combat wolf maximum health restored per sec"),
@@ -2604,6 +2607,9 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 36, max_rank: 1, name: "Combustion",
+        description: "Mage Fire spells: +10% critical chance initially and per landed damaging direct hit, capped at 100%. Ends after three direct critical hits; recovers 180 sec after ending. Area targets count separately; burns and multistrike echoes do not count. Pauses stop recovery (Survivors automatic conversion)",
+        stat: TalentStat::Combustion, per_rank: 0.10 },
     TalentDefinition { id: 87, max_rank: 1, name: "Arcane Power",
         description: "Mage spells: +30% direct and periodic damage for 15 sec, starting with the next successful Mage cast. Ready at run start; recovers 180 sec after activation. Casts snapshot the bonus for their full duration. Pauses stop both timers. Excludes foreign spells (Survivors automatic conversion; no mana surcharge)",
         stat: TalentStat::ArcanePower, per_rank: 0.30 },
@@ -3190,6 +3196,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
             | TalentStat::AdrenalineRush
+            | TalentStat::Combustion
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
@@ -4661,6 +4668,7 @@ mod stat_talent_tests {
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus
                     | TalentStat::AdrenalineRush
+                    | TalentStat::Combustion
                     | TalentStat::ArcanePower
                     | TalentStat::PowerInfusion
                     | TalentStat::DivineFavor

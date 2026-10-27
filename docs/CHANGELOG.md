@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Mage Combustion
+
+Combustion now builds Fire critical chance from landed direct hits, ends after
+three critical hits and recovers after three minutes. Area targets count separately;
+burns and multistrike echoes do not. The HUD reports burst progress.
+
+![Combustion inline preview](images/screenshots/2026-10-27-combustion/preview.png)
+
+![Combustion learned in the Fire spec](images/screenshots/2026-10-27-combustion/purchased.png)
+
+216 core and 418 app tests, core/app Clippy, formatting and diff checks pass.
+Definition coverage: 261/432 (Mage 34/49); 171 definitions remain.
+Native 1280×720 purchase and description checked; native build: 108 seconds.
+Live balance, combat HUD appearance and Windows acceptance remain open.
+
 ## 2026-10-27 — Scoped caster talents
 
 Shadow Focus, Nature’s Guidance and Suppression now strengthen their named

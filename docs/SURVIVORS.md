@@ -452,6 +452,19 @@ hit after armor and percentage reduction, before temporary shields. Damage canno
 fall below zero. This is an always-active self-only Survivors conversion; it
 grants neither block chance nor retaliation damage.
 
+### Mage Combustion (initial)
+
+Combustion (36, one rank) starts ready with ten percentage points of additional
+Fire critical chance. Each landed damaging direct Fire hit adds another ten
+points, capped at 100%; the third direct critical hit ends the burst and starts
+180 seconds of recovery in active run time. Fireball, Fire Blast, Pyroblast,
+Blast Wave and Flamestrike impacts qualify. Area targets count separately;
+periodic burns, foreign spells, invalid targets and multistrike echoes do not.
+Direct casts snapshot critical chance when fired; ground impacts read it when
+pulsing. Existing in-flight attacks keep their rolled result. The HUD shows
+active chance and critical-hit progress. This automatic Survivors conversion
+replaces the individual node’s provisional damage, independently of tree milestones.
+
 ### Scoped caster accuracy conversions
 
 Shadow Focus (Priest 463, five ranks) adds 2% direct and periodic damage per

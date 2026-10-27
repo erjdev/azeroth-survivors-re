@@ -2873,6 +2873,60 @@ mod tests {
     }
 
     #[test]
+    fn combustion_purchase_persists_and_spec_refund_remove_the_burst() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(6);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (1, 26, 5),
+            (1, 30, 5),
+            (1, 34, 5),
+            (1, 28, 2),
+            (1, 27, 3),
+            (1, 31, 3),
+            (1, 1141, 2),
+            (1, 33, 3),
+            (1, 35, 2),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(6, hero);
+        assert!(account.learn_talent(hero, 1, 36, 1, 6, true));
+        assert!(!account.learn_talent(hero, 1, 36, 1, 6, true));
+        assert!((account.bonus(6, hero).might - before.might).abs() < 0.00001);
+        let bonus = |account: &Account| {
+            survivors_core::talents::CombustionClock::default().bonus(
+                account.milestones_picked(6, Some(hero)),
+                "fireball",
+                0.,
+            )
+        };
+        assert_eq!(bonus(&account), 0.1);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(bonus(&loaded), 0.1);
+        loaded.select_spec(hero, 1);
+        assert_eq!(bonus(&loaded), 0.);
+        loaded.select_spec(hero, 0);
+        assert_eq!(bonus(&loaded), 0.1);
+        assert!(loaded.unlearn_talent(hero, 36, true));
+        assert_eq!(bonus(&loaded), 0.);
+    }
+
+    #[test]
     fn inspiration_purchase_persists_and_spec_refund_restore_armor() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

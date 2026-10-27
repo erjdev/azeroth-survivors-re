@@ -7423,3 +7423,22 @@ This does not close the Windows scene reports in WINDOWS-PLAYTEST.md.
 
 Validation: 215 core tests, 415 app tests, core/app Clippy, native build, formatting
 and diff checks pass. Existing block-crate future-compatibility warning remains.
+
+### 2026-10-27 — Mage Combustion
+
+The final Fire node now grants an automatic critical-chance burst, starting at
+10 percentage points and adding ten per landed damaging direct Fire hit. Three
+critical hits end it; recovery is 180 seconds of active run time. Area targets
+count independently, while burns and multistrike echoes do not. Direct attacks
+retain their critical roll from casting; ground impacts use current burst state.
+The HUD exposes chance and critical-hit progress. Tree milestones remain separate.
+
+Core coverage checks rank/class/spell scope, invalid inputs, growth cap, recovery
+and absence of banked charges. App coverage exercises direct and ground hits,
+three-target casts, multistrike, unrelated spells, real-DBC purchases, saved specs,
+refunds and HUD text. Native 1280×720 captures of preview and purchase are embedded
+in the changelog. Catalog coverage is 261/432 (Mage 34/49); 171 definitions remain.
+Live balance, actual combat HUD rendering and Windows scene acceptance remain open.
+
+Validation: 216 core tests, 418 app tests, core/app Clippy, native build, formatting
+and diff checks pass. Existing block-crate future-compatibility warning remains.

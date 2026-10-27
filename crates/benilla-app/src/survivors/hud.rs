@@ -1849,6 +1849,12 @@ fn reactive_buff_status(run: &Run) -> String {
             rush_remaining.ceil()
         ));
     }
+    if let Some((bonus, criticals)) = run.combustion.progress(run.milestones, run.elapsed) {
+        active.push(format!(
+            "Combustion +{:.0}% Fire critical chance ({criticals}/3 critical hits)",
+            bonus * 100.0
+        ));
+    }
     let power_remaining = run.arcane_power.remaining(run.milestones, run.elapsed);
     if power_remaining > 0.0 {
         active.push(format!(
@@ -3754,6 +3760,39 @@ mod adrenaline_rush_status_tests {
         assert!(reactive_buff_status(&run).is_empty());
         run.elapsed = 1.;
         run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod combustion_status_tests {
+    use super::*;
+    #[test]
+    fn combustion_status_tracks_burst_and_hides_on_completion_refund_or_death() {
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 36, 1)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.combustion
+            .hit(run.milestones, "fireball", 10., true, 0.);
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Combustion +20% Fire critical chance (1/3 critical hits)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        let trained = run.milestones;
+        run.milestones = trained.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+        run.milestones = trained;
+        run.combustion.hit(trained, "fireball", 10., true, 0.);
+        run.combustion.hit(trained, "fireball", 10., true, 0.);
         assert!(reactive_buff_status(&run).is_empty());
     }
 }

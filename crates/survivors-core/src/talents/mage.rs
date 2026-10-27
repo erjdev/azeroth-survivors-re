@@ -168,3 +168,119 @@ mod arcane_power_tests {
             .starts_with("Mage spells: +0 » 30% direct and periodic damage"));
     }
 }
+
+/// Automatic Fire burst; only landed direct hits advance it, once before echoes.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct CombustionClock {
+    next: f32,
+    hits: u8,
+    criticals: u8,
+}
+
+impl CombustionClock {
+    pub fn bonus(self, talents: Milestones, key: &str, elapsed: f32) -> f32 {
+        if !elapsed.is_finite()
+            || elapsed < self.next
+            || elapsed < 0.0
+            || talents.class != 6
+            || !MAGE_FIRE.contains(&key)
+        {
+            return 0.0;
+        }
+        (talents.trained_value(TalentStat::Combustion) * (1.0 + f32::from(self.hits))).min(1.0)
+    }
+
+    pub fn hit(
+        &mut self,
+        talents: Milestones,
+        key: &str,
+        damage: f32,
+        critical: bool,
+        elapsed: f32,
+    ) {
+        if !damage.is_finite() || damage <= 0.0 || self.bonus(talents, key, elapsed) <= 0.0 {
+            return;
+        }
+        self.hits = self.hits.saturating_add(1).min(9);
+        self.criticals += u8::from(critical);
+        if self.criticals == 3 {
+            self.next = elapsed + 180.0;
+            self.hits = 0;
+            self.criticals = 0;
+        }
+    }
+
+    pub fn progress(self, talents: Milestones, elapsed: f32) -> Option<(f32, u8)> {
+        let bonus = self.bonus(talents, "fireball", elapsed);
+        (self.hits > 0 && bonus > 0.0).then_some((bonus, self.criticals))
+    }
+}
+
+#[cfg(test)]
+mod combustion_tests {
+    use super::*;
+    #[test]
+    fn fire_hits_build_then_three_criticals_recover_without_banked_bursts() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        for rank in [0, 1, 255] {
+            let talents = base.with_ranks(&[(1, 36, rank)]);
+            let mut clock = CombustionClock::default();
+            let initial = if rank > 0 { 0.1 } else { 0.0 };
+            for key in MAGE_FIRE {
+                assert_eq!(clock.bonus(talents, key, 0.0), initial);
+            }
+            for key in [
+                "frostbolt",
+                "arcane_explosion",
+                "immolate",
+                "Ignite",
+                "Thorns",
+            ] {
+                clock.hit(talents, key, 10.0, true, 0.0);
+                assert_eq!(clock.bonus(talents, key, 0.0), 0.0);
+            }
+            for damage in [0.0, -1.0, f32::NAN, f32::INFINITY] {
+                clock.hit(talents, "fireball", damage, true, 0.0);
+            }
+            for elapsed in [-1.0, f32::NAN, f32::INFINITY] {
+                clock.hit(talents, "fireball", 10.0, true, elapsed);
+                assert_eq!(clock.bonus(talents, "fireball", elapsed), 0.0);
+            }
+            assert_eq!(clock.progress(talents, 0.0), None);
+            for _ in 0..20 {
+                clock.hit(talents, "fireball", 10.0, false, 0.0);
+            }
+            assert_eq!(
+                clock.bonus(talents, "fireball", 0.0),
+                if rank > 0 { 1.0 } else { 0.0 }
+            );
+            clock.hit(talents, "flamestrike", 10.0, true, 5.0);
+            clock.hit(talents, "blast_wave", 10.0, true, 5.0);
+            assert_eq!(
+                clock.progress(talents, 5.0),
+                if rank > 0 { Some((1.0, 2)) } else { None }
+            );
+            clock.hit(talents, "pyroblast", 10.0, true, 5.0);
+            assert_eq!(clock.bonus(talents, "fireball", 184.99), 0.0);
+            assert_eq!(clock.bonus(talents, "fireball", 185.0), initial);
+            assert_eq!(clock.bonus(talents, "fireball", 10000.0), initial);
+            assert_eq!(clock.progress(talents, 185.0), None);
+            assert_eq!(clock.bonus(base, "fireball", 185.0), 0.0);
+            for class in [0, 1, 2, 3, 4, 5, 7, 8] {
+                assert_eq!(
+                    clock.bonus(Milestones { class, ..talents }, "fireball", 185.0),
+                    0.0
+                );
+            }
+        }
+        let node = super::super::talent_definition(6, 36).unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .contains("+0 » 10% critical chance"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
+}

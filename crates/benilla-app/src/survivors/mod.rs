@@ -520,6 +520,7 @@ pub(super) struct Run {
     critical_cast: survivors_core::talents::CriticalCastClock,
     power_infusion: survivors_core::talents::PowerInfusionClock,
     arcane_power: survivors_core::talents::ArcanePowerClock,
+    combustion: survivors_core::talents::CombustionClock,
     adrenaline_rush: survivors_core::talents::AdrenalineRushClock,
     /// Rings, trinkets and amulets worn this run.
     worn: campaign::Worn,
@@ -611,6 +612,7 @@ impl Default for Run {
             preparation: default(),
             critical_cast: default(),
             arcane_power: default(),
+            combustion: default(),
             adrenaline_rush: default(),
             power_infusion: default(),
             worn: campaign::Worn::default(),

@@ -336,6 +336,7 @@ pub(super) fn cast_abilities(
         p.dmg *= power;
         p.dot *= power;
         let crit_chance = (p.crit
+            + run.combustion.bonus(run.milestones, def.key, run.elapsed)
             + run.remorseless_crit(def.key)
             + run
                 .critical_cast
@@ -788,7 +789,12 @@ pub(super) fn tick_areas(
     for (e, tf, mut area) in &mut areas {
         let stats = stats.for_spell(area.source);
         let training = run.milestones.cast(area.source);
-        let crit_chance = (stats.crit + training.crit).min(1.0);
+        let crit_chance = (stats.crit
+            + training.crit
+            + run
+                .combustion
+                .bonus(run.milestones, area.source, run.elapsed))
+        .min(1.0);
         let crit_damage = stats.crit_damage + training.crit_damage;
         if area.left <= 0.0 {
             commands.entity(e).despawn();
@@ -1169,6 +1175,10 @@ pub(super) fn apply_hits(
                 run.heal(heal, stats.max_hp);
             }
         }
+        let talents = run.milestones;
+        let elapsed = run.elapsed;
+        run.combustion
+            .hit(talents, h.source, h.damage, h.crit, elapsed);
         run.record_flurry_hit(h.source, h.damage, h.crit);
         run.record_vengeance_hit(h.source, dmg, h.crit);
         let bleed = run.milestones.critical_bleed(h.source, h.damage, h.crit);
@@ -2428,6 +2438,135 @@ mod milestone_tests {
                     0.
                 }
             );
+        }
+    }
+
+    #[test]
+    fn combustion_reaches_direct_and_ground_fire_hits_then_recovers() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["fireball", "flamestrike", "blast_wave", "frostbolt"] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[6],
+                milestones: Milestones {
+                    class: 6,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 36, 1)]),
+                ..Default::default()
+            };
+            run.bonus.targets = 2;
+            run.bonus.multistrike = 2.;
+            run.abilities.push(super::super::Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+            let baseline = Params::new(&run.abilities[0], &run.stats(), run.milestones).crit;
+            let seed = (1..1000000)
+                .find(|seed| {
+                    let mut rng = Rng(*seed);
+                    (0..3).all(|_| {
+                        let roll = rng.f32();
+                        roll > baseline && roll < baseline + 0.1
+                    })
+                })
+                .unwrap();
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .insert_resource(super::super::account::empty())
+                .init_resource::<super::super::Selection>()
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>()
+                .add_message::<Loot>()
+                .add_message::<FieldChanged>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            {
+                let run = app.world().resource::<Run>();
+                assert_eq!(run.combustion.progress(run.milestones, 0.), None);
+            }
+            for index in 1..=3 {
+                app.world_mut().spawn((
+                    Guid(index),
+                    Transform::from_xyz(index as f32, 0., 0.),
+                    ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                    Marks::debuffs(),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 10000.,
+                        max_hp: 10000.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slow: 1.,
+                        slow_t: 0.,
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ));
+            }
+            app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            if key == "flamestrike" {
+                app.world_mut()
+                    .resource_mut::<Time>()
+                    .advance_by(std::time::Duration::from_secs_f32(0.5));
+                app.world_mut().run_system_once(tick_areas).unwrap();
+            }
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            assert_eq!(hits.len(), 3, "{key}");
+            for hit in &hits {
+                assert_eq!(hit.crit, key != "frostbolt", "{key}");
+            }
+            // Fireball's native splash reaches all three clustered enemies on the first hit.
+            // Other tested Fire spells deliver one hit per area target without splash expansion.
+            assert_eq!(hits[0].splash > 0., key == "fireball");
+            for (index, hit) in hits.into_iter().enumerate() {
+                app.world_mut().resource_mut::<Messages<Hit>>().write(hit);
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                app.world_mut().resource_mut::<Messages<Hit>>().clear();
+                let run = app.world().resource::<Run>();
+                if key == "frostbolt" {
+                    assert_eq!(run.combustion.progress(run.milestones, 0.), None);
+                } else if index < 2 && key != "fireball" {
+                    assert_eq!(
+                        run.combustion.progress(run.milestones, 0.).unwrap().1,
+                        index as u8 + 1,
+                        "multistrike must not consume extra criticals"
+                    );
+                } else {
+                    assert_eq!(run.combustion.bonus(run.milestones, "fireball", 179.99), 0.);
+                    assert_eq!(run.combustion.bonus(run.milestones, "fireball", 180.), 0.1);
+                }
+            }
         }
     }
 
