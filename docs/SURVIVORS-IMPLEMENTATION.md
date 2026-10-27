@@ -7397,3 +7397,15 @@ do not establish combat HUD rendering, live balance or Windows scene acceptance.
 Verified: 214 core and 413 app tests, core/app Clippy, formatting and diff checks.
 The real-data audit matches 257/432 definitions (Priest 28/47) and all 81 milestone
 descriptions; 175 individual talent definitions remain.
+
+
+### 2026-10-27 — Current browser Priest integration
+
+At d9d010a, the WebGPU target check and linked play-profile package pass, along
+with seven browser tests and six build-script tests. Five existing compile
+warnings remain. Actual UI navigation verifies saved Priest loading, Inspiration
+and Blessed Recovery green descriptions, zero-point purchase blocking, provisional
+bonus labels and 640×720 two-column reflow with the full scrolled description.
+1280×720 and 640×720 captures are embedded in the changelog and README. The browser
+reported no warnings/errors during the UI check; viewport override was restored
+and the local host stopped. This is menu evidence, not combat or Windows acceptance.

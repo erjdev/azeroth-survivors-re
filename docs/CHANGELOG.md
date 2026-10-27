@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Browser Priest and compact-layout validation
+
+The current WebGPU package renders Inspiration, Blessed Recovery and provisional
+bonuses with green inline scaling. A saved Priest loads correctly; zero earned
+points block purchases. At 640×720 the trees reflow and the complete recovery
+description remains accessible by scrolling.
+
+![Current browser Inspiration description and purchase gate](images/screenshots/2026-10-27-browser-priest/inspiration.png)
+
+![Compact browser recovery description](images/screenshots/2026-10-27-browser-priest/compact.png)
+
+![Browser provisional bonus remains explicitly labeled](images/screenshots/2026-10-27-browser-priest/provisional.png)
+
+At `d9d010a`: WebGPU check (27 seconds), linked play package (94 seconds), seven
+browser tests and six build-script tests pass. Five existing compile warnings
+remain; no browser warnings/errors were returned during this UI check. These
+captures do not verify in-map gameplay or Windows rendering.
+
 ## 2026-10-27 — Priest Inspiration
 
 Inspiration now grants 8% more armor per rank for 15 seconds after Holy Nova

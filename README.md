@@ -127,13 +127,14 @@ Collection and Talents also support compact scrolling at enlarged interface size
 
 ### Browser starter checkpoint
 
-2026-10-27 · Current WebGPU package verifies Priest creation, talent descriptions,
-the no-points purchase gate and saved hero restoration after reload at 1280×720.
-In-map browser gameplay and broader resolution coverage remain unverified.
+2026-10-27 · WebGPU package at `d9d010a` verifies the saved Priest, current talent
+descriptions and zero-point purchase blocking at 1280×720. At 640×720, trees
+reflow and the full description remains scrollable. In-map browser gameplay and
+broader platform coverage remain unverified.
 
 <table><tr>
-<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-talents/reloaded.png" alt="Browser starter restores the created Priest after reload"></td>
-<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-talents/fade.png" alt="Browser Priest talent description and purchase gate"></td>
+<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-priest/inspiration.png" alt="Browser Inspiration description and blocked purchase"></td>
+<td width="50%"><img src="docs/images/screenshots/2026-10-27-browser-priest/compact.png" alt="Complete Blessed Recovery description at 640 by 720"></td>
 </tr></table>
 
 ### Earlier gameplay captures
