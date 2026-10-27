@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Browser packaging checks
+
+The asset checks now follow this checkout's standalone launcher and reject missing
+source modules. Generated wasm glue remains explicitly checked; optional storage
+setup cannot block startup. Two Rust packaging checks, six build-script tests and
+seven browser tests pass. No visible UI change.
+
+The full chain passes formatting, workspace Clippy and the repaired VM/browser
+checks, then stops at the world-API audit: 111 unpublished items against a ceiling
+of 107. That boundary review and the later integration stages remain open.
+
 ## 2026-10-27 — Restore the UI VM boundary
 
 VM-backed tests now live in test files; runtime localization and the browser
@@ -10,8 +21,8 @@ bridge live under UI-feed paths. Test bodies and the public bridge API are
 unchanged. The VM-boundary audit passes at its original 40-gameplay-file ceiling.
 
 446 Survivors tests, app Clippy and WebGPU compilation pass (five existing browser
-warnings). The restarted full chain has passed formatting/workspace Clippy and is
-running workspace tests. No visible UI change; existing milestone captures apply.
+warnings). The subsequent full chain passed formatting/workspace Clippy; its current
+world-API blocker is recorded above. No visible UI change; existing milestone captures apply.
 
 ## 2026-10-27 — Equipment and rank localization
 

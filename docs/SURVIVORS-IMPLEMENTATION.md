@@ -31,13 +31,19 @@ runtime keys. The latest checkpoint passes 446 Survivors app tests, app Clippy,
 and native Collection validation. Injected translations cover argument order,
 signs, fractional values, percentage units and green upgrade spans.
 
-The full integration chain has been restarted: formatting and workspace-wide
-Clippy passed; workspace testing then stopped at the VM-boundary source audit.
-Dedicated test files and UI-feed paths now restore its original 40-file ceiling
-without changing test bodies or relaxing the gate. A fresh full run is active;
-no-install and complete player-suite results remain pending. This does not establish complete localization: live
-translated-layout acceptance remains open. Browser compilation previously passed
-with five warnings. Addon-corpus coverage and Windows visual acceptance remain open.
+The latest full integration run passed formatting and workspace-wide Clippy.
+Dedicated test files and UI-feed paths restore the VM audit's original 40-file
+ceiling without changing test bodies or relaxing the gate. Browser asset checks
+now follow this checkout's standalone launcher, reject missing source modules,
+and verify generated glue and optional storage initialization. Two Rust packaging,
+six build-script and seven browser tests pass.
+
+Workspace testing now stops at the world-API audit: 111 unpublished items against
+its unchanged ceiling of 107. Review the engine crossings before continuing;
+no-install and complete player-suite results remain pending. This does not
+establish complete localization: live translated-layout acceptance remains open.
+Browser compilation passed with five warnings. Addon-corpus coverage and Windows
+visual acceptance remain open.
 
 ## Healing correctness — 2026-10-27
 
