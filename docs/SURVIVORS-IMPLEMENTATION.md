@@ -6170,3 +6170,24 @@ populated fixtures, purchased rewards, Windows and full acceptance remain open.
 
 All 345 app tests pass with explicit checkout data, alongside five Python fixture
 tests. No runtime code changed; the existing native build was used for captures.
+
+### 2026-10-27 — Custom Paladin milestone artwork
+
+Closed the text-only artwork gap for seven custom Paladin milestones using themed
+vanilla spell icons, resolved from the installed data rather than bundled assets.
+Exact vanilla talent-name matches retain priority. Mappings are artwork only:
+Daybreak→Holy Shock (20473), Light's Grace→Flash of Light (19750), Hallowed
+Ground→Consecration (26573), Ardent Defender→Holy Shield (20925), Hammer of the
+Righteous→Hammer of Justice (853), The Art of War→Judgement (20271), and Divine
+Storm→Seal of Righteousness (21084). These intentionally use vanilla-themed
+substitutes rather than claiming later-expansion art exists in the 1.12 install.
+The existing earned/locked dimming remains shared. The data-backed regression
+checks all seven spell identities and readable BLP files, class isolation and
+unknown-name fallback. All 346 app tests pass with explicit checkout data.
+
+Native macOS 1280×720 and 640×720 checks verify all nine icons, locked/earned
+states, alignment and Hallowed Ground icon-click inspection without spending.
+Three captures are embedded in CHANGELOG and README talent images are refreshed.
+Reference: intentions/survivors_talent_tab.png. App Clippy, native build, formatting
+and diff checks pass. Windows, full talent mechanics and broader UI acceptance
+remain incomplete.

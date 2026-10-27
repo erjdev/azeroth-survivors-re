@@ -103,8 +103,59 @@ pub(in crate::survivors) struct BackdropDone;
 
 #[derive(Component)]
 pub(in crate::survivors) struct MilestoneIcon {
+    class: usize,
     tab: u32,
     name: &'static str,
+}
+
+/// Themed vanilla spell art for Survivors-only Paladin milestones.
+/// These identities select artwork only, never spell mechanics.
+fn custom_milestone_art(class: usize, name: &str) -> Option<(u32, &'static str)> {
+    if class != 1 {
+        return None;
+    }
+    Some(match name {
+        "Daybreak" => (20473, "Holy Shock"),
+        "Light's Grace" => (19750, "Flash of Light"),
+        "Hallowed Ground" => (26573, "Consecration"),
+        "Ardent Defender" => (20925, "Holy Shield"),
+        "Hammer of the Righteous" => (853, "Hammer of Justice"),
+        "The Art of War" => (20271, "Judgement"),
+        "Divine Storm" => (21084, "Seal of Righteousness"),
+        _ => return None,
+    })
+}
+
+#[cfg(test)]
+mod milestone_art_tests {
+    use super::*;
+
+    #[test]
+    fn custom_milestones_resolve_verified_spell_art_only_for_paladins() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let spells = benilla_formats::load_spell_catalog(&mut chain).unwrap();
+        let mut count = 0;
+        for tree in 0..3 {
+            for at in [10, 20, 30] {
+                let name = campaign::milestone_name(1, tree, at);
+                if let Some((id, expected)) = custom_milestone_art(1, name) {
+                    let spell = spells.get(id).expect(name);
+                    assert_eq!(spell.name, expected);
+                    let icon = spell.icon.as_ref().expect(name);
+                    assert!(!chain.read(&format!("{icon}.blp")).expect(name).is_empty());
+                    count += 1;
+                } else {
+                    assert!(["Divine Favor", "Seal of Command"].contains(&name));
+                }
+                for class in [0, 2, 3, 4, 5, 6, 7, 8] {
+                    assert!(custom_milestone_art(class, name).is_none());
+                }
+            }
+        }
+        assert_eq!(count, 7);
+        assert!(custom_milestone_art(1, "Unknown").is_none());
+    }
 }
 
 pub(in crate::survivors) fn fill_art(
@@ -129,14 +180,15 @@ pub(in crate::survivors) fn fill_art(
                         .get(id)
                         .filter(|spell| spell.name == milestone.name)
                         .map(|_| id)
-                });
+                })
+                .or_else(|| custom_milestone_art(milestone.class, milestone.name).map(|art| art.0));
             if let Some(spell) = spell {
                 commands
                     .entity(entity)
                     .remove::<MilestoneIcon>()
                     .insert(hud::SpellIcon(spell));
             } else {
-                // Custom milestones without vanilla talent art keep their readable text only.
+                // Unknown milestones retain their readable text without invented artwork.
                 commands.entity(entity).despawn();
             }
         }
@@ -373,7 +425,7 @@ pub(super) fn build(
                         let name = campaign::milestone_name(hero.class, tree, at);
                         if let Some(node) = nodes.first() {
                             let dim = if valid && points[tree] >= at { 1.0 } else { 0.4 };
-                            line.spawn((MilestoneIcon { tab: node.tab, name }, hud::IconDim(dim),
+                            line.spawn((MilestoneIcon { class: hero.class, tab: node.tab, name }, hud::IconDim(dim),
                                 ImageNode { color: Color::srgba(1.0, 1.0, 1.0, dim), ..default() },
                                 Node { width: Val::Px(20.0), height: Val::Px(20.0), flex_shrink: 0.0, ..default() }));
                         }

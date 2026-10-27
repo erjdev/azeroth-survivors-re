@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Paladin milestone artwork
+
+Seven custom Paladin milestones now use themed, verified vanilla spell icons,
+completing the nine illustrated milestone rows. Earned icons brighten; locked
+icons stay dim. These are art substitutions for Survivors milestones, with no
+changes to their mechanics.
+
+346 app tests with checkout data, Clippy and native build pass. Native macOS
+wide/compact checks cover all icons, alignment and icon-click inspection. README
+captures refreshed; Windows and broader talent acceptance remain open.
+
+![Paladin milestone artwork and earned inspection](images/screenshots/2026-10-27-paladin-milestone-art/talents-1280.png)
+![Compact Holy and Protection milestone rows](images/screenshots/2026-10-27-paladin-milestone-art/talents-640.png)
+![Compact Retribution milestone rows](images/screenshots/2026-10-27-paladin-milestone-art/retribution-640.png)
+
 ## 2026-10-27 — Reproducible talent builds
 
 The `trained` UI fixture now provides two Shaman heroes with Enhancement,
