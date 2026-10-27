@@ -6870,3 +6870,16 @@ CHANGELOG embeds all three screenshots and README shows the current starter.
 Windows/browser rendering, broader resolution acceptance and the reported world
 occlusion/navigation reproduction remain open. This is a presentation checkpoint,
 not completion of starter or gameplay acceptance.
+
+### Rogue Preparation — 2026-10-27
+
+DBC node 284 now supplies an automatic 180-second reset of owned Rogue ability
+cooldowns, first at 180 seconds. Class/rank gating, pauses, invalid elapsed time,
+missed intervals and unrelated abilities are covered by core and actual app cast
+system tests; it does not grant abilities or touch Cold Blood's recovery clock.
+197 core/376 app tests, core/app-test Clippy, native build and DBC identity audit
+pass. Definitions: 243/432, Rogue 21/51; this is not full combat acceptance.
+Native 1280×720 preview/purchase confirms inline green 0 → 1, Subtlety 20 → 21,
+unspent 10 → 9 and persisted `2:284:1`. CHANGELOG embeds both captures and README
+includes the saved purchase. Live balance, Windows acceptance and remaining
+unimplemented talents stay open.

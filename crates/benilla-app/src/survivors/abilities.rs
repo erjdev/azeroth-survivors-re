@@ -279,6 +279,13 @@ pub(super) fn cast_abilities(
             }
         }
     }
+    if run.preparation.trigger(talents, now) {
+        for owned in &mut run.abilities {
+            if talents.preparation_affects(owned.def.key) {
+                owned.cd = 0.0;
+            }
+        }
+    }
     let mut foes: Vec<Foe> = enemies
         .iter()
         .filter(|(_, _, e)| !e.dead)
@@ -5326,6 +5333,89 @@ mod milestone_tests {
                         let expected = if paused {
                             5.0
                         } else if rank > 0 && elapsed >= 90.0 && i < 4 {
+                            0.2
+                        } else {
+                            4.9
+                        };
+                        assert!(
+                            (owned.cd - expected).abs() < 0.00001,
+                            "{} rank={rank} elapsed={elapsed} paused={paused}",
+                            owned.def.key
+                        );
+                    }
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                    for owned in &mut app.world_mut().resource_mut::<Run>().abilities {
+                        owned.cd = 5.0;
+                    }
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    for owned in &app.world().resource::<Run>().abilities {
+                        assert!(
+                            (owned.cd - if paused { 5.0 } else { 4.9 }).abs() < 0.00001,
+                            "reset cannot bank or repeat within an interval"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn preparation_resets_only_owned_rogue_cooldowns_once_per_interval() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for rank in [0, 1, 255] {
+            for elapsed in [179.9, 180.0, 900.0] {
+                for paused in [false, true] {
+                    let mut run = Run {
+                        class: &data::CLASSES[3],
+                        elapsed,
+                        milestones: Milestones {
+                            class: 3,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 284, rank)]),
+                        ..Default::default()
+                    };
+                    for key in [
+                        "sinister_strike",
+                        "eviscerate",
+                        "gouge",
+                        "kidney_shot",
+                        "blade_flurry",
+                        "rupture",
+                        "fireball",
+                        "frost_shock",
+                    ] {
+                        run.abilities.push(Owned {
+                            def: data::ability(key),
+                            level: 1,
+                            cd: 5.0,
+                        });
+                    }
+                    let mut time = Time::<()>::default();
+                    if !paused {
+                        time.advance_by(std::time::Duration::from_millis(100));
+                    }
+                    let mut app = App::new();
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(42))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0.0, air: 0.0 }));
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    assert_eq!(run.abilities.len(), 8);
+                    for (i, owned) in run.abilities.iter().enumerate() {
+                        let expected = if paused {
+                            5.0
+                        } else if rank > 0 && elapsed >= 180.0 && i < 6 {
                             0.2
                         } else {
                             4.9

@@ -514,6 +514,7 @@ pub(super) struct Run {
     pub elite_chests: u8,
     pub last_elite_chest: f32,
     cold_snap: survivors_core::talents::ColdSnapClock,
+    preparation: survivors_core::talents::PreparationClock,
     critical_cast: survivors_core::talents::CriticalCastClock,
     /// Rings, trinkets and amulets worn this run.
     worn: campaign::Worn,
@@ -600,6 +601,7 @@ impl Default for Run {
             elite_chests: 0,
             last_elite_chest: 0.0,
             cold_snap: default(),
+            preparation: default(),
             critical_cast: default(),
             worn: campaign::Worn::default(),
             dead_t: None,

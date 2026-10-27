@@ -56,6 +56,11 @@ These stay, and later phases read them instead of inventing a second copy.
   Cone of Cold cooldowns every 90 seconds of run time, first at 90 seconds. Pauses
   do not advance its clock. Missed intervals do not bank charges; it does not grant
   spells or remove existing areas. This is the Survivors automatic conversion.
+- Rogue Preparation automatically resets owned Sinister Strike, Eviscerate, Blade
+  Flurry, Rupture, Gouge and Kidney Shot cooldowns every 180 seconds of active run
+  time, first at 180 seconds. It grants no spells or stored charges, leaves
+  existing effects intact and does not reset Cold Blood recovery. This is the
+  Survivors automatic conversion.
 - Achievement points buy perks and companion ranks. Two perk resets refund perk points and
   leave companion ranks. The first companion is free.
 - Cloak quality follows feats: talent cap, raid clear, a finished collection, every legendary
@@ -360,6 +365,7 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Improved Slice and Dice (277) | 3 | Blade Flurry: 5% shorter cooldown per rank; automatic Slice and Dice conversion |
 | Elusiveness (247) | 2 | Gouge and Kidney Shot: 10% shorter cooldown per rank; defensive cooldown conversion, no stealth required |
 | Vigor (382) | 1 | Rogue spells: 10% shorter cooldown; energy-capacity conversion |
+| Preparation (284) | 1 | Reset owned Rogue ability cooldowns every 180 sec of active run time; excludes Cold Blood recovery |
 | Cold Blood (280) | 1 | Next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast: +100 percentage points critical chance; ready at run start, 180 sec recovery after use |
 | Remorseless Attacks (272) | 2 | After a kill, +20 percentage points critical chance on the next successful Rogue melee cast; 20 sec window |
 | Lightning Reflexes (186) | 5 | +1 percentage point damage reduction; dodge conversion |

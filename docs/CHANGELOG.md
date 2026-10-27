@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Rogue Preparation
+
+Preparation now resets owned Rogue ability cooldowns every 180 seconds of active
+run time. Missed resets never become stored charges; Cold Blood recovery remains
+separate. Native preview/purchase checks verify the green inline effect, 20 → 21
+Subtlety points, 10 → 9 unspent points and saved rank 1.
+
+197 core and 376 app tests pass, including real cast-system cooldown checks;
+native build and core/app-test Clippy pass. Talent definitions cover 243/432
+nodes (Rogue 21/51). Live balance and Windows gameplay remain open.
+
+![Preparation inline preview](images/screenshots/2026-10-27-preparation/preview.png)
+![Preparation purchased and saved](images/screenshots/2026-10-27-preparation/purchased.png)
+
 ## 2026-10-27 — Painted starter landscape
 
 An original sunset valley replaces the starter's procedural mountain silhouette.

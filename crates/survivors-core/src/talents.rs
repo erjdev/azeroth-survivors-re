@@ -4,9 +4,11 @@ mod critical_cast;
 mod druid;
 mod hunter;
 mod mage;
+mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::{PetBonus, PetFrenzy};
 pub use mage::ColdSnapClock;
+pub use rogue::PreparationClock;
 mod shaman;
 mod warlock;
 
@@ -1449,6 +1451,7 @@ pub enum TalentStat {
     PetCooldown,
     PetMend,
     ColdSnap,
+    Preparation,
     SiphonLife,
     Nightfall,
     SecondarySlowDuration(&'static str),
@@ -1529,6 +1532,7 @@ impl TalentDefinition {
             TalentStat::Health
             | TalentStat::Armor
             | TalentStat::AncestralHealingArmor
+            | TalentStat::Preparation
             | TalentStat::ColdSnap => (1.0, ""),
             TalentStat::Conflagrate
             | TalentStat::SpellShieldDuration(_)
@@ -1768,6 +1772,7 @@ impl TalentDefinition {
                 "% chance per wolf critical for 30% bite haste for 8 sec",
             ),
             TalentStat::ColdSnap => (1.0, " automatic frost reset every 90 sec"),
+            TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
             TalentStat::PetMend => (100.0, "% combat wolf maximum health restored per sec"),
             TalentStat::PetCooldown => (100.0, "% shorter combat wolf bite cooldown"),
             TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
@@ -2715,6 +2720,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 284, max_rank: 1, name: "Preparation",
+        description: "Grants 1 automatic reset of owned Sinister Strike, Eviscerate, Blade Flurry, Rupture, Gouge and Kidney Shot cooldowns every 180 sec of run time; first at 180 sec. Does not grant spells, store charges or reset Cold Blood recovery (Survivors automatic conversion)",
+        stat: TalentStat::Preparation, per_rank: 1.0,
+    },
+    TalentDefinition {
         id: 280, max_rank: 1, name: "Cold Blood",
         description: "Automatically adds +100% critical chance to the next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast, including extra targets. Ready at run start; recovers 180 sec after use. Pauses stop recovery. Excludes Blade Flurry and Rupture. Separate from the 30-point Eviscerate milestone.",
         stat: TalentStat::ColdBlood, per_rank: 1.0,
@@ -2994,6 +3004,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::PetDamage
             | TalentStat::PetCrit
             | TalentStat::PetFrenzy
+            | TalentStat::Preparation
             | TalentStat::ColdSnap
             | TalentStat::PetMend
             | TalentStat::PetCooldown
@@ -4287,6 +4298,7 @@ mod stat_talent_tests {
                     | TalentStat::PetDamage
                     | TalentStat::PetCrit
                     | TalentStat::PetFrenzy
+                    | TalentStat::Preparation
                     | TalentStat::ColdSnap
                     | TalentStat::PetMend
                     | TalentStat::PetCooldown
