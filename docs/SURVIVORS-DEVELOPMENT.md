@@ -526,8 +526,27 @@ python3 scripts/survivors-ui-fixture.py partial --page collection
 python3 scripts/survivors-ui-fixture.py collected --page heroes
 ```
 
-The script prints a launch command with the exact isolated `BENILLA_HOME` and
-checkout data path. Each invocation creates a new directory under
+To prepare and launch a watched preset in one command (Python 3 and Cargo on PATH):
+
+```sh
+python3 scripts/survivors-ui-fixture.py partial --preset talents-640.txt --run
+```
+
+On Windows use `py -3` instead of `python3`. `--run` invokes `cargo survivors`
+directly, using the incremental play profile and no shell. It clears inherited
+autoplay/capture and old page/preview settings, then sets checkout `wow-data/Data`
+and the new fixture home. Cargo's exit code is returned; a launch failure retains
+the fixture for inspection. Without `--run`, only preparation occurs (macOS/Linux
+also print a shell command for that exact prepared account).
+
+`--preset` takes a filename from `docs/ui-previews` and overrides `--page`. The
+request is copied to the new home's `view.txt`; edit that copy while the app runs
+to change page, size or inspection. Repository presets stay unchanged. Presets
+with `hero` or class-specific `talent` values must match heroes in the selected
+fixture; invalid live requests retain the previous view. The script does not
+invent talent ranks or unlock content.
+
+The script uses the exact isolated `BENILLA_HOME` and checkout data path. Each invocation creates a new directory under
 `target/ui-fixtures`; `--output PATH` also requires a new directory and refuses
 existing directories or symlinks. Fixture edits are saved only in that copied
 account. Create another copy to reset it. Use the printed home with the live

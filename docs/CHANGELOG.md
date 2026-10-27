@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — One-command isolated UI previews
+
+The fixture helper now accepts `--preset` and `--run`: copy a watched UI request,
+then launch the incremental build without manually setting environment variables.
+Existing save directories remain protected, and inherited autoplay/capture settings
+are cleared. The launcher uses direct process arguments for Windows-compatible
+paths and reports build/launch failures without deleting the fixture.
+
+Five Python tests pass, including CLI preparation, paths with spaces and launch
+environment isolation. Windows execution remains unverified. No rendered UI change;
+existing milestone screenshots remain current.
+
 ## 2026-10-27 — Restoration deployment training
 
 Improved Healing Wave and Tidal Focus now shorten Searing/Magma deployment

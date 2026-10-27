@@ -6143,3 +6143,15 @@ individual nodes; remaining talent, live balance and Windows work stays open.
 pass. Native macOS 1280×720/640×720 previews confirm inline 16→20% and 8→10% values
 and readable descriptions. Both captures are embedded in CHANGELOG. Reference:
 intentions/survivors_talent_tab.png. This is not Windows or live balance acceptance.
+
+### 2026-10-27 — One-command fixture preview workflow
+
+Extended the existing isolated fixture helper with --preset and --run. Presets
+copy to a watched view.txt; direct Cargo execution uses the incremental alias and
+checkout data, clearing inherited autoplay/capture/page/preview variables. Existing
+save directories and preset references cannot be overwritten. Nonzero Cargo exits
+propagate while preserving the fixture. Five Python tests cover API and real CLI
+preparation, path spaces, source preservation, invalid requests and mocked launch
+environment/exit status. Development docs include macOS/Linux and Windows command
+forms. No UI change, new rendering evidence or Windows execution claim. Populated
+talent-build fixtures and full platform/interface acceptance remain open.
