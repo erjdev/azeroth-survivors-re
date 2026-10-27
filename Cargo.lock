@@ -6546,6 +6546,7 @@ name = "survivors-audit"
 version = "0.2.0"
 dependencies = [
  "anyhow",
+ "benilla-blp",
  "benilla-formats",
  "benilla-wmo",
  "glam 0.31.1",

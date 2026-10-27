@@ -59,6 +59,7 @@ cargo test -p benilla-app --lib survivors:: --no-default-features
 # Match the PR gate, including render-only foliage detection and reveal fading:
 cargo test -p benilla-app --lib --features survivors-visibility survivors::
 cargo run -p survivors-audit -- "$PWD/wow-data/Data"
+cargo run -p survivors-audit -- "$PWD/wow-data/Data" --collection
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --achievement-art
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --floor 533 3005.87 -3435.01 293.88
 ```

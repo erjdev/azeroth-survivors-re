@@ -3,6 +3,7 @@ use anyhow::{bail, Context, Result};
 use benilla_formats::{load_creature_catalog, load_map_catalog, open_chain, MapTiles};
 use survivors_core::{campaign, data, encounters};
 
+mod collection;
 mod doodads;
 mod floor;
 mod locations;
@@ -16,6 +17,9 @@ fn main() -> Result<()> {
         .context("usage: survivors-audit <explicit WoW Data directory>")?;
     let rest: Vec<_> = args.collect();
     let mut chain = open_chain(std::path::Path::new(&path))?;
+    if rest.len() == 1 && rest[0] == "--collection" {
+        return collection::report(&mut chain);
+    }
     if rest.len() == 1 && rest[0] == "--achievement-art" {
         let rows = survivors_core::rewards::listed(&Default::default(), &[]);
         let mut missing = Vec::new();
@@ -44,7 +48,7 @@ fn main() -> Result<()> {
         if rest.len() != 5
             || (rest[0] != "--floor" && rest[0] != "--doodads" && rest[0] != "--terrain")
         {
-            bail!("usage: survivors-audit <Data> [--achievement-art | --locations | --talents | --talent-coverage | --talent-gaps | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
+            bail!("usage: survivors-audit <Data> [--collection | --achievement-art | --locations | --talents | --talent-coverage | --talent-gaps | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
         }
         let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
         let mut point = [0.0_f32; 3];

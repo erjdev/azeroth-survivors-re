@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Collection content verification
+
+Added `survivors-audit --collection`: all 486 primary cells resolve to decoded
+icons and scheduled positive-chance sources. All 153 supplemental identities
+also have valid icons (495 unique display icons total). Raid acquisition and
+world traversal remain open; this audit does not unlock zones. The real-data
+audit, eight existing audit tests, Clippy and formatting pass. No UI change.
+
 ## 2026-10-27 — Windows launcher failure reporting
 
 PowerShell now forwards Cargo's exit status; the cmd wrapper explicitly returns

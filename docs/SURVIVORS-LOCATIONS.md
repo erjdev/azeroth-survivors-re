@@ -11,7 +11,7 @@ required instance ID where one is specified, otherwise internal art or localized
 names. A missing row means this lookup could not establish a candidate, not that the map
 or geometry is absent. Coordinates below are raw WoW world coordinates.
 
-The current full content audit reports six missing configured maps, three missing
+The original 2026-10-24 content audit reported six missing configured maps, three missing
 encounter/drop schedules among configured maps, an unresolved Naxxramas start floor,
 and 44 unnamed/unsourced cells per class. Its 802-gap total counts each class's cell
 coverage separately; it is not a count of unique missing assets.
@@ -872,3 +872,27 @@ actual collision geometry, retaining holes, walls, ceilings and storey separatio
 Validate body clearance and camera push-in in that region before authoring the
 Blackrock encounter layout. Do not place a circular arena over these unsupported
 samples or shrink it solely to make a center-floor check pass.
+
+
+## Current catalog audit — 2026-10-27
+
+The default audit now reports three unresolved checks: Blackrock Mountain has no
+configured arena, and the terrain-only start check cannot validate Scarlet
+Monastery or Naxxramas interiors. These are not three missing assets, nor proof
+that all other locations are traversable. Existing WMO floor evidence above
+remains separate from the default terrain check.
+
+A new focused command verifies Collection displays and source links:
+
+```sh
+cargo run -p survivors-audit -- "$PWD/wow-data/Data" --collection
+```
+
+All nine classes pass 54/54 primary cells with names, mapped display records,
+decodable BLP icons and positive-chance drops matching scheduled encounters.
+Each also passes 17/17 supplemental icon identities (nine Poor, eight Raid Epic).
+The audit decoded 495 unique display icons across these 639 cells. Raid Epic
+acquisition is still unimplemented. Item IDs/names come from the pinned template
+mappings; the install verifies display/icon data, not server item templates.
+These checks do not establish equipped-model appearance, zone unlocks, live loot,
+traversal or balancing and do not change any readiness gate.

@@ -7162,3 +7162,21 @@ Local Python compilation and diff validation pass; the actual execution test
 skips on macOS, where neither Windows shell is available. GitHub's repository
 Actions endpoint still reports zero runs. This is implemented CI coverage, not
 a claim of a passing Windows run; the platform gate remains open.
+
+
+### Collection content evidence — 2026-10-27
+
+The explicit-data `survivors-audit --collection` command checks all 54 primary
+cells per class for names, mapped display rows, decoded BLP icons and a
+positive-chance drop matching the actual encounter schedule. All 486 pass.
+The 153 supplemental Poor/Raid Epic identities also pass icon decoding, with
+495 unique display IDs checked in total. Supplemental source readiness is not
+implied: raid acquisition remains unimplemented. Equipment body rendering,
+world access, traversal and live acquisition remain separate acceptance items.
+Default audit still reports missing Blackrock configuration and terrain-only
+floor checks for Scarlet Monastery/Naxxramas; existing WMO evidence is separate.
+No readiness flag or player content changed.
+
+Verification: real-data Collection audit, eight existing audit-tool tests,
+audit-tool Clippy and formatting pass. Full default audit remains failing at
+the three documented location checks.
