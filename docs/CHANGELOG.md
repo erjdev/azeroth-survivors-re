@@ -21,6 +21,13 @@ isolated, and a running snapshot survives a later respec unchanged.
 ![Inner Focus inline preview](images/screenshots/2026-10-27-inner-focus/preview.png)
 ![Purchased Inner Focus and remaining points](images/screenshots/2026-10-27-inner-focus/purchased.png)
 
+Compact acceptance: at 640×720 and 125% interface size, the complete description
+is reachable by scrolling. Native refund/repurchase succeeds and saves rank 1;
+the inline comparison becomes the trained value without repeating the unit.
+
+![Compact Inner Focus preview at 125%](images/screenshots/2026-10-27-inner-focus/compact-640-125.png)
+![Compact purchased Inner Focus at 125%](images/screenshots/2026-10-27-inner-focus/compact-purchased-640-125.png)
+
 ## 2026-10-27 — Foliage reveal diagnostics
 
 An opt-in visibility trace records the rendered blocker, camera/hero positions,

@@ -53,6 +53,10 @@ The reload/catalog integration test additionally covers pending catalog suspensi
 valid/invalid/empty spec selection, cross-hero/class isolation, respec persistence
 and unchanged active-run snapshots. The main coverage table below is reconciled
 with the current DBC audit, rather than only recording counts in milestone notes.
+Native compact validation also verifies full-description scrolling, refund,
+repurchase and saved rank at 640×720 with 125% interface size. Wide and compact
+screenshots are inline in the same changelog milestone. This covers this talent's
+presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
