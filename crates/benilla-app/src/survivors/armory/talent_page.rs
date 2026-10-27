@@ -9,7 +9,7 @@ use bevy::ui::RelativeCursorPosition;
 const DIM: Color = Color::srgb(0.64, 0.58, 0.4);
 const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
-const ICON: f32 = 36.0;
+const ICON: f32 = 40.0;
 
 #[derive(Component)]
 pub(in crate::survivors) struct TreeViewport;
@@ -600,14 +600,16 @@ pub(super) fn build(
                         Node { flex_grow: 1.0, ..default() }));
                     text(heading, font, format!("{} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), layout.body_size, DIM);
                 });
-                col.spawn((Node { width: Val::Percent(100.0), aspect_ratio: Some(300.0 / 331.0), flex_shrink: 0.0,
+                col.spawn((Node { width: Val::Percent(100.0), aspect_ratio: Some(300.0 / 420.0), min_height: Val::Px(420.0), flex_shrink: 0.0,
                     overflow: Overflow::clip(), border_radius: BorderRadius::all(Val::Px(3.0)), ..default() }, BackgroundColor(Color::BLACK)))
                 .with_children(|grid| {
                     let tabs = catalog.tabs_for_class(1, CLASSES[hero.class].id);
                     if let Some(tab) = tabs.iter().find(|tab| tab.name == *name) {
                         grid.spawn((super::talent_background::TreeBackdrop(tab.background.clone()),
                             ImageNode { color: Color::srgba(1.0, 1.0, 1.0, 0.8), ..default() },
-                            Node { position_type: PositionType::Absolute, width: Val::Percent(100.0), height: Val::Percent(100.0), ..default() }));
+                            // Cover the taller grid with proportional art; clip the sides, never stretch it.
+                            Node { position_type: PositionType::Absolute, left: Val::Percent(50.0), height: Val::Percent(100.0), aspect_ratio: Some(300.0 / 331.0), ..default() },
+                            UiTransform { translation: Val2::percent(-50.0, 0.0), ..default() }));
                     }
                     for node in nodes {
                         if let Some(prerequisite) = nodes.iter().find(|other| other.id == node.prereq_talent) {
@@ -622,11 +624,10 @@ pub(super) fn build(
                         let available = unspent > 0 && super::talent_ranks_ok(nodes, &proposed);
                         let dim = if rank > 0 || available { 1.0 } else { 0.4 };
                         let (x,y) = center(node);
-                        // Scale the 36px icon with the 300px painted tree so rank labels
-                        // cannot crowd the next row when four panels fit a narrower window.
+                        // Keep icons readable while the taller grid reserves room for rank labels.
                         grid.spawn((Button, Act::Talent(node.id), TalentInfo { class: hero.class, id: node.id, spell: node.ranks[0], rank, max, milestone: None },
                             Node { position_type: PositionType::Absolute, left: Val::Percent(x), top: Val::Percent(y),
-                                width: Val::Percent(12.0), max_width: Val::Px(ICON), aspect_ratio: Some(1.0),
+                                width: Val::Percent(100.0 * ICON / 300.0), max_width: Val::Px(ICON), aspect_ratio: Some(1.0),
                                 border: UiRect::all(Val::Px(2.0)), ..default() },
                             UiTransform { translation: Val2::percent(-50.0, -50.0), ..default() },
                             BorderColor::all(if rank == max { GOLD } else if available { Color::srgb(0.3, 0.8, 0.3) } else { DIM }),

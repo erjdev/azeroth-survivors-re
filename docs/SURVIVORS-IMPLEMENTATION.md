@@ -7885,3 +7885,21 @@ The existing reference-style tree art/spec layout is unchanged.
 
 Coverage is 271/432 definitions (Druid 26/47), leaving 161. Live balance, Windows
 acceptance and all remaining seven-phase requirements stay open.
+
+
+### Talent readability follow-up — 2026-10-27
+
+Keep the intention screenshot's tall, generously spaced talent rows at every
+supported aspect ratio. Column wrapping alone is insufficient: tree height must
+not be constrained to the background image's aspect ratio. Use a 300:420 grid
+with a 420 logical-pixel readability floor, proportional 40-pixel maximum icons,
+and shared vertical scrolling. Preserve the 300:331 artwork proportions by
+centering and clipping its sides to cover the taller grid. Connectors and rank
+labels remain anchored to the same proportional talent positions. Validate wide
+and compact windows with actual native screenshots; Windows confirmation remains
+open until the reporting player verifies the result.
+
+Verified native macOS previews at 1600×900 and 800×600, including the final
+talent rows and saved-spec controls through scrolling. Inline evidence is in the
+changelog and README gallery. 443 app tests and app Clippy pass. No gameplay
+acceptance claim; five reference-string findings still block the full gate.

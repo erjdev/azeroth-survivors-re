@@ -50,7 +50,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-27-scorpid-sting/codex.png" alt="Codex"><br>2026-10-27 · Scorpid Sting base values and its spell-specific amulet.<br><a href="docs/images/screenshots/2026-10-27-hunter-compact/codex.png">800×600 at 125%</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-scorpid-sting/talent.png" alt="Talents"><br>2026-10-27 · Improved Scorpid Sting duration training; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-hunter-compact/details.png">800×600 description at 125%</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-room/wide.png" alt="Talents"><br>2026-10-27 · Taller talent grids, larger icons and proportionally fitted art; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-hunter-compact/details.png">800×600 description at 125%</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>
@@ -79,7 +79,7 @@ locked pending world readiness. This capture does not establish raid gameplay.
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>
-    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-stat-labels/vengeance.png" alt="Compact Talents"><br>2026-10-27 · Taller trees with full-stat inline upgrade highlighting at 640×480.</td>
+    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-room/compact.png" alt="Compact Talents"><br>2026-10-27 · More vertical space between talent ranks at 800×600; lower trees and specs remain scrollable.</td>
   </tr>
 </table>
 

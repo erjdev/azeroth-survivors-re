@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — More room between talent ranks
+
+Talent grids are about 27% taller at the same width, with larger icons and a
+minimum readable height. Artwork keeps its proportions with a centered side crop;
+narrow windows wrap and scroll. This follows the intention reference's taller rows.
+
+![Before, 1600×900](images/screenshots/2026-10-27-talent-room/before.png)
+
+![Taller trees, 1600×900](images/screenshots/2026-10-27-talent-room/wide.png)
+
+![More row spacing at 800×600](images/screenshots/2026-10-27-talent-room/compact.png)
+
+![Saved specs remain reachable by scrolling](images/screenshots/2026-10-27-talent-room/specs.png)
+
+Native macOS checks at both sizes confirm art alignment and scroll access to the
+last talents and saved specs. 443 app tests and all-target app Clippy pass; native
+incremental build: 2m31s. Windows confirmation remains open.
+
 ## 2026-10-27 — Reward message localization
 
 Duplicate companion instincts now return a typed purchase result, translated by
