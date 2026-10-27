@@ -778,3 +778,7 @@ Normal difficulty and 1× speed; fast-mode unlocks remain later work.
 Talent spacing previews: `talent-spacing-800.txt` (Warrior) and
 `talent-spacing-640.txt` (Paladin), using the collected fixture. Scroll to the
 third tree and spec controls to check the entire layout.
+
+`talent-inspection-640.txt` previews a long Hunter description above wrapped trees.
+Use the collected fixture; scroll to the full details to verify the compact summary
+hides once both the full title and effect are visible.

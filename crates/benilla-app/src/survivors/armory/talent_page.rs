@@ -11,6 +11,90 @@ const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
 const ICON: f32 = 36.0;
 
+#[derive(Component)]
+pub(in crate::survivors) struct TreeViewport;
+#[derive(Component)]
+pub(in crate::survivors) struct FullDetail;
+#[derive(Component)]
+pub(in crate::survivors) struct InspectionSummary;
+
+/// Keep inspection readable when wrapping or scrolling moves the full details away.
+pub(in crate::survivors) fn keep_inspection_visible(
+    viewport: Query<(&ComputedNode, &UiGlobalTransform), With<TreeViewport>>,
+    full: Query<(&ComputedNode, &UiGlobalTransform), With<FullDetail>>,
+    changed: Query<(), Changed<super::TalentDetailContent>>,
+    mut summary: Query<(&mut Node, &mut ScrollPosition, &Children), With<InspectionSummary>>,
+) {
+    let Ok((viewport, transform)) = viewport.single() else {
+        return;
+    };
+    if viewport.size().y <= 0.0 {
+        return;
+    }
+    let top = transform.translation.y - viewport.size().y / 2.0;
+    let bottom = transform.translation.y + viewport.size().y / 2.0;
+    let visible = !full.is_empty()
+        && full.iter().all(|(node, transform)| {
+            transform.translation.y - node.size().y / 2.0 >= top
+                && transform.translation.y + node.size().y / 2.0 <= bottom
+        });
+    for (mut node, mut scroll, children) in &mut summary {
+        if children.iter().any(|child| changed.contains(child)) {
+            scroll.0 = Vec2::ZERO;
+        }
+        let display = if visible {
+            Display::None
+        } else {
+            Display::Flex
+        };
+        if node.display != display {
+            node.display = display;
+        }
+    }
+}
+
+fn inspection_summary(
+    ui: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    layout: &survivors_core::layout::Layout,
+) {
+    ui.spawn((
+        InspectionSummary,
+        super::collection::CollectionScroll,
+        RelativeCursorPosition::default(),
+        ScrollPosition::default(),
+        Node {
+            display: Display::None,
+            width: Val::Percent(100.0),
+            max_height: Val::Percent(30.0),
+            flex_shrink: 0.0,
+            flex_direction: FlexDirection::Column,
+            overflow: Overflow::scroll_y(),
+            padding: UiRect::all(Val::Px(layout.padding)),
+            row_gap: Val::Px(4.0),
+            border: UiRect::all(Val::Px(1.0)),
+            ..default()
+        },
+        BackgroundColor(Color::srgb(0.035, 0.027, 0.014)),
+        BorderColor::all(FRAME),
+    ))
+    .with_children(|summary| {
+        summary.spawn((
+            TalentDetail::Title,
+            hud::text_bundle(
+                font,
+                "Point or focus a talent to inspect it before spending.",
+                layout.body_size + 2.0,
+                GOLD,
+            ),
+        ));
+        summary.spawn((
+            TalentDetail::Effect,
+            hud::text_bundle(font, "", layout.body_size + 2.0, Color::WHITE),
+        ));
+    });
+}
+
 /// Keep provisional effects honest while showing the same inline purchase comparison.
 pub(super) fn provisional_description(rank: u8, max: u8) -> (String, Vec<std::ops::Range<usize>>) {
     let rank = rank.min(max);
@@ -491,12 +575,13 @@ pub(super) fn build(
         13.0,
         DIM,
     );
+    inspection_summary(ui, font, layout);
     // Wrapping keeps the four-column talent grids readable on narrower aspect ratios.
     // Only this outer surface scrolls, so a wheel event cannot move two nested panels.
     ui.spawn(Node { width: Val::Percent(100.0), flex_grow: 1.0,
         flex_basis: Val::Px(0.0), min_height: Val::Px(0.0), ..default() })
     .with_children(|frame| {
-    let viewport = frame.spawn((super::collection::CollectionScroll, ScrollKey(hero.id, hero.spec), RelativeCursorPosition::default(), ScrollPosition(scroll),
+    let viewport = frame.spawn((TreeViewport, super::collection::CollectionScroll, ScrollKey(hero.id, hero.spec), RelativeCursorPosition::default(), ScrollPosition(scroll),
         Node { width: Val::Percent(100.0), height: Val::Percent(100.0), padding: UiRect::right(Val::Px(16.0)),
             flex_wrap: FlexWrap::Wrap, align_content: AlignContent::Start,
             column_gap: Val::Px(layout.gap * 1.25), row_gap: Val::Px(layout.gap * 1.25), overflow: Overflow::scroll_y(), ..default() }))
@@ -592,8 +677,8 @@ pub(super) fn build(
                 button(reset, font, "Reset this spec".into(), Act::Respec, false, layout.body_size);
             });
             text(side, font, "Point or use arrows / D-pad to inspect talents and milestones. Select spends a point. Right-click, Backspace or controller west refunds one. Each row needs five points per tier in earlier rows.", layout.body_size, DIM);
-            side.spawn((TalentDetail::Title, hud::text_bundle(font, "Choose a talent to read its Survivors effect.", layout.body_size + 2.0, Color::WHITE)));
-            side.spawn((TalentDetail::Effect, hud::text_bundle(font, "", layout.body_size + 2.0, Color::WHITE)));
+            side.spawn((FullDetail, TalentDetail::Title, hud::text_bundle(font, "Choose a talent to read its Survivors effect.", layout.body_size + 2.0, Color::WHITE)));
+            side.spawn((FullDetail, TalentDetail::Effect, hud::text_bundle(font, "", layout.body_size + 2.0, Color::WHITE)));
             if hero.spent() > 0 && spent == 0 {
                 text(side, font, "Spending on these trees returns the legacy spread to unspent points.", layout.body_size, DIM);
             }
@@ -601,4 +686,87 @@ pub(super) fn build(
     }).id();
     super::scrollbar::spawn(frame, viewport);
     });
+}
+
+#[cfg(test)]
+mod inspection_tests {
+    use super::*;
+
+    #[test]
+    fn inspection_stays_visible_for_clipped_details_and_resets_only_for_new_content() {
+        let mut app = App::new();
+        app.add_systems(Update, keep_inspection_visible);
+        app.world_mut().spawn((
+            TreeViewport,
+            ComputedNode {
+                size: Vec2::new(600.0, 400.0),
+                ..default()
+            },
+            UiGlobalTransform::from_xy(300.0, 300.0),
+        ));
+        let detail = app
+            .world_mut()
+            .spawn((
+                FullDetail,
+                ComputedNode {
+                    size: Vec2::new(200.0, 100.0),
+                    ..default()
+                },
+                UiGlobalTransform::from_xy(300.0, 600.0),
+            ))
+            .id();
+        let content = app
+            .world_mut()
+            .spawn(super::super::TalentDetailContent("First".into(), None))
+            .id();
+        let summary = app
+            .world_mut()
+            .spawn((
+                InspectionSummary,
+                Node::default(),
+                ScrollPosition(Vec2::new(0.0, 80.0)),
+            ))
+            .add_child(content)
+            .id();
+        app.update();
+        assert_eq!(
+            app.world().get::<Node>(summary).unwrap().display,
+            Display::Flex
+        );
+        assert_eq!(
+            app.world().get::<ScrollPosition>(summary).unwrap().0,
+            Vec2::ZERO
+        );
+        app.world_mut()
+            .get_mut::<ScrollPosition>(summary)
+            .unwrap()
+            .0
+            .y = 35.0;
+        app.update();
+        assert_eq!(
+            app.world().get::<ScrollPosition>(summary).unwrap().0.y,
+            35.0
+        );
+        for (center, expected) in [
+            (300.0, Display::None),
+            (460.0, Display::Flex),
+            (140.0, Display::Flex),
+            (150.0, Display::None),
+        ] {
+            *app.world_mut()
+                .get_mut::<UiGlobalTransform>(detail)
+                .unwrap() = UiGlobalTransform::from_xy(300.0, center);
+            app.update();
+            assert_eq!(app.world().get::<Node>(summary).unwrap().display, expected);
+        }
+        app.world_mut()
+            .get_mut::<super::super::TalentDetailContent>(content)
+            .unwrap()
+            .0 = "Next talent".into();
+        app.update();
+        assert_eq!(
+            app.world().get::<ScrollPosition>(summary).unwrap().0,
+            Vec2::ZERO
+        );
+    }
 }

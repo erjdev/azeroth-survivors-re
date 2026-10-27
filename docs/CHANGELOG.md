@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Talent inspection stays in view
+
+Wrapped talent trees now keep an inspection summary above them when full details
+are off-screen. Keyboard focus shows the upgrade before purchase; spending a point
+updates the green comparison. The summary hides when full details are visible.
+
+![Inspect before spending](images/screenshots/2026-10-27-talent-inspection/focus.png)
+
+![Purchase updates the comparison](images/screenshots/2026-10-27-talent-inspection/purchased.png)
+
+![Full details take over after scrolling](images/screenshots/2026-10-27-talent-inspection/full-details.png)
+
+![Long description at 640×480](images/screenshots/2026-10-27-talent-inspection/compact.png)
+
+433 app tests, app Clippy and formatting pass. Native macOS keyboard/purchase/scroll
+checks at 800×600 and compact description check at 640×480. Incremental build:
+2m27s. Windows and full resolution-matrix acceptance remain open.
+
 ## 2026-10-27 — Taller, less crowded talent trees
 
 Talent columns now wrap before squeezing the artwork and icons. Trees keep their

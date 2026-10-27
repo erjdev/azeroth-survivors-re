@@ -119,6 +119,13 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
+Talent inspection now stays visible above the trees when wrapping/scrolling puts
+full details off-screen. Both displays share the same inline upgrade content;
+new inspection resets summary scrolling. Native 800×600 keyboard focus/purchase
+and scrolling to full details, plus a 640×480 long Hunter description, are captured
+in the changelog. This preserves taller artwork without forcing players to scroll
+away from an icon to read its effect. Windows acceptance remains open.
+
 Talents typography, panel padding and gaps now participate in validated native
 live layout reloads. Same-process wide/compact captures confirm retained selection,
 scrollable descriptions, invalid-edit rejection and default restoration. Tree art

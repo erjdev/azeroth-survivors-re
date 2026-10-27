@@ -275,7 +275,9 @@ class behind the account's best.
 Talent artwork keeps its 300:331 proportions. Give each tree enough width and
 height for readable icons and separated rank labels; wrap columns and scroll
 vertically on narrow windows instead of compressing all three trees. Keep tree
-widths uniform within each row, including beside the spec/details panel.
+widths uniform within each row, including beside the spec/details panel. When
+wrapping or scrolling puts full talent details off-screen, keep an inspection
+summary visible so players can read an upgrade before spending a point.
 
 Reference: `docs/intentions/survivors_talent_tab.png`.
 
