@@ -606,6 +606,12 @@ reset this local management view without clearing drafts or changing account dat
 
 ### Deterministic account fixtures
 
+For the short-window equipment checkpoint, prepare `partial` with
+`--preset collection-common-helm-800x600.txt`, then select **Options → Graphics →
+Interface size → 125%**. Inspect the common helm, choose **This piece**, unequip it,
+visit its source and return. Restart to verify the empty worn slot and retained
+look. This preset selects a piece without granting or equipping it.
+
 Prepare a synthetic account without compiling or launching the engine:
 
 ```sh

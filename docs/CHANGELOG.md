@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Short-window Collection acceptance
+
+Verified Collection at 800×600 with 125% interface size: item actions remain
+reachable, cosmetic selection does not change bonuses, and unequipping the helm
+removes its stats while retaining its look. A full restart preserves that state.
+Source navigation highlights Hogger and returns to the same Collection position.
+The intention's three columns stack vertically here; this is native macOS evidence
+using a synthetic account, not a new gameplay change or Windows acceptance.
+
+![Scaled Collection actions](images/screenshots/2026-10-27-collection-800-125/equipped.png)
+![Unequipped with an independent look](images/screenshots/2026-10-27-collection-800-125/unequipped.png)
+![Selected source](images/screenshots/2026-10-27-collection-800-125/source.png)
+![Look-only state after restart](images/screenshots/2026-10-27-collection-800-125/restarted.png)
+
 ## 2026-10-27 — Mage Arcane Power
 
 Arcane Power now grants +30% Mage damage for 15 seconds after a successful cast,

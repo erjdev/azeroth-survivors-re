@@ -924,6 +924,17 @@ legacy migration, malformed references and round trips have regression tests.
 
 ## Phase 3 — collection and character surfaces
 
+Short-window acceptance (2026-10-27, runtime `2e8f6c8`): native macOS partial
+Warrior fixture at 800×600, with Graphics confirming 125% interface size. Common
+helm unequip changes equipment armor 26 → 20 and damage 4% → 2%; its separately
+selected look remains. A full restart retains `021010101 230000000`, showing an
+L badge without E despite ownership of a stronger helm. Source navigation selects
+Hogger's row and returns to the same item/scroll position. All item actions and
+look controls are reachable. The reference's three columns deliberately stack.
+Screenshots are inline in CHANGELOG and linked in the README gallery; the reusable
+`collection-common-helm-800x600.txt` preset starts this case. Other platform and
+resolution combinations remain open; no production code change was required.
+
 Native body acceptance (2026-10-27, runtime `25ebf07`): disposable full-collection
 Warlock fixture verifies dressed Orc female and Undead male at 1280×720, Gnome
 female at 640×720, and compact hairstyle adjustment from 2/7 to 3/7. A full

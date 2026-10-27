@@ -45,8 +45,8 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-27-raid-browser/collection-1280.png" alt="Collection"><br>2026-10-27 · Separate Raid Epic row and active set thresholds; synthetic ownership, raid drops pending.<br><a href="docs/images/screenshots/2026-10-27-raid-browser/collection-640.png">Compact Collection preview</a></td>
-    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-27-item-source-navigation/drops-1280.png" alt="Drop Tables"><br>2026-10-27 · Collection source shortcuts preserve the inspected item when opening its zone table.<br><a href="docs/images/screenshots/2026-10-26-poor-drop-browser/drops-640.png">Compact scrolling preview</a></td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-27-raid-browser/collection-1280.png" alt="Collection"><br>2026-10-27 · Separate Raid Epic row and active set thresholds; synthetic ownership, raid drops pending.<br><a href="docs/images/screenshots/2026-10-27-raid-browser/collection-640.png">Compact Collection preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/unequipped.png">800×600 at 125%</a></td>
+    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-27-item-source-navigation/drops-1280.png" alt="Drop Tables"><br>2026-10-27 · Collection source shortcuts preserve the inspected item when opening its zone table.<br><a href="docs/images/screenshots/2026-10-26-poor-drop-browser/drops-640.png">Compact scrolling preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/source.png">800×600 source navigation</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-26-codex-compact/trinket-1280.png" alt="Codex"><br>2026-10-26 · Readable jewelry details with responsive catalog panels.<br><a href="docs/images/screenshots/2026-10-26-codex-compact/legendary-640.png">Compact Codex preview</a></td>
