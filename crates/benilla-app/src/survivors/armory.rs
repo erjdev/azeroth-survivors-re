@@ -776,6 +776,10 @@ pub(super) fn enter_refused(
     selection: &Selection,
     picked: Option<usize>,
 ) -> Option<String> {
+    if let Some(notice) = account.recovery_notice() {
+        return Some(notice.into());
+    }
+
     let (level, clears) = hero_gate(account, selection);
     if let Some(index) = picked {
         if let Some(reason) = campaign::zone_lock_reason(index, level, &clears) {
@@ -1094,7 +1098,7 @@ pub(super) fn refresh(
         }));
     commands.entity(root).despawn_related::<Children>();
     let font = assets.font.0.clone();
-    let note = armory.note.as_str();
+    let note = account.recovery_notice().unwrap_or(armory.note.as_str());
     commands.entity(root).with_children(|panel| {
         door::build(
             panel,

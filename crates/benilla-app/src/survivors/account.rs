@@ -158,6 +158,7 @@ pub(super) struct Account {
     /// 0 is no tabard. 1 is the first checked cosmetic in [`campaign::TABARDS`].
     pub tabard: u8,
     dirty: bool,
+    load_failed: bool,
     pub(super) talent_rules: Option<std::sync::Arc<super::talent_validation::Rules>>,
 }
 
@@ -169,16 +170,33 @@ impl Default for Account {
 
 impl Account {
     fn load() -> Self {
-        let text = local_state::home()
-            .map(|h| h.join(FILE))
-            .filter(|p| p.is_file())
-            .and_then(|p| local_state::read_to_string(&p).ok())
-            .unwrap_or_default();
-        parse(&text).unwrap_or_else(|_| empty())
+        local_state::home()
+            .map(|home| Self::load_from(&home.join(FILE)))
+            .unwrap_or_else(empty)
+    }
+
+    fn load_from(path: &std::path::Path) -> Self {
+        let result = match local_state::read_to_string(path) {
+            Ok(text) => parse(&text).map_err(|()| {
+                std::io::Error::new(std::io::ErrorKind::InvalidData, "invalid Survivors account")
+            }),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return empty(),
+            Err(error) => Err(error),
+        };
+        result.unwrap_or_else(|error| {
+            error!("Survivors account {} could not be loaded; original preserved and saving disabled: {error}", path.display());
+            let mut account = empty();
+            account.load_failed = true;
+            account
+        })
+    }
+
+    pub(super) fn recovery_notice(&self) -> Option<&'static str> {
+        self.load_failed.then_some("Account could not be loaded. Saving and runs are disabled. Restore survivors-account.txt from a backup, or fix file access, then restart.")
     }
 
     pub fn save(&mut self) {
-        if !self.dirty {
+        if !self.dirty || self.load_failed {
             return;
         }
         let Some(home) = local_state::home() else {
@@ -190,6 +208,12 @@ impl Account {
     }
 
     fn save_to(&mut self, path: &std::path::Path) -> std::io::Result<()> {
+        if self.load_failed {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "saving disabled after account load failure",
+            ));
+        }
         if self.dirty {
             local_state::write_atomic(path, &encode(self))?;
             self.dirty = false;
@@ -1030,6 +1054,7 @@ pub(super) fn empty() -> Account {
         wins: 0,
         tabard: 0,
         dirty: false,
+        load_failed: false,
         talent_rules: None,
     }
 }
@@ -1644,6 +1669,40 @@ fn settle_run(account: &mut Account, selection: &super::Selection, run: &mut sup
 
 #[cfg(test)]
 mod tests {
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn failed_load_never_overwrites_original_but_missing_save_is_writable() {
+        let dir = std::env::temp_dir().join(format!("survivors-load-guard-{}", std::process::id()));
+        std::fs::create_dir(&dir).unwrap();
+        let path = dir.join("account.txt");
+        for bytes in [b"who broken\n".as_slice(), &[0xff, 0xfe]] {
+            std::fs::write(&path, bytes).unwrap();
+            let mut account = Account::load_from(&path);
+            assert!(account.recovery_notice().is_some());
+            assert_eq!(
+                super::super::armory::enter_refused(&account, &Default::default(), None).as_deref(),
+                account.recovery_notice()
+            );
+            account.ensure(0);
+            assert!(account.save_to(&path).is_err());
+            assert_eq!(std::fs::read(&path).unwrap(), bytes);
+        }
+        std::fs::remove_file(&path).unwrap();
+        std::fs::create_dir(&path).unwrap();
+        let mut account = Account::load_from(&path);
+        account.ensure(0);
+        assert!(account.save_to(&path).is_err());
+        assert!(path.is_dir());
+        std::fs::remove_dir(&path).unwrap();
+        let mut account = Account::load_from(&path);
+        assert!(account.recovery_notice().is_none());
+        account.ensure(0);
+        account.save_to(&path).unwrap();
+        let restored = Account::load_from(&path);
+        assert!(restored.recovery_notice().is_none());
+        assert_eq!(encode(&account), encode(&restored));
+        std::fs::remove_dir_all(dir).unwrap();
+    }
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn failed_disk_write_preserves_previous_save_and_retries_pending_equipment() {

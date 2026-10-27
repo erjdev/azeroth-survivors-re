@@ -5776,3 +5776,16 @@ fields have core coverage; app parameter tests cover ranked spells. All 163 core
 328 app tests, Clippy and the native build pass. Native menu purchases persist all
 three ranks, with inline changelog captures. Coverage is 209/432 individual talents
 and 81/81 milestones; 223 individual nodes and live balance acceptance remain open.
+
+
+### Account load protection — 2026-10-26
+
+Read/parse failures no longer produce a writable empty replacement account. The
+session preserves the original, refuses saves and run entry, and displays recovery
+instructions throughout Armory pages. Missing files retain first-run behavior.
+327 default-feature app tests, visibility-enabled Clippy and native build pass;
+regressions cover malformed text, invalid UTF-8, unreadable directory paths, missing
+files, and valid reload. Native wide/compact captures verify the notice and refused
+entry; the damaged fixture is byte-identical after shutdown. Recovery instructions
+are in SURVIVORS-DEVELOPMENT. Automatic repair, full semantic validation of legacy
+rows and Windows acceptance remain outside this checkpoint.

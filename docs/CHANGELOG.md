@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Preserve accounts after load failures
+
+Unreadable or unparseable accounts now retain their original file, disable saving
+and run entry, and show recovery instructions. Missing saves still create new
+accounts normally. The recovery notice remains visible across Armory pages.
+
+327 app tests (default features), Clippy with visibility enabled, and the native
+build pass. Native macOS checks verify refused entry, wide/compact notices and an
+unchanged damaged fixture after shutdown. This prevents overwrite on reported
+load errors; it does not repair saves or detect every invalid legacy row.
+Windows acceptance remains open. The reference-based layout is unchanged.
+
+![Account recovery notice and refused entry](images/screenshots/2026-10-26-account-recovery/recovery-1280.png)
+
+![Compact Codex recovery notice](images/screenshots/2026-10-26-account-recovery/recovery-640.png)
+
 ## 2026-10-26 — Warlock curse, burst and healing training
 
 Amplify Curse strengthens Curse of Agony by 20%; Shadowburn training strengthens

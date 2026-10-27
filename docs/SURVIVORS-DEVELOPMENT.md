@@ -544,3 +544,15 @@ when the menu loads. Full ownership is not proof that every item model, source,
 talent or zone is ready. Granted/locked achievements and collection states can be
 inspected, but populated talent specs and purchased reward fixtures remain future
 extensions. The fresh account may acquire normal defaults when the app initializes.
+
+
+### Account recovery after a failed load
+
+If `survivors-account.txt` cannot be read or parsed, the Armory displays a recovery
+notice and disables saving and run entry for that session. The original file remains
+untouched. Quit, preserve a copy of that file, then restore a known-good backup or
+correct its access permissions and restart. To deliberately start over, move the
+old file aside before restarting; a missing file follows the normal new-account flow.
+The game does not automatically repair corrupt saves or create recovery backups.
+This guard covers reported read/parse errors, not every semantically damaged row
+accepted by the legacy-compatible parser.

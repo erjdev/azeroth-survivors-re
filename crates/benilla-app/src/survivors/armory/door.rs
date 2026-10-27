@@ -45,7 +45,7 @@ pub(super) fn build(
     } else {
         armory_header(ui, font, armory, account, selection);
     }
-    if !note.is_empty() && armory.page != Page::Codex {
+    if !note.is_empty() && (armory.page != Page::Codex || account.recovery_notice().is_some()) {
         line(ui, font, note, 13.0, GOLD);
     }
     if armory.page == Page::Door {
