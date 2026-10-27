@@ -116,7 +116,7 @@ Collection and Talents also support compact scrolling at enlarged interface size
 
 ![Saved Conflagrate at 125% interface size](docs/images/screenshots/2026-10-27-conflagrate/restarted-640-125.png)
 
-![Improved Mend Pet training and saved spec](docs/images/screenshots/2026-10-27-mend-pet/purchased.png)
+![Cold Blood training and saved spec](docs/images/screenshots/2026-10-27-cold-blood/purchased.png)
 
 ### Browser starter checkpoint
 

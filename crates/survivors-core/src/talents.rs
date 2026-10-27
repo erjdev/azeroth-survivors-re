@@ -3,8 +3,10 @@
 mod druid;
 mod hunter;
 mod mage;
+mod rogue;
 pub use hunter::{PetBonus, PetFrenzy};
 pub use mage::ColdSnapClock;
+pub use rogue::ColdBloodClock;
 mod shaman;
 mod warlock;
 
@@ -1421,6 +1423,7 @@ pub enum TalentStat {
     FlurryHaste,
     Vengeance,
     Remorseless,
+    ColdBlood,
     KidneyExposure,
     Aftermath,
     Pyroclasm,
@@ -1534,6 +1537,7 @@ impl TalentDefinition {
             | TalentStat::SpellImmune(_) => (1.0, "time"),
             TalentStat::SpellGroupRangeYards(_) => (1.0, "distance"),
             TalentStat::Damage
+            | TalentStat::ColdBlood
             | TalentStat::Aftermath
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
@@ -1772,6 +1776,7 @@ impl TalentDefinition {
             TalentStat::ImprovedCurseExhaustion => (100.0, "% additional curse slow"),
             TalentStat::Pyroclasm => (100.0, "% chance to stun fire-area targets"),
             TalentStat::KidneyExposure => (100.0, "% damage taken during Kidney Shot"),
+            TalentStat::ColdBlood => (100.0, "% next-cast critical chance; 180 sec recovery"),
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
@@ -2706,6 +2711,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 280, max_rank: 1, name: "Cold Blood",
+        description: "Automatically adds +100% critical chance to the next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast, including extra targets. Ready at run start; recovers 180 sec after use. Pauses stop recovery. Excludes Blade Flurry and Rupture. Separate from the 30-point Eviscerate milestone.",
+        stat: TalentStat::ColdBlood, per_rank: 1.0,
+    },
+    TalentDefinition {
         id: 279, max_rank: 3, name: "Improved Kidney Shot",
         description: "Kidney Shot: enemies take +3% damage per rank during its stun, starting after the triggering hit. Includes periodic damage; refreshes without stacking. Boss duration is reduced; other stuns do not extend this effect.",
         stat: TalentStat::KidneyExposure, per_rank: 0.03,
@@ -2994,6 +3004,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Pyroclasm
             | TalentStat::KidneyExposure
             | TalentStat::Remorseless
+            | TalentStat::ColdBlood
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
             | TalentStat::CriticalBleed
@@ -4285,6 +4296,7 @@ mod stat_talent_tests {
                     | TalentStat::Pyroclasm
                     | TalentStat::KidneyExposure
                     | TalentStat::Remorseless
+                    | TalentStat::ColdBlood
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance
                     | TalentStat::CriticalBleed

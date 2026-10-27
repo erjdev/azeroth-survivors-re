@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Rogue Cold Blood
+
+Cold Blood now guarantees the next eligible Rogue direct cast's critical hits,
+including extra targets. Ready at run start, it recovers 180 seconds after use;
+failed target selections and pauses do not spend it. The existing Eviscerate
+milestone stays separate. Live balance remains open.
+
+195 core and 374 app tests, core/app-test Clippy and native build pass. Talent
+definitions now cover 241/432 nodes (Rogue 20/51). Native 1280×720 checks verify the green inline
+preview, purchase (23 → 24 Assassination points) and saved rank 1.
+
+![Cold Blood inline preview](images/screenshots/2026-10-27-cold-blood/preview.png)
+![Cold Blood purchased and saved](images/screenshots/2026-10-27-cold-blood/purchased.png)
+
 ## 2026-10-27 — Browser starter and saved hero
 
 The real WebGPU development package boots through the loopback host using this

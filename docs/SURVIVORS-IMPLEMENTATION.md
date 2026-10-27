@@ -6792,3 +6792,25 @@ CHANGELOG and the README browser gallery. Closed the temporary tab and stopped
 the loopback host; no combat run was started. This establishes basic browser
 startup/navigation/persistence on this host, not all pages, controller input,
 compact layouts, WebGL2, Windows, gameplay or long-session memory behavior.
+
+
+### Rogue Cold Blood — 2026-10-27
+
+The one-rank DBC talent 280 is an automatic next-cast bonus: +100 percentage
+points critical chance for Sinister Strike, Eviscerate, Gouge or Kidney Shot,
+including extra targets. It starts ready and recovers 180 seconds after a
+successful eligible cast, using run time. Empty target selections do not consume
+it; paused frames cannot cast or advance recovery. No banked charges, bleed or
+area critical bonus. The existing 30-point Assassination milestone independently
+keeps Eviscerate critical; Cold Blood does not replace that milestone.
+
+Core coverage checks class/rank/scope, exact recovery boundaries, invalid times,
+reset and non-banking behavior. The actual cast-system regression covers all four
+eligible attacks with two targets, empty selections, paused frames, consumption
+and recovery. UI purchase/persistence and final validation are recorded in the
+changelog milestone. Live balance remains open.
+
+Validation: 195 core and 374 app tests, core/app-test Clippy, native play build,
+formatting and diff checks pass. Definition coverage is 241/432 (Rogue 20/51).
+Native purchase saved DBC 280 rank 1 in the isolated first spec; before/after
+captures are embedded in CHANGELOG and the README talent gallery is current.

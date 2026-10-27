@@ -514,6 +514,7 @@ pub(super) struct Run {
     pub elite_chests: u8,
     pub last_elite_chest: f32,
     cold_snap: survivors_core::talents::ColdSnapClock,
+    cold_blood: survivors_core::talents::ColdBloodClock,
     /// Rings, trinkets and amulets worn this run.
     worn: campaign::Worn,
     /// Seconds since the hero fell, while the death plays out.
@@ -599,6 +600,7 @@ impl Default for Run {
             elite_chests: 0,
             last_elite_chest: 0.0,
             cold_snap: default(),
+            cold_blood: default(),
             worn: campaign::Worn::default(),
             dead_t: None,
             next_guid: 1,
