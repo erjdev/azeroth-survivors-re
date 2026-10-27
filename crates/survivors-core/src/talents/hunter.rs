@@ -70,6 +70,7 @@ impl Milestones {
         bonus.crit = self.trained_value(TalentStat::PetCrit);
         bonus.frenzy_chance = self.trained_value(TalentStat::PetFrenzy);
         bonus.speed += self.trained_value(TalentStat::PetSpeed);
+        bonus.cooldown *= 1.0 - self.trained_value(TalentStat::PetCooldown);
         if self.points[0] >= 10 {
             bonus.damage *= 1.2;
         }
@@ -92,6 +93,62 @@ impl Milestones {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn discipline_composes_with_milestone_and_frenzy_without_affecting_hero() {
+        let node = super::super::definitions(2)
+            .iter()
+            .find(|node| node.id == 1390)
+            .unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .contains("0 » 10% shorter bite cooldown"));
+        assert!(node
+            .inline_description(1)
+            .unwrap()
+            .contains("10 » 20% shorter bite cooldown"));
+        assert!(!node.inline_description(255).unwrap().contains(" » "));
+        for rank in [0u8, 1, 2, 255] {
+            for points in [0, 19, 20, 30] {
+                let base = Milestones {
+                    class: 2,
+                    points: [points, 0, 0],
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(0, 1390, rank)]);
+                let multiplier = 1.0 - 0.1 * f32::from(rank.min(2));
+                let mut expected = base.hunter_pet(0.0);
+                expected.cooldown *= multiplier;
+                assert_eq!(trained.hunter_pet(0.0), expected);
+                assert_eq!(
+                    trained.with_ranks(&[]).hunter_pet(0.0),
+                    base.hunter_pet(0.0)
+                );
+                for key in ["arcane_shot", "serpent_sting", "volley"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+                let mut frenzy = PetFrenzy::default();
+                frenzy.critical(1.0, 0.0);
+                let actual_interval =
+                    2.0 * trained.hunter_pet(0.0).cooldown / (1.0 + frenzy.haste());
+                let expected_interval =
+                    2.0 * multiplier * if points >= 20 { 0.8 } else { 1.0 } / 1.3;
+                assert!((actual_interval - expected_interval).abs() < 0.00001);
+            }
+        }
+        for class in [0, 1, 3, 4, 5, 6, 7, 8] {
+            assert_eq!(
+                Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1390, 2)])
+                .hunter_pet(0.0),
+                PetBonus::default()
+            );
+        }
+    }
+
     #[test]
     fn pet_training_is_bounded_resettable_and_multiplies_milestones() {
         let base = Milestones {

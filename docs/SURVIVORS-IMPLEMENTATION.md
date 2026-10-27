@@ -6656,3 +6656,16 @@ debug symbols and invalid profiles, and are included in the host CI job.
 WebGPU `cargo check` passed at bc04604 with five existing warnings. Full wasm
 packaging/timing is unverified here (wasm-bindgen CLI is absent); no browser
 runtime or Windows CI result is claimed. GitHub reports no runs for that head.
+
+
+### 2026-10-27 — Bestial Discipline training
+
+Audited Hunter node 1390 (two ranks) shortens combat-wolf bite cooldown by 10% per
+rank, multiplying the existing 20-point milestone and dividing by Frenzy haste.
+This is an explicit pet-focus regeneration conversion; recovery, other pet bonuses,
+Hunter spells and pickup companions are unchanged. Tests cover ranks 0/1/2/255,
+thresholds 19/20, reset, other classes, spell scope and inline unit formatting.
+192 core tests, core Clippy and native build pass. Native 1024×720 at 125% verifies
+green 0→10% and 10→20% previews plus purchase persistence in spec 3 (34→35 points).
+Changelog screenshots document the actual UI. Coverage is 238/432, Hunter 29/46;
+remaining talents, live balance and Windows gameplay acceptance are still open.

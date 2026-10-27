@@ -47,7 +47,8 @@ These stay, and later phases read them instead of inventing a second copy.
   Frenzy grants a 20% chance per rank on wolf criticals for 30% bite haste for
   8 seconds (5 ranks; refreshes without stacking), and Bestial Swiftness grants
   30% wolf movement speed (1 rank). Bites use global critical chance/damage;
-  Frenzy haste divides the milestone-adjusted bite cooldown by 1.3 while active.
+  Bestial Discipline shortens bite cooldown by 10% per rank (2 ranks), multiplying
+  the 20-point milestone. Frenzy haste divides that adjusted cooldown by 1.3 while active.
 - Achievement points buy perks and companion ranks. Two perk resets refund perk points and
   leave companion ranks. The first companion is free.
 - Cloak quality follows feats: talent cap, raid clear, a finished collection, every legendary

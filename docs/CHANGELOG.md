@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Bestial Discipline
+
+Hunter training now shortens the combat wolf's bite cooldown by 10% per rank
+(two ranks), multiplying the 20-point milestone and Frenzy haste. This explicit
+Survivors pet-focus conversion leaves Hunter spells and wolf recovery unchanged.
+
+192 core tests, core Clippy and native build pass. Native 1024×720 at 125% verifies
+the inline preview and a purchase saved to spec 3 (34→35 points). Definition
+coverage is 238/432, Hunter 29/46; live balance and Windows acceptance remain open.
+
+![Hunter talent trees](images/screenshots/2026-10-27-bestial-discipline/trees.png)
+![Discipline before training](images/screenshots/2026-10-27-bestial-discipline/preview.png)
+![Purchased rank and inline next upgrade](images/screenshots/2026-10-27-bestial-discipline/purchased.png)
+
 ## 2026-10-27 — Talent onboarding
 
 Fresh accounts now get a direct **Create a hero** action on Talents, with a short
