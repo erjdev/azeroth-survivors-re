@@ -7155,6 +7155,7 @@ mod milestone_tests {
     fn caster_accuracy_reaches_direct_and_periodic_parameters_without_other_changes() {
         type AccuracyCase = (usize, u8, u32, u8, f32, &'static [&'static str]);
         let cases: &[AccuracyCase] = &[
+            (6, 0, 74, 2, 0.05, &["arcane_missiles", "arcane_explosion"]),
             (4, 2, 463, 5, 0.02, &["mind_blast", "shadow_word_pain"]),
             (
                 5,

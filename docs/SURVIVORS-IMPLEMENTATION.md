@@ -7479,3 +7479,23 @@ and six build-script tests pass. Five existing compiler warnings remain; the
 observed browser console had no warnings/errors. No runtime code changed; talent
 coverage stays 261/432 with 171 definitions remaining. Windows foliage, routing,
 chest cadence and platform-specific talent acceptance remain open.
+
+
+### 2026-10-27 — Arcane Subtlety
+
+Mage node 74 replaces provisional global damage with +5% Arcane Missiles and
+Arcane Explosion damage per rank, capped at two ranks. The description explicitly
+labels this as a Survivors resistance-penetration conversion; resistance and threat
+rolls are not simulated. The existing scoped-damage path carries the effect into
+cast parameters. Tests cover rank caps, class/spell exclusions, unchanged targeting
+and timing, real-data purchase eligibility, save round trips, spec switches and
+refunds without global damage leakage. Native 1280×720 preview and rank-one purchase
+were checked and captured inline in the changelog; the saved record is 0:74:1.
+The native play build took 19 seconds. Windows acceptance and combat balance remain
+open; this menu checkpoint does not resolve the four Windows scene reports.
+
+Validation: 216 core and 418 app tests, core/app Clippy, formatting and diff checks
+pass. The definition audit matches 262/432 nodes (Mage 35/49), leaving 170. The
+app test command took 3m06 including time waiting for a separate build lock;
+its tests ran in 1.71 seconds. Existing block-crate future-compatibility warning
+remains. Native and test builds used macOS; no new browser/Windows claim is made.

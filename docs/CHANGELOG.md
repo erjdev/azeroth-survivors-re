@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Arcane Subtlety
+
+Arcane Subtlety now strengthens Arcane Missiles and Arcane Explosion by 5% per
+rank instead of provisional global damage. Two ranks maximum; the green inline
+preview names the affected spells and explains the Survivors resistance conversion.
+
+![Arcane Subtlety preview](images/screenshots/2026-10-27-arcane-subtlety/preview.png)
+
+![Purchased rank and next upgrade](images/screenshots/2026-10-27-arcane-subtlety/purchased.png)
+
+216 core and 418 app tests, core/app Clippy, formatting and diff checks pass.
+Talent definitions: 262/432 (Mage 35/49); 170 remain.
+Native 1280×720 preview, purchase and saved rank checked; build took 19 seconds.
+Combat balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Browser talent layouts at 5:4 and ultrawide
 
 At 1280×1024, three proportional trees sit above the scrollable details panel;

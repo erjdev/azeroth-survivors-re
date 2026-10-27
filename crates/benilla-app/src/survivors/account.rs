@@ -2807,6 +2807,7 @@ mod tests {
             .clone()
             .unwrap();
         for (class, tree, id, cap, row, ranks, key, rate) in [
+            (6, 0, 74, 2, 0, vec![], "arcane_missiles", 0.05),
             (
                 4,
                 2,

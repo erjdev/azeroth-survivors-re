@@ -2607,6 +2607,11 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 74, max_rank: 2, name: "Arcane Subtlety",
+        description: "Arcane Missiles and Arcane Explosion: +5% direct and periodic damage per rank. Excludes Fire, Frost and other-class spells (Survivors resistance-penetration conversion; no resistance or threat roll)",
+        stat: TalentStat::SpellGroupDamage(MAGE_ARCANE), per_rank: 0.05,
+    },
     TalentDefinition { id: 36, max_rank: 1, name: "Combustion",
         description: "Mage Fire spells: +10% critical chance initially and per landed damaging direct hit, capped at 100%. Ends after three direct critical hits; recovers 180 sec after ending. Area targets count separately; burns and multistrike echoes do not count. Pauses stop recovery (Survivors automatic conversion)",
         stat: TalentStat::Combustion, per_rank: 0.10 },
@@ -3415,6 +3420,7 @@ mod stat_talent_tests {
     fn caster_accuracy_conversions_are_capped_scoped_and_only_change_damage() {
         type AccuracyCase = (usize, u8, u32, u8, f32, &'static [&'static str]);
         let cases: &[AccuracyCase] = &[
+            (6, 0, 74, 2, 0.05, MAGE_ARCANE),
             (4, 2, 463, 5, 0.02, &["mind_blast", "shadow_word_pain"]),
             (
                 5,
