@@ -41,6 +41,15 @@ to pair the obscured and clear camera states with the exact build. Existing cano
 and fade tests pass; closure still requires the reported runtime scene, not those
 synthetic rays alone. Texture-alpha accuracy remains a known probe limitation.
 
+## Priest Inner Focus — 2026-10-27
+
+Node 348 now has an automatic 25-percentage-point next-cast critical bonus with
+180-second recovery. Core and actual cast tests cover class/spell scoping, no-target
+retention, paused frames, multiple direct targets, unchanged burns and recovery.
+Native reference-aligned Talents captures verify the green inline preview, purchase
+(10 → 11 Discipline points, 41 → 40 unspent) and saved rank. Definition coverage
+reaches 244/432, Priest 24/47; this is not complete talent or live-balance acceptance.
+
 ## Current priority — starter interface first (2026-10-26)
 
 Talents typography, panel padding and gaps now participate in validated native

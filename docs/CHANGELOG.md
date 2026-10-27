@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Priest Inner Focus
+
+Inner Focus adds 25 percentage points critical chance to the next successful
+Smite, Holy Fire, Holy Nova or Mind Blast, then recovers after 180 active seconds.
+Failed targeting preserves the charge; periodic damage and defensive spells are
+excluded. Native previews verify the green inline value, purchase and saved rank.
+
+198 core and 378 app tests pass, including actual multi-target casts, recovery,
+pause and unchanged attached burns. Core/app-test Clippy pass; the native
+incremental build took 17 seconds.
+Definition coverage is 244/432 (Priest 24/47); live balance remains open.
+
+![Inner Focus inline preview](images/screenshots/2026-10-27-inner-focus/preview.png)
+![Purchased Inner Focus and remaining points](images/screenshots/2026-10-27-inner-focus/purchased.png)
+
 ## 2026-10-27 — Foliage reveal diagnostics
 
 An opt-in visibility trace records the rendered blocker, camera/hero positions,

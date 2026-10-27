@@ -421,6 +421,15 @@ similarly named individual talent nodes and reset when the selected spec changes
 
 ### Priest talent tuning (initial)
 
+Inner Focus (one rank, node 348) adds 25 percentage points critical chance to the
+next successful Smite, Holy Fire, Holy Nova or Mind Blast, for all direct targets.
+It starts ready, recovers 180 seconds after use in active run time, and never banks
+charges. Failed targeting and paused frames preserve it. Damage-over-time ticks,
+shields, fear and foreign-class spells neither consume nor benefit. This is an
+automatic Survivors conversion; there are no mana costs. The bonus adds to normal
+critical chance, capped at 100%, rather than guaranteeing a critical hit.
+
+
 Nineteen individual Priest talents now replace their provisional general damage:
 
 | Talent | Per-rank Survivors effect |

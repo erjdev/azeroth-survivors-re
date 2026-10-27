@@ -19,6 +19,9 @@ impl CriticalCastClock {
             {
                 TalentStat::ColdBlood
             }
+            4 if matches!(key, "smite" | "holy_fire" | "holy_nova" | "mind_blast") => {
+                TalentStat::InnerFocus
+            }
             5 if super::shaman::CASTS.contains(&key) => TalentStat::ElementalMastery,
             _ => return 0.0,
         };
@@ -36,6 +39,60 @@ impl CriticalCastClock {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn inner_focus_adds_a_quarter_chance_without_affecting_periodic_or_defensive_spells() {
+        for rank in [0, 1, 255] {
+            let talents = Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 348, rank)]);
+            let expected = if rank > 0 { 0.25 } else { 0.0 };
+            let mut clock = CriticalCastClock::default();
+            for key in [
+                "shadow_word_pain",
+                "power_word_shield",
+                "psychic_scream",
+                "renew",
+                "fireball",
+            ] {
+                clock.consume(talents, key, 0.0);
+                assert_eq!(clock.bonus(talents, key, 0.0), 0.0);
+            }
+            for key in ["smite", "holy_fire", "holy_nova", "mind_blast"] {
+                assert_eq!(clock.bonus(talents, key, 0.0), expected);
+            }
+            for time in [-1.0, f32::NAN, f32::INFINITY] {
+                clock.consume(talents, "smite", time);
+                assert_eq!(clock.bonus(talents, "smite", time), 0.0);
+            }
+            clock.consume(talents, "holy_nova", 0.0);
+            assert_eq!(clock.bonus(talents, "mind_blast", 179.99), 0.0);
+            assert_eq!(clock.bonus(talents, "mind_blast", 180.0), expected);
+            clock.consume(talents, "mind_blast", 1000.0);
+            assert_eq!(clock.bonus(talents, "smite", 1179.99), 0.0);
+            assert_eq!(clock.bonus(talents, "smite", 1180.0), expected);
+            assert_eq!(clock.bonus(talents.with_ranks(&[]), "smite", 1180.0), 0.0);
+        }
+        for class in [0, 1, 2, 3, 5, 6, 7, 8] {
+            let talents = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 348, 1)]);
+            assert_eq!(
+                CriticalCastClock::default().bonus(talents, "smite", 0.0),
+                0.0
+            );
+        }
+        let node = super::super::talent_definition(4, 348).unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .contains("0 » 25 percentage points"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
 
     #[test]
     fn mastery_scopes_to_shaman_casts_and_recovers_without_banked_charges() {

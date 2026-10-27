@@ -2255,11 +2255,18 @@ mod milestone_tests {
         next_cast_critical_bonus(5, 573, 1);
     }
 
+    #[test]
+    fn inner_focus_reaches_direct_casts_and_survives_failed_target_selection() {
+        next_cast_critical_bonus(4, 348, 1);
+    }
+
     fn next_cast_critical_bonus(class: usize, talent: u32, rank: u8) {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
         let keys: &[&str] = if class == 3 {
             &["sinister_strike", "eviscerate", "gouge", "kidney_shot"]
+        } else if class == 4 {
+            &["smite", "holy_fire", "holy_nova", "mind_blast"]
         } else {
             &[
                 "lightning_bolt",
@@ -2294,7 +2301,7 @@ mod milestone_tests {
                     let mut rng = Rng(*seed);
                     (0..2).all(|_| {
                         let roll = rng.f32();
-                        roll > 0.10 && roll < 0.40
+                        roll > 0.10 && roll < 0.20
                     })
                 })
                 .unwrap();
@@ -2322,7 +2329,7 @@ mod milestone_tests {
                 let run = app.world().resource::<Run>();
                 assert_eq!(
                     run.critical_cast.bonus(run.milestones, key, run.elapsed),
-                    1.0
+                    if class == 4 { 0.25 } else { 1.0 }
                 );
             }
             for x in [1., 2.] {
@@ -2381,14 +2388,14 @@ mod milestone_tests {
                     hits.push(hit);
                 }
                 assert_eq!(hits.len(), 2, "{key}: extra target");
-                if key == "flame_shock" {
+                if matches!(key, "flame_shock" | "holy_fire") {
                     let run = app.world().resource::<Run>();
                     let expected_dot =
                         Params::new(&run.abilities[0], &run.stats(), run.milestones).dot;
                     assert!(
                         hits.iter()
                             .all(|hit| (hit.dot - expected_dot).abs() < 0.0001),
-                        "Mastery cannot multiply the attached burn"
+                        "Next-cast critical bonus cannot multiply the attached burn"
                     );
                 }
                 assert!(

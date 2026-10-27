@@ -1427,6 +1427,7 @@ pub enum TalentStat {
     Remorseless,
     ColdBlood,
     ElementalMastery,
+    InnerFocus,
     KidneyExposure,
     Aftermath,
     Pyroclasm,
@@ -1544,6 +1545,7 @@ impl TalentDefinition {
             TalentStat::Damage
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
+            | TalentStat::InnerFocus
             | TalentStat::Aftermath
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
@@ -1783,6 +1785,10 @@ impl TalentDefinition {
             TalentStat::ImprovedCurseExhaustion => (100.0, "% additional curse slow"),
             TalentStat::Pyroclasm => (100.0, "% chance to stun fire-area targets"),
             TalentStat::KidneyExposure => (100.0, "% damage taken during Kidney Shot"),
+            TalentStat::InnerFocus => (
+                100.0,
+                "% additional next-cast critical chance; 180 sec recovery",
+            ),
             TalentStat::ColdBlood | TalentStat::ElementalMastery => {
                 (100.0, "% next-cast critical chance; 180 sec recovery")
             }
@@ -2833,6 +2839,11 @@ const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scre
 // Vanilla identities and rank caps; automatic-cast conversions are labeled in descriptions.
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 348, max_rank: 1, name: "Inner Focus",
+        description: "The next successful Smite, Holy Fire, Holy Nova or Mind Blast gains 25 percentage points critical chance for all its direct hits, then recovers after 180 sec of active run time. Ready at run start; no stored charges. Excludes periodic ticks, shields, fear and other-class spells (Survivors automatic conversion; no mana costs)",
+        stat: TalentStat::InnerFocus, per_rank: 0.25,
+    },
     TalentDefinition { id: 341, max_rank: 5, name: "Mental Agility",
         description: "Shadow Word: Pain, Holy Nova, Psychic Scream and Power Word: Shield: 2% shorter cooldown per rank. Multiplies the Discipline 20-point milestone; does not change duration or tick rate (Survivors mana-cost conversion)",
         stat: TalentStat::SpellGroupCooldown(&["shadow_word_pain", "holy_nova", "psychic_scream", "power_word_shield"]), per_rank: 0.02 },
@@ -3021,6 +3032,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Remorseless
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
+            | TalentStat::InnerFocus
             | TalentStat::FlurryHaste
             | TalentStat::Vengeance
             | TalentStat::CriticalBleed
@@ -4315,6 +4327,7 @@ mod stat_talent_tests {
                     | TalentStat::Remorseless
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
+                    | TalentStat::InnerFocus
                     | TalentStat::FlurryHaste
                     | TalentStat::Vengeance
                     | TalentStat::CriticalBleed
