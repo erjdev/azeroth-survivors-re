@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Hero/companion collection integration
+
+Added a regression running the production companion → hero collection chain.
+Shared coins pay the sniffer bonus once; already-pulled coins pay the hero normally.
+Dead heroes receive neither payout, and a second update cannot repeat the award.
+
+333 app tests and Clippy pass. This adds integration evidence without changing
+runtime behavior or UI; no new build or screenshot is required for the test-only
+change. Live Windows companion navigation remains open.
+
 ## 2026-10-27 — Shared companion pickups pay once
 
 Companions now reserve collected pickups immediately, preventing both pets from

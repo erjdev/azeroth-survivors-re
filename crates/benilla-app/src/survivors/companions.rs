@@ -484,6 +484,60 @@ mod tests {
     }
 
     #[test]
+    fn chained_hero_and_companion_collection_preserves_bonus_ownership_and_death_gate() {
+        for alive in [false, true] {
+            for pulled in [false, true] {
+                let mut app = super::super::floor::tests::fixture(&[]);
+                let mut account = super::super::account::empty();
+                account.pets.owned = 2;
+                account.pets.instinct = [1, 1];
+                app.insert_resource(account);
+                let mut run = Run::default();
+                if !alive {
+                    run.hp = 0.0;
+                }
+                app.insert_resource(run);
+                app.insert_resource(super::super::stash::Stash::blank());
+                app.init_resource::<NextState<Phase>>();
+                app.world_mut()
+                    .spawn((Hero { vy: 0.0, air: 0.0 }, Transform::default()));
+                let at = Vec3::Y;
+                for slot in 0..2 {
+                    app.world_mut().spawn((
+                        Fetcher { slot, rest: 0.0 },
+                        Transform::from_translation(at),
+                        MovementState::default(),
+                    ));
+                }
+                let mut gem = Gem::new(GemKind::Gold(10));
+                gem.pulled = pulled;
+                let coin = app
+                    .world_mut()
+                    .spawn((gem, Transform::from_translation(at)))
+                    .id();
+                let mut schedule = Schedule::default();
+                schedule.add_systems((herd, enemies::collect_gems).chain());
+                schedule.run(app.world_mut());
+                let expected = if !alive {
+                    0
+                } else if pulled {
+                    10
+                } else {
+                    11
+                };
+                assert_eq!(app.world().resource::<Run>().gold_found, expected);
+                assert_eq!(
+                    app.world().resource::<super::super::stash::Stash>().gold,
+                    expected
+                );
+                assert_eq!(app.world().get_entity(coin).is_err(), alive);
+                schedule.run(app.world_mut());
+                assert_eq!(app.world().resource::<Run>().gold_found, expected);
+            }
+        }
+    }
+
+    #[test]
     fn companion_displays_models_and_icons_exist_in_the_patch_chain() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

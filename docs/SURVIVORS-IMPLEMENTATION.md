@@ -5862,3 +5862,13 @@ still deferred. The ECS regression overlaps both pets with coins/wisps in both
 spawn orders and verifies one sniffer bonus, one XP award, healing exclusion and
 no repeat payout next update. All 332 app tests, Clippy and native build pass. This is accounting evidence, not live Windows companion
 navigation acceptance. Rune-hound spawning/effects remain unfinished.
+
+
+### Hero/companion collection integration — 2026-10-27
+
+A chained ECS regression now exercises companions::herd followed by collect_gems,
+matching production ordering and deferred despawn behavior. It checks both living
+and dead heroes, hero-pulled versus unclaimed coins, correct 10/11 gold ownership,
+and no duplicate payout on a second update. All 333 app tests and Clippy pass.
+Runtime code is unchanged, so the native build was not repeated. These checks do
+not replace live pickup/navigation acceptance or finish Rune-hound behavior.
