@@ -6003,3 +6003,13 @@ core source/rank checks and runtime cooldown/timer tests.
 All 337 app tests, Clippy, formatting and diff checks pass. Runtime code is
 unchanged, so no native rebuild or new visual checkpoint is claimed. These tests
 do not replace live Windows combat or balance acceptance.
+
+### 2026-10-27 — Draft implementation review
+
+Opened [PR #1](https://github.com/erjdev/azeroth-survivors-re/pull/1) against this
+repository's main branch after verifying there was no open PR and the local branch
+matched origin. The draft explicitly retains the incomplete talent/content, UI
+and Windows acceptance work; it is not a merge-readiness claim. At b4951ff, the
+wasm32 wenilla check passes (five warnings), and all 337 visibility-enabled app
+tests pass with checkout data. Existing screenshots remain current because this
+checkpoint changes no UI. GitHub CI must be assessed independently.

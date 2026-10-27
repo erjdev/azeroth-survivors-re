@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Implementation review opened
+
+[Draft PR #1](https://github.com/erjdev/azeroth-survivors-re/pull/1) now tracks the
+starter, Armory and progression work, with remaining acceptance gaps called out.
+The current browser build check passes with five warnings, and all 337
+visibility-enabled app tests pass. This review checkpoint changes no visuals;
+existing inline milestone captures remain current. Remote CI results are separate
+from these local checks.
+
 ## 2026-10-27 — Flurry combat integration
 
 Verified Warrior and Shaman Flurry through production damage resolution: eligible
