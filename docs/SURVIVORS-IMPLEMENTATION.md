@@ -21,7 +21,8 @@ and Companions at 1280×720. Responsive variants and interaction acceptance rema
 The full workspace gate is not green. All-target Clippy passes after test setup
 cleanup, but app tests report three failures: `an_empty_account_parks_at_select_without_creating_a_character`,
 `every_material_lane_has_a_warm_contributor`, and `the_dev_plane_has_exactly_one_door`.
-Resolve account-selection behavior, register or justify custom material warm-up,
+The account-selection test passes outside the sandbox (loopback socket permission).
+Register or justify the `Backdrop` material warm-up,
 and reconcile Survivors preview compilation with the development-mode boundary.
 Do not weaken architecture assertions to obtain a pass. Then rerun the full gate,
 including no-install and player-build checks; the first failure currently prevents

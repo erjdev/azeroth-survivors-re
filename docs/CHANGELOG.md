@@ -11,7 +11,9 @@ check skipped), build-script tests (6), and WebGPU compilation pass.
 
 The workspace test gate remains **failing**: 4,672 app tests passed, three failed
 (account selection, material warm-up coverage, and development-preview boundaries),
-and ten were ignored. Addon-corpus coverage and Windows acceptance remain open.
+and ten were ignored. The account-selection test passes outside the sandbox; its
+local mock-server socket was denied. Backdrop warm-up and preview-boundary failures
+remain. Addon-corpus coverage and Windows acceptance remain open.
 This checkpoint changes test setup only; the visual milestones below remain current.
 
 ## 2026-10-27 — Insect Swarm talent
