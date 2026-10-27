@@ -5736,3 +5736,18 @@ saved state, then inspected an unowned weapon with no equip action. Compact
 640×720 scrolling and scrollbar dragging expose the new rows. CHANGELOG embeds
 both screenshots and README refreshes Drop Tables. Windows/controller and actual
 in-world drop acceptance are not established by this menu checkpoint.
+
+### 2026-10-26 — Direct drop-table preview controls
+
+Preview requests now accept `piece` on Drop Tables and an optional named `zone`
+only on that page. Names match the catalog case-insensitively; omission preserves
+manual zone selection, and malformed/duplicate/foreign-page keys reject the whole
+request. Inspecting an item does not require it to drop in the browsed zone, matching
+the normal shared inspector. Preview selection leaves gameplay map/stage unchanged.
+
+327 app tests, Clippy and native build pass. Regression coverage visits all zone
+names, Poor-to-legacy item transitions, retained zones and invalid inputs. Native
+macOS validation launched Duskwood/Poor gloves at 1280×720, rejected an unknown
+zone without resizing, then reloaded Elwynn/Common helm at 640×720 and scrolled to
+its inspector. Two inline changelog screenshots and reusable presets document the
+workflow. No layout or loot tuning change; Windows validation remains open.

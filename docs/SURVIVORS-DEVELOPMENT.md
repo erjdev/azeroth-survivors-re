@@ -402,7 +402,7 @@ the actual saved rank and does not focus, train or refund a node. Removing the
 mouse/keyboard purchases still work, so use an isolated account when testing them.
 Changing file contents is required to retry a rejected request after selecting a hero.
 
-Collection accepts `piece = <band>:<slot>`, for example `piece = epic:hands`
+Collection and Drop Tables accept `piece = <band>:<slot>`, for example `piece = epic:hands`
 or `piece = legendary:main hand`. Names are case-insensitive and use the current
 catalog: Poor, Common, Uncommon, Rare, Epic, PvP, Legendary; Helm, Shoulders, Chest,
 Waist, Legs, Feet, Wrist, Hands, Main Hand. This selects the inspected cell for the
@@ -413,9 +413,17 @@ provide direct Poor-quality previews. Switching back to a legacy rarity clears
 the supplemental inspection. Normal
 mouse/keyboard gear actions remain active; use an isolated account for interactions.
 Omitting `piece` preserves the manual selection. Invalid names, Off Hand, repeated
-keys or use outside Collection reject the entire request, preserving page and size.
+keys or use outside Collection/Drop Tables reject the entire request, preserving page and size.
 Wide/compact examples are `docs/ui-previews/collection-epic-hands-1280.txt` and
 `collection-epic-hands-640.txt`; compact details remain reachable by scrolling.
+
+Drop Tables accepts `zone = <zone name>`, such as `zone = Duskwood`, with
+case-insensitive catalog names. This changes only the browsed drop table, never
+the next run's map or stage. Omission preserves the currently browsed zone. Unknown
+names, numeric indexes, duplicate keys or use on other pages reject the entire
+request. Combine `zone`, `piece` and `hero` to inspect a fixture's loot directly;
+inspection may show an item from another zone without inventing a source there.
+Examples: `drops-duskwood-poor-1280.txt` and `drops-elwynn-common-640.txt`.
 
 Rewards and Achievements also accept an optional `category` key. Category changes
 apply with the page and dimensions in the same reload; omitting it preserves the

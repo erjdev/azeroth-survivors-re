@@ -1,0 +1,5 @@
+page=drops
+zone=Duskwood
+piece=poor:hands
+width=1280
+height=720

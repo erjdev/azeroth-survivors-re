@@ -69,6 +69,7 @@ struct Request {
     talent: Option<u32>,
     hero: Option<u32>,
     piece: Option<Piece>,
+    zone: Option<usize>,
     cards: Option<Vec<Card>>,
 }
 
@@ -82,6 +83,7 @@ impl Request {
         let mut talent = None;
         let mut hero = None;
         let mut piece = None;
+        let mut zone = None;
         for line in text.lines() {
             let line = line.split('#').next()?.trim();
             if line.is_empty() {
@@ -163,6 +165,13 @@ impl Request {
                     hero = Some(value.parse::<u32>().ok().filter(|id| *id > 0)?)
                 }
                 "talent" if talent.is_none() => talent = Some(value.parse::<u32>().ok()?),
+                "zone" if zone.is_none() => {
+                    zone = Some(
+                        campaign::ZONES
+                            .iter()
+                            .position(|zone| zone.name.eq_ignore_ascii_case(value))?,
+                    );
+                }
                 "piece" if piece.is_none() => {
                     let (band, slot) = value.split_once(':')?;
                     let slot = campaign::SLOTS[..campaign::GRID_SLOTS]
@@ -192,7 +201,8 @@ impl Request {
         }
         let page = page?;
         if talent.is_some_and(|id| id == 0 || page != Page::Talents)
-            || (piece.is_some() && page != Page::Collection)
+            || (piece.is_some() && !matches!(page, Page::Collection | Page::DropTables))
+            || (zone.is_some() && page != Page::DropTables)
         {
             return None;
         }
@@ -220,6 +230,7 @@ impl Request {
             talent,
             hero,
             piece,
+            zone,
             width: width?,
             height: height?,
             cards,
@@ -267,6 +278,9 @@ impl Request {
             _ => None,
         };
         armory.page = self.page;
+        if let Some(zone) = self.zone {
+            armory.drop_zone = zone;
+        }
         if let Some(piece) = self.piece {
             armory.piece = match piece {
                 Piece::Legacy(index) => index,
@@ -555,7 +569,6 @@ mod tests {
         }
         for page in [
             "character",
-            "drops",
             "talents",
             "rewards",
             "cards\nabilities=smite:1",
@@ -567,6 +580,60 @@ mod tests {
                 .is_none(),
                 "{page}"
             );
+        }
+    }
+
+    #[test]
+    fn drop_previews_select_zone_and_item_without_changing_run_selection() {
+        let selection = crate::survivors::Selection::default();
+        let account = crate::survivors::account::blank();
+        for (index, zone) in campaign::ZONES.iter().enumerate() {
+            let request = Request::parse(&format!(
+                "page=drops\nzone={}\npiece=poor:hands\nwidth=640\nheight=720",
+                zone.name.to_uppercase()
+            ))
+            .unwrap();
+            let candidate = request.selection(&selection, &account).unwrap();
+            assert_eq!(
+                (
+                    candidate.map,
+                    candidate.stage,
+                    candidate.character,
+                    candidate.class
+                ),
+                (
+                    selection.map,
+                    selection.stage,
+                    selection.character,
+                    selection.class
+                )
+            );
+            let mut armory = Armory::default();
+            let mut typing = Typing(false);
+            let mut window = Window::default();
+            request.apply(&mut armory, &mut typing, &mut window, 2);
+            assert!(armory.page == Page::DropTables);
+            assert_eq!(armory.drop_zone, index);
+            assert_eq!(
+                armory.supplemental_piece.as_deref(),
+                Some("poor:hunter:hands")
+            );
+            Request::parse("page=drops\npiece=rare:helm\nwidth=1280\nheight=720")
+                .unwrap()
+                .apply(&mut armory, &mut typing, &mut window, 2);
+            assert_eq!(armory.drop_zone, index);
+            assert!(armory.supplemental_piece.is_none());
+            assert_eq!(armory.piece, 2 * campaign::GRID_SLOTS);
+        }
+        for text in [
+            "page=drops\nzone=Unknown",
+            "page=drops\nzone=",
+            "page=drops\nzone=0",
+            "page=drops\nzone=Elwynn Forest\nzone=Duskwood",
+            "page=collection\nzone=Elwynn Forest",
+            "page=talents\nzone=Duskwood",
+        ] {
+            assert!(Request::parse(&format!("{text}\nwidth=640\nheight=720")).is_none());
         }
     }
 

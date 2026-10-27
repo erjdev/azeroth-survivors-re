@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Direct drop-table previews
+
+UI preview files can now select a named drop-table zone and inspected item together.
+This changes the browser only; the next run's map/stage stay intact. Invalid requests
+preserve the current view. Two reusable wide/compact presets are included.
+
+327 app tests, Clippy and native build pass. Native macOS checks confirm direct
+Duskwood/Poor launch, invalid-zone retention and compact Elwynn/Common reload.
+The existing reference-based layout is unchanged; Windows validation remains open.
+
+![Direct Duskwood item preview](images/screenshots/2026-10-26-drop-previews/duskwood-1280.png)
+
+![Compact Elwynn item inspector](images/screenshots/2026-10-26-drop-previews/elwynn-640.png)
+
 ## 2026-10-26 — Inspect ordinary-enemy drops
 
 Drop Tables now lists all nine class-specific Poor items in Elwynn and Duskwood,
