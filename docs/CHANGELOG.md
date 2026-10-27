@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Chest reward burst verification
+
+Actual death-event batches now verify elite chest spacing and the five-per-run
+cap, independent boss rewards, and no duplicate drops on idle frames. This
+extends the existing pacing checks through deferred chest spawning. All 356 app
+tests pass. No visual change; Windows foliage/fence/chest scene acceptance remains open.
+
 ## 2026-10-27 — Ordinary-enemy source shortcuts
 
 Poor gear details now link directly to both Elwynn and Duskwood drop tables,

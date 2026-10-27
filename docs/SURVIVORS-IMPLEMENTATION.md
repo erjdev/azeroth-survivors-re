@@ -6401,3 +6401,14 @@ and native build pass. Native wide/compact captures verify both source links;
 opening Duskwood retains the inspected Poor gloves and its progression lock.
 Three screenshots are embedded in CHANGELOG. Physical-controller and Windows
 visual acceptance remain open.
+
+
+### 2026-10-27 — Death-event chest integration evidence
+
+The loot-system regression processes eight 100-death batches, mixing normal,
+elite and elite-flagged boss deaths at pre-eligibility, spacing boundaries and
+beyond the run cap. It verifies five actual elite chest entities, eight independent
+boss chest entities, and no replay on a subsequent idle frame. All 356 app tests
+pass. This closes the gap between the pacing helper and deferred reward spawning;
+it does not verify Windows scene routing or foliage rendering. Those acceptance
+checks remain open pending the playtested build and scene reproduction.

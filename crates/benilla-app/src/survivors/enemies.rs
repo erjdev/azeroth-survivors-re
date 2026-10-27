@@ -1017,6 +1017,60 @@ mod elite_chest_tests {
     use super::*;
 
     #[test]
+    fn death_batches_limit_elite_chests_without_suppressing_boss_rewards() {
+        let mut app = App::new();
+        app.init_resource::<Run>()
+            .init_resource::<Rng>()
+            .add_message::<Loot>()
+            .add_systems(Update, drop_loot);
+        // Exercise the real message reader and deferred chest spawns, including
+        // bosses flagged as elites and ordinary kills mixed into crowded waves.
+        for (elapsed, expected_elites) in [
+            (59.9, 0),
+            (60., 1),
+            (149.9, 1),
+            (150., 2),
+            (240., 3),
+            (330., 4),
+            (420., 5),
+            (3600., 5),
+        ] {
+            app.world_mut().resource_mut::<Run>().elapsed = elapsed;
+            for index in 0..100 {
+                app.world_mut().write_message(Loot {
+                    pos: Vec3::X * index as f32,
+                    xp: 1,
+                    boss: index == 0,
+                    elite: index % 2 == 0,
+                });
+            }
+            app.update();
+            let world = app.world_mut();
+            let mut chests = world.query::<&Chest>();
+            let elite_count = chests
+                .iter(world)
+                .filter(|chest| chest.tier == super::super::campaign::ChestTier::B)
+                .count();
+            assert_eq!(elite_count, expected_elites, "elapsed={elapsed}");
+            assert_eq!(world.resource::<Run>().elite_chests as usize, elite_count);
+        }
+        let world = app.world_mut();
+        let mut chests = world.query::<&Chest>();
+        assert_eq!(
+            chests
+                .iter(world)
+                .filter(|chest| chest.tier == super::super::campaign::ChestTier::A)
+                .count(),
+            8,
+            "each boss keeps its reward even before eligibility and after the elite cap"
+        );
+        // A frame without deaths must not replay the prior batch.
+        app.update();
+        let world = app.world_mut();
+        assert_eq!(world.query::<&Chest>().iter(world).count(), 13);
+    }
+
+    #[test]
     fn elite_bursts_obey_spacing_cap_and_new_run_reset() {
         let mut run = Run::default();
         for second in [0., 30., 59.9] {
