@@ -1161,6 +1161,15 @@ pub(super) fn detail(
             layout.body_size,
             DIM,
         );
+        if armory.page != super::Page::DropTables || armory.drop_zone != drop.zone {
+            chip(
+                ui,
+                font,
+                &format!("View {} drops", campaign::ZONES[drop.zone].name),
+                Act::OpenDropSource(drop.zone),
+                false,
+            );
+        }
     }
     if sources == 0 {
         text(ui, font, "Source not yet available", layout.body_size, DIM);
@@ -1376,6 +1385,57 @@ fn missing(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn legacy_item_sources_offer_navigation_to_their_actual_zones() {
+        let account = super::super::super::account::blank();
+        let selection = Selection {
+            class: Some(0),
+            ..default()
+        };
+        for piece in 0..campaign::PIECES {
+            let armory = Armory {
+                page: super::super::Page::Collection,
+                piece,
+                ..default()
+            };
+            let mut world = World::new();
+            world
+                .commands()
+                .spawn(Node::default())
+                .with_children(|panel| {
+                    detail(
+                        panel,
+                        &Handle::default(),
+                        &armory,
+                        &account,
+                        &selection,
+                        &Layout::default(),
+                    );
+                });
+            world.flush();
+            let actual: Vec<_> = world
+                .query::<&Act>()
+                .iter(&world)
+                .filter_map(|act| {
+                    if let Act::OpenDropSource(zone) = act {
+                        Some(*zone)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            let expected: Vec<_> = campaign::DROPS
+                .iter()
+                .filter(|drop| {
+                    drop.band == piece / campaign::GRID_SLOTS
+                        && drop.slot == piece % campaign::GRID_SLOTS
+                })
+                .map(|drop| drop.zone)
+                .collect();
+            assert_eq!(actual, expected, "piece {piece}");
+        }
+    }
 
     #[test]
     fn poor_inspector_only_offers_owned_equipment_and_appearance_actions() {

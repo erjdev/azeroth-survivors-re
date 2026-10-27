@@ -6370,3 +6370,18 @@ Native macOS 1280×720 and 640×720 previews confirm green inline values, a succ
 purchase, persisted rank 1 and readable compact wrapping against the intentions
 layout. Screenshots are embedded in CHANGELOG. Live combat balance and Windows
 acceptance remain open, along with the remaining individual talent rules.
+
+### 2026-10-27 — Collection source navigation
+
+Legacy item source rows now include a View zone drops action. It opens the source
+zone's Drop Tables, retaining the inspected piece and resetting both compact and
+wide destination scrolling. It never changes the next-run zone, equipment,
+ownership or unlock state. The destination omits a redundant shortcut to itself.
+This intentionally extends the intention screenshot's static source text.
+
+All 354 app tests pass, including source-action coverage across all 54 legacy
+item cells and navigation isolation. The final scroll-reset regression and
+app/test Clippy pass; the incremental native build passes. Native 1280×720 and
+640×720 clicks verified Elwynn navigation, item retention and compact layout.
+Three screenshots are embedded in CHANGELOG; README's Drop Tables image is
+updated. Supplemental raid acquisition and remaining page acceptance stay open.

@@ -222,6 +222,14 @@ impl Default for Armory {
 }
 
 impl Armory {
+    fn open_drop_source(&mut self, zone: usize) {
+        if zone < campaign::ZONES.len() {
+            self.drop_zone = zone;
+            self.drop_scroll = Vec2::ZERO;
+            self.drop_columns = [Vec2::ZERO; 4];
+            self.open_page(Page::DropTables);
+        }
+    }
     pub(super) fn open_page(&mut self, page: Page) {
         self.rename = None;
         self.page = page;
@@ -256,6 +264,7 @@ pub(super) enum Act {
     Create,
     Zone(usize),
     BrowseDrops(usize),
+    OpenDropSource(usize),
     Learn(usize),
     Spec(u8),
     Respec,
@@ -537,6 +546,7 @@ pub(super) fn input(
                 };
             }
             Act::BrowseDrops(index) => armory.drop_zone = index.min(ZONES.len() - 1),
+            Act::OpenDropSource(index) => armory.open_drop_source(index),
             Act::Zone(index) => {
                 pick_zone(&mut armory, &account, &mut selection, index);
                 super::menu::save_pick(&selection);
@@ -2228,6 +2238,28 @@ mod tests {
     use super::super::data;
     use super::super::Selection;
     use super::enter_refused;
+
+    #[test]
+    fn item_source_navigation_preserves_item_and_next_run_zone() {
+        let mut armory = super::Armory {
+            page: super::Page::Collection,
+            piece: 17,
+            picked: Some(4),
+            drop_scroll: bevy::prelude::Vec2::splat(300.),
+            drop_columns: [bevy::prelude::Vec2::splat(200.); 4],
+            ..Default::default()
+        };
+        armory.open_drop_source(1);
+        assert!(armory.page == super::Page::DropTables);
+        assert_eq!(armory.drop_zone, 1);
+        assert_eq!(armory.piece, 17);
+        assert_eq!(armory.entered_zone(), Some(4));
+        assert_eq!(armory.drop_scroll, bevy::prelude::Vec2::ZERO);
+        assert_eq!(armory.drop_columns, [bevy::prelude::Vec2::ZERO; 4]);
+        armory.open_drop_source(usize::MAX);
+        assert_eq!(armory.drop_zone, 1);
+        assert_eq!(armory.piece, 17);
+    }
 
     #[test]
     fn dbc_refunds_require_earlier_rows_and_the_full_prerequisite_rank() {

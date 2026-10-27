@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Item source navigation
+
+Collection item details now open the matching zone's Drop Tables directly. The
+inspected item stays selected, destination scrolling resets, and the next-run
+zone stays unchanged. This extends the reference's source panel with a shortcut.
+
+354 app tests, the final scroll-reset regression, app/test Clippy and native build
+pass. Native wide/compact clicks verify navigation and readable controls. Raid
+sources remain pending; this change adds no drops or zone unlocks.
+
+![Collection source shortcut](images/screenshots/2026-10-27-item-source-navigation/collection-1280.png)
+![Matching source and inspected item](images/screenshots/2026-10-27-item-source-navigation/drops-1280.png)
+![Compact source control](images/screenshots/2026-10-27-item-source-navigation/collection-640.png)
+
 ## 2026-10-27 — Shaman Nature's Swiftness
 
 Nature's Swiftness now shortens Earth, Flame and Frost Shock cooldowns by 15%,
