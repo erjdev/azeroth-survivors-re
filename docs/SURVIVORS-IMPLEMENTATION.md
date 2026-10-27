@@ -7599,3 +7599,21 @@ balance; no menu appearance changed and no replacement UI screenshot is needed.
 
 Validation: all 422 app tests, app Clippy, formatting and diff checks pass on
 macOS. No additional platform or rendered-combat acceptance is claimed.
+
+
+### 2026-10-27 — Preserve structurally damaged talent saves
+
+Talent-row decoding now returns an error for malformed triples, invalid hero IDs,
+missing payloads, trailing fields and more than three saved specs. References are
+resolved after all heroes load; a missing referenced hero also rejects the load.
+The existing account recovery path preserves the file and prevents saves/run
+entry, rather than writing a sanitized file that silently loses talent choices.
+Valid rows still load in either order; duplicate ranks retain their established
+normalization. Unknown nonzero talent IDs and over-cap ranks remain intact for
+catalog validation and in-app refund recovery. This supersedes the old behavior
+that skipped malformed talent entries. No UI appearance changes are included.
+
+Validation: 422 app tests pass with checkout-local data, including actual disk
+preservation and run/save refusal. Clippy then prompted a type-alias-only cleanup;
+Clippy passes after that cleanup. Formatting and diff checks pass. No new native
+menu, Windows, browser or gameplay validation is claimed for this persistence fix.

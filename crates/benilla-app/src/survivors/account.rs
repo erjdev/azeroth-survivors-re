@@ -29,7 +29,7 @@ pub(super) struct Character {
     pub specs: [[u8; campaign::SPEC_LEN]; 3],
     /// Real `Talent.dbc` ranks for the three specs: tree index, talent id, rank.
     /// Empty means the skeleton above is what the run still uses.
-    pub dbc: [Vec<(u8, u32, u8)>; 3],
+    pub dbc: SavedTalentSpecs,
 }
 
 impl Character {
@@ -82,7 +82,9 @@ impl Character {
     }
 }
 
-fn blank_dbc() -> [Vec<(u8, u32, u8)>; 3] {
+type SavedTalentSpecs = [Vec<(u8, u32, u8)>; 3];
+
+fn blank_dbc() -> SavedTalentSpecs {
     [Vec::new(), Vec::new(), Vec::new()]
 }
 
@@ -1329,7 +1331,7 @@ fn read_specs(list: &str) -> (u8, [[u8; campaign::SPEC_LEN]; 3]) {
     (0, specs)
 }
 
-fn encode_dbc(specs: &[Vec<(u8, u32, u8)>; 3]) -> String {
+fn encode_dbc(specs: &SavedTalentSpecs) -> String {
     specs
         .iter()
         .map(|spec| {
@@ -1343,21 +1345,24 @@ fn encode_dbc(specs: &[Vec<(u8, u32, u8)>; 3]) -> String {
         .join("|")
 }
 
-fn read_dbc(payload: &str) -> [Vec<(u8, u32, u8)>; 3] {
+fn read_dbc(payload: &str) -> Result<SavedTalentSpecs, ()> {
     let mut specs = blank_dbc();
-    for (spec, group) in payload.split('|').enumerate().take(3) {
+    for (spec, group) in payload.split('|').enumerate() {
+        if spec >= specs.len() {
+            return Err(());
+        }
         for entry in group.split(',').filter(|s| !s.is_empty()) {
             let mut bits = entry.split(':');
             let (Some(tree), Some(id), Some(rank)) = (bits.next(), bits.next(), bits.next()) else {
-                continue;
+                return Err(());
             };
             let (Ok(tree), Ok(id), Ok(rank)) =
                 (tree.parse::<u8>(), id.parse::<u32>(), rank.parse::<u8>())
             else {
-                continue;
+                return Err(());
             };
             if tree >= 3 || id == 0 || rank == 0 || bits.next().is_some() {
-                continue;
+                return Err(());
             }
             // A talent owns one rank per spec; repeated rows never buy tree points.
             // Keep its first tree and highest rank, matching core spell training.
@@ -1368,7 +1373,7 @@ fn read_dbc(payload: &str) -> [Vec<(u8, u32, u8)>; 3] {
             }
         }
     }
-    specs
+    Ok(specs)
 }
 
 fn parse(text: &str) -> Result<Account, ()> {
@@ -1442,9 +1447,12 @@ fn parse(text: &str) -> Result<Account, ()> {
                 }
             }
             Some("dbc") => {
-                if let Some(id) = parts.next().and_then(|id| id.parse::<u32>().ok()) {
-                    talent_rows.push((id, read_dbc(parts.next().unwrap_or(""))));
+                let id = parts.next().ok_or(())?.parse::<u32>().map_err(|_| ())?;
+                let specs = read_dbc(parts.next().ok_or(())?)?;
+                if parts.next().is_some() {
+                    return Err(());
                 }
+                talent_rows.push((id, specs));
             }
             Some("class") => {
                 let index: usize = parts.next().ok_or(())?.parse().map_err(|_| ())?;
@@ -1578,9 +1586,12 @@ fn parse(text: &str) -> Result<Account, ()> {
     }
     // Resolve references after all characters exist; later rows retain replacement semantics.
     for (id, specs) in talent_rows {
-        if let Some(hero) = account.characters.iter_mut().find(|hero| hero.id == id) {
-            hero.dbc = specs;
-        }
+        let hero = account
+            .characters
+            .iter_mut()
+            .find(|hero| hero.id == id)
+            .ok_or(())?;
+        hero.dbc = specs;
     }
     for (id, body) in body_rows {
         if let Some(hero) = account.characters.iter_mut().find(|hero| hero.id == id) {
@@ -1716,6 +1727,12 @@ mod tests {
             b"who 1 0 100 First Hero\nwho 1 1 200 Second Hero\n",
             b"who 1 0 100 First Hero\nwho 2 9 200 Future Hero\ndbc 2 0:74:2||\n",
             b"who 1 4294967295 200 Broken Hero\n",
+            b"who 1 3 5100 Saved Rogue\ndbc 1 0:270:5,broken||\n",
+            b"who 1 3 5100 Saved Rogue\ndbc bad 0:270:5||\n",
+            b"who 1 3 5100 Saved Rogue\ndbc 99 0:270:5||\n",
+            b"who 1 3 5100 Saved Rogue\ndbc 1\n",
+            b"who 1 3 5100 Saved Rogue\ndbc 1 0:270:5|| extra\n",
+            b"who 1 3 5100 Saved Rogue\ndbc 1 0:270:5|||1:187:2\n",
             b"who 1 0 100 First Hero\nclass 9 111111 1 111111111111\n",
         ] {
             std::fs::write(&path, bytes).unwrap();
@@ -2388,7 +2405,7 @@ mod tests {
                 reordered.character(id).unwrap().dbc
             );
         }
-        let replacement = parse("dbc 0 0:270:1\ndbc bad 0:270:5\ndbc 99 0:270:5\nwho 0 3 5100 Legacy Rogue\nwho 1 3 5100 Saved Rogue\ndbc 1 0:270:3\ndbc 1 |1:187:2|\n").unwrap();
+        let replacement = parse("dbc 0 0:270:1\nwho 0 3 5100 Legacy Rogue\nwho 1 3 5100 Saved Rogue\ndbc 1 0:270:3\ndbc 1 |1:187:2|\n").unwrap();
         assert_eq!(replacement.character(0).unwrap().dbc[0], vec![(0, 270, 1)]);
         assert_eq!(
             replacement.character(1).unwrap().dbc,
@@ -2426,9 +2443,34 @@ mod tests {
     }
 
     #[test]
-    fn malformed_saved_talent_entries_are_not_reinterpreted_as_valid_trees() {
-        let ranks = read_dbc("3:270:5,bad:270:5,:270:5,0:bad:5,0:270:bad,0:270,0:270:5:extra,0:0:5,0:270:0,2:244:5||1:187:2");
-        assert_eq!(ranks, [vec![(2, 244, 5)], vec![], vec![(1, 187, 2)]]);
+    fn malformed_saved_talent_entries_preserve_the_save_instead_of_dropping_ranks() {
+        for entry in [
+            "3:270:5",
+            "bad:270:5",
+            ":270:5",
+            "0:bad:5",
+            "0:270:bad",
+            "0:270",
+            "0:270:5:extra",
+            "0:0:5",
+            "0:270:0",
+        ] {
+            assert!(
+                read_dbc(&format!("{entry},2:244:5||1:187:2")).is_err(),
+                "{entry}"
+            );
+        }
+        assert!(read_dbc("0:270:5|||1:187:2").is_err());
+        assert_eq!(
+            read_dbc("2:244:5||1:187:2").unwrap(),
+            [vec![(2, 244, 5)], vec![], vec![(1, 187, 2)]]
+        );
+        assert_eq!(read_dbc("||").unwrap(), blank_dbc());
+        // Unknown identities stay intact for catalog validation, rather than disappearing.
+        assert_eq!(
+            read_dbc("0:4294967295:255").unwrap()[0],
+            vec![(0, u32::MAX, 255)]
+        );
     }
 
     #[test]

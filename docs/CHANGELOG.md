@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Preserve damaged talent saves
+
+Malformed talent rows, extra spec groups and references to missing heroes now
+activate account recovery instead of silently losing saved ranks. The original
+file stays untouched and runs/saving remain disabled until it is repaired.
+Valid legacy specs, reordered rows and duplicate-rank normalization still load.
+Unknown talent IDs remain preserved for catalog validation.
+
+No interface appearance changed; this uses the existing recovery notice.
+422 app tests pass with local data; Clippy, formatting and diff checks pass on macOS.
+
 ## 2026-10-27 — Shield refreshes preserve stronger defenses
 
 Mana Shield and Power Word: Shield now wait when a stronger absorb is active,
