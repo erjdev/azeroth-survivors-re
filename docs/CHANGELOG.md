@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Windows report regression recheck
+
+Foliage, routing, spawn clearance, chest cadence and talent-art checks pass.
+The [playtest tracker](WINDOWS-PLAYTEST.md) now links the Windows visibility capture
+workflow. Full app suite: 392 passed; two unfinished Raid Epic source-page tests
+failed. Windows scene acceptance remains open. No UI change or new screenshots.
+
 ## 2026-10-27 — Collection content verification
 
 Added `survivors-audit --collection`: all 486 primary cells resolve to decoded

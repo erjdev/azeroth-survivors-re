@@ -48,3 +48,17 @@ until its failing view and an adjacent passing state have been checked:
 - **Talents:** capture the same class at the desktop's normal resolution and a
   compact window, including the UI scale setting. Tree art should retain its
   proportions; icons and rank labels should stay aligned while scrolling.
+
+## Capture visibility evidence on Windows
+
+Use the [Windows visibility trace workflow](SURVIVORS-DEVELOPMENT.md#diagnosing-scenery-reveal-on-windows)
+for a short obstructed/clear camera replay with **Scenery cutaway** enabled. Keep
+the log and screenshots together with the exact build commit. It distinguishes
+missing rendered blockers from an active reveal that fails to appear on screen;
+camera collision alone cannot establish whether foliage hides the hero.
+
+Recheck on 2026-10-27, working tree based on `6e05622`: foliage, navigation,
+spawn clearance, elite chest batches and talent artwork regression checks pass.
+The full Survivors app run reports 392 passes and two failures in the unfinished
+Raid Epic Collection/Drop Tables source expectations. No new runtime screenshot
+or Windows scene acceptance is claimed.
