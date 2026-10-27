@@ -26,7 +26,10 @@ player configuration proves a preview environment variable cannot install state
 or the watcher. Runtime preview activation remains native-only.
 
 The full gate is **not green**: it now reaches `reference_strings`, which flags
-Survivors labels duplicating existing game localization keys. Resolve those keys
+Survivors labels duplicating existing game localization keys. Appearance labels and
+Enter World now resolve glue keys, reducing the flagged literals from 31 to 24.
+Native English layout checks and injected translation/fallback tests pass; this is
+not complete localization. Resolve the remaining keys
 through the existing string resources, then rerun the full gate, including
 no-install and the complete player suite. Browser compilation previously passed
 with five warnings. Addon-corpus coverage and Windows visual acceptance remain open.

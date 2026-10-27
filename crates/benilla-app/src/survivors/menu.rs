@@ -213,11 +213,14 @@ pub(super) fn build_menu(
     mut images: ResMut<Assets<Image>>,
     mut add_mats: ResMut<Assets<crate::glue::add_material::AddUiMaterial>>,
     font: Res<HudFont>,
+    strings: Option<Res<crate::glue_strings::GlueStrings>>,
 ) {
     let Ok(root) = roots.single() else { return };
     let Some(mut assets) = assets else { return };
     art.ensure_loaded(&mut assets, &mut images, &mut add_mats);
     let f = &font.0;
+    let fallback = crate::glue_strings::GlueStrings::default();
+    let strings = strings.as_deref().unwrap_or(&fallback);
     commands.entity(root).insert(MenuBuilt).with_children(|ui| {
         ui.spawn((
             LookScreen,
@@ -387,7 +390,7 @@ pub(super) fn build_menu(
                     &art,
                     f,
                     MenuAction::Enter,
-                    "Enter World",
+                    strings.text("ENTER_WORLD", "Enter World"),
                     200.0,
                     60.0,
                     GlueBtnKind::Normal,

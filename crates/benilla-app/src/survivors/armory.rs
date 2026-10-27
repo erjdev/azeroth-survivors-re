@@ -71,6 +71,7 @@ pub(super) struct Pointer<'w> {
 /// Creature looks and the talent catalog, one system parameter so the menu stays within Bevy's limit.
 #[derive(SystemParam)]
 pub(super) struct MenuBooks<'w> {
+    strings: Option<Res<'w, crate::glue_strings::GlueStrings>>,
     creatures: Option<Res<'w, crate::entities::Creatures>>,
     bodies: Option<Res<'w, crate::entities::CharCreate>>,
     talents: Option<Res<'w, crate::ui_talent::Talents>>,
@@ -509,9 +510,13 @@ pub(super) fn input(
                 if let (Some(creatures), Some(bodies)) =
                     (books.creatures.as_deref(), books.bodies.as_deref())
                 {
-                    if let Some(options) =
-                        super::appearance::options(&selection, &account, creatures, &bodies.0)
-                    {
+                    if let Some(options) = super::appearance::options(
+                        &selection,
+                        &account,
+                        creatures,
+                        &bodies.0,
+                        books.strings.as_deref(),
+                    ) {
                         let values = match act {
                             Act::Feature(dial, direction) => {
                                 super::appearance::step(&options, *dial, *direction)
@@ -959,6 +964,7 @@ pub(super) fn hero_gate(
 
 #[derive(SystemParam)]
 pub(super) struct ArmoryArt<'w> {
+    strings: Option<Res<'w, crate::glue_strings::GlueStrings>>,
     font: Res<'w, HudFont>,
     art: Res<'w, GlueArt>,
     layout: Res<'w, super::UiLayout>,
@@ -1018,7 +1024,13 @@ pub(super) fn refresh(
         .as_deref()
         .zip(assets.bodies.as_deref())
         .and_then(|(creatures, bodies)| {
-            super::appearance::options(&selection, &account, creatures, &bodies.0)
+            super::appearance::options(
+                &selection,
+                &account,
+                creatures,
+                &bodies.0,
+                assets.strings.as_deref(),
+            )
         });
     // Features change the compositor and these counters, not the layout. Keep the
     // tree (and its focus, scrolling and preview) alive while the player edits.
@@ -1046,7 +1058,7 @@ pub(super) fn refresh(
         features
             .counts
             .iter()
-            .zip(features.labels)
+            .zip(&features.labels)
             .fold(1, |n, (count, label)| {
                 fold(fold(n, u64::from(*count)), hash_str(label))
             })

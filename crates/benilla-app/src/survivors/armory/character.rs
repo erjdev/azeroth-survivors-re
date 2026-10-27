@@ -542,7 +542,7 @@ fn feature_controls(
             .with_children(|value| {
                 value.spawn(hud::centered_bundle(
                     font,
-                    features.labels[i],
+                    features.labels[i].as_str(),
                     layout.body_size * 0.85,
                     Color::srgb(0.65, 0.61, 0.45),
                 ));

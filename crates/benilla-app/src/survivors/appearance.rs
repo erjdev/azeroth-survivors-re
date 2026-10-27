@@ -1,11 +1,12 @@
 //! Per-hero features use the stock creation ranges and player compositor.
 use super::{account::Account, Selection};
+use crate::glue_strings::GlueStrings;
 use benilla_formats::{CharCreateCatalog, DialRanges};
 
 pub(super) struct Options {
     pub values: [u8; 5],
     pub counts: [u8; 5],
-    pub labels: [&'static str; 5],
+    pub labels: [String; 5],
 }
 
 pub(super) fn counts(r: DialRanges) -> [u8; 5] {
@@ -21,6 +22,7 @@ pub(super) fn options(
     account: &Account,
     creatures: &crate::entities::Creatures,
     catalog: &CharCreateCatalog,
+    strings: Option<&GlueStrings>,
 ) -> Option<Options> {
     let hero = account.character(selection.character?)?;
     let &(preset, race, sex) = selection.looks.get(selection.look?)?;
@@ -39,26 +41,51 @@ pub(super) fn options(
         ]),
         counts,
     );
-    let horns = catalog.hair_customization(race) == Some("HORNS");
-    let facial = match catalog.facial_hair_customization(race, sex) {
-        Some("BEARD") => "Facial hair",
-        Some("PIERCINGS") => "Piercings",
-        Some("EARRINGS") => "Earrings",
-        Some("TUSKS") => "Tusks",
-        Some("HORNS") => "Horns",
-        _ => "Facial features",
-    };
+    let fallback = GlueStrings::default();
     Some(Options {
         values,
         counts,
-        labels: [
-            "Skin color",
-            "Face",
-            if horns { "Horn style" } else { "Hair style" },
-            if horns { "Horn color" } else { "Hair color" },
-            facial,
-        ],
+        labels: labels(
+            catalog.hair_customization(race).unwrap_or("NORMAL"),
+            catalog
+                .facial_hair_customization(race, sex)
+                .unwrap_or("NORMAL"),
+            strings.unwrap_or(&fallback),
+        ),
     })
+}
+
+fn labels(hair: &str, facial: &str, strings: &GlueStrings) -> [String; 5] {
+    let horns = hair == "HORNS";
+    let facial_fallback = match facial {
+        "BEARD" | "NORMAL" => "Facial hair",
+        "PIERCINGS" => "Piercings",
+        "EARRINGS" => "Earrings",
+        "TUSKS" => "Tusks",
+        "HORNS" => "Horns",
+        _ => "Facial features",
+    };
+    [
+        strings
+            .text("CHAR_CUSTOMIZATION1_DESC", "Skin color")
+            .to_owned(),
+        strings.text("CHAR_CUSTOMIZATION2_DESC", "Face").to_owned(),
+        strings
+            .text(
+                &format!("HAIR_{hair}_STYLE"),
+                if horns { "Horn style" } else { "Hair style" },
+            )
+            .to_owned(),
+        strings
+            .text(
+                &format!("HAIR_{hair}_COLOR"),
+                if horns { "Horn color" } else { "Hair color" },
+            )
+            .to_owned(),
+        strings
+            .text(&format!("FACIAL_HAIR_{facial}"), facial_fallback)
+            .to_owned(),
+    ]
 }
 
 pub(super) fn step(options: &Options, dial: usize, direction: i8) -> Option<[u8; 5]> {
@@ -76,12 +103,44 @@ pub(super) fn step(options: &Options, dial: usize, direction: i8) -> Option<[u8;
 mod tests {
     use super::*;
     #[test]
+    fn appearance_labels_resolve_race_specific_keys_and_keep_missing_key_fallbacks() {
+        let strings = GlueStrings::from_map(
+            [
+                ("CHAR_CUSTOMIZATION1_DESC".into(), "Peau".into()),
+                ("CHAR_CUSTOMIZATION2_DESC".into(), "Visage".into()),
+                ("HAIR_HORNS_STYLE".into(), "Cornes".into()),
+                ("HAIR_HORNS_COLOR".into(), "Couleur des cornes".into()),
+                ("FACIAL_HAIR_TUSKS".into(), "Défenses".into()),
+            ]
+            .into(),
+        );
+        assert_eq!(
+            labels("HORNS", "TUSKS", &strings),
+            ["Peau", "Visage", "Cornes", "Couleur des cornes", "Défenses"]
+        );
+        assert_eq!(
+            labels("NORMAL", "BEARD", &strings),
+            ["Peau", "Visage", "Hair style", "Hair color", "Facial hair"]
+        );
+        assert_eq!(
+            labels("HORNS", "PIERCINGS", &GlueStrings::default()),
+            [
+                "Skin color",
+                "Face",
+                "Horn style",
+                "Horn color",
+                "Piercings"
+            ]
+        );
+    }
+
+    #[test]
     fn malformed_values_are_bounded_and_dials_wrap_both_ways() {
         let counts = [10, 4, 6, 8, 1];
         let options = Options {
             values: bounded([255; 5], counts),
             counts,
-            labels: [""; 5],
+            labels: std::array::from_fn(|_| String::new()),
         };
         assert_eq!(options.values, [9, 3, 5, 7, 0]);
         assert_eq!(step(&options, 0, 1).unwrap()[0], 0);

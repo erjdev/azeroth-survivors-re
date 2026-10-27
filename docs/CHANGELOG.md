@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Appearance label localization
+
+Character feature labels and the appearance screen's Enter World button now use
+the install's glue-string keys. Race-specific horn, hair and facial-feature labels
+retain readable fallbacks when a key is missing.
+
+![Human feature labels at 800×720](images/screenshots/2026-10-27-appearance-localization/human.png)
+
+![Tauren horn labels in the same layout](images/screenshots/2026-10-27-appearance-localization/tauren.png)
+
+439 Survivors app tests (default-feature library), all-target app Clippy, and the native
+build pass, including translation/fallback and dial-boundary coverage. Native build: 67 seconds. Visual evidence uses the local English install;
+non-English text is covered by injected-table tests, not a translated live client.
+The reference-string gate has 24 remaining literals, down from 31.
+
 ## 2026-10-27 — Preview activation and pipeline coverage
 
 UI preview activation now follows the engine's development-mode boundary. Player

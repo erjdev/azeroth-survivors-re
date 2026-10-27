@@ -84,6 +84,12 @@ locked pending world readiness. This capture does not establish raid gameplay.
 </table>
 
 
+### Appearance labels
+
+![Race-specific labels resolved from the game data](docs/images/screenshots/2026-10-27-appearance-localization/tauren.png)
+
+2026-10-27 · Tauren horn labels at 800×720; English live check, translation and fallback unit coverage.
+
 ### Additional responsive Character check
 
 <table>
