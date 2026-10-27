@@ -56,31 +56,53 @@ pub(super) fn build(
             ..default()
         })
         .with_children(|row| {
-            collection::column(row, layout.left_width, layout, |body| {
-                body_controls(body, art, font, account, selection, layout);
-                collection::equipment(body, font, armory, account, selection, layout);
-            });
+            collection::column(
+                row,
+                layout.left_width,
+                layout,
+                (
+                    collection::CompactScroll::CharacterColumn(0),
+                    armory.character_columns[0],
+                ),
+                |body| {
+                    body_controls(body, art, font, account, selection, layout);
+                    collection::equipment(body, font, armory, account, selection, layout);
+                },
+            );
             collection::column(
                 row,
                 100.0 - layout.left_width - layout.right_width,
                 layout,
+                (
+                    collection::CompactScroll::CharacterColumn(1),
+                    armory.character_columns[1],
+                ),
                 |body| {
                     hero_panel(
                         body, font, armory, account, selection, renown, stash, layout, compact,
                     );
                 },
             );
-            collection::column(row, layout.right_width, layout, |body| {
-                if let Some(features) = features {
-                    feature_controls(body, font, features, layout);
-                }
-                body.spawn(Node {
-                    flex_grow: 1.0,
-                    min_height: Val::Px(layout.gap),
-                    ..default()
-                });
-                look_panel(body, font, armory, account, selection, layout);
-            });
+            collection::column(
+                row,
+                layout.right_width,
+                layout,
+                (
+                    collection::CompactScroll::CharacterColumn(2),
+                    armory.character_columns[2],
+                ),
+                |body| {
+                    if let Some(features) = features {
+                        feature_controls(body, font, features, layout);
+                    }
+                    body.spawn(Node {
+                        flex_grow: 1.0,
+                        min_height: Val::Px(layout.gap),
+                        ..default()
+                    });
+                    look_panel(body, font, armory, account, selection, layout);
+                },
+            );
         });
 }
 

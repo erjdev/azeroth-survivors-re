@@ -76,25 +76,49 @@ pub(super) fn build(
         ..default()
     })
     .with_children(|row| {
-        collection::column(row, layout.left_width, layout, |body| {
-            character::body_controls(body, art, font, account, selection, layout);
-            collection::equipment(body, font, armory, account, selection, layout);
-        });
+        collection::column(
+            row,
+            layout.left_width,
+            layout,
+            (
+                collection::CompactScroll::DropColumn(0),
+                armory.drop_columns[0],
+            ),
+            |body| {
+                character::body_controls(body, art, font, account, selection, layout);
+                collection::equipment(body, font, armory, account, selection, layout);
+            },
+        );
         collection::column(
             row,
             (100.0 - layout.left_width - layout.right_width) * 0.30,
             layout,
+            (
+                collection::CompactScroll::DropColumn(1),
+                armory.drop_columns[1],
+            ),
             |body| zones(body, font, armory, account, selection, layout, compact),
         );
         collection::column(
             row,
             (100.0 - layout.left_width - layout.right_width) * 0.70,
             layout,
+            (
+                collection::CompactScroll::DropColumn(2),
+                armory.drop_columns[2],
+            ),
             |body| sources(body, font, armory, account, selection, layout),
         );
-        collection::column(row, layout.right_width, layout, |body| {
-            collection::detail(body, font, armory, account, selection, layout)
-        });
+        collection::column(
+            row,
+            layout.right_width,
+            layout,
+            (
+                collection::CompactScroll::DropColumn(3),
+                armory.drop_columns[3],
+            ),
+            |body| collection::detail(body, font, armory, account, selection, layout),
+        );
     });
 }
 

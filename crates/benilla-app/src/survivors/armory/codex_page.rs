@@ -147,190 +147,208 @@ pub(super) fn build(
         ..default()
     })
     .with_children(|panes| {
-        collection::column(panes, 74.0, layout, |catalog| {
-            super::typography::section(catalog, font, "Codex", layout.title_size, GOLD);
-            label(
-                catalog,
-                font,
-                "Legendary amulets · each class has one for every spell",
-                layout.body_size,
-                DIM,
-            );
-            for (class_i, class) in CLASSES.iter().enumerate() {
-                let (found, total) = account.legendary_progress(class_i);
-                catalog
-                    .spawn(Node {
-                        width: Val::Percent(100.0),
-                        flex_shrink: 0.0,
-                        column_gap: Val::Px(layout.gap),
-                        align_items: AlignItems::Center,
-                        ..default()
-                    })
-                    .with_children(|row| {
-                        row.spawn(Node {
-                            width: Val::Percent(22.0),
+        collection::column(
+            panes,
+            74.0,
+            layout,
+            (
+                collection::CompactScroll::CodexColumn(0),
+                armory.codex_columns[0],
+            ),
+            |catalog| {
+                super::typography::section(catalog, font, "Codex", layout.title_size, GOLD);
+                label(
+                    catalog,
+                    font,
+                    "Legendary amulets · each class has one for every spell",
+                    layout.body_size,
+                    DIM,
+                );
+                for (class_i, class) in CLASSES.iter().enumerate() {
+                    let (found, total) = account.legendary_progress(class_i);
+                    catalog
+                        .spawn(Node {
+                            width: Val::Percent(100.0),
                             flex_shrink: 0.0,
-                            flex_direction: FlexDirection::Column,
+                            column_gap: Val::Px(layout.gap),
+                            align_items: AlignItems::Center,
                             ..default()
                         })
-                        .with_children(|title| {
-                            let color = Color::srgb_u8(
-                                (class.color >> 16) as u8,
-                                (class.color >> 8) as u8,
-                                class.color as u8,
-                            );
-                            label(title, font, class.name, layout.body_size, color);
-                            label(
-                                title,
-                                font,
-                                format!(
-                                    "{found}/{total}{}",
-                                    if picked_class(account, selection) == class_i {
-                                        " · your hero"
-                                    } else {
-                                        ""
-                                    }
-                                ),
-                                layout.body_size - 2.0,
-                                DIM,
-                            );
-                        });
-                        row.spawn(Node {
-                            flex_grow: 1.0,
-                            flex_basis: Val::Px(0.0),
-                            min_width: Val::Px(0.0),
-                            flex_wrap: FlexWrap::Wrap,
-                            column_gap: Val::Px(3.0),
-                            row_gap: Val::Px(3.0),
-                            ..default()
-                        })
-                        .with_children(|icons| {
-                            for (slot, key) in class.ability_keys().iter().enumerate() {
-                                let seen = account.classes.get(class_i).is_some_and(|p| {
-                                    p.seen.contains(&campaign::legendary_amulet(key))
-                                });
-                                let id = codex_legend(class_i, slot);
-                                entry_cell(
-                                    icons,
-                                    font,
-                                    id,
-                                    layout.body_size * 2.7,
-                                    seen,
-                                    armory.codex_entry == Some(id),
+                        .with_children(|row| {
+                            row.spawn(Node {
+                                width: Val::Percent(22.0),
+                                flex_shrink: 0.0,
+                                flex_direction: FlexDirection::Column,
+                                ..default()
+                            })
+                            .with_children(|title| {
+                                let color = Color::srgb_u8(
+                                    (class.color >> 16) as u8,
+                                    (class.color >> 8) as u8,
+                                    class.color as u8,
                                 );
-                            }
+                                label(title, font, class.name, layout.body_size, color);
+                                label(
+                                    title,
+                                    font,
+                                    format!(
+                                        "{found}/{total}{}",
+                                        if picked_class(account, selection) == class_i {
+                                            " · your hero"
+                                        } else {
+                                            ""
+                                        }
+                                    ),
+                                    layout.body_size - 2.0,
+                                    DIM,
+                                );
+                            });
+                            row.spawn(Node {
+                                flex_grow: 1.0,
+                                flex_basis: Val::Px(0.0),
+                                min_width: Val::Px(0.0),
+                                flex_wrap: FlexWrap::Wrap,
+                                column_gap: Val::Px(3.0),
+                                row_gap: Val::Px(3.0),
+                                ..default()
+                            })
+                            .with_children(|icons| {
+                                for (slot, key) in class.ability_keys().iter().enumerate() {
+                                    let seen = account.classes.get(class_i).is_some_and(|p| {
+                                        p.seen.contains(&campaign::legendary_amulet(key))
+                                    });
+                                    let id = codex_legend(class_i, slot);
+                                    entry_cell(
+                                        icons,
+                                        font,
+                                        id,
+                                        layout.body_size * 2.7,
+                                        seen,
+                                        armory.codex_entry == Some(id),
+                                    );
+                                }
+                            });
                         });
-                    });
-            }
-            label(
-                catalog,
-                font,
-                "All classes · offered to every hero",
-                layout.body_size,
-                GOLD,
-            );
-            for (kind, title, names) in [
-                (2, "Rings", campaign::RING_NAMES.as_slice()),
-                (3, "Trinkets", campaign::TRINKET_NAMES.as_slice()),
-                (4, "Amulets", campaign::AMULET_NAMES.as_slice()),
-            ] {
-                let (found, total) = account.shared_jewel_progress(kind);
-                catalog
-                    .spawn(Node {
-                        width: Val::Percent(100.0),
-                        flex_shrink: 0.0,
-                        column_gap: Val::Px(layout.gap),
-                        align_items: AlignItems::Center,
-                        ..default()
-                    })
-                    .with_children(|row| {
-                        row.spawn(Node {
-                            width: Val::Percent(22.0),
+                }
+                label(
+                    catalog,
+                    font,
+                    "All classes · offered to every hero",
+                    layout.body_size,
+                    GOLD,
+                );
+                for (kind, title, names) in [
+                    (2, "Rings", campaign::RING_NAMES.as_slice()),
+                    (3, "Trinkets", campaign::TRINKET_NAMES.as_slice()),
+                    (4, "Amulets", campaign::AMULET_NAMES.as_slice()),
+                ] {
+                    let (found, total) = account.shared_jewel_progress(kind);
+                    catalog
+                        .spawn(Node {
+                            width: Val::Percent(100.0),
                             flex_shrink: 0.0,
-                            flex_direction: FlexDirection::Column,
+                            column_gap: Val::Px(layout.gap),
+                            align_items: AlignItems::Center,
                             ..default()
                         })
-                        .with_children(|title_column| {
-                            label(title_column, font, title, layout.body_size, GOLD);
-                            label(
-                                title_column,
-                                font,
-                                format!("{found}/{total}"),
-                                layout.body_size - 2.0,
-                                if found == total { GREEN } else { DIM },
-                            );
-                        });
-                        row.spawn(Node {
-                            flex_grow: 1.0,
-                            flex_basis: Val::Px(0.0),
-                            min_width: Val::Px(0.0),
-                            flex_wrap: FlexWrap::Wrap,
-                            column_gap: Val::Px(3.0),
-                            row_gap: Val::Px(3.0),
-                            ..default()
-                        })
-                        .with_children(|icons| {
-                            for index in 0..names.len() {
-                                let id = codex_jewel(kind, index);
-                                entry_cell(
-                                    icons,
+                        .with_children(|row| {
+                            row.spawn(Node {
+                                width: Val::Percent(22.0),
+                                flex_shrink: 0.0,
+                                flex_direction: FlexDirection::Column,
+                                ..default()
+                            })
+                            .with_children(|title_column| {
+                                label(title_column, font, title, layout.body_size, GOLD);
+                                label(
+                                    title_column,
                                     font,
-                                    id,
-                                    layout.body_size * 2.7,
-                                    account.shared_jewel_seen(kind, index),
-                                    armory.codex_entry == Some(id),
+                                    format!("{found}/{total}"),
+                                    layout.body_size - 2.0,
+                                    if found == total { GREEN } else { DIM },
                                 );
-                            }
+                            });
+                            row.spawn(Node {
+                                flex_grow: 1.0,
+                                flex_basis: Val::Px(0.0),
+                                min_width: Val::Px(0.0),
+                                flex_wrap: FlexWrap::Wrap,
+                                column_gap: Val::Px(3.0),
+                                row_gap: Val::Px(3.0),
+                                ..default()
+                            })
+                            .with_children(|icons| {
+                                for index in 0..names.len() {
+                                    let id = codex_jewel(kind, index);
+                                    entry_cell(
+                                        icons,
+                                        font,
+                                        id,
+                                        layout.body_size * 2.7,
+                                        account.shared_jewel_seen(kind, index),
+                                        armory.codex_entry == Some(id),
+                                    );
+                                }
+                            });
                         });
-                    });
-            }
-            let (found, total) = discovery_total(account);
-            label(
-                catalog,
-                font,
-                format!("Discovered across all heroes · {found}/{total}"),
-                layout.body_size,
-                GOLD,
-            );
-            catalog
-                .spawn((
-                    Node {
-                        width: Val::Percent(100.0),
-                        height: Val::Px(5.0),
-                        flex_shrink: 0.0,
-                        ..default()
-                    },
-                    BackgroundColor(Color::srgb(0.12, 0.10, 0.06)),
-                ))
-                .with_children(|bar| {
-                    bar.spawn((
+                }
+                let (found, total) = discovery_total(account);
+                label(
+                    catalog,
+                    font,
+                    format!("Discovered across all heroes · {found}/{total}"),
+                    layout.body_size,
+                    GOLD,
+                );
+                catalog
+                    .spawn((
                         Node {
-                            width: Val::Percent(100.0 * found as f32 / total.max(1) as f32),
-                            height: Val::Percent(100.0),
+                            width: Val::Percent(100.0),
+                            height: Val::Px(5.0),
+                            flex_shrink: 0.0,
                             ..default()
                         },
-                        BackgroundColor(GOLD),
-                    ));
-                });
-        });
-        collection::column(panes, 26.0, layout, |details| {
-            super::typography::section(details, font, "Details", layout.title_size, GOLD);
-            details
-                .spawn((DetailArt(armory.codex_entry), Node::default()))
-                .with_children(|image| {
-                    if let Some(id) = armory.codex_entry {
-                        entry_icon(image, font, id, layout.title_size * 3.0, true);
-                    }
-                });
-            details.spawn((
-                DetailText(false),
-                hud::text_bundle(font, detail_text(armory, account), layout.body_size, DIM),
-            ));
-            details.spawn((
-                DetailText(true),
-                hud::text_bundle(font, effect_text(armory), layout.body_size, GREEN),
-            ));
-        });
+                        BackgroundColor(Color::srgb(0.12, 0.10, 0.06)),
+                    ))
+                    .with_children(|bar| {
+                        bar.spawn((
+                            Node {
+                                width: Val::Percent(100.0 * found as f32 / total.max(1) as f32),
+                                height: Val::Percent(100.0),
+                                ..default()
+                            },
+                            BackgroundColor(GOLD),
+                        ));
+                    });
+            },
+        );
+        collection::column(
+            panes,
+            26.0,
+            layout,
+            (
+                collection::CompactScroll::CodexColumn(1),
+                armory.codex_columns[1],
+            ),
+            |details| {
+                super::typography::section(details, font, "Details", layout.title_size, GOLD);
+                details
+                    .spawn((DetailArt(armory.codex_entry), Node::default()))
+                    .with_children(|image| {
+                        if let Some(id) = armory.codex_entry {
+                            entry_icon(image, font, id, layout.title_size * 3.0, true);
+                        }
+                    });
+                details.spawn((
+                    DetailText(false),
+                    hud::text_bundle(font, detail_text(armory, account), layout.body_size, DIM),
+                ));
+                details.spawn((
+                    DetailText(true),
+                    hud::text_bundle(font, effect_text(armory), layout.body_size, GREEN),
+                ));
+            },
+        );
     });
 }
 

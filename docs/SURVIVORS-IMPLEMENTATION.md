@@ -5574,3 +5574,17 @@ examples. Clippy, play build (24 seconds), formatting and diff checks pass. No
 input logic changed and no app-suite rerun was needed after the prior 321-test pass.
 Wide-column offsets still reset on rebuild; full resolution/controller/Windows
 acceptance and other remaining interface requirements are not closed by this work.
+
+### 2026-10-26 — Independent Armory column positions
+
+Resolved the wide-column reset noted in the previous checkpoint. Collection (three),
+Drop Tables (four), Character (three) and Codex (two) columns restore independent
+in-session positions through the existing pre-rebuild memory system. Compact page
+offsets remain separate; existing post-layout clamping handles shorter content.
+
+322 app tests pass, including rebuilding a scrolled column without overwriting the
+compact offset. Native macOS Collection verification selected Poor gloves after
+scrolling equipment to the bottom, then switched to Drop Tables and back; the
+equipment offset survived both rebuilds. Screenshot embedded in CHANGELOG and
+README Collection refreshed. App Clippy, native build, formatting and diff checks
+pass. This is menu-state evidence, not Windows/controller or complete UI acceptance.

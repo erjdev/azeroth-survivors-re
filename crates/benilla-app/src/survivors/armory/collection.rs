@@ -21,6 +21,10 @@ pub(in crate::survivors) enum CompactScroll {
     Character,
     Starter,
     StarterPanel(usize),
+    CollectionColumn(usize),
+    DropColumn(usize),
+    CharacterColumn(usize),
+    CodexColumn(usize),
 }
 
 pub(in crate::survivors) fn remember_scroll(
@@ -35,6 +39,10 @@ pub(in crate::survivors) fn remember_scroll(
                 CompactScroll::Character => &mut armory.character_scroll,
                 CompactScroll::Starter => &mut armory.starter_scroll,
                 CompactScroll::StarterPanel(index) => &mut armory.starter_panel_scroll[*index],
+                CompactScroll::CollectionColumn(index) => &mut armory.collection_columns[*index],
+                CompactScroll::DropColumn(index) => &mut armory.drop_columns[*index],
+                CompactScroll::CharacterColumn(index) => &mut armory.character_columns[*index],
+                CompactScroll::CodexColumn(index) => &mut armory.codex_columns[*index],
             };
             if *saved != position.0 {
                 *saved = position.0;
@@ -118,6 +126,55 @@ mod scroll_restore_tests {
     }
 
     #[test]
+    fn wide_columns_survive_rebuilds_without_overwriting_compact_offsets() {
+        let mut app = App::new();
+        app.init_resource::<Armory>()
+            .add_systems(Update, remember_scroll);
+        for (marker, y) in [
+            (CompactScroll::CollectionColumn(0), 80.0),
+            (CompactScroll::CollectionColumn(1), 140.0),
+            (CompactScroll::CollectionColumn(2), 200.0),
+            (CompactScroll::DropColumn(3), 260.0),
+            (CompactScroll::CharacterColumn(2), 320.0),
+            (CompactScroll::CodexColumn(1), 380.0),
+            (CompactScroll::Collection, 900.0),
+        ] {
+            app.world_mut()
+                .spawn((marker, ScrollPosition(Vec2::new(0., y))));
+        }
+        app.update();
+        let armory = app.world().resource::<Armory>();
+        assert_eq!(armory.collection_columns.map(|p| p.y), [80., 140., 200.]);
+        assert_eq!(armory.drop_columns.map(|p| p.y), [0., 0., 0., 260.]);
+        assert_eq!(armory.character_columns.map(|p| p.y), [0., 0., 320.]);
+        assert_eq!(armory.codex_columns.map(|p| p.y), [0., 380.]);
+        assert_eq!(armory.collection_scroll.y, 900.);
+        let saved = armory.collection_columns[1];
+        app.world_mut().clear_entities();
+        {
+            let mut commands = app.world_mut().commands();
+            commands.spawn_empty().with_children(|root| {
+                column(
+                    root,
+                    1.,
+                    &Layout::default(),
+                    (CompactScroll::CollectionColumn(1), saved),
+                    |_| {},
+                );
+            });
+        }
+        app.world_mut().flush();
+        app.update();
+        let position = app
+            .world_mut()
+            .query_filtered::<&ScrollPosition, With<CollectionScroll>>()
+            .single(app.world())
+            .unwrap();
+        assert_eq!(position.0, saved);
+        assert_eq!(app.world().resource::<Armory>().collection_scroll.y, 900.);
+    }
+
+    #[test]
     fn restored_scroll_waits_for_layout_then_clamps_to_actual_content() {
         let mut app = App::new();
         app.add_message::<MouseWheel>().add_systems(Update, scroll);
@@ -186,6 +243,7 @@ pub(super) fn column(
     ui: &mut ChildSpawnerCommands,
     weight: f32,
     layout: &Layout,
+    memory: (CompactScroll, Vec2),
     body: impl FnOnce(&mut ChildSpawnerCommands),
 ) {
     ui.spawn((
@@ -206,7 +264,8 @@ pub(super) fn column(
             .spawn((
                 CollectionScroll,
                 RelativeCursorPosition::default(),
-                ScrollPosition::default(),
+                memory.0,
+                ScrollPosition(memory.1),
                 Node {
                     width: Val::Percent(100.0),
                     height: Val::Percent(100.0),
@@ -310,14 +369,27 @@ pub(super) fn build(
             ..default()
         })
         .with_children(|row| {
-            column(row, layout.left_width, layout, |body| {
-                super::character::body_controls(body, art, font, account, selection, layout);
-                equipment(body, font, armory, account, selection, layout)
-            });
+            column(
+                row,
+                layout.left_width,
+                layout,
+                (
+                    CompactScroll::CollectionColumn(0),
+                    armory.collection_columns[0],
+                ),
+                |body| {
+                    super::character::body_controls(body, art, font, account, selection, layout);
+                    equipment(body, font, armory, account, selection, layout)
+                },
+            );
             column(
                 row,
                 100.0 - layout.left_width - layout.right_width,
                 layout,
+                (
+                    CompactScroll::CollectionColumn(1),
+                    armory.collection_columns[1],
+                ),
                 |body| {
                     grid(body, font, armory, account, selection, layout, false);
                     missing(body, font, armory, account, selection, layout);
@@ -357,9 +429,16 @@ pub(super) fn build(
                     });
                 },
             );
-            column(row, layout.right_width, layout, |body| {
-                detail(body, font, armory, account, selection, layout)
-            });
+            column(
+                row,
+                layout.right_width,
+                layout,
+                (
+                    CompactScroll::CollectionColumn(2),
+                    armory.collection_columns[2],
+                ),
+                |body| detail(body, font, armory, account, selection, layout),
+            );
         });
 }
 

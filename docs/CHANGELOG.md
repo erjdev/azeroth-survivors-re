@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Armory keeps your place
+
+Wide Collection, Drop Tables, Character and Codex columns now remember their own
+scroll positions across item selection and page rebuilds, independently of compact
+page scrolling. Positions clamp when the available content becomes shorter.
+
+322 app regression tests pass, including column rebuild and compact-offset isolation.
+App Clippy, native build, formatting and diff checks pass. Native macOS Collection
+validation confirms selecting gloves and leaving/returning to the page preserves the
+scrolled equipment column. Windows/controller acceptance remains open.
+
+![Selecting gloves preserves the equipment scroll position](images/screenshots/2026-10-26-armory-scroll-memory/selection-1280.png)
+
 ## 2026-10-26 — Visible Armory scrollbars
 
 Collection, Drop Tables, Character and Codex now share fixed draggable scrollbars

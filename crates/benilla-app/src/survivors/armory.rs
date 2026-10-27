@@ -177,6 +177,10 @@ pub(super) struct Armory {
     character_scroll: Vec2,
     starter_scroll: Vec2,
     starter_panel_scroll: [Vec2; 3],
+    collection_columns: [Vec2; 3],
+    drop_columns: [Vec2; 4],
+    character_columns: [Vec2; 3],
+    codex_columns: [Vec2; 2],
     codex_entry: Option<u16>,
 }
 
@@ -206,6 +210,10 @@ impl Default for Armory {
             character_scroll: Vec2::ZERO,
             starter_scroll: Vec2::ZERO,
             starter_panel_scroll: [Vec2::ZERO; 3],
+            collection_columns: [Vec2::ZERO; 3],
+            drop_columns: [Vec2::ZERO; 4],
+            character_columns: [Vec2::ZERO; 3],
+            codex_columns: [Vec2::ZERO; 2],
             codex_entry: None,
         }
     }
