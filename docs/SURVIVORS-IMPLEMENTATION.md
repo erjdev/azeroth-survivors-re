@@ -6669,3 +6669,10 @@ thresholds 19/20, reset, other classes, spell scope and inline unit formatting.
 green 0→10% and 10→20% previews plus purchase persistence in spec 3 (34→35 points).
 Changelog screenshots document the actual UI. Coverage is 238/432, Hunter 29/46;
 remaining talents, live balance and Windows gameplay acceptance are still open.
+
+Bestial Discipline integration follow-up: the real wolf update and hit pipeline
+now has a regression for ranks 0/1/2/255, the 20-point milestone and active Frenzy.
+It verifies emitted damage, no early second bite, a bite after cooldown expiry,
+zero-delta cooldown preservation and unchanged recovery. All 370 app tests and
+app-test Clippy pass. Production scheduling is gated to Playing and no loading
+screen; this headless regression is not a live Windows combat acceptance claim.

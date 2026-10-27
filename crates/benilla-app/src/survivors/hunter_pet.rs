@@ -806,6 +806,76 @@ mod tests {
     }
 
     #[test]
+    fn discipline_times_real_bites_and_zero_delta_preserves_cooldown() {
+        for (rank, points, frenzy, interval) in [
+            (0, 0, false, 2.0),
+            (1, 0, false, 1.8),
+            (2, 0, false, 1.6),
+            (255, 0, false, 1.6),
+            (2, 20, false, 1.28),
+            (2, 20, true, 1.28 / 1.3),
+        ] {
+            let mut app = setup();
+            app.world_mut().resource_mut::<Run>().milestones =
+                survivors_core::talents::Milestones {
+                    class: 2,
+                    points: [points, 0, 0],
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1390, rank)]);
+            let target = foe(&mut app, Vec3::X);
+            app.world_mut().get_mut::<Enemy>(target).unwrap().hp = 1000.0;
+            app.world_mut().run_system_once(fight).unwrap();
+            let pet = app
+                .world_mut()
+                .query_filtered::<Entity, With<HunterPet>>()
+                .single(app.world())
+                .unwrap();
+            if frenzy {
+                app.world_mut()
+                    .get_mut::<HunterPet>(pet)
+                    .unwrap()
+                    .frenzy
+                    .critical(1.0, 0.0);
+            }
+            app.world_mut().run_system_once(fight).unwrap();
+            assert_eq!(app.world().resource::<Messages<Hit>>().len(), 1);
+            assert!(
+                (app.world().get::<HunterPet>(pet).unwrap().cooldown - interval).abs() < 0.00001
+            );
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            assert!(app.world().get::<Enemy>(target).unwrap().hp < 1000.0);
+            app.world_mut().resource_mut::<Messages<Hit>>().clear();
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(fight).unwrap();
+            assert!(
+                (app.world().get::<HunterPet>(pet).unwrap().cooldown - interval).abs() < 0.00001
+            );
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(interval - 0.01));
+            app.world_mut().run_system_once(fight).unwrap();
+            assert!(
+                app.world().resource::<Messages<Hit>>().is_empty(),
+                "no early bite at rank {rank}"
+            );
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_millis(20));
+            app.world_mut().run_system_once(fight).unwrap();
+            assert_eq!(
+                app.world().resource::<Messages<Hit>>().len(),
+                1,
+                "bite after trained interval at rank {rank}"
+            );
+            assert_eq!(app.world().get::<HunterPet>(pet).unwrap().recovery, 10.0);
+        }
+    }
+
+    #[test]
     fn bestial_swiftness_increases_real_grounded_movement() {
         let mut distances = vec![];
         for rank in [0, 1] {

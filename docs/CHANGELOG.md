@@ -9,7 +9,9 @@ Hunter training now shortens the combat wolf's bite cooldown by 10% per rank
 (two ranks), multiplying the 20-point milestone and Frenzy haste. This explicit
 Survivors pet-focus conversion leaves Hunter spells and wolf recovery unchanged.
 
-192 core tests, core Clippy and native build pass. Native 1024×720 at 125% verifies
+192 core tests, 370 app tests, core/app-test Clippy and native build pass.
+The actual wolf-system regression verifies no early bite, expiry, zero-time pause,
+rank bounds and milestone/Frenzy combinations. Native 1024×720 at 125% verifies
 the inline preview and a purchase saved to spec 3 (34→35 points). Definition
 coverage is 238/432, Hunter 29/46; live balance and Windows acceptance remain open.
 
