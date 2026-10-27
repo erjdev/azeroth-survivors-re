@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Continuous talent backgrounds
+
+Talent artwork now scales as one cached image per tree instead of four independent
+tiles, removing visible joins at fractional panel sizes. The original painted crop,
+aspect ratio, opacity and talent positions remain unchanged.
+
+325 app tests, Clippy and native build pass. A pixel regression covers the complete
+tile composition and malformed input. Native macOS comparisons confirm the observed
+seams are gone for Priest at 1280×720 and Shaman at 640×720. Other class/resolution
+combinations and Windows visual acceptance remain open.
+
+![Continuous Priest backgrounds](images/screenshots/2026-10-26-talent-art/talents-1280.png)
+
+![Continuous compact Shaman backgrounds](images/screenshots/2026-10-26-talent-art/talents-640.png)
+
 ## 2026-10-26 — Draggable talent scrolling
 
 Overflowing talent pages now show a fixed gold scrollbar. Dragging reaches the

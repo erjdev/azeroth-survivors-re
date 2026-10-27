@@ -5673,3 +5673,23 @@ No input/rules changes; app tests were not rerun. Windows/controller acceptance
 remains open. Follow-ups observed during validation: preview hero switches retain
 the previous hero's action note, and talent background tile seams remain visible
 at some fractional display sizes; both need further interface work.
+
+### 2026-10-26 — Single-surface talent artwork
+
+The previous checkpoint exposed lines where four independently scaled talent-art
+quads met. Compose their 300×331 painted rectangle before upload, discarding the
+stock 320×384 canvas padding, then scale one image in the existing proportional
+panel. A per-tree runtime cache reuses the result across page rebuilds. Original
+assets remain local; no extracted game textures are added to the repository.
+
+The compositor regression checks every output pixel, including both tile joins,
+and rejects missing, undersized or malformed decoded data. Talent-node coordinates,
+art opacity and the existing aspect ratio are unchanged.
+
+Validation: all 325 app tests, Clippy, native build, formatting and diff checks pass.
+Native macOS before/after comparison at the same wide Priest and compact Shaman
+sizes confirms the observed lines at tile boundaries are gone. Screenshots are
+embedded in CHANGELOG and the README wide talent preview is refreshed. Layout
+continues to follow the intention's illustrated panels; no new proportional change
+was made. Other classes/resolutions and Windows remain unverified. The separate
+stale preview action-note follow-up remains open.

@@ -25,6 +25,8 @@ mod name_edit;
 mod name_input;
 mod typography;
 pub(super) use typography::{apply as style_headings, DisplayHeading};
+mod talent_background;
+pub(super) use talent_background::fill as fill_talent_background;
 mod talent_heading;
 pub(super) use talent_heading::fill as fill_talent_headings;
 mod talent_page;

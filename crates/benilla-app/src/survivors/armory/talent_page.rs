@@ -333,17 +333,9 @@ pub(super) fn build(
                 .with_children(|grid| {
                     let tabs = catalog.tabs_for_class(1, CLASSES[hero.class].id);
                     if let Some(tab) = tabs.iter().find(|tab| tab.name == *name) {
-                        // The 320x384 tile canvas contains 300x331 pixels of painted art;
-                        // the right/bottom remainder is transparent padding for the stock frame.
-                        for (tile, left, top, width, height) in [
-                            ("TopLeft", 0.0, 0.0, 256.0, 256.0), ("TopRight", 256.0, 0.0, 44.0, 256.0),
-                            ("BottomLeft", 0.0, 256.0, 256.0, 75.0), ("BottomRight", 256.0, 256.0, 44.0, 75.0),
-                        ] {
-                            grid.spawn((Backdrop(format!("Interface\\TalentFrame\\{}-{tile}.blp", tab.background)),
-                                ImageNode { color: Color::srgba(1.0, 1.0, 1.0, 0.8), rect: Some(Rect::new(0.0, 0.0, width, height)), ..default() },
-                                Node { position_type: PositionType::Absolute, left: Val::Percent(left / 3.0), top: Val::Percent(top / 3.31),
-                                    width: Val::Percent(width / 3.0), height: Val::Percent(height / 3.31), ..default() }));
-                        }
+                        grid.spawn((super::talent_background::TreeBackdrop(tab.background.clone()),
+                            ImageNode { color: Color::srgba(1.0, 1.0, 1.0, 0.8), ..default() },
+                            Node { position_type: PositionType::Absolute, width: Val::Percent(100.0), height: Val::Percent(100.0), ..default() }));
                     }
                     for node in nodes {
                         if let Some(prerequisite) = nodes.iter().find(|other| other.id == node.prereq_talent) {
