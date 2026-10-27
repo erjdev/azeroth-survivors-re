@@ -79,7 +79,7 @@ locked pending world readiness. This capture does not establish raid gameplay.
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>
-    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-27-paladin-milestone-art/talents-640.png" alt="Compact Talents"><br>2026-10-27 · Proportional talent art and aligned milestone icons at 640×720.</td>
+    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-spacing/640.png" alt="Compact Talents"><br>2026-10-27 · Taller proportional trees wrap and scroll at 640×480.</td>
   </tr>
 </table>
 

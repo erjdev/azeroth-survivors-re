@@ -7783,3 +7783,13 @@ tests and app Clippy pass. Faster modes remain future work.
 Talent readability follow-up: preserve the 300:331 artwork ratio while increasing
 tree height and icon spacing through wider wrapping columns and vertical scrolling.
 Do not compress all trees merely to fit a narrow window. Windows acceptance remains open.
+
+### Talent spacing checkpoint (2026-10-27)
+
+The short/crowded-tree follow-up now uses a native 300-unit artwork width plus
+panel padding as the preferred column size. Equal column bases keep all trees
+uniform beside the spec panel; narrower windows wrap and share vertical scrolling.
+The artwork remains 300:331. Native macOS Warrior and Paladin previews checked at
+800×600, 640×480 and 1280×720, including scrolling to the third tree and spec controls.
+Before/after evidence is inline in CHANGELOG.md. App Clippy and formatting pass;
+30-second incremental build. Windows reproduction/acceptance remains outstanding.

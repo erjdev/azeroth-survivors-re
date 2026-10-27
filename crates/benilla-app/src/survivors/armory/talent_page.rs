@@ -326,15 +326,17 @@ fn text(
 
 fn panel(
     ui: &mut ChildSpawnerCommands,
-    weight: f32,
     layout: &survivors_core::layout::Layout,
     body: impl FnOnce(&mut ChildSpawnerCommands),
 ) {
     ui.spawn((
         Node {
-            flex_grow: weight,
-            flex_basis: Val::Px(240.0),
-            min_width: Val::Px(200.0),
+            // A full-width tree keeps icons and row spacing readable. Equal bases
+            // keep all trees uniform when the detail panel shares a wrapped row.
+            flex_grow: 1.0,
+            flex_basis: Val::Px(300.0 + 2.0 * layout.padding + 2.0),
+            min_width: Val::Px(0.0),
+            max_width: Val::Percent(100.0),
             // Let long descriptions grow the shared scroll content. A viewport-sized
             // panel clips its own overflow before the outer scroll area can reach it.
             min_height: Val::Px(440.0),
@@ -500,7 +502,9 @@ pub(super) fn build(
             column_gap: Val::Px(layout.gap * 1.25), row_gap: Val::Px(layout.gap * 1.25), overflow: Overflow::scroll_y(), ..default() }))
     .with_children(|row| {
         for (tree, (name, nodes)) in trees.iter().enumerate() {
-            panel(row, 1.0, layout, |col| {
+            // Keep the painted tree at its native width before adding another column.
+            // Narrow windows wrap and scroll instead of shrinking icons and row spacing.
+            panel(row, layout, |col| {
                 col.spawn(Node { width: Val::Percent(100.0), align_items: AlignItems::Center,
                     column_gap: Val::Px(6.0), flex_wrap: FlexWrap::Wrap, ..default() }).with_children(|heading| {
                     if let Some(node) = nodes.first() {
@@ -566,7 +570,7 @@ pub(super) fn build(
                 }
             });
         }
-        panel(row, 0.86, layout, |side| {
+        panel(row, layout, |side| {
             side.spawn(Node { width: Val::Percent(100.0), column_gap: Val::Px(4.0), ..default() }).with_children(|specs| {
                 for spec in 0..3u8 {
                     let p = dbc_points(hero, usize::from(spec));

@@ -272,6 +272,11 @@ Talent experience is unchanged: the run pays it from time, kills, bosses, and a 
 in a later zone. 100 experience is one point. Veteran's Lessons still raises that for a
 class behind the account's best.
 
+Talent artwork keeps its 300:331 proportions. Give each tree enough width and
+height for readable icons and separated rank labels; wrap columns and scroll
+vertically on narrow windows instead of compressing all three trees. Keep tree
+widths uniform within each row, including beside the spec/details panel.
+
 Reference: `docs/intentions/survivors_talent_tab.png`.
 
 ## Achievements

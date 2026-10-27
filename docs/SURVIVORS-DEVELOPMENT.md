@@ -774,3 +774,7 @@ These are read-only menu previews; they neither grant gear nor unlock the zone.
 Run Options can be inspected without entering gameplay using `run-options-1280.txt`
 or `run-options-640.txt` from `docs/ui-previews`. It displays the currently supported
 Normal difficulty and 1× speed; fast-mode unlocks remain later work.
+
+Talent spacing previews: `talent-spacing-800.txt` (Warrior) and
+`talent-spacing-640.txt` (Paladin), using the collected fixture. Scroll to the
+third tree and spec controls to check the entire layout.

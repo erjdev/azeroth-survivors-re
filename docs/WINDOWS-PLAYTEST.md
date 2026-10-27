@@ -63,3 +63,13 @@ The existing Paladin capture below shows the composed artwork and aligned talent
 rows on macOS. It is not a new capture or Windows acceptance evidence.
 
 ![Paladin talent artwork and alignment](images/screenshots/2026-10-27-sanctuary/preview.png)
+
+## Talent spacing follow-up (2026-10-27)
+
+After the report of short artwork and crowded icons, tree columns now wrap earlier
+and keep equal widths rather than compressing three trees into narrow windows.
+Native macOS checks cover 640×480, 800×600 and 1280×720; this does not close Windows
+acceptance. On Windows, check narrow and wide windows, then scroll to the third
+tree and saved specs; verify rank labels remain separated and every control is reachable.
+
+![Taller compact talent trees](images/screenshots/2026-10-27-talent-spacing/640.png)

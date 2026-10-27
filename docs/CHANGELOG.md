@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Taller, less crowded talent trees
+
+Talent columns now wrap before squeezing the artwork and icons. Trees keep their
+300:331 proportions, with uniform column widths and more vertical space between
+ranks. The third tree and saved specs remain reachable by scrolling.
+
+![Before: compressed trees at 800×600](images/screenshots/2026-10-27-talent-spacing/before.png)
+
+![After: taller trees at 800×600](images/screenshots/2026-10-27-talent-spacing/800.png)
+
+![Third tree and saved specs](images/screenshots/2026-10-27-talent-spacing/specs.png)
+
+![Compact Paladin trees](images/screenshots/2026-10-27-talent-spacing/640.png)
+
+Native macOS layouts checked at 640×480, 800×600 and 1280×720 against the intention
+reference. App Clippy and formatting pass; incremental build: 30 seconds. Layout
+only; no new combat tests. Windows confirmation remains open.
+
 ## 2026-10-27 — Run Options page
 
 Run Options now shows the selected zone, Normal difficulty and normal game speed,
