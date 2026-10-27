@@ -7283,3 +7283,17 @@ Validation: 210 core / 403 app tests, both scoped Clippy checks, formatting and
 native build pass. Real-data catalog audit: 253/432 definitions (Rogue 24/51);
 179 remain. Native menu preview and purchase screenshots are in the changelog;
 these do not close live combat, balance, Windows or full interface acceptance.
+
+
+### 2026-10-27 — Preparation and Sprint integration
+
+Preparation now resets learned Sprint at its existing 180-second automatic
+interval. It does not grant mobility below level five or affect other classes.
+Active Sprint speed/duration survive the reset; Endurance still determines the
+next recharge. The runtime reset test now covers levels four/five, wrong class,
+rank caps, paused time, missed intervals and repeated updates. Description and
+mechanics documentation agree; native menu evidence is inline in the changelog.
+This integration does not close live combat or Windows scene acceptance.
+
+Verification: 210 core / 403 app tests, both scoped Clippy checks, formatting
+and native build (25 seconds) pass. Talent definitions remain 253/432.

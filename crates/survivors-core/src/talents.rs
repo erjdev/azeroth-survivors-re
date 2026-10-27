@@ -2832,7 +2832,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 284, max_rank: 1, name: "Preparation",
-        description: "Grants 1 automatic reset of owned Sinister Strike, Eviscerate, Blade Flurry, Rupture, Gouge and Kidney Shot cooldowns every 180 sec of run time; first at 180 sec. Does not grant spells, store charges or reset Cold Blood recovery (Survivors automatic conversion)",
+        description: "Grants 1 automatic reset of owned Sinister Strike, Eviscerate, Blade Flurry, Rupture, Gouge, Kidney Shot and learned Sprint cooldowns every 180 sec of run time; first at 180 sec. Preserves active effects. Does not grant spells, store charges or reset Cold Blood or Adrenaline Rush recovery (Survivors automatic conversion)",
         stat: TalentStat::Preparation, per_rank: 1.0,
     },
     TalentDefinition {

@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Preparation resets learned Sprint
+
+Preparation's automatic reset now includes Sprint after its level-five unlock.
+Active Sprint duration and Endurance's shorter recharge are preserved. It neither
+banks resets nor resets Cold Blood or Adrenaline Rush recovery.
+
+![Preparation and Endurance in the same saved spec](images/screenshots/2026-10-27-preparation-sprint/talents.png)
+
+210 core / 403 app tests, both Clippy checks and the 25-second native build
+pass. Native 1280×720 description capture; live combat and Windows acceptance
+remain open.
+
 ## 2026-10-27 — Rogue Adrenaline Rush
 
 Adrenaline Rush now grants a 15-second burst of 50% shorter Rogue cast
