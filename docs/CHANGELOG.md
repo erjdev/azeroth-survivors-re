@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Direct raid item previews
+
+Live UI previews can open any class's Raid Epic armor directly, with reusable
+1280×720 and 640×720 presets. Inspection does not grant or equip items; invalid
+weapon and Drop Tables requests are rejected.
+
+340 app tests, app Clippy and native build pass. Native Mage checks cover both
+sizes, ordinary Epic switching and invalid-request rejection. Account bytes are
+unchanged after closing. Raid acquisition and Windows acceptance remain pending.
+
+![Direct unowned Mage raid preview](images/screenshots/2026-10-27-raid-preview/mage-1280.png)
+![Compact raid inspection](images/screenshots/2026-10-27-raid-preview/mage-640.png)
+
 ## 2026-10-27 — Raid Collection browsing
 
 Raid Epic now has its own eight-slot Collection row and ownership count, separate

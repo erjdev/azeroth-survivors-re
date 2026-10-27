@@ -1,0 +1,6 @@
+# Inspect the current class raid armor without granting or equipping it.
+# Raid acquisition remains pending; this only opens the item inspector.
+page = collection
+width = 1280
+height = 720
+piece = raid epic:hands

@@ -409,8 +409,11 @@ Waist, Legs, Feet, Wrist, Hands, Main Hand. This selects the inspected cell for 
 current class, including unowned pieces, without granting or equipping it. Poor
 resolves to the selected class’s supplemental catalog entry rather than a legacy
 quality index. `collection-poor-hands-1280.txt` and `collection-poor-hands-640.txt`
-provide direct Poor-quality previews. Switching back to a legacy rarity clears
-the supplemental inspection. Normal
+provide direct Poor-quality previews. Collection also accepts `piece = raid epic:hands`
+(or any of the eight armor slots). Raid previews are rejected on Drop Tables until
+raid encounter sources are implemented; Main Hand is not a raid armor slot.
+`collection-raid-hands-1280.txt` and `collection-raid-hands-640.txt` provide reusable
+presets. Switching back to a legacy rarity clears the supplemental inspection. Normal
 mouse/keyboard gear actions remain active; use an isolated account for interactions.
 Omitting `piece` preserves the manual selection. Invalid names, Off Hand, repeated
 keys or use outside Collection/Drop Tables reject the entire request, preserving page and size.

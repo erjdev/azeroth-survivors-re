@@ -58,6 +58,7 @@ enum Card {
 enum Piece {
     Legacy(usize),
     Poor(usize),
+    RaidEpic(usize),
 }
 
 struct Request {
@@ -179,6 +180,11 @@ impl Request {
                         .position(|name| name.eq_ignore_ascii_case(slot.trim()))?;
                     piece = Some(if band.trim().eq_ignore_ascii_case("poor") {
                         Piece::Poor(slot)
+                    } else if band.trim().eq_ignore_ascii_case("raid epic") {
+                        if slot == campaign::GRID_SLOTS - 1 {
+                            return None;
+                        }
+                        Piece::RaidEpic(slot)
                     } else {
                         let band = campaign::BANDS_NAMED
                             .iter()
@@ -190,6 +196,9 @@ impl Request {
                 "height" if height.is_none() => height = Some(value.parse::<u32>().ok()?),
                 _ => return None,
             }
+        }
+        if matches!(piece, Some(Piece::RaidEpic(_))) && page != Some(Page::Collection) {
+            return None;
         }
         if (!cards_page && profile.is_some())
             || cards_page != cards.is_some()
@@ -265,12 +274,14 @@ impl Request {
 
     fn apply(&self, armory: &mut Armory, typing: &mut Typing, window: &mut Window, class: usize) {
         let supplemental = match self.piece {
-            Some(Piece::Poor(slot)) => {
-                let Some(piece) = survivors_core::supplemental_gear::piece(
-                    class,
-                    slot,
-                    survivors_core::gear_tier::GearTier::Poor,
-                ) else {
+            Some(Piece::Poor(slot) | Piece::RaidEpic(slot)) => {
+                let tier = if matches!(self.piece, Some(Piece::RaidEpic(_))) {
+                    survivors_core::gear_tier::GearTier::RaidEpic
+                } else {
+                    survivors_core::gear_tier::GearTier::Poor
+                };
+                let Some(piece) = survivors_core::supplemental_gear::piece(class, slot, tier)
+                else {
                     return;
                 };
                 Some(piece.key)
@@ -284,7 +295,7 @@ impl Request {
         if let Some(piece) = self.piece {
             armory.piece = match piece {
                 Piece::Legacy(index) => index,
-                Piece::Poor(slot) => slot,
+                Piece::Poor(slot) | Piece::RaidEpic(slot) => slot,
             };
             armory.supplemental_piece = supplemental;
         }
@@ -553,7 +564,7 @@ mod tests {
         );
         for extra in [
             "piece=epic:off hand",
-            "piece=raid epic:hands",
+            "piece=raid epic:main hand",
             "piece=epic:unknown",
             "piece=3:7",
             "piece=epic:hands:extra",
@@ -672,6 +683,47 @@ mod tests {
         assert!(
             Request::parse("page=collection\nwidth=640\nheight=720\npiece=poor:off hand").is_none()
         );
+    }
+
+    #[test]
+    fn raid_previews_resolve_each_class_without_leaking_into_drop_tables() {
+        for class in 0..data::CLASSES.len() {
+            for (slot, name) in campaign::SLOTS[..8].iter().enumerate() {
+                let request = Request::parse(&format!(
+                    "page=collection\nwidth=640\nheight=720\npiece= RaId EpIc : {name} "
+                ))
+                .unwrap();
+                assert_eq!(request.piece, Some(Piece::RaidEpic(slot)));
+                let mut armory = Armory::default();
+                let mut typing = Typing(true);
+                let mut window = Window::default();
+                request.apply(&mut armory, &mut typing, &mut window, class);
+                let key = armory.supplemental_piece.clone().unwrap();
+                let piece = survivors_core::supplemental_gear::by_key(&key).unwrap();
+                assert_eq!(
+                    (piece.class, piece.slot, piece.tier),
+                    (class, slot, survivors_core::gear_tier::GearTier::RaidEpic)
+                );
+                Request::parse("page=collection\nwidth=1280\nheight=720")
+                    .unwrap()
+                    .apply(&mut armory, &mut typing, &mut window, class);
+                assert_eq!(armory.supplemental_piece.as_deref(), Some(key.as_str()));
+                Request::parse("page=collection\nwidth=1280\nheight=720\npiece=epic:hands")
+                    .unwrap()
+                    .apply(&mut armory, &mut typing, &mut window, class);
+                assert!(armory.supplemental_piece.is_none());
+                assert_eq!(armory.piece, 3 * campaign::GRID_SLOTS + 7);
+            }
+        }
+        for request in [
+            "page=drops\npiece=raid epic:hands",
+            "page=talents\npiece=raid epic:hands",
+            "page=collection\npiece=raid epic:main hand",
+            "page=collection\npiece=raid epic:off hand",
+            "page=collection\npiece=raid epic:hands\npiece=poor:hands",
+        ] {
+            assert!(Request::parse(&format!("{request}\nwidth=640\nheight=720")).is_none());
+        }
     }
 
     #[test]

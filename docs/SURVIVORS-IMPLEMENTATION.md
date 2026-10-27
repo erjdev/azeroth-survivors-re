@@ -6073,3 +6073,14 @@ refreshes Collection. Reference: intentions/survivors_collection_tab.png.
 Raid encounter acquisition and supplemental completion rewards remain open.
 No natural drop, full class/race appearance matrix, physical controller or Windows
 acceptance is claimed.
+
+### 2026-10-27 — Direct Raid Epic preview controls
+
+Collection preview requests accept `piece=raid epic:<armor slot>` for the selected
+class. Added wide/compact hands presets and documented the syntax. Unsupported
+weapons and Drop Tables requests fail atomically; ordinary Epic switching clears
+supplemental inspection. All nine classes and eight armor slots are covered.
+340 app tests, app Clippy and native build pass. Native unowned Mage inspection at
+1280×720/640×720 confirms readable details, switching and invalid-request rejection;
+the account file remains byte-identical after closing. CHANGELOG embeds both
+captures. Raid acquisition, completion rewards and Windows acceptance remain open.
