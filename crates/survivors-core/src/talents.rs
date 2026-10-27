@@ -406,6 +406,13 @@ impl Milestones {
                             effect.radius *= 1.0 + value;
                         }
                     }
+                    TalentStat::TotemicMastery => {
+                        if key == "searing_totem" {
+                            effect.range *= 1.0 + value;
+                        } else if key == "magma_totem" {
+                            effect.radius *= 1.0 + value;
+                        }
+                    }
                     TalentStat::HolyReach => {
                         if PRIEST_CAST_HOLY.contains(&key) {
                             effect.range *= 1.0 + value;
@@ -1373,6 +1380,7 @@ pub enum TalentStat {
     ImprovedRenew,
     SpiritualHealing,
     TotemHealing,
+    TotemicMastery,
     PetHealth,
     PetRecovery,
     PetIntimidation,
@@ -1475,6 +1483,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
+            TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
             TalentStat::PetWrath => (1.0, " upgraded Bestial Wrath window"),
@@ -2645,6 +2654,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
             | TalentStat::TotemHealing
+            | TalentStat::TotemicMastery
             | TalentStat::PetWrath
             | TalentStat::PetIntimidation
             | TalentStat::PetRecovery
@@ -3734,6 +3744,7 @@ mod stat_talent_tests {
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
                     | TalentStat::TotemHealing
+                    | TalentStat::TotemicMastery
                     | TalentStat::PetWrath
                     | TalentStat::PetIntimidation
                     | TalentStat::PetRecovery

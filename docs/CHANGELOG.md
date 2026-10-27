@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Totemic Mastery
+
+Shaman Totemic Mastery extends Searing Totem attack range and Magma Totem pulse
+radius by 20%. This authored Survivors conversion preserves damage, healing,
+duration and target counts. Searing still selects one enemy; Magma pulses once
+around its totem, including with extra-target gear.
+
+161 core and 323 app tests pass, including enemies inside, within the extension,
+and beyond reach. Clippy and native build pass. Native macOS menu checks confirm
+purchase, saved rank and readable details. Talent coverage is 203/432; live balance
+and Windows acceptance remain open.
+
+![Purchased Totemic Mastery and its range description](images/screenshots/2026-10-26-totemic-mastery/talents-1280.png)
+
 ## 2026-10-26 — Holy Nova talent
 
 Priest Holy Nova now heals 5% maximum health once per successful cast. It adds to

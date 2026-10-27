@@ -4397,6 +4397,123 @@ mod milestone_tests {
     }
 
     #[test]
+    fn totemic_mastery_reaches_targets_only_inside_extended_distance() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["searing_totem", "magma_totem"] {
+            for trained in [false, true] {
+                for distance_scale in [0.9, 1.1, 1.3] {
+                    let base = Milestones {
+                        class: 5,
+                        ..Default::default()
+                    };
+                    let mut run = Run {
+                        milestones: if trained {
+                            base.with_ranks(&[(2, 582, 1)])
+                        } else {
+                            base
+                        },
+                        ..Default::default()
+                    };
+                    run.bonus.targets = 3;
+                    let owned = super::super::Owned {
+                        def: data::ability(key),
+                        level: 1,
+                        cd: 0.,
+                    };
+                    let original = Params::new(&owned, &run.stats(), base);
+                    let params = Params::new(&owned, &run.stats(), run.milestones);
+                    let pulse = key == "magma_totem";
+                    let distance = if pulse {
+                        original.radius
+                    } else {
+                        original.range
+                    };
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(1))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    for sign in [-1., 1.] {
+                        app.world_mut().spawn((
+                            Transform::from_xyz(sign * distance * distance_scale, 0., 0.),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 100.,
+                                max_hp: 100.,
+                                speed: 3.,
+                                damage: 5.,
+                                radius: 0.0,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.,
+                                slow: 1.,
+                                slow_t: 0.,
+                                root_t: 8.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                dots: Vec::new(),
+                                dead: false,
+                            },
+                        ));
+                    }
+                    app.world_mut().spawn((
+                        Transform::default(),
+                        Totem {
+                            cast: 0,
+                            damage: params.dmg,
+                            range: params.range,
+                            radius: params.radius,
+                            left: 10.,
+                            tick: 0.,
+                            pulse,
+                            source: key,
+                        },
+                    ));
+                    app.world_mut().run_system_once(tick_areas).unwrap();
+                    let reachable = distance_scale < if trained { 1.2 } else { 1. };
+                    assert_eq!(
+                        app.world().resource::<Messages<Hit>>().len(),
+                        if reachable {
+                            if pulse {
+                                2
+                            } else {
+                                1
+                            }
+                        } else {
+                            0
+                        },
+                        "{key} trained={trained} distance={distance_scale}"
+                    );
+                    assert_eq!(
+                        (params.dmg, params.duration, params.cooldown, params.count),
+                        (
+                            original.dmg,
+                            original.duration,
+                            original.cooldown,
+                            original.count
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn shaman_node_training_reaches_direct_periodic_and_totem_parameters() {
         let base = Milestones {
             class: 5,

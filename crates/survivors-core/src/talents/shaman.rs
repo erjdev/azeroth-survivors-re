@@ -13,6 +13,7 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 582, max_rank: 1, name: "Totemic Mastery", description: "Searing Totem: +20% attack range. Magma Totem: +20% pulse radius. Damage, duration, deployment healing and target count are unchanged (Survivors totem-range conversion)", stat: TalentStat::TotemicMastery, per_rank: 0.20 },
     TalentDefinition { id: 588, max_rank: 5, name: "Restorative Totems", description: "Searing Totem and Magma Totem deployment: +5% healing per rank, adding to Purification. Requires the 10-point Restoration healing milestone; excludes damage, shields and regeneration (Survivors healing-totem conversion)", stat: TalentStat::TotemHealing, per_rank: 0.05 },
     TalentDefinition { id: 592, max_rank: 5, name: "Purification", description: "Searing Totem and Magma Totem deployment: +2% healing per rank, adding to Restorative Totems. Requires the 10-point Restoration healing milestone; excludes damage, shields and regeneration (Survivors healing scope)", stat: TalentStat::TotemHealing, per_rank: 0.02 },
     TalentDefinition { id: 1641, max_rank: 2, name: "Storm Reach", description: "Lightning Bolt and Chain Lightning: +10% initial targeting range per rank. Chain Lightning bounce radius and target count are unchanged", stat: TalentStat::SpellGroupRange(LIGHTNING), per_rank: 0.10 },
@@ -65,7 +66,15 @@ mod tests {
                 assert_eq!(effect.crit_damage, 0.);
                 assert_eq!(
                     (effect.radius, effect.duration, effect.extra_targets),
-                    (1., 1., 0)
+                    (
+                        if rank > 0 && *key == "magma_totem" {
+                            1.2
+                        } else {
+                            1.
+                        },
+                        1.,
+                        0
+                    )
                 );
             }
             let shield = trained.cast("lightning_shield");
@@ -158,6 +167,49 @@ mod healing_tests {
         assert_eq!(
             talent_definition(5, 592).unwrap().rank_preview(255),
             "This talent: 10% totem deployment healing (maximum rank)"
+        );
+    }
+}
+
+#[cfg(test)]
+mod mastery_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn mastery_extends_only_the_relevant_totem_distance() {
+        for class in 0..9 {
+            for points in [[0; 3], [20; 3]] {
+                let base = Milestones {
+                    class,
+                    points,
+                    ..Default::default()
+                };
+                for rank in [0, 1, 255] {
+                    let trained = base.with_ranks(&[(2, 582, rank)]);
+                    for key in crate::data::CLASSES[5]
+                        .pool
+                        .iter()
+                        .copied()
+                        .chain(["fireball", "consecration"])
+                    {
+                        let mut expected = base.cast(key);
+                        if class == 5 && rank > 0 {
+                            if key == "searing_totem" {
+                                expected.range *= 1.2;
+                            }
+                            if key == "magma_totem" {
+                                expected.radius *= 1.2;
+                            }
+                        }
+                        assert_eq!(trained.cast(key), expected, "class {class} {key}");
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+        assert_eq!(
+            talent_definition(5, 582).unwrap().rank_preview(0),
+            "This talent: 0 to 20% Searing range and Magma radius next rank"
         );
     }
 }

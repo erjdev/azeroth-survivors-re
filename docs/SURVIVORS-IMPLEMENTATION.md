@@ -5620,3 +5620,22 @@ the talent, the persisted rank and readable supported description. Screenshot is
 embedded in CHANGELOG and README. Clippy/native build/fmt pass. The DBC audit now
 reports 202/432 individual definitions and 81/81 milestones; remaining talents and
 Windows/live balance acceptance are still open.
+
+### 2026-10-26 — Totemic Mastery reach
+
+Shaman Restoration node 582 (one rank, third row, no prerequisite in the local
+1.12.1 DBC) now extends Searing Totem attack range and Magma Totem pulse radius by
+20%. This is an explicit Survivors conversion of totem reach, not a claim to
+reproduce vanilla buff-totem behavior. It changes neither healing nor damage,
+duration, cooldown, or target count. Existing totems retain their deployment snapshot.
+
+Rules coverage checks all classes, rank capping, milestone composition, unrelated
+spells and reset. The periodic totem integration regression places two enemies at
+90%, 110% and 130% of the original distance and checks both untrained and trained
+behavior with +3 targets: Searing attacks one; Magma pulses around its single location.
+
+Validation: 161 core and 323 app tests, Clippy, native play build, formatting and
+diff checks pass. Native macOS 1280×720 preview confirms purchase, persisted rank
+and readable details. Screenshot embedded in CHANGELOG and README refreshed.
+The DBC audit reports 203/432 individual definitions and 81/81 milestones. This
+checkpoint does not establish live balance or Windows combat acceptance.
