@@ -84,6 +84,12 @@ locked pending world readiness. This capture does not establish raid gameplay.
 </table>
 
 
+### Audio settings
+
+![Audio settings with runtime string bindings at 800×720](docs/images/screenshots/2026-10-27-label-bindings/audio.png)
+
+2026-10-27 · Shared starter/pause settings; English native check and translated text-binding regression coverage.
+
 ### Appearance labels
 
 ![Race-specific labels resolved from the game data](docs/images/screenshots/2026-10-27-appearance-localization/tauren.png)

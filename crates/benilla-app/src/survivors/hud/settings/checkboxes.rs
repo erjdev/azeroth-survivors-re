@@ -26,7 +26,7 @@ pub(super) fn row(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, knob: Knob
         },
     ))
     .with_children(|row| {
-        row.spawn((
+        let mut label_node = row.spawn((
             text(font, label, 14., GOLD),
             Node {
                 width: Val::Percent(34.),
@@ -34,6 +34,14 @@ pub(super) fn row(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, knob: Knob
                 ..default()
             },
         ));
+        let key = match knob {
+            Knob::Sound => Some("ENABLE_SOUND"),
+            Knob::MusicOn => Some("ENABLE_MUSIC"),
+            _ => None,
+        };
+        if let Some(key) = key {
+            label_node.insert(crate::survivors::localization::Label::by_key(key, label));
+        }
         row.spawn((
             Node {
                 width: Val::Px(18.),

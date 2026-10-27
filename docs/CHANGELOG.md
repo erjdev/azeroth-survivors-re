@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Localized settings and level labels
+
+Audio switches and Character rotation buttons now resolve their text after startup,
+including controls created before the string table is ready. HUD levels and zone
+level ranges share the localized level template.
+
+![Audio settings at 800×720](images/screenshots/2026-10-27-label-bindings/audio.png)
+
+![Localized rotation labels](images/screenshots/2026-10-27-label-bindings/rotation.png)
+
+442 Survivors app tests with game data, all-target app Clippy, and the native build
+pass. Native build: 1m54s. Screenshots use the English install; translated binding
+and missing-key behavior have regression coverage. Eight reference-string literals
+remain, down from 15; the full integration gate is still open.
+
 ## 2026-10-27 — Shared tooltip localization
 
 Ability and passive tooltip rank headings, ranges, durations and cooldowns now

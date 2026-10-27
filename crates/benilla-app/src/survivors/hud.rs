@@ -2055,6 +2055,7 @@ pub(super) fn refresh_hud(
     renown: Res<super::renown::Renown>,
     stash: Res<super::stash::Stash>,
     font: Res<HudFont>,
+    strings: Option<Res<Strings>>,
     mut texts: ParamSet<(
         Query<&mut Text, With<LevelText>>,
         Query<&mut Text, With<TimerText>>,
@@ -2070,6 +2071,8 @@ pub(super) fn refresh_hud(
     mut sweeps: ResMut<Assets<SweepUiMaterial>>,
     mut last_version: Local<Option<u32>>,
 ) {
+    let fallback = Strings::default();
+    let strings = strings.as_deref().unwrap_or(&fallback);
     let need = data::xp_to_next(run.level);
     if let Ok(mut n) = xp_fill.single_mut() {
         n.width = Val::Percent((run.xp / need * 100.0).clamp(0.0, 100.0));
@@ -2081,7 +2084,7 @@ pub(super) fn refresh_hud(
         }
     }
     if let Ok(mut t) = texts.p0().single_mut() {
-        **t = format!("Level {}", run.level);
+        **t = strings.by_key("UNIT_LEVEL_TEMPLATE", "Level %s", &[run.level.into()]);
     }
     let secs = run.elapsed as u32;
     if let Ok(mut t) = texts.p1().single_mut() {

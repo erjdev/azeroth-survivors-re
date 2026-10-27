@@ -214,11 +214,14 @@ pub(super) fn build_menu(
     mut add_mats: ResMut<Assets<crate::glue::add_material::AddUiMaterial>>,
     font: Res<HudFont>,
     strings: Option<Res<crate::glue_strings::GlueStrings>>,
+    globals: Option<Res<super::localization::Strings>>,
 ) {
     let Ok(root) = roots.single() else { return };
     let Some(mut assets) = assets else { return };
     art.ensure_loaded(&mut assets, &mut images, &mut add_mats);
     let f = &font.0;
+    let global_fallback = super::localization::Strings::default();
+    let globals = globals.as_deref().unwrap_or(&global_fallback);
     let fallback = crate::glue_strings::GlueStrings::default();
     let strings = strings.as_deref().unwrap_or(&fallback);
     commands.entity(root).insert(MenuBuilt).with_children(|ui| {
@@ -241,7 +244,7 @@ pub(super) fn build_menu(
                     abs(1.0, 3.0, 7.0, 256.0, 128.0),
                 ));
             }
-            zone_frame(ui, &art, f);
+            zone_frame(ui, &art, f, globals);
 
             // Renown sits above the name: marks persist on the class, levels do not.
             ui.spawn(Node {
@@ -630,7 +633,12 @@ fn tower(ui: &mut ChildSpawnerCommands, art: &GlueArt, f: &Handle<Font>) {
 
 /// The zone list in `CharacterSelectCharacterFrame` (260×642 at TOPRIGHT (-5,-15)), one
 /// character-row per zone, lowest level first.
-fn zone_frame(ui: &mut ChildSpawnerCommands, art: &GlueArt, f: &Handle<Font>) {
+fn zone_frame(
+    ui: &mut ChildSpawnerCommands,
+    art: &GlueArt,
+    f: &Handle<Font>,
+    strings: &super::localization::Strings,
+) {
     let px = Val::Px;
     let mut order: Vec<(usize, u32, u32)> = (0..data::MAPS.len())
         .map(|i| {
@@ -726,11 +734,13 @@ fn zone_frame(ui: &mut ChildSpawnerCommands, art: &GlueArt, f: &Handle<Font>) {
                         f,
                         1.0,
                     );
-                    let levels = if lo == hi {
-                        format!("Level {lo}")
+                    let range = if lo == hi {
+                        lo.to_string()
                     } else {
-                        format!("Level {lo}-{hi}")
+                        format!("{lo}-{hi}")
                     };
+                    let levels =
+                        strings.by_key("UNIT_LEVEL_TEMPLATE", "Level %s", &[range.as_str().into()]);
                     outlined_text(
                         b,
                         abs(1.0, 0.0, 19.0, ROW_W, 14.0),

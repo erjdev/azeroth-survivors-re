@@ -249,7 +249,10 @@ fn hero_panel(
         ..default()
     })
     .with_children(|row| {
-        for (label, angle) in [("Turn left", -0.4), ("Turn right", 0.4)] {
+        for (key, label, angle) in [
+            ("BINDING_NAME_TURNLEFT", "Turn left", -0.4),
+            ("BINDING_NAME_TURNRIGHT", "Turn right", 0.4),
+        ] {
             row.spawn((
                 Button,
                 ModelTurn(angle),
@@ -260,7 +263,10 @@ fn hero_panel(
                 BackgroundColor(Color::srgb(0.15, 0.12, 0.06)),
             ))
             .with_children(|button| {
-                button.spawn(hud::text_bundle(font, label, layout.body_size, GOLD));
+                button.spawn((
+                    hud::text_bundle(font, label, layout.body_size, GOLD),
+                    crate::survivors::localization::Label::by_key(key, label),
+                ));
             });
         }
     });

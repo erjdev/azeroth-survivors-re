@@ -7,6 +7,11 @@ use bevy::prelude::*;
 use std::collections::HashMap;
 
 const KEYS: &[&str] = &[
+    "UNIT_LEVEL_TEMPLATE",
+    "ENABLE_SOUND",
+    "ENABLE_MUSIC",
+    "BINDING_NAME_TURNLEFT",
+    "BINDING_NAME_TURNRIGHT",
     "SPELL_DURATION_SEC",
     "SPELL_RECAST_TIME_SEC",
     "SPELL_RANGE",
@@ -45,9 +50,34 @@ impl Strings {
     }
 }
 
+/// A static label that may be created before the boot VM's strings are copied.
+#[derive(Component)]
+pub(super) struct Label {
+    key: &'static str,
+    fallback: &'static str,
+}
+
+impl Label {
+    pub(super) fn by_key(key: &'static str, fallback: &'static str) -> Self {
+        Self { key, fallback }
+    }
+}
+
+fn refresh_labels(strings: Res<Strings>, mut labels: Query<(Ref<Label>, &mut Text)>) {
+    for (label, mut text) in &mut labels {
+        if strings.is_changed() || label.is_added() {
+            let value = strings.text(label.key, label.fallback);
+            if text.0 != value {
+                text.0 = value.to_owned();
+            }
+        }
+    }
+}
+
 pub(super) fn plugin(app: &mut App) {
     app.init_resource::<Strings>()
-        .add_systems(PostStartup, load);
+        .add_systems(PostStartup, load)
+        .add_systems(Update, refresh_labels);
 }
 
 fn load(script: Option<NonSend<UiScript>>, mut strings: ResMut<Strings>) {
@@ -59,6 +89,41 @@ fn load(script: Option<NonSend<UiScript>>, mut strings: ResMut<Strings>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn labels_created_before_and_after_startup_resolve_and_refresh_with_fallbacks() {
+        let script = UiScript::new().unwrap();
+        script
+            .lua()
+            .load(r#"ENABLE_SOUND = "Activer le son""#)
+            .exec()
+            .unwrap();
+        let mut app = App::new();
+        app.insert_non_send_resource(script).add_plugins(plugin);
+        let early = app
+            .world_mut()
+            .spawn((
+                Text::new("Enable sound"),
+                Label::by_key("ENABLE_SOUND", "Enable sound"),
+            ))
+            .id();
+        app.update();
+        assert_eq!(app.world().get::<Text>(early).unwrap().0, "Activer le son");
+        let late = app
+            .world_mut()
+            .spawn((
+                Text::new("Enable sound"),
+                Label::by_key("ENABLE_SOUND", "Enable sound"),
+            ))
+            .id();
+        app.update();
+        assert_eq!(app.world().get::<Text>(late).unwrap().0, "Activer le son");
+        app.world_mut().resource_mut::<Strings>().0.clear();
+        app.update();
+        for entity in [early, late] {
+            assert_eq!(app.world().get::<Text>(entity).unwrap().0, "Enable sound");
+        }
+    }
 
     #[test]
     fn boot_vm_keys_keep_translated_order_and_fractional_gameplay_values() {
