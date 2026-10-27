@@ -7499,3 +7499,19 @@ pass. The definition audit matches 262/432 nodes (Mage 35/49), leaving 170. The
 app test command took 3m06 including time waiting for a separate build lock;
 its tests ran in 1.71 seconds. Existing block-crate future-compatibility warning
 remains. Native and test builds used macOS; no new browser/Windows claim is made.
+
+
+### 2026-10-27 — Stable local and CI integration commands
+
+The canonical `survivors-test` Cargo alias selects the same package, library filter
+and visibility feature as the prior PR command; CI now calls the alias. The
+`survivors-clippy` alias uses the same library feature set. Documentation distinguishes
+this loop from no-default-feature shipping checks and explains shared build locks,
+retained Cargo variants and the independent rules cache. No cache is deleted or
+moved, and user Cargo target-directory settings remain effective.
+
+Measured on macOS after 33c0e08: warm integration build 0.47 seconds, 418 tests in
+1.67 seconds, warm Clippy 0.38 seconds, launcher-only play rebuild 3.19 seconds and subsequent no-op play build 0.34 seconds.
+These demonstrate retained engine dependencies, not a speedup for changed app
+source. Cold bootstrap, Windows timings and architectural extraction remain open.
+No UI changed; this workflow checkpoint requires no replacement screenshots.

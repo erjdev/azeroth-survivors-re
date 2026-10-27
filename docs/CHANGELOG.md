@@ -3,6 +3,17 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Consistent cached integration checks
+
+`cargo survivors-test` now matches the PR gate, including visibility features;
+`cargo survivors-clippy -- -D warnings` uses the same library configuration.
+This avoids accidentally switching test feature variants during iteration.
+
+On this macOS checkout, the warm test build took 0.47 seconds and all 418 tests
+ran in 1.67 seconds; cached Clippy took 0.38 seconds. A launcher-only rebuild took
+3.19 seconds. Source edits and first builds still cost more. No UI appearance
+changed; the Arcane Subtlety screenshots below remain the latest visual checkpoint.
+
 ## 2026-10-27 — Arcane Subtlety
 
 Arcane Subtlety now strengthens Arcane Missiles and Arcane Explosion by 5% per

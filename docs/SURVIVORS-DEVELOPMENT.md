@@ -55,14 +55,39 @@ Commands from the repository root:
 cargo survivors-rules
 cargo survivors-build
 WOW_DATA="$PWD/wow-data/Data" cargo survivors
-cargo test -p benilla-app --lib survivors:: --no-default-features
 # Match the PR gate, including render-only foliage detection and reveal fading:
-cargo test -p benilla-app --lib --features survivors-visibility survivors::
+WOW_DATA="$PWD/wow-data/Data" cargo survivors-test
+cargo survivors-clippy -- -D warnings
+# Separate shipping configuration check (builds a different artifact variant):
+cargo test -p benilla-app --lib survivors:: --no-default-features
 cargo run -p survivors-audit -- "$PWD/wow-data/Data"
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --collection
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --achievement-art
 cargo run -p survivors-audit -- "$PWD/wow-data/Data" --floor 533 3005.87 -3435.01 293.88
 ```
+
+### Keep the development cache warm
+
+Use `cargo survivors-test` consistently for the integration loop; CI uses the same
+alias. It selects `benilla-app`, library tests, the `survivors::` filter and the
+`survivors-visibility` feature. `cargo survivors-clippy -- -D warnings` checks the
+same library feature set. Both retain the normal `target/` cache and respect Cargo
+configuration, including `CARGO_TARGET_DIR`. Extra test filters can follow `--`,
+for example `cargo survivors-test -- --skip source_model`.
+
+Run native builds, integration tests and Clippy sequentially: they share Cargo's
+build-directory lock, so starting all three together queues work rather than
+making it parallel. `cargo survivors-rules` has its own small persistent target
+folder and can run alongside them. A previously built UI preview can also run
+without Cargo using the fixture launcher's `--executable` option.
+
+Keep the same profile, feature set, toolchain and compiler flags between ordinary
+iterations. Cargo keeps distinct artifacts when those inputs change; switching to
+`--release`, changing debug flags or testing without defaults is a separate build,
+not a faster repeat of the current one. Do not clean `target/` between iterations.
+These aliases prevent accidental variant switches; they do not remove recompilation
+when Rust source changes, shorten first builds, or isolate the large app crate.
+Shipping and browser configurations still need their own acceptance checks.
 
 ### Windows checkout launchers
 

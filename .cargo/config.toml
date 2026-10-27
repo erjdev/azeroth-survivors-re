@@ -9,5 +9,10 @@ play = "run --profile play -p benilla"
 survivors = "run --profile play -p warcraft-survivors"
 survivors-build = "build --profile play -p warcraft-survivors"
 
+# Keep local integration checks on the PR gate's feature set. Changing features
+# creates another Cargo artifact variant even when the source is unchanged.
+survivors-test = "test -p benilla-app --lib --features survivors-visibility survivors::"
+survivors-clippy = "clippy -p benilla-app --lib --features survivors-visibility"
+
 # Pure rules use a tiny persistent cache, independent of an ongoing native engine build.
 survivors-rules = "test -p survivors-core --target-dir target/survivors-rules"

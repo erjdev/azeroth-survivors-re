@@ -109,4 +109,4 @@ jobs:
         run: |
           cargo test -p benilla-world --lib --features survivors-visibility survivors_visibility
           cargo test -p survivors-core
-          cargo test -p benilla-app --lib --features survivors-visibility survivors::
+          cargo survivors-test
