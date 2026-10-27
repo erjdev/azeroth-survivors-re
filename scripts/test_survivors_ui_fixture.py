@@ -104,6 +104,21 @@ class FixtureTests(unittest.TestCase):
             self.assertIn("hero=2", (home / "view.txt").read_text())
             self.assertIn("who 2 5 3000 Nara Restoration 1|||", (home / "benilla-config/survivors-account.txt").read_text())
 
+    def test_wrong_page_spec_request_leaves_home_absent_and_can_be_corrected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp) / "retry here"
+            base = [sys.executable, str(Path(fixture.__file__)), "trained",
+                    "--output", str(home), "--hero", "2", "--spec", "2", "--preset"]
+            other = next(p.name for p in fixture.PREVIEWS.glob("*.txt")
+                         if "page=collection" in p.read_text().replace(" ", ""))
+            result = subprocess.run(base + [other], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("requires a talent preview preset", result.stderr)
+            self.assertFalse(home.exists())
+            result = subprocess.run(base + ["talents-640.txt"], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("hero=2", (home / "view.txt").read_text())
+
     def test_launch_is_isolated_shell_free_and_propagates_failure(self):
         with tempfile.TemporaryDirectory() as temp:
             home = fixture.prepare("partial", Path(temp) / "preview with spaces")

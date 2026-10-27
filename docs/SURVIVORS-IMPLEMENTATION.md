@@ -6723,3 +6723,8 @@ alpha-aware foliage and the exact Windows reproduction remain outstanding.
 Validation: all 372 visibility-enabled Survivors app tests, app-test Clippy, native
 play build, formatting and diff checks pass on macOS. No GPU visual acceptance or
 Windows run is claimed for this checkpoint.
+
+UI preview launcher follow-up: validate/read the selected preset before creating
+the disposable account. A rejected non-talent preset with saved-spec selection
+leaves the destination absent and permits a corrected retry. All nine Python
+fixture isolation tests pass; no Rust or rendered interface change.

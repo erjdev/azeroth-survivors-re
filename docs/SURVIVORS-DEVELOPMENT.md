@@ -554,7 +554,9 @@ python3 scripts/survivors-ui-fixture.py trained --hero 2 --spec 2 --preset talen
 preset. Only the selected hero's active spec in the new disposable account changes;
 all saved spreads, other heroes and the source fixture remain intact. The watched
 request selects that hero, replacing any preset hero selection. A class-specific
-talent inspection in the preset must still match the chosen hero.
+talent inspection in the preset must still match the chosen hero. Preset validation
+happens before creating the home, so a rejected non-talent preset can be corrected
+and retried at the same output path.
 
 On Windows use `py -3` instead of `python3`. `--run` invokes `cargo survivors`
 directly, using the incremental play profile and no shell. It clears inherited

@@ -70,8 +70,8 @@ def command(home, page):
     ])
 
 
-def preview(home, name, hero=None):
-    """Copy a repository preset; later edits affect only the isolated request."""
+def preview_contents(name, hero=None):
+    """Validate and read a preset before creating any disposable state."""
     if Path(name).name != name or name not in {p.name for p in PREVIEWS.glob("*.txt")}:
         raise ValueError(f"Unknown preview preset: {name}")
     contents = (PREVIEWS / name).read_bytes().decode("utf-8")
@@ -81,10 +81,19 @@ def preview(home, name, hero=None):
             raise ValueError("Saved spec selection requires a talent preview preset")
         lines = [line for line in lines if line.split("=", 1)[0].strip() != "hero"]
         contents = "\n".join(lines) + f"\nhero={hero}\n"
+    return contents.encode("utf-8")
+
+
+def write_preview(home, contents):
     destination = home / "view.txt"
     with destination.open("xb") as output:
-        output.write(contents.encode("utf-8"))
+        output.write(contents)
     return destination
+
+
+def preview(home, name, hero=None):
+    """Copy a repository preset; later edits affect only the isolated request."""
+    return write_preview(home, preview_contents(name, hero))
 
 
 def launch_environment(home, page, request=None):
@@ -124,8 +133,9 @@ def main():
     if (args.hero is None) != (args.spec is None) or (args.spec is not None and not args.preset):
         parser.error("--hero and --spec require each other and a talent --preset")
     try:
+        contents = preview_contents(args.preset, args.hero) if args.preset else None
         home = prepare(args.profile, args.output, args.hero, args.spec)
-        request = preview(home, args.preset, args.hero) if args.preset else None
+        request = write_preview(home, contents) if contents is not None else None
     except (OSError, ValueError) as error:
         parser.error(str(error))
     print(f"Prepared synthetic {args.profile} account: {home}")

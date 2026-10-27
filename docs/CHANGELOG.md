@@ -42,7 +42,8 @@ pixels, streaming visibility or the rendered fade. No interface change.
 
 The fixture launcher accepts paired `--hero` / `--spec` options with a talent
 preset. It opens a chosen saved build in a new disposable account without manual
-save edits. Eight isolation tests pass; native 640×720 confirms hero 2, spec 2,
+save edits. Invalid preset/spec combinations are rejected before creating the home,
+so corrected requests can reuse the same path. Nine isolation tests pass; native 640×720 confirms hero 2, spec 2,
 and the expected 29-point Enhancement spread. No Rust rebuild is needed.
 
 ![Selected hero and saved spec from the fixture command](images/screenshots/2026-10-27-spec-previews/selected-spec.png)
