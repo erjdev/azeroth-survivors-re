@@ -5458,3 +5458,19 @@ the chosen look remained selected, and the final build retained grid focus with
 the equipped sidebar duplicate present. Compact 640×720 help wraps cleanly.
 Screenshots are inline in CHANGELOG and the README Collection image is refreshed.
 No physical controller or Windows runtime claim is made by this checkpoint.
+
+### Collection inspection follows navigation — 2026-10-26
+
+Keyboard/controller focus now updates the Collection inspector for both Poor and
+standard gear. Players can read an item's bonuses, source and ownership before
+activating equip. Moving focus does not dispatch an action or write account state;
+modals still suppress navigation. The existing rebuild regression also checks
+Poor-to-standard inspection and absence of activation/refund requests.
+
+Validation: all 319 Survivors app tests pass; scoped Clippy passes after an
+expression-only match-guard cleanup; native play build and formatting pass.
+Native 1280×720 navigation showed Poor shoulders, Common shoulders, then an owned
+Poor helm with the matching descriptions, sources and controls. Equipped gloves
+and their +8 health stayed unchanged; the account file SHA-256 before launch and
+after quitting matched. Screenshots are inline in CHANGELOG and the README
+Collection image is refreshed. Physical controller and Windows acceptance remain open.

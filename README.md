@@ -45,7 +45,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-26-gear-secondary/equipped-1280.png" alt="Collection"><br>2026-10-26 · Keyboard/controller equip shortcuts, retained grid focus and independent looks.</td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-26-gear-focus/owned-1280.png" alt="Collection"><br>2026-10-26 · Item details follow keyboard/controller focus before equipping.</td>
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-26-poor-drops/drop-tables.png" alt="Drop Tables"><br>2026-10-26 · Ordinary-enemy Poor gear, scheduled encounters and item details.</td>
   </tr>
   <tr>

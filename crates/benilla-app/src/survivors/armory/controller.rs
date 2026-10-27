@@ -294,6 +294,24 @@ pub(in crate::survivors) fn navigate(
                 .filter(|(_, _, _, _, info, _)| info.is_none())
                 .and_then(|(_, _, _, _, _, act)| act)
                 .map(|act| (context, act.clone(), grid_items.contains(entity)));
+            // Inspection follows navigation, without dispatching an equipment action.
+            if armory.page == Page::Collection {
+                match focus.action.as_ref().map(|(_, action, _)| action) {
+                    Some(Act::InspectPiece(index)) => {
+                        let index = (*index).min(campaign::PIECES - 1);
+                        if armory.piece != index || armory.supplemental_piece.is_some() {
+                            armory.piece = index;
+                            armory.supplemental_piece = None;
+                        }
+                    }
+                    Some(Act::InspectSupplemental(key))
+                        if armory.supplemental_piece.as_ref() != Some(key) =>
+                    {
+                        armory.supplemental_piece = Some(key.clone());
+                    }
+                    _ => {}
+                }
+            }
             focus.talent = (armory.page == Page::Talents)
                 .then(|| {
                     buttons
@@ -510,6 +528,11 @@ mod tests {
         );
         assert!(world.get::<Outline>(replacement).is_some());
         assert!(world.get::<Outline>(sidebar).is_none());
+        assert_eq!(
+            world.resource::<Armory>().supplemental_piece.as_deref(),
+            Some("poor:hunter:hands")
+        );
+        assert_eq!(world.resource::<ControllerFocus>().activated, None);
         assert_eq!(world.resource::<ControllerFocus>().refund, None);
         world
             .resource_mut::<ButtonInput<KeyCode>>()
@@ -522,6 +545,38 @@ mod tests {
         world.resource_mut::<ButtonInput<KeyCode>>().clear();
         schedule.run(&mut world);
         assert_eq!(world.resource::<ControllerFocus>().refund, None);
+        let legacy = world
+            .spawn((
+                Button,
+                CollectionGridItem,
+                Act::InspectPiece(34),
+                ComputedNode {
+                    size: Vec2::splat(40.),
+                    ..default()
+                },
+                UiGlobalTransform::from_xy(200., 100.),
+                InheritedVisibility::VISIBLE,
+            ))
+            .id();
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::ArrowRight);
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<ControllerFocus>().focused, Some(legacy));
+        assert_eq!(world.resource::<Armory>().piece, 34);
+        assert!(world.resource::<Armory>().supplemental_piece.is_none());
+        assert_eq!(world.resource::<ControllerFocus>().activated, None);
+        assert_eq!(world.resource::<ControllerFocus>().refund, None);
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world.resource_mut::<hud::PausePage>().open = true;
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::ArrowLeft);
+        schedule.run(&mut world);
+        assert_eq!(world.resource::<Armory>().piece, 34);
+        assert!(world.resource::<Armory>().supplemental_piece.is_none());
+        assert_eq!(world.resource::<ControllerFocus>().focused, None);
     }
 
     #[test]

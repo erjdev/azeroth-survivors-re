@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Inspect gear while navigating
+
+The Collection detail panel now follows keyboard/controller focus, showing the
+focused item's stats, source and ownership before equip. Browsing keeps equipment
+and appearance selections separate.
+
+Verified native Poor/Common navigation and owned/unowned details at 1280×720;
+the account file stayed byte-for-byte unchanged. All 319 app tests, scoped Clippy
+and the native build pass. Physical-controller acceptance remains open.
+
+![Focused uncollected gear shows its own details](images/screenshots/2026-10-26-gear-focus/uncollected-1280.png)
+
+![Focused collected gear shows its own details](images/screenshots/2026-10-26-gear-focus/owned-1280.png)
+
 ## 2026-10-26 — Equip gear with keyboard or controller
 
 Backspace/controller west now equips or unequips the focused Collection item.
