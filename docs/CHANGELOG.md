@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Hunter Trap Mastery
+
+Trap Mastery now strengthens Explosive Trap by 5% per rank (two ranks),
+multiplying Clever Traps without changing its area or Entrapment roots.
+The talent shows green inline upgrades and works with saved specs and refunds.
+
+![Trap Mastery preview](images/screenshots/2026-10-27-trap-mastery/preview.png)
+
+![Purchased Trap Mastery](images/screenshots/2026-10-27-trap-mastery/purchased.png)
+
+220 core tests, 428 app tests and core/app Clippy pass. Native macOS purchase
+checked at 1280×720; incremental build: 16 seconds. Definitions: 267/432;
+165 remain. Live balance and Windows acceptance remain open.
+
 ## 2026-10-27 — Enlarged compact Hunter UI checked
 
 At 800×600 and 125% interface size, Hunter talent art stays proportional and the

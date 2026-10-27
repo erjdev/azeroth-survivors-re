@@ -2427,6 +2427,9 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 1322, max_rank: 2, name: "Trap Mastery",
+        description: "Explosive Trap: +5% direct and periodic damage per rank, multiplying Clever Traps. Radius, cooldown and Entrapment root duration are unchanged (Survivors trap-resistance conversion)",
+        stat: TalentStat::SpellDamage("explosive_trap"), per_rank: 0.05 },
     TalentDefinition { id: 1351, max_rank: 3, name: "Improved Scorpid Sting",
         description: "Scorpid Sting: +20% damage-reduction duration per rank. Its 25% enemy damage reduction, hit damage and target count are unchanged; requires acquiring the spell (Survivors stamina-reduction conversion)",
         stat: TalentStat::SpellDuration("scorpid_sting"), per_rank: 0.20 },
@@ -3454,6 +3457,7 @@ mod stat_talent_tests {
     fn caster_accuracy_conversions_are_capped_scoped_and_only_change_damage() {
         type AccuracyCase = (usize, u8, u32, u8, f32, &'static [&'static str]);
         let cases: &[AccuracyCase] = &[
+            (2, 2, 1322, 2, 0.05, &["explosive_trap"]),
             (6, 0, 74, 2, 0.05, MAGE_ARCANE),
             (4, 2, 463, 5, 0.02, &["mind_blast", "shadow_word_pain"]),
             (

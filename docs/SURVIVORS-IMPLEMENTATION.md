@@ -7694,3 +7694,25 @@ updated. This is visual/input evidence, not a code change or new automated test
 result. Native session exited through Quit and its launcher was restored.
 Windows, controller input, other sizes/scales and full seven-phase acceptance
 remain open. Existing 220 core / 428 app test results belong to `a4d59f0`.
+
+
+### 2026-10-27 — Trap Mastery runtime and purchase
+
+Hunter Survival node 1322 now has two functional ranks: +5% Explosive Trap
+direct/periodic damage each. The existing scoped damage pipeline multiplies
+Clever Traps; no hit/resistance rolls are added. The actual local talent data
+places it in row 3 with no prerequisite, requiring 15 earlier-tree points.
+
+Expanded scope/cap tests traverse every class ability pool, including foreign
+spells, and confirm other cast fields stay unchanged. App parameter tests cover
+damage and periodic damage; the real-catalog account test purchases both ranks,
+rejects a third, saves/reloads, switches specs and refunds with Clever Traps
+already trained. All 220 core / 428 app tests and both Clippy checks pass.
+Native play build took 16 seconds. Actual 1280×720 macOS capture verifies the
+0 » 5% preview and purchased 5 » 10% preview, 1/2 rank and 35 remaining points;
+both screenshots are embedded in the changelog. Validation app exited through
+Quit and the launcher was restored.
+
+Coverage is now 267/432 definitions (Hunter 34/46), leaving 165 definitions.
+This is not full gameplay acceptance: live trap balance, Windows reports,
+remaining talents and the other seven-phase requirements remain open.

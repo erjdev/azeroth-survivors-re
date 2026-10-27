@@ -2849,6 +2849,16 @@ mod tests {
             .clone()
             .unwrap();
         for (class, tree, id, cap, row, ranks, key, rate) in [
+            (
+                2,
+                2,
+                1322,
+                2,
+                3,
+                vec![(2, 1311, 5), (2, 1304, 5), (2, 1622, 3), (2, 1306, 2)],
+                "explosive_trap",
+                0.05,
+            ),
             (6, 0, 74, 2, 0, vec![], "arcane_missiles", 0.05),
             (
                 4,

@@ -476,6 +476,14 @@ replace provisional global damage; they do not introduce misses or affect other
 spells, cooldowns, range, targets or critical chance. Refunds and inactive specs
 remove their bonuses.
 
+### Hunter Trap Mastery
+
+Trap Mastery (Survival node 1322, two ranks) adds 5% Explosive Trap direct and
+periodic damage per rank, multiplying Clever Traps. This is the Survivors
+trap-resistance conversion: there is no separate resistance roll. It does not
+change radius, cooldown, target count, duration or Entrapment roots, and does
+not affect shots, Volley or pet bites. Inactive specs and refunds remove it.
+
 ### Priest talent tuning (initial)
 
 Inner Focus (one rank, node 348) adds 25 percentage points critical chance to the
