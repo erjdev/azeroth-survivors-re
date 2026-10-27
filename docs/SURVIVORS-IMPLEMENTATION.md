@@ -705,11 +705,11 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Hunter | 28 / 46 | 9 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
 | Priest | 23 / 47 | 9 / 9 |
-| Shaman | 19 / 46 | 9 / 9 |
+| Shaman | 20 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
 | Warlock | 19 / 50 | 9 / 9 |
 | Druid | 20 / 47 | 9 / 9 |
-| Total | 213 / 432 | 81 / 81 |
+| Total | 214 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -5967,3 +5967,24 @@ Native 1280×720 and scrolled 640×720 previews verify both values before/after 
 rank-two purchase, including saved rank persistence. CHANGELOG embeds both captures
 and README previews are refreshed. Other compound effects, the remaining talent
 catalog, live balance and Windows acceptance remain unfinished.
+
+
+### Shaman Flurry — 2026-10-27
+
+Audited node 602 (five ranks) grants 5% haste per rank for three seconds after a
+positive finite direct critical from Lightning Bolt, Chain Lightning or a shock.
+Totems, Lightning Shield, periodic ticks and foreign spells cannot trigger it.
+This explicit Survivors spell-critical conversion shares the Warrior timer and
+HUD status, with class-specific eligible sources. Refresh does not stack; expiry
+removes the bonus and a dead hero cannot activate it. Existing haste rules apply
+to subsequent cast cooldowns, not cooldowns already running. No save-format change.
+Flurry's linear haste value now uses the inline-description presentation too.
+
+168 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+Core coverage includes all classes, rank caps, invalid/zero/noncritical hits,
+source exclusions and reset. The runtime cooldown/timer regression now covers
+both Warrior and Shaman, including refresh, expiry and death. The install audit
+reports 214/432 individual definitions and 81/81 milestone descriptions. Native
+1280×720 inspection and a 4→5 purchase confirm the authored rules and saved rank;
+CHANGELOG embeds the screenshot. Live combat balance, dedicated buff art, Windows
+acceptance and the remaining 218 individual talent definitions are unfinished.

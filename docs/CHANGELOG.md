@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Shaman Flurry
+
+Shaman Flurry now grants up to 25% haste for three seconds after a direct lightning
+or shock critical. Further eligible criticals refresh without stacking; totems,
+Lightning Shield and periodic damage cannot trigger it. It uses the existing
+cooldown rule, timer and HUD status. The talent explicitly describes this
+Survivors conversion and shows its haste upgrade inline.
+
+168 core and 336 app tests, Clippy and native build pass. The local catalog audit
+matches 214/432 individual talents. Native macOS validation confirms the final-rank
+purchase saves; live combat balance and Windows acceptance remain open.
+
+![Shaman Flurry upgrade and trigger rules](images/screenshots/2026-10-27-shaman-flurry/flurry.png)
+
 ## 2026-10-27 — Combined talent upgrades inline
 
 Improved Moonfire now shows both damage and critical-chance upgrades in its

@@ -631,7 +631,7 @@ impl Milestones {
     }
 
     pub fn flurry_haste(self, active: bool) -> f32 {
-        if self.class == 0 && active {
+        if matches!(self.class, 0 | 5) && active {
             self.trained_value(TalentStat::FlurryHaste)
         } else {
             0.0
@@ -643,10 +643,14 @@ impl Milestones {
             && critical
             && damage.is_finite()
             && damage > 0.0
-            && matches!(
-                key,
-                "cleave" | "heroic_strike" | "execute" | "mortal_strike"
-            )
+            && match self.class {
+                0 => matches!(
+                    key,
+                    "cleave" | "heroic_strike" | "execute" | "mortal_strike"
+                ),
+                5 => shaman::LIGHTNING.contains(&key) || shaman::SHOCKS.contains(&key),
+                _ => false,
+            }
     }
 
     /// Death Wish's risk applies only during the actual Retaliation buff.
@@ -1442,6 +1446,7 @@ impl TalentDefinition {
             | TalentStat::CritDamage
             | TalentStat::Reduction
             | TalentStat::Speed
+            | TalentStat::FlurryHaste
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellGroupDamage(_)

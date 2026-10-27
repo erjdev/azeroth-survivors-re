@@ -614,30 +614,42 @@ mod reactive_talent_tests {
 
     #[test]
     fn flurry_changes_cooldowns_refreshes_and_expires() {
-        let mut run = Run {
-            milestones: Milestones::default().with_ranks(&[(1, 156, 5)]),
-            ..Default::default()
-        };
-        let owned = super::super::Owned {
-            def: data::ability("cleave"),
-            level: 1,
-            cd: 0.0,
-        };
-        let before = run.stats();
-        run.record_flurry_hit("cleave", 10., false);
-        assert_eq!(run.flurry_t, 0.);
-        run.record_flurry_hit("cleave", 10., true);
-        assert_eq!(run.flurry_t, 3.);
-        assert!((owned.cooldown(&run.stats()) - owned.cooldown(&before) * 0.75).abs() < 0.00001);
-        advance_buffs(&mut run, 2.);
-        run.record_flurry_hit("heroic_strike", 10., true);
-        assert_eq!(run.flurry_t, 3.);
-        assert_eq!(run.stats().haste, before.haste + 0.25);
-        advance_buffs(&mut run, 4.);
-        assert_eq!(run.stats().haste, before.haste);
-        run.hp = 0.;
-        run.record_flurry_hit("cleave", 10., true);
-        assert_eq!(run.flurry_t, 0.);
+        for (class, talent, spell, refresh) in [
+            (0, 156, "cleave", "heroic_strike"),
+            (5, 602, "lightning_bolt", "earth_shock"),
+        ] {
+            let mut run = Run {
+                class: &data::CLASSES[class],
+                milestones: Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, talent, 5)]),
+                ..Default::default()
+            };
+            let owned = super::super::Owned {
+                def: data::ability(spell),
+                level: 1,
+                cd: 0.0,
+            };
+            let before = run.stats();
+            run.record_flurry_hit(spell, 10., false);
+            assert_eq!(run.flurry_t, 0.);
+            run.record_flurry_hit(spell, 10., true);
+            assert_eq!(run.flurry_t, 3.);
+            assert!(
+                (owned.cooldown(&run.stats()) - owned.cooldown(&before) * 0.75).abs() < 0.00001
+            );
+            advance_buffs(&mut run, 2.);
+            run.record_flurry_hit(refresh, 10., true);
+            assert_eq!(run.flurry_t, 3.);
+            assert_eq!(run.stats().haste, before.haste + 0.25);
+            advance_buffs(&mut run, 4.);
+            assert_eq!(run.stats().haste, before.haste);
+            run.hp = 0.;
+            run.record_flurry_hit(spell, 10., true);
+            assert_eq!(run.flurry_t, 0.);
+        }
     }
 
     #[test]

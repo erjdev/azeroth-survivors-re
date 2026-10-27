@@ -13,6 +13,7 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 602, max_rank: 5, name: "Flurry", description: "Direct lightning and shock criticals grant 5% haste per rank for 3 seconds; further criticals refresh without stacking. Totems, Lightning Shield and periodic damage cannot trigger it (Survivors spell-critical conversion)", stat: TalentStat::FlurryHaste, per_rank: 0.05 },
     TalentDefinition { id: 605, max_rank: 2, name: "Improved Ghost Wolf", description: "+5% hero movement speed per rank (Survivors Ghost Wolf conversion; no form required)", stat: TalentStat::Speed, per_rank: 0.05 },
     TalentDefinition { id: 1640, max_rank: 3, name: "Elemental Warding", description: "+2% hero damage reduction per rank (Survivors elemental-resistance conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.02 },
     TalentDefinition { id: 582, max_rank: 1, name: "Totemic Mastery", description: "Searing Totem: +20% attack range. Magma Totem: +20% pulse radius. Damage, duration, deployment healing and target count are unchanged (Survivors totem-range conversion)", stat: TalentStat::TotemicMastery, per_rank: 0.20 },
@@ -247,5 +248,48 @@ mod survival_tests {
         );
         assert_eq!(talent_definition(5, 1640).unwrap().inline_description(2).unwrap(),
             "+4 » 6% hero damage reduction (Survivors elemental-resistance conversion; applies to all incoming damage)");
+    }
+}
+
+#[cfg(test)]
+mod flurry_tests {
+    use crate::talents::Milestones;
+
+    #[test]
+    fn flurry_requires_shaman_training_and_eligible_direct_criticals() {
+        for class in 0..9 {
+            for rank in [0, 1, 3, 5, 255] {
+                let trained = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 602, rank)]);
+                let expected = if class == 5 {
+                    0.05 * f32::from(rank.min(5))
+                } else {
+                    0.
+                };
+                assert_eq!(trained.flurry_haste(false), 0.);
+                assert_eq!(trained.flurry_haste(true), expected);
+                for key in super::CASTS {
+                    assert_eq!(trained.triggers_flurry(key, 10., true), expected > 0.);
+                    for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                        assert!(!trained.triggers_flurry(key, damage, true));
+                    }
+                    assert!(!trained.triggers_flurry(key, 10., false));
+                }
+                for key in [
+                    "searing_totem",
+                    "magma_totem",
+                    "lightning_shield",
+                    "cleave",
+                    "fireball",
+                    "unknown",
+                ] {
+                    assert!(!trained.triggers_flurry(key, 10., true));
+                }
+                assert_eq!(trained.with_ranks(&[]).flurry_haste(true), 0.);
+            }
+        }
     }
 }
