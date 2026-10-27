@@ -1982,6 +1982,45 @@ mod tests {
     }
 
     #[test]
+    fn raid_armor_round_trips_without_legacy_collection_or_cosmetic_set_power() {
+        let mut account = empty();
+        for slot in 0..6 {
+            let piece = survivors_core::supplemental_gear::piece(
+                0,
+                slot,
+                survivors_core::gear_tier::GearTier::RaidEpic,
+            )
+            .unwrap();
+            assert!(account.supplemental.collect(0, &piece.key));
+            assert!(!account.supplemental.collect(0, &piece.key));
+            assert!(account.select_supplemental(0, &piece.key, false));
+            assert!(account.select_supplemental(0, &piece.key, true));
+        }
+        let before = account.bonus(0, 0);
+        let saved = encode(&account);
+        let mut loaded = parse(&saved).unwrap();
+        assert_eq!(loaded.supplemental.keys().count(), 6);
+        assert!(loaded.classes[0].pieces.iter().all(|&count| count == 0));
+        assert_eq!(loaded.bonus(0, 0).crit_damage, before.crit_damage);
+        assert_eq!(loaded.bonus(0, 0).armor, before.armor);
+        assert_eq!(encode(&loaded), saved);
+        for slot in 0..6 {
+            assert!(loaded.wear_piece(0, slot, None));
+        }
+        assert!(loaded.classes[0]
+            .equipment
+            .supplemental_looks()
+            .iter()
+            .take(6)
+            .all(Option::is_some));
+        assert_eq!(
+            loaded.bonus(0, 0).crit_damage,
+            empty().bonus(0, 0).crit_damage
+        );
+        assert_eq!(loaded.bonus(0, 0).armor, empty().bonus(0, 0).armor);
+    }
+
+    #[test]
     fn supplemental_loadout_rejects_unowned_foreign_and_wrong_slot_save_references() {
         let rows = "supplemental 0 poor:warrior:hands\nsupplemental_worn 0 0 poor:warrior:hands\nsupplemental_worn 1 7 poor:warrior:hands\nsupplemental_worn 0 1 poor:warrior:shoulders\nsupplemental_look 0 7 poor:warrior:hands extra\n";
         let mut account = parse(rows).unwrap();
@@ -2006,7 +2045,7 @@ mod tests {
     fn supplemental_ownership_round_trips_without_changing_legacy_progress_or_power() {
         let legacy = "who 1 0 5100 Saved Warrior\nclass 0 1 0 1\nequipment 0 100000000 000000000\n";
         let base = parse(legacy).unwrap();
-        let rows = "supplemental 0 poor:warrior:hands\nsupplemental 0 poor:warrior:hands\nsupplemental 6 poor:mage:main-hand\nsupplemental 0 poor:mage:hands\nsupplemental 6 raid-epic:mage:hands\nsupplemental bad poor:warrior:head\nsupplemental 0 poor:warrior:head extra\n";
+        let rows = "supplemental 0 poor:warrior:hands\nsupplemental 0 poor:warrior:hands\nsupplemental 6 poor:mage:main-hand\nsupplemental 0 poor:mage:hands\nsupplemental 6 raid-epic:mage:main-hand\nsupplemental bad poor:warrior:head\nsupplemental 0 poor:warrior:head extra\n";
         for text in [format!("{rows}{legacy}"), format!("{legacy}{rows}")] {
             let account = parse(&text).unwrap();
             assert_eq!(account.supplemental.keys().count(), 2);

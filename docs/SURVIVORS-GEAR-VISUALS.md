@@ -357,3 +357,13 @@ equipment/appearance saves and the Collection row are now integrated. Survivors
 acquisition uses a 2% aggregate chance from ordinary Elwynn/Duskwood enemies, with
 nine equally likely slots; the rate is independent of vanilla item metadata.
 Raid Epic identities and build-specific sets remain outstanding.
+
+### Supplemental Raid Epic armor variants
+
+The initial 72 Raid Epic armor identities reuse the verified eight ordinary Epic
+armor visuals and item names for each class from `gear_upgrades/epic.rs`. Their
+stable keys are `raid-epic:<class>:<slot>`; they are distinct Survivors progression
+variants, not additional vanilla item IDs. Main-hand weapons are excluded. No
+new install assets or unverified model references are introduced. Stats, set
+bonuses and future acquisition are authored Survivors rules documented in
+SURVIVORS.md, not imports of the vanilla items' powers or loot tables.

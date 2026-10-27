@@ -342,7 +342,6 @@ mod nightfall_tests {
 
 #[cfg(test)]
 mod additional_training_tests {
-    use super::*;
     use crate::talents::Milestones;
 
     #[test]

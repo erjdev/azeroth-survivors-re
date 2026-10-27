@@ -6026,3 +6026,28 @@ gear cannot duplicate a totem or turn Searing into a multi-target attack; Magma
 hits both enemies inside its single area. All 337 app tests, app Clippy, formatting
 and diff checks pass. No runtime/UI change or new screenshot; this does not
 establish live Windows combat or balance acceptance.
+
+### 2026-10-27 — Raid armor identity and set integration
+
+Added 72 named Raid Epic armor variants (eight armor slots per class), reusing
+verified ordinary Epic item visuals while keeping distinct stable ownership keys.
+No raid weapon is invented. The six-stat tier budget now reaches saved equipment
+and account bonuses. Class-specific 2/4/6 thresholds are documented in
+SURVIVORS.md and applied cumulatively from distinct owned, worn raid armor only.
+Ordinary Epic replacement removes membership even when the visual is identical;
+cosmetics, duplicate ownership and legacy collection cells remain independent.
+
+The item inspector identifies Raid Epic, shows cumulative set effects, explicitly
+marks acquisition pending, and includes gained/lost set effects in equipment
+comparisons. Native 1280×720 and 640×720 synthetic Warrior checks confirm readable
+details, proper Epic color, six-to-five-to-six equip behavior (43→18→43 percent
+critical-damage bonus), and saved restoration of all six choices. Hidden helm
+appearance remains independent. CHANGELOG embeds all four captures; README
+refreshes Character. 171 core and 338 app tests, core all-target/app library Clippy,
+native build, formatting and diff checks pass. An unused Warlock test import
+exposed by the broader core lint check was removed.
+
+Next: dedicated raid Collection browsing, current set-count/active-threshold
+presentation, explicit supplemental completion rules, and verified encounter
+acquisition. No normal run can currently acquire these variants. Other class
+bodies, live combat balance, Windows and full content acceptance remain open.

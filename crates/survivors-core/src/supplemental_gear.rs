@@ -80,6 +80,20 @@ const SLOT_KEYS: [&str; 9] = [
 pub fn piece(class: usize, slot: usize, tier: GearTier) -> Option<SupplementalPiece> {
     let class_key = CLASS_KEYS.get(class)?;
     let slot_key = SLOT_KEYS.get(slot)?;
+    if tier == GearTier::RaidEpic {
+        // Empowered Survivors variants reuse verified Epic art, not vanilla set powers.
+        if slot == 8 {
+            return None; // Weapons do not belong to these armor sets.
+        }
+        return Some(SupplementalPiece {
+            key: format!("raid-epic:{class_key}:{slot_key}"),
+            name: crate::campaign::piece_name(class, slot, 3)?,
+            tier,
+            class,
+            slot,
+            visual: crate::gear_visuals::piece(class, slot, 3)?,
+        });
+    }
     if tier != GearTier::Poor {
         return None;
     }
@@ -111,9 +125,11 @@ pub fn piece(class: usize, slot: usize, tier: GearTier) -> Option<SupplementalPi
 /// Stable keys are independent of display names, item IDs and legacy collection indexes.
 pub fn by_key(key: &str) -> Option<SupplementalPiece> {
     let mut parts = key.split(':');
-    if parts.next()? != "poor" {
-        return None;
-    }
+    let tier = match parts.next()? {
+        "poor" => GearTier::Poor,
+        "raid-epic" => GearTier::RaidEpic,
+        _ => return None,
+    };
     let class_key = parts.next()?;
     let class = CLASS_KEYS.iter().position(|&v| v == class_key)?;
     let slot_key = parts.next()?;
@@ -121,7 +137,7 @@ pub fn by_key(key: &str) -> Option<SupplementalPiece> {
     if parts.next().is_some() {
         return None;
     }
-    piece(class, slot, GearTier::Poor)
+    piece(class, slot, tier)
 }
 
 const ARMOR: [[Item; 8]; 4] = [
@@ -205,7 +221,7 @@ mod tests {
             "",
             "poor:mage",
             "poor:mage:hands:extra",
-            "raid-epic:mage:hands",
+            "raid-epic:mage:main-hand",
             "poor:unknown:hands",
             "poor:mage:off-hand",
         ] {
@@ -213,7 +229,7 @@ mod tests {
         }
         assert!(piece(9, 0, GearTier::Poor).is_none());
         assert!(piece(0, 9, GearTier::Poor).is_none());
-        assert!(piece(0, 0, GearTier::RaidEpic).is_none());
+        assert!(piece(0, 8, GearTier::RaidEpic).is_none());
     }
 }
 
@@ -240,7 +256,7 @@ mod inventory_tests {
         for invalid in [
             "",
             "poor:mage:hands:99",
-            "raid-epic:mage:hands",
+            "raid-epic:mage:main-hand",
             "poor:unknown:hands",
         ] {
             assert!(!owned.collect(6, invalid));

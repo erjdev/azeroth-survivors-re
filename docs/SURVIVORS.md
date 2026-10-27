@@ -487,3 +487,33 @@ Mastery milestone from +50% bite damage for 10 seconds to +100% for 18 seconds
 of each 30-second run-time cycle. It replaces the base Wrath multiplier, while
 still multiplying Unleashed Fury and trained bite damage. It provides no damage
 or crowd-control immunity and does not affect Hunter spells or pickup companions.
+
+### Initial Raid Epic armor rules
+
+Raid Epic armor uses separate `raid-epic:<class>:<slot>` identities for eight armor
+slots. These are empowered Survivors variants of the verified ordinary Epic art
+and names, not imported vanilla set powers. Main hand is excluded from these sets.
+Each piece has the six-stat Raid Epic budget; ordinary Epic remains five stats.
+Encounter acquisition and the dedicated Collection row are still pending, so these
+variants are not yet obtainable during a normal run.
+
+Bonuses activate cumulatively at 2/4/6 distinct owned, equipped armor slots of the
+class set. Ownership alone, duplicates, hidden appearances and transmog cannot
+add or remove set power. Replacing a raid piece with its ordinary Epic counterpart
+reduces the set count even though the appearance may be identical. These bonuses
+are initial Survivors tuning and affect the hero's shared stats:
+
+| Class set | 2 pieces | 4 pieces | 6 pieces |
+|---|---|---|---|
+| Warrior — Wrath | +24 armor | +4 percentage points critical chance | +25 percentage points critical damage |
+| Paladin — Judgement | +24 armor | +10% area | +4% damage reduction |
+| Hunter — Dragonstalker | +4% movement speed | +8 percentage points multistrike | +25 percentage points critical damage |
+| Rogue — Bloodfang | +4% movement speed | +4 percentage points critical chance | +25 percentage points critical damage |
+| Priest — Transcendence | +30 health | +6% cooldown reduction | +4% damage reduction |
+| Shaman — Ten Storms | +15% pickup range | +10% area | +8% cooldown reduction |
+| Mage — Netherwind | +15% pickup range | +10% area | +8% cooldown reduction |
+| Warlock — Nemesis | +15% pickup range | +2% life leech | +10% damage |
+| Druid — Stormrage | +30 health | +6% cooldown reduction | +4% damage reduction |
+
+The existing nine-slot loadout bonus remains separate. Supplemental raid ownership
+does not fill any of the legacy 54 collection cells or grant their completion feat.

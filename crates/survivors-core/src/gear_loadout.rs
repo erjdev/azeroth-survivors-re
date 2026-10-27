@@ -149,12 +149,21 @@ impl Loadout {
     pub fn bonus(&self, class: usize, pieces: &[u8], owned: &Inventory) -> Bonus {
         let mut total = Bonus::default();
         let mut worn = 0;
+        let mut raid = 0;
         for slot in 0..GRID_SLOTS {
             if let Some(piece) = self.worn(class, pieces, owned, slot) {
                 total.add(piece.bonus);
                 worn += 1;
+                if self.worn[slot]
+                    .as_deref()
+                    .and_then(supplemental_gear::by_key)
+                    .is_some_and(|p| p.tier == crate::gear_tier::GearTier::RaidEpic)
+                {
+                    raid += 1;
+                }
             }
         }
+        total.add(crate::raid_sets::bonus(class, raid));
         if worn == GRID_SLOTS {
             total.add(campaign::set_bonus());
         }
@@ -190,6 +199,70 @@ fn legacy(class: usize, pieces: &[u8], slot: usize, band: u8) -> Option<Resolved
 mod tests {
     use super::*;
     use crate::gear_tier::GearTier;
+
+    #[test]
+    fn raid_sets_count_only_distinct_owned_worn_armor_and_reset_on_replacement() {
+        fn values(b: Bonus) -> [f32; 16] {
+            [
+                b.health,
+                b.pickup,
+                b.armor,
+                b.might,
+                b.crit,
+                b.multistrike,
+                b.speed,
+                b.leech,
+                b.area,
+                b.crit_damage,
+                b.reduction,
+                b.cooldown,
+                b.gold,
+                b.growth,
+                b.luck,
+                b.targets as f32,
+            ]
+        }
+        for class in 0..9 {
+            let pieces = [1; campaign::PIECES];
+            let mut owned = Inventory::default();
+            let mut loadout = Loadout::default();
+            let mut item_total = Bonus::default();
+            for slot in 0..8 {
+                let raid = supplemental_gear::piece(class, slot, GearTier::RaidEpic).unwrap();
+                assert!(!loadout.wear_supplemental(class, &owned, slot, &raid.key));
+                assert!(owned.collect(class, &raid.key));
+                assert!(!owned.collect(class, &raid.key));
+                let before = values(loadout.bonus(class, &pieces, &owned));
+                assert!(loadout.show_supplemental(class, &owned, slot, &raid.key));
+                assert_eq!(values(loadout.bonus(class, &pieces, &owned)), before);
+                assert!(loadout.wear_supplemental(class, &owned, slot, &raid.key));
+                item_total.add(raid.tier.piece_bonus(slot));
+                let mut expected = item_total;
+                expected.add(crate::raid_sets::bonus(class, slot + 1));
+                assert_eq!(
+                    values(loadout.bonus(class, &pieces, &owned)),
+                    values(expected)
+                );
+                assert!(loadout.show_legacy(&pieces, slot, Look::Hidden));
+                assert_eq!(
+                    values(loadout.bonus(class, &pieces, &owned)),
+                    values(expected)
+                );
+            }
+            // Identical ordinary Epic art does not retain raid membership.
+            for slot in 0..8 {
+                assert!(loadout.wear_legacy(&pieces, slot, Some(3)));
+            }
+            let mut expected = Bonus::default();
+            for slot in 0..8 {
+                expected.add(campaign::piece_bonus(3, slot));
+            }
+            assert_eq!(
+                values(loadout.bonus(class, &pieces, &owned)),
+                values(expected)
+            );
+        }
+    }
 
     #[test]
     fn supplemental_replaces_power_but_looks_remain_independent_in_both_directions() {

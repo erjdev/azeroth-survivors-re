@@ -32,7 +32,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 <table>
   <tr>
     <td width="50%"><strong>Starter</strong><br><img src="docs/images/screenshots/2026-10-26-starter-scrollbars/zones-1280.png" alt="Starter"><br>2026-10-26 · Campaign stages and briefings with draggable scrollbars.<br><a href="docs/images/screenshots/2026-10-26-compact-scrollbar/starter-640.png">Compact starter preview</a></td>
-    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-26-menu-backdrop/character-1280.png" alt="Character"><br>2026-10-26 · Selected identity, equipment and independent appearance.</td>
+    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-27-raid-foundation/character-1280.png" alt="Character"><br>2026-10-27 · Synthetic raid loadout with independent appearance; raid acquisition remains pending.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Hero management</strong><br><img src="docs/images/screenshots/2026-10-25-character-acceptance/roster-640.jpg" alt="Hero management"><br>2026-10-25 · Saved heroes and creation at compact width.</td>

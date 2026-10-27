@@ -467,6 +467,11 @@ pub(super) fn equipment(
         let name = resolved.as_ref().map(|piece| piece.name).unwrap_or("Empty");
         let key = progress.equipment.supplemental_worn()[slot].as_ref();
         let color = band
+            .or_else(|| {
+                key.and_then(|key| survivors_core::supplemental_gear::by_key(key))
+                    .filter(|piece| piece.tier == survivors_core::gear_tier::GearTier::RaidEpic)
+                    .map(|_| 3)
+            })
             .map(super::door::band_color)
             .unwrap_or(Color::srgb(0.65, 0.65, 0.65));
         let index = band.unwrap_or(0) * campaign::GRID_SLOTS + slot;
@@ -895,10 +900,18 @@ pub(super) fn detail(
             layout,
             ItemHeader {
                 name: piece.name,
-                quality: "Poor",
+                quality: if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
+                    "Raid Epic"
+                } else {
+                    "Poor"
+                },
                 slot: piece.slot,
                 owned,
-                color: Color::srgb(0.65, 0.65, 0.65),
+                color: if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
+                    super::door::band_color(3)
+                } else {
+                    Color::srgb(0.65, 0.65, 0.65)
+                },
             },
             |icon| {
                 super::super::gear_icons::spawn_visual(icon, piece.visual, layout.title_size * 2.6);
@@ -911,11 +924,43 @@ pub(super) fn detail(
             layout.body_size,
             BONUS,
         );
+        if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
+            super::typography::heading(
+                ui,
+                font,
+                survivors_core::raid_sets::NAMES[class],
+                layout.title_size,
+                GOLD,
+            );
+            text(
+                ui,
+                font,
+                "Cumulative set bonuses from equipped Raid Epic armor only:",
+                layout.body_size,
+                DIM,
+            );
+            for count in [2, 4, 6] {
+                text(
+                    ui,
+                    font,
+                    format!(
+                        "{count} pieces: {}",
+                        super::door::bonus_line(survivors_core::raid_sets::bonus(class, count))
+                    ),
+                    layout.body_size,
+                    BONUS,
+                );
+            }
+        }
         super::typography::heading(ui, font, "Drops from", layout.title_size, GOLD);
         text(
             ui,
             font,
-            survivors_core::supplemental_gear::poor_source_label(),
+            if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
+                "Raid encounter sources pending; not currently obtainable.".to_owned()
+            } else {
+                survivors_core::supplemental_gear::poor_source_label()
+            },
             layout.body_size,
             DIM,
         );

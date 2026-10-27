@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Raid armor and set rules
+
+Added 72 distinct Raid Epic armor variants using verified class armor art, with
+six-stat budgets and class-specific cumulative 2/4/6-piece bonuses. Only owned,
+worn raid armor counts; duplicates and cosmetic overrides add no set power.
+Saved loadouts, equipment comparisons and the item inspector resolve the new tier.
+
+171 core and 338 app tests, core/app Clippy and native build pass. Removed an
+unused test import exposed by core Clippy. Native synthetic-fixture checks verify
+sixth-piece removal/re-equip, saved choices, Epic coloring and wide/compact details.
+The legacy collection remains 18/54 in these captures. These items are **not yet
+obtainable**: raid encounter sources, dedicated Collection rows, completion rules
+and broader class/Windows/balance acceptance remain pending.
+
+![Synthetic six-piece raid armor loadout](images/screenshots/2026-10-27-raid-foundation/character-1280.png)
+![Raid tier and cumulative set rules](images/screenshots/2026-10-27-raid-foundation/inspector-1280.png)
+![Sixth-piece equip comparison includes the set threshold](images/screenshots/2026-10-27-raid-foundation/set-comparison-1280.png)
+![Compact raid item inspector](images/screenshots/2026-10-27-raid-foundation/inspector-640.png)
+
 ## 2026-10-27 — Totem cast integration
 
 Totemic Mastery's regression now casts Searing and Magma through production
