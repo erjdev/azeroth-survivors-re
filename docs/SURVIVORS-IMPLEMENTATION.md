@@ -35,6 +35,13 @@ purchase persistence and tree proportions. Windows and live balance remain open.
 
 ## Current priority — starter interface first (2026-10-26)
 
+Talents typography, panel padding and gaps now participate in validated native
+live layout reloads. Same-process wide/compact captures confirm retained selection,
+scrollable descriptions, invalid-edit rejection and default restoration. Tree art
+and node geometry retain their proportions. This improves iteration speed; it does
+not close Windows foliage, spawn/pathfinding or chest reproduction acceptance.
+
+
 Achievement cards now keep the same proportional column width on incomplete rows,
 matching the intention's aligned columns. Native wide/compact Feats captures verify
 five-card alignment, readable text and scrolling. The shared card style also serves

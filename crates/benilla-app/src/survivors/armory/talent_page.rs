@@ -308,7 +308,12 @@ fn text(
     ui.spawn(hud::text_bundle(font, value, size, color));
 }
 
-fn panel(ui: &mut ChildSpawnerCommands, weight: f32, body: impl FnOnce(&mut ChildSpawnerCommands)) {
+fn panel(
+    ui: &mut ChildSpawnerCommands,
+    weight: f32,
+    layout: &survivors_core::layout::Layout,
+    body: impl FnOnce(&mut ChildSpawnerCommands),
+) {
     ui.spawn((
         Node {
             flex_grow: weight,
@@ -330,9 +335,9 @@ fn panel(ui: &mut ChildSpawnerCommands, weight: f32, body: impl FnOnce(&mut Chil
             .spawn(Node {
                 width: Val::Percent(100.0),
                 flex_shrink: 0.0,
-                padding: UiRect::all(Val::Px(10.0)),
+                padding: UiRect::all(Val::Px(layout.padding)),
                 flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(6.0),
+                row_gap: Val::Px(layout.gap * 0.75),
                 ..default()
             })
             .with_children(body);
@@ -345,6 +350,7 @@ fn button(
     label: String,
     act: Act,
     selected: bool,
+    body_size: f32,
 ) {
     ui.spawn((
         Button,
@@ -369,7 +375,7 @@ fn button(
         }),
     ))
     .with_children(|button| {
-        text(button, font, label, 12.0, GOLD);
+        text(button, font, label, body_size, GOLD);
     });
 }
 
@@ -411,6 +417,7 @@ pub(super) fn build(
     selection: &Selection,
     catalog: Option<&benilla_formats::TalentCatalog>,
     scroll: Vec2,
+    layout: &survivors_core::layout::Layout,
 ) {
     let Some(hero) = selection.character.and_then(|id| account.character(id)) else {
         ui.spawn(Node {
@@ -422,7 +429,7 @@ pub(super) fn build(
             ..default()
         })
         .with_children(|empty| {
-            super::typography::section(empty, font, "Your hero's talents", 22.0, GOLD);
+            super::typography::section(empty, font, "Your hero's talents", layout.title_size + 4.0, GOLD);
             text(empty, font, "Create a hero to explore their three talent trees.", 16.0, Color::WHITE);
             text(empty, font, "Runs earn talent experience. Spend points across three saved specs and reset them for free.", 13.0, DIM);
             empty.spawn(Node {
@@ -430,7 +437,7 @@ pub(super) fn build(
                 max_width: Val::Px(320.0),
                 ..default()
             }).with_children(|action| {
-                button(action, font, "Create a hero".into(), Act::Page(super::Page::Heroes), false);
+                button(action, font, "Create a hero".into(), Act::Page(super::Page::Heroes), false, layout.body_size);
             });
         });
         return;
@@ -474,19 +481,19 @@ pub(super) fn build(
     let viewport = frame.spawn((super::collection::CollectionScroll, ScrollKey(hero.id, hero.spec), RelativeCursorPosition::default(), ScrollPosition(scroll),
         Node { width: Val::Percent(100.0), height: Val::Percent(100.0), padding: UiRect::right(Val::Px(16.0)),
             flex_wrap: FlexWrap::Wrap, align_content: AlignContent::Start,
-            column_gap: Val::Px(10.0), row_gap: Val::Px(10.0), overflow: Overflow::scroll_y(), ..default() }))
+            column_gap: Val::Px(layout.gap * 1.25), row_gap: Val::Px(layout.gap * 1.25), overflow: Overflow::scroll_y(), ..default() }))
     .with_children(|row| {
         for (tree, (name, nodes)) in trees.iter().enumerate() {
-            panel(row, 1.0, |col| {
+            panel(row, 1.0, layout, |col| {
                 col.spawn(Node { width: Val::Percent(100.0), align_items: AlignItems::Center,
                     column_gap: Val::Px(6.0), flex_wrap: FlexWrap::Wrap, ..default() }).with_children(|heading| {
                     if let Some(node) = nodes.first() {
                         heading.spawn((super::talent_heading::Icon(node.tab), ImageNode::default(),
                             Node { width: Val::Px(24.0), height: Val::Px(24.0), flex_shrink: 0.0, ..default() }));
                     }
-                    heading.spawn((super::typography::DisplayHeading, hud::text_bundle(font, name, 17.0, GOLD),
+                    heading.spawn((super::typography::DisplayHeading, hud::text_bundle(font, name, layout.title_size - 1.0, GOLD),
                         Node { flex_grow: 1.0, ..default() }));
-                    text(heading, font, format!("{} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), 12.0, DIM);
+                    text(heading, font, format!("{} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), layout.body_size, DIM);
                 });
                 col.spawn((Node { width: Val::Percent(100.0), aspect_ratio: Some(300.0 / 331.0), flex_shrink: 0.0,
                     overflow: Overflow::clip(), border_radius: BorderRadius::all(Val::Px(3.0)), ..default() }, BackgroundColor(Color::BLACK)))
@@ -537,38 +544,38 @@ pub(super) fn build(
                                 ImageNode { color: Color::srgba(1.0, 1.0, 1.0, dim), ..default() },
                                 Node { width: Val::Px(20.0), height: Val::Px(20.0), flex_shrink: 0.0, ..default() }));
                         }
-                        text(line, font, format!("{at} points · {name}"), 12.0,
+                        text(line, font, format!("{at} points · {name}"), layout.body_size,
                             if valid && points[tree] >= at { ACTIVE } else { DIM });
                     });
                 }
             });
         }
-        panel(row, 0.86, |side| {
+        panel(row, 0.86, layout, |side| {
             side.spawn(Node { width: Val::Percent(100.0), column_gap: Val::Px(4.0), ..default() }).with_children(|specs| {
                 for spec in 0..3u8 {
                     let p = dbc_points(hero, usize::from(spec));
                     let spread = if p == [0;3] { "Empty".into() } else { format!("{}/{}/{}", p[0],p[1],p[2]) };
-                    button(specs, font, format!("Spec {}\n{spread}", spec+1), Act::Spec(spec), hero.spec == spec);
+                    button(specs, font, format!("Spec {}\n{spread}", spec+1), Act::Spec(spec), hero.spec == spec, layout.body_size);
                 }
             });
-            super::typography::section(side, font, "Talent Points", 22.0, GOLD);
-            text(side, font, format!("{unspent} to spend"), 25.0, GOLD);
-            text(side, font, format!("{spent} of {earned} earned spent · 51 at most"), 12.0, DIM);
+            super::typography::section(side, font, "Talent Points", layout.title_size + 4.0, GOLD);
+            text(side, font, format!("{unspent} to spend"), layout.title_size + 7.0, GOLD);
+            text(side, font, format!("{spent} of {earned} earned spent · 51 at most"), layout.body_size, DIM);
             if spent > earned {
-                text(side, font, "This saved spec exceeds your earned points. Its talent effects are inactive until you refund points, reset the spec, or earn enough points.", 12.0, Color::srgb(1.0, 0.45, 0.35));
+                text(side, font, "This saved spec exceeds your earned points. Its talent effects are inactive until you refund points, reset the spec, or earn enough points.", layout.body_size, Color::srgb(1.0, 0.45, 0.35));
             }
             if spent <= earned && !valid {
-                text(side, font, "This saved spec does not match the talent tree rules. Its effects are inactive. Refund invalid ranks or reset this spec to repair it.", 12.0, Color::srgb(1.0, 0.45, 0.35));
+                text(side, font, "This saved spec does not match the talent tree rules. Its effects are inactive. Refund invalid ranks or reset this spec to repair it.", layout.body_size, Color::srgb(1.0, 0.45, 0.35));
             }
-            text(side, font, "Runs award talent experience for time survived, kills, bosses and victory. Later zones pay more. Respecs are free.", 12.0, DIM);
+            text(side, font, "Runs award talent experience for time survived, kills, bosses and victory. Later zones pay more. Respecs are free.", layout.body_size, DIM);
             side.spawn(Node { width: Val::Percent(100.0), ..default() }).with_children(|reset| {
-                button(reset, font, "Reset this spec".into(), Act::Respec, false);
+                button(reset, font, "Reset this spec".into(), Act::Respec, false, layout.body_size);
             });
-            text(side, font, "Point or use arrows / D-pad to inspect talents and milestones. Select spends a point. Right-click, Backspace or controller west refunds one. Each row needs five points per tier in earlier rows.", 12.0, DIM);
-            side.spawn((TalentDetail::Title, hud::text_bundle(font, "Choose a talent to read its Survivors effect.", 14.0, Color::WHITE)));
-            side.spawn((TalentDetail::Effect, hud::text_bundle(font, "", 14.0, Color::WHITE)));
+            text(side, font, "Point or use arrows / D-pad to inspect talents and milestones. Select spends a point. Right-click, Backspace or controller west refunds one. Each row needs five points per tier in earlier rows.", layout.body_size, DIM);
+            side.spawn((TalentDetail::Title, hud::text_bundle(font, "Choose a talent to read its Survivors effect.", layout.body_size + 2.0, Color::WHITE)));
+            side.spawn((TalentDetail::Effect, hud::text_bundle(font, "", layout.body_size + 2.0, Color::WHITE)));
             if hero.spent() > 0 && spent == 0 {
-                text(side, font, "Spending on these trees returns the legacy spread to unspent points.", 12.0, DIM);
+                text(side, font, "Spending on these trees returns the legacy spread to unspent points.", layout.body_size, DIM);
             }
         });
     }).id();

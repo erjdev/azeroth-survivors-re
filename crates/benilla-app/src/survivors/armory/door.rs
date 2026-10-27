@@ -60,7 +60,7 @@ pub(super) fn build(
         );
         enter_bar(ui, font, armory, account, selection);
     } else if armory.page == Page::Talents {
-        super::talent_page::build(ui, font, account, selection, talents, talent_scroll);
+        super::talent_page::build(ui, font, account, selection, talents, talent_scroll, layout);
     } else if armory.page == Page::Rewards {
         super::rewards_page(ui, font, armory, account);
     } else if armory.page == Page::Achievements {

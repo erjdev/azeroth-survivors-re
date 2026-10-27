@@ -126,12 +126,15 @@ the running configuration must remain intact. Start a new run after reloading to
 current configuration survives run reset. These live checks remain required even when the
 parser tests pass.
 
-The Collection layout is a second live surface, `crates/survivors-core/ui.txt`. Its seven
+The Armory layout is a second live surface, `crates/survivors-core/ui.txt`. Its seven
 required keys control the left/right column proportions, column gap, panel padding, body
 and title text sizes, and grid cell height. Values are bounded and finite; a complete valid
 snapshot redraws the page without restarting or losing its selected item. Invalid, duplicate,
 unknown or missing fields retain the prior layout. Columns scroll independently with the
-mouse wheel. Packaged builds embed the defaults and do not poll this file.
+mouse wheel. Talents also consumes body/title sizes, panel padding and gaps;
+its painted trees and node positions retain their proportional geometry. Changes
+redraw the selected talent/spec without a Rust rebuild. Packaged builds embed
+the defaults and do not poll this file.
 
 Validate a visible text-size or cell-height edit while the Collection page is open, then
 try an incomplete file and an invalid value and confirm the prior layout survives. Restore

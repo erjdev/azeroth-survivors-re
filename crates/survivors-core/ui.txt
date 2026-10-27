@@ -1,4 +1,5 @@
-# Collection layout in logical pixels. Native dev builds reload complete valid edits.
+# Armory layout. Widths are percentages; spacing/type are logical pixels.
+# Native dev builds reload complete valid edits, including talent typography/panels.
 left_width = 23
 right_width = 24
 gap = 8

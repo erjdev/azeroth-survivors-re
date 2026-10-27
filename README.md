@@ -50,7 +50,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-26-codex-compact/trinket-1280.png" alt="Codex"><br>2026-10-26 · Readable jewelry details with responsive catalog panels.<br><a href="docs/images/screenshots/2026-10-26-codex-compact/legendary-640.png">Compact Codex preview</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-milestone-values/paladin-1280.png" alt="Talents"><br>2026-10-27 · Illustrated Paladin milestones and inline green effect values; talent catalog incomplete.</td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-live-layout/default-1280.png" alt="Talents"><br>2026-10-27 · Proportional tree art and inline green effects, with live development typography tuning; talent catalog incomplete.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

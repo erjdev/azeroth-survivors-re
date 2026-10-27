@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Live talent layout tuning
+
+Talents now uses the live Armory typography, padding and gap settings in
+`crates/survivors-core/ui.txt`. Native development builds apply valid edits without
+a Rust rebuild, preserving the selected talent and spec. Default appearance and
+proportional tree geometry are unchanged; packaged builds retain embedded settings.
+
+197 core tests, app-test Clippy and the native build pass (28 seconds).
+Same-process previews verify enlarged text at 1280×720 and 640×720, scrolling to
+the complete description, rejection of invalid settings and restoration of defaults.
+The enlarged captures demonstrate development tuning, not new shipped defaults.
+
+![Default talent layout](images/screenshots/2026-10-27-talent-live-layout/default-1280.png)
+![Live enlarged talent typography](images/screenshots/2026-10-27-talent-live-layout/live-1280.png)
+![Compact live typography with complete description](images/screenshots/2026-10-27-talent-live-layout/live-640.png)
+
 ## 2026-10-27 — Clear talent purchase feedback
 
 Unavailable purchases now distinguish no points, maximum rank, missing
