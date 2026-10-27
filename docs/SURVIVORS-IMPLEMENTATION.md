@@ -7800,3 +7800,12 @@ The artwork remains 300:331. Native macOS Warrior and Paladin previews checked a
 800×600, 640×480 and 1280×720, including scrolling to the third tree and spec controls.
 Before/after evidence is inline in CHANGELOG.md. App Clippy and formatting pass;
 30-second incremental build. Windows reproduction/acceptance remains outstanding.
+
+### Complete talent stat phrases (2026-10-27)
+
+Expanded inline highlighting to complete authored stat phrases, including bleed,
+reflected and retaliation damage, shields, deployment cooldowns and effect durations.
+Vengeance now uses the inline comparison path. Representative first/capped ranks,
+compound damage/critical bonuses, word boundaries and unchanged fixed values pass
+221 core tests; native Warrior and Paladin captures are inline in the changelog.
+This is presentation evidence, not new talent mechanics or balance acceptance.

@@ -1520,6 +1520,27 @@ pub enum TalentStat {
 /// everything up to punctuation (which can include unrelated fixed effects).
 fn inline_stat_label(tail: &str) -> &str {
     const LABELS: &[&str] = &[
+        " maximum health per sec",
+        " reflected damage",
+        " retaliation damage",
+        " bleed damage",
+        " weakening duration",
+        " Paladin Holy damage",
+        " damage-reduction duration",
+        " shorter bite cooldown",
+        " shorter recovery after defeat",
+        " direct critical chance",
+        " regeneration",
+        " reduced damage taken",
+        " more damage",
+        " drain healing",
+        " additional slow",
+        " active duration",
+        " shield absorption",
+        " shorter deployment cooldown",
+        " hero damage",
+        " initial targeting range",
+        " chance",
         " maximum health",
         " hero health",
         " health",
@@ -1634,6 +1655,7 @@ impl TalentDefinition {
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
             | TalentStat::ImprovedHawk
+            | TalentStat::Vengeance
             | TalentStat::AdrenalineRush
             | TalentStat::Deterrence
             | TalentStat::Combustion
@@ -5966,9 +5988,19 @@ mod inline_stat_label_tests {
             (8, 807, "+0 » 5% hero movement speed"),
             (2, 1352, "+0 » 2 yd targeting range"),
             (2, 1382, "+0 » 3% haste"),
+            (0, 127, "+0 » 10% bleed damage"),
+            (0, 147, "+0 » 10% reflected damage"),
+            (0, 161, "+0 » 10% weakening duration"),
+            (1, 1402, "+0 » 3% Paladin Holy damage"),
+            (2, 1351, "+0 » 20% damage-reduction duration"),
+            (5, 612, "+0 » 5% shield absorption"),
+            (5, 586, "0 » 4% shorter deployment cooldown"),
+            (5, 1641, "+0 » 10% initial targeting range"),
         ] {
             let node = talent_definition(class, id).unwrap();
-            let (text, ranges) = node.inline_description_with_values(0).unwrap();
+            let (text, ranges) = node
+                .inline_description_with_values(0)
+                .unwrap_or_else(|| panic!("missing inline preview: class {class}, node {id}"));
             assert_eq!(&text[ranges[0].clone()], expected);
             assert!(!text.contains("per rank"));
             let (max, ranges) = node.inline_description_with_values(255).unwrap();
@@ -5977,7 +6009,7 @@ mod inline_stat_label_tests {
         }
         let node = talent_definition(2, 1397).unwrap();
         let (text, ranges) = node.inline_description_with_values(1).unwrap();
-        assert_eq!(&text[ranges[0].clone()], "20 » 40%");
+        assert_eq!(&text[ranges[0].clone()], "20 » 40% chance");
         assert!(text.contains("30% bite haste for 8 sec"));
         assert_eq!(
             inline_stat_label(" damage reduction, unchanged armor"),
@@ -5994,5 +6026,28 @@ mod inline_stat_label_tests {
             assert!(text.contains("10% chance"));
         }
         assert_eq!(inline_stat_label(" hastened attacks"), "");
+        for tail in [" bleed damageable", " shield absorptions", " chance_thing"] {
+            assert_eq!(inline_stat_label(tail), "");
+        }
+        let scorpid = talent_definition(2, 1351).unwrap();
+        for rank in [0, 1, 3, 255] {
+            let (text, ranges) = scorpid.inline_description_with_values(rank).unwrap();
+            assert_eq!(ranges.len(), 1);
+            assert!(text[ranges[0].clone()].ends_with("% damage-reduction duration"));
+            assert!(text[ranges[0].end..].contains("25% enemy damage reduction"));
+        }
+        let vengeance = talent_definition(1, 1402).unwrap();
+        for rank in [0, 1, 5, 255] {
+            let (text, ranges) = vengeance.inline_description_with_values(rank).unwrap();
+            assert_eq!(ranges.len(), 1);
+            assert!(text[ranges[0].clone()].ends_with("% Paladin Holy damage"));
+            assert!(text[ranges[0].end..].contains("8 sec"));
+        }
+        let force = talent_definition(4, 1202).unwrap();
+        let (text, ranges) = force.inline_description_with_values(1).unwrap();
+        assert_eq!(
+            ranges.iter().map(|r| &text[r.clone()]).collect::<Vec<_>>(),
+            ["+1 » 2% damage", "+1 » 2% direct critical chance"]
+        );
     }
 }

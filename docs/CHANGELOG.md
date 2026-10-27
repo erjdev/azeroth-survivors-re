@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Complete talent stat highlighting
+
+Inline upgrades now keep full stat phrases green, including bleed/reflected damage,
+shield absorption, deployment cooldown and damage-reduction duration. Vengeance
+now shows its damage increase inline; fixed duration and secondary effects stay white.
+
+![Bleed damage highlighted inline](images/screenshots/2026-10-27-talent-stat-labels/rend.png)
+
+![Vengeance inline damage and fixed duration](images/screenshots/2026-10-27-talent-stat-labels/vengeance.png)
+
+221 core tests and core Clippy pass. Native macOS previews checked at 800×600 and
+640×480; incremental build: 16 seconds. Formatting only; no balance changes.
+
 ## 2026-10-27 — Talent inspection stays in view
 
 Wrapped talent trees now keep an inspection summary above them when full details

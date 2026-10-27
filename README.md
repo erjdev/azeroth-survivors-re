@@ -79,7 +79,7 @@ locked pending world readiness. This capture does not establish raid gameplay.
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>
-    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-inspection/compact.png" alt="Compact Talents"><br>2026-10-27 · Taller trees with visible inline upgrade inspection at 640×480.</td>
+    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-stat-labels/vengeance.png" alt="Compact Talents"><br>2026-10-27 · Taller trees with full-stat inline upgrade highlighting at 640×480.</td>
   </tr>
 </table>
 
