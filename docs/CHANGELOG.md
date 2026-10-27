@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Enlarged compact Hunter UI checked
+
+At 800×600 and 125% interface size, Hunter talent art stays proportional and the
+full description and spec controls remain reachable by scrolling. Switching back
+to a trained spec restores its scroll position and ranks. The Codex stacks its
+panels and scrolls through all 114 entries independently of the selected details.
+All three Scorpid Sting cards fit, including the hovered card.
+
+![Compact Hunter talent trees](images/screenshots/2026-10-27-hunter-compact/trees.png)
+
+![Scrolled talent description and specs](images/screenshots/2026-10-27-hunter-compact/details.png)
+
+![Stacked compact Codex](images/screenshots/2026-10-27-hunter-compact/codex.png)
+
+![Compact upgrade cards](images/screenshots/2026-10-27-hunter-compact/cards.png)
+
+![Active 125% interface setting](images/screenshots/2026-10-27-hunter-compact/settings.png)
+
+Native macOS validation of `a4d59f0` gameplay/UI source; no code change or new test
+run in this checkpoint. Windows, controller input and the wider matrix remain open.
+
 ## 2026-10-27 — Scorpid Sting and duration training
 
 Hunters can acquire and upgrade Scorpid Sting: a targeted hit that reduces enemy

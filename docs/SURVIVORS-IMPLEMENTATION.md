@@ -7670,3 +7670,27 @@ Definition coverage is 266/432 (Hunter 33/46), leaving 166 definitions. Creature
 specific slaying talents still need authored encounter classifications; this
 change does not substitute global damage bonuses for them. Live projectiles,
 combat balance, Windows and the other acceptance phases remain open.
+
+
+### 2026-10-27 — Hunter 800×600 / 125% native acceptance slice
+
+Checked the existing `a4d59f0` gameplay/UI source using its already-built native
+executable and a separate Hunter fixture. The screenshot is 1600×1256 including
+the macOS title bar; the content viewport is 800×600 logical pixels at Retina 2×.
+Options explicitly displays 125% interface size, with render scale 100%.
+
+The three tree images retain their proportions and talent placement. Scrolling
+to the lower panel exposes the complete Improved Scorpid Sting description, all
+three spec buttons and Reset. Switching to empty Spec 2 gives 51 unspent points;
+returning to Spec 1 restores its lower-panel scroll position, 21 spent points and
+rank 1/3. The untouched spec retains its ranks. The Codex stacks catalog/details,
+shows the complete Scorpid Sting entry, and its catalog independently scrolls to
+the last amulets and 0/114 total without moving the selected description. All
+three preview cards fit with complete green inline upgrades, including the
+hovered rank-4 card, without clipping at this resolution and scale.
+
+Five actual screenshots are embedded in the changelog; README compact links
+updated. This is visual/input evidence, not a code change or new automated test
+result. Native session exited through Quit and its launcher was restored.
+Windows, controller input, other sizes/scales and full seven-phase acceptance
+remain open. Existing 220 core / 428 app test results belong to `a4d59f0`.
