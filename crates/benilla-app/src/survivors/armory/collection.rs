@@ -1005,7 +1005,7 @@ pub(super) fn detail(
             ui,
             font,
             if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
-                "Raid encounter sources pending; not currently obtainable.".to_owned()
+                survivors_core::supplemental_gear::raid_source_label()
             } else {
                 survivors_core::supplemental_gear::poor_source_label()
             },
@@ -1016,6 +1016,14 @@ pub(super) fn detail(
             for zone in survivors_core::supplemental_gear::POOR_DROP_ZONES {
                 source_button(ui, font, armory, zone);
             }
+        }
+        if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
+            source_button(
+                ui,
+                font,
+                armory,
+                survivors_core::supplemental_gear::RAID_DROP_ZONE,
+            );
         }
         if owned {
             let equipped =
@@ -1609,9 +1617,14 @@ mod tests {
                                 }
                             })
                             .collect();
-                        let expected: Vec<_> = supplemental_gear::POOR_DROP_ZONES
+                        let zones = if tier == GearTier::Poor {
+                            supplemental_gear::POOR_DROP_ZONES.to_vec()
+                        } else {
+                            vec![supplemental_gear::RAID_DROP_ZONE]
+                        };
+                        let expected: Vec<_> = zones
                             .into_iter()
-                            .filter(|&zone| tier == GearTier::Poor && Some(zone) != current)
+                            .filter(|&zone| Some(zone) != current)
                             .collect();
                         assert_eq!(actual, expected, "{} at {current:?}", piece.key);
                     }

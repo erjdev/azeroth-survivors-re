@@ -1075,6 +1075,21 @@ pub(super) fn apply_hits(
         let mut dropped = false;
         if let Some(class) = selection.class {
             if let Some(zone) = super::campaign::zone_index(selection.map_def().name) {
+                let raid_slot = survivors_core::supplemental_gear::raid_drop_slot(
+                    zone,
+                    en.def.name,
+                    en.boss,
+                    0.0,
+                )
+                .and_then(|_| {
+                    survivors_core::supplemental_gear::raid_drop_slot(
+                        zone,
+                        en.def.name,
+                        en.boss,
+                        rng.f32(),
+                    )
+                });
+                let raid_item = raid_slot.and_then(|slot| account.collect_raid_drop(class, slot));
                 if let Some(row) = super::campaign::drop_for(zone, en.def.name) {
                     let chance = super::campaign::drop_chance(row.chance, en.boss, run.keen_eye);
                     if rng.f32() < chance {
@@ -1093,6 +1108,15 @@ pub(super) fn apply_hits(
                         run.banner = Some((format!("{item} collected"), 4.0));
                         dropped = true;
                     }
+                }
+                if let Some(item) = raid_item {
+                    let message = if dropped {
+                        format!("Raid Epic {item} and {}", run.banner.as_ref().unwrap().0)
+                    } else {
+                        format!("Raid Epic {item} collected")
+                    };
+                    run.banner = Some((message, 4.0));
+                    dropped = true;
                 }
             }
         }
@@ -3761,6 +3785,119 @@ mod milestone_tests {
                 }
                 app.world_mut().run_system_once(apply_hits).unwrap();
                 let count = usize::from(!boss && !elite);
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+                assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+            }
+        }
+    }
+
+    #[test]
+    fn raid_gear_is_collected_once_from_direct_and_periodic_finale_kills() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for (boss, elite) in [(false, false), (true, false), (false, true)] {
+                let mut app = App::new();
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                app.insert_resource(time)
+                    .insert_resource(Run::default())
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(super::super::Selection {
+                        class: Some(0),
+                        map: data::MAPS
+                            .iter()
+                            .position(|map| map.name == "Naxxramas")
+                            .unwrap(),
+                        ..Default::default()
+                    })
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let enemy = app
+                    .world_mut()
+                    .spawn((
+                        Guid(123),
+                        Transform::default(),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: data::roster(
+                                data::MAPS
+                                    .iter()
+                                    .position(|m| m.name == "Naxxramas")
+                                    .unwrap(),
+                            )
+                            .bosses
+                            .iter()
+                            .find(|b| b.name == "Kel'Thuzad")
+                            .unwrap(),
+                            hp: 5.0,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss,
+                            elite,
+                            attack_cd: 0.0,
+                            slow: 1.0,
+                            slow_t: 0.0,
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            dots: if periodic {
+                                vec![enemies::Dot {
+                                    dps: 10.0,
+                                    left: 3.0,
+                                    tick: 1.0,
+                                    source: "shadow_word_pain",
+                                }]
+                            } else {
+                                vec![]
+                            },
+                            dead: false,
+                        },
+                    ))
+                    .id();
+                if !periodic {
+                    app.world_mut()
+                        .resource_mut::<Messages<Hit>>()
+                        .write(Hit::direct(enemy, 10.0, false));
+                }
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let count = usize::from(boss);
                 assert_eq!(
                     app.world()
                         .resource::<super::super::account::Account>()

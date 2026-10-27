@@ -32,7 +32,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 <table>
   <tr>
     <td width="50%"><strong>Starter</strong><br><img src="docs/images/screenshots/2026-10-27-starter-landscape/starter-1280.png" alt="Starter"><br>2026-10-27 · Original sunset landscape and reference-aligned hero identity.<br><a href="docs/images/screenshots/2026-10-27-starter-landscape/starter-640.png">Compact starter preview</a></td>
-    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-27-raid-foundation/character-1280.png" alt="Character"><br>2026-10-27 · Synthetic raid loadout with independent appearance; raid acquisition remains pending.</td>
+    <td width="50%"><strong>Character</strong><br><img src="docs/images/screenshots/2026-10-27-raid-foundation/character-1280.png" alt="Character"><br>2026-10-27 · Synthetic raid loadout with independent appearance; raid world access remains gated.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Hero management</strong><br><img src="docs/images/screenshots/2026-10-27-hero-creation/form-640-125.png" alt="Hero management"><br>2026-10-27 · Labeled creation and direct class selection at 125%.</td>
@@ -45,8 +45,8 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-27-raid-browser/collection-1280.png" alt="Collection"><br>2026-10-27 · Separate Raid Epic row and active set thresholds; synthetic ownership, raid drops pending.<br><a href="docs/images/screenshots/2026-10-27-raid-browser/collection-640.png">Compact Collection preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/unequipped.png">800×600 at 125%</a></td>
-    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-27-item-source-navigation/drops-1280.png" alt="Drop Tables"><br>2026-10-27 · Collection source shortcuts preserve the inspected item when opening its zone table.<br><a href="docs/images/screenshots/2026-10-26-poor-drop-browser/drops-640.png">Compact scrolling preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/source.png">800×600 source navigation</a></td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-27-raid-browser/collection-1280.png" alt="Collection"><br>2026-10-27 · Separate Raid Epic row and active set thresholds; synthetic ownership; raid world access remains gated.<br><a href="docs/images/screenshots/2026-10-27-raid-browser/collection-640.png">Compact Collection preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/unequipped.png">800×600 at 125%</a></td>
+    <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-27-raid-source/drops-1280.png" alt="Drop Tables"><br>2026-10-27 · Raid finale armor odds and item inspection; Naxxramas readiness gate remains visible.<br><a href="docs/images/screenshots/2026-10-27-raid-source/drops-640.png">Compact scrolling preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/source.png">800×600 source navigation</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-27-codex-preview/wrath.png" alt="Codex"><br>2026-10-27 · Direct spell and jewelry previews with live viewport changes.<br><a href="docs/images/screenshots/2026-10-27-codex-preview/ring-compact.png">Compact Codex preview</a></td>

@@ -369,6 +369,21 @@ impl Account {
         Some(piece.name)
     }
 
+    /// Raid loot grants ownership only; chosen equipment and appearances stay independent.
+    pub fn collect_raid_drop(&mut self, class: usize, slot: usize) -> Option<&'static str> {
+        let piece = survivors_core::supplemental_gear::piece(
+            class,
+            slot,
+            survivors_core::gear_tier::GearTier::RaidEpic,
+        )?;
+        self.classes.get(class)?;
+        if !self.supplemental.collect(class, &piece.key) {
+            return None;
+        }
+        self.dirty = true;
+        Some(piece.name)
+    }
+
     pub fn wear_piece(&mut self, class: usize, slot: usize, band: Option<u8>) -> bool {
         let Some(progress) = self.classes.get_mut(class) else {
             return false;
@@ -2024,6 +2039,48 @@ mod tests {
     }
 
     use super::*;
+
+    #[test]
+    fn raid_rewards_persist_without_equipping_and_duplicates_change_nothing() {
+        for class in 0..data::CLASSES.len() {
+            let mut account = blank();
+            let equipment = account.classes[class].equipment.clone();
+            for slot in 0..survivors_core::supplemental_gear::RAID_ARMOR_SLOTS {
+                assert!(account.collect_raid_drop(class, slot).is_some());
+            }
+            assert_eq!(account.classes[class].equipment.worn, equipment.worn);
+            assert_eq!(account.classes[class].equipment.looks, equipment.looks);
+            assert_eq!(
+                account.classes[class].equipment.supplemental_worn(),
+                equipment.supplemental_worn()
+            );
+            assert_eq!(
+                account.classes[class].equipment.supplemental_looks(),
+                equipment.supplemental_looks()
+            );
+            let mut restored = parse(&encode(&account)).unwrap();
+            assert_eq!(restored.supplemental.keys().count(), 8);
+            assert_eq!(restored.classes[class].equipment.worn, equipment.worn);
+            assert_eq!(restored.classes[class].equipment.looks, equipment.looks);
+            assert_eq!(
+                restored.classes[class].equipment.supplemental_worn(),
+                equipment.supplemental_worn()
+            );
+            assert_eq!(
+                restored.classes[class].equipment.supplemental_looks(),
+                equipment.supplemental_looks()
+            );
+            restored.dirty = false;
+            let before = encode(&restored);
+            for slot in 0..8 {
+                assert!(restored.collect_raid_drop(class, slot).is_none());
+            }
+            assert!(restored.collect_raid_drop(class, 8).is_none());
+            assert!(restored.collect_raid_drop(99, 0).is_none());
+            assert_eq!(encode(&restored), before);
+            assert!(!restored.dirty);
+        }
+    }
 
     #[test]
     fn poor_drops_persist_fill_empty_slots_and_duplicates_do_not_reequip() {

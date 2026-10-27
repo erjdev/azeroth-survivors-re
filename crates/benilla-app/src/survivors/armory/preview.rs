@@ -227,7 +227,9 @@ impl Request {
                 _ => return None,
             }
         }
-        if matches!(piece, Some(Piece::RaidEpic(_))) && page != Some(Page::Collection) {
+        if matches!(piece, Some(Piece::RaidEpic(_)))
+            && !matches!(page, Some(Page::Collection | Page::DropTables))
+        {
             return None;
         }
         if (!cards_page && profile.is_some())
@@ -787,7 +789,7 @@ mod tests {
     }
 
     #[test]
-    fn raid_previews_resolve_each_class_without_leaking_into_drop_tables() {
+    fn raid_previews_resolve_each_class_and_its_drop_source() {
         for class in 0..data::CLASSES.len() {
             for (slot, name) in campaign::SLOTS[..8].iter().enumerate() {
                 let request = Request::parse(&format!(
@@ -795,6 +797,14 @@ mod tests {
                 ))
                 .unwrap();
                 assert_eq!(request.piece, Some(Piece::RaidEpic(slot)));
+                assert_eq!(
+                    Request::parse(&format!(
+                        "page=drops\nwidth=640\nheight=720\npiece=raid epic:{name}"
+                    ))
+                    .unwrap()
+                    .piece,
+                    request.piece
+                );
                 let mut armory = Armory::default();
                 let mut typing = Typing(true);
                 let mut window = Window::default();
@@ -817,7 +827,6 @@ mod tests {
             }
         }
         for request in [
-            "page=drops\npiece=raid epic:hands",
             "page=talents\npiece=raid epic:hands",
             "page=collection\npiece=raid epic:main hand",
             "page=collection\npiece=raid epic:off hand",

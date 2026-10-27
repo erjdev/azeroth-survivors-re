@@ -326,6 +326,73 @@ fn sources(
                 });
         });
     }
+    if armory.drop_zone == survivors_core::supplemental_gear::RAID_DROP_ZONE {
+        super::typography::heading(
+            body,
+            font,
+            "Raid Epic armor · finale",
+            layout.title_size,
+            GOLD,
+        );
+        label(
+            body,
+            font,
+            survivors_core::supplemental_gear::raid_source_label(),
+            layout.body_size,
+            DIM,
+        );
+        for slot in 0..survivors_core::supplemental_gear::RAID_ARMOR_SLOTS {
+            let Some(piece) = survivors_core::supplemental_gear::piece(
+                class,
+                slot,
+                survivors_core::gear_tier::GearTier::RaidEpic,
+            ) else {
+                continue;
+            };
+            let owned = account.supplemental.owns(class, &piece.key);
+            body.spawn((
+                Button,
+                Act::InspectSupplemental(piece.key.clone()),
+                Node {
+                    width: Val::Percent(100.0),
+                    flex_shrink: 0.0,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(layout.gap),
+                    padding: UiRect::all(Val::Px(layout.padding)),
+                    border: UiRect::all(Val::Px(1.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.035, 0.025, 0.015)),
+                BorderColor::all(
+                    if armory.supplemental_piece.as_deref() == Some(piece.key.as_str()) {
+                        GOLD
+                    } else {
+                        DIM
+                    },
+                ),
+            ))
+            .with_children(|entry| {
+                super::super::gear_icons::spawn_visual_cell(
+                    entry,
+                    piece.visual,
+                    layout.body_size * 3.0,
+                    owned,
+                );
+                label(
+                    entry,
+                    font,
+                    format!(
+                        "{} · {} · 12.5% · {}",
+                        piece.name,
+                        campaign::SLOTS[slot],
+                        if owned { "Collected" } else { "Not collected" }
+                    ),
+                    layout.body_size,
+                    Color::srgb(0.75, 0.4, 1.0),
+                );
+            });
+        }
+    }
     if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&armory.drop_zone) {
         super::typography::heading(
             body,
@@ -499,6 +566,18 @@ mod tests {
                                 0,
                                 slot,
                                 survivors_core::gear_tier::GearTier::Poor,
+                            )
+                            .unwrap()
+                            .key
+                        })
+                        .collect()
+                } else if zone == survivors_core::supplemental_gear::RAID_DROP_ZONE {
+                    (0..survivors_core::supplemental_gear::RAID_ARMOR_SLOTS)
+                        .map(|slot| {
+                            survivors_core::supplemental_gear::piece(
+                                0,
+                                slot,
+                                survivors_core::gear_tier::GearTier::RaidEpic,
                             )
                             .unwrap()
                             .key

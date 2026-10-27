@@ -7180,3 +7180,26 @@ No readiness flag or player content changed.
 Verification: real-data Collection audit, eight existing audit-tool tests,
 audit-tool Clippy and formatting pass. Full default audit remains failing at
 the three documented location checks.
+
+
+### Raid Epic reward settlement — 2026-10-27
+
+Initial authored Survivors rule: killing the Naxxramas finale Kel'Thuzad grants
+one randomly selected Raid Epic armor slot for the active class, 12.5% each
+across eight slots. The existing legendary weapon roll remains independent;
+Keen Eye does not modify the guaranteed armor reward. This grants ownership,
+never automatically changes equipment or appearance, and duplicate pieces add
+no power. The shared direct/periodic kill path settles once per enemy.
+
+Collection links to Naxxramas and Drop Tables lists all eight class pieces,
+odds and ownership. Direct Raid Epic Drop Tables previews now support wide and
+compact reusable presets. Native 1280×720 and 640×720 captures show the source,
+readiness warning and row selection. No combat scene was automated.
+
+Naxxramas remains gated by world readiness. This implements reward settlement
+and its interface, not an accessible end-to-end raid run. World traversal,
+Windows acceptance, full catalog functionality and the rest of the seven-phase
+contract remain outstanding.
+
+Verification: 206 core / 396 app tests, app/core Clippy, formatting, native
+play build (33 seconds) and the real-data Collection audit pass.

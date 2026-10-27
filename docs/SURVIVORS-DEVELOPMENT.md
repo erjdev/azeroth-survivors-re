@@ -724,3 +724,8 @@ old file aside before restarting; a missing file follows the normal new-account 
 The game does not automatically repair corrupt saves or create recovery backups.
 This guard covers reported read/parse errors, not every semantically damaged row
 accepted by the legacy-compatible parser.
+
+
+Raid finale source previews: `docs/ui-previews/drops-naxx-raid-1280.txt` and
+`docs/ui-previews/drops-naxx-raid-640.txt` select Naxxramas and Raid Epic hands.
+These are read-only menu previews; they neither grant gear nor unlock the zone.

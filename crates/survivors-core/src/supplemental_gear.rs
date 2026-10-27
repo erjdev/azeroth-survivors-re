@@ -18,6 +18,20 @@ pub fn poor_drop_slot(zone: usize, boss: bool, elite: bool, roll: f32) -> Option
     )
 }
 
+/// Initial raid reward: one uniformly selected armor slot from the Naxxramas finale.
+pub const RAID_DROP_ZONE: usize = 11;
+pub const RAID_DROP_BOSS: &str = "Kel'Thuzad";
+pub const RAID_ARMOR_SLOTS: usize = 8;
+
+pub fn raid_drop_slot(zone: usize, creature: &str, boss: bool, roll: f32) -> Option<usize> {
+    (zone == RAID_DROP_ZONE && creature == RAID_DROP_BOSS && boss && (0.0..1.0).contains(&roll))
+        .then_some((roll * RAID_ARMOR_SLOTS as f32) as usize)
+}
+
+pub fn raid_source_label() -> String {
+    format!("{} · {RAID_DROP_BOSS}: one random Raid Epic armor piece (eight equally likely slots; 12.5% each). Duplicates add no power. Keen Eye does not change this guaranteed reward. Requires access to the zone.", crate::campaign::ZONES[RAID_DROP_ZONE].name)
+}
+
 pub fn poor_source_label() -> String {
     let zones = POOR_DROP_ZONES
         .map(|zone| crate::campaign::ZONES[zone].name)
@@ -288,5 +302,45 @@ mod drop_tests {
         for zone in 2..=crate::campaign::ZONES.len() {
             assert_eq!(poor_drop_slot(zone, false, false, 0.0), None);
         }
+    }
+}
+
+#[cfg(test)]
+mod raid_drop_tests {
+    use super::*;
+    #[test]
+    fn finale_reward_covers_eight_slots_and_rejects_other_kills() {
+        for slot in 0..RAID_ARMOR_SLOTS {
+            let roll = (slot as f32 + 0.5) / RAID_ARMOR_SLOTS as f32;
+            assert_eq!(
+                raid_drop_slot(RAID_DROP_ZONE, RAID_DROP_BOSS, true, roll),
+                Some(slot)
+            );
+            assert_eq!(raid_drop_slot(0, RAID_DROP_BOSS, true, roll), None);
+            assert_eq!(
+                raid_drop_slot(RAID_DROP_ZONE, "Patchwerk", true, roll),
+                None
+            );
+            assert_eq!(
+                raid_drop_slot(RAID_DROP_ZONE, RAID_DROP_BOSS, false, roll),
+                None
+            );
+            for class in 0..crate::data::CLASSES.len() {
+                assert!(piece(class, slot, GearTier::RaidEpic).is_some());
+            }
+        }
+        for roll in [-1.0, 1.0, f32::NAN, f32::INFINITY] {
+            assert_eq!(
+                raid_drop_slot(RAID_DROP_ZONE, RAID_DROP_BOSS, true, roll),
+                None
+            );
+        }
+        let map = crate::data::MAPS
+            .iter()
+            .position(|m| m.name == crate::campaign::ZONES[RAID_DROP_ZONE].map)
+            .unwrap();
+        assert!(crate::encounters::finale(map)
+            .iter()
+            .any(|(enemy, _)| enemy.name == RAID_DROP_BOSS));
     }
 }

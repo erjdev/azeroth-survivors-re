@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Raid Epic finale rewards and sources
+
+Kel'Thuzad now settles one random Raid Epic armor piece for the active class:
+eight equal 12.5% slots, independent of the legendary weapon roll. Duplicates
+add no power; equipment and appearances stay selected. Collection and Drop
+Tables expose the source and odds. **Naxxramas remains gated by world readiness.**
+
+![Raid finale source and armor details](images/screenshots/2026-10-27-raid-source/drops-1280.png)
+
+![Compact source rows and selected armor](images/screenshots/2026-10-27-raid-source/drops-640.png)
+
+Native menu captures at 1280×720 and 640×720 verify layout and row selection;
+these are not live raid or Windows acceptance evidence.
+206 core / 396 app tests, both Clippy gates, formatting, native build and the
+real-data Collection audit pass.
+
 ## 2026-10-27 — Windows report regression recheck
 
 Foliage, routing, spawn clearance, chest cadence and talent-art checks pass.
