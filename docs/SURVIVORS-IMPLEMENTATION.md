@@ -705,11 +705,11 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Hunter | 28 / 46 | 9 / 9 |
 | Rogue | 16 / 51 | 9 / 9 |
 | Priest | 23 / 47 | 9 / 9 |
-| Shaman | 22 / 46 | 9 / 9 |
+| Shaman | 24 / 46 | 9 / 9 |
 | Mage | 31 / 49 | 9 / 9 |
 | Warlock | 19 / 50 | 9 / 9 |
 | Druid | 20 / 47 | 9 / 9 |
-| Total | 216 / 432 | 81 / 81 |
+| Total | 218 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -6123,3 +6123,23 @@ unchanged. This does not replace live combat or Windows acceptance. No UI change
 the previous milestone's screenshots remain current.
 
 All 343 visibility-enabled app tests pass for this checkpoint.
+
+### 2026-10-27 — Restoration deployment cadence
+
+Improved Healing Wave (586) shortens Searing/Magma deployment cooldown by 4% per
+rank; Tidal Focus (593) shortens it by 2% per rank. Both have five ranks, multiply
+other cooldown training, and replace fallback damage. These are explicit Survivors
+healing cast-time/mana conversions: no healing spell or mana system is invented.
+The existing 10-point Restoration milestone still gates deployment healing.
+Neither talent changes healing per deployment, pulse rate, damage, duration,
+geometry or targets. Core tests cover every rank boundary, other classes/spells,
+reset and milestone thresholds. The production deployment regression now verifies
+the consumed cooldown alongside healing, no-target/dead/cooldown rejection and
+one deployment despite extra-target gear. Params coverage checks multiplication
+with Totemic Focus and other cooldown training. Identity audit matches 218/432
+individual nodes; remaining talent, live balance and Windows work stays open.
+
+173 core and 343 app tests, core/app Clippy, native build, formatting and diff checks
+pass. Native macOS 1280×720/640×720 previews confirm inline 16→20% and 8→10% values
+and readable descriptions. Both captures are embedded in CHANGELOG. Reference:
+intentions/survivors_talent_tab.png. This is not Windows or live balance acceptance.

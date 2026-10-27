@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-27 — Restoration deployment training
+
+Improved Healing Wave and Tidal Focus now shorten Searing/Magma deployment
+cooldowns by 4% and 2% per rank respectively, multiplying existing training.
+Healing still requires the Restoration milestone and occurs once per successful
+deployment. Inline green values show the next upgrade.
+
+173 core and 343 app tests, core/app Clippy, data audit and native build pass.
+Production cast tests check consumed cooldown, healing and rejected casts; native
+wide/compact previews checked on macOS. Balance and Windows acceptance remain open.
+
+![Improved Healing Wave upgrade](images/screenshots/2026-10-27-shaman-cadence/healing-wave-1280.png)
+![Compact Tidal Focus upgrade](images/screenshots/2026-10-27-shaman-cadence/tidal-focus-640.png)
+
 ## 2026-10-27 — Saved Shaman builds reach run stats
 
 Verified Anticipation and Weapon Mastery through account saves and actual run stat

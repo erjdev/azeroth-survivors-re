@@ -13,6 +13,8 @@ const CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 586, max_rank: 5, name: "Improved Healing Wave", description: "Searing Totem and Magma Totem: 4% shorter deployment cooldown per rank (Survivors healing cast-time conversion). Healing still requires the 10-point Restoration milestone; pulse rate and healing per deployment are unchanged", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.04 },
+    TalentDefinition { id: 593, max_rank: 5, name: "Tidal Focus", description: "Searing Totem and Magma Totem: 2% shorter deployment cooldown per rank, multiplying other cooldown training (Survivors healing mana-cost conversion). Healing per deployment is unchanged", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.02 },
     TalentDefinition { id: 601, max_rank: 5, name: "Anticipation", description: "+1% hero damage reduction per rank (Survivors dodge conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.01 },
     TalentDefinition { id: 1643, max_rank: 5, name: "Weapon Mastery", description: "+2% hero damage per rank, including spells and totems (Survivors weapon-damage conversion)", stat: TalentStat::Damage, per_rank: 0.02 },
     TalentDefinition { id: 602, max_rank: 5, name: "Flurry", description: "Direct lightning and shock criticals grant 5% haste per rank for 3 seconds; further criticals refresh without stacking. Totems, Lightning Shield and periodic damage cannot trigger it (Survivors spell-critical conversion)", stat: TalentStat::FlurryHaste, per_rank: 0.05 },
@@ -67,7 +69,10 @@ mod tests {
             for key in TOTEMS {
                 let effect = trained.cast(key);
                 assert!((effect.damage - 1.2 * (1. + 0.05 * short)).abs() < 0.00001);
-                assert!((effect.cooldown - (1. - 0.03 * r)).abs() < 0.00001);
+                assert!(
+                    (effect.cooldown - (1. - 0.03 * r) * (1. - 0.04 * r) * (1. - 0.02 * r)).abs()
+                        < 0.00001
+                );
                 assert_eq!(effect.crit_damage, 0.);
                 assert_eq!(
                     (effect.radius, effect.duration, effect.extra_targets),
@@ -322,5 +327,50 @@ mod enhancement_tests {
             "+4 » 5% hero damage reduction (Survivors dodge conversion; applies to all incoming damage)");
         assert_eq!(talent_definition(5, 1643).unwrap().inline_description(4).unwrap(),
             "+8 » 10% hero damage, including spells and totems (Survivors weapon-damage conversion)");
+    }
+}
+
+#[cfg(test)]
+mod healing_cadence_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn healing_cadence_changes_only_totem_deployment_cooldown() {
+        for class in 0..9 {
+            for points in [0, 9, 10, 30] {
+                let base = Milestones {
+                    class,
+                    points: [0, 0, points],
+                    ..Default::default()
+                };
+                for rank in [0, 1, 4, 5, 255] {
+                    let trained = base.with_ranks(&[(2, 586, rank), (2, 593, rank)]);
+                    for key in crate::data::CLASSES[5]
+                        .pool
+                        .iter()
+                        .copied()
+                        .chain(["renew", "rejuvenation"])
+                    {
+                        let mut expected = base.cast(key);
+                        if class == 5 && super::TOTEMS.contains(&key) {
+                            let r = f32::from(rank.min(5));
+                            expected.cooldown *= (1. - 0.04 * r) * (1. - 0.02 * r);
+                        }
+                        assert_eq!(trained.cast(key), expected);
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+        assert!(talent_definition(5, 586)
+            .unwrap()
+            .inline_description(4)
+            .unwrap()
+            .contains("16 » 20% shorter deployment cooldown"));
+        assert!(talent_definition(5, 593)
+            .unwrap()
+            .inline_description(4)
+            .unwrap()
+            .contains("8 » 10% shorter deployment cooldown"));
     }
 }

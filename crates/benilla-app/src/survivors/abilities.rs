@@ -4552,7 +4552,12 @@ mod milestone_tests {
                                 points: [0, 0, points],
                                 ..Default::default()
                             }
-                            .with_ranks(&[(2, 588, rank), (2, 592, rank)]),
+                            .with_ranks(&[
+                                (2, 588, rank),
+                                (2, 592, rank),
+                                (2, 586, rank),
+                                (2, 593, rank),
+                            ]),
                             ..Default::default()
                         };
                         run.bonus.targets = 3;
@@ -4564,6 +4569,17 @@ mod milestone_tests {
                             level: 1,
                             cd: cooldown,
                         });
+                        let r = f32::from(rank.min(5));
+                        let expected_cd = run.abilities[0].cooldown(&run.stats())
+                            * Milestones {
+                                class: 5,
+                                points: [0, 0, points],
+                                ..Default::default()
+                            }
+                            .cast(key)
+                            .cooldown
+                            * (1. - 0.04 * r)
+                            * (1. - 0.02 * r);
                         let mut time = Time::<()>::default();
                         time.advance_by(std::time::Duration::from_secs_f32(0.1));
                         let mut app = App::new();
@@ -4610,6 +4626,12 @@ mod milestone_tests {
                         }
                         app.world_mut().run_system_once(cast_abilities).unwrap();
                         let fired = enemy_count > 0 && initial_hp > 0. && cooldown == 0.;
+                        if fired {
+                            assert!(
+                                (app.world().resource::<Run>().abilities[0].cd - expected_cd).abs()
+                                    < 0.0001
+                            );
+                        }
                         let healing = if fired && points >= 10 {
                             max_hp * 0.03 * (1. + 0.07 * f32::from(rank.min(5)))
                         } else {
@@ -4773,6 +4795,24 @@ mod milestone_tests {
     #[test]
     fn cost_talents_compose_with_existing_cast_cooldowns_without_changing_geometry() {
         for (class, node, max, other, other_rank, keys, reduction) in [
+            (
+                5,
+                586,
+                5,
+                595,
+                5,
+                &["searing_totem", "magma_totem"][..],
+                0.20,
+            ),
+            (
+                5,
+                593,
+                5,
+                586,
+                5,
+                &["searing_totem", "magma_totem"][..],
+                0.10,
+            ),
             (
                 2,
                 1342,
