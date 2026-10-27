@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-26 — Direct hero UI previews
+
+UI preview files can now select an existing fixture hero with `hero=<ID>`, together
+with the page, inspected talent and dimensions. This removes manual class selection
+between comparisons. Invalid heroes or mismatched talents preserve the current view;
+preview selection does not write the saved menu pick or load another map.
+
+324 app tests, Clippy and the native build pass. Native macOS checks cover direct
+Priest launch, rejection of a mismatched Shaman talent without resizing, and a live
+switch to Shaman at 640×720. The existing reference-based layouts are unchanged.
+Reusable preset and usage instructions are included; Windows acceptance remains open.
+
+![Direct Priest preview at launch](images/screenshots/2026-10-26-hero-preview/priest-1280.png)
+
+![Shaman preview after live class and size switch](images/screenshots/2026-10-26-hero-preview/shaman-640.png)
+
 ## 2026-10-26 — Totemic Mastery
 
 Shaman Totemic Mastery extends Searing Totem attack range and Magma Totem pulse

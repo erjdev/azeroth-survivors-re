@@ -5639,3 +5639,20 @@ diff checks pass. Native macOS 1280×720 preview confirms purchase, persisted ra
 and readable details. Screenshot embedded in CHANGELOG and README refreshed.
 The DBC audit reports 203/432 individual definitions and 81/81 milestones. This
 checkpoint does not establish live balance or Windows combat acceptance.
+
+### 2026-10-26 — Hero selection in fast UI previews
+
+Added optional positive saved `hero` IDs to preview requests. Selection is staged
+until hero, talent-class membership and selected-profile validation succeed, then
+applied with page/size. Omission retains manual selection; same-hero requests retain
+appearance cache and version. Class switches clear stale look caches while retaining
+map/stage. Preview selection never calls the normal saved-menu-pick writer.
+
+324 app tests pass, including staging, unknown IDs, malformed/duplicate fields,
+omission, version/cache handling and world preservation. Native macOS validation
+opened Priest/Holy Nova directly at 1280×720, rejected Shaman/Holy Nova plus a resize
+without changing the view, then switched to Shaman/Totemic Mastery at 640×720 and
+scrolled to details. No menu-pick save was created. Two inline CHANGELOG captures
+and a refreshed README compact preview record the unchanged reference-based layout.
+Clippy, native build, formatting and diff checks pass. This improves the iteration
+workflow; remaining interface, content and Windows acceptance are still open.

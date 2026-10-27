@@ -334,7 +334,7 @@ pub(super) struct RunEntity;
 pub(super) struct Typing(pub bool);
 
 /// The class, look and battleground picked at the menu; the battleground holds for the run.
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 pub(super) struct Selection {
     pub class: Option<usize>,
     /// The named character whose talents, gear and zone gates this run uses.

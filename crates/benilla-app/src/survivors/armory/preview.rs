@@ -67,6 +67,7 @@ struct Request {
     selected: bool,
     category: Option<u8>,
     talent: Option<u32>,
+    hero: Option<u32>,
     piece: Option<Piece>,
     cards: Option<Vec<Card>>,
 }
@@ -79,6 +80,7 @@ impl Request {
         let mut profile = None;
         let mut category = None;
         let mut talent = None;
+        let mut hero = None;
         let mut piece = None;
         for line in text.lines() {
             let line = line.split('#').next()?.trim();
@@ -157,6 +159,9 @@ impl Request {
                     });
                 }
                 "category" if category.is_none() => category = Some(value),
+                "hero" if hero.is_none() => {
+                    hero = Some(value.parse::<u32>().ok().filter(|id| *id > 0)?)
+                }
                 "talent" if talent.is_none() => talent = Some(value.parse::<u32>().ok()?),
                 "piece" if piece.is_none() => {
                     let (band, slot) = value.split_once(':')?;
@@ -213,6 +218,7 @@ impl Request {
             page,
             category,
             talent,
+            hero,
             piece,
             width: width?,
             height: height?,
@@ -221,6 +227,29 @@ impl Request {
         };
         ((640..=7680).contains(&request.width) && (480..=4320).contains(&request.height))
             .then_some(request)
+    }
+
+    /// Stage selection changes until the complete request has passed validation.
+    /// Unlike a normal menu pick, a preview does not persist the selection.
+    fn selection(
+        &self,
+        current: &crate::survivors::Selection,
+        account: &crate::survivors::account::Account,
+    ) -> Option<crate::survivors::Selection> {
+        let mut candidate = current.clone();
+        if let Some(id) = self.hero {
+            let hero = account.character(id)?;
+            if candidate.class != Some(hero.class) {
+                candidate.class = Some(hero.class);
+                candidate.looks.clear();
+                candidate.look = None;
+            }
+            if candidate.character != Some(id) || candidate.class != current.class {
+                candidate.character = Some(id);
+                candidate.version = candidate.version.wrapping_add(1);
+            }
+        }
+        Some(candidate)
     }
 
     fn apply(&self, armory: &mut Armory, typing: &mut Typing, window: &mut Window, class: usize) {
@@ -270,7 +299,7 @@ fn reload(
     mut offer: ResMut<Offer>,
     mut hand: ResMut<PreviewHand>,
     account: Res<crate::survivors::account::Account>,
-    selection: Res<crate::survivors::Selection>,
+    mut selection: ResMut<crate::survivors::Selection>,
     renown: Res<crate::survivors::renown::Renown>,
     stash: Res<crate::survivors::stash::Stash>,
     talents: Option<Res<crate::ui_talent::Talents>>,
@@ -298,11 +327,16 @@ fn reload(
     if request.cards.is_some() && rows.is_empty() {
         return;
     }
+    let Some(candidate) = request.selection(&selection, &account) else {
+        preview.seen = text;
+        warn!("Unknown Survivors preview hero; keeping current view");
+        return;
+    };
     let inspected = if let Some(id) = request.talent {
         let Some(talents) = talents.as_deref() else {
             return;
         };
-        let class = selection
+        let class = candidate
             .character
             .and_then(|id| account.character(id))
             .map(|hero| hero.class);
@@ -325,13 +359,14 @@ fn reload(
         if talents.is_none() {
             return;
         }
-        let Some(snapshot) = selected_run(&account, &selection, &renown, &stash) else {
+        let Some(snapshot) = selected_run(&account, &candidate, &renown, &stash) else {
             return;
         };
         snapshot
     } else {
         Run::default()
     };
+    *selection = candidate;
     preview.seen = text;
     preview.inspected = inspected;
     request.apply(
@@ -425,6 +460,59 @@ impl Preview {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hero_preview_validates_before_changing_selection_and_preserves_world() {
+        use crate::survivors::{account::Account, Selection};
+        let mut account = Account::default();
+        let priest = account.ensure(4);
+        let shaman = account.ensure(5);
+        let current = Selection {
+            class: Some(4),
+            character: Some(priest),
+            looks: vec![(1, 1, 0)],
+            look: Some(0),
+            map: 3,
+            stage: 2,
+            version: 8,
+        };
+        let text = "page=talents\nwidth=1280\nheight=720";
+        for hero in [None, Some(priest)] {
+            let request = Request::parse(&format!(
+                "{text}{}",
+                hero.map_or(String::new(), |id| format!("\nhero={id}"))
+            ))
+            .unwrap();
+            let selected = request.selection(&current, &account).unwrap();
+            assert_eq!(
+                (selected.class, selected.character, selected.version),
+                (Some(4), Some(priest), 8)
+            );
+            assert_eq!(selected.looks, current.looks);
+            assert_eq!(selected.look, current.look);
+        }
+        let request = Request::parse(&format!("{text}\nhero={shaman}")).unwrap();
+        let selected = request.selection(&current, &account).unwrap();
+        assert_eq!(
+            (selected.class, selected.character, selected.version),
+            (Some(5), Some(shaman), 9)
+        );
+        assert_eq!((selected.map, selected.stage), (3, 2));
+        assert!(selected.looks.is_empty());
+        assert_eq!(selected.look, None);
+        assert_eq!(
+            current.character,
+            Some(priest),
+            "staging never mutates live selection"
+        );
+        assert!(Request::parse(&format!("{text}\nhero=9999"))
+            .unwrap()
+            .selection(&current, &account)
+            .is_none());
+        for suffix in ["hero=0", "hero=-1", "hero=Priest", "hero=1\nhero=2"] {
+            assert!(Request::parse(&format!("{text}\n{suffix}")).is_none());
+        }
+    }
 
     #[test]
     fn collection_piece_previews_validate_all_cells_and_reject_invalid_requests() {

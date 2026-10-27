@@ -379,6 +379,16 @@ over the watched file to resize the same running menu. They use the selected her
 and spec without spending points; manual clicks still perform normal talent actions,
 so use an isolated fixture account for interaction checks.
 
+Add `hero = <saved character ID>` to select an existing fixture hero together with
+any preview page. The request uses that hero's class and active spec, including for
+`profile=selected` cards. Omit it to keep the current hero. Unknown IDs or talents
+outside that hero's class reject the complete request without changing the hero,
+page or dimensions. Preview selection does not write the saved menu pick, create
+heroes, spend points, or load another map. Normal subsequent UI actions still save;
+use an isolated `BENILLA_HOME` fixture. IDs are the first number on `who` rows in
+that fixture's `survivors-account.txt`. Start with
+`docs/ui-previews/hero-talents-1280.txt` and replace its example ID.
+
 To pin a particular talent description, add `talent = <Talent.dbc ID>` on the
 Talents page. For example, `docs/ui-previews/warlock-grim-reach-1024.txt` inspects
 Grim Reach (1021) for an already-selected Warlock. The ID must belong to that hero's

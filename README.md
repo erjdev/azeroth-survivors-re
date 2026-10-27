@@ -72,7 +72,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>
-    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-26-pet-wrath/wrath-640.png" alt="Compact Talents"><br>2026-10-26 · Scrolled tree and readable details at 640×720.</td>
+    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-26-hero-preview/shaman-640.png" alt="Compact Talents"><br>2026-10-26 · Scrolled tree and readable details at 640×720.</td>
   </tr>
 </table>
 
