@@ -16,6 +16,15 @@ unfinished details. Keep README screenshots current. Follow the
 The 2026-10-25 starter checkpoint captures Character, ten-hero management, Talents
 and Companions at 1280×720. Responsive variants and interaction acceptance remain open.
 
+## Healing correctness — 2026-10-27
+
+Drain and gear leech now use enemy health actually removed, matching Siphon Life
+and Vampiric Embrace. Direct multistrikes and periodic damage can no longer heal
+from overkill. Damage reporting remains unchanged. The actual hit-system test
+covers direct/periodic lethal hits, multistrike, stacked Siphon ranks/milestones,
+maximum-health caps, dead heroes and a second update against the dead target.
+This is combat-accounting coverage; live balance remains open.
+
 ## Current priority — starter interface first (2026-10-26)
 
 Achievement cards now keep the same proportional column width on incomplete rows,

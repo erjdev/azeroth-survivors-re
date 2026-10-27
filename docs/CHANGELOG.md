@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Drain and leech exclude overkill
+
+Drain and gear leech now heal from enemy health actually removed, matching
+Siphon Life. Direct multistrikes and periodic damage no longer turn overkill
+into extra healing. Damage totals are unchanged.
+
+366 app tests, app-test Clippy and native build pass. The regression covers stacked
+healing, health caps, dead heroes and no repeat healing from dead targets.
+No interface change; live balance remains open.
+
 ## 2026-10-27 — Tabards now dress the hero
 
 Fixed a missing connection between saved tabard selection and the character

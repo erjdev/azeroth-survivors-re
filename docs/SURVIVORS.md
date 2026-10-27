@@ -19,6 +19,8 @@ These stay, and later phases read them instead of inventing a second copy.
   by multiplication and has a floor. Luck is one rating. Extra targets apply only to a
   single-target bolt, strike, or melee. Gold and experience are percent bonuses. A positive
   gold drop never rounds to zero. Multistrike and leech behave as the sheet says.
+  Drain and life leech heal from enemy health actually removed, including periodic
+  damage and multistrikes; overkill and already-dead targets grant no healing.
 - Named heroes. Talent points live on the hero. Gear, zone clears, and seen legendary amulets
   live on the class. The save is `benilla-config/survivors-account.txt`.
 - A run still spends a level-up hand, then any chest trades. Chests are not a magnet.

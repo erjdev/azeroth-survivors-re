@@ -1090,10 +1090,10 @@ pub(super) fn apply_hits(
             run.add_damage(h.source, dmg);
             fx.number(e, dmg, h.crit, h.color);
             let heal = if let Effect::Drain(frac) = h.effect {
-                dmg * frac
+                removed * frac
             } else {
                 0.0
-            } + dmg * stats.leech
+            } + removed * stats.leech
                 + run.milestones.vampiric_healing(h.source, removed);
             if heal > 0.0 {
                 run.heal(heal, stats.max_hp);
@@ -1190,7 +1190,8 @@ pub(super) fn apply_hits(
         let mut dealt = 0.0;
         let mut blackout = false;
         let mut vampiric_heal = 0.0;
-        let mut remaining_hp = en.hp.max(0.0);
+        let initial_hp = en.hp.max(0.0);
+        let mut remaining_hp = initial_hp;
         let mut weaving = en.shadow_weaving;
         let kidney_multiplier = run.milestones.kidney_exposure_multiplier(en.kidney_t);
         for d in &mut en.dots {
@@ -1224,7 +1225,10 @@ pub(super) fn apply_hits(
         if dealt > 0.0 {
             en.hp -= dealt;
             if stats.leech > 0.0 || vampiric_heal > 0.0 {
-                run.heal(dealt * stats.leech + vampiric_heal, stats.max_hp);
+                run.heal(
+                    (initial_hp - remaining_hp) * stats.leech + vampiric_heal,
+                    stats.max_hp,
+                );
             }
             fx.number(e, dealt, false, COLOR_SPELL);
             if en.hp <= 0.0 {
@@ -2459,105 +2463,117 @@ mod milestone_tests {
     }
 
     #[test]
-    fn siphon_life_heals_actual_damage_without_overkill_or_revival() {
+    fn drain_leech_and_siphon_heal_only_removed_health_without_revival() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
-        for periodic in [false, true] {
-            for (points, rank) in [(29, 0), (29, 1), (30, 0), (30, 1), (30, 255)] {
-                for hp in [0.0, 50.0, 99.0] {
-                    let mut app = App::new();
-                    let mut time = Time::<()>::default();
-                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
-                    let run = Run {
-                        hp,
-                        milestones: Milestones {
-                            class: 7,
-                            points: [points, 0, 0],
-                            ..Default::default()
-                        }
-                        .with_ranks(&[(0, 1041, rank)]),
-                        ..Default::default()
-                    };
-                    app.insert_resource(time)
-                        .insert_resource(run)
-                        .insert_resource(Rng(0))
-                        .insert_resource(super::super::account::empty())
-                        .init_resource::<super::super::Selection>()
-                        .init_resource::<PlaySeq>()
-                        .init_resource::<PendingHits>()
-                        .add_message::<CastEvent>()
-                        .add_message::<SpellGoTargets>()
-                        .add_message::<SwingMessage>()
-                        .add_message::<crate::combat_text::CombatTextSpawn>()
-                        .add_message::<Hit>()
-                        .add_message::<Loot>()
-                        .add_message::<FieldChanged>();
-                    let enemy = app
-                        .world_mut()
-                        .spawn((
-                            Guid(123),
-                            Transform::default(),
-                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
-                            Marks::debuffs(),
-                            Enemy {
-                                def: &data::roster(0).enemies[0],
-                                hp: 5.0,
-                                max_hp: 100.0,
-                                speed: 3.0,
-                                damage: 1.0,
-                                radius: 0.6,
-                                xp: 1,
-                                boss: false,
-                                elite: false,
-                                attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
-                                root_t: 0.0,
-                                frozen_t: 0.0,
-                                winters_chill: Default::default(),
-                                shadow_weaving: Default::default(),
-                                kidney_t: 0.0,
-                                stun_t: 0.0,
-                                fear_t: 0.0,
-                                weaken: 1.0,
-                                weaken_t: 0.0,
-                                dots: if periodic {
-                                    vec![enemies::Dot {
-                                        dps: 10.0,
-                                        left: 3.0,
-                                        tick: 1.0,
-                                        source: "corruption",
-                                    }]
-                                } else {
-                                    vec![]
-                                },
-                                dead: false,
+        for (leech, drain, multistrike) in [(0.0, 0.0, 0.0), (0.2, 0.3, 1.0)] {
+            for periodic in [false, true] {
+                for (points, rank) in [(29, 0), (29, 1), (30, 0), (30, 1), (30, 255)] {
+                    for hp in [0.0, 50.0, 99.0] {
+                        let mut app = App::new();
+                        let mut time = Time::<()>::default();
+                        time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                        let run = Run {
+                            hp,
+                            bonus: campaign::Bonus {
+                                leech,
+                                multistrike,
+                                ..Default::default()
                             },
-                        ))
-                        .id();
-                    if !periodic {
-                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
-                            source: "curse_of_agony",
-                            ..Hit::direct(enemy, 10.0, false)
-                        });
+                            milestones: Milestones {
+                                class: 7,
+                                points: [points, 0, 0],
+                                ..Default::default()
+                            }
+                            .with_ranks(&[(0, 1041, rank)]),
+                            ..Default::default()
+                        };
+                        app.insert_resource(time)
+                            .insert_resource(run)
+                            .insert_resource(Rng(0))
+                            .insert_resource(super::super::account::empty())
+                            .init_resource::<super::super::Selection>()
+                            .init_resource::<PlaySeq>()
+                            .init_resource::<PendingHits>()
+                            .add_message::<CastEvent>()
+                            .add_message::<SpellGoTargets>()
+                            .add_message::<SwingMessage>()
+                            .add_message::<crate::combat_text::CombatTextSpawn>()
+                            .add_message::<Hit>()
+                            .add_message::<Loot>()
+                            .add_message::<FieldChanged>();
+                        let enemy = app
+                            .world_mut()
+                            .spawn((
+                                Guid(123),
+                                Transform::default(),
+                                ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(
+                                    &[],
+                                )),
+                                Marks::debuffs(),
+                                Enemy {
+                                    def: &data::roster(0).enemies[0],
+                                    hp: 5.0,
+                                    max_hp: 100.0,
+                                    speed: 3.0,
+                                    damage: 1.0,
+                                    radius: 0.6,
+                                    xp: 1,
+                                    boss: false,
+                                    elite: false,
+                                    attack_cd: 0.0,
+                                    slow: 1.0,
+                                    slow_t: 0.0,
+                                    root_t: 0.0,
+                                    frozen_t: 0.0,
+                                    winters_chill: Default::default(),
+                                    shadow_weaving: Default::default(),
+                                    kidney_t: 0.0,
+                                    stun_t: 0.0,
+                                    fear_t: 0.0,
+                                    weaken: 1.0,
+                                    weaken_t: 0.0,
+                                    dots: if periodic {
+                                        vec![enemies::Dot {
+                                            dps: 10.0,
+                                            left: 3.0,
+                                            tick: 1.0,
+                                            source: "corruption",
+                                        }]
+                                    } else {
+                                        vec![]
+                                    },
+                                    dead: false,
+                                },
+                            ))
+                            .id();
+                        if !periodic {
+                            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                                source: "curse_of_agony",
+                                effect: Effect::Drain(drain),
+                                ..Hit::direct(enemy, 10.0, false)
+                            });
+                        }
+                        app.world_mut().run_system_once(apply_hits).unwrap();
+                        let run = app.world().resource::<Run>();
+                        let expected = if hp == 0.0 {
+                            0.0
+                        } else {
+                            (hp + 5.0
+                                * ((if points >= 30 { 0.05 } else { 0. })
+                                    + if rank > 0 { 0.05 } else { 0. }
+                                    + run.stats().leech
+                                    + if periodic { 0.0 } else { drain }))
+                            .min(run.stats().max_hp)
+                        };
+                        assert!((run.hp - expected).abs() < 0.00001);
+                        assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                        app.world_mut().run_system_once(apply_hits).unwrap();
+                        assert!(
+                            (app.world().resource::<Run>().hp - expected).abs() < 0.00001,
+                            "dead targets cannot heal again"
+                        );
                     }
-                    app.world_mut().run_system_once(apply_hits).unwrap();
-                    let run = app.world().resource::<Run>();
-                    let expected = if hp == 0.0 {
-                        0.0
-                    } else {
-                        (hp + 5.0
-                            * ((if points >= 30 { 0.05 } else { 0. })
-                                + if rank > 0 { 0.05 } else { 0. }))
-                        .min(run.stats().max_hp)
-                    };
-                    assert!((run.hp - expected).abs() < 0.00001);
-                    assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
-                    app.world_mut().run_system_once(apply_hits).unwrap();
-                    assert!(
-                        (app.world().resource::<Run>().hp - expected).abs() < 0.00001,
-                        "dead targets cannot heal again"
-                    );
                 }
             }
         }
