@@ -3731,6 +3731,73 @@ mod tests {
     }
 
     #[test]
+    fn rogue_sword_training_tracks_saved_worn_gear_specs_and_refunds() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(3);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (1, 201, 2),
+            (1, 203, 3),
+            (1, 186, 5),
+            (1, 181, 5),
+            (1, 182, 5),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        account.classes[3].pieces.fill(1);
+        let progress = &mut account.classes[3];
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, Some(2)));
+        let chance = |account: &Account| {
+            account
+                .milestones_picked(3, Some(hero))
+                .sword_extra_attack_chance("sinister_strike", 10.0)
+        };
+        let base = chance(&account);
+        for _ in 0..5 {
+            assert!(account.learn_talent(hero, 1, 242, 5, 4, true));
+        }
+        assert!(!account.learn_talent(hero, 1, 242, 5, 4, true));
+        assert!((chance(&account) - base - 0.05).abs() < 0.00001);
+        let progress = &mut account.classes[3];
+        assert!(progress.equipment.show_legacy(
+            &progress.pieces,
+            8,
+            survivors_core::equipment::Look::Piece(0)
+        ));
+        assert!((chance(&account) - base - 0.05).abs() < 0.00001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(chance(&loaded), chance(&account));
+        loaded.select_spec(hero, 1);
+        assert_eq!(chance(&loaded), 0.0);
+        loaded.select_spec(hero, 0);
+        assert!(loaded.unlearn_talent(hero, 242, true));
+        assert!((chance(&loaded) - base - 0.04).abs() < 0.00001);
+        let progress = &mut loaded.classes[3];
+        assert!(progress.equipment.show_legacy(
+            &progress.pieces,
+            8,
+            survivors_core::equipment::Look::Piece(2)
+        ));
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, Some(0)));
+        assert_eq!(chance(&loaded), base);
+        assert_eq!(loaded.milestones_picked(3, Some(u32::MAX)).weapon, None);
+    }
+
+    #[test]
     fn dagger_training_tracks_saved_worn_gear_specs_and_refunds() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

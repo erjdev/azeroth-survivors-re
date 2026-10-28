@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Rogue sword training
+
+Sword Specialization gives equipped swords a 1–5% chance to repeat a direct
+Rogue weapon hit against the same enemy. Extra strikes copy direct damage and
+its critical result, without copying splash, stuns or bleeds or triggering more
+procs. Cosmetic weapons do not qualify; the green preview states the requirement.
+
+![Rogue Sword Specialization upgrade](images/screenshots/2026-10-28-rogue-sword/available.png)
+
+![Final rank purchased and saved](images/screenshots/2026-10-28-rogue-sword/trained.png)
+
+![Trained Rogue cards](images/screenshots/2026-10-28-rogue-sword/cards.png)
+
+247 core tests, 474 app tests and core/app Clippy pass. Tests cover all five
+eligible Rogue attacks, saved gear/specs, refunds, pause, lethal/dead/missing
+targets, one loot award and no recursive procs. Native purchase/save verified
+at 1600×900; cards at 1280×720. Incremental build: 19 seconds. Definition coverage:
+283/432. Full integration, Windows and live balance remain open.
+
 ## 2026-10-28 — Rogue dagger training
 
 Dagger Specialization grants 1–5 percentage points of critical chance to Rogue

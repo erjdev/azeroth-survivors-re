@@ -779,13 +779,8 @@ impl Milestones {
 
     /// Sword Specialization: one same-target echo of direct weapon damage, never a proc chain.
     pub fn sword_extra_attack_chance(self, key: &str, damage: f32) -> f32 {
-        if self.class != 0
-            || !damage.is_finite()
-            || damage <= 0.0
-            || !self
-                .weapon
-                .is_some_and(|weapon| weapon.kind == crate::gear_loadout::MeleeKind::Sword)
-            || !matches!(
+        let direct_weapon_hit = match self.class {
+            0 => matches!(
                 key,
                 "cleave"
                     | "heroic_strike"
@@ -794,7 +789,19 @@ impl Milestones {
                     | "execute"
                     | "mortal_strike"
                     | "retaliation"
-            )
+            ),
+            3 => matches!(
+                key,
+                "sinister_strike" | "eviscerate" | "blade_flurry" | "gouge" | "kidney_shot"
+            ),
+            _ => false,
+        };
+        if !direct_weapon_hit
+            || !damage.is_finite()
+            || damage <= 0.0
+            || !self
+                .weapon
+                .is_some_and(|weapon| weapon.kind == crate::gear_loadout::MeleeKind::Sword)
         {
             return 0.0;
         }
@@ -3202,6 +3209,12 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 13960–13964, proc-chance field: 1–5%.
+    TalentDefinition {
+        id: 242, max_rank: 5, name: "Sword Specialization",
+        description: "With a worn sword: 1% chance per rank after a direct Rogue weapon hit to strike the same target again. Repeats direct damage, including its critical result, without copying area, control or bleed effects. Extra strikes cannot trigger further talent procs. Cosmetic weapons do not qualify (Survivors conversion)",
+        stat: TalentStat::SwordExtraAttack, per_rank: 0.01,
+    },
     // Spell.dbc 13706/13804–13807: +1–5 percentage points of dagger critical chance.
     TalentDefinition {
         id: 182, max_rank: 5, name: "Dagger Specialization",
@@ -6917,6 +6930,75 @@ mod dagger_specialization_tests {
     #[test]
     fn dagger_preview_colors_inline_critical_chance_and_caps_rank() {
         let node = talent_definition(3, 182).unwrap();
+        let (text, ranges) = node.inline_description_with_values(4).unwrap();
+        assert!(ranges
+            .iter()
+            .any(|range| text[range.clone()].contains("4 » 5%")));
+        assert!(!node.inline_description(255).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod rogue_sword_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn rogue_sword_proc_is_scoped_to_worn_swords_direct_hits_and_capped_training() {
+        for class in 0..9 {
+            for rank in [0, 1, 4, 5, 255] {
+                for kind in [
+                    None,
+                    Some(MeleeKind::Sword),
+                    Some(MeleeKind::Dagger),
+                    Some(MeleeKind::Mace),
+                ] {
+                    let base = Milestones {
+                        class,
+                        weapon: kind.map(|kind| MeleeWeapon {
+                            kind,
+                            two_handed: false,
+                        }),
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 242, rank)]);
+                    for key in crate::data::ABILITIES.iter().map(|a| a.key).chain([
+                        "sword_specialization",
+                        "Thorns",
+                        "deep_wounds",
+                    ]) {
+                        assert_eq!(trained.cast(key), base.cast(key));
+                        for damage in [0.0, -1.0, f32::NAN, f32::INFINITY, 12.0] {
+                            let eligible = class == 3
+                                && kind == Some(MeleeKind::Sword)
+                                && damage == 12.0
+                                && matches!(
+                                    key,
+                                    "sinister_strike"
+                                        | "eviscerate"
+                                        | "blade_flurry"
+                                        | "gouge"
+                                        | "kidney_shot"
+                                );
+                            let expected = if eligible {
+                                0.01 * f32::from(rank.min(5))
+                            } else {
+                                0.0
+                            };
+                            assert_eq!(
+                                trained.sword_extra_attack_chance(key, damage),
+                                expected,
+                                "{class} {rank} {kind:?} {key}"
+                            );
+                        }
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+    }
+    #[test]
+    fn rogue_sword_preview_colors_inline_proc_chance() {
+        let node = talent_definition(3, 242).unwrap();
         let (text, ranges) = node.inline_description_with_values(4).unwrap();
         assert!(ranges
             .iter()

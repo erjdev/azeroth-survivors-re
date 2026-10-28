@@ -887,13 +887,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 26 / 51 | 9 / 9 |
+| Rogue | 27 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 282 / 432 | 81 / 81 |
+| Total | 283 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8485,7 +8485,7 @@ Definition coverage: 282/432 (Rogue 26/51). Full integration passed in 10m24s,
 including player-build tests; 31 missing-addon skips per data/player run.
 Windows visuals and live balance remain open.
 
-### Next talent slice: Rogue Sword Specialization — 2026-10-28
+### Rogue Sword Specialization — 2026-10-28
 
 Checkout Talent.dbc node 242: Combat tree index 1, row 4, column 2, five ranks,
 no explicit prerequisite. Spell.dbc 13960–13964, proc-chance column 25, gives
@@ -8502,9 +8502,13 @@ as a Survivors conversion of vanilla extra attacks.
 Acceptance: rank/class/weapon isolation, existing Warrior regression coverage,
 green inline proc chance, saved equipment/spec/refund behavior, lethal and missing
 targets, pause/resume, one loot award, no splash or generated-hit recursion, and
-native purchase/save screenshots. An isolated draft passes 247 core tests and
-Clippy; checkout implementation and app/native validation remain pending until
-the Dagger integration run completes. Definition coverage stays 282/432.
+native purchase/save screenshots. The implementation passes 247 core tests and
+474 feature-enabled app tests, including all five Rogue source attacks through
+the existing hit/loot pipeline. Core/app Clippy pass. Native final-rank purchase
+4→5, points 27→26 and persisted rank verified at 1600×900; trained cards verified
+at 1280×720. Screenshots are embedded in CHANGELOG and the README gallery is
+refreshed. Incremental build: 19 seconds. Definition coverage is 283/432
+(Rogue 27/51). Full integration, Windows and live balance remain open.
 
 Following dependencies: Rogue mace/fist talents need obtainable matching weapon
 alternatives before claiming usable completion. The pinned item-template catalog
