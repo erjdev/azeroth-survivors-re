@@ -11,7 +11,7 @@ use crate::creature_anim::{move_flags, MovementState};
 pub(super) const RADIUS: f32 = 0.4;
 const LEASH: f32 = 18.0;
 const DISPLAY: u32 = 604; // Timber Wolf, CreatureDisplayInfo.
-const SOURCE: &str = "Hunter Pet";
+pub(super) const SOURCE: &str = "Hunter Pet";
 
 #[derive(Component, Default)]
 pub(super) struct HunterPet {

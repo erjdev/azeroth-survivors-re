@@ -4,7 +4,7 @@ use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
 use crate::survivors::{data, Owned, Phase};
 use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
 
-fn fixture(key: &str, hp: f32) -> (App, Entity, Schedule) {
+pub(super) fn fixture(key: &str, hp: f32) -> (App, Entity, Schedule) {
     let mut app = App::new();
     let mut run = Run {
         class: &data::CLASSES[3],
@@ -79,7 +79,7 @@ fn fixture(key: &str, hp: f32) -> (App, Entity, Schedule) {
     schedule.add_systems(apply_hits.run_if(in_state(Phase::Playing)));
     (app, target, schedule)
 }
-fn advance(app: &mut App, schedule: &mut Schedule, dt: f32) {
+pub(super) fn advance(app: &mut App, schedule: &mut Schedule, dt: f32) {
     app.world_mut()
         .resource_mut::<Time>()
         .advance_by(std::time::Duration::from_secs_f32(dt));

@@ -7,6 +7,7 @@ mod mage;
 mod natures_grace;
 mod priest;
 pub use priest::{BlessedRecovery, PowerInfusionClock};
+mod creature_damage;
 mod poison;
 mod rogue;
 pub use critical_cast::CriticalCastClock;
@@ -1638,6 +1639,7 @@ pub struct TalentDefinition {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
+    CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
     Health,
     MaximumHealth,
@@ -2047,6 +2049,7 @@ impl TalentDefinition {
             | TalentStat::RogueMace
             | TalentStat::WeaponExpertise
             | TalentStat::SealFate
+            | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -2264,6 +2267,7 @@ impl TalentDefinition {
             TalentStat::Cooldown
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
+            TalentStat::CreatureDamage { .. } => (100.0, "% damage against matching creatures"),
             TalentStat::PoisonChance => (100.0, "% additional poison application chance"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
             TalentStat::MaceStun | TalentStat::RogueMace => (100.0, "% stun chance"),
@@ -2900,6 +2904,16 @@ const HUNTER_SHOTS: &[&str] = &[
 ];
 
 static HUNTER_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1623, max_rank: 3, name: "Monster Slaying",
+        description: "Your attacks and damage over time against Beasts, Dragonkin and Giants: +1% damage per rank. Critical hits multiply their final damage by this bonus again. Does not affect pets",
+        stat: TalentStat::CreatureDamage { mask: 19, critical: true }, per_rank: 0.01,
+    },
+    TalentDefinition {
+        id: 1301, max_rank: 3, name: "Humanoid Slaying",
+        description: "Your attacks and damage over time against Humanoids: +1% damage per rank. Critical hits multiply their final damage by this bonus again. Does not affect pets",
+        stat: TalentStat::CreatureDamage { mask: 64, critical: true }, per_rank: 0.01,
+    },
     TalentDefinition { id: 1305, max_rank: 5, name: "Improved Wing Clip",
         description: "Wing Clip: +4% chance per rank on each direct hit to root for 5 sec (bosses: 1.5 sec). Preserves its slow; does not freeze enemies or grant the ability",
         stat: TalentStat::WingClipRoot, per_rank: 0.04 },
@@ -3372,6 +3386,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 274, max_rank: 2, name: "Murder",
+        description: "Your attacks and damage over time: +1% damage per rank against Beasts, Dragonkin, Giants, Humanoids and Critters. Does not affect pets",
+        stat: TalentStat::CreatureDamage { mask: 211, critical: false }, per_rank: 0.01,
+    },
+    TalentDefinition {
         id: 268, max_rank: 5, name: "Improved Poisons",
         description: "Acquired Instant and Deadly Poison coatings: +2% application chance per rank on original Rogue weapon hits. Requires an equipped melee weapon; does not grant a coating",
         stat: TalentStat::PoisonChance, per_rank: 0.02,
@@ -3784,6 +3803,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::KidneyExposure
             | TalentStat::Remorseless
             | TalentStat::SealFate
+            | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
@@ -5293,6 +5313,7 @@ mod stat_talent_tests {
                     | TalentStat::KidneyExposure
                     | TalentStat::Remorseless
                     | TalentStat::SealFate
+                    | TalentStat::CreatureDamage { .. }
                     | TalentStat::PoisonChance
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery

@@ -847,3 +847,24 @@ Improved Poisons (268) adds 2/4/6/8/10 percentage points of application chance.
 Vile Poisons (682) adds 4/8/12/16/20% poison damage. Neither talent grants a
 coating. Enemy poison dispels are not implemented; Vile Poisons' reference
 resistance-to-dispel component has no effect and is explicitly labeled pending.
+
+### Creature-specific damage training
+
+Murder (274) increases the Rogue's damage by 1/2% against Beasts, Dragonkin,
+Giants, Humanoids and Critters. Critters follow Spell.dbc's mask 211; the adapted
+description names them explicitly despite their omission from the reference
+prose. Unknown creatures receive no category bonus.
+
+Monster Slaying (1623) increases Hunter damage against Beasts, Dragonkin and
+Giants by 1/2/3%; Humanoid Slaying (1301) does the same against Humanoids.
+Acquired attack criticals multiply their final damage by the same factor again:
+rank three gives a normal-hit factor of 1.03 and a critical-hit factor of 1.0609.
+This follows the reference spell-critical path, rather than its separate
+autoattack formula. The two target groups do not overlap.
+
+These are owner bonuses, including acquired neutral abilities and damage over
+time; the Hunter pet does not inherit them. Each victim is evaluated at damage
+settlement. Splash, generated strikes and periodic snapshots retain their
+unmodified input so the victim's bonus is applied once. Instant Poison and
+Deadly Poison ticks use the same target rule without gaining critical hits.
+Creature identity is authored independently of display, size and boss status.

@@ -888,14 +888,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
-| Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 35 / 51 | 9 / 9 |
+| Hunter | 39 / 46 | 9 / 9 |
+| Rogue | 36 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 291 / 432 | 81 / 81 |
+| Total | 294 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8870,6 +8870,23 @@ from owner slaying multipliers, rather than assuming the separate pet controller
 alone prevents inheritance. Test ordinary/critical hits, matching/nonmatching
 splash neighbors, additional targets, generated hits, both poisons, ticks,
 pet bites, and lethal loot/leech accounting before enabling these definitions.
+
+### Creature-specific training — implementation and visual validation
+
+Murder, Monster Slaying and Humanoid Slaying definitions and per-victim settlement
+are implemented locally. All 269 core tests, 499 feature-enabled app tests and
+core/app Clippy pass. These cover saves/specs/refunds, critical versus ordinary
+hits, pet exclusions, splash, generated sword strikes, poisons, periodic damage
+and lethal accounting.
+Native purchases at 1600×900 verified all three final ranks. The saved Hunter
+profile has 1623/1301 at rank three (six points spent, 45 unspent); the Rogue
+profile has Murder at rank two (seven points spent, 44 unspent). Full descriptions
+fit at 640×720. Nine screenshots are inline in the changelog, with the wide
+Hunter upgrade also in README. Incremental native build: 2m38s. Fresh DBC
+definition coverage is 294/432 (Hunter 39/46, Rogue 36/51); this is not complete
+combat or balance acceptance. Full integration passed in 816 seconds (13m36s),
+with 31 missing-addon skips per data/player run. Windows and live gameplay
+acceptance remain open.
 
 
 The isolated Deadly clock prototype (`/tmp/survivors-poison-draft.rs`, not game

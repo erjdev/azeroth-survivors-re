@@ -1158,6 +1158,19 @@ fn sword_extra_hit(
     })
 }
 
+fn creature_multiplier(
+    talents: survivors_core::talents::Milestones,
+    kind: survivors_core::creature::CreatureType,
+    source: &str,
+    critical: bool,
+) -> f32 {
+    if source == super::hunter_pet::SOURCE {
+        1.0
+    } else {
+        talents.creature_damage_multiplier(kind, critical)
+    }
+}
+
 pub(super) fn apply_hits(
     mut commands: Commands,
     time: Res<Time>,
@@ -1361,6 +1374,7 @@ pub(super) fn apply_hits(
         }
         let stats = run.stats();
         let mut dmg = h.damage
+            * creature_multiplier(run.milestones, en.def.creature_type, h.source, h.crit)
             * run
                 .milestones
                 .shadow_damage_multiplier(h.source, en.shadow_weaving)
@@ -1427,6 +1441,12 @@ pub(super) fn apply_hits(
                         match coating {
                             survivors_core::talents::Coating::Instant => {
                                 let damage = params.dmg
+                                    * creature_multiplier(
+                                        run.milestones,
+                                        en.def.creature_type,
+                                        coating.key(),
+                                        false,
+                                    )
                                     * run.milestones.kidney_exposure_multiplier(en.kidney_t);
                                 let removed = damage.max(0.0).min(en.hp);
                                 en.hp -= removed;
@@ -1544,10 +1564,12 @@ pub(super) fn apply_hits(
         let mut remaining_hp = initial_hp;
         let mut weaving = en.shadow_weaving;
         let kidney_multiplier = run.milestones.kidney_exposure_multiplier(en.kidney_t);
+        let creature_type = en.def.creature_type;
         for d in &mut en.dots {
             for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
                 let tick = d.dps
+                    * creature_multiplier(run.milestones, creature_type, d.source, false)
                     * echoes as f32
                     * run.milestones.shadow_damage_multiplier(d.source, weaving)
                     * kidney_multiplier;
@@ -1572,9 +1594,11 @@ pub(super) fn apply_hits(
             if remaining_hp <= 0.0 {
                 break;
             }
-            let removed = (poison_damage * kidney_multiplier)
-                .max(0.0)
-                .min(remaining_hp);
+            let removed = (poison_damage
+                * kidney_multiplier
+                * creature_multiplier(run.milestones, creature_type, "deadly_poison", false))
+            .max(0.0)
+            .min(remaining_hp);
             remaining_hp -= removed;
             dealt += removed;
             run.add_damage("deadly_poison", removed);
@@ -10546,3 +10570,7 @@ mod battle_shout_tests {
 #[cfg(test)]
 #[path = "poison_tests.rs"]
 mod poison_tests;
+
+#[cfg(test)]
+#[path = "creature_damage_tests.rs"]
+mod creature_damage_tests;

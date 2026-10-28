@@ -3864,6 +3864,58 @@ mod tests {
     }
 
     #[test]
+    fn creature_training_roundtrips_purchases_specs_and_refunds() {
+        use survivors_core::creature::CreatureType;
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let seed = app.world_mut().remove_resource::<Account>().unwrap();
+        for (class, id, tree, row, max_rank, kind) in [
+            (3, 274, 0, 1, 2, CreatureType::Beast),
+            (2, 1623, 2, 0, 3, CreatureType::Beast),
+            (2, 1301, 2, 0, 3, CreatureType::Humanoid),
+        ] {
+            let rules = seed.talent_rules.clone().unwrap();
+            let mut account = parse(&encode(&seed)).unwrap();
+            account.talent_rules = Some(rules.clone());
+            let hero = account.ensure(class);
+            let character = account
+                .characters
+                .iter_mut()
+                .find(|c| c.id == hero)
+                .unwrap();
+            character.talent_xp = 5100;
+            if class == 3 {
+                character.dbc[0] = vec![(0, 270, 5)];
+            }
+            let value = |a: &Account| {
+                a.milestones_picked(class, Some(hero))
+                    .creature_damage_multiplier(kind, false)
+            };
+            for rank in 1..=max_rank {
+                assert!(account.learn_talent(hero, tree, id, max_rank, row, true));
+                assert!((value(&account) - (1.0 + 0.01 * rank as f32)).abs() < 0.00001);
+            }
+            let mut loaded = parse(&encode(&account)).unwrap();
+            loaded.talent_rules = Some(rules);
+            assert_eq!(value(&loaded), value(&account));
+            loaded.select_spec(hero, 1);
+            assert_eq!(value(&loaded), 1.0);
+            loaded.select_spec(hero, 0);
+            assert_eq!(value(&loaded), value(&account));
+            for _ in 0..max_rank {
+                assert!(loaded.unlearn_talent(hero, id, true));
+            }
+            assert_eq!(value(&loaded), 1.0);
+        }
+    }
+
+    #[test]
     fn poison_training_roundtrips_specs_refunds_and_worn_weapon_identity() {
         use survivors_core::talents::Coating;
         let data = benilla_formats::wow_data_or_skip!();

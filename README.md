@@ -16,7 +16,7 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
-![Rogue poison acquisition and inline upgrades](docs/images/screenshots/2026-10-28-poisons/cards.png)
+![Creature-specific talent training and inline upgrades](docs/images/screenshots/2026-10-28-creature-training/monster-available.jpg)
 
 ## Interface gallery
 

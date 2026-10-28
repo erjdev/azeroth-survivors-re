@@ -3,6 +3,37 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Creature-specific damage talents
+
+Murder, Monster Slaying and Humanoid Slaying now improve damage against their
+named creature categories. Each victim is evaluated separately, including splash,
+generated strikes and poison ticks. Hunter pets do not inherit these bonuses.
+The talent text shows green inline upgrades and explains the critical-hit rule.
+
+![Monster Slaying upgrade](images/screenshots/2026-10-28-creature-training/monster-available.jpg)
+
+![Monster Slaying purchased](images/screenshots/2026-10-28-creature-training/monster-trained.jpg)
+
+![Humanoid Slaying upgrade](images/screenshots/2026-10-28-creature-training/humanoid-available.jpg)
+
+![Humanoid Slaying purchased](images/screenshots/2026-10-28-creature-training/humanoid-trained.jpg)
+
+![Murder upgrade](images/screenshots/2026-10-28-creature-training/murder-available.jpg)
+
+![Murder purchased](images/screenshots/2026-10-28-creature-training/murder-trained.jpg)
+
+![Monster Slaying at 640×720](images/screenshots/2026-10-28-creature-training/monster-640.jpg)
+
+![Humanoid Slaying at 640×720](images/screenshots/2026-10-28-creature-training/humanoid-640.jpg)
+
+![Murder at 640×720](images/screenshots/2026-10-28-creature-training/murder-640.jpg)
+
+269 core tests, 499 feature-enabled app tests and core/app Clippy pass. Native
+purchases and saved ranks verified at 1600×900; full descriptions fit 640×720.
+Incremental build: 2m38s. Full integration passed in 13m36s, with 31 missing-addon
+skips per data/player run. Windows and live balance acceptance remain open.
+Definition coverage: 294/432 (Hunter 39/46, Rogue 36/51).
+
 ## 2026-10-28 — Rogue weapon poisons
 
 Rogues can acquire one run-long weapon coating: Instant Poison or stacking
