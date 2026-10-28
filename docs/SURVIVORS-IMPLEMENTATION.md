@@ -5,6 +5,27 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Acquired Hunter's Mark — 2026-10-28
+
+The offered mark, five-rank training, explicit power curve, capped +target
+selection, replacement/refresh, world aura synchronization and distinct minimap
+marker are implemented locally. Card prose shows inline green ranged-power
+changes and names the attacks that benefit. The authored rules are recorded in
+[SURVIVORS.md](SURVIVORS.md); vanilla evidence remains separate in the audit.
+273 core and 521 app tests pass, including actual casts/offers, save/spec/refund
+and inline text. Feature-enabled Clippy passes; native incremental build took
+2m03s. Native card previews at 1600×900 and 640×720 and talent previews at
+1100×720 and 640×720 were inspected and captured. A disposable Hunter purchased
+Efficiency 5/5 and Improved Hunter's Mark 3/5 through the UI; the saved file
+confirms those ranks. Definition coverage is 296/432 (Hunter 41/46), not full
+gameplay acceptance. Scoped integration is running. Rendered world aura/minimap,
+attended combat and Windows acceptance remain open.
+
+Preview follow-up: a selected-profile card preview for a different hero can wait
+indefinitely for that hero's appearance. Select the hero on a menu page first,
+then apply cards. Do not mix acquisition and upgrades of the same ability in one
+synthetic hand: that state cannot occur in ordinary offers.
+
 ## Concealment integration — 2026-10-28
 
 A shared enemy-concealment predicate now gates direct casts, chained targets,
@@ -973,14 +994,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
-| Hunter | 40 / 46 | 9 / 9 |
+| Hunter | 41 / 46 | 9 / 9 |
 | Rogue | 36 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 295 / 432 | 81 / 81 |
+| Total | 296 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing

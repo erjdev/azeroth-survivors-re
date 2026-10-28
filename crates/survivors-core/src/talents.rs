@@ -4,6 +4,7 @@ mod aspects;
 mod critical_cast;
 mod druid;
 mod hunter;
+mod hunter_mark;
 mod mage;
 mod natures_grace;
 mod priest;
@@ -1641,6 +1642,7 @@ pub struct TalentDefinition {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
     MonkeyDodge,
+    HunterMarkPower,
     CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
     Health,
@@ -2054,6 +2056,7 @@ impl TalentDefinition {
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
             | TalentStat::MonkeyDodge
+            | TalentStat::HunterMarkPower
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -2245,6 +2248,7 @@ impl TalentDefinition {
             }
             TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
             TalentStat::Health => (1.0, " maximum health"),
+            TalentStat::HunterMarkPower => (100.0, "% Hunter’s Mark ranged attack power"),
             TalentStat::MonkeyDodge => (100.0, " percentage points of Aspect of the Monkey dodge chance"),
             TalentStat::MaximumHealth => (100.0, "% maximum health"),
             TalentStat::FlatAbsorption => (1.0, " damage prevented per hit"),
@@ -2972,6 +2976,11 @@ static HUNTER_TALENTS: &[TalentDefinition] = &[
     TalentDefinition { id: 1391, max_rank: 1, name: "Bestial Swiftness",
         description: "Combat wolf: +30% movement speed; melee reach, leash and pickup companions are unchanged",
         stat: TalentStat::PetSpeed, per_rank: 0.3 },
+    TalentDefinition {
+        id: 1343, max_rank: 5, name: "Improved Hunter's Mark",
+        description: "Hunter's Mark: +3% marked-target ranged attack power per rank. Requires acquiring the mark; does not grant it. Aimed Shot and Multi-Shot benefit; Arcane Shot, stings, traps and pets do not",
+        stat: TalentStat::HunterMarkPower, per_rank: 0.03,
+    },
     TalentDefinition {
         id: 1381, max_rank: 5, name: "Improved Aspect of the Monkey",
         description: "Aspect of the Monkey: +1% dodge chance per rank, added to its base chance. Requires acquiring the aspect; does not grant it. Dodges enemy contact attacks before armor and shields; does not protect the wolf",
@@ -3815,6 +3824,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
             | TalentStat::MonkeyDodge
+            | TalentStat::HunterMarkPower
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
@@ -5326,6 +5336,7 @@ mod stat_talent_tests {
                     | TalentStat::CreatureDamage { .. }
                     | TalentStat::PoisonChance
                     | TalentStat::MonkeyDodge
+                    | TalentStat::HunterMarkPower
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus

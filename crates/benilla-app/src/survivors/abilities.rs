@@ -99,6 +99,7 @@ pub(super) struct Params {
     pub ranged_power_scale: f32,
     pub poison_chance: f32,
     pub dodge_chance: f32,
+    pub mark_power: f32,
     pub weapon_bonus: f32,
     pub dot: f32,
     pub count: usize,
@@ -136,6 +137,17 @@ impl Params {
         } else {
             0.0
         };
+        let mark_power = if o.def.kind == Kind::Mark {
+            milestones.hunters_mark_power(
+                o.level,
+                stats
+                    .legendary
+                    .filter(|(key, _)| *key == o.def.key)
+                    .map_or(0.0, |(_, bonus)| bonus.might),
+            )
+        } else {
+            0.0
+        };
         let scoped = stats.for_spell(o.def.key);
         let stats = &scoped;
         let effect = milestones.cast(o.def.key);
@@ -148,6 +160,7 @@ impl Params {
                 0.0
             },
             dodge_chance,
+            mark_power,
             poison_chance: match o.def.kind {
                 Kind::Coating(coating) => coating.chance(milestones),
                 _ => 0.0,
@@ -156,7 +169,10 @@ impl Params {
                 * o.damage_mult()
                 * milestones.battle_shout_multiplier(),
             dot: o.def.dot * mult,
-            count: if matches!(
+            count: if o.def.kind == Kind::Mark {
+                (o.def.count + super::sheet::extra_targets(Kind::Mark, o.def.count, stats.targets))
+                    as usize
+            } else if matches!(
                 o.def.kind,
                 Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect
             ) {
@@ -166,7 +182,7 @@ impl Params {
             },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
-            duration: if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
+            duration: if matches!(o.def.kind, Kind::Mark | Kind::Coating(_) | Kind::Aspect) {
                 o.def.duration
             } else {
                 o.duration() * effect.duration
@@ -177,12 +193,14 @@ impl Params {
                     .effect
                     .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
             ),
-            cooldown: if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
+            cooldown: if o.def.kind == Kind::Mark {
+                super::sheet::cooldown_time(o.def.cooldown, stats.haste, stats.cooldown)
+            } else if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
                 0.0
             } else {
                 o.cooldown(stats) * effect.cooldown
             },
-            crit: if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
+            crit: if matches!(o.def.kind, Kind::Mark | Kind::Coating(_) | Kind::Aspect) {
                 0.0
             } else {
                 (stats.crit + effect.crit).min(1.0)
@@ -346,6 +364,7 @@ pub(super) fn cast_abilities(
     hero: Query<(Entity, &Transform), With<Hero>>,
     enemies: Query<(Entity, &Transform, &Enemy)>,
     perception: super::perception::Perception,
+    marks: Query<(Entity, &super::marking::Marked)>,
     mut fx: Fx,
     mut pending: ResMut<PendingHits>,
     mut hits: MessageWriter<Hit>,
@@ -461,6 +480,27 @@ pub(super) fn cast_abilities(
         .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
+            Kind::Mark => {
+                let targets = toughest(&visible, p.range, p.count);
+                if targets.is_empty() {
+                    false
+                } else {
+                    let selected = entities(&targets);
+                    for (entity, mark) in &marks {
+                        if mark.0.caster() == Some(me) && !selected.contains(&entity) {
+                            commands.entity(entity).remove::<super::marking::Marked>();
+                        }
+                    }
+                    for &target in &selected {
+                        let mut mark = super::marking::Marked::default();
+                        if mark.0.apply(me, p.mark_power, p.duration, now) {
+                            commands.entity(target).insert(mark);
+                        }
+                    }
+                    fx.cast(me, def.spell, &selected, None);
+                    true
+                }
+            }
             Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect => false, // Already resolved in the self-buff pass.
             Kind::Bolt | Kind::Strike | Kind::Melee => {
                 let reach = if def.kind == Kind::Melee {

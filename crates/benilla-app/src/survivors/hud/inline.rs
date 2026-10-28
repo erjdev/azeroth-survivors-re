@@ -35,6 +35,20 @@ impl Sentence {
 }
 
 pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spans {
+    ability_localized(def, a, b, &Strings::default())
+}
+
+pub(in crate::survivors) fn mark_power_unit(strings: &Strings) -> String {
+    format!(
+        " {}",
+        strings
+            .text("RANGED_ATTACK_POWER", "ranged attack power")
+            .to_lowercase()
+    )
+}
+
+fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) -> Spans {
+    let mark_unit = mark_power_unit(strings);
     let mut out = Sentence::default();
     macro_rules! prose { ($($p:expr),* $(,)?) => { $(out.add($p);)* }; }
     let damage = (a.dmg, b.dmg, " damage");
@@ -49,6 +63,12 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
     let cooldown = (a.cooldown, b.cooldown, " sec");
     let burst = def.duration <= 0.0;
     match def.kind {
+        Kind::Mark => {
+            prose!("Mark ", count, " with the most health within ", range,
+                ", adding ", (a.mark_power, b.mark_power, mark_unit.as_str()),
+                " against them for ", duration,
+                ". Aimed Shot and Multi-Shot gain 0.2 damage per point before their cast modifiers. Reveals concealed marked enemies and tracks them on the minimap. Replaces your previous selection");
+        }
         Kind::Aspect => {
             prose!("Gain ", (a.dodge_chance * 100.0, b.dodge_chance * 100.0, "% chance"),
                 " to dodge enemy contact attacks before armor and shields. Dodged attacks deal no damage and do not trigger reflection or damage-taken talents. Protects you, not your wolf. One aspect per run; lasts for the run.");
@@ -444,14 +464,15 @@ pub(in crate::survivors) fn describe(choice: Choice, run: &Run, strings: &String
         Choice::NewAbility(def) => {
             let a = cast_at(def, 1, &stats, run.milestones);
             let b = cast_at(def, 2, &stats, run.milestones);
-            ability(def, &a, &b)
+            ability_localized(def, &a, &b, strings)
         }
         Choice::Upgrade(i) => {
             let o = &run.abilities[i];
-            ability(
+            ability_localized(
                 o.def,
                 &cast_at(o.def, o.level, &stats, run.milestones),
                 &cast_at(o.def, o.level + 1, &stats, run.milestones),
+                strings,
             )
         }
         Choice::NewPassive(p) => passive(

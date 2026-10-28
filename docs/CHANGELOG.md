@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Acquired Hunter’s Mark
+
+Hunter’s Mark now appears in Hunter offers, with eight ranks and green inline
+power upgrades. Improved Hunter’s Mark strengthens the acquired ability; training
+alone does not grant it. Automatic marks replace the caster’s previous selection,
+refresh without stacking, and feed ranged damage, concealment reveal and tracking.
+
+273 core tests and 521 app tests pass, including casts, target replacement,
+expiry, attack scope, saved specs and refunds. Clippy passes; the incremental
+native build took 2m03s. Definition coverage reaches 296/432 (Hunter 41/46).
+Scoped integration is running. World aura/minimap visuals and attended combat
+remain unverified; these screenshots validate isolated UI states only.
+
+![Hunter’s Mark inline upgrades at 1600×900](images/screenshots/2026-10-28-hunters-mark/cards-wide.jpg)
+![The same upgrades at 640×720](images/screenshots/2026-10-28-hunters-mark/cards-640.jpg)
+![Purchased talent in the taller tree layout at 1100×720](images/screenshots/2026-10-28-hunters-mark/talents-wide.jpg)
+![Compact talent layout after another saved purchase](images/screenshots/2026-10-28-hunters-mark/talents-640.jpg)
+
 ## 2026-10-28 — Shared enemy concealment
 
 Direct attacks, pets, ranged totems and minimap tracking now share the mark's

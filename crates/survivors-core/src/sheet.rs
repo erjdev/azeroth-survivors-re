@@ -56,7 +56,8 @@ pub fn cooldown_time(base: f32, haste: f32, cooldown: f32) -> f32 {
 /// Extra targets for a spell that is single-target in its definition. Area spells gain none,
 /// and a spell that already names several targets in its base count gains none.
 pub fn extra_targets(kind: Kind, base_count: u32, bonus: u32) -> u32 {
-    let single = matches!(kind, Kind::Bolt | Kind::Strike | Kind::Melee) && base_count <= 1;
+    let single =
+        matches!(kind, Kind::Mark | Kind::Bolt | Kind::Strike | Kind::Melee) && base_count <= 1;
     if single {
         bonus.min(TARGET_CAP)
     } else {

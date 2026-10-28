@@ -630,14 +630,26 @@ pub(super) fn move_enemies(
 }
 
 /// Mark timers run down; the state kits reap with them.
+#[allow(clippy::type_complexity)]
 pub(super) fn tick_marks(
     time: Res<Time>,
-    mut units: Query<(Entity, &Guid, &mut ObjectStore, &mut Marks), With<Enemy>>,
+    run: Res<Run>,
+    mut units: Query<
+        (
+            Entity,
+            &Guid,
+            &mut ObjectStore,
+            &mut Marks,
+            Option<&super::marking::Marked>,
+        ),
+        With<Enemy>,
+    >,
     mut fields: MessageWriter<FieldChanged>,
 ) {
     let dt = time.delta_secs();
-    for (entity, guid, mut store, mut marks) in &mut units {
+    for (entity, guid, mut store, mut marks, mark) in &mut units {
         marks.tick(dt);
+        marks.hunter_mark(mark.map_or(0.0, |m| m.0.remaining(run.elapsed)));
         marks.flush(entity, guid.0, &mut store, &mut fields);
     }
 }

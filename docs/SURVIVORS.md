@@ -917,3 +917,30 @@ and the mark contribution. Arcane Shot, stings, traps, pets and melee gain none 
 this contribution. This is the explicit Survivors damage rule, not a claim to
 reproduce every vanilla weapon/attack-power calculation. The base-spell evidence
 and remaining acceptance are in [the Mark audit](audits/HUNTERS-MARK.md).
+
+
+### Acquired Hunter's Mark
+
+Hunter's Mark is an offered utility ability, not granted by training. Its authored
+Survivors power curve is 20/30/45/60/75/90/110/130 ranged attack power over eight
+ability ranks. Improved Hunter's Mark adds 3% of this power per talent rank, up
+to 15%; only the mark's own legendary amulet then multiplies it. Global damage,
+critical chance/damage and area bonuses do not increase mark power.
+
+A base 1.5-second cycle selects the enemies with the most current health within
+100 yards, using the shared concealment/reveal predicate. Haste and cooldown
+reduction shorten this cycle. It marks one target plus eligible +target bonuses
+(capped by the normal sheet rules); ability ranks do not add targets. Each
+successful cycle replaces this caster's previous selection and refreshes the
+selected marks to 120 seconds without stacking. A cycle with no candidate uses
+the normal short target-search retry and leaves existing marks to expire.
+
+Aimed Shot and Multi-Shot gain 0.2 damage per marked-target power point before
+their cast damage/critical modifiers, sampled per victim at impact. Mark itself
+deals no damage. Concealed victims are revealed to the caster and their wolf;
+their minimap dot gets a gold diamond. The 1130 world state kit follows the
+same gameplay mark lifetime, taking priority over the last ordinary visual
+debuff slot if all eight slots are occupied. This affects visual slots only.
+Mark duration uses active run time, pauses freeze it, and caster/target death
+removes the benefit. These automatic-targeting and eight-rank rules are Survivors
+conversions, not claims about vanilla spell automation or rank progression.

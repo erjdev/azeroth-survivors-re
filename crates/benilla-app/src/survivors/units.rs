@@ -230,6 +230,23 @@ impl Marks {
         }
     }
 
+    /// Keep the gameplay mark visible even when ordinary debuff slots are full.
+    pub(super) fn hunter_mark(&mut self, remaining: f32) {
+        let current = self.slots.iter().position(|s| s.0 == 1130);
+        if remaining > 0.0 {
+            let slot = current
+                .or_else(|| self.slots.iter().position(|s| s.0 == 0))
+                .unwrap_or(7);
+            if self.slots[slot].0 != 1130 {
+                self.dirty = true;
+            }
+            self.slots[slot] = (1130, remaining);
+        } else if let Some(slot) = current {
+            self.slots[slot] = (0, 0.0);
+            self.dirty = true;
+        }
+    }
+
     /// Exactly these spells, held until changed.
     pub fn set(&mut self, spells: &[u32]) {
         let mut want = [(0u32, f32::INFINITY); 8];
@@ -387,3 +404,23 @@ pub(super) const COLOR_SPELL: u32 = 0xFFFF_DE00;
 pub(super) const COLOR_MELEE: u32 = 0xFFFF_FFFF;
 pub(super) const COLOR_HURT: u32 = 0xFFFF_3030;
 pub(super) const COLOR_HEAL: u32 = 0xFF30_FF30;
+
+#[cfg(test)]
+mod hunter_mark_tests {
+    use super::*;
+    #[test]
+    fn mark_state_kit_has_priority_and_explicit_removal_preserves_other_slots() {
+        let mut slots = Marks::debuffs();
+        for spell in 1..=8 {
+            slots.add(spell, 10.0);
+        }
+        slots.hunter_mark(120.0);
+        assert_eq!(slots.slots[7], (1130, 120.0));
+        slots.hunter_mark(20.0);
+        assert_eq!(slots.slots[7], (1130, 20.0));
+        slots.hunter_mark(0.0);
+        assert_eq!(slots.slots[7], (0, 0.0));
+        assert_eq!(slots.slots[0], (1, 10.0));
+        assert_eq!(slots.slots.iter().filter(|s| s.0 != 0).count(), 7);
+    }
+}

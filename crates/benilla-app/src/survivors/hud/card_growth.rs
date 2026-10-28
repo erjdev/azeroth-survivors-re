@@ -97,6 +97,7 @@ pub(in crate::survivors) fn legend_effect(
                 | Kind::Dot
                 | Kind::WeaponBuff
                 | Kind::Aspect
+                | Kind::Mark
         ) {
             bonus.crit_damage = 0.0;
         }
@@ -115,6 +116,7 @@ pub(in crate::survivors) fn legendary_changes(
 ) -> Vec<(String, Color)> {
     let label = match data::ability(key).kind {
         Kind::Aspect => "Dodge chance multiplier",
+        Kind::Mark => "Mark power multiplier",
         Kind::Heal => "Healing bonus",
         Kind::Shield => "Absorb bonus",
         _ => "Damage bonus",
@@ -163,6 +165,12 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
         "%",
     );
     change(
+        "Mark power",
+        a.mark_power,
+        b.mark_power,
+        &inline::mark_power_unit(&crate::survivors::localization::Strings::default()),
+    );
+    change(
         "Dodge chance",
         a.dodge_chance * 100.0,
         b.dodge_chance * 100.0,
@@ -171,7 +179,13 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
     change("Cooldown", a.cooldown, b.cooldown, "s");
     if matches!(
         def.kind,
-        Kind::Bolt | Kind::Strike | Kind::Melee | Kind::Dot | Kind::Chain | Kind::Orbit
+        Kind::Mark
+            | Kind::Bolt
+            | Kind::Strike
+            | Kind::Melee
+            | Kind::Dot
+            | Kind::Chain
+            | Kind::Orbit
     ) {
         change(
             if def.kind == Kind::Chain {

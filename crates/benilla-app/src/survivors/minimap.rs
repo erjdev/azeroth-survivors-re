@@ -118,7 +118,13 @@ struct View {
     zoom: usize,
     center: Vec2,
     yaw: f32,
-    enemies: Vec<Vec2>,
+    enemies: Vec<TrackedEnemy>,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+struct TrackedEnemy {
+    offset: Vec2,
+    marked: bool,
 }
 
 impl View {
@@ -135,7 +141,10 @@ impl View {
             .extend(enemies.filter_map(|(entity, position, dead)| {
                 let off = Vec2::new(position.x, position.z) - self.center;
                 (!dead && off.length() <= radius && perception.visible(observer, entity, now))
-                    .then_some(off)
+                    .then_some(TrackedEnemy {
+                        offset: off,
+                        marked: perception.marked(observer, entity, now),
+                    })
             }));
     }
 }
@@ -161,7 +170,10 @@ mod tracking_tests {
         let mut state = SystemState::<Perception>::new(&mut world);
         let mut pending = View::default();
         let rendered = View {
-            enemies: vec![Vec2::X],
+            enemies: vec![TrackedEnemy {
+                offset: Vec2::X,
+                marked: true,
+            }],
             ..Default::default()
         };
         for (who, time, expected) in [
@@ -189,7 +201,8 @@ mod tracking_tests {
             120.0,
             10.0,
         );
-        assert!(pending == rendered);
+        assert_eq!(pending.enemies[0].offset, Vec2::X);
+        assert!(!pending.enemies[0].marked);
         pending.track(
             std::iter::once((target, Vec3::X, true)),
             &state.get(&world),
@@ -672,8 +685,16 @@ pub(super) fn compose(
     if let Some(icons) = &art.icons {
         let size = DOT_PX * scale;
         let [l, r, t, b] = TRACKED_UNIT_CELL;
-        for &off in &map.pending.enemies {
-            blit(buf, center + off / yd_per_px, size, |q| {
+        for enemy in &map.pending.enemies {
+            let position = center + enemy.offset / yd_per_px;
+            if enemy.marked {
+                blit(buf, position, size * 1.8, |q| {
+                    let edge = q.x.abs() + q.y.abs();
+                    (edge >= size * 0.65 && edge <= size * 0.9)
+                        .then_some([255.0, 215.0, 70.0, 255.0])
+                });
+            }
+            blit(buf, position, size, |q| {
                 let f = q / size + 0.5;
                 let x = (l + (r - l) * f.x) * icons.w as f32;
                 let y = (t + (b - t) * f.y) * icons.h as f32;

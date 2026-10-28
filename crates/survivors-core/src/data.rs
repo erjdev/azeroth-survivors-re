@@ -38,6 +38,8 @@ impl ClassDef {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Kind {
+    /// Caster-owned ranged vulnerability and tracking; never emits a damage hit.
+    Mark,
     /// Run-long Hunter aspect; only one aspect may be acquired per run.
     Aspect,
     /// Run-long weapon coating; applications are driven by original landed melee hits.
@@ -410,6 +412,16 @@ pub static ABILITIES: &[AbilityDef] = &[
             damage: 14.0,
             cooldown: 18.0,
             duration: 8.0
+        }
+    ),
+    ability!(
+        "hunters_mark",
+        1130,
+        Mark {
+            cooldown: 1.5,
+            range: 100.0,
+            duration: 120.0,
+            mark: 1130
         }
     ),
     AbilityDef {
@@ -1211,6 +1223,7 @@ pub static CLASSES: &[ClassDef] = &[
             "mongoose_bite",
             "wing_clip",
             "aspect_of_the_monkey",
+            "hunters_mark",
         ],
         looks: &[
             1373, 1703, 1723, 1882, 2066, 2087, 2105, 2112, 2205, 2206, 2251, 3056, 3072, 3073,

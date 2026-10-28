@@ -293,3 +293,121 @@ fn ranged_totems_require_reveal_but_pulses_hit_concealed_victims() {
         }
     }
 }
+
+#[test]
+fn acquired_mark_replaces_its_own_selection_without_damage_or_stacking() {
+    let (mut app, first, _) = fixture("hunters_mark", 100.0);
+    let caster = hunter(&mut app);
+    let (mut other, other_target, _) = fixture("hunters_mark", 200.0);
+    let mut bundle = other
+        .world_mut()
+        .entity_mut(other_target)
+        .take::<(Enemy, Guid, Transform, ObjectStore, Marks)>()
+        .unwrap();
+    bundle.1 = Guid(124);
+    bundle.2.translation = Vec3::X * 10.0;
+    let second = app.world_mut().spawn(bundle).id();
+    app.world_mut().resource_mut::<Run>().abilities.push(Owned {
+        def: data::ability("hunters_mark"),
+        level: 1,
+        cd: 0.0,
+    });
+    app.world_mut()
+        .resource_mut::<Time>()
+        .advance_by(std::time::Duration::from_secs_f32(0.1));
+    app.world_mut().run_system_once(cast_abilities).unwrap();
+    assert!(app.world().get::<marking::Marked>(first).is_none());
+    assert_eq!(
+        app.world()
+            .get::<marking::Marked>(second)
+            .unwrap()
+            .0
+            .attack_power(0.0),
+        20.0
+    );
+    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+    near(app.world().get::<Enemy>(second).unwrap().hp, 200.0);
+    app.world_mut().get_mut::<Enemy>(first).unwrap().hp = 300.0;
+    app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.0;
+    app.world_mut().run_system_once(cast_abilities).unwrap();
+    assert!(app.world().get::<marking::Marked>(second).is_none());
+    assert_eq!(
+        app.world()
+            .get::<marking::Marked>(first)
+            .unwrap()
+            .0
+            .caster(),
+        Some(caster)
+    );
+    {
+        let mut run = app.world_mut().resource_mut::<Run>();
+        run.bonus.targets = 1;
+        run.abilities[0].level = 8;
+        run.abilities[0].cd = 0.0;
+        run.milestones = run.milestones.with_ranks(&[(1, 1343, 5)]);
+    }
+    app.world_mut().run_system_once(cast_abilities).unwrap();
+    for target in [first, second] {
+        near(
+            app.world()
+                .get::<marking::Marked>(target)
+                .unwrap()
+                .0
+                .attack_power(0.0),
+            149.5,
+        );
+    }
+    app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.0;
+    app.world_mut().run_system_once(cast_abilities).unwrap();
+    near(
+        app.world()
+            .get::<marking::Marked>(first)
+            .unwrap()
+            .0
+            .attack_power(0.0),
+        149.5,
+    );
+    app.world_mut().resource_mut::<Run>().elapsed = 120.0;
+    app.world_mut().run_system_once(marking::prune).unwrap();
+    assert!(app.world().get::<marking::Marked>(first).is_none());
+    assert!(app.world().get::<marking::Marked>(second).is_none());
+}
+
+#[test]
+fn mark_parameters_ignore_damage_crit_area_and_other_amulets() {
+    let (mut app, _, _) = fixture("hunters_mark", 100.0);
+    hunter(&mut app);
+    let run = app.world().resource::<Run>();
+    let mut stats = run.stats();
+    stats.might = 100.0;
+    stats.crit = 1.0;
+    stats.area = 50.0;
+    stats.targets = 20;
+    let owned = Owned {
+        def: data::ability("hunters_mark"),
+        level: 8,
+        cd: 0.0,
+    };
+    let p = Params::new(&owned, &stats, run.milestones);
+    assert_eq!(
+        (p.mark_power, p.dmg, p.crit, p.radius),
+        (130.0, 0.0, 0.0, 0.0)
+    );
+    assert_eq!((p.duration, p.range, p.count), (120.0, 100.0, 6));
+    stats.legendary = Some((
+        "hunters_mark",
+        crate::survivors::campaign::Bonus {
+            might: 0.05,
+            ..Default::default()
+        },
+    ));
+    near(
+        Params::new(&owned, &stats, run.milestones).mark_power,
+        136.5,
+    );
+    stats.legendary.as_mut().unwrap().0 = "aimed_shot";
+    assert_eq!(
+        Params::new(&owned, &stats, run.milestones).mark_power,
+        130.0
+    );
+}

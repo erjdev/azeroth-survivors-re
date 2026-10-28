@@ -2736,6 +2736,9 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
         _ => "damage",
     };
     let mut gains = Vec::new();
+    if def.kind == Kind::Mark {
+        gains.push(format!("{} ranged attack power", num(next.mark_power)));
+    }
     if def.kind == Kind::Aspect {
         gains.push(format!("{} dodge chance", pct(next.dodge_chance)));
     }
@@ -2795,13 +2798,17 @@ fn ability_tip(
     ];
     let range = match def.kind {
         Kind::Melee => Some("Melee Range".to_string()),
-        Kind::Bolt | Kind::Strike | Kind::Chain | Kind::Dot | Kind::Ground | Kind::Totem => {
-            Some(strings.by_key(
-                "SPELL_RANGE",
-                "%s yd range",
-                &[num(now.range).as_str().into()],
-            ))
-        }
+        Kind::Mark
+        | Kind::Bolt
+        | Kind::Strike
+        | Kind::Chain
+        | Kind::Dot
+        | Kind::Ground
+        | Kind::Totem => Some(strings.by_key(
+            "SPELL_RANGE",
+            "%s yd range",
+            &[num(now.range).as_str().into()],
+        )),
         _ => None,
     };
     let coating = matches!(def.kind, Kind::Coating(_) | Kind::Aspect);
@@ -2953,6 +2960,7 @@ fn ability_tip(
             | Kind::WeaponBuff
             | Kind::Coating(_)
             | Kind::Aspect
+            | Kind::Mark
     ) {
         lines.push(TipLine::new(
             format!(
@@ -3371,8 +3379,9 @@ mod card_icon_tests {
     }
 
     #[test]
-    fn hunter_can_acquire_and_upgrade_sting_and_melee_through_normal_offers() {
+    fn hunter_can_acquire_and_upgrade_attacks_and_mark_through_normal_offers() {
         for key in [
+            "hunters_mark",
             "scorpid_sting",
             "raptor_strike",
             "mongoose_bite",

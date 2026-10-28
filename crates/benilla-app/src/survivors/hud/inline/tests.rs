@@ -321,3 +321,51 @@ fn backstab_cards_explain_position_and_weapon_with_inline_damage_growth() {
         assert!(!text.contains("new rank"));
     }
 }
+
+#[test]
+fn hunters_mark_shows_power_growth_inline_and_explains_its_attack_scope() {
+    let def = data::ability("hunters_mark");
+    let mut run = Run {
+        class: &data::CLASSES[2],
+        ..Default::default()
+    };
+    run.abilities.push(crate::survivors::Owned {
+        def,
+        level: 1,
+        cd: 0.0,
+    });
+    for choice in [Choice::NewAbility(def), Choice::Upgrade(0)] {
+        let spans = describe(choice, &run);
+        assert!(spans.contains(&("20 » 30 ranged attack power".into(), card_growth::GAIN)));
+        let text = plain(&spans);
+        assert!(text.contains("Aimed Shot and Multi-Shot"));
+        assert!(text.contains("Replaces your previous selection"));
+        assert!(!text.contains("new rank"));
+        assert!(!text.contains("sec »"));
+    }
+}
+
+#[test]
+fn mark_power_uses_the_boot_string_key_in_green_upgrade_prose() {
+    let script = benilla_ui::script::UiScript::new().unwrap();
+    script
+        .lua()
+        .load(r#"RANGED_ATTACK_POWER = "Puissance à distance""#)
+        .exec()
+        .unwrap();
+    let strings = Strings::from_script(&script);
+    let def = data::ability("hunters_mark");
+    let mut run = Run::default();
+    run.abilities.push(Owned {
+        def,
+        level: 1,
+        cd: 0.0,
+    });
+    let spans = super::describe(Choice::Upgrade(0), &run, &strings);
+    assert!(
+        spans
+            .iter()
+            .any(|(text, color)| text == "20 » 30 puissance à distance"
+                && *color == card_growth::GAIN)
+    );
+}

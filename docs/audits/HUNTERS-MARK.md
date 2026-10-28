@@ -114,3 +114,16 @@ replacement policy and eight-rank power curve still need explicit Survivors rule
 
 These requirements extend the [Hunter dependency audit](HUNTER-TALENT-DEPENDENCIES.md).
 Neither a damage-only mark nor a tooltip-only tracking promise closes the node.
+
+
+## Acquired integration — 2026-10-28
+
+The local implementation now uses the explicit automatic-casting and eight-rank
+rules in [the game specification](../SURVIVORS.md). Ability acquisition, training,
+world aura synchronization and a distinct gold minimap diamond are wired in.
+273 core and 521 app tests pass, with feature-enabled Clippy and the native build.
+Wide/compact cards and talent screens were captured; native purchases persisted
+Efficiency 5/5 and Improved Hunter's Mark 3/5 in an isolated profile. Scoped
+integration is running. Earlier sections record the dependency investigation;
+acquisition and training are now exposed. Rendered world aura/minimap and attended
+combat acceptance remain open.

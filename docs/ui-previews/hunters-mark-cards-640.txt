@@ -1,0 +1,6 @@
+page=cards
+width=640
+height=720
+hero=3
+abilities=hunters_mark:1,hunters_mark:7
+profile=selected

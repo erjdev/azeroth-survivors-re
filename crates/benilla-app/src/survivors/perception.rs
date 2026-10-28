@@ -17,13 +17,16 @@ impl Perception<'_, '_> {
         !self.concealed.is_empty()
     }
 
+    pub(super) fn marked(&self, observer: Option<Entity>, target: Entity, now: f32) -> bool {
+        observer.is_some_and(|observer| {
+            self.marks
+                .get(target)
+                .is_ok_and(|mark| mark.0.reveals_to(observer, now))
+        })
+    }
+
     pub(super) fn visible(&self, observer: Option<Entity>, target: Entity, now: f32) -> bool {
-        !self.concealed.contains(target)
-            || observer.is_some_and(|observer| {
-                self.marks
-                    .get(target)
-                    .is_ok_and(|mark| mark.0.reveals_to(observer, now))
-            })
+        !self.concealed.contains(target) || self.marked(observer, target, now)
     }
 }
 
