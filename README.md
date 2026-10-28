@@ -50,7 +50,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-27-scorpid-sting/codex.png" alt="Codex"><br>2026-10-27 · Scorpid Sting base values and its spell-specific amulet.<br><a href="docs/images/screenshots/2026-10-27-hunter-compact/codex.png">800×600 at 125%</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-polearm-specialization/trained.png" alt="Talents"><br>2026-10-27 · Polearm purchase with green inline values and adjacent saved specs; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-hunter-compact/details.png">800×600 description at 125%</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-27-mace-specialization/available.png" alt="Talents"><br>2026-10-27 · Mace final-rank upgrade with green inline values and adjacent saved specs; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-27-hunter-compact/details.png">800×600 description at 125%</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

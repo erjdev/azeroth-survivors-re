@@ -15,8 +15,9 @@ storage. Runtime icons, textures and models come from the user's data folder.
 The core catalog now validates these stable supplemental identities and the install
 audit decodes both icons. Both are now connected to Warrior Hogger rewards and Collection/Drop Tables.
 Native human male previews resolve both attachments, with independent worn and
-cosmetic choices. Other bodies/poses and live acquisition remain open; Mace and
-Polearm talent effects still need implementation.
+cosmetic choices. Mace stun and Polearm critical-chance talents now use these
+worn identities, with rule/app tests and native purchases verified. Other
+bodies/poses, live acquisition and balance remain open.
 
 | Weapon | Entry | Display | Inventory type | Class | Subclass | Material | Sheath |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

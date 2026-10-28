@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Mace Specialization
+
+Equipped maces now give Warrior weapon hits a 1/2/3/4/6% chance to stun their
+target for 3 seconds (bosses: 0.9 seconds). Longer stuns remain intact; splash,
+bleeds, generated extra strikes and cosmetic weapons do not trigger it.
+
+![Final-rank upgrade from four to six percent](images/screenshots/2026-10-27-mace-specialization/available.png)
+
+![Purchased maximum rank](images/screenshots/2026-10-27-mace-specialization/trained.png)
+
+235 core tests, 463 app tests and core/app all-target Clippy pass. Native 1600×900
+purchase and saved rank verified with seeded gear/points; incremental build: 23.45s.
+Coverage: 279/432 talents. Full integration for this change, Windows and live
+balance remain open.
+
 ## 2026-10-27 — Polearm Specialization
 
 Warriors wielding a polearm now gain 1–5 percentage points of critical chance

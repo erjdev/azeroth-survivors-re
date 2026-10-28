@@ -779,6 +779,34 @@ impl Milestones {
         self.trained_value(TalentStat::SwordExtraAttack)
     }
 
+    /// Mace Specialization uses the original proc table, including its 6% final rank.
+    pub fn mace_stun_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 0
+            || !damage.is_finite()
+            || damage <= 0.0
+            || !self
+                .weapon
+                .is_some_and(|weapon| weapon.kind == crate::gear_loadout::MeleeKind::Mace)
+            || !matches!(
+                key,
+                "cleave"
+                    | "heroic_strike"
+                    | "whirlwind"
+                    | "sweeping_strikes"
+                    | "execute"
+                    | "mortal_strike"
+                    | "retaliation"
+            )
+        {
+            return 0.0;
+        }
+        let rank = definitions(self.class)
+            .iter()
+            .position(|node| node.stat == TalentStat::MaceStun)
+            .map_or(0, |index| self.training[index]);
+        f32::from(mace_stun_percent(rank)) / 100.0
+    }
+
     /// Deep Wounds snapshots the milestone plus trained fraction of a critical direct attack.
     /// Called before execute and echo expansion; ticks cannot trigger more bleeds.
     pub fn critical_bleed(self, key: &str, damage: f32, critical: bool) -> f32 {
@@ -1576,6 +1604,7 @@ pub enum TalentStat {
     AxeCrit,
     PolearmCrit,
     SwordExtraAttack,
+    MaceStun,
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
     SpellGroupCooldown(&'static [&'static str]),
@@ -1674,6 +1703,11 @@ fn inline_stat_label(tail: &str) -> &str {
         .unwrap_or("")
 }
 
+// Spell.dbc procChance for 12284/12701–12704; rank five is deliberately non-linear.
+fn mace_stun_percent(rank: u8) -> u8 {
+    [0, 1, 2, 3, 4, 6][usize::from(rank.min(5))]
+}
+
 impl TalentDefinition {
     /// Inline this node's linear contribution; retain authored scope and caveats.
     /// Supported coupled effects share their rank scale; other compounds/procs retain a breakdown.
@@ -1687,6 +1721,23 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::MaceStun {
+            let rank = rank.min(self.max_rank);
+            let (prefix, suffix) = self.description.split_once("1–6% chance")?;
+            let current = mace_stun_percent(rank);
+            let next = mace_stun_percent(rank.saturating_add(1));
+            let value = if rank == self.max_rank {
+                format!("{current}% chance")
+            } else {
+                format!("{current} » {next}% chance")
+            };
+            let start = prefix.len();
+            let end = start + value.len();
+            return Some((
+                format!("{prefix}{value}{suffix}"),
+                std::iter::once(start..end).collect(),
+            ));
+        }
         if self.stat == TalentStat::BladeFlurry {
             let rank = rank.min(self.max_rank);
             let (haste, targets) = if rank == 0 {
@@ -1808,6 +1859,7 @@ impl TalentDefinition {
             | TalentStat::AxeCrit
             | TalentStat::PolearmCrit
             | TalentStat::SwordExtraAttack
+            | TalentStat::MaceStun
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -1931,6 +1983,15 @@ impl TalentDefinition {
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
         let rank = rank.min(self.max_rank);
+        if self.stat == TalentStat::MaceStun {
+            let current = mace_stun_percent(rank);
+            let next = mace_stun_percent(rank.saturating_add(1));
+            return if rank == self.max_rank {
+                format!("This talent: {current}% stun chance (maximum rank)")
+            } else {
+                format!("This talent: {current} to {next}% stun chance next rank")
+            };
+        }
         if self.stat == TalentStat::Permafrost {
             let strength = |r| (self.per_rank * f32::from(r) * 100.0).round() as u32;
             return if rank == self.max_rank {
@@ -1990,6 +2051,7 @@ impl TalentDefinition {
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
+            TalentStat::MaceStun => (100.0, "% stun chance"),
             TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit => {
                 (100.0, "% critical chance")
             }
@@ -2107,6 +2169,11 @@ impl TalentDefinition {
 
 /// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
 pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 125, max_rank: 5, name: "Mace Specialization",
+        description: "With a worn mace: 1–6% chance after a direct weapon hit to stun its target for 3 sec (bosses: 0.9 sec). Cosmetic weapons do not qualify. Excludes Thunder Clap, shouts, bleed ticks, splash copies and generated extra strikes",
+        stat: TalentStat::MaceStun, per_rank: 0.01,
+    },
     // Spell.dbc 12165/12830–12833: +1–5 percentage points of polearm critical chance.
     TalentDefinition {
         id: 134, max_rank: 5, name: "Polearm Specialization",
@@ -3462,6 +3529,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::AxeCrit
             | TalentStat::PolearmCrit
             | TalentStat::SwordExtraAttack
+            | TalentStat::MaceStun
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -4950,6 +5018,7 @@ mod stat_talent_tests {
                     | TalentStat::AxeCrit
                     | TalentStat::PolearmCrit
                     | TalentStat::SwordExtraAttack
+                    | TalentStat::MaceStun
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellGroupCooldown(_)
@@ -6481,5 +6550,86 @@ mod sword_training_tests {
         let node = talent_definition(0, 123).unwrap();
         assert!(node.inline_description(0).unwrap().contains("0 » 1%"));
         assert!(node.inline_description(4).unwrap().contains("4 » 5%"));
+    }
+}
+
+#[cfg(test)]
+mod mace_training_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn mace_proc_uses_original_non_linear_ranks_and_matching_weapon_attacks() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 4, 5, 255] {
+                for kind in [
+                    None,
+                    Some(MeleeKind::Mace),
+                    Some(MeleeKind::Sword),
+                    Some(MeleeKind::Polearm),
+                ] {
+                    let base = Milestones {
+                        class,
+                        weapon: kind.map(|kind| MeleeWeapon {
+                            kind,
+                            two_handed: false,
+                        }),
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(0, 125, rank)]);
+                    for key in [
+                        "cleave",
+                        "heroic_strike",
+                        "whirlwind",
+                        "sweeping_strikes",
+                        "execute",
+                        "mortal_strike",
+                        "retaliation",
+                        "thunder_clap",
+                        "demoralizing_shout",
+                        "deep_wounds",
+                        "sword_specialization",
+                        "fireball",
+                    ] {
+                        for damage in [0.0, -1.0, f32::NAN, f32::INFINITY, 20.0] {
+                            let expected = if class == 0
+                                && kind == Some(MeleeKind::Mace)
+                                && damage == 20.0
+                                && matches!(
+                                    key,
+                                    "cleave"
+                                        | "heroic_strike"
+                                        | "whirlwind"
+                                        | "sweeping_strikes"
+                                        | "execute"
+                                        | "mortal_strike"
+                                        | "retaliation"
+                                ) {
+                                [0.0, 0.01, 0.02, 0.03, 0.04, 0.06][usize::from(rank.min(5))]
+                            } else {
+                                0.0
+                            };
+                            assert_eq!(trained.mace_stun_chance(key, damage), expected);
+                            assert_eq!(trained.cast(key), base.cast(key));
+                        }
+                    }
+                }
+            }
+        }
+        let node = talent_definition(0, 125).unwrap();
+        for (rank, expected) in [
+            (0, "0 » 1% chance"),
+            (4, "4 » 6% chance"),
+            (5, "6% chance"),
+            (255, "6% chance"),
+        ] {
+            let (text, ranges) = node.inline_description_with_values(rank).unwrap();
+            assert_eq!(&text[ranges[0].clone()], expected);
+            assert!(text.contains("3 sec (bosses: 0.9 sec)"));
+            assert!(node.rank_preview(rank).contains(if rank >= 5 {
+                "maximum rank"
+            } else {
+                "next rank"
+            }));
+        }
     }
 }

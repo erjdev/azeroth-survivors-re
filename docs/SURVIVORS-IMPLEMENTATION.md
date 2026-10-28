@@ -8320,3 +8320,21 @@ Windows and live balance remain open. Mace Specialization is still pending.
 Full native integration passes at `42b7f3f` in 611 seconds, including player-mode
 tests. Data/player stages each report 31 missing-addon skips. This supersedes
 the pending full-gate note above; Mace source changes start after this checkpoint.
+
+### Mace Specialization implementation — 2026-10-27
+
+Checkout Spell.dbc spells 12284/12701–12704 encode proc chances 1/2/3/4/6%,
+triggering spell 5530. SpellDuration row 27 is 3000ms. Node 125 now uses that
+non-linear table for both its effect and inline upgrade description. A worn mace
+qualifies; appearance alone does not. Each original direct Warrior weapon hit
+may stun its target for 3s (bosses 0.9s, matching existing control scaling).
+Generated extra strikes, splash copies, bleed ticks, dead/missing targets and
+paused processing do not trigger it. Longer existing stuns are preserved.
+
+235 core tests, 463 final app tests and core/app all-target Clippy pass, including
+original-target/boss/longer-stun/pause/loot behavior and saved gear/spec/refund
+checks. Native 1600×900 verifies 4→6% inline chance, the 4→5 purchase (Arms 24→25),
+maximum-rank text and persisted rank with Worn Mace equipped. Seeded points/gear
+are explicit; no unattended combat was run. Build: 23.45s. Screenshots are inline
+in CHANGELOG and the reusable preview preset is included. Coverage: 279/432,
+Warrior 40/52. Full integration, Windows and live balance remain open.
