@@ -4,18 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
-## 2026-10-28 — Mind Flay target eligibility
+## 2026-10-28 — Mind Flay targeting and channel lifecycle
 
 Mind Flay now skips enemies behind solid scenery before committing its targets.
 It can choose a farther clear enemy; when none qualify, it uses the short no-target
 retry instead of spending the spell cooldown. Channels still recheck obstruction
 while connected.
 
-All 537 app tests and feature-enabled Clippy pass, including Shadow Weaving,
-Blackout, multistrike and healing capped to health removed by channel ticks.
-Native build passed in 1m13s; six-package scoped checks pass with 31 missing-addon
-skips. Full pre-merge gates remain required. This changes gameplay logic only; the UI screenshots
-below remain the current visual milestone. Rendered combat acceptance remains open.
+All 538 app tests pass, including cast-time damage retained after Power Infusion
+expires, extended Shadow Reach, pause/resume and exactly-once catch-up. Coverage
+also includes Shadow Weaving, Blackout, multistrike and healing capped to health
+removed by channel ticks.
+The targeting-fix native build passed in 1m13s; the later lifecycle checkpoint
+adds tests and specification only. Feature-enabled Clippy and six-package scoped
+checks pass (31 missing-addon skips). Full pre-merge gates remain required. The UI
+screenshots below remain the current visual milestone. Rendered combat acceptance remains open.
 
 ## 2026-10-28 — Acquired Mind Flay
 

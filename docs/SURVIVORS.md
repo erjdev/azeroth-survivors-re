@@ -719,6 +719,33 @@ This is a self-only automatic Survivors conversion, separate from Inner Focus
 and the 30-point Discipline milestone. HUD status shows the active countdown.
 
 
+### Priest Mind Flay
+
+Shadow node 501 unlocks Mind Flay in run offers; training alone does not occupy an
+ability slot. The acquired spell channels three non-critical ticks, one per second,
+with no immediate hit. Base tick damage is 25, range is 20 yards and recovery is
+four seconds. Ability ranks add 30% of base damage per rank; ordinary single-target
+rank/+target rules apply. Recovery cannot be shorter than the three-second channel.
+
+Each cast fixes its victims. Selection skips dead, concealed, out-of-range or
+solid-world-obstructed enemies before filling target slots. No valid target uses
+the ordinary 200ms retry without spending spell recovery. A connected victim is
+slowed by 50%; the strongest active snare wins without overwriting other timers.
+Lost victims never rejoin that cast. Death, loss of range/visibility or solid-world
+obstruction cancels their unpaid ticks. Movement and other automatic abilities
+remain available; the channel cannot overlap itself.
+
+Shadow Focus and Power Infusion are included in the cast's tick-damage snapshot;
+Infusion expiry does not weaken remaining ticks. Shadow Reach extends selection
+and connection range. Shadow Weaving, Blackout, multistrike and Vampiric Embrace
+settle on paid ticks; healing is capped to health actually removed. Pauses freeze
+active run time and do not consume ticks. A late update emits each owed tick once.
+Historical target-modifier timing across long frames is not yet implemented in
+the shared hit pipeline; this remains an acceptance gap, not a different rule.
+Native channel beams, pose during concurrent casts and Windows combat acceptance
+are tracked in [the Mind Flay audit](audits/MIND-FLAY.md).
+
+
 ### Heart of the Wild individual talent
 
 Druid node 808 grants 4% maximum health per rank, capped at 20%. This is an

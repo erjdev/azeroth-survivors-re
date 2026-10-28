@@ -370,6 +370,91 @@ mod tests {
     }
 
     #[test]
+    fn cast_snapshot_survives_infusion_expiry_and_paused_active_time() {
+        use bevy::ecs::system::RunSystemOnce;
+        let (mut app, target, mut settle) =
+            super::super::abilities::poison_tests::fixture("mind_flay", 1000.0);
+        physics(&mut app);
+        app.world_mut()
+            .spawn((Hero { vy: 0.0, air: 0.0 }, Transform::default()));
+        app.world_mut()
+            .get_mut::<Transform>(target)
+            .unwrap()
+            .translation = Vec3::X * 22.0;
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.class = &super::super::data::CLASSES[4];
+            run.bonus.leech = 0.0;
+            run.elapsed = 14.5;
+            run.milestones = survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 501, 1), (2, 463, 5), (0, 322, 1)]);
+            let talents = run.milestones;
+            run.power_infusion.consume(talents, "smite", 0.0);
+        }
+        app.finish();
+        app.cleanup();
+        app.update();
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_secs(1));
+        app.world_mut()
+            .run_system_once(super::super::abilities::cast_abilities)
+            .unwrap();
+        assert!(app.world().resource::<Channels>().active.is_empty()); // Outside base range.
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.milestones =
+                run.milestones
+                    .with_ranks(&[(2, 501, 1), (2, 463, 5), (0, 322, 1), (2, 881, 3)]);
+            run.abilities[0].cd = 0.0;
+        }
+        app.world_mut()
+            .run_system_once(super::super::abilities::cast_abilities)
+            .unwrap();
+        let channel = &app.world().resource::<Channels>().active[0];
+        assert!((channel.damage - 33.0).abs() < 0.001); // Focus 10%, then Infusion 20%.
+        assert!((channel.range - 24.0).abs() < 0.001);
+        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+
+        let mut playing = Schedule::default();
+        playing.add_systems(tick.run_if(in_state(super::super::Phase::Playing)));
+        app.world_mut()
+            .insert_resource(State::new(super::super::Phase::Paused));
+        // Wall time may pass in a pause; active run time stays fixed and no pulses settle.
+        for _ in 0..3 {
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs(10));
+            playing.run(app.world_mut());
+            settle.run(app.world_mut());
+        }
+        assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, 1000.0);
+        assert_eq!(app.world().resource::<Channels>().active.len(), 1);
+        app.world_mut()
+            .insert_resource(State::new(super::super::Phase::Playing));
+        // A late frame catches all three ticks after the cast-time buff has expired.
+        app.world_mut().resource_mut::<Run>().elapsed = 17.5;
+        {
+            let run = app.world().resource::<Run>();
+            assert_eq!(
+                run.power_infusion.active_bonus(run.milestones, run.elapsed),
+                0.0
+            );
+        }
+        playing.run(app.world_mut());
+        assert_eq!(app.world().resource::<Messages<Hit>>().len(), 3);
+        settle.run(app.world_mut());
+        assert!((app.world().get::<Enemy>(target).unwrap().hp - 901.0).abs() < 0.001);
+        assert!(app.world().resource::<Channels>().active.is_empty());
+        playing.run(app.world_mut());
+        settle.run(app.world_mut());
+        assert!((app.world().get::<Enemy>(target).unwrap().hp - 901.0).abs() < 0.001);
+    }
+
+    #[test]
     fn slow_is_immediate_and_cancellation_preserves_unrelated_snares() {
         let mut world = World::new();
         let caster = world.spawn_empty().id();

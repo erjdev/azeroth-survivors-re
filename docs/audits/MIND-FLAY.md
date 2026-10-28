@@ -61,9 +61,10 @@ victims. If none qualify, the usual 200ms no-target retry applies without spendi
 the spell recovery or triggering successful-cast bonuses. Missing collision state
 also prevents channel creation. Active channels still recheck obstruction each update.
 
-All 537 Survivors app tests pass, including acquisition gating, obstruction before
+All 538 Survivors app tests pass, including acquisition gating, obstruction before
 selection, no immediate hit, no overlapping cast, inline upgrades and independent
-beam lifecycle. Paid-tick settlement tests cover Shadow Weaving, Blackout,
+beam lifecycle. The cast snapshot test covers Power Infusion expiry, Shadow Reach,
+pause/resume and three exactly-once catch-up ticks. Paid-tick settlement tests cover Shadow Weaving, Blackout,
 multistrike and Vampiric Embrace capped to removed health. Feature-enabled Clippy
 passes; the targeting-fix native build took 1m13s. Six-package scoped checks pass
 with 31 missing-addon skips; full pre-merge gates remain required. The isolated Priest
@@ -73,6 +74,24 @@ cover 1100×720 and 640×720 talent/card layouts. Definition coverage is 297/432
 
 The independent anchors and channel fields are tested, but their rendered beams,
 pose during other autocasts, sounds and attended Windows gameplay remain unverified.
+
+## Remaining event-time settlement work
+
+The core returns scheduled pulse times, but the adapter currently converts them
+to ordinary `Hit` messages and loses those times. The shared consumer also handles
+missiles, splash and periodic effects, while enemy debuff timers are advanced by
+a separate system. Adding a timestamp to channels alone would not reconstruct
+which vulnerability was active at an earlier tick.
+
+Complete this as a shared damage-timeline change: preserve occurrence times for
+all queued damage, order simultaneous/catch-up events deterministically, and
+advance target modifier expiry/refresh to each event before settlement. Apply
+new procs at the event time, then advance remaining timers to the current run
+time exactly once. Keep caster damage snapshots separate from target modifiers.
+Fixtures must compare fine-frame and long-frame results across expiry boundaries,
+interleaved sources, death/overkill, refresh, and paused active time. Until then,
+cast snapshots and exactly-once catch-up are verified independently of historical
+target-modifier fidelity.
 
 ## Runtime and interface acceptance
 
