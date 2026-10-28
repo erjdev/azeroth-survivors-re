@@ -887,13 +887,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 28 / 51 | 9 / 9 |
+| Rogue | 29 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 284 / 432 | 81 / 81 |
+| Total | 285 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8625,3 +8625,20 @@ save and card evidence are required before the implementation checkpoint.
 
 Fist integration passed in 609 seconds (10m09s), with 31 missing-addon skips
 per data/player run. Mace source changes began after its terminal success.
+
+### Rogue Mace Specialization implementation — 2026-10-28
+
+Node 184 now applies its non-linear stun chance and explicit 1–5% direct-damage
+conversion with a worn mace. The original-hit settlement path supports both
+Warrior and Rogue eligibility while preserving control duration, splash isolation,
+pause behavior, dead/missing targets and one loot award. 253 core tests and 477
+app tests pass, including actual ranked critical hits, unchanged periodic damage,
+saved specs/gear, refunds and cosmetic isolation. Core/app Clippy pass.
+
+Native 1600×900 purchase changes rank 4→5, Combat 24→25 and points 27→26. Both
+inline green values update independently; the saved record retains worn mace and
+fist appearance. 1280×720 card previews show the damage conversion. Screenshots
+are embedded in CHANGELOG; fixtures use seeded ownership/points. Incremental
+build: 21 seconds. Definition coverage is 285/432 (Rogue 29/51), not complete
+combat/balance acceptance. Full integration is running; Windows and live balance
+remain open. Weapon Expertise and remaining class mechanisms are still pending.

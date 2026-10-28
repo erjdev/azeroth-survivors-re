@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Rogue mace training
+
+Mace Specialization now gives direct Rogue weapon hits a 1/2/3/4/6% chance to
+stun while a mace is equipped. Its weapon-skill component becomes +1–5% direct
+damage, explicitly described as a Survivors conversion. Stuns last 3 seconds
+(0.9 for bosses); longer control is preserved. Cosmetics, bleed ticks, splash
+copies and extra strikes cannot trigger the stun.
+
+![Both mace upgrade values inline](images/screenshots/2026-10-28-rogue-mace/available.png)
+
+![Final mace rank purchased](images/screenshots/2026-10-28-rogue-mace/trained.png)
+
+![Mace-trained damage in upgrade cards](images/screenshots/2026-10-28-rogue-mace/cards.png)
+
+253 core tests, 477 app tests and core/app Clippy pass. Native purchase/save at
+1600×900 and cards at 1280×720 verified; incremental build: 21 seconds. Definition
+coverage: 285/432 (Rogue 29/51). Full integration is running; Windows and live
+balance remain open.
+
 ## 2026-10-28 — Rogue fist training
 
 Fist Weapon Specialization adds 1–5% critical chance to direct Rogue weapon

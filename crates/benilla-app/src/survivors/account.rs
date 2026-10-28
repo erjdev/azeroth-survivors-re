@@ -3800,6 +3800,86 @@ mod tests {
     }
 
     #[test]
+    fn rogue_mace_training_tracks_saved_worn_gear_specs_and_refunds() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(3);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (1, 201, 2),
+            (1, 203, 3),
+            (1, 186, 5),
+            (1, 181, 5),
+            (1, 182, 5),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        account.classes[3].pieces.fill(1);
+        let mace = "weapon:rogue:worn-mace";
+        assert!(account.supplemental.collect(3, mace));
+        assert!(account.classes[3]
+            .equipment
+            .wear_supplemental(3, &account.supplemental, 8, mace));
+        let damage = |account: &Account| {
+            account
+                .milestones_picked(3, Some(hero))
+                .cast("sinister_strike")
+                .damage
+        };
+        let base = damage(&account);
+        let stun = |account: &Account| {
+            account
+                .milestones_picked(3, Some(hero))
+                .mace_stun_chance("sinister_strike", 20.0)
+        };
+        assert_eq!(stun(&account), 0.0);
+        for _ in 0..5 {
+            assert!(account.learn_talent(hero, 1, 184, 5, 4, true));
+        }
+        assert!(!account.learn_talent(hero, 1, 184, 5, 4, true));
+        assert!((damage(&account) - base * 1.05).abs() < 0.00001);
+        let progress = &mut account.classes[3];
+        assert!(progress.equipment.show_legacy(
+            &progress.pieces,
+            8,
+            survivors_core::equipment::Look::Piece(2)
+        ));
+        assert!((damage(&account) - base * 1.05).abs() < 0.00001);
+        assert_eq!(stun(&account), 0.06);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(damage(&loaded), damage(&account));
+        assert_eq!(stun(&loaded), 0.06);
+        loaded.select_spec(hero, 1);
+        assert_eq!(damage(&loaded), 1.0);
+        assert_eq!(stun(&loaded), 0.0);
+        loaded.select_spec(hero, 0);
+        assert!(loaded.unlearn_talent(hero, 184, true));
+        assert!((damage(&loaded) - base * 1.04).abs() < 0.00001);
+        assert_eq!(stun(&loaded), 0.04);
+        let progress = &mut loaded.classes[3];
+        assert!(progress
+            .equipment
+            .show_supplemental(3, &loaded.supplemental, 8, mace));
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, Some(2)));
+        assert_eq!(damage(&loaded), base);
+        assert_eq!(stun(&loaded), 0.0);
+        assert_eq!(loaded.milestones_picked(3, Some(u32::MAX)).weapon, None);
+    }
+
+    #[test]
     fn fist_training_tracks_saved_worn_gear_specs_and_refunds() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

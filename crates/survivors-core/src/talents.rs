@@ -500,6 +500,20 @@ impl Milestones {
                     {
                         effect.crit += value;
                     }
+                    TalentStat::RogueMace
+                        if self.weapon.is_some_and(|weapon| {
+                            weapon.kind == crate::gear_loadout::MeleeKind::Mace
+                        }) && matches!(
+                            key,
+                            "sinister_strike"
+                                | "eviscerate"
+                                | "blade_flurry"
+                                | "gouge"
+                                | "kidney_shot"
+                        ) =>
+                    {
+                        effect.damage *= 1.0 + value;
+                    }
                     stat @ (TalentStat::TwoHandedDamage
                     | TalentStat::OneHandedDamage
                     | TalentStat::AxeCrit
@@ -824,13 +838,8 @@ impl Milestones {
 
     /// Mace Specialization uses the original proc table, including its 6% final rank.
     pub fn mace_stun_chance(self, key: &str, damage: f32) -> f32 {
-        if self.class != 0
-            || !damage.is_finite()
-            || damage <= 0.0
-            || !self
-                .weapon
-                .is_some_and(|weapon| weapon.kind == crate::gear_loadout::MeleeKind::Mace)
-            || !matches!(
+        let eligible = match self.class {
+            0 => matches!(
                 key,
                 "cleave"
                     | "heroic_strike"
@@ -839,13 +848,25 @@ impl Milestones {
                     | "execute"
                     | "mortal_strike"
                     | "retaliation"
-            )
+            ),
+            3 => matches!(
+                key,
+                "sinister_strike" | "eviscerate" | "blade_flurry" | "gouge" | "kidney_shot"
+            ),
+            _ => false,
+        };
+        if !eligible
+            || !damage.is_finite()
+            || damage <= 0.0
+            || !self
+                .weapon
+                .is_some_and(|w| w.kind == crate::gear_loadout::MeleeKind::Mace)
         {
             return 0.0;
         }
         let rank = definitions(self.class)
             .iter()
-            .position(|node| node.stat == TalentStat::MaceStun)
+            .position(|node| matches!(node.stat, TalentStat::MaceStun | TalentStat::RogueMace))
             .map_or(0, |index| self.training[index]);
         f32::from(mace_stun_percent(rank)) / 100.0
     }
@@ -1670,6 +1691,7 @@ pub enum TalentStat {
     FistCrit,
     SwordExtraAttack,
     MaceStun,
+    RogueMace,
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
     SpellGroupCooldown(&'static [&'static str]),
@@ -1787,6 +1809,31 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::RogueMace {
+            let rank = rank.min(self.max_rank);
+            let (prefix, rest) = self.description.split_once("1–6% chance")?;
+            let (middle, suffix) = rest.split_once("+1% direct damage per rank")?;
+            let stun = if rank == self.max_rank {
+                format!("{}% chance", mace_stun_percent(rank))
+            } else {
+                format!(
+                    "{} » {}% chance",
+                    mace_stun_percent(rank),
+                    mace_stun_percent(rank + 1)
+                )
+            };
+            let damage = if rank == self.max_rank {
+                format!("+{rank}% direct damage")
+            } else {
+                format!("+{rank} » {}% direct damage", rank + 1)
+            };
+            let first = prefix.len()..prefix.len() + stun.len();
+            let second_start = first.end + middle.len();
+            return Some((
+                format!("{prefix}{stun}{middle}{damage}{suffix}"),
+                vec![first, second_start..second_start + damage.len()],
+            ));
+        }
         if self.stat == TalentStat::MaceStun {
             let rank = rank.min(self.max_rank);
             let (prefix, suffix) = self.description.split_once("1–6% chance")?;
@@ -1931,6 +1978,7 @@ impl TalentDefinition {
             | TalentStat::FistCrit
             | TalentStat::SwordExtraAttack
             | TalentStat::MaceStun
+            | TalentStat::RogueMace
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -2054,6 +2102,21 @@ impl TalentDefinition {
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
         let rank = rank.min(self.max_rank);
+        if self.stat == TalentStat::RogueMace {
+            return if rank == self.max_rank {
+                format!(
+                    "This talent: {}% stun chance; +{rank}% direct damage (maximum rank)",
+                    mace_stun_percent(rank)
+                )
+            } else {
+                format!(
+                    "This talent: {} » {}% stun chance; +{rank} » {}% direct damage next rank",
+                    mace_stun_percent(rank),
+                    mace_stun_percent(rank + 1),
+                    rank + 1
+                )
+            };
+        }
         if self.stat == TalentStat::MaceStun {
             let current = mace_stun_percent(rank);
             let next = mace_stun_percent(rank.saturating_add(1));
@@ -2122,7 +2185,7 @@ impl TalentDefinition {
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
-            TalentStat::MaceStun => (100.0, "% stun chance"),
+            TalentStat::MaceStun | TalentStat::RogueMace => (100.0, "% stun chance"),
             TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit | TalentStat::DaggerCrit | TalentStat::FistCrit => {
                 (100.0, "% critical chance")
             }
@@ -3225,6 +3288,12 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 13709/13800–13803: proc 1/2/3/4/6%, plus 1–5 mace skill.
+    TalentDefinition {
+        id: 184, max_rank: 5, name: "Mace Specialization",
+        description: "With a worn mace: 1–6% chance after a direct Rogue weapon hit to stun for 3 sec (bosses 0.9 sec), and +1% direct damage per rank for Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons, bleed ticks, splash copies and generated strikes cannot trigger the stun. Damage is a Survivors weapon-skill conversion; attacks have no skill or miss roll",
+        stat: TalentStat::RogueMace, per_rank: 0.01,
+    },
     // Spell.dbc 13707/13966–13969: +1–5 percentage points of fist critical chance.
     TalentDefinition {
         id: 183, max_rank: 5, name: "Fist Weapon Specialization",
@@ -3639,6 +3708,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::FistCrit
             | TalentStat::SwordExtraAttack
             | TalentStat::MaceStun
+            | TalentStat::RogueMace
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -5133,6 +5203,7 @@ mod stat_talent_tests {
                     | TalentStat::FistCrit
                     | TalentStat::SwordExtraAttack
                     | TalentStat::MaceStun
+                    | TalentStat::RogueMace
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellGroupCooldown(_)
@@ -7110,5 +7181,83 @@ mod fist_specialization_tests {
             .iter()
             .any(|range| text[range.clone()].contains("4 » 5%")));
         assert!(!node.inline_description(255).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod rogue_mace_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn mace_skill_conversion_and_stun_are_scoped_and_capped() {
+        for class in 0..9 {
+            for kind in [
+                None,
+                Some(MeleeKind::Mace),
+                Some(MeleeKind::Fist),
+                Some(MeleeKind::Sword),
+            ] {
+                for rank in [0, 1, 2, 3, 4, 5, 255] {
+                    let base = Milestones {
+                        class,
+                        weapon: kind.map(|kind| MeleeWeapon {
+                            kind,
+                            two_handed: false,
+                        }),
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 184, rank)]);
+                    for key in crate::data::ABILITIES
+                        .iter()
+                        .map(|a| a.key)
+                        .chain(["sword_specialization", "deep_wounds"])
+                    {
+                        let eligible = class == 3
+                            && kind == Some(MeleeKind::Mace)
+                            && matches!(
+                                key,
+                                "sinister_strike"
+                                    | "eviscerate"
+                                    | "blade_flurry"
+                                    | "gouge"
+                                    | "kidney_shot"
+                            );
+                        let mut expected = base.cast(key);
+                        if eligible {
+                            expected.damage *= 1.0 + 0.01 * f32::from(rank.min(5));
+                        }
+                        assert_eq!(trained.cast(key), expected, "{class} {kind:?} {rank} {key}");
+                        for damage in [0.0, -1.0, f32::NAN, f32::INFINITY, 20.0] {
+                            let chance = if eligible && damage == 20.0 {
+                                [0.0, 0.01, 0.02, 0.03, 0.04, 0.06][usize::from(rank.min(5))]
+                            } else {
+                                0.0
+                            };
+                            assert_eq!(
+                                trained.mace_stun_chance(key, damage),
+                                chance,
+                                "{class} {kind:?} {rank} {key}"
+                            );
+                        }
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+    }
+    #[test]
+    fn both_mace_upgrade_values_are_inline_and_green() {
+        let node = talent_definition(3, 184).unwrap();
+        let (text, ranges) = node.inline_description_with_values(4).unwrap();
+        assert_eq!(ranges.len(), 2);
+        assert_eq!(&text[ranges[0].clone()], "4 » 6% chance");
+        assert_eq!(&text[ranges[1].clone()], "+4 » 5% direct damage");
+        let max = node.inline_description(255).unwrap();
+        assert!(max.contains("6% chance"));
+        assert!(max.contains("+5% direct damage"));
+        assert!(!max.contains(" » "));
+        assert!(node
+            .rank_preview(4)
+            .contains("4 » 6% stun chance; +4 » 5% direct damage"));
     }
 }

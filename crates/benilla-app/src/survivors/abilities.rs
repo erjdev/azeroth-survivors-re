@@ -5494,6 +5494,63 @@ mod milestone_tests {
     }
 
     #[test]
+    fn rogue_mace_damage_reaches_ranked_hits_without_changing_periodic_damage() {
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        let base = Milestones {
+            class: 3,
+            weapon: Some(MeleeWeapon {
+                kind: MeleeKind::Mace,
+                two_handed: false,
+            }),
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(1, 184, 5)]);
+        let mut stats = Run::default().stats();
+        stats.might = 1.4;
+        stats.crit = 1.0;
+        stats.targets = 4;
+        for key in [
+            "sinister_strike",
+            "eviscerate",
+            "blade_flurry",
+            "gouge",
+            "kidney_shot",
+            "rupture",
+            "fireball",
+        ] {
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                let multiplier = if matches!(key, "rupture" | "fireball") {
+                    1.0
+                } else {
+                    1.05
+                };
+                assert!(
+                    (after.dmg - before.dmg * multiplier).abs() < 0.0001,
+                    "{key} {level}"
+                );
+                assert_eq!(after.dot, before.dot);
+                assert_eq!(after.crit, before.crit);
+                assert_eq!(after.cooldown, before.cooldown);
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                let (damage, critical) =
+                    roll(&mut Rng(17), after.crit, after.crit_damage, after.dmg);
+                let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, critical);
+                assert!(hit.crit);
+                assert_eq!(hit.damage, after.dmg * after.crit_damage);
+                assert_eq!(hit.dot, before.dot);
+            }
+        }
+    }
+
+    #[test]
     fn weapon_crit_training_reaches_ranked_casts_without_changing_area_or_bleeds() {
         use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
         for (kind, talent) in [(MeleeKind::Dagger, 182), (MeleeKind::Fist, 183)] {
@@ -9377,149 +9434,161 @@ mod sword_hit_tests {
     #[test]
     fn mace_proc_stuns_original_target_without_shortening_control_or_splashing() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
-        for (source, boss, prior_stun, hp, dead, despawn, paused) in [
-            ("cleave", false, 0.0, 100.0, false, false, false),
-            ("cleave", true, 0.0, 100.0, false, false, false),
-            ("cleave", false, 6.0, 100.0, false, false, false),
-            ("cleave", false, 0.0, 5.0, false, false, false),
-            (
-                "sword_specialization",
-                false,
-                0.0,
-                100.0,
-                false,
-                false,
-                false,
-            ),
-            ("deep_wounds", false, 0.0, 100.0, false, false, false),
-            ("cleave", false, 0.0, 100.0, true, false, false),
-            ("cleave", false, 0.0, 100.0, false, true, false),
-            ("cleave", false, 0.0, 100.0, false, false, true),
+        for (class, tree, talent, attack) in [
+            (0, 0, 125, "cleave"),
+            (3, 1, 184, "sinister_strike"),
+            (3, 1, 184, "eviscerate"),
+            (3, 1, 184, "blade_flurry"),
+            (3, 1, 184, "gouge"),
+            (3, 1, 184, "kidney_shot"),
         ] {
-            let mut app = App::new();
-            app.insert_resource(Time::<()>::default())
-                .insert_resource(Run {
-                    milestones: Milestones {
-                        weapon: Some(MeleeWeapon {
-                            kind: MeleeKind::Mace,
-                            two_handed: false,
-                        }),
+            for (source, boss, prior_stun, hp, dead, despawn, paused) in [
+                ("cleave", false, 0.0, 100.0, false, false, false),
+                ("cleave", true, 0.0, 100.0, false, false, false),
+                ("cleave", false, 6.0, 100.0, false, false, false),
+                ("cleave", false, 0.0, 5.0, false, false, false),
+                (
+                    "sword_specialization",
+                    false,
+                    0.0,
+                    100.0,
+                    false,
+                    false,
+                    false,
+                ),
+                ("deep_wounds", false, 0.0, 100.0, false, false, false),
+                ("rupture", false, 0.0, 100.0, false, false, false),
+                ("cleave", false, 0.0, 100.0, true, false, false),
+                ("cleave", false, 0.0, 100.0, false, true, false),
+                ("cleave", false, 0.0, 100.0, false, false, true),
+            ] {
+                let source = if source == "cleave" { attack } else { source };
+                let mut app = App::new();
+                app.insert_resource(Time::<()>::default())
+                    .insert_resource(Run {
+                        milestones: Milestones {
+                            class,
+                            weapon: Some(MeleeWeapon {
+                                kind: MeleeKind::Mace,
+                                two_handed: false,
+                            }),
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(tree, talent, 5)]),
                         ..Default::default()
-                    }
-                    .with_ranks(&[(0, 125, 5)]),
-                    ..Default::default()
-                })
-                .insert_resource(Rng(0))
-                .insert_resource(super::super::account::empty())
-                .insert_resource(State::new(if paused {
-                    super::super::Phase::Paused
-                } else {
-                    super::super::Phase::Playing
-                }))
-                .init_resource::<super::super::Selection>()
-                .init_resource::<PlaySeq>()
-                .init_resource::<PendingHits>()
-                .add_message::<CastEvent>()
-                .add_message::<SpellGoTargets>()
-                .add_message::<SwingMessage>()
-                .add_message::<crate::combat_text::CombatTextSpawn>()
-                .add_message::<Hit>()
-                .add_message::<Loot>()
-                .add_message::<FieldChanged>();
-            let spawn = |world: &mut World, hp, dead, x| {
-                world
-                    .spawn((
-                        Guid(123),
-                        Transform::from_xyz(x, 0.0, 0.0),
-                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
-                        Marks::debuffs(),
-                        Enemy {
-                            def: &data::roster(0).enemies[0],
-                            hp,
-                            max_hp: 100.0,
-                            speed: 3.0,
-                            damage: 1.0,
-                            radius: 0.6,
-                            xp: 1,
-                            boss: false,
-                            elite: false,
-                            attack_cd: 0.0,
-                            slow: 1.0,
-                            slow_t: 0.0,
-                            root_t: 0.0,
-                            frozen_t: 0.0,
-                            winters_chill: Default::default(),
-                            shadow_weaving: Default::default(),
-                            kidney_t: 0.0,
-                            stun_t: 0.0,
-                            fear_t: 0.0,
-                            weaken: 1.0,
-                            weaken_t: 0.0,
-                            dots: vec![],
-                            dead,
-                        },
-                    ))
-                    .id()
-            };
-            let target = spawn(app.world_mut(), hp, dead, 0.0);
-            let neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
-            {
-                let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
-                enemy.boss = boss;
-                enemy.stun_t = prior_stun;
-            }
-            if despawn {
-                app.world_mut().despawn(target);
-            }
-            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
-                source,
-                splash: 2.0,
-                ..Hit::direct(target, 10.0, true)
-            });
-            let mut schedule = Schedule::default();
-            schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
-            schedule.run(app.world_mut());
-            if paused {
-                assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, hp);
-                assert_eq!(app.world().resource::<Run>().damage_done, 0.0);
-                app.world_mut()
-                    .insert_resource(State::new(super::super::Phase::Playing));
-                schedule.run(app.world_mut());
-            }
-            if !despawn && !dead {
-                let enemy = app.world().get::<Enemy>(target).unwrap();
-                assert_eq!(enemy.hp, (hp - 10.0_f32).max(0.0));
-                let expected = if source == "cleave" {
-                    prior_stun.max(if boss { 0.9 } else { 3.0 })
-                } else {
-                    prior_stun
+                    })
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(State::new(if paused {
+                        super::super::Phase::Paused
+                    } else {
+                        super::super::Phase::Playing
+                    }))
+                    .init_resource::<super::super::Selection>()
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let spawn = |world: &mut World, hp, dead, x| {
+                    world
+                        .spawn((
+                            Guid(123),
+                            Transform::from_xyz(x, 0.0, 0.0),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slow: 1.0,
+                                slow_t: 0.0,
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                dots: vec![],
+                                dead,
+                            },
+                        ))
+                        .id()
                 };
-                assert_eq!(enemy.stun_t, expected);
-                assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 93.0);
-                assert_eq!(app.world().resource::<Run>().kills, u32::from(hp <= 10.0));
-                assert_eq!(
-                    app.world().resource::<Messages<Loot>>().len(),
-                    usize::from(hp <= 10.0)
-                );
-            } else {
-                assert_eq!(app.world().resource::<Messages<Loot>>().len(), 0);
-                assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 100.0);
-                if !despawn {
-                    assert_eq!(app.world().get::<Enemy>(target).unwrap().stun_t, prior_stun);
+                let target = spawn(app.world_mut(), hp, dead, 0.0);
+                let neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
+                {
+                    let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
+                    enemy.boss = boss;
+                    enemy.stun_t = prior_stun;
                 }
+                if despawn {
+                    app.world_mut().despawn(target);
+                }
+                app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                    source,
+                    splash: 2.0,
+                    ..Hit::direct(target, 10.0, true)
+                });
+                let mut schedule = Schedule::default();
+                schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
+                schedule.run(app.world_mut());
+                if paused {
+                    assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, hp);
+                    assert_eq!(app.world().resource::<Run>().damage_done, 0.0);
+                    app.world_mut()
+                        .insert_resource(State::new(super::super::Phase::Playing));
+                    schedule.run(app.world_mut());
+                }
+                if !despawn && !dead {
+                    let enemy = app.world().get::<Enemy>(target).unwrap();
+                    assert_eq!(enemy.hp, (hp - 10.0_f32).max(0.0));
+                    let expected = if source == attack {
+                        prior_stun.max(if boss { 0.9 } else { 3.0 })
+                    } else {
+                        prior_stun
+                    };
+                    assert_eq!(enemy.stun_t, expected);
+                    assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 93.0);
+                    assert_eq!(app.world().resource::<Run>().kills, u32::from(hp <= 10.0));
+                    assert_eq!(
+                        app.world().resource::<Messages<Loot>>().len(),
+                        usize::from(hp <= 10.0)
+                    );
+                } else {
+                    assert_eq!(app.world().resource::<Messages<Loot>>().len(), 0);
+                    assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 100.0);
+                    if !despawn {
+                        assert_eq!(app.world().get::<Enemy>(target).unwrap().stun_t, prior_stun);
+                    }
+                }
+                assert_eq!(
+                    app.world().get::<Enemy>(neighbor).unwrap().stun_t,
+                    0.0,
+                    "splash must not stun"
+                );
+                let damage = app.world().resource::<Run>().damage_done;
+                schedule.run(app.world_mut());
+                assert_eq!(
+                    app.world().resource::<Run>().damage_done,
+                    damage,
+                    "no delayed recursion or repeat message"
+                );
             }
-            assert_eq!(
-                app.world().get::<Enemy>(neighbor).unwrap().stun_t,
-                0.0,
-                "splash must not stun"
-            );
-            let damage = app.world().resource::<Run>().damage_done;
-            schedule.run(app.world_mut());
-            assert_eq!(
-                app.world().resource::<Run>().damage_done,
-                damage,
-                "no delayed recursion or repeat message"
-            );
         }
     }
     #[test]
