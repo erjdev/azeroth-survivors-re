@@ -51,7 +51,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-27-raid-source/drops-1280.png" alt="Drop Tables"><br>2026-10-27 · Raid finale armor odds and item inspection; Naxxramas readiness gate remains visible.<br><a href="docs/images/screenshots/2026-10-27-raid-source/drops-640.png">Compact scrolling preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/source.png">800×600 source navigation</a></td>
   </tr>
   <tr>
-    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-27-scorpid-sting/codex.png" alt="Codex"><br>2026-10-27 · Scorpid Sting base values and its spell-specific amulet.<br><a href="docs/images/screenshots/2026-10-27-hunter-compact/codex.png">800×600 at 125%</a></td>
+    <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-28-codex-acquisition/wide.jpg" alt="Codex"><br>2026-10-28 · Amulet acquisition guidance and required talent training.<br><a href="docs/images/screenshots/2026-10-28-codex-acquisition/compact.jpg">640×720</a></td>
     <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-28-mind-flay/talents-wide.jpg" alt="Talents"><br>2026-10-28 · Mind Flay unlock purchased and saved; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-28-mind-flay/talents-640.jpg">640×720 layout</a> · <a href="docs/images/screenshots/2026-10-28-taller-talents/compact-bottom.png">Lower rows</a></td>
   </tr>
   <tr>

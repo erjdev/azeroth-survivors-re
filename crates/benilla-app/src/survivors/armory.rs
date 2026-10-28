@@ -2134,9 +2134,15 @@ fn codex_text(account: &Account, id: u16) -> String {
             } else {
                 "Not offered yet"
             };
+            let title = spell_title(key);
+            let training = survivors_core::talents::definitions(class_i)
+                .iter()
+                .find(|node| node.stat == survivors_core::talents::TalentStat::AbilityUnlock(key))
+                .map_or_else(String::new, |node| {
+                    format!("Train {} in Talents first. ", node.name)
+                });
             format!(
-                "Amulet of {}\n{mark}\n\nSpell at rank 1 · before equipment and talents\n{}",
-                spell_title(key),
+                "Amulet of {title}\n{mark}\n\nUsing this amulet\n{training}Acquire {title} during the run. The amulet does not grant the ability.\n\nSpell at rank 1 · before equipment and talents\n{}",
                 hud::base_ability_body(data::ability(key))
             )
         }

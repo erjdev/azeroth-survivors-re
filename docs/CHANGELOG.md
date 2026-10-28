@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Codex acquisition guidance
+
+Legendary amulets now explain that their spell must be acquired during the run.
+Talent-gated spells also name the required training. Native previews verify the
+note at 1100×720 and 640×720, with independent detail scrolling to all green bonuses.
+Ordinary spells omit the talent requirement. The incremental native build passed
+in 17s. Six-package scoped formatting, Clippy and tests pass, with 31 missing-addon
+skips; full pre-merge gates remain required.
+
+![Mind Flay training and acquisition guidance](images/screenshots/2026-10-28-codex-acquisition/wide.jpg)
+![Compact Codex guidance](images/screenshots/2026-10-28-codex-acquisition/compact.jpg)
+![Scrolled details retain all green bonuses](images/screenshots/2026-10-28-codex-acquisition/compact-bonuses.jpg)
+
 ## 2026-10-28 — Chronological queued damage
 
 Channel ticks and missiles now retain occurrence times and settle with ordinary

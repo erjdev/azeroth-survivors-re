@@ -302,6 +302,13 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
+Codex acquisition guidance (2026-10-28): legendary entries explain that the
+associated ability must be acquired in-run; talent-gated entries name their
+training prerequisite from the talent definitions. Native 1100×720 and 640×720
+previews verify readable guidance and independent detail scrolling through all
+bonuses. Ordinary Mind Blast correctly omits a talent prerequisite. Captures are
+embedded in the changelog and README. This does not complete acquisition balance.
+
 Latest layout validation (2026-10-28): talent trees use a 560-unit height floor
 and 48-unit maximum icons. This increases row spacing by another 17% and icon
 size by 9% over the previous 480/44 layout. Preserve this readability floor
