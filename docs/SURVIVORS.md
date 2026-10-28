@@ -739,8 +739,9 @@ Shadow Focus and Power Infusion are included in the cast's tick-damage snapshot;
 Infusion expiry does not weaken remaining ticks. Shadow Reach extends selection
 and connection range. Shadow Weaving, Blackout, multistrike and Vampiric Embrace
 settle on paid ticks; healing is capped to health actually removed. Pauses freeze
-active run time and do not consume ticks. A late update emits each owed tick once.
-Historical target-modifier timing across long frames is not yet implemented in
+active run time and do not consume ticks. A late update emits each owed tick once. Channel ticks and missiles retain their
+occurrence times and settle in chronological order with ordinary hits; equal-time
+hits preserve queue order. Historical target-modifier timing across long frames is not yet implemented in
 the shared hit pipeline; this remains an acceptance gap, not a different rule.
 Native channel beams, pose during concurrent casts and Windows combat acceptance
 are tracked in [the Mind Flay audit](audits/MIND-FLAY.md).

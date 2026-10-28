@@ -23,6 +23,7 @@ mod gear_icons;
 mod gear_template;
 mod grade;
 mod hero;
+mod hit_timing;
 mod hud;
 mod hunter_pet;
 mod jewel_icons;

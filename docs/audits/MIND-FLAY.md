@@ -52,16 +52,16 @@ The runtime channel adapter now consumes this state before enemy movement,
 checks caster/target life, range, concealment and solid-world obstruction, and
 emits non-critical damage pulses. A separate channel slow composes with timed
 snares without overwriting them. Run reset clears channels.
-Acquisition, talent and visual code are wired. The runtime currently settles
-catch-up damage using the existing hit pipeline time; historical timed-modifier
-settlement is not integrated. Initial selection checks range and concealment;
+Acquisition, talent and visual code are wired. Channel pulses now retain their
+occurrence times and merge chronologically with queued missiles and current-frame
+hits. Historical timed-modifier settlement is not integrated. Initial selection checks range and concealment;
 solid-world obstruction is now also checked before a cast starts a channel.
 Blocked victims do not fill target slots: selection continues to farther clear
 victims. If none qualify, the usual 200ms no-target retry applies without spending
 the spell recovery or triggering successful-cast bonuses. Missing collision state
 also prevents channel creation. Active channels still recheck obstruction each update.
 
-All 538 Survivors app tests pass, including acquisition gating, obstruction before
+All 540 Survivors app tests pass, including acquisition gating, obstruction before
 selection, no immediate hit, no overlapping cast, inline upgrades and independent
 beam lifecycle. The cast snapshot test covers Power Infusion expiry, Shadow Reach,
 pause/resume and three exactly-once catch-up ticks. Paid-tick settlement tests cover Shadow Weaving, Blackout,
@@ -77,11 +77,18 @@ pose during other autocasts, sounds and attended Windows gameplay remain unverif
 
 ## Remaining event-time settlement work
 
-The core returns scheduled pulse times, but the adapter currently converts them
-to ordinary `Hit` messages and loses those times. The shared consumer also handles
-missiles, splash and periodic effects, while enemy debuff timers are advanced by
-a separate system. Adding a timestamp to channels alone would not reconstruct
-which vulnerability was active at an earlier tick.
+The core and adapter retain scheduled pulse times in `Hit` messages. The shared
+queue now orders due missiles, channel pulses and ordinary hits, with stable
+ties (previously queued before newly arriving hits). Future events remain queued;
+invalid occurrence times are discarded. Splash and generated sword strikes
+inherit the parent time. All 540 app tests pass, including a fine-frame/batched lethal-hit comparison;
+the native build passed in 2m01s. Feature Clippy and six-package scoped checks pass
+with 31 missing-addon skips. Full pre-merge gates remain required.
+
+The shared consumer still expands proc/splash work before damage settlement and
+handles periodic effects separately, while enemy debuff timers are advanced by
+a separate system. Sorting direct hits does not reconstruct which vulnerability
+was active at an earlier tick or complete ordering across all effect types.
 
 Complete this as a shared damage-timeline change: preserve occurrence times for
 all queued damage, order simultaneous/catch-up events deterministically, and

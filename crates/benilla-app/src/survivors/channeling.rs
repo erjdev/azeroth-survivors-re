@@ -44,8 +44,9 @@ impl Channels {
             let pulses = channel.clock.advance(now, |target| {
                 connected(channel.caster, target, channel.range)
             });
-            for (target, _scheduled) in pulses {
+            for (target, scheduled) in pulses {
                 let mut hit = Hit::direct(target, channel.damage, false);
+                hit.occurred = Some(scheduled);
                 hit.source = channel.source;
                 hit.color = super::units::COLOR_SPELL;
                 hits.push(hit);

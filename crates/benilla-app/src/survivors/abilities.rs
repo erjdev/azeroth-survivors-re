@@ -13,6 +13,8 @@ use crate::net::{FieldChanged, Guid, ObjectStore};
 /// One blow landing on one enemy.
 #[derive(Message, Clone)]
 pub(super) struct Hit {
+    /// Active-run occurrence time; None means the current settlement update.
+    pub occurred: Option<f32>,
     pub target: Entity,
     pub damage: f32,
     /// Cast-owned damage per point of the victim's ranged attack power vulnerability.
@@ -33,6 +35,7 @@ pub(super) struct Hit {
 impl Hit {
     pub fn direct(target: Entity, damage: f32, crit: bool) -> Self {
         Self {
+            occurred: None,
             target,
             damage,
             ranged_power_scale: 0.0,
@@ -276,6 +279,7 @@ fn mark_secs(p: &Params) -> f32 {
 
 fn hit_for(def: &AbilityDef, p: &Params, target: Entity, damage: f32, crit: bool) -> Hit {
     Hit {
+        occurred: None,
         target,
         damage,
         ranged_power_scale: p.ranged_power_scale * if crit { p.crit_damage.max(1.0) } else { 1.0 },
@@ -304,8 +308,9 @@ fn schedule(
     hits: &mut MessageWriter<Hit>,
     now: f32,
     delay: f32,
-    hit: Hit,
+    mut hit: Hit,
 ) {
+    hit.occurred = Some(now + delay.max(0.0));
     if delay <= 0.0 {
         hits.write(hit);
     } else {
@@ -1113,6 +1118,7 @@ pub(super) fn tick_areas(
                     area.damage,
                 );
                 hits.write(Hit {
+                    occurred: Some(now),
                     target: f.e,
                     damage: dmg,
                     ranged_power_scale: 0.0,
@@ -1321,6 +1327,7 @@ fn sword_extra_hit(
         return None;
     }
     Some(Hit {
+        occurred: h.occurred,
         source: "sword_specialization",
         color: h.color,
         ..Hit::direct(h.target, h.damage, h.crit)
@@ -1367,15 +1374,7 @@ pub(super) fn apply_hits(
 ) {
     let dt = time.delta_secs();
     let now = run.elapsed;
-    let mut due: Vec<Hit> = incoming.read().cloned().collect();
-    pending.0.retain(|(t, h)| {
-        if *t <= now {
-            due.push(h.clone());
-            false
-        } else {
-            true
-        }
-    });
+    let due = pending.drain_due(now, incoming.read().cloned());
 
     // Splash reaches the target's neighbours at seventy percent.
     let mut all = Vec::with_capacity(due.len());

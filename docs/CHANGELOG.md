@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Chronological queued damage
+
+Channel ticks and missiles now retain occurrence times and settle with ordinary
+hits in chronological order. A later tick can no longer preempt an earlier lethal
+missile just because both arrived in one update. Future hits stay queued; ties
+preserve queue order, and splash/generated strikes retain the parent timestamp.
+
+All 540 app tests pass, including fine-update versus delayed-update lethal-hit
+credit and healing. Feature Clippy and six-package scoped checks pass (31 missing-
+addon skips); native build passed in 2m01s. Full pre-merge gates remain required.
+Target-modifier expiry and full
+periodic/proc ordering still need the shared timeline work documented in the audit.
+No UI appearance changed; the existing screenshots remain current.
+
 ## 2026-10-28 — Mind Flay targeting and channel lifecycle
 
 Mind Flay now skips enemies behind solid scenery before committing its targets.
