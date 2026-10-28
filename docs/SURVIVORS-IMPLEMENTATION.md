@@ -8483,3 +8483,24 @@ critical chance, not a permanent damage multiplier. Screenshots are embedded in
 CHANGELOG and the README gallery is refreshed. Incremental build: 20 seconds.
 Definition coverage: 282/432 (Rogue 26/51). Full integration, Windows visuals
 and live balance remain open.
+
+### Next talent slice: Rogue Sword Specialization — 2026-10-28
+
+Checkout Talent.dbc node 242: Combat tree index 1, row 4, column 2, five ranks,
+no explicit prerequisite. Spell.dbc 13960–13964, proc-chance column 25, gives
+1/2/3/4/5%. Brutality Blade is an existing Rogue sword (Rare main-hand choice).
+
+Extend the existing same-target extra-strike mechanism to original Sinister
+Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot hits while a sword is worn.
+The generated hit copies direct damage and its critical result only; it does not
+copy area, control, marks or bleed effects and cannot trigger further procs.
+Cosmetic swords, Rupture ticks, neutral abilities and nonpositive/nonfinite damage
+do not qualify. Warrior behavior remains unchanged. This is explicitly described
+as a Survivors conversion of vanilla extra attacks.
+
+Acceptance: rank/class/weapon isolation, existing Warrior regression coverage,
+green inline proc chance, saved equipment/spec/refund behavior, lethal and missing
+targets, pause/resume, one loot award, no splash or generated-hit recursion, and
+native purchase/save screenshots. An isolated draft passes 247 core tests and
+Clippy; checkout implementation and app/native validation remain pending until
+the Dagger integration run completes. Definition coverage stays 282/432.
