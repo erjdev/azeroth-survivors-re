@@ -41,11 +41,13 @@ six build-script and seven browser tests pass.
 The world-API audit now passes at its original 107-leak ceiling. Render-candidate
 selection lives behind `SceneryProbe`; gameplay no longer enumerates merged blobs.
 The intentional fork visibility surface and existing startup-map setter have an
-[API record](SURVIVORS-ENGINE-API.md). All 449 feature-enabled Survivors tests and all-target app Clippy pass, including the installed Elwynn
-canopy regressions. The restarted full chain has passed formatting and workspace
-Clippy and is building workspace tests. Independent render-pass and documentation
-link checks also pass; no-install and complete player-suite results remain pending. Live translated-layout, addon-corpus and Windows visual acceptance remain
-open. Browser compilation previously passed with five warnings.
+[API record](SURVIVORS-ENGINE-API.md). All 449 feature-enabled Survivors tests and
+all-target app Clippy pass, including installed Elwynn canopy regressions.
+The [full native chain](validation/2026-10-27-integration.md) now passes, including
+no-install and player tests. Each data/player stage skips 31 addon-corpus tests.
+Live translated-layout, addon-corpus and Windows visual acceptance remain open.
+Browser compilation previously passed with five warnings. This baseline precedes
+the talent-sidebar width correction; its own validation is recorded separately.
 
 ## Healing correctness — 2026-10-27
 
@@ -7947,3 +7949,15 @@ ui_webbridge/ with its prior module API retained. Source audit now reports 40 ga
 previous browser warnings persist. Full integration rerun is active and has passed
 workspace Clippy; no-install/player-suite outcomes and addon-corpus coverage remain
 open. This source organization change does not alter UI appearance.
+
+
+### Talent sidebar fit — 2026-10-27
+
+The previous panel bases exceeded the available default 16:9 layout width by
+less than one logical pixel, wrapping saved specs below all three trees. A small
+rounding allowance restores the reference's adjacent spec/details column without
+changing the 420-pixel grid height floor. Native 1600×900 and 800×600 previews
+verify spending, row spacing and access to saved specs; screenshots are inline in
+CHANGELOG and the README gallery. Native build passes (2m56s). The preceding full
+integration baseline is green; full checks of this edit and Windows acceptance
+remain open.

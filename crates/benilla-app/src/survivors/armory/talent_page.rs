@@ -415,10 +415,10 @@ fn panel(
 ) {
     ui.spawn((
         Node {
-            // A full-width tree keeps icons and row spacing readable. Equal bases
-            // keep all trees uniform when the detail panel shares a wrapped row.
+            // Leave rounding room for four panels at 16:9 with height-relative UI
+            // scaling. Equal bases preserve readable trees on wrapped rows.
             flex_grow: 1.0,
-            flex_basis: Val::Px(300.0 + 2.0 * layout.padding + 2.0),
+            flex_basis: Val::Px(296.0 + 2.0 * layout.padding + 2.0),
             min_width: Val::Px(0.0),
             max_width: Val::Percent(100.0),
             // Let long descriptions grow the shared scroll content. A viewport-sized

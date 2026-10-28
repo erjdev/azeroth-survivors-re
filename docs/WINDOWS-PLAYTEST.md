@@ -71,11 +71,12 @@ at the same width, with larger icons. Artwork keeps its proportions through a
 centered side crop. Columns wrap on compact windows and the page scrolls to keep
 the final ranks and saved specs reachable.
 
-The current macOS evidence is 1600×900 and 800×600 at `e10e171`; these captures
+The current macOS evidence is 1600×900 and 800×600, including the restored
+adjacent spec column at 16:9; these captures
 supersede the earlier spacing-only layout. Windows acceptance remains open.
 Check narrow and wide windows at the normal and enlarged UI scales, including
 rank-label separation, the final talent rows and saved-spec controls.
 
-![Taller talent rows at 1600×900](images/screenshots/2026-10-27-talent-room/wide.png)
+![Taller talent rows at 1600×900](images/screenshots/2026-10-27-talent-sidebar/wide.png)
 
-![Compact talent rows at 800×600](images/screenshots/2026-10-27-talent-room/compact.png)
+![Compact talent rows at 800×600](images/screenshots/2026-10-27-talent-sidebar/compact.png)

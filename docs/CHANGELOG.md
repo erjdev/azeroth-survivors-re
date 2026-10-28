@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Keep talent specs beside widescreen trees
+
+A rounding-sensitive panel width made the spec column wrap at standard 16:9.
+The four-column reference layout now fits, retaining taller rows and proportional
+art. Compact windows keep their inspection summary and scroll access to saved specs.
+
+![Before: specs below the widescreen trees](images/screenshots/2026-10-27-talent-sidebar/before.png)
+
+![1600×900: trees and specs together](images/screenshots/2026-10-27-talent-sidebar/wide.png)
+
+![800×600: readable compact trees](images/screenshots/2026-10-27-talent-sidebar/compact.png)
+
+![800×600: saved specs remain reachable](images/screenshots/2026-10-27-talent-sidebar/specs.png)
+
+Native build passes (2m56s); both sizes, talent spending and scrolling checked on
+macOS. The preceding [full integration baseline](validation/2026-10-27-integration.md)
+passes all stages, with 31 addon-corpus skips per data/player stage. This layout
+edit has native visual validation; its next full check and Windows acceptance remain open.
+
 ## 2026-10-27 — Reject incomplete documentation validation
 
 The documentation-link gate now fails if Cargo cannot run or rustdoc exits with
