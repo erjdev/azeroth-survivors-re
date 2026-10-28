@@ -76,3 +76,16 @@ Documentation commit `17cefe8` did not change the tested source. Later alternati
 weapon code was connected only after the final player-mode test binary was built;
 this run proves the Sword baseline, not the later weapon code. Windows/browser
 runtime, live realm smoke, live balance and missing-addon coverage remain open.
+
+## Alternative weapon delivery checkpoint (`1dbe0d7`)
+
+Full native integration finished with exit 0 in 930 seconds (15m30s), with the
+checkout unchanged throughout: formatting 7s, workspace all-target Clippy 51s,
+workspace tests 511s, no-install tests 26s, documentation links 54s, render-pass
+lint 2s and player-mode tests 278s. Both data/player stages reported 31 skips
+for the absent addon corpus (24 vanilla, seven Quiver); checkout game data was present.
+The separate feature-enabled Survivors suite passed 462 tests and core rules 234.
+
+This covers alternative reward delivery, Collection and appearance controls.
+Polearm implementation began only after this gate exited. Windows/browser runtime,
+live realm smoke, live acquisition/balance and absent-addon coverage remain open.

@@ -22,7 +22,8 @@ Character appearance controls now target the selected supplemental item's slot.
 462 app tests and all-target Clippy pass, including direct/periodic kills,
 duplicate hits, legacy loot coexistence, save/reload and slot-correct appearance
 actions. Native 1600×900 and 640×720 checks use seeded ownership. Final incremental
-build: 23.5s. Windows, live drops/balance and the full integration run remain open.
+build: 23.5s. Full native integration passes at `1dbe0d7` in 15m30s; each
+data/player stage reports 31 missing-addon skips. Windows and live drops/balance remain open.
 
 ## 2026-10-27 — Sword integration and weapon prerequisites
 

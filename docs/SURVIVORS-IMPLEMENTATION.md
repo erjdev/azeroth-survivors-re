@@ -8290,3 +8290,11 @@ cosmetic override. Screenshots are embedded in CHANGELOG and the README gallery.
 Fixtures use seeded ownership; no unattended combat run was performed. Live
 acquisition/balance, Windows, other bodies/poses and full integration remain open.
 Mace and Polearm talent effects remain unimplemented; coverage remains 277/432.
+
+### Alternative weapon integration — 2026-10-27
+
+The full native gate passes at `1dbe0d7` in 930 seconds, including workspace,
+no-install and player-mode tests, formatting, Clippy and lints. Each data/player
+stage reports 31 missing-addon skips. See the integration validation record.
+Polearm node 134 is the next implementation slice; no later talent work is covered
+by this gate. Windows/live acquisition and remaining broad acceptance stay open.
