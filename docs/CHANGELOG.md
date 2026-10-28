@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Channel timing foundation
+
+Added fixed-target channel timing for Mind Flay: delayed first tick, one payment
+per pulse, interruption and target-loss cleanup, and scheduled catch-up timestamps.
+Installed spell evidence and the existing engine's beam/pose path are documented
+in the [Mind Flay audit](audits/MIND-FLAY.md).
+
+All 279 core tests and core Clippy pass. The six-package scoped checks also
+pass, with 31 missing-addon skips. Runtime damage, independent slow effects,
+acquisition and talent UI are still pending; coverage is unchanged. No interface
+changed, so no new screenshot applies to this foundation checkpoint.
+
 ## 2026-10-28 — Stormstrike damage integration
 
 Nature vulnerability now settles per target across direct hits, periodic damage,

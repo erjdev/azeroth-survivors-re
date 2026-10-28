@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Priest channel dependency — 2026-10-28
+
+Mind Flay needs a persistent channel, not an ordinary damage-over-time cast.
+The [channel audit](audits/MIND-FLAY.md) records installed spell evidence, the
+existing engine beam/pose path and runtime/UI acceptance. Pure channel timing
+now fixes targets, emits scheduled pulses once and supports cancellation;
+279 core tests and core Clippy pass. Runtime consumption, acquired ability,
+talent and screenshots are still pending. Coverage remains 296/432.
+
 ## Shaman melee dependency — 2026-10-28
 
 Installed evidence confirms Elemental Devastation needs a melee beneficiary,
