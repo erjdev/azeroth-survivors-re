@@ -195,3 +195,119 @@ mod adrenaline_rush_tests {
             .starts_with("Rogue abilities: 0 » 50% shorter cooldown"));
     }
 }
+
+/// Blade Flurry's owned area cast starts a 15-second melee burst, recovering in 120 seconds.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BladeFlurryClock {
+    next: f32,
+    until: f32,
+}
+
+impl BladeFlurryClock {
+    fn trained(talents: Milestones, elapsed: f32) -> bool {
+        talents.class == 3
+            && elapsed.is_finite()
+            && elapsed >= 0.0
+            && talents.trained_value(TalentStat::BladeFlurry) > 0.0
+    }
+
+    pub fn haste(self, talents: Milestones, key: &str, elapsed: f32) -> f32 {
+        if !Self::trained(talents, elapsed)
+            || !matches!(
+                key,
+                "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot" | "blade_flurry"
+            )
+            || !(elapsed < self.until || (key == "blade_flurry" && elapsed >= self.next))
+        {
+            return 0.0;
+        }
+        talents.trained_value(TalentStat::BladeFlurry)
+    }
+
+    pub fn extra_targets(self, talents: Milestones, key: &str, elapsed: f32) -> usize {
+        usize::from(
+            Self::trained(talents, elapsed)
+                && elapsed < self.until
+                && matches!(
+                    key,
+                    "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
+                ),
+        )
+    }
+
+    /// Failed area casts must not call this; repeated casts cannot refresh the active window.
+    pub fn consume(&mut self, talents: Milestones, key: &str, elapsed: f32) {
+        if Self::trained(talents, elapsed) && key == "blade_flurry" && elapsed >= self.next {
+            self.until = elapsed + 15.0;
+            self.next = elapsed + 120.0;
+        }
+    }
+}
+
+#[cfg(test)]
+mod blade_flurry_tests {
+    use super::*;
+    #[test]
+    fn owned_flurry_starts_one_scoped_window_without_banking_or_refreshing() {
+        for class in 0..9 {
+            for rank in [0, 1, 255] {
+                let talents = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 223, rank)]);
+                let trained = class == 3 && rank > 0;
+                let mut clock = BladeFlurryClock::default();
+                for elapsed in [-1., f32::NAN, f32::INFINITY] {
+                    clock.consume(talents, "blade_flurry", elapsed);
+                    assert_eq!(clock.haste(talents, "blade_flurry", elapsed), 0.);
+                }
+                clock.consume(talents, "sinister_strike", 0.);
+                assert_eq!(clock.haste(talents, "sinister_strike", 0.), 0.);
+                assert_eq!(clock.extra_targets(talents, "sinister_strike", 0.), 0);
+                clock.consume(talents, "blade_flurry", 10.);
+                clock.consume(talents, "blade_flurry", 24.);
+                for key in [
+                    "sinister_strike",
+                    "eviscerate",
+                    "gouge",
+                    "kidney_shot",
+                    "blade_flurry",
+                    "rupture",
+                    "sprint",
+                    "fireball",
+                ] {
+                    let eligible = !matches!(key, "rupture" | "sprint" | "fireball");
+                    assert_eq!(
+                        clock.haste(talents, key, 24.9),
+                        if trained && eligible { 0.2 } else { 0. }
+                    );
+                    assert_eq!(
+                        clock.extra_targets(talents, key, 24.9),
+                        usize::from(trained && eligible && key != "blade_flurry")
+                    );
+                    assert_eq!(clock.haste(talents, key, 25.), 0.);
+                    assert_eq!(clock.extra_targets(talents, key, 25.), 0);
+                    assert_eq!(clock.haste(talents.with_ranks(&[]), key, 24.), 0.);
+                }
+                assert_eq!(clock.haste(talents, "blade_flurry", 129.9), 0.);
+                clock.consume(talents, "blade_flurry", 1000.);
+                assert_eq!(
+                    clock.haste(talents, "sinister_strike", 1001.),
+                    if trained { 0.2 } else { 0. }
+                );
+                assert_eq!(clock.haste(talents, "blade_flurry", 1015.), 0.);
+            }
+        }
+        let node = super::super::talent_definition(3, 223).unwrap();
+        let (text, spans) = node.inline_description_with_values(0).unwrap();
+        assert_eq!(
+            spans
+                .iter()
+                .map(|span| &text[span.clone()])
+                .collect::<Vec<_>>(),
+            ["0 » 20%", "0 » 1 additional target"]
+        );
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
+}

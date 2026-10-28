@@ -70,12 +70,12 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 2026-10-27 · WebGPU at 1280×720; actual source-row selection. Naxxramas remains
 locked pending world readiness. This capture does not establish raid gameplay.
 
-### Druid talent milestone
+### Talent milestone
 
-![Druid talents with inline Nature’s Grace bonus](docs/images/screenshots/2026-10-27-natures-grace/talents.png)
+![Rogue talents with inline Blade Flurry bonuses](docs/images/screenshots/2026-10-27-blade-flurry/talents.png)
 
 2026-10-27 · 1600×900 native preview: taller trees, adjacent saved specs and a
-single green upgrade value. Purchase and card captures are in the [changelog](docs/CHANGELOG.md).
+green inline upgrade values. Purchase and compact captures are in the [changelog](docs/CHANGELOG.md).
 
 ### Options and upgrade previews
 

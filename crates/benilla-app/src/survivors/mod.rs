@@ -528,6 +528,7 @@ pub(super) struct Run {
     combustion: survivors_core::talents::CombustionClock,
     hawk: survivors_core::talents::HawkClock,
     adrenaline_rush: survivors_core::talents::AdrenalineRushClock,
+    blade_flurry: survivors_core::talents::BladeFlurryClock,
     /// Rings, trinkets and amulets worn this run.
     worn: campaign::Worn,
     /// Seconds since the hero fell, while the death plays out.
@@ -622,6 +623,7 @@ impl Default for Run {
             combustion: default(),
             hawk: default(),
             adrenaline_rush: default(),
+            blade_flurry: default(),
             power_infusion: default(),
             worn: campaign::Worn::default(),
             dead_t: None,

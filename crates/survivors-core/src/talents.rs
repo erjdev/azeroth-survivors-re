@@ -13,7 +13,7 @@ pub use hunter::HawkClock;
 pub use hunter::{PetBonus, PetFrenzy};
 pub use mage::{ArcanePowerClock, ColdSnapClock, CombustionClock};
 pub use natures_grace::NaturesGrace;
-pub use rogue::{AdrenalineRushClock, PreparationClock};
+pub use rogue::{AdrenalineRushClock, BladeFlurryClock, PreparationClock};
 mod shaman;
 mod warlock;
 
@@ -1498,6 +1498,7 @@ pub enum TalentStat {
     ArcanePower,
     Combustion,
     AdrenalineRush,
+    BladeFlurry,
     ImprovedHawk,
     Deterrence,
     PowerInfusion,
@@ -1624,6 +1625,26 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::BladeFlurry {
+            let rank = rank.min(self.max_rank);
+            let (haste, targets) = if rank == 0 {
+                ("0 » 20%", "0 » 1 additional target")
+            } else {
+                ("20%", "1 additional target")
+            };
+            let (prefix, rest) = self.description.split_once("20%")?;
+            let (middle, suffix) = rest.split_once("1 additional target")?;
+            let mut text = prefix.to_owned();
+            let start = text.len();
+            text.push_str(haste);
+            let first = start..text.len();
+            text.push_str(middle);
+            let start = text.len();
+            text.push_str(targets);
+            let second = start..text.len();
+            text.push_str(suffix);
+            return Some((text, vec![first, second]));
+        }
         if self.stat == TalentStat::Permafrost {
             let (prefix, tail) = self.description.split_once("1 sec")?;
             let token = format!(
@@ -1678,6 +1699,7 @@ impl TalentDefinition {
             | TalentStat::ImprovedHawk
             | TalentStat::Vengeance
             | TalentStat::AdrenalineRush
+            | TalentStat::BladeFlurry
             | TalentStat::Deterrence
             | TalentStat::Combustion
             | TalentStat::ArcanePower
@@ -1928,6 +1950,7 @@ impl TalentDefinition {
             TalentStat::PowerInfusion => {
                 (100.0, "% Priest damage and healing during Power Infusion")
             }
+            TalentStat::BladeFlurry => (100.0, "% melee recovery haste and one additional melee target during the burst"),
             TalentStat::AdrenalineRush => (
                 100.0,
                 "% shorter Rogue cast cooldown during Adrenaline Rush",
@@ -2953,6 +2976,11 @@ const ROGUE_SPELLS: &[&str] = &[
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 223, max_rank: 1, name: "Blade Flurry",
+        description: "A successful owned Blade Flurry starts a 15 sec burst: 20% faster recovery for Sinister Strike, Eviscerate, Gouge, Kidney Shot and Blade Flurry; single-target melee attacks hit 1 additional target within their existing reach. Ready at run start; recovers 120 sec after activation. Does not refresh on repeated casts or change area radius, Rupture, Sprint or existing cooldowns. Does not grant the spell (Survivors automatic conversion)",
+        stat: TalentStat::BladeFlurry, per_rank: 0.20,
+    },
+    TalentDefinition {
         id: 205, max_rank: 1, name: "Adrenaline Rush",
         description: "Rogue abilities: 50% shorter cooldown for casts during a 15 sec burst, starting with the first successful cast. Ready at run start; recovers 300 sec after use. Multiplies other cooldown bonuses. Existing cooldowns, Sprint and Cold Blood recovery are unchanged; pauses stop timers (Survivors automatic energy-regeneration conversion)",
         stat: TalentStat::AdrenalineRush, per_rank: 0.50,
@@ -3303,6 +3331,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::InnerFocus
             | TalentStat::ImprovedHawk
             | TalentStat::AdrenalineRush
+            | TalentStat::BladeFlurry
             | TalentStat::Deterrence
             | TalentStat::Combustion
             | TalentStat::ArcanePower
@@ -4785,6 +4814,7 @@ mod stat_talent_tests {
                     | TalentStat::InnerFocus
                     | TalentStat::ImprovedHawk
                     | TalentStat::AdrenalineRush
+                    | TalentStat::BladeFlurry
                     | TalentStat::Deterrence
                     | TalentStat::Combustion
                     | TalentStat::ArcanePower

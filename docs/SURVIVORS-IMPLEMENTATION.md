@@ -880,13 +880,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 34 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 24 / 51 | 9 / 9 |
+| Rogue | 25 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 272 / 432 | 81 / 81 |
+| Total | 273 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8003,3 +8003,25 @@ are embedded in CHANGELOG. Coverage is 272/432 (Druid 27/47), leaving 160.
 Live combat balance and Windows visual acceptance remain open. The full workspace
 chain last passed at the preceding talent-layout checkpoint; it was not rerun for
 this individual talent milestone.
+
+
+### Blade Flurry contract — 2026-10-27 (verified)
+
+Checkout-local spell 13877 (Combat node 223, row 4, one rank) supplies 20% attack
+speed, an additional nearby opponent, duration row 8 (15 sec), and 120,000 ms
+recovery. Survivors already owns a player-centered Blade Flurry area ability.
+The individual talent makes a successful owned area cast start the burst. During
+it, Sinister Strike, Eviscerate, Gouge, Kidney Shot and Blade Flurry divide newly
+started recovery by 1.2; only the four single-target melee attacks gain one target
+within unchanged reach. Rupture, Sprint, existing timers and area geometry remain
+unchanged. Repeated casts do not refresh the window; missed intervals do not bank
+charges. Run time excludes pauses, and a new run resets the clock. Preparation
+does not reset this separate burst clock. Both changing effects must appear green
+inline. Verified: 227 core and 453 app tests, Clippy with warnings denied, catalog
+audit and native build (1m30s). Cast-system tests cover empty targets, expiry,
+pause, additional melee targets and composition with Adrenaline Rush. Account
+tests cover legal purchase, save/reload, spec switching and refund. Native
+1600×900 purchase changes rank 0→1 and points 31→30; 640×720 retains two taller
+trees and the complete inspection text. Screenshots are embedded in CHANGELOG.
+Coverage is 273/432 (Rogue 25/51), leaving 159 definitions. Windows visuals and
+live balance remain open; the full workspace chain was not rerun for this slice.

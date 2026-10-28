@@ -326,6 +326,10 @@ pub(super) fn cast_abilities(
             - run
                 .adrenaline_rush
                 .bonus(run.milestones, def.key, run.elapsed);
+        p.cooldown /= 1.0 + run.blade_flurry.haste(run.milestones, def.key, run.elapsed);
+        p.count += run
+            .blade_flurry
+            .extra_targets(run.milestones, def.key, run.elapsed);
         let power = 1.0 + run.arcane_power.bonus(run.milestones, def.key, run.elapsed);
         let infusion = 1.
             + run
@@ -686,6 +690,7 @@ pub(super) fn cast_abilities(
             run.natures_grace.consume(talents, def.key, elapsed);
             run.arcane_power.consume(talents, def.key, elapsed);
             run.adrenaline_rush.consume(talents, def.key, elapsed);
+            run.blade_flurry.consume(talents, def.key, elapsed);
             run.power_infusion.consume(talents, def.key, elapsed);
             run.consume_remorseless(def.key);
             let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
@@ -2584,6 +2589,167 @@ mod milestone_tests {
             }
             assert_eq!(run.hawk.remaining(run.milestones, elapsed), 12.);
             assert_eq!(run.mobile.cd, 9.);
+        }
+    }
+
+    #[test]
+    fn blade_flurry_burst_adds_single_melee_targets_without_expanding_areas() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        let mut app = App::new();
+        let mut time = Time::<()>::default();
+        time.advance_by(std::time::Duration::from_secs_f32(0.1));
+        let mut run = Run {
+            class: &data::CLASSES[3],
+            milestones: Milestones {
+                class: 3,
+                points: [0, 30, 0],
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 205, 1), (1, 201, 2), (0, 382, 1), (1, 223, 1)]),
+            ..Default::default()
+        };
+        for key in [
+            "blade_flurry",
+            "sinister_strike",
+            "eviscerate",
+            "gouge",
+            "kidney_shot",
+            "rupture",
+            "fireball",
+        ] {
+            run.abilities.push(Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+        }
+        run.mobile.cd = 9.;
+        app.insert_resource(time)
+            .insert_resource(run)
+            .insert_resource(Rng(42))
+            .init_resource::<PlaySeq>()
+            .init_resource::<PendingHits>()
+            .add_message::<CastEvent>()
+            .add_message::<SpellGoTargets>()
+            .add_message::<SwingMessage>()
+            .add_message::<crate::combat_text::CombatTextSpawn>()
+            .add_message::<Hit>();
+        app.world_mut()
+            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(
+            app.world()
+                .resource::<Run>()
+                .adrenaline_rush
+                .remaining(app.world().resource::<Run>().milestones, 0.),
+            0.
+        );
+        let run = app.world().resource::<Run>();
+        assert_eq!(
+            run.blade_flurry
+                .haste(run.milestones, "sinister_strike", 0.),
+            0.,
+            "no target cannot start the burst"
+        );
+        for x in [1., 2., 3., 100.] {
+            app.world_mut().spawn((
+                Transform::from_xyz(x, 0., 0.),
+                Enemy {
+                    def: &data::roster(0).enemies[0],
+                    hp: 100.,
+                    max_hp: 100.,
+                    speed: 3.,
+                    damage: 5.,
+                    radius: 0.6,
+                    xp: 1,
+                    boss: false,
+                    elite: false,
+                    attack_cd: 0.,
+                    slow: 1.,
+                    slow_t: 0.,
+                    root_t: 0.,
+                    frozen_t: 0.,
+                    winters_chill: Default::default(),
+                    shadow_weaving: Default::default(),
+                    kidney_t: 0.0,
+                    stun_t: 0.,
+                    fear_t: 0.,
+                    weaken: 1.,
+                    weaken_t: 0.,
+                    dots: Vec::new(),
+                    dead: false,
+                },
+            ));
+        }
+        for elapsed in [0., 14., 15., 119.9, 120.] {
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.elapsed = elapsed;
+                for owned in &mut run.abilities {
+                    owned.cd = 0.;
+                }
+            }
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app
+                .world()
+                .resource::<Run>()
+                .abilities
+                .iter()
+                .all(|o| o.cd == 0.));
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            let run = app.world().resource::<Run>();
+            for owned in &run.abilities {
+                let base = Params::new(owned, &run.stats(), run.milestones);
+                let factor = if owned.def.key != "fireball" && elapsed < 15. {
+                    0.5
+                } else {
+                    1.
+                };
+                let active = elapsed < 15. || elapsed >= 120.;
+                let eligible = !matches!(owned.def.key, "rupture" | "fireball");
+                let factor = factor / if active && eligible { 1.2 } else { 1. };
+                let expected_count = if owned.def.key == "blade_flurry" {
+                    3
+                } else {
+                    (base.count + usize::from(active && eligible)).min(3)
+                };
+                assert_eq!(
+                    hits.iter().filter(|h| h.source == owned.def.key).count(),
+                    expected_count,
+                    "{} targets at {}",
+                    owned.def.key,
+                    elapsed
+                );
+                assert!(
+                    (owned.cd - base.cooldown * factor).abs() < 0.00001,
+                    "{} at {}",
+                    owned.def.key,
+                    elapsed
+                );
+            }
+            assert_eq!(run.mobile.cd, 9.);
+            assert_eq!(
+                run.adrenaline_rush.remaining(run.milestones, elapsed),
+                if elapsed == 0. {
+                    15.
+                } else if elapsed == 14. {
+                    1.
+                } else {
+                    0.
+                }
+            );
         }
     }
 

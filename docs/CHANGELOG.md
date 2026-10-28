@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Blade Flurry talent burst
+
+A successful owned Blade Flurry starts a 15-second burst: 20% faster melee
+recovery and one extra single-target melee opponent, with a two-minute recovery.
+Area attacks retain one center. Both bonuses appear green inline.
+
+![Blade Flurry upgrade and taller Rogue trees](images/screenshots/2026-10-27-blade-flurry/talents.png)
+
+![Purchased talent and updated point balance](images/screenshots/2026-10-27-blade-flurry/trained.png)
+
+![Compact two-column trees and complete inspection text](images/screenshots/2026-10-27-blade-flurry/compact.png)
+
+Verified: 227 core and 453 app tests, Clippy, catalog audit and native purchase.
+Incremental build: 1m30s. Definitions: 273/432. Windows visuals and live balance
+remain open.
+
 ## 2026-10-27 — Compact talent columns and saved-view validation
 
 640×720 now fits two talent columns instead of one oversized column, preserving
