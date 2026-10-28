@@ -373,6 +373,8 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 
 | Talent (DBC ID) | Ranks | Survivors effect per rank |
 |---|---|---|
+| Improved Backstab (202) | 3 | +10 percentage points Backstab critical chance per rank; acquired attack, worn dagger and rear position required |
+| Opportunity (261) | 5 | +4% Backstab damage per rank; Garrote/Ambush remain unavailable; does not grant attacks |
 | Dagger Specialization (182) | 5 | +1 percentage point critical chance per rank for direct Rogue weapon attacks with a worn dagger; cosmetics do not qualify |
 | Sword Specialization (242) | 5 | 1% chance per rank after an original direct Rogue weapon hit with a worn sword to repeat its direct damage on the same target; no copied control, area or bleed effects and no recursive procs |
 | Fist Weapon Specialization (183) | 5 | +1 percentage point critical chance per rank for direct Rogue weapon attacks with a worn fist weapon; cosmetics do not qualify |
@@ -384,16 +386,16 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Elusiveness (247) | 2 | Gouge and Kidney Shot: 10% shorter cooldown per rank; defensive cooldown conversion, no stealth required |
 | Vigor (382) | 1 | Rogue spells: 10% shorter cooldown; energy-capacity conversion |
 | Preparation (284) | 1 | Reset owned Rogue ability and learned Sprint cooldowns every 180 sec of active run time; preserves active effects and excludes Cold Blood / Adrenaline Rush recovery |
-| Cold Blood (280) | 1 | Next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast: +100 percentage points critical chance; ready at run start, 180 sec recovery after use |
-| Seal Fate (283) | 5 | Critical original Sinister Strike/Gouge hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec; combo-point conversion. No splash, echo, generated-strike or queued-overkill procs |
+| Cold Blood (280) | 1 | Next successful Backstab, Sinister Strike, Eviscerate, Gouge or Kidney Shot cast: +100 percentage points critical chance; ready at run start, 180 sec recovery after use |
+| Seal Fate (283) | 5 | Critical original Backstab/Sinister Strike/Gouge hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec; combo-point conversion. No splash, echo, generated-strike or queued-overkill procs |
 | Remorseless Attacks (272) | 2 | After a kill, +20 percentage points critical chance on the next successful Rogue melee cast; 20 sec window |
 | Lightning Reflexes (186) | 5 | +1 percentage point damage reduction; dodge conversion |
 | Deflection (187) | 5 | +3 armor; parry conversion |
 | Camouflage (244) | 5 | +3% movement speed, always active without stealth |
 | Sleight of Hand (1700) | 2 | +2 percentage points damage reduction; threat conversion |
 | Improved Gouge (203) | 3 | +25% Gouge stun duration |
-| Lethality (269) | 5 | +6 percentage points critical damage for Sinister Strike and Gouge |
-| Aggression (1122) | 3 | +2% Sinister Strike and Eviscerate damage |
+| Lethality (269) | 5 | +6 percentage points critical damage for Backstab, Sinister Strike and Gouge |
+| Aggression (1122) | 3 | +2% Backstab, Sinister Strike and Eviscerate damage |
 | Improved Eviscerate (276) | 3 | +5% Eviscerate damage |
 | Malice (270) | 5 | +1 percentage point critical chance for Rogue spells |
 | Improved Sinister Strike (201) | 2 | 5% shorter Sinister Strike cooldown; energy-cost conversion |
@@ -402,12 +404,19 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Precision (181) | 5 | +1% Rogue direct and periodic damage; hit-chance conversion, no miss roll |
 
 Weapon training applies to Sinister Strike, Eviscerate, Blade Flurry, Gouge and
-Kidney Shot. Rupture ticks and neutral item abilities are excluded. Equipment
+Kidney Shot. Backstab also benefits from dagger training and Weapon Expertise.
+Rupture ticks and neutral item abilities are excluded. Equipment
 identity comes from the worn weapon, never its independent appearance.
 
-Rogue spell membership is Sinister Strike, Eviscerate, Blade Flurry, Rupture,
+Backstab is an acquired single-target melee attack (initial tuning: 30 damage,
+1.3 sec recovery, 5.5 yd nominal reach). Offers and casts require a worn dagger;
+a cosmetic dagger cannot qualify. Every target, including additional targets,
+must face away from the hero. A failed positional attempt spends neither attack
+recovery nor critical charges. Sinister Strike remains the starter attack.
+
+Rogue spell membership is Backstab, Sinister Strike, Eviscerate, Blade Flurry, Rupture,
 Gouge and Kidney Shot. Other-class and neutral jewelry abilities are excluded.
-Remorseless Attacks applies to Sinister Strike, Eviscerate, Gouge and Kidney Shot.
+Remorseless Attacks applies to Backstab, Sinister Strike, Eviscerate, Gouge and Kidney Shot.
 Any kill by the run refreshes its 20-second gameplay-time window without stacking.
 It is consumed once by a successful eligible cast, including all targets of that
 cast. Failed casts, Rupture and area spells do not consume it. It expires while

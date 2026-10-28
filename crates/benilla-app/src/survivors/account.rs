@@ -3800,6 +3800,70 @@ mod tests {
     }
 
     #[test]
+    fn backstab_training_persists_and_cosmetic_daggers_do_not_enable_casts() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(3);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+
+        character.dbc[0] = vec![(1, 201, 2), (1, 203, 3)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        account.classes[3].pieces.fill(1);
+        let progress = &mut account.classes[3];
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, Some(0)));
+        for _ in 0..3 {
+            assert!(account.learn_talent(hero, 1, 202, 3, 1, true));
+        }
+        for _ in 0..5 {
+            assert!(account.learn_talent(hero, 2, 261, 5, 0, true));
+        }
+        assert!(!account.learn_talent(hero, 1, 202, 3, 1, true));
+        assert!(!account.learn_talent(hero, 2, 261, 5, 0, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let effect = |account: &Account| account.milestones_picked(3, Some(hero)).cast("backstab");
+        assert!((effect(&account).crit - 0.3).abs() < 0.00001);
+        assert!((effect(&account).damage - 1.2).abs() < 0.00001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(effect(&loaded).crit, effect(&account).crit);
+        assert_eq!(effect(&loaded).damage, effect(&account).damage);
+        let usable = |account: &Account| {
+            super::super::data::ability("backstab")
+                .usable_with(account.milestones_picked(3, Some(hero)).weapon)
+        };
+        assert!(usable(&loaded));
+        loaded.select_spec(hero, 1);
+        assert_eq!(effect(&loaded).crit, 0.);
+        assert_eq!(effect(&loaded).damage, 1.);
+        loaded.select_spec(hero, 0);
+        assert!(loaded.unlearn_talent(hero, 202, true));
+        assert!(loaded.unlearn_talent(hero, 261, true));
+        assert!((effect(&loaded).crit - 0.2).abs() < 0.00001);
+        assert!((effect(&loaded).damage - 1.16).abs() < 0.00001);
+        let progress = &mut loaded.classes[3];
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, Some(2)));
+        assert!(progress.equipment.show_legacy(
+            &progress.pieces,
+            8,
+            survivors_core::equipment::Look::Piece(0)
+        ));
+        assert!(!usable(&loaded));
+    }
+
+    #[test]
     fn seal_fate_purchase_save_specs_and_refunds_preserve_proc_chance() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

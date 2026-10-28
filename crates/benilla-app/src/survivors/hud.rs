@@ -1134,13 +1134,15 @@ fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
 fn choices_excluding(run: &Run, rng: &mut Rng, n: usize, excluded: &[Choice]) -> Vec<Choice> {
     let mut pool: Vec<(Choice, f32)> = Vec::new();
     for (i, o) in run.abilities.iter().enumerate() {
-        if o.level < data::MAX_ABILITY_LEVEL {
+        if o.level < data::MAX_ABILITY_LEVEL && o.def.usable_with(run.milestones.weapon) {
             pool.push((Choice::Upgrade(i), 1.2));
         }
     }
     if run.abilities.len() < data::MAX_ABILITIES {
         for key in run.class.pool {
-            if !run.abilities.iter().any(|o| o.def.key == *key) {
+            if data::ability(key).usable_with(run.milestones.weapon)
+                && !run.abilities.iter().any(|o| o.def.key == *key)
+            {
                 pool.push((Choice::NewAbility(data::ability(key)), 1.0));
             }
         }
@@ -1283,6 +1285,11 @@ pub(super) fn pick(
     let Some(&choice) = offer.choices.get(i) else {
         return;
     };
+    if let Choice::NewAbility(def) = choice {
+        if !def.usable_with(run.milestones.weapon) {
+            return;
+        }
+    }
     match choice {
         Choice::NewAbility(def) => run.abilities.push(Owned {
             def,

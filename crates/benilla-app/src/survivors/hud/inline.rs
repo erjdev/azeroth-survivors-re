@@ -363,6 +363,9 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
     if !matches!(def.kind, Kind::Aura | Kind::Orbit) && (a.cooldown - b.cooldown).abs() > 0.0001 {
         prose!(" Recharges in ", cooldown, ".");
     }
+    if def.requires_rear {
+        prose!(" Requires an equipped dagger. Only targets enemies you are behind.");
+    }
     out.0
 }
 

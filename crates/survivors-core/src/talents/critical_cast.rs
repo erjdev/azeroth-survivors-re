@@ -12,7 +12,7 @@ impl CriticalCastClock {
             1 if key == "holy_shock" => (TalentStat::DivineFavor, 120.0),
             3 if matches!(
                 key,
-                "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
+                "backstab" | "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
             ) =>
             {
                 (TalentStat::ColdBlood, 180.0)

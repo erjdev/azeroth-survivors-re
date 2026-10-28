@@ -123,3 +123,58 @@ mod tests {
         assert!(saw_exhausted && saw_jewelry);
     }
 }
+
+#[cfg(test)]
+mod backstab_offer_tests {
+    use super::*;
+    use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn backstab_offers_and_selection_require_the_worn_dagger() {
+        for kind in [None, Some(MeleeKind::Sword), Some(MeleeKind::Dagger)] {
+            let mut run = Run {
+                class: &data::CLASSES[3],
+                ..Default::default()
+            };
+            run.milestones.weapon = kind.map(|kind| MeleeWeapon {
+                kind,
+                two_handed: false,
+            });
+            let mut rng = Rng(3);
+            let choices = choices_for(&run, &mut rng, 100);
+            let allowed = kind == Some(MeleeKind::Dagger);
+            assert_eq!(
+                choices
+                    .iter()
+                    .any(|c| matches!(c, Choice::NewAbility(a) if a.key == "backstab")),
+                allowed
+            );
+            let mut offer = Offer {
+                choices: vec![Choice::NewAbility(data::ability("backstab"))],
+            };
+            pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+            assert_eq!(run.abilities.len(), usize::from(allowed));
+            if allowed {
+                let mut offer = Offer {
+                    choices: choices_for(&run, &mut rng, 100),
+                };
+                assert!(!offer
+                    .choices
+                    .iter()
+                    .any(|c| matches!(c, Choice::NewAbility(a) if a.key == "backstab")));
+                let slot = offer
+                    .choices
+                    .iter()
+                    .position(|c| matches!(c, Choice::Upgrade(0)))
+                    .unwrap();
+                pick(
+                    slot,
+                    &mut run,
+                    &mut offer,
+                    &mut rng,
+                    &mut NextState::default(),
+                );
+                assert_eq!(run.abilities[0].level, 2);
+            }
+        }
+    }
+}

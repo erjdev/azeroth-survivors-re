@@ -887,13 +887,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 31 / 51 | 9 / 9 |
+| Rogue | 33 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 287 / 432 | 81 / 81 |
+| Total | 289 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8772,3 +8772,83 @@ Aggression, Dagger Specialization, Weapon Expertise, Cold Blood, Remorseless
 Attacks and Seal Fate. Preserve their original exclusions and recovery rules.
 Do not count either new definition before offer/cast gates, saved builds and
 native visual evidence pass. Current coverage remains 287/432.
+
+
+Backstab work in progress: catalog/offer/cast gating and both training definitions
+are implemented. The expanded core suite passes 259 tests. Actual-cast regression
+caught the shared 200 ms failed-target retry timer; rear-only attacks now retain
+immediate readiness when no eligible rear target exists. App validation is running
+with positioning/extra-target, saved-spec/refund, cosmetic weapon isolation and
+inline-card checks. Native captures and integration remain required before this
+checkpoint is counted or published as verified coverage.
+
+
+### Backstab native and rules acceptance — 2026-10-28
+
+259 core tests, 485 app tests and core/app Clippy pass. Actual casting tests cover
+front/side/rear/rotated/out-of-range targets, every additional target, dagger vs
+sword/no weapon, and preservation/consumption of Cold Blood and Remorseless.
+DBC-valid account tests cover both talent purchases, caps, save/load, independent
+specs, refunds and cosmetic dagger isolation. The cast regression found and fixed
+a 200 ms failed-target retry delay for rear-only attacks.
+
+Native 1600×900 purchase checks saved Improved Backstab 2→3 and Opportunity 4→5;
+Combat points 7→8, Subtlety 4→5 and unspent points 40→38. Acquisition and upgrade
+cards at 1280×720 and the complete 640×720 description show green inline damage,
+recovery and extra-target changes with shared units and explicit use requirements.
+Screenshots are inline in CHANGELOG; README Talents is refreshed. These use an
+isolated seeded account and menu/card previews, not unattended combat. Native
+build passed in 2m04s. The fresh DBC audit reports 289/432 (Rogue 33/51); this is
+definition coverage, not full runtime/balance acceptance. Integration pending;
+Windows and remaining seven-phase requirements remain open.
+
+
+### Next Rogue dependency — weapon poisons
+
+Checkout DBC audit: Instant Poison coating 8679 has a 20% application chance and
+triggers Nature damage 8680. Deadly Poison coating 2823 has 30% application chance;
+2818 lasts 12 seconds, ticks every 3 seconds and caps at five stacks. Improved
+Poisons (268, Assassination row 3/column 2, no prerequisite) adds 2/4/6/8/10
+percentage points. Vile Poisons (682, row 3/column 1) adds 4/8/12/16/20% poison
+damage and 8/16/24/32/40% dispel resistance in the reference. There is currently
+no player-poison path or enemy dispel behavior; do not implement these as generic
+damage/haste bonuses or claim the dispel component works.
+
+Implement acquired run-long weapon coatings with explicit card/tooltips and a
+worn Rogue melee weapon requirement. Preserve the six-ability limit and independent
+appearance semantics. One worn weapon supports one coating: picking one coating
+excludes other coating acquisition offers for that run while retaining rank upgrades.
+Document this Survivors conversion of reference duration/consumable charges; do
+not add an unrequested off-hand equipment slot. Initial damage is authored tuning;
+keep the reference application chances, Deadly timing and five-stack behavior.
+
+Roll once per original eligible direct weapon hit that removes health. Additional
+actual targets may each roll; splash copies, multistrike echoes, poison ticks,
+generated strikes and queued overkill may not. Poison cannot trigger another
+poison or consume Cold Blood/Remorseless/Seal Fate charges. Instant damage and
+Deadly ticks use their own source in the meter; keep lethal credit, leech and
+loot settlement correct. Deadly applications refresh duration and add one stack
+up to five without resetting the next tick; frame skips must preserve due ticks,
+paused time must not advance them, and expired stacks must not survive reapplication.
+The existing generic one-second Dot list cannot silently substitute for this state.
+
+Before counting either talent: test every rank and unrelated classes/attacks,
+coating offers/picks and equipment isolation, actual hit eligibility, lethal and
+paused behavior, all Deadly timing/stack boundaries, save/spec/refund behavior,
+and inline green chance/damage upgrades. Capture native coating acquisition and
+both talent purchases in wide/compact previews. Backstab integration must finish
+before changing the main source for this follow-up.
+
+
+The isolated Deadly clock prototype (`/tmp/survivors-poison-draft.rs`, not game
+source) passes four direct Rust tests: final tick/expiry/reapplication, refresh
+without tick reset and five-stack cap, frame partitions from 10 ms to 30 seconds,
+and invalid time/damage rejection. The first frame-partition test caught loss of
+the final tick with independent f32 countdowns; f64 countdowns preserve the
+four expected ticks. Revalidate these cases in the integrated hit system before
+claiming poison behavior or advancing talent coverage.
+
+
+Backstab integration passed in 1071 seconds (17m51s), including the player build
+and tests, with 31 missing-addon skips per data/player run. No Windows or live
+realm/gameplay acceptance is implied.

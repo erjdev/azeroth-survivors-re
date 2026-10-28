@@ -287,6 +287,13 @@ fn cast_weapon_buffs(run: &mut Run, stats: &super::Stats, dt: f32) -> Vec<u32> {
     casts
 }
 
+/// Models face local -Z; only the rear half-plane qualifies, never the flank boundary.
+fn behind_target(hero: Vec3, target: &Transform) -> bool {
+    let offset = flat(hero - target.translation);
+    let forward = flat(target.rotation * Vec3::NEG_Z);
+    offset.is_finite() && forward.is_finite() && offset.dot(forward) < -0.0001
+}
+
 pub(super) fn cast_abilities(
     mut commands: Commands,
     time: Res<Time>,
@@ -352,7 +359,9 @@ pub(super) fn cast_abilities(
     };
 
     for i in 0..run.abilities.len() {
-        if run.abilities[i].def.kind == Kind::WeaponBuff {
+        if run.abilities[i].def.kind == Kind::WeaponBuff
+            || !run.abilities[i].def.usable_with(run.milestones.weapon)
+        {
             continue;
         }
         run.abilities[i].cd -= dt;
@@ -403,13 +412,28 @@ pub(super) fn cast_abilities(
                 } else {
                     p.range
                 };
+                let rear_foes;
+                let candidates = if def.requires_rear {
+                    rear_foes = foes
+                        .iter()
+                        .copied()
+                        .filter(|foe| {
+                            enemies
+                                .get(foe.e)
+                                .is_ok_and(|(_, tf, _)| behind_target(hpos, tf))
+                        })
+                        .collect::<Vec<_>>();
+                    &rear_foes
+                } else {
+                    &foes
+                };
                 let targets = if matches!(
                     def.key,
                     "pyroblast" | "aimed_shot" | "exorcism" | "starfire"
                 ) {
-                    toughest(&foes, reach, p.count)
+                    toughest(candidates, reach, p.count)
                 } else {
-                    nearest(&foes, reach, p.count)
+                    nearest(candidates, reach, p.count)
                 };
                 if targets.is_empty() {
                     false
@@ -722,7 +746,14 @@ pub(super) fn cast_abilities(
                 }
             }
         };
-        run.abilities[i].cd = if fired { p.cooldown } else { 0.2 };
+        run.abilities[i].cd = if fired {
+            p.cooldown
+        } else if def.requires_rear {
+            // A positional opening must be usable immediately, without a retry cooldown.
+            0.0
+        } else {
+            0.2
+        };
         if fired {
             let talents = run.milestones;
             let elapsed = run.elapsed;
@@ -2721,6 +2752,138 @@ mod milestone_tests {
             }
             assert_eq!(run.hawk.remaining(run.milestones, elapsed), 12.);
             assert_eq!(run.mobile.cd, 9.);
+        }
+    }
+
+    #[test]
+    fn backstab_cast_requires_dagger_and_rear_targets_without_spending_failed_casts() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        for kind in [None, Some(MeleeKind::Sword), Some(MeleeKind::Dagger)] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[3],
+                milestones: Milestones {
+                    class: 3,
+                    weapon: kind.map(|kind| MeleeWeapon {
+                        kind,
+                        two_handed: false,
+                    }),
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 280, 1), (0, 272, 2)]),
+                ..Default::default()
+            };
+            run.record_remorseless_kill();
+            run.bonus.targets = 5;
+            run.abilities.push(Owned {
+                def: data::ability("backstab"),
+                level: 1,
+                cd: 0.,
+            });
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(42))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            let mut eligible = Vec::new();
+            // Front, side and out-of-range targets cannot consume either critical charge.
+            for (position, yaw, valid) in [
+                (Vec3::new(0., 0., 1.), 0., false),
+                (Vec3::new(1., 0., 0.), 0., false),
+                (Vec3::new(0., 0., -20.), 0., false),
+                (Vec3::new(0., 0., -2.), 0., true),
+                (Vec3::new(0., 0., 2.), std::f32::consts::PI, true),
+            ] {
+                if valid && eligible.is_empty() {
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                    let run = app.world().resource::<Run>();
+                    assert!(run.abilities[0].cd <= 0.);
+                    assert_eq!(
+                        run.critical_cast
+                            .bonus(run.milestones, "backstab", run.elapsed),
+                        1.
+                    );
+                    assert_eq!(run.remorseless_until, 20.);
+                }
+                let entity = app
+                    .world_mut()
+                    .spawn((
+                        Transform::from_translation(position)
+                            .with_rotation(Quat::from_rotation_y(yaw)),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp: 100.,
+                            max_hp: 100.,
+                            speed: 3.,
+                            damage: 5.,
+                            radius: 0.6,
+                            xp: 1,
+                            boss: false,
+                            elite: false,
+                            attack_cd: 0.,
+                            slow: 1.,
+                            slow_t: 0.,
+                            root_t: 0.,
+                            frozen_t: 0.,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.,
+                            fear_t: 0.,
+                            weaken: 1.,
+                            weaken_t: 0.,
+                            dots: Vec::new(),
+                            dead: false,
+                        },
+                    ))
+                    .id();
+                if valid {
+                    eligible.push(entity);
+                }
+            }
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            let run = app.world().resource::<Run>();
+            if kind == Some(MeleeKind::Dagger) {
+                assert_eq!(hits.len(), 2);
+                for hit in hits {
+                    assert!(eligible.contains(&hit.target));
+                    assert_eq!(hit.source, "backstab");
+                    assert!(hit.crit && hit.damage > 0.);
+                }
+                assert!(run.abilities[0].cd > 0.);
+                assert_eq!(
+                    run.critical_cast
+                        .bonus(run.milestones, "backstab", run.elapsed),
+                    0.
+                );
+                assert_eq!(run.remorseless_until, 0.);
+            } else {
+                assert!(hits.is_empty());
+                assert_eq!(run.abilities[0].cd, 0.);
+                assert_eq!(
+                    run.critical_cast
+                        .bonus(run.milestones, "backstab", run.elapsed),
+                    1.
+                );
+                assert_eq!(run.remorseless_until, 20.);
+            }
         }
     }
 

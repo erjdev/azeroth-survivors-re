@@ -1,0 +1,7 @@
+# Display acquisition and rank upgrades without entering combat.
+page=cards
+width=1280
+height=720
+hero=4
+abilities=backstab:0,backstab:1,backstab:4
+profile=selected

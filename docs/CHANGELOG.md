@@ -3,6 +3,31 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Backstab and rear-attack training
+
+Rogues can acquire Backstab while wearing a dagger. Every target must be behind
+its facing direction and within melee reach; failed attempts preserve readiness
+and critical charges. Improved Backstab adds critical chance, and Opportunity
+adds damage. Both talents improve the acquired attack without granting it.
+
+![Backstab acquisition and inline upgrades](images/screenshots/2026-10-28-backstab/cards.png)
+
+![Improved Backstab purchase comparison](images/screenshots/2026-10-28-backstab/improved-available.png)
+
+![Improved Backstab final rank saved](images/screenshots/2026-10-28-backstab/improved-trained.png)
+
+![Opportunity purchase comparison](images/screenshots/2026-10-28-backstab/opportunity-available.png)
+
+![Opportunity final rank saved](images/screenshots/2026-10-28-backstab/opportunity-trained.png)
+
+![Complete card at 640×720](images/screenshots/2026-10-28-backstab/card-640.png)
+
+259 core tests, 485 app tests and core/app Clippy pass. Native talent purchases
+at 1600×900 and cards at 1280×720 / 640×720 verified; build: 2m04s. Definition
+coverage: 289/432 (Rogue 33/51). Full integration passed in 17m51s, with 31
+missing-addon skips per data/player run. Positioning is verified
+through ECS tests; Windows, live balance, Garrote and Ambush remain open.
+
 ## 2026-10-28 — Seal Fate
 
 Critical Sinister Strike and Gouge hits can now advance owned finisher cooldowns

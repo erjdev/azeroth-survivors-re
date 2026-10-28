@@ -477,7 +477,8 @@ impl Milestones {
                             weapon.kind == crate::gear_loadout::MeleeKind::Dagger
                         }) && matches!(
                             key,
-                            "sinister_strike"
+                            "backstab"
+                                | "sinister_strike"
                                 | "eviscerate"
                                 | "blade_flurry"
                                 | "gouge"
@@ -510,7 +511,8 @@ impl Milestones {
                             )
                         }) && matches!(
                             key,
-                            "sinister_strike"
+                            "backstab"
+                                | "sinister_strike"
                                 | "eviscerate"
                                 | "blade_flurry"
                                 | "gouge"
@@ -760,7 +762,7 @@ impl Milestones {
             && critical
             && damage.is_finite()
             && damage > 0.0
-            && matches!(key, "sinister_strike" | "gouge")
+            && matches!(key, "backstab" | "sinister_strike" | "gouge")
         {
             self.trained_value(TalentStat::SealFate).clamp(0.0, 1.0)
         } else {
@@ -773,7 +775,7 @@ impl Milestones {
         if self.class == 3
             && matches!(
                 key,
-                "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
+                "backstab" | "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
             )
         {
             self.trained_value(TalentStat::Remorseless)
@@ -3360,19 +3362,32 @@ const ROGUE_SPELLS: &[&str] = &[
     "rupture",
     "gouge",
     "kidney_shot",
+    "backstab",
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 13733/13865/13866: 10/20/30 percentage points of Backstab critical chance.
+    TalentDefinition {
+        id: 202, max_rank: 3, name: "Improved Backstab",
+        description: "Backstab: +10% critical chance per rank. Requires acquiring Backstab, wearing a dagger and attacking from behind; does not grant the attack",
+        stat: TalentStat::SpellCrit("backstab"), per_rank: 0.10,
+    },
+    // Spell.dbc 14057/14072–14075: 4/8/12/16/20% rear-opener damage.
+    TalentDefinition {
+        id: 261, max_rank: 5, name: "Opportunity",
+        description: "Backstab: +4% damage per rank. Requires acquiring Backstab, wearing a dagger and attacking from behind. Garrote and Ambush are not yet available; does not grant attacks",
+        stat: TalentStat::SpellDamage("backstab"), per_rank: 0.04,
+    },
     // Spell.dbc 14186/14190/14193–14195 proc chances 20/40/60/80/100, trigger 14189.
     TalentDefinition {
         id: 283, max_rank: 5, name: "Seal Fate",
-        description: "Critical Sinister Strike or Gouge hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec. Each original hit can trigger once; splash copies, generated strikes and bleed ticks cannot trigger it. Does not grant spells or store recovery while ready (Survivors combo-point conversion)",
+        description: "Critical Backstab, Sinister Strike or Gouge hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec. Each original hit can trigger once; splash copies, generated strikes and bleed ticks cannot trigger it. Does not grant spells or store recovery while ready (Survivors combo-point conversion)",
         stat: TalentStat::SealFate, per_rank: 0.20,
     },
     // Spell.dbc 30919/30920: +3/+5 skill for swords (43), daggers (173), fists (162).
     TalentDefinition {
         id: 1703, max_rank: 2, name: "Weapon Expertise",
-        description: "With a worn sword, dagger or fist weapon: +3–5% direct damage for Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities (Survivors weapon-skill conversion; attacks have no skill or miss roll)",
+        description: "With a worn sword, dagger or fist weapon: +3–5% direct damage for Backstab, Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities (Survivors weapon-skill conversion; attacks have no skill or miss roll)",
         stat: TalentStat::WeaponExpertise, per_rank: 0.0,
     },
     // Spell.dbc 13709/13800–13803: proc 1/2/3/4/6%, plus 1–5 mace skill.
@@ -3396,12 +3411,12 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     // Spell.dbc 13706/13804–13807: +1–5 percentage points of dagger critical chance.
     TalentDefinition {
         id: 182, max_rank: 5, name: "Dagger Specialization",
-        description: "With a worn dagger: +1% critical chance per rank for Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities",
+        description: "With a worn dagger: +1% critical chance per rank for Backstab, Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities",
         stat: TalentStat::DaggerCrit, per_rank: 0.01,
     },
     TalentDefinition {
         id: 223, max_rank: 1, name: "Blade Flurry",
-        description: "A successful owned Blade Flurry starts a 15 sec burst: 20% faster recovery for Sinister Strike, Eviscerate, Gouge, Kidney Shot and Blade Flurry; single-target melee attacks hit 1 additional target within their existing reach. Ready at run start; recovers 120 sec after activation. Does not refresh on repeated casts or change area radius, Rupture, Sprint or existing cooldowns. Does not grant the spell (Survivors automatic conversion)",
+        description: "A successful owned Blade Flurry starts a 15 sec burst: 20% faster recovery for Backstab, Sinister Strike, Eviscerate, Gouge, Kidney Shot and Blade Flurry; single-target melee attacks hit 1 additional target within their existing reach. Ready at run start; recovers 120 sec after activation. Does not refresh on repeated casts or change area radius, Rupture, Sprint or existing cooldowns. Does not grant the spell (Survivors automatic conversion)",
         stat: TalentStat::BladeFlurry, per_rank: 0.20,
     },
     TalentDefinition {
@@ -3421,12 +3436,12 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 284, max_rank: 1, name: "Preparation",
-        description: "Grants 1 automatic reset of owned Sinister Strike, Eviscerate, Blade Flurry, Rupture, Gouge, Kidney Shot and learned Sprint cooldowns every 180 sec of run time; first at 180 sec. Preserves active effects. Does not grant spells, store charges or reset Cold Blood or Adrenaline Rush recovery (Survivors automatic conversion)",
+        description: "Grants 1 automatic reset of owned Backstab, Sinister Strike, Eviscerate, Blade Flurry, Rupture, Gouge, Kidney Shot and learned Sprint cooldowns every 180 sec of run time; first at 180 sec. Preserves active effects. Does not grant spells, store charges or reset Cold Blood or Adrenaline Rush recovery (Survivors automatic conversion)",
         stat: TalentStat::Preparation, per_rank: 1.0,
     },
     TalentDefinition {
         id: 280, max_rank: 1, name: "Cold Blood",
-        description: "Automatically adds +100% critical chance to the next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast, including extra targets. Ready at run start; recovers 180 sec after use. Pauses stop recovery. Excludes Blade Flurry and Rupture. Separate from the 30-point Eviscerate milestone.",
+        description: "Automatically adds +100% critical chance to the next successful Backstab, Sinister Strike, Eviscerate, Gouge or Kidney Shot cast, including extra targets. Ready at run start; recovers 180 sec after use. Pauses stop recovery. Excludes Blade Flurry and Rupture. Separate from the 30-point Eviscerate milestone.",
         stat: TalentStat::ColdBlood, per_rank: 1.0,
     },
     TalentDefinition {
@@ -3461,7 +3476,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 272, max_rank: 2, name: "Remorseless Attacks",
-        description: "After a kill, your next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast gains +20% critical chance per rank; expires after 20 sec; refreshes without stacking",
+        description: "After a kill, your next successful Backstab, Sinister Strike, Eviscerate, Gouge or Kidney Shot cast gains +20% critical chance per rank; expires after 20 sec; refreshes without stacking",
         stat: TalentStat::Remorseless, per_rank: 0.20,
     },
     TalentDefinition {
@@ -3491,13 +3506,13 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 269, max_rank: 5, name: "Lethality",
-        description: "Sinister Strike and Gouge: +6% critical damage per rank; excludes finishers and periodic damage",
-        stat: TalentStat::SpellGroupCritDamage(&["sinister_strike", "gouge"]), per_rank: 0.06,
+        description: "Backstab, Sinister Strike and Gouge: +6% critical damage per rank; excludes finishers and periodic damage",
+        stat: TalentStat::SpellGroupCritDamage(&["sinister_strike", "gouge", "backstab"]), per_rank: 0.06,
     },
     TalentDefinition {
         id: 1122, max_rank: 3, name: "Aggression",
-        description: "Sinister Strike and Eviscerate: +2% damage per rank",
-        stat: TalentStat::SpellGroupDamage(&["sinister_strike", "eviscerate"]), per_rank: 0.02,
+        description: "Backstab, Sinister Strike and Eviscerate: +2% damage per rank",
+        stat: TalentStat::SpellGroupDamage(&["sinister_strike", "eviscerate", "backstab"]), per_rank: 0.02,
     },
     TalentDefinition {
         id: 276, max_rank: 3, name: "Improved Eviscerate",
@@ -4122,7 +4137,7 @@ mod stat_talent_tests {
                 "blade_flurry" => 0.85 * 0.9,
                 "gouge" | "kidney_shot" => 0.8 * 0.9,
                 "sinister_strike" => 0.9 * 0.9,
-                "rupture" | "eviscerate" => 0.9,
+                "backstab" | "rupture" | "eviscerate" => 0.9,
                 _ => 1.0,
             };
             let mut expected = base.cast(key);
@@ -4188,12 +4203,12 @@ mod stat_talent_tests {
             let effect = trained.cast(key);
             let expected_damage = 1.10
                 * match *key {
-                    "sinister_strike" => 1.06,
+                    "backstab" | "sinister_strike" => 1.06,
                     "eviscerate" => 1.06 * 1.15,
                     _ => 1.0,
                 };
             assert!((effect.damage - expected_damage).abs() < 0.00001, "{key}");
-            let expected_crit_damage = if matches!(*key, "sinister_strike" | "gouge") {
+            let expected_crit_damage = if matches!(*key, "backstab" | "sinister_strike" | "gouge") {
                 0.30
             } else {
                 0.0
@@ -7091,7 +7106,8 @@ mod dagger_specialization_tests {
                             && kind == Some(MeleeKind::Dagger)
                             && matches!(
                                 ability.key,
-                                "sinister_strike"
+                                "backstab"
+                                    | "sinister_strike"
                                     | "eviscerate"
                                     | "blade_flurry"
                                     | "gouge"
@@ -7393,7 +7409,8 @@ mod weapon_expertise_tests {
                             )
                             && matches!(
                                 key,
-                                "sinister_strike"
+                                "backstab"
+                                    | "sinister_strike"
                                     | "eviscerate"
                                     | "blade_flurry"
                                     | "gouge"
@@ -7448,7 +7465,7 @@ mod seal_fate_tests {
                             let expected = if class == 3
                                 && critical
                                 && damage == 10.0
-                                && matches!(key, "sinister_strike" | "gouge")
+                                && matches!(key, "backstab" | "sinister_strike" | "gouge")
                             {
                                 0.2 * f32::from(rank.min(5))
                             } else {
@@ -7473,5 +7490,69 @@ mod seal_fate_tests {
         let max = node.inline_description(255).unwrap();
         assert!(max.contains("100% chance"));
         assert!(!max.contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod backstab_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn backstab_requires_a_worn_dagger_and_training_only_changes_its_cast() {
+        let attack = crate::data::ability("backstab");
+        assert!(attack.requires_rear);
+        assert_eq!(
+            (attack.damage, attack.cooldown, attack.range, attack.count),
+            (30.0, 1.3, 5.5, 1)
+        );
+        assert!(crate::data::CLASSES[3].pool.contains(&attack.key));
+        for kind in [
+            None,
+            Some(MeleeKind::Dagger),
+            Some(MeleeKind::Sword),
+            Some(MeleeKind::Mace),
+            Some(MeleeKind::Fist),
+        ] {
+            assert_eq!(
+                attack.usable_with(kind.map(|kind| MeleeWeapon {
+                    kind,
+                    two_handed: false
+                })),
+                kind == Some(MeleeKind::Dagger)
+            );
+        }
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 4, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 202, rank), (2, 261, rank)]);
+                for key in crate::data::ABILITIES.iter().map(|a| a.key) {
+                    let mut expected = base.cast(key);
+                    if class == 3 && key == "backstab" {
+                        expected.crit += 0.1 * f32::from(rank.min(3));
+                        expected.damage *= 1.0 + 0.04 * f32::from(rank.min(5));
+                    }
+                    assert_eq!(trained.cast(key), expected);
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+    }
+    #[test]
+    fn backstab_training_uses_green_inline_values() {
+        for (id, rank, expected) in [
+            (202, 1, "+10 » 20% critical chance"),
+            (261, 4, "+16 » 20% damage"),
+        ] {
+            let (text, ranges) = talent_definition(3, id)
+                .unwrap()
+                .inline_description_with_values(rank)
+                .unwrap();
+            assert_eq!(ranges.len(), 1);
+            assert_eq!(&text[ranges[0].clone()], expected);
+            assert!(text.contains("does not grant"));
+        }
     }
 }

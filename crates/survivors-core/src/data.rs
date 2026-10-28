@@ -116,6 +116,8 @@ pub struct AbilityDef {
     pub key: &'static str,
     pub spell: u32,
     pub kind: Kind,
+    pub required_weapon: Option<crate::gear_loadout::MeleeKind>,
+    pub requires_rear: bool,
     /// Direct damage; per tick for areas and pulses; absorb, heal or reflect for the self kinds.
     pub damage: f32,
     /// Fractional weapon-damage bonus for WeaponBuff; independent of global damage.
@@ -138,11 +140,21 @@ pub struct AbilityDef {
     pub overhead: bool,
 }
 
+impl AbilityDef {
+    /// Equipment identity is taken from the worn loadout, never its appearance.
+    pub fn usable_with(&self, weapon: Option<crate::gear_loadout::MeleeWeapon>) -> bool {
+        self.required_weapon
+            .is_none_or(|required| weapon.is_some_and(|w| w.kind == required))
+    }
+}
+
 const fn ab(key: &'static str, spell: u32, kind: Kind) -> AbilityDef {
     AbilityDef {
         key,
         spell,
         kind,
+        required_weapon: None,
+        requires_rear: false,
         damage: 0.0,
         weapon_bonus: 0.0,
         dot: 0.0,
@@ -391,6 +403,17 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     // --- Rogue ---
+    ability!(
+        "backstab",
+        53,
+        Melee {
+            damage: 30.0,
+            cooldown: 1.3,
+            range: 5.5,
+            required_weapon: Some(crate::gear_loadout::MeleeKind::Dagger),
+            requires_rear: true
+        }
+    ),
     ability!(
         "sinister_strike",
         1752,
@@ -1179,6 +1202,7 @@ pub static CLASSES: &[ClassDef] = &[
             "rupture",
             "gouge",
             "kidney_shot",
+            "backstab",
         ],
         looks: &[
             1297, 1327, 1328, 1507, 1580, 1603, 1704, 1725, 1886, 2231, 2243, 2252, 2631, 2639,

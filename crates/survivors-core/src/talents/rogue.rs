@@ -215,7 +215,12 @@ impl BladeFlurryClock {
         if !Self::trained(talents, elapsed)
             || !matches!(
                 key,
-                "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot" | "blade_flurry"
+                "backstab"
+                    | "sinister_strike"
+                    | "eviscerate"
+                    | "gouge"
+                    | "kidney_shot"
+                    | "blade_flurry"
             )
             || !(elapsed < self.until || (key == "blade_flurry" && elapsed >= self.next))
         {
@@ -230,7 +235,7 @@ impl BladeFlurryClock {
                 && elapsed < self.until
                 && matches!(
                     key,
-                    "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
+                    "backstab" | "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
                 ),
         )
     }

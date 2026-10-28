@@ -296,3 +296,28 @@ fn battle_shout_cards_show_percentage_strength_and_duration_without_damage_hits(
     run.bonus.crit = 0.5;
     assert_eq!(describe(Choice::NewAbility(def), &run), before);
 }
+
+#[test]
+fn backstab_cards_explain_position_and_weapon_with_inline_damage_growth() {
+    let def = data::ability("backstab");
+    let mut run = Run {
+        class: &data::CLASSES[3],
+        ..Default::default()
+    };
+    run.abilities.push(crate::survivors::Owned {
+        def,
+        level: 1,
+        cd: 0.,
+    });
+    for choice in [Choice::NewAbility(def), Choice::Upgrade(0)] {
+        let spans = describe(choice, &run);
+        let text = plain(&spans);
+        assert!(text.contains("Requires an equipped dagger."));
+        assert!(text.contains("Only targets enemies you are behind."));
+        assert!(spans.iter().any(|(value, color)| value.contains("damage")
+            && value.contains('»')
+            && *color == card_growth::GAIN));
+        assert!(!text.contains("sec »"));
+        assert!(!text.contains("new rank"));
+    }
+}
