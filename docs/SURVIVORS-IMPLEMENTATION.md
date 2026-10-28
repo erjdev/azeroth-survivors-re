@@ -8167,3 +8167,13 @@ existing Heroic Strike milestone (two targets and 8% absorb instead of one and
 5%); this is not attributed to the weapon node. Before/after screenshots are
 inline in CHANGELOG. This closes the one-handed card comparison, while axe crit
 has emitted-hit tests and native talent text rather than a damage-card comparison.
+
+### Weapon specialization integration acceptance — 2026-10-27
+
+The full native gate chain at `ef95fac` passed in 653 seconds (10m53s), including
+player-mode tests without developer features. Data/player stages each reported
+31 missing-addon skips. This closes the full native integration item for Axe and
+One-Handed Weapon Specialization; details are in the
+[validation record](validation/2026-10-27-integration.md). Later screenshot/docs
+commit `4548ec7` leaves the tested code unchanged. Windows, live realm smoke,
+remaining talent/content work and live balance are still open.

@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Weapon talent integration verified
+
+The full native gate chain passes at `ef95fac` in 10m53s, including workspace,
+no-install and player-mode tests. Data/player stages each report 31 missing-addon
+skips. Windows and live balance remain open. See the
+[validation record](validation/2026-10-27-integration.md).
+
 ## 2026-10-27 — One-handed training on upgrade cards
 
 Five ranks bought in the native UI change Cleave from `20.6 » 26.8` to

@@ -48,3 +48,18 @@ passed 230. Native selected-profile card screenshots at 1280×900 confirm the
 equipped-weapon multiplier reaches displayed upgrade values. This checkpoint
 does not establish Windows/browser execution, live realm smoke, live combat
 balance, missing addon compatibility or completion of the seven-phase goal.
+
+## Weapon specialization checkpoint (`ef95fac`)
+
+`WOW_DATA="$PWD/wow-data/Data" scripts/check.sh` passed the full native chain in
+653 seconds (10m53s): formatting 6s, workspace all-target Clippy 23s, workspace
+tests 342s, no-install tests 27s, documentation links 54s, render-pass lint 1s,
+and player tests without developer features 200s. Terminal exit: 0.
+
+Workspace/player stages each reported 31 skips: 24 absent vanilla addon corpus,
+seven absent Quiver. Checkout game data was present. The dedicated Survivors
+feature-enabled suite separately passed 457 tests; core rules passed 230.
+Later commit `4548ec7` only adds documentation and native screenshots, leaving the
+verified source unchanged. Native one-handed/axe purchases, saved specs and
+one-handed card comparisons are embedded in CHANGELOG. No Windows/browser runtime,
+live realm smoke, unattended combat or live balance acceptance is implied.
