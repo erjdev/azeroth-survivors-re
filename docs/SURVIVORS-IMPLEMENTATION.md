@@ -8524,3 +8524,29 @@ critical chance. Rogue Mace node 184 spells 13709/13800–13803 have proc chance
 1/2/3/4/6% plus 1–5 mace skill; the skill component needs an explicit Survivors
 conversion or stated inapplicability rather than silently disappearing. Neither
 node is implemented by this audit.
+
+### Rogue alternative weapons implementation scope — 2026-10-28
+
+Add Common Worn Mace and Right-Handed Brass Knuckles as Rogue supplemental
+main-hand choices, retaining the original 54 collection identities. Use separate
+`weapon:rogue:*` ownership keys. Hogger awards one of the two with equal chance,
+alongside the existing head-piece roll; keep the Warrior reward unchanged.
+Duplicates never add power or change worn gear/appearance. Common main-hand
+bonuses remain shared rarity rules, independent of vanilla item quality.
+
+Make alternative-weapon source labels class-aware and use the actual weapon type
+for Collection labels (the existing UI labels every non-polearm as a mace).
+Expose both choices in Rogue Collection and Elwynn Drop Tables. Expand the
+collection audit across supported classes rather than auditing Warrior alone.
+
+Checkout display 5194 resolves `INV_Mace_03`, model
+`mace_1h_flanged_a_01.m2`; display 26592 resolves `INV_Gauntlets_04`, model
+`hand_1h_knuckle_a_01.m2`. Both 64×64 icons decode successfully. The pinned item
+template supplies entry/subclass metadata; native attachment fit remains unproven.
+
+An isolated core draft passes 248 tests and Clippy. Before claiming completion:
+verify account acquisition, cross-class ownership rejection, save/load, duplicate
+stability, independent worn/cosmetic choices, source-page labels and navigation,
+and native weapon attachments with inline milestone screenshots. The source
+checkout remains unchanged while Rogue Sword integration runs. This delivers
+weapon prerequisites; Rogue mace/fist talent effects are still separate work.
