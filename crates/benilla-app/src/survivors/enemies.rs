@@ -38,6 +38,7 @@ pub(super) struct Enemy {
     pub fear_t: f32,
     pub weaken: f32,
     pub weaken_t: f32,
+    pub poison: survivors_core::talents::DeadlyPoison,
     pub dots: Vec<Dot>,
     pub dead: bool,
 }
@@ -186,6 +187,7 @@ fn spawn_enemy(
             fear_t: 0.0,
             weaken: 1.0,
             weaken_t: 0.0,
+            poison: Default::default(),
             dots: Vec::new(),
             dead: false,
         },

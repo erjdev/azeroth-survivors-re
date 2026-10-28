@@ -36,6 +36,8 @@ impl ClassDef {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Kind {
+    /// Run-long weapon coating; applications are driven by original landed melee hits.
+    Coating(crate::talents::Coating),
     /// Timed self buff for original weapon casts; never emits a damage hit.
     WeaponBuff,
     /// A missile at the nearest enemies (or instant if the spell has no speed).
@@ -143,6 +145,10 @@ pub struct AbilityDef {
 impl AbilityDef {
     /// Equipment identity is taken from the worn loadout, never its appearance.
     pub fn usable_with(&self, weapon: Option<crate::gear_loadout::MeleeWeapon>) -> bool {
+        if matches!(self.kind, Kind::Coating(_)) && !crate::talents::Coating::weapon_allowed(weapon)
+        {
+            return false;
+        }
         self.required_weapon
             .is_none_or(|required| weapon.is_some_and(|w| w.kind == required))
     }
@@ -403,6 +409,23 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     // --- Rogue ---
+    AbilityDef {
+        damage: 22.0,
+        ..ab(
+            "instant_poison",
+            8679,
+            Kind::Coating(crate::talents::Coating::Instant),
+        )
+    },
+    AbilityDef {
+        damage: 9.0,
+        duration: 12.0,
+        ..ab(
+            "deadly_poison",
+            2823,
+            Kind::Coating(crate::talents::Coating::Deadly),
+        )
+    },
     ability!(
         "backstab",
         53,
@@ -1203,6 +1226,8 @@ pub static CLASSES: &[ClassDef] = &[
             "gouge",
             "kidney_shot",
             "backstab",
+            "instant_poison",
+            "deadly_poison",
         ],
         looks: &[
             1297, 1327, 1328, 1507, 1580, 1603, 1704, 1725, 1886, 2231, 2243, 2252, 2631, 2639,

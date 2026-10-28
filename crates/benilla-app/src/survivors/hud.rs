@@ -1131,6 +1131,16 @@ fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
     choices_excluding(run, rng, n, &[])
 }
 
+fn coating_available(run: &Run, def: &AbilityDef) -> bool {
+    !matches!(def.kind, Kind::Coating(_))
+        || (run.milestones.class == 3
+            && run.abilities.len() < data::MAX_ABILITIES
+            && !run
+                .abilities
+                .iter()
+                .any(|o| matches!(o.def.kind, Kind::Coating(_))))
+}
+
 fn choices_excluding(run: &Run, rng: &mut Rng, n: usize, excluded: &[Choice]) -> Vec<Choice> {
     let mut pool: Vec<(Choice, f32)> = Vec::new();
     for (i, o) in run.abilities.iter().enumerate() {
@@ -1140,7 +1150,8 @@ fn choices_excluding(run: &Run, rng: &mut Rng, n: usize, excluded: &[Choice]) ->
     }
     if run.abilities.len() < data::MAX_ABILITIES {
         for key in run.class.pool {
-            if data::ability(key).usable_with(run.milestones.weapon)
+            if coating_available(run, data::ability(key))
+                && data::ability(key).usable_with(run.milestones.weapon)
                 && !run.abilities.iter().any(|o| o.def.key == *key)
             {
                 pool.push((Choice::NewAbility(data::ability(key)), 1.0));
@@ -1286,7 +1297,7 @@ pub(super) fn pick(
         return;
     };
     if let Choice::NewAbility(def) = choice {
-        if !def.usable_with(run.milestones.weapon) {
+        if !def.usable_with(run.milestones.weapon) || !coating_available(run, def) {
             return;
         }
     }
@@ -2623,7 +2634,7 @@ pub(super) fn base_ability_body(def: &'static AbilityDef) -> String {
     let base = Run::default();
     let cast = cast_at(def, 1, &base.stats(), base.milestones);
     let body = ability_body(def, &cast);
-    if matches!(def.kind, Kind::Aura | Kind::Orbit) {
+    if matches!(def.kind, Kind::Aura | Kind::Orbit | Kind::Coating(_)) {
         body
     } else {
         format!("{body} Recharges in {} sec.", num(cast.cooldown))
@@ -2668,11 +2679,13 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
             &[num(next.duration).as_str().into()],
         ));
     }
-    gains.push(strings.by_key(
-        "SPELL_RECAST_TIME_SEC",
-        "%s sec cooldown",
-        &[num(next.cooldown).as_str().into()],
-    ));
+    if !matches!(def.kind, Kind::Coating(_)) {
+        gains.push(strings.by_key(
+            "SPELL_RECAST_TIME_SEC",
+            "%s sec cooldown",
+            &[num(next.cooldown).as_str().into()],
+        ));
+    }
     gains.join(", ")
 }
 
@@ -2701,19 +2714,29 @@ fn ability_tip(
         }
         _ => None,
     };
-    let mut cast = TipLine::new("Casts itself", Color::WHITE);
+    let coating = matches!(def.kind, Kind::Coating(_));
+    let mut cast = TipLine::new(
+        if coating {
+            "Weapon coating · active while equipped"
+        } else {
+            "Casts itself"
+        },
+        Color::WHITE,
+    );
     if let Some(range) = range {
         cast = cast.right(range, Color::WHITE);
     }
     lines.push(cast);
-    lines.push(TipLine::new("Instant", Color::WHITE).right(
-        strings.by_key(
-            "SPELL_RECAST_TIME_SEC",
-            "%s sec cooldown",
-            &[num(now.cooldown).as_str().into()],
-        ),
-        Color::WHITE,
-    ));
+    if !coating {
+        lines.push(TipLine::new("Instant", Color::WHITE).right(
+            strings.by_key(
+                "SPELL_RECAST_TIME_SEC",
+                "%s sec cooldown",
+                &[num(now.cooldown).as_str().into()],
+            ),
+            Color::WHITE,
+        ));
+    }
     lines.push(TipLine::new(ability_body(def, &now), GOLD));
     for (verb, duration, boss_duration) in [
         (
@@ -2831,7 +2854,7 @@ fn ability_tip(
     }
     if !matches!(
         def.kind,
-        Kind::Shield | Kind::Immune | Kind::Heal | Kind::Dot | Kind::WeaponBuff
+        Kind::Shield | Kind::Immune | Kind::Heal | Kind::Dot | Kind::WeaponBuff | Kind::Coating(_)
     ) {
         lines.push(TipLine::new(
             format!(
@@ -3732,5 +3755,104 @@ mod deterrence_status_tests {
         run.hp = 100.;
         run.milestones = run.milestones.with_ranks(&[]);
         assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+#[cfg(test)]
+mod poison_offer_tests {
+    use super::*;
+    use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn coating_choice_excludes_the_other_coating_but_preserves_upgrades() {
+        for key in ["instant_poison", "deadly_poison"] {
+            let mut run = Run {
+                class: &data::CLASSES[3],
+                hp: 100.0,
+                milestones: survivors_core::talents::Milestones {
+                    class: 3,
+                    weapon: Some(MeleeWeapon {
+                        kind: MeleeKind::Dagger,
+                        two_handed: false,
+                    }),
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+            let mut rng = Rng(42);
+            let mut offer = Offer {
+                choices: choices_for(&run, &mut rng, 100),
+            };
+            for expected in ["instant_poison", "deadly_poison"] {
+                assert!(offer
+                    .choices
+                    .iter()
+                    .any(|c| matches!(c, Choice::NewAbility(d) if d.key == expected)));
+            }
+            let index = offer
+                .choices
+                .iter()
+                .position(|c| matches!(c, Choice::NewAbility(d) if d.key == key))
+                .unwrap();
+            pick(
+                index,
+                &mut run,
+                &mut offer,
+                &mut rng,
+                &mut NextState::default(),
+            );
+            assert_eq!(run.abilities.len(), 1);
+            let choices = choices_for(&run, &mut rng, 100);
+            assert!(!choices
+                .iter()
+                .any(|c| matches!(c, Choice::NewAbility(d) if matches!(d.kind, Kind::Coating(_)))));
+            assert!(choices.iter().any(|c| matches!(c, Choice::Upgrade(0))));
+            offer.choices = vec![Choice::NewAbility(data::ability(
+                if key == "instant_poison" {
+                    "deadly_poison"
+                } else {
+                    "instant_poison"
+                },
+            ))];
+            pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+            assert_eq!(
+                run.abilities.len(),
+                1,
+                "stale cards cannot add a second coating"
+            );
+            offer.choices = vec![Choice::Upgrade(0)];
+            pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+            assert_eq!(run.abilities[0].level, 2);
+            run.abilities.clear();
+            run.milestones.weapon = None;
+            assert!(!choices_for(&run, &mut rng, 100)
+                .iter()
+                .any(|c| matches!(c, Choice::NewAbility(d) if matches!(d.kind, Kind::Coating(_)))));
+            offer.choices = vec![Choice::NewAbility(data::ability(key))];
+            pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+            assert!(run.abilities.is_empty());
+        }
+    }
+    #[test]
+    fn poison_cards_use_inline_green_damage_and_never_claim_an_autocast() {
+        let run = Run::default();
+        for key in ["instant_poison", "deadly_poison"] {
+            let def = data::ability(key);
+            let a = cast_at(def, 1, &run.stats(), run.milestones);
+            let b = cast_at(def, 2, &run.stats(), run.milestones);
+            let spans = inline::ability(def, &a, &b);
+            assert!(spans.iter().any(|(text, color)| text.contains(" » ")
+                && text.ends_with(" damage")
+                && *color == card_growth::GAIN));
+            let body = base_ability_body(def);
+            assert!(!body.contains("Recharges"));
+            assert!(!body.contains("cooldown"));
+            assert!(body.contains("One coating per run"));
+            assert_eq!(a.cooldown, 0.0);
+            assert_eq!(a.count, 0);
+            assert_eq!(a.crit, 0.0);
+            if key == "deadly_poison" {
+                assert_eq!(b.duration, 12.0);
+                assert!(body.contains("every 3 sec for 12 sec"));
+            }
+        }
     }
 }

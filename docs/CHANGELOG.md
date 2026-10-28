@@ -3,6 +3,36 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Rogue weapon poisons
+
+Rogues can acquire one run-long weapon coating: Instant Poison or stacking
+Deadly Poison. Improved Poisons raises application chance; Vile Poisons raises
+poison damage. Worn weapons are required. Splash and extra attack echoes cannot
+multiply applications. Enemy poison dispels remain unimplemented.
+
+![Acquisition and inline poison upgrades](images/screenshots/2026-10-28-poisons/cards.png)
+
+![Improved Poisons purchase comparison](images/screenshots/2026-10-28-poisons/improved-available.png)
+
+![Improved Poisons purchased and saved](images/screenshots/2026-10-28-poisons/improved-trained.png)
+
+![Vile Poisons purchase comparison](images/screenshots/2026-10-28-poisons/vile-available.png)
+
+![Vile Poisons purchased and saved](images/screenshots/2026-10-28-poisons/vile-trained.png)
+
+![Compact chance description](images/screenshots/2026-10-28-poisons/improved-640.png)
+
+![Compact damage description](images/screenshots/2026-10-28-poisons/vile-640.png)
+
+![Complete Deadly Poison upgrade at 640×720](images/screenshots/2026-10-28-poisons/card-640.png)
+
+265 core tests, 493 app tests and core/app Clippy pass. Tests cover stacking,
+refresh, pause, skipped frames, lethal credit/leech, extra-hit isolation,
+coating offers, saves/specs/refunds and cosmetic weapon isolation. Native
+purchases and wide/compact text verified; build: 2m48s. Full integration passed
+in 17m07s, with 31 missing-addon skips per data/player run. Definition coverage:
+291/432 (Rogue 35/51). Windows and live balance remain open.
+
 ## 2026-10-28 — Taller talent trees
 
 Talent rows have 17% more vertical spacing and icons are 9% larger. Narrow

@@ -3864,6 +3864,86 @@ mod tests {
     }
 
     #[test]
+    fn poison_training_roundtrips_specs_refunds_and_worn_weapon_identity() {
+        use survivors_core::talents::Coating;
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(3);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (0, 276, 3),
+            (0, 270, 5),
+            (0, 272, 1),
+            (0, 273, 3),
+            (0, 277, 3),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        account.classes[3].pieces.fill(1);
+        let progress = &mut account.classes[3];
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, Some(0)));
+        let values = |a: &Account| {
+            let t = a.milestones_picked(3, Some(hero));
+            (Coating::Instant.chance(t), t.cast("deadly_poison").damage)
+        };
+        for rank in 1..=5 {
+            for id in [268, 682] {
+                assert!(account.learn_talent(hero, 0, id, 5, 3, true));
+            }
+            let (chance, damage) = values(&account);
+            assert!((chance - (0.2 + 0.02 * rank as f32)).abs() < 0.00001);
+            assert!((damage - (1.0 + 0.04 * rank as f32)).abs() < 0.00001);
+        }
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(values(&loaded), values(&account));
+        loaded.select_spec(hero, 1);
+        assert_eq!(values(&loaded), (0.2, 1.0));
+        loaded.select_spec(hero, 0);
+        for id in [268, 682] {
+            assert!(loaded.unlearn_talent(hero, id, true));
+        }
+        assert!((values(&loaded).0 - 0.28).abs() < 0.00001);
+        assert!((values(&loaded).1 - 1.16).abs() < 0.00001);
+        let eligible = |a: &Account| {
+            Coating::eligible(
+                a.milestones_picked(3, Some(hero)),
+                "sinister_strike",
+                1.0,
+                true,
+            )
+        };
+        assert!(eligible(&loaded));
+        let progress = &mut loaded.classes[3];
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, None));
+        assert!(progress.equipment.show_legacy(
+            &progress.pieces,
+            8,
+            survivors_core::equipment::Look::Piece(0)
+        ));
+        assert!(!eligible(&loaded), "cosmetic dagger is not a worn weapon");
+        let other = loaded.ensure(0);
+        assert!(!Coating::eligible(
+            loaded.milestones_picked(0, Some(other)),
+            "sinister_strike",
+            1.0,
+            true
+        ));
+    }
+
+    #[test]
     fn seal_fate_purchase_save_specs_and_refunds_preserve_proc_chance() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

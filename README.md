@@ -16,6 +16,8 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+![Rogue poison acquisition and inline upgrades](docs/images/screenshots/2026-10-28-poisons/cards.png)
+
 ## Interface gallery
 
 Actual checkout captures, dated below. Many use isolated fixture accounts; a screenshot

@@ -49,6 +49,20 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
     let cooldown = (a.cooldown, b.cooldown, " sec");
     let burst = def.duration <= 0.0;
     match def.kind {
+        Kind::Coating(coating) => {
+            prose!(
+                "Your original weapon hits have ",
+                (a.poison_chance * 100.0, b.poison_chance * 100.0, "% chance"),
+                " to deal ",
+                damage,
+                " as Nature"
+            );
+            if coating == survivors_core::talents::Coating::Deadly {
+                prose!(" every 3 sec for 12 sec. Stacks up to 5 times; refreshes duration without delaying ticks");
+            }
+            prose!(". Requires a worn melee weapon. One coating per run; lasts for the run.");
+            return out.0;
+        }
         Kind::WeaponBuff => {
             prose!(
                 "Increases your weapon damage by ",

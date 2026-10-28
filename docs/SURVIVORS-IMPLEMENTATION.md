@@ -889,13 +889,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 33 / 51 | 9 / 9 |
+| Rogue | 35 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 289 / 432 | 81 / 81 |
+| Total | 291 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8854,3 +8854,55 @@ claiming poison behavior or advancing talent coverage.
 Backstab integration passed in 1071 seconds (17m51s), including the player build
 and tests, with 31 missing-addon skips per data/player run. No Windows or live
 realm/gameplay acceptance is implied.
+
+
+### Rogue poison foundation — implementation and visual validation (2026-10-28)
+
+Instant Poison and Deadly Poison now occupy an acquired ability slot, with one
+coating per run and an equipped one-handed Rogue melee weapon requirement.
+Improved Poisons and Vile Poisons use their audited rank tables. Their cards
+show green inline damage growth; cooldown/autocast/critical labels are omitted.
+Precision, Deadliness, Malice and Vigor explicitly exclude coatings.
+
+The shared clock has final-tick, expiry, reapplication, refresh-phase, stack-cap,
+invalid-input and frame-partition coverage. Actual hit tests cover original versus
+splash/generated/multistrike hits, additional victims, new-application timing,
+pause, lethal damage, per-source meter totals, leech and single loot settlement.
+Offer tests reject a second coating and unworn weapons while retaining upgrades.
+DBC-backed account tests cover purchases, save round-trips, spec changes,
+refunds, class isolation and a cosmetic dagger with no worn weapon.
+
+265 core tests, 493 feature-enabled app tests and core/app Clippy pass. Native
+build: 2m48s. Both rank-four talents were bought to rank five at 1600×900;
+saved Assassination spend rose from 23 to 25 and unspent points fell from 28 to
+26. Full talent prose also fits at 640×720. Coating acquisition/upgrade cards
+were inspected at 1280×720 and the longer Deadly card at 640×720. Screenshots
+are inline in CHANGELOG and the README gallery. Fresh DBC definition coverage:
+291/432, Rogue 35/51. Full integration passed in 1027 seconds (17m07s), with
+31 missing-addon skips per data/player run. Windows, enemy dispels and live
+balance remain open. This does not establish complete combat acceptance.
+
+### Next shared dependency — creature-type damage training
+
+Read-only checkout DBC audit identifies three related gaps. Hunter Monster
+Slaying (1623; Survival row 0, column 0) grants 1/2/3% damage and additional
+critical damage against Beasts, Giants and Dragonkin; spells 24293–24295 use
+masks 19 for both effects. Humanoid Slaying (1301; row 0, column 1) uses spells
+19151–19153 and mask 64, with the same ranks. Rogue Murder (274; Assassination
+row 1, column 1) grants 1/2% damage against Humanoid/Giant/Beast/Dragonkin in
+its description (14158–14159). Its raw aura mask is 211, which also includes
+bit 128; reconcile that discrepancy explicitly before treating a mask as the
+entire authored target contract.
+
+Survivors EnemyDef currently has a display ID but no creature type or template
+entry. The ordinary-client type resolver depends on server template/name data,
+which this serverless mode does not populate. Add explicit, verified categories
+to authored rosters; do not guess creature type from display IDs or names at
+runtime, or treat unknown creatures as eligible. Audit all roster entries and
+preserve those categories through spawning. Settle bonuses per actual victim,
+including AoE/splash and poison ticks, without double-applying them to generated
+hits or bleed snapshots. Check whether pet attacks inherit owner bonuses before
+claiming that behavior. Verify rank tables, nonmatching categories, critical
+versus ordinary damage, death/loot accounting, saves/specs/refunds, and native
+purchase text before advancing these three definitions. Finish poison integration
+before changing the main source for this follow-up.

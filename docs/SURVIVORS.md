@@ -815,3 +815,35 @@ Ability-rank damage/duration, cooldown and targeting are unchanged. Periodic
 damage ticks do not refresh weakening. Stronger reductions retain their own
 expiry; equal-strength applications retain the longer duration. This replaces
 the provisional damage bonus and does not grant the ability.
+
+### Rogue weapon coatings
+
+Instant Poison (8679) and Deadly Poison (2823) are acquired abilities occupying
+one of the six run slots. A run can select one coating, then upgrade its rank.
+Coatings require a worn one-handed dagger, sword, mace or fist weapon; cosmetic
+appearances do not qualify. The coating lasts for the run, explicitly replacing
+reference consumable charges and a 30-minute duration. No off-hand slot is added.
+
+An original damaging Backstab, Sinister Strike, Eviscerate, Blade Flurry, Gouge or
+Kidney Shot hit rolls once while its victim survives. Additional actual targets
+roll separately; splash, multistrike echoes, generated attacks, poison damage
+and queued overkill never add applications. Coatings neither autocast nor crit,
+and do not consume Cold Blood or Remorseless charges or activate Seal Fate.
+
+Instant Poison has a 20% base application chance and 22 base Nature damage.
+Deadly Poison has a 30% chance and deals 9 base Nature damage per stack every
+3 seconds for 12 seconds, including its final tick. Each application adds one
+stack, up to five, and refreshes duration without resetting the next tick.
+The latest application snapshots per-stack damage for all stacks. New applications
+start after existing clocks advance for the frame. Pause freezes ticking;
+long frames settle due ticks until lethal damage, with one kill/loot settlement.
+These damage values are initial Survivors tuning. Both poisons have separate meter
+entries, use damage/leech bonuses, and benefit from active Kidney Shot exposure.
+Rank upgrades improve damage; target, area, haste and cooldown bonuses do not
+create extra poison rolls or change Deadly's timing. Precision, Deadliness,
+Malice and Vigor affect Rogue attacks, excluding coatings.
+
+Improved Poisons (268) adds 2/4/6/8/10 percentage points of application chance.
+Vile Poisons (682) adds 4/8/12/16/20% poison damage. Neither talent grants a
+coating. Enemy poison dispels are not implemented; Vile Poisons' reference
+resistance-to-dispel component has no effect and is explicitly labeled pending.

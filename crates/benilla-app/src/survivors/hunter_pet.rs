@@ -351,6 +351,7 @@ mod tests {
                     fear_t: 0.0,
                     weaken: 1.0,
                     weaken_t: 0.0,
+                    poison: Default::default(),
                     dots: vec![],
                     dead: false,
                 },

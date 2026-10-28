@@ -7,12 +7,14 @@ mod mage;
 mod natures_grace;
 mod priest;
 pub use priest::{BlessedRecovery, PowerInfusionClock};
+mod poison;
 mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::HawkClock;
 pub use hunter::{PetBonus, PetFrenzy};
 pub use mage::{ArcanePowerClock, ColdSnapClock, CombustionClock};
 pub use natures_grace::NaturesGrace;
+pub use poison::{Coating, DeadlyPoison};
 pub use rogue::{AdrenalineRushClock, BladeFlurryClock, PreparationClock};
 mod shaman;
 mod warlock;
@@ -1636,6 +1638,7 @@ pub struct TalentDefinition {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
+    PoisonChance,
     Health,
     MaximumHealth,
     FlatAbsorption,
@@ -2044,6 +2047,7 @@ impl TalentDefinition {
             | TalentStat::RogueMace
             | TalentStat::WeaponExpertise
             | TalentStat::SealFate
+            | TalentStat::PoisonChance
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -2260,6 +2264,7 @@ impl TalentDefinition {
             TalentStat::Cooldown
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
+            TalentStat::PoisonChance => (100.0, "% additional poison application chance"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
             TalentStat::MaceStun | TalentStat::RogueMace => (100.0, "% stun chance"),
             TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit | TalentStat::DaggerCrit | TalentStat::FistCrit => {
@@ -3366,6 +3371,16 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 268, max_rank: 5, name: "Improved Poisons",
+        description: "Acquired Instant and Deadly Poison coatings: +2% application chance per rank on original Rogue weapon hits. Requires an equipped melee weapon; does not grant a coating",
+        stat: TalentStat::PoisonChance, per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 682, max_rank: 5, name: "Vile Poisons",
+        description: "Acquired Instant and Deadly Poison coatings: +4% damage per rank. Does not grant a coating. Enemy poison dispels are not yet implemented; dispel resistance has no effect",
+        stat: TalentStat::SpellGroupDamage(&["instant_poison", "deadly_poison"]), per_rank: 0.04,
+    },
     // Spell.dbc 13733/13865/13866: 10/20/30 percentage points of Backstab critical chance.
     TalentDefinition {
         id: 202, max_rank: 3, name: "Improved Backstab",
@@ -3431,7 +3446,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 181, max_rank: 5, name: "Precision",
-        description: "Rogue abilities: +1% direct and periodic damage per rank; excludes other-class and neutral jewelry abilities (Survivors hit-chance conversion; attacks have no miss roll)",
+        description: "Rogue abilities: +1% direct and periodic damage per rank; excludes weapon coatings, other-class and neutral jewelry abilities (Survivors hit-chance conversion; attacks have no miss roll)",
         stat: TalentStat::SpellGroupDamage(ROGUE_SPELLS), per_rank: 0.01,
     },
     TalentDefinition {
@@ -3471,7 +3486,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 382, max_rank: 1, name: "Vigor",
-        description: "Rogue spells: 10% shorter cooldown (Survivors energy-capacity conversion); excludes other-class and neutral jewelry spells",
+        description: "Rogue spells: 10% shorter cooldown (Survivors energy-capacity conversion); excludes weapon coatings, other-class and neutral jewelry spells",
         stat: TalentStat::SpellGroupCooldown(ROGUE_SPELLS), per_rank: 0.10,
     },
     TalentDefinition {
@@ -3521,7 +3536,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 270, max_rank: 5, name: "Malice",
-        description: "Rogue spells: +1% critical chance per rank; excludes other-class and neutral jewelry spells",
+        description: "Rogue spells: +1% critical chance per rank; excludes weapon coatings, other-class and neutral jewelry spells",
         stat: TalentStat::SpellGroupCrit(ROGUE_SPELLS), per_rank: 0.01,
     },
     TalentDefinition {
@@ -3536,7 +3551,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 1702, max_rank: 5, name: "Deadliness",
-        description: "Rogue spells: +2% damage per rank (Survivors attack-power conversion); excludes other-class and neutral jewelry spells",
+        description: "Rogue spells: +2% damage per rank (Survivors attack-power conversion); excludes weapon coatings, other-class and neutral jewelry spells",
         stat: TalentStat::SpellGroupDamage(ROGUE_SPELLS), per_rank: 0.02,
     },
 ];
@@ -3769,6 +3784,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::KidneyExposure
             | TalentStat::Remorseless
             | TalentStat::SealFate
+            | TalentStat::PoisonChance
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
@@ -4520,7 +4536,18 @@ mod stat_talent_tests {
 
     #[test]
     fn rogue_ranks_are_bounded_and_catalog_membership_is_complete() {
-        assert_eq!(ROGUE_SPELLS, crate::data::CLASSES[3].pool);
+        assert_eq!(
+            ROGUE_SPELLS,
+            crate::data::CLASSES[3]
+                .pool
+                .iter()
+                .copied()
+                .filter(|key| !matches!(
+                    crate::data::ability(key).kind,
+                    crate::data::Kind::Coating(_)
+                ))
+                .collect::<Vec<_>>()
+        );
         let base = Milestones {
             class: 3,
             ..Default::default()
@@ -5266,6 +5293,7 @@ mod stat_talent_tests {
                     | TalentStat::KidneyExposure
                     | TalentStat::Remorseless
                     | TalentStat::SealFate
+                    | TalentStat::PoisonChance
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus

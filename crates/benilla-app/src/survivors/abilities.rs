@@ -93,6 +93,7 @@ struct Foe {
 /// The numbers one cast uses, from the ability's level and the hero's stats.
 pub(super) struct Params {
     pub dmg: f32,
+    pub poison_chance: f32,
     pub weapon_bonus: f32,
     pub dot: f32,
     pub count: usize,
@@ -125,26 +126,42 @@ impl Params {
         let mult = o.damage_mult() * stats.might * effect.damage;
         Self {
             dmg: o.def.damage * mult,
+            poison_chance: match o.def.kind {
+                Kind::Coating(coating) => coating.chance(milestones),
+                _ => 0.0,
+            },
             weapon_bonus: o.def.weapon_bonus
                 * o.damage_mult()
                 * milestones.battle_shout_multiplier(),
             dot: o.def.dot * mult,
-            count: if o.def.kind == Kind::WeaponBuff {
+            count: if matches!(o.def.kind, Kind::WeaponBuff | Kind::Coating(_)) {
                 0
             } else {
                 o.count(stats) as usize + effect.extra_targets
             },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
-            duration: o.duration() * effect.duration,
+            duration: if matches!(o.def.kind, Kind::Coating(_)) {
+                o.def.duration
+            } else {
+                o.duration() * effect.duration
+            },
             effect: milestones.control(
                 o.def.key,
                 o.def
                     .effect
                     .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
             ),
-            cooldown: o.cooldown(stats) * effect.cooldown,
-            crit: (stats.crit + effect.crit).min(1.0),
+            cooldown: if matches!(o.def.kind, Kind::Coating(_)) {
+                0.0
+            } else {
+                o.cooldown(stats) * effect.cooldown
+            },
+            crit: if matches!(o.def.kind, Kind::Coating(_)) {
+                0.0
+            } else {
+                (stats.crit + effect.crit).min(1.0)
+            },
             crit_damage: stats.crit_damage + effect.crit_damage,
             shield_fraction: effect.shield_fraction,
             shield_seconds: effect.shield_seconds,
@@ -359,8 +376,10 @@ pub(super) fn cast_abilities(
     };
 
     for i in 0..run.abilities.len() {
-        if run.abilities[i].def.kind == Kind::WeaponBuff
-            || !run.abilities[i].def.usable_with(run.milestones.weapon)
+        if matches!(
+            run.abilities[i].def.kind,
+            Kind::WeaponBuff | Kind::Coating(_)
+        ) || !run.abilities[i].def.usable_with(run.milestones.weapon)
         {
             continue;
         }
@@ -405,7 +424,7 @@ pub(super) fn cast_abilities(
         .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
-            Kind::WeaponBuff => false, // Already resolved in the self-buff pass.
+            Kind::WeaponBuff | Kind::Coating(_) => false, // Already resolved in the self-buff pass.
             Kind::Bolt | Kind::Strike | Kind::Melee => {
                 let reach = if def.kind == Kind::Melee {
                     p.range + 0.5
@@ -1243,6 +1262,7 @@ pub(super) fn apply_hits(
         en.dead = true;
         en.hp = 0.0;
         en.dots.clear();
+        en.poison = Default::default();
         enemies::mark_dying(commands, e);
         loot.write(Loot {
             pos,
@@ -1329,6 +1349,9 @@ pub(super) fn apply_hits(
         }
     };
 
+    // Apply new stacks after advancing existing clocks: a fresh coating must not
+    // inherit time elapsed before this frame's weapon hit.
+    let mut poison_applications = Vec::new();
     for (h, original) in all {
         let Ok((e, guid, tf, mut en, mut store, mut marks)) = enemies.get_mut(h.target) else {
             continue;
@@ -1381,6 +1404,42 @@ pub(super) fn apply_hits(
                 + run.milestones.vampiric_healing(h.source, removed);
             if heal > 0.0 {
                 run.heal(heal, stats.max_hp);
+            }
+            if en.hp > 0.0
+                && run.alive()
+                && survivors_core::talents::Coating::eligible(
+                    run.milestones,
+                    h.source,
+                    removed,
+                    original,
+                )
+            {
+                if let Some(owned) = run
+                    .abilities
+                    .iter()
+                    .find(|o| matches!(o.def.kind, Kind::Coating(_)))
+                {
+                    let Kind::Coating(coating) = owned.def.kind else {
+                        unreachable!()
+                    };
+                    let params = Params::new(owned, &stats, run.milestones);
+                    if rng.f32() < params.poison_chance {
+                        match coating {
+                            survivors_core::talents::Coating::Instant => {
+                                let damage = params.dmg
+                                    * run.milestones.kidney_exposure_multiplier(en.kidney_t);
+                                let removed = damage.max(0.0).min(en.hp);
+                                en.hp -= removed;
+                                run.add_damage(coating.key(), removed);
+                                fx.number(e, removed, false, COLOR_SPELL);
+                                run.heal(removed * stats.leech, stats.max_hp);
+                            }
+                            survivors_core::talents::Coating::Deadly => {
+                                poison_applications.push((e, params.dmg))
+                            }
+                        }
+                    }
+                }
             }
         }
         let talents = run.milestones;
@@ -1474,7 +1533,7 @@ pub(super) fn apply_hits(
 
     // The over-time ticks, once a second each.
     for (e, guid, tf, mut en, mut store, mut marks) in &mut enemies {
-        if en.dead || en.dots.is_empty() {
+        if en.dead || (en.dots.is_empty() && !en.poison.active()) {
             continue;
         }
         let stats = run.stats();
@@ -1508,6 +1567,18 @@ pub(super) fn apply_hits(
                 }
             }
         }
+        let (ticks, poison_damage) = en.poison.advance(dt);
+        for _ in 0..ticks {
+            if remaining_hp <= 0.0 {
+                break;
+            }
+            let removed = (poison_damage * kidney_multiplier)
+                .max(0.0)
+                .min(remaining_hp);
+            remaining_hp -= removed;
+            dealt += removed;
+            run.add_damage("deadly_poison", removed);
+        }
         en.shadow_weaving = weaving;
         if blackout {
             apply_blackout(&mut en);
@@ -1535,6 +1606,13 @@ pub(super) fn apply_hits(
                 units::kill_unit(&mut store);
                 marks.clear();
                 marks.flush(e, guid.0, &mut store, &mut fields);
+            }
+        }
+    }
+    for (entity, damage) in poison_applications {
+        if let Ok((_, _, _, mut enemy, ..)) = enemies.get_mut(entity) {
+            if !enemy.dead {
+                enemy.poison.apply(damage);
             }
         }
     }
@@ -1946,6 +2024,7 @@ mod milestone_tests {
                 fear_t: 0.,
                 weaken: 1.,
                 weaken_t: 0.,
+                poison: Default::default(),
                 dots: Vec::new(),
                 dead: false,
             };
@@ -2237,6 +2316,7 @@ mod milestone_tests {
                         fear_t: 0.,
                         weaken: 1.,
                         weaken_t: 0.,
+                        poison: Default::default(),
                         dots: Vec::new(),
                         dead: false,
                     },
@@ -2709,6 +2789,7 @@ mod milestone_tests {
                 fear_t: 0.,
                 weaken: 1.,
                 weaken_t: 0.,
+                poison: Default::default(),
                 dots: Vec::new(),
                 dead: false,
             },
@@ -2844,6 +2925,7 @@ mod milestone_tests {
                             fear_t: 0.,
                             weaken: 1.,
                             weaken_t: 0.,
+                            poison: Default::default(),
                             dots: Vec::new(),
                             dead: false,
                         },
@@ -2955,6 +3037,7 @@ mod milestone_tests {
                     fear_t: 0.,
                     weaken: 1.,
                     weaken_t: 0.,
+                    poison: Default::default(),
                     dots: Vec::new(),
                     dead: false,
                 },
@@ -3091,6 +3174,7 @@ mod milestone_tests {
                     fear_t: 0.,
                     weaken: 1.,
                     weaken_t: 0.,
+                    poison: Default::default(),
                     dots: Vec::new(),
                     dead: false,
                 },
@@ -3236,6 +3320,7 @@ mod milestone_tests {
                 fear_t: 0.,
                 weaken: 1.,
                 weaken_t: 0.,
+                poison: Default::default(),
                 dots: Vec::new(),
                 dead: false,
             },
@@ -3367,6 +3452,7 @@ mod milestone_tests {
                         fear_t: 0.,
                         weaken: 1.,
                         weaken_t: 0.,
+                        poison: Default::default(),
                         dots: Vec::new(),
                         dead: false,
                     },
@@ -3529,6 +3615,7 @@ mod milestone_tests {
                         fear_t: 0.,
                         weaken: 1.,
                         weaken_t: 0.,
+                        poison: Default::default(),
                         dots: Vec::new(),
                         dead: false,
                     },
@@ -3661,6 +3748,7 @@ mod milestone_tests {
                         fear_t: 0.,
                         weaken: 1.,
                         weaken_t: 0.,
+                        poison: Default::default(),
                         dots: Vec::new(),
                         dead: false,
                     },
@@ -3812,6 +3900,7 @@ mod milestone_tests {
                         fear_t: 0.,
                         weaken: 1.,
                         weaken_t: 0.,
+                        poison: Default::default(),
                         dots: Vec::new(),
                         dead: false,
                     },
@@ -4036,6 +4125,7 @@ mod milestone_tests {
                         fear_t: 0.,
                         weaken: 1.,
                         weaken_t: 0.,
+                        poison: Default::default(),
                         dots: Vec::new(),
                         dead: false,
                     },
@@ -4305,6 +4395,7 @@ mod milestone_tests {
                                     fear_t: 0.0,
                                     weaken: 1.0,
                                     weaken_t: 0.0,
+                                    poison: Default::default(),
                                     dots: if periodic {
                                         vec![enemies::Dot {
                                             dps: 10.0,
@@ -4502,6 +4593,7 @@ mod milestone_tests {
                                 fear_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
+                                poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
                                         dps: 10.0,
@@ -4615,6 +4707,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
                                         dps: 10.,
@@ -4732,6 +4825,7 @@ mod milestone_tests {
                                 fear_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
+                                poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
                                         dps: 10.0,
@@ -4832,6 +4926,7 @@ mod milestone_tests {
                                 fear_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
+                                poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
                                         dps: 10.0,
@@ -4940,6 +5035,7 @@ mod milestone_tests {
                                 fear_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
+                                poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
                                         dps: 10.0,
@@ -5041,6 +5137,7 @@ mod milestone_tests {
                             fear_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
+                            poison: Default::default(),
                             dots: if periodic {
                                 vec![enemies::Dot {
                                     dps: 10.0,
@@ -5154,6 +5251,7 @@ mod milestone_tests {
                             fear_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
+                            poison: Default::default(),
                             dots: if periodic {
                                 vec![enemies::Dot {
                                     dps: 10.0,
@@ -5267,6 +5365,7 @@ mod milestone_tests {
                             fear_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
+                            poison: Default::default(),
                             dots: if periodic {
                                 vec![enemies::Dot {
                                     dps: 10.0,
@@ -5392,6 +5491,7 @@ mod milestone_tests {
                             fear_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
+                            poison: Default::default(),
                             dots: if periodic {
                                 vec![enemies::Dot {
                                     dps: 10.0,
@@ -5512,6 +5612,7 @@ mod milestone_tests {
                                     fear_t: 0.0,
                                     weaken: 1.0,
                                     weaken_t: 0.0,
+                                    poison: Default::default(),
                                     dots: Vec::new(),
                                     dead: false,
                                 },
@@ -6045,6 +6146,7 @@ mod milestone_tests {
                                     fear_t: 0.,
                                     weaken: 1.,
                                     weaken_t: 0.,
+                                    poison: Default::default(),
                                     dots: Vec::new(),
                                     dead: false,
                                 },
@@ -6731,6 +6833,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead: false,
                             },
@@ -6837,6 +6940,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead: false,
                             },
@@ -6985,6 +7089,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead: false,
                             },
@@ -7150,6 +7255,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead: false,
                             },
@@ -7290,6 +7396,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead: false,
                             },
@@ -7442,6 +7549,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead: false,
                             },
@@ -7915,6 +8023,7 @@ mod milestone_tests {
                                             fear_t: 0.0,
                                             weaken: 1.0,
                                             weaken_t: 0.0,
+                                            poison: Default::default(),
                                             dots: Vec::new(),
                                             dead: false,
                                         },
@@ -8169,6 +8278,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: Vec::new(),
                                 dead: false,
                             },
@@ -8297,6 +8407,7 @@ mod milestone_tests {
                                     fear_t: 0.,
                                     weaken: 1.,
                                     weaken_t: 0.,
+                                    poison: Default::default(),
                                     dots: Vec::new(),
                                     dead: false,
                                 },
@@ -8428,6 +8539,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: Vec::new(),
                                 dead: false,
                             },
@@ -8844,7 +8956,8 @@ mod milestone_tests {
                 };
                 let before = Params::new(&owned, &stats, base);
                 let after = Params::new(&owned, &stats, trained);
-                let multiplier = if key == "fireball" {
+                let multiplier = if key == "fireball" || matches!(owned.def.kind, Kind::Coating(_))
+                {
                     1.
                 } else {
                     1. + 0.01 * f32::from(rank.min(5))
@@ -9305,6 +9418,7 @@ mod milestone_tests {
                             fear_t: 0.,
                             weaken: 1.,
                             weaken_t: 0.,
+                            poison: Default::default(),
                             dots: vec![],
                             dead: false,
                         },
@@ -9442,6 +9556,7 @@ mod milestone_tests {
                                 fear_t: 0.,
                                 weaken: 1.,
                                 weaken_t: 0.,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead: false,
                             },
@@ -9605,6 +9720,7 @@ mod sword_hit_tests {
                             fear_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
+                            poison: Default::default(),
                             dots: vec![],
                             dead,
                         },
@@ -9778,6 +9894,7 @@ mod sword_hit_tests {
                                 fear_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead,
                             },
@@ -9937,6 +10054,7 @@ mod sword_hit_tests {
                                 fear_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead,
                             },
@@ -10084,6 +10202,7 @@ mod sword_hit_tests {
                                 fear_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
+                                poison: Default::default(),
                                 dots: vec![],
                                 dead,
                             },
@@ -10288,6 +10407,7 @@ mod battle_shout_tests {
                     fear_t: 0.,
                     weaken: 1.,
                     weaken_t: 0.,
+                    poison: Default::default(),
                     dots: Vec::new(),
                     dead: false,
                 },
@@ -10422,3 +10542,7 @@ mod battle_shout_tests {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "poison_tests.rs"]
+mod poison_tests;
