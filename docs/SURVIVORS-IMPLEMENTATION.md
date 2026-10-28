@@ -8568,3 +8568,22 @@ bodies/poses, Windows and live balance remain open. Native build passed in 1m30s
 Full integration is running; source is held stable until its terminal result.
 This closes the obtainable-weapon prerequisite; Rogue mace/fist talent effects
 remain to implement, with total talent definition coverage still 283/432.
+
+### Rogue Fist Weapon Specialization contract — 2026-10-28
+
+Talent 183 (Combat, row 4, column 3; no direct prerequisite) uses checkout spells
+13707 and 13966–13969. Their first effect has base points 0–4 and die sides 1,
+confirming +1–5 percentage points of critical chance. Apply only with a worn fist
+weapon, to the same direct attacks as Dagger Specialization: Sinister Strike,
+Eviscerate, Blade Flurry, Gouge and Kidney Shot. Exclude cosmetic selections,
+Rupture ticks and neutral items. Keep green inline rank previews and rank caps.
+
+The isolated draft passes 251 core tests, including all-class, weapon-type,
+all-ability, rank-cap, reset and non-stacking checks. Clippy passed before the
+additional non-stacking test. It is not yet applied to the
+checkout while the weapon integration gate runs. Account save/spec/refund tests
+are drafted but unrun; native purchase/save and card screenshots remain required.
+
+Rogue weapon integration completed successfully in 881 seconds (14m41s), with
+31 missing-addon skips per data/player run. Fist source changes began after this
+terminal result; the weapon gate does not cover those subsequent changes.

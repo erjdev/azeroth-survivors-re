@@ -20,8 +20,9 @@ Duplicates add no power; the original 54-piece collection remains intact.
 
 248 core tests, 474 app tests, core/app Clippy and the expanded icon audit pass.
 Native 1600×900 human-female equipment, appearance, save and source navigation
-verified with seeded ownership; incremental build: 1m30s. Full integration is
-running. Other bodies, Windows and live acquisition/balance remain open. Rogue
+verified with seeded ownership; incremental build: 1m30s. Full integration passed
+in 14m41s, with 31 missing-addon skips per data/player run. Other bodies, Windows
+and live acquisition/balance remain open. Rogue
 mace/fist talent effects are next; talent coverage remains 283/432.
 
 ## 2026-10-28 — Rogue sword training
