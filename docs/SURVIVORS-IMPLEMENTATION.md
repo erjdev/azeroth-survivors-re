@@ -8338,3 +8338,12 @@ maximum-rank text and persisted rank with Worn Mace equipped. Seeded points/gear
 are explicit; no unattended combat was run. Build: 23.45s. Screenshots are inline
 in CHANGELOG and the reusable preview preset is included. Coverage: 279/432,
 Warrior 40/52. Full integration, Windows and live balance remain open.
+
+### Mace integration checkpoint — 2026-10-28
+
+Full `scripts/check.sh` / `scripts/gates.sh` passed for `3ed76d6` in 800 seconds
+(13m20s): formatting 6s, workspace Clippy 22s, workspace tests 423s, no-install
+tests 27s, doc links 50s, render-pass lint 1s, player-build tests 270s. Both
+data-backed test runs skipped 31 unavailable addon-corpus tests (24 vanilla,
+7 Quiver). This supersedes the pending Mace full-gate note. Windows, live balance
+and the seven-phase acceptance contract remain open.

@@ -15,7 +15,8 @@ bleeds, generated extra strikes and cosmetic weapons do not trigger it.
 
 235 core tests, 463 app tests and core/app all-target Clippy pass. Native 1600×900
 purchase and saved rank verified with seeded gear/points; incremental build: 23.45s.
-Coverage: 279/432 talents. Full integration for this change, Windows and live
+Coverage: 279/432 talents. Full integration passed in 13m20s; each data-backed
+and player-build run skipped 31 unavailable addon-corpus tests. Windows and live
 balance remain open.
 
 ## 2026-10-27 — Polearm Specialization
