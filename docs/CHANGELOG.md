@@ -14,7 +14,9 @@ at its unchanged 107-leak ceiling.
 regressions for real Elwynn canopy geometry,
 behind-player exclusion and the 500 ms fade/reset lifecycle. This preserves the
 existing effect; no new visual milestone or Windows scene acceptance is claimed.
-Full integration validation remains pending.
+Workspace Clippy, render-pass and documentation-link checks also pass; the full
+workspace test chain is running. Windows replay notes now show the current taller
+talent layout with the existing wide/compact captures.
 
 ## 2026-10-27 — Browser packaging checks
 

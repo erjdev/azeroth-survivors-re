@@ -42,8 +42,9 @@ The world-API audit now passes at its original 107-leak ceiling. Render-candidat
 selection lives behind `SceneryProbe`; gameplay no longer enumerates merged blobs.
 The intentional fork visibility surface and existing startup-map setter have an
 [API record](SURVIVORS-ENGINE-API.md). All 449 feature-enabled Survivors tests and all-target app Clippy pass, including the installed Elwynn
-canopy regressions. The next full chain, no-install and complete player-suite
-results remain pending. Live translated-layout, addon-corpus and Windows visual acceptance remain
+canopy regressions. The restarted full chain has passed formatting and workspace
+Clippy and is building workspace tests. Independent render-pass and documentation
+link checks also pass; no-install and complete player-suite results remain pending. Live translated-layout, addon-corpus and Windows visual acceptance remain
 open. Browser compilation previously passed with five warnings.
 
 ## Healing correctness — 2026-10-27
