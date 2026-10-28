@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Direct character card previews
+
+UI previews can open another character’s cards directly and switch class through
+the watched file without visiting a menu first. Preview stats use the saved body
+and training, with no save writes or gameplay session. Missing saved bodies wait
+for valid data instead of substituting another race’s bonuses.
+
+All 522 app tests and feature-enabled Clippy pass. Native build took 46s; direct
+Hunter launch and hot switching to Priest were verified in an isolated profile.
+The full pre-merge gate remains required.
+
+![Direct Hunter preview includes saved mark training](images/screenshots/2026-10-28-direct-preview/hunter-cards.jpg)
+![Hot switch to Priest without an intermediate menu](images/screenshots/2026-10-28-direct-preview/priest-cards.jpg)
+
 ## 2026-10-28 — Acquired Hunter’s Mark
 
 Hunter’s Mark now appears in Hunter offers, with eight ranks and green inline

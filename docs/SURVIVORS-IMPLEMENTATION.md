@@ -22,10 +22,16 @@ gameplay acceptance. Scoped integration passes for all six affected/dependent pa
 missing-addon skips. Full pre-merge gates remain required. Rendered world aura/minimap,
 attended combat and Windows acceptance remain open.
 
-Preview follow-up: a selected-profile card preview for a different hero can wait
-indefinitely for that hero's appearance. Select the hero on a menu page first,
-then apply cards. Do not mix acquisition and upgrades of the same ability in one
-synthetic hand: that state cannot occur in ordinary offers.
+Preview follow-up: direct selected-profile cards now resolve the staged hero's
+appearance before taking the production run snapshot. Saved race/gender wins;
+unavailable saved bodies wait rather than showing another race's bonuses. Menu
+selection and world location stay unchanged until the whole request is ready.
+The regression covers cross-class selection, missing appearance data and legacy
+saves. All 522 app tests and feature-enabled Clippy pass; native build took 46s.
+Native direct launch into Hunter cards and hot switching to Priest cards passed
+with saved training reflected in the values; both states are captured in the changelog.
+Do not mix acquisition and upgrades of the same ability in one synthetic hand:
+that state cannot occur in ordinary offers.
 
 ## Concealment integration — 2026-10-28
 

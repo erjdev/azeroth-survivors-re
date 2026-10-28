@@ -371,6 +371,7 @@ fn reload(
     renown: Res<crate::survivors::renown::Renown>,
     stash: Res<crate::survivors::stash::Stash>,
     talents: Option<Res<crate::ui_talent::Talents>>,
+    creatures: Option<Res<crate::entities::Creatures>>,
     rows: Query<Entity, With<crate::survivors::hud::OfferRow>>,
     mut windows: Query<&mut Window, With<PrimaryWindow>>,
 ) {
@@ -395,7 +396,7 @@ fn reload(
     if request.cards.is_some() && rows.is_empty() {
         return;
     }
-    let Some(candidate) = request.selection(&selection, &account) else {
+    let Some(mut candidate) = request.selection(&selection, &account) else {
         preview.seen = text;
         warn!("Unknown Survivors preview hero; keeping current view");
         return;
@@ -427,6 +428,18 @@ fn reload(
         if talents.is_none() {
             return;
         }
+        // Resolve the staged hero before building its snapshot. Waiting for the live
+        // menu to fill these looks deadlocks when the request changes class.
+        if candidate.looks.is_empty() {
+            let (Some(class), Some(creatures)) = (candidate.class_def(), creatures.as_deref())
+            else {
+                return;
+            };
+            candidate.looks = crate::survivors::hud::looks_for(class, creatures);
+        }
+        if !select_preview_body(&mut candidate, &account) {
+            return;
+        }
         let Some(snapshot) = selected_run(&account, &candidate, &renown, &stash) else {
             return;
         };
@@ -448,6 +461,29 @@ fn reload(
     );
     preview.hand(&request, &mut run, &mut offer, &mut hand, snapshot);
     info!("Survivors UI preview applied: {}", preview.seen.trim());
+}
+
+/// Resolve race-dependent card stats without persisting or exposing a partial request.
+fn select_preview_body(
+    selection: &mut crate::survivors::Selection,
+    account: &crate::survivors::account::Account,
+) -> bool {
+    let saved_body = selection
+        .character
+        .and_then(|id| account.character(id))
+        .and_then(|hero| hero.body);
+    selection.look = if let Some(body) = saved_body {
+        selection
+            .looks
+            .iter()
+            .position(|&(_, race, sex)| (race, sex) == body)
+    } else {
+        selection
+            .look
+            .filter(|&index| index < selection.looks.len())
+            .or_else(|| (!selection.looks.is_empty()).then_some(0))
+    };
+    selection.look.is_some()
 }
 
 /// Use the production start snapshot on a private selection; never move the menu's world.
@@ -604,6 +640,52 @@ mod tests {
         for suffix in ["hero=0", "hero=-1", "hero=Priest", "hero=1\nhero=2"] {
             assert!(Request::parse(&format!("{text}\n{suffix}")).is_none());
         }
+    }
+
+    #[test]
+    fn direct_cross_class_cards_resolve_saved_body_before_snapshot_without_mutating_menu() {
+        use crate::survivors::{account::Account, renown::Renown, stash::Stash, Selection};
+        let mut account = Account::default();
+        let warrior = account.ensure(0);
+        let hunter = account.ensure(2);
+        account.set_body(hunter, (4, 1));
+        let current = Selection {
+            class: Some(0),
+            character: Some(warrior),
+            looks: vec![(49, 1, 0)],
+            look: Some(0),
+            map: 3,
+            stage: 2,
+            version: 8,
+        };
+        let request = Request::parse(&format!("page=cards\nwidth=640\nheight=720\nhero={hunter}\nprofile=selected\nabilities=hunters_mark:1")).unwrap();
+        let mut candidate = request.selection(&current, &account).unwrap();
+        assert!(!select_preview_body(&mut candidate, &account));
+        candidate.looks = vec![(100, 3, 0), (101, 4, 0), (102, 4, 1)];
+        assert!(select_preview_body(&mut candidate, &account));
+        assert_eq!(candidate.look, Some(2));
+        let snapshot =
+            selected_run(&account, &candidate, &Renown::default(), &Stash::default()).unwrap();
+        assert_eq!(snapshot.race, 4);
+        assert_eq!(snapshot.class.name, data::CLASSES[2].name);
+        assert_eq!(
+            (
+                current.class,
+                current.character,
+                current.look,
+                current.stage
+            ),
+            (Some(0), Some(warrior), Some(0), 2)
+        );
+        assert_eq!(candidate.stage, 2, "snapshot must not move the menu world");
+        // An unavailable saved body must not silently preview another race's bonuses.
+        candidate.looks.pop();
+        assert!(!select_preview_body(&mut candidate, &account));
+        // Legacy characters without a saved body retain a valid selection, or the first look.
+        let mut legacy = current.clone();
+        legacy.look = Some(99);
+        assert!(select_preview_body(&mut legacy, &account));
+        assert_eq!(legacy.look, Some(0));
     }
 
     #[test]
