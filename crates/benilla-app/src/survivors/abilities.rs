@@ -10739,7 +10739,7 @@ mod battle_shout_tests {
 
 #[cfg(test)]
 #[path = "poison_tests.rs"]
-mod poison_tests;
+pub(super) mod poison_tests;
 
 #[cfg(test)]
 #[path = "creature_damage_tests.rs"]

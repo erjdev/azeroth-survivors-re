@@ -4,7 +4,7 @@ use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
 use crate::survivors::{data, Owned, Phase};
 use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
 
-pub(super) fn fixture(key: &str, hp: f32) -> (App, Entity, Schedule) {
+pub(in crate::survivors) fn fixture(key: &str, hp: f32) -> (App, Entity, Schedule) {
     let mut app = App::new();
     let mut run = Run {
         class: &data::CLASSES[3],

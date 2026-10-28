@@ -11,8 +11,9 @@ Mind Flay needs a persistent channel, not an ordinary damage-over-time cast.
 The [channel audit](audits/MIND-FLAY.md) records installed spell evidence, the
 existing engine beam/pose path and runtime/UI acceptance. Pure channel timing
 now fixes targets, emits scheduled pulses once and supports cancellation;
-279 core tests and core Clippy pass. Runtime consumption, acquired ability,
-talent and screenshots are still pending. Coverage remains 296/432.
+279 core tests and core Clippy pass. A runtime adapter now validates connected
+victims, emits damage pulses and composes independent movement slows. Acquired
+ability, talent, channel visuals and screenshots are still pending. Coverage remains 296/432.
 
 ## Shaman melee dependency — 2026-10-28
 

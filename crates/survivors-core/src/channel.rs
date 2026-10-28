@@ -76,6 +76,11 @@ impl<T: Copy + Eq> Channel<T> {
         self.targets.is_empty() || self.emitted == self.ticks
     }
 
+    /// Only victims still connected to this cast, for channel-owned effects.
+    pub fn targets(&self) -> &[T] {
+        &self.targets
+    }
+
     /// Caster death, mode exit or explicit interruption stops unpaid pulses immediately.
     pub fn cancel(&mut self) {
         self.targets.clear();

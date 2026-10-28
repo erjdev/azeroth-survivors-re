@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Connected channel runtime
+
+Channels now check caster/target life, range, concealment and solid-world
+obstruction before paying damage. Their separate movement slow composes with
+other snares; ending a channel preserves unrelated timers and remaining channels.
+Run reset clears the state.
+
+All 532 Survivors app tests pass, including an ECS interruption fixture. The final
+native incremental build passed in 58s. Feature-enabled Clippy and six-package
+scoped checks pass, with 31 missing-addon skips. Mind Flay still needs acquisition, talent
+wiring and independent target beams; no spell starts this runtime yet. No UI
+changed, so this checkpoint has no new screenshot.
+
 ## 2026-10-28 — Channel timing foundation
 
 Added fixed-target channel timing for Mind Flay: delayed first tick, one payment

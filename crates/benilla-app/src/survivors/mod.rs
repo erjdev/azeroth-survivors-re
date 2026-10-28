@@ -12,6 +12,7 @@ mod auto;
 mod backdrop;
 mod camera;
 mod cards;
+mod channeling;
 mod companions;
 mod defense;
 mod enemies;
@@ -100,6 +101,7 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<camera::CameraSettings>()
             .init_resource::<hero::AimPoint>()
             .init_resource::<abilities::PendingHits>()
+            .init_resource::<channeling::Channels>()
             .init_resource::<enemies::Spawner>()
             .init_resource::<hud::Offer>()
             .init_resource::<renown::Renown>()
@@ -162,6 +164,7 @@ impl Plugin for SurvivorsPlugin {
                 Update,
                 (
                     enemies::spawn_enemies,
+                    channeling::tick,
                     enemies::move_enemies,
                     marking::prune,
                     abilities::cast_abilities,
@@ -935,6 +938,7 @@ fn reset_run(
     spawned: Query<Entity, With<RunEntity>>,
     mut run: ResMut<Run>,
     mut pending: ResMut<abilities::PendingHits>,
+    mut channels: ResMut<channeling::Channels>,
     mut spawner: ResMut<enemies::Spawner>,
     mut selection: ResMut<Selection>,
 ) {
@@ -948,6 +952,7 @@ fn reset_run(
         ..Run::default()
     };
     pending.0.clear();
+    *channels = channeling::Channels::default();
     *spawner = enemies::Spawner::default();
     // The preview hero is respawned for the look still picked.
     selection.version += 1;

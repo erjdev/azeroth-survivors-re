@@ -29,8 +29,17 @@ retargeting. Caster death and interruption cancel all unpaid pulses. Repeated
 active-time values produce no duplicate pulses; invalid/backwards time is ignored.
 
 All 279 core tests and core all-target Clippy pass. The six-package scoped
-checks pass, with 31 missing-addon skips. No runtime system consumes
-this state yet, and the ability, talent, offer and visual acceptance remain open.
+checks passed for the timing foundation, with 31 missing-addon skips.
+The runtime channel adapter now consumes this state before enemy movement,
+checks caster/target life, range, concealment and solid-world obstruction, and
+emits non-critical damage pulses. A separate channel slow composes with timed
+snares without overwriting them. Run reset clears channels.
+Acquisition, talent, offer and visual acceptance remain open. The runtime currently
+settles catch-up damage using the existing hit pipeline time; although the core
+retains scheduled timestamps, historical timed-modifier settlement is not integrated.
+All 532 Survivors app tests pass, including the runtime system with wall, range,
+concealment and missing-caster interruptions. The final native build passed in 58s.
+Feature-enabled Clippy and six-package scoped checks pass (31 missing-addon skips).
 Coverage remains 296/432. This is not a completed Mind Flay implementation.
 
 ## Runtime and interface acceptance
@@ -53,6 +62,8 @@ Coverage remains 296/432. This is not a completed Mind Flay implementation.
    actual installed Mind Flay visual before claiming rendered acceptance. One
    channel-object field can identify only one target: additional +target victims
    need their own beam representation without overwriting the primary target.
+   Existing `ChainHops` forms a victim-to-victim polyline; it is not a substitute
+   for independent caster-to-victim beams.
    The existing `Fx::cast` emits a normal Go event, not channel start/stop state.
 5. Connect Shadow talents, periodic damage accounting and healing to paid ticks.
    Explicitly test Shadow Weaving, Blackout, Vampiric Embrace, Power Infusion,

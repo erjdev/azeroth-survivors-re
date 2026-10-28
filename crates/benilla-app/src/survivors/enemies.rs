@@ -355,6 +355,7 @@ fn spawn_chest(
 #[allow(clippy::type_complexity)]
 pub(super) fn move_enemies(
     time: Res<Time>,
+    channels: Option<Res<super::channeling::Channels>>,
     mut rng: ResMut<Rng>,
     mut run: ResMut<Run>,
     world: Floor,
@@ -542,7 +543,10 @@ pub(super) fn move_enemies(
                 flat(waypoint.unwrap_or(target_pos) - pos).normalize_or_zero()
             };
             if !contact || e.fear_t > 0.0 {
-                speed = e.speed * e.slow;
+                speed = e.speed
+                    * channels
+                        .as_ref()
+                        .map_or(e.slow, |channels| channels.movement(ent, e.slow));
                 step = dir * speed;
                 if let Some(point) = waypoint {
                     step = step.clamp_length_max(flat(point - pos).length() / dt);
