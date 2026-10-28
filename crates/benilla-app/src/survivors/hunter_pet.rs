@@ -101,9 +101,10 @@ pub(super) fn fight(
     mut run: ResMut<Run>,
     selection: Res<Selection>,
     world: Floor,
-    hero: Query<&Transform, (With<Hero>, Without<HunterPet>)>,
+    hero: Query<(Entity, &Transform), (With<Hero>, Without<HunterPet>)>,
     enemies: Query<(Entity, &Transform, &Enemy), (Without<Hero>, Without<HunterPet>)>,
     mut pets: Query<(Entity, &mut Transform, &mut MovementState, &mut HunterPet), Without<Hero>>,
+    perception: super::perception::Perception,
     mut navigation: Local<Navigation>,
     mut hits: MessageWriter<Hit>,
     mut rng: ResMut<super::Rng>,
@@ -115,7 +116,9 @@ pub(super) fn fight(
         }
         return;
     }
-    let Ok(hero) = hero.single() else { return };
+    let Ok((owner, hero)) = hero.single() else {
+        return;
+    };
     let dt = time.delta_secs();
     if dt <= 0.0 {
         return;
@@ -188,8 +191,10 @@ pub(super) fn fight(
             .then(|| {
                 enemies
                     .iter()
-                    .filter(|(_, target, enemy)| {
-                        !enemy.dead && target.translation.distance(hpos) <= LEASH
+                    .filter(|(entity, target, enemy)| {
+                        perception.visible(Some(owner), *entity, run.elapsed)
+                            && !enemy.dead
+                            && target.translation.distance(hpos) <= LEASH
                     })
                     .min_by(|(_, a, _), (_, b, _)| {
                         a.translation
@@ -216,8 +221,9 @@ pub(super) fn fight(
                     (8.0 + 2.0 * run.level.saturating_sub(1) as f32) * stats.might * bonus.damage;
                 let mut victims: Vec<_> = enemies
                     .iter()
-                    .filter(|(_, tf, enemy)| {
-                        !enemy.dead
+                    .filter(|(entity, tf, enemy)| {
+                        perception.visible(Some(owner), *entity, run.elapsed)
+                            && !enemy.dead
                             && tf.translation.distance(hpos) <= LEASH
                             && tf.translation.distance(at) <= enemy.radius + RADIUS + 0.6
                             && world.line_clear(at, tf.translation)
@@ -357,6 +363,38 @@ mod tests {
                 },
             ))
             .id()
+    }
+
+    #[test]
+    fn bites_only_acquire_concealed_targets_revealed_to_the_owner() {
+        for (own_mark, elapsed, expected) in
+            [(false, 0.0, false), (true, 0.0, true), (true, 120.0, false)]
+        {
+            let mut app = setup();
+            let owner = app
+                .world_mut()
+                .query_filtered::<Entity, With<Hero>>()
+                .single(app.world())
+                .unwrap();
+            let target = foe(&mut app, Vec3::X);
+            let marker = if own_mark {
+                owner
+            } else {
+                app.world_mut().spawn_empty().id()
+            };
+            let mut mark = super::super::marking::Marked::default();
+            assert!(mark.0.apply(marker, 20.0, 120.0, 0.0));
+            app.world_mut()
+                .entity_mut(target)
+                .insert((super::super::perception::Concealed, mark));
+            app.world_mut().resource_mut::<Run>().elapsed = elapsed;
+            app.world_mut().run_system_once(fight).unwrap();
+            app.world_mut().run_system_once(fight).unwrap();
+            assert_eq!(
+                !app.world().resource::<Messages<Hit>>().is_empty(),
+                expected
+            );
+        }
     }
 
     #[test]

@@ -12,7 +12,9 @@ fn hunter(app: &mut App) -> Entity {
         ..Default::default()
     };
     run.abilities.clear();
-    app.world_mut().spawn(Hero { vy: 0.0, air: 0.0 }).id()
+    app.world_mut()
+        .spawn((Hero { vy: 0.0, air: 0.0 }, Transform::default()))
+        .id()
 }
 
 fn mark(app: &mut App, target: Entity, caster: Entity, duration: f32) {
@@ -160,4 +162,134 @@ fn target_death_clears_gameplay_mark() {
     advance(&mut app, &mut schedule, 0.0);
     assert!(app.world().get::<Enemy>(target).unwrap().dead);
     assert!(app.world().get::<marking::Marked>(target).is_none());
+}
+
+#[test]
+fn concealed_targets_require_our_live_mark_for_direct_casts_but_not_area_damage() {
+    use crate::survivors::perception::Concealed;
+    for source in [
+        "arcane_shot",
+        "serpent_sting",
+        "chain_lightning",
+        "frost_nova",
+    ] {
+        for (concealed, own_mark, elapsed) in [
+            (false, false, 0.0),
+            (true, false, 0.0),
+            (true, true, 0.0),
+            (true, true, 120.0),
+        ] {
+            let (mut app, target, _) = fixture(source, 10000.0);
+            let caster = hunter(&mut app);
+            app.world_mut().resource_mut::<Run>().abilities.push(Owned {
+                def: data::ability(source),
+                level: 1,
+                cd: 0.0,
+            });
+            if concealed {
+                app.world_mut().entity_mut(target).insert(Concealed);
+            }
+            let marker = if own_mark {
+                caster
+            } else {
+                app.world_mut().spawn_empty().id()
+            };
+            mark(&mut app, target, marker, 120.0);
+            app.world_mut().resource_mut::<Run>().elapsed = elapsed;
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let expected = source == "frost_nova" || !concealed || (own_mark && elapsed < 120.0);
+            assert_eq!(
+                !app.world().resource::<Messages<Hit>>().is_empty(),
+                expected,
+                "{source}: concealed={concealed}, own={own_mark}, time={elapsed}"
+            );
+            if !expected {
+                assert_eq!(
+                    app.world().resource::<Run>().abilities[0].cd,
+                    0.2,
+                    "a hidden target only schedules the existing short retry, not a cast cooldown"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn render_concealment_restores_prior_visibility_on_reveal_and_removal() {
+    use crate::survivors::perception::{self, Concealed};
+    for original in [
+        Visibility::Inherited,
+        Visibility::Visible,
+        Visibility::Hidden,
+    ] {
+        let (mut app, target, _) = fixture("arcane_shot", 100.0);
+        let caster = hunter(&mut app);
+        app.world_mut()
+            .entity_mut(target)
+            .insert((original, Concealed));
+        app.world_mut().run_system_once(perception::sync).unwrap();
+        assert_eq!(
+            *app.world().get::<Visibility>(target).unwrap(),
+            Visibility::Hidden
+        );
+        mark(&mut app, target, caster, 120.0);
+        app.world_mut().run_system_once(perception::sync).unwrap();
+        assert_eq!(*app.world().get::<Visibility>(target).unwrap(), original);
+        app.world_mut().resource_mut::<Run>().elapsed = 120.0;
+        app.world_mut().run_system_once(perception::sync).unwrap();
+        assert_eq!(
+            *app.world().get::<Visibility>(target).unwrap(),
+            Visibility::Hidden
+        );
+        app.world_mut().entity_mut(target).remove::<Concealed>();
+        app.world_mut().run_system_once(perception::sync).unwrap();
+        assert_eq!(*app.world().get::<Visibility>(target).unwrap(), original);
+        app.world_mut().entity_mut(target).insert(Concealed);
+        app.world_mut().resource_mut::<Run>().elapsed = 0.0;
+        app.world_mut().despawn(caster);
+        app.world_mut().run_system_once(perception::sync).unwrap();
+        assert_eq!(
+            *app.world().get::<Visibility>(target).unwrap(),
+            Visibility::Hidden
+        );
+    }
+}
+
+#[test]
+fn ranged_totems_require_reveal_but_pulses_hit_concealed_victims() {
+    use crate::survivors::perception::Concealed;
+    for pulse in [false, true] {
+        for revealed in [false, true] {
+            let (mut app, target, _) = fixture("arcane_shot", 100.0);
+            let caster = hunter(&mut app);
+            app.world_mut().entity_mut(target).insert(Concealed);
+            if revealed {
+                mark(&mut app, target, caster, 120.0);
+            }
+            app.world_mut().spawn((
+                Transform::default(),
+                Totem {
+                    cast: 0,
+                    damage: 10.0,
+                    range: 20.0,
+                    radius: 10.0,
+                    left: 10.0,
+                    tick: 0.0,
+                    pulse,
+                    source: "searing_totem",
+                },
+            ));
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut().run_system_once(tick_areas).unwrap();
+            assert_eq!(
+                !app.world().resource::<Messages<Hit>>().is_empty(),
+                pulse || revealed
+            );
+        }
+    }
 }

@@ -121,6 +121,94 @@ struct View {
     enemies: Vec<Vec2>,
 }
 
+impl View {
+    fn track(
+        &mut self,
+        enemies: impl Iterator<Item = (Entity, Vec3, bool)>,
+        perception: &super::perception::Perception,
+        observer: Option<Entity>,
+        now: f32,
+        radius: f32,
+    ) {
+        self.enemies.clear();
+        self.enemies
+            .extend(enemies.filter_map(|(entity, position, dead)| {
+                let off = Vec2::new(position.x, position.z) - self.center;
+                (!dead && off.length() <= radius && perception.visible(observer, entity, now))
+                    .then_some(off)
+            }));
+    }
+}
+
+#[cfg(test)]
+mod tracking_tests {
+    use super::*;
+    use crate::survivors::{
+        marking::Marked,
+        perception::{Concealed, Perception},
+    };
+    use bevy::ecs::system::SystemState;
+
+    #[test]
+    fn stationary_enemy_dots_update_on_reveal_expiry_replacement_and_removal() {
+        let mut world = World::new();
+        let observer = world.spawn_empty().id();
+        let other = world.spawn_empty().id();
+        let target = world.spawn(Concealed).id();
+        let mut mark = Marked::default();
+        assert!(mark.0.apply(observer, 20.0, 120.0, 0.0));
+        world.entity_mut(target).insert(mark);
+        let mut state = SystemState::<Perception>::new(&mut world);
+        let mut pending = View::default();
+        let rendered = View {
+            enemies: vec![Vec2::X],
+            ..Default::default()
+        };
+        for (who, time, expected) in [
+            (Some(observer), 0.0, true),
+            (Some(observer), 119.0, true),
+            (Some(observer), 120.0, false),
+            (Some(other), 0.0, false),
+            (None, 0.0, false),
+        ] {
+            pending.track(
+                std::iter::once((target, Vec3::X, false)),
+                &state.get(&world),
+                who,
+                time,
+                10.0,
+            );
+            assert_eq!(pending == rendered, expected);
+            assert_eq!(pending.enemies.len(), usize::from(expected));
+        }
+        world.entity_mut(target).remove::<Concealed>();
+        pending.track(
+            std::iter::once((target, Vec3::X, false)),
+            &state.get(&world),
+            None,
+            120.0,
+            10.0,
+        );
+        assert!(pending == rendered);
+        pending.track(
+            std::iter::once((target, Vec3::X, true)),
+            &state.get(&world),
+            None,
+            120.0,
+            10.0,
+        );
+        assert!(pending.enemies.is_empty());
+        pending.track(
+            std::iter::once((target, Vec3::X * 11.0, false)),
+            &state.get(&world),
+            None,
+            120.0,
+            10.0,
+        );
+        assert!(pending.enemies.is_empty());
+    }
+}
+
 #[derive(Resource)]
 pub(super) struct MiniMap {
     zoom: usize,
@@ -384,8 +472,10 @@ pub(super) fn compose(
     instances: Query<&benilla_world::wmo_portal::WmoPortalInstance>,
     models: Res<Assets<benilla_assets::WmoModel>>,
     server: Res<AssetServer>,
-    hero: Query<&Transform, With<Hero>>,
-    enemies: Query<(&Transform, &Enemy)>,
+    hero: Query<(Entity, &Transform), With<Hero>>,
+    enemies: Query<(Entity, &Transform, &Enemy)>,
+    perception: super::perception::Perception,
+    run: Res<Run>,
     mut images: ResMut<Assets<Image>>,
 ) {
     if *phase.get() == super::Phase::Menu || !map.shown {
@@ -394,7 +484,9 @@ pub(super) fn compose(
     let (Some(mut assets), Some(catalog), Some(current)) = (assets, catalog, current) else {
         return;
     };
-    let Ok(hero) = hero.single() else { return };
+    let Ok((observer, hero)) = hero.single() else {
+        return;
+    };
     let Some(dir) = catalog.0.directory(current.0).map(str::to_string) else {
         return;
     };
@@ -407,13 +499,15 @@ pub(super) fn compose(
     map.pending.zoom = map.zoom;
     map.pending.center = Vec2::new(p.x, p.z);
     map.pending.yaw = hero.rotation.to_euler(EulerRot::YXZ).0;
-    map.pending.enemies.clear();
-    map.pending
-        .enemies
-        .extend(enemies.iter().filter_map(|(tf, enemy)| {
-            let off = Vec2::new(tf.translation.x - p.x, tf.translation.z - p.z);
-            (!enemy.dead && off.length() <= radius).then_some(off)
-        }));
+    map.pending.track(
+        enemies
+            .iter()
+            .map(|(entity, tf, enemy)| (entity, tf.translation, enemy.dead)),
+        &perception,
+        run.alive().then_some(observer),
+        run.elapsed,
+        radius,
+    );
     if map.rendered.as_ref() == Some(&map.pending) {
         return;
     }

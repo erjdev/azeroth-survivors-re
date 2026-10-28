@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Shared enemy concealment
+
+Direct attacks, pets, ranged totems and minimap tracking now share the mark's
+caster-specific reveal rule. Area damage still reaches concealed enemies within
+its radius; render visibility restores the prior setting when revealed.
+Existing encounters are unchanged: concealed enemy content and the acquired mark
+are not exposed yet. All 515 app tests and feature-enabled Clippy pass, including
+direct casts, area pulses, pets, visibility restoration and stationary minimap
+updates. Native build passed in 2m28s; scoped app/dependent-package formatting,
+Clippy and tests pass with 31 missing-addon skips. No new interface appearance
+or screenshot claim. Full pre-merge gates and visual acceptance remain open.
+
 ## 2026-10-28 — Reuse verified development checks
 
 Incremental checks compare against the latest compatible full-gate snapshot,

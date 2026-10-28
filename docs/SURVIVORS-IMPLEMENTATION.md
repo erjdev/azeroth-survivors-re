@@ -5,6 +5,25 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Concealment integration — 2026-10-28
+
+A shared enemy-concealment predicate now gates direct casts, chained targets,
+pet bites, ranged totems and minimap dots. The caster's live mark reveals its
+victim; expiry, caster replacement/loss and removal of concealment update the
+result. Ground damage remains spatial, so concealed enemies inside an existing
+area can be hit. Enemy-root visibility preserves its pre-concealment setting
+and is applied before Bevy's visibility propagation; camera cutaways cannot
+change this gameplay predicate. Ordinary target selection reuses its existing
+list without an additional allocation when no concealment exists.
+
+All 515 app tests and feature-enabled Clippy pass. These include five new
+regressions for direct casts, area pulses, pet targeting, visibility restoration
+and stationary minimap updates. Native build passed in 2m28s. Scoped formatting,
+Clippy and tests pass for `benilla-app`, `benilla`, `warcraft-survivors` and
+`wenilla`, with 31 missing-addon skips. Full pre-merge gates remain mandatory. No authored encounter conceals enemies
+yet, and no mark offer, distinctive tracking icon or training definition is
+exposed. This does not advance talent coverage or claim visual acceptance.
+
 ## Marked-target damage foundation — 2026-10-28
 
 Target-owned marks now have caster identity, an active-run expiry and a separate

@@ -57,10 +57,10 @@ non-normalized attacks. This is an open-source server reference, not a Blizzard
 formula specification; no source code is copied into this repository. It does not
 justify adding the same bonus to Arcane Shot, stings, traps, Volley or pets.
 
-Current engine integration: `survivors/minimap.rs::compose` already includes every
-live enemy inside the map radius. A mark therefore needs an identifiable marker
-and concealment-aware tracking, not another unconditional enemy dot. Enemy state
-has no concealment field today. The `Marks` component controls eight visual aura
+Current engine integration: `survivors/minimap.rs::compose` includes living,
+perceptible enemies inside the map radius. A mark still needs a distinctive icon
+in addition to its reveal predicate. Enemy concealment uses a separate `Concealed`
+component; authored encounters do not apply it yet. The `Marks` component controls eight visual aura
 slots; it does not own a caster-specific gameplay debuff. Keep visual expiry and
 gameplay mark expiry synchronized rather than deriving damage from aura slots.
 
@@ -75,17 +75,21 @@ stat or Auto Shot. Tests cover replacement, pause-time expiry, delayed hits,
 critical scaling, splash and caster/target loss. No acquisition or reveal UI is
 exposed, and this foundation does not complete Improved Hunter's Mark.
 
-The next integration must distinguish concealment from camera occlusion:
+The concealment integration now distinguishes gameplay concealment from camera
+occlusion (515 app tests, Clippy, native build and scoped dependent-package
+validation pass; rendered acceptance remains open):
 
-- `abilities::cast_abilities` currently builds its target list from every living
-  enemy. Direct targeting needs the caster's reveal predicate; ground-area damage
-  must retain its spatial victim selection rather than becoming a target search.
-- `hunter_pet::fight` selects its own victims. It must use the owner's visibility
-  rule so it cannot independently acquire hidden enemies that the hero cannot see.
-- `minimap::compose` caches enemy offsets alone. Its cache key must also include
-  the mark/reveal state so expiry or replacement updates icons without movement.
-- Render visibility and camera silhouettes must respect gameplay concealment.
-  A wall-occlusion setting must never reveal an unmarked invisible enemy.
+- `abilities::cast_abilities` retains all living victims for area damage and
+  filters direct targets through the caster's reveal predicate. Ground placement
+  selects visible targets; an existing area still hits concealed victims.
+- `hunter_pet::fight` filters both its primary target and additional bites through
+  the owner's reveal predicate. Ranged totems use the same predicate.
+- `minimap::compose` rebuilds its visible enemy-offset input before comparing
+  its cache, so concealment/reveal changes invalidate stationary dots. A distinctive
+  mark icon still needs its own cache state and visual validation.
+- `perception::sync` hides enemy roots before visibility propagation, restoring
+  their previous visibility after reveal or concealment removal. Camera cutaways
+  are independent. Rendered acceptance and future silhouette integration remain open.
 
 Verify these consumers with ordinary, concealed, marked, expired and orphaned
 victims before enabling the acquired ability. The automatic cast cadence,

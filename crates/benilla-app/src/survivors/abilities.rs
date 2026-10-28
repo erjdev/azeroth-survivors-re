@@ -345,6 +345,7 @@ pub(super) fn cast_abilities(
     spells: Option<Res<crate::ui_action::Spells>>,
     hero: Query<(Entity, &Transform), With<Hero>>,
     enemies: Query<(Entity, &Transform, &Enemy)>,
+    perception: super::perception::Perception,
     mut fx: Fx,
     mut pending: ResMut<PendingHits>,
     mut hits: MessageWriter<Hit>,
@@ -394,6 +395,16 @@ pub(super) fn cast_abilities(
         })
         .collect();
     foes.sort_by(|a, b| a.dist.total_cmp(&b.dist));
+    let visible: std::borrow::Cow<'_, [Foe]> = if perception.has_concealed() {
+        std::borrow::Cow::Owned(
+            foes.iter()
+                .copied()
+                .filter(|foe| perception.visible(Some(me), foe.e, now))
+                .collect(),
+        )
+    } else {
+        std::borrow::Cow::Borrowed(&foes)
+    };
     let speed_of = |spell: u32| {
         spells
             .as_deref()
@@ -458,8 +469,8 @@ pub(super) fn cast_abilities(
                     p.range
                 };
                 let rear_foes;
-                let candidates = if def.requires_rear {
-                    rear_foes = foes
+                let candidates: &[Foe] = if def.requires_rear {
+                    rear_foes = visible
                         .iter()
                         .copied()
                         .filter(|foe| {
@@ -470,7 +481,7 @@ pub(super) fn cast_abilities(
                         .collect::<Vec<_>>();
                     &rear_foes
                 } else {
-                    &foes
+                    &visible
                 };
                 let targets = if matches!(
                     def.key,
@@ -558,7 +569,7 @@ pub(super) fn cast_abilities(
                         .filter(|f| f.dist <= p.radius + 4.0)
                         .map(|_| hpos)
                 } else {
-                    densest(&foes, p.range, p.radius)
+                    densest(&visible, p.range, p.radius)
                 };
                 match center {
                     None => false,
@@ -596,13 +607,13 @@ pub(super) fn cast_abilities(
                     }
                 }
             }
-            Kind::Chain => match nearest(&foes, p.range, 1).first().copied() {
+            Kind::Chain => match nearest(&visible, p.range, 1).first().copied() {
                 None => false,
                 Some(first) => {
                     let mut chain = vec![first];
                     while chain.len() < p.count + 1 {
                         let last = chain[chain.len() - 1].pos;
-                        let next = foes
+                        let next = visible
                             .iter()
                             .filter(|f| !chain.iter().any(|c| c.e == f.e))
                             .filter(|f| flat(f.pos - last).length() <= p.radius)
@@ -640,7 +651,7 @@ pub(super) fn cast_abilities(
                 }
             },
             Kind::Dot => {
-                let mut pool: Vec<Foe> = foes
+                let mut pool: Vec<Foe> = visible
                     .iter()
                     .filter(|f| f.dist <= p.range)
                     .take(p.count * 3)
@@ -910,6 +921,8 @@ pub(super) fn tick_areas(
     mut areas: Query<(Entity, &Transform, &mut GroundArea)>,
     mut totems: Query<(Entity, &Transform, &mut Totem), Without<GroundArea>>,
     enemies: Query<(Entity, &Transform, &Enemy), (Without<GroundArea>, Without<Totem>)>,
+    perception: super::perception::Perception,
+    heroes: Query<Entity, With<Hero>>,
     mut fx: Fx,
     mut pending: ResMut<PendingHits>,
     mut hits: MessageWriter<Hit>,
@@ -1026,6 +1039,7 @@ pub(super) fn tick_areas(
             totem.tick = 1.0;
             let target = live
                 .iter()
+                .filter(|f| perception.visible(heroes.single().ok(), f.e, now))
                 .map(|f| (flat(f.pos - pos).length(), f))
                 .filter(|(d, _)| *d <= totem.range)
                 .min_by(|a, b| a.0.total_cmp(&b.0));
