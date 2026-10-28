@@ -64,6 +64,33 @@ has no concealment field today. The `Marks` component controls eight visual aura
 slots; it does not own a caster-specific gameplay debuff. Keep visual expiry and
 gameplay mark expiry synchronized rather than deriving damage from aura slots.
 
+## Implemented damage foundation
+
+`marked_target::HunterMark` now owns the caster, snapshotted power, start and
+expiry. `marking::prune` removes expired/dead/orphaned marks. Aimed Shot and
+Multi-Shot snapshot a 0.2 damage-per-power coefficient with their cast modifiers;
+settlement reads each victim's live mark at impact, including independent splash.
+This explicit Survivors contribution does not add a general ranged-power gear
+stat or Auto Shot. Tests cover replacement, pause-time expiry, delayed hits,
+critical scaling, splash and caster/target loss. No acquisition or reveal UI is
+exposed, and this foundation does not complete Improved Hunter's Mark.
+
+The next integration must distinguish concealment from camera occlusion:
+
+- `abilities::cast_abilities` currently builds its target list from every living
+  enemy. Direct targeting needs the caster's reveal predicate; ground-area damage
+  must retain its spatial victim selection rather than becoming a target search.
+- `hunter_pet::fight` selects its own victims. It must use the owner's visibility
+  rule so it cannot independently acquire hidden enemies that the hero cannot see.
+- `minimap::compose` caches enemy offsets alone. Its cache key must also include
+  the mark/reveal state so expiry or replacement updates icons without movement.
+- Render visibility and camera silhouettes must respect gameplay concealment.
+  A wall-occlusion setting must never reveal an unmarked invisible enemy.
+
+Verify these consumers with ordinary, concealed, marked, expired and orphaned
+victims before enabling the acquired ability. The automatic cast cadence,
+replacement policy and eight-rank power curve still need explicit Survivors rules.
+
 ## Required implementation and acceptance
 
 - Establish an explicit ranged attack power contribution and per-attack scope.

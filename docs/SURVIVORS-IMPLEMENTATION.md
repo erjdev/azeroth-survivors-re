@@ -1704,8 +1704,8 @@ can preserve a completed gate stamp; source edits during the run cannot. Sixteen
 isolated regression tests pass, covering changed/deleted/untracked/staged files,
 reverts, invalid snapshots, environment drift and explicit full-check overrides.
 These tests also run in PR CI. Full pre-land gates remain mandatory. Full integration
-passed in 5m08s (31 missing-addon skips per data/player run); warm-baseline timing
-remains pending. This improves
+passed in 5m08s (31 missing-addon skips per data/player run). The following
+documentation-only check used the saved baseline and passed in 7.56s. This improves
 validation reuse; it does not provide arbitrary Rust hot reloading.
 
 ## Gear profiles and collection acceptance details

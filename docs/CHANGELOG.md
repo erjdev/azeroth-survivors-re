@@ -11,8 +11,8 @@ avoiding repeated validation of old branch changes. Documentation-only progress
 updates preserve successful snapshots; source changes and environment drift
 remain guarded. Sixteen isolated workflow regressions pass and are wired into CI.
 Full integration passed in 5m08s, with 31 missing-addon skips per data/player
-run. Warm-check timing remains pending. No interface changes or new screenshots
-in this checkpoint.
+run. The subsequent documentation-only check used the saved baseline and passed
+in 7.56s. No interface changes or new screenshots in this checkpoint.
 
 ## 2026-10-28 — Marked-target damage foundation
 
