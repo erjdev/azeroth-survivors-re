@@ -5,6 +5,17 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Hunter's Mark preparation — 2026-10-28
+
+The read-only spell inspector (`survivors-audit <Data> --spell-evidence <ID>`)
+now exposes base spell effects, duration, range, recovery, target codes and family
+flags. The [Mark audit](audits/HUNTERS-MARK.md) verifies four installed ranks and
+five talent modifiers, and adds minimap/concealment tracking to the acceptance
+requirements. Ranged attack power and attack coefficients still need an explicit
+implementation; the ranged flag alone is insufficient. No new talent is counted.
+Eight audit tests, Clippy and CLI input checks pass; full native integration passed
+in 5m23s, with 31 missing-addon skips per data/player run.
+
 ## Acquired Hunter aspect — 2026-10-28
 
 Aspect of the Monkey now uses actual contact dodge outcomes: acquired ability rank,

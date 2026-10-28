@@ -50,6 +50,9 @@ field is zero. Its 5-second root duration does not establish the reactive window
 These fields were checked directly in Spell.dbc; future implementation must preserve
 the distinction between teaching rows, effects, category cooldown and eligibility.
 
+The [Hunter's Mark follow-up](HUNTERS-MARK.md) records the base ranks, tracking
+requirements and why the ranged flag alone cannot select damage coefficients.
+
 ## Implementation order and acceptance
 
 Start with defensive attack outcomes and aspect state, then Improved Aspect of the

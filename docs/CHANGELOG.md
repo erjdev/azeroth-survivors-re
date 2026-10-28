@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Hunter's Mark preparation
+
+Added a read-only base-spell inspector and a [Mark mechanics audit](audits/HUNTERS-MARK.md).
+The implementation plan now includes target tracking/reveal as well as ranged attack
+power. This checkpoint changes no player UI or gameplay; no new screenshot or talent
+completion claim. Eight audit tests, Clippy, valid/missing/malformed CLI checks, and
+full native integration pass (5m23s; 31 missing-addon skips per data/player run).
+
+
 ## 2026-10-28 — Aspect of the Monkey
 
 Hunters can acquire a run-long dodge aspect, upgrade its chance, and train Improved

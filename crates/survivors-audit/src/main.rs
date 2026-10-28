@@ -7,6 +7,7 @@ mod collection;
 mod doodads;
 mod floor;
 mod locations;
+mod spell_evidence;
 mod talent_coverage;
 mod talent_evidence;
 mod terrain;
@@ -49,6 +50,13 @@ fn main() -> Result<()> {
             .parse()?;
         return talent_evidence::report(&mut chain, id);
     }
+    if rest.len() == 2 && rest[0] == "--spell-evidence" {
+        let id = rest[1]
+            .to_str()
+            .context("spell ID must be UTF-8")?
+            .parse()?;
+        return spell_evidence::report(&mut chain, id);
+    }
     if rest.len() == 1 && (rest[0] == "--talent-coverage" || rest[0] == "--talent-gaps") {
         return talent_coverage::report(&mut chain, rest[0] == "--talent-gaps");
     }
@@ -56,7 +64,7 @@ fn main() -> Result<()> {
         if rest.len() != 5
             || (rest[0] != "--floor" && rest[0] != "--doodads" && rest[0] != "--terrain")
         {
-            bail!("usage: survivors-audit <Data> [--collection | --achievement-art | --locations | --talents | --talent-coverage | --talent-gaps | --talent-evidence <node ID> | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
+            bail!("usage: survivors-audit <Data> [--collection | --achievement-art | --locations | --talents | --talent-coverage | --talent-gaps | --talent-evidence <node ID> | --spell-evidence <spell ID> | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
         }
         let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
         let mut point = [0.0_f32; 3];
