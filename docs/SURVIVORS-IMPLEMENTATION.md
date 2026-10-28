@@ -152,8 +152,15 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
-Latest compact validation (2026-10-27): a 288-unit preferred content width leaves
-room for two columns at 640×720, retaining the 420-unit grid-height floor and
+Latest layout validation (2026-10-28): talent trees use a 480-unit height floor
+and 44-unit maximum icons, increasing row spacing by 14% and icon size by 10%.
+Artwork keeps its proportions with centered side cropping; narrow viewports
+wrap and scroll rather than compressing the rows. Native 1600×900 and 640×720
+captures, including lower-row access, are embedded in CHANGELOG and the README
+gallery. Windows visual confirmation remains open.
+
+Earlier compact validation (2026-10-27): a 288-unit preferred content width leaves
+room for two columns at 640×720, then using the 420-unit grid-height floor and
 proportional artwork. The former 296-unit preference missed the two-column fit.
 The native trained fixture verifies Mura's separate spec scroll offsets, Improved
 Healing Wave purchase/refund (4→5→4; 17→16→17 points), Collection round-trip
@@ -866,7 +873,7 @@ first-hero settlement defect. Zone/content and full run acceptance remain open.
 Individual talents remain substantially incomplete; the coverage table below is
 catalog evidence, not a substitute for combat or visual acceptance.
 
-### Talent definition coverage — 2026-10-27
+### Talent definition coverage — 2026-10-28
 
 Read from this checkout's `wow-data/Data` using:
 
@@ -877,7 +884,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
-| Warrior | 38 / 52 | 9 / 9 |
+| Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
 | Rogue | 25 / 51 | 9 / 9 |
@@ -886,7 +893,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 277 / 432 | 81 / 81 |
+| Total | 281 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
