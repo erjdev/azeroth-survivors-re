@@ -384,40 +384,10 @@ pub(super) fn place_camera(
     }
 }
 
-/// Damage the hero takes from one blow, after immunity, armour and the shield; returns what got
-/// through.
+/// Test entry point; gameplay contacts also retain their attacker's identity.
+#[cfg(test)]
 pub(super) fn hurt_hero(run: &mut Run, raw: f32) -> f32 {
-    if run.immune_t > 0.0 || !run.alive() {
-        return 0.0;
-    }
-    let stats = run.stats();
-    let retaliation =
-        run.thorns_t > 0.0 && run.thorns_spell == super::data::ability("retaliation").spell;
-    let raw = raw
-        * run.milestones.retaliation_risk(retaliation)
-        * run.milestones.deterrence_multiplier(run.elapsed);
-    let mut dmg = run.milestones.after_flat_absorption(super::sheet::mitigate(
-        raw,
-        stats.armor,
-        stats.reduction,
-    ));
-    if run.shield_t > 0.0 && run.shield > 0.0 {
-        let absorbed = dmg.min(run.shield);
-        run.shield -= absorbed;
-        dmg -= absorbed;
-    }
-    dmg = run.milestones.incoming(dmg, run.hp, stats.max_hp);
-    run.hp -= dmg;
-    if run.alive() {
-        run.blessed_recovery.hit(run.milestones, dmg);
-    }
-    if dmg > 0.0 && run.hp > 0.0 && run.milestones.enrage_damage(true) > 1.0 {
-        run.enrage_t = 4.0;
-    }
-    if dmg > 0.0 && run.hp > 0.0 && run.milestones.blood_craze_fraction() > 0.0 {
-        run.blood_craze_t = 6.0;
-    }
-    dmg
+    super::defense::hurt(run, raw).health_removed()
 }
 
 fn advance_buffs(run: &mut Run, dt: f32) {
@@ -707,10 +677,13 @@ mod reactive_talent_tests {
                     run.bonus.armor = 40.;
                     run.bonus.reduction = 0.1;
                     let stats = run.stats();
-                    let expected =
+                    let expected = if raw <= 0. {
+                        0.
+                    } else {
                         (super::super::sheet::mitigate(raw, stats.armor, stats.reduction)
                             - if class == 1 && rank > 0 { 2. } else { 0. })
-                        .max(0.);
+                        .max(0.)
+                    };
                     assert!((hurt_hero(&mut run, raw) - (expected - 3.).max(0.)).abs() < 0.00001);
                     assert!((run.shield - (3. - expected).max(0.)).abs() < 0.00001);
                     assert_eq!(run.shield_t, 2.);

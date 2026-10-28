@@ -598,11 +598,20 @@ pub(super) fn move_enemies(
                 }
                 taken
             } else {
-                let taken = hero::hurt_hero(&mut run, raw);
-                if run.thorns_t > 0.0 {
-                    hits.write(Hit::direct(ent, run.thorns * run.stats().might, false));
+                let strike = super::defense::contact(&mut run, ent, raw);
+                if run.thorns_t > 0.0
+                    && matches!(
+                        strike.outcome,
+                        super::defense::Outcome::Landed { .. } | super::defense::Outcome::Immune
+                    )
+                {
+                    hits.write(Hit::direct(
+                        strike.attacker,
+                        run.thorns * run.stats().might,
+                        false,
+                    ));
                 }
-                taken
+                strike.outcome.health_removed()
             };
             fx.swing(ent, target_e, taken);
             if taken > 0.0 {
@@ -862,6 +871,91 @@ mod spawn_tests {
     use avian3d::prelude::*;
     use benilla_world::collision::MoverTraceExclusions;
     use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn contact_keeps_reflection_target_and_stops_health_loss_at_death() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for immune in [false, true] {
+            let mut app = App::new();
+            app.add_plugins((
+                MinimalPlugins,
+                TransformPlugin,
+                AssetPlugin::default(),
+                bevy::scene::ScenePlugin,
+                PhysicsPlugins::new(PostUpdate),
+            ));
+            app.init_asset::<Mesh>();
+            app.init_resource::<MoverTraceExclusions>();
+            app.init_resource::<Selection>();
+            app.init_resource::<PlaySeq>();
+            app.insert_resource(Run {
+                hp: 5.,
+                shield: 2.,
+                shield_t: 5.,
+                immune_t: if immune { 5. } else { 0. },
+                thorns: 2.,
+                thorns_t: 5.,
+                ..Default::default()
+            });
+            app.add_message::<CastEvent>();
+            app.add_message::<SpellGoTargets>();
+            app.add_message::<SwingMessage>();
+            app.add_message::<crate::combat_text::CombatTextSpawn>();
+            app.add_message::<Hit>();
+            app.world_mut()
+                .spawn((Hero { vy: 0., air: 0. }, Transform::default()));
+            app.finish();
+            app.cleanup();
+            app.update();
+            app.world_mut()
+                .run_system_once(|mut commands: Commands, mut run: ResMut<Run>| {
+                    for pos in [Vec3::X * 0.5, -Vec3::X * 0.5] {
+                        spawn_enemy(
+                            &mut commands,
+                            &mut run,
+                            &data::roster(0).enemies[0],
+                            pos,
+                            Vec3::ZERO,
+                            false,
+                            false,
+                        );
+                    }
+                })
+                .unwrap();
+            let attackers: Vec<_> = app
+                .world_mut()
+                .query::<(Entity, &mut Enemy)>()
+                .iter_mut(app.world_mut())
+                .map(|(entity, mut enemy)| {
+                    enemy.damage = 100.;
+                    enemy.attack_cd = 0.;
+                    entity
+                })
+                .collect();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.01));
+            app.insert_resource(time);
+            app.world_mut().run_system_once(move_enemies).unwrap();
+            let run = app.world().resource::<Run>();
+            assert_eq!(run.hp, if immune { 5. } else { 0. });
+            assert_eq!(run.shield, if immune { 2. } else { 0. });
+            let reflected: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            assert_eq!(reflected.len(), if immune { 2 } else { 1 });
+            assert!(reflected.iter().all(|hit| attackers.contains(&hit.target)
+                && hit.damage == 2.
+                && hit.source == "Thorns"));
+            // A new update after death cannot reflect again or consume expired hit state.
+            if !immune {
+                app.world_mut().run_system_once(move_enemies).unwrap();
+                assert_eq!(app.world().resource::<Run>().hp, 0.);
+                assert_eq!(app.world().resource::<Messages<Hit>>().len(), 0);
+            }
+        }
+    }
 
     #[test]
     fn enemy_updates_expire_kidney_exposure_independently_of_longer_control() {

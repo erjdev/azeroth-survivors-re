@@ -13,6 +13,7 @@ mod backdrop;
 mod camera;
 mod cards;
 mod companions;
+mod defense;
 mod enemies;
 mod floor;
 mod gear_body;

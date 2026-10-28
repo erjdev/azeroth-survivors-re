@@ -3,6 +3,18 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Incoming contact outcomes
+
+Hero hits now distinguish immunity from landed shield absorption and retain the
+attacker for future reactive talents. Lethal hits report only health removed;
+later attackers in the same update cannot reflect more damage from a dead hero.
+Zero, negative and non-finite damage leave health and shields unchanged.
+
+No new avoidance chances, aspects or talent definitions yet. UI layout is unchanged.
+503 app tests pass, including contact-path, protection and recovery regressions.
+Full integration passed in 16m45s, with 31 missing-addon skips per data/player
+run. Attended Windows combat remains unverified.
+
 ## 2026-10-28 — Hunter mechanics dependency audit
 
 Added a reproducible talent-rank evidence command and documented the seven remaining

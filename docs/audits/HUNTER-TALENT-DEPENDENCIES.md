@@ -37,6 +37,14 @@ The audit establishes rank values and prerequisites, not unspecified proc window
 attack tables, level scaling or balance. Those need separate primary evidence and
 explicit Survivors rules before implementation.
 
+The same install's base Aspect of the Monkey is spell 13163: aura 49, base points
+7, one die with one side, permanent duration row 21 (8 percentage points dodge).
+Spell 13164 is a teaching spell, not the aura. Counterattack 19306 requires caster
+aura state 7 and has a 5000 ms category recovery even though its individual recovery
+field is zero. Its 5-second root duration does not establish the reactive window.
+These fields were checked directly in Spell.dbc; future implementation must preserve
+the distinction between teaching rows, effects, category cooldown and eligibility.
+
 ## Implementation order and acceptance
 
 Start with defensive attack outcomes and aspect state, then Improved Aspect of the
@@ -56,8 +64,11 @@ death cleanup, and interaction with existing protection. Capture native green
 inline upgrade text at wide and compact sizes and embed it in the changelog.
 Attended Windows combat and balance acceptance remain separate from unit tests.
 
-Current source boundaries: `survivors/hero.rs::hurt_hero` accepts only a damage
-amount, with immunity, mitigation and absorption; `survivors/mod.rs::Stats` has
+The incoming-hit follow-up introduces `survivors/defense.rs::contact`: its result
+retains the attacker and distinguishes landed, immune, inactive and invalid hits.
+Landed outcomes report absorbed damage and actual health removed separately.
+This removes the ambiguous scalar boundary; it does not yet add avoidance rolls
+or reactive windows. `survivors/mod.rs::Stats` still has
 derived combat stats but no primary attributes; `survivors/hunter_pet.rs` supplies
 the combat wolf and taunt. This is a dependency assessment of Survivors, not a claim
 that upstream's networked WoW client lacks these concepts.

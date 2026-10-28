@@ -868,3 +868,14 @@ settlement. Splash, generated strikes and periodic snapshots retain their
 unmodified input so the victim's bonus is applied once. Instant Poison and
 Deadly Poison ticks use the same target rule without gaining critical hits.
 Creature identity is authored independently of display, size and boss status.
+
+
+### Incoming contact outcomes
+
+Hero contact attacks retain the attacker and distinguish landed, immune, inactive
+and invalid outcomes. A landed attack records shield absorption separately from
+health removed. Full absorption is not a dodge or parry. Lethal damage removes
+only remaining health; later attacks cannot trigger additional reflection from a
+defeated hero. Non-finite and nonpositive damage is rejected without changing
+health, shields or recovery buffs. Immunity retains the existing Thorns reflection
+behavior. Defensive avoidance and Hunter aspects are still pending.

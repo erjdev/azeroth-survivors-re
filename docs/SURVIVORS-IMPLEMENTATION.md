@@ -5,6 +5,20 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Incoming-hit foundation — 2026-10-28
+
+Hero contact resolution now retains attacker identity and explicitly distinguishes
+landed, immune, inactive and invalid hits. Landed results report shield absorption
+separately from health removed; full absorption does not mean dodge or parry.
+Lethal damage stops at zero health, and subsequent same-update attackers cannot
+trigger more reflected strikes from the defeated hero. Invalid damage is rejected.
+Existing mitigation order and reflection during immunity remain unchanged.
+
+This is the shared boundary for future defensive outcomes. No avoidance chance,
+aspect, reactive window or new talent definition is implemented by this change.
+Aspect of the Monkey and Counterattack remain pending, with the same wide/compact
+visual and attended combat acceptance requirements as the dependency audit.
+
 ## Remaining Hunter dependencies — 2026-10-28
 
 The [seven-node audit](audits/HUNTER-TALENT-DEPENDENCIES.md) records installed rank
