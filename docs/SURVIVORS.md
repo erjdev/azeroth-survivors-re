@@ -900,3 +900,20 @@ cannot reflect Thorns or activate Enrage/Blood Craze/Blessed Recovery. Invalid
 hits, inactive heroes and immunity consume no dodge roll. Pets receive no aspect
 protection. Current enemy contacts are eligible regardless of facing; ranged and
 spell attack categories, parry and other Hunter aspects remain future work.
+
+
+### Marked-target damage foundation (2026-10-28)
+
+Hunter's Mark remains unavailable while acquisition and tracking/reveal are pending.
+The target-state foundation stores one caster and attack-power snapshot, replacing
+rather than adding repeated applications. Its timer uses active run time. Expiry,
+caster loss, hero death and target death remove the gameplay benefit.
+
+For Survivors' normalized Aimed Shot and Multi-Shot, marked-target attack power
+contributes 0.2 damage per point before the cast's rank, damage and critical factors.
+Those factors are captured when firing; the victim's mark is read when the hit
+lands. Splash reads its own victim and applies its 70% factor to both base damage
+and the mark contribution. Arcane Shot, stings, traps, pets and melee gain none of
+this contribution. This is the explicit Survivors damage rule, not a claim to
+reproduce every vanilla weapon/attack-power calculation. The base-spell evidence
+and remaining acceptance are in [the Mark audit](audits/HUNTERS-MARK.md).

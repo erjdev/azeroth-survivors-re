@@ -27,6 +27,7 @@ mod jewel_icons;
 #[path = "../ui_survivors_strings.rs"]
 mod localization;
 mod look_catalog;
+mod marking;
 mod menu;
 mod minimap;
 mod minimap_indoor;
@@ -156,6 +157,7 @@ impl Plugin for SurvivorsPlugin {
                 (
                     enemies::spawn_enemies,
                     enemies::move_enemies,
+                    marking::prune,
                     abilities::cast_abilities,
                     abilities::tick_areas,
                     hunter_pet::fight,

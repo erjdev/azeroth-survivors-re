@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Marked-target damage foundation
+
+Added caster-owned mark lifetime and per-victim ranged-hit resolution. Delayed
+shots check the mark at impact; splash uses its own victim's mark. Death and
+expiry remove the benefit. Mark acquisition, tracking/reveal and its talent are
+still pending, so this checkpoint exposes no new player UI.
+
+272 core and 510 app tests, Clippy and the native build (1m50s) pass. Full
+integration passed in 16m13s, with 31 missing-addon skips per data/player run.
+No new visual-acceptance claim or talent-coverage increase.
+
+
 ## 2026-10-28 — Hunter's Mark preparation
 
 Added a read-only base-spell inspector and a [Mark mechanics audit](audits/HUNTERS-MARK.md).

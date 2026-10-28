@@ -14,6 +14,7 @@ pub mod gear_tier;
 mod gear_upgrades;
 pub mod gear_visuals;
 pub mod layout;
+pub mod marked_target;
 pub mod racials;
 pub mod raid_sets;
 pub mod rewards;

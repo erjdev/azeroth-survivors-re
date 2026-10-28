@@ -15,6 +15,8 @@ use crate::net::{FieldChanged, Guid, ObjectStore};
 pub(super) struct Hit {
     pub target: Entity,
     pub damage: f32,
+    /// Cast-owned damage per point of the victim's ranged attack power vulnerability.
+    pub ranged_power_scale: f32,
     pub dot: f32,
     pub dot_dur: f32,
     pub effect: Effect,
@@ -33,6 +35,7 @@ impl Hit {
         Self {
             target,
             damage,
+            ranged_power_scale: 0.0,
             dot: 0.0,
             dot_dur: 0.0,
             effect: Effect::None,
@@ -93,6 +96,7 @@ struct Foe {
 /// The numbers one cast uses, from the ability's level and the hero's stats.
 pub(super) struct Params {
     pub dmg: f32,
+    pub ranged_power_scale: f32,
     pub poison_chance: f32,
     pub dodge_chance: f32,
     pub weapon_bonus: f32,
@@ -138,6 +142,11 @@ impl Params {
         let mult = o.damage_mult() * stats.might * effect.damage;
         Self {
             dmg: o.def.damage * mult,
+            ranged_power_scale: if milestones.class == 2 {
+                super::marking::coefficient(o.def.key) * mult
+            } else {
+                0.0
+            },
             dodge_chance,
             poison_chance: match o.def.kind {
                 Kind::Coating(coating) => coating.chance(milestones),
@@ -206,6 +215,7 @@ fn hit_for(def: &AbilityDef, p: &Params, target: Entity, damage: f32, crit: bool
     Hit {
         target,
         damage,
+        ranged_power_scale: p.ranged_power_scale * if crit { p.crit_damage.max(1.0) } else { 1.0 },
         dot: p.dot,
         dot_dur: p.duration,
         effect: p.effect,
@@ -964,6 +974,7 @@ pub(super) fn tick_areas(
                 hits.write(Hit {
                     target: f.e,
                     damage: dmg,
+                    ranged_power_scale: 0.0,
                     dot: area.dot,
                     dot_dur: area.dot_dur,
                     effect: area.effect,
@@ -1194,6 +1205,8 @@ pub(super) fn apply_hits(
     mut rng: ResMut<Rng>,
     mut account: ResMut<super::account::Account>,
     selection: Res<super::Selection>,
+    target_marks: Query<&super::marking::Marked>,
+    heroes: Query<(), With<Hero>>,
     mut pending: ResMut<PendingHits>,
     mut incoming: MessageReader<Hit>,
     mut enemies: Query<(
@@ -1267,6 +1280,7 @@ pub(super) fn apply_hits(
                             Hit {
                                 target: e,
                                 damage: h.damage * 0.7,
+                                ranged_power_scale: h.ranged_power_scale * 0.7,
                                 splash: 0.0,
                                 mark: 0,
                                 ..h.clone()
@@ -1289,6 +1303,7 @@ pub(super) fn apply_hits(
                     pos: Vec3,
                     en: &mut Enemy| {
         en.dead = true;
+        commands.entity(e).remove::<super::marking::Marked>();
         en.hp = 0.0;
         en.dots.clear();
         en.poison = Default::default();
@@ -1389,7 +1404,26 @@ pub(super) fn apply_hits(
             continue;
         }
         let stats = run.stats();
-        let mut dmg = h.damage
+        let mark_bonus = if run.alive()
+            && run.class.id == 3
+            && h.damage > 0.0
+            && h.ranged_power_scale.is_finite()
+            && h.ranged_power_scale > 0.0
+            && super::marking::coefficient(h.source) > 0.0
+        {
+            target_marks
+                .get(e)
+                .ok()
+                .filter(|mark| {
+                    mark.0
+                        .caster()
+                        .is_some_and(|caster| heroes.contains(caster))
+                })
+                .map_or(0.0, |mark| mark.0.attack_power(now) * h.ranged_power_scale)
+        } else {
+            0.0
+        };
+        let mut dmg = (h.damage + mark_bonus)
             * creature_multiplier(run.milestones, en.def.creature_type, h.source, h.crit)
             * run
                 .milestones
@@ -10590,3 +10624,7 @@ mod poison_tests;
 #[cfg(test)]
 #[path = "creature_damage_tests.rs"]
 mod creature_damage_tests;
+
+#[cfg(test)]
+#[path = "marked_target_tests.rs"]
+mod marked_target_tests;

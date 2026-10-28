@@ -5,6 +5,20 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Marked-target damage foundation — 2026-10-28
+
+Target-owned marks now have caster identity, an active-run expiry and a separate
+reveal predicate. Casts snapshot normalized ranged attack-power coefficients for
+Aimed Shot and Multi-Shot. Hit settlement reads the individual victim's current
+mark, including delayed impacts and 70% splash copies; caster/target death removes
+its benefit. Arcane Shot, stings, traps, pets and melee do not inherit this bonus.
+
+272 core and 510 feature-enabled app tests pass, including actual delayed-hit,
+splash, critical-scaling and death-cleanup cases. Clippy and the incremental native build (1m50s) pass. Full integration passed
+in 16m13s, with 31 missing-addon skips per data/player run. No
+acquired Mark offer, talent definition or tracking/reveal UI is exposed yet. The
+remaining work in [the audit](audits/HUNTERS-MARK.md) still governs acceptance.
+
 ## Hunter's Mark preparation — 2026-10-28
 
 The read-only spell inspector (`survivors-audit <Data> --spell-evidence <ID>`)
@@ -1682,6 +1696,18 @@ live data/UI reloads, and implement a prompted authenticated updater once its re
 and signing configuration are defined. A no-op build, pure-rule test, live tuning edit and
 packaged restart/update/rollback each need their own evidence. Do not claim arbitrary Rust
 hot reloading from asset watching or claim self-updating from the existing local restart.
+
+Validation overhead found on 2026-10-28: `check.sh` scopes from the merge base with
+main, so already-verified web changes force every later crate edit through the
+full workspace chain. Also, docs-only progress edits during `gates.sh` prevent its
+successful source tree from being stamped, despite the existing docs-only cache
+policy. Fix after the current marked-target gate: retain safe docs-only cache
+updates and use a verified tree as the incremental-check baseline when compiler,
+gate script and data identity match. Invalid/missing metadata or unavailable Git
+tree objects must fall back to the existing full comparison. Verify source edits,
+deletions, untracked files, reverted edits, toolchain/data changes and full-check
+overrides in isolated fixtures. Full pre-land gates remain mandatory. This is a
+pending workflow fix, not permission to skip the current integration run.
 
 ## Gear profiles and collection acceptance details
 
