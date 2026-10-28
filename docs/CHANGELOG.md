@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Roomier talent trees
+
+Talent trees now have 14% more vertical row spacing and 10% larger icons.
+Artwork retains its proportions with centered side cropping. Narrow windows wrap
+and scroll instead of compressing the trees. Verified in the native menu at
+1600×900 and 640×720, including access to the bottom rows and talent details.
+Incremental native build passed in 1m01s; integration checks pending.
+
+![Taller talent trees at 1600×900](images/screenshots/2026-10-28-talent-spacing/wide.png)
+
+![Narrow layout preserves icon spacing](images/screenshots/2026-10-28-talent-spacing/narrow.png)
+
+![Lower rows and details remain reachable](images/screenshots/2026-10-28-talent-spacing/narrow-scrolled.png)
+
 ## 2026-10-28 — Improved Hamstring
 
 Warrior Hamstring training now gives each direct Thunder Clap hit a 5/10/15%

@@ -9,7 +9,8 @@ use bevy::ui::RelativeCursorPosition;
 const DIM: Color = Color::srgb(0.64, 0.58, 0.4);
 const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
-const ICON: f32 = 40.0;
+const ICON: f32 = 44.0;
+const GRID_HEIGHT: f32 = 480.0;
 
 #[derive(Component)]
 pub(in crate::survivors) struct TreeViewport;
@@ -600,7 +601,7 @@ pub(super) fn build(
                         Node { flex_grow: 1.0, ..default() }));
                     text(heading, font, format!("{} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), layout.body_size, DIM);
                 });
-                col.spawn((Node { width: Val::Percent(100.0), aspect_ratio: Some(300.0 / 420.0), min_height: Val::Px(420.0), flex_shrink: 0.0,
+                col.spawn((Node { width: Val::Percent(100.0), aspect_ratio: Some(300.0 / GRID_HEIGHT), min_height: Val::Px(GRID_HEIGHT), flex_shrink: 0.0,
                     overflow: Overflow::clip(), border_radius: BorderRadius::all(Val::Px(3.0)), ..default() }, BackgroundColor(Color::BLACK)))
                 .with_children(|grid| {
                     let tabs = catalog.tabs_for_class(1, CLASSES[hero.class].id);
