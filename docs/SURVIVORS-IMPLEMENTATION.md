@@ -46,8 +46,8 @@ all-target app Clippy pass, including installed Elwynn canopy regressions.
 The [full native chain](validation/2026-10-27-integration.md) now passes, including
 no-install and player tests. Each data/player stage skips 31 addon-corpus tests.
 Live translated-layout, addon-corpus and Windows visual acceptance remain open.
-Browser compilation previously passed with five warnings. This baseline precedes
-the talent-sidebar width correction; its own validation is recorded separately.
+Browser compilation previously passed with five warnings. The talent-sidebar follow-up also passes the full chain; both runs are recorded
+with their skip counts and platform limits.
 
 ## Healing correctness — 2026-10-27
 
@@ -7959,5 +7959,27 @@ rounding allowance restores the reference's adjacent spec/details column without
 changing the 420-pixel grid height floor. Native 1600×900 and 800×600 previews
 verify spending, row spacing and access to saved specs; screenshots are inline in
 CHANGELOG and the README gallery. Native build passes (2m56s). The preceding full
-integration baseline is green; full checks of this edit and Windows acceptance
-remain open.
+integration baseline and the full chain for this edit are green (31 addon-corpus
+skips per data/player stage). Windows visual acceptance remains open.
+
+### Next talent contract — Nature's Grace (pending)
+
+Checkout-local data identifies Druid Balance node 789, one rank, spell 16880,
+triggering spell 16886. Its effect base points encode -500 ms after the DBC +1
+conversion; it has one charge and duration row 8 is 15,000 ms. These are verified
+source facts, not new implemented-definition coverage.
+
+For automatic Survivors casting, a damaging Druid spell critical will grant a
+non-stacking 15-second charge. The next successful owned Wrath or Starfire cast
+will consume it and reduce that cast's subsequent recovery by 0.5 seconds, after
+ordinary cooldown modifiers and with the existing minimum recovery retained.
+Failed casts must not consume it; instant/periodic/support abilities must not
+consume it. Further qualifying criticals refresh expiry without banking charges.
+Run time governs expiry, so pausing freezes it; a new run starts without a charge.
+The tooltip must explicitly describe this recovery conversion rather than claim
+that the game now simulates cast times.
+
+Acceptance requires capped/class-scoped rules, real cast and hit-system tests,
+no-target/expiry/pause behavior, legal catalog purchase/spec/refund persistence,
+inline green values and native talent/card evidence. This remains pending and is
+not included in the current 271/432 implemented-definition count.

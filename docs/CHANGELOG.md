@@ -20,7 +20,8 @@ art. Compact windows keep their inspection summary and scroll access to saved sp
 Native build passes (2m56s); both sizes, talent spending and scrolling checked on
 macOS. The preceding [full integration baseline](validation/2026-10-27-integration.md)
 passes all stages, with 31 addon-corpus skips per data/player stage. This layout
-edit has native visual validation; its next full check and Windows acceptance remain open.
+edit now also passes the full chain (8m30s), with the same addon-corpus skips.
+Windows visual confirmation remains open.
 
 ## 2026-10-27 — Reject incomplete documentation validation
 
