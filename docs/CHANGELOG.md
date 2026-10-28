@@ -3,6 +3,19 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Direct character-management previews
+
+The watched UI request can now open Manage heroes directly, without navigating
+from the dressed view. Wide and compact presets expose the real creation controls
+against isolated fixtures; live switching back to appearance is verified.
+
+![Direct management preview at 1600×900](images/screenshots/2026-10-27-character-preview/wide.png)
+
+![Management controls at 640×720](images/screenshots/2026-10-27-character-preview/compact.png)
+
+Verified: 454 app tests, Clippy and native wide/compact reload. Build: 15 seconds.
+This adds development preview controls, not a new character creation flow.
+
 ## 2026-10-27 — Blade Flurry talent burst
 
 A successful owned Blade Flurry starts a 15-second burst: 20% faster melee

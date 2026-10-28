@@ -256,6 +256,7 @@ impl Request {
             None => None,
             Some(name) => {
                 let names: &[&str] = match page {
+                    Page::Heroes => &["appearance", "manage"],
                     Page::Rewards => &["perks", "companions", "tabards"],
                     Page::Achievements => &[
                         "summary",
@@ -340,14 +341,15 @@ impl Request {
             };
             armory.supplemental_piece = supplemental;
         }
+        armory.manage_heroes = false;
         if let Some(category) = self.category {
             match self.page {
+                Page::Heroes => armory.manage_heroes = category == 1,
                 Page::Rewards => armory.reward_page = category,
                 Page::Achievements => armory.achieve = category,
                 _ => unreachable!("category was validated against the page"),
             }
         }
-        armory.manage_heroes = false;
         armory.focus = 0;
         typing.0 = false;
         window.resolution.set(self.width as f32, self.height as f32);
@@ -653,6 +655,40 @@ mod tests {
                 .is_none(),
                 "{page}"
             );
+        }
+    }
+
+    #[test]
+    fn character_preview_selects_management_without_editing_heroes() {
+        let mut armory = Armory::default();
+        let mut typing = Typing(true);
+        let mut window = Window::default();
+        let selection = crate::survivors::Selection::default();
+        let account = crate::survivors::account::blank();
+        for (category, managing) in [("manage", true), ("appearance", false)] {
+            let request = Request::parse(&format!(
+                "page=heroes\ncategory={category}\nwidth=640\nheight=720"
+            ))
+            .unwrap();
+            let candidate = request.selection(&selection, &account).unwrap();
+            assert_eq!(candidate.character, selection.character);
+            assert_eq!(candidate.class, selection.class);
+            request.apply(&mut armory, &mut typing, &mut window, 0);
+            assert_eq!(armory.manage_heroes, managing);
+            assert!(!typing.0);
+            assert!(account.characters.is_empty());
+        }
+        armory.manage_heroes = true;
+        Request::parse("page=heroes\nwidth=640\nheight=720")
+            .unwrap()
+            .apply(&mut armory, &mut typing, &mut window, 0);
+        assert!(!armory.manage_heroes, "default remains the dressed preview");
+        for request in [
+            "page=heroes\ncategory=unknown",
+            "page=talents\ncategory=manage",
+            "page=heroes\ncategory=manage\ncategory=appearance",
+        ] {
+            assert!(Request::parse(&format!("{request}\nwidth=640\nheight=720")).is_none());
         }
     }
 

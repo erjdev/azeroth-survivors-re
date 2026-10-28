@@ -8025,3 +8025,17 @@ tests cover legal purchase, save/reload, spec switching and refund. Native
 trees and the complete inspection text. Screenshots are embedded in CHANGELOG.
 Coverage is 273/432 (Rogue 25/51), leaving 159 definitions. Windows visuals and
 live balance remain open; the full workspace chain was not rerun for this slice.
+
+### Direct character-management preview — 2026-10-27
+
+`page=heroes` now accepts `category=manage` or `category=appearance`. This closes
+the manual navigation gap for inspecting hero creation on populated fixtures.
+Omission retains the previous dressed-view default; invalid/duplicate categories
+reject the complete request. Wide/compact presets and native screenshots cover
+entry at 1600×900, live resize to 640×720 and returning to appearance. No hero
+creation or save mutation is performed by the request itself. Remaining page
+controls, wider platform acceptance and the full starter objective stay open.
+
+Validation: all 454 Survivors app tests pass; app Clippy and the incremental native
+build pass. Full workspace and Windows acceptance were not rerun for this preview
+control addition.

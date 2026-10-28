@@ -566,13 +566,15 @@ request. Combine `zone`, `piece` and `hero` to inspect a fixture's loot directly
 inspection may show an item from another zone without inventing a source there.
 Examples: `drops-duskwood-poor-1280.txt` and `drops-elwynn-common-640.txt`.
 
-Rewards and Achievements also accept an optional `category` key. Category changes
-apply with the page and dimensions in the same reload; omitting it preserves the
-last manually selected category. Unsupported categories, duplicate keys and a
-category on any other page reject the whole request.
+Character, Rewards and Achievements accept an optional `category` key. Category
+changes apply with the page and dimensions in the same reload. Omission preserves
+the last Rewards/Achievements category; Character defaults to the dressed view.
+Unsupported categories, duplicate keys and categories on other pages reject the
+whole request.
 
 | Page | Category values |
 | --- | --- |
+| `heroes` (Character) | `appearance`, `manage` |
 | `rewards` | `perks`, `companions`, `tabards` |
 | `achievements` | `summary`, `zones`, `classes`, `collection`, `feats`, `lifetime` |
 
@@ -784,3 +786,11 @@ third tree and spec controls to check the entire layout.
 `talent-inspection-640.txt` previews a long Hunter description above wrapped trees.
 Use the collected fixture; scroll to the full details to verify the compact summary
 hides once both the full title and effect are visible.
+
+Character management previews: use `category=manage` with `page=heroes` to
+open the real hero list and creation controls directly, including on an account
+with a selected hero. `category=appearance` (or omission) opens the dressed view;
+an account without a valid hero still shows creation automatically. Presets:
+`character-manage-640.txt` and `character-manage-1600.txt`. These requests change
+only the displayed page; creating, deleting or renaming still requires the normal
+UI actions. Categories on incompatible pages and duplicate keys are rejected.
