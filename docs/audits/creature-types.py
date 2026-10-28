@@ -42,6 +42,22 @@ AUTHORED = {
     "Defiler Basin Warmaster": 15128,
 }
 
+# Named identities with intentionally retained legacy displays. These mappings
+# authorize a category, not a claim that the display belongs to that template.
+LEGACY = {
+    "Araj the Summoner": 1852, "Blighted Zombie": 4475,
+    "Boulderfist Lord": 2571, "Boulderfist Ogre": 2562,
+    "Burning Blade Neophyte": 3196, "Crypt Fiend": 8556,
+    "Dabyrie Militia": 2581, "Drywhisker Kobold": 2572,
+    "Flesh Golem": 1805, "Highland Strider": 2559,
+    "Lord Falconcrest": 2597, "Lord Maldazzar": 1848, "Or'Kalar": 2773,
+    "Plaguebat": 8600, "Plains Creeper": 2563, "Rotting Cadaver": 4474,
+    "Rumbling Exile": 2592, "Scarlet Knight": 1833,
+    "Shadowsworn Cultist": 6004, "Skeletal Flayer": 1783,
+    "Skeletal Warrior": 48, "Syndicate Highwayman": 2586,
+    "The Hederine Slayer": 7463, "Witherbark Axe Thrower": 2554,
+}
+
 
 def audit(catalog, source):
     if hashlib.sha256(catalog).hexdigest() != PINNED_SHA256:
@@ -55,10 +71,28 @@ def audit(catalog, source):
         if len(row) != 74:
             raise ValueError("Unexpected creature_template schema")
         templates.append(row)
-    roster = sorted(set(re.findall(
-        r'\b(?:en|foe|giant)\(\s*"([^"]+)",\s*(\d+)', source)))
+    constructors = re.findall(
+        r'\b(?:en|foe|giant)\(\s*"([^"]+)",\s*(\d+)', source)
+    roster = sorted(set(constructors))
     if not roster:
         raise ValueError("No roster constructors found; inspect source syntax")
+    annotations = re.findall(
+        r'\b(?:en|foe|giant)\(\s*"([^"]+)",\s*(\d+)[^)]*\)'
+        r'\s*\.typed\((\d+), CreatureType::(\w+)\)', source)
+    annotated = {(name, display) for name, display, _, _ in annotations}
+    if annotated != set(roster) or len(annotations) != len(constructors):
+        raise ValueError("Missing explicit creature metadata")
+    for name, display, entry, kind in annotations:
+        matches = [r for r in templates if r[0] == entry]
+        if len(matches) != 1 or TYPES[int(matches[0][13])] != kind:
+            raise ValueError(f"Incorrect template/type metadata: {name}")
+        row = matches[0]
+        expected = AUTHORED.get(name, LEGACY.get(name))
+        if expected is not None:
+            if int(entry) != expected:
+                raise ValueError(f"Incorrect authored identity: {name}")
+        elif row[1] != name or display not in row[5:9]:
+            raise ValueError(f"Unverified roster identity: {name}")
     output = io.StringIO()
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(["name", "display", "status", "entry", "creature_type",
@@ -73,6 +107,9 @@ def audit(catalog, source):
             if len(exact) != 1:
                 raise ValueError(f"Authored archetype mismatch: {name}")
             status = "authored archetype"
+        elif name in LEGACY and not exact:
+            exact = [r for r in templates if int(r[0]) == LEGACY[name]]
+            status = "legacy appearance"
         if len(exact) == 1:
             row = exact[0]
             writer.writerow([name, display, status, row[0], TYPES[int(row[13])], "", ""])

@@ -4,6 +4,7 @@
 pub const CHEST_DISPLAY: u32 = 10;
 
 pub mod campaign;
+pub mod creature;
 pub mod data;
 pub mod encounters;
 pub mod equipment;

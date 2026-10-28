@@ -33,6 +33,18 @@ purchases and wide/compact text verified; build: 2m48s. Full integration passed
 in 17m07s, with 31 missing-addon skips per data/player run. Definition coverage:
 291/432 (Rogue 35/51). Windows and live balance remain open.
 
+## 2026-10-28 — Explicit enemy categories
+
+Every authored enemy now carries a template identity and creature type through
+roster generation and spawning. Mechanical bosses remain Mechanical; oversized
+ogres do not become Giants. Existing models and tuning are preserved, with 24
+legacy appearance discrepancies documented separately from their categories.
+
+267 core tests, core Clippy and the pinned roster audit pass. Target-specific
+Rogue/Hunter bonuses are still pending; talent coverage remains 291/432.
+Full native integration passed in 16m01s, with 31 missing-addon skips per
+data/player run. Windows and live gameplay acceptance remain open.
+
 ## 2026-10-28 — Creature-type preparation
 
 Added a [reproducible roster identity audit](audits/CREATURE-TYPES.md) for pending

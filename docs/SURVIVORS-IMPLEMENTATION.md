@@ -8841,6 +8841,36 @@ and inline green chance/damage upgrades. Capture native coating acquisition and
 both talent purchases in wide/compact previews. Backstab integration must finish
 before changing the main source for this follow-up.
 
+Creature metadata is implemented: 267 core tests and core Clippy pass, the
+pinned catalog audit validates every annotation, and a source comparison proves
+all 504 original constructor argument lists/order unchanged. The full native
+integration gate passed in 961 seconds (16m01s), with 31 missing-addon skips
+per data/player run. Windows and live gameplay acceptance remain open;
+do not count target-specific talents yet.
+
+Reference review for the next damage step: [VMaNGOS SpellCaster.cpp](https://github.com/vmangos/core/blob/9b7fb4dfdb1d863ef93c5cf24d57aff92124f41f/src/game/Objects/SpellCaster.cpp)
+applies aura 168's creature mask to damage and aura 169 to the completed spell
+critical amount. Its attacker owns those auras; owner override scripts are a
+separate path. This does not prove that Hunter pets inherit their owner's slaying
+bonus. The autoattack path in Unit.cpp instead adds the aura amount to its 200%
+critical multiplier. Survivors uses acquired spell attacks, so document which
+path its critical bonus follows before implementation. Keep pet bites separate
+and verify them explicitly. Murder's DBC mask includes Critters; expose that
+category in its adapted description if retaining the mask.
+
+Integration sites verified in the current client: `apply_hits` builds splash
+copies and generated sword hits before iterating actual victims. Apply the
+category multiplier inside that victim loop, leaving queued `Hit.damage`
+unchanged. Instant Poison settles in that loop through a separate branch;
+generic dots and Deadly Poison settle in separate tick loops. Each needs the
+victim's category exactly once. Deep Wounds/Ignite snapshots use the original
+`Hit.damage`, so do not rewrite that shared input with target-specific damage.
+Hunter pet bites also enter the hit system: explicitly exclude their source
+from owner slaying multipliers, rather than assuming the separate pet controller
+alone prevents inheritance. Test ordinary/critical hits, matching/nonmatching
+splash neighbors, additional targets, generated hits, both poisons, ticks,
+pet bites, and lethal loot/leech accounting before enabling these definitions.
+
 
 The isolated Deadly clock prototype (`/tmp/survivors-poison-draft.rs`, not game
 source) passes four direct Rust tests: final tick/expiry/reapplication, refresh
@@ -8886,8 +8916,10 @@ balance remain open. This does not establish complete combat acceptance.
 
 The [reproducible roster audit](audits/CREATURE-TYPES.md) now records 476 unique
 name/display pairs: 434 exact catalog matches, 18 explicit faction-boss
-archetypes, and 24 unresolved identities. Resolve these before assigning all
-runtime categories; model size and faction theme cannot determine creature type.
+archetypes, and 24 explicit legacy-appearance identities. All 504 constructors
+now carry template/type metadata through ladder generation and spawned enemy
+definitions. Existing appearances are preserved; 24 artwork mismatches remain
+for visual review. Model size and faction theme cannot determine creature type.
 
 Read-only checkout DBC audit identifies three related gaps. Hunter Monster
 Slaying (1623; Survival row 0, column 0) grants 1/2/3% damage and additional
@@ -8899,8 +8931,8 @@ its description (14158–14159). Its raw aura mask is 211, which also includes
 bit 128; reconcile that discrepancy explicitly before treating a mask as the
 entire authored target contract.
 
-Survivors EnemyDef currently has a display ID but no creature type or template
-entry. The ordinary-client type resolver depends on server template/name data,
+Survivors EnemyDef now has an explicit creature type and template entry as well
+as its independent display ID. The ordinary-client type resolver depends on server template/name data,
 which this serverless mode does not populate. Add explicit, verified categories
 to authored rosters; do not guess creature type from display IDs or names at
 runtime, or treat unknown creatures as eligible. Audit all roster entries and
