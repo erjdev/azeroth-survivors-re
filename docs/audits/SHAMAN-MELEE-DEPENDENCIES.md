@@ -16,6 +16,8 @@ cargo run -p survivors-audit -- wow-data/Data --spell-evidence 29177
 cargo run -p survivors-audit -- wow-data/Data --spell-evidence 29178
 cargo run -p survivors-audit -- wow-data/Data --talent-evidence 901
 cargo run -p survivors-audit -- wow-data/Data --spell-evidence 17364
+cargo run -p survivors-audit -- wow-data/Data --spell-evidence 8680
+cargo run -p survivors-audit -- wow-data/Data --spell-evidence 2818
 ```
 
 - Elemental Devastation node 1645: three ranks, offensive spell critical trigger.
@@ -37,8 +39,15 @@ charges. Positive connected Nature-hit settlement consumes one charge and gets
 remain independent. Active gameplay time supplies pause behavior. A despawned
 victim must lose its component rather than transfer charges to another victim.
 
-All 276 core tests and core all-target Clippy pass. The state is not attached to
-runtime enemies yet. No talent definition, offer, player UI or coverage count is
+All 276 core tests and core all-target Clippy pass. The damage pipeline now
+consumes target-owned charges for catalog-confirmed Nature damage: direct hits,
+periodic effects, actual weapon poison procs and reflection. Poison damage uses
+spells 8680/2818 rather than the physical coating spells 8679/2823. Reflection
+uses the actual equipped reflection spell rather than its shared meter label.
+Unknown spell data leaves charges untouched. Catch-up ticks use settlement time,
+matching the existing damage pipeline; historical sub-frame timing is not reconstructed.
+The successful Stormstrike attack still needs to apply this component to enemies. All 528 Survivors app tests and feature-enabled all-target Clippy pass.
+No talent definition, offer, player UI or coverage count is
 changed; no screenshot or combat acceptance is claimed.
 
 ## Required next implementation
@@ -47,7 +56,7 @@ changed; no screenshot or combat acceptance is claimed.
    model or a spell tagged ranged=false is not evidence of a weapon attack.
    Document any authored Survivors conversion and its rank/gear scaling.
 2. Integrate Stormstrike application after a successful attack and consumption
-   at per-victim Nature-hit settlement. Define school ownership for lightning,
+   at per-victim Nature-hit settlement (consumption implemented; application pending). Define school ownership for lightning,
    shocks, shields, periodic damage and totems explicitly. Authored multistrike
    echoes share the original event's charge; they do not spend extra charges.
    Exclude misses, immune/zero-damage events and non-Nature damage.

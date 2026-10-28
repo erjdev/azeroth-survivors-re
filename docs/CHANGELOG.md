@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Stormstrike damage integration
+
+Nature vulnerability now settles per target across direct hits, periodic damage,
+weapon poison procs and reflection. Poison uses its damage spell's school;
+physical coatings and shared damage-meter names no longer misclassify it.
+Multistrike copies share one charge. Unknown spell data preserves charges.
+
+All 528 Survivors app tests and feature-enabled Clippy pass, using this checkout's
+installed data. Native incremental build passed in 2m32s. The six-package scoped
+check passed, with 31 missing-addon skips. Full pre-merge validation remains open.
+The attack that applies Stormstrike is still pending; talent
+coverage remains unchanged. No UI changed, so this checkpoint has no new screenshot.
+
 ## 2026-10-28 — Shaman melee foundation
 
 Added Stormstrike's target-owned, two-hit Nature vulnerability rules, including

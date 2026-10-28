@@ -3,7 +3,7 @@
 
 use bevy::prelude::*;
 
-use super::data::{AbilityDef, Effect, Kind};
+use super::data::{self, AbilityDef, Effect, Kind};
 use super::enemies::{self, Enemy, Loot};
 use super::hero::{self, Hero};
 use super::units::{self, flat, Fx, Marks, UnitSpec, COLOR_HEAL, COLOR_MELEE, COLOR_SPELL};
@@ -45,6 +45,43 @@ impl Hit {
             crit,
             color: COLOR_MELEE,
             source: "Thorns",
+        }
+    }
+}
+
+/// Target-owned vulnerability; removed with the victim, never attached to the caster.
+#[derive(Component, Default)]
+pub(super) struct StormstrikeVulnerability(pub survivors_core::stormstrike::Stormstrike);
+
+impl StormstrikeVulnerability {
+    fn multiplier(
+        &mut self,
+        source: &str,
+        damage: f32,
+        now: f32,
+        spells: Option<&crate::ui_action::Spells>,
+        reflection_spell: u32,
+    ) -> f32 {
+        let spell = if source == "Thorns" {
+            Some(reflection_spell)
+        } else if source == "instant_poison" {
+            // Damage spell, not the physical weapon-enchant spell shown on the card.
+            Some(8680)
+        } else if source == "deadly_poison" {
+            Some(2818)
+        } else {
+            data::ABILITIES
+                .iter()
+                .find(|def| def.key == source)
+                .map(|def| def.spell)
+        };
+        let nature = spell
+            .and_then(|id| spells.and_then(|spells| spells.catalog.get(id)))
+            .is_some_and(|spell| spell.school == 3);
+        if nature {
+            self.0.consume_nature_hit(damage, now)
+        } else {
+            1.0
         }
     }
 }
@@ -1260,6 +1297,8 @@ pub(super) fn apply_hits(
     mut account: ResMut<super::account::Account>,
     selection: Res<super::Selection>,
     target_marks: Query<&super::marking::Marked>,
+    mut stormstrikes: Query<&mut StormstrikeVulnerability>,
+    spells: Option<Res<crate::ui_action::Spells>>,
     heroes: Query<(), With<Hero>>,
     mut pending: ResMut<PendingHits>,
     mut incoming: MessageReader<Hit>,
@@ -1489,6 +1528,15 @@ pub(super) fn apply_hits(
             }
         }
         if dmg > 0.0 {
+            if let Ok(mut vulnerability) = stormstrikes.get_mut(e) {
+                dmg *= vulnerability.multiplier(
+                    h.source,
+                    dmg,
+                    now,
+                    spells.as_deref(),
+                    run.thorns_spell,
+                );
+            }
             let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
             dmg *= echoes as f32;
             let removed = dmg.min(en.hp.max(0.0));
@@ -1544,7 +1592,7 @@ pub(super) fn apply_hits(
                     if rng.f32() < params.poison_chance {
                         match coating {
                             survivors_core::talents::Coating::Instant => {
-                                let damage = params.dmg
+                                let mut damage = params.dmg
                                     * creature_multiplier(
                                         run.milestones,
                                         en.def.creature_type,
@@ -1552,6 +1600,15 @@ pub(super) fn apply_hits(
                                         false,
                                     )
                                     * run.milestones.kidney_exposure_multiplier(en.kidney_t);
+                                if let Ok(mut vulnerability) = stormstrikes.get_mut(e) {
+                                    damage *= vulnerability.multiplier(
+                                        coating.key(),
+                                        damage,
+                                        now,
+                                        spells.as_deref(),
+                                        0,
+                                    );
+                                }
                                 let removed = damage.max(0.0).min(en.hp);
                                 en.hp -= removed;
                                 run.add_damage(coating.key(), removed);
@@ -1672,11 +1729,16 @@ pub(super) fn apply_hits(
         for d in &mut en.dots {
             for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
-                let tick = d.dps
+                let mut tick = d.dps
                     * creature_multiplier(run.milestones, creature_type, d.source, false)
                     * echoes as f32
                     * run.milestones.shadow_damage_multiplier(d.source, weaving)
                     * kidney_multiplier;
+                if remaining_hp > 0.0 {
+                    if let Ok(mut vulnerability) = stormstrikes.get_mut(e) {
+                        tick *= vulnerability.multiplier(d.source, tick, now, spells.as_deref(), 0);
+                    }
+                }
                 let removed = tick.max(0.0).min(remaining_hp);
                 remaining_hp = (remaining_hp - removed).max(0.0);
                 vampiric_heal += run.milestones.vampiric_healing(d.source, removed);
@@ -1698,7 +1760,11 @@ pub(super) fn apply_hits(
             if remaining_hp <= 0.0 {
                 break;
             }
+            let nature = stormstrikes.get_mut(e).map_or(1.0, |mut vulnerability| {
+                vulnerability.multiplier("deadly_poison", poison_damage, now, spells.as_deref(), 0)
+            });
             let removed = (poison_damage
+                * nature
                 * kidney_multiplier
                 * creature_multiplier(run.milestones, creature_type, "deadly_poison", false))
             .max(0.0)
@@ -10682,3 +10748,7 @@ mod creature_damage_tests;
 #[cfg(test)]
 #[path = "marked_target_tests.rs"]
 mod marked_target_tests;
+
+#[cfg(test)]
+#[path = "stormstrike_tests.rs"]
+mod stormstrike_tests;
