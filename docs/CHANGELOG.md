@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Legendary rewards after maximum rank
+
+Fully upgraded abilities remain eligible for their legendary amulets in chests.
+Ordinary upgrades still stop at the rank cap. Luck, distinct-card rules and
+replacement exclusions are preserved. Core regression coverage includes mixed,
+fully capped and empty ability rosters; HUD coverage verifies the actual offers.
+
+All 280 core and 542 Survivors app tests pass. Native incremental build passed
+in 31s; six-package scoped formatting, Clippy and tests pass with 31 missing-addon
+skips. Full pre-merge gates and Windows gameplay acceptance remain required.
+No layout changed; the Codex screenshots below remain the current visual milestone.
+
 ## 2026-10-28 — Codex acquisition guidance
 
 Legendary amulets now explain that their spell must be acquired during the run.

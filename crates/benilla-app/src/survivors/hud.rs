@@ -1441,6 +1441,7 @@ fn trade_choices_excluding(
         .iter()
         .filter_map(|card| draft::trade(*card, run))
         .collect();
+    let owned: Vec<usize> = (0..run.abilities.len()).collect();
     let upgradeable: Vec<usize> = run
         .abilities
         .iter()
@@ -1455,25 +1456,33 @@ fn trade_choices_excluding(
         rng.next_u64() as u32,
         rng.next_u64() as u32,
     ];
-    super::campaign::trade_cards_excluding(&upgradeable, luck, rolls, picks, extra, &excluded)
-        .into_iter()
-        .map(|card| match card {
-            super::campaign::TradeCard::Upgrade(i) => Choice::Upgrade(i),
-            super::campaign::TradeCard::Ring(i) => {
-                Choice::Jewel(super::campaign::JewelKind::Ring(i as u8))
-            }
-            super::campaign::TradeCard::Trinket(i) => {
-                Choice::Jewel(super::campaign::JewelKind::Trinket(i as u8))
-            }
-            super::campaign::TradeCard::Amulet(i) => {
-                Choice::Jewel(super::campaign::JewelKind::Amulet(i as u8))
-            }
-            super::campaign::TradeCard::Legend(i) => {
-                let key = run.abilities[i].def.key;
-                Choice::Jewel(super::campaign::JewelKind::Legend(key))
-            }
-        })
-        .collect()
+    super::campaign::trade_cards_excluding(
+        &owned,
+        &upgradeable,
+        luck,
+        rolls,
+        picks,
+        extra,
+        &excluded,
+    )
+    .into_iter()
+    .map(|card| match card {
+        super::campaign::TradeCard::Upgrade(i) => Choice::Upgrade(i),
+        super::campaign::TradeCard::Ring(i) => {
+            Choice::Jewel(super::campaign::JewelKind::Ring(i as u8))
+        }
+        super::campaign::TradeCard::Trinket(i) => {
+            Choice::Jewel(super::campaign::JewelKind::Trinket(i as u8))
+        }
+        super::campaign::TradeCard::Amulet(i) => {
+            Choice::Jewel(super::campaign::JewelKind::Amulet(i as u8))
+        }
+        super::campaign::TradeCard::Legend(i) => {
+            let key = run.abilities[i].def.key;
+            Choice::Jewel(super::campaign::JewelKind::Legend(key))
+        }
+    })
+    .collect()
 }
 
 pub(super) fn looks_for(

@@ -35,6 +35,32 @@ mod tests {
     use super::*;
 
     #[test]
+    fn capped_ability_amulets_reach_chest_choices_and_respect_replacement_exclusions() {
+        let mut run = Run {
+            bonus: survivors_core::campaign::Bonus {
+                luck: 100.0,
+                ..default()
+            },
+            abilities: vec![Owned {
+                def: data::ability("heroic_strike"),
+                level: data::MAX_ABILITY_LEVEL,
+                cd: 0.0,
+            }],
+            ..default()
+        };
+        let legend = Choice::Jewel(JewelKind::Legend("heroic_strike"));
+        let mut seen = false;
+        for seed in 1..257 {
+            let hand = trade_choices(&mut run, &mut Rng(seed), 0.0);
+            assert!(!hand.iter().any(|card| matches!(card, Choice::Upgrade(_))));
+            seen |= hand.iter().any(|card| same(*card, legend));
+            let replacement = trade_choices_excluding(&mut run, &mut Rng(seed), 0.0, &[legend]);
+            assert!(!replacement.iter().any(|card| same(*card, legend)));
+        }
+        assert!(seen, "Capped abilities must retain their amulet offers");
+    }
+
+    #[test]
     fn banish_replaces_in_place_without_repeating_any_original_option() {
         for seed in 1..65 {
             let mut run = Run {

@@ -1355,24 +1355,34 @@ pub enum TradeCard {
     Ring(usize),
     Trinket(usize),
     Amulet(usize),
-    /// Owned-ability index supplied by the upgradeable list.
+    /// Owned-ability index supplied by the owned list.
     Legend(usize),
 }
 
 /// Up to three distinct chest cards. Each roll chooses its reward category before sampling
 /// unused rewards. An exhausted category produces no card, never an extra jewelry roll.
 pub fn trade_cards(
+    owned: &[usize],
     upgradeable: &[usize],
     luck_percent: f32,
     rolls: [f32; 3],
     picks: [u32; 3],
     extra_jewel: f32,
 ) -> Vec<TradeCard> {
-    trade_cards_excluding(upgradeable, luck_percent, rolls, picks, extra_jewel, &[])
+    trade_cards_excluding(
+        owned,
+        upgradeable,
+        luck_percent,
+        rolls,
+        picks,
+        extra_jewel,
+        &[],
+    )
 }
 
 /// Draw with the same category rolls while excluding the current hand during replacement.
 pub fn trade_cards_excluding(
+    owned: &[usize],
     upgradeable: &[usize],
     luck_percent: f32,
     rolls: [f32; 3],
@@ -1387,8 +1397,8 @@ pub fn trade_cards_excluding(
     for i in 0..3 {
         let n = picks[i];
         let mut pool: Vec<_> = if rolls[i] < chance || upgradeable.is_empty() {
-            if !upgradeable.is_empty() && n % 100 < legend {
-                upgradeable.iter().copied().map(TradeCard::Legend).collect()
+            if !owned.is_empty() && n % 100 < legend {
+                owned.iter().copied().map(TradeCard::Legend).collect()
             } else {
                 (0..catalog)
                     .map(|slot| {
@@ -2433,28 +2443,60 @@ mod tests {
             TradeCard::Ring(0),
             TradeCard::Legend(2),
         ];
-        assert!(trade_cards_excluding(&[2], 0.0, [0.9; 3], [0; 3], 0.0, &excluded).is_empty());
-        let jewels = trade_cards_excluding(&[2], 0.0, [0.0; 3], [0; 3], 0.0, &excluded);
+        assert!(
+            trade_cards_excluding(&[2], &[2], 0.0, [0.9; 3], [0; 3], 0.0, &excluded).is_empty()
+        );
+        let jewels = trade_cards_excluding(&[2], &[2], 0.0, [0.0; 3], [0; 3], 0.0, &excluded);
         assert_eq!(jewels.len(), 3);
         assert!(jewels.iter().all(|card| !excluded.contains(card)));
-        let legends = trade_cards_excluding(&[2, 5], 100.0, [0.0; 3], [0; 3], 0.0, &excluded);
+        let legends =
+            trade_cards_excluding(&[2, 5], &[2, 5], 100.0, [0.0; 3], [0; 3], 0.0, &excluded);
         assert_eq!(legends, vec![TradeCard::Legend(5)]);
+    }
+
+    #[test]
+    fn maximum_rank_spells_keep_their_legendary_pool_without_receiving_upgrades() {
+        // Spell 0 is capped; spell 2 can still grow. A jewelry roll can choose either.
+        assert_eq!(
+            trade_cards(&[0, 2], &[2], 100.0, [0.0, 0.9, 0.9], [0; 3], 0.0),
+            vec![TradeCard::Legend(0), TradeCard::Upgrade(2)]
+        );
+        // A fully capped run still gets legends, including on its jewelry fallback.
+        assert_eq!(
+            trade_cards(&[0, 2], &[], 100.0, [0.9; 3], [0; 3], 0.0),
+            vec![TradeCard::Legend(0), TradeCard::Legend(2)]
+        );
+        assert_eq!(
+            trade_cards_excluding(
+                &[0, 2],
+                &[],
+                100.0,
+                [0.0; 3],
+                [0; 3],
+                0.0,
+                &[TradeCard::Legend(0)],
+            ),
+            vec![TradeCard::Legend(2)]
+        );
+        assert!(trade_cards(&[], &[], 100.0, [0.0; 3], [0; 3], 0.0)
+            .iter()
+            .all(|card| !matches!(card, TradeCard::Legend(_) | TradeCard::Upgrade(_))));
     }
 
     #[test]
     fn chest_hands_offer_distinct_eligible_rewards_without_promoting_exhausted_rolls() {
         // Reproduces the two-spell chest: three non-jewelry rolls must not repeat a spell.
-        let hand = trade_cards(&[0, 2], 0.0, [0.9; 3], [1, 0, 2], 0.0);
+        let hand = trade_cards(&[0, 2], &[0, 2], 0.0, [0.9; 3], [1, 0, 2], 0.0);
         assert_eq!(hand, vec![TradeCard::Upgrade(2), TradeCard::Upgrade(0)]);
         assert_eq!(
-            trade_cards(&[4], 0.0, [0.9; 3], [0; 3], 0.0),
+            trade_cards(&[4], &[4], 0.0, [0.9; 3], [0; 3], 0.0),
             vec![TradeCard::Upgrade(4)]
         );
         for owned in [&[][..], &[0][..], &[1, 3][..], &[0, 2, 4, 5][..]] {
             for luck in [0.0, 100.0] {
                 for roll in [0.0, 0.1, 0.9] {
                     for seed in 0..100 {
-                        let hand = trade_cards(owned, luck, [roll; 3], [seed; 3], 0.0);
+                        let hand = trade_cards(owned, owned, luck, [roll; 3], [seed; 3], 0.0);
                         assert!(!hand.is_empty());
                         for (i, card) in hand.iter().enumerate() {
                             assert!(!hand[..i].contains(card), "{hand:?}");
@@ -2474,13 +2516,13 @@ mod tests {
     #[test]
     fn luck_turns_a_chest_card_into_jewelry_and_can_offer_a_legend() {
         let owned = [0usize, 2];
-        let plain = trade_cards(&owned, 0.0, [0.9, 0.9, 0.9], [1, 0, 2], 0.0);
+        let plain = trade_cards(&owned, &owned, 0.0, [0.9, 0.9, 0.9], [1, 0, 2], 0.0);
         assert!(plain.iter().all(|c| matches!(c, TradeCard::Upgrade(_))));
-        let jewel = trade_cards(&owned, 0.0, [0.0, 0.9, 0.9], [0, 0, 0], 0.0);
+        let jewel = trade_cards(&owned, &owned, 0.0, [0.0, 0.9, 0.9], [0, 0, 0], 0.0);
         assert_eq!(jewel[0], TradeCard::Ring(0));
-        let legend = trade_cards(&owned, 100.0, [0.0, 0.9, 0.9], [0, 0, 0], 0.0);
-        let missed = trade_cards(&owned, 0.0, [0.10, 0.9, 0.9], [0, 0, 0], 0.0);
-        let eyed = trade_cards(&owned, 0.0, [0.10, 0.9, 0.9], [0, 0, 0], 0.05);
+        let legend = trade_cards(&owned, &owned, 100.0, [0.0, 0.9, 0.9], [0, 0, 0], 0.0);
+        let missed = trade_cards(&owned, &owned, 0.0, [0.10, 0.9, 0.9], [0, 0, 0], 0.0);
+        let eyed = trade_cards(&owned, &owned, 0.0, [0.10, 0.9, 0.9], [0, 0, 0], 0.05);
         assert!(matches!(missed[0], TradeCard::Upgrade(_)));
         assert!(!matches!(eyed[0], TradeCard::Upgrade(_)));
         assert_eq!(legend[0], TradeCard::Legend(0));

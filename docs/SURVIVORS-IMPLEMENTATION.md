@@ -302,6 +302,13 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
+Chest eligibility correction (2026-10-28): separate owned abilities from those
+with remaining upgrades, so reaching maximum rank does not remove the associated
+legendary amulet from chest offers. Preserve luck/category rolls, distinct cards
+and replacement exclusions. Regression coverage includes mixed/capped/empty
+rosters and the actual HUD choice conversion. Validation results are recorded in
+the changelog; this changes reward eligibility, not the card layout.
+
 Codex acquisition guidance (2026-10-28): legendary entries explain that the
 associated ability must be acquired in-run; talent-gated entries name their
 training prerequisite from the talent definitions. Native 1100×720 and 640×720
