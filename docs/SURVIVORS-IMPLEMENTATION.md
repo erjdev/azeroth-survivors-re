@@ -8452,7 +8452,8 @@ Acceptance: core cast composition and green inline descriptions; app cast snapsh
 and expiry at both ability ranks; native talent purchase/save and trained card
 previews. 243 core tests, 471 app tests and core/app Clippy pass. Native purchase 4→5,
 point deduction 36→35 and persisted rank verified at 1600×900; trained cards show
-12→13.2 sec at 1280×720. Incremental build 17 sec. Full integration pending;
+12→13.2 sec at 1280×720. Incremental build 17 sec. Full integration passed in
+11m35s, including player-build tests; 31 missing-addon skips per data/player run;
 Windows and live balance remain open.
 
 ### Next talent slice: Rogue Dagger Specialization — 2026-10-28

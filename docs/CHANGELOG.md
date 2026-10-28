@@ -16,7 +16,8 @@ inline on upgrade cards.
 
 243 core tests, 471 app tests and core/app Clippy pass. Native final-rank
 purchase/save and cards verified at 1600×900 and 1280×720; incremental build:
-17 seconds. Full integration pending; Windows and live balance remain open.
+17 seconds. Full integration passed in 11m35s, including player-build tests;
+31 missing-addon skips per data/player run. Windows and live balance remain open.
 
 ## 2026-10-28 — Battle Shout
 
