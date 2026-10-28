@@ -10,6 +10,25 @@ Mappings use exact, unique names and the `entry`, `displayid`, `InventoryType`, 
 Only these factual fields are recorded; the SQL download stays in ignored validation
 storage. Runtime icons, textures and models come from the user's data folder.
 
+## Planned Warrior weapon alternatives
+
+The pinned identity rows contain these candidates. They are **not yet catalogued,
+obtainable, or visually validated**. They supply the missing equipment paths needed
+before accepting Mace and Polearm Specialization.
+
+| Weapon | Entry | Display | Inventory type | Class | Subclass | Material | Sheath |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Worn Mace | 36 | 5194 | 21 | 2 | 4 | 2 | 3 |
+| Short Spear | 15810 | 26500 | 17 | 2 | 6 | 1 | 1 |
+
+Inventory type 21 identifies a main-hand weapon; type 17 identifies a two-handed
+weapon. Subclasses 4 and 6 identify mace and polearm respectively. Survivors will
+use Common quality for both, with the existing Common main-hand bonus. The item
+name does not decide Survivors quality. No vanilla damage, level requirement,
+vendor price or proc is imported.
+
+## Existing catalog conventions
+
 - Correct vanilla names: **Field Plate Vambraces**, **Drake Fang Talisman**. Save slots are
   numeric, so these label corrections do not alter collection ownership.
 - **Atiesh** uses explicit class reward entries (below). A name-only lookup stays

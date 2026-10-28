@@ -8197,3 +8197,52 @@ shows points 30→29 and green chance 0→1% / 1→2%; rank one persists after Q
 Screenshots are inline in CHANGELOG. Definition coverage is 277/432 (Warrior
 38/52), leaving 155 undefined. Full integration, Windows visuals and live balance
 remain open for this checkpoint.
+
+### Obtainable Warrior weapon alternatives — implementation contract
+
+Audit: the current 54-slot Warrior collection and Poor weapon contain axes and
+swords, but no mace or polearm. Implementing those specializations alone would
+leave players unable to activate them. Preserve all existing collection indexes,
+ownership, drop rows and the 54-piece completion denominator.
+
+Add two supplemental Common main-hand choices: Worn Mace (entry 36, one-handed)
+and Short Spear (15810, two-handed), using the pinned factual identities recorded
+in SURVIVORS-GEAR-VISUALS. Give each its own stable weapon key rather than encoding
+it as the single `poor:warrior:main-hand` slot. Both use the existing Common
+main-hand stat bonus; the difference is weapon type and talent eligibility.
+
+Initial authored acquisition: a Warrior defeating Elwynn's scheduled Hogger
+receives one of these two alternatives, uniformly selected, alongside the
+existing independent head-piece roll. This is one guaranteed weapon roll per
+Hogger defeat, not an extra chest, ordinary-enemy reward or elite reward. Duplicates
+grant no stats or replacement reward and never change equipped gear or appearance.
+Keen Eye does not change this guaranteed roll. Other classes retain their current
+rewards. Display these rules explicitly in Collection and Drop Tables.
+
+Implementation sequence and acceptance:
+
+1. Extend validated supplemental identity lookup and enumeration without changing
+   existing Poor/Raid Epic keys. Test malformed keys, class/slot validation,
+   one-handed mace versus two-handed polearm classification and duplicate ownership.
+2. Add the pure source selector and connect it to the single enemy-death reward
+   path. Test wrong zone/name/class, non-boss, invalid rolls and both boundaries;
+   exercise actual death handling, duplicate hits and existing loot coexistence.
+3. Preserve independent equipment and cosmetic keys through save/reload. Test
+   unowned/foreign references, unchanged legacy completion, shared quality stats,
+   and worn-type snapshots for talent/card calculations. Never auto-equip a drop.
+4. Add a clearly labeled alternative-weapons row beside the established collection
+   grid. Generalize supplemental quality/color/source details, currently assuming
+   only Poor or Raid Epic. Both items must support inspect, equip, appearance,
+   comparison, and source navigation. Drop Tables must expose the same source.
+5. Extend the install audit to decode both icons and resolve their models. Capture
+   native wide/compact Collection and Character views, including independent look
+   versus equipment, and embed milestone evidence in CHANGELOG and README.
+6. Implement Mace and Polearm talents against these obtainable worn identities;
+   separately validate their actual effects. Mace's last vanilla proc rank is 6%,
+   not an inferred 5%; retain the existing spell-source audit when choosing its
+   Survivors behavior. Talent acceptance requires acquisition and saved equipment,
+   not only a synthetic weapon injected into a unit test.
+
+This section records the next implementation, not completed content. Neither
+weapon currently contributes to verified catalog or talent coverage. Windows,
+live drop/attachment acceptance and balance remain separate from native UI tests.
