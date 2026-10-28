@@ -208,7 +208,9 @@ fn front_door_snapshots_the_selected_heroes_active_talents() {
         armory.note
     );
     assert_eq!(run.milestones, account.milestones_picked(0, Some(id)));
-    assert_eq!(run.milestones.cast("demoralizing_shout").duration, 1.5);
+    // Booming Voice and Improved Demoralizing Shout each contribute 50%.
+    assert_eq!(run.milestones.cast("demoralizing_shout").duration, 2.25);
+    assert_eq!(run.milestones.cast("battle_shout").duration, 1.5);
     assert!((run.milestones.enrage_damage(true) - 1.2).abs() < 0.00001);
     selection.character = Some(first);
     super::try_enter(

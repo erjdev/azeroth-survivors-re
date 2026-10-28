@@ -9827,4 +9827,32 @@ mod battle_shout_tests {
         assert_eq!(cast_weapon_buffs(&mut run, &stats, 0.1), vec![6673]);
         assert_eq!(run.battle_shout.remaining(20.0), 8.0);
     }
+    #[test]
+    fn booming_voice_extends_cast_buff_and_composes_with_strength_training() {
+        for (level, expected_strength, expected_duration) in [(1, 0.125, 12.0), (2, 0.1625, 13.2)] {
+            let mut run = Run {
+                milestones: Milestones::default().with_ranks(&[(1, 158, 5), (1, 154, 5)]),
+                abilities: vec![Owned {
+                    def: data::ability("battle_shout"),
+                    level,
+                    cd: 0.0,
+                }],
+                ..Default::default()
+            };
+            let stats = run.stats();
+            let plain = Params::new(&run.abilities[0], &stats, Milestones::default());
+            let trained = Params::new(&run.abilities[0], &stats, run.milestones);
+            assert!((trained.weapon_bonus - expected_strength).abs() < 0.00001);
+            assert!((trained.duration - expected_duration).abs() < 0.00001);
+            assert_eq!(trained.cooldown, plain.cooldown);
+            assert_eq!(trained.radius, plain.radius);
+            assert_eq!(trained.count, 0);
+            assert_eq!(cast_weapon_buffs(&mut run, &stats, 0.1), vec![6673]);
+            assert!((run.battle_shout.remaining(0.0) - expected_duration).abs() < 0.00001);
+            run.elapsed = expected_duration - 0.01;
+            assert!(run.stats().for_spell("cleave").might > stats.might);
+            run.elapsed = expected_duration + 0.01;
+            assert_eq!(run.stats().for_spell("cleave").might, stats.might);
+        }
+    }
 }

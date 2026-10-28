@@ -532,6 +532,14 @@ impl Milestones {
                         effect.cooldown *= 1.0 - value
                     }
                     TalentStat::SpellCrit(spell) if spell == key => effect.crit += value,
+                    TalentStat::BoomingVoice
+                        if matches!(key, "battle_shout" | "demoralizing_shout") =>
+                    {
+                        effect.duration *= 1.0 + value;
+                        if key == "demoralizing_shout" {
+                            effect.radius *= 1.0 + value;
+                        }
+                    }
                     TalentStat::SpellDuration(spell) if spell == key => {
                         effect.duration *= 1.0 + value
                     }
@@ -1549,6 +1557,7 @@ pub enum TalentStat {
     WingClipRoot,
     HamstringRoot,
     BattleShoutPower,
+    BoomingVoice,
     InsectSwarmWeakening,
     NaturesGrace,
     Impact,
@@ -1840,6 +1849,7 @@ impl TalentDefinition {
             | TalentStat::DivineFavor
             | TalentStat::Aftermath
             | TalentStat::BattleShoutPower
+            | TalentStat::BoomingVoice
             | TalentStat::HamstringRoot
             | TalentStat::WingClipRoot
             | TalentStat::InsectSwarmWeakening
@@ -2123,6 +2133,7 @@ impl TalentDefinition {
                 (100.0, "% reduced outgoing enemy damage from Insect Swarm")
             }
             TalentStat::NaturesGrace => (1.0, " sec shorter next Wrath or Starfire recovery after a spell critical; one 15 sec charge"),
+            TalentStat::BoomingVoice => (100.0, "% shout duration and Demoralizing Shout radius"),
             TalentStat::BattleShoutPower => (100.0, "% stronger Battle Shout weapon bonus"),
             TalentStat::HamstringRoot => (100.0, "% chance to root Thunder Clap targets"),
             TalentStat::WingClipRoot => (100.0, "% chance to root Wing Clip targets"),
@@ -2289,8 +2300,8 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         id: 158,
         max_rank: 5,
         name: "Booming Voice",
-        description: "Demoralizing Shout: +10% radius per rank",
-        stat: TalentStat::SpellRadius("demoralizing_shout"),
+        description: "Shouts: +10% duration and Demoralizing Shout radius per rank. Battle Shout remains self-only",
+        stat: TalentStat::BoomingVoice,
         per_rank: 0.1,
     },
     TalentDefinition {
@@ -3520,6 +3531,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Nightfall
             | TalentStat::Aftermath
             | TalentStat::BattleShoutPower
+            | TalentStat::BoomingVoice
             | TalentStat::HamstringRoot
             | TalentStat::WingClipRoot
             | TalentStat::InsectSwarmWeakening
@@ -5011,6 +5023,7 @@ mod stat_talent_tests {
                     | TalentStat::Nightfall
                     | TalentStat::Aftermath
                     | TalentStat::BattleShoutPower
+                    | TalentStat::BoomingVoice
                     | TalentStat::HamstringRoot
                     | TalentStat::WingClipRoot
                     | TalentStat::InsectSwarmWeakening
@@ -6746,5 +6759,80 @@ mod battle_shout_tests {
         for (class, def) in crate::data::CLASSES.iter().enumerate() {
             assert_eq!(def.ability_keys().contains(&"battle_shout"), class == 0);
         }
+    }
+}
+
+#[cfg(test)]
+mod booming_voice_tests {
+    use super::*;
+
+    #[test]
+    fn both_shouts_gain_duration_but_only_demoralizing_has_radius() {
+        for rank in 0..=5 {
+            let plain = Milestones::default();
+            let trained = plain.with_ranks(&[(1, 158, rank)]);
+            let factor = 1.0 + f32::from(rank) * 0.1;
+            for key in [
+                "battle_shout",
+                "demoralizing_shout",
+                "cleave",
+                "thunder_clap",
+            ] {
+                let before = plain.cast(key);
+                let after = trained.cast(key);
+                let shout = matches!(key, "battle_shout" | "demoralizing_shout");
+                assert!(
+                    (after.duration - before.duration * if shout { factor } else { 1.0 }).abs()
+                        < 0.00001
+                );
+                assert!(
+                    (after.radius
+                        - before.radius
+                            * if key == "demoralizing_shout" {
+                                factor
+                            } else {
+                                1.0
+                            })
+                    .abs()
+                        < 0.00001
+                );
+                assert_eq!(after.damage, before.damage);
+                assert_eq!(after.cooldown, before.cooldown);
+                assert_eq!(after.extra_targets, before.extra_targets);
+            }
+            assert_eq!(trained.battle_shout_multiplier(), 1.0);
+        }
+    }
+    #[test]
+    fn shout_training_is_capped_class_scoped_and_composes_with_other_talents() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(1, 158, 255)]);
+            for key in ["battle_shout", "demoralizing_shout"] {
+                if class == 0 {
+                    assert!(
+                        (trained.cast(key).duration - base.cast(key).duration * 1.5).abs()
+                            < 0.00001
+                    );
+                } else {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+                assert_eq!(trained.with_ranks(&[]).cast(key), base.cast(key));
+            }
+        }
+        let trained = Milestones::default().with_ranks(&[(1, 158, 5), (1, 161, 5), (1, 154, 5)]);
+        assert!((trained.cast("demoralizing_shout").duration - 2.25).abs() < 0.00001);
+        assert_eq!(trained.cast("battle_shout").duration, 1.5);
+        assert_eq!(trained.battle_shout_multiplier(), 1.25);
+        let node = talent_definition(0, 158).unwrap();
+        let (text, ranges) = node.inline_description_with_values(4).unwrap();
+        assert!(text.contains("+40 » 50% duration"));
+        assert!(ranges
+            .iter()
+            .any(|range| text[range.clone()].contains("40 » 50%")));
+        assert!(!node.inline_description(5).unwrap().contains(" » "));
     }
 }

@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Booming Voice duration
+
+Booming Voice now extends Battle Shout and Demoralizing Shout by 10% per rank,
+in addition to its existing Demoralizing Shout radius bonus. Battle Shout stays
+self-only; its strength and recharge are unchanged. Trained durations appear
+inline on upgrade cards.
+
+![Booming Voice duration upgrade](images/screenshots/2026-10-28-booming-voice/available.png)
+
+![Battle Shout duration with both shout talents trained](images/screenshots/2026-10-28-booming-voice/cards.png)
+
+243 core tests, 471 app tests and core/app Clippy pass. Native final-rank
+purchase/save and cards verified at 1600×900 and 1280×720; incremental build:
+17 seconds. Full integration pending; Windows and live balance remain open.
+
 ## 2026-10-28 — Battle Shout
 
 Warriors can acquire Battle Shout: +10% weapon damage for 8 seconds, recharging

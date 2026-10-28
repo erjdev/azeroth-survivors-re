@@ -8410,8 +8410,7 @@ ability ranks scale strength (+30% of base per rank), duration (+10% of base per
 rank), and recharge (×0.93 per rank). Improved Battle Shout multiplies its strength
 by 1 + 0.05 × capped talent rank. This is a self-only percentage-damage conversion,
 not vanilla party attack power. Global damage, crit, area and extra targets do
-not amplify the buff's percentage. Booming Voice currently remains explicitly
-scoped to Demoralizing Shout's radius; further duration adaptation remains open.
+not amplify the buff's percentage. Booming Voice duration integration is described in the follow-up below.
 
 Self buffs resolve before offensive casts so acquisition order cannot alter
 same-frame damage. Recasts refresh without stacking. Shared scoped stats apply
@@ -8431,3 +8430,20 @@ Native purchase 4→5, point deduction and saved rank verified at 1600×900;
 trained new/upgrade cards verified at 1280×720 with green inline values.
 Full integration passed in 17m38s, including player-build tests; each data/player
 stage reported 31 unavailable addon-corpus skips. Windows and live balance remain open.
+
+
+### Booming Voice duration follow-up — 2026-10-28
+
+The checkout Spell.dbc records (12321/12835–12838) give both shouts 10–50%
+area and duration increases. Preserve Demoralizing Shout's existing radius
+bonus and extend both shouts' duration by the same amount. Battle Shout remains
+self-only, with no radius or extra-target benefit. Its strength still comes from
+Improved Battle Shout; recharge remains unchanged. Other duration talents compose
+multiplicatively. Rank caps, class isolation and refunds use existing saved ranks.
+
+Acceptance: core cast composition and green inline descriptions; app cast snapshot
+and expiry at both ability ranks; native talent purchase/save and trained card
+previews. 243 core tests, 471 app tests and core/app Clippy pass. Native purchase 4→5,
+point deduction 36→35 and persisted rank verified at 1600×900; trained cards show
+12→13.2 sec at 1280×720. Incremental build 17 sec. Full integration pending;
+Windows and live balance remain open.
