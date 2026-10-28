@@ -3,6 +3,16 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Sword integration and weapon prerequisites
+
+Sword's full native integration passes at `68f2a2c` in 12m49s, with 31
+missing-addon skips per data/player stage. [Validation details](validation/2026-10-27-integration.md).
+
+The next mace/polearm choices now have validated identities, Common stat rules
+and a tested Hogger reward selector. Both icons decode from checkout data;
+234 core tests and core/audit Clippy pass. Reward delivery and Collection controls
+are still pending, so these weapons are not yet obtainable. No UI changed.
+
 ## 2026-10-27 — Sword Specialization
 
 Worn swords now grant a 1–5% chance to repeat a direct weapon hit against the same

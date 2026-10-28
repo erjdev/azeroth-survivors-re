@@ -86,6 +86,12 @@ pub fn report(chain: &mut Chain) -> Result<()> {
         }
         println!("COLLECTION: {} · {verified}/54 named identities with decoded icons and scheduled sources · {supplemental}/17 supplemental identities with decoded icons", definition.name);
     }
+    for weapon in survivors_core::weapon_alternatives::choices(0) {
+        match icon(chain, &displays, &mut checked, weapon.visual) {
+            Ok(()) => println!("WEAPON ALTERNATIVE: {} · item {} · display {} · icon decoded; gameplay acquisition and model rendering require separate acceptance", weapon.name, weapon.visual.item_id, weapon.visual.display_id),
+            Err(error) => gaps.push(format!("{} alternative: {error:#}", weapon.name)),
+        }
+    }
     println!("{} unique display icons decoded. Supplemental checks establish identity/art only; Raid Epic kill settlement is verified separately; zone access remains gated by world readiness.", checked.len());
     println!("Scope excludes equipped model rendering, stat balance, zone unlocks, traversal and live acquisition. Item IDs/names use the repository's pinned template mappings; the MPQ verifies display rows and icon data, not server item templates.");
     if !gaps.is_empty() {

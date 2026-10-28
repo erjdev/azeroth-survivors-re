@@ -8244,5 +8244,23 @@ Implementation sequence and acceptance:
    not only a synthetic weapon injected into a unit test.
 
 This section records the next implementation, not completed content. Neither
-weapon currently contributes to verified catalog or talent coverage. Windows,
+weapon currently contributes to completed acquisition or talent coverage. Windows,
 live drop/attachment acceptance and balance remain separate from native UI tests.
+
+### Alternative weapon rules checkpoint — 2026-10-27
+
+The pure core now exposes stable `weapon:warrior:worn-mace` and
+`weapon:warrior:short-spear` identities through supplemental lookup. The source
+selector enforces Warrior, Elwynn, Hogger, boss status and valid uniform rolls;
+its source matches an actual scheduled encounter. It is not yet called by death
+settlement. Tests cover malformed keys, wrong classes/slots, duplicate ownership,
+worn one-/two-handed identity, cosmetic isolation and Common bonus selection.
+All 234 core tests and core/audit all-target Clippy pass. The collection audit
+decodes both display icons from checkout data, preserving all 486 legacy and
+153 existing supplemental mappings. Model attachments, collection controls,
+account save/reload acceptance and live reward integration remain next; no new
+UI or gameplay screenshot is claimed for this rules-only checkpoint.
+
+The preceding Sword source at `68f2a2c` also passes its full native integration
+run in 769 seconds; see the validation record. That run compiled before the new
+weapon module was connected and does not validate these later source changes.

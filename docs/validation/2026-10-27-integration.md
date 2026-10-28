@@ -63,3 +63,16 @@ Later commit `4548ec7` only adds documentation and native screenshots, leaving t
 verified source unchanged. Native one-handed/axe purchases, saved specs and
 one-handed card comparisons are embedded in CHANGELOG. No Windows/browser runtime,
 live realm smoke, unattended combat or live balance acceptance is implied.
+
+## Sword checkpoint (`68f2a2c`)
+
+The existing full run finished with exit 0 in 769 seconds (12m49s): formatting
+7s, workspace all-target Clippy 21s, workspace tests 418s, no-install tests 37s,
+documentation links 49s, render-pass lint 2s, player-mode tests 235s. Data/player
+stages each reported 31 missing-addon skips (24 vanilla corpus, seven Quiver).
+The separate feature-enabled Survivors suite passed 459 tests; core rules 231.
+
+Documentation commit `17cefe8` did not change the tested source. Later alternative
+weapon code was connected only after the final player-mode test binary was built;
+this run proves the Sword baseline, not the later weapon code. Windows/browser
+runtime, live realm smoke, live balance and missing-addon coverage remain open.

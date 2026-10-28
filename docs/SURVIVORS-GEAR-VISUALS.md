@@ -10,11 +10,12 @@ Mappings use exact, unique names and the `entry`, `displayid`, `InventoryType`, 
 Only these factual fields are recorded; the SQL download stays in ignored validation
 storage. Runtime icons, textures and models come from the user's data folder.
 
-## Planned Warrior weapon alternatives
+## Warrior weapon alternative identities
 
-The pinned identity rows contain these candidates. They are **not yet catalogued,
-obtainable, or visually validated**. They supply the missing equipment paths needed
-before accepting Mace and Polearm Specialization.
+The core catalog now validates these stable supplemental identities and the install
+audit decodes both icons. They are **not yet obtainable or model-validated**.
+Collection UI and actual reward delivery remain required before accepting Mace
+and Polearm Specialization.
 
 | Weapon | Entry | Display | Inventory type | Class | Subclass | Material | Sheath |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

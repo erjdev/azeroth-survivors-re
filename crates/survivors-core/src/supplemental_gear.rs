@@ -138,6 +138,9 @@ pub fn piece(class: usize, slot: usize, tier: GearTier) -> Option<SupplementalPi
 
 /// Stable keys are independent of display names, item IDs and legacy collection indexes.
 pub fn by_key(key: &str) -> Option<SupplementalPiece> {
+    if let Some(piece) = crate::weapon_alternatives::by_key(key) {
+        return Some(piece);
+    }
     let mut parts = key.split(':');
     let tier = match parts.next()? {
         "poor" => GearTier::Poor,
