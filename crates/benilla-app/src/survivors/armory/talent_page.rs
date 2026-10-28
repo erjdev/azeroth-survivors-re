@@ -9,8 +9,9 @@ use bevy::ui::RelativeCursorPosition;
 const DIM: Color = Color::srgb(0.64, 0.58, 0.4);
 const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
-const ICON: f32 = 44.0;
-const GRID_HEIGHT: f32 = 480.0;
+const ICON: f32 = 48.0;
+// Preserve readable seven-row spacing when panels wrap on narrow screens.
+const GRID_HEIGHT: f32 = 560.0;
 
 #[derive(Component)]
 pub(in crate::survivors) struct TreeViewport;

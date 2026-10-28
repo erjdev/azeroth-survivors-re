@@ -152,8 +152,10 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
-Latest layout validation (2026-10-28): talent trees use a 480-unit height floor
-and 44-unit maximum icons, increasing row spacing by 14% and icon size by 10%.
+Latest layout validation (2026-10-28): talent trees use a 560-unit height floor
+and 48-unit maximum icons. This increases row spacing by another 17% and icon
+size by 9% over the previous 480/44 layout. Preserve this readability floor
+when changing aspect ratios; allow vertical scrolling instead of squeezing rows.
 Artwork keeps its proportions with centered side cropping; narrow viewports
 wrap and scroll rather than compressing the rows. Native 1600×900 and 640×720
 captures, including lower-row access, are embedded in CHANGELOG and the README

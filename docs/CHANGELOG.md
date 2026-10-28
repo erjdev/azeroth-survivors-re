@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Taller talent trees
+
+Talent rows have 17% more vertical spacing and icons are 9% larger. Narrow
+windows retain the taller trees and scroll; proportional background art fills
+the panels without stretching. The tradeoff is more vertical scrolling.
+
+![Taller trees at 1600×900](images/screenshots/2026-10-28-taller-talents/wide.png)
+
+![Two-column trees at 640×720](images/screenshots/2026-10-28-taller-talents/compact.png)
+
+![Bottom rows and milestones remain reachable](images/screenshots/2026-10-28-taller-talents/compact-bottom.png)
+
+Native macOS wide/compact layouts and scrolling verified; incremental build:
+1m10s. Full integration passed in 12m34s, with 31 missing-addon skips per
+data/player run. Windows visual confirmation remains open.
+
 ## 2026-10-28 — Backstab and rear-attack training
 
 Rogues can acquire Backstab while wearing a dagger. Every target must be behind
