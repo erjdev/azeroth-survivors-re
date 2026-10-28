@@ -3795,9 +3795,12 @@ mod tests {
 
     #[test]
     fn weapon_training_follow_saved_worn_equipment() {
-        for (id, tree, row, worn, cosmetic) in
-            [(132, 0, 4, 0, 5), (702, 2, 5, 5, 0), (123, 0, 4, 3, 0)]
-        {
+        for (id, tree, row, worn, cosmetic) in [
+            (134, 0, 5, 0, 5),
+            (132, 0, 4, 0, 5),
+            (702, 2, 5, 5, 0),
+            (123, 0, 4, 3, 0),
+        ] {
             let data = benilla_formats::wow_data_or_skip!();
             let mut chain = benilla_formats::Chain::open(&data).unwrap();
             let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
@@ -3835,19 +3838,35 @@ mod tests {
                     (2, 152, 1),
                 ]
             };
+            if id == 134 {
+                account
+                    .characters
+                    .iter_mut()
+                    .find(|c| c.id == hero)
+                    .unwrap()
+                    .dbc[0]
+                    .push((0, 132, 5));
+            }
             assert!(account.talents_valid(account.character(hero).unwrap()));
             account.classes[0].pieces.fill(1);
             let progress = &mut account.classes[0];
             assert!(progress
                 .equipment
                 .wear_legacy(&progress.pieces, 8, Some(worn)));
+            if id == 134 {
+                assert_eq!(
+                    account.collect_weapon_drop(0, 0, "Hogger", true, 0.75),
+                    Some("Short Spear")
+                );
+                assert!(account.select_supplemental(0, "weapon:warrior:short-spear", false));
+            }
             let multiplier = |account: &Account| {
                 let effect = account.milestones_picked(0, Some(hero)).cast("cleave");
                 if id == 123 {
                     account
                         .milestones_picked(0, Some(hero))
                         .sword_extra_attack_chance("cleave", 1.0)
-                } else if id == 132 {
+                } else if matches!(id, 132 | 134) {
                     effect.crit
                 } else {
                     effect.damage

@@ -474,12 +474,16 @@ impl Milestones {
                     }
                     stat @ (TalentStat::TwoHandedDamage
                     | TalentStat::OneHandedDamage
-                    | TalentStat::AxeCrit)
+                    | TalentStat::AxeCrit
+                    | TalentStat::PolearmCrit)
                         if self.weapon.is_some_and(|weapon| match stat {
                             TalentStat::TwoHandedDamage => weapon.two_handed,
                             TalentStat::OneHandedDamage => !weapon.two_handed,
                             TalentStat::AxeCrit => {
                                 weapon.kind == crate::gear_loadout::MeleeKind::Axe
+                            }
+                            TalentStat::PolearmCrit => {
+                                weapon.kind == crate::gear_loadout::MeleeKind::Polearm
                             }
                             _ => false,
                         }) && matches!(
@@ -493,7 +497,7 @@ impl Milestones {
                                 | "retaliation"
                         ) =>
                     {
-                        if stat == TalentStat::AxeCrit {
+                        if matches!(stat, TalentStat::AxeCrit | TalentStat::PolearmCrit) {
                             effect.crit += value;
                         } else {
                             effect.damage *= 1.0 + value;
@@ -1570,6 +1574,7 @@ pub enum TalentStat {
     TwoHandedDamage,
     OneHandedDamage,
     AxeCrit,
+    PolearmCrit,
     SwordExtraAttack,
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
@@ -1801,6 +1806,7 @@ impl TalentDefinition {
             | TalentStat::TwoHandedDamage
             | TalentStat::OneHandedDamage
             | TalentStat::AxeCrit
+            | TalentStat::PolearmCrit
             | TalentStat::SwordExtraAttack
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -1984,7 +1990,7 @@ impl TalentDefinition {
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
-            TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit => {
+            TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit => {
                 (100.0, "% critical chance")
             }
             TalentStat::CritDamage | TalentStat::SpellGroupCritDamage(_) => {
@@ -2101,6 +2107,12 @@ impl TalentDefinition {
 
 /// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
 pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 12165/12830–12833: +1–5 percentage points of polearm critical chance.
+    TalentDefinition {
+        id: 134, max_rank: 5, name: "Polearm Specialization",
+        description: "With a worn polearm: +1% critical chance per rank for Cleave, Heroic Strike, Whirlwind, Sweeping Strikes, Execute, Mortal Strike and Retaliation. Cosmetic weapons do not qualify. Excludes Thunder Clap, shouts and bleed ticks",
+        stat: TalentStat::PolearmCrit, per_rank: 0.01,
+    },
     TalentDefinition {
         id: 123, max_rank: 5, name: "Sword Specialization",
         description: "With a worn sword: 1% chance per rank after a direct weapon hit to strike the same target again. Repeats the hit's direct damage, including its critical result, without copying area, control, bleed or execute effects. Extra strikes cannot trigger further talent procs. Cosmetic weapons do not qualify (Survivors conversion)",
@@ -3448,6 +3460,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::TwoHandedDamage
             | TalentStat::OneHandedDamage
             | TalentStat::AxeCrit
+            | TalentStat::PolearmCrit
             | TalentStat::SwordExtraAttack
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
@@ -4935,6 +4948,7 @@ mod stat_talent_tests {
                     | TalentStat::TwoHandedDamage
                     | TalentStat::OneHandedDamage
                     | TalentStat::AxeCrit
+                    | TalentStat::PolearmCrit
                     | TalentStat::SwordExtraAttack
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
@@ -6317,7 +6331,12 @@ mod weapon_training_tests {
     use crate::gear_loadout::{MeleeKind, MeleeWeapon};
     #[test]
     fn weapon_training_requires_matching_worn_melee_and_only_changes_weapon_attacks() {
-        for (id, tree, step) in [(136, 0, 0.01), (132, 0, 0.01), (702, 2, 0.02)] {
+        for (id, tree, step) in [
+            (136, 0, 0.01),
+            (132, 0, 0.01),
+            (134, 0, 0.01),
+            (702, 2, 0.02),
+        ] {
             for class in 0..9 {
                 for rank in [0, 1, 5, 255] {
                     for weapon in [
@@ -6328,6 +6347,10 @@ mod weapon_training_tests {
                         }),
                         Some(MeleeWeapon {
                             kind: MeleeKind::Axe,
+                            two_handed: true,
+                        }),
+                        Some(MeleeWeapon {
+                            kind: MeleeKind::Polearm,
                             two_handed: true,
                         }),
                     ] {
@@ -6355,6 +6378,7 @@ mod weapon_training_tests {
                                 && weapon.is_some_and(|w| match id {
                                     136 => w.two_handed,
                                     132 => w.kind == MeleeKind::Axe,
+                                    134 => w.kind == MeleeKind::Polearm,
                                     702 => !w.two_handed,
                                     _ => unreachable!(),
                                 })
@@ -6366,7 +6390,7 @@ mod weapon_training_tests {
                                         | "fireball"
                                 )
                             {
-                                if id == 132 {
+                                if matches!(id, 132 | 134) {
                                     expected.crit += step * f32::from(rank.min(5));
                                 } else {
                                     expected.damage *= 1.0 + step * f32::from(rank.min(5));
@@ -6378,6 +6402,12 @@ mod weapon_training_tests {
                 }
             }
         }
+        let polearm = talent_definition(0, 134).unwrap();
+        let (description, ranges) = polearm.inline_description_with_values(4).unwrap();
+        assert!(ranges
+            .iter()
+            .any(|range| description[range.clone()].contains("4 » 5%")));
+        assert!(!polearm.inline_description(255).unwrap().contains(" » "));
         let axe = talent_definition(0, 132).unwrap();
         assert!(axe.inline_description(4).unwrap().contains("4 » 5%"));
         let one = talent_definition(0, 702).unwrap();

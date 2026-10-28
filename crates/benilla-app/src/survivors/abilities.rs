@@ -2738,26 +2738,28 @@ mod milestone_tests {
                 assert!((damage - plain * factor).abs() < 0.0001, "{source}");
             }
         }
-        let mut extra_crits = 0;
-        for seed in 1..=128 {
-            let baseline = sample(MeleeKind::Axe, true, 132, 0, seed);
-            assert_eq!(sample(MeleeKind::Sword, true, 132, 5, seed), baseline);
-            let trained = sample(MeleeKind::Axe, true, 132, 5, seed);
-            assert_eq!(trained.len(), baseline.len());
-            for ((source, damage), (other, plain)) in trained.into_iter().zip(baseline) {
-                assert_eq!(source, other);
-                if source == "thunder_clap" {
-                    assert_eq!(damage, plain);
-                } else {
-                    assert!(damage >= plain);
-                    extra_crits += usize::from(damage > plain);
+        for (id, kind) in [(132, MeleeKind::Axe), (134, MeleeKind::Polearm)] {
+            let mut extra_crits = 0;
+            for seed in 1..=128 {
+                let baseline = sample(kind, true, id, 0, seed);
+                assert_eq!(sample(MeleeKind::Sword, true, id, 5, seed), baseline);
+                let trained = sample(kind, true, id, 5, seed);
+                assert_eq!(trained.len(), baseline.len());
+                for ((source, damage), (other, plain)) in trained.into_iter().zip(baseline) {
+                    assert_eq!(source, other);
+                    if source == "thunder_clap" {
+                        assert_eq!(damage, plain);
+                    } else {
+                        assert!(damage >= plain);
+                        extra_crits += usize::from(damage > plain);
+                    }
                 }
             }
+            assert!(
+                extra_crits > 0,
+                "worn weapon ranks must reach the actual critical roll"
+            );
         }
-        assert!(
-            extra_crits > 0,
-            "worn axe ranks must reach the actual critical roll"
-        );
     }
 
     #[test]

@@ -8298,3 +8298,19 @@ no-install and player-mode tests, formatting, Clippy and lints. Each data/player
 stage reports 31 missing-addon skips. See the integration validation record.
 Polearm node 134 is the next implementation slice; no later talent work is covered
 by this gate. Windows/live acquisition and remaining broad acceptance stay open.
+
+### Polearm Specialization implementation — 2026-10-27
+
+Node 134 now grants 1–5 percentage points of critical chance to the existing
+Warrior weapon-attack group only while a polearm is worn. The obtainable Short
+Spear supplies that identity; cosmetics do not qualify. This replaces the
+provisional damage bonus and preserves shared critical-roll caps.
+
+234 core tests and 462 feature-enabled app tests pass, including actual emitted
+hits, matching/mismatching weapons, DBC-validated purchases, saved specs, refunds
+and independent appearances. All-target app Clippy passes. Native build took 17s. At 1600×900, the purchase
+changes Arms 25→26 and the green inline value 0→1% to 1→2%; saved rank and equipped
+Short Spear are verified. Screenshots are embedded in CHANGELOG, with a reusable
+preview preset. Seeded gear/points are explicit; no unattended combat was run.
+Coverage is 278/432 (Warrior 39/52). Full integration for this source change,
+Windows and live balance remain open. Mace Specialization is still pending.

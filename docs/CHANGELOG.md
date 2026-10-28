@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Polearm Specialization
+
+Warriors wielding a polearm now gain 1–5 percentage points of critical chance
+for weapon attacks. The obtainable Short Spear qualifies; cosmetic appearances,
+Thunder Clap, shouts and bleed ticks do not. This replaces the provisional damage bonus.
+
+![Polearm available with green inline critical-chance upgrade](images/screenshots/2026-10-27-polearm-specialization/available.png)
+
+![Purchased rank and next upgrade](images/screenshots/2026-10-27-polearm-specialization/trained.png)
+
+234 core tests, 462 app tests and all-target app Clippy pass. Native 1600×900
+purchase and saved rank verified with seeded gear/points; incremental build: 17s.
+Coverage: 278/432 talents. Full integration for this change, Windows and live
+balance remain open; the preceding weapon-delivery checkpoint passed its full gate.
+
 ## 2026-10-27 — Obtainable mace and spear alternatives
 
 Warriors now receive one Common weapon from Hogger: Worn Mace or Short Spear,
