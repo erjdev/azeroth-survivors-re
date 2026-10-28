@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Worn weapon identity for specialization rules
+
+Added a shared equipment query for melee type and handedness. It uses owned,
+worn gear, so cosmetic overrides cannot activate weapon-specific bonuses.
+229 core tests pass, including replacement, ownership loss and catalog checks.
+Talent effects are still pending; this has no visible UI change.
+
 ## 2026-10-27 — Direct character-management previews
 
 The watched UI request can now open Manage heroes directly, without navigating

@@ -20,6 +20,47 @@ pub struct ResolvedPiece {
     pub bonus: Bonus,
 }
 
+/// Equipped melee identity for weapon-specific mechanics, never cosmetic appearances.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MeleeKind {
+    Axe,
+    Mace,
+    Sword,
+    Polearm,
+    Staff,
+    Fist,
+    Dagger,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MeleeWeapon {
+    pub kind: MeleeKind,
+    pub two_handed: bool,
+}
+
+impl MeleeWeapon {
+    fn from_item(item: GearVisual) -> Option<Self> {
+        // Vanilla item class 2 and melee subclasses; inventory 17 is two-handed.
+        if item.item_class != 2 || !matches!(item.inventory_type, 13 | 17 | 21 | 22) {
+            return None;
+        }
+        let (kind, two_handed) = match item.subclass {
+            0 => (MeleeKind::Axe, false),
+            1 => (MeleeKind::Axe, true),
+            4 => (MeleeKind::Mace, false),
+            5 => (MeleeKind::Mace, true),
+            6 => (MeleeKind::Polearm, true),
+            7 => (MeleeKind::Sword, false),
+            8 => (MeleeKind::Sword, true),
+            10 => (MeleeKind::Staff, true),
+            13 => (MeleeKind::Fist, false),
+            15 => (MeleeKind::Dagger, false),
+            _ => return None,
+        };
+        (two_handed == (item.inventory_type == 17)).then_some(Self { kind, two_handed })
+    }
+}
+
 // Read-only legacy access keeps collection-band inspection available during migration.
 impl std::ops::Deref for Loadout {
     type Target = Equipment;
@@ -126,6 +167,17 @@ impl Loadout {
             return supplemental(class, owned, slot, key);
         }
         legacy(class, pieces, slot, self.legacy.worn[slot]?)
+    }
+
+    /// Resolve owned, worn main-hand equipment. Hidden/overridden art has no effect.
+    /// Empty, ranged, shield, invalid and no-longer-owned selections return None.
+    pub fn melee_weapon(
+        &self,
+        class: usize,
+        pieces: &[u8],
+        owned: &Inventory,
+    ) -> Option<MeleeWeapon> {
+        MeleeWeapon::from_item(self.worn(class, pieces, owned, 8)?.visual)
     }
 
     pub fn visible(
@@ -271,6 +323,82 @@ mod tests {
                 values(loadout.bonus(class, &pieces, &owned)),
                 values(expected)
             );
+        }
+    }
+
+    #[test]
+    fn melee_identity_uses_owned_worn_items_and_never_appearance() {
+        let mut pieces = [1; campaign::PIECES];
+        let mut loadout = Loadout::default();
+        let mut owned = Inventory::default();
+        assert_eq!(loadout.melee_weapon(0, &pieces, &owned), None);
+        assert!(loadout.wear_legacy(&pieces, 8, Some(0)));
+        let axe = Some(MeleeWeapon {
+            kind: MeleeKind::Axe,
+            two_handed: true,
+        });
+        assert_eq!(loadout.melee_weapon(0, &pieces, &owned), axe);
+        // Thunderfury's one-handed sword art cannot turn the worn axe into a sword.
+        assert!(loadout.show_legacy(&pieces, 8, Look::Piece(5)));
+        assert_eq!(loadout.melee_weapon(0, &pieces, &owned), axe);
+        assert!(loadout.show_legacy(&pieces, 8, Look::Hidden));
+        assert_eq!(loadout.melee_weapon(0, &pieces, &owned), axe);
+        assert!(loadout.wear_legacy(&pieces, 8, Some(5)));
+        assert_eq!(
+            loadout.melee_weapon(0, &pieces, &owned),
+            Some(MeleeWeapon {
+                kind: MeleeKind::Sword,
+                two_handed: false
+            })
+        );
+        pieces[5 * GRID_SLOTS + 8] = 0;
+        assert_eq!(loadout.melee_weapon(0, &pieces, &owned), None);
+        let poor = supplemental_gear::piece(0, 8, GearTier::Poor).unwrap();
+        assert!(owned.collect(0, &poor.key));
+        assert!(loadout.wear_supplemental(0, &owned, 8, &poor.key));
+        assert!(loadout.melee_weapon(0, &pieces, &owned).is_some());
+        assert_eq!(loadout.melee_weapon(1, &pieces, &owned), None);
+        assert_eq!(
+            loadout.melee_weapon(0, &pieces, &Inventory::default()),
+            None
+        );
+        assert!(loadout.wear_legacy(&pieces, 8, None));
+        assert_eq!(loadout.melee_weapon(0, &pieces, &owned), None);
+    }
+
+    #[test]
+    fn melee_identity_rejects_shields_ranged_and_inconsistent_metadata() {
+        for name in [
+            "Skullflame Shield",
+            "Blackcrow",
+            "Rhok'delar, Longbow of the Ancient Keepers",
+        ] {
+            assert_eq!(
+                MeleeWeapon::from_item(gear_visuals::named(name).unwrap()),
+                None
+            );
+        }
+        let mut item = gear_visuals::named("Whirlwind Axe").unwrap();
+        item.inventory_type = 13;
+        assert_eq!(MeleeWeapon::from_item(item), None);
+        item.inventory_type = 17;
+        item.item_class = 4;
+        assert_eq!(MeleeWeapon::from_item(item), None);
+        // Every current catalog melee item has consistent handedness metadata.
+        for class in 0..9 {
+            for band in 0..campaign::BANDS {
+                let Some(item) = gear_visuals::piece(class, 8, band) else {
+                    continue;
+                };
+                if item.item_class == 2
+                    && matches!(item.subclass, 0 | 1 | 4 | 5 | 6 | 7 | 8 | 10 | 13 | 15)
+                {
+                    assert!(
+                        MeleeWeapon::from_item(item).is_some(),
+                        "class {class} band {band}"
+                    );
+                }
+            }
         }
     }
 

@@ -8039,3 +8039,24 @@ controls, wider platform acceptance and the full starter objective stay open.
 Validation: all 454 Survivors app tests pass; app Clippy and the incremental native
 build pass. Full workspace and Windows acceptance were not rerun for this preview
 control addition.
+
+### Equipped-weapon mechanics boundary — 2026-10-27
+
+`Loadout::melee_weapon` resolves the owned, worn main hand into melee type and
+handedness. Cosmetic substitutions and hidden appearances cannot activate weapon
+talents. Ranged items, shields, empty/unowned selections and inconsistent metadata
+return no melee weapon. Both legacy and Poor gear use the same boundary. Tests
+cover replacement, ownership loss, class mismatch, overrides and all current
+legacy catalog melee entries. All 229 core tests pass. This introduces no new
+player-visible effect and does not advance talent coverage.
+
+Next integration: Warrior Two-Handed Weapon Specialization (node 136, five ranks;
+checkout Spell.dbc rows 12163/12711–12714) supplies 1–5% two-handed melee damage.
+Source descriptions explicitly restrict it to two-handed melee weapons; raw
+EffectBasePoints are 0–4, plus the effect die value. Pass the *worn* identity into
+run and selected-profile card calculations, never the rendered weapon. Apply to
+weapon attacks rather than unrelated spell/periodic damage. Required acceptance:
+legal purchase/refund and save reload, one-/two-handed and empty gear, cosmetic
+overrides, actual cast damage and green inline preview. Axe/Polearm specialization
+should share this boundary later. No node is complete merely because the metadata
+query now exists.
