@@ -33,6 +33,13 @@ purchases and wide/compact text verified; build: 2m48s. Full integration passed
 in 17m07s, with 31 missing-addon skips per data/player run. Definition coverage:
 291/432 (Rogue 35/51). Windows and live balance remain open.
 
+## 2026-10-28 — Creature-type preparation
+
+Added a [reproducible roster identity audit](audits/CREATURE-TYPES.md) for pending
+Rogue/Hunter target-specific bonuses: 452 of 476 name/model pairs have verified
+catalog or authored archetype mappings; 24 require identity/model review.
+No gameplay or UI changes, and no talent coverage increase in this checkpoint.
+
 ## 2026-10-28 — Taller talent trees
 
 Talent rows have 17% more vertical spacing and icons are 9% larger. Narrow

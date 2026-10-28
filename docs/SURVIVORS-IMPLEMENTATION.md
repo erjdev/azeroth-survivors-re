@@ -8884,6 +8884,11 @@ balance remain open. This does not establish complete combat acceptance.
 
 ### Next shared dependency — creature-type damage training
 
+The [reproducible roster audit](audits/CREATURE-TYPES.md) now records 476 unique
+name/display pairs: 434 exact catalog matches, 18 explicit faction-boss
+archetypes, and 24 unresolved identities. Resolve these before assigning all
+runtime categories; model size and faction theme cannot determine creature type.
+
 Read-only checkout DBC audit identifies three related gaps. Hunter Monster
 Slaying (1623; Survival row 0, column 0) grants 1/2/3% damage and additional
 critical damage against Beasts, Giants and Dragonkin; spells 24293–24295 use
