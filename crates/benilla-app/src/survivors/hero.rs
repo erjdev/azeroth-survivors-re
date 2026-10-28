@@ -468,7 +468,7 @@ pub(super) fn hero_vitals(
         shown.push(774);
     }
     for owned in &run.abilities {
-        if owned.def.key == "lightning_shield" {
+        if owned.def.key == "lightning_shield" || owned.def.kind == super::data::Kind::Aspect {
             shown.push(owned.def.spell);
         }
     }

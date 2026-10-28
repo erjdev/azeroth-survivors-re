@@ -49,6 +49,11 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
     let cooldown = (a.cooldown, b.cooldown, " sec");
     let burst = def.duration <= 0.0;
     match def.kind {
+        Kind::Aspect => {
+            prose!("Gain ", (a.dodge_chance * 100.0, b.dodge_chance * 100.0, "% chance"),
+                " to dodge enemy contact attacks before armor and shields. Dodged attacks deal no damage and do not trigger reflection or damage-taken talents. Protects you, not your wolf. One aspect per run; lasts for the run.");
+            return out.0;
+        }
         Kind::Coating(coating) => {
             prose!(
                 "Your original weapon hits have ",

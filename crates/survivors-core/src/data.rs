@@ -38,6 +38,8 @@ impl ClassDef {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Kind {
+    /// Run-long Hunter aspect; only one aspect may be acquired per run.
+    Aspect,
     /// Run-long weapon coating; applications are driven by original landed melee hits.
     Coating(crate::talents::Coating),
     /// Timed self buff for original weapon casts; never emits a damage hit.
@@ -410,6 +412,9 @@ pub static ABILITIES: &[AbilityDef] = &[
             duration: 8.0
         }
     ),
+    AbilityDef {
+        ..ab("aspect_of_the_monkey", 13163, Kind::Aspect)
+    },
     // --- Rogue ---
     AbilityDef {
         damage: 22.0,
@@ -1205,6 +1210,7 @@ pub static CLASSES: &[ClassDef] = &[
             "raptor_strike",
             "mongoose_bite",
             "wing_clip",
+            "aspect_of_the_monkey",
         ],
         looks: &[
             1373, 1703, 1723, 1882, 2066, 2087, 2105, 2112, 2205, 2206, 2251, 3056, 3072, 3073,

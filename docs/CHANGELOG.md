@@ -3,6 +3,23 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+
+## 2026-10-28 — Aspect of the Monkey
+
+Hunters can acquire a run-long dodge aspect, upgrade its chance, and train Improved
+Aspect of the Monkey. Dodges preserve shields and do not trigger reflection or
+damage-taken effects. Its own amulet improves dodge chance; unrelated offensive
+bonuses do not. One aspect per run.
+
+![Acquisition and inline rank growth at 1600×900](images/screenshots/2026-10-28-monkey-aspect/cards-wide.jpg)
+
+![Purchased training at 640×720](images/screenshots/2026-10-28-monkey-aspect/talent-640.jpg)
+
+270 core and 506 app tests passed. Native purchase/save and wide/compact previews
+verified; incremental build 1m55s. Full integration passed in 15m17s, with 31
+missing-addon skips per data/player run. Live combat animation,
+Windows confirmation and balance remain open. Talent definitions: 295/432.
+
 ## 2026-10-28 — Incoming contact outcomes
 
 Hero hits now distinguish immunity from landed shield absorption and retain the

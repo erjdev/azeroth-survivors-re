@@ -879,3 +879,24 @@ only remaining health; later attacks cannot trigger additional reflection from a
 defeated hero. Non-finite and nonpositive damage is rejected without changing
 health, shields or recovery buffs. Immunity retains the existing Thorns reflection
 behavior. Defensive avoidance and Hunter aspects are still pending.
+
+
+### Hunter Aspect of the Monkey
+
+Aspect of the Monkey (13163) is an acquired, run-long Hunter ability. Rank one
+adds an 8% chance to dodge each enemy contact attack. Each of the eight ability
+ranks adds 2 percentage points after the first (22% at rank eight). This is an
+authored Survivors rank curve; the base 8 points come from the installed spell.
+Only one aspect can be acquired per run, and stale acquisition cards cannot stack it.
+
+Improved Aspect of the Monkey (1381, five ranks) adds 1 percentage point per rank
+while the aspect is acquired. It does not grant the ability. Its own legendary
+amulet multiplies the combined dodge chance by 1.05; other damage, haste, critical,
+area and target stats do not change it. The general chance ceiling is 95%.
+
+A successful dodge happens before armor, shield consumption and damage-taken
+recovery. It retains attacker identity, uses the dodge animation outcome, and
+cannot reflect Thorns or activate Enrage/Blood Craze/Blessed Recovery. Invalid
+hits, inactive heroes and immunity consume no dodge roll. Pets receive no aspect
+protection. Current enemy contacts are eligible regardless of facing; ranged and
+spell attack categories, parry and other Hunter aspects remain future work.

@@ -94,6 +94,7 @@ struct Foe {
 pub(super) struct Params {
     pub dmg: f32,
     pub poison_chance: f32,
+    pub dodge_chance: f32,
     pub weapon_bonus: f32,
     pub dot: f32,
     pub count: usize,
@@ -120,12 +121,24 @@ impl Params {
         stats: &super::Stats,
         milestones: survivors_core::talents::Milestones,
     ) -> Self {
+        let dodge_chance = if o.def.kind == Kind::Aspect {
+            milestones.monkey_dodge(
+                o.level,
+                stats
+                    .legendary
+                    .filter(|(key, _)| *key == o.def.key)
+                    .map_or(0.0, |(_, bonus)| bonus.might),
+            )
+        } else {
+            0.0
+        };
         let scoped = stats.for_spell(o.def.key);
         let stats = &scoped;
         let effect = milestones.cast(o.def.key);
         let mult = o.damage_mult() * stats.might * effect.damage;
         Self {
             dmg: o.def.damage * mult,
+            dodge_chance,
             poison_chance: match o.def.kind {
                 Kind::Coating(coating) => coating.chance(milestones),
                 _ => 0.0,
@@ -134,14 +147,17 @@ impl Params {
                 * o.damage_mult()
                 * milestones.battle_shout_multiplier(),
             dot: o.def.dot * mult,
-            count: if matches!(o.def.kind, Kind::WeaponBuff | Kind::Coating(_)) {
+            count: if matches!(
+                o.def.kind,
+                Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect
+            ) {
                 0
             } else {
                 o.count(stats) as usize + effect.extra_targets
             },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
-            duration: if matches!(o.def.kind, Kind::Coating(_)) {
+            duration: if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
                 o.def.duration
             } else {
                 o.duration() * effect.duration
@@ -152,12 +168,12 @@ impl Params {
                     .effect
                     .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
             ),
-            cooldown: if matches!(o.def.kind, Kind::Coating(_)) {
+            cooldown: if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
                 0.0
             } else {
                 o.cooldown(stats) * effect.cooldown
             },
-            crit: if matches!(o.def.kind, Kind::Coating(_)) {
+            crit: if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
                 0.0
             } else {
                 (stats.crit + effect.crit).min(1.0)
@@ -378,7 +394,7 @@ pub(super) fn cast_abilities(
     for i in 0..run.abilities.len() {
         if matches!(
             run.abilities[i].def.kind,
-            Kind::WeaponBuff | Kind::Coating(_)
+            Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect
         ) || !run.abilities[i].def.usable_with(run.milestones.weapon)
         {
             continue;
@@ -424,7 +440,7 @@ pub(super) fn cast_abilities(
         .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
-            Kind::WeaponBuff | Kind::Coating(_) => false, // Already resolved in the self-buff pass.
+            Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect => false, // Already resolved in the self-buff pass.
             Kind::Bolt | Kind::Strike | Kind::Melee => {
                 let reach = if def.kind == Kind::Melee {
                     p.range + 0.5

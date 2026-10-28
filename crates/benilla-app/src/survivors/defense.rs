@@ -8,6 +8,7 @@ pub(super) enum Outcome {
     Invalid,
     Inactive,
     Immune,
+    Dodged,
     /// A connected attack may be wholly absorbed; that is still not a dodge or parry.
     Landed {
         absorbed: f32,
@@ -30,7 +31,30 @@ pub(super) struct Strike {
     pub outcome: Outcome,
 }
 
-pub(super) fn contact(run: &mut Run, attacker: Entity, raw: f32) -> Strike {
+pub(super) fn contact(
+    run: &mut Run,
+    attacker: Entity,
+    raw: f32,
+    roll: impl FnOnce() -> f32,
+) -> Strike {
+    if run.class.id == 3 && raw.is_finite() && raw > 0.0 && run.alive() && run.immune_t <= 0.0 {
+        let chance = run
+            .abilities
+            .iter()
+            .find(|o| o.def.kind == super::data::Kind::Aspect)
+            .map_or(0.0, |owned| {
+                super::abilities::Params::new(owned, &run.stats(), run.milestones).dodge_chance
+            });
+        if chance > 0.0 {
+            let roll = roll();
+            if roll.is_finite() && roll >= 0.0 && roll < chance {
+                return Strike {
+                    attacker,
+                    outcome: Outcome::Dodged,
+                };
+            }
+        }
+    }
     Strike {
         attacker,
         outcome: hurt(run, raw),
@@ -89,6 +113,81 @@ mod tests {
     use super::*;
 
     #[test]
+    fn monkey_dodges_before_absorption_without_spending_invalid_or_immune_rolls() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[2],
+            milestones: survivors_core::talents::Milestones {
+                class: 2,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 1381, 5)]),
+            hp: 20.,
+            shield: 10.,
+            shield_t: 5.,
+            ..Default::default()
+        };
+        let attacker = Entity::from_bits(42);
+        assert_eq!(
+            contact(&mut run, attacker, 1., || panic!("no aspect must not roll")).outcome,
+            Outcome::Landed {
+                absorbed: 1.,
+                health_removed: 0.
+            }
+        );
+        run.shield = 10.;
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("aspect_of_the_monkey"),
+            level: 1,
+            cd: 0.,
+        });
+        let chance = run.milestones.monkey_dodge(1, 0.);
+        let strike = contact(&mut run, attacker, 100., || chance - 0.0001);
+        assert_eq!(
+            strike,
+            Strike {
+                attacker,
+                outcome: Outcome::Dodged
+            }
+        );
+        assert_eq!(
+            (run.hp, run.shield, run.enrage_t, run.blood_craze_t),
+            (20., 10., 0., 0.)
+        );
+        for invalid in [0., -1., f32::NAN, f32::INFINITY] {
+            assert_eq!(
+                contact(&mut run, attacker, invalid, || panic!(
+                    "invalid input must not roll"
+                ))
+                .outcome,
+                Outcome::Invalid
+            );
+        }
+        run.immune_t = 1.;
+        assert_eq!(
+            contact(&mut run, attacker, 100., || panic!(
+                "immunity must not roll"
+            ))
+            .outcome,
+            Outcome::Immune
+        );
+        run.immune_t = 0.;
+        assert_eq!(
+            contact(&mut run, attacker, 100., || chance).outcome,
+            Outcome::Landed {
+                absorbed: 10.,
+                health_removed: 20.
+            }
+        );
+        assert_eq!(
+            contact(&mut run, attacker, 100., || panic!(
+                "dead hero must not roll"
+            ))
+            .outcome,
+            Outcome::Inactive
+        );
+    }
+
+    #[test]
     fn connected_absorbed_immune_and_inactive_hits_are_distinct_and_keep_the_attacker() {
         let attacker = Entity::from_bits(42);
         let mut run = Run {
@@ -97,7 +196,7 @@ mod tests {
             shield_t: 5.0,
             ..Default::default()
         };
-        let result = contact(&mut run, attacker, 6.0);
+        let result = contact(&mut run, attacker, 6.0, || 0.99);
         assert_eq!(result.attacker, attacker);
         assert_eq!(
             result.outcome,
@@ -108,11 +207,14 @@ mod tests {
         );
         assert_eq!((run.hp, run.shield), (20.0, 4.0));
         run.immune_t = 1.0;
-        assert_eq!(contact(&mut run, attacker, 6.0).outcome, Outcome::Immune);
+        assert_eq!(
+            contact(&mut run, attacker, 6.0, || 0.99).outcome,
+            Outcome::Immune
+        );
         assert_eq!((run.hp, run.shield), (20.0, 4.0));
         run.immune_t = 0.0;
         assert_eq!(
-            contact(&mut run, attacker, 6.0).outcome,
+            contact(&mut run, attacker, 6.0, || 0.99).outcome,
             Outcome::Landed {
                 absorbed: 4.0,
                 health_removed: 2.0
@@ -120,7 +222,7 @@ mod tests {
         );
         assert_eq!((run.hp, run.shield), (18.0, 0.0));
         assert_eq!(
-            contact(&mut run, attacker, 100.0).outcome,
+            contact(&mut run, attacker, 100.0, || 0.99).outcome,
             Outcome::Landed {
                 absorbed: 0.0,
                 health_removed: 18.0
@@ -128,7 +230,7 @@ mod tests {
         );
         assert_eq!(run.hp, 0.0);
         assert_eq!(
-            contact(&mut run, attacker, 100.0).outcome,
+            contact(&mut run, attacker, 100.0, || 0.99).outcome,
             Outcome::Inactive
         );
     }

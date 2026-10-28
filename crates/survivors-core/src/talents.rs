@@ -1,5 +1,6 @@
 //! Survivors talent effects and dependency rules, independent of engine spell visuals.
 
+mod aspects;
 mod critical_cast;
 mod druid;
 mod hunter;
@@ -1639,6 +1640,7 @@ pub struct TalentDefinition {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
+    MonkeyDodge,
     CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
     Health,
@@ -2051,6 +2053,7 @@ impl TalentDefinition {
             | TalentStat::SealFate
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
+            | TalentStat::MonkeyDodge
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -2242,6 +2245,7 @@ impl TalentDefinition {
             }
             TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
             TalentStat::Health => (1.0, " maximum health"),
+            TalentStat::MonkeyDodge => (100.0, " percentage points of Aspect of the Monkey dodge chance"),
             TalentStat::MaximumHealth => (100.0, "% maximum health"),
             TalentStat::FlatAbsorption => (1.0, " damage prevented per hit"),
             TalentStat::Armor => (1.0, " armor"),
@@ -2968,6 +2972,11 @@ static HUNTER_TALENTS: &[TalentDefinition] = &[
     TalentDefinition { id: 1391, max_rank: 1, name: "Bestial Swiftness",
         description: "Combat wolf: +30% movement speed; melee reach, leash and pickup companions are unchanged",
         stat: TalentStat::PetSpeed, per_rank: 0.3 },
+    TalentDefinition {
+        id: 1381, max_rank: 5, name: "Improved Aspect of the Monkey",
+        description: "Aspect of the Monkey: +1% dodge chance per rank, added to its base chance. Requires acquiring the aspect; does not grant it. Dodges enemy contact attacks before armor and shields; does not protect the wolf",
+        stat: TalentStat::MonkeyDodge, per_rank: 0.01,
+    },
     TalentDefinition {
         id: 1308, max_rank: 1, name: "Deterrence",
         description: "Automatically take 50% less incoming damage for 10 sec at run start and every 180 sec of gameplay time. Multiplies armor and other damage reduction before shields. Pauses stop the window; missed windows are not stored (Survivors dodge/parry conversion)",
@@ -3805,6 +3814,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SealFate
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
+            | TalentStat::MonkeyDodge
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
@@ -5315,6 +5325,7 @@ mod stat_talent_tests {
                     | TalentStat::SealFate
                     | TalentStat::CreatureDamage { .. }
                     | TalentStat::PoisonChance
+                    | TalentStat::MonkeyDodge
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus

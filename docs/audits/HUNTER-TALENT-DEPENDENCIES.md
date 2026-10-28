@@ -4,6 +4,11 @@ At `a3dcd9e`, Hunter has 39 of 46 named talent definitions. The remaining seven
 still award the explicitly provisional generic bonus. This audit does not count
 them as implemented or approve replacements for their named effects.
 
+Implementation follow-up: node 1381 now has an acquired Monkey aspect and real
+contact dodge outcomes, with tests for training and saved specs. Native wide/compact previews and rank-5 purchase/save are verified;
+full native integration passed in 15m17s (31 missing-addon skips per data/player run). Six Hunter definitions remain pending;
+the table below preserves their original installed rules and dependency assessment.
+
 ## Reproduce the evidence
 
 Run against the checkout's explicit data directory:

@@ -355,6 +355,7 @@ fn spawn_chest(
 #[allow(clippy::type_complexity)]
 pub(super) fn move_enemies(
     time: Res<Time>,
+    mut rng: ResMut<Rng>,
     mut run: ResMut<Run>,
     world: Floor,
     selection: Res<Selection>,
@@ -590,15 +591,15 @@ pub(super) fn move_enemies(
         {
             e.attack_cd = if e.boss { 1.0 } else { 1.3 };
             let raw = e.damage * e.weaken;
-            let taken = if let Some((entity, _)) = pet_target {
+            let (taken, dodged) = if let Some((entity, _)) = pet_target {
                 let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
                 let taken = pet.hurt(raw, run.elapsed);
                 if pet.hp <= 0.0 {
                     units::kill_unit(&mut store);
                 }
-                taken
+                (taken, false)
             } else {
-                let strike = super::defense::contact(&mut run, ent, raw);
+                let strike = super::defense::contact(&mut run, ent, raw, || rng.f32());
                 if run.thorns_t > 0.0
                     && matches!(
                         strike.outcome,
@@ -611,9 +612,16 @@ pub(super) fn move_enemies(
                         false,
                     ));
                 }
-                strike.outcome.health_removed()
+                (
+                    strike.outcome.health_removed(),
+                    strike.outcome == super::defense::Outcome::Dodged,
+                )
             };
-            fx.swing(ent, target_e, taken);
+            if dodged {
+                fx.dodge(ent, target_e);
+            } else {
+                fx.swing(ent, target_e, taken);
+            }
             if taken > 0.0 {
                 fx.number(target_e, taken, false, COLOR_HURT);
             }
@@ -875,7 +883,7 @@ mod spawn_tests {
     #[test]
     fn contact_keeps_reflection_target_and_stops_health_loss_at_death() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
-        for immune in [false, true] {
+        for (immune, dodge) in [(false, false), (true, false), (false, true), (true, true)] {
             let mut app = App::new();
             app.add_plugins((
                 MinimalPlugins,
@@ -887,6 +895,7 @@ mod spawn_tests {
             app.init_asset::<Mesh>();
             app.init_resource::<MoverTraceExclusions>();
             app.init_resource::<Selection>();
+            app.init_resource::<Rng>();
             app.init_resource::<PlaySeq>();
             app.insert_resource(Run {
                 hp: 5.,
@@ -904,6 +913,17 @@ mod spawn_tests {
             app.add_message::<Hit>();
             app.world_mut()
                 .spawn((Hero { vy: 0., air: 0. }, Transform::default()));
+            if dodge {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.class = &data::CLASSES[2];
+                run.milestones.class = 2;
+                run.abilities.push(super::super::Owned {
+                    def: data::ability("aspect_of_the_monkey"),
+                    level: 1,
+                    cd: 0.,
+                });
+            }
+            app.insert_resource(Rng(0));
             app.finish();
             app.cleanup();
             app.update();
@@ -937,19 +957,37 @@ mod spawn_tests {
             app.insert_resource(time);
             app.world_mut().run_system_once(move_enemies).unwrap();
             let run = app.world().resource::<Run>();
-            assert_eq!(run.hp, if immune { 5. } else { 0. });
-            assert_eq!(run.shield, if immune { 2. } else { 0. });
+            assert_eq!(run.hp, if immune || dodge { 5. } else { 0. });
+            assert_eq!(run.shield, if immune || dodge { 2. } else { 0. });
             let reflected: Vec<_> = app
                 .world_mut()
                 .resource_mut::<Messages<Hit>>()
                 .drain()
                 .collect();
-            assert_eq!(reflected.len(), if immune { 2 } else { 1 });
+            assert_eq!(
+                reflected.len(),
+                if immune {
+                    2
+                } else if dodge {
+                    0
+                } else {
+                    1
+                }
+            );
             assert!(reflected.iter().all(|hit| attackers.contains(&hit.target)
                 && hit.damage == 2.
                 && hit.source == "Thorns"));
+            let swings: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<SwingMessage>>()
+                .drain()
+                .collect();
+            assert_eq!(swings.len(), 2);
+            assert!(swings
+                .iter()
+                .all(|s| s.victim_state == if dodge && !immune { 2 } else { 1 }));
             // A new update after death cannot reflect again or consume expired hit state.
-            if !immune {
+            if !immune && !dodge {
                 app.world_mut().run_system_once(move_enemies).unwrap();
                 assert_eq!(app.world().resource::<Run>().hp, 0.);
                 assert_eq!(app.world().resource::<Messages<Hit>>().len(), 0);
@@ -975,6 +1013,7 @@ mod spawn_tests {
                 app.init_resource::<MoverTraceExclusions>();
                 app.init_resource::<Run>();
                 app.init_resource::<Selection>();
+                app.init_resource::<Rng>();
                 app.init_resource::<PlaySeq>();
                 app.add_message::<CastEvent>();
                 app.add_message::<SpellGoTargets>();

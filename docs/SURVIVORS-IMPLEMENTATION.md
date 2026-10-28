@@ -5,6 +5,23 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Acquired Hunter aspect — 2026-10-28
+
+Aspect of the Monkey now uses actual contact dodge outcomes: acquired ability rank,
+five-rank training and its own legendary amulet determine the chance. It bypasses
+shield consumption and damage-taken effects on a dodge, preserves attacker identity,
+and emits the existing dodge animation message. One aspect per run is enforced at
+offer generation and selection. The ability is appended to the Hunter pool to retain
+existing Codex positions. There is no new avoidance benefit without acquiring it.
+
+270 core tests and 506 app tests pass, including probability boundaries, actual
+contact/reflection behavior, scoped previews, legal purchase/save/spec/refund flows,
+and class isolation. Native 1600×900 and 640×720 card/talent captures verify inline values and
+readability. Purchasing rank 5 persists and spends one point. The full integration
+gate passed in 15m17s, with 31 missing-addon skips per data/player run. Definition coverage is 295/432 (Hunter 40/46).
+Parry, reactive windows, other aspects, attended Windows combat and balance remain
+open. The original three illustrated trees and separate detail column are retained.
+
 ## Incoming-hit foundation — 2026-10-28
 
 Hero contact resolution now retains attacker identity and explicitly distinguishes
@@ -16,7 +33,7 @@ Existing mitigation order and reflection during immunity remain unchanged.
 
 This is the shared boundary for future defensive outcomes. No avoidance chance,
 aspect, reactive window or new talent definition is implemented by this change.
-Aspect of the Monkey and Counterattack remain pending, with the same wide/compact
+At this checkpoint, Aspect of the Monkey and Counterattack were pending, with the same wide/compact
 visual and attended combat acceptance requirements as the dependency audit.
 
 ## Remaining Hunter dependencies — 2026-10-28
@@ -27,7 +44,7 @@ Counterattack must react to a real parry with attacker identity. Current Deterre
 mitigation cannot stand in for that event. Mark, impairment resistance, Feign Death,
 pet vision and primary attributes follow. The reproducible `--talent-evidence`
 command exposes exact rank data without claiming the mechanics are implemented.
-Coverage remains 294/432 overall and 39/46 Hunter.
+Audit baseline: 294/432 overall and 39/46 Hunter; the acquired-aspect follow-up above supersedes it.
 
 ## Visual reporting acceptance (hard requirement)
 
@@ -912,14 +929,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
-| Hunter | 39 / 46 | 9 / 9 |
+| Hunter | 40 / 46 | 9 / 9 |
 | Rogue | 36 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 294 / 432 | 81 / 81 |
+| Total | 295 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing

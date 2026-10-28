@@ -357,6 +357,20 @@ impl Fx<'_> {
         });
     }
 
+    /// A real dodge uses the existing defender animation and suppresses hit flinch/blood.
+    pub fn dodge(&mut self, attacker: Entity, victim: Entity) {
+        let seq = self.seq.next();
+        self.swings.write(SwingMessage {
+            attacker,
+            victim: Some(victim),
+            hit_info: 0,
+            victim_state: 2,
+            damage: 0,
+            displayed: false,
+            seq,
+        });
+    }
+
     /// A floating number over `anchor`, 0xAARRGGBB.
     pub fn number(&mut self, anchor: Entity, amount: f32, crit: bool, color: u32) {
         let shown = amount.round().max(1.0) as i64;

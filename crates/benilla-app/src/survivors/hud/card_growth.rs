@@ -90,7 +90,13 @@ pub(in crate::survivors) fn legend_effect(
         bonus.targets = super::super::sheet::extra_targets(def.kind, def.count, bonus.targets);
         if matches!(
             def.kind,
-            Kind::Heal | Kind::Shield | Kind::Immune | Kind::Thorns | Kind::Dot | Kind::WeaponBuff
+            Kind::Heal
+                | Kind::Shield
+                | Kind::Immune
+                | Kind::Thorns
+                | Kind::Dot
+                | Kind::WeaponBuff
+                | Kind::Aspect
         ) {
             bonus.crit_damage = 0.0;
         }
@@ -108,6 +114,7 @@ pub(in crate::survivors) fn legendary_changes(
     after: campaign::Bonus,
 ) -> Vec<(String, Color)> {
     let label = match data::ability(key).kind {
+        Kind::Aspect => "Dodge chance multiplier",
         Kind::Heal => "Healing bonus",
         Kind::Shield => "Absorb bonus",
         _ => "Damage bonus",
@@ -153,6 +160,12 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
         "Weapon damage bonus",
         a.weapon_bonus * 100.0,
         b.weapon_bonus * 100.0,
+        "%",
+    );
+    change(
+        "Dodge chance",
+        a.dodge_chance * 100.0,
+        b.dodge_chance * 100.0,
         "%",
     );
     change("Cooldown", a.cooldown, b.cooldown, "s");
