@@ -8642,3 +8642,21 @@ are embedded in CHANGELOG; fixtures use seeded ownership/points. Incremental
 build: 21 seconds. Definition coverage is 285/432 (Rogue 29/51), not complete
 combat/balance acceptance. Full integration is running; Windows and live balance
 remain open. Weapon Expertise and remaining class mechanisms are still pending.
+
+### Rogue Weapon Expertise contract — 2026-10-28
+
+Checkout spells 30919/30920 contain three skill auras (30), with base points
+2/4 plus one die for swords (43), daggers (173) and fists (162): +3/+5 skill.
+Node 1703 has two ranks in Combat row 5 and requires Blade Flurry (223).
+Use the explicit Survivors weapon-skill conversion established for Rogue mace:
++3/+5% direct damage with a worn sword, dagger or fist weapon, restricted to
+Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetics,
+Rupture ticks and neutral item abilities do not qualify. No new miss-roll system.
+
+The isolated core implementation passes 255 tests and Clippy, covering all
+classes, matching/nonmatching/no weapons, rank caps, unchanged cast fields and
+non-linear green inline values (0→3→5%). Save/spec/refund and actual cast tests
+must pass in the app, followed by native purchase/save/card screenshots before
+this node counts toward published implementation coverage. Main source remains
+unchanged while the mace integration gate runs; 285/432 is still the published
+coverage. Windows/live combat acceptance remains separate.
