@@ -887,13 +887,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 29 / 51 | 9 / 9 |
+| Rogue | 30 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 285 / 432 | 81 / 81 |
+| Total | 286 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8660,3 +8660,23 @@ must pass in the app, followed by native purchase/save/card screenshots before
 this node counts toward published implementation coverage. Main source remains
 unchanged while the mace integration gate runs; 285/432 is still the published
 coverage. Windows/live combat acceptance remains separate.
+
+Mace integration completed successfully in 687 seconds (11m27s), including
+player-build tests, with 31 missing-addon skips per data/player run. Weapon
+Expertise source integration begins after that terminal success.
+
+### Rogue Weapon Expertise implementation — 2026-10-28
+
+Node 1703 now applies +3/+5% direct damage for the documented weapon/ability
+scope. Its two rank values are highlighted inline without repeating units.
+255 core and 479 app tests pass, including all weapon identities, rank bounds,
+actual critical hit damage, unchanged periodic damage, valid saved builds,
+spec changes, refunds and independent appearances. Core/app Clippy pass.
+
+Native rank 1→2 purchase changes Combat 26→27 and unspent points 25→24; the
+saved record retains worn fist and mace appearance. Talent and card screenshots
+at 1600×900/1280×720 are embedded in CHANGELOG. Fixtures use seeded ownership
+and points, not live acquisition. Incremental build: 19 seconds. Definition
+coverage is 286/432 (Rogue 30/51); this does not prove combat/balance acceptance.
+Full integration is running. Windows, live balance and 146 talent definitions remain
+open alongside the other phase acceptance requirements.

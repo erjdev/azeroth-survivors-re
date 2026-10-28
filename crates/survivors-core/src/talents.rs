@@ -500,6 +500,26 @@ impl Milestones {
                     {
                         effect.crit += value;
                     }
+                    TalentStat::WeaponExpertise
+                        if self.weapon.is_some_and(|weapon| {
+                            matches!(
+                                weapon.kind,
+                                crate::gear_loadout::MeleeKind::Sword
+                                    | crate::gear_loadout::MeleeKind::Dagger
+                                    | crate::gear_loadout::MeleeKind::Fist
+                            )
+                        }) && matches!(
+                            key,
+                            "sinister_strike"
+                                | "eviscerate"
+                                | "blade_flurry"
+                                | "gouge"
+                                | "kidney_shot"
+                        ) =>
+                    {
+                        effect.damage *=
+                            1.0 + f32::from(weapon_expertise_percent(self.training[index])) / 100.0;
+                    }
                     TalentStat::RogueMace
                         if self.weapon.is_some_and(|weapon| {
                             weapon.kind == crate::gear_loadout::MeleeKind::Mace
@@ -1692,6 +1712,7 @@ pub enum TalentStat {
     SwordExtraAttack,
     MaceStun,
     RogueMace,
+    WeaponExpertise,
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
     SpellGroupCooldown(&'static [&'static str]),
@@ -1791,6 +1812,11 @@ fn inline_stat_label(tail: &str) -> &str {
         .unwrap_or("")
 }
 
+// Spell.dbc 30919/30920 skill base points plus one die.
+fn weapon_expertise_percent(rank: u8) -> u8 {
+    [0, 3, 5][usize::from(rank.min(2))]
+}
+
 // Spell.dbc procChance for 12284/12701–12704; rank five is deliberately non-linear.
 fn mace_stun_percent(rank: u8) -> u8 {
     [0, 1, 2, 3, 4, 6][usize::from(rank.min(5))]
@@ -1809,6 +1835,25 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::WeaponExpertise {
+            let rank = rank.min(self.max_rank);
+            let (prefix, suffix) = self.description.split_once("+3–5% direct damage")?;
+            let current = weapon_expertise_percent(rank);
+            let value = if rank == self.max_rank {
+                format!("+{current}% direct damage")
+            } else {
+                format!(
+                    "+{current} » {}% direct damage",
+                    weapon_expertise_percent(rank + 1)
+                )
+            };
+            let start = prefix.len();
+            let end = start + value.len();
+            return Some((
+                format!("{prefix}{value}{suffix}"),
+                std::iter::once(start..end).collect(),
+            ));
+        }
         if self.stat == TalentStat::RogueMace {
             let rank = rank.min(self.max_rank);
             let (prefix, rest) = self.description.split_once("1–6% chance")?;
@@ -1979,6 +2024,7 @@ impl TalentDefinition {
             | TalentStat::SwordExtraAttack
             | TalentStat::MaceStun
             | TalentStat::RogueMace
+            | TalentStat::WeaponExpertise
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -2102,6 +2148,17 @@ impl TalentDefinition {
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
         let rank = rank.min(self.max_rank);
+        if self.stat == TalentStat::WeaponExpertise {
+            let current = weapon_expertise_percent(rank);
+            return if rank == self.max_rank {
+                format!("This talent: +{current}% direct damage (maximum rank)")
+            } else {
+                format!(
+                    "This talent: +{current} » {}% direct damage next rank",
+                    weapon_expertise_percent(rank + 1)
+                )
+            };
+        }
         if self.stat == TalentStat::RogueMace {
             return if rank == self.max_rank {
                 format!(
@@ -2178,7 +2235,7 @@ impl TalentDefinition {
             ),
             TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_)
             | TalentStat::TwoHandedDamage
-            | TalentStat::OneHandedDamage => {
+            | TalentStat::OneHandedDamage | TalentStat::WeaponExpertise => {
                 (100.0, "% damage")
             }
             TalentStat::Cooldown
@@ -3288,6 +3345,12 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 30919/30920: +3/+5 skill for swords (43), daggers (173), fists (162).
+    TalentDefinition {
+        id: 1703, max_rank: 2, name: "Weapon Expertise",
+        description: "With a worn sword, dagger or fist weapon: +3–5% direct damage for Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities (Survivors weapon-skill conversion; attacks have no skill or miss roll)",
+        stat: TalentStat::WeaponExpertise, per_rank: 0.0,
+    },
     // Spell.dbc 13709/13800–13803: proc 1/2/3/4/6%, plus 1–5 mace skill.
     TalentDefinition {
         id: 184, max_rank: 5, name: "Mace Specialization",
@@ -3709,6 +3772,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SwordExtraAttack
             | TalentStat::MaceStun
             | TalentStat::RogueMace
+            | TalentStat::WeaponExpertise
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -5204,6 +5268,7 @@ mod stat_talent_tests {
                     | TalentStat::SwordExtraAttack
                     | TalentStat::MaceStun
                     | TalentStat::RogueMace
+                    | TalentStat::WeaponExpertise
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellGroupCooldown(_)
@@ -7259,5 +7324,78 @@ mod rogue_mace_tests {
         assert!(node
             .rank_preview(4)
             .contains("4 » 6% stun chance; +4 » 5% direct damage"));
+    }
+}
+
+#[cfg(test)]
+mod weapon_expertise_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn expertise_rank_table_is_limited_to_worn_weapons_and_direct_rogue_hits() {
+        for class in 0..9 {
+            for kind in [
+                None,
+                Some(MeleeKind::Sword),
+                Some(MeleeKind::Dagger),
+                Some(MeleeKind::Fist),
+                Some(MeleeKind::Mace),
+                Some(MeleeKind::Axe),
+                Some(MeleeKind::Polearm),
+                Some(MeleeKind::Staff),
+            ] {
+                for (rank, bonus) in [(0, 0.0), (1, 0.03), (2, 0.05), (255, 0.05)] {
+                    let base = Milestones {
+                        class,
+                        weapon: kind.map(|kind| MeleeWeapon {
+                            kind,
+                            two_handed: false,
+                        }),
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 1703, rank)]);
+                    for key in crate::data::ABILITIES
+                        .iter()
+                        .map(|a| a.key)
+                        .chain(["sword_specialization", "deep_wounds"])
+                    {
+                        let mut expected = base.cast(key);
+                        if class == 3
+                            && matches!(
+                                kind,
+                                Some(MeleeKind::Sword | MeleeKind::Dagger | MeleeKind::Fist)
+                            )
+                            && matches!(
+                                key,
+                                "sinister_strike"
+                                    | "eviscerate"
+                                    | "blade_flurry"
+                                    | "gouge"
+                                    | "kidney_shot"
+                            )
+                        {
+                            expected.damage *= 1.0 + bonus;
+                        }
+                        assert_eq!(trained.cast(key), expected, "{class} {kind:?} {rank} {key}");
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+    }
+    #[test]
+    fn expertise_inline_highlight_uses_actual_non_linear_ranks() {
+        let node = talent_definition(3, 1703).unwrap();
+        for (rank, expected) in [
+            (0, "+0 » 3% direct damage"),
+            (1, "+3 » 5% direct damage"),
+            (2, "+5% direct damage"),
+            (255, "+5% direct damage"),
+        ] {
+            let (text, ranges) = node.inline_description_with_values(rank).unwrap();
+            assert_eq!(ranges.len(), 1);
+            assert_eq!(&text[ranges[0].clone()], expected);
+            assert!(node.rank_preview(rank).contains(expected));
+        }
     }
 }

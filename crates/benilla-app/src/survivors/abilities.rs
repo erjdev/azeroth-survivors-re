@@ -5494,6 +5494,73 @@ mod milestone_tests {
     }
 
     #[test]
+    fn rogue_weapon_expertise_reaches_ranked_hits_without_changing_periodic_damage() {
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        for kind in [
+            MeleeKind::Sword,
+            MeleeKind::Dagger,
+            MeleeKind::Fist,
+            MeleeKind::Mace,
+        ] {
+            for (rank, bonus) in [(1, 0.03), (2, 0.05)] {
+                let base = Milestones {
+                    class: 3,
+                    weapon: Some(MeleeWeapon {
+                        kind,
+                        two_handed: false,
+                    }),
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 1703, rank)]);
+                let mut stats = Run::default().stats();
+                stats.might = 1.4;
+                stats.crit = 1.0;
+                stats.targets = 4;
+                for key in [
+                    "sinister_strike",
+                    "eviscerate",
+                    "blade_flurry",
+                    "gouge",
+                    "kidney_shot",
+                    "rupture",
+                    "fireball",
+                ] {
+                    for level in [1, 3, 8] {
+                        let owned = Owned {
+                            def: data::ability(key),
+                            level,
+                            cd: 0.0,
+                        };
+                        let before = Params::new(&owned, &stats, base);
+                        let after = Params::new(&owned, &stats, trained);
+                        let multiplier =
+                            if matches!(key, "rupture" | "fireball") || kind == MeleeKind::Mace {
+                                1.0
+                            } else {
+                                1.0 + bonus
+                            };
+                        assert!(
+                            (after.dmg - before.dmg * multiplier).abs() < 0.0001,
+                            "{key} {level}"
+                        );
+                        assert_eq!(after.dot, before.dot);
+                        assert_eq!(after.crit, before.crit);
+                        assert_eq!(after.cooldown, before.cooldown);
+                        assert_eq!(after.count, before.count);
+                        assert_eq!(after.radius, before.radius);
+                        let (damage, critical) =
+                            roll(&mut Rng(17), after.crit, after.crit_damage, after.dmg);
+                        let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, critical);
+                        assert!(hit.crit);
+                        assert_eq!(hit.damage, after.dmg * after.crit_damage);
+                        assert_eq!(hit.dot, before.dot);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
     fn rogue_mace_damage_reaches_ranked_hits_without_changing_periodic_damage() {
         use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
         let base = Milestones {

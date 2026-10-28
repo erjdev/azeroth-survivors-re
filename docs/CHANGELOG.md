@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Rogue Weapon Expertise
+
+Weapon Expertise adds +3/+5% direct Rogue weapon damage with a worn sword,
+dagger or fist weapon. This explicitly converts its vanilla weapon-skill bonus;
+cosmetic weapons, Rupture ticks and neutral items do not qualify. The two-rank
+upgrade appears inline in green and requires Blade Flurry.
+
+![Weapon Expertise inline upgrade](images/screenshots/2026-10-28-rogue-expertise/available.png)
+
+![Final rank purchased and saved](images/screenshots/2026-10-28-rogue-expertise/trained.png)
+
+![Trained damage in upgrade cards](images/screenshots/2026-10-28-rogue-expertise/cards.png)
+
+255 core tests, 479 app tests and core/app Clippy pass. Native purchase/save at
+1600×900 and cards at 1280×720 verified; incremental build: 19 seconds. Definition
+coverage: 286/432 (Rogue 30/51). Full integration is running; Windows and live balance
+remain open.
+
 ## 2026-10-28 — Rogue mace training
 
 Mace Specialization now gives direct Rogue weapon hits a 1/2/3/4/6% chance to
@@ -19,8 +37,8 @@ copies and extra strikes cannot trigger the stun.
 
 253 core tests, 477 app tests and core/app Clippy pass. Native purchase/save at
 1600×900 and cards at 1280×720 verified; incremental build: 21 seconds. Definition
-coverage: 285/432 (Rogue 29/51). Full integration is running; Windows and live
-balance remain open.
+coverage: 285/432 (Rogue 29/51). Full integration passed in 11m27s, with 31
+missing-addon skips per data/player run. Windows and live balance remain open.
 
 ## 2026-10-28 — Rogue fist training
 
