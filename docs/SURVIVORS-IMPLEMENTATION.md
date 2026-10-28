@@ -8735,3 +8735,40 @@ not a live combat session. Native build: 42 seconds. Definition coverage is
 Seal Fate core/app Clippy pass. Full integration is running; the preceding
 Weapon Expertise checkpoint passed in 10m10s with 31 addon-corpus skips per
 data/player run.
+
+Seal Fate integration passed in 733 seconds (12m13s), including player tests,
+with 31 missing-addon skips per data/player run.
+
+### Backstab and dependent training contract — 2026-10-28
+
+Checkout Spell.dbc 53 explicitly requires a main-hand dagger and striking from
+behind; effects include weapon damage and one combo point. Preserve both use
+conditions in the Survivors attack. Enemy movement already preserves facing
+while stunned/rooted, allowing Gouge followed by repositioning to create a rear
+opening. Do not turn Backstab into an unconditional duplicate of Sinister Strike.
+
+Add Backstab to the Rogue ability catalog as an acquired attack, keeping Sinister
+Strike as the starter and the existing ability-slot cap. Initial authored Survivors
+values: 30 damage, 1.3 sec cooldown, 5.5 yd reach, one target before rank/gear
+modifiers. These are tuning values, not a claim to reproduce vanilla weapon DPS.
+Level-up offers and selection must require a worn dagger; cosmetic daggers do
+not qualify. The cast path must independently enforce the requirement, filter to
+rear targets within reach and avoid consuming cooldown/procs when no target is
+valid. Extra targets must each satisfy the same rear test. No additional area.
+
+Backstab's damage/range/cooldown changes belong inline in green. Acquisition,
+upgrade and Codex descriptions must clearly state the dagger/rear requirements.
+The sidebar must not imply that learning a talent grants the attack. Native
+screenshots must cover acquisition and both new talent previews/purchases;
+actual positioning and effects require ECS tests without unattended combat.
+
+Improved Backstab (202, three ranks; 13733/13865/13866) adds 10/20/30 percentage
+points of Backstab critical chance. Opportunity (261, five ranks;
+14057/14072–14075) adds 4/8/12/16/20% damage to the acquired Backstab; Garrote and
+Ambush remain unavailable and must be named as pending, not implied to exist.
+Extend Rogue spell membership and applicable existing effects: Precision,
+Deadliness, Vigor, Preparation, Adrenaline Rush, Blade Flurry, Malice, Lethality,
+Aggression, Dagger Specialization, Weapon Expertise, Cold Blood, Remorseless
+Attacks and Seal Fate. Preserve their original exclusions and recovery rules.
+Do not count either new definition before offer/cast gates, saved builds and
+native visual evidence pass. Current coverage remains 287/432.

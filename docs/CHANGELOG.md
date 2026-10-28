@@ -16,8 +16,9 @@ overkill. Ready spells cannot bank recovery; the upgrade chance is green inline.
 
 257 core tests, 481 app tests and core/app Clippy pass. Native purchase/save and
 full text verified at 1600×900; incremental build: 42 seconds. Definition coverage:
-287/432 (Rogue 31/51). Full integration is running; Windows and live balance remain
-open. Combat recovery is verified by ECS tests, not an unattended play session.
+287/432 (Rogue 31/51). Full integration passed in 12m13s, with 31 missing-addon
+skips per data/player run. Windows and live balance remain open. Combat recovery
+is verified by ECS tests, not an unattended play session.
 
 ## 2026-10-28 — Rogue Weapon Expertise
 
