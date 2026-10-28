@@ -5494,57 +5494,60 @@ mod milestone_tests {
     }
 
     #[test]
-    fn dagger_training_reaches_ranked_casts_without_changing_area_or_bleeds() {
+    fn weapon_crit_training_reaches_ranked_casts_without_changing_area_or_bleeds() {
         use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
-        let base = Milestones {
-            class: 3,
-            weapon: Some(MeleeWeapon {
-                kind: MeleeKind::Dagger,
-                two_handed: false,
-            }),
-            ..Default::default()
-        };
-        let trained = base.with_ranks(&[(1, 182, 5)]);
-        for crit in [0.2, 0.98] {
-            let mut stats = Run::default().stats();
-            stats.crit = crit;
-            stats.targets = 4;
-            for key in [
-                "sinister_strike",
-                "eviscerate",
-                "blade_flurry",
-                "gouge",
-                "kidney_shot",
-                "rupture",
-                "fireball",
-            ] {
-                for level in [1, 3, 8] {
-                    let owned = Owned {
-                        def: data::ability(key),
-                        level,
-                        cd: 0.0,
-                    };
-                    let before = Params::new(&owned, &stats, base);
-                    let after = Params::new(&owned, &stats, trained);
-                    let qualifies = !matches!(key, "rupture" | "fireball");
-                    let expected = if qualifies {
-                        (crit + 0.05).min(1.0)
-                    } else {
-                        crit
-                    };
-                    assert!((after.crit - expected).abs() < 0.00001, "{key}");
-                    assert_eq!(after.dmg, before.dmg);
-                    assert_eq!(after.dot, before.dot);
-                    assert_eq!(after.cooldown, before.cooldown);
-                    assert_eq!(after.count, before.count);
-                    assert_eq!(after.radius, before.radius);
-                    if qualifies && crit == 0.98 {
-                        let (damage, critical) =
-                            roll(&mut Rng(17), after.crit, after.crit_damage, after.dmg);
-                        let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, critical);
-                        assert!(hit.crit);
-                        assert_eq!(hit.damage, after.dmg * after.crit_damage);
-                        assert_eq!(hit.dot, before.dot);
+        for (kind, talent) in [(MeleeKind::Dagger, 182), (MeleeKind::Fist, 183)] {
+            let base = Milestones {
+                class: 3,
+                weapon: Some(MeleeWeapon {
+                    kind,
+                    two_handed: false,
+                }),
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(1, talent, 5)]);
+            for crit in [0.2, 0.98] {
+                let mut stats = Run::default().stats();
+                stats.crit = crit;
+                stats.targets = 4;
+                for key in [
+                    "sinister_strike",
+                    "eviscerate",
+                    "blade_flurry",
+                    "gouge",
+                    "kidney_shot",
+                    "rupture",
+                    "fireball",
+                ] {
+                    for level in [1, 3, 8] {
+                        let owned = Owned {
+                            def: data::ability(key),
+                            level,
+                            cd: 0.0,
+                        };
+                        let before = Params::new(&owned, &stats, base);
+                        let after = Params::new(&owned, &stats, trained);
+                        let qualifies = !matches!(key, "rupture" | "fireball");
+                        let expected = if qualifies {
+                            (crit + 0.05).min(1.0)
+                        } else {
+                            crit
+                        };
+                        assert!((after.crit - expected).abs() < 0.00001, "{key}");
+                        assert_eq!(after.dmg, before.dmg);
+                        assert_eq!(after.dot, before.dot);
+                        assert_eq!(after.cooldown, before.cooldown);
+                        assert_eq!(after.count, before.count);
+                        assert_eq!(after.radius, before.radius);
+                        if qualifies && crit == 0.98 {
+                            let (damage, critical) =
+                                roll(&mut Rng(17), after.crit, after.crit_damage, after.dmg);
+                            let hit =
+                                hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, critical);
+                            assert!(hit.crit);
+                            assert_eq!(hit.damage, after.dmg * after.crit_damage);
+                            assert_eq!(hit.dot, before.dot);
+                        }
                     }
                 }
             }

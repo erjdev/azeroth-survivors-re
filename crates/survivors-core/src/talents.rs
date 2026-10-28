@@ -486,6 +486,20 @@ impl Milestones {
                     {
                         effect.crit += value;
                     }
+                    TalentStat::FistCrit
+                        if self.weapon.is_some_and(|weapon| {
+                            weapon.kind == crate::gear_loadout::MeleeKind::Fist
+                        }) && matches!(
+                            key,
+                            "sinister_strike"
+                                | "eviscerate"
+                                | "blade_flurry"
+                                | "gouge"
+                                | "kidney_shot"
+                        ) =>
+                    {
+                        effect.crit += value;
+                    }
                     stat @ (TalentStat::TwoHandedDamage
                     | TalentStat::OneHandedDamage
                     | TalentStat::AxeCrit
@@ -1653,6 +1667,7 @@ pub enum TalentStat {
     AxeCrit,
     PolearmCrit,
     DaggerCrit,
+    FistCrit,
     SwordExtraAttack,
     MaceStun,
     SpellGroupCrit(&'static [&'static str]),
@@ -1913,6 +1928,7 @@ impl TalentDefinition {
             | TalentStat::AxeCrit
             | TalentStat::PolearmCrit
             | TalentStat::DaggerCrit
+            | TalentStat::FistCrit
             | TalentStat::SwordExtraAttack
             | TalentStat::MaceStun
             | TalentStat::SpellCooldown(_)
@@ -2107,7 +2123,7 @@ impl TalentDefinition {
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
             TalentStat::MaceStun => (100.0, "% stun chance"),
-            TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit | TalentStat::DaggerCrit => {
+            TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit | TalentStat::DaggerCrit | TalentStat::FistCrit => {
                 (100.0, "% critical chance")
             }
             TalentStat::CritDamage | TalentStat::SpellGroupCritDamage(_) => {
@@ -3209,6 +3225,12 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 13707/13966–13969: +1–5 percentage points of fist critical chance.
+    TalentDefinition {
+        id: 183, max_rank: 5, name: "Fist Weapon Specialization",
+        description: "With a worn fist weapon: +1% critical chance per rank for Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities",
+        stat: TalentStat::FistCrit, per_rank: 0.01,
+    },
     // Spell.dbc 13960–13964, proc-chance field: 1–5%.
     TalentDefinition {
         id: 242, max_rank: 5, name: "Sword Specialization",
@@ -3614,6 +3636,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::AxeCrit
             | TalentStat::PolearmCrit
             | TalentStat::DaggerCrit
+            | TalentStat::FistCrit
             | TalentStat::SwordExtraAttack
             | TalentStat::MaceStun
             | TalentStat::SpellGroupCrit(_)
@@ -5107,6 +5130,7 @@ mod stat_talent_tests {
                     | TalentStat::AxeCrit
                     | TalentStat::PolearmCrit
                     | TalentStat::DaggerCrit
+                    | TalentStat::FistCrit
                     | TalentStat::SwordExtraAttack
                     | TalentStat::MaceStun
                     | TalentStat::SpellGroupCrit(_)
@@ -6999,6 +7023,88 @@ mod rogue_sword_tests {
     #[test]
     fn rogue_sword_preview_colors_inline_proc_chance() {
         let node = talent_definition(3, 242).unwrap();
+        let (text, ranges) = node.inline_description_with_values(4).unwrap();
+        assert!(ranges
+            .iter()
+            .any(|range| text[range.clone()].contains("4 » 5%")));
+        assert!(!node.inline_description(255).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod fist_specialization_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+
+    #[test]
+    fn fist_crit_requires_worn_fist_and_only_changes_rogue_direct_attacks() {
+        for class in 0..9 {
+            for kind in [
+                None,
+                Some(MeleeKind::Fist),
+                Some(MeleeKind::Sword),
+                Some(MeleeKind::Dagger),
+                Some(MeleeKind::Mace),
+            ] {
+                for rank in [0, 1, 4, 5, 255] {
+                    let base = Milestones {
+                        class,
+                        weapon: kind.map(|kind| MeleeWeapon {
+                            kind,
+                            two_handed: false,
+                        }),
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 183, rank)]);
+                    for ability in crate::data::ABILITIES {
+                        let mut expected = base.cast(ability.key);
+                        if class == 3
+                            && kind == Some(MeleeKind::Fist)
+                            && matches!(
+                                ability.key,
+                                "sinister_strike"
+                                    | "eviscerate"
+                                    | "blade_flurry"
+                                    | "gouge"
+                                    | "kidney_shot"
+                            )
+                        {
+                            expected.crit += 0.01 * f32::from(rank.min(5));
+                        }
+                        assert_eq!(
+                            trained.cast(ability.key),
+                            expected,
+                            "{class} {kind:?} {rank} {}",
+                            ability.key
+                        );
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn dagger_and_fist_training_never_stack_on_one_weapon() {
+        for kind in [MeleeKind::Dagger, MeleeKind::Fist, MeleeKind::Sword] {
+            let base = Milestones {
+                class: 3,
+                weapon: Some(MeleeWeapon {
+                    kind,
+                    two_handed: false,
+                }),
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(1, 182, 5), (1, 183, 5)]);
+            let expected = if kind == MeleeKind::Sword { 0.0 } else { 0.05 };
+            assert!((trained.cast("sinister_strike").crit - expected).abs() < 0.000001);
+            assert_eq!(trained.cast("rupture").crit, 0.0);
+        }
+    }
+
+    #[test]
+    fn fist_preview_colors_inline_critical_chance_and_caps_rank() {
+        let node = talent_definition(3, 183).unwrap();
         let (text, ranges) = node.inline_description_with_values(4).unwrap();
         assert!(ranges
             .iter()

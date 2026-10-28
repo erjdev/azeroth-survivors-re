@@ -3,6 +3,24 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Rogue fist training
+
+Fist Weapon Specialization adds 1–5% critical chance to direct Rogue weapon
+attacks while a fist weapon is equipped. Cosmetic weapons do not qualify;
+Rupture ticks and neutral items are excluded. Dagger and fist training cannot
+stack on one weapon.
+
+![Inline fist critical-chance upgrade](images/screenshots/2026-10-28-rogue-fist/available.png)
+
+![Final rank purchased and saved](images/screenshots/2026-10-28-rogue-fist/trained.png)
+
+![Trained Rogue card preview](images/screenshots/2026-10-28-rogue-fist/cards.png)
+
+251 core tests, 475 app tests and core/app Clippy pass. Native purchase/save at
+1600×900 and card previews at 1280×720 verified; incremental build: 20 seconds.
+Definition coverage: 284/432 (Rogue 28/51). Full integration is running; Windows
+and live balance remain open.
+
 ## 2026-10-28 — Rogue weapon choices
 
 Rogues can collect Common Worn Mace and Right-Handed Brass Knuckles from Hogger

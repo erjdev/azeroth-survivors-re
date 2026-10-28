@@ -887,13 +887,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 27 / 51 | 9 / 9 |
+| Rogue | 28 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 283 / 432 | 81 / 81 |
+| Total | 284 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8587,3 +8587,20 @@ are drafted but unrun; native purchase/save and card screenshots remain required
 Rogue weapon integration completed successfully in 881 seconds (14m41s), with
 31 missing-addon skips per data/player run. Fist source changes began after this
 terminal result; the weapon gate does not cover those subsequent changes.
+
+### Rogue Fist Weapon Specialization implementation — 2026-10-28
+
+Node 183 now uses the verified +1–5% critical-chance rule for equipped fist
+weapons. The shared cast path supplies the existing critical roll; no extra hit
+or periodic damage is introduced. 251 core tests and 475 feature-enabled app
+tests pass, including non-stacking with dagger training, all-ability/class/weapon
+scope, rank caps, ranked cast parameters, critical hits, saved gear and specs,
+refunds and cosmetic isolation. Core/app Clippy and the native build pass.
+
+Native purchase at 1600×900 changes rank 4→5, Combat 24→25, unspent 27→26, and
+persists node 183 rank 5 while retaining worn fist/cosmetic mace selections.
+1280×720 card previews remain readable. Screenshots are embedded in CHANGELOG
+and presets are included. Fixture gear/points are seeded, not live acquisition.
+The DBC coverage audit reports 284/432 definitions, Rogue 28/51. Full integration
+is running; Windows and live balance remain unverified. Rogue Mace Specialization
+and its explicit weapon-skill conversion remain next.
