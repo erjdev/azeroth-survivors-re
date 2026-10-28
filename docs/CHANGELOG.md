@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Weapon training reaches upgrade cards
+
+Native selected-profile previews now have before/after evidence for all five
+Two-Handed Weapon Specialization ranks. Cleave changes from `20 » 26` to
+`21 » 27.3`; Heroic Strike from `40 » 52.1` to `42 » 54.7`. Thunder Clap stays
+`14.3 » 18.6`. These are fixture values, with the same gear in both captures.
+
+| Before training | Five ranks trained |
+| --- | --- |
+| ![Untrained selected-profile cards](images/screenshots/2026-10-27-weapon-cards/before.png) | ![Trained selected-profile cards](images/screenshots/2026-10-27-weapon-cards/trained.png) |
+
+1280×900 native preview; ranks purchased through the real talent page without
+restarting. This verifies displayed values, not live combat balance.
+
 ## 2026-10-27 — Two-Handed Weapon Specialization
 
 Warrior weapon attacks gain 1% damage per rank (up to 5%) while wearing a

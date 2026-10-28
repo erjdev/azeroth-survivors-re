@@ -8077,3 +8077,13 @@ captured in CHANGELOG. Catalog coverage is 274/432 (Warrior 35/52), leaving 158.
 Windows visuals, live balance and full workspace acceptance remain open for this
 slice; selected-profile cards use the same account snapshot, but no separate
 visual card comparison was performed.
+
+### Selected-profile weapon card acceptance — 2026-10-27
+
+Native 1280×900 comparison uses the collected Warrior fixture, unchanged worn
+Rare two-handed sword, and legal Arms ranks. Five specialization ranks are bought
+through the production talent UI between captures. Cleave displays 20→26 before
+and 21→27.3 after; Heroic Strike 40→52.1 before and 42→54.7 after. Thunder Clap
+remains 14.3→18.6. Green inline text and shared units remain intact. This closes
+the separate visual card comparison left open in the preceding milestone. Full
+integration validation is running separately; Windows and live balance stay open.
