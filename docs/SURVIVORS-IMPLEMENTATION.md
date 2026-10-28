@@ -152,6 +152,19 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
+Latest compact validation (2026-10-27): a 288-unit preferred content width leaves
+room for two columns at 640×720, retaining the 420-unit grid-height floor and
+proportional artwork. The former 296-unit preference missed the two-column fit.
+The native trained fixture verifies Mura's separate spec scroll offsets, Improved
+Healing Wave purchase/refund (4→5→4; 17→16→17 points), Collection round-trip
+restoration, and Nara starting independently before Mura's prior view returns.
+Hero changes used the watched preview request. A fresh 1600×900 launch verifies
+four columns and persisted spec two; scroll offsets intentionally remain session
+local. Native build: 23 seconds; formatting/diff checks pass. Inline evidence is
+in CHANGELOG; the README compact gallery is updated. Windows, physical controllers
+and exhaustive class/scale combinations remain open.
+
+
 Talent inspection now stays visible above the trees when wrapping/scrolling puts
 full details off-screen. Both displays share the same inline upgrade content;
 new inspection resets summary scrolling. Native 800×600 keyboard focus/purchase

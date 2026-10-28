@@ -86,7 +86,7 @@ single green upgrade value. Purchase and card captures are in the [changelog](do
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>
-    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-sidebar/compact.png" alt="Compact Talents"><br>2026-10-27 · Spaced talent rows at 800×600; saved specs remain reachable by scrolling.</td>
+    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-27-talent-continuity/compact.png" alt="Compact Talents"><br>2026-10-27 · Two talent columns at 640×720; taller rows and independent saved-spec scrolling.</td>
   </tr>
 </table>
 

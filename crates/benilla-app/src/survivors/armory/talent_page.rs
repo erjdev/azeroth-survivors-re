@@ -415,10 +415,10 @@ fn panel(
 ) {
     ui.spawn((
         Node {
-            // Leave rounding room for four panels at 16:9 with height-relative UI
-            // scaling. Equal bases preserve readable trees on wrapped rows.
+            // Leave rounding room for two panels at 640×720 and four at 16:9
+            // with height-relative UI scaling; retain the tall grid floor.
             flex_grow: 1.0,
-            flex_basis: Val::Px(296.0 + 2.0 * layout.padding + 2.0),
+            flex_basis: Val::Px(288.0 + 2.0 * layout.padding + 2.0),
             min_width: Val::Px(0.0),
             max_width: Val::Percent(100.0),
             // Let long descriptions grow the shared scroll content. A viewport-sized

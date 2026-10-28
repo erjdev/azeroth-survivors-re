@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Compact talent columns and saved-view validation
+
+640×720 now fits two talent columns instead of one oversized column, preserving
+the taller grid and proportional art. 1600×900 retains all four panels. Native
+checks confirm purchase/refund continuity, separate spec scroll positions, a
+Collection round trip, hero isolation and saved spec selection after restart.
+
+| Before, 640×720 | After, 640×720 |
+| --- | --- |
+| ![Before: one oversized tree](images/screenshots/2026-10-27-talent-continuity/before.png) | ![After: two readable trees](images/screenshots/2026-10-27-talent-continuity/compact.png) |
+| ![Spec one restores its deeper position](images/screenshots/2026-10-27-talent-continuity/spec-one.png) | ![Spec two restores its separate position](images/screenshots/2026-10-27-talent-continuity/spec-two.png) |
+
+![Spending retains the visible section and updates totals](images/screenshots/2026-10-27-talent-continuity/purchase.png)
+
+![Widescreen retains three trees and adjacent specs](images/screenshots/2026-10-27-talent-continuity/wide.png)
+
+Native build: 23 seconds; formatting and diff checks pass. This is a layout-only
+adjustment. Windows and physical-controller acceptance remain open.
+
 ## 2026-10-27 — Nature's Grace and Druid talent preview
 
 Druid spell criticals grant one refreshing 15-second charge. The next successful
