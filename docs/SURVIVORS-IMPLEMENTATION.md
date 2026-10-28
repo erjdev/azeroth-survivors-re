@@ -8504,3 +8504,18 @@ targets, pause/resume, one loot award, no splash or generated-hit recursion, and
 native purchase/save screenshots. An isolated draft passes 247 core tests and
 Clippy; checkout implementation and app/native validation remain pending until
 the Dagger integration run completes. Definition coverage stays 282/432.
+
+Following dependencies: Rogue mace/fist talents need obtainable matching weapon
+alternatives before claiming usable completion. The pinned item-template catalog
+contains Right-Handed Brass Knuckles (15905, display 26592, inventory 21,
+class/subclass 2/13, material 1, sheath 7); validate its checkout icon and native
+attachment before selecting it. Worn Mace already has verified identity metadata,
+but its current supplemental reward is Warrior-only. Extend class-scoped inventory,
+Collection and Drop Tables together, preserving the original 54 identities and
+duplicate/no-auto-equip rules. Do not silently reuse Warrior-only reward labels.
+
+Rogue Fist node 183 spells 13707/13966–13969 grant 1–5 percentage points of
+critical chance. Rogue Mace node 184 spells 13709/13800–13803 have proc chances
+1/2/3/4/6% plus 1–5 mace skill; the skill component needs an explicit Survivors
+conversion or stated inapplicability rather than silently disappearing. Neither
+node is implemented by this audit.
