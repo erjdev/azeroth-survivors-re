@@ -166,6 +166,12 @@ do not themselves establish that a reported Windows scene is fixed.
 ### Content audits
 
 The content auditor requires an explicit data directory and never discovers another install.
+`--talent-evidence <Talent.dbc ID>` prints each rank's raw spell effects, duration,
+prerequisites and current Survivors definition. For example,
+`cargo run -p survivors-audit -- wow-data/Data --talent-evidence 1312` inspects
+Counterattack. Unknown IDs fail. This is source evidence, not combat acceptance;
+the [Hunter dependency audit](audits/HUNTER-TALENT-DEPENDENCIES.md) demonstrates
+how to distinguish a missing underlying mechanic from a missing rank modifier.
 `--achievement-art` checks every catalog icon file for presence/readability; rendered
 appearance and visual suitability still require native screenshots.
 It checks campaign map rows, terrain under start coordinates, roster model files, item names

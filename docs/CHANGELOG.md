@@ -3,6 +3,15 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Hunter mechanics dependency audit
+
+Added a reproducible talent-rank evidence command and documented the seven remaining
+Hunter mechanics, including their missing combat systems and implementation order.
+No gameplay or visual changes; coverage remains 294/432. Checked all seven nodes,
+an implemented Rogue node, and invalid-ID failures; audit-crate Clippy passes.
+Full integration passed in 5m01s, with 31 missing-addon skips per data/player
+run. Windows and live combat acceptance remain open.
+
 ## 2026-10-28 — Creature-specific damage talents
 
 Murder, Monster Slaying and Humanoid Slaying now improve damage against their

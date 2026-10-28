@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Remaining Hunter dependencies — 2026-10-28
+
+The [seven-node audit](audits/HUNTER-TALENT-DEPENDENCIES.md) records installed rank
+rules and missing systems. Start with defensive attack outcomes and aspect state;
+Counterattack must react to a real parry with attacker identity. Current Deterrence
+mitigation cannot stand in for that event. Mark, impairment resistance, Feign Death,
+pet vision and primary attributes follow. The reproducible `--talent-evidence`
+command exposes exact rank data without claiming the mechanics are implemented.
+Coverage remains 294/432 overall and 39/46 Hunter.
+
 ## Visual reporting acceptance (hard requirement)
 
 Every major UI checkpoint includes actual inline screenshots in `docs/CHANGELOG.md`,
