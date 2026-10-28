@@ -4,6 +4,7 @@ mod critical_cast;
 mod druid;
 mod hunter;
 mod mage;
+mod natures_grace;
 mod priest;
 pub use priest::{BlessedRecovery, PowerInfusionClock};
 mod rogue;
@@ -11,6 +12,7 @@ pub use critical_cast::CriticalCastClock;
 pub use hunter::HawkClock;
 pub use hunter::{PetBonus, PetFrenzy};
 pub use mage::{ArcanePowerClock, ColdSnapClock, CombustionClock};
+pub use natures_grace::NaturesGrace;
 pub use rogue::{AdrenalineRushClock, PreparationClock};
 mod shaman;
 mod warlock;
@@ -1444,6 +1446,7 @@ pub enum TalentStat {
     Frostbite,
     WingClipRoot,
     InsectSwarmWeakening,
+    NaturesGrace,
     Impact,
     Blackout,
     ShadowWeaving,
@@ -1660,6 +1663,7 @@ impl TalentDefinition {
             | TalentStat::Preparation
             | TalentStat::ColdSnap => (1.0, ""),
             TalentStat::Conflagrate
+            | TalentStat::NaturesGrace
             | TalentStat::PresenceOfMind
             | TalentStat::SpellShieldDuration(_)
             | TalentStat::SecondaryRootDuration(_)
@@ -1941,6 +1945,7 @@ impl TalentDefinition {
             TalentStat::InsectSwarmWeakening => {
                 (100.0, "% reduced outgoing enemy damage from Insect Swarm")
             }
+            TalentStat::NaturesGrace => (1.0, " sec shorter next Wrath or Starfire recovery after a spell critical; one 15 sec charge"),
             TalentStat::WingClipRoot => (100.0, "% chance to root Wing Clip targets"),
             TalentStat::Aftermath => (100.0, "% chance to slow Destruction targets"),
             TalentStat::CurseExhaustion => (100.0, "% Curse of Agony slow"),
@@ -3310,6 +3315,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::WintersChill
             | TalentStat::Impact
             | TalentStat::Blackout
+            | TalentStat::NaturesGrace
             | TalentStat::ShadowWeaving
             | TalentStat::VampiricEmbrace
             | TalentStat::ImprovedVampiricEmbrace
@@ -4791,6 +4797,7 @@ mod stat_talent_tests {
                     | TalentStat::WintersChill
                     | TalentStat::Impact
                     | TalentStat::Blackout
+                    | TalentStat::NaturesGrace
                     | TalentStat::ShadowWeaving
                     | TalentStat::VampiricEmbrace
                     | TalentStat::ImprovedVampiricEmbrace

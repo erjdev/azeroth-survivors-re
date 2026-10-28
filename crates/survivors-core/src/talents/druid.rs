@@ -2,6 +2,7 @@
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 789, max_rank: 1, name: "Nature's Grace", description: "Damaging Druid spell criticals grant one refreshing 15 sec charge: the next successful Wrath or Starfire has 0.5 sec shorter recovery, after other cooldown modifiers. Failed casts and instant spells do not consume it (Survivors cast-time conversion)", stat: TalentStat::NaturesGrace, per_rank: 0.5 },
     TalentDefinition { id: 827, max_rank: 1, name: "Insect Swarm", description: "Insect Swarm applies +2% reduced outgoing damage to affected enemies for 10 sec, including bosses. Stronger reductions take priority. Damage, cooldown and targeting are unchanged; does not grant the spell (Survivors hit-chance conversion)", stat: TalentStat::InsectSwarmWeakening, per_rank: 0.02 },
     TalentDefinition { id: 808, max_rank: 5, name: "Heart of the Wild", description: "+4% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health (Survivors stamina conversion; no form required)", stat: TalentStat::MaximumHealth, per_rank: 0.04 },
     TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "+3 percentage points hero critical chance, adding to Sharpened Claws and equipped bonuses (Survivors self-only conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.03 },

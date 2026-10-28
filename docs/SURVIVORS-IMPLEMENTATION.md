@@ -872,8 +872,8 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
-| Druid | 26 / 47 | 9 / 9 |
-| Total | 271 / 432 | 81 / 81 |
+| Druid | 27 / 47 | 9 / 9 |
+| Total | 272 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -7962,12 +7962,12 @@ CHANGELOG and the README gallery. Native build passes (2m56s). The preceding ful
 integration baseline and the full chain for this edit are green (31 addon-corpus
 skips per data/player stage). Windows visual acceptance remains open.
 
-### Next talent contract — Nature's Grace (pending)
+### Nature's Grace — 2026-10-27
 
 Checkout-local data identifies Druid Balance node 789, one rank, spell 16880,
 triggering spell 16886. Its effect base points encode -500 ms after the DBC +1
 conversion; it has one charge and duration row 8 is 15,000 ms. These are verified
-source facts, not new implemented-definition coverage.
+source facts underlying the recovery conversion below.
 
 For automatic Survivors casting, a damaging Druid spell critical will grant a
 non-stacking 15-second charge. The next successful owned Wrath or Starfire cast
@@ -7979,7 +7979,14 @@ Run time governs expiry, so pausing freezes it; a new run starts without a charg
 The tooltip must explicitly describe this recovery conversion rather than claim
 that the game now simulates cast times.
 
-Acceptance requires capped/class-scoped rules, real cast and hit-system tests,
-no-target/expiry/pause behavior, legal catalog purchase/spec/refund persistence,
-inline green values and native talent/card evidence. This remains pending and is
-not included in the current 271/432 implemented-definition count.
+Implemented and verified: capped/class-scoped rules, real cast and hit-system tests,
+no-target/expiry/zero-delta pause behavior, legal catalog purchase/spec/refund
+persistence, and a single green inline value/unit span. 226 core tests and 451
+Survivors app tests pass; app Clippy with warnings denied, formatting and catalog
+coverage pass. Native build took 1m28s. A disposable Druid preview at 1600×900
+confirms purchase (31→30 points, rank 0→1), saved rank and the full taller grid;
+1280×720 Wrath/Starfire cards retain normal uncharged upgrade values. Screenshots
+are embedded in CHANGELOG. Coverage is 272/432 (Druid 27/47), leaving 160.
+Live combat balance and Windows visual acceptance remain open. The full workspace
+chain last passed at the preceding talent-layout checkpoint; it was not rerun for
+this individual talent milestone.

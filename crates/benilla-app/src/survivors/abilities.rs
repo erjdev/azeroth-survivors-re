@@ -338,6 +338,9 @@ pub(super) fn cast_abilities(
         p.dot *= infusion;
         p.dmg *= power;
         p.dot *= power;
+        p.cooldown = run
+            .natures_grace
+            .recovery(run.milestones, def.key, run.elapsed, p.cooldown);
         let crit_chance = (p.crit
             + run.combustion.bonus(run.milestones, def.key, run.elapsed)
             + run.remorseless_crit(def.key)
@@ -680,6 +683,7 @@ pub(super) fn cast_abilities(
                 run.hawk.proc(talents, def.key, elapsed, rng.f32());
             }
             run.critical_cast.consume(talents, def.key, elapsed);
+            run.natures_grace.consume(talents, def.key, elapsed);
             run.arcane_power.consume(talents, def.key, elapsed);
             run.adrenaline_rush.consume(talents, def.key, elapsed);
             run.power_infusion.consume(talents, def.key, elapsed);
@@ -1192,6 +1196,12 @@ pub(super) fn apply_hits(
             let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
             dmg *= echoes as f32;
             let removed = dmg.min(en.hp.max(0.0));
+            if run.alive() {
+                let talents = run.milestones;
+                let elapsed = run.elapsed;
+                run.natures_grace
+                    .hit(talents, h.source, removed, h.crit, elapsed);
+            }
             en.hp -= dmg;
             run.add_damage(h.source, dmg);
             fx.number(e, dmg, h.crit, h.color);
@@ -2698,6 +2708,161 @@ mod milestone_tests {
                     0.
                 }
             );
+        }
+    }
+
+    #[test]
+    fn natures_grace_critical_hits_charge_only_successful_casts() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (source, critical, hp, target_hp, expected) in [
+            ("moonfire", true, 100., 10000., true),
+            ("moonfire", false, 100., 10000., false),
+            ("fireball", true, 100., 10000., false),
+            ("wrath", true, 0., 10000., false),
+            ("wrath", true, 100., 0., false),
+        ] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let run = Run {
+                class: &data::CLASSES[8],
+                hp,
+                milestones: Milestones {
+                    class: 8,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 789, 1), (0, 762, 5)]),
+                abilities: vec![Owned {
+                    def: data::ability("wrath"),
+                    level: 1,
+                    cd: 0.,
+                }],
+                ..Default::default()
+            };
+            let seed = 1;
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .insert_resource(super::super::account::empty())
+                .init_resource::<super::super::Selection>()
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>()
+                .add_message::<Loot>()
+                .add_message::<FieldChanged>();
+
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            let enemy = app
+                .world_mut()
+                .spawn((
+                    Guid(1),
+                    Transform::from_xyz(1., 0., 0.),
+                    ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                    Marks::debuffs(),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 10000.,
+                        max_hp: 10000.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slow: 1.,
+                        slow_t: 0.,
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ))
+                .id();
+            app.world_mut().get_mut::<Enemy>(enemy).unwrap().hp = target_hp;
+            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                source,
+                ..Hit::direct(enemy, 10., critical)
+            });
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            let run = app.world().resource::<Run>();
+            assert_eq!(
+                run.natures_grace
+                    .reduction(run.milestones, "wrath", run.elapsed),
+                if expected { 0.5 } else { 0. }
+            );
+            if !expected {
+                continue;
+            }
+            // A paused frame cannot cast, consume the charge, or advance its timer.
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let run = app.world().resource::<Run>();
+            assert_eq!(
+                run.natures_grace
+                    .reduction(run.milestones, "wrath", run.elapsed),
+                0.5
+            );
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut()
+                .get_mut::<Transform>(enemy)
+                .unwrap()
+                .translation
+                .x = 10000.;
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let run = app.world().resource::<Run>();
+            assert_eq!(run.abilities[0].cd, 0.2);
+            assert_eq!(
+                run.natures_grace
+                    .reduction(run.milestones, "wrath", run.elapsed),
+                0.5
+            );
+            app.world_mut()
+                .get_mut::<Transform>(enemy)
+                .unwrap()
+                .translation
+                .x = 1.;
+            for key in ["moonfire", "wrath", "starfire"] {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.abilities[0] = Owned {
+                        def: data::ability(key),
+                        level: 1,
+                        cd: 0.,
+                    };
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let run = app.world().resource::<Run>();
+                let baseline =
+                    Params::new(&run.abilities[0], &run.stats(), run.milestones).cooldown;
+                let reduction = if key == "wrath" { 0.5 } else { 0. };
+                assert!(
+                    (run.abilities[0].cd - (baseline - reduction)).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(
+                    run.natures_grace
+                        .reduction(run.milestones, "wrath", run.elapsed),
+                    if key == "moonfire" { 0.5 } else { 0. }
+                );
+            }
         }
     }
 

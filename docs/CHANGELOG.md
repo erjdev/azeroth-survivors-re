@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Nature's Grace and Druid talent preview
+
+Druid spell criticals grant one refreshing 15-second charge. The next successful
+Wrath or Starfire recovers 0.5 seconds sooner; failed casts preserve the charge.
+The talent explains this automatic-casting conversion with a green inline bonus.
+
+![Taller Druid trees and inline Nature’s Grace bonus](images/screenshots/2026-10-27-natures-grace/talents.png)
+
+![Purchased talent and updated point balance](images/screenshots/2026-10-27-natures-grace/trained.png)
+
+![Wrath and Starfire upgrade cards; uncharged values](images/screenshots/2026-10-27-natures-grace/cards.png)
+
+Verified: 226 core and 451 app tests, Clippy, catalog audit, native purchase and
+save, plus card preview. Incremental native build: 1m28s. Definitions: 272/432;
+Windows visuals and live combat balance remain open.
+
 ## 2026-10-27 — Keep talent specs beside widescreen trees
 
 A rounding-sensitive panel width made the spec column wrap at standard 16:9.

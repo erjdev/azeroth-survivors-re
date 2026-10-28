@@ -3126,6 +3126,58 @@ mod tests {
     }
 
     #[test]
+    fn natures_grace_metadata_training_specs_and_refunds() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let spells = benilla_formats::load_spell_catalog(&mut chain).unwrap();
+        assert_eq!(spells.get(16880).unwrap().name, "Nature's Grace");
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(8);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (0, 762, 5),
+            (0, 761, 1),
+            (0, 921, 4),
+            (0, 763, 5),
+            (0, 782, 3),
+            (0, 764, 2),
+        ];
+        let before = account.bonus(8, hero);
+        assert!(account.learn_talent(hero, 0, 789, 1, 4, true));
+        assert!(!account.learn_talent(hero, 0, 789, 1, 4, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        assert_eq!(account.bonus(8, hero).crit, before.crit);
+
+        let charged = |account: &Account| {
+            let talents = account.milestones_picked(8, Some(hero));
+            let mut grace = survivors_core::talents::NaturesGrace::default();
+            grace.hit(talents, "moonfire", 10., true, 0.);
+            grace.recovery(talents, "wrath", 0., 2.) == 1.5
+        };
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert!(charged(&loaded));
+        loaded.select_spec(hero, 1);
+        assert!(!charged(&loaded));
+        loaded.select_spec(hero, 0);
+        assert!(charged(&loaded));
+        assert!(loaded.unlearn_talent(hero, 789, true));
+        assert!(!charged(&loaded));
+    }
+
+    #[test]
     fn insect_swarm_metadata_training_specs_and_refunds() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();
