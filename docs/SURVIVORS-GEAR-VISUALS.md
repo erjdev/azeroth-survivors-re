@@ -13,9 +13,10 @@ storage. Runtime icons, textures and models come from the user's data folder.
 ## Warrior weapon alternative identities
 
 The core catalog now validates these stable supplemental identities and the install
-audit decodes both icons. They are **not yet obtainable or model-validated**.
-Collection UI and actual reward delivery remain required before accepting Mace
-and Polearm Specialization.
+audit decodes both icons. Both are now connected to Warrior Hogger rewards and Collection/Drop Tables.
+Native human male previews resolve both attachments, with independent worn and
+cosmetic choices. Other bodies/poses and live acquisition remain open; Mace and
+Polearm talent effects still need implementation.
 
 | Weapon | Entry | Display | Inventory type | Class | Subclass | Material | Sheath |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

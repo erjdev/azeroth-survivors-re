@@ -844,6 +844,7 @@ fn grid(
             }
         });
     }
+    super::weapon_alternatives::entries(ui, font, class, account, armory, layout);
 }
 
 struct ItemHeader<'a> {
@@ -939,17 +940,27 @@ pub(super) fn detail(
             layout,
             ItemHeader {
                 name: piece.name,
-                quality: if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
-                    "Raid Epic"
-                } else {
-                    "Poor"
-                },
+                quality: piece
+                    .tier
+                    .legacy_band()
+                    .map(|band| campaign::BANDS_NAMED[band])
+                    .unwrap_or(
+                        if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
+                            "Raid Epic"
+                        } else {
+                            "Poor"
+                        },
+                    ),
                 slot: piece.slot,
                 owned,
                 color: if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
                     super::door::band_color(3)
                 } else {
-                    Color::srgb(0.65, 0.65, 0.65)
+                    piece
+                        .tier
+                        .legacy_band()
+                        .map(super::door::band_color)
+                        .unwrap_or(Color::srgb(0.65, 0.65, 0.65))
                 },
             },
             |icon| {
@@ -1013,6 +1024,8 @@ pub(super) fn detail(
             font,
             if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
                 survivors_core::supplemental_gear::raid_source_label()
+            } else if survivors_core::weapon_alternatives::by_key(&piece.key).is_some() {
+                survivors_core::weapon_alternatives::source_label()
             } else {
                 survivors_core::supplemental_gear::poor_source_label()
             },
@@ -1031,6 +1044,9 @@ pub(super) fn detail(
                 armory,
                 survivors_core::supplemental_gear::RAID_DROP_ZONE,
             );
+        }
+        if survivors_core::weapon_alternatives::by_key(&piece.key).is_some() {
+            source_button(ui, font, armory, survivors_core::weapon_alternatives::ZONE);
         }
         if owned {
             let equipped =
@@ -1316,9 +1332,20 @@ pub(super) fn look_controls(
     let class = picked_class(account, selection);
     let progress = &account.classes[class];
     let selected = armory.piece.min(campaign::PIECES - 1);
-    let slot = selected % campaign::GRID_SLOTS;
+    let supplemental = armory
+        .supplemental_piece
+        .as_deref()
+        .and_then(survivors_core::supplemental_gear::by_key)
+        .filter(|piece| piece.class == class);
+    let slot = supplemental
+        .as_ref()
+        .map_or(selected % campaign::GRID_SLOTS, |piece| piece.slot);
     let band = selected / campaign::GRID_SLOTS;
-    let owned = progress.pieces[selected] > 0;
+    let owned = supplemental
+        .as_ref()
+        .map_or(progress.pieces[selected] > 0, |piece| {
+            account.supplemental.owns(class, &piece.key)
+        });
     text(
         ui,
         font,
@@ -1344,14 +1371,23 @@ pub(super) fn look_controls(
             ("Hidden", Look::Hidden),
         ] {
             if owned || !matches!(look, Look::Piece(_)) {
-                chip(
-                    actions,
-                    font,
-                    label,
-                    Act::ShowPiece(slot, look),
-                    progress.equipment.supplemental_looks()[slot].is_none()
-                        && progress.equipment.looks[slot] == look,
-                );
+                let (action, active) = if let Some(piece) = supplemental
+                    .as_ref()
+                    .filter(|_| matches!(look, Look::Piece(_)))
+                {
+                    (
+                        Act::ShowSupplemental(piece.key.clone()),
+                        progress.equipment.supplemental_looks()[slot].as_deref()
+                            == Some(piece.key.as_str()),
+                    )
+                } else {
+                    (
+                        Act::ShowPiece(slot, look),
+                        progress.equipment.supplemental_looks()[slot].is_none()
+                            && progress.equipment.looks[slot] == look,
+                    )
+                };
+                chip(actions, font, label, action, active);
             }
         }
     });
@@ -1471,6 +1507,62 @@ fn missing(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn character_look_controls_follow_supplemental_slot_and_ownership() {
+        for (key, slot) in [
+            ("weapon:warrior:worn-mace", 8),
+            ("weapon:warrior:short-spear", 8),
+            ("poor:warrior:hands", 7),
+        ] {
+            for owned in [false, true] {
+                let mut account = super::super::super::account::blank();
+                if owned {
+                    assert!(account.supplemental.collect(0, key));
+                }
+                let armory = Armory {
+                    piece: 0,
+                    supplemental_piece: Some(key.to_owned()),
+                    ..default()
+                };
+                let selection = Selection {
+                    class: Some(0),
+                    ..default()
+                };
+                let mut world = World::new();
+                world.commands().spawn(Node::default()).with_children(|ui| {
+                    look_controls(
+                        ui,
+                        &Handle::default(),
+                        &armory,
+                        &account,
+                        &selection,
+                        &Layout::default(),
+                    );
+                });
+                world.flush();
+                let acts: Vec<_> = world.query::<&Act>().iter(&world).collect();
+                assert_eq!(acts.len(), if owned { 3 } else { 2 });
+                assert!(acts
+                    .iter()
+                    .any(|act| matches!(act, Act::ShowPiece(s, Look::Worn) if *s == slot)));
+                assert!(acts
+                    .iter()
+                    .any(|act| matches!(act, Act::ShowPiece(s, Look::Hidden) if *s == slot)));
+                assert_eq!(
+                    acts.iter()
+                        .filter(|act| matches!(act, Act::ShowSupplemental(k) if k == key))
+                        .count(),
+                    usize::from(owned)
+                );
+                let heading = format!("Look · {}", campaign::SLOTS[slot]);
+                assert!(world
+                    .query::<&Text>()
+                    .iter(&world)
+                    .any(|text| text.0 == heading));
+            }
+        }
+    }
 
     #[test]
     fn set_previews_explain_full_loadout_and_raid_thresholds_in_both_item_paths() {

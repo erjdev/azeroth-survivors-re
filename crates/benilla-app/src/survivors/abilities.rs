@@ -1194,6 +1194,26 @@ pub(super) fn apply_hits(
                         dropped = true;
                     }
                 }
+                // Roll after legacy loot so an added reward preserves its original RNG outcome.
+                let weapon_item = survivors_core::weapon_alternatives::drop_key(
+                    class,
+                    zone,
+                    en.def.name,
+                    en.boss,
+                    0.0,
+                )
+                .and_then(|_| {
+                    account.collect_weapon_drop(class, zone, en.def.name, en.boss, rng.f32())
+                });
+                if let Some(item) = weapon_item {
+                    let message = if dropped {
+                        format!("{item} and {}", run.banner.as_ref().unwrap().0)
+                    } else {
+                        format!("{item} collected")
+                    };
+                    run.banner = Some((message, 4.0));
+                    dropped = true;
+                }
                 if let Some(item) = raid_item {
                     let message = if dropped {
                         format!("Raid Epic {item} and {}", run.banner.as_ref().unwrap().0)
@@ -4919,6 +4939,139 @@ mod milestone_tests {
                 );
                 assert_eq!(app.world().resource::<Run>().kills, 1);
                 assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+            }
+        }
+    }
+
+    #[test]
+    fn alternative_weapon_rewards_coexist_with_legacy_loot_once_per_kill() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for (boss, elite) in [(false, false), (true, false), (false, true)] {
+                let mut app = App::new();
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                app.insert_resource(time)
+                    .insert_resource(Run::default())
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(super::super::Selection {
+                        class: Some(0),
+                        map: data::MAPS
+                            .iter()
+                            .position(|map| map.name == "Elwynn Forest")
+                            .unwrap(),
+                        ..Default::default()
+                    })
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let enemy = app
+                    .world_mut()
+                    .spawn((
+                        Guid(123),
+                        Transform::default(),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: data::roster(
+                                data::MAPS
+                                    .iter()
+                                    .position(|m| m.name == "Elwynn Forest")
+                                    .unwrap(),
+                            )
+                            .bosses
+                            .iter()
+                            .find(|b| b.name == "Hogger")
+                            .unwrap(),
+                            hp: 5.0,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss,
+                            elite,
+                            attack_cd: 0.0,
+                            slow: 1.0,
+                            slow_t: 0.0,
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            dots: if periodic {
+                                vec![enemies::Dot {
+                                    dps: 10.0,
+                                    left: 3.0,
+                                    tick: 1.0,
+                                    source: "shadow_word_pain",
+                                }]
+                            } else {
+                                vec![]
+                            },
+                            dead: false,
+                        },
+                    ))
+                    .id();
+                if !periodic {
+                    app.world_mut()
+                        .resource_mut::<Messages<Hit>>()
+                        .write(Hit::direct(enemy, 10.0, false));
+                }
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let count = usize::from(boss);
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+                assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                if boss {
+                    let account = app.world().resource::<super::super::account::Account>();
+                    assert!(account.supplemental.owns(0, "weapon:warrior:worn-mace"));
+                    assert_eq!(
+                        account.classes[0].pieces[0], 1,
+                        "existing Hogger head reward survives"
+                    );
+                    assert!(account.classes[0].equipment.supplemental_worn()[8].is_none());
+                    assert!(app
+                        .world()
+                        .resource::<Run>()
+                        .banner
+                        .as_ref()
+                        .unwrap()
+                        .0
+                        .contains("Worn Mace"));
+                }
+                app.world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .write(Hit::direct(enemy, 10.0, false));
                 app.world_mut().run_system_once(apply_hits).unwrap();
                 assert_eq!(
                     app.world()

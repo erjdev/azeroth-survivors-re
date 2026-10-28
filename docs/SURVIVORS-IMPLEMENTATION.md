@@ -8264,3 +8264,29 @@ UI or gameplay screenshot is claimed for this rules-only checkpoint.
 The preceding Sword source at `68f2a2c` also passes its full native integration
 run in 769 seconds; see the validation record. That run compiled before the new
 weapon module was connected and does not validate these later source changes.
+
+### Alternative weapon delivery and UI checkpoint — 2026-10-27
+
+The single death-settlement path now awards the class-scoped Hogger alternative
+independently after legacy loot; it does not spawn a chest or auto-equip the item.
+Direct/periodic lethal-hit tests verify one award, original head loot coexistence,
+ordinary/elite exclusion and rejection of subsequent dead-target hits. Account
+checks verify duplicate no-ops, class rejection, unchanged legacy slots, saved
+worn mace and independent spear appearance. Collection and Drop Tables share
+responsive entries, correct Common quality, source navigation and existing
+comparison/equip/appearance actions. Character's shared appearance controls now
+resolve supplemental keys to their actual slots instead of using a stale legacy
+selection; owned/unowned weapon and Poor glove regression cases cover this fix.
+
+All 462 feature-enabled app tests, all-target app Clippy, formatting and native
+build pass. Initial feature build: 2m47s; final appearance fix: 23.5s. Native
+1600×900 checks verify equip, cosmetic selection, unchanged 54/54 progress and
+source navigation. A fresh 640×720 process retains both saved choices and exposes
+complete source/detail/action text through scrolling. Human male Character
+renders both models; Worn piece changes the spear appearance back to the mace
+without changing equipment. The final save retains the mace and clears only its
+cosmetic override. Screenshots are embedded in CHANGELOG and the README gallery.
+
+Fixtures use seeded ownership; no unattended combat run was performed. Live
+acquisition/balance, Windows, other bodies/poses and full integration remain open.
+Mace and Polearm talent effects remain unimplemented; coverage remains 277/432.

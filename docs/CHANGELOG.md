@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Obtainable mace and spear alternatives
+
+Warriors now receive one Common weapon from Hogger: Worn Mace or Short Spear,
+50% each, alongside his existing head-piece roll. Duplicates add no power.
+Collection and Drop Tables expose both choices with separate equipment and
+appearance controls; the original 54-piece collection stays unchanged.
+Character appearance controls now target the selected supplemental item's slot.
+
+![Mace equipped while spear is selected as an appearance](images/screenshots/2026-10-27-weapon-alternatives/equipment-and-look.png)
+
+![Saved choices and full details at 640×720](images/screenshots/2026-10-27-weapon-alternatives/compact.png)
+
+| Spear appearance over equipped mace | Worn mace appearance |
+| --- | --- |
+| ![Spear model and Main Hand controls](images/screenshots/2026-10-27-weapon-alternatives/character-spear.png) | ![Mace model and Main Hand controls](images/screenshots/2026-10-27-weapon-alternatives/character-mace.png) |
+
+462 app tests and all-target Clippy pass, including direct/periodic kills,
+duplicate hits, legacy loot coexistence, save/reload and slot-correct appearance
+actions. Native 1600×900 and 640×720 checks use seeded ownership. Final incremental
+build: 23.5s. Windows, live drops/balance and the full integration run remain open.
+
 ## 2026-10-27 — Sword integration and weapon prerequisites
 
 Sword's full native integration passes at `68f2a2c` in 12m49s, with 31

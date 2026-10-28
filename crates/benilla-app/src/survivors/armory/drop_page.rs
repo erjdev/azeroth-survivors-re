@@ -394,6 +394,18 @@ fn sources(
             });
         }
     }
+    if class == survivors_core::weapon_alternatives::CLASS
+        && armory.drop_zone == survivors_core::weapon_alternatives::ZONE
+    {
+        super::weapon_alternatives::entries(body, font, class, account, armory, layout);
+        label(
+            body,
+            font,
+            survivors_core::weapon_alternatives::source_label(),
+            layout.body_size,
+            DIM,
+        );
+    }
     if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&armory.drop_zone) {
         super::typography::heading(
             body,
@@ -553,14 +565,14 @@ mod tests {
                 inspected.len(),
                 9 + campaign::DROPS.iter().filter(|d| d.zone == zone).count()
             );
-            let supplemental: Vec<_> = actions
+            let mut supplemental: Vec<_> = actions
                 .iter()
                 .filter_map(|action| match action {
                     Act::InspectSupplemental(key) => Some(key.as_str()),
                     _ => None,
                 })
                 .collect();
-            let expected: Vec<_> =
+            let mut expected: Vec<_> =
                 if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&zone) {
                     (0..campaign::GRID_SLOTS)
                         .map(|slot| {
@@ -588,6 +600,16 @@ mod tests {
                 } else {
                     Vec::new()
                 };
+            if zone == survivors_core::weapon_alternatives::ZONE {
+                expected.extend(
+                    survivors_core::weapon_alternatives::choices(0)
+                        .iter()
+                        .map(|weapon| weapon.key.to_owned()),
+                );
+            }
+            // ECS archetype iteration does not promise UI/source order.
+            supplemental.sort_unstable();
+            expected.sort_unstable();
             assert_eq!(
                 supplemental,
                 expected.iter().map(String::as_str).collect::<Vec<_>>()

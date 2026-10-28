@@ -12,6 +12,7 @@ mod collection;
 mod controls;
 mod scrollbar;
 mod shortcuts;
+mod weapon_alternatives;
 pub(super) use controls::style as style_controls;
 pub(super) use scrollbar::{input as scrollbar_input, update as update_scrollbars};
 mod door;

@@ -384,6 +384,24 @@ impl Account {
         Some(piece.name)
     }
 
+    /// Alternative weapon rewards grant ownership only, never automatic equipment or looks.
+    pub fn collect_weapon_drop(
+        &mut self,
+        class: usize,
+        zone: usize,
+        creature: &str,
+        boss: bool,
+        roll: f32,
+    ) -> Option<&'static str> {
+        let key = survivors_core::weapon_alternatives::drop_key(class, zone, creature, boss, roll)?;
+        self.classes.get(class)?;
+        if !self.supplemental.collect(class, key) {
+            return None;
+        }
+        self.dirty = true;
+        survivors_core::weapon_alternatives::by_key(key).map(|piece| piece.name)
+    }
+
     /// Raid loot grants ownership only; chosen equipment and appearances stay independent.
     pub fn collect_raid_drop(&mut self, class: usize, slot: usize) -> Option<&'static str> {
         let piece = survivors_core::supplemental_gear::piece(
@@ -2141,6 +2159,56 @@ mod tests {
             assert_eq!(encode(&account), before);
             assert!(!account.dirty);
         }
+    }
+
+    #[test]
+    fn alternative_rewards_preserve_legacy_progress_and_independent_saved_choices() {
+        use survivors_core::{gear_loadout::MeleeKind, weapon_alternatives as weapons};
+        let mut account = blank();
+        let legacy = account.classes[0].pieces;
+        let choices = weapons::choices(0);
+        for (roll, weapon) in [(0.0, choices[0]), (0.5, choices[1])] {
+            assert_eq!(
+                account.collect_weapon_drop(0, 0, weapons::BOSS, true, roll),
+                Some(weapon.name)
+            );
+            assert!(account.classes[0].equipment.supplemental_worn()[8].is_none());
+            assert!(account.classes[0].equipment.supplemental_looks()[8].is_none());
+        }
+        assert_eq!(account.classes[0].pieces, legacy);
+        assert!(account.select_supplemental(0, choices[0].key, false));
+        assert!(account.select_supplemental(0, choices[1].key, true));
+        let mut restored = parse(&encode(&account)).unwrap();
+        assert_eq!(
+            restored.classes[0].equipment.supplemental_worn()[8].as_deref(),
+            Some(choices[0].key)
+        );
+        assert_eq!(
+            restored.classes[0].equipment.supplemental_looks()[8].as_deref(),
+            Some(choices[1].key)
+        );
+        assert_eq!(
+            restored.classes[0]
+                .equipment
+                .melee_weapon(0, &legacy, &restored.supplemental)
+                .unwrap()
+                .kind,
+            MeleeKind::Mace
+        );
+        let before = encode(&restored);
+        for roll in [0.0, 0.5] {
+            assert_eq!(
+                restored.collect_weapon_drop(0, 0, weapons::BOSS, true, roll),
+                None
+            );
+        }
+        assert_eq!(encode(&restored), before);
+        assert!(!restored.dirty);
+        assert_eq!(
+            restored.collect_weapon_drop(1, 0, weapons::BOSS, true, 0.0),
+            None
+        );
+        assert!(!restored.select_supplemental(1, choices[0].key, false));
     }
 
     #[test]
