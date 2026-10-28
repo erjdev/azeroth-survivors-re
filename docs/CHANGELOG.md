@@ -18,8 +18,8 @@ stack on one weapon.
 
 251 core tests, 475 app tests and core/app Clippy pass. Native purchase/save at
 1600×900 and card previews at 1280×720 verified; incremental build: 20 seconds.
-Definition coverage: 284/432 (Rogue 28/51). Full integration is running; Windows
-and live balance remain open.
+Definition coverage: 284/432 (Rogue 28/51). Full integration passed in 10m09s,
+with 31 missing-addon skips per data/player run. Windows and live balance remain open.
 
 ## 2026-10-28 — Rogue weapon choices
 

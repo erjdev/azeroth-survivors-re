@@ -8604,3 +8604,24 @@ and presets are included. Fixture gear/points are seeded, not live acquisition.
 The DBC coverage audit reports 284/432 definitions, Rogue 28/51. Full integration
 is running; Windows and live balance remain unverified. Rogue Mace Specialization
 and its explicit weapon-skill conversion remain next.
+
+### Rogue Mace Specialization contract — 2026-10-28
+
+Checkout spells 13709/13800–13803 have proc chances 1/2/3/4/6%, triggering 5530,
+and a second skill aura (98, skill 54) with base points 0–4 plus one die. Trigger
+5530 uses duration row 27: base/max 3000ms, no per-level scaling. Preserve
+the stun table and existing 3-second control (bosses 0.9 seconds). Convert the
++1–5 mace skill into +1–5% direct damage while a mace is worn, explicitly named
+in the description because Survivors has no weapon-skill/miss roll. Apply both
+parts to Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot.
+Cosmetics do not qualify; bleed ticks, splash copies and generated extra strikes
+cannot trigger the stun. Preserve longer existing stuns and single loot settlement.
+
+An isolated core draft passes 253 tests and Clippy. Both changing values have
+separate green inline ranges (rank four: 4→6% stun chance and +4→5% direct damage).
+Account save/spec/refund and original-hit ECS tests are drafted but unrun. The
+checkout remains unchanged pending the Fist integration result. Native purchase,
+save and card evidence are required before the implementation checkpoint.
+
+Fist integration passed in 609 seconds (10m09s), with 31 missing-addon skips
+per data/player run. Mace source changes began after its terminal success.
