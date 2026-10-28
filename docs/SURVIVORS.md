@@ -373,6 +373,11 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 
 | Talent (DBC ID) | Ranks | Survivors effect per rank |
 |---|---|---|
+| Dagger Specialization (182) | 5 | +1 percentage point critical chance per rank for direct Rogue weapon attacks with a worn dagger; cosmetics do not qualify |
+| Sword Specialization (242) | 5 | 1% chance per rank after an original direct Rogue weapon hit with a worn sword to repeat its direct damage on the same target; no copied control, area or bleed effects and no recursive procs |
+| Fist Weapon Specialization (183) | 5 | +1 percentage point critical chance per rank for direct Rogue weapon attacks with a worn fist weapon; cosmetics do not qualify |
+| Mace Specialization (184) | 5 | 1/2/3/4/6% chance to stun for 3 sec (bosses 0.9 sec), plus +1–5% direct damage with a worn mace; explicit weapon-skill conversion |
+| Weapon Expertise (1703) | 2 | +3/+5% direct damage with a worn sword, dagger or fist weapon; explicit weapon-skill conversion; requires Blade Flurry |
 | Adrenaline Rush (205) | 1 | First successful Rogue cast starts a 15 sec burst: casts assign 50% shorter cooldowns, multiplying other bonuses. Ready at run start; 300 sec recovery. Existing cooldowns, Sprint and Cold Blood recovery unchanged; energy-regeneration conversion |
 | Endurance (204) | 2 | Sprint cooldown reduced by 10% per rank: 15 / 13.5 / 12 sec; speed, duration and level-five unlock unchanged |
 | Improved Slice and Dice (277) | 3 | Blade Flurry: 5% shorter cooldown per rank; automatic Slice and Dice conversion |
@@ -394,6 +399,10 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Serrated Blades (1123) | 3 | +10% Rupture damage; no armor penetration |
 | Deadliness (1702) | 5 | +2% Rogue spell damage; attack-power conversion |
 | Precision (181) | 5 | +1% Rogue direct and periodic damage; hit-chance conversion, no miss roll |
+
+Weapon training applies to Sinister Strike, Eviscerate, Blade Flurry, Gouge and
+Kidney Shot. Rupture ticks and neutral item abilities are excluded. Equipment
+identity comes from the worn weapon, never its independent appearance.
 
 Rogue spell membership is Sinister Strike, Eviscerate, Blade Flurry, Rupture,
 Gouge and Kidney Shot. Other-class and neutral jewelry abilities are excluded.

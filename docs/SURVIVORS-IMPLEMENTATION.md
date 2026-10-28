@@ -8680,3 +8680,31 @@ and points, not live acquisition. Incremental build: 19 seconds. Definition
 coverage is 286/432 (Rogue 30/51); this does not prove combat/balance acceptance.
 Full integration is running. Windows, live balance and 146 talent definitions remain
 open alongside the other phase acceptance requirements.
+
+### Remaining Rogue dependencies and Seal Fate contract — 2026-10-28
+
+The current DBC-to-definition audit leaves 21 Rogue nodes. Missing poison,
+stealth/opener, off-hand and enemy-control mechanics must be implemented or given
+an explicit, meaningful Survivors conversion before their nodes count as complete.
+They cannot be completed by adding names or generic bonuses alone. The nine-slot
+gear contract still excludes an off-hand equipment slot.
+
+Seal Fate (283) is the next implementation. Checkout spells
+14186/14190/14193/14194/14195 have 20/40/60/80/100% proc chance, triggering
+14189 (effect 80, base 0 plus one die: one combo point). Survivors has no combo
+points: explicitly convert a successful critical Sinister Strike or Gouge hit
+into a chance to advance each owned Eviscerate, Rupture and Kidney Shot cooldown
+by one second. Do not grant abilities or bank recovery when already ready.
+The Cold Blood prerequisite and five-rank gate remain in force.
+
+Recovery must run once per original eligible hit after actual health removal,
+not once per multistrike echo or splash copy. Generated sword strikes, finishers,
+bleeds, failed/missing/dead targets, noncritical/zero damage and dead heroes
+cannot trigger it. Queued overkill after an earlier lethal hit must not trigger
+again. Paused systems must not consume the hit; cooldowns clamp at zero.
+
+The isolated core draft passes 257 tests and Clippy, including rank bounds,
+class/spell/critical/damage eligibility and green inline chance values. App ECS,
+save/spec/refund and native purchase/card evidence remain required. This draft
+does not change the published 286/432 coverage. Weapon Expertise integration is
+still running against unchanged main source.
