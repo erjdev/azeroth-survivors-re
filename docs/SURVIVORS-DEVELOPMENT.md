@@ -505,6 +505,12 @@ Edit that file while the menu is open: for example use `page = talents` and
 `width = 1024`, `height = 768` to inspect the production talent page at 4:3.
 All three keys are required. Dimensions are logical window pixels, bounded to
 640–7680 wide and 480–4320 high; the desktop may constrain the actual window size.
+Add optional `scale = 1.25` to preview 125% interface size (supported range
+0.75–1.25). This temporary multiplier overrides the saved preference without
+writing CVars or account data. Omit `scale` in the next valid request to restore
+the saved preference. Invalid/nonfinite/duplicate scale values reject the whole
+request and retain the previous view and scale. Player builds ignore this tool.
+
 Comments beginning with `#` are allowed. Complete valid changes apply together
 within the next 250 ms menu poll. Invalid, incomplete or missing files keep the
 previous view. The control only applies new file contents, so ordinary navigation

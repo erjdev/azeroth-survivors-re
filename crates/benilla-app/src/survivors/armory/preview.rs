@@ -29,10 +29,14 @@ pub(crate) fn plugin(app: &mut App) {
         poll: Timer::from_seconds(0.25, TimerMode::Repeating),
         saved: None,
         inspected: None,
+        scale: None,
     })
     .add_systems(
         Update,
-        reload.before(super::input).run_if(in_state(Phase::Menu)),
+        reload
+            .before(super::input)
+            .before(crate::survivors::hud::apply_ui_scale)
+            .run_if(in_state(Phase::Menu)),
     );
 }
 
@@ -43,9 +47,14 @@ pub(in crate::survivors) struct Preview {
     poll: Timer,
     saved: Option<(Run, Offer)>,
     inspected: Option<(usize, u32)>,
+    scale: Option<f32>,
 }
 
 impl Preview {
+    pub(in crate::survivors) fn scale(&self) -> Option<f32> {
+        self.scale
+    }
+
     pub(super) fn inspected(&self) -> Option<(usize, u32)> {
         self.inspected
     }
@@ -69,6 +78,7 @@ struct Request {
     page: Page,
     width: u32,
     height: u32,
+    scale: Option<f32>,
     selected: bool,
     category: Option<u8>,
     talent: Option<u32>,
@@ -91,6 +101,7 @@ impl Request {
         let mut hero = None;
         let mut piece = None;
         let mut zone = None;
+        let mut scale = None;
         for line in text.lines() {
             let line = line.split('#').next()?.trim();
             if line.is_empty() {
@@ -226,6 +237,13 @@ impl Request {
                         Piece::Legacy(band * campaign::GRID_SLOTS + slot)
                     });
                 }
+                "scale" if scale.is_none() => {
+                    let value = value.parse::<f32>().ok()?;
+                    if !value.is_finite() || !(0.75..=1.25).contains(&value) {
+                        return None;
+                    }
+                    scale = Some(value);
+                }
                 "width" if width.is_none() => width = Some(value.parse::<u32>().ok()?),
                 "height" if height.is_none() => height = Some(value.parse::<u32>().ok()?),
                 _ => return None,
@@ -281,6 +299,7 @@ impl Request {
             zone,
             width: width?,
             height: height?,
+            scale,
             cards,
             selected: profile.unwrap_or(false),
         };
@@ -453,6 +472,7 @@ fn reload(
     *selection = candidate;
     preview.seen = text;
     preview.inspected = inspected;
+    preview.scale = request.scale;
     request.apply(
         &mut armory,
         &mut typing,
@@ -586,6 +606,52 @@ mod tests {
             // No polling system was registered: this world deliberately has none
             // of the time, window, account or menu resources it would require.
             app.update();
+        }
+    }
+
+    #[test]
+    fn preview_scale_is_bounded_and_temporary_without_changing_player_settings() {
+        use bevy::ecs::system::RunSystemOnce;
+        let base = "page=rewards\nwidth=640\nheight=480";
+        for value in ["NaN", "inf", "0", "0.74", "1.26", "1.0\nscale=1.25"] {
+            assert!(Request::parse(&format!("{base}\nscale={value}")).is_none());
+        }
+        let mut world = World::new();
+        let mut cvars = crate::cvars::Cvars::default();
+        cvars.set("useUiScale", "1");
+        cvars.set("uiScale", "0.85");
+        world.insert_resource(cvars);
+        world.init_resource::<UiScale>();
+        world.spawn((
+            bevy::window::PrimaryWindow,
+            Window {
+                resolution: bevy::window::WindowResolution::new(640, 480),
+                ..default()
+            },
+        ));
+        world.insert_resource(Preview {
+            path: "unused".into(),
+            seen: String::new(),
+            poll: Timer::from_seconds(0.25, TimerMode::Repeating),
+            saved: None,
+            inspected: None,
+            scale: None,
+        });
+        for (suffix, multiplier) in [("\nscale=1.25", 1.25), ("\nscale=0.75", 0.75), ("", 0.85)] {
+            let request = Request::parse(&format!("{base}{suffix}")).unwrap();
+            world.resource_mut::<Preview>().scale = request.scale;
+            world
+                .run_system_once(crate::survivors::hud::apply_ui_scale)
+                .unwrap();
+            assert!((world.resource::<UiScale>().0 - 480.0 / 768.0 * multiplier).abs() < 0.00001);
+            assert_eq!(
+                world.resource::<crate::cvars::Cvars>().get("uiScale"),
+                Some("0.85")
+            );
+            assert_eq!(
+                world.resource::<crate::cvars::Cvars>().get("useUiScale"),
+                Some("1")
+            );
         }
     }
 
@@ -1049,6 +1115,7 @@ mod tests {
             poll: Timer::from_seconds(0.25, TimerMode::Repeating),
             saved: None,
             inspected: None,
+            scale: None,
         };
         let mut run = Run {
             passives: vec![(renew, 3)],
@@ -1146,6 +1213,7 @@ mod tests {
             poll: Timer::from_seconds(0.25, TimerMode::Repeating),
             saved: None,
             inspected: Some((7, 964)),
+            scale: None,
         });
         let node = world
             .spawn((
@@ -1343,6 +1411,7 @@ mod tests {
             poll: Timer::from_seconds(0.25, TimerMode::Repeating),
             saved: None,
             inspected: None,
+            scale: None,
         };
         let mut run = Run {
             hp: 37.0,
@@ -1396,6 +1465,7 @@ mod tests {
             poll: Timer::from_seconds(0.25, TimerMode::Repeating),
             saved: None,
             inspected: None,
+            scale: None,
         };
         let mut run = Run::default();
         let mut offer = Offer::default();

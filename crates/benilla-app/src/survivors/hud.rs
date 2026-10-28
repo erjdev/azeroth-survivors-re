@@ -2469,6 +2469,7 @@ pub(super) fn apply_ui_scale(
     cvars: Res<crate::cvars::Cvars>,
     windows: Query<&Window, With<PrimaryWindow>>,
     mut scale: ResMut<UiScale>,
+    preview: Option<Res<super::armory::preview::Preview>>,
 ) {
     let Ok(window) = windows.single() else { return };
     let multiplier = if cvars.num("useUiScale").unwrap_or(0.) != 0. {
@@ -2480,6 +2481,10 @@ pub(super) fn apply_ui_scale(
     } else {
         1.
     };
+    let multiplier = preview
+        .as_deref()
+        .and_then(|preview| preview.scale())
+        .unwrap_or(multiplier);
     let want = window.height() / 768.0 * multiplier;
     if want > 0.0 && (scale.0 - want).abs() > 1e-4 {
         scale.0 = want;

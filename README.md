@@ -29,6 +29,13 @@ Refresh the relevant page here for a visual milestone, and add its before/after 
 responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures).
 
 
+### Live scale previews
+
+Preview files support temporary `scale = 1.25` alongside page and dimensions;
+omitting it restores saved settings. See [preview controls](docs/SURVIVORS-DEVELOPMENT.md).
+
+![Rewards at 640×480 with 125% interface size](docs/images/screenshots/2026-10-28-preview-scale/compact-125.jpg)
+
 ### Starter and Character
 
 <table>

@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Live interface-scale previews
+
+Preview presets now change interface size alongside page and resolution, without
+changing saved settings. Omit `scale` to restore the player preference; invalid
+values preserve the current view. Native Rewards checks verify pending purchases,
+Undo, compact scrolling and live one/two-column reflow against the intention.
+
+543 Survivors tests pass; native incremental build passed in 58s. Six-package
+scoped checks pass with 31 missing-addon skips; full pre-merge gates remain required.
+The 1280×800 capture exceeded the desktop capture area, so this
+checkpoint verifies 1100×720 and 640×480 only. Windows acceptance remains open.
+
+![Rewards at 1100×720 and 100% interface size](images/screenshots/2026-10-28-preview-scale/wide-100.jpg)
+![Pending purchase at 640×480 and 125%](images/screenshots/2026-10-28-preview-scale/compact-125.jpg)
+![Lower controls remain reachable at 125%](images/screenshots/2026-10-28-preview-scale/compact-125-bottom.jpg)
+![Omitting scale restores 100% without discarding the draft](images/screenshots/2026-10-28-preview-scale/compact-restored.jpg)
+
 ## 2026-10-28 — Legendary rewards after maximum rank
 
 Fully upgraded abilities remain eligible for their legendary amulets in chests.

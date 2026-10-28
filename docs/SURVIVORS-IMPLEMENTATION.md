@@ -302,6 +302,13 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
+Live preview scale (2026-10-28): optional `scale` covers 75–125% without changing
+saved settings; omission restores the saved preference and invalid requests
+retain the previous page/size/scale. Native Rewards checks at 640×480/125% and
+1100×720/100% verify draft retention, Undo, scrolling and one/two-column reflow.
+Screenshots and reusable presets are checked in. A clipped 1280×800 capture is
+not counted as acceptance; the broader platform/resolution matrix remains open.
+
 Chest eligibility correction (2026-10-28): separate owned abilities from those
 with remaining upgrades, so reaching maximum rank does not remove the associated
 legendary amulet from chest offers. Preserve luck/category rolls, distinct cards
