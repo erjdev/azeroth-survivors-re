@@ -8129,3 +8129,41 @@ percentages and separate saved specs; both ranks persisted after Quit. Screensho
 are embedded in CHANGELOG. Definitions match 276/432 selectable nodes (Warrior
 37/52); 156 still lack definitions. Full integration for this batch, Windows
 visuals, selected-profile card comparison and live balance remain open.
+
+### Next weapon proc audit — 2026-10-27
+
+Read checkout Spell.dbc using the format parser's column definitions: proc chance
+25, duration index 30, trigger spells 109–111 (not the following array).
+Warrior Sword Specialization node 123 uses spells 12281/12812–12815: proc chances
+1/2/3/4/5%, triggering spell 16459. Its description requires sword damage and an
+extra attack against the same target. Implement an actual additional hit, not a
+flat expected-value damage multiplier or another AoE cast. Current obtainable
+Rare/Epic/PvP/Legendary Warrior swords make this the next usable weapon talent.
+
+Mace node 125 has a non-linear final rank: spells 12284/12701–12704 encode
+1/2/3/4/**6**%, triggering stun 5530 (duration index 27). Do not infer 5% from
+rank count or use EffectBasePoints for a `$h` description. Maces, like polearms,
+need an obtainable Warrior gear path before the talent counts as fully usable.
+
+Implementation boundary for Sword: `abilities::apply_hits` already resolves
+pending hits, live targets, damage, procs, deaths and rewards. Extend hit provenance
+so a generated attack cannot recursively trigger itself or be confused with a
+splash copy. Preserve the originating damage/crit snapshot; explicitly decide
+and document the Survivors extra-attack damage rule before implementation, since
+there is no separate white-swing weapon damage simulation. A raw clone of `Hit`
+would incorrectly copy execute, control, DoT, splash and mark effects. Tests must
+cover matching worn swords versus cosmetic swords, rank thresholds, same-target
+only, generated-hit exclusion, dead/despawned targets, pause behavior, ordinary
+critical/mitigation/meter behavior, and exactly-once death/loot handling. Native
+purchase/save/inline screenshots remain required for the eventual milestone.
+
+### One-handed selected-profile card acceptance — 2026-10-27
+
+Native 1280×900 fixture keeps the worn Legendary one-handed sword unchanged while
+buying five node-702 ranks in the production UI. Cleave shows 20.6→26.8 before,
+22.6→29.4 after; Heroic Strike 41.2→53.5 before, 45.3→58.9 after. Thunder Clap
+remains 14.7→19.1. The 25→30 Protection point crossing separately activates the
+existing Heroic Strike milestone (two targets and 8% absorb instead of one and
+5%); this is not attributed to the weapon node. Before/after screenshots are
+inline in CHANGELOG. This closes the one-handed card comparison, while axe crit
+has emitted-hit tests and native talent text rather than a damage-card comparison.

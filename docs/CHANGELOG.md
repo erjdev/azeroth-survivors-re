@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — One-handed training on upgrade cards
+
+Five ranks bought in the native UI change Cleave from `20.6 » 26.8` to
+`22.6 » 29.4`, and Heroic Strike from `41.2 » 53.5` to `45.3 » 58.9`.
+Thunder Clap stays `14.7 » 19.1`. The equipped one-handed sword is unchanged.
+Crossing 30 Protection points also activates its existing Heroic Strike milestone:
+two targets and 8% absorption, up from one target and 5%.
+
+| Before training | Five ranks trained |
+| --- | --- |
+| ![Untrained one-handed cards](images/screenshots/2026-10-27-one-handed-cards/before.png) | ![Trained one-handed cards](images/screenshots/2026-10-27-one-handed-cards/trained.png) |
+
+1280×900 selected-profile preview, switched between talents and cards without a
+restart. This validates displayed fixture values; live balance remains open.
+
 ## 2026-10-27 — Axe and one-handed weapon training
 
 Warriors gain up to +5 percentage points of axe critical chance or +10% one-handed
