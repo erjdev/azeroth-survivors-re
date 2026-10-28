@@ -385,6 +385,7 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Vigor (382) | 1 | Rogue spells: 10% shorter cooldown; energy-capacity conversion |
 | Preparation (284) | 1 | Reset owned Rogue ability and learned Sprint cooldowns every 180 sec of active run time; preserves active effects and excludes Cold Blood / Adrenaline Rush recovery |
 | Cold Blood (280) | 1 | Next successful Sinister Strike, Eviscerate, Gouge or Kidney Shot cast: +100 percentage points critical chance; ready at run start, 180 sec recovery after use |
+| Seal Fate (283) | 5 | Critical original Sinister Strike/Gouge hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec; combo-point conversion. No splash, echo, generated-strike or queued-overkill procs |
 | Remorseless Attacks (272) | 2 | After a kill, +20 percentage points critical chance on the next successful Rogue melee cast; 20 sec window |
 | Lightning Reflexes (186) | 5 | +1 percentage point damage reduction; dodge conversion |
 | Deflection (187) | 5 | +3 armor; parry conversion |

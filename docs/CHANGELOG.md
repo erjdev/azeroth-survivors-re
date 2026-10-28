@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Seal Fate
+
+Critical Sinister Strike and Gouge hits can now advance owned finisher cooldowns
+by one second, with a 20–100% chance across five ranks. This explicit combo-point
+conversion excludes splash, multistrike echoes, generated strikes and queued
+overkill. Ready spells cannot bank recovery; the upgrade chance is green inline.
+
+![Seal Fate chance upgrade](images/screenshots/2026-10-28-seal-fate/available.png)
+
+![Final rank purchased and saved](images/screenshots/2026-10-28-seal-fate/trained.png)
+
+257 core tests, 481 app tests and core/app Clippy pass. Native purchase/save and
+full text verified at 1600×900; incremental build: 42 seconds. Definition coverage:
+287/432 (Rogue 31/51). Full integration is running; Windows and live balance remain
+open. Combat recovery is verified by ECS tests, not an unattended play session.
+
 ## 2026-10-28 — Rogue Weapon Expertise
 
 Weapon Expertise adds +3/+5% direct Rogue weapon damage with a worn sword,
@@ -18,8 +34,8 @@ upgrade appears inline in green and requires Blade Flurry.
 
 255 core tests, 479 app tests and core/app Clippy pass. Native purchase/save at
 1600×900 and cards at 1280×720 verified; incremental build: 19 seconds. Definition
-coverage: 286/432 (Rogue 30/51). Full integration is running; Windows and live balance
-remain open.
+coverage: 286/432 (Rogue 30/51). Full integration passed in 10m10s, with 31
+missing-addon skips per data/player run. Windows and live balance remain open.
 
 ## 2026-10-28 — Rogue mace training
 

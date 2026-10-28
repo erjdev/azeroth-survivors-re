@@ -1184,19 +1184,22 @@ pub(super) fn apply_hits(
                 let c = center.translation;
                 for (e, _, tf, en, ..) in enemies.iter() {
                     if e != h.target && !en.dead && flat(tf.translation - c).length() <= h.splash {
-                        all.push(Hit {
-                            target: e,
-                            damage: h.damage * 0.7,
-                            splash: 0.0,
-                            mark: 0,
-                            ..h.clone()
-                        });
+                        all.push((
+                            Hit {
+                                target: e,
+                                damage: h.damage * 0.7,
+                                splash: 0.0,
+                                mark: 0,
+                                ..h.clone()
+                            },
+                            false,
+                        ));
                     }
                 }
             }
         }
-        all.push(Hit { splash: 0.0, ..h });
-        all.extend(sword);
+        all.push((Hit { splash: 0.0, ..h }, true));
+        all.extend(sword.map(|hit| (hit, false)));
     }
 
     let mut kill = |commands: &mut Commands,
@@ -1295,7 +1298,7 @@ pub(super) fn apply_hits(
         }
     };
 
-    for h in all {
+    for (h, original) in all {
         let Ok((e, guid, tf, mut en, mut store, mut marks)) = enemies.get_mut(h.target) else {
             continue;
         };
@@ -1322,6 +1325,19 @@ pub(super) fn apply_hits(
                 let elapsed = run.elapsed;
                 run.natures_grace
                     .hit(talents, h.source, removed, h.crit, elapsed);
+                // Settle only original critical builder hits that actually remove health.
+                let chance = if original {
+                    talents.seal_fate_chance(h.source, removed, h.crit)
+                } else {
+                    0.0
+                };
+                if chance > 0.0 && rng.f32() < chance {
+                    for ability in &mut run.abilities {
+                        if matches!(ability.def.key, "eviscerate" | "rupture" | "kidney_shot") {
+                            ability.cd = (ability.cd - 1.0).max(0.0);
+                        }
+                    }
+                }
             }
             en.hp -= dmg;
             run.add_damage(h.source, dmg);
@@ -9498,6 +9514,174 @@ mod sword_hit_tests {
             );
         }
     }
+    #[test]
+    fn seal_fate_recovers_finishers_only_once_per_original_landed_builder_hit() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use crate::survivors::Owned;
+        for source in [
+            "sinister_strike",
+            "gouge",
+            "eviscerate",
+            "rupture",
+            "blade_flurry",
+            "sword_specialization",
+            "deep_wounds",
+            "fireball",
+        ] {
+            for (critical, damage, hp, dead, despawn, paused, dead_hero) in [
+                (true, 10.0, 100.0, false, false, false, false),
+                (true, 10.0, 5.0, false, false, false, false),
+                (false, 10.0, 100.0, false, false, false, false),
+                (true, 0.0, 100.0, false, false, false, false),
+                (true, 10.0, 100.0, true, false, false, false),
+                (true, 10.0, 100.0, false, true, false, false),
+                (true, 10.0, 100.0, false, false, true, false),
+                (true, 10.0, 100.0, false, false, false, true),
+            ] {
+                let mut app = App::new();
+                let mut run = Run {
+                    class: &data::CLASSES[3],
+                    milestones: Milestones {
+                        class: 3,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(0, 283, 5)]),
+                    abilities: [
+                        ("eviscerate", 5.0),
+                        ("rupture", 0.5),
+                        ("kidney_shot", 0.0),
+                        ("sinister_strike", 4.0),
+                        ("blade_flurry", 4.0),
+                        ("fireball", 4.0),
+                    ]
+                    .into_iter()
+                    .map(|(key, cd)| Owned {
+                        def: data::ability(key),
+                        level: 1,
+                        cd,
+                    })
+                    .collect(),
+                    ..Default::default()
+                };
+                run.bonus.multistrike = 2.0;
+                if dead_hero {
+                    run.hp = 0.0;
+                }
+                app.insert_resource(Time::<()>::default())
+                    .insert_resource(run)
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(State::new(if paused {
+                        super::super::Phase::Paused
+                    } else {
+                        super::super::Phase::Playing
+                    }))
+                    .init_resource::<super::super::Selection>()
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let spawn = |world: &mut World, hp, dead, x| {
+                    world
+                        .spawn((
+                            Guid(123),
+                            Transform::from_xyz(x, 0.0, 0.0),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slow: 1.0,
+                                slow_t: 0.0,
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                dots: vec![],
+                                dead,
+                            },
+                        ))
+                        .id()
+                };
+
+                let target = spawn(app.world_mut(), hp, dead, 0.0);
+                let _neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
+                if despawn {
+                    app.world_mut().despawn(target);
+                }
+                for _ in 0..2 {
+                    app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                        source,
+                        splash: 2.0,
+                        ..Hit::direct(target, damage, critical)
+                    });
+                }
+                let mut schedule = Schedule::default();
+                schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
+                schedule.run(app.world_mut());
+                if paused {
+                    assert_eq!(app.world().resource::<Run>().abilities[0].cd, 5.0);
+                    app.world_mut()
+                        .insert_resource(State::new(super::super::Phase::Playing));
+                    schedule.run(app.world_mut());
+                }
+                let eligible = matches!(source, "sinister_strike" | "gouge")
+                    && critical
+                    && damage > 0.0
+                    && !dead
+                    && !despawn
+                    && !dead_hero;
+                let procs = if !eligible {
+                    0.0
+                } else if hp <= 5.0 {
+                    1.0
+                } else {
+                    2.0
+                };
+                let cooldowns: Vec<_> = app
+                    .world()
+                    .resource::<Run>()
+                    .abilities
+                    .iter()
+                    .map(|a| a.cd)
+                    .collect();
+                assert_eq!(
+                    cooldowns,
+                    vec![5.0 - procs, (0.5_f32 - procs).max(0.0), 0.0, 4.0, 4.0, 4.0],
+                    "{source} {critical} {damage} {hp} {dead} {despawn} {dead_hero}"
+                );
+                schedule.run(app.world_mut());
+                assert_eq!(
+                    app.world()
+                        .resource::<Run>()
+                        .abilities
+                        .iter()
+                        .map(|a| a.cd)
+                        .collect::<Vec<_>>(),
+                    cooldowns
+                );
+            }
+        }
+    }
+
     #[test]
     fn mace_proc_stuns_original_target_without_shortening_control_or_splashing() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};

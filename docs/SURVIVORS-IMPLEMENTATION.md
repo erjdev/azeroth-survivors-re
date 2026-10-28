@@ -887,13 +887,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 30 / 51 | 9 / 9 |
+| Rogue | 31 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 286 / 432 | 81 / 81 |
+| Total | 287 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8708,3 +8708,30 @@ class/spell/critical/damage eligibility and green inline chance values. App ECS,
 save/spec/refund and native purchase/card evidence remain required. This draft
 does not change the published 286/432 coverage. Weapon Expertise integration is
 still running against unchanged main source.
+
+Weapon Expertise integration passed in 610 seconds (10m10s), including player
+tests, with 31 missing-addon skips per data/player run. Seal Fate source changes
+began after that terminal success.
+
+### Rogue Seal Fate implementation — 2026-10-28
+
+Node 283 now converts critical original Sinister Strike/Gouge hits into
+20–100% chance to advance each owned finisher cooldown by one second. The hit
+settlement list identifies originals separately from splash and generated
+strikes. Recovery runs after actual health removal; queued hits after a lethal
+hit, multistrike echoes, invalid targets, noncritical/zero damage and dead heroes
+do not produce extra recovery. Cooldowns clamp at zero; ready spells bank none.
+
+257 core and 481 app tests pass. The real hit-system regression uses guaranteed
+multistrikes, splash, two queued hits, lethal targets, pause/resume and repeated
+updates. A DBC-valid saved build covers all ranks, prerequisites, max-rank refusal,
+spec changes, refunds and hero/class isolation. Native purchase at 1600×900
+saves rank 5, changes Assassination 29→30 and unspent points 22→21. The inline
+80→100% chance and maximum-rank description are captured in CHANGELOG. Fixture
+ownership/points are seeded; runtime cooldown recovery is tested through ECS,
+not a live combat session. Native build: 42 seconds. Definition coverage is
+287/432 (Rogue 31/51); Windows, balance and remaining phase acceptance stay open.
+
+Seal Fate core/app Clippy pass. Full integration is running; the preceding
+Weapon Expertise checkpoint passed in 10m10s with 31 addon-corpus skips per
+data/player run.

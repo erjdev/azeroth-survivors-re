@@ -753,6 +753,21 @@ impl Milestones {
         }
     }
 
+    /// Spell.dbc 14186/14190/14193–14195: +one combo point on a builder critical hit.
+    /// Survivors converts the point to one second off each owned finisher cooldown.
+    pub fn seal_fate_chance(self, key: &str, damage: f32, critical: bool) -> f32 {
+        if self.class == 3
+            && critical
+            && damage.is_finite()
+            && damage > 0.0
+            && matches!(key, "sinister_strike" | "gouge")
+        {
+            self.trained_value(TalentStat::SealFate).clamp(0.0, 1.0)
+        } else {
+            0.0
+        }
+    }
+
     /// Kill-triggered critical chance for the next successful Rogue melee cast.
     pub fn remorseless_crit(self, key: &str) -> f32 {
         if self.class == 3
@@ -1656,6 +1671,7 @@ pub enum TalentStat {
     FlurryHaste,
     Vengeance,
     Remorseless,
+    SealFate,
     ColdBlood,
     ElementalMastery,
     InnerFocus,
@@ -2025,6 +2041,7 @@ impl TalentDefinition {
             | TalentStat::MaceStun
             | TalentStat::RogueMace
             | TalentStat::WeaponExpertise
+            | TalentStat::SealFate
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -2312,6 +2329,7 @@ impl TalentDefinition {
                 (100.0, "% next-cast critical chance; 180 sec recovery")
             }
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
+            TalentStat::SealFate => (100.0, "% finisher recovery chance on a builder critical hit"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
             TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
             TalentStat::InspirationArmor => (100.0, "% armor after Holy Nova healing"),
@@ -3345,6 +3363,12 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 14186/14190/14193–14195 proc chances 20/40/60/80/100, trigger 14189.
+    TalentDefinition {
+        id: 283, max_rank: 5, name: "Seal Fate",
+        description: "Critical Sinister Strike or Gouge hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec. Each original hit can trigger once; splash copies, generated strikes and bleed ticks cannot trigger it. Does not grant spells or store recovery while ready (Survivors combo-point conversion)",
+        stat: TalentStat::SealFate, per_rank: 0.20,
+    },
     // Spell.dbc 30919/30920: +3/+5 skill for swords (43), daggers (173), fists (162).
     TalentDefinition {
         id: 1703, max_rank: 2, name: "Weapon Expertise",
@@ -3729,6 +3753,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Pyroclasm
             | TalentStat::KidneyExposure
             | TalentStat::Remorseless
+            | TalentStat::SealFate
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
@@ -5225,6 +5250,7 @@ mod stat_talent_tests {
                     | TalentStat::Pyroclasm
                     | TalentStat::KidneyExposure
                     | TalentStat::Remorseless
+                    | TalentStat::SealFate
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
                     | TalentStat::InnerFocus
@@ -7397,5 +7423,55 @@ mod weapon_expertise_tests {
             assert_eq!(&text[ranges[0].clone()], expected);
             assert!(node.rank_preview(rank).contains(expected));
         }
+    }
+}
+
+#[cfg(test)]
+mod seal_fate_tests {
+    use super::*;
+    #[test]
+    fn seal_fate_requires_positive_builder_damage_and_critical_result() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 4, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(0, 283, rank)]);
+                for key in crate::data::ABILITIES
+                    .iter()
+                    .map(|a| a.key)
+                    .chain(["sword_specialization", "deep_wounds"])
+                {
+                    for damage in [0.0, -1.0, f32::NAN, f32::INFINITY, 10.0] {
+                        for critical in [false, true] {
+                            let expected = if class == 3
+                                && critical
+                                && damage == 10.0
+                                && matches!(key, "sinister_strike" | "gouge")
+                            {
+                                0.2 * f32::from(rank.min(5))
+                            } else {
+                                0.0
+                            };
+                            assert_eq!(trained.seal_fate_chance(key, damage, critical), expected);
+                        }
+                    }
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+    }
+    #[test]
+    fn seal_fate_inline_chance_does_not_color_fixed_recovery_duration() {
+        let node = talent_definition(3, 283).unwrap();
+        let (text, ranges) = node.inline_description_with_values(4).unwrap();
+        assert_eq!(ranges.len(), 1);
+        assert_eq!(&text[ranges[0].clone()], "80 » 100% chance");
+        assert!(text.contains("by 1 sec"));
+        let max = node.inline_description(255).unwrap();
+        assert!(max.contains("100% chance"));
+        assert!(!max.contains(" » "));
     }
 }

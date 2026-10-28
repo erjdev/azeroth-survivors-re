@@ -3800,6 +3800,72 @@ mod tests {
     }
 
     #[test]
+    fn seal_fate_purchase_save_specs_and_refunds_preserve_proc_chance() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(3);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (0, 276, 3),
+            (0, 270, 5),
+            (0, 272, 1),
+            (0, 273, 3),
+            (0, 277, 3),
+            (0, 281, 1),
+            (0, 269, 5),
+            (0, 279, 3),
+            (0, 280, 1),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let chance = |account: &Account| {
+            account
+                .milestones_picked(3, Some(hero))
+                .seal_fate_chance("sinister_strike", 10.0, true)
+        };
+        assert_eq!(chance(&account), 0.0);
+        assert!(!account.learn_talent(hero, 0, 283, 5, 5, false));
+        for rank in 1u8..=5 {
+            assert!(account.learn_talent(hero, 0, 283, 5, 5, true));
+            assert_eq!(chance(&account), 0.2 * f32::from(rank));
+        }
+        assert!(!account.learn_talent(hero, 0, 283, 5, 5, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(chance(&loaded), 1.0);
+        loaded.select_spec(hero, 1);
+        assert_eq!(chance(&loaded), 0.0);
+        loaded.select_spec(hero, 0);
+        assert!(loaded.unlearn_talent(hero, 283, true));
+        assert_eq!(chance(&loaded), 0.8);
+        assert_eq!(
+            loaded
+                .milestones_picked(0, Some(hero))
+                .seal_fate_chance("sinister_strike", 10.0, true),
+            0.0
+        );
+        assert_eq!(
+            loaded
+                .milestones_picked(3, Some(u32::MAX))
+                .seal_fate_chance("sinister_strike", 10.0, true),
+            0.0
+        );
+    }
+
+    #[test]
     fn rogue_weapon_expertise_tracks_saved_worn_gear_specs_and_refunds() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();
