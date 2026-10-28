@@ -90,11 +90,11 @@ pub(in crate::survivors) fn legend_effect(
         bonus.targets = super::super::sheet::extra_targets(def.kind, def.count, bonus.targets);
         if matches!(
             def.kind,
-            Kind::Heal | Kind::Shield | Kind::Immune | Kind::Thorns | Kind::Dot
+            Kind::Heal | Kind::Shield | Kind::Immune | Kind::Thorns | Kind::Dot | Kind::WeaponBuff
         ) {
             bonus.crit_damage = 0.0;
         }
-        if def.kind == Kind::Immune {
+        if matches!(def.kind, Kind::Immune | Kind::WeaponBuff) {
             bonus.might = 0.0;
         }
         (key, bonus)
@@ -149,6 +149,12 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
     if a.dot > 0.0 || b.dot > 0.0 {
         change("Damage / sec", a.dot, b.dot, "");
     }
+    change(
+        "Weapon damage bonus",
+        a.weapon_bonus * 100.0,
+        b.weapon_bonus * 100.0,
+        "%",
+    );
     change("Cooldown", a.cooldown, b.cooldown, "s");
     if matches!(
         def.kind,

@@ -403,6 +403,7 @@ impl Owned {
 pub(super) struct Stats {
     legendary: Option<(&'static str, campaign::Bonus)>,
     vengeance: f32,
+    battle_shout: f32,
     pub might: f32,
     pub max_hp: f32,
     pub speed: f32,
@@ -436,6 +437,7 @@ impl Stats {
         let mut scoped = *self;
         scoped.legendary = None;
         scoped.vengeance = 0.0;
+        scoped.battle_shout = 0.0;
         if let Some((spell, bonus)) = self.legendary {
             if spell == key {
                 apply_sheet(&mut scoped, bonus);
@@ -443,6 +445,9 @@ impl Stats {
         }
         if survivors_core::talents::PALADIN_HOLY.contains(&key) {
             scoped.might *= 1.0 + self.vengeance;
+        }
+        if survivors_core::battle_shout::BattleShout::affects(key) {
+            scoped.might *= 1.0 + self.battle_shout;
         }
         scoped
     }
@@ -488,6 +493,7 @@ pub(super) struct Run {
     pub shield_t: f32,
     pub immune_t: f32,
     pub enrage_t: f32,
+    pub battle_shout: survivors_core::battle_shout::BattleShout,
     pub ancestral_healing_t: f32,
     pub inspiration_t: f32,
     pub flurry_t: f32,
@@ -590,6 +596,7 @@ impl Default for Run {
             shield_t: 0.0,
             immune_t: 0.0,
             enrage_t: 0.0,
+            battle_shout: default(),
             ancestral_healing_t: 0.0,
             inspiration_t: 0.0,
             flurry_t: 0.0,
@@ -767,6 +774,11 @@ impl Run {
 
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
+            battle_shout: if self.alive() {
+                self.battle_shout.bonus("cleave", self.elapsed)
+            } else {
+                0.0
+            },
             vengeance: self
                 .milestones
                 .vengeance_bonus(self.alive() && self.vengeance_t > 0.0),

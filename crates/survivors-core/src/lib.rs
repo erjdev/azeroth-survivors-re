@@ -23,3 +23,5 @@ pub mod talents;
 pub mod tuning;
 pub mod visibility;
 pub mod weapon_alternatives;
+
+pub mod battle_shout;

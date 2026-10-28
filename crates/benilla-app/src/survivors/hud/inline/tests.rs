@@ -276,3 +276,23 @@ fn wing_clip_preview_shows_trained_root_as_fixed_and_slow_growth_inline() {
     ));
     assert!(!other.contains("chance to root"));
 }
+
+#[test]
+fn battle_shout_cards_show_percentage_strength_and_duration_without_damage_hits() {
+    let mut run = Run::default();
+    let def = data::ability("battle_shout");
+    let spans = describe(Choice::NewAbility(def), &run);
+    assert!(spans.contains(&("10 » 13%".into(), card_growth::GAIN)));
+    assert!(spans.contains(&("8 » 8.8 sec".into(), card_growth::GAIN)));
+    let text = plain(&spans);
+    assert!(text.starts_with("Increases your weapon damage by 10 » 13% for 8 » 8.8 sec."));
+    assert!(!text.contains("0 damage"));
+    assert!(!text.contains("targets"));
+    run.milestones = survivors_core::talents::Milestones::default().with_ranks(&[(1, 154, 5)]);
+    let trained = describe(Choice::NewAbility(def), &run);
+    assert!(plain(&trained).starts_with("Increases your weapon damage by 12.5 » 16.2%"));
+    let before = trained.clone();
+    run.bonus.might = 10.0;
+    run.bonus.crit = 0.5;
+    assert_eq!(describe(Choice::NewAbility(def), &run), before);
+}

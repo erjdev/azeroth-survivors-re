@@ -93,6 +93,7 @@ struct Foe {
 /// The numbers one cast uses, from the ability's level and the hero's stats.
 pub(super) struct Params {
     pub dmg: f32,
+    pub weapon_bonus: f32,
     pub dot: f32,
     pub count: usize,
     pub radius: f32,
@@ -124,8 +125,15 @@ impl Params {
         let mult = o.damage_mult() * stats.might * effect.damage;
         Self {
             dmg: o.def.damage * mult,
+            weapon_bonus: o.def.weapon_bonus
+                * o.damage_mult()
+                * milestones.battle_shout_multiplier(),
             dot: o.def.dot * mult,
-            count: o.count(stats) as usize + effect.extra_targets,
+            count: if o.def.kind == Kind::WeaponBuff {
+                0
+            } else {
+                o.count(stats) as usize + effect.extra_targets
+            },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
             duration: o.duration() * effect.duration,
@@ -253,6 +261,32 @@ fn entities(foes: &[Foe]) -> Vec<Entity> {
     foes.iter().map(|f| f.e).collect()
 }
 
+/// Self buffs resolve before offensive casts, independent of acquisition order.
+fn cast_weapon_buffs(run: &mut Run, stats: &super::Stats, dt: f32) -> Vec<u32> {
+    let mut casts = Vec::new();
+    if !run.alive() || run.class.id != 1 || !dt.is_finite() || dt <= 0.0 {
+        return casts;
+    }
+    for owned in &mut run.abilities {
+        if owned.def.kind != Kind::WeaponBuff {
+            continue;
+        }
+        owned.cd -= dt;
+        if owned.cd > 0.0 {
+            continue;
+        }
+        let params = Params::new(owned, stats, run.milestones);
+        if run
+            .battle_shout
+            .refresh(params.weapon_bonus, params.duration, run.elapsed)
+        {
+            owned.cd = params.cooldown;
+            casts.push(owned.def.spell);
+        }
+    }
+    casts
+}
+
 pub(super) fn cast_abilities(
     mut commands: Commands,
     time: Res<Time>,
@@ -291,6 +325,11 @@ pub(super) fn cast_abilities(
             }
         }
     }
+    for spell in cast_weapon_buffs(&mut run, &stats, dt) {
+        fx.cast(me, spell, &[me], None);
+    }
+    // Newly cast buffs also affect attacks and previews in this frame.
+    let stats = run.stats();
     let mut foes: Vec<Foe> = enemies
         .iter()
         .filter(|(_, _, e)| !e.dead)
@@ -313,6 +352,9 @@ pub(super) fn cast_abilities(
     };
 
     for i in 0..run.abilities.len() {
+        if run.abilities[i].def.kind == Kind::WeaponBuff {
+            continue;
+        }
         run.abilities[i].cd -= dt;
         if run.abilities[i].cd > 0.0 {
             continue;
@@ -354,6 +396,7 @@ pub(super) fn cast_abilities(
         .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
+            Kind::WeaponBuff => false, // Already resolved in the self-buff pass.
             Kind::Bolt | Kind::Strike | Kind::Melee => {
                 let reach = if def.kind == Kind::Melee {
                     p.range + 0.5
@@ -9596,5 +9639,192 @@ mod sword_hit_tests {
         for roll in [0.05, 1.0, -1.0, f32::NAN, f32::INFINITY] {
             assert!(sword_extra_hit(&hit, talents, roll).is_none());
         }
+    }
+}
+
+#[cfg(test)]
+mod battle_shout_tests {
+    use super::super::{data, Owned};
+    use super::*;
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn acquired_shout_changes_weapon_hits_independently_of_acquisition_order() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        let sample = |shout: bool, first: bool, rank: u8| {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                milestones: Milestones::default().with_ranks(&[(1, 154, rank)]),
+                ..Default::default()
+            };
+            for key in [
+                "cleave",
+                "heroic_strike",
+                "whirlwind",
+                "sweeping_strikes",
+                "execute",
+                "mortal_strike",
+                "thunder_clap",
+            ] {
+                run.abilities.push(Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.,
+                });
+            }
+            if shout {
+                let at = if first { 0 } else { run.abilities.len() };
+                run.abilities.insert(
+                    at,
+                    Owned {
+                        def: data::ability("battle_shout"),
+                        level: 1,
+                        cd: 0.0,
+                    },
+                );
+            }
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(42))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().spawn((
+                Transform::from_xyz(1., 0., 0.),
+                Enemy {
+                    def: &data::roster(0).enemies[0],
+                    hp: 100.,
+                    max_hp: 100.,
+                    speed: 3.,
+                    damage: 5.,
+                    radius: 0.6,
+                    xp: 1,
+                    boss: false,
+                    elite: false,
+                    attack_cd: 0.,
+                    slow: 1.,
+                    slow_t: 0.,
+                    root_t: 0.,
+                    frozen_t: 0.,
+                    winters_chill: Default::default(),
+                    shadow_weaving: Default::default(),
+                    kidney_t: 0.0,
+                    stun_t: 0.,
+                    fear_t: 0.,
+                    weaken: 1.,
+                    weaken_t: 0.,
+                    dots: Vec::new(),
+                    dead: false,
+                },
+            ));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            app.world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .map(|hit| (hit.source, hit.damage))
+                .collect::<Vec<_>>()
+        };
+
+        let base = sample(false, false, 0);
+        assert!(!base.is_empty());
+        assert_eq!(
+            sample(false, false, 5),
+            base,
+            "training alone cannot grant a buff"
+        );
+        for (rank, factor) in [(0, 1.1), (5, 1.125)] {
+            let trained = sample(true, false, rank);
+            assert_eq!(trained, sample(true, true, rank));
+            assert_eq!(trained.len(), base.len(), "the shout must not emit damage");
+            for ((source, damage), (other, plain)) in trained.iter().zip(&base) {
+                assert_eq!(source, other);
+                let factor = if *source == "thunder_clap" {
+                    1.0
+                } else {
+                    factor
+                };
+                assert!((damage - plain * factor).abs() < 0.0001, "{source}");
+            }
+        }
+    }
+
+    #[test]
+    fn buff_strength_ignores_global_damage_critical_area_and_targets() {
+        let mut run = Run::default();
+        run.bonus.might = 20.0;
+        run.bonus.crit = 0.9;
+        run.bonus.area = 5.0;
+        run.bonus.targets = 8;
+        run.milestones = Milestones::default().with_ranks(&[(1, 154, 5)]);
+        let owned = Owned {
+            def: data::ability("battle_shout"),
+            level: 1,
+            cd: 0.0,
+        };
+        let params = Params::new(&owned, &run.stats(), run.milestones);
+        assert_eq!(params.weapon_bonus, 0.125);
+        assert_eq!(params.dmg, 0.0);
+        assert_eq!(params.dot, 0.0);
+        assert_eq!(params.count, 0);
+        assert!(run
+            .battle_shout
+            .refresh(params.weapon_bonus, params.duration, run.elapsed));
+        let global = run.stats();
+        let weapon = global.for_spell("cleave");
+        assert!((weapon.might - global.might * 1.125).abs() < 0.00001);
+        assert_eq!(
+            weapon.for_spell("cleave").might,
+            weapon.might,
+            "scope cannot apply twice"
+        );
+        assert_eq!(global.for_spell("thunder_clap").might, global.might);
+        assert_eq!(
+            Params::new(&owned, &run.stats(), run.milestones).weapon_bonus,
+            0.125
+        );
+        run.hp = 0.0;
+        assert_eq!(run.stats().for_spell("cleave").might, run.stats().might);
+    }
+
+    #[test]
+    fn self_buff_cast_needs_living_hero_and_positive_time_but_no_enemy() {
+        let mut run = Run {
+            abilities: vec![Owned {
+                def: data::ability("battle_shout"),
+                level: 1,
+                cd: 0.0,
+            }],
+            ..Default::default()
+        };
+        for dt in [0.0, -1.0, f32::NAN, f32::INFINITY] {
+            let stats = run.stats();
+            assert!(cast_weapon_buffs(&mut run, &stats, dt).is_empty());
+            assert_eq!(run.abilities[0].cd, 0.0);
+        }
+        run.hp = 0.0;
+        let stats = run.stats();
+        assert!(cast_weapon_buffs(&mut run, &stats, 0.1).is_empty());
+        run.hp = 160.0;
+        let stats = run.stats();
+        assert_eq!(cast_weapon_buffs(&mut run, &stats, 0.1), vec![6673]);
+        assert_eq!(run.battle_shout.remaining(0.0), 8.0);
+        assert_eq!(run.abilities[0].cd, 20.0);
+        assert!(cast_weapon_buffs(&mut run, &stats, 0.1).is_empty());
+        assert!((run.abilities[0].cd - 19.9).abs() < 0.00001);
+        run.elapsed = 8.0;
+        assert_eq!(run.stats().for_spell("cleave").might, run.stats().might);
+        run.elapsed = 20.0;
+        run.abilities[0].cd = 0.0;
+        assert_eq!(cast_weapon_buffs(&mut run, &stats, 0.1), vec![6673]);
+        assert_eq!(run.battle_shout.remaining(20.0), 8.0);
     }
 }

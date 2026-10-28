@@ -855,6 +855,15 @@ impl Milestones {
         self.trained_value(TalentStat::Frostbite)
     }
 
+    /// Improves only the acquired shout's magnitude, not the hero's global damage.
+    pub fn battle_shout_multiplier(self) -> f32 {
+        if self.class == 0 {
+            1.0 + self.trained_value(TalentStat::BattleShoutPower)
+        } else {
+            1.0
+        }
+    }
+
     /// Survivors maps Hamstring's root proc to the Warrior's movement-impairing nova.
     pub fn hamstring_root_chance(self, key: &str, damage: f32) -> f32 {
         if self.class != 0 || key != "thunder_clap" || !damage.is_finite() || damage <= 0.0 {
@@ -1539,6 +1548,7 @@ pub enum TalentStat {
     Frostbite,
     WingClipRoot,
     HamstringRoot,
+    BattleShoutPower,
     InsectSwarmWeakening,
     NaturesGrace,
     Impact,
@@ -1658,6 +1668,7 @@ fn inline_stat_label(tail: &str) -> &str {
         " additional slow",
         " active duration",
         " shield absorption",
+        " buff strength",
         " shorter deployment cooldown",
         " hero damage",
         " initial targeting range",
@@ -1828,6 +1839,7 @@ impl TalentDefinition {
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
             | TalentStat::Aftermath
+            | TalentStat::BattleShoutPower
             | TalentStat::HamstringRoot
             | TalentStat::WingClipRoot
             | TalentStat::InsectSwarmWeakening
@@ -2111,6 +2123,7 @@ impl TalentDefinition {
                 (100.0, "% reduced outgoing enemy damage from Insect Swarm")
             }
             TalentStat::NaturesGrace => (1.0, " sec shorter next Wrath or Starfire recovery after a spell critical; one 15 sec charge"),
+            TalentStat::BattleShoutPower => (100.0, "% stronger Battle Shout weapon bonus"),
             TalentStat::HamstringRoot => (100.0, "% chance to root Thunder Clap targets"),
             TalentStat::WingClipRoot => (100.0, "% chance to root Wing Clip targets"),
             TalentStat::Aftermath => (100.0, "% chance to slow Destruction targets"),
@@ -2180,6 +2193,12 @@ impl TalentDefinition {
 
 /// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
 pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 12318/12857/12858/12860/12861: +5–25% to the shout's magnitude.
+    TalentDefinition {
+        id: 154, max_rank: 5, name: "Improved Battle Shout",
+        description: "Battle Shout: +5% buff strength per rank. Improves its weapon-damage bonus, not global damage; requires acquiring and casting Battle Shout (Survivors attack-power conversion)",
+        stat: TalentStat::BattleShoutPower, per_rank: 0.05,
+    },
     // Spell.dbc 12289/12668/23695: 5/10/15%; trigger 23694 lasts 5 seconds.
     TalentDefinition {
         id: 129, max_rank: 3, name: "Improved Hamstring",
@@ -3500,6 +3519,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SiphonLife
             | TalentStat::Nightfall
             | TalentStat::Aftermath
+            | TalentStat::BattleShoutPower
             | TalentStat::HamstringRoot
             | TalentStat::WingClipRoot
             | TalentStat::InsectSwarmWeakening
@@ -4990,6 +5010,7 @@ mod stat_talent_tests {
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
                     | TalentStat::Aftermath
+                    | TalentStat::BattleShoutPower
                     | TalentStat::HamstringRoot
                     | TalentStat::WingClipRoot
                     | TalentStat::InsectSwarmWeakening
@@ -6684,5 +6705,46 @@ mod hamstring_tests {
         assert_eq!(&text[ranges[0].clone()], "+5 » 10% chance");
         assert!(text.contains("5 sec (bosses: 1.5 sec)"));
         assert!(!node.inline_description(255).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod battle_shout_tests {
+    use super::*;
+    #[test]
+    fn shout_strength_is_class_scoped_capped_and_not_global_damage() {
+        for class in 0..9 {
+            for rank in [0, 1, 4, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 154, rank)]);
+                let expected = if class == 0 {
+                    1.0 + 0.05 * f32::from(rank.min(5))
+                } else {
+                    1.0
+                };
+                assert_eq!(trained.battle_shout_multiplier(), expected);
+                for key in crate::data::CLASSES[0].ability_keys() {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+                assert_eq!(trained.with_ranks(&[]).battle_shout_multiplier(), 1.0);
+            }
+        }
+        let node = talent_definition(0, 154).unwrap();
+        let (text, ranges) = node.inline_description_with_values(4).unwrap();
+        assert_eq!(&text[ranges[0].clone()], "+20 » 25% buff strength");
+        assert!(!node.inline_description(5).unwrap().contains(" » "));
+    }
+    #[test]
+    fn shout_is_a_distinct_warrior_acquisition_without_damage_or_targets() {
+        let def = crate::data::ability("battle_shout");
+        assert_eq!(def.kind, crate::data::Kind::WeaponBuff);
+        assert_eq!((def.damage, def.dot, def.count), (0.0, 0.0, 0));
+        assert_eq!(def.weapon_bonus, 0.1);
+        for (class, def) in crate::data::CLASSES.iter().enumerate() {
+            assert_eq!(def.ability_keys().contains(&"battle_shout"), class == 0);
+        }
     }
 }

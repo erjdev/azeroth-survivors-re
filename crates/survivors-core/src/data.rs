@@ -36,6 +36,8 @@ impl ClassDef {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Kind {
+    /// Timed self buff for original weapon casts; never emits a damage hit.
+    WeaponBuff,
     /// A missile at the nearest enemies (or instant if the spell has no speed).
     Bolt,
     /// An instant hit on the nearest enemies in range.
@@ -116,6 +118,8 @@ pub struct AbilityDef {
     pub kind: Kind,
     /// Direct damage; per tick for areas and pulses; absorb, heal or reflect for the self kinds.
     pub damage: f32,
+    /// Fractional weapon-damage bonus for WeaponBuff; independent of global damage.
+    pub weapon_bonus: f32,
     /// Damage over time, per second, for `duration`.
     pub dot: f32,
     pub cooldown: f32,
@@ -140,6 +144,7 @@ const fn ab(key: &'static str, spell: u32, kind: Kind) -> AbilityDef {
         spell,
         kind,
         damage: 0.0,
+        weapon_bonus: 0.0,
         dot: 0.0,
         cooldown: 2.0,
         range: 20.0,
@@ -286,6 +291,18 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     // --- Warrior ---
+    // Survivors tuning: self-only percentage damage replaces vanilla party attack power.
+    ability!(
+        "battle_shout",
+        6673,
+        WeaponBuff {
+            weapon_bonus: 0.10,
+            duration: 8.0,
+            cooldown: 20.0,
+            range: 0.0,
+            count: 0
+        }
+    ),
     ability!(
         "cleave",
         845,
@@ -1087,6 +1104,7 @@ pub static CLASSES: &[ClassDef] = &[
             "thunder_clap",
             "sweeping_strikes",
             "demoralizing_shout",
+            "battle_shout",
             "execute",
             "mortal_strike",
             "retaliation",

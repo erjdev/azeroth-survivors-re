@@ -49,6 +49,15 @@ pub(in crate::survivors) fn ability(def: &AbilityDef, a: &Cast, b: &Cast) -> Spa
     let cooldown = (a.cooldown, b.cooldown, " sec");
     let burst = def.duration <= 0.0;
     match def.kind {
+        Kind::WeaponBuff => {
+            prose!(
+                "Increases your weapon damage by ",
+                (a.weapon_bonus * 100.0, b.weapon_bonus * 100.0, "%"),
+                " for ",
+                duration,
+                ". Only weapon attacks benefit; refreshes without stacking"
+            );
+        }
         Kind::Bolt | Kind::Strike | Kind::Melee => {
             let toughest = matches!(
                 def.key,

@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Battle Shout
+
+Warriors can acquire Battle Shout: +10% weapon damage for 8 seconds, recharging
+in 20 seconds before rank/gear modifiers. Improved Battle Shout increases its
+buff strength by 5% per talent rank. Casting is required; refreshes do not stack.
+Cards show strength, duration and recharge upgrades inline in green.
+
+![Improved Battle Shout purchased and saved](images/screenshots/2026-10-28-battle-shout/trained.png)
+
+![Trained Battle Shout acquisition and upgrade cards](images/screenshots/2026-10-28-battle-shout/cards.png)
+
+241 core tests, 470 feature-enabled app tests and core/app Clippy pass.
+Native purchase/save and card previews verified at 1600×900 and 1280×720.
+Definition coverage: 281/432 talents (Warrior: 42/52). Full integration is
+running; Windows and live balance remain open.
+
 ## 2026-10-28 — Roomier talent trees
 
 Talent trees now have 14% more vertical row spacing and 10% larger icons.

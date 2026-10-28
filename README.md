@@ -82,7 +82,7 @@ green inline upgrade values. Purchase and compact captures are in the [changelog
 <table>
   <tr>
     <td width="50%"><strong>Options</strong><br><img src="docs/images/screenshots/2026-10-27-menu-options/after.png" alt="Options"><br>2026-10-27 · Starter Options retains the landscape; shown at 800×600 and 125% UI size.</td>
-    <td width="50%"><strong>Spell and passive upgrades</strong><br><img src="docs/images/screenshots/2026-10-27-insect-swarm/cards.png" alt="Spell and passive upgrades"><br>2026-10-27 · Trained Insect Swarm: inline rank upgrades and fixed damage-reduction debuff.</td>
+    <td width="50%"><strong>Spell and passive upgrades</strong><br><img src="docs/images/screenshots/2026-10-28-battle-shout/cards.png" alt="Spell and passive upgrades"><br>2026-10-28 · Trained Battle Shout: inline buff strength, duration and recharge upgrades.</td>
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>

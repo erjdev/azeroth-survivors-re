@@ -8396,3 +8396,37 @@ tests 90s, doc links 58s, render-pass lint 1s and player-build tests 232s. Both
 data-backed runs skipped 31 unavailable addon-corpus tests (24 vanilla, 7 Quiver).
 This supersedes the pending Hamstring full-gate note. Windows, live balance and
 the overall seven-phase acceptance contract remain open.
+
+## Battle Shout implementation scope — 2026-10-28
+
+Source: checkout Talent.dbc node 154, Fury row 2 column 3, five ranks. Spell.dbc
+12318/12857/12858/12860/12861 increase Battle Shout's attack-power bonus by
+5/10/15/20/25%. Spell 6673 rank one has base points 14 + die side 1 = 15 attack
+power and duration row 4 = 120,000 ms. Survivors has no attack-power/party system.
+
+Authored Survivors rules: acquire Battle Shout from the Warrior ability pool.
+It grants +10% weapon damage for 8 seconds, with a 20-second recharge. Existing
+ability ranks scale strength (+30% of base per rank), duration (+10% of base per
+rank), and recharge (×0.93 per rank). Improved Battle Shout multiplies its strength
+by 1 + 0.05 × capped talent rank. This is a self-only percentage-damage conversion,
+not vanilla party attack power. Global damage, crit, area and extra targets do
+not amplify the buff's percentage. Booming Voice currently remains explicitly
+scoped to Demoralizing Shout's radius; further duration adaptation remains open.
+
+Self buffs resolve before offensive casts so acquisition order cannot alter
+same-frame damage. Recasts refresh without stacking. Shared scoped stats apply
+the active bonus once to Cleave, Heroic Strike, Whirlwind, Sweeping Strikes,
+Execute, Mortal Strike and Retaliation. Shouts and independent periodic/generated
+sources receive no second multiplier; derived bleed/extra-strike snapshots keep
+their existing originating-hit rules. Shared cast parameters drive weapon tooltips
+and cards as well as emitted damage. Run time controls expiry; new runs reset it.
+
+Acceptance: acquisition/class pool, rank scaling, activation without enemies,
+independent spell ordering, refresh/nonstacking, expiry/pauses/death/reset, scoped
+weapon damage, magnitude/crit isolation, talent composition, save/spec/refund,
+green inline ability/talent previews and active HUD status. Capture seeded native
+purchase and card screens for the changelog and README. Full native integration,
+Windows and live balance remain separate requirements. 241 core tests and 470 feature-enabled app tests pass, as do core/app Clippy.
+Native purchase 4→5, point deduction and saved rank verified at 1600×900;
+trained new/upgrade cards verified at 1280×720 with green inline values.
+Full integration is running; Windows and live balance remain open.

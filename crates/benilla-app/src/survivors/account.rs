@@ -3922,6 +3922,59 @@ mod tests {
     }
 
     #[test]
+    fn battle_shout_purchase_save_spec_and_refund_reach_buff_strength() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(0);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(1, 158, 5), (1, 157, 5)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(0, hero);
+        let strength = |account: &Account| {
+            account
+                .milestones_picked(0, Some(hero))
+                .battle_shout_multiplier()
+        };
+        assert_eq!(strength(&account), 1.0);
+        for rank in 1..=5 {
+            assert!(account.learn_talent(hero, 1, 154, 5, 2, true));
+            assert!((strength(&account) - (1.0 + 0.05 * rank as f32)).abs() < 0.00001);
+        }
+        assert!(!account.learn_talent(hero, 1, 154, 5, 2, true));
+        assert!((account.bonus(0, hero).might - before.might).abs() < 0.00001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(strength(&loaded), strength(&account));
+        loaded.select_spec(hero, 1);
+        assert_eq!(strength(&loaded), 1.0);
+        loaded.select_spec(hero, 0);
+        for rank in (0..5).rev() {
+            assert!(loaded.unlearn_talent(hero, 154, true));
+            assert!((strength(&loaded) - (1.0 + 0.05 * rank as f32)).abs() < 0.00001);
+        }
+        assert!(!loaded.unlearn_talent(hero, 154, true));
+        assert_eq!(
+            loaded
+                .milestones_picked(0, Some(u32::MAX))
+                .battle_shout_multiplier(),
+            1.0
+        );
+    }
+
+    #[test]
     fn hamstring_purchase_save_spec_and_refund_reach_hit_rules() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

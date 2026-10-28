@@ -1908,6 +1908,14 @@ fn reactive_buff_status(run: &Run) -> String {
             run.ancestral_healing_t.ceil()
         ));
     }
+    let shout_remaining = run.battle_shout.remaining(run.elapsed);
+    if run.alive() && shout_remaining > 0.0 {
+        active.push(format!(
+            "Battle Shout +{} weapon damage ({:.0}s)",
+            pct(run.battle_shout.bonus("cleave", run.elapsed)),
+            shout_remaining.ceil()
+        ));
+    }
     let enrage = run.milestones.enrage_damage(run.enrage_t > 0.0) - 1.0;
     if enrage > 0.0 {
         active.push(format!(
@@ -2623,6 +2631,9 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
         _ => "damage",
     };
     let mut gains = Vec::new();
+    if def.kind == Kind::WeaponBuff {
+        gains.push(format!("{} weapon damage bonus", pct(next.weapon_bonus)));
+    }
     if next.dmg > 0.0 && def.kind != Kind::Dot && def.kind != Kind::Immune {
         gains.push(format!("{} {what}", num(next.dmg)));
     }
@@ -2813,7 +2824,7 @@ fn ability_tip(
     }
     if !matches!(
         def.kind,
-        Kind::Shield | Kind::Immune | Kind::Heal | Kind::Dot
+        Kind::Shield | Kind::Immune | Kind::Heal | Kind::Dot | Kind::WeaponBuff
     ) {
         lines.push(TipLine::new(
             format!(
