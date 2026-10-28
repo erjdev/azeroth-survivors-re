@@ -1376,68 +1376,6 @@ pub(super) fn apply_hits(
     let now = run.elapsed;
     let due = pending.drain_due(now, incoming.read().cloned());
 
-    // Splash reaches the target's neighbours at seventy percent.
-    let mut all = Vec::with_capacity(due.len());
-    for h in due {
-        if !enemies
-            .get(h.target)
-            .is_ok_and(|(_, _, _, en, ..)| !en.dead)
-        {
-            continue;
-        }
-        // Hamstring's conversion rolls once per original Thunder Clap victim, before splash.
-        let root = if run.alive() {
-            run.milestones.hamstring_root_chance(h.source, h.damage)
-        } else {
-            0.0
-        };
-        if root > 0.0 && rng.f32() < root {
-            if let Ok((_, _, _, mut en, ..)) = enemies.get_mut(h.target) {
-                en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
-            }
-        }
-        // Only the original weapon hit may stun; splash copies below never roll this proc.
-        let mace = if run.alive() {
-            run.milestones.mace_stun_chance(h.source, h.damage)
-        } else {
-            0.0
-        };
-        if mace > 0.0 && rng.f32() < mace {
-            if let Ok((_, _, _, mut en, ..)) = enemies.get_mut(h.target) {
-                en.stun_t = en.stun_t.max(if en.boss { 0.9 } else { 3.0 });
-            }
-        }
-        // Only original landed hits roll. Splash copies and generated strikes never recurse.
-        let sword =
-            if run.alive() && run.milestones.sword_extra_attack_chance(h.source, h.damage) > 0.0 {
-                sword_extra_hit(&h, run.milestones, rng.f32())
-            } else {
-                None
-            };
-        if h.splash > 0.0 {
-            if let Ok((_, _, center, ..)) = enemies.get(h.target) {
-                let c = center.translation;
-                for (e, _, tf, en, ..) in enemies.iter() {
-                    if e != h.target && !en.dead && flat(tf.translation - c).length() <= h.splash {
-                        all.push((
-                            Hit {
-                                target: e,
-                                damage: h.damage * 0.7,
-                                ranged_power_scale: h.ranged_power_scale * 0.7,
-                                splash: 0.0,
-                                mark: 0,
-                                ..h.clone()
-                            },
-                            false,
-                        ));
-                    }
-                }
-            }
-        }
-        all.push((Hit { splash: 0.0, ..h }, true));
-        all.extend(sword.map(|hit| (hit, false)));
-    }
-
     let mut kill = |commands: &mut Commands,
                     run: &mut Run,
                     account: &mut super::account::Account,
@@ -1539,7 +1477,85 @@ pub(super) fn apply_hits(
     // Apply new stacks after advancing existing clocks: a fresh coating must not
     // inherit time elapsed before this frame's weapon hit.
     let mut poison_applications = Vec::new();
-    for (h, original) in all {
+    enum Step {
+        Expand(Hit),
+        Settle(Hit, bool),
+    }
+    let mut steps: std::collections::VecDeque<_> = due.into_iter().map(Step::Expand).collect();
+    let mut expanded = Vec::new();
+    while let Some(step) = steps.pop_front() {
+        let (h, original) = match step {
+            Step::Expand(h) => {
+                // Earlier hits have settled before this target's eligibility and proc rolls.
+                if !enemies
+                    .get(h.target)
+                    .is_ok_and(|(_, _, _, en, ..)| !en.dead)
+                {
+                    continue;
+                }
+                // Hamstring's conversion rolls once per original Thunder Clap victim, before splash.
+                let root = if run.alive() {
+                    run.milestones.hamstring_root_chance(h.source, h.damage)
+                } else {
+                    0.0
+                };
+                if root > 0.0 && rng.f32() < root {
+                    if let Ok((_, _, _, mut en, ..)) = enemies.get_mut(h.target) {
+                        en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
+                    }
+                }
+                // Only the original weapon hit may stun; splash copies below never roll this proc.
+                let mace = if run.alive() {
+                    run.milestones.mace_stun_chance(h.source, h.damage)
+                } else {
+                    0.0
+                };
+                if mace > 0.0 && rng.f32() < mace {
+                    if let Ok((_, _, _, mut en, ..)) = enemies.get_mut(h.target) {
+                        en.stun_t = en.stun_t.max(if en.boss { 0.9 } else { 3.0 });
+                    }
+                }
+                // Only original landed hits roll. Splash copies and generated strikes never recurse.
+                let sword = if run.alive()
+                    && run.milestones.sword_extra_attack_chance(h.source, h.damage) > 0.0
+                {
+                    sword_extra_hit(&h, run.milestones, rng.f32())
+                } else {
+                    None
+                };
+                if h.splash > 0.0 {
+                    if let Ok((_, _, center, ..)) = enemies.get(h.target) {
+                        let c = center.translation;
+                        for (e, _, tf, en, ..) in enemies.iter() {
+                            if e != h.target
+                                && !en.dead
+                                && flat(tf.translation - c).length() <= h.splash
+                            {
+                                expanded.push((
+                                    Hit {
+                                        target: e,
+                                        damage: h.damage * 0.7,
+                                        ranged_power_scale: h.ranged_power_scale * 0.7,
+                                        splash: 0.0,
+                                        mark: 0,
+                                        ..h.clone()
+                                    },
+                                    false,
+                                ));
+                            }
+                        }
+                    }
+                }
+                expanded.push((Hit { splash: 0.0, ..h }, true));
+                expanded.extend(sword.map(|hit| (hit, false)));
+
+                for (hit, original) in expanded.drain(..).rev() {
+                    steps.push_front(Step::Settle(hit, original));
+                }
+                continue;
+            }
+            Step::Settle(hit, original) => (hit, original),
+        };
         let Ok((e, guid, tf, mut en, mut store, mut marks)) = enemies.get_mut(h.target) else {
             continue;
         };

@@ -85,10 +85,18 @@ inherit the parent time. All 540 app tests pass, including a fine-frame/batched 
 the native build passed in 2m01s. Feature Clippy and six-package scoped checks pass
 with 31 missing-addon skips. Full pre-merge gates remain required.
 
-The shared consumer still expands proc/splash work before damage settlement and
-handles periodic effects separately, while enemy debuff timers are advanced by
-a separate system. Sorting direct hits does not reconstruct which vulnerability
-was active at an earlier tick or complete ordering across all effect types.
+The shared consumer now prepares proc/splash work only when its original hit
+reaches the front of the ordered queue. Earlier deaths therefore prevent later
+hits from preparing splash damage or control procs; generated children settle
+before advancing to the next original hit. All 541 app tests pass, including a
+fine-frame/batched splash-and-root regression. Native build passed in 1m04s;
+the final buffer-reuse implementation passes all 541 app tests. Feature Clippy
+and six-package scoped checks pass (31 missing-addon skips).
+
+Periodic effects still settle separately, while enemy debuff timers are advanced
+by a separate system. Sorting direct hits and their children does not reconstruct
+which vulnerability was active at an earlier tick or complete ordering across
+all effect types.
 
 Complete this as a shared damage-timeline change: preserve occurrence times for
 all queued damage, order simultaneous/catch-up events deterministically, and

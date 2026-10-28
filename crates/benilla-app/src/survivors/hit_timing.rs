@@ -113,4 +113,69 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn a_later_hit_on_a_dead_target_cannot_prepare_splash_or_control_procs() {
+        use super::super::{enemies::Enemy, units::Marks, Run};
+        use crate::net::{Guid, ObjectStore};
+        for batched in [false, true] {
+            let (mut app, target, mut settle) =
+                super::super::abilities::poison_tests::fixture("thunder_clap", 30.0);
+            let (mut donor, donor_target, _) =
+                super::super::abilities::poison_tests::fixture("thunder_clap", 1000.0);
+            let (mut guid, mut transform, store, marks, enemy) = donor
+                .world_mut()
+                .entity_mut(donor_target)
+                .take::<(Guid, Transform, ObjectStore, Marks, Enemy)>()
+                .unwrap();
+            guid.0 = 456;
+            transform.translation = Vec3::X;
+            let neighbor = app
+                .world_mut()
+                .spawn((guid, transform, store, marks, enemy))
+                .id();
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.class = &super::super::data::CLASSES[0];
+                run.milestones = survivors_core::talents::Milestones {
+                    class: 0,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 129, 3)]);
+            }
+            app.world_mut().resource_mut::<PendingHits>().0.push((
+                1.0,
+                Hit {
+                    source: "mind_blast",
+                    ..Hit::direct(target, 50.0, false)
+                },
+            ));
+            if !batched {
+                app.world_mut().resource_mut::<Run>().elapsed = 1.0;
+                settle.run(app.world_mut());
+            }
+            app.world_mut().write_message(Hit {
+                occurred: Some(2.0),
+                source: "thunder_clap",
+                splash: 4.0,
+                ..Hit::direct(target, 25.0, false)
+            });
+            app.world_mut().resource_mut::<Run>().elapsed = 3.0;
+            settle.run(app.world_mut());
+            assert_eq!(
+                app.world().get::<Enemy>(neighbor).unwrap().hp,
+                1000.0,
+                "batched={batched}"
+            );
+            assert_eq!(
+                app.world().get::<Enemy>(target).unwrap().root_t,
+                0.0,
+                "batched={batched}"
+            );
+            assert_eq!(
+                app.world().resource::<Run>().damage_sources,
+                [("mind_blast", 50.0)]
+            );
+        }
+    }
 }
