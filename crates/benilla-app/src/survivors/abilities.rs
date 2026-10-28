@@ -2593,23 +2593,20 @@ mod milestone_tests {
     }
 
     #[test]
-    fn two_handed_training_changes_emitted_melee_hits_only() {
+    fn weapon_training_changes_emitted_melee_hits_only() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
         use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
-        let sample = |two_handed: bool, rank: u8| {
+        let sample = |kind, two_handed: bool, id, rank: u8, seed| {
             let mut app = App::new();
             let mut time = Time::<()>::default();
             time.advance_by(std::time::Duration::from_secs_f32(0.1));
             let mut run = Run {
                 milestones: Milestones {
-                    weapon: Some(MeleeWeapon {
-                        kind: MeleeKind::Sword,
-                        two_handed,
-                    }),
+                    weapon: Some(MeleeWeapon { kind, two_handed }),
                     ..Default::default()
                 }
-                .with_ranks(&[(0, 136, rank)]),
+                .with_ranks(&[(if id == 702 { 2 } else { 0 }, id, rank)]),
                 ..Default::default()
             };
             for key in [
@@ -2629,7 +2626,7 @@ mod milestone_tests {
             }
             app.insert_resource(time)
                 .insert_resource(run)
-                .insert_resource(Rng(42))
+                .insert_resource(Rng(seed))
                 .init_resource::<PlaySeq>()
                 .init_resource::<PendingHits>()
                 .add_message::<CastEvent>()
@@ -2674,16 +2671,42 @@ mod milestone_tests {
                 .map(|hit| (hit.source, hit.damage))
                 .collect::<Vec<_>>()
         };
-        let baseline = sample(true, 0);
-        assert!(!baseline.is_empty());
-        let trained = sample(true, 5);
-        assert_eq!(sample(false, 5), baseline);
-        assert_eq!(trained.len(), baseline.len());
-        for ((source, damage), (other, plain)) in trained.into_iter().zip(baseline) {
-            assert_eq!(source, other);
-            let factor = if source == "thunder_clap" { 1.0 } else { 1.05 };
-            assert!((damage - plain * factor).abs() < 0.0001, "{source}");
+        for (id, two_handed, factor) in [(136, true, 1.05), (702, false, 1.10)] {
+            let baseline = sample(MeleeKind::Sword, two_handed, id, 0, 42);
+            assert!(!baseline.is_empty());
+            let trained = sample(MeleeKind::Sword, two_handed, id, 5, 42);
+            assert_eq!(sample(MeleeKind::Sword, !two_handed, id, 5, 42), baseline);
+            assert_eq!(trained.len(), baseline.len());
+            for ((source, damage), (other, plain)) in trained.into_iter().zip(baseline) {
+                assert_eq!(source, other);
+                let factor = if source == "thunder_clap" {
+                    1.0
+                } else {
+                    factor
+                };
+                assert!((damage - plain * factor).abs() < 0.0001, "{source}");
+            }
         }
+        let mut extra_crits = 0;
+        for seed in 1..=128 {
+            let baseline = sample(MeleeKind::Axe, true, 132, 0, seed);
+            assert_eq!(sample(MeleeKind::Sword, true, 132, 5, seed), baseline);
+            let trained = sample(MeleeKind::Axe, true, 132, 5, seed);
+            assert_eq!(trained.len(), baseline.len());
+            for ((source, damage), (other, plain)) in trained.into_iter().zip(baseline) {
+                assert_eq!(source, other);
+                if source == "thunder_clap" {
+                    assert_eq!(damage, plain);
+                } else {
+                    assert!(damage >= plain);
+                    extra_crits += usize::from(damage > plain);
+                }
+            }
+        }
+        assert!(
+            extra_crits > 0,
+            "worn axe ranks must reach the actual critical roll"
+        );
     }
 
     #[test]

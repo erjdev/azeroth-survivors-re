@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Axe and one-handed weapon training
+
+Warriors gain up to +5 percentage points of axe critical chance or +10% one-handed
+weapon damage. Bonuses follow worn equipment, independently of appearances, and
+exclude Thunder Clap, shouts and separate bleed ticks.
+
+| Axe specialization | One-handed specialization |
+| --- | --- |
+| ![Axe before purchase](images/screenshots/2026-10-27-weapon-specializations/axe.png) | ![One-handed before purchase](images/screenshots/2026-10-27-weapon-specializations/one-handed.png) |
+| ![Axe rank purchased](images/screenshots/2026-10-27-weapon-specializations/axe-trained.png) | ![One-handed rank purchased](images/screenshots/2026-10-27-weapon-specializations/one-handed-trained.png) |
+
+Native 1600×900 purchases and saved specs verified; 230 core tests, 457 app tests
+(including emitted hits), and all-target app Clippy pass. Incremental build: 17s.
+Full integration for this batch, Windows visuals and live balance remain open.
+
 ## 2026-10-27 — Native integration checkpoint
 
 The full native gate chain passes after the equipment/talent snapshot changes:

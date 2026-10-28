@@ -3726,6 +3726,97 @@ mod tests {
     }
 
     #[test]
+    fn axe_and_one_handed_training_follow_saved_worn_equipment() {
+        for (id, tree, row, worn, cosmetic) in [(132, 0, 4, 0, 5), (702, 2, 5, 5, 0)] {
+            let data = benilla_formats::wow_data_or_skip!();
+            let mut chain = benilla_formats::Chain::open(&data).unwrap();
+            let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+            let mut app = App::new();
+            app.insert_resource(empty())
+                .insert_resource(crate::ui_talent::Talents { catalog })
+                .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+            app.update();
+            let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+            let rules = account.talent_rules.clone().unwrap();
+            let hero = account.ensure(0);
+            let character = account
+                .characters
+                .iter_mut()
+                .find(|c| c.id == hero)
+                .unwrap();
+            character.talent_xp = 5100;
+            character.dbc[0] = if id == 132 {
+                vec![
+                    (0, 124, 3),
+                    (0, 130, 5),
+                    (0, 127, 3),
+                    (0, 126, 2),
+                    (0, 128, 2),
+                    (0, 136, 5),
+                ]
+            } else {
+                vec![
+                    (2, 1601, 5),
+                    (2, 138, 5),
+                    (2, 140, 5),
+                    (2, 145, 3),
+                    (2, 147, 3),
+                    (2, 151, 3),
+                    (2, 152, 1),
+                ]
+            };
+            assert!(account.talents_valid(account.character(hero).unwrap()));
+            account.classes[0].pieces.fill(1);
+            let progress = &mut account.classes[0];
+            assert!(progress
+                .equipment
+                .wear_legacy(&progress.pieces, 8, Some(worn)));
+            let multiplier = |account: &Account| {
+                let effect = account.milestones_picked(0, Some(hero)).cast("cleave");
+                if id == 132 {
+                    effect.crit
+                } else {
+                    effect.damage
+                }
+            };
+            let expected = |base: f32, rank: f32| {
+                if id == 132 {
+                    base + 0.01 * rank
+                } else {
+                    base * (1.0 + 0.02 * rank)
+                }
+            };
+            let base = multiplier(&account);
+            for _ in 0..5 {
+                assert!(account.learn_talent(hero, tree, id, 5, row, true));
+            }
+            assert!(!account.learn_talent(hero, tree, id, 5, row, true));
+            assert!((multiplier(&account) - expected(base, 5.0)).abs() < 0.00001);
+            let progress = &mut account.classes[0];
+            assert!(progress.equipment.show_legacy(
+                &progress.pieces,
+                8,
+                survivors_core::equipment::Look::Piece(cosmetic)
+            ));
+            assert!((multiplier(&account) - expected(base, 5.0)).abs() < 0.00001);
+            let mut loaded = parse(&encode(&account)).unwrap();
+            loaded.talent_rules = Some(rules);
+            assert_eq!(multiplier(&loaded), multiplier(&account));
+            loaded.select_spec(hero, 1);
+            assert_eq!(multiplier(&loaded), if id == 132 { 0.0 } else { 1.0 });
+            loaded.select_spec(hero, 0);
+            assert!(loaded.unlearn_talent(hero, id, true));
+            assert!((multiplier(&loaded) - expected(base, 4.0)).abs() < 0.00001);
+            let progress = &mut loaded.classes[0];
+            assert!(progress
+                .equipment
+                .wear_legacy(&progress.pieces, 8, Some(cosmetic)));
+            assert_eq!(multiplier(&loaded), base);
+            assert_eq!(loaded.milestones_picked(0, Some(u32::MAX)).weapon, None);
+        }
+    }
+
+    #[test]
     fn blade_flurry_purchase_save_and_refund_reach_clock() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

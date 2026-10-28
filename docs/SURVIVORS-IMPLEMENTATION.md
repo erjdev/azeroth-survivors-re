@@ -877,7 +877,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
-| Warrior | 35 / 52 | 9 / 9 |
+| Warrior | 37 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
 | Rogue | 25 / 51 | 9 / 9 |
@@ -886,7 +886,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 274 / 432 | 81 / 81 |
+| Total | 276 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8111,3 +8111,21 @@ in 1,031 seconds, including workspace/no-install/player tests, Clippy and lints.
 The data/player stages each reported 31 missing-addon skips. Evidence and scope:
 [2026-10-27 integration](validation/2026-10-27-integration.md). This closes the
 post-snapshot native integration gap, not the broader platform/gameplay goal.
+
+### Axe / one-handed specialization checkpoint — 2026-10-27
+
+Warrior nodes 132 and 702 use the worn-weapon snapshot shared by run startup and
+selected-profile cards. Axe ranks add 1–5 percentage points of weapon-attack
+critical chance; one-handed ranks multiply weapon-attack damage by 1.02–1.10.
+Both exclude Thunder Clap, shouts and separate bleed ticks. The cast path retains
+its 100% total critical-chance cap. Rechecked checkout Spell.dbc base points
+(0–4 and 1/3/5/7/9).
+
+Verified: 230 core tests; 457 app tests including legal purchases, save/reload,
+spec switching, refunds, cosmetic isolation and actual emitted damage/critical
+rolls; all-target app Clippy. Native incremental build: 17s. Native 1600×900
+purchases show Axe 31→30 available points and One-Handed 26→25, green inline
+percentages and separate saved specs; both ranks persisted after Quit. Screenshots
+are embedded in CHANGELOG. Definitions match 276/432 selectable nodes (Warrior
+37/52); 156 still lack definitions. Full integration for this batch, Windows
+visuals, selected-profile card comparison and live balance remain open.
