@@ -16,7 +16,7 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
-![Hunter’s Mark inline upgrades](docs/images/screenshots/2026-10-28-hunters-mark/cards-wide.jpg)
+![Mind Flay inline upgrades](docs/images/screenshots/2026-10-28-mind-flay/cards-wide.jpg)
 
 ## Interface gallery
 
@@ -52,7 +52,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-27-scorpid-sting/codex.png" alt="Codex"><br>2026-10-27 · Scorpid Sting base values and its spell-specific amulet.<br><a href="docs/images/screenshots/2026-10-27-hunter-compact/codex.png">800×600 at 125%</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-28-hunters-mark/talents-wide.jpg" alt="Talents"><br>2026-10-28 · Hunter’s Mark training purchased and saved; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-28-hunters-mark/talents-640.jpg">640×720 layout</a> · <a href="docs/images/screenshots/2026-10-28-taller-talents/compact-bottom.png">Lower rows</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-28-mind-flay/talents-wide.jpg" alt="Talents"><br>2026-10-28 · Mind Flay unlock purchased and saved; talent catalog incomplete.<br><a href="docs/images/screenshots/2026-10-28-mind-flay/talents-640.jpg">640×720 layout</a> · <a href="docs/images/screenshots/2026-10-28-taller-talents/compact-bottom.png">Lower rows</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

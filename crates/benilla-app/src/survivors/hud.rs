@@ -1132,6 +1132,9 @@ fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
 }
 
 fn coating_available(run: &Run, def: &AbilityDef) -> bool {
+    if !run.milestones.ability_unlocked(def.key) {
+        return false;
+    }
     if def.kind == Kind::Aspect {
         return run.milestones.class == 2
             && run.abilities.len() < data::MAX_ABILITIES
@@ -2754,7 +2757,13 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
     if next.count != now.count
         && matches!(
             def.kind,
-            Kind::Bolt | Kind::Strike | Kind::Melee | Kind::Dot | Kind::Chain | Kind::Orbit
+            Kind::Channel
+                | Kind::Bolt
+                | Kind::Strike
+                | Kind::Melee
+                | Kind::Dot
+                | Kind::Chain
+                | Kind::Orbit
         )
     {
         gains.push(match def.kind {
@@ -3961,5 +3970,65 @@ mod poison_offer_tests {
                 assert!(body.contains("every 3 sec for 12 sec"));
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod mind_flay_tests {
+    use super::*;
+    #[test]
+    fn talent_unlock_controls_offers_and_acquisition_with_inline_tick_growth() {
+        let mut run = Run {
+            class: &data::CLASSES[4],
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let def = data::ability("mind_flay");
+        let mut rng = Rng(42);
+        assert!(!choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key)));
+        run.milestones = run.milestones.with_ranks(&[(2, 501, 1)]);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, "mind_flay");
+        let mut stats = run.stats();
+        let a = cast_at(def, 1, &stats, run.milestones);
+        let b = cast_at(def, 2, &stats, run.milestones);
+        assert!(inline::ability(def, &a, &b)
+            .iter()
+            .any(|(text, color)| text == "25 » 32.5 damage" && *color == card_growth::GAIN));
+        stats.targets = 2;
+        stats.crit = 1.0;
+        stats.haste = 1.0;
+        let boosted = cast_at(def, 1, &stats, run.milestones);
+        assert_eq!(
+            (
+                boosted.count,
+                boosted.duration,
+                boosted.crit,
+                boosted.cooldown
+            ),
+            (3, 3.0, 0.0, 3.0)
+        );
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(!coating_available(&run, def));
     }
 }

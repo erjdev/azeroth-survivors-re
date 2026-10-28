@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Acquired Mind Flay
+
+Priest training now unlocks Mind Flay in ability choices. Acquiring it adds a
+three-tick channel with fixed victims, independent slowing and green inline
+upgrades. Separate beam anchors connect each victim to the caster.
+
+279 core tests, 535 app tests and feature-enabled Clippy pass. Six-package scoped
+checks pass with 31 missing-addon skips; full pre-merge gates remain required. The final native
+incremental build took 14s. Native purchase/save and wide/compact previews are
+verified; definition coverage reaches 297/432 (Priest 30/47). Rendered combat
+beams, concurrent-cast pose and Windows acceptance remain open. Timing and
+obstructed-selection limits are tracked in the [audit](audits/MIND-FLAY.md).
+
+![Mind Flay upgrades at 1100×720](images/screenshots/2026-10-28-mind-flay/cards-wide.jpg)
+![Inline upgrades wrap at 640×720](images/screenshots/2026-10-28-mind-flay/cards-640.jpg)
+![Mind Flay purchased in the taller talent trees](images/screenshots/2026-10-28-mind-flay/talents-wide.jpg)
+![Narrow talent layout preserves icon size and spacing](images/screenshots/2026-10-28-mind-flay/talents-640.jpg)
+
 ## 2026-10-28 — Connected channel runtime
 
 Channels now check caster/target life, range, concealment and solid-world

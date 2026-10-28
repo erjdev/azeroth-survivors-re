@@ -12,6 +12,7 @@ mod auto;
 mod backdrop;
 mod camera;
 mod cards;
+mod channel_visuals;
 mod channeling;
 mod companions;
 mod defense;
@@ -108,6 +109,12 @@ impl Plugin for SurvivorsPlugin {
             .init_resource::<stash::Stash>()
             .init_resource::<account::Account>()
             .add_systems(PreUpdate, talent_validation::load_rules)
+            .add_systems(
+                Update,
+                channel_visuals::sync
+                    .after(abilities::cast_abilities)
+                    .after(channeling::tick),
+            )
             .init_resource::<armory::Armory>()
             .init_resource::<armory::TalentScrollMemory>()
             .add_systems(

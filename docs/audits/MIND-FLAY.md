@@ -1,7 +1,25 @@
 # Mind Flay implementation — 2026-10-28
 
-Priest node 501 remains pending. The current Priest pool has no channelled attack;
-an ordinary damage-over-time application does not establish a channel lifecycle.
+Priest node 501 now has a local acquisition unlock and channelled attack implementation.
+Native talent purchase/save and wide/compact UI previews are verified. Rendered
+combat acceptance remains open; this document is not a completion claim.
+
+## Current acquired implementation
+
+The talent unlocks Mind Flay in ability choices; it does not fill a slot until the
+player acquires it. The authored Survivors base is 25 Shadow damage per tick,
+three one-second ticks, 20-yard range and four-second recovery. Standard ability
+ranks add 30% of base damage per rank; recovery cannot fall below the three-second
+channel. Ticks do not crit. Extra single targets follow the existing rank and
++target rules. Movement and other automatic abilities are allowed; a channel
+cannot overlap itself or replace lost victims mid-cast.
+
+Shadow Focus, Shadow Reach and the existing Priest Shadow talent paths include
+Mind Flay. The card shows inline green tick-damage growth. Independent beam-only
+anchors use the installed channel kit without replaying its sound per victim;
+the hero owns the pose and sound. Pause preserves anchors; run exit reaps them.
+Installed `benilla-extract ... spellvis 15407` evidence: visual 277, channel kit
+430, animation 124, sound 3012, persistent chain effect 4, ManaBeam texture.
 
 ## Installed evidence
 
@@ -34,13 +52,22 @@ The runtime channel adapter now consumes this state before enemy movement,
 checks caster/target life, range, concealment and solid-world obstruction, and
 emits non-critical damage pulses. A separate channel slow composes with timed
 snares without overwriting them. Run reset clears channels.
-Acquisition, talent, offer and visual acceptance remain open. The runtime currently
-settles catch-up damage using the existing hit pipeline time; although the core
-retains scheduled timestamps, historical timed-modifier settlement is not integrated.
-All 532 Survivors app tests pass, including the runtime system with wall, range,
-concealment and missing-caster interruptions. The final native build passed in 58s.
-Feature-enabled Clippy and six-package scoped checks pass (31 missing-addon skips).
-Coverage remains 296/432. This is not a completed Mind Flay implementation.
+Acquisition, talent and visual code are wired. The runtime currently settles
+catch-up damage using the existing hit pipeline time; historical timed-modifier
+settlement is not integrated. Initial selection checks range and concealment;
+solid-world interruption is evaluated on the next channel update, so an obstructed
+selection can spend a cooldown without damage.
+
+All 535 Survivors app tests pass, including acquisition gating, no immediate hit,
+no overlapping cast, inline upgrades and independent beam lifecycle. Feature-enabled
+Clippy and six-package scoped checks pass, with 31 missing-addon skips. Full
+pre-merge gates remain required. Final incremental native build took 14 seconds. The isolated Priest
+profile purchased node 501 through the UI and persisted `2:501:1`; native captures
+cover 1100×720 and 640×720 talent/card layouts. Definition coverage is 297/432
+(Priest 30/47). Screenshots are embedded in the changelog.
+
+The independent anchors and channel fields are tested, but their rendered beams,
+pose during other autocasts, sounds and attended Windows gameplay remain unverified.
 
 ## Runtime and interface acceptance
 

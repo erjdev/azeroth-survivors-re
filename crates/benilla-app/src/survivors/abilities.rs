@@ -219,7 +219,10 @@ impl Params {
             },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
-            duration: if matches!(o.def.kind, Kind::Mark | Kind::Coating(_) | Kind::Aspect) {
+            duration: if matches!(
+                o.def.kind,
+                Kind::Channel | Kind::Mark | Kind::Coating(_) | Kind::Aspect
+            ) {
                 o.def.duration
             } else {
                 o.duration() * effect.duration
@@ -230,14 +233,19 @@ impl Params {
                     .effect
                     .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
             ),
-            cooldown: if o.def.kind == Kind::Mark {
+            cooldown: if o.def.kind == Kind::Channel {
+                (o.cooldown(stats) * effect.cooldown).max(o.def.duration)
+            } else if o.def.kind == Kind::Mark {
                 super::sheet::cooldown_time(o.def.cooldown, stats.haste, stats.cooldown)
             } else if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
                 0.0
             } else {
                 o.cooldown(stats) * effect.cooldown
             },
-            crit: if matches!(o.def.kind, Kind::Mark | Kind::Coating(_) | Kind::Aspect) {
+            crit: if matches!(
+                o.def.kind,
+                Kind::Channel | Kind::Mark | Kind::Coating(_) | Kind::Aspect
+            ) {
                 0.0
             } else {
                 (stats.crit + effect.crit).min(1.0)
@@ -404,6 +412,7 @@ pub(super) fn cast_abilities(
     marks: Query<(Entity, &super::marking::Marked)>,
     mut fx: Fx,
     mut pending: ResMut<PendingHits>,
+    mut channels: Option<ResMut<super::channeling::Channels>>,
     mut hits: MessageWriter<Hit>,
 ) {
     let dt = time.delta_secs();
@@ -472,7 +481,8 @@ pub(super) fn cast_abilities(
         if matches!(
             run.abilities[i].def.kind,
             Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect
-        ) || !run.abilities[i].def.usable_with(run.milestones.weapon)
+        ) || !run.milestones.ability_unlocked(run.abilities[i].def.key)
+            || !run.abilities[i].def.usable_with(run.milestones.weapon)
         {
             continue;
         }
@@ -517,6 +527,35 @@ pub(super) fn cast_abilities(
         .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
+            Kind::Channel => {
+                let Some(channels) = channels.as_mut() else {
+                    continue;
+                };
+                if channels
+                    .active
+                    .iter()
+                    .any(|channel| channel.caster == me && channel.source == def.key)
+                {
+                    false
+                } else {
+                    let targets = entities(&nearest(&visible, p.range, p.count));
+                    if let Some(clock) = survivors_core::channel::Channel::new(targets, now, 1.0, 3)
+                    {
+                        channels.active.push(super::channeling::ActiveChannel {
+                            caster: me,
+                            clock,
+                            damage: p.dmg,
+                            range: p.range,
+                            slow: 0.5,
+                            source: def.key,
+                        });
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+
             Kind::Mark => {
                 let targets = toughest(&visible, p.range, p.count);
                 if targets.is_empty() {
@@ -9047,7 +9086,14 @@ mod milestone_tests {
         let cases: &[AccuracyCase] = &[
             (2, 2, 1322, 2, 0.05, &["explosive_trap"]),
             (6, 0, 74, 2, 0.05, &["arcane_missiles", "arcane_explosion"]),
-            (4, 2, 463, 5, 0.02, &["mind_blast", "shadow_word_pain"]),
+            (
+                4,
+                2,
+                463,
+                5,
+                0.02,
+                &["mind_blast", "mind_flay", "shadow_word_pain"],
+            ),
             (
                 5,
                 2,

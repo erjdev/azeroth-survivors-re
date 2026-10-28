@@ -94,6 +94,7 @@ pub(in crate::survivors) fn legend_effect(
                 | Kind::Shield
                 | Kind::Immune
                 | Kind::Thorns
+                | Kind::Channel
                 | Kind::Dot
                 | Kind::WeaponBuff
                 | Kind::Aspect
@@ -179,7 +180,8 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
     change("Cooldown", a.cooldown, b.cooldown, "s");
     if matches!(
         def.kind,
-        Kind::Mark
+        Kind::Channel
+            | Kind::Mark
             | Kind::Bolt
             | Kind::Strike
             | Kind::Melee

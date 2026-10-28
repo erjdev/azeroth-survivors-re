@@ -38,6 +38,8 @@ impl ClassDef {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Kind {
+    /// Fixed connected victims, one pulse per second for three seconds.
+    Channel,
     /// Caster-owned ranged vulnerability and tracking; never emits a damage hit.
     Mark,
     /// Run-long Hunter aspect; only one aspect may be acquired per run.
@@ -427,6 +429,16 @@ pub static ABILITIES: &[AbilityDef] = &[
     AbilityDef {
         ..ab("aspect_of_the_monkey", 13163, Kind::Aspect)
     },
+    ability!(
+        "mind_flay",
+        15407,
+        Channel {
+            damage: 25.0,
+            cooldown: 4.0,
+            range: 20.0,
+            duration: 3.0
+        }
+    ),
     // --- Rogue ---
     AbilityDef {
         damage: 22.0,
@@ -1268,6 +1280,7 @@ pub static CLASSES: &[ClassDef] = &[
             "shadow_word_pain",
             "holy_fire",
             "mind_blast",
+            "mind_flay",
             "holy_nova",
             "psychic_scream",
             "power_word_shield",

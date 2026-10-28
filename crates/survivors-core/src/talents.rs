@@ -185,6 +185,11 @@ impl Milestones {
         self
     }
 
+    pub fn ability_unlocked(self, key: &str) -> bool {
+        key != "mind_flay"
+            || (self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("mind_flay")) > 0.0)
+    }
+
     fn paladin(self, tree: usize, threshold: u32) -> bool {
         self.class == 1 && self.points[tree] >= threshold
     }
@@ -447,7 +452,9 @@ impl Milestones {
                             effect.radius *= 1.0 + value;
                         }
                     }
-                    TalentStat::ShadowReach if matches!(key, "shadow_word_pain" | "mind_blast") => {
+                    TalentStat::ShadowReach
+                        if matches!(key, "shadow_word_pain" | "mind_blast" | "mind_flay") =>
+                    {
                         effect.range *= 1.0 + value;
                     }
                     TalentStat::ArcaneInstability
@@ -1641,6 +1648,7 @@ pub struct TalentDefinition {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
+    AbilityUnlock(&'static str),
     MonkeyDodge,
     HunterMarkPower,
     CreatureDamage { mask: u32, critical: bool },
@@ -1862,6 +1870,13 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if matches!(self.stat, TalentStat::AbilityUnlock(_)) {
+            let start = self.description.find(self.name)?;
+            return Some((
+                self.description.to_owned(),
+                std::iter::once(start..start + self.name.len()).collect(),
+            ));
+        }
         if self.stat == TalentStat::WeaponExpertise {
             let rank = rank.min(self.max_rank);
             let (prefix, suffix) = self.description.split_once("+3–5% direct damage")?;
@@ -1975,7 +1990,8 @@ impl TalentDefinition {
             return Some((text, vec![duration, strength]));
         }
         let (scale, unit) = match self.stat {
-            TalentStat::Health
+            TalentStat::AbilityUnlock(_)
+            | TalentStat::Health
             | TalentStat::Armor
             | TalentStat::AncestralHealingArmor
             | TalentStat::FlatAbsorption
@@ -2179,6 +2195,13 @@ impl TalentDefinition {
 
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
+        if matches!(self.stat, TalentStat::AbilityUnlock(_)) {
+            return if rank == 0 {
+                format!("Unlock {} for acquisition", self.name)
+            } else {
+                format!("{} available for acquisition", self.name)
+            };
+        }
         let rank = rank.min(self.max_rank);
         if self.stat == TalentStat::WeaponExpertise {
             let current = weapon_expertise_percent(rank);
@@ -2297,6 +2320,7 @@ impl TalentDefinition {
             TalentStat::PetWrath => (1.0, " upgraded Bestial Wrath window"),
             TalentStat::PetIntimidation => (1.0, " empowered bite every 60 sec"),
             TalentStat::PetRecovery => (100.0, "% shorter combat wolf recovery"),
+            TalentStat::AbilityUnlock(_) => (1.0, " ability unlocked"),
             TalentStat::SpiritBond => (100.0, "% maximum health restored every 10 sec"),
             TalentStat::PetHealth => (100.0, "% combat wolf maximum health"),
             TalentStat::PetDamage => (100.0, "% combat wolf bite damage"),
@@ -2375,7 +2399,7 @@ impl TalentDefinition {
             TalentStat::FlameThrowing => (100.0, "% fire spell targeting range"),
             TalentStat::ArcticReach => (100.0, "% frost targeting range / Nova and Cone radius"),
             TalentStat::HolyReach => (100.0, "% Smite/Holy Fire range and Holy Nova radius"),
-            TalentStat::ShadowReach => (100.0, "% Shadow Word: Pain/Mind Blast range"),
+            TalentStat::ShadowReach => (100.0, "% Shadow Word: Pain/Mind Blast/Mind Flay range"),
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
@@ -3595,15 +3619,25 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
 
 const PRIEST_HOLY: &[&str] = &["smite", "holy_fire", "holy_nova"];
 const PRIEST_CAST_HOLY: &[&str] = &["smite", "holy_fire"];
-const PRIEST_SHADOW: &[&str] = &["shadow_word_pain", "mind_blast", "psychic_scream"];
+const PRIEST_SHADOW: &[&str] = &[
+    "shadow_word_pain",
+    "mind_blast",
+    "mind_flay",
+    "psychic_scream",
+];
 
 // Vanilla identities and rank caps; automatic-cast conversions are labeled in descriptions.
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 501, max_rank: 1, name: "Mind Flay",
+        description: "Unlocks Mind Flay in ability choices. Acquire it during the run to channel Shadow damage and slow connected enemies. Does not occupy an ability slot until acquired",
+        stat: TalentStat::AbilityUnlock("mind_flay"), per_rank: 1.0,
+    },
+    TalentDefinition {
         id: 463, max_rank: 5, name: "Shadow Focus",
-        description: "Mind Blast and Shadow Word: Pain: +2% direct and periodic damage per rank. Excludes Holy spells, Psychic Scream and other-class abilities (Survivors hit-chance conversion)",
-        stat: TalentStat::SpellGroupDamage(&["mind_blast", "shadow_word_pain"]), per_rank: 0.02,
+        description: "Mind Blast, Mind Flay and Shadow Word: Pain: +2% direct and periodic damage per rank. Excludes Holy spells, Psychic Scream and other-class abilities (Survivors hit-chance conversion)",
+        stat: TalentStat::SpellGroupDamage(&["mind_blast", "mind_flay", "shadow_word_pain"]), per_rank: 0.02,
     },
     TalentDefinition {
         id: 361, max_rank: 3, name: "Inspiration",
@@ -3692,7 +3726,7 @@ const PRIEST_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 881, max_rank: 3, name: "Shadow Reach",
-        description: "Shadow Word: Pain and Mind Blast: +6.67% casting range per rank (20% at rank 3); does not enlarge Psychic Scream or add targets",
+        description: "Shadow Word: Pain, Mind Blast and Mind Flay: +6.67% casting range per rank (20% at rank 3); does not enlarge Psychic Scream or add targets",
         stat: TalentStat::ShadowReach, per_rank: 0.20 / 3.0,
     },
     TalentDefinition {
@@ -3801,6 +3835,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::PetCrit
             | TalentStat::PetFrenzy
             | TalentStat::Preparation
+            | TalentStat::AbilityUnlock(_)
             | TalentStat::ColdSnap
             | TalentStat::PetMend
             | TalentStat::PetCooldown
@@ -4065,7 +4100,14 @@ mod stat_talent_tests {
         let cases: &[AccuracyCase] = &[
             (2, 2, 1322, 2, 0.05, &["explosive_trap"]),
             (6, 0, 74, 2, 0.05, MAGE_ARCANE),
-            (4, 2, 463, 5, 0.02, &["mind_blast", "shadow_word_pain"]),
+            (
+                4,
+                2,
+                463,
+                5,
+                0.02,
+                &["mind_blast", "mind_flay", "shadow_word_pain"],
+            ),
             (
                 5,
                 2,
@@ -4438,7 +4480,8 @@ mod stat_talent_tests {
                     let effect = trained.cast(key);
                     let amount = if id == 1635 { 0.1 } else { 0.2 / 3.0 } * f32::from(rank);
                     let range = if (id == 1635 && PRIEST_CAST_HOLY.contains(&key))
-                        || (id == 881 && matches!(key, "shadow_word_pain" | "mind_blast"))
+                        || (id == 881
+                            && matches!(key, "shadow_word_pain" | "mind_blast" | "mind_flay"))
                     {
                         1.0 + amount
                     } else {
@@ -4630,6 +4673,12 @@ mod stat_talent_tests {
         assert_eq!(armor.inline_description(255).unwrap(), "+30 armor");
         for node in (0..9).flat_map(definitions) {
             if let Some(text) = node.inline_description(0) {
+                if matches!(node.stat, TalentStat::AbilityUnlock(_)) {
+                    assert!(text.starts_with("Unlocks "));
+                    let (rich, ranges) = node.inline_description_with_values(0).unwrap();
+                    assert_eq!(&rich[ranges[0].clone()], node.name);
+                    continue;
+                }
                 assert!(text.contains(" » "), "{}", node.name);
                 assert!(!text.contains("per rank"));
                 assert!(!text.contains("This talent:"));
@@ -4709,7 +4758,14 @@ mod stat_talent_tests {
         );
         for node in (0..9).flat_map(definitions) {
             assert!(!node.rank_preview(node.max_rank).contains("next rank"));
-            assert!(node.rank_preview(0).contains("next rank"));
+            if matches!(node.stat, TalentStat::AbilityUnlock(_)) {
+                assert!(node.rank_preview(0).starts_with("Unlock "));
+                assert!(node
+                    .rank_preview(node.max_rank)
+                    .contains("available for acquisition"));
+            } else {
+                assert!(node.rank_preview(0).contains("next rank"));
+            }
         }
     }
 
@@ -5312,6 +5368,7 @@ mod stat_talent_tests {
                     | TalentStat::PetCrit
                     | TalentStat::PetFrenzy
                     | TalentStat::Preparation
+                    | TalentStat::AbilityUnlock(_)
                     | TalentStat::ColdSnap
                     | TalentStat::PetMend
                     | TalentStat::PetCooldown

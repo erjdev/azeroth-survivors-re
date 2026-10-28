@@ -106,6 +106,55 @@ mod tests {
     }
 
     #[test]
+    fn acquired_channel_requires_training_and_never_overlaps_or_hits_immediately() {
+        use bevy::ecs::system::RunSystemOnce;
+        let (mut app, target, _) =
+            super::super::abilities::poison_tests::fixture("mind_flay", 1000.0);
+        app.init_resource::<Channels>();
+        app.world_mut()
+            .spawn((Hero { vy: 0.0, air: 0.0 }, Transform::default()));
+        app.world_mut()
+            .get_mut::<Transform>(target)
+            .unwrap()
+            .translation = Vec3::X * 4.0;
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_secs(1));
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.class = &super::super::data::CLASSES[4];
+            run.milestones = survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            };
+        }
+        app.world_mut()
+            .run_system_once(super::super::abilities::cast_abilities)
+            .unwrap();
+        assert!(app.world().resource::<Channels>().active.is_empty());
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.milestones = run.milestones.with_ranks(&[(2, 501, 1)]);
+            run.abilities[0].cd = 0.0;
+            run.bonus.crit = 1.0;
+        }
+        app.world_mut()
+            .run_system_once(super::super::abilities::cast_abilities)
+            .unwrap();
+        assert_eq!(app.world().resource::<Channels>().active.len(), 1);
+        assert_eq!(app.world().resource::<Messages<Hit>>().len(), 0);
+        assert_eq!(
+            app.world().resource::<Channels>().active[0].clock.targets(),
+            &[target]
+        );
+        app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.0;
+        app.world_mut()
+            .run_system_once(super::super::abilities::cast_abilities)
+            .unwrap();
+        assert_eq!(app.world().resource::<Channels>().active.len(), 1);
+    }
+
+    #[test]
     fn runtime_checks_range_concealment_and_walls_before_paying_damage() {
         use avian3d::prelude::*;
         use bevy::ecs::system::RunSystemOnce;

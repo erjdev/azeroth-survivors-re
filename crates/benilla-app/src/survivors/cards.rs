@@ -68,7 +68,7 @@ fn power(def: &data::AbilityDef) -> Option<f32> {
     let area = |r: f32| 1.0 + r * 0.6;
     let reach = match def.kind {
         Kind::Bolt | Kind::Strike => def.count as f32 + def.radius * 0.4,
-        Kind::Melee | Kind::Orbit => def.count as f32,
+        Kind::Channel | Kind::Melee | Kind::Orbit => def.count as f32,
         Kind::Nova | Kind::Cone | Kind::Ground | Kind::GroundSelf | Kind::Aura => area(def.radius),
         Kind::Chain => def.count as f32 + 1.0,
         Kind::Dot => def.count as f32,
@@ -79,7 +79,9 @@ fn power(def: &data::AbilityDef) -> Option<f32> {
     } else {
         def.dot * def.duration.max(1.0)
     };
-    let ticks = if matches!(def.kind, Kind::Ground | Kind::GroundSelf) && def.duration > 0.0 {
+    let ticks = if matches!(def.kind, Kind::Channel | Kind::Ground | Kind::GroundSelf)
+        && def.duration > 0.0
+    {
         def.duration
     } else {
         1.0

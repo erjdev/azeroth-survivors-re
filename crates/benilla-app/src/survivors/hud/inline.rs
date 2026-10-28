@@ -63,6 +63,11 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
     let cooldown = (a.cooldown, b.cooldown, " sec");
     let burst = def.duration <= 0.0;
     match def.kind {
+        Kind::Channel => {
+            prose!("Channel ", damage, " every second for ", duration, " into ", count,
+                " within ", range, ", slowing them by 50% while connected. You can move and use other abilities. Loses targets that die, become concealed, leave range or move behind solid scenery. Does not retarget or overlap itself");
+        }
+
         Kind::Mark => {
             prose!("Mark ", count, " with the most health within ", range,
                 ", adding ", (a.mark_power, b.mark_power, mark_unit.as_str()),
