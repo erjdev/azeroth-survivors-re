@@ -5,6 +5,17 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Shaman melee dependency — 2026-10-28
+
+Installed evidence confirms Elemental Devastation needs a melee beneficiary,
+which the current Shaman pool lacks. The next dependency is a real weapon attack
+and Stormstrike, followed by the spell-critical-to-melee-critical buff. The
+[Shaman dependency audit](audits/SHAMAN-MELEE-DEPENDENCIES.md) records exact DBC
+rows and acceptance work. Target-owned Stormstrike charge rules are implemented
+and covered by 276 passing core tests and core Clippy. Runtime attachment,
+attack/weapon scaling, talent UI and visual acceptance remain open. Coverage
+stays 296/432; no provisional talent is relabeled as implemented.
+
 ## Acquired Hunter's Mark — 2026-10-28
 
 The offered mark, five-rank training, explicit power curve, capped +target

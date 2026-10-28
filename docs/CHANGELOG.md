@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Shaman melee foundation
+
+Added Stormstrike's target-owned, two-hit Nature vulnerability rules, including
+refresh, expiry and invalid-event handling. Installed-data review identified the
+missing Shaman melee attack needed before Stormstrike and Elemental Devastation
+can become functional talents. All 276 core tests and core Clippy pass.
+This is not wired into gameplay yet; talent coverage is unchanged. No interface
+change or new screenshot applies. Runtime work is tracked in the implementation plan.
+
 ## 2026-10-28 — Direct character card previews
 
 UI previews can open another character’s cards directly and switch class through
