@@ -74,6 +74,8 @@ jobs:
           key: host
       - name: isolated Survivors UI fixtures
         run: python3 -m unittest discover -s scripts -p test_survivors_ui_fixture.py -v
+      - name: documentation gate failure handling
+        run: python3 -m unittest discover -s scripts -p test_doc_links.py -v
       - name: browser build profiles
         run: python3 -m unittest discover -s scripts -p test_web_build.py -v
       - name: browser startup and journal regressions

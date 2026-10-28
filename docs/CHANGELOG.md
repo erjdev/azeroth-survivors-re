@@ -3,6 +3,13 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Reject incomplete documentation validation
+
+The documentation-link gate now fails if Cargo cannot run or rustdoc exits with
+an error, instead of treating missing link warnings as success. Three regression
+tests pass and are included in CI. This changes validation only; no new screenshot
+is needed. The full workspace test run remains active.
+
 ## 2026-10-27 — Encapsulate scenery visibility queries
 
 The engine now owns render-candidate selection for foliage reveal; gameplay no
