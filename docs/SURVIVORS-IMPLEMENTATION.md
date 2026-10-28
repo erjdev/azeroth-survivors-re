@@ -8454,3 +8454,26 @@ previews. 243 core tests, 471 app tests and core/app Clippy pass. Native purchas
 point deduction 36→35 and persisted rank verified at 1600×900; trained cards show
 12→13.2 sec at 1280×720. Incremental build 17 sec. Full integration pending;
 Windows and live balance remain open.
+
+### Next talent slice: Rogue Dagger Specialization — 2026-10-28
+
+Verified from the checkout's Talent.dbc: node 182, Combat tree index 1, row 3,
+column 1, five ranks, no prerequisite beyond row points. Spell.dbc
+13706/13804–13807 grant 1–5 percentage points of dagger critical chance.
+The gear catalog includes Shadowblade, Core Hound Tooth and Death's Sting as
+daggers; Rogue weapon choices also include swords. Qualification must use the
+owned, worn main-hand identity, independently of cosmetic appearance.
+
+Implementation scope: add the critical chance to Sinister Strike, Eviscerate,
+Blade Flurry, Gouge and Kidney Shot through shared cast calculations. Rupture
+ticks, Sprint, neutral item abilities and other classes remain unchanged.
+Stack additively with existing critical bonuses, preserving the final critical
+chance cap. Keep Blade Flurry's single area and existing extra-target rules.
+Show green inline critical-chance upgrades with the worn-dagger requirement.
+
+Acceptance before claiming completion: core rank/class/weapon/effect isolation;
+account purchase, save/load, spec changes, refund and cosmetic independence;
+app cast/critical-hit behavior and preview parity; native purchase and card
+screenshots embedded in CHANGELOG and README. An isolated draft currently passes
+245 core tests and Clippy; it has not been applied to the checkout while the
+Booming Voice integration gate runs. Definition coverage remains 281/432.
