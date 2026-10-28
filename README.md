@@ -45,7 +45,7 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 <table>
   <tr>
-    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-27-weapon-alternatives/equipment-and-look.png" alt="Collection"><br>2026-10-27 · Alternative weapons with independent equipment and appearances; seeded ownership.<br><a href="docs/images/screenshots/2026-10-27-weapon-alternatives/compact.png">Compact Collection preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/unequipped.png">800×600 at 125%</a></td>
+    <td width="50%"><strong>Collection</strong><br><img src="docs/images/screenshots/2026-10-28-rogue-weapons/collection.png" alt="Collection"><br>2026-10-28 · Rogue mace/fist choices with independent equipment and appearances; seeded ownership.<br><a href="docs/images/screenshots/2026-10-27-weapon-alternatives/compact.png">Compact Collection preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/unequipped.png">800×600 at 125%</a></td>
     <td width="50%"><strong>Drop Tables</strong><br><img src="docs/images/screenshots/2026-10-27-raid-source/drops-1280.png" alt="Drop Tables"><br>2026-10-27 · Raid finale armor odds and item inspection; Naxxramas readiness gate remains visible.<br><a href="docs/images/screenshots/2026-10-27-raid-source/drops-640.png">Compact scrolling preview</a> · <a href="docs/images/screenshots/2026-10-27-collection-800-125/source.png">800×600 source navigation</a></td>
   </tr>
   <tr>

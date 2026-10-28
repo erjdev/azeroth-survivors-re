@@ -86,7 +86,7 @@ pub fn report(chain: &mut Chain) -> Result<()> {
         }
         println!("COLLECTION: {} · {verified}/54 named identities with decoded icons and scheduled sources · {supplemental}/17 supplemental identities with decoded icons", definition.name);
     }
-    for weapon in survivors_core::weapon_alternatives::choices(0) {
+    for weapon in (0..data::CLASSES.len()).flat_map(survivors_core::weapon_alternatives::choices) {
         match icon(chain, &displays, &mut checked, weapon.visual) {
             Ok(()) => println!("WEAPON ALTERNATIVE: {} · item {} · display {} · icon decoded; gameplay acquisition and model rendering require separate acceptance", weapon.name, weapon.visual.item_id, weapon.visual.display_id),
             Err(error) => gaps.push(format!("{} alternative: {error:#}", weapon.name)),

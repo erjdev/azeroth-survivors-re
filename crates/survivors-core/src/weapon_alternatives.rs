@@ -9,6 +9,7 @@ pub const BOSS: &str = "Hogger";
 
 #[derive(Clone, Copy, Debug)]
 pub struct WeaponAlternative {
+    pub class: usize,
     pub key: &'static str,
     pub name: &'static str,
     pub visual: GearVisual,
@@ -20,7 +21,7 @@ impl WeaponAlternative {
             key: self.key.to_owned(),
             name: self.name,
             tier: GearTier::Common,
-            class: CLASS,
+            class: self.class,
             slot: SLOT,
             visual: self.visual,
         }
@@ -29,6 +30,7 @@ impl WeaponAlternative {
 
 const WEAPONS: [WeaponAlternative; 2] = [
     WeaponAlternative {
+        class: CLASS,
         key: "weapon:warrior:worn-mace",
         name: "Worn Mace",
         visual: GearVisual {
@@ -42,6 +44,7 @@ const WEAPONS: [WeaponAlternative; 2] = [
         },
     },
     WeaponAlternative {
+        class: CLASS,
         key: "weapon:warrior:short-spear",
         name: "Short Spear",
         visual: GearVisual {
@@ -56,17 +59,41 @@ const WEAPONS: [WeaponAlternative; 2] = [
     },
 ];
 
+const ROGUE_WEAPONS: [WeaponAlternative; 2] = [
+    WeaponAlternative {
+        class: 3,
+        key: "weapon:rogue:worn-mace",
+        name: "Worn Mace",
+        visual: WEAPONS[0].visual,
+    },
+    WeaponAlternative {
+        class: 3,
+        key: "weapon:rogue:right-handed-brass-knuckles",
+        name: "Right-Handed Brass Knuckles",
+        visual: GearVisual {
+            item_id: 15905,
+            display_id: 26592,
+            inventory_type: 21,
+            item_class: 2,
+            subclass: 13,
+            material: 1,
+            sheath: 7,
+        },
+    },
+];
+
 pub fn choices(class: usize) -> &'static [WeaponAlternative] {
-    if class == CLASS {
-        &WEAPONS
-    } else {
-        &[]
+    match class {
+        CLASS => &WEAPONS,
+        3 => &ROGUE_WEAPONS,
+        _ => &[],
     }
 }
 
 pub fn by_key(key: &str) -> Option<SupplementalPiece> {
     WEAPONS
         .iter()
+        .chain(ROGUE_WEAPONS.iter())
         .find(|weapon| weapon.key == key)
         .map(|weapon| weapon.piece())
 }
@@ -79,14 +106,34 @@ pub fn drop_key(
     boss: bool,
     roll: f32,
 ) -> Option<&'static str> {
-    if class != CLASS || zone != ZONE || creature != BOSS || !boss || !(0.0..1.0).contains(&roll) {
+    if choices(class).is_empty()
+        || zone != ZONE
+        || creature != BOSS
+        || !boss
+        || !(0.0..1.0).contains(&roll)
+    {
         return None;
     }
-    Some(WEAPONS[usize::from(roll >= 0.5)].key)
+    Some(choices(class)[usize::from(roll >= 0.5)].key)
 }
 
-pub fn source_label() -> String {
-    format!("{} · {BOSS}: one random Common alternative weapon for Warriors (Worn Mace or Short Spear; 50% each), alongside the existing head-piece roll. Duplicates add no power and never change equipment or appearance. Keen Eye does not change this guaranteed reward.", crate::campaign::ZONES[ZONE].name)
+pub fn source_label(class: usize) -> String {
+    let options = choices(class);
+    if options.is_empty() {
+        return String::new();
+    }
+    format!("{} · {BOSS}: one random Common alternative weapon for {}s ({} or {}; 50% each), alongside the existing head-piece roll. Duplicates add no power and never change equipment or appearance. Keen Eye does not change this guaranteed reward.", crate::campaign::ZONES[ZONE].name, crate::data::CLASSES[class].name, options[0].name, options[1].name)
+}
+
+impl WeaponAlternative {
+    pub fn kind_label(self) -> &'static str {
+        match self.visual.subclass {
+            4 => "One-handed mace",
+            6 => "Two-handed polearm",
+            13 => "Main-hand fist weapon",
+            _ => "Weapon",
+        }
+    }
 }
 
 #[cfg(test)]
@@ -109,7 +156,7 @@ mod tests {
                 Some(WEAPONS[index].key)
             );
         }
-        for class in 1..=crate::data::CLASSES.len() {
+        for class in (1..=crate::data::CLASSES.len()).filter(|&class| class != 3) {
             assert!(choices(class).is_empty());
             assert_eq!(drop_key(class, ZONE, BOSS, true, 0.0), None);
         }
@@ -173,5 +220,73 @@ mod tests {
             assert_eq!(loadout.raid_pieces(CLASS, &owned), 0);
         }
         assert!(pieces.iter().all(|count| *count == 0));
+    }
+}
+
+#[cfg(test)]
+mod rogue_tests {
+    use super::*;
+    use crate::{
+        campaign,
+        gear_loadout::{Loadout, MeleeKind},
+        supplemental_gear::Inventory,
+    };
+    #[test]
+    fn rogue_rewards_have_separate_keys_class_ownership_and_no_duplicate_power() {
+        let mut inventory = Inventory::default();
+        let pieces = [0; campaign::PIECES];
+        let mut loadout = Loadout::default();
+        for (index, weapon) in choices(3).iter().enumerate() {
+            assert_eq!(
+                drop_key(3, ZONE, BOSS, true, index as f32 * 0.5),
+                Some(weapon.key)
+            );
+            assert_eq!(by_key(weapon.key), Some(weapon.piece()));
+            assert!(!inventory.collect(0, weapon.key));
+            assert!(inventory.collect(3, weapon.key));
+            assert!(!inventory.collect(3, weapon.key));
+            assert!(loadout.wear_supplemental(3, &inventory, SLOT, weapon.key));
+            let melee = loadout.melee_weapon(3, &pieces, &inventory).unwrap();
+            assert_eq!(
+                melee.kind,
+                if index == 0 {
+                    MeleeKind::Mace
+                } else {
+                    MeleeKind::Fist
+                }
+            );
+            assert!(!melee.two_handed);
+            assert_eq!(
+                loadout.bonus(3, &pieces, &inventory).might,
+                GearTier::Common.piece_bonus(SLOT).might
+            );
+            assert!(!loadout.wear_supplemental(0, &inventory, SLOT, weapon.key));
+        }
+        assert!(loadout.show_supplemental(3, &inventory, SLOT, choices(3)[0].key));
+        assert_eq!(
+            loadout.melee_weapon(3, &pieces, &inventory).unwrap().kind,
+            MeleeKind::Fist
+        );
+        assert_eq!(
+            loadout
+                .visible(3, &pieces, &inventory, SLOT)
+                .unwrap()
+                .visual
+                .subclass,
+            4
+        );
+        assert_eq!(loadout.raid_pieces(3, &inventory), 0);
+        assert_eq!(inventory.keys().count(), 2);
+        assert!(!source_label(3).contains("Warrior"));
+        assert!(source_label(3).contains("Right-Handed Brass Knuckles"));
+        assert!(source_label(usize::MAX).is_empty());
+        assert_eq!(choices(3)[1].kind_label(), "Main-hand fist weapon");
+        assert_eq!(choices(0)[1].kind_label(), "Two-handed polearm");
+        for roll in [-1.0, 1.0, f32::NAN, f32::INFINITY] {
+            assert_eq!(drop_key(3, ZONE, BOSS, true, roll), None);
+        }
+        assert_eq!(drop_key(3, ZONE, BOSS, false, 0.0), None);
+        assert_eq!(drop_key(3, ZONE + 1, BOSS, true, 0.0), None);
+        assert_eq!(drop_key(3, ZONE, "Mother Fang", true, 0.0), None);
     }
 }

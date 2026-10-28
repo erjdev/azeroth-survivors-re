@@ -3,6 +3,27 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Rogue weapon choices
+
+Rogues can collect Common Worn Mace and Right-Handed Brass Knuckles from Hogger
+(one random weapon, 50% each), alongside the existing head-piece roll. Collection
+and Drop Tables show both choices with independent equipment and appearance saves.
+Duplicates add no power; the original 54-piece collection remains intact.
+
+![Rogue weapon equipment and appearance choices](images/screenshots/2026-10-28-rogue-weapons/collection.png)
+
+![Fist weapon attached to the human Rogue](images/screenshots/2026-10-28-rogue-weapons/fist.png)
+
+![Mace appearance while the fist weapon remains equipped](images/screenshots/2026-10-28-rogue-weapons/mace-look.png)
+
+![Rogue Hogger source page](images/screenshots/2026-10-28-rogue-weapons/drops.png)
+
+248 core tests, 474 app tests, core/app Clippy and the expanded icon audit pass.
+Native 1600×900 human-female equipment, appearance, save and source navigation
+verified with seeded ownership; incremental build: 1m30s. Full integration is
+running. Other bodies, Windows and live acquisition/balance remain open. Rogue
+mace/fist talent effects are next; talent coverage remains 283/432.
+
 ## 2026-10-28 — Rogue sword training
 
 Sword Specialization gives equipped swords a 1–5% chance to repeat a direct

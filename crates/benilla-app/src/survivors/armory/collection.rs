@@ -1025,7 +1025,7 @@ pub(super) fn detail(
             if piece.tier == survivors_core::gear_tier::GearTier::RaidEpic {
                 survivors_core::supplemental_gear::raid_source_label()
             } else if survivors_core::weapon_alternatives::by_key(&piece.key).is_some() {
-                survivors_core::weapon_alternatives::source_label()
+                survivors_core::weapon_alternatives::source_label(piece.class)
             } else {
                 survivors_core::supplemental_gear::poor_source_label()
             },

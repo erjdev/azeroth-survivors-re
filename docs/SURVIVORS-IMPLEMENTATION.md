@@ -8551,3 +8551,20 @@ stability, independent worn/cosmetic choices, source-page labels and navigation,
 and native weapon attachments with inline milestone screenshots. The source
 checkout remains unchanged while Rogue Sword integration runs. This delivers
 weapon prerequisites; Rogue mace/fist talent effects are still separate work.
+
+### Rogue alternative weapons checkpoint — 2026-10-28
+
+Implemented the scope above in the shared catalog, account save/reward path,
+Collection, Drop Tables and all-class asset audit. 248 core tests and 474 app
+tests pass, including class ownership, duplicate stability, independent saved
+choices and source actions. Core/app Clippy pass. The explicit-data audit decodes
+498 unique display icons, including all four Warrior/Rogue alternative entries.
+
+Native 1600×900 human-female Rogue preview verifies fist equip, mace appearance,
+both attachments and source navigation. Saved records retain fist in
+`supplemental_worn 3 8` and mace in `supplemental_look 3 8`. Seeded ownership does
+not prove live drop acquisition. Screenshots are embedded in CHANGELOG; other
+bodies/poses, Windows and live balance remain open. Native build passed in 1m30s.
+Full integration is running; source is held stable until its terminal result.
+This closes the obtainable-weapon prerequisite; Rogue mace/fist talent effects
+remain to implement, with total talent definition coverage still 283/432.

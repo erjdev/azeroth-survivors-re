@@ -83,11 +83,7 @@ pub(super) fn entries(
                             layout.body_size,
                             Color::WHITE,
                         ));
-                        let kind = if weapon.visual.inventory_type == 17 {
-                            "Two-handed polearm"
-                        } else {
-                            "One-handed mace"
-                        };
+                        let kind = weapon.kind_label();
                         text.spawn(hud::text_bundle(font, kind, layout.body_size - 2.0, GOLD));
                         let state = match (owned, worn, shown) {
                             (_, true, true) => "Equipped · Appearance selected",

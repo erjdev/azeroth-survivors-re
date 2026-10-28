@@ -30,6 +30,22 @@ use Common quality for both, with the existing Common main-hand bonus. The item
 name does not decide Survivors quality. No vanilla damage, level requirement,
 vendor price or proc is imported.
 
+## Rogue weapon alternative identities
+
+Rogue Hogger rewards use separate `weapon:rogue:*` ownership keys for Worn Mace
+(entry 36, display 5194, metadata above) and Right-Handed Brass Knuckles:
+
+| Weapon | Entry | Display | Inventory type | Class | Subclass | Material | Sheath |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Right-Handed Brass Knuckles | 15905 | 26592 | 21 | 2 | 13 | 1 | 7 |
+
+Subclass 13 identifies a fist weapon. Both choices use authored Common main-hand
+bonuses and leave the original 54 collection identities intact. The checkout data
+resolves both icons, MD20 models and model skins. Rogue mace/fist specialization
+effects remain separate work; weapon availability alone does not implement them.
+Native human-female previews verify both attachments and independent worn/cosmetic
+selection. Other bodies/poses and live acquisition remain unverified.
+
 ## Existing catalog conventions
 
 - Correct vanilla names: **Field Plate Vambraces**, **Drake Fang Talisman**. Save slots are

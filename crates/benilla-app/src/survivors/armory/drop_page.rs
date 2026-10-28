@@ -394,14 +394,14 @@ fn sources(
             });
         }
     }
-    if class == survivors_core::weapon_alternatives::CLASS
+    if !survivors_core::weapon_alternatives::choices(class).is_empty()
         && armory.drop_zone == survivors_core::weapon_alternatives::ZONE
     {
         super::weapon_alternatives::entries(body, font, class, account, armory, layout);
         label(
             body,
             font,
-            survivors_core::weapon_alternatives::source_label(),
+            survivors_core::weapon_alternatives::source_label(class),
             layout.body_size,
             DIM,
         );
@@ -510,112 +510,117 @@ mod tests {
 
     #[test]
     fn every_zone_exposes_only_its_catalog_sources_without_run_selection_actions() {
-        for (zone, compact) in
-            (0..campaign::ZONES.len()).flat_map(|zone| [(zone, false), (zone, true)])
-        {
-            let mut world = World::new();
-            let armory = Armory {
-                drop_zone: zone,
-                ..default()
-            };
-            world.commands().spawn(Node::default()).with_children(|ui| {
-                build(
-                    &crate::survivors::localization::Strings::default(),
-                    ui,
-                    &GlueArt::default(),
-                    &Handle::default(),
-                    &armory,
-                    &super::super::super::account::blank(),
-                    &Selection::default(),
-                    &Layout::default(),
-                    compact,
-                );
-            });
-            world.flush();
-            assert_eq!(
-                world
-                    .query::<&collection::CollectionScroll>()
-                    .iter(&world)
-                    .count(),
-                if compact { 1 } else { 4 }
-            );
-            let actions: Vec<_> = world.query::<&Act>().iter(&world).collect();
-            assert!(!actions
-                .iter()
-                .any(|a| matches!(a, Act::Zone(_) | Act::Enter)));
-            assert_eq!(
-                actions
-                    .iter()
-                    .filter(|a| matches!(a, Act::BrowseDrops(_)))
-                    .count(),
-                campaign::ZONES.len()
-            );
-            // Nine loadout actions are shared with Character; the rest are source rows.
-            let inspected: Vec<_> = actions
-                .iter()
-                .filter_map(|a| {
-                    if let Act::InspectPiece(i) = a {
-                        Some(*i)
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            assert_eq!(
-                inspected.len(),
-                9 + campaign::DROPS.iter().filter(|d| d.zone == zone).count()
-            );
-            let mut supplemental: Vec<_> = actions
-                .iter()
-                .filter_map(|action| match action {
-                    Act::InspectSupplemental(key) => Some(key.as_str()),
-                    _ => None,
-                })
-                .collect();
-            let mut expected: Vec<_> =
-                if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&zone) {
-                    (0..campaign::GRID_SLOTS)
-                        .map(|slot| {
-                            survivors_core::supplemental_gear::piece(
-                                0,
-                                slot,
-                                survivors_core::gear_tier::GearTier::Poor,
-                            )
-                            .unwrap()
-                            .key
-                        })
-                        .collect()
-                } else if zone == survivors_core::supplemental_gear::RAID_DROP_ZONE {
-                    (0..survivors_core::supplemental_gear::RAID_ARMOR_SLOTS)
-                        .map(|slot| {
-                            survivors_core::supplemental_gear::piece(
-                                0,
-                                slot,
-                                survivors_core::gear_tier::GearTier::RaidEpic,
-                            )
-                            .unwrap()
-                            .key
-                        })
-                        .collect()
-                } else {
-                    Vec::new()
+        for class in [0, 3] {
+            for (zone, compact) in
+                (0..campaign::ZONES.len()).flat_map(|zone| [(zone, false), (zone, true)])
+            {
+                let mut world = World::new();
+                let armory = Armory {
+                    drop_zone: zone,
+                    ..default()
                 };
-            if zone == survivors_core::weapon_alternatives::ZONE {
-                expected.extend(
-                    survivors_core::weapon_alternatives::choices(0)
-                        .iter()
-                        .map(|weapon| weapon.key.to_owned()),
+                world.commands().spawn(Node::default()).with_children(|ui| {
+                    build(
+                        &crate::survivors::localization::Strings::default(),
+                        ui,
+                        &GlueArt::default(),
+                        &Handle::default(),
+                        &armory,
+                        &super::super::super::account::blank(),
+                        &Selection {
+                            class: Some(class),
+                            ..default()
+                        },
+                        &Layout::default(),
+                        compact,
+                    );
+                });
+                world.flush();
+                assert_eq!(
+                    world
+                        .query::<&collection::CollectionScroll>()
+                        .iter(&world)
+                        .count(),
+                    if compact { 1 } else { 4 }
                 );
-            }
-            // ECS archetype iteration does not promise UI/source order.
-            supplemental.sort_unstable();
-            expected.sort_unstable();
-            assert_eq!(
-                supplemental,
-                expected.iter().map(String::as_str).collect::<Vec<_>>()
-            );
-            for row in campaign::DROPS.iter().filter(|d| d.zone == zone) {
-                assert!(inspected.contains(&(row.band * 9 + row.slot)));
+                let actions: Vec<_> = world.query::<&Act>().iter(&world).collect();
+                assert!(!actions
+                    .iter()
+                    .any(|a| matches!(a, Act::Zone(_) | Act::Enter)));
+                assert_eq!(
+                    actions
+                        .iter()
+                        .filter(|a| matches!(a, Act::BrowseDrops(_)))
+                        .count(),
+                    campaign::ZONES.len()
+                );
+                // Nine loadout actions are shared with Character; the rest are source rows.
+                let inspected: Vec<_> = actions
+                    .iter()
+                    .filter_map(|a| {
+                        if let Act::InspectPiece(i) = a {
+                            Some(*i)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                assert_eq!(
+                    inspected.len(),
+                    9 + campaign::DROPS.iter().filter(|d| d.zone == zone).count()
+                );
+                let mut supplemental: Vec<_> = actions
+                    .iter()
+                    .filter_map(|action| match action {
+                        Act::InspectSupplemental(key) => Some(key.as_str()),
+                        _ => None,
+                    })
+                    .collect();
+                let mut expected: Vec<_> =
+                    if survivors_core::supplemental_gear::POOR_DROP_ZONES.contains(&zone) {
+                        (0..campaign::GRID_SLOTS)
+                            .map(|slot| {
+                                survivors_core::supplemental_gear::piece(
+                                    class,
+                                    slot,
+                                    survivors_core::gear_tier::GearTier::Poor,
+                                )
+                                .unwrap()
+                                .key
+                            })
+                            .collect()
+                    } else if zone == survivors_core::supplemental_gear::RAID_DROP_ZONE {
+                        (0..survivors_core::supplemental_gear::RAID_ARMOR_SLOTS)
+                            .map(|slot| {
+                                survivors_core::supplemental_gear::piece(
+                                    class,
+                                    slot,
+                                    survivors_core::gear_tier::GearTier::RaidEpic,
+                                )
+                                .unwrap()
+                                .key
+                            })
+                            .collect()
+                    } else {
+                        Vec::new()
+                    };
+                if zone == survivors_core::weapon_alternatives::ZONE {
+                    expected.extend(
+                        survivors_core::weapon_alternatives::choices(class)
+                            .iter()
+                            .map(|weapon| weapon.key.to_owned()),
+                    );
+                }
+                // ECS archetype iteration does not promise UI/source order.
+                supplemental.sort_unstable();
+                expected.sort_unstable();
+                assert_eq!(
+                    supplemental,
+                    expected.iter().map(String::as_str).collect::<Vec<_>>()
+                );
+                for row in campaign::DROPS.iter().filter(|d| d.zone == zone) {
+                    assert!(inspected.contains(&(row.band * 9 + row.slot)));
+                }
             }
         }
     }

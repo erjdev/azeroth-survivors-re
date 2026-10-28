@@ -2164,51 +2164,53 @@ mod tests {
     #[test]
     fn alternative_rewards_preserve_legacy_progress_and_independent_saved_choices() {
         use survivors_core::{gear_loadout::MeleeKind, weapon_alternatives as weapons};
-        let mut account = blank();
-        let legacy = account.classes[0].pieces;
-        let choices = weapons::choices(0);
-        for (roll, weapon) in [(0.0, choices[0]), (0.5, choices[1])] {
+        for class in [0, 3] {
+            let mut account = blank();
+            let legacy = account.classes[class].pieces;
+            let choices = weapons::choices(class);
+            for (roll, weapon) in [(0.0, choices[0]), (0.5, choices[1])] {
+                assert_eq!(
+                    account.collect_weapon_drop(class, 0, weapons::BOSS, true, roll),
+                    Some(weapon.name)
+                );
+                assert!(account.classes[class].equipment.supplemental_worn()[8].is_none());
+                assert!(account.classes[class].equipment.supplemental_looks()[8].is_none());
+            }
+            assert_eq!(account.classes[class].pieces, legacy);
+            assert!(account.select_supplemental(class, choices[0].key, false));
+            assert!(account.select_supplemental(class, choices[1].key, true));
+            let mut restored = parse(&encode(&account)).unwrap();
             assert_eq!(
-                account.collect_weapon_drop(0, 0, weapons::BOSS, true, roll),
-                Some(weapon.name)
+                restored.classes[class].equipment.supplemental_worn()[8].as_deref(),
+                Some(choices[0].key)
             );
-            assert!(account.classes[0].equipment.supplemental_worn()[8].is_none());
-            assert!(account.classes[0].equipment.supplemental_looks()[8].is_none());
-        }
-        assert_eq!(account.classes[0].pieces, legacy);
-        assert!(account.select_supplemental(0, choices[0].key, false));
-        assert!(account.select_supplemental(0, choices[1].key, true));
-        let mut restored = parse(&encode(&account)).unwrap();
-        assert_eq!(
-            restored.classes[0].equipment.supplemental_worn()[8].as_deref(),
-            Some(choices[0].key)
-        );
-        assert_eq!(
-            restored.classes[0].equipment.supplemental_looks()[8].as_deref(),
-            Some(choices[1].key)
-        );
-        assert_eq!(
-            restored.classes[0]
-                .equipment
-                .melee_weapon(0, &legacy, &restored.supplemental)
-                .unwrap()
-                .kind,
-            MeleeKind::Mace
-        );
-        let before = encode(&restored);
-        for roll in [0.0, 0.5] {
             assert_eq!(
-                restored.collect_weapon_drop(0, 0, weapons::BOSS, true, roll),
+                restored.classes[class].equipment.supplemental_looks()[8].as_deref(),
+                Some(choices[1].key)
+            );
+            assert_eq!(
+                restored.classes[class]
+                    .equipment
+                    .melee_weapon(class, &legacy, &restored.supplemental)
+                    .unwrap()
+                    .kind,
+                MeleeKind::Mace
+            );
+            let before = encode(&restored);
+            for roll in [0.0, 0.5] {
+                assert_eq!(
+                    restored.collect_weapon_drop(class, 0, weapons::BOSS, true, roll),
+                    None
+                );
+            }
+            assert_eq!(encode(&restored), before);
+            assert!(!restored.dirty);
+            assert_eq!(
+                restored.collect_weapon_drop(1, 0, weapons::BOSS, true, 0.0),
                 None
             );
+            assert!(!restored.select_supplemental(1, choices[0].key, false));
         }
-        assert_eq!(encode(&restored), before);
-        assert!(!restored.dirty);
-        assert_eq!(
-            restored.collect_weapon_drop(1, 0, weapons::BOSS, true, 0.0),
-            None
-        );
-        assert!(!restored.select_supplemental(1, choices[0].key, false));
     }
 
     #[test]
