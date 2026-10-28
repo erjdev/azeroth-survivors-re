@@ -8508,7 +8508,8 @@ the existing hit/loot pipeline. Core/app Clippy pass. Native final-rank purchase
 4→5, points 27→26 and persisted rank verified at 1600×900; trained cards verified
 at 1280×720. Screenshots are embedded in CHANGELOG and the README gallery is
 refreshed. Incremental build: 19 seconds. Definition coverage is 283/432
-(Rogue 27/51). Full integration, Windows and live balance remain open.
+(Rogue 27/51). Full integration passed in 11m26s, including player-build tests;
+31 missing-addon skips per data/player run. Windows and live balance remain open.
 
 Following dependencies: Rogue mace/fist talents need obtainable matching weapon
 alternatives before claiming usable completion. The pinned item-template catalog

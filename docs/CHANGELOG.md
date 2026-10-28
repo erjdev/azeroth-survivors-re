@@ -20,7 +20,8 @@ procs. Cosmetic weapons do not qualify; the green preview states the requirement
 eligible Rogue attacks, saved gear/specs, refunds, pause, lethal/dead/missing
 targets, one loot award and no recursive procs. Native purchase/save verified
 at 1600×900; cards at 1280×720. Incremental build: 19 seconds. Definition coverage:
-283/432. Full integration, Windows and live balance remain open.
+283/432. Full integration passed in 11m26s, including player-build tests;
+31 missing-addon skips per data/player run. Windows and live balance remain open.
 
 ## 2026-10-28 — Rogue dagger training
 
