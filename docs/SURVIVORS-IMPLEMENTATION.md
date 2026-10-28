@@ -8086,4 +8086,28 @@ through the production talent UI between captures. Cleave displays 20→26 befor
 and 21→27.3 after; Heroic Strike 40→52.1 before and 42→54.7 after. Thunder Clap
 remains 14.3→18.6. Green inline text and shared units remain intact. This closes
 the separate visual card comparison left open in the preceding milestone. Full
-integration validation is running separately; Windows and live balance stay open.
+native integration now passes at code commit `1cd935a`; see the validation record.
+Windows and live balance stay open.
+
+### Next weapon-specialization batch — source audit 2026-10-27
+
+Checkout Talent.dbc and Spell.dbc resolve Warrior Axe Specialization (132;
+12700/12781/12783–12785) and Polearm Specialization (134; 12165/12830–12833) to
+1–5 percentage points of critical chance. Warrior One-Handed Weapon
+Specialization (702; 16538–16542) is 2–10% damage, not the two-handed node's
+1–5%. Scope all effects to worn weapon identity, with the same weapon attacks
+and snapshot boundary used by node 136. Preserve shared crit caps and multiplicative
+damage composition; verify unavailable gear, cosmetic swaps, refunds and saves.
+
+Catalog acceptance matters: current Warrior Poor/Common/Uncommon weapons are
+axes; Rare/Epic/PvP are two-handed swords and Legendary is Thunderfury (one-handed
+sword). No current Warrior polearm is obtainable. Implement Axe and One-Handed
+Specialization together next; Polearm also needs a verified obtainable weapon
+variant and collection/acquisition support before it can count as a finished
+player-facing choice. Do not substitute a global crit bonus to hide this gap.
+
+Native gate checkpoint: the full `scripts/check.sh` chain at `1cd935a` passed
+in 1,031 seconds, including workspace/no-install/player tests, Clippy and lints.
+The data/player stages each reported 31 missing-addon skips. Evidence and scope:
+[2026-10-27 integration](validation/2026-10-27-integration.md). This closes the
+post-snapshot native integration gap, not the broader platform/gameplay goal.

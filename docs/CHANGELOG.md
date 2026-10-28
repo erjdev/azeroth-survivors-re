@@ -3,6 +3,14 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Native integration checkpoint
+
+The full native gate chain passes after the equipment/talent snapshot changes:
+workspace checks and tests, no-install operation, documentation/render-pass lints,
+and player tests without developer features. Total: 17m11s. Data/player stages
+each report 31 missing-addon skips. Windows and live gameplay remain open.
+Details are in [the validation record](validation/2026-10-27-integration.md).
+
 ## 2026-10-27 — Weapon training reaches upgrade cards
 
 Native selected-profile previews now have before/after evidence for all five

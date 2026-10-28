@@ -33,3 +33,18 @@ The same full command passes for `a0a6ca1`: formatting (6 s), workspace Clippy
 The data/player stages still report the same 31 addon-corpus skips. Native
 1600×900 and 800×600 visual checks are captured in the changelog; Windows visual
 confirmation remains open.
+
+## Worn-weapon talent integration
+
+The full command passes for the code at `1cd935a` (later `ec98bf3` changes only
+documentation and screenshots): formatting 7 s, workspace all-target Clippy 65 s,
+workspace tests 564 s, no-install tests 39 s, documentation links 57 s, render-pass
+lint 1 s and player tests without developer features 297 s. Total: 1,031 seconds
+(17m11s), terminal exit 0. Both data/player stages report the same 31 addon-corpus
+skips: 24 missing vanilla corpus and seven missing Quiver.
+
+The separate feature-enabled Survivors suite passed 456 tests, and core rules
+passed 230. Native selected-profile card screenshots at 1280×900 confirm the
+equipped-weapon multiplier reaches displayed upgrade values. This checkpoint
+does not establish Windows/browser execution, live realm smoke, live combat
+balance, missing addon compatibility or completion of the seven-phase goal.
