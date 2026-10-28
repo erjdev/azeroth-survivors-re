@@ -16,7 +16,8 @@ remain intact; splash copies cannot trigger it.
 
 236 core tests, 465 app tests and core/app all-target Clippy pass. Native seeded
 purchase, text and saved rank verified at 1600×900; incremental build: 24.75s.
-Coverage: 280/432 talents. Full integration, Windows and live balance remain open.
+Coverage: 280/432 talents. Full integration passed in 15m06s, with 31 unavailable
+addon-corpus skips per data/player run. Windows and live balance remain open.
 
 ## 2026-10-27 — Mace Specialization
 

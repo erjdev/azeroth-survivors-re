@@ -8387,3 +8387,12 @@ without an upgrade arrow. Before/available/trained captures are stored under
 `docs/images/screenshots/2026-10-28-hamstring/`, with the latter two inline in the
 changelog. Coverage audit: 280/432 overall, Warrior 41/52. This is menu and ECS
 evidence; full integration, Windows and live combat/balance remain outstanding.
+
+### Hamstring integration checkpoint — 2026-10-28
+
+Full `scripts/check.sh` / `scripts/gates.sh` passed for `f541c71` in 906 seconds
+(15m06s): formatting 7s, workspace Clippy 23s, workspace tests 495s, no-install
+tests 90s, doc links 58s, render-pass lint 1s and player-build tests 232s. Both
+data-backed runs skipped 31 unavailable addon-corpus tests (24 vanilla, 7 Quiver).
+This supersedes the pending Hamstring full-gate note. Windows, live balance and
+the overall seven-phase acceptance contract remain open.
