@@ -1697,17 +1697,16 @@ and signing configuration are defined. A no-op build, pure-rule test, live tunin
 packaged restart/update/rollback each need their own evidence. Do not claim arbitrary Rust
 hot reloading from asset watching or claim self-updating from the existing local restart.
 
-Validation overhead found on 2026-10-28: `check.sh` scopes from the merge base with
-main, so already-verified web changes force every later crate edit through the
-full workspace chain. Also, docs-only progress edits during `gates.sh` prevent its
-successful source tree from being stamped, despite the existing docs-only cache
-policy. Fix after the current marked-target gate: retain safe docs-only cache
-updates and use a verified tree as the incremental-check baseline when compiler,
-gate script and data identity match. Invalid/missing metadata or unavailable Git
-tree objects must fall back to the existing full comparison. Verify source edits,
-deletions, untracked files, reverted edits, toolchain/data changes and full-check
-overrides in isolated fixtures. Full pre-land gates remain mandatory. This is a
-pending workflow fix, not permission to skip the current integration run.
+Validation workflow update (2026-10-28): `check.sh` now scopes from a successful
+full-gate tree when compiler, gate script and data identity match. Missing or
+invalid metadata falls back to the branch comparison. Docs-only progress updates
+can preserve a completed gate stamp; source edits during the run cannot. Sixteen
+isolated regression tests pass, covering changed/deleted/untracked/staged files,
+reverts, invalid snapshots, environment drift and explicit full-check overrides.
+These tests also run in PR CI. Full pre-land gates remain mandatory. Full integration
+passed in 5m08s (31 missing-addon skips per data/player run); warm-baseline timing
+remains pending. This improves
+validation reuse; it does not provide arbitrary Rust hot reloading.
 
 ## Gear profiles and collection acceptance details
 

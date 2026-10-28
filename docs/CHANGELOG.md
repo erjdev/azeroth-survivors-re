@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Reuse verified development checks
+
+Incremental checks compare against the latest compatible full-gate snapshot,
+avoiding repeated validation of old branch changes. Documentation-only progress
+updates preserve successful snapshots; source changes and environment drift
+remain guarded. Sixteen isolated workflow regressions pass and are wired into CI.
+Full integration passed in 5m08s, with 31 missing-addon skips per data/player
+run. Warm-check timing remains pending. No interface changes or new screenshots
+in this checkpoint.
+
 ## 2026-10-28 — Marked-target damage foundation
 
 Added caster-owned mark lifetime and per-victim ranged-hit resolution. Delayed
