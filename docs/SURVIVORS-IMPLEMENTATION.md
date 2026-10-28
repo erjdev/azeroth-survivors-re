@@ -14,10 +14,14 @@ now fixes targets, emits scheduled pulses once and supports cancellation;
 279 core tests and core Clippy pass. A runtime adapter now validates connected
 victims, emits damage pulses and composes independent movement slows. Acquired
 ability unlock, card prose and independent beam anchors are now wired locally.
-All 535 app tests and feature-enabled Clippy pass. Native purchase/save and
+All 537 app tests and feature-enabled Clippy pass. Native purchase/save and
 1100×720 / 640×720 previews are verified, with inline changelog captures. Coverage
 is 297/432 (Priest 30/47). Rendered combat beams, concurrent-cast pose and Windows
-acceptance remain open; see the audit for timing and obstruction limits.
+acceptance remain open; see the audit for timing limits. Channel casting now
+checks solid-world obstruction before committing targets or spell recovery; a
+blocked nearest enemy no longer hides a farther clear victim. Regression tests cover obstruction-aware targeting and paid-tick Shadow talent
+interactions; native build and six-package scoped checks pass (31 missing-addon
+skips). Full pre-merge gates remain required.
 
 ## Shaman melee dependency — 2026-10-28
 

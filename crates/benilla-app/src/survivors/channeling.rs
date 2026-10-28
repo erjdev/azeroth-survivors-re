@@ -105,12 +105,29 @@ mod tests {
         }
     }
 
+    fn physics(app: &mut App) {
+        use avian3d::prelude::*;
+        app.add_plugins((
+            MinimalPlugins,
+            TransformPlugin,
+            AssetPlugin::default(),
+            bevy::scene::ScenePlugin,
+            PhysicsPlugins::new(PostUpdate),
+        ));
+        app.init_asset::<Mesh>();
+        app.init_resource::<benilla_world::collision::MoverTraceExclusions>();
+        app.init_resource::<Channels>();
+    }
+
     #[test]
     fn acquired_channel_requires_training_and_never_overlaps_or_hits_immediately() {
         use bevy::ecs::system::RunSystemOnce;
         let (mut app, target, _) =
             super::super::abilities::poison_tests::fixture("mind_flay", 1000.0);
-        app.init_resource::<Channels>();
+        physics(&mut app);
+        app.finish();
+        app.cleanup();
+        app.update();
         app.world_mut()
             .spawn((Hero { vy: 0.0, air: 0.0 }, Transform::default()));
         app.world_mut()
@@ -152,6 +169,87 @@ mod tests {
             .run_system_once(super::super::abilities::cast_abilities)
             .unwrap();
         assert_eq!(app.world().resource::<Channels>().active.len(), 1);
+    }
+
+    #[test]
+    fn acquisition_skips_blocked_victims_and_preserves_cooldown_until_clear() {
+        use avian3d::prelude::*;
+        use bevy::ecs::system::RunSystemOnce;
+        let (mut app, target, _) =
+            super::super::abilities::poison_tests::fixture("mind_flay", 1000.0);
+        physics(&mut app);
+        app.world_mut()
+            .spawn((Hero { vy: 0.0, air: 0.0 }, Transform::default()));
+        app.world_mut()
+            .get_mut::<Transform>(target)
+            .unwrap()
+            .translation = Vec3::X * 4.0;
+        let wall = app
+            .world_mut()
+            .spawn((
+                RigidBody::Static,
+                Collider::cuboid(1.0, 4.0, 4.0),
+                Transform::from_xyz(2.0, 1.0, 0.0),
+            ))
+            .id();
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.class = &super::super::data::CLASSES[4];
+            run.milestones = survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 501, 1)]);
+        }
+        app.finish();
+        app.cleanup();
+        app.update();
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_secs(1));
+        app.world_mut()
+            .run_system_once(super::super::abilities::cast_abilities)
+            .unwrap();
+        assert!(app.world().resource::<Channels>().active.is_empty());
+        // Use the ordinary short no-target retry, not the four-second spell recovery.
+        assert_eq!(app.world().resource::<Run>().abilities[0].cd, 0.2);
+
+        // The nearer blocked victim does not occupy the sole target slot.
+        let (mut donor, donor_target, _) =
+            super::super::abilities::poison_tests::fixture("mind_flay", 1000.0);
+        let enemy = donor
+            .world_mut()
+            .entity_mut(donor_target)
+            .take::<Enemy>()
+            .unwrap();
+        let farther = app
+            .world_mut()
+            .spawn((Transform::from_xyz(0.0, 0.0, 6.0), enemy))
+            .id();
+        app.world_mut()
+            .run_system_once(super::super::abilities::cast_abilities)
+            .unwrap();
+        assert_eq!(
+            app.world().resource::<Channels>().active[0].clock.targets(),
+            &[farther]
+        );
+        assert!(app.world().resource::<Run>().abilities[0].cd > 0.0);
+        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+
+        app.world_mut().resource_mut::<Channels>().active.clear();
+        app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.0;
+        app.world_mut().despawn(wall);
+        app.update();
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_secs(1));
+        app.world_mut()
+            .run_system_once(super::super::abilities::cast_abilities)
+            .unwrap();
+        assert_eq!(
+            app.world().resource::<Channels>().active[0].clock.targets(),
+            &[target]
+        );
     }
 
     #[test]
@@ -224,6 +322,51 @@ mod tests {
                 "{interruption}"
             );
         }
+    }
+
+    #[test]
+    fn paid_ticks_compose_shadow_training_and_heal_only_removed_health() {
+        let (mut app, target, mut settle) =
+            super::super::abilities::poison_tests::fixture("mind_flay", 100.0);
+        let caster = app.world_mut().spawn_empty().id();
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.class = &super::super::data::CLASSES[4];
+            run.bonus.leech = 0.0;
+            run.bonus.multistrike = 1.0;
+            run.milestones = survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 501, 1), (2, 461, 5), (2, 484, 1), (2, 464, 5)]);
+        }
+        let mut channels = Channels::default();
+        channels.active.push(active(caster, target));
+        assert!(channels.advance(0.0, true, |_, _, _| true).is_empty());
+        for time in [1.0, 2.0] {
+            app.world_mut().resource_mut::<Run>().elapsed = time;
+            let hits = channels.advance(time, true, |_, _, _| true);
+            assert_eq!(hits.len(), 1);
+            assert!(!hits[0].crit);
+            app.world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .write_batch(hits);
+            settle.run(app.world_mut());
+            if time == 1.0 {
+                let enemy = app.world().get::<Enemy>(target).unwrap();
+                assert_eq!(enemy.hp, 50.0); // One guaranteed multistrike copy.
+                assert_eq!(enemy.stun_t, 3.0); // Seed 0 forces the Blackout roll.
+                assert!((app.world().resource::<Run>().hp - 60.0).abs() < 0.001);
+            }
+        }
+        let enemy = app.world().get::<Enemy>(target).unwrap();
+        assert!(enemy.dead);
+        assert_eq!(enemy.hp, 0.0); // Death clamps health; the meter retains raw damage.
+        assert!((app.world().resource::<Run>().damage_done - 101.5).abs() < 0.001);
+        assert!((app.world().resource::<Run>().hp - 70.0).abs() < 0.001);
+        assert!(channels.advance(3.0, true, |_, _, _| false).is_empty());
+        assert!(channels.active.is_empty());
+        assert_eq!(channels.movement(target, 1.0), 1.0);
     }
 
     #[test]

@@ -413,6 +413,7 @@ pub(super) fn cast_abilities(
     mut fx: Fx,
     mut pending: ResMut<PendingHits>,
     mut channels: Option<ResMut<super::channeling::Channels>>,
+    channel_world: Option<super::Floor>,
     mut hits: MessageWriter<Hit>,
 ) {
     let dt = time.delta_secs();
@@ -528,7 +529,10 @@ pub(super) fn cast_abilities(
         let speed = speed_of(def.spell);
         let fired = match def.kind {
             Kind::Channel => {
-                let Some(channels) = channels.as_mut() else {
+                // Optional for non-channel consumers; a channel must have world collision
+                // available before spending its cooldown or creating visual anchors.
+                let (Some(channels), Some(world)) = (channels.as_mut(), channel_world.as_ref())
+                else {
                     continue;
                 };
                 if channels
@@ -538,7 +542,15 @@ pub(super) fn cast_abilities(
                 {
                     false
                 } else {
-                    let targets = entities(&nearest(&visible, p.range, p.count));
+                    // Filter before truncating: an obstructed nearest enemy must not hide
+                    // a farther eligible victim from this fixed-target cast.
+                    let targets: Vec<_> = visible
+                        .iter()
+                        .filter(|foe| foe.hp > 0.0 && foe.dist <= p.range + foe.radius)
+                        .filter(|foe| world.line_clear(hpos, foe.pos))
+                        .take(p.count)
+                        .map(|foe| foe.e)
+                        .collect();
                     if let Some(clock) = survivors_core::channel::Channel::new(targets, now, 1.0, 3)
                     {
                         channels.active.push(super::channeling::ActiveChannel {

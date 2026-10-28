@@ -55,13 +55,18 @@ snares without overwriting them. Run reset clears channels.
 Acquisition, talent and visual code are wired. The runtime currently settles
 catch-up damage using the existing hit pipeline time; historical timed-modifier
 settlement is not integrated. Initial selection checks range and concealment;
-solid-world interruption is evaluated on the next channel update, so an obstructed
-selection can spend a cooldown without damage.
+solid-world obstruction is now also checked before a cast starts a channel.
+Blocked victims do not fill target slots: selection continues to farther clear
+victims. If none qualify, the usual 200ms no-target retry applies without spending
+the spell recovery or triggering successful-cast bonuses. Missing collision state
+also prevents channel creation. Active channels still recheck obstruction each update.
 
-All 535 Survivors app tests pass, including acquisition gating, no immediate hit,
-no overlapping cast, inline upgrades and independent beam lifecycle. Feature-enabled
-Clippy and six-package scoped checks pass, with 31 missing-addon skips. Full
-pre-merge gates remain required. Final incremental native build took 14 seconds. The isolated Priest
+All 537 Survivors app tests pass, including acquisition gating, obstruction before
+selection, no immediate hit, no overlapping cast, inline upgrades and independent
+beam lifecycle. Paid-tick settlement tests cover Shadow Weaving, Blackout,
+multistrike and Vampiric Embrace capped to removed health. Feature-enabled Clippy
+passes; the targeting-fix native build took 1m13s. Six-package scoped checks pass
+with 31 missing-addon skips; full pre-merge gates remain required. The isolated Priest
 profile purchased node 501 through the UI and persisted `2:501:1`; native captures
 cover 1100×720 and 640×720 talent/card layouts. Definition coverage is 297/432
 (Priest 30/47). Screenshots are embedded in the changelog.
