@@ -8314,3 +8314,9 @@ Short Spear are verified. Screenshots are embedded in CHANGELOG, with a reusable
 preview preset. Seeded gear/points are explicit; no unattended combat was run.
 Coverage is 278/432 (Warrior 39/52). Full integration for this source change,
 Windows and live balance remain open. Mace Specialization is still pending.
+
+### Polearm integration — 2026-10-27
+
+Full native integration passes at `42b7f3f` in 611 seconds, including player-mode
+tests. Data/player stages each report 31 missing-addon skips. This supersedes
+the pending full-gate note above; Mace source changes start after this checkpoint.

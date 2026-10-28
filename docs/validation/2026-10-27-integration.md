@@ -89,3 +89,16 @@ The separate feature-enabled Survivors suite passed 462 tests and core rules 234
 This covers alternative reward delivery, Collection and appearance controls.
 Polearm implementation began only after this gate exited. Windows/browser runtime,
 live realm smoke, live acquisition/balance and absent-addon coverage remain open.
+
+## Polearm checkpoint (`42b7f3f`)
+
+Full native integration passed with exit 0 in 611 seconds (10m11s): formatting
+6s, workspace all-target Clippy 23s, workspace tests 306s, no-install tests 26s,
+documentation links 48s, render-pass lint 2s and player tests 200s. The source
+remained unchanged throughout. Data/player stages each reported 31 missing-addon
+skips (24 vanilla corpus, seven Quiver). The separate feature-enabled Survivors
+suite passed 462 tests; core rules 234.
+
+Native Polearm purchase and saved rank are captured in CHANGELOG. Mace work began
+only after this gate finished. Windows/browser runtime, live realm smoke, live
+balance and absent-addon coverage remain open.

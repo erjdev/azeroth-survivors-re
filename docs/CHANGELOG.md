@@ -15,8 +15,8 @@ Thunder Clap, shouts and bleed ticks do not. This replaces the provisional damag
 
 234 core tests, 462 app tests and all-target app Clippy pass. Native 1600×900
 purchase and saved rank verified with seeded gear/points; incremental build: 17s.
-Coverage: 278/432 talents. Full integration for this change, Windows and live
-balance remain open; the preceding weapon-delivery checkpoint passed its full gate.
+Coverage: 278/432 talents. Full native integration passes at `42b7f3f` in
+10m11s, with 31 missing-addon skips per data/player stage. Windows and live balance remain open.
 
 ## 2026-10-27 — Obtainable mace and spear alternatives
 
