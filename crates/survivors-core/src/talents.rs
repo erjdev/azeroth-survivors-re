@@ -855,6 +855,14 @@ impl Milestones {
         self.trained_value(TalentStat::Frostbite)
     }
 
+    /// Survivors maps Hamstring's root proc to the Warrior's movement-impairing nova.
+    pub fn hamstring_root_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 0 || key != "thunder_clap" || !damage.is_finite() || damage <= 0.0 {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::HamstringRoot)
+    }
+
     /// Wing Clip roots on direct damaging hits; attached periodic ticks never roll.
     pub fn wing_clip_root_chance(self, key: &str, damage: f32) -> f32 {
         if self.class != 2 || key != "wing_clip" || !damage.is_finite() || damage <= 0.0 {
@@ -1530,6 +1538,7 @@ pub enum TalentStat {
     CriticalBurn,
     Frostbite,
     WingClipRoot,
+    HamstringRoot,
     InsectSwarmWeakening,
     NaturesGrace,
     Impact,
@@ -1819,6 +1828,7 @@ impl TalentDefinition {
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
             | TalentStat::Aftermath
+            | TalentStat::HamstringRoot
             | TalentStat::WingClipRoot
             | TalentStat::InsectSwarmWeakening
             | TalentStat::CurseExhaustion
@@ -2101,6 +2111,7 @@ impl TalentDefinition {
                 (100.0, "% reduced outgoing enemy damage from Insect Swarm")
             }
             TalentStat::NaturesGrace => (1.0, " sec shorter next Wrath or Starfire recovery after a spell critical; one 15 sec charge"),
+            TalentStat::HamstringRoot => (100.0, "% chance to root Thunder Clap targets"),
             TalentStat::WingClipRoot => (100.0, "% chance to root Wing Clip targets"),
             TalentStat::Aftermath => (100.0, "% chance to slow Destruction targets"),
             TalentStat::CurseExhaustion => (100.0, "% Curse of Agony slow"),
@@ -2169,6 +2180,12 @@ impl TalentDefinition {
 
 /// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
 pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 12289/12668/23695: 5/10/15%; trigger 23694 lasts 5 seconds.
+    TalentDefinition {
+        id: 129, max_rank: 3, name: "Improved Hamstring",
+        description: "Thunder Clap: +5% chance per rank on each direct hit to root for 5 sec (bosses: 1.5 sec). Preserves its slow; excludes splash copies and does not freeze enemies or grant the ability (Survivors Hamstring conversion)",
+        stat: TalentStat::HamstringRoot, per_rank: 0.05,
+    },
     TalentDefinition {
         id: 125, max_rank: 5, name: "Mace Specialization",
         description: "With a worn mace: 1–6% chance after a direct weapon hit to stun its target for 3 sec (bosses: 0.9 sec). Cosmetic weapons do not qualify. Excludes Thunder Clap, shouts, bleed ticks, splash copies and generated extra strikes",
@@ -3483,6 +3500,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SiphonLife
             | TalentStat::Nightfall
             | TalentStat::Aftermath
+            | TalentStat::HamstringRoot
             | TalentStat::WingClipRoot
             | TalentStat::InsectSwarmWeakening
             | TalentStat::CurseExhaustion
@@ -4972,6 +4990,7 @@ mod stat_talent_tests {
                     | TalentStat::SiphonLife
                     | TalentStat::Nightfall
                     | TalentStat::Aftermath
+                    | TalentStat::HamstringRoot
                     | TalentStat::WingClipRoot
                     | TalentStat::InsectSwarmWeakening
                     | TalentStat::CurseExhaustion
@@ -6631,5 +6650,39 @@ mod mace_training_tests {
                 "next rank"
             }));
         }
+    }
+}
+
+#[cfg(test)]
+mod hamstring_tests {
+    use super::*;
+    #[test]
+    fn root_chance_is_capped_class_and_hit_scoped_without_other_cast_changes() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(0, 129, rank)]);
+                for key in crate::data::CLASSES[0].ability_keys() {
+                    for damage in [0., -1., f32::NAN, f32::INFINITY, 5.] {
+                        let expected = if class == 0 && key == "thunder_clap" && damage == 5. {
+                            0.05 * f32::from(rank.min(3))
+                        } else {
+                            0.
+                        };
+                        assert_eq!(trained.hamstring_root_chance(key, damage), expected);
+                    }
+                    assert_eq!(trained.cast(key), base.cast(key));
+                    assert_eq!(trained.with_ranks(&[]).hamstring_root_chance(key, 5.), 0.);
+                }
+            }
+        }
+        let node = talent_definition(0, 129).unwrap();
+        let (text, ranges) = node.inline_description_with_values(1).unwrap();
+        assert_eq!(&text[ranges[0].clone()], "+5 » 10% chance");
+        assert!(text.contains("5 sec (bosses: 1.5 sec)"));
+        assert!(!node.inline_description(255).unwrap().contains(" » "));
     }
 }

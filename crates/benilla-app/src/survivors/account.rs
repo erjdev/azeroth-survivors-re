@@ -3922,6 +3922,67 @@ mod tests {
     }
 
     #[test]
+    fn hamstring_purchase_save_spec_and_refund_reach_hit_rules() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(0);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (0, 124, 3),
+            (0, 130, 5),
+            (0, 127, 3),
+            (0, 126, 2),
+            (0, 128, 2),
+            (0, 136, 5),
+            (0, 132, 5),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let before = account.bonus(0, hero);
+        let chance = |account: &Account| {
+            account
+                .milestones_picked(0, Some(hero))
+                .hamstring_root_chance("thunder_clap", 10.0)
+        };
+        assert_eq!(chance(&account), 0.0);
+        for rank in 1..=3 {
+            assert!(account.learn_talent(hero, 0, 129, 3, 5, true));
+            assert!((chance(&account) - 0.05 * rank as f32).abs() < 0.00001);
+        }
+        assert!(!account.learn_talent(hero, 0, 129, 3, 5, true));
+        assert!((account.bonus(0, hero).might - before.might).abs() < 0.00001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(chance(&loaded), chance(&account));
+        loaded.select_spec(hero, 1);
+        assert_eq!(chance(&loaded), 0.0);
+        loaded.select_spec(hero, 0);
+        for rank in (0..3).rev() {
+            assert!(loaded.unlearn_talent(hero, 129, true));
+            assert!((chance(&loaded) - 0.05 * rank as f32).abs() < 0.00001);
+        }
+        assert!(!loaded.unlearn_talent(hero, 129, true));
+        assert_eq!(
+            loaded
+                .milestones_picked(0, Some(u32::MAX))
+                .hamstring_root_chance("thunder_clap", 10.0),
+            0.0
+        );
+    }
+
+    #[test]
     fn blade_flurry_purchase_save_and_refund_reach_clock() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

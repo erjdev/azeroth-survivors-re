@@ -3,6 +3,21 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Improved Hamstring
+
+Warrior Hamstring training now gives each direct Thunder Clap hit a 5/10/15%
+chance to root for 5 seconds (bosses: 1.5 seconds), replacing placeholder damage.
+The description names this Survivors conversion. Existing slows and longer roots
+remain intact; splash copies cannot trigger it.
+
+![Green inline root-chance upgrade](images/screenshots/2026-10-28-hamstring/available.png)
+
+![Purchased maximum rank](images/screenshots/2026-10-28-hamstring/trained.png)
+
+236 core tests, 465 app tests and core/app all-target Clippy pass. Native seeded
+purchase, text and saved rank verified at 1600×900; incremental build: 24.75s.
+Coverage: 280/432 talents. Full integration, Windows and live balance remain open.
+
 ## 2026-10-27 — Mace Specialization
 
 Equipped maces now give Warrior weapon hits a 1/2/3/4/6% chance to stun their

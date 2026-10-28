@@ -8347,3 +8347,43 @@ tests 27s, doc links 50s, render-pass lint 1s, player-build tests 270s. Both
 data-backed test runs skipped 31 unavailable addon-corpus tests (24 vanilla,
 7 Quiver). This supersedes the pending Mace full-gate note. Windows, live balance
 and the seven-phase acceptance contract remain open.
+
+### Improved Hamstring — implementation and acceptance
+
+Checkout Talent.dbc node 129 is Arms row 5, column 2, three ranks with no explicit
+prerequisite node. Spell.dbc 12289/12668/23695 gives 5/10/15% proc chance,
+triggering 23694; SpellDuration row 28 is 5,000 ms. Those are source facts.
+
+Survivors conversion: attach the root proc to Thunder Clap, the existing Warrior
+movement-impairing attack. Its description explicitly names the conversion; the
+rules do not claim a separate Hamstring ability, rage cost or melee strike.
+Each original damaging Thunder Clap hit rolls independently for a five-second
+root (1.5 seconds for bosses), retaining longer roots and the existing slow.
+Splash copies, periodic hits and generated weapon strikes cannot roll; rooting
+does not freeze enemies or change damage, target count, area or ability ownership.
+There is no equipment requirement. Pauses suspend resolution under the existing
+Playing-state gate. Remove the generic damage placeholder for this node.
+
+Acceptance: class/rank/damage/source boundaries; unchanged cast parameters;
+inline green 10 » 15% chance and capped 15% text without duplicate units/ranks;
+ECS original versus splash victims, bosses, longer roots, dead/despawned targets,
+lethal loot-once and pause/resume; saved purchase, cap, spec switch and refunds.
+Native seeded preview: 25 prerequisite Arms points plus two Hamstring ranks,
+then buy rank three; capture available/trained and inspect persisted rank.
+Full workspace gates, Windows reproduction and live balance remain separate
+acceptance evidence; scratch core checks alone do not complete the milestone.
+
+### Improved Hamstring checkpoint — 2026-10-28
+
+Implemented the conversion above. All 236 core and 465 feature-enabled app tests
+pass, including damage/source/class/rank boundaries, original versus splash
+control, retained slow, boss/longer roots, pause, dead/despawned/lethal targets,
+one loot event and purchase/save/spec/refund behavior. Core and app all-target
+Clippy pass. Native incremental build: 24.75 seconds.
+
+The seeded 1600×900 preview verifies green inline 10 » 15% chance, purchase 2/3
+→ 3/3, points 24 → 23 and persisted `0:129:3`. The capped description shows 15%
+without an upgrade arrow. Before/available/trained captures are stored under
+`docs/images/screenshots/2026-10-28-hamstring/`, with the latter two inline in the
+changelog. Coverage audit: 280/432 overall, Warrior 41/52. This is menu and ECS
+evidence; full integration, Windows and live combat/balance remain outstanding.

@@ -1107,6 +1107,17 @@ pub(super) fn apply_hits(
         {
             continue;
         }
+        // Hamstring's conversion rolls once per original Thunder Clap victim, before splash.
+        let root = if run.alive() {
+            run.milestones.hamstring_root_chance(h.source, h.damage)
+        } else {
+            0.0
+        };
+        if root > 0.0 && rng.f32() < root {
+            if let Ok((_, _, _, mut en, ..)) = enemies.get_mut(h.target) {
+                en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
+            }
+        }
         // Only the original weapon hit may stun; splash copies below never roll this proc.
         let mace = if run.alive() {
             run.milestones.mace_stun_chance(h.source, h.damage)
@@ -9113,6 +9124,152 @@ mod sword_hit_tests {
         talents::Milestones,
     };
 
+    #[test]
+    fn hamstring_roots_original_target_preserving_slow_without_freezing_or_splashing() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for (source, boss, prior_root, hp, dead, despawn, paused) in [
+            ("thunder_clap", false, 0.0, 100.0, false, false, false),
+            ("thunder_clap", true, 0.0, 100.0, false, false, false),
+            ("thunder_clap", false, 6.0, 100.0, false, false, false),
+            ("thunder_clap", false, 0.0, 5.0, false, false, false),
+            (
+                "sword_specialization",
+                false,
+                0.0,
+                100.0,
+                false,
+                false,
+                false,
+            ),
+            ("deep_wounds", false, 0.0, 100.0, false, false, false),
+            ("thunder_clap", false, 0.0, 100.0, true, false, false),
+            ("thunder_clap", false, 0.0, 100.0, false, true, false),
+            ("thunder_clap", false, 0.0, 100.0, false, false, true),
+        ] {
+            let mut app = App::new();
+            app.insert_resource(Time::<()>::default())
+                .insert_resource(Run {
+                    milestones: Milestones::default().with_ranks(&[(0, 129, 3)]),
+                    ..Default::default()
+                })
+                .insert_resource(Rng(0))
+                .insert_resource(super::super::account::empty())
+                .insert_resource(State::new(if paused {
+                    super::super::Phase::Paused
+                } else {
+                    super::super::Phase::Playing
+                }))
+                .init_resource::<super::super::Selection>()
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>()
+                .add_message::<Loot>()
+                .add_message::<FieldChanged>();
+            let spawn = |world: &mut World, hp, dead, x| {
+                world
+                    .spawn((
+                        Guid(123),
+                        Transform::from_xyz(x, 0.0, 0.0),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss: false,
+                            elite: false,
+                            attack_cd: 0.0,
+                            slow: 1.0,
+                            slow_t: 0.0,
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            dots: vec![],
+                            dead,
+                        },
+                    ))
+                    .id()
+            };
+            let target = spawn(app.world_mut(), hp, dead, 0.0);
+            let neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
+            {
+                let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
+                enemy.boss = boss;
+                enemy.root_t = prior_root;
+            }
+            if despawn {
+                app.world_mut().despawn(target);
+            }
+            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                source,
+                splash: 2.0,
+                effect: Effect::Slow(0.5, 3.0),
+                ..Hit::direct(target, 10.0, true)
+            });
+            let mut schedule = Schedule::default();
+            schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
+            schedule.run(app.world_mut());
+            if paused {
+                assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, hp);
+                assert_eq!(app.world().resource::<Run>().damage_done, 0.0);
+                app.world_mut()
+                    .insert_resource(State::new(super::super::Phase::Playing));
+                schedule.run(app.world_mut());
+            }
+            if !despawn && !dead {
+                let enemy = app.world().get::<Enemy>(target).unwrap();
+                assert_eq!(enemy.hp, (hp - 10.0_f32).max(0.0));
+                let expected = if source == "thunder_clap" {
+                    prior_root.max(if boss { 1.5 } else { 5.0 })
+                } else {
+                    prior_root
+                };
+                assert_eq!(enemy.root_t, expected);
+                assert_eq!(enemy.frozen_t, 0.0);
+                assert_eq!(enemy.stun_t, 0.0);
+                assert_eq!(enemy.slow, if boss { 0.75 } else { 0.5 });
+                assert_eq!(enemy.slow_t, 3.0);
+                assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 93.0);
+                assert_eq!(app.world().resource::<Run>().kills, u32::from(hp <= 10.0));
+                assert_eq!(
+                    app.world().resource::<Messages<Loot>>().len(),
+                    usize::from(hp <= 10.0)
+                );
+            } else {
+                assert_eq!(app.world().resource::<Messages<Loot>>().len(), 0);
+                assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 100.0);
+                if !despawn {
+                    assert_eq!(app.world().get::<Enemy>(target).unwrap().root_t, prior_root);
+                }
+            }
+            assert_eq!(
+                app.world().get::<Enemy>(neighbor).unwrap().root_t,
+                0.0,
+                "splash must not root"
+            );
+            let damage = app.world().resource::<Run>().damage_done;
+            schedule.run(app.world_mut());
+            assert_eq!(
+                app.world().resource::<Run>().damage_done,
+                damage,
+                "no delayed recursion or repeat message"
+            );
+        }
+    }
     #[test]
     fn mace_proc_stuns_original_target_without_shortening_control_or_splashing() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
