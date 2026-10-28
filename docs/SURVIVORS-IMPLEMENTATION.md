@@ -877,7 +877,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
-| Warrior | 37 / 52 | 9 / 9 |
+| Warrior | 38 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
 | Rogue | 25 / 51 | 9 / 9 |
@@ -886,7 +886,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 276 / 432 | 81 / 81 |
+| Total | 277 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8177,3 +8177,23 @@ One-Handed Weapon Specialization; details are in the
 [validation record](validation/2026-10-27-integration.md). Later screenshot/docs
 commit `4548ec7` leaves the tested code unchanged. Windows, live realm smoke,
 remaining talent/content work and live balance are still open.
+
+### Sword specialization checkpoint — 2026-10-27
+
+Chosen Survivors conversion: a 1–5% worn-sword proc repeats the originating
+weapon hit's direct damage snapshot and critical result against the same target.
+It carries no execute/control/DoT/splash/mark effect, uses a distinct damage-meter
+source, and cannot trigger another talent proc. Normal damage application still
+handles multistrike, leech and death/rewards. Eligibility rolls before splash
+expansion; dead/missing targets and inactive runs do not roll. The ordinary dead
+check prevents a generated hit from rewarding a target killed by the first hit.
+
+The core chance and inline definition are implemented; 231 core tests pass.
+All 459 app tests pass, including helper payload/proc exclusion, system-level
+lethal/despawn/target-isolation/pause/loot checks and legal purchase/save/refund
+with cosmetic isolation. A dead-target splash guard also prevents abandoned hits
+from harming neighbors. All-target app Clippy and the native build pass (23s). Native 1600×900 purchase
+shows points 30→29 and green chance 0→1% / 1→2%; rank one persists after Quit.
+Screenshots are inline in CHANGELOG. Definition coverage is 277/432 (Warrior
+38/52), leaving 155 undefined. Full integration, Windows visuals and live balance
+remain open for this checkpoint.

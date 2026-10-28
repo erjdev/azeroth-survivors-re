@@ -3,6 +3,22 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Sword Specialization
+
+Worn swords now grant a 1–5% chance to repeat a direct weapon hit against the same
+target. The extra strike retains its damage/critical result, without copying
+secondary effects or chaining talent procs. Hits against dead targets no longer
+splash nearby enemies.
+
+| Before purchase | Rank purchased |
+| --- | --- |
+| ![Sword specialization preview](images/screenshots/2026-10-27-sword-specialization/before.png) | ![Sword rank saved](images/screenshots/2026-10-27-sword-specialization/trained.png) |
+
+231 core and 459 app tests, all-target app Clippy, native purchase/save and green
+inline text pass. Tests cover targeting, lethal hits, one loot award, pause and
+cosmetic isolation. Native build: 23s. Full integration and Windows/live balance
+acceptance remain open.
+
 ## 2026-10-27 — Weapon talent integration verified
 
 The full native gate chain passes at `ef95fac` in 10m53s, including workspace,

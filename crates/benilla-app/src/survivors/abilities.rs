@@ -1048,6 +1048,23 @@ fn apply_secondary_control(
     }
 }
 
+/// A sword proc copies only the direct strike snapshot; its distinct source cannot proc again.
+fn sword_extra_hit(
+    h: &Hit,
+    talents: survivors_core::talents::Milestones,
+    roll: f32,
+) -> Option<Hit> {
+    let chance = talents.sword_extra_attack_chance(h.source, h.damage);
+    if !roll.is_finite() || !(0.0..chance).contains(&roll) {
+        return None;
+    }
+    Some(Hit {
+        source: "sword_specialization",
+        color: h.color,
+        ..Hit::direct(h.target, h.damage, h.crit)
+    })
+}
+
 pub(super) fn apply_hits(
     mut commands: Commands,
     time: Res<Time>,
@@ -1084,6 +1101,19 @@ pub(super) fn apply_hits(
     // Splash reaches the target's neighbours at seventy percent.
     let mut all = Vec::with_capacity(due.len());
     for h in due {
+        if !enemies
+            .get(h.target)
+            .is_ok_and(|(_, _, _, en, ..)| !en.dead)
+        {
+            continue;
+        }
+        // Only original landed hits roll. Splash copies and generated strikes never recurse.
+        let sword =
+            if run.alive() && run.milestones.sword_extra_attack_chance(h.source, h.damage) > 0.0 {
+                sword_extra_hit(&h, run.milestones, rng.f32())
+            } else {
+                None
+            };
         if h.splash > 0.0 {
             if let Ok((_, _, center, ..)) = enemies.get(h.target) {
                 let c = center.translation;
@@ -1101,6 +1131,7 @@ pub(super) fn apply_hits(
             }
         }
         all.push(Hit { splash: 0.0, ..h });
+        all.extend(sword);
     }
 
     let mut kill = |commands: &mut Commands,
@@ -8903,6 +8934,196 @@ mod milestone_tests {
                     }
                 }
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod sword_hit_tests {
+    use super::super::data;
+    use super::*;
+    use survivors_core::{
+        gear_loadout::{MeleeKind, MeleeWeapon},
+        talents::Milestones,
+    };
+
+    #[test]
+    fn sword_proc_applies_once_to_target_and_preserves_pause_and_loot() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for (hp, dead, despawn, paused) in [
+            (100.0, false, false, false),
+            (5.0, false, false, false),
+            (15.0, false, false, false),
+            (100.0, true, false, false),
+            (100.0, false, true, false),
+            (100.0, false, false, true),
+        ] {
+            let mut app = App::new();
+            app.insert_resource(Time::<()>::default())
+                .insert_resource(Run {
+                    milestones: Milestones {
+                        weapon: Some(MeleeWeapon {
+                            kind: MeleeKind::Sword,
+                            two_handed: false,
+                        }),
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(0, 123, 5)]),
+                    ..Default::default()
+                })
+                .insert_resource(Rng(0))
+                .insert_resource(super::super::account::empty())
+                .insert_resource(State::new(if paused {
+                    super::super::Phase::Paused
+                } else {
+                    super::super::Phase::Playing
+                }))
+                .init_resource::<super::super::Selection>()
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>()
+                .add_message::<Loot>()
+                .add_message::<FieldChanged>();
+            let spawn = |world: &mut World, hp, dead, x| {
+                world
+                    .spawn((
+                        Guid(123),
+                        Transform::from_xyz(x, 0.0, 0.0),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss: false,
+                            elite: false,
+                            attack_cd: 0.0,
+                            slow: 1.0,
+                            slow_t: 0.0,
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            dots: vec![],
+                            dead,
+                        },
+                    ))
+                    .id()
+            };
+            let target = spawn(app.world_mut(), hp, dead, 0.0);
+            let neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
+            if despawn {
+                app.world_mut().despawn(target);
+            }
+            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                source: "cleave",
+                splash: 2.0,
+                ..Hit::direct(target, 10.0, true)
+            });
+            let mut schedule = Schedule::default();
+            schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
+            schedule.run(app.world_mut());
+            if paused {
+                assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, hp);
+                assert_eq!(app.world().resource::<Run>().damage_done, 0.0);
+                app.world_mut()
+                    .insert_resource(State::new(super::super::Phase::Playing));
+                schedule.run(app.world_mut());
+            }
+            if !despawn && !dead {
+                assert_eq!(
+                    app.world().get::<Enemy>(target).unwrap().hp,
+                    (hp - 20.0).max(0.0)
+                );
+                assert_eq!(
+                    app.world().get::<Enemy>(neighbor).unwrap().hp,
+                    93.0,
+                    "splash must not spawn another sword proc"
+                );
+                let run = app.world().resource::<Run>();
+                assert_eq!(run.kills, usize::from(hp <= 20.0) as u32);
+                let extra = run
+                    .damage_sources
+                    .iter()
+                    .find(|row| row.0 == "sword_specialization")
+                    .map_or(0.0, |row| row.1);
+                assert_eq!(extra, if hp > 10.0 { 10.0 } else { 0.0 });
+                assert_eq!(
+                    app.world().resource::<Messages<Loot>>().len(),
+                    usize::from(hp <= 20.0)
+                );
+            } else {
+                assert!(!app
+                    .world()
+                    .resource::<Run>()
+                    .damage_sources
+                    .iter()
+                    .any(|row| row.0 == "sword_specialization"));
+                assert_eq!(app.world().resource::<Messages<Loot>>().len(), 0);
+                assert_eq!(
+                    app.world().get::<Enemy>(neighbor).unwrap().hp,
+                    100.0,
+                    "dead or missing targets cannot splash neighbors"
+                );
+            }
+            let damage = app.world().resource::<Run>().damage_done;
+            schedule.run(app.world_mut());
+            assert_eq!(
+                app.world().resource::<Run>().damage_done,
+                damage,
+                "no delayed recursion or repeat message"
+            );
+        }
+    }
+    #[test]
+    fn sword_echo_copies_damage_only_and_cannot_chain() {
+        let talents = Milestones {
+            weapon: Some(MeleeWeapon {
+                kind: MeleeKind::Sword,
+                two_handed: true,
+            }),
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 123, 5)]);
+        let mut world = World::new();
+        let target = world.spawn_empty().id();
+        let hit = Hit {
+            source: "execute",
+            damage: 123.0,
+            dot: 10.0,
+            dot_dur: 5.0,
+            effect: Effect::Execute(0.2),
+            mark: 42,
+            mark_dur: 5.0,
+            splash: 10.0,
+            ..Hit::direct(target, 123.0, true)
+        };
+        let extra = sword_extra_hit(&hit, talents, 0.049).unwrap();
+        assert_eq!(extra.target, target);
+        assert_eq!(extra.damage, 123.0);
+        assert!(extra.crit);
+        assert!(matches!(extra.effect, Effect::None));
+        assert_eq!(
+            (extra.dot, extra.dot_dur, extra.splash, extra.mark_dur),
+            (0.0, 0.0, 0.0, 0.0)
+        );
+        assert_eq!(extra.mark, 0);
+        assert!(sword_extra_hit(&extra, talents, 0.0).is_none());
+        for roll in [0.05, 1.0, -1.0, f32::NAN, f32::INFINITY] {
+            assert!(sword_extra_hit(&hit, talents, roll).is_none());
         }
     }
 }

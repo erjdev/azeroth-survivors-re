@@ -3726,8 +3726,10 @@ mod tests {
     }
 
     #[test]
-    fn axe_and_one_handed_training_follow_saved_worn_equipment() {
-        for (id, tree, row, worn, cosmetic) in [(132, 0, 4, 0, 5), (702, 2, 5, 5, 0)] {
+    fn weapon_training_follow_saved_worn_equipment() {
+        for (id, tree, row, worn, cosmetic) in
+            [(132, 0, 4, 0, 5), (702, 2, 5, 5, 0), (123, 0, 4, 3, 0)]
+        {
             let data = benilla_formats::wow_data_or_skip!();
             let mut chain = benilla_formats::Chain::open(&data).unwrap();
             let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
@@ -3745,7 +3747,7 @@ mod tests {
                 .find(|c| c.id == hero)
                 .unwrap();
             character.talent_xp = 5100;
-            character.dbc[0] = if id == 132 {
+            character.dbc[0] = if id != 702 {
                 vec![
                     (0, 124, 3),
                     (0, 130, 5),
@@ -3773,14 +3775,18 @@ mod tests {
                 .wear_legacy(&progress.pieces, 8, Some(worn)));
             let multiplier = |account: &Account| {
                 let effect = account.milestones_picked(0, Some(hero)).cast("cleave");
-                if id == 132 {
+                if id == 123 {
+                    account
+                        .milestones_picked(0, Some(hero))
+                        .sword_extra_attack_chance("cleave", 1.0)
+                } else if id == 132 {
                     effect.crit
                 } else {
                     effect.damage
                 }
             };
             let expected = |base: f32, rank: f32| {
-                if id == 132 {
+                if id != 702 {
                     base + 0.01 * rank
                 } else {
                     base * (1.0 + 0.02 * rank)
@@ -3803,7 +3809,7 @@ mod tests {
             loaded.talent_rules = Some(rules);
             assert_eq!(multiplier(&loaded), multiplier(&account));
             loaded.select_spec(hero, 1);
-            assert_eq!(multiplier(&loaded), if id == 132 { 0.0 } else { 1.0 });
+            assert_eq!(multiplier(&loaded), if id != 702 { 0.0 } else { 1.0 });
             loaded.select_spec(hero, 0);
             assert!(loaded.unlearn_talent(hero, id, true));
             assert!((multiplier(&loaded) - expected(base, 4.0)).abs() < 0.00001);

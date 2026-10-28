@@ -751,6 +751,30 @@ impl Milestones {
         }
     }
 
+    /// Sword Specialization: one same-target echo of direct weapon damage, never a proc chain.
+    pub fn sword_extra_attack_chance(self, key: &str, damage: f32) -> f32 {
+        if self.class != 0
+            || !damage.is_finite()
+            || damage <= 0.0
+            || !self
+                .weapon
+                .is_some_and(|weapon| weapon.kind == crate::gear_loadout::MeleeKind::Sword)
+            || !matches!(
+                key,
+                "cleave"
+                    | "heroic_strike"
+                    | "whirlwind"
+                    | "sweeping_strikes"
+                    | "execute"
+                    | "mortal_strike"
+                    | "retaliation"
+            )
+        {
+            return 0.0;
+        }
+        self.trained_value(TalentStat::SwordExtraAttack)
+    }
+
     /// Deep Wounds snapshots the milestone plus trained fraction of a critical direct attack.
     /// Called before execute and echo expansion; ticks cannot trigger more bleeds.
     pub fn critical_bleed(self, key: &str, damage: f32, critical: bool) -> f32 {
@@ -1546,6 +1570,7 @@ pub enum TalentStat {
     TwoHandedDamage,
     OneHandedDamage,
     AxeCrit,
+    SwordExtraAttack,
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
     SpellGroupCooldown(&'static [&'static str]),
@@ -1776,6 +1801,7 @@ impl TalentDefinition {
             | TalentStat::TwoHandedDamage
             | TalentStat::OneHandedDamage
             | TalentStat::AxeCrit
+            | TalentStat::SwordExtraAttack
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -1957,6 +1983,7 @@ impl TalentDefinition {
             TalentStat::Cooldown
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
+            TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
             TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit => {
                 (100.0, "% critical chance")
             }
@@ -2074,6 +2101,11 @@ impl TalentDefinition {
 
 /// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
 pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 123, max_rank: 5, name: "Sword Specialization",
+        description: "With a worn sword: 1% chance per rank after a direct weapon hit to strike the same target again. Repeats the hit's direct damage, including its critical result, without copying area, control, bleed or execute effects. Extra strikes cannot trigger further talent procs. Cosmetic weapons do not qualify (Survivors conversion)",
+        stat: TalentStat::SwordExtraAttack, per_rank: 0.01,
+    },
     // Spell.dbc 12700/12781/12783–12785 and 16538–16542: die + base points.
     TalentDefinition {
         id: 132, max_rank: 5, name: "Axe Specialization",
@@ -3416,6 +3448,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::TwoHandedDamage
             | TalentStat::OneHandedDamage
             | TalentStat::AxeCrit
+            | TalentStat::SwordExtraAttack
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -4902,6 +4935,7 @@ mod stat_talent_tests {
                     | TalentStat::TwoHandedDamage
                     | TalentStat::OneHandedDamage
                     | TalentStat::AxeCrit
+                    | TalentStat::SwordExtraAttack
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellGroupCooldown(_)
@@ -6349,6 +6383,72 @@ mod weapon_training_tests {
         let one = talent_definition(0, 702).unwrap();
         assert!(one.inline_description(4).unwrap().contains("8 » 10%"));
         let node = talent_definition(0, 136).unwrap();
+        assert!(node.inline_description(0).unwrap().contains("0 » 1%"));
+        assert!(node.inline_description(4).unwrap().contains("4 » 5%"));
+    }
+}
+
+#[cfg(test)]
+mod sword_training_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn sword_proc_requires_direct_damage_and_matching_worn_weapon() {
+        for class in 0..9 {
+            for rank in [0, 1, 5, 255] {
+                for kind in [None, Some(MeleeKind::Sword), Some(MeleeKind::Axe)] {
+                    for two_handed in [false, true] {
+                        let base = Milestones {
+                            class,
+                            weapon: kind.map(|kind| MeleeWeapon { kind, two_handed }),
+                            ..Default::default()
+                        };
+                        let trained = base.with_ranks(&[(0, 123, rank)]);
+                        for key in [
+                            "cleave",
+                            "heroic_strike",
+                            "whirlwind",
+                            "sweeping_strikes",
+                            "execute",
+                            "mortal_strike",
+                            "retaliation",
+                            "thunder_clap",
+                            "deep_wounds",
+                            "sword_specialization",
+                            "Thorns",
+                            "fireball",
+                        ] {
+                            assert_eq!(trained.cast(key), base.cast(key));
+                            for damage in [0.0, -1.0, f32::NAN, f32::INFINITY, 50.0] {
+                                let eligible = class == 0
+                                    && kind == Some(MeleeKind::Sword)
+                                    && damage == 50.0
+                                    && matches!(
+                                        key,
+                                        "cleave"
+                                            | "heroic_strike"
+                                            | "whirlwind"
+                                            | "sweeping_strikes"
+                                            | "execute"
+                                            | "mortal_strike"
+                                            | "retaliation"
+                                    );
+                                let expected = if eligible {
+                                    0.01 * f32::from(rank.min(5))
+                                } else {
+                                    0.0
+                                };
+                                assert_eq!(
+                                    trained.sword_extra_attack_chance(key, damage),
+                                    expected
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let node = talent_definition(0, 123).unwrap();
         assert!(node.inline_description(0).unwrap().contains("0 » 1%"));
         assert!(node.inline_description(4).unwrap().contains("4 » 5%"));
     }
