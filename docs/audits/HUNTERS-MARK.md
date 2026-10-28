@@ -124,6 +124,7 @@ world aura synchronization and a distinct gold minimap diamond are wired in.
 273 core and 521 app tests pass, with feature-enabled Clippy and the native build.
 Wide/compact cards and talent screens were captured; native purchases persisted
 Efficiency 5/5 and Improved Hunter's Mark 3/5 in an isolated profile. Scoped
-integration is running. Earlier sections record the dependency investigation;
+integration passes for all six affected/dependent packages, with 31 missing-addon
+skips. Full pre-merge gates remain required. Earlier sections record the dependency investigation;
 acquisition and training are now exposed. Rendered world aura/minimap and attended
 combat acceptance remain open.

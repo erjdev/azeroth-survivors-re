@@ -13,8 +13,9 @@ refresh without stacking, and feed ranged damage, concealment reveal and trackin
 
 273 core tests and 521 app tests pass, including casts, target replacement,
 expiry, attack scope, saved specs and refunds. Clippy passes; the incremental
-native build took 2m03s. Definition coverage reaches 296/432 (Hunter 41/46).
-Scoped integration is running. World aura/minimap visuals and attended combat
+native build took 1m16s after the localization fix. Definition coverage reaches 296/432 (Hunter 41/46).
+Scoped integration passes for all six affected/dependent packages, with 31
+missing-addon skips. Full pre-merge gates remain required. World aura/minimap visuals and attended combat
 remain unverified; these screenshots validate isolated UI states only.
 
 ![Hunter’s Mark inline upgrades at 1600×900](images/screenshots/2026-10-28-hunters-mark/cards-wide.jpg)

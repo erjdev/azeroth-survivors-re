@@ -14,11 +14,12 @@ changes and names the attacks that benefit. The authored rules are recorded in
 [SURVIVORS.md](SURVIVORS.md); vanilla evidence remains separate in the audit.
 273 core and 521 app tests pass, including actual casts/offers, save/spec/refund
 and inline text. Feature-enabled Clippy passes; native incremental build took
-2m03s. Native card previews at 1600×900 and 640×720 and talent previews at
+2m03s; the final localized build took 1m16s. Native card previews at 1600×900 and 640×720 and talent previews at
 1100×720 and 640×720 were inspected and captured. A disposable Hunter purchased
 Efficiency 5/5 and Improved Hunter's Mark 3/5 through the UI; the saved file
 confirms those ranks. Definition coverage is 296/432 (Hunter 41/46), not full
-gameplay acceptance. Scoped integration is running. Rendered world aura/minimap,
+gameplay acceptance. Scoped integration passes for all six affected/dependent packages, with 31
+missing-addon skips. Full pre-merge gates remain required. Rendered world aura/minimap,
 attended combat and Windows acceptance remain open.
 
 Preview follow-up: a selected-profile card preview for a different hero can wait
