@@ -783,6 +783,13 @@ impl Account {
             points: hero
                 .map(|hero| hero.tree_points(usize::from(hero.spec)))
                 .unwrap_or([0; 3]),
+            weapon: hero
+                .and_then(|_| self.classes.get(class))
+                .and_then(|progress| {
+                    progress
+                        .equipment
+                        .melee_weapon(class, &progress.pieces, &self.supplemental)
+                }),
             ..Default::default()
         }
         .with_ranks(
@@ -3653,6 +3660,69 @@ mod tests {
         assert!((cooldown(&loaded) - 16.2).abs() < 0.00001);
         assert!(loaded.unlearn_talent(hero, 483, true));
         assert!((cooldown(&loaded) - 18.0).abs() < 0.00001);
+    }
+
+    #[test]
+    fn two_handed_training_tracks_worn_gear_saved_specs_and_refunds() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(0);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (0, 124, 3),
+            (0, 130, 5),
+            (0, 127, 3),
+            (0, 126, 2),
+            (0, 128, 2),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        account.classes[0].pieces.fill(1);
+        let progress = &mut account.classes[0];
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, Some(0)));
+        let multiplier = |account: &Account| {
+            account
+                .milestones_picked(0, Some(hero))
+                .cast("cleave")
+                .damage
+        };
+        let base = multiplier(&account);
+        for _ in 0..5 {
+            assert!(account.learn_talent(hero, 0, 136, 5, 3, true));
+        }
+        assert!(!account.learn_talent(hero, 0, 136, 5, 3, true));
+        assert!((multiplier(&account) - base * 1.05).abs() < 0.00001);
+        let progress = &mut account.classes[0];
+        assert!(progress.equipment.show_legacy(
+            &progress.pieces,
+            8,
+            survivors_core::equipment::Look::Piece(5)
+        ));
+        assert!((multiplier(&account) - base * 1.05).abs() < 0.00001);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(multiplier(&loaded), multiplier(&account));
+        loaded.select_spec(hero, 1);
+        assert_eq!(multiplier(&loaded), 1.0);
+        loaded.select_spec(hero, 0);
+        assert!(loaded.unlearn_talent(hero, 136, true));
+        assert!((multiplier(&loaded) - base * 1.04).abs() < 0.00001);
+        let progress = &mut loaded.classes[0];
+        assert!(progress.equipment.wear_legacy(&progress.pieces, 8, Some(5)));
+        assert_eq!(multiplier(&loaded), base);
+        assert_eq!(loaded.milestones_picked(0, Some(u32::MAX)).weapon, None);
     }
 
     #[test]

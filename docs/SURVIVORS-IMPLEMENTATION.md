@@ -877,7 +877,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
-| Warrior | 34 / 52 | 9 / 9 |
+| Warrior | 35 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
 | Rogue | 25 / 51 | 9 / 9 |
@@ -886,7 +886,7 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 273 / 432 | 81 / 81 |
+| Total | 274 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8060,3 +8060,20 @@ legal purchase/refund and save reload, one-/two-handed and empty gear, cosmetic
 overrides, actual cast damage and green inline preview. Axe/Polearm specialization
 should share this boundary later. No node is complete merely because the metadata
 query now exists.
+
+### Two-Handed Weapon Specialization integration — 2026-10-27 (verified)
+
+Warrior node 136 now uses the shared worn-weapon query in the selected hero's
+Milestones snapshot, shared by run startup and selected-profile card previews.
+Five ranks multiply damage by 1.01–1.05 for Cleave, Heroic Strike, Whirlwind,
+Sweeping Strikes, Execute, Mortal Strike and Retaliation only with a two-handed
+melee weapon. Thunder Clap and shouts are excluded. Deep Wounds is not multiplied
+a second time; a stronger triggering hit can still produce a stronger bleed.
+The tooltip states the worn-weapon condition and uses green inline percentages.
+Verified: 230 core and 456 app tests, including purchase/save/spec/refund and
+emitted-hit damage checks. Clippy passes; incremental native build took 1m34s.
+Native 1600×900 purchase (36→35 points, rank 0→1) and green inline text are
+captured in CHANGELOG. Catalog coverage is 274/432 (Warrior 35/52), leaving 158.
+Windows visuals, live balance and full workspace acceptance remain open for this
+slice; selected-profile cards use the same account snapshot, but no separate
+visual card comparison was performed.

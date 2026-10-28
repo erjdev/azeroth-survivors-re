@@ -2593,6 +2593,100 @@ mod milestone_tests {
     }
 
     #[test]
+    fn two_handed_training_changes_emitted_melee_hits_only() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        let sample = |two_handed: bool, rank: u8| {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                milestones: Milestones {
+                    weapon: Some(MeleeWeapon {
+                        kind: MeleeKind::Sword,
+                        two_handed,
+                    }),
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 136, rank)]),
+                ..Default::default()
+            };
+            for key in [
+                "cleave",
+                "heroic_strike",
+                "whirlwind",
+                "sweeping_strikes",
+                "execute",
+                "mortal_strike",
+                "thunder_clap",
+            ] {
+                run.abilities.push(Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.,
+                });
+            }
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(42))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().spawn((
+                Transform::from_xyz(1., 0., 0.),
+                Enemy {
+                    def: &data::roster(0).enemies[0],
+                    hp: 100.,
+                    max_hp: 100.,
+                    speed: 3.,
+                    damage: 5.,
+                    radius: 0.6,
+                    xp: 1,
+                    boss: false,
+                    elite: false,
+                    attack_cd: 0.,
+                    slow: 1.,
+                    slow_t: 0.,
+                    root_t: 0.,
+                    frozen_t: 0.,
+                    winters_chill: Default::default(),
+                    shadow_weaving: Default::default(),
+                    kidney_t: 0.0,
+                    stun_t: 0.,
+                    fear_t: 0.,
+                    weaken: 1.,
+                    weaken_t: 0.,
+                    dots: Vec::new(),
+                    dead: false,
+                },
+            ));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            app.world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .map(|hit| (hit.source, hit.damage))
+                .collect::<Vec<_>>()
+        };
+        let baseline = sample(true, 0);
+        assert!(!baseline.is_empty());
+        let trained = sample(true, 5);
+        assert_eq!(sample(false, 5), baseline);
+        assert_eq!(trained.len(), baseline.len());
+        for ((source, damage), (other, plain)) in trained.into_iter().zip(baseline) {
+            assert_eq!(source, other);
+            let factor = if source == "thunder_clap" { 1.0 } else { 1.05 };
+            assert!((damage - plain * factor).abs() < 0.0001, "{source}");
+        }
+    }
+
+    #[test]
     fn blade_flurry_burst_adds_single_melee_targets_without_expanding_areas() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;

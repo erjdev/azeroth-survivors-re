@@ -62,6 +62,7 @@ pub struct Milestones {
     pub points: [u32; 3],
     /// Bounded selected-spec ranks in the class catalog order; not a save format.
     pub training: [u8; 64],
+    pub weapon: Option<crate::gear_loadout::MeleeWeapon>,
 }
 
 impl Default for Milestones {
@@ -70,6 +71,7 @@ impl Default for Milestones {
             class: 0,
             points: [0; 3],
             training: [0; 64],
+            weapon: None,
         }
     }
 }
@@ -469,6 +471,21 @@ impl Milestones {
                     }
                     TalentStat::SpellGroupRangeYards(spells) if spells.contains(&key) => {
                         effect.range_yards += value;
+                    }
+                    TalentStat::TwoHandedDamage
+                        if self.weapon.is_some_and(|weapon| weapon.two_handed)
+                            && matches!(
+                                key,
+                                "cleave"
+                                    | "heroic_strike"
+                                    | "whirlwind"
+                                    | "sweeping_strikes"
+                                    | "execute"
+                                    | "mortal_strike"
+                                    | "retaliation"
+                            ) =>
+                    {
+                        effect.damage *= 1.0 + value;
                     }
                     TalentStat::SpellGroupDamage(spells) if spells.contains(&key) => {
                         effect.damage *= 1.0 + value;
@@ -1514,6 +1531,7 @@ pub enum TalentStat {
     ForceOfWill,
     ElementalPrecision,
     SpellGroupDamage(&'static [&'static str]),
+    TwoHandedDamage,
     SpellGroupCrit(&'static [&'static str]),
     SpellGroupCritDamage(&'static [&'static str]),
     SpellGroupCooldown(&'static [&'static str]),
@@ -1741,6 +1759,7 @@ impl TalentDefinition {
             | TalentStat::SpellDamage(_)
             | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellGroupDamage(_)
+            | TalentStat::TwoHandedDamage
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
             | TalentStat::SpellCrit(_)
@@ -1914,7 +1933,8 @@ impl TalentDefinition {
                 1.0,
                 " sec Arcane Explosion cooldown advanced per Arcane Missiles cast",
             ),
-            TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_) => {
+            TalentStat::Damage | TalentStat::SpellDamage(_) | TalentStat::SpellGroupDamage(_)
+            | TalentStat::TwoHandedDamage => {
                 (100.0, "% damage")
             }
             TalentStat::Cooldown
@@ -2037,6 +2057,11 @@ impl TalentDefinition {
 
 /// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
 pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 136, max_rank: 5, name: "Two-Handed Weapon Specialization",
+        description: "With a worn two-handed melee weapon: +1% damage per rank for Cleave, Heroic Strike, Whirlwind, Sweeping Strikes, Execute, Mortal Strike and Retaliation. Cosmetic weapons do not qualify. Excludes Thunder Clap and shouts; does not separately multiply bleed ticks",
+        stat: TalentStat::TwoHandedDamage, per_rank: 0.01,
+    },
     TalentDefinition {
         id: 124,
         max_rank: 3,
@@ -3360,6 +3385,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ForceOfWill
             | TalentStat::ElementalPrecision
             | TalentStat::SpellGroupDamage(_)
+            | TalentStat::TwoHandedDamage
             | TalentStat::SpellGroupCrit(_)
             | TalentStat::SpellGroupCritDamage(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -4843,6 +4869,7 @@ mod stat_talent_tests {
                     | TalentStat::ForceOfWill
                     | TalentStat::ElementalPrecision
                     | TalentStat::SpellGroupDamage(_)
+                    | TalentStat::TwoHandedDamage
                     | TalentStat::SpellGroupCrit(_)
                     | TalentStat::SpellGroupCritDamage(_)
                     | TalentStat::SpellGroupCooldown(_)
@@ -6215,5 +6242,64 @@ mod wing_clip_tests {
         assert_eq!(&text[ranges[0].clone()], "+4 » 8% chance");
         assert!(text.contains("5 sec (bosses: 1.5 sec)"));
         assert!(!node.inline_description(255).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod weapon_training_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn two_handed_training_requires_worn_melee_and_only_changes_weapon_damage() {
+        for class in 0..9 {
+            for rank in [0, 1, 5, 255] {
+                for weapon in [
+                    None,
+                    Some(MeleeWeapon {
+                        kind: MeleeKind::Sword,
+                        two_handed: false,
+                    }),
+                    Some(MeleeWeapon {
+                        kind: MeleeKind::Axe,
+                        two_handed: true,
+                    }),
+                ] {
+                    let base = Milestones {
+                        class,
+                        weapon,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(0, 136, rank)]);
+                    for key in [
+                        "cleave",
+                        "heroic_strike",
+                        "whirlwind",
+                        "sweeping_strikes",
+                        "execute",
+                        "mortal_strike",
+                        "retaliation",
+                        "thunder_clap",
+                        "demoralizing_shout",
+                        "deep_wounds",
+                        "fireball",
+                    ] {
+                        let mut expected = base.cast(key);
+                        if class == 0
+                            && weapon.is_some_and(|w| w.two_handed)
+                            && !matches!(
+                                key,
+                                "thunder_clap" | "demoralizing_shout" | "deep_wounds" | "fireball"
+                            )
+                        {
+                            expected.damage *= 1.0 + 0.01 * f32::from(rank.min(5));
+                        }
+                        assert_eq!(trained.cast(key), expected, "{class} {rank} {key}");
+                    }
+                }
+            }
+        }
+        let node = talent_definition(0, 136).unwrap();
+        assert!(node.inline_description(0).unwrap().contains("0 » 1%"));
+        assert!(node.inline_description(4).unwrap().contains("4 » 5%"));
     }
 }

@@ -72,7 +72,7 @@ locked pending world readiness. This capture does not establish raid gameplay.
 
 ### Talent milestone
 
-![Rogue talents with inline Blade Flurry bonuses](docs/images/screenshots/2026-10-27-blade-flurry/talents.png)
+![Warrior talents with worn-weapon specialization](docs/images/screenshots/2026-10-27-two-handed/talents.png)
 
 2026-10-27 · 1600×900 native preview: taller trees, adjacent saved specs and a
 green inline upgrade values. Purchase and compact captures are in the [changelog](docs/CHANGELOG.md).

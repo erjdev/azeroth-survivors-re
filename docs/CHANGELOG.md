@@ -3,6 +3,20 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-27 — Two-Handed Weapon Specialization
+
+Warrior weapon attacks gain 1% damage per rank (up to 5%) while wearing a
+two-handed melee weapon. Cosmetic weapons cannot activate the bonus. The talent
+shows its condition and green inline upgrade value.
+
+![Specialization before purchase](images/screenshots/2026-10-27-two-handed/talents.png)
+
+![Rank one purchased and next increase shown inline](images/screenshots/2026-10-27-two-handed/trained.png)
+
+Verified: 230 core and 456 app tests, emitted-hit damage, save/spec/refund behavior,
+Clippy, catalog audit and native purchase. Build: 1m34s. Definitions: 274/432.
+Windows visuals and live balance remain open.
+
 ## 2026-10-27 — Worn weapon identity for specialization rules
 
 Added a shared equipment query for melee type and handedness. It uses owned,
