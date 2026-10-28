@@ -3,6 +3,25 @@
 Feature milestones, newest first. These are development checkpoints, not released versions.
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
+## 2026-10-28 — Rogue dagger training
+
+Dagger Specialization grants 1–5 percentage points of critical chance to Rogue
+direct attacks while a dagger is equipped. Cosmetic weapons do not qualify;
+Rupture ticks and neutral item abilities are unchanged. The talent preview shows
+the green inline upgrade and weapon requirement.
+
+![Dagger Specialization inline upgrade](images/screenshots/2026-10-28-dagger-specialization/available.png)
+
+![Final rank purchased and saved](images/screenshots/2026-10-28-dagger-specialization/trained.png)
+
+![Trained Rogue card previews](images/screenshots/2026-10-28-dagger-specialization/cards.png)
+
+245 core tests, 473 app tests and core/app Clippy pass, including saved equipment,
+cosmetic independence, spec switching, refunds and critical-hit calculations.
+Native purchase/save verified at 1600×900; cards at 1280×720. Incremental build:
+20 seconds. Definition coverage: 282/432. Full integration, Windows and live
+balance remain open.
+
 ## 2026-10-28 — Booming Voice duration
 
 Booming Voice now extends Battle Shout and Demoralizing Shout by 10% per rank,

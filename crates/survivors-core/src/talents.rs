@@ -472,6 +472,20 @@ impl Milestones {
                     TalentStat::SpellGroupRangeYards(spells) if spells.contains(&key) => {
                         effect.range_yards += value;
                     }
+                    TalentStat::DaggerCrit
+                        if self.weapon.is_some_and(|weapon| {
+                            weapon.kind == crate::gear_loadout::MeleeKind::Dagger
+                        }) && matches!(
+                            key,
+                            "sinister_strike"
+                                | "eviscerate"
+                                | "blade_flurry"
+                                | "gouge"
+                                | "kidney_shot"
+                        ) =>
+                    {
+                        effect.crit += value;
+                    }
                     stat @ (TalentStat::TwoHandedDamage
                     | TalentStat::OneHandedDamage
                     | TalentStat::AxeCrit
@@ -1631,6 +1645,7 @@ pub enum TalentStat {
     OneHandedDamage,
     AxeCrit,
     PolearmCrit,
+    DaggerCrit,
     SwordExtraAttack,
     MaceStun,
     SpellGroupCrit(&'static [&'static str]),
@@ -1890,6 +1905,7 @@ impl TalentDefinition {
             | TalentStat::OneHandedDamage
             | TalentStat::AxeCrit
             | TalentStat::PolearmCrit
+            | TalentStat::DaggerCrit
             | TalentStat::SwordExtraAttack
             | TalentStat::MaceStun
             | TalentStat::SpellCooldown(_)
@@ -2084,7 +2100,7 @@ impl TalentDefinition {
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
             TalentStat::MaceStun => (100.0, "% stun chance"),
-            TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit => {
+            TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit | TalentStat::DaggerCrit => {
                 (100.0, "% critical chance")
             }
             TalentStat::CritDamage | TalentStat::SpellGroupCritDamage(_) => {
@@ -3186,6 +3202,12 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    // Spell.dbc 13706/13804–13807: +1–5 percentage points of dagger critical chance.
+    TalentDefinition {
+        id: 182, max_rank: 5, name: "Dagger Specialization",
+        description: "With a worn dagger: +1% critical chance per rank for Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities",
+        stat: TalentStat::DaggerCrit, per_rank: 0.01,
+    },
     TalentDefinition {
         id: 223, max_rank: 1, name: "Blade Flurry",
         description: "A successful owned Blade Flurry starts a 15 sec burst: 20% faster recovery for Sinister Strike, Eviscerate, Gouge, Kidney Shot and Blade Flurry; single-target melee attacks hit 1 additional target within their existing reach. Ready at run start; recovers 120 sec after activation. Does not refresh on repeated casts or change area radius, Rupture, Sprint or existing cooldowns. Does not grant the spell (Survivors automatic conversion)",
@@ -3578,6 +3600,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::OneHandedDamage
             | TalentStat::AxeCrit
             | TalentStat::PolearmCrit
+            | TalentStat::DaggerCrit
             | TalentStat::SwordExtraAttack
             | TalentStat::MaceStun
             | TalentStat::SpellGroupCrit(_)
@@ -5070,6 +5093,7 @@ mod stat_talent_tests {
                     | TalentStat::OneHandedDamage
                     | TalentStat::AxeCrit
                     | TalentStat::PolearmCrit
+                    | TalentStat::DaggerCrit
                     | TalentStat::SwordExtraAttack
                     | TalentStat::MaceStun
                     | TalentStat::SpellGroupCrit(_)
@@ -6834,5 +6858,69 @@ mod booming_voice_tests {
             .iter()
             .any(|range| text[range.clone()].contains("40 » 50%")));
         assert!(!node.inline_description(5).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod dagger_specialization_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+
+    #[test]
+    fn dagger_crit_requires_worn_dagger_and_only_changes_rogue_direct_attacks() {
+        for class in 0..9 {
+            for kind in [
+                None,
+                Some(MeleeKind::Dagger),
+                Some(MeleeKind::Sword),
+                Some(MeleeKind::Fist),
+                Some(MeleeKind::Mace),
+            ] {
+                for rank in [0, 1, 4, 5, 255] {
+                    let base = Milestones {
+                        class,
+                        weapon: kind.map(|kind| MeleeWeapon {
+                            kind,
+                            two_handed: false,
+                        }),
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 182, rank)]);
+                    for ability in crate::data::ABILITIES {
+                        let mut expected = base.cast(ability.key);
+                        if class == 3
+                            && kind == Some(MeleeKind::Dagger)
+                            && matches!(
+                                ability.key,
+                                "sinister_strike"
+                                    | "eviscerate"
+                                    | "blade_flurry"
+                                    | "gouge"
+                                    | "kidney_shot"
+                            )
+                        {
+                            expected.crit += 0.01 * f32::from(rank.min(5));
+                        }
+                        assert_eq!(
+                            trained.cast(ability.key),
+                            expected,
+                            "{class} {kind:?} {rank} {}",
+                            ability.key
+                        );
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn dagger_preview_colors_inline_critical_chance_and_caps_rank() {
+        let node = talent_definition(3, 182).unwrap();
+        let (text, ranges) = node.inline_description_with_values(4).unwrap();
+        assert!(ranges
+            .iter()
+            .any(|range| text[range.clone()].contains("4 » 5%")));
+        assert!(!node.inline_description(255).unwrap().contains(" » "));
     }
 }

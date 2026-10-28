@@ -887,13 +887,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 37 / 46 | 9 / 9 |
-| Rogue | 25 / 51 | 9 / 9 |
+| Rogue | 26 / 51 | 9 / 9 |
 | Priest | 29 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 37 / 49 | 9 / 9 |
 | Warlock | 28 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 281 / 432 | 81 / 81 |
+| Total | 282 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -8456,7 +8456,7 @@ point deduction 36→35 and persisted rank verified at 1600×900; trained cards 
 11m35s, including player-build tests; 31 missing-addon skips per data/player run;
 Windows and live balance remain open.
 
-### Next talent slice: Rogue Dagger Specialization — 2026-10-28
+### Rogue Dagger Specialization — 2026-10-28
 
 Verified from the checkout's Talent.dbc: node 182, Combat tree index 1, row 3,
 column 1, five ranks, no prerequisite beyond row points. Spell.dbc
@@ -8475,6 +8475,11 @@ Show green inline critical-chance upgrades with the worn-dagger requirement.
 Acceptance before claiming completion: core rank/class/weapon/effect isolation;
 account purchase, save/load, spec changes, refund and cosmetic independence;
 app cast/critical-hit behavior and preview parity; native purchase and card
-screenshots embedded in CHANGELOG and README. An isolated draft currently passes
-245 core tests and Clippy; it has not been applied to the checkout while the
-Booming Voice integration gate runs. Definition coverage remains 281/432.
+screenshots embedded in CHANGELOG and README. The implementation now passes
+245 core tests, 473 feature-enabled app tests and core/app Clippy. Native purchase
+4→5, point deduction 32→31 and saved rank verified at 1600×900; trained cards
+verified at 1280×720. Card damage remains noncritical damage; the talent adds
+critical chance, not a permanent damage multiplier. Screenshots are embedded in
+CHANGELOG and the README gallery is refreshed. Incremental build: 20 seconds.
+Definition coverage: 282/432 (Rogue 26/51). Full integration, Windows visuals
+and live balance remain open.
