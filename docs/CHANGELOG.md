@@ -16,8 +16,9 @@ Cards show strength, duration and recharge upgrades inline in green.
 
 241 core tests, 470 feature-enabled app tests and core/app Clippy pass.
 Native purchase/save and card previews verified at 1600×900 and 1280×720.
-Definition coverage: 281/432 talents (Warrior: 42/52). Full integration is
-running; Windows and live balance remain open.
+Definition coverage: 281/432 talents (Warrior: 42/52). Full integration passed
+in 17m38s, with 31 missing-addon skips per data/player run. Windows and live
+balance remain open.
 
 ## 2026-10-28 — Roomier talent trees
 
@@ -25,7 +26,8 @@ Talent trees now have 14% more vertical row spacing and 10% larger icons.
 Artwork retains its proportions with centered side cropping. Narrow windows wrap
 and scroll instead of compressing the trees. Verified in the native menu at
 1600×900 and 640×720, including access to the bottom rows and talent details.
-Incremental native build passed in 1m01s; integration checks pending.
+Incremental native build passed in 1m01s. Full integration passed with Battle
+Shout in 17m38s; 31 missing-addon skips per data/player run.
 
 ![Taller talent trees at 1600×900](images/screenshots/2026-10-28-talent-spacing/wide.png)
 

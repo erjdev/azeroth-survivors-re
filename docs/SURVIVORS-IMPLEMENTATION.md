@@ -8429,4 +8429,5 @@ purchase and card screens for the changelog and README. Full native integration,
 Windows and live balance remain separate requirements. 241 core tests and 470 feature-enabled app tests pass, as do core/app Clippy.
 Native purchase 4→5, point deduction and saved rank verified at 1600×900;
 trained new/upgrade cards verified at 1280×720 with green inline values.
-Full integration is running; Windows and live balance remain open.
+Full integration passed in 17m38s, including player-build tests; each data/player
+stage reported 31 unavailable addon-corpus skips. Windows and live balance remain open.
