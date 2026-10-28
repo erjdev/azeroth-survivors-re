@@ -8481,8 +8481,9 @@ screenshots embedded in CHANGELOG and README. The implementation now passes
 verified at 1280×720. Card damage remains noncritical damage; the talent adds
 critical chance, not a permanent damage multiplier. Screenshots are embedded in
 CHANGELOG and the README gallery is refreshed. Incremental build: 20 seconds.
-Definition coverage: 282/432 (Rogue 26/51). Full integration, Windows visuals
-and live balance remain open.
+Definition coverage: 282/432 (Rogue 26/51). Full integration passed in 10m24s,
+including player-build tests; 31 missing-addon skips per data/player run.
+Windows visuals and live balance remain open.
 
 ### Next talent slice: Rogue Sword Specialization — 2026-10-28
 

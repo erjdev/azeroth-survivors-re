@@ -19,8 +19,9 @@ the green inline upgrade and weapon requirement.
 245 core tests, 473 app tests and core/app Clippy pass, including saved equipment,
 cosmetic independence, spec switching, refunds and critical-hit calculations.
 Native purchase/save verified at 1600×900; cards at 1280×720. Incremental build:
-20 seconds. Definition coverage: 282/432. Full integration, Windows and live
-balance remain open.
+20 seconds. Definition coverage: 282/432. Full integration passed in 10m24s,
+including player-build tests; 31 missing-addon skips per data/player run.
+Windows and live balance remain open.
 
 ## 2026-10-28 — Booming Voice duration
 
