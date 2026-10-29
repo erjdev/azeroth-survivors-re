@@ -242,6 +242,12 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 duration
             );
         }
+        Kind::Regrowth => {
+            prose!("Below 85% health, heals you immediately for ", (a.dmg, b.dmg, " health"),
+                ", then restores ", (a.dot, b.dot, " health per second"), " for ", duration,
+                ". The immediate heal has ", (a.crit * 100., b.crit * 100., "% chance"),
+                " to critically heal for 150%. Periodic healing cannot crit; refreshes only Regrowth");
+        }
         Kind::Heal => {
             prose!(
                 "Below 85% health, heals you for ",
@@ -274,7 +280,7 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
         }
     }
     let ground = matches!(def.kind, Kind::Ground | Kind::GroundSelf);
-    if a.dot > 0.0 && def.kind != Kind::Dot && (!ground || burst) {
+    if a.dot > 0.0 && !matches!(def.kind, Kind::Dot | Kind::Regrowth) && (!ground || burst) {
         let secs = if ground { (5., 5., " sec") } else { duration };
         prose!(
             ", then ",

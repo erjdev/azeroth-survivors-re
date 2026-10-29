@@ -682,6 +682,8 @@ pub(super) fn choose_card(
 pub(super) fn scroll_hand(
     phase: Res<State<Phase>>,
     preview: Res<PreviewHand>,
+    pause: Res<hud::PausePage>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut wheel: MessageReader<bevy::input::mouse::MouseWheel>,
     mut rows: Query<(&ComputedNode, &mut ScrollPosition), With<hud::OfferRow>>,
 ) {
@@ -692,11 +694,79 @@ pub(super) fn scroll_hand(
             bevy::input::mouse::MouseScrollUnit::Pixel => event.y,
         })
         .sum();
-    if *phase.get() != Phase::LevelUp && !preview.0 {
+    if pause.open || (*phase.get() != Phase::LevelUp && !preview.0) {
         return;
     }
     for (node, mut scroll) in &mut rows {
         let maximum = ((node.content_size.y - node.size.y) * node.inverse_scale_factor).max(0.0);
-        scroll.0.y = (scroll.0.y - delta).clamp(0.0, maximum);
+        let page = node.size.y * node.inverse_scale_factor * 0.8;
+        let offset = scroll.0.y.clamp(0.0, maximum);
+        scroll.0.y = if keys.just_pressed(KeyCode::Home) {
+            0.0
+        } else if keys.just_pressed(KeyCode::End) {
+            maximum
+        } else if keys.just_pressed(KeyCode::PageUp) {
+            (offset - page).max(0.0)
+        } else if keys.just_pressed(KeyCode::PageDown) {
+            (offset + page).min(maximum)
+        } else if delta != 0.0 {
+            (offset - delta).clamp(0.0, maximum)
+        } else {
+            continue; // Preserve intent through partial responsive layouts until actual input.
+        };
+    }
+}
+
+#[cfg(test)]
+mod hand_paging_tests {
+    use super::*;
+
+    #[test]
+    fn paging_reaches_wrapped_cards_in_logical_units_and_respects_overlays() {
+        let mut world = World::new();
+        world.insert_resource(State::new(Phase::LevelUp));
+        world.init_resource::<PreviewHand>();
+        world.init_resource::<hud::PausePage>();
+        world.init_resource::<ButtonInput<KeyCode>>();
+        world.init_resource::<Messages<bevy::input::mouse::MouseWheel>>();
+        let row = world
+            .spawn((
+                hud::OfferRow,
+                ComputedNode {
+                    size: Vec2::splat(400.),
+                    content_size: Vec2::new(400., 1400.),
+                    inverse_scale_factor: 0.5,
+                    ..Default::default()
+                },
+                ScrollPosition::default(),
+            ))
+            .id();
+        let mut schedule = Schedule::default();
+        schedule.add_systems(scroll_hand);
+        for (key, expected) in [
+            (KeyCode::PageDown, 160.),
+            (KeyCode::End, 500.),
+            (KeyCode::PageUp, 340.),
+            (KeyCode::Home, 0.),
+        ] {
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world.resource_mut::<ButtonInput<KeyCode>>().press(key);
+            schedule.run(&mut world);
+            assert_eq!(world.get::<ScrollPosition>(row).unwrap().0.y, expected);
+        }
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::End);
+        world.resource_mut::<hud::PausePage>().open = true;
+        schedule.run(&mut world);
+        assert_eq!(world.get::<ScrollPosition>(row).unwrap().0.y, 0.);
+        world.resource_mut::<hud::PausePage>().open = false;
+        world.insert_resource(State::new(Phase::Menu));
+        schedule.run(&mut world);
+        assert_eq!(world.get::<ScrollPosition>(row).unwrap().0.y, 0.);
+        world.resource_mut::<PreviewHand>().0 = true;
+        schedule.run(&mut world);
+        assert_eq!(world.get::<ScrollPosition>(row).unwrap().0.y, 500.);
     }
 }

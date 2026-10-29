@@ -2,6 +2,7 @@
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 825, max_rank: 5, name: "Improved Regrowth", description: "Regrowth: +10 percentage points direct-healing critical chance per rank. Critical heals restore 150%; periodic healing cannot crit. Does not grant the spell", stat: TalentStat::SpellCrit("regrowth"), per_rank: 0.10 },
     TalentDefinition { id: 789, max_rank: 1, name: "Nature's Grace", description: "Damaging Druid spell criticals grant one refreshing 15 sec charge: the next successful Wrath or Starfire has 0.5 sec shorter recovery, after other cooldown modifiers. Failed casts and instant spells do not consume it (Survivors cast-time conversion)", stat: TalentStat::NaturesGrace, per_rank: 0.5 },
     TalentDefinition { id: 827, max_rank: 1, name: "Insect Swarm", description: "Insect Swarm applies +2% reduced outgoing damage to affected enemies for 10 sec, including bosses. Stronger reductions take priority. Damage, cooldown and targeting are unchanged; does not grant the spell (Survivors hit-chance conversion)", stat: TalentStat::InsectSwarmWeakening, per_rank: 0.02 },
     TalentDefinition { id: 808, max_rank: 5, name: "Heart of the Wild", description: "+4% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health (Survivors stamina conversion; no form required)", stat: TalentStat::MaximumHealth, per_rank: 0.04 },
@@ -544,5 +545,42 @@ mod swarm_tests {
         assert_eq!(&text[ranges[0].clone()], "+0 » 2% reduced outgoing damage");
         assert!(text.contains("for 10 sec"));
         assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod regrowth_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn regrowth_training_caps_scopes_and_resets_without_affecting_other_heals() {
+        for class in 0..9 {
+            for rank in [0, 1, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 825, rank)]);
+                let mut expected = base.cast("regrowth");
+                if class == 8 {
+                    expected.crit += 0.1 * f32::from(rank.min(5));
+                }
+                assert_eq!(trained.cast("regrowth"), expected);
+                assert_eq!(trained.cast("rejuvenation"), base.cast("rejuvenation"));
+                assert_eq!(trained.cast("wrath"), base.cast("wrath"));
+                assert_eq!(
+                    trained.with_ranks(&[]).cast("regrowth"),
+                    base.cast("regrowth")
+                );
+            }
+        }
+        let (text, values) = talent_definition(8, 825)
+            .unwrap()
+            .inline_description_with_values(1)
+            .unwrap();
+        assert!(text.contains("10 » 20"), "{text}");
+        assert!(!values.is_empty());
+        assert!(text.contains("150%"));
+        assert!(text.contains("periodic") || text.contains("Periodic"));
     }
 }

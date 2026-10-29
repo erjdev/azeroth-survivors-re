@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Regrowth and readable wrapped cards
+
+Druids can acquire Regrowth: immediate healing plus an independent heal over time.
+Improved Regrowth increases only direct-healing critical chance; healing criticals
+restore 150%. Cards show both healing upgrades inline. Page Up/Down and Home/End
+keep wrapped cards reachable at 640×720 / 125%. Native macOS captures verify the
+wide cards, talent description and compact paging. Final incremental build: 59s.
+The scoped formatting/Clippy/test gate passes (31 optional-addon skips).
+Coverage: 301/432 talents (Druid 28/47). Windows, native mouse-wheel acceptance,
+attended combat and balance remain open.
+
+![Regrowth direct and periodic upgrades inline](images/screenshots/2026-10-29-regrowth/cards-wide.png)
+
+![Improved Regrowth in the Druid Restoration tree](images/screenshots/2026-10-29-regrowth/talent.png)
+
+![End reaches the full third card at 640×720 and 125%](images/screenshots/2026-10-29-regrowth/cards-compact-end.png)
+
+![Page Down exposes the first row's lower text](images/screenshots/2026-10-29-regrowth/cards-compact-page.png)
+
 ## 2026-10-29 — Independent healing effects
 
 Rejuvenation now runs through shared healing rules that keep each spell's timer

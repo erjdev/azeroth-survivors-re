@@ -1032,3 +1032,23 @@ not armor or flat damage reduction. Dodge precedes parry on one roll; neither av
 non-contact damage, protects pets, nor triggers on-damage recovery or reflection.
 Saved ranks/specs remain unchanged, but their old substitute bonuses are removed.
 Riposte still requires weapon-damage and disarm integration and remains pending.
+
+### Druid Regrowth and Improved Regrowth
+
+Regrowth (spell identity 8936) is a separate Druid ability acquired through the
+normal six-slot spell pool. Below 85% health it automatically restores 24 health
+immediately and 2 health per active second for 12 seconds, with 18-second base
+recovery. These are authored Survivors values: instant self-healing and continuous
+periodic payment replace the installed cast time, mana cost and tick cadence.
+Normal ability-rank power, duration, recovery and applicable generic power modifiers
+apply; extra targets never create additional healing recipients. Recasting refreshes
+only Regrowth and preserves Rejuvenation. Overhealing is discarded; neither portion
+revives a dead hero.
+
+The immediate heal uses hero critical chance plus Improved Regrowth (node 825):
++10 percentage points per rank, five ranks, capped at 100% final chance. Critical
+healing is fixed at 150%; offensive critical-damage bonuses do not increase it.
+Periodic healing cannot crit, and healing does not emit damage hits or trigger
+Nature's Grace. The talent does not acquire the spell. Existing explicitly scoped
+Rejuvenation conversions still affect Rejuvenation only. Cards show direct healing,
+periodic rate, duration and recovery upgrades inline, with each changed unit once.

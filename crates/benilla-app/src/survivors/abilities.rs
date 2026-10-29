@@ -313,7 +313,11 @@ impl Params {
             } else {
                 (stats.crit + effect.crit).min(1.0)
             },
-            crit_damage: stats.crit_damage + effect.crit_damage,
+            crit_damage: if o.def.kind == Kind::Regrowth {
+                1.5
+            } else {
+                stats.crit_damage + effect.crit_damage
+            },
             shield_fraction: effect.shield_fraction,
             shield_seconds: effect.shield_seconds,
             immune_seconds: effect.immune_seconds,
@@ -940,6 +944,19 @@ pub(super) fn cast_abilities(
                     run.thorns_t = p.duration;
                     run.thorns_spell = def.spell;
                     fx.cast(me, def.spell, &[me], None);
+                    true
+                } else {
+                    false
+                }
+            }
+            Kind::Regrowth => {
+                if let Some((healed, critical)) =
+                    cast_regrowth(&mut run, &p, stats.max_hp, &mut rng)
+                {
+                    fx.cast(me, def.spell, &[me], None);
+                    if healed > 0.0 {
+                        fx.number(me, healed, critical, COLOR_HEAL);
+                    }
                     true
                 } else {
                     false
@@ -11042,3 +11059,16 @@ mod healing_cast_tests {
         assert_eq!(run.healing.advance(20.), 68.);
     }
 }
+
+/// The automatic cast gates on pre-heal health and snapshots periodic healing before the direct roll.
+fn cast_regrowth(run: &mut Run, p: &Params, max_hp: f32, rng: &mut Rng) -> Option<(f32, bool)> {
+    if !start_healing(run, "regrowth", p.dot * p.duration, p.duration, max_hp) {
+        return None;
+    }
+    let (amount, critical) = roll(rng, p.crit, p.crit_damage, p.dmg);
+    Some((run.heal(amount, max_hp), critical))
+}
+
+#[cfg(test)]
+#[path = "regrowth_tests.rs"]
+mod regrowth_tests;

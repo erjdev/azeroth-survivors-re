@@ -1352,8 +1352,8 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 38 / 49 | 9 / 9 |
 | Warlock | 29 / 50 | 9 / 9 |
-| Druid | 27 / 47 | 9 / 9 |
-| Total | 300 / 432 | 81 / 81 |
+| Druid | 28 / 47 | 9 / 9 |
+| Total | 301 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -9469,3 +9469,22 @@ No talent coverage increase or new UI milestone is claimed.
 Validation: native incremental build passes in 1m54s; scoped formatting, Clippy
 and tests pass, including 307 core tests (31 optional-addon skips across the gate).
 Windows and attended gameplay are not validated by this checkpoint.
+
+
+### 2026-10-29 — Regrowth, its critical-healing talent and card paging
+
+Regrowth joins the Druid's acquired ability pool with direct and independent periodic
+healing, scoped Improved Regrowth ranks, fixed 150% direct healing criticals, and
+inline green upgrades. Its authored mechanics are in SURVIVORS.md; the installed
+spell/talent evidence remains in the Druid dependency audit. Headless regressions
+cover failed casts, critical chance, damage-bonus exclusion, healing caps, death,
+source refresh and Rejuvenation coexistence. Native card and talent captures are
+embedded in the changelog. Page Up/Down and Home/End keep wrapped cards reachable
+at enlarged UI scales without shrinking text; the pause overlay blocks paging.
+Windows and attended combat/balance acceptance remain open.
+
+Validation: final native incremental build passes in 59s. The required eight-package
+formatting/Clippy/test gate passes after repairing a test-only incremental cache
+affected by a full disk; 4,827 app unit tests pass, with 31 optional-addon skips
+across the gate. Native macOS screenshots verify wide and compact keyboard paging.
+The full pre-merge gates and Windows/native-wheel/attended gameplay remain open.

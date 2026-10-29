@@ -369,3 +369,19 @@ fn mark_power_uses_the_boot_string_key_in_green_upgrade_prose() {
                 && *color == card_growth::GAIN)
     );
 }
+
+#[test]
+fn regrowth_inline_growth_names_both_heals_and_never_claims_damage() {
+    let run = Run::default();
+    let spans = describe(Choice::NewAbility(data::ability("regrowth")), &run);
+    let text: String = spans.iter().map(|(text, _)| text.as_str()).collect();
+    assert!(text.contains("health per second"), "{text}");
+    assert!(text.contains("critically heal for 150%"), "{text}");
+    assert!(!text.contains("damage"), "{text}");
+    assert!(spans.iter().any(|(text, color)| text.contains(" » ")
+        && text.ends_with(" health")
+        && *color == card_growth::GAIN));
+    assert!(spans.iter().any(|(text, color)| text.contains(" » ")
+        && text.ends_with(" health per second")
+        && *color == card_growth::GAIN));
+}

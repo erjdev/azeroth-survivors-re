@@ -80,6 +80,8 @@ pub enum Kind {
     Thorns,
     /// Heals `damage` over `duration`.
     Heal,
+    /// Direct healing plus `dot` healing per second for `duration`; only direct healing can crit.
+    Regrowth,
     /// Drops a totem that casts `sub` for `duration`.
     Totem,
 }
@@ -1056,6 +1058,16 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "regrowth",
+        8936,
+        Regrowth {
+            damage: 24.0,
+            dot: 2.0,
+            cooldown: 18.0,
+            duration: 12.0
+        }
+    ),
+    ability!(
         "rejuvenation",
         774,
         Heal {
@@ -1411,6 +1423,7 @@ pub static CLASSES: &[ClassDef] = &[
             "entangling_roots",
             "thorns",
             "rejuvenation",
+            "regrowth",
         ],
         looks: &[
             1706, 1732, 2106, 2115, 2121, 2250, 2255, 2261, 3300, 3301, 3302, 3819, 3820, 7357,

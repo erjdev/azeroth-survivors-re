@@ -1,8 +1,9 @@
 # Druid talent dependencies — 2026-10-29
 
-The checkout-data audit finds 27/47 matching Druid definitions; all twenty nodes
-below remain provisional. Overall coverage remains 300/432. This document records
-implementation dependencies, not additional completed talents.
+The initial checkout-data audit found 27/47 matching Druid definitions. Regrowth
+and node 825 now have runtime consumers; nineteen nodes below remain provisional.
+Current coverage is 28/47 Druid and 301/432 overall. Installed reference rules and
+Survivors conversions remain distinct.
 
 ## Reproduce
 
@@ -35,7 +36,7 @@ referenced rows. No installed Applications game is used.
 | 826 Improved Enrage | Enrage immediately grants 5/10 Rage | Enrage lifecycle and explicit Rage conversion |
 | 829 Reflection | 5/10/15% mana regeneration continues during casting | Explicit Survivors conversion; current design has no mana |
 | 842 Improved Tranquility | Tranquility threat −50/100% | Tranquility plus threat handling or explicit conversion |
-| 825 Improved Regrowth | Regrowth critical chance +10 percentage points/rank | Regrowth direct/periodic healing and scoped healing criticals |
+| 825 Improved Regrowth | Regrowth critical chance +10 percentage points/rank | Implemented: acquired Regrowth; direct-only 150% healing criticals, +10 points/rank; periodic healing stays independent and cannot crit |
 
 ## Form and triggered-spell evidence
 
@@ -92,13 +93,12 @@ Rejuvenation now uses shared-core source-owned healing effects rather than a sin
 run-wide timer. Recasting refreshes only that spell, other sources retain their
 remaining healing, and long frames pay only the unexpired amount. Health caps,
 lethal-hit exclusion and the existing automatic below-85% trigger remain enforced
-by the runtime. Swiftmend still leaves the periodic effect intact. Regrowth is not
-yet in the acquisition pool: its direct heal, critical rules, training, card text
-and native screenshots remain the next complete spell slice.
+by the runtime. Swiftmend still leaves the periodic effect intact. Regrowth is now in the acquisition pool, with its direct heal, critical rules,
+training and inline card text wired. Native menu captures cover the cards and
+talent description; attended combat and Windows acceptance remain open.
 
-For the next slice, installed Regrowth rank-one spell 8936 has a direct healing
+Installed Regrowth rank-one spell 8936 has a direct healing
 effect and a 21-second periodic heal with 3-second amplitude, a 2-second cast time,
 40-yard range and 120 flat mana cost. Its direct value has a die range and level
-term, so do not copy the base-point field as the final healing amount. Survivors
-must explicitly author its automatic recovery, self-targeting, scaling and periodic
-cadence; the shared timer alone does not implement those rules or healing criticals.
+term, so do not copy the base-point field as the final healing amount. The authored
+Survivors conversion is documented in [the mechanics spec](../SURVIVORS.md#druid-regrowth-and-improved-regrowth).

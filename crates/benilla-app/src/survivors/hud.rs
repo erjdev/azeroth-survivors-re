@@ -824,7 +824,7 @@ pub(super) fn setup_hud(
                 LevelHint,
                 centered(
                     f,
-                    "Click a card or press its number · Scroll to see more",
+                    "Click a card or press its number · Scroll or PgUp/PgDn for more",
                     14.0,
                     DIM,
                 ),
@@ -2755,7 +2755,7 @@ pub(super) fn base_ability_body(def: &'static AbilityDef) -> String {
 fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> String {
     let what = match def.kind {
         Kind::Shield => "absorbed",
-        Kind::Heal => "healing",
+        Kind::Heal | Kind::Regrowth => "healing",
         _ => "damage",
     };
     let mut gains = Vec::new();
@@ -2775,7 +2775,15 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
         gains.push(format!("{} less damage per physical hit", num(amount)));
     }
     if next.dot > 0.0 {
-        gains.push(format!("{} damage per second", num(next.dot)));
+        gains.push(format!(
+            "{} {} per second",
+            num(next.dot),
+            if def.kind == Kind::Regrowth {
+                "healing"
+            } else {
+                "damage"
+            }
+        ));
     }
     if next.count != now.count
         && matches!(
@@ -2990,6 +2998,7 @@ fn ability_tip(
         Kind::Shield
             | Kind::Immune
             | Kind::Heal
+            | Kind::Regrowth
             | Kind::Dot
             | Kind::Curse
             | Kind::WeaponBuff
@@ -3311,9 +3320,9 @@ pub(super) fn show_panels(
 ) {
     let p = *phase.get();
     let hint = if preview.0 {
-        "Preview only · Picks disabled · Scroll to see more"
+        "Preview only · Picks disabled · Scroll or PgUp/PgDn for more"
     } else {
-        "Click a card or press its number · Scroll to see more"
+        "Click a card or press its number · Scroll or PgUp/PgDn for more"
     };
     for mut text in &mut hints {
         if text.0 != hint {
