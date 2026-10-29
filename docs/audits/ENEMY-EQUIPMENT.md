@@ -7,15 +7,16 @@ that it is a weapon attack. Riposte also needs equipped-player weapon damage.
 The [reproducible join](enemy-equipment.py) covers all 476 unique authored
 name/display identities (504 roster constructors), using the existing checked
 template/type mappings. Its [report](enemy-equipment.csv) records three equipment
-slots per identity, item classifications where available, and the raw mechanic
-immunity mask. It does **not** label an unresolved enemy armed or disarmable.
+slots per identity, NPC item classifications, and the raw mechanic
+immunity mask. It does **not** label an enemy disarmable merely because it has equipment.
 
 Sources are the MaNGOS Zero database revision
 `325948a78015794e6cc626212bc19fee70c805b2`:
 [creatures](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_template.sql),
 [equipment](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_equip_template.sql), and
-[items](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/item_template.sql).
-The script pins all three SHA-256 hashes and checks schema, duplicate IDs and
+[NPC items](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_item_template.sql), and
+[legacy raw equipment](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_equip_template_raw.sql).
+The script pins all four SHA-256 hashes and checks schema, duplicate IDs and
 complete roster identity coverage. Downloads remain in ignored validation storage.
 
 ```sh
@@ -26,16 +27,32 @@ cmp /tmp/enemy-equipment.csv docs/audits/enemy-equipment.csv
 ## Findings
 
 Of 1,428 slot records, 825 belong to enemies with no equipment template, 326
-are empty slots, 28 match item rows, 240 reference missing item entries, and nine
-belong to missing equipment templates. The missing item references cover 98 IDs
-and 182 enemy names. Missing templates are Lord Azrethoc (1260), Scarlet Torturer
-(805), and Skarr the Unbreakable (2430). These are evidence gaps, not empty slots.
+are empty modern slots, 268 resolve through NPC item metadata, and nine resolve
+through legacy raw equipment. There are 271 nonzero item displays. No equipment
+or NPC-item references remain unresolved in this roster.
+
+The first checkpoint joined the player `item_template` table and reported 98
+missing IDs plus three missing templates. That was an incomplete lookup, corrected
+here: [Creature::LoadEquipment and SetVirtualItem](https://github.com/mangoszero/server/blob/b7fface6b1bd3b036211dcde1bff39cc6da503e4/src/game/Object/Creature.cpp)
+use `creature_item_template`, with `creature_equip_template_raw` only when the
+modern equipment template is absent. Lord Azrethoc (1260), Scarlet Torturer (805),
+and Skarr the Unbreakable (2430) all use that raw fallback. Missing NPC items in a
+present modern template must not borrow legacy data.
+
+Raw metadata follows [Creature.h's byte offsets](https://github.com/mangoszero/server/blob/b7fface6b1bd3b036211dcde1bff39cc6da503e4/src/game/Object/Creature.h):
+class, subclass, material and inventory type occupy successive bytes of `equipinfo`;
+the low byte of `equipslot` holds sheath type. The report preserves these factual
+fields and the display ID independently of gameplay damage or eligibility.
+Six unit regressions cover lookup precedence, empty slots, packed metadata,
+missing NPC items, missing equipment and zero-template behavior. Full report
+reproduction passes. Runtime attachment/model validation remains open.
 
 ## Implementation sequence
 
-1. Resolve NPC virtual-item metadata from the explicit checkout data and verify
-   the server's equipment interpretation. Preserve unresolved entries; do not
-   substitute player weapon data based on a matching name or model.
+1. NPC virtual-item metadata and server lookup interpretation are resolved. Next,
+   validate these display/model references against the explicit checkout data
+   before attaching them to rendered enemies. Preserve the identity audit's
+   authored-archetype and legacy-appearance distinctions.
 2. Define authored attack channels (weapon, natural, spell), explicit immunity
    policy and disarmed fallback damage. A zero equipment template alone does not
    prove that a model lacks a built-in weapon. Keep spell damage independent.

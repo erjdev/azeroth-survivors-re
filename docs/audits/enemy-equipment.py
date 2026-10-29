@@ -14,12 +14,14 @@ import sys
 HASHES = {
     "creature": "447f007c603f4e80fb6732ced568170414b25f6aa62e5eb13a16d9f05281a2cc",
     "creature-equip": "741f07e7740e6c86e6cba5022e370ee4f62b9d492db92128ed03bd0a4341fcb1",
-    "item": "cbba79ec53c0bc451d75270d3ea3bc1264a6ae49ae60e7005cd6300a374a766b",
+    "creature_item_template": "c060e86253865f999844a047e099d4af10f8ab0b6e375a3e4d60b565e0619ff1",
+    "creature_equip_template_raw": "00dd0553f5b2e45553d7813268e0eeca484c0b93bf555556965c224f5a8646fa",
 }
 
 
 def read_table(directory, name):
-    raw = (directory / f"vanilla-{name}-template.sql").read_bytes()
+    filename = f"{name}.sql" if "_" in name else f"vanilla-{name}-template.sql"
+    raw = (directory / filename).read_bytes()
     if hashlib.sha256(raw).hexdigest() != HASHES[name]:
         raise ValueError(f"{name}: input differs from pinned catalog")
     lines = raw.decode().splitlines()
@@ -47,30 +49,45 @@ def audit(directory, output):
     spec.loader.exec_module(identities)
     source = pathlib.Path("crates/survivors-core/src/data.rs").read_text()
     identities.audit((directory / "vanilla-creature-template.sql").read_bytes(), source)
-    creatures, equipment, items = [read_table(directory, name) for name in HASHES]
+    creatures, equipment, items, legacy = [read_table(directory, name) for name in HASHES]
     roster = sorted(set(re.findall(
         r'\b(?:en|foe|giant)\(\s*"([^"]+)",\s*(\d+)[^)]*\)'
         r'\s*\.typed\((\d+), CreatureType::(\w+)\)', source)))
     writer = csv.writer(output, lineterminator="\n")
     writer.writerow(["enemy", "display", "template", "creature_type", "equipment",
-                     "slot", "equipment_entry", "item_catalog_status", "item_class",
-                     "item_subclass", "inventory_type", "mechanic_immune_mask"])
+                     "slot", "equipment_entry", "source", "item_display", "item_class",
+                     "item_subclass", "material", "inventory_type", "sheath",
+                     "mechanic_immune_mask"])
     for name, display, entry, kind in roster:
         creature = creatures[int(entry)]
         equipment_id = int(creature["EquipmentTemplateId"])
-        equipped = equipment.get(equipment_id)
         for slot in range(1, 4):
-            item_id = int(equipped[f"equipentry{slot}"]) if equipped else 0
-            item = items.get(item_id)
-            status = ("no equipment template" if equipment_id == 0 else
-                      "missing equipment template" if equipped is None else
-                      "empty slot" if item_id == 0 else
-                      "item catalog match" if item else "missing item entry")
+            item_id, status, values = resolve(equipment_id, slot, equipment, items, legacy)
             writer.writerow([name, display, entry, kind, equipment_id, slot, item_id,
-                             status, item["class"] if item else "",
-                             item["subclass"] if item else "",
-                             item["InventoryType"] if item else "",
-                             creature["MechanicImmuneMask"]])
+                             status, *values, creature["MechanicImmuneMask"]])
+
+
+def resolve(equipment_id, slot, equipment, items, legacy):
+    """Follow Creature::LoadEquipment/SetVirtualItem; never use player item rows."""
+    if equipment_id == 0:
+        return 0, "no equipment template", [0] * 6
+    if equipment_id in equipment:
+        item_id = int(equipment[equipment_id][f"equipentry{slot}"])
+        if not item_id:
+            return 0, "empty slot", [0] * 6
+        if item_id not in items:
+            raise ValueError(f"Missing NPC item {item_id} in equipment {equipment_id}")
+        item = items[item_id]
+        return item_id, "NPC item", [int(item[key]) for key in (
+            "displayid", "class", "subclass", "material", "inventory_type", "sheath_type")]
+    if equipment_id in legacy:
+        raw = legacy[equipment_id]
+        display = int(raw[f"equipmodel{slot}"])
+        info = int(raw[f"equipinfo{slot}"])
+        sheath = int(raw[f"equipslot{slot}"]) & 255
+        return 0, "legacy raw", [display, *[(info >> shift) & 255
+                                           for shift in (0, 8, 16, 24)], sheath]
+    raise ValueError(f"Missing equipment template {equipment_id}")
 
 
 if __name__ == "__main__":

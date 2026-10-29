@@ -7,10 +7,11 @@ completed changes. Each phase must pass its acceptance criteria before it is cal
 
 ## Enemy weapon prerequisite — 2026-10-29
 
-The [equipment audit](audits/ENEMY-EQUIPMENT.md) now joins every authored enemy
-identity to pinned equipment/item evidence. It exposes missing NPC item and
-equipment records, so disarm eligibility must not be inferred from humanoid type
-or a nonzero equipment ID. Resolve virtual-item metadata, authored attack channels
+The [equipment audit](audits/ENEMY-EQUIPMENT.md) now resolves every authored enemy
+identity through NPC equipment metadata and the server's legacy raw fallback.
+The initial player-item join was incomplete; all 98 missing item IDs and three
+missing templates are now resolved. Six lookup regressions and full report
+reproduction pass. Validate installed models, then define authored attack channels
 and disarmed fallback damage before implementing Riposte/Improved Disarm.
 No runtime behavior changed in this audit.
 

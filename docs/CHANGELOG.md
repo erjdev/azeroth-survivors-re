@@ -6,10 +6,11 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 ## 2026-10-29 — Enemy weapon audit
 
-Added a reproducible equipment audit for all 476 enemy identities. It identifies
-missing NPC item/equipment metadata needed for real disarm and Riposte; unresolved
-entries remain explicit. Gameplay and visuals are unchanged. See the
-[findings and implementation sequence](audits/ENEMY-EQUIPMENT.md).
+Added a reproducible equipment audit for all 476 enemy identities. NPC-specific
+item metadata and legacy equipment now resolve every reference; the first
+player-item-only join was incomplete. Six lookup regressions pass. Real disarm
+and Riposte still need attack rules and runtime integration. Gameplay and visuals
+are unchanged. See the [findings and implementation sequence](audits/ENEMY-EQUIPMENT.md).
 
 ## 2026-10-29 — Real dodge and parry talents
 
