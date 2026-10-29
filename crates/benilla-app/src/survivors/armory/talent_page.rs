@@ -12,7 +12,7 @@ const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
 const ICON: f32 = 52.0;
 // Seven rows retain room for larger icons and rank labels even when panels wrap.
 // These design units follow the shared height-relative UI scale; overflow scrolls.
-const GRID_HEIGHT: f32 = 640.0;
+const GRID_HEIGHT: f32 = 720.0;
 
 #[derive(Component)]
 pub(in crate::survivors) struct TreeViewport;

@@ -5,6 +5,26 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Talent row spacing follow-up — 2026-10-29
+
+The user's intermittent Windows report asks for taller artwork panels and more
+separation between icons, particularly on narrow screens. Increase the proportional
+grid's reference height from 640 to 720 design units (12.5%); retain readable icon
+size, seven evenly spaced rows, aspect-preserving art and wrapped, scrollable panels.
+The height cap grows proportionally, preventing single-column expansion from
+producing unlimited gaps. Use `intentions/survivors_talent_tab.png` as the visual
+reference. Native checks verified 800×600 and 1280×720 previews plus seventh-row keyboard
+inspection at 640×720 / 125%. Actual captures are inline in CHANGELOG and the
+README gallery. The incremental play build took 21 seconds; the eight-package
+formatting/Clippy/test gate passes (31 optional-addon skips). Windows
+confirmation remains required; this macOS pass cannot settle an intermittent
+Windows-specific rendering failure.
+
+Pending separate regression: returning from Collection to the bottom of Zones
+achievements restores the category but loses the reading position at 640×480 /
+125%. Reproduced natively; investigate layout-time clamping before closing scroll
+restoration acceptance.
+
 ## Achievement keyboard reachability — 2026-10-29
 
 Native 640×480 / 125% acceptance found that directional focus reveals the category

@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — More breathing room between talent rows
+
+Talent trees are 12.5% taller with the same icon size. Artwork retains its aspect
+ratio, and compact layouts wrap and scroll. Native macOS checks cover 800×600,
+1280×720 and keyboard access to the seventh row at 640×720 / 125% UI size.
+Incremental build: 21 seconds. The eight-package formatting/Clippy/test gate passes
+(31 optional-addon skips). Intermittent Windows rendering remains unverified.
+
+![Before: talent rows at 800×600](images/screenshots/2026-10-29-talent-row-spacing/before-800.png)
+
+![After: increased row separation at 800×600](images/screenshots/2026-10-29-talent-row-spacing/after-800.png)
+
+![Wide talent layout](images/screenshots/2026-10-29-talent-row-spacing/wide.png)
+
+![Compact lower-row inspection at 125% UI size](images/screenshots/2026-10-29-talent-row-spacing/compact-bottom.png)
+
 ## 2026-10-29 — Keyboard scrolling for achievements
 
 Page Up/Down now scroll achievement text by 80% of the viewport; Home/End jump to
