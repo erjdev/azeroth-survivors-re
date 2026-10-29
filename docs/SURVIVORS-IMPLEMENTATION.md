@@ -9632,3 +9632,25 @@ and right-click refund restores rank 0 / 37 points and the original saved alloca
 Screenshots are inline in the changelog and refreshed in the README talent gallery.
 The scoped eight-package check passes with 31 optional-addon skips. This closes the
 Ghostly Strike purchase/restart slice; Windows and attended combat remain pending.
+
+
+### 2026-10-29 — Greater Heal integration
+
+Add acquired Priest Greater Heal, Improved Healing's recovery conversion, and
+existing healing/critical/recovery talent consumers. Keep damaging Holy spell
+groups separate so Searing Light and Force of Will cannot amplify healing.
+Acceptance requires actual cast-system threshold/critical/burst consumption,
+positive critical Inspiration, independent periodic healing, scoped/bounded ranks,
+save/refund behavior, inline native cards and compact talent text. Installed and
+authored values are separate in SURVIVORS.md.
+
+Validation: the eight-package formatting/Clippy/test gate passes with 31 optional-
+addon skips. Tests cover the actual cast system, skipped-cast RNG/charge preservation,
+positive critical Inspiration, ongoing-healing independence, bounded and scoped
+training, and all three Improved Healing ranks across save/spec/refund boundaries.
+Native macOS previews verify wide cards, a valid wide talent allocation and complete
+compact inline text at 640×720 / 125%. The play build took 18 seconds. Definition
+coverage is 304/432 (Priest 31/47). Native purchase/restart remains open: the preview
+window became unavailable before that interaction. Windows and attended combat/
+balance are not established by this checkpoint. Screenshots are inline in CHANGELOG
+and the README gallery.

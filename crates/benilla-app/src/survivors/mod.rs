@@ -772,9 +772,20 @@ impl Run {
         }
     }
 
+    pub(super) fn record_direct_healing(&mut self, source: &str, healed: f32, critical: bool) {
+        if source == "greater_heal" && critical {
+            self.apply_inspiration(healed);
+        }
+    }
+
     pub(super) fn record_inspiration_healing(&mut self, source: &str, healed: f32) {
+        if source == "holy_nova" {
+            self.apply_inspiration(healed);
+        }
+    }
+
+    fn apply_inspiration(&mut self, healed: f32) {
         if self.alive()
-            && source == "holy_nova"
             && healed.is_finite()
             && healed > 0.
             && self.milestones.inspiration_multiplier(true) > 1.

@@ -19,6 +19,14 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         .unwrap();
     for (class, node, row, max_rank, key, initial) in [
         (
+            4,
+            408,
+            3,
+            3,
+            "greater_heal",
+            vec![(1, 401, 5), (1, 1181, 5), (1, 411, 5)],
+        ),
+        (
             3,
             303,
             2,
@@ -71,12 +79,15 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
             account.talents_valid(account.character(hero).unwrap()),
             "node {node}"
         );
+        let tree = initial[0].0;
         let before = account.milestones_picked(class, Some(hero));
         for rank in 1..=max_rank {
-            assert!(account.learn_talent(hero, 2, node, max_rank, row, true));
+            assert!(account.learn_talent(hero, tree, node, max_rank, row, true));
             let trained = account.milestones_picked(class, Some(hero));
             let mut expected = before.cast(key);
-            if node == 825 {
+            if node == 408 {
+                expected.cooldown *= 1. - 0.05 * f32::from(rank);
+            } else if node == 825 {
                 expected.crit += 0.1 * f32::from(rank);
             } else {
                 expected.damage *= 1.2;
@@ -84,7 +95,7 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
             assert_eq!(trained.cast(key), expected, "node {node} rank {rank}");
             assert_eq!(trained.cast("fireball"), before.cast("fireball"));
         }
-        assert!(!account.learn_talent(hero, 2, node, max_rank, row, true));
+        assert!(!account.learn_talent(hero, tree, node, max_rank, row, true));
         let trained = account.milestones_picked(class, Some(hero));
         let mut loaded = parse(&encode(&account)).unwrap();
         loaded.talent_rules = Some(rules.clone());

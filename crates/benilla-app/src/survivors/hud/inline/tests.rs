@@ -416,3 +416,15 @@ fn ghostly_strike_keeps_fixed_defense_separate_from_green_damage_growth() {
         .iter()
         .any(|(t, c)| t.contains("15 percentage points") && *c == card_growth::GAIN));
 }
+
+#[test]
+fn greater_heal_card_describes_healing_and_fixed_critical_multiplier() {
+    let spans = describe(
+        Choice::NewAbility(data::ability("greater_heal")),
+        &Run::default(),
+    );
+    let text = plain(&spans);
+    assert!(text.contains("heals you immediately"));
+    assert!(text.contains("150%"));
+    assert!(!text.contains("damage"));
+}

@@ -954,9 +954,11 @@ pub(super) fn cast_abilities(
                 }
             }
             Kind::DirectHeal => {
+                p.crit = crit_chance;
                 if let Some((healed, critical)) =
                     cast_direct_heal(&mut run, &p, stats.max_hp, &mut rng)
                 {
+                    run.record_direct_healing(def.key, healed, critical);
                     fx.cast(me, def.spell, &[me], None);
                     if healed > 0.0 {
                         fx.number(me, healed, critical, COLOR_HEAL);
@@ -11145,3 +11147,7 @@ mod healing_touch_tests;
 #[cfg(test)]
 #[path = "ghostly_strike_tests.rs"]
 mod ghostly_strike_tests;
+
+#[cfg(test)]
+#[path = "greater_heal_tests.rs"]
+mod greater_heal_tests;

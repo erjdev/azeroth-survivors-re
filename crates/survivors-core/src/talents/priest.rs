@@ -11,7 +11,9 @@ impl PowerInfusionClock {
         if !elapsed.is_finite()
             || elapsed < 0.
             || talents.class != 4
-            || !(PRIEST_HOLY.contains(&key) || PRIEST_SHADOW.contains(&key))
+            || !(PRIEST_HOLY.contains(&key)
+                || PRIEST_SHADOW.contains(&key)
+                || key == "greater_heal")
             || (elapsed >= self.until && elapsed < self.next)
         {
             return 0.;
@@ -259,5 +261,52 @@ mod inspiration_tests {
             .inline_description(2)
             .unwrap()
             .contains("16 » 24% armor"));
+    }
+}
+
+#[cfg(test)]
+mod greater_heal_tests {
+    use super::*;
+
+    #[test]
+    fn greater_heal_training_is_scoped_composed_and_refundable() {
+        for class in 0..9 {
+            for rank in [0, 1, 3, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[
+                    (1, 408, rank),
+                    (1, 1181, rank),
+                    (1, 401, rank),
+                    (1, 404, rank),
+                ]);
+                let mut expected = base.cast("greater_heal");
+                if class == 4 {
+                    expected.damage *= 1. + 0.02 * f32::from(rank.min(5));
+                    expected.cooldown *=
+                        (1. - 0.05 * f32::from(rank.min(3))) * (1. - 0.04 * f32::from(rank.min(5)));
+                    expected.crit += 0.01 * f32::from(rank.min(5));
+                }
+                let actual = trained.cast("greater_heal");
+                assert!((actual.cooldown - expected.cooldown).abs() < 0.000001);
+                assert_eq!(actual.damage, expected.damage);
+                assert_eq!(actual.crit, expected.crit);
+                assert_eq!(
+                    trained.with_ranks(&[]).cast("greater_heal"),
+                    base.cast("greater_heal")
+                );
+                assert_eq!(
+                    base.with_ranks(&[(1, 408, rank)]).cast("holy_nova"),
+                    base.cast("holy_nova")
+                );
+                assert_eq!(
+                    base.with_ranks(&[(1, 403, rank), (0, 1202, rank)])
+                        .cast("greater_heal"),
+                    base.cast("greater_heal")
+                );
+            }
+        }
     }
 }

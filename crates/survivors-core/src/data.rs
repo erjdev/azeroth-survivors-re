@@ -1078,6 +1078,14 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "greater_heal",
+        2060,
+        DirectHeal {
+            damage: 50.0,
+            cooldown: 20.0
+        }
+    ),
+    ability!(
         "healing_touch",
         5185,
         DirectHeal {
@@ -1351,6 +1359,7 @@ pub static CLASSES: &[ClassDef] = &[
             "mind_blast",
             "mind_flay",
             "holy_nova",
+            "greater_heal",
             "psychic_scream",
             "power_word_shield",
         ],

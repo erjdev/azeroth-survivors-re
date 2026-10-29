@@ -534,7 +534,7 @@ not affect shots, Volley or pet bites. Inactive specs and refunds remove it.
 ### Priest talent tuning (initial)
 
 Inner Focus (one rank, node 348) adds 25 percentage points critical chance to the
-next successful Smite, Holy Fire, Holy Nova or Mind Blast, for all direct targets.
+next successful Smite, Holy Fire, Holy Nova, Greater Heal or Mind Blast, for all direct targets.
 It starts ready, recovers 180 seconds after use in active run time, and never banks
 charges. Failed targeting and paused frames preserve it. Damage-over-time ticks,
 shields, fear and foreign-class spells neither consume nor benefit. This is an
@@ -545,9 +545,10 @@ critical chance, capped at 100%, rather than guaranteeing a critical hit.
 Implemented individual Priest talents include these replacements for provisional general damage:
 
 Inspiration (361, three ranks) grants 8% / 16% / 24% more armor for 15 seconds
-when Holy Nova restores health. It multiplies armor after flat contributions,
+when Holy Nova restores health or Greater Heal critically restores health. It multiplies armor after flat contributions,
 refreshes without stacking, and ends on expiry or death. Full-health casts,
-regeneration and other healing cannot trigger it. The player must acquire Holy
+regeneration and other healing cannot trigger it. Greater Heal must critically heal;
+Holy Nova retains its existing effective-healing conversion. The player must acquire Holy
 Nova and unlock its healing through training or the Holy milestone; Inspiration
 does not grant either. This scaled Survivors conversion requires effective healing
 rather than a healing critical.
@@ -578,8 +579,8 @@ speed bonus are unchanged. This is a scaled Survivors cooldown conversion.
 | Shadow Reach (3 ranks) | +6⅔% Shadow Word: Pain/Mind Blast casting range, totaling 20%; Psychic Scream unchanged |
 | Spirit Tap (5 ranks) | +20 percentage points chance on kill to regenerate 1% maximum health/sec for 15 sec; refreshes without stacking |
 | Improved Power Word: Shield (3 ranks) | +5% shield absorption; same duration |
-| Holy Specialization (5) | +1% critical chance for Smite, Holy Fire and Holy Nova |
-| Divine Fury (5) | 4% shorter Smite/Holy Fire cooldown; automatic-cast conversion |
+| Holy Specialization (5) | +1% critical chance for Smite, Holy Fire, Holy Nova and Greater Heal |
+| Divine Fury (5) | 4% shorter Smite/Holy Fire/Greater Heal cooldown; automatic-cast conversion |
 | Searing Light (2) | +5% Smite/Holy Fire damage, including Holy Fire's burn |
 | Improved Shadow Word: Pain (2) | +15% duration; unchanged tick damage |
 | Improved Mind Blast (5) | 5% shorter Mind Blast cooldown |
@@ -604,7 +605,7 @@ unowned spells. Successful-cast rewards apply once, regardless of targets hit.
 | Discipline / 10 | Unbreakable Will | Power Word: Shield grants 1 sec immunity |
 | Discipline / 20 | Mental Agility | Shield and Psychic Scream cooldowns ×0.85 |
 | Discipline / 30 | Power Infusion | Shield advances Mind Blast cooldown by 2 sec |
-| Holy / 10 | Holy Specialization | Smite, Holy Fire, Holy Nova gain 5 percentage points critical chance, additive with individual ranks |
+| Holy / 10 | Holy Specialization | Smite, Holy Fire, Holy Nova and Greater Heal gain 5 percentage points critical chance, additive with individual ranks |
 | Holy / 20 | Spiritual Guidance | Holy Fire heals 3% maximum health per successful cast |
 | Holy / 30 | Lightwell | Holy Nova heals 5% maximum health per successful cast; automatic healing pulse |
 | Shadow / 10 | Shadow Affinity | Mind Blast gains one target; AoEs remain single areas |
@@ -713,10 +714,10 @@ and disappears when the node is refunded or another spec is selected.
 ### Priest Power Infusion
 
 The individual Discipline node (322) automatically starts a 15-second window
-on a successful damaging Priest cast, with 180 seconds of active-run recovery
+on a successful damaging Priest cast or Greater Heal, with 180 seconds of active-run recovery
 from activation. It is ready at run start; failed targeting and pauses preserve
 readiness. During the window, Priest direct/periodic cast damage and unlocked
-Holy Nova healing multiply by 1.20. Cast damage retains the multiplier through
+Holy Nova healing and Greater Heal multiply by 1.20. Cast damage retains the multiplier through
 impact and attached periodic ticks; subsequent casts do not refresh the window.
 Owned Renew healing checks the window dynamically, multiplying Improved Renew
 and Spiritual Healing. It does not unlock Renew or Holy Nova healing, amplify
@@ -1124,3 +1125,29 @@ time, and never protects a pet. Mode restart clears the window. The fixed dodge
 amount/duration do not scale with ability rank; damage/recovery use normal ranks.
 Its one-rank talent adds 20% strike damage without acquiring the spell. Applicable
 weapon talents, poisons, Remorseless Attacks and Seal Fate recognize the strike.
+
+
+### Priest Greater Heal and Improved Healing
+
+Greater Heal (installed spell 2060) is acquired through Priest ability choices,
+occupies a normal ability slot and automatically heals only below 85% health.
+Authored Survivors base values are 50 immediate self-healing and 20 sec recovery;
+ordinary rank scaling applies. Critical healing is fixed at 150%, independent of
+critical-damage bonuses. It caps at maximum health, cannot revive, and leaves
+ongoing healing sources intact. Failed threshold/death checks spend no critical
+roll, Inner Focus or Power Infusion readiness. This instant automatic conversion
+replaces the installed three-second cast and 370 mana cost, not their raw values.
+
+Improved Healing (408, three ranks; installed 14912/15013/15014) converts its
+5/10/15% mana reduction into 5/10/15% shorter Greater Heal recovery. Lesser Heal
+and Heal are not separate acquired abilities. Divine Fury adds its existing 4%
+recovery reduction per rank multiplicatively. Spiritual Healing adds 2% healing
+per rank; Holy Specialization and the Holy-10 milestone add critical chance.
+Inner Focus and Power Infusion include successful Greater Heal casts. A critical
+that actually restores health activates the existing 15-second Inspiration armor
+bonus; normal heals and overhealing do not. Damage-only Searing Light and Force
+of Will exclude Greater Heal. Renew and Holy Nova keep their existing behavior.
+
+Installed data establishes the spell identity, Holy school, direct healing,
+three-second cast, 40-yard range and talent scope. The self-only trigger, base
+healing, cooldown and resource conversions above are authored Survivors rules.

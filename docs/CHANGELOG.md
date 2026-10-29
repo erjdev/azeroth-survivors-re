@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Greater Heal and Priest healing builds
+
+Priests can acquire Greater Heal, with fixed 150% critical healing and scoped
+healing, critical-chance and recovery training. Improved Healing now reduces its
+recovery; critical healing can activate Inspiration. Inner Focus and Power Infusion
+are consumed only on successful casts. Save/spec/refund and cast-system checks pass,
+as does the eight-package gate (31 optional-addon skips). Native macOS previews
+verify wide cards and compact talent text; incremental build: 18s. Definition
+coverage: 304/432 (Priest 31/47). Native purchase/restart, Windows and attended
+combat/balance remain open; the preview window became unavailable before purchase.
+
+![Greater Heal acquisition and inline upgrades](images/screenshots/2026-10-29-greater-heal/cards-wide.png)
+
+![Improved Healing at 640×720 and 125% UI scale](images/screenshots/2026-10-29-greater-heal/talent-compact.png)
+
 ## 2026-10-29 — Native pointer scrolling acceptance
 
 Actual macOS wheel and scrollbar interactions pass in the taller talent page at

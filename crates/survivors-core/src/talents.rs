@@ -239,7 +239,7 @@ impl Milestones {
             if self.points[0] >= 20 && matches!(key, "power_word_shield" | "psychic_scream") {
                 effect.cooldown *= 0.85;
             }
-            if self.points[1] >= 10 && PRIEST_HOLY.contains(&key) {
+            if self.points[1] >= 10 && PRIEST_HOLY_CRITICAL.contains(&key) {
                 effect.crit += 0.05;
             }
             if self.points[1] >= 20 && key == "holy_fire" {
@@ -651,6 +651,9 @@ impl Milestones {
         effect.heal_fraction *= healing_multiplier;
         if self.class == 5 && shaman::TOTEMS.contains(&key) {
             effect.heal_fraction *= 1.0 + self.trained_value(TalentStat::TotemHealing);
+        }
+        if self.class == 4 && key == "greater_heal" {
+            effect.damage *= 1.0 + self.trained_value(TalentStat::SpiritualHealing);
         }
         if self.class == 4 && key == "holy_nova" {
             effect.heal_fraction *= 1.0 + self.trained_value(TalentStat::SpiritualHealing);
@@ -1200,7 +1203,7 @@ pub fn description(class: usize, tree: usize, threshold: u32) -> Option<&'static
             (0, 10) => Some("Power Word: Shield grants 1 second of immunity once per cast (Survivors Unbreakable Will)"),
             (0, 20) => Some("Power Word: Shield and Psychic Scream: 15% shorter cooldown (Survivors Mental Agility)"),
             (0, 30) => Some("Power Word: Shield advances Mind Blast's cooldown by 2 seconds once per cast (Survivors automatic Power Infusion)"),
-            (1, 10) => Some("Smite, Holy Fire and Holy Nova: +5 percentage points critical chance; adds to individual Holy Specialization ranks"),
+            (1, 10) => Some("Smite, Holy Fire, Holy Nova and Greater Heal: +5 percentage points critical chance; adds to individual Holy Specialization ranks"),
             (1, 20) => Some("Holy Fire heals 3% maximum health once per successful cast, not per target or burn tick (Survivors Spiritual Guidance)"),
             (1, 30) => Some("Holy Nova heals 5% maximum health once per successful cast, not per enemy (Survivors Lightwell healing pulse)"),
             (2, 10) => Some("Mind Blast: +1 target; area spells remain one area (Survivors Shadow Affinity)"),
@@ -2417,7 +2420,7 @@ impl TalentDefinition {
             TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
-            TalentStat::SpiritualHealing => (100.0, "% Renew and Holy Nova healing"),
+            TalentStat::SpiritualHealing => (100.0, "% Greater Heal, Renew and Holy Nova healing"),
             TalentStat::PetWrath => (1.0, " upgraded Bestial Wrath window"),
             TalentStat::PetIntimidation => (1.0, " empowered bite every 60 sec"),
             TalentStat::PetRecovery => (100.0, "% shorter combat wolf recovery"),
@@ -3738,6 +3741,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
 ];
 
 const PRIEST_HOLY: &[&str] = &["smite", "holy_fire", "holy_nova"];
+const PRIEST_HOLY_CRITICAL: &[&str] = &["smite", "holy_fire", "holy_nova", "greater_heal"];
 const PRIEST_CAST_HOLY: &[&str] = &["smite", "holy_fire"];
 const PRIEST_SHADOW: &[&str] = &[
     "shadow_word_pain",
@@ -3750,6 +3754,11 @@ const PRIEST_SHADOW: &[&str] = &[
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 408, max_rank: 3, name: "Improved Healing",
+        description: "Greater Heal: 5% shorter cooldown per rank. Does not grant the ability; excludes Holy Nova and Renew (Survivors mana-cost conversion)",
+        stat: TalentStat::SpellCooldown("greater_heal"), per_rank: 0.05,
+    },
+    TalentDefinition {
         id: 501, max_rank: 1, name: "Mind Flay",
         description: "Unlocks Mind Flay in ability choices. Acquire it during the run to channel Shadow damage and slow connected enemies. Does not occupy an ability slot until acquired",
         stat: TalentStat::AbilityUnlock("mind_flay"), per_rank: 1.0,
@@ -3761,7 +3770,7 @@ const PRIEST_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 361, max_rank: 3, name: "Inspiration",
-        description: "Holy Nova restoring health grants +8% armor per rank for 15 sec. Refreshes without stacking; full-health casts, regeneration and other healing do not trigger it. Requires acquiring Holy Nova and unlocking its healing (Survivors conversion: no healing critical required)",
+        description: "Holy Nova restoring health or a Greater Heal critical restoring health grants +8% armor per rank for 15 sec. Refreshes without stacking; full-health casts, regeneration and other healing do not trigger it. Requires acquiring the spell (and unlocking Holy Nova healing); Holy Nova requires no healing critical (Survivors conversion)",
         stat: TalentStat::InspirationArmor, per_rank: 0.08,
     },
     TalentDefinition {
@@ -3773,11 +3782,11 @@ const PRIEST_TALENTS: &[TalentDefinition] = &[
         description: "Fade: 10% shorter cooldown per rank. Preserves its 4 sec escape and 40% movement speed bonus; learned at hero level 5 and activated with F (Survivors scaled cooldown conversion)",
         stat: TalentStat::SpellCooldown("fade"), per_rank: 0.10 },
     TalentDefinition { id: 322, max_rank: 1, name: "Power Infusion",
-        description: "Automatically grants +20% Priest direct and periodic damage, unlocked Holy Nova healing and owned Renew healing for 15 sec after a successful damaging Priest cast. Ready at run start; recovers 180 sec after use. Pauses stop timers. Cast damage keeps its bonus; Renew checks the active window. Excludes shields, lifesteal, other regeneration and other-class spells (Survivors self-only conversion)",
+        description: "Automatically grants +20% Priest direct and periodic damage, Greater Heal, unlocked Holy Nova healing and owned Renew healing for 15 sec after a successful damaging Priest cast or Greater Heal. Ready at run start; recovers 180 sec after use. Pauses stop timers. Cast damage keeps its bonus; Renew checks the active window. Excludes shields, lifesteal, other regeneration and other-class spells (Survivors self-only conversion)",
         stat: TalentStat::PowerInfusion, per_rank: 0.20 },
     TalentDefinition {
         id: 348, max_rank: 1, name: "Inner Focus",
-        description: "The next successful Smite, Holy Fire, Holy Nova or Mind Blast gains 25 percentage points critical chance for all its direct hits, then recovers after 180 sec of active run time. Ready at run start; no stored charges. Excludes periodic ticks, shields, fear and other-class spells (Survivors automatic conversion; no mana costs)",
+        description: "The next successful Smite, Holy Fire, Holy Nova, Greater Heal or Mind Blast gains 25 percentage points critical chance for all its direct hits, then recovers after 180 sec of active run time. Ready at run start; no stored charges. Excludes periodic ticks, shields, fear and other-class spells (Survivors automatic conversion; no mana costs)",
         stat: TalentStat::InnerFocus, per_rank: 0.25,
     },
     TalentDefinition { id: 341, max_rank: 5, name: "Mental Agility",
@@ -3791,7 +3800,7 @@ const PRIEST_TALENTS: &[TalentDefinition] = &[
 
     TalentDefinition {
         id: 404, max_rank: 5, name: "Spiritual Healing",
-        description: "Renew and Holy Nova's unlocked healing: +2% healing per rank, multiplying Improved Renew. Does not unlock either effect; excludes damage, shields, Spirit Tap, lifesteal and other regeneration (Survivors healing scope)",
+        description: "Greater Heal, Renew and Holy Nova's unlocked healing: +2% healing per rank, multiplying Improved Renew. Does not grant these spells or unlock Holy Nova healing; excludes damage, shields, Spirit Tap, lifesteal and other regeneration (Survivors healing scope)",
         stat: TalentStat::SpiritualHealing, per_rank: 0.02,
     },
     TalentDefinition {
@@ -3836,7 +3845,7 @@ const PRIEST_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 1202, max_rank: 5, name: "Force of Will",
-        description: "Priest Holy and Shadow spells: +1% damage and +1% direct critical chance per rank; periodic damage does not crit. Excludes shields, other-class and jewelry spells",
+        description: "Priest damaging Holy and Shadow spells: +1% damage and +1% direct critical chance per rank; periodic damage does not crit. Excludes healing, shields, other-class and jewelry spells",
         stat: TalentStat::ForceOfWill, per_rank: 0.01,
     },
     TalentDefinition {
@@ -3861,13 +3870,13 @@ const PRIEST_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 401, max_rank: 5, name: "Holy Specialization",
-        description: "Smite, Holy Fire and Holy Nova: +1% critical chance per rank",
-        stat: TalentStat::SpellGroupCrit(PRIEST_HOLY), per_rank: 0.01,
+        description: "Smite, Holy Fire, Holy Nova and Greater Heal: +1% critical chance per rank",
+        stat: TalentStat::SpellGroupCrit(PRIEST_HOLY_CRITICAL), per_rank: 0.01,
     },
     TalentDefinition {
         id: 1181, max_rank: 5, name: "Divine Fury",
-        description: "Smite and Holy Fire: 4% shorter cooldown per rank (Survivors cast-time conversion)",
-        stat: TalentStat::SpellGroupCooldown(PRIEST_CAST_HOLY), per_rank: 0.04,
+        description: "Smite, Holy Fire and Greater Heal: 4% shorter cooldown per rank (Survivors cast-time conversion)",
+        stat: TalentStat::SpellGroupCooldown(&["smite", "holy_fire", "greater_heal"]), per_rank: 0.04,
     },
     TalentDefinition {
         id: 403, max_rank: 2, name: "Searing Light",
@@ -6468,7 +6477,7 @@ mod spiritual_healing_tests {
         }
         assert_eq!(
             talent_definition(4, 404).unwrap().rank_preview(1),
-            "This talent: 2 to 4% Renew and Holy Nova healing next rank"
+            "This talent: 2 to 4% Greater Heal, Renew and Holy Nova healing next rank"
         );
     }
 }

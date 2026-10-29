@@ -17,7 +17,11 @@ impl CriticalCastClock {
             {
                 (TalentStat::ColdBlood, 180.0)
             }
-            4 if matches!(key, "smite" | "holy_fire" | "holy_nova" | "mind_blast") => {
+            4 if matches!(
+                key,
+                "smite" | "holy_fire" | "holy_nova" | "mind_blast" | "greater_heal"
+            ) =>
+            {
                 (TalentStat::InnerFocus, 180.0)
             }
             5 if super::shaman::CASTS.contains(&key) => (TalentStat::ElementalMastery, 180.0),

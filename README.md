@@ -22,7 +22,7 @@ minimum-window onboarding and restart captures are in the changelog.
 ![Fresh starter onboarding at 640×480 and 125% UI](docs/images/screenshots/2026-10-29-starter-onboarding/after.jpg)
 
 
-![Ghostly Strike acquisition and upgrades](docs/images/screenshots/2026-10-29-ghostly-strike/cards-wide.png)
+![Greater Heal acquisition and inline upgrades](docs/images/screenshots/2026-10-29-greater-heal/cards-wide.png)
 
 Native wheel/scrollbar acceptance now covers the taller talent trees and independent
 achievement panes on macOS, including category round-trip restoration.
