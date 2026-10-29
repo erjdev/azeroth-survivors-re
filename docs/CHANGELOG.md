@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Achievement navigation stays in reach
+
+The category rail now scrolls independently from achievement cards, matching the
+intention layout. Narrow layouts use a compact six-button grid above the cards.
+Each category retains its card position; paging keys move cards while directional
+focus reveals sidebar buttons. Native macOS checks cover 1280×720, 640×720 / 125%,
+640×480 / 125%, and Zones → Collection → Zones restoration. Final build: 3m12s.
+All 4,821 app unit tests and the eight-package formatting/Clippy/test gate pass
+(31 optional-addon skips). Windows and native wheel/drag acceptance remain open.
+
+![Wide category rail remains visible at the end of Zones](images/screenshots/2026-10-29-achievement-panes/wide-end.png)
+
+![Compact category grid above independently scrolling cards](images/screenshots/2026-10-29-achievement-panes/compact-end.png)
+
+![Keyboard reveal scrolls only the sidebar at 640×480](images/screenshots/2026-10-29-achievement-panes/small-end.png)
+
 ## 2026-10-29 — Keep your place while navigating Armory
 
 Starting keyboard navigation no longer focuses a clipped category and pulls the

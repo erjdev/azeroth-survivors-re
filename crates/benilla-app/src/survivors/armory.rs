@@ -2,7 +2,9 @@
 //! Appearance stays on the glue race and class screen, reached from the hero column.
 
 mod achievement_page;
-pub(super) use achievement_page::remember_scroll as remember_achievement_scroll;
+pub(super) use achievement_page::{
+    layout as layout_achievements, remember_scroll as remember_achievement_scroll,
+};
 mod character;
 mod cloak;
 pub(super) use character::subject as character_subject;
@@ -175,6 +177,7 @@ pub(super) struct Armory {
     /// 0 summary, then Zones, Classes, Collection, Feats, Lifetime.
     achieve: u8,
     achievement_scroll: [Vec2; 6],
+    achievement_rail_scroll: Vec2,
     /// 0 perks, 1 companions, 2 tabards.
     reward_page: u8,
     /// Session-only positions, separate for Perks, Companions and Tabards.
@@ -211,6 +214,7 @@ impl Default for Armory {
             note: String::new(),
             achieve: 0,
             achievement_scroll: [Vec2::ZERO; 6],
+            achievement_rail_scroll: Vec2::ZERO,
             reward_page: 0,
             reward_scroll: [Vec2::ZERO; 3],
             reward_draft: reward_draft::Draft::default(),

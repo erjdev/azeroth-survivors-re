@@ -5,6 +5,19 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Achievement navigation rail — 2026-10-29
+
+The Zones intention keeps the category rail separate from the long achievement
+list. Independent rail/card viewports and visible scrollbars now retain
+rail position across categories and one card position per category. Page Up/Down
+and Home/End target cards; directional focus and wheel/drag target their own pane.
+Below 560 logical layout units, the rail stacks above the cards with a 35% height
+and switches to a compact points line and six-button grid. Native checks cover
+1280×720, 640×720 / 125%, 640×480 / 125%, independent sidebar focus scrolling,
+and category round-trip restoration. Screenshots are inline in CHANGELOG; the
+final build took 3m12s. All 4,821 app unit tests and the eight-package gate pass
+(31 optional-addon skips). Windows and native wheel/drag acceptance remain separate.
+
 ## Talent row spacing follow-up — 2026-10-29
 
 The user's intermittent Windows report asks for taller artwork panels and more

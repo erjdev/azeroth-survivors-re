@@ -24,10 +24,154 @@ const ICONS: [&str; 6] = [
 #[derive(Component)]
 pub(in crate::survivors) struct ScrollCategory(pub(super) usize);
 
+#[derive(Component)]
+pub(in crate::survivors) struct RailScroll;
+#[derive(Component)]
+pub(in crate::survivors) struct PageLayout;
+#[derive(Component)]
+pub(in crate::survivors) enum RailMode {
+    Wide,
+    Compact,
+}
+
+#[derive(Component, Clone, Copy)]
+pub(in crate::survivors) enum Pane {
+    Rail,
+    Cards,
+}
+
+type RailModeFilter = (Without<Pane>, Without<PageLayout>);
+
+/// Decide from available logical width, so interface scale and DPI participate.
+pub(in crate::survivors) fn layout(
+    roots: Query<&ComputedNode, With<PageLayout>>,
+    mut panes: Query<(&Pane, &mut Node)>,
+    mut root_styles: Query<&mut Node, (With<PageLayout>, Without<Pane>)>,
+    mut rail_modes: Query<(&RailMode, &mut Node), RailModeFilter>,
+) {
+    let Ok(root) = roots.single() else { return };
+    if root.size().x <= 0.0 {
+        return;
+    }
+    let stacked = root.size().x * root.inverse_scale_factor() < 560.0;
+    for mut style in &mut root_styles {
+        let direction = if stacked {
+            FlexDirection::Column
+        } else {
+            FlexDirection::Row
+        };
+        if style.flex_direction != direction {
+            style.flex_direction = direction;
+        }
+    }
+    for (mode, mut style) in &mut rail_modes {
+        let visible = matches!(mode, RailMode::Compact) == stacked;
+        let display = if visible {
+            Display::Flex
+        } else {
+            Display::None
+        };
+        if style.display != display {
+            style.display = display;
+        }
+    }
+    for (pane, mut style) in &mut panes {
+        let (width, height, basis) = match (stacked, pane) {
+            (true, Pane::Rail) => (Val::Percent(100.0), Val::Percent(35.0), Val::Auto),
+            (true, Pane::Cards) => (Val::Percent(100.0), Val::Auto, Val::Px(0.0)),
+            (false, Pane::Rail) => (Val::Percent(24.0), Val::Percent(100.0), Val::Auto),
+            (false, Pane::Cards) => (Val::Auto, Val::Percent(100.0), Val::Px(0.0)),
+        };
+        if (style.width, style.height, style.flex_basis) != (width, height, basis) {
+            style.width = width;
+            style.height = height;
+            style.flex_basis = basis;
+        }
+    }
+}
+
+fn pane(
+    parent: &mut ChildSpawnerCommands,
+    role: Pane,
+    marker: impl Bundle,
+    scroll: Vec2,
+    content: impl FnOnce(&mut ChildSpawnerCommands),
+) {
+    parent
+        .spawn((
+            role,
+            Node {
+                width: if matches!(role, Pane::Rail) {
+                    Val::Percent(24.0)
+                } else {
+                    Val::Auto
+                },
+                height: Val::Percent(100.0),
+                flex_grow: if matches!(role, Pane::Cards) {
+                    1.0
+                } else {
+                    0.0
+                },
+                flex_basis: if matches!(role, Pane::Cards) {
+                    Val::Px(0.0)
+                } else {
+                    Val::Auto
+                },
+                flex_shrink: 0.0,
+                min_width: Val::Px(0.0),
+                min_height: Val::Px(0.0),
+                border: UiRect::all(Val::Px(1.0)),
+                border_radius: BorderRadius::all(Val::Px(6.0)),
+                padding: UiRect::all(Val::Px(12.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.035, 0.027, 0.014)),
+            BorderColor::all(FRAME),
+        ))
+        .with_children(|frame| {
+            let viewport = frame
+                .spawn((
+                    marker,
+                    super::collection::CollectionScroll,
+                    RelativeCursorPosition::default(),
+                    ScrollPosition(scroll),
+                    Node {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        min_height: Val::Px(0.0),
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(10.0),
+                        padding: UiRect::right(Val::Px(12.0)),
+                        overflow: Overflow::scroll_y(),
+                        ..default()
+                    },
+                ))
+                .with_children(|viewport| {
+                    viewport
+                        .spawn(Node {
+                            width: Val::Percent(100.0),
+                            flex_shrink: 0.0,
+                            flex_direction: FlexDirection::Column,
+                            row_gap: Val::Px(10.0),
+                            ..default()
+                        })
+                        .with_children(content);
+                })
+                .id();
+            super::scrollbar::spawn(frame, viewport);
+        });
+}
+
 pub(in crate::survivors) fn remember_scroll(
     mut armory: ResMut<Armory>,
     surfaces: Query<(&ScrollCategory, &ScrollPosition)>,
+    rail: Query<&ScrollPosition, With<RailScroll>>,
 ) {
+    if let Ok(position) = rail.single() {
+        if position.0.is_finite() && armory.achievement_rail_scroll != position.0 {
+            armory.achievement_rail_scroll = position.0;
+        }
+    }
     for (category, position) in &surfaces {
         if position.0.is_finite() {
             if let Some(old) = armory.achievement_scroll.get_mut(category.0) {
@@ -139,142 +283,214 @@ pub(super) fn build(
     let (have, total, pts, all) = counts(&rows, None);
     panel
         .spawn((
-            super::collection::CollectionScroll,
-            ScrollCategory(selected),
-            RelativeCursorPosition::default(),
-            ScrollPosition(armory.achievement_scroll[selected]),
+            PageLayout,
             Node {
                 width: Val::Percent(100.0),
                 flex_grow: 1.0,
                 flex_basis: Val::Px(0.0),
                 min_height: Val::Px(0.0),
-                flex_wrap: FlexWrap::Wrap,
                 column_gap: Val::Px(12.0),
                 row_gap: Val::Px(12.0),
-                overflow: Overflow::scroll_y(),
-                align_content: AlignContent::Start,
+                overflow: Overflow::clip(),
                 ..default()
             },
         ))
         .with_children(|row| {
-            super::reward_page::frame(row, 190.0, 1.0, |side| {
-                super::typography::section(side, font, "Achievements", 22.0, GOLD);
-                side.spawn(Node {
-                    width: Val::Percent(100.0),
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                })
-                .with_children(|center| {
-                    center
-                        .spawn((
-                            Node {
-                                width: Val::Px(116.0),
-                                height: Val::Px(116.0),
-                                border_radius: BorderRadius::MAX,
-                                border: UiRect::all(Val::Px(2.0)),
-                                flex_direction: FlexDirection::Column,
-                                align_items: AlignItems::Center,
-                                justify_content: JustifyContent::Center,
-                                ..default()
-                            },
-                            BorderColor::all(GOLD),
-                            BackgroundColor(Color::srgb(0.12, 0.075, 0.018)),
-                        ))
-                        .with_children(|badge| {
-                            text(badge, font, pts.to_string(), 32.0, GOLD);
-                            text(badge, font, format!("of {all} points"), 12.0, DIM);
-                        });
-                });
-                text(
-                    side,
-                    font,
-                    format!("Account progress · {:.0}%", fraction(pts, all) * 100.0),
-                    13.0,
-                    GOLD,
-                );
-                meter(side, fraction(pts, all));
-                for (i, name) in NAMES.iter().enumerate() {
-                    super::controls::content_button(
-                        side,
-                        Act::Achieve(i as u8),
-                        selected == i,
+            pane(
+                row,
+                Pane::Rail,
+                RailScroll,
+                armory.achievement_rail_scroll,
+                |side| {
+                    side.spawn((
+                        RailMode::Wide,
                         Node {
                             width: Val::Percent(100.0),
-                            min_height: Val::Px(42.0),
-                            padding: UiRect::all(Val::Px(8.0)),
-                            column_gap: Val::Px(8.0),
+                            flex_direction: FlexDirection::Column,
+                            row_gap: Val::Px(10.0),
                             ..default()
                         },
-                        |nav| {
-                            icon(nav, i, 24.0);
-                            nav.spawn(Node {
-                                flex_grow: 1.0,
-                                flex_basis: Val::Px(0.0),
-                                min_width: Val::Px(0.0),
-                                flex_direction: FlexDirection::Column,
-                                row_gap: Val::Px(4.0),
-                                ..default()
-                            })
-                            .with_children(|content| {
-                                let (n, total, pts, all) = counts(&rows, category(i));
-                                content
-                                    .spawn(Node {
-                                        width: Val::Percent(100.0),
-                                        flex_wrap: FlexWrap::Wrap,
-                                        justify_content: JustifyContent::SpaceBetween,
-                                        column_gap: Val::Px(6.0),
+                    ))
+                    .with_children(|side| {
+                        super::typography::section(side, font, "Achievements", 22.0, GOLD);
+                        side.spawn(Node {
+                            width: Val::Percent(100.0),
+                            justify_content: JustifyContent::Center,
+                            ..default()
+                        })
+                        .with_children(|center| {
+                            center
+                                .spawn((
+                                    Node {
+                                        width: Val::Px(116.0),
+                                        height: Val::Px(116.0),
+                                        border_radius: BorderRadius::MAX,
+                                        border: UiRect::all(Val::Px(2.0)),
+                                        flex_direction: FlexDirection::Column,
+                                        align_items: AlignItems::Center,
+                                        justify_content: JustifyContent::Center,
+                                        ..default()
+                                    },
+                                    BorderColor::all(GOLD),
+                                    BackgroundColor(Color::srgb(0.12, 0.075, 0.018)),
+                                ))
+                                .with_children(|badge| {
+                                    text(badge, font, pts.to_string(), 32.0, GOLD);
+                                    text(badge, font, format!("of {all} points"), 12.0, DIM);
+                                });
+                        });
+                        text(
+                            side,
+                            font,
+                            format!("Account progress · {:.0}%", fraction(pts, all) * 100.0),
+                            13.0,
+                            GOLD,
+                        );
+                        meter(side, fraction(pts, all));
+                        for (i, name) in NAMES.iter().enumerate() {
+                            super::controls::content_button(
+                                side,
+                                Act::Achieve(i as u8),
+                                selected == i,
+                                Node {
+                                    width: Val::Percent(100.0),
+                                    min_height: Val::Px(42.0),
+                                    padding: UiRect::all(Val::Px(8.0)),
+                                    column_gap: Val::Px(8.0),
+                                    ..default()
+                                },
+                                |nav| {
+                                    icon(nav, i, 24.0);
+                                    nav.spawn(Node {
+                                        flex_grow: 1.0,
+                                        flex_basis: Val::Px(0.0),
+                                        min_width: Val::Px(0.0),
+                                        flex_direction: FlexDirection::Column,
+                                        row_gap: Val::Px(4.0),
                                         ..default()
                                     })
-                                    .with_children(|label| {
-                                        text(label, font, *name, 13.0, GOLD);
-                                        if i > 0 {
-                                            text(label, font, format!("{n}/{total}"), 12.0, DIM);
-                                        }
-                                    });
-                                if i > 0 {
-                                    meter(content, fraction(pts, all));
-                                }
-                            });
-                        },
-                    );
-                }
-                text(side, font, format!("{have} of {total} earned"), 13.0, GOLD);
-                text(
+                                    .with_children(
+                                        |content| {
+                                            let (n, total, pts, all) = counts(&rows, category(i));
+                                            content
+                                                .spawn(Node {
+                                                    width: Val::Percent(100.0),
+                                                    flex_wrap: FlexWrap::Wrap,
+                                                    justify_content: JustifyContent::SpaceBetween,
+                                                    column_gap: Val::Px(6.0),
+                                                    ..default()
+                                                })
+                                                .with_children(|label| {
+                                                    text(label, font, *name, 13.0, GOLD);
+                                                    if i > 0 {
+                                                        text(
+                                                            label,
+                                                            font,
+                                                            format!("{n}/{total}"),
+                                                            12.0,
+                                                            DIM,
+                                                        );
+                                                    }
+                                                });
+                                            if i > 0 {
+                                                meter(content, fraction(pts, all));
+                                            }
+                                        },
+                                    );
+                                },
+                            );
+                        }
+                        text(side, font, format!("{have} of {total} earned"), 13.0, GOLD);
+                        text(
                     side,
                     font,
                     "Every hero contributes to this account. Spend achievement points on Rewards.",
                     12.0,
                     DIM,
                 );
-            });
-            super::reward_page::frame(row, 540.0, 4.0, |body| {
-                super::typography::section(body, font, NAMES[selected], 22.0, GOLD);
-                if selected == 0 {
-                    summary(body, font, account, &rows);
-                } else {
-                    let (have, total, pts, all) = counts(&rows, category(selected));
-                    text(
-                        body,
-                        font,
-                        format!("{have} of {total} earned · {pts} of {all} points"),
-                        13.0,
-                        DIM,
-                    );
-                    meter(body, fraction(pts, all));
-                    let mut entries: Vec<_> = rows
-                        .iter()
-                        .filter(|r| Some(r.category) == category(selected))
-                        .collect();
-                    if selected == 1 {
-                        entries.sort_by_key(|r| r.progress.is_some());
-                    }
-                    grid(body, |grid| {
-                        for entry in entries {
-                            card(grid, font, account, entry);
-                        }
                     });
-                }
-            });
+                    side.spawn((
+                        RailMode::Compact,
+                        Node {
+                            display: Display::None,
+                            width: Val::Percent(100.0),
+                            flex_direction: FlexDirection::Column,
+                            row_gap: Val::Px(6.0),
+                            ..default()
+                        },
+                    ))
+                    .with_children(|compact| {
+                        text(
+                            compact,
+                            font,
+                            format!("{pts} / {all} points · {have} / {total} earned"),
+                            13.0,
+                            GOLD,
+                        );
+                        compact
+                            .spawn(Node {
+                                width: Val::Percent(100.0),
+                                flex_wrap: FlexWrap::Wrap,
+                                column_gap: Val::Px(6.0),
+                                row_gap: Val::Px(6.0),
+                                ..default()
+                            })
+                            .with_children(|nav| {
+                                for (i, name) in NAMES.iter().enumerate() {
+                                    super::controls::content_button(
+                                        nav,
+                                        Act::Achieve(i as u8),
+                                        selected == i,
+                                        Node {
+                                            flex_basis: Val::Percent(30.0),
+                                            flex_grow: 1.0,
+                                            min_width: Val::Px(100.0),
+                                            min_height: Val::Px(32.0),
+                                            padding: UiRect::all(Val::Px(5.0)),
+                                            justify_content: JustifyContent::Center,
+                                            ..default()
+                                        },
+                                        |button| text(button, font, *name, 13.0, GOLD),
+                                    );
+                                }
+                            });
+                    });
+                },
+            );
+            pane(
+                row,
+                Pane::Cards,
+                ScrollCategory(selected),
+                armory.achievement_scroll[selected],
+                |body| {
+                    super::typography::section(body, font, NAMES[selected], 22.0, GOLD);
+                    if selected == 0 {
+                        summary(body, font, account, &rows);
+                    } else {
+                        let (have, total, pts, all) = counts(&rows, category(selected));
+                        text(
+                            body,
+                            font,
+                            format!("{have} of {total} earned · {pts} of {all} points"),
+                            13.0,
+                            DIM,
+                        );
+                        meter(body, fraction(pts, all));
+                        let mut entries: Vec<_> = rows
+                            .iter()
+                            .filter(|r| Some(r.category) == category(selected))
+                            .collect();
+                        if selected == 1 {
+                            entries.sort_by_key(|r| r.progress.is_some());
+                        }
+                        grid(body, |grid| {
+                            for entry in entries {
+                                card(grid, font, account, entry);
+                            }
+                        });
+                    }
+                },
+            );
         });
 }
 
@@ -484,6 +700,109 @@ fn summary(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn panes_reflow_in_logical_units_and_keep_independent_reading_positions() {
+        let mut app = App::new();
+        app.init_resource::<Armory>()
+            .add_systems(Update, (layout, remember_scroll));
+        let root = app
+            .world_mut()
+            .spawn((
+                PageLayout,
+                Node::default(),
+                ComputedNode {
+                    size: Vec2::new(1200., 800.),
+                    inverse_scale_factor: 0.5,
+                    ..default()
+                },
+            ))
+            .id();
+        let rail = app
+            .world_mut()
+            .spawn((
+                Pane::Rail,
+                Node::default(),
+                RailScroll,
+                ScrollPosition(Vec2::new(0., 100.)),
+            ))
+            .id();
+        let cards = app
+            .world_mut()
+            .spawn((
+                Pane::Cards,
+                Node::default(),
+                ScrollCategory(1),
+                ScrollPosition(Vec2::new(0., 900.)),
+            ))
+            .id();
+        let wide = app
+            .world_mut()
+            .spawn((RailMode::Wide, Node::default()))
+            .id();
+        let compact = app
+            .world_mut()
+            .spawn((RailMode::Compact, Node::default()))
+            .id();
+        app.update();
+        assert_eq!(
+            app.world().get::<Node>(wide).unwrap().display,
+            Display::Flex
+        );
+        assert_eq!(
+            app.world().get::<Node>(compact).unwrap().display,
+            Display::None
+        );
+        assert_eq!(
+            app.world().get::<Node>(root).unwrap().flex_direction,
+            FlexDirection::Row
+        );
+        assert_eq!(
+            app.world().get::<Node>(rail).unwrap().width,
+            Val::Percent(24.)
+        );
+        app.world_mut()
+            .get_mut::<ComputedNode>(root)
+            .unwrap()
+            .size
+            .x = 1000.;
+        app.update();
+        assert_eq!(
+            app.world().get::<Node>(root).unwrap().flex_direction,
+            FlexDirection::Column
+        );
+        assert_eq!(
+            app.world().get::<Node>(rail).unwrap().height,
+            Val::Percent(35.)
+        );
+        assert_eq!(
+            app.world().get::<Node>(cards).unwrap().width,
+            Val::Percent(100.)
+        );
+        assert_eq!(
+            app.world().get::<Node>(wide).unwrap().display,
+            Display::None
+        );
+        assert_eq!(
+            app.world().get::<Node>(compact).unwrap().display,
+            Display::Flex
+        );
+        let armory = app.world().resource::<Armory>();
+        assert_eq!(armory.achievement_rail_scroll.y, 100.);
+        assert_eq!(armory.achievement_scroll[1].y, 900.);
+        assert_eq!(armory.achievement_scroll[0], Vec2::ZERO);
+        app.world_mut()
+            .get_mut::<ComputedNode>(root)
+            .unwrap()
+            .size
+            .x = 1200.;
+        app.update();
+        assert_eq!(
+            app.world().get::<Node>(root).unwrap().flex_direction,
+            FlexDirection::Row
+        );
+        assert_eq!(app.world().get::<ScrollPosition>(cards).unwrap().0.y, 900.);
+    }
+
     #[test]
     fn available_completion_does_not_require_placeholder_achievements() {
         let snapshot = rewards::Snapshot::default();
