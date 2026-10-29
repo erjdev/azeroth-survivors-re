@@ -66,6 +66,7 @@ pub(in crate::survivors) fn fixture(key: &str, hp: f32) -> (App, Entity, Schedul
                 kidney_t: 0.0,
                 stun_t: 0.0,
                 fear_t: 0.0,
+                incapacitate_t: 0.0,
                 weaken: 1.0,
                 weaken_t: 0.0,
                 poison: Default::default(),

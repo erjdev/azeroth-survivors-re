@@ -102,6 +102,9 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 ". Only weapon attacks benefit; refreshes without stacking"
             );
         }
+        Kind::Strike if matches!(a.effect, Effect::Incapacitate(_)) => {
+            prose!("Incapacitate the nearest ", count, " within ", range);
+        }
         Kind::Bolt | Kind::Strike | Kind::Melee => {
             let toughest = matches!(
                 def.key,
@@ -322,6 +325,13 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
         }
         Effect::Root(_) => {
             prose!(", freezing them in place for ", effect_time);
+        }
+        Effect::Incapacitate(_) => {
+            prose!(
+                " for ",
+                effect_time,
+                ". Only non-boss humanoids qualify. Any damage awakens them"
+            );
         }
         Effect::Stun(_) => {
             prose!(", stunning them for ", effect_time);

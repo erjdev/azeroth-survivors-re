@@ -4,6 +4,26 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Repentance and damage-breaking control
+
+Training Repentance unlocks its ability cards. Acquired Repentance incapacitates
+nearby non-boss humanoids; positive damage wakes them without clearing unrelated
+stuns or roots. No eligible target leaves it ready. Rank upgrades show green inline
+changes to duration, recovery and target count, with each unit written once.
+
+Native macOS previews cover 1280×720 and 640×720 / 125%. Final incremental build:
+14 seconds. Automated targeting, damage, poison, movement/expiry and offer checks
+pass, as does the eight-package gate (31 optional-addon skips). Native
+purchase/refund/restart verification remains open after pointer automation failed;
+Windows and attended combat also remain open. Named definitions: 305/432,
+Paladin 26/44; this count is not full gameplay acceptance.
+
+![Repentance inline upgrades](images/screenshots/2026-10-29-repentance/cards-wide.png)
+
+![Compact Repentance cards at 125%](images/screenshots/2026-10-29-repentance/cards-compact.png)
+
+![Compact talent unlock description](images/screenshots/2026-10-29-repentance/talent-compact.png)
+
 ## 2026-10-29 — Keep pending rewards within reach
 
 Pending purchases now show a fixed Confirm/Undo bar when the sidebar controls

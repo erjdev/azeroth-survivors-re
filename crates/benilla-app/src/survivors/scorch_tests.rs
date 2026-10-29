@@ -138,6 +138,7 @@ fn splash_and_multistrike_do_not_duplicate_scorch_stacks() {
                 kidney_t: 0.0,
                 stun_t: 0.0,
                 fear_t: 0.0,
+                incapacitate_t: 0.0,
                 weaken: 1.0,
                 weaken_t: 0.0,
                 poison: Default::default(),

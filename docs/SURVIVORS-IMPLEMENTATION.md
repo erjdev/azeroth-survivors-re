@@ -5,6 +5,27 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Repentance — 2026-10-29
+
+The [installed-data contract](audits/REPENTANCE.md) now reaches talent-gated
+acquisition, humanoid targeting and damage-breaking incapacitation. Movement and
+contact attacks stop; direct/pet, periodic and poison damage wake the target and
+remove its aura without clearing unrelated control. Six new regressions exercise
+actual cast, hit, movement and offer consumers. A failed readiness regression
+exposed the generic 0.2-second retry delay; Repentance now stays ready when there
+is no eligible target. Initial compile/Clippy issues were corrected before the
+final build. The final incremental play build takes 14 seconds.
+
+Native macOS previews verify green inline duration/recovery/target changes at
+1280×720 and 640×720 / 125%, plus the compact talent description. The isolated
+30-point Retribution fixture loads correctly. Native purchase/refund/spec/restart
+verification remains open: pointer automation failed and did not change the save;
+the normal validation launcher is restored. Attended combat, Windows, rendered
+combat aura acceptance and the broader seven-phase matrix remain open. Named
+definition coverage is 305/432 (Paladin 26/44), not a claim of full acceptance.
+Final eight-package formatting/Clippy/test gate passes: 4,857 app unit tests
+passed, 10 ignored; 31 optional-addon tests skip across the scoped suite.
+
 ## Reward confirmation reachability — 2026-10-29
 
 Native 640×720 / 125% reproduction: staging Veteran's Lessons from the scrolled

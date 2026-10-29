@@ -670,6 +670,21 @@ pub(super) fn cast_abilities(
                 } else {
                     p.range
                 };
+                let eligible_foes;
+                let visible: &[Foe] = if matches!(p.effect, Effect::Incapacitate(_)) {
+                    eligible_foes = visible
+                        .iter()
+                        .copied()
+                        .filter(|foe| {
+                            enemies
+                                .get(foe.e)
+                                .is_ok_and(|(_, _, enemy)| repentance_target(enemy))
+                        })
+                        .collect::<Vec<_>>();
+                    &eligible_foes
+                } else {
+                    &visible
+                };
                 let rear_foes;
                 let candidates: &[Foe] = if def.requires_rear {
                     rear_foes = visible
@@ -683,7 +698,7 @@ pub(super) fn cast_abilities(
                         .collect::<Vec<_>>();
                     &rear_foes
                 } else {
-                    &visible
+                    visible
                 };
                 let targets = if matches!(
                     def.key,
@@ -1032,8 +1047,8 @@ pub(super) fn cast_abilities(
         };
         run.abilities[i].cd = if fired {
             p.cooldown
-        } else if def.requires_rear {
-            // A positional opening must be usable immediately, without a retry cooldown.
+        } else if def.requires_rear || matches!(p.effect, Effect::Incapacitate(_)) {
+            // Positional openings and eligible control targets must be usable immediately.
             0.0
         } else {
             0.2
@@ -1452,6 +1467,20 @@ fn creature_multiplier(
     }
 }
 
+fn repentance_target(enemy: &Enemy) -> bool {
+    !enemy.dead
+        && enemy.hp > 0.0
+        && !enemy.boss
+        && enemy.def.creature_type == survivors_core::creature::CreatureType::Humanoid
+}
+
+fn wake_on_damage(enemy: &mut Enemy, marks: &mut Marks, removed: f32) {
+    if removed > 0.0 {
+        enemy.incapacitate_t = 0.0;
+        marks.remove(20066);
+    }
+}
+
 #[allow(clippy::type_complexity)]
 pub(super) fn apply_hits(
     mut commands: Commands,
@@ -1493,6 +1522,7 @@ pub(super) fn apply_hits(
                     pos: Vec3,
                     en: &mut Enemy| {
         en.dead = true;
+        en.incapacitate_t = 0.0;
         commands.entity(e).remove::<super::marking::Marked>();
         commands.entity(e).remove::<FireVulnerability>();
         commands
@@ -1796,6 +1826,7 @@ pub(super) fn apply_hits(
             {
                 run.ghostly_strike.apply(impact_time);
             }
+            wake_on_damage(&mut en, &mut marks, removed);
             en.hp -= dmg;
             if run.alive()
                 && en.hp > 0.0
@@ -1864,6 +1895,7 @@ pub(super) fn apply_hits(
                                     );
                                 }
                                 let removed = damage.max(0.0).min(en.hp);
+                                wake_on_damage(&mut en, &mut marks, removed);
                                 en.hp -= removed;
                                 run.add_damage(coating.key(), removed);
                                 fx.number(e, removed, false, COLOR_SPELL);
@@ -1947,6 +1979,9 @@ pub(super) fn apply_hits(
             }
             Effect::Root(t) if h.source == "frost_nova" => apply_freeze(&mut en, t),
             Effect::Root(t) => en.root_t = en.root_t.max(if boss { t * 0.3 } else { t }),
+            Effect::Incapacitate(t) if repentance_target(&en) => {
+                en.incapacitate_t = en.incapacitate_t.max(t)
+            }
             Effect::Stun(t) => en.stun_t = en.stun_t.max(if boss { t * 0.3 } else { t }),
             Effect::Fear(t) if !boss => en.fear_t = en.fear_t.max(t),
             Effect::Weaken(m, t) => {
@@ -1954,7 +1989,8 @@ pub(super) fn apply_hits(
             }
             _ => {}
         }
-        if h.mark != 0 {
+        if h.mark != 0 && (!matches!(h.effect, Effect::Incapacitate(_)) || en.incapacitate_t > 0.0)
+        {
             marks.add(h.mark, h.mark_dur);
         }
         if en.hp <= 0.0 {
@@ -2050,6 +2086,7 @@ pub(super) fn apply_hits(
         }
         en.dots.retain(|d| d.left > 0.0);
         if dealt > 0.0 {
+            wake_on_damage(&mut en, &mut marks, dealt);
             en.hp -= dealt;
             if stats.leech > 0.0 || vampiric_heal > 0.0 {
                 run.heal(
@@ -2492,6 +2529,7 @@ mod milestone_tests {
                 kidney_t: 0.0,
                 stun_t: 0.,
                 fear_t: 0.,
+                incapacitate_t: 0.0,
                 weaken: 1.,
                 weaken_t: 0.,
                 poison: Default::default(),
@@ -2786,6 +2824,7 @@ mod milestone_tests {
                         kidney_t: 0.0,
                         stun_t: 0.,
                         fear_t: 0.,
+                        incapacitate_t: 0.0,
                         weaken: 1.,
                         weaken_t: 0.,
                         poison: Default::default(),
@@ -3258,6 +3297,7 @@ mod milestone_tests {
                 kidney_t: 0.0,
                 stun_t: 0.,
                 fear_t: 0.,
+                incapacitate_t: 0.0,
                 weaken: 1.,
                 weaken_t: 0.,
                 poison: Default::default(),
@@ -3393,6 +3433,7 @@ mod milestone_tests {
                             kidney_t: 0.0,
                             stun_t: 0.,
                             fear_t: 0.,
+                            incapacitate_t: 0.0,
                             weaken: 1.,
                             weaken_t: 0.,
                             poison: Default::default(),
@@ -3504,6 +3545,7 @@ mod milestone_tests {
                     kidney_t: 0.0,
                     stun_t: 0.,
                     fear_t: 0.,
+                    incapacitate_t: 0.0,
                     weaken: 1.,
                     weaken_t: 0.,
                     poison: Default::default(),
@@ -3640,6 +3682,7 @@ mod milestone_tests {
                     kidney_t: 0.0,
                     stun_t: 0.,
                     fear_t: 0.,
+                    incapacitate_t: 0.0,
                     weaken: 1.,
                     weaken_t: 0.,
                     poison: Default::default(),
@@ -3785,6 +3828,7 @@ mod milestone_tests {
                 kidney_t: 0.0,
                 stun_t: 0.,
                 fear_t: 0.,
+                incapacitate_t: 0.0,
                 weaken: 1.,
                 weaken_t: 0.,
                 poison: Default::default(),
@@ -3916,6 +3960,7 @@ mod milestone_tests {
                         kidney_t: 0.0,
                         stun_t: 0.,
                         fear_t: 0.,
+                        incapacitate_t: 0.0,
                         weaken: 1.,
                         weaken_t: 0.,
                         poison: Default::default(),
@@ -4078,6 +4123,7 @@ mod milestone_tests {
                         kidney_t: 0.0,
                         stun_t: 0.,
                         fear_t: 0.,
+                        incapacitate_t: 0.0,
                         weaken: 1.,
                         weaken_t: 0.,
                         poison: Default::default(),
@@ -4210,6 +4256,7 @@ mod milestone_tests {
                         kidney_t: 0.0,
                         stun_t: 0.,
                         fear_t: 0.,
+                        incapacitate_t: 0.0,
                         weaken: 1.,
                         weaken_t: 0.,
                         poison: Default::default(),
@@ -4361,6 +4408,7 @@ mod milestone_tests {
                         kidney_t: 0.0,
                         stun_t: 0.,
                         fear_t: 0.,
+                        incapacitate_t: 0.0,
                         weaken: 1.,
                         weaken_t: 0.,
                         poison: Default::default(),
@@ -4585,6 +4633,7 @@ mod milestone_tests {
                         kidney_t: 0.0,
                         stun_t: 0.,
                         fear_t: 0.,
+                        incapacitate_t: 0.0,
                         weaken: 1.,
                         weaken_t: 0.,
                         poison: Default::default(),
@@ -4854,6 +4903,7 @@ mod milestone_tests {
                                     kidney_t: 0.0,
                                     stun_t: 0.0,
                                     fear_t: 0.0,
+                                    incapacitate_t: 0.0,
                                     weaken: 1.0,
                                     weaken_t: 0.0,
                                     poison: Default::default(),
@@ -5052,6 +5102,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
+                                incapacitate_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
                                 poison: Default::default(),
@@ -5166,6 +5217,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -5284,6 +5336,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
+                                incapacitate_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
                                 poison: Default::default(),
@@ -5385,6 +5438,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
+                                incapacitate_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
                                 poison: Default::default(),
@@ -5494,6 +5548,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
+                                incapacitate_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
                                 poison: Default::default(),
@@ -5596,6 +5651,7 @@ mod milestone_tests {
                             kidney_t: 0.0,
                             stun_t: 0.0,
                             fear_t: 0.0,
+                            incapacitate_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
                             poison: Default::default(),
@@ -5710,6 +5766,7 @@ mod milestone_tests {
                             kidney_t: 0.0,
                             stun_t: 0.0,
                             fear_t: 0.0,
+                            incapacitate_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
                             poison: Default::default(),
@@ -5824,6 +5881,7 @@ mod milestone_tests {
                             kidney_t: 0.0,
                             stun_t: 0.0,
                             fear_t: 0.0,
+                            incapacitate_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
                             poison: Default::default(),
@@ -5950,6 +6008,7 @@ mod milestone_tests {
                             kidney_t: 0.0,
                             stun_t: 0.0,
                             fear_t: 0.0,
+                            incapacitate_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
                             poison: Default::default(),
@@ -6071,6 +6130,7 @@ mod milestone_tests {
                                     kidney_t: 0.0,
                                     stun_t: 0.0,
                                     fear_t: 0.0,
+                                    incapacitate_t: 0.0,
                                     weaken: 1.0,
                                     weaken_t: 0.0,
                                     poison: Default::default(),
@@ -6604,6 +6664,7 @@ mod milestone_tests {
                                     kidney_t: 0.,
                                     stun_t: 0.,
                                     fear_t: 0.,
+                                    incapacitate_t: 0.0,
                                     weaken: 1.,
                                     weaken_t: 0.,
                                     poison: Default::default(),
@@ -7290,6 +7351,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -7396,6 +7458,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -7545,6 +7608,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -7717,6 +7781,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -7857,6 +7922,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -8040,6 +8106,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -8513,6 +8580,7 @@ mod milestone_tests {
                                             kidney_t: 0.0,
                                             stun_t: 0.0,
                                             fear_t: 0.0,
+                                            incapacitate_t: 0.0,
                                             weaken: 1.0,
                                             weaken_t: 0.0,
                                             poison: Default::default(),
@@ -8767,6 +8835,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -8895,6 +8964,7 @@ mod milestone_tests {
                                     kidney_t: 0.0,
                                     stun_t: 0.,
                                     fear_t: 0.,
+                                    incapacitate_t: 0.0,
                                     weaken: 1.,
                                     weaken_t: 0.,
                                     poison: Default::default(),
@@ -9026,6 +9096,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -9911,6 +9982,7 @@ mod milestone_tests {
                             kidney_t: 0.0,
                             stun_t: 0.,
                             fear_t: 0.,
+                            incapacitate_t: 0.0,
                             weaken: 1.,
                             weaken_t: 0.,
                             poison: Default::default(),
@@ -10052,6 +10124,7 @@ mod milestone_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.,
                                 fear_t: 0.,
+                                incapacitate_t: 0.0,
                                 weaken: 1.,
                                 weaken_t: 0.,
                                 poison: Default::default(),
@@ -10215,6 +10288,7 @@ mod sword_hit_tests {
                             kidney_t: 0.0,
                             stun_t: 0.0,
                             fear_t: 0.0,
+                            incapacitate_t: 0.0,
                             weaken: 1.0,
                             weaken_t: 0.0,
                             poison: Default::default(),
@@ -10394,6 +10468,7 @@ mod sword_hit_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
+                                incapacitate_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
                                 poison: Default::default(),
@@ -10553,6 +10628,7 @@ mod sword_hit_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
+                                incapacitate_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
                                 poison: Default::default(),
@@ -10700,6 +10776,7 @@ mod sword_hit_tests {
                                 kidney_t: 0.0,
                                 stun_t: 0.0,
                                 fear_t: 0.0,
+                                incapacitate_t: 0.0,
                                 weaken: 1.0,
                                 weaken_t: 0.0,
                                 poison: Default::default(),
@@ -10904,6 +10981,7 @@ mod battle_shout_tests {
                     kidney_t: 0.0,
                     stun_t: 0.,
                     fear_t: 0.,
+                    incapacitate_t: 0.0,
                     weaken: 1.,
                     weaken_t: 0.,
                     poison: Default::default(),
@@ -11151,3 +11229,7 @@ mod ghostly_strike_tests;
 #[cfg(test)]
 #[path = "greater_heal_tests.rs"]
 mod greater_heal_tests;
+
+#[cfg(test)]
+#[path = "repentance_tests.rs"]
+mod repentance_tests;

@@ -1,0 +1,4 @@
+page=cards
+width=1280
+height=720
+abilities=repentance:1,repentance:2,repentance:5

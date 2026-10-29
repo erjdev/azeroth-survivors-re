@@ -22,6 +22,8 @@ minimum-window onboarding and restart captures are in the changelog.
 ![Fresh starter onboarding at 640×480 and 125% UI](docs/images/screenshots/2026-10-29-starter-onboarding/after.jpg)
 
 
+![Repentance talent-unlocked control and inline upgrades](docs/images/screenshots/2026-10-29-repentance/cards-wide.png)
+
 ![Greater Heal acquisition and inline upgrades](docs/images/screenshots/2026-10-29-greater-heal/cards-wide.png)
 
 ![Pending Rewards keep Confirm and Undo visible while browsing](docs/images/screenshots/2026-10-29-reward-confirm/after.png)

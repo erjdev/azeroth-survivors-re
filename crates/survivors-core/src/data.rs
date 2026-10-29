@@ -95,6 +95,8 @@ pub enum Effect {
     Slow(f32, f32),
     Root(f32),
     Stun(f32),
+    /// Prevents movement and attacks until expiry or positive health damage.
+    Incapacitate(f32),
     Fear(f32),
     /// Outgoing damage multiplier for seconds.
     Weaken(f32, f32),
@@ -113,6 +115,7 @@ impl Effect {
             | Self::Weaken(_, t)
             | Self::Weakness(_, t)
             | Self::Root(t)
+            | Self::Incapacitate(t)
             | Self::Stun(t)
             | Self::Fear(t) => t,
             _ => 0.0,
@@ -125,6 +128,7 @@ impl Effect {
             Self::Weaken(m, t) => Self::Weaken(m, t * multiplier),
             Self::Weakness(m, t) => Self::Weakness(m, t * multiplier),
             Self::Root(t) => Self::Root(t * multiplier),
+            Self::Incapacitate(t) => Self::Incapacitate(t * multiplier),
             Self::Stun(t) => Self::Stun(t * multiplier),
             Self::Fear(t) => Self::Fear(t * multiplier),
             other => other,
@@ -447,6 +451,16 @@ pub static ABILITIES: &[AbilityDef] = &[
             cooldown: 4.0,
             range: 20.0,
             duration: 3.0
+        }
+    ),
+    ability!(
+        "repentance",
+        20066,
+        Strike {
+            cooldown: 60.0,
+            range: 20.0,
+            effect: Effect::Incapacitate(6.0),
+            mark: 20066
         }
     ),
     // --- Rogue ---
@@ -1284,6 +1298,7 @@ pub static CLASSES: &[ClassDef] = &[
             "hammer_of_justice",
             "divine_shield",
             "judgement",
+            "repentance",
         ],
         looks: &[
             1299, 1499, 1622, 3087, 3088, 3089, 3284, 3289, 3346, 3393, 7356,

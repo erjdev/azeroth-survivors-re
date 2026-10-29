@@ -187,8 +187,15 @@ impl Milestones {
     }
 
     pub fn ability_unlocked(self, key: &str) -> bool {
-        key != "mind_flay"
-            || (self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("mind_flay")) > 0.0)
+        match key {
+            "mind_flay" => {
+                self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("mind_flay")) > 0.0
+            }
+            "repentance" => {
+                self.class == 1 && self.trained_value(TalentStat::AbilityUnlock("repentance")) > 0.0
+            }
+            _ => true,
+        }
     }
 
     fn paladin(self, tree: usize, threshold: u32) -> bool {
@@ -2850,6 +2857,11 @@ pub const PALADIN_HOLY: &[&str] = &[
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1441, max_rank: 1, name: "Repentance",
+        description: "Unlocks Repentance in ability choices. Acquire it during the run to incapacitate nearby non-boss humanoids until damaged. Does not occupy an ability slot until acquired (Survivors automatic-cast conversion)",
+        stat: TalentStat::AbilityUnlock("repentance"), per_rank: 1.0,
+    },
     TalentDefinition {
         id: 1431, max_rank: 1, name: "Blessing of Sanctuary",
         description: "Prevents 2 damage per incoming hit after armor and percentage reduction, before shields. Cannot reduce damage below zero. Always active on you; grants no block chance or retaliation damage (Survivors passive blessing conversion)",

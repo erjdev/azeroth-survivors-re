@@ -4149,3 +4149,55 @@ mod weakness_preview_tests {
         assert!(prose.contains("Replaces your other curse"));
     }
 }
+
+#[cfg(test)]
+mod repentance_offer_tests {
+    use super::*;
+    #[test]
+    fn talent_unlock_controls_offers_and_acquisition_with_inline_tick_growth() {
+        let mut run = Run {
+            class: &data::CLASSES[1],
+            milestones: survivors_core::talents::Milestones {
+                class: 1,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let def = data::ability("repentance");
+        let mut rng = Rng(42);
+        assert!(!choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key)));
+        run.milestones = run.milestones.with_ranks(&[(2, 1441, 1)]);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, "repentance");
+        let mut stats = run.stats();
+        let a = cast_at(def, 1, &stats, run.milestones);
+        let b = cast_at(def, 2, &stats, run.milestones);
+        assert!(inline::ability(def, &a, &b)
+            .iter()
+            .any(|(text, color)| text == "6 » 6.6 sec" && *color == card_growth::GAIN));
+        stats.targets = 2;
+        let boosted = cast_at(def, 1, &stats, run.milestones);
+        assert_eq!(boosted.count, 3);
+        assert_eq!(boosted.dmg, 0.0);
+        assert_eq!(boosted.effect, Effect::Incapacitate(6.0));
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(!coating_available(&run, def));
+    }
+}

@@ -41,6 +41,7 @@ pub(super) struct Enemy {
     pub shadow_weaving: survivors_core::talents::ShadowWeaving,
     pub stun_t: f32,
     pub fear_t: f32,
+    pub incapacitate_t: f32,
     pub weaken: f32,
     pub weaken_t: f32,
     pub poison: survivors_core::talents::DeadlyPoison,
@@ -191,6 +192,7 @@ fn spawn_enemy(
             kidney_t: 0.0,
             stun_t: 0.0,
             fear_t: 0.0,
+            incapacitate_t: 0.0,
             weaken: 1.0,
             weaken_t: 0.0,
             poison: Default::default(),
@@ -467,6 +469,7 @@ pub(super) fn move_enemies(
             &mut e.stun_t,
             &mut e.kidney_t,
             &mut e.fear_t,
+            &mut e.incapacitate_t,
             &mut e.weaken_t,
         ] {
             *t = (*t - dt).max(0.0);
@@ -530,7 +533,7 @@ pub(super) fn move_enemies(
 
         // Under Fade the horde has lost the hero: it mills where it stands.
         let lost = run.mobile.vanish_t > 0.0 && !e.boss;
-        let held = e.stun_t > 0.0 || e.root_t > 0.0 || lost;
+        let held = e.stun_t > 0.0 || e.root_t > 0.0 || e.incapacitate_t > 0.0 || lost;
         let contact = (target_pos - pos).length() <= target_radius + e.radius + 0.35
             && world.line_clear(pos, target_pos);
         let mut step = Vec3::ZERO;
@@ -594,6 +597,7 @@ pub(super) fn move_enemies(
             && !lost
             && e.stun_t <= 0.0
             && e.fear_t <= 0.0
+            && e.incapacitate_t <= 0.0
             && e.attack_cd <= 0.0
             && !hero_down
         {

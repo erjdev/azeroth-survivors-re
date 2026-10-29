@@ -350,6 +350,7 @@ mod tests {
                     kidney_t: 0.0,
                     stun_t: 0.0,
                     fear_t: 0.0,
+                    incapacitate_t: 0.0,
                     weaken: 1.0,
                     weaken_t: 0.0,
                     poison: Default::default(),
