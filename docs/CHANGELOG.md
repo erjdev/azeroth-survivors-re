@@ -4,6 +4,14 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Disarm status groundwork
+
+Added verified enemy immunity metadata and independent Disarm/Riposte clocks,
+including overlap, refresh, removal, pause and invalid-input tests. 302 core
+tests pass; formatting, Clippy and the eight-package scoped gate pass (31 optional-
+addon skips). Gameplay activation and disarmed damage remain pending; this changes
+no visuals. See the [remaining integration steps](audits/ENEMY-EQUIPMENT.md).
+
 ## 2026-10-29 — Enemy equipment rendering
 
 Enemies now spawn with their audited NPC weapons and shields. A generated catalog

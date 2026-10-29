@@ -93,8 +93,13 @@ def resolve(equipment_id, slot, equipment, items, legacy):
 
 def rust_catalog(rows):
     templates = {}
+    immunities = {}
     for row in rows:
         entry = int(row["template"])
+        mask = int(row["mechanic_immune_mask"])
+        if entry in immunities and immunities[entry] != mask:
+            raise ValueError(f"Conflicting immunity for template {entry}")
+        immunities[entry] = mask
         slots = templates.setdefault(entry, {})
         slot = int(row["slot"]) - 1
         value = (slot, *[int(row[key]) for key in (
@@ -119,6 +124,12 @@ def rust_catalog(rows):
         else:
             empty.append(str(entry))
     print('        ' + ' | '.join(empty) + ' => &[],')
+    print('        _ => return None,\n    })\n}')
+    print('\n/// Pinned creature mechanic immunity bits; unknown templates remain explicit.')
+    print('pub fn mechanic_immunity(entry: u32) -> Option<u32> {\n    Some(match entry {')
+    for mask in sorted(set(immunities.values())):
+        entries = [str(entry) for entry, value in sorted(immunities.items()) if value == mask]
+        print('        ' + ' | '.join(entries) + f' => {mask},')
     print('        _ => return None,\n    })\n}')
 
 

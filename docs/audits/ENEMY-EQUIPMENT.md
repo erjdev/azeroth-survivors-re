@@ -124,3 +124,36 @@ six Python lookup regressions pass.
 
 The eight-package scoped gate and final Clippy including tests pass (31 optional-
 addon skips). The preview isolation correction was rebuilt and validated natively.
+
+## Disarm status prerequisite
+
+`survivors_core::disarm` is a target-owned status primitive with independent
+Disarm/Riposte clocks. Same-source refresh replaces that source, removing one
+source preserves the other, and older delayed applications cannot revive a newer
+expired/removed effect. Active run time freezes expiry during pause. Invalid
+inputs and rejected targets leave status unchanged.
+
+The generated catalog now preserves the pinned `MechanicImmuneMask` for all 456
+templates. [SharedDefines.h](https://github.com/mangoszero/server/blob/b7fface6b1bd3b036211dcde1bff39cc6da503e4/src/game/Server/SharedDefines.h)
+identifies Disarm as mechanic 3 and masks as `1 << (mechanic - 1)`.
+[HandleAuraModDisarm](https://github.com/mangoszero/server/blob/b7fface6b1bd3b036211dcde1bff39cc6da503e4/src/game/WorldHandlers/SpellAuraControl.cpp)
+preserves the flag while another disarm aura remains. Survivors explicitly adopts
+main-hand item class 2 as weapon eligibility, rejects the disarm-immunity bit, and
+keeps unknown templates distinct from verified empty/nonweapon equipment. This
+is an authored combat policy using factual metadata; creature names, humanoid
+type, model appearance and offhand/ranged-only props cannot grant eligibility.
+Fifteen roster template identities carry the source disarm-immunity bit.
+
+This checkpoint has no gameplay or renderer consumer: it does not claim to hide
+weapons, reduce damage, prevent attacks, or make a talent obtainable. The pending
+user choice is whether disarmed armed enemies continue with weaker punches or
+stop weapon contacts. Natural attacks and spells remain separate. After that
+choice, integrate contact settlement and the renderer's disarm flag, then add the
+acquired Disarm ability and replace Improved Disarm's weakening substitute.
+Riposte additionally needs equipped-player weapon damage, independently of this
+status. Core suite: 302 tests pass; generated-catalog reproduction and six Python
+lookup regressions pass. No visual change or new screenshot is implied.
+
+Disarm prerequisite gate: formatting, Clippy and eight-package scoped tests pass,
+with 31 optional-addon skips. No native rebuild was needed for this unconsumed
+engine-free status layer.

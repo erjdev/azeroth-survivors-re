@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Disarm status prerequisite — 2026-10-29
+
+Independent Disarm/Riposte clocks and equipment/immunity eligibility now have
+engine-free coverage (302 core tests pass). All 456 template immunity masks are
+reproducibly generated from pinned evidence. This primitive has no runtime
+consumer yet. The user decision on weaker punches versus suppressed weapon
+contacts remains pending; do not silently choose that damage rule. Subsequent
+work must connect status, contact settlement, visual flags, acquisition and
+Improved Disarm; Riposte still needs equipped-player weapon damage.
+
 ## Enemy equipment rendering — 2026-10-29
 
 Generated metadata now feeds the existing virtual-item attachment renderer for all
