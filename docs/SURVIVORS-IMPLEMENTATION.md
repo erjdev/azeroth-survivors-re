@@ -9527,3 +9527,15 @@ Purchase/restart and attended gameplay are not claimed by these preview captures
 Final validation: required eight-package formatting/Clippy/test gate passes, including
 4,832 app unit tests and 310 core tests. Thirty-one optional-addon tests skip because
 the addon corpus is unavailable. Full pre-merge and attended gameplay gates remain open.
+
+### 2026-10-29 — Hemorrhage native saved-spec acceptance
+
+Completed actual macOS menu interactions at 1280×720 in an isolated fixture:
+purchase 0/1 → 1/1 spends one point (31 → 30); switching to empty Spec 2
+shows all 51 points; returning to Spec 1 restores its allocation. Quit/relaunch
+retains Hemorrhage 1/1 and 30 unspent points. Right-click refund restores 0/1
+and 31 points; saved account data exactly matches the original 20-point allocation
+and leaves Specs 2/3 empty. Native captures are inline in CHANGELOG and README.
+This closes the native purchase/restart slice above, not Windows or combat acceptance.
+No source changes or coverage increase; the implementation gate remains the green
+04399ff gate (4,832 app / 310 core tests). Documentation links and whitespace checked.

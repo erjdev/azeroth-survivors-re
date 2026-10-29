@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Talent purchase and saved-spec acceptance
+
+Native macOS interaction at 1280×720 verifies Hemorrhage purchase (31 → 30
+unspent points), an independent empty Spec 2, Spec 1 restored after restart, and
+right-click refund back to 31 points. Saved data matches both transitions in an
+isolated preview profile. No code change; Windows and attended combat remain open.
+
+![Purchased Hemorrhage persists after restarting](images/screenshots/2026-10-29-hemorrhage-persistence/restarted.png)
+
+![Spec 2 keeps its separate empty allocation](images/screenshots/2026-10-29-hemorrhage-persistence/spec-two.png)
+
+![Refund returns the point and preserves prerequisite ranks](images/screenshots/2026-10-29-hemorrhage-persistence/refunded.png)
+
 ## 2026-10-29 — Hemorrhage and physical vulnerability
 
 Rogues can acquire Hemorrhage: a melee strike that leaves a refreshing, charged
