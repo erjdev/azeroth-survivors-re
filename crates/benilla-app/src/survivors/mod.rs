@@ -18,6 +18,7 @@ mod channel_visuals;
 mod channeling;
 mod companions;
 mod controller_input;
+mod curse;
 mod defense;
 mod enemies;
 mod floor;

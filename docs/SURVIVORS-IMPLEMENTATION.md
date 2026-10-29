@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Curse ownership prerequisite — 2026-10-28
+
+Curse of Exhaustion now has its own clock so refreshing it cannot extend a
+stronger ordinary slow. The reproduced overlap regression and all 560 Survivors
+runtime tests pass with installed data; feature Clippy and eight-package scoped
+checks pass (31 missing-addon skips). The [curse audit](audits/CURSES.md) records the defect,
+independent-clock acceptance and the installed rules for the subsequent acquired
+Curse of Weakness and its 6/13/20% talent. Node 1006 remains pending until that
+ability, replacement semantics and native UI acceptance are complete.
+
 ## Mage Scorch dependency — 2026-10-28
 
 Scorch and Improved Scorch are connected as an acquired spell plus real

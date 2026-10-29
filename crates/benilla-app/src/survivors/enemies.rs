@@ -16,7 +16,7 @@ use crate::creature_anim::{move_flags, MovementState};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
 #[derive(Component)]
-#[require(super::abilities::FireVulnerability)]
+#[require(super::abilities::FireVulnerability, super::curse::CurseSlow)]
 pub(super) struct Enemy {
     pub def: &'static EnemyDef,
     pub hp: f32,
@@ -369,6 +369,7 @@ pub(super) fn move_enemies(
             &mut Enemy,
             &mut MovementState,
             Option<&super::hunter_pet::PetTaunt>,
+            &super::curse::CurseSlow,
         ),
         Without<Hero>,
     >,
@@ -399,8 +400,8 @@ pub(super) fn move_enemies(
     const CELL: f32 = 3.0;
     let bodies: Vec<(Entity, Vec3, f32)> = enemies
         .iter()
-        .filter(|(_, _, e, _, _)| !e.dead)
-        .map(|(ent, tf, e, _, _)| (ent, tf.translation, e.radius))
+        .filter(|(_, _, e, _, _, _)| !e.dead)
+        .map(|(ent, tf, e, _, _, _)| (ent, tf.translation, e.radius))
         .collect();
     navigation.advance(dt, selection.map, &bodies, |from, to, radius| {
         let map = selection.map_def();
@@ -443,7 +444,7 @@ pub(super) fn move_enemies(
         push.insert(ent, acc);
     }
 
-    for (ent, mut tf, mut e, mut mv, taunt) in &mut enemies {
+    for (ent, mut tf, mut e, mut mv, taunt, curse) in &mut enemies {
         let e = &mut *e;
         if e.dead {
             if mv.speed != 0.0 || mv.flags != 0 {
@@ -544,10 +545,11 @@ pub(super) fn move_enemies(
                 flat(waypoint.unwrap_or(target_pos) - pos).normalize_or_zero()
             };
             if !contact || e.fear_t > 0.0 {
+                let slowed = curse.movement(e.slow, run.elapsed);
                 speed = e.speed
                     * channels
                         .as_ref()
-                        .map_or(e.slow, |channels| channels.movement(ent, e.slow));
+                        .map_or(slowed, |channels| channels.movement(ent, slowed));
                 step = dir * speed;
                 if let Some(point) = waypoint {
                     step = step.clamp_length_max(flat(point - pos).length() / dt);

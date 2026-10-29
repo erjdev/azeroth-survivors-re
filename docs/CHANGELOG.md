@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Independent curse slows
+
+Curse of Exhaustion no longer extends a stronger spell slow to the curse's
+12-second duration. Each expires independently; movement uses the strongest
+active effect. Refresh, boss limits and death cleanup preserve that separation.
+The regression reproduced a 2.5-second slow lasting 12 seconds before the fix.
+All 560 Survivors runtime tests pass with this checkout’s installed data.
+Feature Clippy and eight-package scoped checks pass (31 missing-addon skips).
+
+This is a combat-rule correction with headless timing evidence. The
+[curse audit](audits/CURSES.md) also records the remaining Curse of Weakness
+ability, replacement rules and exact talent ranks; that node remains pending.
+
 ## 2026-10-28 — Scorch and Fire vulnerability
 
 Mages can acquire Scorch. Improved Scorch adds a target-specific, five-stack

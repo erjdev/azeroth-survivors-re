@@ -987,3 +987,11 @@ copies cannot add stacks; Fire damage benefits regardless of which ability cause
 it. Expiry uses active run time; death clears the debuff. The spell does not
 require this talent to appear in normal choices. See [Scorch evidence and
 acceptance](audits/SCORCH.md) for timing limits and validation status.
+
+### Independent curse control
+
+Curse of Exhaustion's supplemental Agony slow uses its own 12-second clock.
+Enemy movement uses the strongest currently active ordinary, curse or channel
+slow; refreshing a curse never extends another spell's stronger slow. Bosses
+retain the 25% curse slow cap. Periodic ticks do not reapply the slow, and death
+clears it. See [curse ownership and remaining dependencies](audits/CURSES.md).

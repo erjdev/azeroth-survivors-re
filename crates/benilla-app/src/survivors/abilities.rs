@@ -1334,7 +1334,10 @@ fn apply_secondary_control(
     let boss = en.boss;
     en.stun_t = en.stun_t.max(milestones.secondary_stun(source, boss));
     en.root_t = en.root_t.max(milestones.secondary_root(source, boss));
-    if let Some((speed, duration)) = milestones.secondary_slow(source, boss) {
+    if let Some((speed, duration)) = milestones
+        .secondary_slow(source, boss)
+        .filter(|_| source != "curse_of_agony")
+    {
         en.slow = if en.slow_t > 0.0 {
             en.slow.min(speed)
         } else {
@@ -1375,6 +1378,7 @@ fn creature_multiplier(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub(super) fn apply_hits(
     mut commands: Commands,
     time: Res<Time>,
@@ -1396,6 +1400,7 @@ pub(super) fn apply_hits(
         &mut ObjectStore,
         &mut Marks,
         &mut FireVulnerability,
+        &mut super::curse::CurseSlow,
     )>,
     mut fx: Fx,
     mut loot: MessageWriter<Loot>,
@@ -1415,6 +1420,9 @@ pub(super) fn apply_hits(
         en.dead = true;
         commands.entity(e).remove::<super::marking::Marked>();
         commands.entity(e).remove::<FireVulnerability>();
+        commands
+            .entity(e)
+            .insert(super::curse::CurseSlow::default());
         en.hp = 0.0;
         en.dots.clear();
         en.poison = Default::default();
@@ -1586,7 +1594,8 @@ pub(super) fn apply_hits(
             }
             Step::Settle(hit, original) => (hit, original),
         };
-        let Ok((e, guid, tf, mut en, mut store, mut marks, mut fire)) = enemies.get_mut(h.target)
+        let Ok((e, guid, tf, mut en, mut store, mut marks, mut fire, mut curse)) =
+            enemies.get_mut(h.target)
         else {
             continue;
         };
@@ -1781,6 +1790,11 @@ pub(super) fn apply_hits(
         }
         let boss = en.boss;
         apply_secondary_control(&mut en, run.milestones, h.source);
+        if original && h.source == "curse_of_agony" {
+            if let Some((speed, seconds)) = run.milestones.secondary_slow(h.source, boss) {
+                curse.apply(speed, seconds, impact_time);
+            }
+        }
         if h.source == "kidney_shot" && run.milestones.kidney_exposure_multiplier(1.0) > 1.0 {
             if let Effect::Stun(t) = h.effect {
                 en.kidney_t = en.kidney_t.max(if boss { t * 0.3 } else { t });
@@ -1821,7 +1835,7 @@ pub(super) fn apply_hits(
     }
 
     // The over-time ticks, once a second each.
-    for (e, guid, tf, mut en, mut store, mut marks, fire) in &mut enemies {
+    for (e, guid, tf, mut en, mut store, mut marks, fire, _) in &mut enemies {
         if en.dead || (en.dots.is_empty() && !en.poison.active()) {
             continue;
         }
@@ -7736,8 +7750,14 @@ mod milestone_tests {
                     app.update();
                     let en = app.world().get::<Enemy>(enemy).unwrap();
                     let speed = 0.9 - 0.05 * f32::from(rank.min(4));
-                    assert_eq!(en.slow, if boss { speed.max(0.75) } else { speed });
-                    assert_eq!(en.slow_t, 12.);
+                    assert_eq!(
+                        app.world()
+                            .get::<super::super::curse::CurseSlow>(enemy)
+                            .unwrap()
+                            .movement(1., 0.),
+                        if boss { speed.max(0.75) } else { speed }
+                    );
+                    assert_eq!((en.slow, en.slow_t), (1., 0.));
                     assert_eq!(en.hp, 1000., "curse application has no direct damage");
                     assert_eq!(en.dots.len(), 1);
                     assert_eq!(
@@ -7750,6 +7770,9 @@ mod milestone_tests {
                         en.slow = 1.;
                         en.slow_t = 0.;
                     }
+                    *app.world_mut()
+                        .get_mut::<super::super::curse::CurseSlow>(enemy)
+                        .unwrap() = Default::default();
                     app.world_mut()
                         .resource_mut::<Time>()
                         .advance_by(std::time::Duration::from_secs(1));
@@ -7757,6 +7780,13 @@ mod milestone_tests {
                     let en = app.world().get::<Enemy>(enemy).unwrap();
                     assert_eq!((en.slow, en.slow_t), (1., 0.));
                     assert!((en.hp - (1000. - after.dot)).abs() < 0.0001);
+                    assert_eq!(
+                        app.world()
+                            .get::<super::super::curse::CurseSlow>(enemy)
+                            .unwrap()
+                            .movement(1., 0.),
+                        1.
+                    );
                     // Reapplication preserves a stronger and longer existing slow.
                     {
                         let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
@@ -7771,6 +7801,9 @@ mod milestone_tests {
                     let en = app.world().get::<Enemy>(enemy).unwrap();
                     assert_eq!((en.slow, en.slow_t), (0.2, 20.));
                     // Unrelated spells and a base-talent refund cannot apply the slow.
+                    *app.world_mut()
+                        .get_mut::<super::super::curse::CurseSlow>(enemy)
+                        .unwrap() = Default::default();
                     {
                         let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
                         en.slow = 1.;
@@ -7788,6 +7821,13 @@ mod milestone_tests {
                     app.update();
                     let en = app.world().get::<Enemy>(enemy).unwrap();
                     assert_eq!((en.slow, en.slow_t), (1., 0.));
+                    assert_eq!(
+                        app.world()
+                            .get::<super::super::curse::CurseSlow>(enemy)
+                            .unwrap()
+                            .movement(1., 0.),
+                        1.
+                    );
                 }
             }
         }
