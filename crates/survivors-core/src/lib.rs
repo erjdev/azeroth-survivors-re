@@ -32,3 +32,5 @@ pub mod visibility;
 pub mod weapon_alternatives;
 
 pub mod battle_shout;
+
+pub mod slows;

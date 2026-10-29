@@ -39,9 +39,9 @@ spells. Curse refreshes must neither extend nor erase another spell's clock.
   cannot revive it. The empty component remains on corpses so the movement system
   can still stop their movement.
 
-Ordinary timed snares still share the existing ordinary-control slot; source-by-source
-expiry within that slot remains a separate control-system gap. This change isolates
-the curse clock from that slot and from connected channels.
+Ordinary timed snares now also retain independent source expiry; see
+[SLOWS.md](SLOWS.md). Curse ownership remains separate from those sources and
+from connected channels.
 
 ## Acquired Curse of Weakness — 2026-10-29
 

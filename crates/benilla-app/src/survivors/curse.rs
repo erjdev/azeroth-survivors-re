@@ -82,8 +82,12 @@ mod tests {
         .with_ranks(&[(0, 1081, 1), (0, 1082, 4)]);
         {
             let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
-            enemy.slow = 0.5;
-            enemy.slow_t = 2.5;
+            enemy.slows.apply(
+                survivors_core::slows::Source::Spell("fixture"),
+                0.5,
+                2.5,
+                0.,
+            );
         }
         app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
             source: "curse_of_agony",
@@ -94,7 +98,7 @@ mod tests {
         advance(&mut app, &mut schedule, 0.);
         let enemy = app.world().get::<Enemy>(target).unwrap();
         assert_eq!(
-            (enemy.slow, enemy.slow_t),
+            enemy.slows.state(0.),
             (0.5, 2.5),
             "curse must not extend Frostbolt's clock"
         );

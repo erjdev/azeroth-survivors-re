@@ -5,6 +5,17 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Independent ordinary slows — 2026-10-29
+
+Spell, secondary-talent and Aftermath slows now retain their own expiry and refresh
+ordering. The strongest active source controls movement without borrowing another
+source's duration; curse and channel ownership remain separate. The reproduced
+2.5-second/10-second overlap regression is fixed. 295 core and 573 runtime tests
+pass, including actual movement speed and delayed hit ordering. Native build,
+Clippy including tests and eight-package scoped checks pass (31 optional-addon skips).
+See [the slow audit](audits/SLOWS.md). Multiplayer caster identity and attended
+Windows combat remain open; no UI or definition-coverage increase is claimed.
+
 ## Hunter reactive defense — 2026-10-29
 
 Replace provisional Deterrence/Deflection reduction with real, source-preserving

@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Independent spell slow durations
+
+Overlapping slows now expire independently: a brief strong slow can no longer
+borrow a weaker spell's longer duration. Refreshes affect only their source;
+late older hits cannot restore replaced effects. Death clears ordinary slows.
+
+295 core and 573 runtime tests pass, including actual hit settlement and enemy
+movement speed. Clippy including tests and eight-package scoped checks pass
+(31 optional-addon skips). Native incremental build: 2m46s.
+No interface appearance changed;
+the inline talent captures below remain current. Attended Windows combat remains
+open. The [slow audit](audits/SLOWS.md) records ownership and timing limits.
+
 ## 2026-10-29 — Hunter parries and Counterattack
 
 Deterrence and Deflection now provide actual dodge/parry outcomes instead of

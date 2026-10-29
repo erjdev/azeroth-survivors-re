@@ -28,8 +28,7 @@ pub(super) struct Enemy {
     pub boss: bool,
     pub elite: bool,
     pub attack_cd: f32,
-    pub slow: f32,
-    pub slow_t: f32,
+    pub slows: survivors_core::slows::Slows,
     pub root_t: f32,
     pub frozen_t: f32,
     pub winters_chill: survivors_core::talents::WintersChill,
@@ -177,8 +176,7 @@ fn spawn_enemy(
             boss,
             elite: elite && !boss,
             attack_cd: 0.5,
-            slow: 1.0,
-            slow_t: 0.0,
+            slows: Default::default(),
             root_t: 0.0,
             frozen_t: 0.0,
             winters_chill: Default::default(),
@@ -457,7 +455,6 @@ pub(super) fn move_enemies(
         e.winters_chill.advance(dt);
         e.shadow_weaving.advance(dt);
         for t in [
-            &mut e.slow_t,
             &mut e.root_t,
             &mut e.frozen_t,
             &mut e.stun_t,
@@ -466,9 +463,6 @@ pub(super) fn move_enemies(
             &mut e.weaken_t,
         ] {
             *t = (*t - dt).max(0.0);
-        }
-        if e.slow_t <= 0.0 {
-            e.slow = 1.0;
         }
         if e.weaken_t <= 0.0 {
             e.weaken = 1.0;
@@ -545,7 +539,7 @@ pub(super) fn move_enemies(
                 flat(waypoint.unwrap_or(target_pos) - pos).normalize_or_zero()
             };
             if !contact || e.fear_t > 0.0 {
-                let slowed = curse.movement(e.slow, run.elapsed);
+                let slowed = curse.movement(e.slows.state(run.elapsed).0, run.elapsed);
                 speed = e.speed
                     * channels
                         .as_ref()

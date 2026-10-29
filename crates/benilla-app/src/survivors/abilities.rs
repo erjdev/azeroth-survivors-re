@@ -1315,16 +1315,13 @@ fn apply_destruction_control(
     milestones: survivors_core::talents::Milestones,
     hit: &Hit,
     rng: &mut Rng,
+    now: f32,
 ) {
     let chance = milestones.aftermath_chance(hit.source, hit.damage);
     if chance > 0. && rng.f32() < chance {
         let speed = if en.boss { 0.75 } else { 0.5 };
-        en.slow = if en.slow_t > 0. {
-            en.slow.min(speed)
-        } else {
-            speed
-        };
-        en.slow_t = en.slow_t.max(5.);
+        en.slows
+            .apply(survivors_core::slows::Source::Aftermath, speed, 5., now);
     }
     let chance = milestones.pyroclasm_chance(hit.source, hit.damage);
     if chance > 0. && rng.f32() < chance {
@@ -1340,6 +1337,7 @@ fn apply_secondary_control(
     en: &mut Enemy,
     milestones: survivors_core::talents::Milestones,
     source: &'static str,
+    now: f32,
 ) {
     let boss = en.boss;
     en.stun_t = en.stun_t.max(milestones.secondary_stun(source, boss));
@@ -1348,12 +1346,12 @@ fn apply_secondary_control(
         .secondary_slow(source, boss)
         .filter(|_| source != "curse_of_agony")
     {
-        en.slow = if en.slow_t > 0.0 {
-            en.slow.min(speed)
-        } else {
-            speed
-        };
-        en.slow_t = en.slow_t.max(duration);
+        en.slows.apply(
+            survivors_core::slows::Source::Secondary(source),
+            speed,
+            duration,
+            now,
+        );
     }
 }
 
@@ -1436,6 +1434,7 @@ pub(super) fn apply_hits(
         en.hp = 0.0;
         en.dots.clear();
         en.poison = Default::default();
+        en.slows = Default::default();
         enemies::mark_dying(commands, e);
         loot.write(Loot {
             pos,
@@ -1818,7 +1817,7 @@ pub(super) fn apply_hits(
         if impact_chance > 0.0 && rng.f32() < impact_chance {
             apply_impact(&mut en);
         }
-        apply_destruction_control(&mut en, run.milestones, &h, &mut rng);
+        apply_destruction_control(&mut en, run.milestones, &h, &mut rng, impact_time);
         let root_chance = run.milestones.wing_clip_root_chance(h.source, h.damage);
         if root_chance > 0.0 && rng.f32() < root_chance {
             en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
@@ -1828,7 +1827,7 @@ pub(super) fn apply_hits(
             apply_frostbite(&mut en);
         }
         let boss = en.boss;
-        apply_secondary_control(&mut en, run.milestones, h.source);
+        apply_secondary_control(&mut en, run.milestones, h.source, impact_time);
         if h.source == "kidney_shot" && run.milestones.kidney_exposure_multiplier(1.0) > 1.0 {
             if let Effect::Stun(t) = h.effect {
                 en.kidney_t = en.kidney_t.max(if boss { t * 0.3 } else { t });
@@ -1837,8 +1836,12 @@ pub(super) fn apply_hits(
         match h.effect {
             Effect::Slow(m, t) => {
                 let m = if boss { m.max(0.75) } else { m };
-                en.slow = if en.slow_t > 0.0 { en.slow.min(m) } else { m };
-                en.slow_t = en.slow_t.max(t);
+                en.slows.apply(
+                    survivors_core::slows::Source::Spell(h.source),
+                    m,
+                    t,
+                    impact_time,
+                );
             }
             Effect::Root(t) if h.source == "frost_nova" => apply_freeze(&mut en, t),
             Effect::Root(t) => en.root_t = en.root_t.max(if boss { t * 0.3 } else { t }),
@@ -2364,8 +2367,11 @@ mod milestone_tests {
                 boss,
                 elite: false,
                 attack_cd: 0.,
-                slow: 0.4,
-                slow_t: 8.,
+                slows: {
+                    let mut slows = survivors_core::slows::Slows::default();
+                    slows.apply(survivors_core::slows::Source::Spell("fixture"), 0.4, 8., 0.);
+                    slows
+                },
                 root_t: 0.,
                 frozen_t: 0.,
                 winters_chill: Default::default(),
@@ -2388,20 +2394,23 @@ mod milestone_tests {
             apply_frostbite(&mut enemy);
             assert_eq!(enemy.root_t, 8.);
             assert_eq!(enemy.frozen_t, if boss { 1.5 } else { 5. });
-            assert_eq!((enemy.slow, enemy.slow_t, enemy.hp), (0.4, 8., 100.));
+            assert_eq!(
+                (enemy.slows.state(0.).0, enemy.slows.state(0.).1, enemy.hp),
+                (0.4, 8., 100.)
+            );
             enemy.root_t = 0.;
             enemy.frozen_t = 0.;
-            apply_secondary_control(&mut enemy, trained, "concussive_shot");
+            apply_secondary_control(&mut enemy, trained, "concussive_shot", 0.);
             assert_eq!(enemy.stun_t, if boss { 0.3 } else { 1. });
-            apply_secondary_control(&mut enemy, trained, "serpent_sting");
+            apply_secondary_control(&mut enemy, trained, "serpent_sting", 0.);
             assert!((enemy.stun_t - if boss { 0.45 } else { 1.5 }).abs() < 0.00001);
             let survival = Milestones {
                 points: [0, 0, 30],
                 ..trained
             };
-            apply_secondary_control(&mut enemy, survival, "serpent_sting");
+            apply_secondary_control(&mut enemy, survival, "serpent_sting", 0.);
             assert!((enemy.stun_t - if boss { 0.75 } else { 2.5 }).abs() < 0.00001);
-            apply_secondary_control(&mut enemy, trained, "explosive_trap");
+            apply_secondary_control(&mut enemy, trained, "explosive_trap", 0.);
             assert!((enemy.root_t - if boss { 0.6 } else { 2. }).abs() < 0.00001);
             enemy.stun_t = 4.;
             apply_impact(&mut enemy);
@@ -2412,11 +2421,11 @@ mod milestone_tests {
                 "explosive_trap",
                 "volley",
             ] {
-                apply_secondary_control(&mut enemy, trained, source);
+                apply_secondary_control(&mut enemy, trained, source, 0.);
             }
             assert_eq!((enemy.stun_t, enemy.root_t), (4., 5.));
             assert_eq!(enemy.frozen_t, 0.);
-            assert_eq!((enemy.slow, enemy.slow_t), (0.4, 8.));
+            assert_eq!(enemy.slows.state(0.), (0.4, 8.));
             assert_eq!(enemy.hp, 100.);
         }
     }
@@ -2656,8 +2665,7 @@ mod milestone_tests {
                         boss: false,
                         elite: false,
                         attack_cd: 0.,
-                        slow: 1.,
-                        slow_t: 0.,
+                        slows: Default::default(),
                         root_t: 8.,
                         frozen_t: if frozen { 3. } else { 0. },
                         winters_chill: Default::default(),
@@ -3129,8 +3137,7 @@ mod milestone_tests {
                 boss: false,
                 elite: false,
                 attack_cd: 0.,
-                slow: 1.,
-                slow_t: 0.,
+                slows: Default::default(),
                 root_t: 0.,
                 frozen_t: 0.,
                 winters_chill: Default::default(),
@@ -3265,8 +3272,7 @@ mod milestone_tests {
                             boss: false,
                             elite: false,
                             attack_cd: 0.,
-                            slow: 1.,
-                            slow_t: 0.,
+                            slows: Default::default(),
                             root_t: 0.,
                             frozen_t: 0.,
                             winters_chill: Default::default(),
@@ -3377,8 +3383,7 @@ mod milestone_tests {
                     boss: false,
                     elite: false,
                     attack_cd: 0.,
-                    slow: 1.,
-                    slow_t: 0.,
+                    slows: Default::default(),
                     root_t: 0.,
                     frozen_t: 0.,
                     winters_chill: Default::default(),
@@ -3514,8 +3519,7 @@ mod milestone_tests {
                     boss: false,
                     elite: false,
                     attack_cd: 0.,
-                    slow: 1.,
-                    slow_t: 0.,
+                    slows: Default::default(),
                     root_t: 0.,
                     frozen_t: 0.,
                     winters_chill: Default::default(),
@@ -3660,8 +3664,7 @@ mod milestone_tests {
                 boss: false,
                 elite: false,
                 attack_cd: 0.,
-                slow: 1.,
-                slow_t: 0.,
+                slows: Default::default(),
                 root_t: 0.,
                 frozen_t: 0.,
                 winters_chill: Default::default(),
@@ -3792,8 +3795,7 @@ mod milestone_tests {
                         boss: false,
                         elite: false,
                         attack_cd: 0.,
-                        slow: 1.,
-                        slow_t: 0.,
+                        slows: Default::default(),
                         root_t: 0.,
                         frozen_t: 0.,
                         winters_chill: Default::default(),
@@ -3955,8 +3957,7 @@ mod milestone_tests {
                         boss: false,
                         elite: false,
                         attack_cd: 0.,
-                        slow: 1.,
-                        slow_t: 0.,
+                        slows: Default::default(),
                         root_t: 0.,
                         frozen_t: 0.,
                         winters_chill: Default::default(),
@@ -4088,8 +4089,7 @@ mod milestone_tests {
                         boss: false,
                         elite: false,
                         attack_cd: 0.,
-                        slow: 1.,
-                        slow_t: 0.,
+                        slows: Default::default(),
                         root_t: 0.,
                         frozen_t: 0.,
                         winters_chill: Default::default(),
@@ -4240,8 +4240,7 @@ mod milestone_tests {
                         boss: false,
                         elite: false,
                         attack_cd: 0.,
-                        slow: 1.,
-                        slow_t: 0.,
+                        slows: Default::default(),
                         root_t: 0.,
                         frozen_t: 0.,
                         winters_chill: Default::default(),
@@ -4465,8 +4464,7 @@ mod milestone_tests {
                         boss: false,
                         elite: false,
                         attack_cd: 0.,
-                        slow: 1.,
-                        slow_t: 0.,
+                        slows: Default::default(),
                         root_t: 0.,
                         frozen_t: 0.,
                         winters_chill: Default::default(),
@@ -4735,8 +4733,7 @@ mod milestone_tests {
                                     boss: false,
                                     elite: false,
                                     attack_cd: 0.0,
-                                    slow: 1.0,
-                                    slow_t: 0.0,
+                                    slows: Default::default(),
                                     root_t: 0.0,
                                     frozen_t: 0.0,
                                     winters_chill: Default::default(),
@@ -4933,8 +4930,7 @@ mod milestone_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
+                                slows: Default::default(),
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
@@ -5047,8 +5043,7 @@ mod milestone_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -5165,8 +5160,7 @@ mod milestone_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
+                                slows: Default::default(),
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
@@ -5266,8 +5260,7 @@ mod milestone_tests {
                                 boss,
                                 elite: false,
                                 attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
+                                slows: Default::default(),
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
@@ -5375,8 +5368,7 @@ mod milestone_tests {
                                 boss,
                                 elite: false,
                                 attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
+                                slows: Default::default(),
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
@@ -5477,8 +5469,7 @@ mod milestone_tests {
                             boss,
                             elite,
                             attack_cd: 0.0,
-                            slow: 1.0,
-                            slow_t: 0.0,
+                            slows: Default::default(),
                             root_t: 0.0,
                             frozen_t: 0.0,
                             winters_chill: Default::default(),
@@ -5591,8 +5582,7 @@ mod milestone_tests {
                             boss,
                             elite,
                             attack_cd: 0.0,
-                            slow: 1.0,
-                            slow_t: 0.0,
+                            slows: Default::default(),
                             root_t: 0.0,
                             frozen_t: 0.0,
                             winters_chill: Default::default(),
@@ -5705,8 +5695,7 @@ mod milestone_tests {
                             boss,
                             elite,
                             attack_cd: 0.0,
-                            slow: 1.0,
-                            slow_t: 0.0,
+                            slows: Default::default(),
                             root_t: 0.0,
                             frozen_t: 0.0,
                             winters_chill: Default::default(),
@@ -5831,8 +5820,7 @@ mod milestone_tests {
                             boss: false,
                             elite: false,
                             attack_cd: 0.0,
-                            slow: 1.0,
-                            slow_t: 0.0,
+                            slows: Default::default(),
                             root_t: 0.0,
                             frozen_t: 0.0,
                             winters_chill: Default::default(),
@@ -5952,8 +5940,7 @@ mod milestone_tests {
                                     boss: false,
                                     elite: false,
                                     attack_cd: 0.0,
-                                    slow: 1.0,
-                                    slow_t: 0.0,
+                                    slows: Default::default(),
                                     root_t: 0.0,
                                     frozen_t: 0.0,
                                     winters_chill: Default::default(),
@@ -6486,8 +6473,7 @@ mod milestone_tests {
                                     boss: false,
                                     elite: false,
                                     attack_cd: 0.,
-                                    slow: 1.,
-                                    slow_t: 0.,
+                                    slows: Default::default(),
                                     root_t: 0.,
                                     frozen_t: 0.,
                                     winters_chill: Default::default(),
@@ -7173,8 +7159,7 @@ mod milestone_tests {
                                 boss,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -7280,8 +7265,7 @@ mod milestone_tests {
                                 boss,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -7429,8 +7413,7 @@ mod milestone_tests {
                                 boss,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -7462,7 +7445,7 @@ mod milestone_tests {
                     let en = app.world().get::<Enemy>(enemy).unwrap();
                     assert_eq!(en.hp, 980.);
                     assert_eq!(
-                        en.slow,
+                        en.slows.state(0.).0,
                         if slow {
                             if boss {
                                 0.75
@@ -7473,7 +7456,7 @@ mod milestone_tests {
                             1.
                         }
                     );
-                    assert_eq!(en.slow_t, if slow { 5. } else { 0. });
+                    assert_eq!(en.slows.state(0.).1, if slow { 5. } else { 0. });
                     assert_eq!(
                         en.stun_t,
                         if stun {
@@ -7489,19 +7472,25 @@ mod milestone_tests {
                     // Do not weaken or shorten control already present.
                     {
                         let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
-                        en.slow = 0.2;
-                        en.slow_t = 9.;
+                        en.slows.apply(
+                            survivors_core::slows::Source::Spell("fixture"),
+                            0.2,
+                            9.,
+                            0.,
+                        );
                         en.stun_t = 10.;
                     }
                     app.world_mut().write_message(hit.clone());
                     app.update();
                     let en = app.world().get::<Enemy>(enemy).unwrap();
-                    assert_eq!((en.slow, en.slow_t, en.stun_t), (0.2, 9., 10.));
+                    assert_eq!(
+                        (en.slows.state(0.).0, en.slows.state(0.).1, en.stun_t),
+                        (0.2, 9., 10.)
+                    );
                     // Attached DoT ticks do not roll these procs, even with an eligible source.
                     {
                         let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
-                        en.slow = 1.;
-                        en.slow_t = 0.;
+                        en.slows = Default::default();
                         en.stun_t = 0.;
                         en.dots.push(enemies::Dot {
                             dps: 10.,
@@ -7516,12 +7505,12 @@ mod milestone_tests {
                     app.update();
                     let en = app.world().get::<Enemy>(enemy).unwrap();
                     assert_eq!(en.hp, 960.);
-                    assert_eq!((en.slow_t, en.stun_t), (0., 0.));
+                    assert_eq!((en.slows.state(0.).1, en.stun_t), (0., 0.));
                     app.world_mut().resource_mut::<Run>().milestones = base;
                     app.world_mut().write_message(hit.clone());
                     app.update();
                     let en = app.world().get::<Enemy>(enemy).unwrap();
-                    assert_eq!((en.slow_t, en.stun_t), (0., 0.));
+                    assert_eq!((en.slows.state(0.).1, en.stun_t), (0., 0.));
                     // Failed chance rolls preserve state and perform only eligible rolls.
                     let seed = (1..1000)
                         .find(|seed| {
@@ -7538,8 +7527,8 @@ mod milestone_tests {
                         expected_rng.f32();
                     }
                     let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
-                    apply_destruction_control(&mut en, trained, &hit, &mut rng);
-                    assert_eq!((en.slow_t, en.stun_t), (0., 0.));
+                    apply_destruction_control(&mut en, trained, &hit, &mut rng, 0.);
+                    assert_eq!((en.slows.state(0.).1, en.stun_t), (0., 0.));
                     assert_eq!(rng.0, expected_rng.0);
                 }
             }
@@ -7595,8 +7584,7 @@ mod milestone_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -7736,8 +7724,7 @@ mod milestone_tests {
                                 boss,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -7791,7 +7778,7 @@ mod milestone_tests {
                             .movement(1., 0.),
                         if boss { speed.max(0.75) } else { speed }
                     );
-                    assert_eq!((en.slow, en.slow_t), (1., 0.));
+                    assert_eq!(en.slows.state(0.), (1., 0.));
                     assert_eq!(en.hp, 1000., "curse application has no direct damage");
                     assert_eq!(en.dots.len(), 1);
                     assert_eq!(
@@ -7801,8 +7788,7 @@ mod milestone_tests {
                     // A later tick damages but must not reapply a dispelled/expired slow.
                     {
                         let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
-                        en.slow = 1.;
-                        en.slow_t = 0.;
+                        en.slows = Default::default();
                     }
                     *app.world_mut()
                         .get_mut::<super::super::curse::CurseState>(enemy)
@@ -7812,7 +7798,7 @@ mod milestone_tests {
                         .advance_by(std::time::Duration::from_secs(1));
                     app.update();
                     let en = app.world().get::<Enemy>(enemy).unwrap();
-                    assert_eq!((en.slow, en.slow_t), (1., 0.));
+                    assert_eq!(en.slows.state(0.), (1., 0.));
                     assert!((en.hp - (1000. - after.dot)).abs() < 0.0001);
                     assert_eq!(
                         app.world()
@@ -7824,8 +7810,12 @@ mod milestone_tests {
                     // Reapplication preserves a stronger and longer existing slow.
                     {
                         let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
-                        en.slow = 0.2;
-                        en.slow_t = 20.;
+                        en.slows.apply(
+                            survivors_core::slows::Source::Spell("fixture"),
+                            0.2,
+                            20.,
+                            0.,
+                        );
                     }
                     app.world_mut().insert_resource(Time::<()>::default());
                     for _ in 0..2 {
@@ -7833,28 +7823,30 @@ mod milestone_tests {
                     }
                     app.update();
                     let en = app.world().get::<Enemy>(enemy).unwrap();
-                    assert_eq!((en.slow, en.slow_t), (0.2, 20.));
+                    assert_eq!(en.slows.state(0.), (0.2, 20.));
                     // Unrelated spells and a base-talent refund cannot apply the slow.
                     *app.world_mut()
                         .get_mut::<super::super::curse::CurseState>(enemy)
                         .unwrap() = Default::default();
                     {
                         let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
-                        en.slow = 1.;
-                        en.slow_t = 0.;
+                        en.slows = Default::default();
                     }
                     app.world_mut().write_message(Hit {
                         source: "corruption",
                         ..Hit::direct(enemy, 0., false)
                     });
                     app.update();
-                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().slow_t, 0.);
+                    assert_eq!(
+                        app.world().get::<Enemy>(enemy).unwrap().slows.state(0.).1,
+                        0.
+                    );
                     app.world_mut().resource_mut::<Run>().milestones =
                         base.with_ranks(&[(0, 1082, rank)]);
                     app.world_mut().write_message(hit);
                     app.update();
                     let en = app.world().get::<Enemy>(enemy).unwrap();
-                    assert_eq!((en.slow, en.slow_t), (1., 0.));
+                    assert_eq!(en.slows.state(0.), (1., 0.));
                     assert_eq!(
                         app.world()
                             .get::<super::super::curse::CurseState>(enemy)
@@ -7915,8 +7907,7 @@ mod milestone_tests {
                                 boss,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -8389,8 +8380,7 @@ mod milestone_tests {
                                             boss: false,
                                             elite: false,
                                             attack_cd: 0.0,
-                                            slow: 1.0,
-                                            slow_t: 0.0,
+                                            slows: Default::default(),
                                             root_t: 0.0,
                                             frozen_t: 0.0,
                                             winters_chill: Default::default(),
@@ -8644,8 +8634,7 @@ mod milestone_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -8773,8 +8762,7 @@ mod milestone_tests {
                                     boss: false,
                                     elite: false,
                                     attack_cd: 0.,
-                                    slow: 1.,
-                                    slow_t: 0.,
+                                    slows: Default::default(),
                                     root_t: 0.,
                                     frozen_t: 0.,
                                     winters_chill: Default::default(),
@@ -8905,8 +8893,7 @@ mod milestone_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 8.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -9791,8 +9778,7 @@ mod milestone_tests {
                             boss,
                             elite: false,
                             attack_cd: 0.,
-                            slow: 1.,
-                            slow_t: 0.,
+                            slows: Default::default(),
                             root_t: 0.,
                             frozen_t: 0.,
                             winters_chill: Default::default(),
@@ -9824,7 +9810,7 @@ mod milestone_tests {
                 app.update();
                 let en = app.world().get::<Enemy>(enemy).unwrap();
                 assert_eq!(en.hp, 995.);
-                assert_eq!((en.slow, en.slow_t), (if boss { 0.75 } else { 0.5 }, 5.));
+                assert_eq!(en.slows.state(0.), (if boss { 0.75 } else { 0.5 }, 5.));
                 assert_eq!(
                     en.root_t,
                     if rank == 0 {
@@ -9840,13 +9826,16 @@ mod milestone_tests {
                 {
                     let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
                     en.root_t = 8.;
-                    en.slow = 0.2;
-                    en.slow_t = 9.;
+                    en.slows
+                        .apply(survivors_core::slows::Source::Spell("fixture"), 0.2, 9., 0.);
                 }
                 app.world_mut().write_message(hit.clone());
                 app.update();
                 let en = app.world().get::<Enemy>(enemy).unwrap();
-                assert_eq!((en.root_t, en.slow, en.slow_t), (8., 0.2, 9.));
+                assert_eq!(
+                    (en.root_t, en.slows.state(0.).0, en.slows.state(0.).1),
+                    (8., 0.2, 9.)
+                );
                 // A failed roll still applies the spell's baseline slow.
                 let seed = (1..1000).find(|seed| Rng(*seed).f32() >= 0.2).unwrap();
                 app.world_mut().resource_mut::<Rng>().0 = seed;
@@ -9929,8 +9918,7 @@ mod milestone_tests {
                                 boss,
                                 elite: false,
                                 attack_cd: 0.,
-                                slow: 1.,
-                                slow_t: 0.,
+                                slows: Default::default(),
                                 root_t: 0.,
                                 frozen_t: 0.,
                                 winters_chill: Default::default(),
@@ -10093,8 +10081,7 @@ mod sword_hit_tests {
                             boss: false,
                             elite: false,
                             attack_cd: 0.0,
-                            slow: 1.0,
-                            slow_t: 0.0,
+                            slows: Default::default(),
                             root_t: 0.0,
                             frozen_t: 0.0,
                             winters_chill: Default::default(),
@@ -10148,8 +10135,14 @@ mod sword_hit_tests {
                 assert_eq!(enemy.root_t, expected);
                 assert_eq!(enemy.frozen_t, 0.0);
                 assert_eq!(enemy.stun_t, 0.0);
-                assert_eq!(enemy.slow, if boss { 0.75 } else { 0.5 });
-                assert_eq!(enemy.slow_t, 3.0);
+                assert_eq!(
+                    enemy.slows.state(0.),
+                    if hp <= 10. {
+                        (1., 0.)
+                    } else {
+                        (if boss { 0.75 } else { 0.5 }, 3.)
+                    }
+                );
                 assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 93.0);
                 assert_eq!(app.world().resource::<Run>().kills, u32::from(hp <= 10.0));
                 assert_eq!(
@@ -10267,8 +10260,7 @@ mod sword_hit_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
+                                slows: Default::default(),
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
@@ -10427,8 +10419,7 @@ mod sword_hit_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
+                                slows: Default::default(),
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
@@ -10575,8 +10566,7 @@ mod sword_hit_tests {
                                 boss: false,
                                 elite: false,
                                 attack_cd: 0.0,
-                                slow: 1.0,
-                                slow_t: 0.0,
+                                slows: Default::default(),
                                 root_t: 0.0,
                                 frozen_t: 0.0,
                                 winters_chill: Default::default(),
@@ -10780,8 +10770,7 @@ mod battle_shout_tests {
                     boss: false,
                     elite: false,
                     attack_cd: 0.,
-                    slow: 1.,
-                    slow_t: 0.,
+                    slows: Default::default(),
                     root_t: 0.,
                     frozen_t: 0.,
                     winters_chill: Default::default(),
@@ -10950,3 +10939,7 @@ mod scorch_tests;
 #[cfg(test)]
 #[path = "weakness_tests.rs"]
 mod weakness_tests;
+
+#[cfg(test)]
+#[path = "slow_tests.rs"]
+mod slow_tests;

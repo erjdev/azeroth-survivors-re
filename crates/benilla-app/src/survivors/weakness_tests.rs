@@ -77,8 +77,12 @@ fn curses_replace_both_ways_refresh_without_stacking_and_preserve_other_effects(
     app.world_mut().resource_mut::<Run>().milestones = training(3);
     {
         let mut e = app.world_mut().get_mut::<Enemy>(target).unwrap();
-        e.slow = 0.5;
-        e.slow_t = 2.5;
+        e.slows.apply(
+            survivors_core::slows::Source::Spell("fixture"),
+            0.5,
+            2.5,
+            0.,
+        );
         e.root_t = 2.;
         e.dots.push(enemies::Dot {
             dps: 1.,
@@ -117,7 +121,10 @@ fn curses_replace_both_ways_refresh_without_stacking_and_preserve_other_effects(
     settle(&mut app, &mut schedule, weakness.clone());
     settle(&mut app, &mut schedule, weakness);
     let e = app.world().get::<Enemy>(target).unwrap();
-    assert_eq!((e.hp, e.slow, e.slow_t, e.root_t), (1000., 0.5, 2.5, 2.));
+    assert_eq!(
+        (e.hp, e.slows.state(0.).0, e.slows.state(0.).1, e.root_t),
+        (1000., 0.5, 2.5, 2.)
+    );
     assert_eq!(e.dots.len(), 1);
     assert_eq!(e.dots[0].source, "corruption");
     let curse = app.world().get::<CurseState>(target).unwrap();

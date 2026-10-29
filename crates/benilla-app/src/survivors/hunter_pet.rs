@@ -346,8 +346,7 @@ mod tests {
                     boss: false,
                     elite: false,
                     attack_cd: 0.0,
-                    slow: 1.0,
-                    slow_t: 0.0,
+                    slows: Default::default(),
                     root_t: 0.0,
                     frozen_t: 0.0,
                     winters_chill: Default::default(),
@@ -363,6 +362,36 @@ mod tests {
                 },
             ))
             .id()
+    }
+
+    #[test]
+    fn movement_reveals_weaker_slow_after_stronger_source_expires() {
+        let mut app = setup();
+        let target = foe(&mut app, Vec3::X * 10.);
+        {
+            let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
+            enemy.slows.apply(
+                survivors_core::slows::Source::Spell("frostbolt"),
+                0.5,
+                2.5,
+                0.,
+            );
+            enemy.slows.apply(
+                survivors_core::slows::Source::Spell("thunder_clap"),
+                0.8,
+                10.,
+                0.,
+            );
+        }
+        for (now, expected) in [(0., 1.5), (2.5, 2.4), (10., 3.)] {
+            app.world_mut().resource_mut::<Run>().elapsed = now;
+            app.world_mut()
+                .run_system_once(super::super::enemies::move_enemies)
+                .unwrap();
+            assert!(
+                (app.world().get::<MovementState>(target).unwrap().speed - expected).abs() < 0.001
+            );
+        }
     }
 
     #[test]
