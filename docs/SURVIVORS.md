@@ -1176,3 +1176,16 @@ multiplier composes with rank and Might; it does not affect other-class healing,
 Holy damage or critical-healing magnitude. The existing Holy Shock conversion
 also remains: 1/2/3% maximum health healed once per successful cast, in addition
 to the Holy milestone bonus. Both contributions appear separately inline.
+
+### Shaman Healing Wave
+
+Healing Wave (331) enters the Shaman six-slot acquisition pool as an automatic
+self-heal below 85% health: 40 base health, 12-second recovery. This is authored
+Survivors tuning, not the installed spell's mana/cast-time simulation. Ranks use
+the shared healing/recovery growth and critical heals restore 150%. It requires
+no enemy target and does not emit damage or replace periodic healing sources.
+
+The existing Improved Healing Wave, Tidal Focus, Purification and Restorative
+Totems conversions still affect only their documented totem mechanics. Healing
+Way remains unavailable until its source-specific stacking buff is implemented;
+adding this ability does not grant a talent or raise definition coverage.

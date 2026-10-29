@@ -16,6 +16,13 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Shamans can now acquire Healing Wave, with inline healing and recovery upgrades.
+Healing Way talent integration remains in progress.
+
+![Healing Wave acquisition and upgrades](docs/images/screenshots/2026-10-29-healing-wave/cards-wide.png)
+
+![Compact Healing Wave cards](docs/images/screenshots/2026-10-29-healing-wave/cards-compact.png)
+
 Failed account writes now show a visible warning and Retry save. Native checks
 verify that pending appearance changes survive recovery and restart.
 

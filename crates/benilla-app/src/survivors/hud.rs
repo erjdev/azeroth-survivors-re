@@ -4319,3 +4319,42 @@ mod holy_light_offer_tests {
         }
     }
 }
+
+#[cfg(test)]
+mod healing_wave_offer_tests {
+    use super::*;
+    #[test]
+    fn healing_wave_enters_normal_offers_and_shows_green_inline_growth() {
+        let mut run = Run {
+            class: &data::CLASSES[5],
+            ..Default::default()
+        };
+        run.milestones.class = 5;
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == "healing_wave"))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        let def = data::ability("healing_wave");
+        assert_eq!(run.abilities[0].def.key, def.key);
+        let a = cast_at(def, 1, &run.stats(), run.milestones);
+        let b = cast_at(def, 2, &run.stats(), run.milestones);
+        let spans = inline::ability(def, &a, &b);
+        for expected in ["40 » 52 health", "12 » 11.2 sec"] {
+            assert!(spans
+                .iter()
+                .any(|(text, color)| text == expected && *color == card_growth::GAIN));
+        }
+    }
+}

@@ -95,3 +95,42 @@ fn healing_touch_training_reaches_real_healing_and_recovery_but_not_regrowth_cri
         1
     );
 }
+
+#[test]
+fn healing_wave_is_acquired_and_keeps_totem_training_separate() {
+    let mut run = Run {
+        class: &data::CLASSES[5],
+        ..Default::default()
+    };
+    run.milestones.class = 5;
+    assert_eq!(
+        data::CLASSES[5]
+            .ability_keys()
+            .iter()
+            .filter(|&&k| k == "healing_wave")
+            .count(),
+        1
+    );
+    let owned = Owned {
+        def: data::ability("healing_wave"),
+        level: 1,
+        cd: 0.,
+    };
+    let mut stats = run.stats();
+    stats.might = 1.;
+    stats.crit = 0.;
+    let base = Params::new(&owned, &stats, run.milestones);
+    let trained = Params::new(
+        &owned,
+        &stats,
+        run.milestones
+            .with_ranks(&[(2, 586, 5), (2, 593, 5), (2, 592, 5), (2, 588, 5)]),
+    );
+    assert_eq!(base.dmg, 40.);
+    assert_eq!(base.cooldown, 12.);
+    assert_eq!(trained.dmg, base.dmg);
+    assert_eq!(trained.cooldown, base.cooldown);
+    let upgraded = Params::new(&Owned { level: 2, ..owned }, &stats, run.milestones);
+    assert!((upgraded.dmg - 52.).abs() < 0.0001);
+    assert!(upgraded.cooldown < base.cooldown);
+}

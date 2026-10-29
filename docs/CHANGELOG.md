@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Shaman Healing Wave
+
+Shamans can acquire Healing Wave: an automatic 40-health self-heal below 85%
+health, with 12-second recovery and normal rank growth. Healing and recovery
+upgrades appear inline in green. This supplies the missing spell for future
+Healing Way work; existing totem training and talent coverage are unchanged.
+Native card previews cover 1280×720 and 640×720 / 125%. The incremental build took
+15 seconds. The eight-package formatting/Clippy/test gate passes (31 optional-addon
+skips). Windows, balance and attended gameplay acceptance remain open.
+
+![Healing Wave acquisition and rank previews](images/screenshots/2026-10-29-healing-wave/cards-wide.png)
+
+![Healing Wave cards at compact UI scale](images/screenshots/2026-10-29-healing-wave/cards-compact.png)
+
+
 ## 2026-10-29 — Visible save failures and recovery
 
 Starter and Armory pages now show **Progress not saved** with **Retry save** after

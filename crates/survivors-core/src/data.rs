@@ -938,6 +938,15 @@ pub static ABILITIES: &[AbilityDef] = &[
             radius: 4.0
         }
     ),
+    // Survivors self-heal tuning; the installed rank supplies identity and visuals.
+    ability!(
+        "healing_wave",
+        331,
+        DirectHeal {
+            damage: 40.0,
+            cooldown: 12.0
+        }
+    ),
     // --- Paladin ---
     ability!(
         "flash_of_light",
@@ -1432,6 +1441,7 @@ pub static CLASSES: &[ClassDef] = &[
             "searing_totem",
             "magma_totem",
             "lightning_shield",
+            "healing_wave",
         ],
         looks: &[
             1360, 1878, 2082, 2102, 2123, 3746, 3816, 4231, 4552, 10180, 13341,

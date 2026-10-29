@@ -5,6 +5,25 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Shaman healing prerequisite — 2026-10-29
+
+Phase 5 now has an actual acquired Healing Wave, using the documented authored
+self-heal tuning in SURVIVORS.md. The [healing audit](audits/SHAMAN-HEALING-DEPENDENCIES.md)
+records installed spell/Healing Way evidence and the remaining recipient-stack
+work. No new talent definition is claimed. Existing totem conversions remain
+unchanged; source tests explicitly guard their separation.
+
+Native acquisition/upgrade card previews follow
+`intentions/survivors_level_up_selection_screen.png`, with the user's requested
+inline green growth in place of separate summaries. Captures cover 1280×720 and
+640×720 / 125%; picks are disabled in this visual fixture. Actual acquisition and
+cast outcomes are covered by automated tests, not these screenshots. Windows,
+attended gameplay and balance remain unverified. Build: 15 seconds incremental.
+The eight-package formatting/Clippy/test gate passes with 31 optional-addon skips.
+Native observation failed during the compact lower-card keyboard check; that
+specific interaction is not claimed as verified.
+
+
 ## Save-write recovery acceptance — 2026-10-29
 
 Phase 1 now surfaces failed account writes throughout starter/Armory navigation,
