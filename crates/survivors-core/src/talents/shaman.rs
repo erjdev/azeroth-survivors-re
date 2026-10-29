@@ -12,6 +12,15 @@ pub(super) const CASTS: &[&str] = &[
     "frost_shock",
 ];
 
+const CRITICAL_CASTS: &[&str] = &[
+    "lightning_bolt",
+    "chain_lightning",
+    "earth_shock",
+    "flame_shock",
+    "frost_shock",
+    "healing_wave",
+];
+
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 1648, max_rank: 3, name: "Healing Way", description: "Effective Healing Wave casts have a 33–100% chance to grant +6% healing to subsequent Healing Waves for 15 sec. Stacks up to 3 times; successful procs refresh the duration. Requires acquired Healing Wave; excludes other healing", stat: TalentStat::HealingWay, per_rank: 1.0 },
     TalentDefinition { id: 583, max_rank: 3, name: "Nature's Guidance", description: "Lightning Bolt, Chain Lightning and shocks: +1% direct and periodic damage per rank. Excludes totems, Lightning Shield and other-class abilities (Survivors hit-chance conversion)", stat: TalentStat::SpellGroupDamage(CASTS), per_rank: 0.01 },
@@ -30,7 +39,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 1640, max_rank: 3, name: "Elemental Warding", description: "+2% hero damage reduction per rank (Survivors elemental-resistance conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.02 },
     TalentDefinition { id: 582, max_rank: 1, name: "Totemic Mastery", description: "Searing Totem: +20% attack range. Magma Totem: +20% pulse radius. Damage, duration, deployment healing and target count are unchanged (Survivors totem-range conversion)", stat: TalentStat::TotemicMastery, per_rank: 0.20 },
     TalentDefinition { id: 588, max_rank: 5, name: "Restorative Totems", description: "Searing Totem and Magma Totem deployment: +5% healing per rank, adding to Purification. Requires the 10-point Restoration healing milestone; excludes damage, shields and regeneration (Survivors healing-totem conversion)", stat: TalentStat::TotemHealing, per_rank: 0.05 },
-    TalentDefinition { id: 592, max_rank: 5, name: "Purification", description: "Searing Totem and Magma Totem deployment: +2% healing per rank, adding to Restorative Totems. Requires the 10-point Restoration healing milestone; excludes damage, shields and regeneration (Survivors healing scope)", stat: TalentStat::TotemHealing, per_rank: 0.02 },
+    TalentDefinition { id: 592, max_rank: 5, name: "Purification", description: "Healing Wave and Searing/Magma Totem deployment: +2% healing per rank. Totem healing requires the 10-point Restoration milestone and adds to Restorative Totems; excludes damage, shields and regeneration", stat: TalentStat::Purification, per_rank: 0.02 },
     TalentDefinition { id: 1641, max_rank: 2, name: "Storm Reach", description: "Lightning Bolt and Chain Lightning: +10% initial targeting range per rank. Chain Lightning bounce radius and target count are unchanged", stat: TalentStat::SpellGroupRange(LIGHTNING), per_rank: 0.10 },
     TalentDefinition { id: 564, max_rank: 5, name: "Convection", description: "Lightning Bolt, Chain Lightning and shocks: 2% shorter cooldown per rank (Survivors mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(CASTS), per_rank: 0.02 },
     TalentDefinition { id: 563, max_rank: 5, name: "Concussion", description: "Lightning Bolt, Chain Lightning and shocks: +2% direct and periodic damage per rank", stat: TalentStat::SpellGroupDamage(CASTS), per_rank: 0.02 },
@@ -44,7 +53,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 607, max_rank: 3, name: "Improved Lightning Shield", description: "Lightning Shield: +5% damage per rank", stat: TalentStat::SpellDamage("lightning_shield"), per_rank: 0.05 },
     TalentDefinition { id: 615, max_rank: 5, name: "Toughness", description: "+8 hero armor per rank (Survivors conversion)", stat: TalentStat::Armor, per_rank: 8.0 },
     TalentDefinition { id: 595, max_rank: 5, name: "Totemic Focus", description: "Searing Totem and Magma Totem: 3% shorter deployment cooldown per rank (Survivors mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.03 },
-    TalentDefinition { id: 594, max_rank: 5, name: "Tidal Mastery", description: "Lightning Bolt, Chain Lightning and shocks: +1 percentage point critical chance per rank; deployment healing cannot critically strike", stat: TalentStat::SpellGroupCrit(CASTS), per_rank: 0.01 },
+    TalentDefinition { id: 594, max_rank: 5, name: "Tidal Mastery", description: "Healing Wave, Lightning Bolt, Chain Lightning and shocks: +1 percentage point critical chance per rank; totem deployment healing cannot critically strike", stat: TalentStat::SpellGroupCrit(CRITICAL_CASTS), per_rank: 0.01 },
 ];
 
 #[cfg(test)]
@@ -197,7 +206,7 @@ mod healing_tests {
         );
         assert_eq!(
             talent_definition(5, 592).unwrap().rank_preview(255),
-            "This talent: 10% totem deployment healing (maximum rank)"
+            "This talent: 10% Healing Wave and totem deployment healing (maximum rank)"
         );
     }
 }
@@ -554,5 +563,72 @@ mod swiftness_tests {
         let node = talent_definition(5, 591).unwrap();
         assert!(node.inline_description(0).unwrap().contains("15%"));
         assert!(!node.inline_description(1).unwrap().contains('»'));
+    }
+}
+
+#[cfg(test)]
+mod direct_healing_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn wave_training_is_scoped_capped_and_independent_of_totem_unlocks() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 4, 5, 6, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 592, rank), (2, 594, rank)]);
+                let mut expected = base.cast("healing_wave");
+                if class == 5 {
+                    expected.damage *= 1. + 0.02 * f32::from(rank.min(5));
+                    expected.crit += 0.01 * f32::from(rank.min(5));
+                }
+                assert_eq!(trained.cast("healing_wave"), expected);
+                for key in [
+                    "holy_light",
+                    "flash_of_light",
+                    "regrowth",
+                    "greater_heal",
+                    "holy_nova",
+                    "lightning_shield",
+                ] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+                assert_eq!(
+                    base.with_ranks(&[(2, 588, rank)]).cast("healing_wave"),
+                    base.cast("healing_wave")
+                );
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+    }
+
+    #[test]
+    fn healing_training_changing_values_remain_inline() {
+        for (node, unit, step) in [
+            (592, "% healing", 2),
+            (594, " percentage point critical chance", 1),
+        ] {
+            let def = talent_definition(5, node).unwrap();
+            for rank in 0..=5 {
+                let (text, ranges) = def.inline_description_with_values(rank).unwrap();
+                assert!(text.contains("Healing Wave"));
+                let unit = if node == 594 && rank > 0 {
+                    " percentage points critical chance"
+                } else {
+                    unit
+                };
+                let expected = if rank == 5 {
+                    format!("+{}{unit}", rank * step)
+                } else {
+                    format!("+{} » {}{unit}", rank * step, (rank + 1) * step)
+                };
+                assert!(
+                    ranges.iter().any(|r| text[r.clone()] == expected),
+                    "{node}: {text}, {ranges:?}"
+                );
+            }
+        }
     }
 }

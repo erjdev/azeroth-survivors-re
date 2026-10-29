@@ -19,6 +19,28 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         .unwrap();
     for (class, node, row, max_rank, key, initial) in [
         (
+            5,
+            594,
+            3,
+            5,
+            "healing_wave",
+            vec![(2, 586, 5), (2, 593, 5), (2, 595, 5)],
+        ),
+        (
+            5,
+            592,
+            5,
+            5,
+            "healing_wave",
+            vec![
+                (2, 586, 5),
+                (2, 593, 5),
+                (2, 595, 5),
+                (2, 588, 5),
+                (2, 594, 5),
+            ],
+        ),
+        (
             1,
             1461,
             3,
@@ -132,7 +154,11 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
             assert!(account.learn_talent(hero, tree, node, max_rank, row, true));
             let trained = account.milestones_picked(class, Some(hero));
             let mut expected = before.cast(key);
-            if node == 1461 {
+            if node == 592 {
+                expected.damage *= 1. + 0.02 * f32::from(rank);
+            } else if node == 594 {
+                expected.crit += 0.01 * f32::from(rank);
+            } else if node == 1461 {
                 assert_eq!(
                     trained.illumination_chance(key, 1., true),
                     0.2 * f32::from(rank)

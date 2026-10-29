@@ -16,6 +16,13 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Healing Wave now benefits from Purification healing and Tidal Mastery critical
+chance, with the changing values highlighted inline.
+
+![Purification healing scope](docs/images/screenshots/2026-10-29-shaman-healing-training/purification-wide.png)
+
+![Compact Tidal Mastery description](docs/images/screenshots/2026-10-29-shaman-healing-training/tidal-compact.png)
+
 Illumination now refunds half a critical heal’s recovery on a successful talent
 proc, with the rank’s chance highlighted inline. Native macOS checks cover
 purchase, independent specs, refund, restart and compact scrolling.

@@ -37,3 +37,36 @@ Native tooltip captures cover wide/compact layouts; native purchase input failed
 with a computer-use window error, so interaction acceptance remains open alongside
 Windows and attended gameplay. Existing totem training conversions still need
 reconciliation before extending them to actual Shaman healing spells.
+
+
+## Healing Wave training — 2026-10-29
+
+Fresh raw evidence: `--talent-evidence 592` gives Purification spells 16178 and
+16210–16213, healing effectiveness +2/4/6/8/10%; `--talent-evidence 594` gives
+Tidal Mastery spells 16194 and 16218–16221, healing/lightning critical chance
++1/2/3/4/5 percentage points. These magnitudes use raw base points plus one.
+
+Purification now multiplies Healing Wave's healing by its named rank bonus.
+Its existing totem deployment healing still adds to Restorative Totems before
+multiplication; Restorative Totems itself does not affect Healing Wave. Tidal
+Mastery now includes Healing Wave's real healing-critical roll while preserving
+its existing lightning/shock scope. Totem deployment healing remains noncritical.
+Neither change affects other-class heals, shields, regeneration or spell recovery.
+Healing Way continues to multiply the resulting Healing Wave cast healing.
+
+Tests cover every rank, invalid classes, capped imported ranks, refunds, actual
+critical/noncritical healing, no-damage outcomes and no RNG consumption when full.
+Critical test rolls lie inside the newly granted chance, proving the new consumer.
+Catalog-backed purchase/save/reload/spec/refund checks cover both nodes. Definition
+coverage is unchanged: these are corrected consumers for two existing definitions.
+
+Native tooltip captures cover both nodes at 1280×720 and 640×720 / 125% UI size.
+A native purchase attempt returned `noWindowsAvailable`; the same app still
+rendered correctly, but no purchase acceptance is claimed. Windows, controller
+and attended combat remain open. Incremental native build: 16 seconds.
+Improved Healing Wave, Tidal Focus and Ancestral Healing still retain their older
+explicit totem conversions and require separate reconciliation.
+
+Final verification: all 321 core tests and the eight-package scoped gate pass;
+31 optional-addon tests skip because their corpus is unavailable. Earlier runs
+identified two obsolete exclusion/tooltip expectations, updated for the new scope.

@@ -5,6 +5,21 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Healing Wave talent consumers — 2026-10-29
+
+Purification and Tidal Mastery now affect acquired Healing Wave: +2% healing and
++1 percentage point healing-critical chance per rank respectively. Installed
+rank evidence and preserved totem behavior are recorded in the
+[healing audit](audits/SHAMAN-HEALING-DEPENDENCIES.md). Actual cast tests exercise
+critical rolls inside the added chance; catalog-backed purchase/save/spec/refund
+checks cover both nodes. These existing definitions do not increase coverage.
+
+Native wide/compact tooltip screenshots show green inline changes for both nodes.
+Native pointer purchase hit a window-automation error and remains unverified,
+as do Windows, physical controller and attended combat. Incremental build: 16s.
+Older totem-only cast-time/critical conversions still require reconciliation.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
 ## Illumination — 2026-10-29
 
 The approved no-mana conversion is implemented: effective critical Holy Light or

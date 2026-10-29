@@ -1203,3 +1203,13 @@ Light healing: ranks grant 20/40/60/80/100% chance to halve that cast’s final
 recovery after cooldown bonuses. Later casts retain their normal recovery.
 Holy Shock’s current noncritical cast heal is excluded. Windows and attended
 combat acceptance remain pending.
+
+
+### Healing Wave training
+
+Purification adds 2% Healing Wave healing per rank (five ranks), alongside its
+existing additive contribution to totem deployment healing. Restorative Totems
+remains totem-only. Tidal Mastery adds one percentage point of Healing Wave
+critical chance per rank (five ranks), alongside its existing lightning/shock
+scope. Healing Wave criticals heal for 150%; totem deployment healing cannot crit.
+These effects require acquired Healing Wave and do not alter its recovery.

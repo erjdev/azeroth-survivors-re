@@ -667,7 +667,12 @@ impl Milestones {
         // Apply after all flat heals so definition order cannot bypass healing training.
         effect.heal_fraction *= healing_multiplier;
         if self.class == 5 && shaman::TOTEMS.contains(&key) {
-            effect.heal_fraction *= 1.0 + self.trained_value(TalentStat::TotemHealing);
+            effect.heal_fraction *= 1.0
+                + self.trained_value(TalentStat::TotemHealing)
+                + self.trained_value(TalentStat::Purification);
+        }
+        if self.class == 5 && key == "healing_wave" {
+            effect.damage *= 1.0 + self.trained_value(TalentStat::Purification);
         }
         if self.class == 4 && key == "greater_heal" {
             effect.damage *= 1.0 + self.trained_value(TalentStat::SpiritualHealing);
@@ -1768,6 +1773,7 @@ pub enum TalentStat {
     ImprovedRenew,
     SpiritualHealing,
     TotemHealing,
+    Purification,
     TotemicMastery,
     ShamanShieldAbsorption,
     AncestralHealingArmor,
@@ -2180,6 +2186,7 @@ impl TalentDefinition {
             | TalentStat::ForceOfWill
             | TalentStat::Illumination
             | TalentStat::HealingWay
+            | TalentStat::Purification
             | TalentStat::TotemHealing
             | TalentStat::SpiritualHealing
             | TalentStat::ImprovedRenew
@@ -2474,6 +2481,7 @@ impl TalentDefinition {
             TalentStat::AncestralHealingArmor => (1.0, " armor after effective totem healing"),
             TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
+            TalentStat::Purification => (100.0, "% Healing Wave and totem deployment healing"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::Illumination => (100.0, "% critical-heal recovery refund chance"),
             TalentStat::SpiritualHealing => (100.0, "% Greater Heal, Renew and Holy Nova healing"),
@@ -4029,6 +4037,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ImprovedRenew
             | TalentStat::Illumination
             | TalentStat::HealingWay
+            | TalentStat::Purification
             | TalentStat::TotemHealing
             | TalentStat::ShamanShieldAbsorption
             | TalentStat::AncestralHealingArmor
@@ -5577,6 +5586,7 @@ mod stat_talent_tests {
                     | TalentStat::ImprovedRenew
                     | TalentStat::Illumination
                     | TalentStat::HealingWay
+                    | TalentStat::Purification
                     | TalentStat::TotemHealing
                     | TalentStat::ShamanShieldAbsorption
                     | TalentStat::AncestralHealingArmor

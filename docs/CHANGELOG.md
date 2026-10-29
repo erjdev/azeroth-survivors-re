@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Healing Wave talent scaling
+
+Purification now boosts Healing Wave by 2% per rank; Tidal Mastery adds one
+percentage point of healing-critical chance per rank. Existing totem behavior
+is preserved. Inline green text explains both scopes. Cast and saved-spec checks
+cover all ranks; native wide/compact descriptions verified. Native purchase,
+Windows/controller and attended combat remain open. Incremental build: 16s.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+![Purification applies to Healing Wave](images/screenshots/2026-10-29-shaman-healing-training/purification-wide.png)
+
+![Tidal Mastery at compact UI scale](images/screenshots/2026-10-29-shaman-healing-training/tidal-compact.png)
+
 ## 2026-10-29 — Illumination recovery refund
 
 Critical Holy Light and Flash of Light heals now have a 20–100% chance by talent

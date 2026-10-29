@@ -97,7 +97,7 @@ fn healing_touch_training_reaches_real_healing_and_recovery_but_not_regrowth_cri
 }
 
 #[test]
-fn healing_wave_is_acquired_and_keeps_totem_training_separate() {
+fn healing_wave_is_acquired_and_keeps_totem_only_training_separate() {
     let mut run = Run {
         class: &data::CLASSES[5],
         ..Default::default()
@@ -124,7 +124,7 @@ fn healing_wave_is_acquired_and_keeps_totem_training_separate() {
         &owned,
         &stats,
         run.milestones
-            .with_ranks(&[(2, 586, 5), (2, 593, 5), (2, 592, 5), (2, 588, 5)]),
+            .with_ranks(&[(2, 586, 5), (2, 593, 5), (2, 588, 5)]),
     );
     assert_eq!(base.dmg, 40.);
     assert_eq!(base.cooldown, 12.);
