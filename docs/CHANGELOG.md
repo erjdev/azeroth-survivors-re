@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Acquired Holy Light
+
+Paladins can acquire Holy Light: an automatic self-heal below 85% health, with
+40 base healing and 12-second recovery. Holy Power now increases its critical
+chance; critical healing stays at 150%. Cards show green healing/recovery changes,
+verified natively at 1280×720 and 640×720 / 125%. Incremental build: 16 seconds.
+Flash of Light, remaining healing-talents and attended Windows combat remain open.
+
+![Holy Light acquisition and inline upgrades](images/screenshots/2026-10-29-holy-light/cards-wide.png)
+
+![Compact Holy Light cards](images/screenshots/2026-10-29-holy-light/cards-compact.png)
+
+![Holy Power names both affected spells](images/screenshots/2026-10-29-holy-light/talent-compact.png)
+
+The eight-package formatting/Clippy/test gate passes, including 4,864 app tests
+(31 optional-addon skips).
+
+
 ## 2026-10-29 — Retribution Aura saved-spec acceptance
 
 Native macOS clicks verify both ranks, restart persistence, an independent empty

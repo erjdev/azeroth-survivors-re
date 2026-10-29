@@ -1151,3 +1151,18 @@ of Will exclude Greater Heal. Renew and Holy Nova keep their existing behavior.
 Installed data establishes the spell identity, Holy school, direct healing,
 three-second cast, 40-yard range and talent scope. The self-only trigger, base
 healing, cooldown and resource conversions above are authored Survivors rules.
+
+### Paladin Holy Light
+
+Holy Light (635) is an acquired automatic self-heal: 40 base health and 12-second
+recovery, used below 85% health. Like Healing Touch and Greater Heal, this authored
+Survivors conversion replaces cast time, mana and friendly targeting with instant
+self-casting and recovery. Rank, Might and recovery modifiers apply. Critical
+healing is fixed at 150%; offensive critical-damage bonuses do not increase it.
+Overhealing is discarded, existing periodic healing survives, and it cannot revive
+or emit damage hits. Holy Power retains its authored +2 percentage points per rank
+and now affects Holy Light as well as Holy Shock. Other Holy spell eligibility is
+unchanged. Divine Favor retains its documented Holy Shock-only conversion.
+Healing Light's existing Holy Shock cast-heal conversion is unchanged; extending
+it to the new direct heal, Flash of Light, Illumination and cast-pushback mechanics
+remain separate unfinished dependencies.

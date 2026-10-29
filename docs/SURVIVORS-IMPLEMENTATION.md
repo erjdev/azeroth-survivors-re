@@ -5,6 +5,31 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Paladin direct-healing foundation — 2026-10-29
+
+Holy Light is now an ordinary acquired ability, following the documented automatic
+self-heal conversion used by Healing Touch and Greater Heal. Its 40 health / 12s
+recovery are authored values, not a claim of vanilla cast/mana fidelity. Installed
+spell 635 has a 2.5s cast, 35 mana, 40-yard friendly targeting and a variable heal.
+Holy Power's existing authored 2%/rank critical chance now includes Holy Light;
+DBC node 1627 specifies 1%/rank, so the Survivors balance remains explicit.
+
+The actual cast-system regression covers skipped full-health casts, ordinary and
+critical healing, preservation of periodic healing and Holy Shock-only Divine
+Favor readiness, recovery and absence of damage hits. Offer and inline-text checks
+cover acquisition, rank values and scoped Holy Power ranks. Native wide/compact
+cards are captured; the final play build took 16 seconds. Definition coverage
+remains 306/432: no provisional node was promoted by adding this spell.
+
+Next: Flash of Light and a coherent Healing Light/Illumination treatment. Healing
+Light retains its existing Holy Shock cast-heal behavior for now; its name alone
+does not establish direct-heal support. Pushback, interruption, mana-refund policy,
+Windows/controller and attended combat acceptance remain unfinished.
+
+The eight-package formatting/Clippy/test gate passes, including 4,864 app tests
+(31 optional-addon skips).
+
+
 ## Retribution Aura save acceptance — 2026-10-29
 
 The isolated native Paladin profile now verifies pointer purchase of both ranks,

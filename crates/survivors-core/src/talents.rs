@@ -2998,8 +2998,8 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
         id: 1627,
         max_rank: 5,
         name: "Holy Power",
-        description: "Holy Shock: +2% critical chance per rank",
-        stat: TalentStat::SpellCrit("holy_shock"),
+        description: "Holy Shock and Holy Light: +2% critical chance per rank",
+        stat: TalentStat::SpellGroupCrit(&["holy_shock", "holy_light"]),
         per_rank: 0.02,
     },
     TalentDefinition {

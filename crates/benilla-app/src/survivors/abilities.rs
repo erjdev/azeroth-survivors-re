@@ -11241,3 +11241,7 @@ mod greater_heal_tests;
 #[cfg(test)]
 #[path = "repentance_tests.rs"]
 mod repentance_tests;
+
+#[cfg(test)]
+#[path = "holy_light_tests.rs"]
+mod holy_light_tests;

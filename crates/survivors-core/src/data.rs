@@ -940,6 +940,14 @@ pub static ABILITIES: &[AbilityDef] = &[
     ),
     // --- Paladin ---
     ability!(
+        "holy_light",
+        635,
+        DirectHeal {
+            damage: 40.0,
+            cooldown: 12.0
+        }
+    ),
+    ability!(
         "retribution_aura",
         7294,
         ContactAura {
@@ -1312,6 +1320,7 @@ pub static CLASSES: &[ClassDef] = &[
             "judgement",
             "repentance",
             "retribution_aura",
+            "holy_light",
         ],
         looks: &[
             1299, 1499, 1622, 3087, 3088, 3089, 3284, 3289, 3346, 3393, 7356,

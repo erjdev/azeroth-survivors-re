@@ -95,3 +95,11 @@ coexists with passive Sanctity Aura and temporary Thorns; party aura exclusivity
 is not represented. Native macOS pointer purchase/refund/restart and independent-spec acceptance
 now pass, with a catalog-backed save regression for both ranks. Physical-controller
 and attended Windows combat acceptance remain open.
+
+
+Holy Light follow-up: spell 635 now has an acquired automatic direct-self-heal
+conversion (40 health / 12s recovery below 85%). Holy Power includes its healing
+criticals. This creates a healing-event producer, but does not enable Spiritual
+Focus or Illumination: it has no interrupted cast and no mana to refund. Flash of
+Light and a revised Healing Light consumer remain unfinished. Existing Divine
+Favor and Holy Shock cast-heal behavior are preserved pending that work.

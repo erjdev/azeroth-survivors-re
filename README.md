@@ -24,6 +24,8 @@ minimum-window onboarding and restart captures are in the changelog.
 
 ![Codex details support keyboard reading](docs/images/screenshots/2026-10-29-codex-reading/home.png)
 
+![Holy Light acquisition and inline healing upgrades](docs/images/screenshots/2026-10-29-holy-light/cards-wide.png)
+
 ![Retribution Aura saved talent ranks after restart](docs/images/screenshots/2026-10-29-retribution-aura/restarted.png)
 
 ![Retribution Aura acquisition and inline damage upgrades](docs/images/screenshots/2026-10-29-retribution-aura/cards-wide.png)
