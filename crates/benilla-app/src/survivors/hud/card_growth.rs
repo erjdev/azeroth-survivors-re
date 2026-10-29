@@ -96,6 +96,7 @@ pub(in crate::survivors) fn legend_effect(
                 | Kind::Thorns
                 | Kind::Channel
                 | Kind::Dot
+                | Kind::Curse
                 | Kind::WeaponBuff
                 | Kind::Aspect
                 | Kind::Mark
@@ -118,6 +119,7 @@ pub(in crate::survivors) fn legendary_changes(
     let label = match data::ability(key).kind {
         Kind::Aspect => "Dodge chance multiplier",
         Kind::Mark => "Mark power multiplier",
+        Kind::Curse => "Curse potency multiplier",
         Kind::Heal => "Healing bonus",
         Kind::Shield => "Absorb bonus",
         _ => "Damage bonus",
@@ -156,6 +158,9 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
         };
         change(label, a.dmg, b.dmg, "");
     }
+    if let (Effect::Weakness(old, _), Effect::Weakness(new, _)) = (a.effect, b.effect) {
+        change("Physical hit reduction", old, new, " damage");
+    }
     if a.dot > 0.0 || b.dot > 0.0 {
         change("Damage / sec", a.dot, b.dot, "");
     }
@@ -186,6 +191,7 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
             | Kind::Strike
             | Kind::Melee
             | Kind::Dot
+            | Kind::Curse
             | Kind::Chain
             | Kind::Orbit
     ) {

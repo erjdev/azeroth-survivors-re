@@ -230,6 +230,16 @@ impl Marks {
         }
     }
 
+    /// Remove only the replaced spell's visual; unrelated debuffs retain their slots.
+    pub(super) fn remove(&mut self, spell: u32) {
+        for slot in &mut self.slots {
+            if slot.0 == spell {
+                *slot = (0, 0.0);
+                self.dirty = true;
+            }
+        }
+    }
+
     /// Keep the gameplay mark visible even when ordinary debuff slots are full.
     pub(super) fn hunter_mark(&mut self, remaining: f32) {
         let current = self.slots.iter().position(|s| s.0 == 1130);
@@ -422,5 +432,27 @@ mod hunter_mark_tests {
         assert_eq!(slots.slots[7], (0, 0.0));
         assert_eq!(slots.slots[0], (1, 10.0));
         assert_eq!(slots.slots.iter().filter(|s| s.0 != 0).count(), 7);
+    }
+}
+
+#[cfg(test)]
+mod curse_mark_tests {
+    use super::*;
+    #[test]
+    fn removing_a_replaced_curse_preserves_unrelated_marks() {
+        let mut marks = Marks::debuffs();
+        marks.add(980, 12.);
+        marks.add(172, 10.);
+        marks.dirty = false;
+        marks.remove(980);
+        assert!(marks.dirty);
+        assert!(!marks.slots.iter().any(|s| s.0 == 980));
+        assert!(marks.slots.contains(&(172, 10.)));
+        marks.add(702, 12.);
+        marks.remove(702);
+        assert!(marks.slots.contains(&(172, 10.)));
+        marks.dirty = false;
+        marks.remove(702);
+        assert!(!marks.dirty);
     }
 }

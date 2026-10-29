@@ -1085,4 +1085,35 @@ mod tests {
             .unwrap()
             .is_empty());
     }
+    #[test]
+    fn curse_weakness_reduces_actual_enemy_contact_before_percentage_weakening() {
+        let mut losses = Vec::new();
+        for amount in [0.0, 3.0, 20.0] {
+            let mut app = setup();
+            app.world_mut().resource_mut::<Run>().class = &data::CLASSES[7];
+            let target = foe(&mut app, Vec3::X);
+            {
+                let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
+                enemy.hp = 1000.;
+                enemy.max_hp = 1000.;
+                enemy.damage = 10.;
+                enemy.weaken = 0.5;
+                enemy.weaken_t = 20.;
+            }
+            app.world_mut().write_message(Hit {
+                source: "curse_of_weakness",
+                effect: data::Effect::Weakness(amount, 12.),
+                ..Hit::direct(target, 0., false)
+            });
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            let hp = app.world().resource::<Run>().hp;
+            app.world_mut()
+                .run_system_once(super::super::enemies::move_enemies)
+                .unwrap();
+            losses.push(hp - app.world().resource::<Run>().hp);
+        }
+        assert!(losses[0] > 0.0);
+        assert!((losses[1] - losses[0] * 0.7).abs() < 0.0001, "{losses:?}");
+        assert_eq!(losses[2], 0.0);
+    }
 }

@@ -216,6 +216,12 @@ impl Params {
         } else {
             0.0
         };
+        let weakness_scale = o.damage_mult()
+            * (1.0
+                + stats
+                    .legendary
+                    .filter(|(key, _)| *key == o.def.key)
+                    .map_or(0.0, |(_, bonus)| bonus.might));
         let scoped = stats.for_spell(o.def.key);
         let stats = &scoped;
         let effect = milestones.cast(o.def.key);
@@ -260,9 +266,13 @@ impl Params {
             },
             effect: milestones.control(
                 o.def.key,
-                o.def
-                    .effect
-                    .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
+                match o.def.effect {
+                    Effect::Weakness(amount, seconds) => {
+                        Effect::Weakness(amount * weakness_scale, seconds)
+                    }
+                    other => other,
+                }
+                .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
             ),
             cooldown: if o.def.kind == Kind::Channel {
                 (o.cooldown(stats) * effect.cooldown).max(o.def.duration)
@@ -275,7 +285,7 @@ impl Params {
             },
             crit: if matches!(
                 o.def.kind,
-                Kind::Channel | Kind::Mark | Kind::Coating(_) | Kind::Aspect
+                Kind::Curse | Kind::Channel | Kind::Mark | Kind::Coating(_) | Kind::Aspect
             ) {
                 0.0
             } else {
@@ -811,7 +821,7 @@ pub(super) fn cast_abilities(
                     true
                 }
             },
-            Kind::Dot => {
+            Kind::Dot | Kind::Curse => {
                 let mut pool: Vec<Foe> = visible
                     .iter()
                     .filter(|f| f.dist <= p.range)
@@ -1400,7 +1410,7 @@ pub(super) fn apply_hits(
         &mut ObjectStore,
         &mut Marks,
         &mut FireVulnerability,
-        &mut super::curse::CurseSlow,
+        &mut super::curse::CurseState,
     )>,
     mut fx: Fx,
     mut loot: MessageWriter<Loot>,
@@ -1422,7 +1432,7 @@ pub(super) fn apply_hits(
         commands.entity(e).remove::<FireVulnerability>();
         commands
             .entity(e)
-            .insert(super::curse::CurseSlow::default());
+            .insert(super::curse::CurseState::default());
         en.hp = 0.0;
         en.dots.clear();
         en.poison = Default::default();
@@ -1623,6 +1633,32 @@ pub(super) fn apply_hits(
             0.0
         };
         let impact_time = h.occurred.unwrap_or(now);
+        // A curse refresh replaces only this caster's curse, never unrelated debuffs.
+        if matches!(h.source, "curse_of_agony" | "curse_of_weakness") {
+            if !original {
+                continue;
+            }
+            let accepted = if h.source == "curse_of_weakness" {
+                if let Effect::Weakness(amount, seconds) = h.effect {
+                    curse.weakness(amount, seconds, impact_time)
+                } else {
+                    false
+                }
+            } else {
+                let (speed, seconds) = run
+                    .milestones
+                    .secondary_slow(h.source, en.boss)
+                    .unwrap_or((1.0, 12.0));
+                curse.apply(speed, seconds, impact_time)
+            };
+            if !accepted {
+                continue;
+            }
+            en.dots.retain(|dot| dot.source != "curse_of_agony");
+            marks.remove(980);
+            marks.remove(702);
+        }
+
         let mut dmg = (h.damage + mark_bonus)
             * fire.multiplier(h.source, impact_time, spells.as_deref(), run.thorns_spell)
             * creature_multiplier(run.milestones, en.def.creature_type, h.source, h.crit)
@@ -1790,11 +1826,6 @@ pub(super) fn apply_hits(
         }
         let boss = en.boss;
         apply_secondary_control(&mut en, run.milestones, h.source);
-        if original && h.source == "curse_of_agony" {
-            if let Some((speed, seconds)) = run.milestones.secondary_slow(h.source, boss) {
-                curse.apply(speed, seconds, impact_time);
-            }
-        }
         if h.source == "kidney_shot" && run.milestones.kidney_exposure_multiplier(1.0) > 1.0 {
             if let Effect::Stun(t) = h.effect {
                 en.kidney_t = en.kidney_t.max(if boss { t * 0.3 } else { t });
@@ -7752,7 +7783,7 @@ mod milestone_tests {
                     let speed = 0.9 - 0.05 * f32::from(rank.min(4));
                     assert_eq!(
                         app.world()
-                            .get::<super::super::curse::CurseSlow>(enemy)
+                            .get::<super::super::curse::CurseState>(enemy)
                             .unwrap()
                             .movement(1., 0.),
                         if boss { speed.max(0.75) } else { speed }
@@ -7771,7 +7802,7 @@ mod milestone_tests {
                         en.slow_t = 0.;
                     }
                     *app.world_mut()
-                        .get_mut::<super::super::curse::CurseSlow>(enemy)
+                        .get_mut::<super::super::curse::CurseState>(enemy)
                         .unwrap() = Default::default();
                     app.world_mut()
                         .resource_mut::<Time>()
@@ -7782,7 +7813,7 @@ mod milestone_tests {
                     assert!((en.hp - (1000. - after.dot)).abs() < 0.0001);
                     assert_eq!(
                         app.world()
-                            .get::<super::super::curse::CurseSlow>(enemy)
+                            .get::<super::super::curse::CurseState>(enemy)
                             .unwrap()
                             .movement(1., 0.),
                         1.
@@ -7802,7 +7833,7 @@ mod milestone_tests {
                     assert_eq!((en.slow, en.slow_t), (0.2, 20.));
                     // Unrelated spells and a base-talent refund cannot apply the slow.
                     *app.world_mut()
-                        .get_mut::<super::super::curse::CurseSlow>(enemy)
+                        .get_mut::<super::super::curse::CurseState>(enemy)
                         .unwrap() = Default::default();
                     {
                         let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
@@ -7823,7 +7854,7 @@ mod milestone_tests {
                     assert_eq!((en.slow, en.slow_t), (1., 0.));
                     assert_eq!(
                         app.world()
-                            .get::<super::super::curse::CurseSlow>(enemy)
+                            .get::<super::super::curse::CurseState>(enemy)
                             .unwrap()
                             .movement(1., 0.),
                         1.
@@ -10912,3 +10943,7 @@ mod stormstrike_tests;
 #[cfg(test)]
 #[path = "scorch_tests.rs"]
 mod scorch_tests;
+
+#[cfg(test)]
+#[path = "weakness_tests.rs"]
+mod weakness_tests;

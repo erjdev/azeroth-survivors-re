@@ -5,6 +5,20 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Curse of Weakness dependency — 2026-10-29
+
+Acquisition, exact 6/13/20% talent ranks, flat physical-hit reduction and two-way
+curse replacement are wired. Agony refreshes replace its periodic effect rather
+than stacking copies; unrelated debuffs survive replacement. The [curse audit](audits/CURSES.md)
+records authored duration/recast, rank and legendary scaling, target rules and
+remaining Windows/attended-combat acceptance. Native purchase/refund, spec isolation,
+save/relaunch and 1280×720/640×720 previews pass; 290 core and 566 runtime tests pass. Node 1006 is no longer a generic damage bonus.
+
+The narrow-layout expectation remains explicit: preserve artwork proportions and
+readable icon spacing with taller, scrollable trees instead of squeezing all rows
+into the viewport. The 640×720 screenshot in this checkpoint verifies the existing
+640-unit grid and 52-unit icon design introduced by the roomier-tree checkpoint.
+
 ## Curse ownership prerequisite — 2026-10-28
 
 Curse of Exhaustion now has its own clock so refreshing it cannot extend a
@@ -12,8 +26,7 @@ stronger ordinary slow. The reproduced overlap regression and all 560 Survivors
 runtime tests pass with installed data; feature Clippy and eight-package scoped
 checks pass (31 missing-addon skips). The [curse audit](audits/CURSES.md) records the defect,
 independent-clock acceptance and the installed rules for the subsequent acquired
-Curse of Weakness and its 6/13/20% talent. Node 1006 remains pending until that
-ability, replacement semantics and native UI acceptance are complete.
+Curse of Weakness and its 6/13/20% talent. The following acquisition checkpoint implements node 1006; its native UI acceptance is recorded above; attended combat remains open.
 
 ## Mage Scorch dependency — 2026-10-28
 

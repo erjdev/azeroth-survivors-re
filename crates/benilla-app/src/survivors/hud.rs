@@ -2771,6 +2771,9 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
     if next.dmg > 0.0 && def.kind != Kind::Dot && def.kind != Kind::Immune {
         gains.push(format!("{} {what}", num(next.dmg)));
     }
+    if let Effect::Weakness(amount, _) = next.effect {
+        gains.push(format!("{} less damage per physical hit", num(amount)));
+    }
     if next.dot > 0.0 {
         gains.push(format!("{} damage per second", num(next.dot)));
     }
@@ -2782,6 +2785,7 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
                 | Kind::Strike
                 | Kind::Melee
                 | Kind::Dot
+                | Kind::Curse
                 | Kind::Chain
                 | Kind::Orbit
         )
@@ -2832,6 +2836,7 @@ fn ability_tip(
         | Kind::Strike
         | Kind::Chain
         | Kind::Dot
+        | Kind::Curse
         | Kind::Ground
         | Kind::Totem => Some(strings.by_key(
             "SPELL_RANGE",
@@ -2986,6 +2991,7 @@ fn ability_tip(
             | Kind::Immune
             | Kind::Heal
             | Kind::Dot
+            | Kind::Curse
             | Kind::WeaponBuff
             | Kind::Coating(_)
             | Kind::Aspect
@@ -4050,5 +4056,58 @@ mod mind_flay_tests {
         );
         run.milestones = run.milestones.with_ranks(&[]);
         assert!(!coating_available(&run, def));
+    }
+}
+
+#[cfg(test)]
+mod weakness_preview_tests {
+    use super::*;
+    #[test]
+    fn weakness_preview_shows_inline_potency_and_shared_units() {
+        let mut run = Run {
+            class: &data::CLASSES[7],
+            milestones: survivors_core::talents::Milestones {
+                class: 7,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(
+                |choice| matches!(choice,Choice::NewAbility(def) if def.key=="curse_of_weakness"),
+            )
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, "curse_of_weakness");
+        assert!(choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|choice| matches!(choice, Choice::Upgrade(0))));
+        let def = data::ability("curse_of_weakness");
+        let a = cast_at(def, 1, &run.stats(), run.milestones);
+        let b = cast_at(def, 2, &run.stats(), run.milestones);
+        let spans = inline::ability(def, &a, &b);
+        assert!(spans
+            .iter()
+            .any(|(text, color)| text == "3 » 3.9 damage" && *color == card_growth::GAIN));
+        assert!(spans
+            .iter()
+            .any(|(text, color)| text == "12 » 13.2 sec" && *color == card_growth::GAIN));
+        let prose = spans.into_iter().map(|(text, _)| text).collect::<String>();
+        assert!(!prose.contains("every second"));
+        assert!(!prose.contains("0 damage"));
+        assert!(prose.contains("Replaces your other curse"));
     }
 }

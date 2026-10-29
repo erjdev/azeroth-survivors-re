@@ -995,3 +995,14 @@ Enemy movement uses the strongest currently active ordinary, curse or channel
 slow; refreshing a curse never extends another spell's stronger slow. Bosses
 retain the 25% curse slow cap. Periodic ticks do not reapply the slow, and death
 clears it. See [curse ownership and remaining dependencies](audits/CURSES.md).
+
+### Curse of Weakness
+
+Warlocks may acquire Curse of Weakness independently of its talent. Its authored
+base is 3 less damage per physical hit for 12 seconds, recast every 6 seconds at
+30-yard range. Ranks improve potency, duration, cooldown and individual target
+count. Improved Curse of Weakness gives exactly 6/13/20% stronger reduction; its
+own legendary power scales potency, while global damage and critical stats do not.
+Grim Reach increases targeting range. Weakness and Agony replace one another per
+affected enemy, including Agony's supplemental curse slow; unrelated effects remain.
+See [the curse audit](audits/CURSES.md) for damage order and acceptance limits.

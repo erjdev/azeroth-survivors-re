@@ -4,6 +4,26 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Curse of Weakness and talent previews
+
+Warlocks can acquire Curse of Weakness to reduce each enemy physical hit. Its
+talent adds exact 6/13/20% potency, with green inline upgrades. Curses replace
+each other without removing unrelated debuffs; Agony refreshes no longer stack copies.
+
+![Improved Curse of Weakness preview at 1280×720](images/screenshots/2026-10-29-curse-of-weakness/talents-wide.jpg)
+
+![Saved rank at 640×720: tall, scrollable trees retain icon spacing](images/screenshots/2026-10-29-curse-of-weakness/talents-compact.jpg)
+
+![Curse upgrade at 1280×720](images/screenshots/2026-10-29-curse-of-weakness/cards-wide.jpg)
+
+![Curse upgrade at 640×720](images/screenshots/2026-10-29-curse-of-weakness/cards-compact.jpg)
+
+All 290 core and 566 Survivors runtime tests pass with checkout data. Clippy
+including tests and eight-package scoped checks pass (31 optional-addon skips);
+native macOS build took 2m52s. Native purchase, refund,
+spec isolation, save/relaunch and both layouts verified. Windows, attended combat
+and balance remain open. Talent coverage is 299/432 nodes; this is not full class completion.
+
 ## 2026-10-28 — Independent curse slows
 
 Curse of Exhaustion no longer extends a stronger spell slow to the curse's

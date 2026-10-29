@@ -1091,6 +1091,13 @@ impl Milestones {
     /// These percentage-point reductions preserve the existing baseline Blizzard slow.
     pub fn control(self, key: &str, effect: crate::data::Effect) -> crate::data::Effect {
         use crate::data::Effect;
+        if self.class == 7 && key == "curse_of_weakness" {
+            if let Effect::Weakness(amount, seconds) = effect {
+                let bonus =
+                    weakness_percent(self.trained_value(TalentStat::ImprovedCurseWeakness) as u8);
+                return Effect::Weakness(amount * (1.0 + f32::from(bonus) / 100.0), seconds);
+            }
+        }
         if self.class == 8 && key == "insect_swarm" && matches!(effect, Effect::None) {
             let reduction = self.trained_value(TalentStat::InsectSwarmWeakening);
             if reduction > 0.0 {
@@ -1677,6 +1684,7 @@ pub enum TalentStat {
     ImprovedVampiricEmbrace,
     WintersChill,
     ImprovedScorch,
+    ImprovedCurseWeakness,
     Shatter,
     Permafrost,
     BlizzardSlow,
@@ -1871,17 +1879,26 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
-        if self.stat == TalentStat::ImprovedScorch {
+        type PercentPreview = (&'static str, &'static str, fn(u8) -> u8);
+        let non_linear: Option<PercentPreview> = match self.stat {
+            TalentStat::ImprovedScorch => {
+                Some(("33–100% chance", "% chance", crate::scorch::chance_percent))
+            }
+            TalentStat::ImprovedCurseWeakness => Some((
+                "6–20% stronger reduction",
+                "% stronger reduction",
+                weakness_percent,
+            )),
+            _ => None,
+        };
+        if let Some((needle, unit, value_at)) = non_linear {
             let rank = rank.min(self.max_rank);
-            let (prefix, suffix) = self.description.split_once("33–100% chance")?;
-            let current = crate::scorch::chance_percent(rank);
+            let (prefix, suffix) = self.description.split_once(needle)?;
+            let current = value_at(rank);
             let value = if rank == self.max_rank {
-                format!("{current}% chance")
+                format!("{current}{unit}")
             } else {
-                format!(
-                    "{current} » {}% chance",
-                    crate::scorch::chance_percent(rank + 1)
-                )
+                format!("{current} » {}{unit}", value_at(rank + 1))
             };
             let start = prefix.len();
             let end = start + value.len();
@@ -2215,15 +2232,24 @@ impl TalentDefinition {
 
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
-        if self.stat == TalentStat::ImprovedScorch {
+        if matches!(
+            self.stat,
+            TalentStat::ImprovedScorch | TalentStat::ImprovedCurseWeakness
+        ) {
             let rank = rank.min(self.max_rank);
-            let value = crate::scorch::chance_percent(rank);
+            let (value_at, label): (fn(u8) -> u8, &str) = if self.stat == TalentStat::ImprovedScorch
+            {
+                (crate::scorch::chance_percent, "Fire vulnerability chance")
+            } else {
+                (weakness_percent, "stronger Curse of Weakness reduction")
+            };
+            let value = value_at(rank);
             return if rank == self.max_rank {
-                format!("This talent: {value}% Fire vulnerability chance (maximum rank)")
+                format!("This talent: {value}% {label} (maximum rank)")
             } else {
                 format!(
-                    "This talent: {value} » {}% Fire vulnerability chance next rank",
-                    crate::scorch::chance_percent(rank + 1)
+                    "This talent: {value} » {}% {label} next rank",
+                    value_at(rank + 1)
                 )
             };
         }
@@ -2415,7 +2441,7 @@ impl TalentDefinition {
             TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
-            TalentStat::ImprovedScorch => unreachable!("handled above"),
+            TalentStat::ImprovedScorch | TalentStat::ImprovedCurseWeakness => unreachable!("handled above"),
             TalentStat::WintersChill => (100.0, "% chance to apply Winter's Chill on frost damage"),
             TalentStat::Impact => (100.0, "% chance to stun on fire damage"),
             TalentStat::Blackout => (100.0, "% chance to stun on Shadow damage"),
@@ -3915,6 +3941,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
             | TalentStat::ImprovedScorch
+            | TalentStat::ImprovedCurseWeakness
             | TalentStat::WintersChill
             | TalentStat::Impact
             | TalentStat::Blackout
@@ -4959,7 +4986,12 @@ mod stat_talent_tests {
                 7,
                 1021,
                 2,
-                &["corruption", "curse_of_agony", "death_coil"],
+                &[
+                    "corruption",
+                    "curse_of_agony",
+                    "curse_of_weakness",
+                    "death_coil",
+                ],
                 false,
             ),
             (
@@ -5450,6 +5482,7 @@ mod stat_talent_tests {
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn
                     | TalentStat::ImprovedScorch
+                    | TalentStat::ImprovedCurseWeakness
                     | TalentStat::WintersChill
                     | TalentStat::Impact
                     | TalentStat::Blackout
@@ -7738,5 +7771,63 @@ impl Milestones {
         }
         crate::scorch::chance_percent(self.trained_value(TalentStat::ImprovedScorch) as u8) as f32
             / 100.0
+    }
+}
+
+/// Installed ranks 18179/18180/18181: 6%, 13%, 20%, not linear increments.
+fn weakness_percent(rank: u8) -> u8 {
+    [0u8, 6, 13, 20][usize::from(rank.min(3))]
+}
+
+#[cfg(test)]
+mod weakness_tests {
+    use super::*;
+    use crate::data::{Effect, Kind};
+    #[test]
+    fn weakness_rank_bonuses_are_exact_scoped_and_inline() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 255] {
+                let training = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1006, rank)]);
+                let expected = if class == 7 {
+                    3.0 * (1.0 + f32::from([0u8, 6, 13, 20][usize::from(rank.min(3))]) / 100.0)
+                } else {
+                    3.0
+                };
+                assert_eq!(
+                    training.control("curse_of_weakness", Effect::Weakness(3., 12.)),
+                    Effect::Weakness(expected, 12.)
+                );
+                assert_eq!(
+                    training.control("other", Effect::Weakness(3., 12.)),
+                    Effect::Weakness(3., 12.)
+                );
+            }
+        }
+        let node = talent_definition(7, 1006).unwrap();
+        for (rank, expected) in [
+            (0, "0 » 6% stronger reduction"),
+            (1, "6 » 13% stronger reduction"),
+            (2, "13 » 20% stronger reduction"),
+            (3, "20% stronger reduction"),
+        ] {
+            let (text, spans) = node.inline_description_with_values(rank).unwrap();
+            assert_eq!(&text[spans[0].clone()], expected);
+        }
+        let spell = crate::data::ability("curse_of_weakness");
+        assert_eq!(spell.kind, Kind::Curse);
+        assert!(crate::data::CLASSES[7].pool.contains(&spell.key));
+        assert_eq!(crate::sheet::extra_targets(Kind::Curse, 1, 2), 2);
+        assert_eq!(crate::sheet::extra_targets(Kind::Curse, 2, 2), 0);
+        let reach = Milestones {
+            class: 7,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 1021, 2)]);
+        assert_eq!(reach.cast(spell.key).range, 1.2);
+        assert_eq!(reach.cast(spell.key).damage, 1.0);
     }
 }

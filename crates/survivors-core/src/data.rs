@@ -64,6 +64,8 @@ pub enum Kind {
     GroundSelf,
     /// Jumps from enemy to enemy.
     Chain,
+    /// A non-damaging curse applied to individual enemies.
+    Curse,
     /// A damage-over-time on several enemies.
     Dot,
     /// Always on: pulses every `cooldown` around the hero, with the spell's state visual on him.
@@ -92,6 +94,8 @@ pub enum Effect {
     Fear(f32),
     /// Outgoing damage multiplier for seconds.
     Weaken(f32, f32),
+    /// Flat physical outgoing damage reduction for seconds.
+    Weakness(f32, f32),
     /// Heal the hero by this fraction of damage dealt.
     Drain(f32),
     /// Kill outright below this health fraction.
@@ -103,6 +107,7 @@ impl Effect {
         match self {
             Self::Slow(_, t)
             | Self::Weaken(_, t)
+            | Self::Weakness(_, t)
             | Self::Root(t)
             | Self::Stun(t)
             | Self::Fear(t) => t,
@@ -114,6 +119,7 @@ impl Effect {
         match self {
             Self::Slow(m, t) => Self::Slow(m, t * multiplier),
             Self::Weaken(m, t) => Self::Weaken(m, t * multiplier),
+            Self::Weakness(m, t) => Self::Weakness(m, t * multiplier),
             Self::Root(t) => Self::Root(t * multiplier),
             Self::Stun(t) => Self::Stun(t * multiplier),
             Self::Fear(t) => Self::Fear(t * multiplier),
@@ -630,7 +636,8 @@ pub static ABILITIES: &[AbilityDef] = &[
             cooldown: 2.5,
             range: 20.0,
             count: 4,
-            duration: 12.0
+            duration: 12.0,
+            mark: 980
         }
     ),
     ability!(
@@ -1066,6 +1073,17 @@ pub static ABILITIES: &[AbilityDef] = &[
             range: 30.0
         }
     ),
+    ability!(
+        "curse_of_weakness",
+        702,
+        Curse {
+            cooldown: 6.0,
+            range: 30.0,
+            duration: 12.0,
+            effect: Effect::Weakness(3.0, 12.0),
+            mark: 702
+        }
+    ),
 ];
 
 pub fn ability(key: &str) -> &'static AbilityDef {
@@ -1369,6 +1387,7 @@ pub static CLASSES: &[ClassDef] = &[
             "death_coil",
             "searing_pain",
             "shadowburn",
+            "curse_of_weakness",
         ],
         looks: &[
             1324, 1325, 1326, 1469, 1581, 1604, 1884, 1930, 2637, 2646, 2675, 3115, 3116, 3122,

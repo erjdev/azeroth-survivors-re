@@ -58,7 +58,7 @@ pub fn cooldown_time(base: f32, haste: f32, cooldown: f32) -> f32 {
 pub fn extra_targets(kind: Kind, base_count: u32, bonus: u32) -> u32 {
     let single = matches!(
         kind,
-        Kind::Channel | Kind::Mark | Kind::Bolt | Kind::Strike | Kind::Melee
+        Kind::Channel | Kind::Mark | Kind::Curse | Kind::Bolt | Kind::Strike | Kind::Melee
     ) && base_count <= 1;
     if single {
         bonus.min(TARGET_CAP)

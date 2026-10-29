@@ -187,6 +187,9 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 " of each other, 15% weaker with every jump"
             );
         }
+        Kind::Curse => {
+            prose!("Curse ", count, " within ", range);
+        }
         Kind::Dot => {
             prose!(
                 "Afflicts ",
@@ -304,6 +307,20 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
         }
         Effect::Fear(_) => {
             prose!(", sending them fleeing for ", effect_time);
+        }
+        Effect::Weakness(amount, _) => {
+            let next = if let Effect::Weakness(next, _) = b.effect {
+                next
+            } else {
+                amount
+            };
+            prose!(
+                ", reducing each physical hit by ",
+                (amount, next, " damage"),
+                " for ",
+                effect_time,
+                ". Replaces your other curse on each affected enemy; preserves unrelated debuffs"
+            );
         }
         Effect::Weaken(m, _) => {
             prose!(

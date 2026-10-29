@@ -16,7 +16,7 @@ use crate::creature_anim::{move_flags, MovementState};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
 #[derive(Component)]
-#[require(super::abilities::FireVulnerability, super::curse::CurseSlow)]
+#[require(super::abilities::FireVulnerability, super::curse::CurseState)]
 pub(super) struct Enemy {
     pub def: &'static EnemyDef,
     pub hp: f32,
@@ -369,7 +369,7 @@ pub(super) fn move_enemies(
             &mut Enemy,
             &mut MovementState,
             Option<&super::hunter_pet::PetTaunt>,
-            &super::curse::CurseSlow,
+            &super::curse::CurseState,
         ),
         Without<Hero>,
     >,
@@ -597,7 +597,7 @@ pub(super) fn move_enemies(
             && !hero_down
         {
             e.attack_cd = if e.boss { 1.0 } else { 1.3 };
-            let raw = e.damage * e.weaken;
+            let raw = curse.outgoing(e.damage, true, run.elapsed) * e.weaken;
             let (taken, dodged) = if let Some((entity, _)) = pet_target {
                 let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
                 let taken = pet.hurt(raw, run.elapsed);

@@ -123,7 +123,13 @@ pub(super) fn rarity(choice: Choice, run: &Run) -> Rarity {
             let targets = [3, 5, 7].contains(&next)
                 && matches!(
                     o.def.kind,
-                    Kind::Bolt | Kind::Strike | Kind::Melee | Kind::Dot | Kind::Chain | Kind::Orbit
+                    Kind::Bolt
+                        | Kind::Strike
+                        | Kind::Melee
+                        | Kind::Dot
+                        | Kind::Curse
+                        | Kind::Chain
+                        | Kind::Orbit
                 );
             if next == data::MAX_ABILITY_LEVEL {
                 Rarity::Legendary
