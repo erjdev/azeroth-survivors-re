@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Paladin weapon talent prerequisite — 2026-10-29
+
+[Installed-data audit](audits/PALADIN-WEAPON-TALENTS.md) confirms nodes 1429/1410
+need physical melee weapon damage. All eight current Paladin ability spell IDs
+are Holy, and `Strike` is a targeting shape rather than a weapon-damage guarantee.
+Do not apply weapon specialization to Judgement or Consecration as a substitute.
+Basic melee outside slots versus an acquired physical ability is pending user input;
+implementation and native talent acceptance remain open. Coverage stays 300/432.
+
 ## Shared combat-pet health — 2026-10-29
 
 Hunter health now consumes engine-independent `combat_pet::Vitality` for damage,

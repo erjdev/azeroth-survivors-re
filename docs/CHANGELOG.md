@@ -4,6 +4,13 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Paladin melee prerequisite
+
+Verified both weapon-specialization talents require physical melee damage, while
+the current Paladin pool contains Holy spells. Recorded the missing attack and its
+acceptance checks; attack acquisition is awaiting a design decision. No talent or
+combat behavior is changed. [Details](audits/PALADIN-WEAPON-TALENTS.md).
+
 ## 2026-10-29 — Shared combat-pet health
 
 Moved the Hunter wolf's damage, healing, health scaling and recovery deadline into
