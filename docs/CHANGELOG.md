@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Priest upgrade descriptions
+
+Darkness now explicitly lists Mind Flay and its channel damage, matching the
+existing effect. The written Shadow Reach rules also include Mind Flay. Native
+1280×720 and 640×720 / 125% previews verify readable text and green inline damage
+values. Incremental build: 15 seconds. This is a description correction, with no
+balance or talent-coverage change; Windows remains unverified. The eight-package
+formatting/Clippy/test gate passes (31 optional-addon skips). A Priest dependency
+audit records the sixteen remaining named mechanics and their required systems.
+
+![Darkness names its affected spells](images/screenshots/2026-10-29-priest-shadow-text/wide.png)
+
+![Compact inline upgrade text](images/screenshots/2026-10-29-priest-shadow-text/compact.png)
+
 ## 2026-10-29 — Saved enemy and friendly visibility filters
 
 Graphics now has independent “Show obscured enemies” and “Show obscured friendlies”

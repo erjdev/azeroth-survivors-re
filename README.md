@@ -24,6 +24,8 @@ minimum-window onboarding and restart captures are in the changelog.
 
 ![Greater Heal acquisition and inline upgrades](docs/images/screenshots/2026-10-29-greater-heal/cards-wide.png)
 
+![Priest talents name Mind Flay in the inline upgrade description](docs/images/screenshots/2026-10-29-priest-shadow-text/compact.png)
+
 Native wheel/scrollbar acceptance now covers the taller talent trees and independent
 achievement panes on macOS, including category round-trip restoration.
 

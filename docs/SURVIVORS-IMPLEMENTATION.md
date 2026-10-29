@@ -5,6 +5,17 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Priest description consistency — 2026-10-29
+
+Darkness's description omitted Mind Flay despite `PRIEST_SHADOW` already including
+it. Name the spell and channel/periodic scope explicitly; reconcile Shadow Reach's
+written table with its existing Mind Flay range consumer. Native wide and compact
+previews show the green inline comparison without clipping. These are description
+fixes, not new talent mechanics: coverage remains 304/432 (Priest 31/47).
+The [remaining-node audit](audits/PRIEST-TALENT-DEPENDENCIES.md) records the sixteen
+missing consumers and separates named mechanics from existing milestone conversions.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
 ## Native pointer scrolling acceptance — 2026-10-29
 
 Closes the earlier unverified macOS wheel/drag cases for Talents and Achievements.

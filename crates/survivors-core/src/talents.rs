@@ -3900,7 +3900,7 @@ const PRIEST_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 462, max_rank: 5, name: "Darkness",
-        description: "Shadow Word: Pain, Mind Blast and Psychic Scream: +2% damage per rank; excludes other-class and jewelry spells",
+        description: "Shadow Word: Pain, Mind Blast, Mind Flay and Psychic Scream: +2% damage per rank; includes periodic and channel damage, excludes other-class and jewelry spells",
         stat: TalentStat::SpellGroupDamage(PRIEST_SHADOW), per_rank: 0.02,
     },
 ];

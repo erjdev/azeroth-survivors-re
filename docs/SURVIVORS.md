@@ -576,7 +576,7 @@ speed bonus are unchanged. This is a scaled Survivors cooldown conversion.
 | Spell Warding (5 ranks) | 2% reduced incoming damage; general reduction until incoming damage schools are modeled |
 | Force of Will (5 ranks) | +1% Priest Holy/Shadow damage and +1 percentage point direct critical chance; periodic damage cannot crit, shields/foreign-class/jewelry spells excluded |
 | Holy Reach (2 ranks) | +10% Smite/Holy Fire casting range and Holy Nova radius; Nova remains one area |
-| Shadow Reach (3 ranks) | +6⅔% Shadow Word: Pain/Mind Blast casting range, totaling 20%; Psychic Scream unchanged |
+| Shadow Reach (3 ranks) | +6⅔% Shadow Word: Pain/Mind Blast/Mind Flay casting range, totaling 20%; Psychic Scream unchanged |
 | Spirit Tap (5 ranks) | +20 percentage points chance on kill to regenerate 1% maximum health/sec for 15 sec; refreshes without stacking |
 | Improved Power Word: Shield (3 ranks) | +5% shield absorption; same duration |
 | Holy Specialization (5) | +1% critical chance for Smite, Holy Fire, Holy Nova and Greater Heal |
@@ -585,7 +585,7 @@ speed bonus are unchanged. This is a scaled Survivors cooldown conversion.
 | Improved Shadow Word: Pain (2) | +15% duration; unchanged tick damage |
 | Improved Mind Blast (5) | 5% shorter Mind Blast cooldown |
 | Improved Psychic Scream (2) | 10% shorter cooldown; unchanged fear duration |
-| Darkness (5) | +2% Shadow Word: Pain, Mind Blast and Psychic Scream damage |
+| Darkness (5) | +2% Shadow Word: Pain, Mind Blast, Mind Flay and Psychic Scream damage, including periodic and channel damage |
 
 Spirit Tap converts spirit/mana recovery to health regeneration. Direct and periodic
 kills can trigger it once per enemy; healing stops at maximum health and cannot revive.
