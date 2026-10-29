@@ -29,6 +29,13 @@ Refresh the relevant page here for a visual milestone, and add its before/after 
 responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures).
 
 
+### Enemy equipment specimens
+
+Native noncombat preview, 2026-10-29: verified NPC weapon and shield metadata now
+feeds enemy rendering. Combat/disarm acceptance remains open.
+
+![Riverpaw Taskmaster equipment](docs/images/screenshots/2026-10-29-enemy-equipment/taskmaster.jpg)
+
 ### Live scale previews
 
 Preview files support temporary `scale = 1.25` alongside page and dimensions;

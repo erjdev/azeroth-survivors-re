@@ -4,6 +4,26 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Enemy equipment rendering
+
+Enemies now spawn with their audited NPC weapons and shields. A generated catalog
+covers all 456 template identities across the roster, including verified empty
+slots and legacy raw equipment. Existing damage values remain unchanged; actual
+disarm and weapon-based damage are separate unfinished mechanics.
+
+An opt-in noncombat specimen preview enables quick attachment checks without a
+survival session. Native macOS captures show ordinary human equipment, a gnoll's
+sword/shield, and legacy Scarlet equipment. Attack animations, full-roster pose
+review and Windows visual acceptance remain open. 298 core and 576 Survivors
+runtime tests pass, including descriptor preservation for every spawned roster.
+Eight-package scoped checks and final Clippy pass (31 optional-addon skips).
+
+![Defias Bandit equipment specimen](images/screenshots/2026-10-29-enemy-equipment/bandit.jpg)
+
+![Riverpaw Taskmaster sword and shield](images/screenshots/2026-10-29-enemy-equipment/taskmaster.jpg)
+
+![Scarlet Torturer legacy equipment specimen](images/screenshots/2026-10-29-enemy-equipment/torturer.jpg)
+
 ## 2026-10-29 — Enemy weapon audit
 
 Added a reproducible equipment audit for all 476 enemy identities. NPC-specific

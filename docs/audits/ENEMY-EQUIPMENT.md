@@ -89,3 +89,38 @@ This verifies asset decoding, not live enemy attachments or disarm behavior.
 Verification: six Python lookup regressions, two Rust manifest regressions,
 formatting, Clippy and the eight-package scoped test gate pass (31 optional-addon
 skips). No native screenshot is claimed for this headless asset audit.
+
+## Runtime descriptors and native specimens
+
+`survivors_core::enemy_equipment::for_template` now supplies immutable virtual-item
+slots to enemy spawning. All 456 template identities resolve explicitly; unknown
+IDs remain distinct from verified empty equipment. Existing creature identity and
+legacy appearance exceptions remain unchanged. Roster-wide core/runtime tests
+check unique slots and exact display/class/subclass/material/inventory/sheath
+preservation. Equipment is drawn in melee sheath state; ranged items remain
+stowed until a future ranged-attack channel requests them. Damage is unchanged.
+
+Regenerate the catalog from pinned evidence, then format it:
+
+```sh
+python3 docs/audits/enemy-equipment.py target/survivors-validation --rust > crates/survivors-core/src/enemy_equipment.rs
+cargo fmt -p survivors-core
+```
+
+With an isolated selected-hero fixture, a development build accepts
+`WOW_SURVIVORS_EQUIPMENT_PREVIEW=116` (or 98/4306). It stays in Menu, hides the menu
+UI, and spawns an independent specimen with no combat component. The fixed camera
+and separate floor-resolved position prevent the menu hero's attachment parts
+from overlapping the specimen. Exit the app to end the preview. Player builds
+ignore the switch. Use `WOW_UNATTENDED=1` and `WOW_NOSOUND=1` for agent previews.
+
+Native macOS captures verify visible attachments for Defias Bandit, Riverpaw
+Taskmaster and Scarlet Torturer. They are saved inline in CHANGELOG. These static
+specimens do not establish attack-animation alignment for every model, live
+combat acceptance, Windows rendering, or disarm mechanics. Core tests: 298 pass;
+Survivors runtime tests: 576 pass. Native incremental builds: 2m45s initially,
+57 seconds after preview isolation correction. Generated catalog reproduction and
+six Python lookup regressions pass.
+
+The eight-package scoped gate and final Clippy including tests pass (31 optional-
+addon skips). The preview isolation correction was rebuilt and validated natively.

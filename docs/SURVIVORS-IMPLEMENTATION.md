@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Enemy equipment rendering — 2026-10-29
+
+Generated metadata now feeds the existing virtual-item attachment renderer for all
+roster templates. Core coverage and runtime spawn tests pass (298/576), and native
+noncombat previews capture Defias Bandit, Riverpaw Taskmaster and Scarlet Torturer.
+The [equipment audit](audits/ENEMY-EQUIPMENT.md) records generation and preview
+commands. Full-roster animation/pose acceptance and Windows remain open. This does
+not implement attack channels, disarm eligibility, disarmed fallback damage or
+Riposte's equipped-weapon damage dependency.
+
 ## Enemy weapon prerequisite — 2026-10-29
 
 The [equipment audit](audits/ENEMY-EQUIPMENT.md) now resolves every authored enemy

@@ -157,8 +157,9 @@ fn spawn_enemy(
             level: def.level,
             faction: units::FACTION_MONSTER,
             bytes0: 1 << 8,
-            weapons: &[],
-            sheath: 0,
+            weapons: survivors_core::enemy_equipment::for_template(def.template_entry)
+                .unwrap_or_default(),
+            sheath: 1,
         },
         pos,
         yaw_toward(hero - pos),
@@ -893,6 +894,57 @@ mod spawn_tests {
     use avian3d::prelude::*;
     use benilla_world::collision::MoverTraceExclusions;
     use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn spawned_enemies_preserve_all_audited_virtual_equipment() {
+        let mut app = App::new();
+        app.init_resource::<Run>();
+        app.world_mut()
+            .run_system_once(|mut commands: Commands, mut run: ResMut<Run>| {
+                for map in 0..data::MAPS.len() {
+                    let roster = data::roster(map);
+                    for enemy in roster.enemies.iter().chain(&roster.bosses) {
+                        spawn_enemy(
+                            &mut commands,
+                            &mut run,
+                            enemy,
+                            Vec3::ZERO,
+                            Vec3::X,
+                            false,
+                            false,
+                        );
+                    }
+                }
+            })
+            .unwrap();
+        let mut checked = 0;
+        for (enemy, store) in app
+            .world_mut()
+            .query::<(&Enemy, &crate::net::ObjectStore)>()
+            .iter(app.world())
+        {
+            let expected = survivors_core::enemy_equipment::for_template(enemy.def.template_entry)
+                .expect(enemy.def.name);
+            for slot in 0..3 {
+                let item = expected.iter().find(|item| item.0 == u16::from(slot));
+                assert_eq!(
+                    store.0.unit_virtual_item_display(slot).unwrap_or_default(),
+                    item.map_or(0, |item| item.1),
+                    "{} slot {slot}",
+                    enemy.def.name
+                );
+                if let Some(&(_, _, class, subclass, material, inventory, sheath)) = item {
+                    assert_eq!(
+                        store.0.unit_virtual_item_info(slot),
+                        Some((class, subclass, material, inventory))
+                    );
+                    assert_eq!(store.0.unit_virtual_item_sheath(slot), Some(sheath));
+                }
+            }
+            checked += 1;
+        }
+        assert!(checked > 400);
+    }
 
     #[test]
     fn contact_keeps_reflection_target_and_stops_health_loss_at_death() {
