@@ -4,6 +4,26 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Roomier talent trees
+
+Talent rows have more vertical space (14% at the reference width) and icons are
+8% larger. Narrow screens scale proportionally, wrap and scroll; background art stays proportional.
+Single-column expansion is capped to avoid excessive gaps at enlarged UI sizes.
+The intention layout remains the reference for the three illustrated trees.
+
+![Before: Paladin talent spacing at 1280×720](images/screenshots/2026-10-28-talent-readability/before.jpg)
+
+![Roomier Paladin talent trees at 1280×720](images/screenshots/2026-10-28-talent-readability/wide.jpg)
+
+![Compact talent trees at 640×720](images/screenshots/2026-10-28-talent-readability/compact.jpg)
+
+![Lower rows remain accessible at 125% UI size](images/screenshots/2026-10-28-talent-readability/compact-bottom.jpg)
+
+Native macOS previews checked at 1280×720 and 640×720, including lower-row and
+saved-spec access at 125% UI size. All 553 Survivors tests pass. Final incremental
+build: 24 seconds. Feature Clippy and eight-package scoped checks pass (31 missing-
+addon skips). Windows visual confirmation remains open.
+
 ## 2026-10-28 — Per-sample actor-mask storage
 
 The experimental mask now follows the world's MSAA setting. A dedicated pass reuses

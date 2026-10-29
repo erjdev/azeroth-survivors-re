@@ -9,9 +9,10 @@ use bevy::ui::RelativeCursorPosition;
 const DIM: Color = Color::srgb(0.64, 0.58, 0.4);
 const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 const ACTIVE: Color = Color::srgb(0.32, 0.8, 0.95);
-const ICON: f32 = 48.0;
-// Preserve readable seven-row spacing when panels wrap on narrow screens.
-const GRID_HEIGHT: f32 = 560.0;
+const ICON: f32 = 52.0;
+// Seven rows retain room for larger icons and rank labels even when panels wrap.
+// These design units follow the shared height-relative UI scale; overflow scrolls.
+const GRID_HEIGHT: f32 = 640.0;
 
 #[derive(Component)]
 pub(in crate::survivors) struct TreeViewport;
@@ -418,7 +419,7 @@ fn panel(
     ui.spawn((
         Node {
             // Leave rounding room for two panels at 640×720 and four at 16:9
-            // with height-relative UI scaling; retain the tall grid floor.
+            // with height-relative UI scaling; retain the tall grid proportions.
             flex_grow: 1.0,
             flex_basis: Val::Px(288.0 + 2.0 * layout.padding + 2.0),
             min_width: Val::Px(0.0),
@@ -602,7 +603,9 @@ pub(super) fn build(
                         Node { flex_grow: 1.0, ..default() }));
                     text(heading, font, format!("{} {}", points[tree], if points[tree] == 1 { "point" } else { "points" }), layout.body_size, DIM);
                 });
-                col.spawn((Node { width: Val::Percent(100.0), aspect_ratio: Some(300.0 / GRID_HEIGHT), min_height: Val::Px(GRID_HEIGHT), flex_shrink: 0.0,
+                // Bound single-column expansion: enlarged UI must not turn one tree
+                // into several screens of empty space between its seven rows.
+                col.spawn((Node { width: Val::Percent(100.0), aspect_ratio: Some(300.0 / GRID_HEIGHT), max_height: Val::Px(GRID_HEIGHT * 1.25), align_self: AlignSelf::Center, flex_shrink: 0.0,
                     overflow: Overflow::clip(), border_radius: BorderRadius::all(Val::Px(3.0)), ..default() }, BackgroundColor(Color::BLACK)))
                 .with_children(|grid| {
                     let tabs = catalog.tabs_for_class(1, CLASSES[hero.class].id);

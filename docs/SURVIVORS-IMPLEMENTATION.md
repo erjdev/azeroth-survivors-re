@@ -344,14 +344,16 @@ previews verify readable guidance and independent detail scrolling through all
 bonuses. Ordinary Mind Blast correctly omits a talent prerequisite. Captures are
 embedded in the changelog and README. This does not complete acquisition balance.
 
-Latest layout validation (2026-10-28): talent trees use a 560-unit height floor
-and 48-unit maximum icons. This increases row spacing by another 17% and icon
-size by 9% over the previous 480/44 layout. Preserve this readability floor
-when changing aspect ratios; allow vertical scrolling instead of squeezing rows.
-Artwork keeps its proportions with centered side cropping; narrow viewports
-wrap and scroll rather than compressing the rows. Native 1600×900 and 640×720
-captures, including lower-row access, are embedded in CHANGELOG and the README
-gallery. Windows visual confirmation remains open.
+Latest talent readability requirement (2026-10-28 follow-up): use a 300:640
+width-to-height grid ratio and 52-unit maximum icons, following the shared
+height-relative UI scale. At the 300-unit reference width, row centers are 14%
+farther apart and icons are 8% larger than the previous 560/48 layout. Narrow
+panels scale proportionally and wrap rather than squeezing all trees into one row.
+Do not combine a minimum height with this aspect ratio: Bevy can expand the width
+beyond its parent. Cap single-column expansion at 800 design units and center the
+bounded canvas at enlarged UI sizes. Artwork retains its own 300:331 proportions
+with centered side cropping. Validate wide and compact views, lower-row access,
+and enlarged UI scale whenever changing this layout. Windows confirmation is open.
 
 Earlier compact validation (2026-10-27): a 288-unit preferred content width leaves
 room for two columns at 640×720, then using the 420-unit grid-height floor and
