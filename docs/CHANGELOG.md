@@ -4,6 +4,27 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Scorch and Fire vulnerability
+
+Mages can acquire Scorch. Improved Scorch adds a target-specific, five-stack
+Fire vulnerability with exact 33/66/100% rank chances and a refreshed 30-second
+expiry. Splash copies and periodic damage cannot add stacks. Talent and spell
+upgrades show their changing values inline in green.
+
+![Improved Scorch rank preview at 1280×720](images/screenshots/2026-10-28-scorch/talents-wide.jpg)
+
+![Saved talent reloaded at 640×720](images/screenshots/2026-10-28-scorch/talents-compact.jpg)
+
+![Scorch inline upgrade at 1280×720](images/screenshots/2026-10-28-scorch/cards-wide.jpg)
+
+![Scorch inline upgrade at 640×720](images/screenshots/2026-10-28-scorch/cards-compact.jpg)
+
+All 289 core and 557 Survivors runtime tests pass. Native macOS purchases,
+refunds, spec isolation, save/reload and both preview sizes are verified.
+Feature Clippy and eight-package scoped checks pass (31 missing-addon skips).
+Attended combat, Windows visuals and balancing remain open; see the
+[Scorch audit](audits/SCORCH.md).
+
 ## 2026-10-28 — Roomier talent trees
 
 Talent rows have more vertical space (14% at the reference width) and icons are

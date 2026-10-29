@@ -20,6 +20,7 @@ pub mod marked_target;
 pub mod racials;
 pub mod raid_sets;
 pub mod rewards;
+pub mod scorch;
 pub mod selection;
 pub mod sheet;
 pub mod silhouette;

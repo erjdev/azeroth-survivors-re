@@ -1676,6 +1676,7 @@ pub enum TalentStat {
     VampiricEmbrace,
     ImprovedVampiricEmbrace,
     WintersChill,
+    ImprovedScorch,
     Shatter,
     Permafrost,
     BlizzardSlow,
@@ -1870,6 +1871,25 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::ImprovedScorch {
+            let rank = rank.min(self.max_rank);
+            let (prefix, suffix) = self.description.split_once("33–100% chance")?;
+            let current = crate::scorch::chance_percent(rank);
+            let value = if rank == self.max_rank {
+                format!("{current}% chance")
+            } else {
+                format!(
+                    "{current} » {}% chance",
+                    crate::scorch::chance_percent(rank + 1)
+                )
+            };
+            let start = prefix.len();
+            let end = start + value.len();
+            return Some((
+                format!("{prefix}{value}{suffix}"),
+                std::iter::once(start..end).collect(),
+            ));
+        }
         if matches!(self.stat, TalentStat::AbilityUnlock(_)) {
             let start = self.description.find(self.name)?;
             return Some((
@@ -2195,6 +2215,18 @@ impl TalentDefinition {
 
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
+        if self.stat == TalentStat::ImprovedScorch {
+            let rank = rank.min(self.max_rank);
+            let value = crate::scorch::chance_percent(rank);
+            return if rank == self.max_rank {
+                format!("This talent: {value}% Fire vulnerability chance (maximum rank)")
+            } else {
+                format!(
+                    "This talent: {value} » {}% Fire vulnerability chance next rank",
+                    crate::scorch::chance_percent(rank + 1)
+                )
+            };
+        }
         if matches!(self.stat, TalentStat::AbilityUnlock(_)) {
             return if rank == 0 {
                 format!("Unlock {} for acquisition", self.name)
@@ -2383,6 +2415,7 @@ impl TalentDefinition {
             TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
+            TalentStat::ImprovedScorch => unreachable!("handled above"),
             TalentStat::WintersChill => (100.0, "% chance to apply Winter's Chill on frost damage"),
             TalentStat::Impact => (100.0, "% chance to stun on fire damage"),
             TalentStat::Blackout => (100.0, "% chance to stun on Shadow damage"),
@@ -3162,6 +3195,7 @@ const MAGE_ARCANE: &[&str] = &["arcane_missiles", "arcane_explosion"];
 const MAGE_FIRE: &[&str] = &[
     "fireball",
     "fire_blast",
+    "scorch",
     "flamestrike",
     "pyroblast",
     "blast_wave",
@@ -3170,6 +3204,11 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 25, max_rank: 3, name: "Improved Scorch",
+        description: "Scorch hits have a 33–100% chance to add 3% Fire vulnerability for 30 sec, up to five stacks (15%). Refreshes all stacks after damage. Requires acquiring Scorch; excludes splash copies and periodic triggers. Other Fire damage benefits but cannot add stacks",
+        stat: TalentStat::ImprovedScorch, per_rank: 1.0,
+    },
     TalentDefinition {
         id: 83, max_rank: 2, name: "Improved Mana Shield",
         description: "Mana Shield: 10% shorter cooldown per rank. Absorption and duration are unchanged; requires acquiring Mana Shield during the run (Survivors mana-cost conversion; no mana resource)",
@@ -3875,6 +3914,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Vengeance
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
+            | TalentStat::ImprovedScorch
             | TalentStat::WintersChill
             | TalentStat::Impact
             | TalentStat::Blackout
@@ -5409,6 +5449,7 @@ mod stat_talent_tests {
                     | TalentStat::Vengeance
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn
+                    | TalentStat::ImprovedScorch
                     | TalentStat::WintersChill
                     | TalentStat::Impact
                     | TalentStat::Blackout
@@ -7682,5 +7723,20 @@ mod backstab_tests {
             assert_eq!(&text[ranges[0].clone()], expected);
             assert!(text.contains("does not grant"));
         }
+    }
+}
+
+impl Milestones {
+    pub fn improved_scorch_chance(self, source: &str, damage: f32, original: bool) -> f32 {
+        if self.class != 6
+            || source != "scorch"
+            || !damage.is_finite()
+            || damage <= 0.0
+            || !original
+        {
+            return 0.0;
+        }
+        crate::scorch::chance_percent(self.trained_value(TalentStat::ImprovedScorch) as u8) as f32
+            / 100.0
     }
 }

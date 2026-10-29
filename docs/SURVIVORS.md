@@ -974,3 +974,16 @@ debuff slot if all eight slots are occupied. This affects visual slots only.
 Mark duration uses active run time, pauses freeze it, and caster/target death
 removes the benefit. These automatic-targeting and eight-rank rules are Survivors
 conversions, not claims about vanilla spell automation or rank progression.
+
+### Mage Scorch and Improved Scorch
+
+Scorch is an independently acquired single-target Fire ability: rank one deals
+16 damage, recovers in 1.5 seconds, and reaches 30 yards before ordinary ability,
+gear and talent scaling. Extra targets select separate victims. Improved Scorch
+(node 25) gives original positive hits a 33%/66%/100% chance to add 3% Fire
+vulnerability after damage, lasting 30 active seconds and stacking to 15%.
+Further applications refresh all stacks. Splash, periodic ticks and multistrike
+copies cannot add stacks; Fire damage benefits regardless of which ability caused
+it. Expiry uses active run time; death clears the debuff. The spell does not
+require this talent to appear in normal choices. See [Scorch evidence and
+acceptance](audits/SCORCH.md) for timing limits and validation status.

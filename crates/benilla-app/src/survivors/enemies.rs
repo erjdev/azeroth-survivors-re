@@ -16,6 +16,7 @@ use crate::creature_anim::{move_flags, MovementState};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
 #[derive(Component)]
+#[require(super::abilities::FireVulnerability)]
 pub(super) struct Enemy {
     pub def: &'static EnemyDef,
     pub hp: f32,

@@ -59,7 +59,7 @@ omitting it restores saved settings. See [preview controls](docs/SURVIVORS-DEVEL
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-28-codex-acquisition/wide.jpg" alt="Codex"><br>2026-10-28 · Amulet acquisition guidance and required talent training.<br><a href="docs/images/screenshots/2026-10-28-codex-acquisition/compact.jpg">640×720</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-28-talent-readability/wide.jpg" alt="Roomier talent trees"><br>2026-10-28 · Taller trees and larger icons; narrow layouts scroll without compressing rows.<br><a href="docs/images/screenshots/2026-10-28-talent-readability/compact.jpg">640×720</a> · <a href="docs/images/screenshots/2026-10-28-talent-readability/compact-bottom.jpg">Lower rows at 125%</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-28-scorch/talents-wide.jpg" alt="Improved Scorch talent preview"><br>2026-10-28 · Roomier trees, saved specs and inline Scorch upgrades.<br><a href="docs/images/screenshots/2026-10-28-scorch/talents-compact.jpg">640×720</a> · <a href="docs/CHANGELOG.md">Milestone screenshots</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

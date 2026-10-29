@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Mage Scorch dependency — 2026-10-28
+
+Scorch and Improved Scorch are connected as an acquired spell plus real
+per-target Fire vulnerability. The [Scorch audit](audits/SCORCH.md) records installed
+rank rules, authored base balance, proc exclusions, preserved catalog ordering and
+runtime/UI evidence. All 289 core and 557 Survivors runtime tests pass. Native
+macOS purchases/refunds, spec isolation, save/reload and wide/compact card previews
+are verified. Windows visuals, attended combat and tuning remain open.
+
 ## Priest channel dependency — 2026-10-28
 
 Mind Flay needs a persistent channel, not an ordinary damage-over-time cast.

@@ -52,6 +52,34 @@ impl Hit {
     }
 }
 
+#[derive(Component, Default)]
+pub(super) struct FireVulnerability(pub survivors_core::scorch::FireVulnerability);
+
+impl FireVulnerability {
+    fn multiplier(
+        &self,
+        source: &str,
+        now: f32,
+        spells: Option<&crate::ui_action::Spells>,
+        reflection: u32,
+    ) -> f32 {
+        let spell = if source == "Ignite" {
+            Some(12654)
+        } else if source == "Thorns" {
+            Some(reflection)
+        } else {
+            data::ABILITIES
+                .iter()
+                .find(|def| def.key == source)
+                .map(|def| def.spell)
+        };
+        let fire = spell
+            .and_then(|id| spells.and_then(|s| s.catalog.get(id)))
+            .is_some_and(|s| s.school == 2);
+        self.0.multiplier(fire, now)
+    }
+}
+
 /// Target-owned vulnerability; removed with the victim, never attached to the caster.
 #[derive(Component, Default)]
 pub(super) struct StormstrikeVulnerability(pub survivors_core::stormstrike::Stormstrike);
@@ -1367,6 +1395,7 @@ pub(super) fn apply_hits(
         &mut Enemy,
         &mut ObjectStore,
         &mut Marks,
+        &mut FireVulnerability,
     )>,
     mut fx: Fx,
     mut loot: MessageWriter<Loot>,
@@ -1385,6 +1414,7 @@ pub(super) fn apply_hits(
                     en: &mut Enemy| {
         en.dead = true;
         commands.entity(e).remove::<super::marking::Marked>();
+        commands.entity(e).remove::<FireVulnerability>();
         en.hp = 0.0;
         en.dots.clear();
         en.poison = Default::default();
@@ -1556,7 +1586,8 @@ pub(super) fn apply_hits(
             }
             Step::Settle(hit, original) => (hit, original),
         };
-        let Ok((e, guid, tf, mut en, mut store, mut marks)) = enemies.get_mut(h.target) else {
+        let Ok((e, guid, tf, mut en, mut store, mut marks, mut fire)) = enemies.get_mut(h.target)
+        else {
             continue;
         };
         if en.dead {
@@ -1582,7 +1613,9 @@ pub(super) fn apply_hits(
         } else {
             0.0
         };
+        let impact_time = h.occurred.unwrap_or(now);
         let mut dmg = (h.damage + mark_bonus)
+            * fire.multiplier(h.source, impact_time, spells.as_deref(), run.thorns_spell)
             * creature_multiplier(run.milestones, en.def.creature_type, h.source, h.crit)
             * run
                 .milestones
@@ -1626,6 +1659,15 @@ pub(super) fn apply_hits(
                 }
             }
             en.hp -= dmg;
+            if run.alive() && en.hp > 0.0 {
+                let chance = run
+                    .milestones
+                    .improved_scorch_chance(h.source, removed, original);
+                if chance > 0.0 && rng.f32() < chance {
+                    fire.0.apply(impact_time);
+                    marks.add(22959, (impact_time + 30.0 - now).max(0.0));
+                }
+            }
             run.add_damage(h.source, dmg);
             fx.number(e, dmg, h.crit, h.color);
             let heal = if let Effect::Drain(frac) = h.effect {
@@ -1779,7 +1821,7 @@ pub(super) fn apply_hits(
     }
 
     // The over-time ticks, once a second each.
-    for (e, guid, tf, mut en, mut store, mut marks) in &mut enemies {
+    for (e, guid, tf, mut en, mut store, mut marks, fire) in &mut enemies {
         if en.dead || (en.dots.is_empty() && !en.poison.active()) {
             continue;
         }
@@ -1796,6 +1838,7 @@ pub(super) fn apply_hits(
             for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
                 let mut tick = d.dps
+                    * fire.multiplier(d.source, now, spells.as_deref(), 0)
                     * creature_multiplier(run.milestones, creature_type, d.source, false)
                     * echoes as f32
                     * run.milestones.shadow_damage_multiplier(d.source, weaving)
@@ -10825,3 +10868,7 @@ mod marked_target_tests;
 #[cfg(test)]
 #[path = "stormstrike_tests.rs"]
 mod stormstrike_tests;
+
+#[cfg(test)]
+#[path = "scorch_tests.rs"]
+mod scorch_tests;

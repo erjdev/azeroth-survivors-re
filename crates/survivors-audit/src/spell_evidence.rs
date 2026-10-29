@@ -15,7 +15,11 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
         "levels: base={} spell={} maximum={}",
         row.base_level, row.spell_level, row.max_level
     );
-    println!("duration={:?}", durations.get(row.duration_index));
+    println!(
+        "duration={:?} stacks={}",
+        durations.get(row.duration_index),
+        row.stack_amount
+    );
     if let Some(range) = ranges.get(row.range_index) {
         println!(
             "range: minimum={} maximum={} flags={}",
