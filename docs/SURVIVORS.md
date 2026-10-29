@@ -1161,8 +1161,18 @@ self-casting and recovery. Rank, Might and recovery modifiers apply. Critical
 healing is fixed at 150%; offensive critical-damage bonuses do not increase it.
 Overhealing is discarded, existing periodic healing survives, and it cannot revive
 or emit damage hits. Holy Power retains its authored +2 percentage points per rank
-and now affects Holy Light as well as Holy Shock. Other Holy spell eligibility is
-unchanged. Divine Favor retains its documented Holy Shock-only conversion.
-Healing Light's existing Holy Shock cast-heal conversion is unchanged; extending
-it to the new direct heal, Flash of Light, Illumination and cast-pushback mechanics
-remain separate unfinished dependencies.
+and now affects Holy Light, Flash of Light and Holy Shock. Other Holy spell
+eligibility is unchanged. Divine Favor retains its documented Holy Shock-only
+conversion. Illumination and cast-pushback mechanics remain unfinished.
+
+
+### Flash of Light and Healing Light
+
+Flash of Light (19750) uses the same automatic self-heal rules as Holy Light,
+with authored values of 18 base health and 6-second recovery. Its quicker,
+smaller heal occupies an acquired ability slot. Healing Light (node 1444) increases
+both direct heals by 4/8/12%, following installed spells 20237–20239. This scoped
+multiplier composes with rank and Might; it does not affect other-class healing,
+Holy damage or critical-healing magnitude. The existing Holy Shock conversion
+also remains: 1/2/3% maximum health healed once per successful cast, in addition
+to the Holy milestone bonus. Both contributions appear separately inline.

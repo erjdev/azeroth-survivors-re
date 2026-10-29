@@ -940,6 +940,14 @@ pub static ABILITIES: &[AbilityDef] = &[
     ),
     // --- Paladin ---
     ability!(
+        "flash_of_light",
+        19750,
+        DirectHeal {
+            damage: 18.0,
+            cooldown: 6.0
+        }
+    ),
+    ability!(
         "holy_light",
         635,
         DirectHeal {
@@ -1321,6 +1329,7 @@ pub static CLASSES: &[ClassDef] = &[
             "repentance",
             "retribution_aura",
             "holy_light",
+            "flash_of_light",
         ],
         looks: &[
             1299, 1499, 1622, 3087, 3088, 3089, 3284, 3289, 3346, 3393, 7356,

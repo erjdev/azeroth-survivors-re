@@ -103,3 +103,10 @@ criticals. This creates a healing-event producer, but does not enable Spiritual
 Focus or Illumination: it has no interrupted cast and no mana to refund. Flash of
 Light and a revised Healing Light consumer remain unfinished. Existing Divine
 Favor and Holy Shock cast-heal behavior are preserved pending that work.
+
+
+Flash of Light / Healing Light follow-up: both automatic direct heals now exist.
+Node 1444 applies 4/8/12% healing to them, with the previous Holy Shock cast-heal
+conversion preserved independently. Holy Power includes both healing-critical
+rolls. Illumination still needs an explicit no-mana policy and an effective-heal
+critical consumer; mere cast or damage-critical events cannot satisfy it.

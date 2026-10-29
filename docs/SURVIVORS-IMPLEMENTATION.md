@@ -5,6 +5,29 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Paladin healing scope — 2026-10-29
+
+Flash of Light is acquired independently (18 base health / 6s recovery), following
+Holy Light's automatic self-heal conversion. Holy Power covers both. Healing Light
+now applies the installed 4/8/12% direct-healing multiplier to Holy Light and Flash
+of Light, while retaining the existing 1/2/3%-maximum-health Holy Shock cast heal.
+Its two contributions have distinct green inline values. The catalog-backed save
+regression exercises all three ranks for both direct spells, separate specs and
+refund; real cast tests exercise both spells with and without training.
+
+Native previews verify wide cards and compact 125% talent text; final incremental
+build took 14 seconds. Native purchase replay was blocked by the computer-use
+window-targeting error, so it remains open despite the automated saved-spec coverage.
+The final eight-package formatting/Clippy/test gate passes: 4,864 app tests and
+314 core tests, with 31 optional-addon skips.
+
+Definition coverage remains 306/432: an existing named node gained its missing
+consumer. Next is Illumination's no-mana policy and effective-critical-healing
+consumer, then other missing Paladin dependencies. Casting pushback, incoming
+control, shield blocking, physical attacks and full Windows/combat acceptance
+remain unfinished. No production save was used for native previews.
+
+
 ## Paladin direct-healing foundation — 2026-10-29
 
 Holy Light is now an ordinary acquired ability, following the documented automatic

@@ -639,6 +639,13 @@ impl Milestones {
                     TalentStat::SpellDuration(spell) if spell == key => {
                         effect.duration *= 1.0 + value
                     }
+                    TalentStat::HealingLight if matches!(key, "holy_light" | "flash_of_light") => {
+                        effect.damage *= 1.0 + value;
+                    }
+                    // Preserve the established Survivors Holy Shock conversion alongside the DBC heal scope.
+                    TalentStat::HealingLight if key == "holy_shock" => {
+                        effect.heal_fraction += value * 0.25
+                    }
                     TalentStat::SpellHeal(spell) if spell == key => effect.heal_fraction += value,
                     TalentStat::SpellShield(spell) if spell == key => {
                         effect.shield_fraction += value
@@ -1782,6 +1789,7 @@ pub enum TalentStat {
     MeleeParry,
     MeleeDodge,
     PowerInfusion,
+    HealingLight,
     Preparation,
     SiphonLife,
     Nightfall,
@@ -1927,6 +1935,28 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::HealingLight {
+            let rank = rank.min(self.max_rank);
+            let next = rank.saturating_add(1).min(self.max_rank);
+            let value = |scale: u8, unit: &str| {
+                let current = rank * scale;
+                if rank == next {
+                    format!("{current}{unit}")
+                } else {
+                    format!("{current} » {}{unit}", next * scale)
+                }
+            };
+            let mut text = "Holy Light and Flash of Light: +".to_owned();
+            let first_start = text.len() - 1;
+            text.push_str(&value(4, "% healing"));
+            let first = first_start..text.len();
+            text.push_str(". Holy Shock heals ");
+            let second_start = text.len();
+            text.push_str(&value(1, "% maximum health"));
+            let second = second_start..text.len();
+            text.push_str(" once per cast (Survivors conversion)");
+            return Some((text, vec![first, second]));
+        }
         type PercentPreview = (&'static str, &'static str, fn(u8) -> u8);
         let non_linear: Option<PercentPreview> = match self.stat {
             TalentStat::ImprovedScorch => {
@@ -2285,6 +2315,14 @@ impl TalentDefinition {
 
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
+        if self.stat == TalentStat::HealingLight {
+            let suffix = if rank >= self.max_rank {
+                " (maximum rank)"
+            } else {
+                " next rank"
+            };
+            return format!("{}{suffix}", self.inline_description(rank).unwrap());
+        }
         if matches!(
             self.stat,
             TalentStat::ImprovedScorch | TalentStat::ImprovedCurseWeakness
@@ -2518,6 +2556,7 @@ impl TalentDefinition {
             TalentStat::Reduction => (100.0, "% damage reduction"),
             TalentStat::Speed => (100.0, "% movement speed"),
             TalentStat::SpellDuration(_) => (100.0, "% duration"),
+            TalentStat::HealingLight => return self.inline_description(rank).unwrap(),
             TalentStat::SpellHeal(_) => (100.0, "% maximum health healed per cast"),
             TalentStat::SpellRadius(_) => (100.0, "% radius"),
         };
@@ -2998,8 +3037,8 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
         id: 1627,
         max_rank: 5,
         name: "Holy Power",
-        description: "Holy Shock and Holy Light: +2% critical chance per rank",
-        stat: TalentStat::SpellGroupCrit(&["holy_shock", "holy_light"]),
+        description: "Holy Shock, Holy Light and Flash of Light: +2% critical chance per rank",
+        stat: TalentStat::SpellGroupCrit(&["holy_shock", "holy_light", "flash_of_light"]),
         per_rank: 0.02,
     },
     TalentDefinition {
@@ -3022,9 +3061,9 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
         id: 1444,
         max_rank: 3,
         name: "Healing Light",
-        description: "Holy Shock heals 1% maximum health per rank once per cast",
-        stat: TalentStat::SpellHeal("holy_shock"),
-        per_rank: 0.01,
+        description: "Holy Light and Flash of Light: +4% healing per rank. Holy Shock heals 1% maximum health per rank once per cast (Survivors conversion)",
+        stat: TalentStat::HealingLight,
+        per_rank: 0.04,
     },
     TalentDefinition {
         id: 1443,
@@ -4076,6 +4115,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SpellShield(_)
             | TalentStat::SpellImmune(_)
             | TalentStat::SpellShieldDuration(_)
+            | TalentStat::HealingLight
             | TalentStat::SpellHeal(_) => {}
         }
     }
@@ -5622,6 +5662,7 @@ mod stat_talent_tests {
                     | TalentStat::SpellShield(_)
                     | TalentStat::SpellImmune(_)
                     | TalentStat::SpellShieldDuration(_)
+                    | TalentStat::HealingLight
                     | TalentStat::SpellHeal(_) => {
                         assert!(total.might.abs() < 0.00001);
                         continue;
@@ -7936,5 +7977,52 @@ mod weakness_tests {
         .with_ranks(&[(0, 1021, 2)]);
         assert_eq!(reach.cast(spell.key).range, 1.2);
         assert_eq!(reach.cast(spell.key).damage, 1.0);
+    }
+}
+
+#[cfg(test)]
+mod healing_light_tests {
+    use super::*;
+    #[test]
+    fn direct_healing_scope_and_legacy_shock_bonus_have_independent_inline_values() {
+        let base = Milestones {
+            class: 1,
+            ..Default::default()
+        };
+        let node = PALADIN_TALENTS.iter().find(|n| n.id == 1444).unwrap();
+        for rank in 0..=3 {
+            let trained = base.with_ranks(&[(0, 1444, rank)]);
+            for key in ["holy_light", "flash_of_light"] {
+                let cast = trained.cast(key);
+                assert!((cast.damage - (1.0 + 0.04 * f32::from(rank))).abs() < 0.00001);
+                assert_eq!(cast.heal_fraction, 0.0);
+            }
+            assert!(
+                (trained.cast("holy_shock").heal_fraction - 0.01 * f32::from(rank)).abs() < 0.00001
+            );
+            assert_eq!(
+                trained.cast("holy_shock").damage,
+                base.cast("holy_shock").damage
+            );
+            for key in [
+                "healing_touch",
+                "greater_heal",
+                "retribution_aura",
+                "consecration",
+            ] {
+                assert_eq!(trained.cast(key), base.cast(key));
+            }
+            let (text, spans) = node.inline_description_with_values(rank).unwrap();
+            assert_eq!(spans.len(), 2);
+            let next = (rank + 1).min(3);
+            let expected = if rank < 3 {
+                format!("+{} » {}% healing", rank * 4, next * 4)
+            } else {
+                "+12% healing".into()
+            };
+            assert_eq!(&text[spans[0].clone()], expected);
+            assert!(text[spans[1].clone()].ends_with("% maximum health"));
+            assert!(!text.contains("per rank"));
+        }
     }
 }

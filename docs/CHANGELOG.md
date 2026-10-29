@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Flash of Light and healing training
+
+Paladins can acquire Flash of Light (18 base health / 6-second recovery).
+Healing Light now increases both direct heals by 4/8/12%, preserving its existing
+Holy Shock heal. Holy Power covers all three spells. Green inline values distinguish
+direct-healing growth from Holy Shock's maximum-health effect.
+
+Native previews verify wide cards and compact 125% talent text. Incremental build:
+14 seconds. Native purchase replay remains open because pointer automation could
+not target the window; catalog-backed regressions cover ranks, saves, specs and refunds.
+Windows and attended combat remain unverified.
+The eight-package formatting/Clippy/test gate passes, including 4,864 app tests
+and 314 core tests (31 optional-addon skips).
+
+![Flash of Light and Holy Light inline upgrades](images/screenshots/2026-10-29-flash-light/cards-wide.png)
+
+![Compact Healing Light inspection](images/screenshots/2026-10-29-flash-light/talent-compact.png)
+
+
 ## 2026-10-29 — Acquired Holy Light
 
 Paladins can acquire Holy Light: an automatic self-heal below 85% health, with

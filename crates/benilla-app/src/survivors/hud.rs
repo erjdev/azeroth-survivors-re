@@ -4268,49 +4268,54 @@ mod holy_light_offer_tests {
     use super::*;
     #[test]
     fn holy_light_is_acquired_and_shows_inline_healing_and_recovery() {
-        let mut run = Run {
-            class: &data::CLASSES[1],
-            ..Default::default()
-        };
-        run.milestones.class = 1;
-        let def = data::ability("holy_light");
-        let mut rng = Rng(42);
-        let mut offer = Offer {
-            choices: choices_for(&run, &mut rng, 100),
-        };
-        let index = offer
-            .choices
-            .iter()
-            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
-            .unwrap();
-        pick(
-            index,
-            &mut run,
-            &mut offer,
-            &mut rng,
-            &mut NextState::default(),
-        );
-        assert_eq!(run.abilities[0].def.key, def.key);
-        let a = cast_at(def, 1, &run.stats(), run.milestones);
-        let b = cast_at(def, 2, &run.stats(), run.milestones);
-        let spans = inline::ability(def, &a, &b);
-        assert!(spans
-            .iter()
-            .any(|(text, color)| text == "40 » 52 health" && *color == card_growth::GAIN));
-        assert!(spans
-            .iter()
-            .any(|(text, color)| text == "12 » 11.2 sec" && *color == card_growth::GAIN));
-        for rank in 0..=5 {
-            let trained = run.milestones.with_ranks(&[(0, 1627, rank)]);
-            assert!((trained.cast("holy_light").crit - 0.02 * f32::from(rank)).abs() < 0.0001);
-            assert_eq!(
-                trained.cast("healing_touch"),
-                run.milestones.cast("healing_touch")
+        for (key, health, recovery) in [
+            ("holy_light", "40 » 52 health", "12 » 11.2 sec"),
+            ("flash_of_light", "18 » 23.4 health", "6 » 5.6 sec"),
+        ] {
+            let mut run = Run {
+                class: &data::CLASSES[1],
+                ..Default::default()
+            };
+            run.milestones.class = 1;
+            let def = data::ability(key);
+            let mut rng = Rng(42);
+            let mut offer = Offer {
+                choices: choices_for(&run, &mut rng, 100),
+            };
+            let index = offer
+                .choices
+                .iter()
+                .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+                .unwrap();
+            pick(
+                index,
+                &mut run,
+                &mut offer,
+                &mut rng,
+                &mut NextState::default(),
             );
-            assert_eq!(
-                trained.cast("retribution_aura"),
-                run.milestones.cast("retribution_aura")
-            );
+            assert_eq!(run.abilities[0].def.key, def.key);
+            let a = cast_at(def, 1, &run.stats(), run.milestones);
+            let b = cast_at(def, 2, &run.stats(), run.milestones);
+            let spans = inline::ability(def, &a, &b);
+            assert!(spans
+                .iter()
+                .any(|(text, color)| text == health && *color == card_growth::GAIN));
+            assert!(spans
+                .iter()
+                .any(|(text, color)| text == recovery && *color == card_growth::GAIN));
+            for rank in 0..=5 {
+                let trained = run.milestones.with_ranks(&[(0, 1627, rank)]);
+                assert!((trained.cast(key).crit - 0.02 * f32::from(rank)).abs() < 0.0001);
+                assert_eq!(
+                    trained.cast("healing_touch"),
+                    run.milestones.cast("healing_touch")
+                );
+                assert_eq!(
+                    trained.cast("retribution_aura"),
+                    run.milestones.cast("retribution_aura")
+                );
+            }
         }
     }
 }
