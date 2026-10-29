@@ -47,6 +47,13 @@ Windows and native pointer-hover inspection remain open.
 
 ![Compact keyboard inspection stays above the footer](docs/images/screenshots/2026-10-29-equipment-focus/after.jpg)
 
+### Combat demon specimens
+
+Native menu-only lineup, 2026-10-29: Imp, Voidwalker, Succubus and Felhunter.
+These verified assets are not yet summonable; combat behavior remains pending.
+
+![Native demon specimens](docs/images/screenshots/2026-10-29-demon-specimens/lineup.png)
+
 ### Enemy equipment specimens
 
 Native noncombat preview, 2026-10-29: verified NPC weapon and shield metadata now

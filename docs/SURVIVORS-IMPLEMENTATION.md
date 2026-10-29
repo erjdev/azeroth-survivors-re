@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Native demon appearance — 2026-10-29
+
+A development-only menu lineup now uses the four verified display IDs, normal unit
+rendering and model scales. A native 1280×720 macOS capture shows all four specimens
+with skins and visible effects; it is embedded in the changelog and README. The
+preview adds no combat-pet or enemy components, and modifies no account progression.
+Native build: 1m34s. Summoning/acquisition, combat animation, casting, movement,
+defeat/recovery and Windows remain open; talent coverage is unchanged.
+
 ## Demon model prerequisites — 2026-10-29
 
 The four summon templates now have reproducible, hash-checked display identities.

@@ -20,6 +20,8 @@ mod companions;
 mod controller_input;
 mod curse;
 mod defense;
+#[cfg(not(target_arch = "wasm32"))]
+mod demon_preview;
 mod disarm;
 mod enemies;
 #[cfg(not(target_arch = "wasm32"))]
@@ -98,7 +100,7 @@ impl Plugin for SurvivorsPlugin {
         #[cfg(feature = "survivors-visibility")]
         app.add_plugins((visibility::plugin, actor_mask::plugin));
         #[cfg(not(target_arch = "wasm32"))]
-        app.add_plugins(equipment_preview::plugin);
+        app.add_plugins((equipment_preview::plugin, demon_preview::plugin));
         // Present before `OnEnter(InWorld)`, where the UI lifecycle decides not to load FrameXML.
         app.insert_resource(crate::run_mode::CaptureMode)
             .add_plugins((

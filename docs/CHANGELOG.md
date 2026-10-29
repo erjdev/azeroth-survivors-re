@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Native demon specimens
+
+Added an opt-in menu preview of the Imp, Voidwalker, Succubus and Felhunter using
+verified displays and normal model rendering. The 1280×720 macOS capture confirms
+visible skins and effects. This is an appearance milestone: summoning, casting,
+combat movement and defeat remain unimplemented. Native incremental build: 1m34s.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+![Native demon lineup, no combat](images/screenshots/2026-10-29-demon-specimens/lineup.png)
+
 ## 2026-10-29 — Demon model verification
 
 Resolved all four summon templates to verified display IDs and decoded their models

@@ -147,3 +147,23 @@ copied into the repository, and no demon is enabled by this checkpoint.
 Validation: all four displays pass the installed-data audit; empty/malformed lists
 and nonexistent displays fail. The eight-package formatting/Clippy/test gate passes
 with 31 optional-addon skips. No native render is claimed.
+
+
+## Native specimen acceptance — 2026-10-29
+
+Set `WOW_SURVIVORS_DEMON_PREVIEW=1` for a development build to replace the menu
+view with four labeled specimens. Use an isolated `BENILLA_HOME`, checkout
+`WOW_DATA`, `WOW_UNATTENDED=1` and `WOW_NOSOUND=1`; do not start a run.
+The preview positions each specimen on a resolved floor and uses the regular unit
+model path, with no enemy or combat-pet component. The default model scale is retained.
+
+The native macOS 1280×720 render shows all four models and their skins, including
+Imp glow, Voidwalker glow/vortex, Succubus wings and Felhunter appendages. The build
+finished in 1m34s. The log confirms a network-off visual session, with no asset-load
+error or panic; startup frame hitches were present. This capture establishes visible
+appearance, not animation timing, performance, Windows, spells or combat behavior.
+
+![Native demon specimens](../images/screenshots/2026-10-29-demon-specimens/lineup.png)
+
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips),
+including 4,819 passing app unit tests. Windows visual acceptance remains open.
