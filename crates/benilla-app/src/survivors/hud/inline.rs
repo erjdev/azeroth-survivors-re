@@ -74,6 +74,11 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 " against them for ", duration,
                 ". Aimed Shot and Multi-Shot gain 0.2 damage per point before their cast modifiers. Reveals concealed marked enemies and tracks them on the minimap. Replaces your previous selection");
         }
+        Kind::ContactAura => {
+            prose!("Deal ", (a.dmg, b.dmg, " Holy damage"),
+                " to each enemy that makes contact with you, including absorbed or immune hits. Dodged and parried attacks do not trigger it. Active for the run; protects only you.");
+            return out.0;
+        }
         Kind::Aspect => {
             prose!("Gain ", (a.dodge_chance * 100.0, b.dodge_chance * 100.0, "% chance"),
                 " to dodge enemy contact attacks before armor and shields. Dodged attacks deal no damage and do not trigger reflection or damage-taken talents. Protects you, not your wolf. One aspect per run; lasts for the run.");

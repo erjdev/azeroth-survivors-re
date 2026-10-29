@@ -615,6 +615,9 @@ pub(super) fn move_enemies(
                 if let Some(hit) = super::defense::reflection(&run, strike) {
                     hits.write(hit);
                 }
+                if let Some(hit) = super::defense::aura_reflection(&run, strike) {
+                    hits.write(hit);
+                }
                 if let Some(hit) = super::defense::counterattack(&mut run, strike) {
                     fx.cast(hero_e, 19306, &[hit.target], None);
                     hits.write(hit);
@@ -1087,6 +1090,11 @@ mod spawn_tests {
             app.init_resource::<Rng>();
             app.init_resource::<PlaySeq>();
             app.insert_resource(Run {
+                abilities: vec![super::super::Owned {
+                    def: data::ability("retribution_aura"),
+                    level: 1,
+                    cd: 0.0,
+                }],
                 hp: 5.,
                 shield: 2.,
                 shield_t: 5.,
@@ -1155,7 +1163,7 @@ mod spawn_tests {
                 .drain()
                 .collect();
             assert_eq!(
-                reflected.len(),
+                reflected.len() / 2,
                 if immune {
                     2
                 } else if dodge {
@@ -1165,8 +1173,8 @@ mod spawn_tests {
                 }
             );
             assert!(reflected.iter().all(|hit| attackers.contains(&hit.target)
-                && hit.damage == 2.
-                && hit.source == "thorns"));
+                && ((hit.damage == 2. && hit.source == "thorns")
+                    || (hit.damage == 5. && hit.source == "retribution_aura"))));
             let swings: Vec<_> = app
                 .world_mut()
                 .resource_mut::<Messages<SwingMessage>>()

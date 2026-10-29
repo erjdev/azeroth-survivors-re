@@ -2847,6 +2847,7 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
 
 /// Survivors Paladin attacks; excludes immunity and other classes' Holy spells.
 pub const PALADIN_HOLY: &[&str] = &[
+    "retribution_aura",
     "hammer_of_wrath",
     "consecration",
     "holy_shock",
@@ -2857,6 +2858,11 @@ pub const PALADIN_HOLY: &[&str] = &[
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1405, max_rank: 2, name: "Improved Retribution Aura",
+        description: "Retribution Aura: +25% damage per rank. Requires acquiring the self aura during the run; does not improve Thorns or Retaliation",
+        stat: TalentStat::SpellDamage("retribution_aura"), per_rank: 0.25,
+    },
     TalentDefinition {
         id: 1441, max_rank: 1, name: "Repentance",
         description: "Unlocks Repentance in ability choices. Acquire it during the run to incapacitate nearby non-boss humanoids until damaged. Does not occupy an ability slot until acquired (Survivors automatic-cast conversion)",

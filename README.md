@@ -24,6 +24,8 @@ minimum-window onboarding and restart captures are in the changelog.
 
 ![Codex details support keyboard reading](docs/images/screenshots/2026-10-29-codex-reading/home.png)
 
+![Retribution Aura acquisition and inline damage upgrades](docs/images/screenshots/2026-10-29-retribution-aura/cards-wide.png)
+
 ![Repentance talent-unlocked control and inline upgrades](docs/images/screenshots/2026-10-29-repentance/cards-wide.png)
 
 ![Repentance saved spec after restart](docs/images/screenshots/2026-10-29-repentance/restarted.png)

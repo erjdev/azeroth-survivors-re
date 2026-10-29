@@ -274,7 +274,7 @@ impl Params {
                     as usize
             } else if matches!(
                 o.def.kind,
-                Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect
+                Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
             ) {
                 0
             } else {
@@ -284,7 +284,7 @@ impl Params {
             range: o.def.range * effect.range + effect.range_yards,
             duration: if matches!(
                 o.def.kind,
-                Kind::Channel | Kind::Mark | Kind::Coating(_) | Kind::Aspect
+                Kind::Channel | Kind::Mark | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
             ) {
                 o.def.duration
             } else {
@@ -304,14 +304,22 @@ impl Params {
                 (o.cooldown(stats) * effect.cooldown).max(o.def.duration)
             } else if o.def.kind == Kind::Mark {
                 super::sheet::cooldown_time(o.def.cooldown, stats.haste, stats.cooldown)
-            } else if matches!(o.def.kind, Kind::Coating(_) | Kind::Aspect) {
+            } else if matches!(
+                o.def.kind,
+                Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+            ) {
                 0.0
             } else {
                 o.cooldown(stats) * effect.cooldown
             },
             crit: if matches!(
                 o.def.kind,
-                Kind::Curse | Kind::Channel | Kind::Mark | Kind::Coating(_) | Kind::Aspect
+                Kind::Curse
+                    | Kind::Channel
+                    | Kind::Mark
+                    | Kind::Coating(_)
+                    | Kind::Aspect
+                    | Kind::ContactAura
             ) {
                 0.0
             } else {
@@ -555,7 +563,7 @@ pub(super) fn cast_abilities(
     for i in 0..run.abilities.len() {
         if matches!(
             run.abilities[i].def.kind,
-            Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect
+            Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
         ) || !run.milestones.ability_unlocked(run.abilities[i].def.key)
             || !run.abilities[i].def.usable_with(run.milestones.weapon)
         {
@@ -663,7 +671,7 @@ pub(super) fn cast_abilities(
                     true
                 }
             }
-            Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect => false, // Already resolved in the self-buff pass.
+            Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura => false, // Already resolved in the self-buff pass.
             Kind::Bolt | Kind::Strike | Kind::Melee => {
                 let reach = if def.kind == Kind::Melee {
                     p.range + 0.5

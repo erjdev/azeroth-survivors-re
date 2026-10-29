@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Retribution Aura and its improvement
+
+Paladins can acquire a persistent self aura that returns Holy damage on contact.
+Improved Retribution Aura adds 25/50% to that spell alone. It coexists with timed
+Thorns, ignores dodged/parried attacks and has no cooldown or extra-target scaling.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips);
+4,862 app tests pass. Final incremental build: 15 seconds.
+Cards show green inline damage growth. Native macOS previews pass at 1280×720
+and 640×720 / 125% UI size. Saved-spec interaction and attended Windows combat
+remain open; this milestone does not complete Paladin acceptance.
+
+![Retribution Aura acquisition and rank growth](images/screenshots/2026-10-29-retribution-aura/cards-wide.png)
+
+![Compact aura cards at 125% UI size](images/screenshots/2026-10-29-retribution-aura/cards-compact.png)
+
+
 ## 2026-10-29 — Correct retaliation damage and attribution
 
 Thorns and Retaliation now apply the cast's damage multiplier once. Reflected hits

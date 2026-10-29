@@ -1395,7 +1395,11 @@ pub(super) fn pick(
         Choice::NewAbility(def) => run.abilities.push(Owned {
             def,
             level: 1,
-            cd: if def.kind == Kind::Aspect { 0.0 } else { 0.3 },
+            cd: if matches!(def.kind, Kind::Aspect | Kind::ContactAura) {
+                0.0
+            } else {
+                0.3
+            },
         }),
         Choice::Upgrade(k) => run.abilities[k].level += 1,
         Choice::NewPassive(p) => run.passives.push((p, 1)),
@@ -2754,7 +2758,7 @@ pub(super) fn base_ability_body(def: &'static AbilityDef) -> String {
     let body = ability_body(def, &cast);
     if matches!(
         def.kind,
-        Kind::Aura | Kind::Orbit | Kind::Coating(_) | Kind::Aspect
+        Kind::Aura | Kind::Orbit | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
     ) {
         body
     } else {
@@ -2824,7 +2828,10 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
             &[num(next.duration).as_str().into()],
         ));
     }
-    if !matches!(def.kind, Kind::Coating(_) | Kind::Aspect) {
+    if !matches!(
+        def.kind,
+        Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+    ) {
         gains.push(strings.by_key(
             "SPELL_RECAST_TIME_SEC",
             "%s sec cooldown",
@@ -2864,10 +2871,15 @@ fn ability_tip(
         )),
         _ => None,
     };
-    let coating = matches!(def.kind, Kind::Coating(_) | Kind::Aspect);
+    let coating = matches!(
+        def.kind,
+        Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+    );
     let mut cast = TipLine::new(
         if def.kind == Kind::Aspect {
             "Aspect · active for the run"
+        } else if def.kind == Kind::ContactAura {
+            "Self aura · active for the run"
         } else if coating {
             "Weapon coating · active while equipped"
         } else {
@@ -4199,5 +4211,54 @@ mod repentance_offer_tests {
         assert_eq!(boosted.effect, Effect::Incapacitate(6.0));
         run.milestones = run.milestones.with_ranks(&[]);
         assert!(!coating_available(&run, def));
+    }
+}
+
+#[cfg(test)]
+mod retribution_aura_offer_tests {
+    use super::*;
+    #[test]
+    fn ordinary_acquisition_and_inline_growth_have_no_timer_or_target_scaling() {
+        let mut run = Run {
+            class: &data::CLASSES[1],
+            ..Default::default()
+        };
+        run.milestones.class = 1;
+        let def = data::ability("retribution_aura");
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, def.key);
+        let mut stats = run.stats();
+        stats.targets = 5;
+        stats.haste = 2.0;
+        stats.area = 2.0;
+        let a = cast_at(def, 1, &stats, run.milestones);
+        let b = cast_at(def, 2, &stats, run.milestones);
+        assert_eq!((a.count, b.count), (0, 0));
+        assert_eq!(
+            (a.cooldown, a.range, a.radius, a.duration, a.crit),
+            (0.0, 0.0, 0.0, 0.0, 0.0)
+        );
+        assert!(inline::ability(def, &a, &b)
+            .iter()
+            .any(|(text, color)| text == "5 » 6.5 Holy damage" && *color == card_growth::GAIN));
+        let body = base_ability_body(def);
+        assert!(body.contains("Active for the run"));
+        assert!(!body.contains("Recharges"));
     }
 }

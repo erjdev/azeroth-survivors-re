@@ -80,3 +80,17 @@ Retaliation foundation follow-up: contact reflection now emits the actual abilit
 key and cast-scaled damage once. A queued hit retains that identity if the active
 buff changes. Retribution Aura still requires its own acquisition/active-state
 policy and definition; this source fix does not enable node 1405.
+
+
+Retribution Aura follow-up: spell 7294 is now an ordinary acquired Paladin ability,
+using one slot and persisting for the run. Rank-one damage is 5 Holy (installed
+base points 4 + die sides 1); ability ranks use the existing +30% base-damage
+progression. Node 1405 adds 25/50% only to this spell. Damage is evaluated at each
+contact using current Might, legendary and scoped Holy modifiers. It cannot crit,
+spread to extra targets or gain a radius/cooldown. It does not trigger cast-only
+milestones. Avoided/invalid/inactive contact emits nothing; absorbed and immune
+contacts respond, consistently with existing temporary reflection. Only the hero
+is protected, not pets or party members. This authored self-aura conversion
+coexists with passive Sanctity Aura and temporary Thorns; party aura exclusivity
+is not represented. Native purchase/refund/restart and attended Windows combat
+remain acceptance work beyond the automated acquisition/contact checks.

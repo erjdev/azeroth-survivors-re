@@ -96,6 +96,7 @@ pub(in crate::survivors) fn legend_effect(
                 | Kind::Shield
                 | Kind::Immune
                 | Kind::Thorns
+                | Kind::ContactAura
                 | Kind::Channel
                 | Kind::Dot
                 | Kind::Curse

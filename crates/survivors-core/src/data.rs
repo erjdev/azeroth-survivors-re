@@ -42,6 +42,8 @@ pub enum Kind {
     Channel,
     /// Caster-owned ranged vulnerability and tracking; never emits a damage hit.
     Mark,
+    /// Acquired self aura; returns damage on enemy contact for the rest of the run.
+    ContactAura,
     /// Run-long Hunter aspect; only one aspect may be acquired per run.
     Aspect,
     /// Run-long weapon coating; applications are driven by original landed melee hits.
@@ -938,6 +940,16 @@ pub static ABILITIES: &[AbilityDef] = &[
     ),
     // --- Paladin ---
     ability!(
+        "retribution_aura",
+        7294,
+        ContactAura {
+            damage: 5.0,
+            cooldown: 0.0,
+            range: 0.0,
+            count: 0
+        }
+    ),
+    ability!(
         "hammer_of_wrath",
         24275,
         Bolt {
@@ -1299,6 +1311,7 @@ pub static CLASSES: &[ClassDef] = &[
             "divine_shield",
             "judgement",
             "repentance",
+            "retribution_aura",
         ],
         looks: &[
             1299, 1499, 1622, 3087, 3088, 3089, 3284, 3289, 3346, 3393, 7356,

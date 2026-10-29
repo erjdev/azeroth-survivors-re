@@ -96,6 +96,26 @@ pub(super) fn reflection(run: &Run, strike: Strike) -> Option<super::abilities::
     })
 }
 
+/// Acquired self-aura damage is evaluated at contact, independently of timed Thorns.
+pub(super) fn aura_reflection(run: &Run, strike: Strike) -> Option<super::abilities::Hit> {
+    if !matches!(strike.outcome, Outcome::Landed { .. } | Outcome::Immune) {
+        return None;
+    }
+    let owned = run
+        .abilities
+        .iter()
+        .find(|o| o.def.kind == super::data::Kind::ContactAura)?;
+    let damage = super::abilities::Params::new(owned, &run.stats(), run.milestones).dmg;
+    if !damage.is_finite() || damage <= 0.0 {
+        return None;
+    }
+    Some(super::abilities::Hit {
+        source: owned.def.key,
+        occurred: Some(run.elapsed),
+        ..super::abilities::Hit::direct(strike.attacker, damage, false)
+    })
+}
+
 /// Survivors consumes the parry immediately; cooldown blocks further responses, not avoidance.
 pub(super) fn counterattack(run: &mut Run, strike: Strike) -> Option<super::abilities::Hit> {
     let base = run.milestones.counterattack_damage();
@@ -186,6 +206,71 @@ mod tests {
             shield_t: 10.,
             ..Default::default()
         }
+    }
+
+    #[test]
+    fn acquired_aura_tracks_rank_and_scoped_training_without_replacing_thorns() {
+        use super::super::{data, Owned};
+        let attacker = Entity::from_bits(42);
+        let mut run = Run {
+            class: &data::CLASSES[1],
+            milestones: survivors_core::talents::Milestones {
+                class: 1,
+                ..Default::default()
+            },
+            thorns: 11.0,
+            thorns_t: 5.0,
+            thorns_spell: data::ability("thorns").spell,
+            ..Default::default()
+        };
+        let strike = Strike {
+            attacker,
+            outcome: Outcome::Immune,
+        };
+        assert!(aura_reflection(&run, strike).is_none());
+        run.abilities.push(Owned {
+            def: data::ability("retribution_aura"),
+            level: 1,
+            cd: 0.0,
+        });
+        for rank in 0..=2 {
+            run.milestones = run.milestones.with_ranks(&[(2, 1405, rank)]);
+            for level in [1, 2, 8] {
+                run.abilities[0].level = level;
+                let expected =
+                    5.0 * (1.0 + 0.3 * f32::from(level - 1)) * (1.0 + 0.25 * f32::from(rank));
+                for outcome in [
+                    Outcome::Immune,
+                    Outcome::Landed {
+                        absorbed: 10.0,
+                        health_removed: 0.0,
+                    },
+                    Outcome::Landed {
+                        absorbed: 0.0,
+                        health_removed: 10.0,
+                    },
+                ] {
+                    let hit = aura_reflection(&run, Strike { attacker, outcome }).unwrap();
+                    assert!((hit.damage - expected).abs() < 0.001);
+                    assert_eq!(hit.source, "retribution_aura");
+                    assert_eq!(hit.target, attacker);
+                    assert!(!hit.crit);
+                    assert_eq!(reflection(&run, strike).unwrap().damage, 11.0);
+                }
+            }
+        }
+        for outcome in [
+            Outcome::Invalid,
+            Outcome::Inactive,
+            Outcome::Dodged,
+            Outcome::Parried,
+        ] {
+            assert!(aura_reflection(&run, Strike { attacker, outcome }).is_none());
+        }
+        run.thorns_t = 0.0;
+        assert!(aura_reflection(&run, strike).is_some());
+        run.abilities.clear();
+        assert!(aura_reflection(&run, strike).is_none());
     }
 
     #[test]

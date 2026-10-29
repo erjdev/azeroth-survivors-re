@@ -5,6 +5,27 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Acquired Retribution Aura — 2026-10-29
+
+Spell 7294 now occupies one acquired Paladin ability slot and persists for the run.
+Its self-only contact response has its own Holy source and independently coexists
+with timed Thorns. Node 1405 is a scoped +25/50% damage improvement; coverage is
+306/432 definitions, Paladin 27/44. This is definition/runtime coverage, not full
+class acceptance. The [dependency audit](audits/PALADIN-TALENT-DEPENDENCIES.md)
+records the authored self-aura policy and remaining acceptance work.
+
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips),
+including all 4,862 app unit tests. Final play build: 15s; existing linker and
+`block` future-compatibility warnings remain.
+Automated checks exercise ordinary offer/acquisition, rank growth, both talent
+ranks, immunity/absorption/avoidance, simultaneous reflection and the real enemy
+contact system's death boundary. Native cards are captured wide and compact;
+preview fixtures are under `docs/ui-previews/retribution-aura-cards-*.txt`.
+Next: native talent purchase/refund/restart and independent-spec acceptance, then
+Paladin healing dependencies. Windows combat and full seven-phase acceptance
+remain open. No unattended combat was run.
+
+
 ## Retaliation source correctness — 2026-10-29
 
 The Retribution Aura prerequisite exposed two existing defects: cast parameters
