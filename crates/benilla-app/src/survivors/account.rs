@@ -2525,7 +2525,8 @@ mod tests {
         assert_eq!(account.bonus(3, 1).might, baseline.might);
         account.select_spec(1, 1);
         assert_eq!(account.milestones_picked(3, Some(1)).points, [0, 5, 0]);
-        assert_eq!(account.bonus(3, 1).armor, baseline.armor + 15.0);
+        assert_eq!(account.bonus(3, 1).armor, baseline.armor);
+        assert!((account.milestones_picked(3, Some(1)).melee_parry() - 0.05).abs() < 0.00001);
         account.select_spec(1, 2);
         assert_eq!(account.character(1).unwrap().dbc_rank(270), 1);
         assert_eq!(
@@ -2584,11 +2585,12 @@ mod tests {
         assert_eq!(loaded.bonus(3, id).might, 0.0);
         assert_eq!(loaded.bonus(3, id).armor, 0.0);
         loaded.select_spec(id, 1);
-        assert_eq!(
-            loaded.bonus(3, id).armor,
-            15.0,
-            "valid sibling spec remains active"
+        assert_eq!(loaded.bonus(3, id).armor, 0.0);
+        assert!(
+            (loaded.milestones_picked(3, Some(id)).melee_parry() - 0.05).abs() < 0.00001,
+            "valid sibling spec retains its parry bonus"
         );
+        assert_eq!(inactive.melee_parry(), 0.0);
         loaded.select_spec(id, 0);
         assert!(loaded.unlearn_talent(id, 273, true));
         assert!(loaded.character(id).unwrap().talent_budget_valid());

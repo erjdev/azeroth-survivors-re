@@ -59,7 +59,7 @@ omitting it restores saved settings. See [preview controls](docs/SURVIVORS-DEVEL
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-28-codex-acquisition/wide.jpg" alt="Codex"><br>2026-10-28 · Amulet acquisition guidance and required talent training.<br><a href="docs/images/screenshots/2026-10-28-codex-acquisition/compact.jpg">640×720</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-29-counterattack/talents-wide.jpg" alt="Counterattack talent preview"><br>2026-10-29 · Tall trees, saved specs and reactive Hunter talents.<br><a href="docs/images/screenshots/2026-10-29-counterattack/talents-compact.jpg">640×720</a> · <a href="docs/CHANGELOG.md">Milestone screenshots</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-29-melee-avoidance/dodge-wide.jpg" alt="Rogue dodge talent preview"><br>2026-10-29 · Tall trees, saved specs and actual dodge/parry talents.<br><a href="docs/images/screenshots/2026-10-29-melee-avoidance/parry-compact.jpg">640×720</a> · <a href="docs/CHANGELOG.md">Milestone screenshots</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

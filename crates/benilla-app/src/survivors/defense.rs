@@ -38,17 +38,20 @@ pub(super) fn contact(
     raw: f32,
     roll: impl FnOnce() -> f32,
 ) -> Strike {
-    if run.class.id == 3 && raw.is_finite() && raw > 0.0 && run.alive() && run.immune_t <= 0.0 {
-        let dodge = run
-            .abilities
-            .iter()
-            .find(|o| o.def.kind == super::data::Kind::Aspect)
-            .map_or(0.0, |owned| {
-                super::abilities::Params::new(owned, &run.stats(), run.milestones).dodge_chance
-            });
+    if raw.is_finite() && raw > 0.0 && run.alive() && run.immune_t <= 0.0 {
+        let aspect_dodge = if run.class.id == 3 {
+            run.abilities
+                .iter()
+                .find(|o| o.def.kind == super::data::Kind::Aspect)
+                .map_or(0.0, |owned| {
+                    super::abilities::Params::new(owned, &run.stats(), run.milestones).dodge_chance
+                })
+        } else {
+            0.
+        };
         let deterrence = run.milestones.deterrence_avoidance(run.elapsed);
-        let parry = deterrence + run.milestones.hunter_parry();
-        let dodge = (dodge + deterrence).clamp(0.0, 1.0);
+        let parry = deterrence + run.milestones.melee_parry();
+        let dodge = (aspect_dodge + deterrence + run.milestones.melee_dodge()).clamp(0.0, 1.0);
         if dodge + parry > 0.0 {
             let roll = roll();
             if roll.is_finite() && roll >= 0.0 && roll < (dodge + parry).min(1.0) {
@@ -159,6 +162,112 @@ mod tests {
             shield_t: 10.,
             ..Default::default()
         }
+    }
+
+    #[test]
+    fn trained_class_avoidance_prevents_contact_before_shields_and_retains_attacker() {
+        let attacker = Entity::from_bits(42);
+        for (class, tree, node, outcome) in [
+            (0, 0, 130, Outcome::Parried),
+            (1, 2, 1403, Outcome::Parried),
+            (3, 1, 187, Outcome::Parried),
+            (3, 1, 186, Outcome::Dodged),
+        ] {
+            for rank in 1..=5 {
+                let setup = || Run {
+                    class: &super::super::data::CLASSES[class],
+                    milestones: survivors_core::talents::Milestones {
+                        class,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(tree, node, rank)]),
+                    hp: 100.,
+                    shield: 10.,
+                    shield_t: 10.,
+                    ..Default::default()
+                };
+                let mut run = setup();
+                let strike = contact(&mut run, attacker, 20., || f32::from(rank) * 0.01 - 0.0001);
+                assert_eq!(strike, Strike { attacker, outcome });
+                assert_eq!((run.hp, run.shield), (100., 10.));
+                assert!(
+                    counterattack(&mut run, strike).is_none(),
+                    "Hunter reaction must not leak across classes"
+                );
+                let mut run = setup();
+                assert_eq!(
+                    contact(&mut run, attacker, 20., || f32::from(rank) * 0.01 + 0.0001).outcome,
+                    Outcome::Landed {
+                        absorbed: 10.,
+                        health_removed: 10.
+                    }
+                );
+                let mut run = setup();
+                assert_eq!(
+                    hurt(&mut run, 20.),
+                    Outcome::Landed {
+                        absorbed: 10.,
+                        health_removed: 10.
+                    },
+                    "non-contact damage does not roll avoidance"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rogue_dodge_and_parry_are_exclusive_and_inactive_contacts_never_roll() {
+        let attacker = Entity::from_bits(42);
+        let setup = || Run {
+            class: &super::super::data::CLASSES[3],
+            milestones: survivors_core::talents::Milestones {
+                class: 3,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 186, 5), (1, 187, 5)]),
+            hp: 100.,
+            shield: 10.,
+            shield_t: 10.,
+            ..Default::default()
+        };
+        for (roll, expected) in [
+            (0.0499, Outcome::Dodged),
+            (0.0501, Outcome::Parried),
+            (0.0999, Outcome::Parried),
+            (
+                0.1001,
+                Outcome::Landed {
+                    absorbed: 10.,
+                    health_removed: 10.,
+                },
+            ),
+        ] {
+            assert_eq!(
+                contact(&mut setup(), attacker, 20., || roll).outcome,
+                expected
+            );
+        }
+        let mut run = setup();
+        run.immune_t = 1.;
+        assert_eq!(
+            contact(&mut run, attacker, 20., || panic!("immune rolls")).outcome,
+            Outcome::Immune
+        );
+        run.hp = 0.;
+        assert_eq!(
+            contact(&mut run, attacker, 20., || panic!("dead rolls")).outcome,
+            Outcome::Inactive
+        );
+        assert_eq!(
+            contact(&mut run, attacker, f32::NAN, || panic!("invalid rolls")).outcome,
+            Outcome::Invalid
+        );
+        let mut run = setup();
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(matches!(
+            contact(&mut run, attacker, 20., || panic!("refunded rolls")).outcome,
+            Outcome::Landed { .. }
+        ));
     }
 
     #[test]

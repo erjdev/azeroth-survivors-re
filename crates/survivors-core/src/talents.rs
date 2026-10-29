@@ -1,6 +1,7 @@
 //! Survivors talent effects and dependency rules, independent of engine spell visuals.
 
 mod aspects;
+mod avoidance;
 mod critical_cast;
 mod druid;
 mod hunter;
@@ -1735,7 +1736,8 @@ pub enum TalentStat {
     ImprovedHawk,
     Deterrence,
     Counterattack,
-    HunterParry,
+    MeleeParry,
+    MeleeDodge,
     PowerInfusion,
     Preparation,
     SiphonLife,
@@ -2055,7 +2057,8 @@ impl TalentDefinition {
             | TalentStat::AdrenalineRush
             | TalentStat::BladeFlurry
             | TalentStat::Deterrence
-            | TalentStat::HunterParry
+            | TalentStat::MeleeParry
+            | TalentStat::MeleeDodge
             | TalentStat::Combustion
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
@@ -2404,7 +2407,8 @@ impl TalentDefinition {
             TalentStat::ImprovedHawk => (100.0, "% Hunter shot haste during Improved Hawk"),
             TalentStat::Deterrence => (100.0, " percentage points dodge and parry during Deterrence"),
             TalentStat::Counterattack => (1.0, " base Counterattack damage"),
-            TalentStat::HunterParry => (100.0, " percentage points melee parry"),
+            TalentStat::MeleeParry => (100.0, " percentage points melee parry"),
+            TalentStat::MeleeDodge => (100.0, " percentage points melee dodge"),
             TalentStat::Combustion => (100.0, "% Fire critical chance per direct hit"),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
             TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
@@ -2488,7 +2492,7 @@ impl TalentDefinition {
     }
 }
 
-/// Audited 1.12.1 node identities; explicit Survivors conversions, without rage or parry.
+/// Audited 1.12.1 node identities; explicit Survivors conversions, without a rage resource.
 pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
     // Spell.dbc 12318/12857/12858/12860/12861: +5–25% to the shout's magnitude.
     TalentDefinition {
@@ -2546,8 +2550,8 @@ pub const WARRIOR_TALENTS: &[TalentDefinition] = &[
         id: 130,
         max_rank: 5,
         name: "Deflection",
-        description: "+1% damage reduction per rank (Survivors conversion)",
-        stat: TalentStat::Reduction,
+        description: "+1 percentage point melee parry chance per rank; parries prevent the hit before shields",
+        stat: TalentStat::MeleeParry,
         per_rank: 0.01,
     },
     TalentDefinition {
@@ -2898,8 +2902,8 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
         id: 1403,
         max_rank: 5,
         name: "Deflection",
-        description: "+1% damage reduction per rank",
-        stat: TalentStat::Reduction,
+        description: "+1 percentage point melee parry chance per rank; parries prevent the hit before shields",
+        stat: TalentStat::MeleeParry,
         per_rank: 0.01,
     },
     TalentDefinition {
@@ -3206,7 +3210,7 @@ static HUNTER_TALENTS: &[TalentDefinition] = &[
         max_rank: 5,
         name: "Deflection",
         description: "+1 percentage point melee parry chance per rank; parries prevent the hit before shields and can trigger trained Counterattack",
-        stat: TalentStat::HunterParry,
+        stat: TalentStat::MeleeParry,
         per_rank: 0.01,
     },
     TalentDefinition {
@@ -3634,13 +3638,13 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 186, max_rank: 5, name: "Lightning Reflexes",
-        description: "+1% damage reduction per rank (Survivors dodge conversion)",
-        stat: TalentStat::Reduction, per_rank: 0.01,
+        description: "+1 percentage point melee dodge chance per rank; dodges prevent the hit before shields",
+        stat: TalentStat::MeleeDodge, per_rank: 0.01,
     },
     TalentDefinition {
         id: 187, max_rank: 5, name: "Deflection",
-        description: "+3 armor per rank (Survivors parry conversion)",
-        stat: TalentStat::Armor, per_rank: 3.0,
+        description: "+1 percentage point melee parry chance per rank; parries prevent the hit before shields",
+        stat: TalentStat::MeleeParry, per_rank: 0.01,
     },
     TalentDefinition {
         id: 244, max_rank: 5, name: "Camouflage",
@@ -3945,7 +3949,8 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::AdrenalineRush
             | TalentStat::BladeFlurry
             | TalentStat::Deterrence
-            | TalentStat::HunterParry
+            | TalentStat::MeleeParry
+            | TalentStat::MeleeDodge
             | TalentStat::Combustion
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
@@ -4337,8 +4342,8 @@ mod stat_talent_tests {
     fn rogue_defense_and_mobility_replace_damage_without_changing_spells() {
         let ranks = [(1, 186, 5), (1, 187, 5), (2, 244, 5), (2, 1700, 2)];
         let bonus = stat_adjustment(3, &ranks);
-        assert!((bonus.reduction - 0.09).abs() < 0.00001);
-        assert_eq!(bonus.armor, 15.0);
+        assert!((bonus.reduction - 0.04).abs() < 0.00001);
+        assert_eq!(bonus.armor, 0.0);
         assert!((bonus.speed - 0.15).abs() < 0.00001);
         assert!((bonus.might + 0.17).abs() < 0.00001);
         let base = Milestones {
@@ -5379,7 +5384,7 @@ mod stat_talent_tests {
         assert_eq!(bonus.armor, 24.);
         assert!((bonus.speed - 0.08).abs() < 0.00001);
         assert_eq!(bonus.reduction, 0.);
-        assert!((trained.hunter_parry() - 0.05).abs() < 0.00001);
+        assert!((trained.melee_parry() - 0.05).abs() < 0.00001);
         assert!((bonus.crit - 0.03).abs() < 0.00001);
         assert_eq!(trained.with_ranks(&[]), base);
         let excessive: Vec<_> = ranks
@@ -5489,7 +5494,8 @@ mod stat_talent_tests {
                     | TalentStat::AdrenalineRush
                     | TalentStat::BladeFlurry
                     | TalentStat::Deterrence
-                    | TalentStat::HunterParry
+                    | TalentStat::MeleeParry
+                    | TalentStat::MeleeDodge
                     | TalentStat::Combustion
                     | TalentStat::ArcanePower
                     | TalentStat::PowerInfusion

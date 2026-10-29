@@ -391,8 +391,8 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Cold Blood (280) | 1 | Next successful Backstab, Sinister Strike, Eviscerate, Gouge or Kidney Shot cast: +100 percentage points critical chance; ready at run start, 180 sec recovery after use |
 | Seal Fate (283) | 5 | Critical original Backstab/Sinister Strike/Gouge hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec; combo-point conversion. No splash, echo, generated-strike or queued-overkill procs |
 | Remorseless Attacks (272) | 2 | After a kill, +20 percentage points critical chance on the next successful Rogue melee cast; 20 sec window |
-| Lightning Reflexes (186) | 5 | +1 percentage point damage reduction; dodge conversion |
-| Deflection (187) | 5 | +3 armor; parry conversion |
+| Lightning Reflexes (186) | 5 | +1 percentage point melee dodge per rank |
+| Deflection (187) | 5 | +1 percentage point melee parry per rank |
 | Camouflage (244) | 5 | +3% movement speed, always active without stealth |
 | Sleight of Hand (1700) | 2 | +2 percentage points damage reduction; threat conversion |
 | Improved Gouge (203) | 3 | +25% Gouge stun duration |
@@ -780,14 +780,13 @@ school talents exclude Mana Shield. Initial values require live balance validati
 
 ### Hunter Deterrence
 
-The one-rank Survival talent (1308) automatically reduces incoming damage by 50%
-for the first 10 seconds of a run and for 10 seconds every 180 seconds thereafter.
-This is an explicit Survivors dodge/parry conversion, without random avoidance
-rolls. It multiplies armor and other reduction before temporary shields absorb
-the hit. The combat wolf and pickup companions receive no protection from it.
-The HUD shows the remaining active duration. Gameplay time controls the windows,
-so pauses and selection screens do not consume them; missed intervals do not
-accumulate charges. An untrained or inactive spec grants no protection.
+The one-rank Survival talent (1308) automatically adds 25 percentage points each
+of dodge and parry for the first 10 seconds of a run and for 10 seconds every
+180 seconds thereafter. One exclusive contact roll resolves dodge, then parry,
+then a landed hit. Avoidance consumes no shields or health and grants no protection
+to the combat wolf or pickup companions. The HUD shows the active duration.
+Gameplay time controls the windows: pauses stop them and missed windows do not
+accumulate charges. An untrained or inactive spec grants no bonus.
 
 
 ### Hunter Scorpid Sting
@@ -1018,3 +1017,13 @@ strikes the actual parried attacker for 40 base damage with a five-second root
 (1.5 seconds on bosses), recovering five seconds after use. It stores no charge,
 does not critically strike, and uses the shared damage/multistrike settlement.
 See the [mechanics audit](audits/HUNTER-TALENT-DEPENDENCIES.md) for exact scope.
+
+### Shared talent avoidance
+
+Warrior Deflection (130), Paladin Deflection (1403), Rogue Deflection (187), and
+Hunter Deflection (1311) add 1–5 percentage points of melee parry. Rogue Lightning
+Reflexes (186) adds 1–5 percentage points of melee dodge. These are contact outcomes,
+not armor or flat damage reduction. Dodge precedes parry on one roll; neither avoids
+non-contact damage, protects pets, nor triggers on-damage recovery or reflection.
+Saved ranks/specs remain unchanged, but their old substitute bonuses are removed.
+Riposte still requires weapon-damage and disarm integration and remains pending.

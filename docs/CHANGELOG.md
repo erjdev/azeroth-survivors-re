@@ -4,6 +4,27 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Real dodge and parry talents
+
+Warrior, Paladin and Rogue Deflection now grant melee parry instead of armor or
+flat reduction. Rogue Lightning Reflexes grants dodge. Avoided hits preserve
+shields and health; saved ranks/specs remain intact. Riposte still needs weapon
+damage and disarm support.
+
+![Rogue dodge upgrade at 1280×720](images/screenshots/2026-10-29-melee-avoidance/dodge-wide.jpg)
+
+![Rogue parry upgrade at 640×720](images/screenshots/2026-10-29-melee-avoidance/parry-compact.jpg)
+
+![Warrior Deflection purchase](images/screenshots/2026-10-29-melee-avoidance/warrior-wide.jpg)
+
+![Paladin Deflection purchase](images/screenshots/2026-10-29-melee-avoidance/paladin-wide.jpg)
+
+296 core and 575 runtime tests, Clippy including tests, and eight-package scoped
+checks pass (31 optional-addon skips). Native purchases, Rogue refund/spec isolation,
+and restart retention verified; incremental build: 20 seconds. Windows combat and
+balance remain open. Definition coverage stays 300/432; these replace earlier
+substitute effects. See the [avoidance audit](audits/MELEE-AVOIDANCE.md).
+
 ## 2026-10-29 — Independent spell slow durations
 
 Overlapping slows now expire independently: a brief strong slow can no longer

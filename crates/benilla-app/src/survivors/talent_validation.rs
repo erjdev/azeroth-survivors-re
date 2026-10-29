@@ -140,7 +140,9 @@ mod tests {
         assert_eq!(snapshot.cast("eviscerate"), Default::default());
         assert_eq!(account.characters[0].dbc, saved);
         account.select_spec(id, 1);
-        assert_eq!(account.bonus(3, id).armor, baseline.armor + 15.0);
+        assert_eq!(account.bonus(3, id).armor, baseline.armor);
+        assert!((account.milestones_picked(3, Some(id)).melee_parry() - 0.05).abs() < 0.00001);
+        assert_eq!(snapshot.melee_parry(), 0.0);
         account.select_spec(id, 0);
         assert!(account.unlearn_talent(id, 272, true));
         assert!(account.talents_valid(&account.characters[0]));

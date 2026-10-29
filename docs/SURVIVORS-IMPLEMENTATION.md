@@ -5,6 +5,18 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Shared talent avoidance — 2026-10-29
+
+Warrior/Paladin/Rogue Deflection and Rogue Lightning Reflexes now use real
+contact parry/dodge outcomes, replacing armor/reduction substitutes. All ranks,
+refunds, class isolation and saved-spec activation are tested. Native wide/compact
+purchase previews and Rogue refund/spec/restart checks pass. Four actual screenshots
+are embedded in CHANGELOG. 296 core and 575 runtime tests, Clippy including tests,
+and eight-package scoped checks pass (31 optional-addon skips); native build: 20 sec.
+[The avoidance audit](audits/MELEE-AVOIDANCE.md) records installed evidence and the
+remaining Riposte weapon-damage/disarm dependency. Definition coverage is unchanged;
+Windows combat and balance remain open.
+
 ## Independent ordinary slows — 2026-10-29
 
 Spell, secondary-talent and Aftermath slows now retain their own expiry and refresh

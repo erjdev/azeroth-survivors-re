@@ -78,14 +78,6 @@ impl Milestones {
         }
     }
 
-    pub fn hunter_parry(self) -> f32 {
-        if self.class == 2 {
-            self.trained_value(TalentStat::HunterParry)
-        } else {
-            0.0
-        }
-    }
-
     pub fn counterattack_damage(self) -> f32 {
         if self.class == 2 && self.trained_value(TalentStat::Deterrence) > 0.0 {
             self.trained_value(TalentStat::Counterattack)
@@ -402,7 +394,7 @@ mod deterrence_tests {
                 } else {
                     0.
                 };
-                assert!((trained.hunter_parry() - expected).abs() < 0.00001);
+                assert!((trained.melee_parry() - expected).abs() < 0.00001);
             }
         }
         let node = super::super::talent_definition(2, 1311).unwrap();
