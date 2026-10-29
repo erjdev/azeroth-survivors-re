@@ -4,9 +4,9 @@
 
 The cutaway and silhouette requirements are separate. The current
 `survivors/visibility.rs` probes rendered scenery and uploads a camera/hero aperture;
-`survivors_cutaway.wgsl` removes scenery fragments inside that aperture. Neither
-path renders red/green actor silhouettes. Graphics therefore correctly exposes no
-silhouette switches yet. This audit does not establish rendered acceptance.
+`survivors_cutaway.wgsl` removes scenery fragments inside that aperture. The experimental actor compositor now compares its separate mask with completed
+scene depth. Graphics still exposes no silhouette switches: filter persistence and
+obstruction acceptance remain incomplete. This audit does not establish rendered acceptance.
 
 Actors use `WowModelMaterial`, with posed meshes, `MeshTag` palette/alpha payloads,
 animated material slots and cutout textures. A generic unlit copy would lose parts
@@ -51,8 +51,8 @@ before the FFX combine. Verify ordering rather than relying on node insertion or
 
 `survivors_core::silhouette` now specifies the reverse-Z comparison and independent
 filter/color policy. Tests cover visible actors, nearer/farther scenery, background,
-invalid depth, tolerance and all filter combinations. It has no renderer consumer
-and is not evidence of GPU precision, source-mask correctness or visual behavior.
+invalid depth, tolerance and all filter combinations. Its comparison is now mirrored by the experimental GPU compositor; the pure tests
+are not evidence of GPU precision, source-mask correctness or visual behavior.
 
 ## Actor-mask implementation checkpoint
 
@@ -75,8 +75,8 @@ material pipeline test verifies blending overrides and nearest-depth writes. Fea
 Clippy and the native incremental build pass. The active-view test caught the invalid
 fixed-size layer constructor; the mask now uses the dynamic layer constructor.
 
-This is renderer infrastructure, disabled by default. There is no compositor or
-settings consumer yet. CPU lifecycle/pipeline tests do not establish shader compilation,
+At this checkpoint the renderer infrastructure was disabled by default, with no
+compositor or settings consumer. The later compositor checkpoint is below. CPU lifecycle/pipeline tests do not establish shader compilation,
 GPU precision, animated source fidelity, MSAA edges or Windows acceptance. The next
 step is mixed-actor obstruction validation and the scene-depth compositor.
 
@@ -149,3 +149,33 @@ cutaway on/off and ordinary/merged/retained scenery. Check frame time and alloca
 stability as actor count grows. Embed actual captures in CHANGELOG/README and PR;
 do not use reference screenshots as completion evidence. Attended Elwynn/interior
 and Windows acceptance remain necessary after isolated rendering succeeds.
+
+## Experimental scene-depth compositor (2026-10-29)
+
+`actor_silhouette.rs` now attaches the compositor only to the active source world
+view while the actor mask is enabled. The world depth gains TEXTURE_BINDING usage.
+The pass runs after EndMainPass and before StartMainPassPostProcessing/FFX; the
+mask camera renders first. It rejects mismatched size, sample count, viewport,
+projection, pose or camera order instead of sampling unrelated/stale attachments.
+
+The embedded shader loads ownership and both depths per sample, compares reverse-Z
+nearest surfaces, then resolves red/green coverage over the original scene color.
+Neutral/clear ownership receives no tint. The full destination is copied, including
+pixels outside a subviewport; no post-process flip happens before the pipeline is
+ready. Pipelines are cached by target format and multisampling. The feature remains
+opt-in, with both allegiances enabled; independent persisted switches are pending.
+The 0.00001 depth tolerance is provisional and must pass the distance/backend matrix.
+
+This implementation does not close the isolated obstruction matrix above, Windows
+acceptance, performance/duplicate-draw work, or the reported foliage cutaway issue.
+
+Native evidence: Metal logged the first encoded compositor draw with matching
+2200×1440 inputs at samples=1 and samples=4. No shader/wgpu validation error was
+reported in either final run. Startup resize briefly produced a mismatched mask,
+which was skipped before drawing. The first 4× launch became unresponsive and was
+terminated; subsequent 1×/4× runs were responsive and exited normally. The screenshots
+show the raw ownership preview only. Native build passed (53 seconds final; initial
+new renderer build 2m38s). A lifecycle regression checks source-only activation and
+removal when the mask is disabled/inactive; unrelated portrait cameras stay unmarked.
+
+Final scoped eight-package check passes, with 31 optional-addon skips.

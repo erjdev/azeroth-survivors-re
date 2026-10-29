@@ -367,10 +367,12 @@ navigation and return paths verified; silhouette filters remain unimplemented.
 
 ![Saved controller settings at 640×480/125%](docs/images/screenshots/2026-10-28-dead-zone/compact-defaults.jpg)
 
-Developer rendering checkpoint (2026-10-28): raw posed actor mask on Metal. This is
-not the finished occlusion reveal; compositing and independent filters remain pending.
+Developer rendering checkpoint (2026-10-29): the experimental scene-depth
+compositor executes on Metal at 1× and 4× MSAA. This raw actor-mask overlay is a
+diagnostic, not proof of obscured-only output. Blocker/overlap fixtures, persisted
+filters and Windows acceptance remain open; the feature is disabled by default.
 
-![Developer actor mask with equipped weapon](docs/images/screenshots/2026-10-28-actor-mask/warrior.jpg)
+![Raw actor-mask diagnostic at 4× MSAA](docs/images/screenshots/2026-10-29-silhouette-compositor/mask-msaa4.png)
 
 ![Compact Graphics settings](docs/images/screenshots/2026-10-28-scaled-settings/graphics.jpg)
 

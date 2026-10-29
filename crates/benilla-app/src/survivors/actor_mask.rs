@@ -1,4 +1,4 @@
-//! Opt-in actor-only view for the silhouette compositor; no effect on the world color yet.
+//! Opt-in actor ownership and experimental occluded-silhouette compositor.
 use super::{companions::Fetcher, enemies::Enemy, hero::Hero, hunter_pet::HunterPet, Phase};
 use benilla_assets::materials::WowModelMaterial;
 use benilla_world::{
@@ -23,6 +23,8 @@ use std::collections::{HashMap, HashSet};
 
 #[path = "actor_mask_preview.rs"]
 mod preview;
+#[path = "actor_silhouette.rs"]
+mod silhouette;
 #[path = "actor_mask_targets.rs"]
 mod targets;
 
@@ -58,6 +60,8 @@ pub(super) fn plugin(app: &mut App) {
         preview::plugin(app);
     }
     targets::plugin(app);
+    silhouette::plugin(app);
+    app.add_systems(PostUpdate, silhouette_views.after(sync));
     app.insert_resource(mask)
         .add_plugins(ExtractComponentPlugin::<ActorMaskView>::default())
         .add_systems(
@@ -352,9 +356,62 @@ fn sync(
     mask.materials.retain(|key, _| used_materials.contains(key));
 }
 
+// The scene depth must be sampleable before extraction. Mark only the active world view.
+fn silhouette_views(
+    mut commands: Commands,
+    mask: Res<Mask>,
+    cameras: Query<&Camera, With<ActorMaskView>>,
+    mut views: Query<(Entity, &mut Camera3d), With<WorldCamera>>,
+) {
+    let active = mask.enabled
+        && mask
+            .camera
+            .is_some_and(|e| cameras.get(e).is_ok_and(|c| c.is_active));
+    for (entity, mut camera) in &mut views {
+        if active {
+            camera.depth_texture_usages = (TextureUsages::from(camera.depth_texture_usages)
+                | TextureUsages::TEXTURE_BINDING)
+                .into();
+            commands.entity(entity).insert(silhouette::SilhouetteView);
+        } else {
+            commands
+                .entity(entity)
+                .remove::<silhouette::SilhouetteView>();
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn compositor_tracks_mask_activation_without_marking_other_cameras() {
+        use bevy::ecs::system::RunSystemOnce;
+        let mut world = World::new();
+        let source = world.spawn((WorldCamera, Camera3d::default())).id();
+        let portrait = world.spawn(Camera3d::default()).id();
+        let mask_camera = world.spawn((ActorMaskView, Camera::default())).id();
+        world.insert_resource(Mask {
+            enabled: true,
+            camera: Some(mask_camera),
+            ..default()
+        });
+        world.run_system_once(silhouette_views).unwrap();
+        assert!(world.get::<silhouette::SilhouetteView>(source).is_some());
+        assert!(world.get::<silhouette::SilhouetteView>(portrait).is_none());
+        assert!(
+            TextureUsages::from(world.get::<Camera3d>(source).unwrap().depth_texture_usages)
+                .contains(TextureUsages::TEXTURE_BINDING)
+        );
+        world.get_mut::<Camera>(mask_camera).unwrap().is_active = false;
+        world.run_system_once(silhouette_views).unwrap();
+        assert!(world.get::<silhouette::SilhouetteView>(source).is_none());
+        world.get_mut::<Camera>(mask_camera).unwrap().is_active = true;
+        world.resource_mut::<Mask>().enabled = false;
+        world.run_system_once(silhouette_views).unwrap();
+        assert!(world.get::<silhouette::SilhouetteView>(source).is_none());
+    }
+
     #[test]
     fn inactive_or_missing_world_view_clears_mirrors_and_disables_the_mask_camera() {
         use bevy::ecs::system::RunSystemOnce;

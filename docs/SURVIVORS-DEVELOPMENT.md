@@ -806,3 +806,20 @@ an account without a valid hero still shows creation automatically. Presets:
 `character-manage-640.txt` and `character-manage-1600.txt`. These requests change
 only the displayed page; creating, deleting or renaming still requires the normal
 UI actions. Categories on incompatible pages and duplicate keys are rejected.
+
+### Experimental occluded-actor compositor
+
+`WOW_SURVIVORS_ACTOR_MASK=1` enables the separate actor ownership pass and the
+experimental scene-depth compositor in a native visibility build. It is disabled
+by default and has no saved Graphics switches yet. Both allegiances are currently
+enabled; hidden gameplay actors stay excluded. Do not treat this as completion of
+the foliage cutaway or silhouette acceptance requirements.
+
+For noncombat shader diagnostics, use `WOW_SURVIVORS_ACTOR_MASK_PREVIEW=1` with an
+isolated menu profile and the UI preview control file. The large green/black overlay
+shows the **unoccluded ownership mask**, not the final obscured-only result.
+`RUST_LOG=info,benilla_app::survivors::actor_mask::silhouette=debug` reports missing
+or mismatched inputs and the first encoded GPU composite. Test `WOW_MSAA=1` and
+`WOW_MSAA=4` separately. A transient size mismatch during resize is skipped safely.
+Full obstruction/overlap/filter acceptance is tracked in
+[audits/OCCLUDED-SILHOUETTES.md](audits/OCCLUDED-SILHOUETTES.md).

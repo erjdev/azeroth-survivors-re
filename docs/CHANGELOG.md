@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Experimental occluded-actor depth compositor
+
+The opt-in renderer now compares completed scene depth against each actor-mask
+sample before resolving red/green coverage. Mismatched camera inputs are skipped.
+Metal executes the new GPU pass at 1× and 4× MSAA; the screenshot below shows its
+**raw ownership-mask diagnostic**, not obscured-only visual acceptance. The feature
+stays disabled by default. Blocker/overlap fixtures, saved filters, performance and
+Windows checks remain open. Final native build: 53 seconds; the initial build with
+new renderer code took 2m38s. The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+![Raw actor-mask diagnostic during the 4× MSAA compositor run](images/screenshots/2026-10-29-silhouette-compositor/mask-msaa4.png)
+
 ## 2026-10-29 — Priest talent save acceptance
 
 Native macOS interaction now verifies Improved Healing purchase (2/3 → 3/3,

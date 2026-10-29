@@ -9666,3 +9666,25 @@ node ranks and leave the other specs empty. Actual screenshots are inline in the
 changelog and the README talent gallery. This closes the preceding native
 purchase/restart gap; Windows and attended gameplay remain open. No code change;
 the previous green scoped gate still applies. Screenshot paths and whitespace checked.
+
+
+### Experimental silhouette compositor checkpoint (2026-10-29)
+
+The opt-in actor-mask path now consumes completed scene depth after EndMainPass,
+before FFX. Ownership and depths are compared per sample before resolving coverage;
+neutral/clear masks receive no tint. Camera size, sample count, viewport, projection,
+pose and order must match. The default player path remains disabled; both filters
+are hardcoded on in this experimental stage, pending actual saved setting consumers.
+
+Metal confirms GPU compilation and draw encoding at 1×/4× MSAA, with native raw-mask
+captures embedded in CHANGELOG/README. Startup resize mismatch was skipped. The first
+4× preview was unresponsive; subsequent runs succeeded, so stability/performance must
+still be measured. This is not the full obstruction/overlap fixture or a fix acceptance
+for the reported foliage cutaway. Final native build: 53 seconds; initial new renderer
+build: 2m38s. The source-only activation regression covers disabled/inactive cleanup.
+Next: isolated wall/foliage and mixed-actor fixtures, precision/distance checks,
+independent saved enemy/friendly switches, duplicate mask draw reduction and Windows.
+
+Final eight-package formatting/Clippy/test gate passes, including the new activation
+regression (31 optional-addon skips). A disk-full test build was retried after
+removing older unlocked compiler snapshots while retaining each latest cache.

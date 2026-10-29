@@ -21,7 +21,7 @@ use bevy::{
     },
 };
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub(super) struct SampledMask {
     pub color: CachedTexture,
     pub depth: CachedTexture,
