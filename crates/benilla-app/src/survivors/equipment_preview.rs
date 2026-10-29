@@ -7,6 +7,13 @@ use bevy::prelude::*;
 struct Specimen(&'static data::EnemyDef);
 #[derive(Component)]
 struct PreviewActor;
+#[derive(Component)]
+struct PreviewCaption;
+#[derive(Resource)]
+struct DisarmControl {
+    path: std::path::PathBuf,
+    poll: Timer,
+}
 
 pub(super) fn plugin(app: &mut App) {
     if !crate::run_mode::dev_affordances() {
@@ -30,6 +37,12 @@ pub(super) fn plugin(app: &mut App) {
         warn!("Unknown equipment preview template {entry}");
         return;
     };
+    if let Some(path) = std::env::var_os("WOW_SURVIVORS_EQUIPMENT_STATE") {
+        app.insert_resource(DisarmControl {
+            path: path.into(),
+            poll: Timer::from_seconds(0.25, TimerMode::Repeating),
+        });
+    }
     app.insert_resource(Specimen(enemy)).add_systems(
         PostUpdate,
         show.before(bevy::transform::TransformSystems::Propagate)
@@ -47,7 +60,10 @@ fn show(
     mut hero: Query<(&Transform, &mut Visibility), (With<Hero>, Without<WorldCamera>)>,
     mut cameras: Query<&mut Transform, (With<WorldCamera>, Without<Hero>)>,
     mut roots: Query<&mut Node, Or<(With<super::hud::MenuRoot>, With<super::armory::ArmoryRoot>)>>,
-    actors: Query<(), With<PreviewActor>>,
+    mut actors: Query<&mut crate::net::ObjectStore, With<PreviewActor>>,
+    mut captions: Query<&mut Text, With<PreviewCaption>>,
+    control: Option<ResMut<DisarmControl>>,
+    time: Res<Time>,
 ) {
     let Ok((hero, mut visibility)) = hero.single_mut() else {
         return;
@@ -70,6 +86,33 @@ fn show(
             .looking_at(target, Vec3::Y);
     }
     if !actors.is_empty() {
+        if let Some(mut control) = control {
+            if control.poll.tick(time.delta()).just_finished() {
+                if let Ok(text) = std::fs::read_to_string(&control.path) {
+                    let active = match text.trim() {
+                        "disarm" => Some(true),
+                        "restore" => Some(false),
+                        _ => None,
+                    };
+                    if let Some(active) = active {
+                        let active = active
+                            && survivors_core::disarm::eligibility(def.template_entry)
+                                == survivors_core::disarm::Eligibility::Weapon;
+                        for store in &mut actors {
+                            super::disarm::flag(store, active);
+                        }
+                        for mut caption in &mut captions {
+                            caption.0 = format!(
+                                "{} · template {}\nEquipment preview · no combat · {}",
+                                def.name,
+                                def.template_entry,
+                                if active { "disarmed" } else { "armed" }
+                            );
+                        }
+                    }
+                }
+            }
+        }
         return;
     }
     let entity = units::spawn_unit(
@@ -90,6 +133,7 @@ fn show(
     );
     commands.entity(entity).insert(PreviewActor);
     commands.spawn((
+        PreviewCaption,
         Text::new(format!(
             "{} · template {}\nEquipment preview · no combat",
             def.name, def.template_entry

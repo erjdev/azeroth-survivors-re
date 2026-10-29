@@ -16,7 +16,11 @@ use crate::creature_anim::{move_flags, MovementState};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
 #[derive(Component)]
-#[require(super::abilities::FireVulnerability, super::curse::CurseState)]
+#[require(
+    super::abilities::FireVulnerability,
+    super::curse::CurseState,
+    super::disarm::DisarmState
+)]
 pub(super) struct Enemy {
     pub def: &'static EnemyDef,
     pub hp: f32,
@@ -894,6 +898,128 @@ mod spawn_tests {
     use avian3d::prelude::*;
     use benilla_world::collision::MoverTraceExclusions;
     use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn disarm_visual_state_tracks_overlap_pause_expiry_and_dead_or_ineligible_targets() {
+        use super::super::disarm::{sync, DisarmState};
+        use crate::{creature_anim::UNIT_FLAG_DISARMED, net::ObjectStore};
+        use survivors_core::disarm::{Disarm, Eligibility, Source};
+        let mut app = App::new();
+        app.init_resource::<Run>();
+        app.world_mut()
+            .run_system_once(|mut commands: Commands, mut run: ResMut<Run>| {
+                for entry in [98, 116, 30, 3975] {
+                    let def = (0..data::MAPS.len())
+                        .find_map(|map| {
+                            let roster = data::roster(map);
+                            roster
+                                .enemies
+                                .iter()
+                                .chain(&roster.bosses)
+                                .find(|def| def.template_entry == entry)
+                        })
+                        .unwrap();
+                    spawn_enemy(
+                        &mut commands,
+                        &mut run,
+                        def,
+                        Vec3::ZERO,
+                        Vec3::X,
+                        false,
+                        false,
+                    );
+                }
+            })
+            .unwrap();
+        let actors: Vec<_> = app
+            .world_mut()
+            .query::<(Entity, &Enemy)>()
+            .iter(app.world())
+            .map(|(id, enemy)| (enemy.def.template_entry, id))
+            .collect();
+        let gnoll = actors.iter().find(|(entry, _)| *entry == 98).unwrap().1;
+        let baseline: Vec<_> = (0..3)
+            .map(|slot| {
+                let store = app.world().get::<ObjectStore>(gnoll).unwrap();
+                (
+                    store.0.unit_virtual_item_display(slot),
+                    store.0.unit_virtual_item_info(slot),
+                    store.0.unit_virtual_item_sheath(slot),
+                )
+            })
+            .collect();
+        for (_, id) in &actors {
+            // Seed even ineligible targets to verify that the runtime rejects bad state.
+            let mut state = app.world_mut().get_mut::<DisarmState>(*id).unwrap();
+            state.0.apply(Eligibility::Weapon, Source::Disarm, 10., 0.);
+            state.0.apply(Eligibility::Weapon, Source::Riposte, 6., 1.);
+            app.world_mut()
+                .get_mut::<ObjectStore>(*id)
+                .unwrap()
+                .0
+                .merge(benilla_protocol::ObjectFields::from_pairs(&[(46, 0x100)]));
+        }
+        for now in [1., 1., 4., 7., 10.] {
+            app.world_mut().resource_mut::<Run>().elapsed = now;
+            if now == 4. {
+                app.world_mut()
+                    .get_mut::<DisarmState>(gnoll)
+                    .unwrap()
+                    .0
+                    .remove(Source::Disarm);
+            }
+            app.world_mut().run_system_once(sync).unwrap();
+            for (entry, id) in &actors {
+                let active = match entry {
+                    98 => now < 7.,
+                    116 => now < 10.,
+                    _ => false,
+                };
+                assert_eq!(
+                    app.world().get::<ObjectStore>(*id).unwrap().0.unit_flags(),
+                    0x100 | if active { UNIT_FLAG_DISARMED } else { 0 },
+                    "entry {entry} at {now}"
+                );
+            }
+            let store = app.world().get::<ObjectStore>(gnoll).unwrap();
+            for (slot, expected) in baseline.iter().enumerate() {
+                let slot = slot as u8;
+                assert_eq!(
+                    &(
+                        store.0.unit_virtual_item_display(slot),
+                        store.0.unit_virtual_item_info(slot),
+                        store.0.unit_virtual_item_sheath(slot)
+                    ),
+                    expected
+                );
+            }
+        }
+        for dead_flag in [false, true] {
+            app.world_mut()
+                .get_mut::<DisarmState>(gnoll)
+                .unwrap()
+                .0
+                .apply(Eligibility::Weapon, Source::Riposte, 6., 10.);
+            {
+                let mut enemy = app.world_mut().get_mut::<Enemy>(gnoll).unwrap();
+                enemy.dead = dead_flag;
+                enemy.hp = if dead_flag { 1. } else { 0. };
+            }
+            app.world_mut().run_system_once(sync).unwrap();
+            assert_eq!(
+                app.world().get::<DisarmState>(gnoll).unwrap().0,
+                Disarm::default()
+            );
+            assert_eq!(
+                app.world()
+                    .get::<ObjectStore>(gnoll)
+                    .unwrap()
+                    .0
+                    .unit_flags(),
+                0x100
+            );
+        }
+    }
 
     #[test]
     fn spawned_enemies_preserve_all_audited_virtual_equipment() {

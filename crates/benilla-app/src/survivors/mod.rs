@@ -20,6 +20,7 @@ mod companions;
 mod controller_input;
 mod curse;
 mod defense;
+mod disarm;
 mod enemies;
 #[cfg(not(target_arch = "wasm32"))]
 mod equipment_preview;
@@ -150,6 +151,7 @@ impl Plugin for SurvivorsPlugin {
                     .run_if(in_state(Phase::Menu)),
             )
             .add_systems(PreUpdate, gear_body::sync)
+            .add_systems(PreUpdate, disarm::sync)
             .init_resource::<Typing>()
             .init_resource::<hud::PausePage>()
             .init_resource::<hud::SettingEdits>()

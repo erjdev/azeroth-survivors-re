@@ -144,11 +144,11 @@ is an authored combat policy using factual metadata; creature names, humanoid
 type, model appearance and offhand/ranged-only props cannot grant eligibility.
 Fifteen roster template identities carry the source disarm-immunity bit.
 
-This checkpoint has no gameplay or renderer consumer: it does not claim to hide
-weapons, reduce damage, prevent attacks, or make a talent obtainable. The pending
+The initial engine-free checkpoint did not have a runtime consumer. Runtime
+visual synchronization is described below; damage and acquisition remain pending. The pending
 user choice is whether disarmed armed enemies continue with weaker punches or
 stop weapon contacts. Natural attacks and spells remain separate. After that
-choice, integrate contact settlement and the renderer's disarm flag, then add the
+choice, integrate contact settlement, then add the
 acquired Disarm ability and replace Improved Disarm's weakening substitute.
 Riposte additionally needs equipped-player weapon damage, independently of this
 status. Core suite: 302 tests pass; generated-catalog reproduction and six Python
@@ -157,3 +157,27 @@ lookup regressions pass. No visual change or new screenshot is implied.
 Disarm prerequisite gate: formatting, Clippy and eight-package scoped tests pass,
 with 31 optional-addon skips. No native rebuild was needed for this unconsumed
 engine-free status layer.
+
+
+## Disarm visual integration
+
+Enemy-owned status now synchronizes the existing attachment/animation disarm bit
+in PreUpdate. It preserves all other unit flags and virtual equipment descriptors;
+expired status restores the renderer's normal weapon attachment. Dead, zero-health,
+immune and unarmed targets clear invalid status. Unchanged flags do not trigger
+ObjectStore change detection. The run clock keeps duration frozen during pauses.
+
+The noncombat equipment specimen accepts an optional
+`WOW_SURVIVORS_EQUIPMENT_STATE=/absolute/path/disarm.txt` control file containing
+`disarm` or `restore`. It polls every 250 ms and enforces verified weapon eligibility.
+This is a development visual instrument, not a player ability or combat test.
+Status overlap, source removal, expiry, frozen time, target isolation, death and
+metadata preservation are covered by the runtime regression.
+
+Native macOS verification: one template-98 specimen was captured armed, disarmed,
+and restored in the same process. The sword disappears and returns; its shield
+remains. These are attachment existence checks, not timing or combat evidence.
+577 runtime tests pass; incremental native build took 2m30s. No Windows or attack
+animation acceptance is implied. Screenshots are embedded in the changelog.
+
+Formatting, Clippy and the eight-package scoped gate pass (31 optional-addon skips).

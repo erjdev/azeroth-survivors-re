@@ -36,6 +36,12 @@ feeds enemy rendering. Combat/disarm acceptance remains open.
 
 ![Riverpaw Taskmaster equipment](docs/images/screenshots/2026-10-29-enemy-equipment/taskmaster.jpg)
 
+Disarm visibility now hides the weapon and restores it when status ends, retaining
+the shield. Same-session before/during/after captures are inline in the changelog;
+ability acquisition and disarmed damage remain pending.
+
+![Disarmed specimen retains its shield](docs/images/screenshots/2026-10-29-disarm-visuals/active.jpg)
+
 ### Live scale previews
 
 Preview files support temporary `scale = 1.25` alongside page and dimensions;

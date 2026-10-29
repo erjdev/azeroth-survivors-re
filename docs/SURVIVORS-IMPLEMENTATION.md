@@ -9,10 +9,11 @@ completed changes. Each phase must pass its acceptance criteria before it is cal
 
 Independent Disarm/Riposte clocks and equipment/immunity eligibility now have
 engine-free coverage (302 core tests pass). All 456 template immunity masks are
-reproducibly generated from pinned evidence. This primitive has no runtime
-consumer yet. The user decision on weaker punches versus suppressed weapon
+reproducibly generated from pinned evidence. Runtime synchronization now feeds
+the existing disarm attachment/animation flag, retaining equipment metadata and
+clearing invalid/dead target state. Visual validation is recorded in the equipment audit. The user decision on weaker punches versus suppressed weapon
 contacts remains pending; do not silently choose that damage rule. Subsequent
-work must connect status, contact settlement, visual flags, acquisition and
+work must connect contact settlement, acquisition and
 Improved Disarm; Riposte still needs equipped-player weapon damage.
 
 ## Enemy equipment rendering — 2026-10-29

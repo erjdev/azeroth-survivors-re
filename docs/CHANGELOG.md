@@ -4,6 +4,26 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Disarm weapon visibility
+
+Connected enemy-owned disarm clocks to the existing weapon attachment flag.
+Overlapping effects keep the weapon hidden until the final effect ends; expiry
+restores it without losing equipment data. Dead and ineligible targets clear status.
+Native macOS captures below show one Riverpaw Taskmaster before, during and after
+disarm in the same noncombat session; the shield stays visible throughout.
+
+![Armed: sword and shield visible](images/screenshots/2026-10-29-disarm-visuals/armed.jpg)
+
+![Disarmed: sword hidden, shield retained](images/screenshots/2026-10-29-disarm-visuals/active.jpg)
+
+![Restored: sword returns](images/screenshots/2026-10-29-disarm-visuals/restored.jpg)
+
+577 Survivors runtime tests pass, including overlap, paused time, expiry, death,
+immunity and equipment preservation. Native incremental build: 2m30s. Formatting, Clippy and the eight-package
+scoped gate pass (31 optional-addon skips).
+Damage policy, player acquisition, Riposte integration and Windows/combat
+acceptance remain pending; this is visual/status integration, not a completed ability.
+
 ## 2026-10-29 — Disarm status groundwork
 
 Added verified enemy immunity metadata and independent Disarm/Riposte clocks,
