@@ -1347,13 +1347,13 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
 | Hunter | 42 / 46 | 9 / 9 |
-| Rogue | 36 / 51 | 9 / 9 |
+| Rogue | 37 / 51 | 9 / 9 |
 | Priest | 30 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
 | Mage | 38 / 49 | 9 / 9 |
 | Warlock | 29 / 50 | 9 / 9 |
 | Druid | 28 / 47 | 9 / 9 |
-| Total | 301 / 432 | 81 / 81 |
+| Total | 302 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
@@ -9504,3 +9504,26 @@ and periodic amounts and recovery. Windows and attended combat remain open.
 
 Validation: the required eight-package formatting/Clippy/test gate passes, including
 4,828 app unit tests and 309 core tests; 31 optional-addon tests skip on this machine.
+
+### 2026-10-29 — Hemorrhage strike and physical vulnerability
+
+Implement acquired Hemorrhage, its named damage talent and a target-owned shared-core
+30-charge/15-second physical vulnerability. The audit tools now expose proc charges,
+resolving the installed `$n` token instead of guessing its value. Spell 16511 confirms
+physical school, 5-yard range, +3 damage and 30 charges; authored strike damage,
+recovery and settlement order are documented in SURVIVORS.md.
+
+Acceptance includes physical versus poison/magic classification, apply-after-strike,
+refresh without stacking, independent target state, expiry, nonpositive damage,
+bleed and pet consumption, lethal-hit exclusion, applicable weapon/poison/Seal Fate
+integration, rank boundaries and green inline cards/talent descriptions. Windows,
+attended combat and balance remain open; definition coverage is not full acceptance.
+
+Native menu acceptance: 1280×720 cards and 640×720 / 125% talent description
+fit with inline green growth. Initial build: 1m55s; final rebuild: 12s.
+Coverage: 302/432, Rogue 37/51.
+Purchase/restart and attended gameplay are not claimed by these preview captures.
+
+Final validation: required eight-package formatting/Clippy/test gate passes, including
+4,832 app unit tests and 310 core tests. Thirty-one optional-addon tests skip because
+the addon corpus is unavailable. Full pre-merge and attended gameplay gates remain open.

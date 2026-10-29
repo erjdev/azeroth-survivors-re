@@ -1,0 +1,5 @@
+# Native menu preview; no gameplay required.
+page = cards
+width = 1280
+height = 720
+abilities = hemorrhage:0, hemorrhage:1, hemorrhage:4

@@ -43,6 +43,7 @@ impl Coating {
             && matches!(
                 source,
                 "backstab"
+                    | "hemorrhage"
                     | "sinister_strike"
                     | "eviscerate"
                     | "blade_flurry"

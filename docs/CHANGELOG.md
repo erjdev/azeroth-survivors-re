@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Hemorrhage and physical vulnerability
+
+Rogues can acquire Hemorrhage: a melee strike that leaves a refreshing, charged
+physical-damage vulnerability. Its talent boosts the strike, and existing weapon,
+poison and Seal Fate rules recognize it. Cards explain damage growth inline while
+keeping the fixed vulnerability values clear. Native macOS captures cover wide
+cards and compact talent text; final incremental build: 12s. Coverage: 302/432
+(Rogue 37/51). The scoped formatting/Clippy/test gate passes (31 optional-addon skips).
+Windows, purchase/restart acceptance and attended combat/balance remain open.
+
+![Hemorrhage acquisition and upgrades](images/screenshots/2026-10-29-hemorrhage/cards-wide.png)
+
+![Hemorrhage talent at 640×720 and 125%](images/screenshots/2026-10-29-hemorrhage/talent-compact.png)
+
 ## 2026-10-29 — Regrowth healing builds
 
 Gift of Nature now boosts both parts of Regrowth; Moonglow shortens its recovery.

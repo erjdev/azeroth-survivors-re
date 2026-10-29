@@ -477,6 +477,15 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "hemorrhage",
+        16511,
+        Melee {
+            damage: 20.0,
+            cooldown: 2.5,
+            range: 5.0
+        }
+    ),
+    ability!(
         "sinister_strike",
         1752,
         Melee {
@@ -1298,6 +1307,7 @@ pub static CLASSES: &[ClassDef] = &[
             "gouge",
             "kidney_shot",
             "backstab",
+            "hemorrhage",
             "instant_poison",
             "deadly_poison",
         ],

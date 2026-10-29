@@ -18,6 +18,7 @@ use crate::net::{FieldChanged, Guid, ObjectStore};
 #[derive(Component)]
 #[require(
     super::abilities::FireVulnerability,
+    super::abilities::HemorrhageVulnerability,
     super::curse::CurseState,
     super::disarm::DisarmState
 )]

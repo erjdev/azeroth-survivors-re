@@ -17,8 +17,9 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
         row.base_level, row.spell_level, row.max_level
     );
     println!(
-        "duration={:?} stacks={}",
+        "duration={:?} charges={} stacks={}",
         durations.get(row.duration_index),
+        row.proc_charges,
         row.stack_amount
     );
     if let Some(range) = ranges.get(row.range_index) {

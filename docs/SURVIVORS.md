@@ -1057,3 +1057,30 @@ rank, capped at three ranks, alongside its existing spells (mana-cost conversion
 Other explicitly Rejuvenation-scoped conversions still affect Rejuvenation only.
 Cards show direct healing, periodic rate, duration and recovery upgrades inline,
 with each changed unit once.
+
+### Rogue Hemorrhage
+
+Hemorrhage (spell identity 16511) is acquired through the normal six-slot Rogue
+ability pool. Its authored Survivors strike deals 20 base damage with 2.5-second
+recovery and 5-yard targeting range (the same melee contact allowance as other
+melee attacks). Rank power, recovery, extra single targets and applicable Rogue
+weapon training work normally. It has no Energy cost or stored combo points.
+The named one-rank talent (681) adds 20% strike damage without acquiring the spell.
+
+Each original strike that damages a surviving target refreshes a target-owned
+vulnerability: +3 damage per subsequent positive physical hit or bleed tick,
+30 charges, 15 active seconds. These three values come from installed rank one;
+ability ranks and the talent do not increase them. The applying strike receives
+no bonus from its new effect, but can consume an existing effect before refreshing
+it. Refreshes replace rather than stack charges. Magical damage, poison, zero
+damage and unknown schools consume no charges. Hunter companion bites count as
+physical; other spell identities use the installed school rather than text color.
+
+The flat bonus is added after critical and victim multipliers, before the shared
+multistrike multiplier. Multistrike copies share one charge per settled event;
+separate sword-proc hits and bleed ticks each consume their own charge. Generated
+hits do not reapply the vulnerability. Expiry uses active run time, so pausing
+freezes it. The debuff marker clears on expiry, charge exhaustion or death.
+Hemorrhage can trigger equipped poisons and Seal Fate's existing finisher-recovery
+conversion; it does not gain bonuses explicitly limited to Sinister Strike or
+Backstab. Missing spells and other remaining Rogue talents stay separate work.

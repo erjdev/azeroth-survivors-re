@@ -496,6 +496,7 @@ impl Milestones {
                                 | "blade_flurry"
                                 | "gouge"
                                 | "kidney_shot"
+                                | "hemorrhage"
                         ) =>
                     {
                         effect.crit += value;
@@ -510,6 +511,7 @@ impl Milestones {
                                 | "blade_flurry"
                                 | "gouge"
                                 | "kidney_shot"
+                                | "hemorrhage"
                         ) =>
                     {
                         effect.crit += value;
@@ -530,6 +532,7 @@ impl Milestones {
                                 | "blade_flurry"
                                 | "gouge"
                                 | "kidney_shot"
+                                | "hemorrhage"
                         ) =>
                     {
                         effect.damage *=
@@ -545,6 +548,7 @@ impl Milestones {
                                 | "blade_flurry"
                                 | "gouge"
                                 | "kidney_shot"
+                                | "hemorrhage"
                         ) =>
                     {
                         effect.damage *= 1.0 + value;
@@ -779,7 +783,7 @@ impl Milestones {
             && critical
             && damage.is_finite()
             && damage > 0.0
-            && matches!(key, "backstab" | "sinister_strike" | "gouge")
+            && matches!(key, "backstab" | "sinister_strike" | "gouge" | "hemorrhage")
         {
             self.trained_value(TalentStat::SealFate).clamp(0.0, 1.0)
         } else {
@@ -792,7 +796,12 @@ impl Milestones {
         if self.class == 3
             && matches!(
                 key,
-                "backstab" | "sinister_strike" | "eviscerate" | "gouge" | "kidney_shot"
+                "backstab"
+                    | "sinister_strike"
+                    | "eviscerate"
+                    | "gouge"
+                    | "kidney_shot"
+                    | "hemorrhage"
             )
         {
             self.trained_value(TalentStat::Remorseless)
@@ -874,7 +883,12 @@ impl Milestones {
             ),
             3 => matches!(
                 key,
-                "sinister_strike" | "eviscerate" | "blade_flurry" | "gouge" | "kidney_shot"
+                "sinister_strike"
+                    | "eviscerate"
+                    | "blade_flurry"
+                    | "gouge"
+                    | "kidney_shot"
+                    | "hemorrhage"
             ),
             _ => false,
         };
@@ -905,7 +919,12 @@ impl Milestones {
             ),
             3 => matches!(
                 key,
-                "sinister_strike" | "eviscerate" | "blade_flurry" | "gouge" | "kidney_shot"
+                "sinister_strike"
+                    | "eviscerate"
+                    | "blade_flurry"
+                    | "gouge"
+                    | "kidney_shot"
+                    | "hemorrhage"
             ),
             _ => false,
         };
@@ -3511,9 +3530,11 @@ const ROGUE_SPELLS: &[&str] = &[
     "gouge",
     "kidney_shot",
     "backstab",
+    "hemorrhage",
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 681, max_rank: 1, name: "Hemorrhage", description: "Hemorrhage: +20% strike damage. Its physical vulnerability remains +3 damage for 30 charges or 15 sec; does not grant the spell", stat: TalentStat::SpellDamage("hemorrhage"), per_rank: 0.20 },
     TalentDefinition {
         id: 274, max_rank: 2, name: "Murder",
         description: "Your attacks and damage over time: +1% damage per rank against Beasts, Dragonkin, Giants, Humanoids and Critters. Does not affect pets",
@@ -3544,25 +3565,25 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     // Spell.dbc 14186/14190/14193–14195 proc chances 20/40/60/80/100, trigger 14189.
     TalentDefinition {
         id: 283, max_rank: 5, name: "Seal Fate",
-        description: "Critical Backstab, Sinister Strike or Gouge hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec. Each original hit can trigger once; splash copies, generated strikes and bleed ticks cannot trigger it. Does not grant spells or store recovery while ready (Survivors combo-point conversion)",
+        description: "Critical Backstab, Sinister Strike, Gouge or Hemorrhage hits: 20% chance per rank to advance owned Eviscerate, Rupture and Kidney Shot cooldowns by 1 sec. Each original hit can trigger once; splash copies, generated strikes and bleed ticks cannot trigger it. Does not grant spells or store recovery while ready (Survivors combo-point conversion)",
         stat: TalentStat::SealFate, per_rank: 0.20,
     },
     // Spell.dbc 30919/30920: +3/+5 skill for swords (43), daggers (173), fists (162).
     TalentDefinition {
         id: 1703, max_rank: 2, name: "Weapon Expertise",
-        description: "With a worn sword, dagger or fist weapon: +3–5% direct damage for Backstab, Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities (Survivors weapon-skill conversion; attacks have no skill or miss roll)",
+        description: "With a worn sword, dagger or fist weapon: +3–5% direct damage for Backstab, Sinister Strike, Eviscerate, Blade Flurry, Gouge, Kidney Shot and Hemorrhage. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities (Survivors weapon-skill conversion; attacks have no skill or miss roll)",
         stat: TalentStat::WeaponExpertise, per_rank: 0.0,
     },
     // Spell.dbc 13709/13800–13803: proc 1/2/3/4/6%, plus 1–5 mace skill.
     TalentDefinition {
         id: 184, max_rank: 5, name: "Mace Specialization",
-        description: "With a worn mace: 1–6% chance after a direct Rogue weapon hit to stun for 3 sec (bosses 0.9 sec), and +1% direct damage per rank for Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons, bleed ticks, splash copies and generated strikes cannot trigger the stun. Damage is a Survivors weapon-skill conversion; attacks have no skill or miss roll",
+        description: "With a worn mace: 1–6% chance after a direct Rogue weapon hit to stun for 3 sec (bosses 0.9 sec), and +1% direct damage per rank for Sinister Strike, Eviscerate, Blade Flurry, Gouge, Kidney Shot and Hemorrhage. Cosmetic weapons, bleed ticks, splash copies and generated strikes cannot trigger the stun. Damage is a Survivors weapon-skill conversion; attacks have no skill or miss roll",
         stat: TalentStat::RogueMace, per_rank: 0.01,
     },
     // Spell.dbc 13707/13966–13969: +1–5 percentage points of fist critical chance.
     TalentDefinition {
         id: 183, max_rank: 5, name: "Fist Weapon Specialization",
-        description: "With a worn fist weapon: +1% critical chance per rank for Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities",
+        description: "With a worn fist weapon: +1% critical chance per rank for Sinister Strike, Eviscerate, Blade Flurry, Gouge, Kidney Shot and Hemorrhage. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities",
         stat: TalentStat::FistCrit, per_rank: 0.01,
     },
     // Spell.dbc 13960–13964, proc-chance field: 1–5%.
@@ -3574,7 +3595,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     // Spell.dbc 13706/13804–13807: +1–5 percentage points of dagger critical chance.
     TalentDefinition {
         id: 182, max_rank: 5, name: "Dagger Specialization",
-        description: "With a worn dagger: +1% critical chance per rank for Backstab, Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities",
+        description: "With a worn dagger: +1% critical chance per rank for Backstab, Sinister Strike, Eviscerate, Blade Flurry, Gouge, Kidney Shot and Hemorrhage. Cosmetic weapons do not qualify. Excludes Rupture bleed ticks and neutral item abilities",
         stat: TalentStat::DaggerCrit, per_rank: 0.01,
     },
     TalentDefinition {
@@ -3639,7 +3660,7 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 272, max_rank: 2, name: "Remorseless Attacks",
-        description: "After a kill, your next successful Backstab, Sinister Strike, Eviscerate, Gouge or Kidney Shot cast gains +20% critical chance per rank; expires after 20 sec; refreshes without stacking",
+        description: "After a kill, your next successful Backstab, Sinister Strike, Eviscerate, Gouge, Kidney Shot or Hemorrhage cast gains +20% critical chance per rank; expires after 20 sec; refreshes without stacking",
         stat: TalentStat::Remorseless, per_rank: 0.20,
     },
     TalentDefinition {
@@ -4328,7 +4349,7 @@ mod stat_talent_tests {
                 "blade_flurry" => 0.85 * 0.9,
                 "gouge" | "kidney_shot" => 0.8 * 0.9,
                 "sinister_strike" => 0.9 * 0.9,
-                "backstab" | "rupture" | "eviscerate" => 0.9,
+                "backstab" | "rupture" | "eviscerate" | "hemorrhage" => 0.9,
                 _ => 1.0,
             };
             let mut expected = base.cast(key);
@@ -7345,6 +7366,7 @@ mod dagger_specialization_tests {
                                     | "blade_flurry"
                                     | "gouge"
                                     | "kidney_shot"
+                                    | "hemorrhage"
                             )
                         {
                             expected.crit += 0.01 * f32::from(rank.min(5));
@@ -7413,6 +7435,7 @@ mod rogue_sword_tests {
                                         | "blade_flurry"
                                         | "gouge"
                                         | "kidney_shot"
+                                        | "hemorrhage"
                                 );
                             let expected = if eligible {
                                 0.01 * f32::from(rank.min(5))
@@ -7478,6 +7501,7 @@ mod fist_specialization_tests {
                                     | "blade_flurry"
                                     | "gouge"
                                     | "kidney_shot"
+                                    | "hemorrhage"
                             )
                         {
                             expected.crit += 0.01 * f32::from(rank.min(5));
@@ -7561,6 +7585,7 @@ mod rogue_mace_tests {
                                     | "blade_flurry"
                                     | "gouge"
                                     | "kidney_shot"
+                                    | "hemorrhage"
                             );
                         let mut expected = base.cast(key);
                         if eligible {
@@ -7648,6 +7673,7 @@ mod weapon_expertise_tests {
                                     | "blade_flurry"
                                     | "gouge"
                                     | "kidney_shot"
+                                    | "hemorrhage"
                             )
                         {
                             expected.damage *= 1.0 + bonus;
@@ -7698,8 +7724,10 @@ mod seal_fate_tests {
                             let expected = if class == 3
                                 && critical
                                 && damage == 10.0
-                                && matches!(key, "backstab" | "sinister_strike" | "gouge")
-                            {
+                                && matches!(
+                                    key,
+                                    "backstab" | "sinister_strike" | "gouge" | "hemorrhage"
+                                ) {
                                 0.2 * f32::from(rank.min(5))
                             } else {
                                 0.0

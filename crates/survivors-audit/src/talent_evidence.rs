@@ -41,10 +41,11 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
                 println!("Rank {}: spell {} {}", rank + 1, spell, row.name);
                 println!("  description_template={:?}", row.description);
                 println!(
-                    "  duration={:?} proc_chance={} proc_flags={} stacks={}",
+                    "  duration={:?} proc_chance={} proc_flags={} charges={} stacks={}",
                     durations.get(row.duration_index),
                     row.proc_chance,
                     row.proc_flags,
+                    row.proc_charges,
                     row.stack_amount
                 );
                 for slot in 0..3 {

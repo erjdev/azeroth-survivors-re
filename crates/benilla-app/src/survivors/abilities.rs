@@ -139,6 +139,10 @@ impl StormstrikeVulnerability {
     }
 }
 
+#[path = "hemorrhage.rs"]
+mod hemorrhage;
+pub(super) use hemorrhage::HemorrhageVulnerability;
+
 /// Hits in flight, by the run time they land.
 #[derive(Resource, Default)]
 pub(super) struct PendingHits(pub Vec<(f32, Hit)>);
@@ -1456,6 +1460,7 @@ pub(super) fn apply_hits(
         &mut Marks,
         &mut FireVulnerability,
         &mut super::curse::CurseState,
+        &mut HemorrhageVulnerability,
     )>,
     mut fx: Fx,
     mut loot: MessageWriter<Loot>,
@@ -1654,7 +1659,7 @@ pub(super) fn apply_hits(
             }
             Step::Settle(hit, original) => (hit, original),
         };
-        let Ok((e, guid, tf, mut en, mut store, mut marks, mut fire, mut curse)) =
+        let Ok((e, guid, tf, mut en, mut store, mut marks, mut fire, mut curse, mut hemorrhage)) =
             enemies.get_mut(h.target)
         else {
             continue;
@@ -1735,6 +1740,17 @@ pub(super) fn apply_hits(
                     run.thorns_spell,
                 );
             }
+            dmg += hemorrhage.bonus(
+                h.source,
+                h.origin,
+                dmg,
+                impact_time,
+                spells.as_deref(),
+                run.thorns_spell,
+            );
+            if hemorrhage.0.charges(impact_time) == 0 {
+                marks.remove(16511);
+            }
             let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
             dmg *= echoes as f32;
             let removed = dmg.min(en.hp.max(0.0));
@@ -1758,6 +1774,16 @@ pub(super) fn apply_hits(
                 }
             }
             en.hp -= dmg;
+            if run.alive()
+                && en.hp > 0.0
+                && h.origin == HitOrigin::Hero
+                && original
+                && h.source == "hemorrhage"
+                && removed > 0.0
+                && hemorrhage.0.apply(impact_time)
+            {
+                marks.add(16511, (impact_time + 15.0 - now).max(0.0));
+            }
             if run.alive() && en.hp > 0.0 {
                 let chance = owner_talents.improved_scorch_chance(h.source, removed, original);
                 if chance > 0.0 && rng.f32() < chance {
@@ -1925,7 +1951,7 @@ pub(super) fn apply_hits(
     }
 
     // The over-time ticks, once a second each.
-    for (e, guid, tf, mut en, mut store, mut marks, fire, _) in &mut enemies {
+    for (e, guid, tf, mut en, mut store, mut marks, fire, _, mut hemorrhage) in &mut enemies {
         if en.dead || (en.dots.is_empty() && !en.poison.active()) {
             continue;
         }
@@ -1945,7 +1971,6 @@ pub(super) fn apply_hits(
                 let mut tick = d.dps
                     * fire.multiplier(d.source, now, spells.as_deref(), 0)
                     * creature_multiplier(run.milestones, creature_type, d.origin, false)
-                    * echoes as f32
                     * run.milestones.shadow_damage_multiplier(d.source, weaving)
                     * kidney_multiplier;
                 if remaining_hp > 0.0 {
@@ -1953,6 +1978,13 @@ pub(super) fn apply_hits(
                         tick *= vulnerability.multiplier(d.source, tick, now, spells.as_deref(), 0);
                     }
                 }
+                if remaining_hp > 0.0 {
+                    tick += hemorrhage.bonus(d.source, d.origin, tick, now, spells.as_deref(), 0);
+                    if hemorrhage.0.charges(now) == 0 {
+                        marks.remove(16511);
+                    }
+                }
+                tick *= echoes as f32;
                 let removed = tick.max(0.0).min(remaining_hp);
                 remaining_hp = (remaining_hp - removed).max(0.0);
                 vampiric_heal += owner_talents.vampiric_healing(d.source, removed);
@@ -11072,3 +11104,7 @@ fn cast_regrowth(run: &mut Run, p: &Params, max_hp: f32, rng: &mut Rng) -> Optio
 #[cfg(test)]
 #[path = "regrowth_tests.rs"]
 mod regrowth_tests;
+
+#[cfg(test)]
+#[path = "hemorrhage_tests.rs"]
+mod hemorrhage_tests;
