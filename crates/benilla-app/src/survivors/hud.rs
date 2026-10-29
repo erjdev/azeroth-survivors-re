@@ -1738,6 +1738,7 @@ pub(super) fn keys(
     stash: Res<super::stash::Stash>,
     account: Res<super::account::Account>,
     typing: Res<super::Typing>,
+    controller: Option<Res<super::controller_input::ControllerInput>>,
     mut armory: ResMut<super::armory::Armory>,
     mut selection: ResMut<Selection>,
     mut run: ResMut<Run>,
@@ -1778,7 +1779,7 @@ pub(super) fn keys(
             }
         }
         Phase::Playing => {
-            if keys.just_pressed(KeyCode::Escape) {
+            if keys.just_pressed(KeyCode::Escape) || controller.is_some_and(|input| input.pause) {
                 next.set(Phase::Paused);
             }
         }

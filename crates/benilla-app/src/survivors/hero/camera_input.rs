@@ -41,9 +41,67 @@ pub(super) fn apply<'a>(
     }
 }
 
+/// Time-based controller motion shares the mouse camera's inversion and limits.
+pub(super) fn analog(
+    rig: &mut CamRig,
+    settings: &super::super::camera::CameraSettings,
+    frame: survivors_core::controller::Frame,
+    dt: f32,
+) {
+    if !dt.is_finite() || dt <= 0.0 {
+        return;
+    }
+    let look = Vec2::new(frame.look[0], -frame.look[1]);
+    if look != Vec2::ZERO {
+        rig.mode = CamMode::Orbit;
+        let delta = settings.mouse_delta(look) * (1.8 * dt);
+        rig.yaw -= delta.x;
+        rig.pitch = (rig.pitch + delta.y).clamp(PITCH_MIN, PITCH_MAX);
+    }
+    rig.dist =
+        (rig.dist * (-1.5 * settings.zoom_speed * frame.zoom * dt).exp()).clamp(ZOOM_MIN, ZOOM_MAX);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn controller_camera_is_time_based_inverted_and_bounded() {
+        let mut settings = super::super::super::camera::CameraSettings::default();
+        settings.camera_speed = 1.0;
+        settings.zoom_speed = 1.0;
+        settings.invert_x = false;
+        settings.invert_y = false;
+        let frame = survivors_core::controller::Frame {
+            look: [0.4, -0.2],
+            zoom: 0.5,
+            ..default()
+        };
+        let mut fine = CamRig::default();
+        let mut batch = CamRig::default();
+        for _ in 0..10 {
+            analog(&mut fine, &settings, frame, 0.01);
+        }
+        analog(&mut batch, &settings, frame, 0.1);
+        assert!((fine.yaw - batch.yaw).abs() < 0.00001);
+        assert!((fine.pitch - batch.pitch).abs() < 0.00001);
+        assert!((fine.dist - batch.dist).abs() < 0.0001);
+        assert!(matches!(batch.mode, CamMode::Orbit));
+        settings.invert_x = true;
+        settings.invert_y = true;
+        let mut inverse = CamRig::default();
+        analog(&mut inverse, &settings, frame, 0.1);
+        assert!((inverse.yaw + batch.yaw).abs() < 0.00001);
+        assert!((inverse.pitch + batch.pitch - 2.0 * FIXED_PITCH).abs() < 0.00001);
+        let mut idle = CamRig::default();
+        analog(&mut idle, &settings, Default::default(), 0.1);
+        assert!(matches!(idle.mode, CamMode::Fixed));
+        assert_eq!(idle.dist, 30.0);
+        analog(&mut batch, &settings, frame, 100.0);
+        assert!((PITCH_MIN..=PITCH_MAX).contains(&batch.pitch));
+        assert_eq!(batch.dist, ZOOM_MIN);
+    }
 
     #[test]
     fn zoom_speed_changes_distance_without_changing_camera_rotation() {

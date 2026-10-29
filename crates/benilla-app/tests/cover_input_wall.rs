@@ -85,6 +85,10 @@ const VERDICTS: &[(&str, Verdict)] = &[
         ),
     ),
     ("WinitUserEvent", Open("browser heartbeat sends only WakeUp to keep hidden-tab updates running during loading")),
+    ("RawGamepadEvent", Open("Survivors samples raw sticks while covered to track release; its sampler clears gameplay output and requires neutral input after loading")),
+    ("RawGamepadAxisChangedEvent", Open("Survivors synthetic input tests send these through RawGamepadEvent; the runtime sampler gates gameplay on LoadingScreen")),
+    ("RawGamepadButtonChangedEvent", Open("Survivors synthetic input tests send these through RawGamepadEvent; covered button presses cannot become jump or pause")),
+    ("AxisSettings", Plumbing),
     // ── Not input at all ────────────────────────────────────────────────────────────────────
     ("ButtonState", Plumbing),
     // Cursor outputs benilla writes; nothing arrives through them.

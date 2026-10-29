@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Analog controller gameplay wiring
+
+Left stick now drives analog movement; right stick controls the camera using
+existing inversion/speed settings. Bumpers/triggers zoom, South jumps and Start
+pauses. Input clears during menus, loading, death and focus loss; resume and
+controller handoff require neutral gestures. Keyboard movement takes precedence.
+
+546 Survivors app tests, feature Clippy and six-package scoped checks pass
+(31 missing-addon skips). Native incremental build passed in 1m09s; full
+pre-merge gates remain required. The fixed 25% dead zone still needs its persistent settings slider. Physical-pad
+feel, attended movement/collision and Windows acceptance remain unverified.
+No UI layout changed; the inline settings captures below remain current.
+
 ## 2026-10-28 — Analog controller foundation
 
 Added circular stick filtering with continuous analog strength, bounded diagonal

@@ -15,6 +15,7 @@ mod cards;
 mod channel_visuals;
 mod channeling;
 mod companions;
+mod controller_input;
 mod defense;
 mod enemies;
 mod floor;
@@ -76,6 +77,11 @@ pub(crate) struct SurvivorsPlugin;
 
 impl Plugin for SurvivorsPlugin {
     fn build(&self, app: &mut App) {
+        app.init_resource::<controller_input::ControllerInput>()
+            .add_systems(
+                PreUpdate,
+                controller_input::sample.after(bevy::input::InputSystems),
+            );
         // Stock 1.12 boot disables controllers; Survivors opts back into native
         // device discovery and Bevy's normalized gamepad buttons.
         if !app.is_plugin_added::<bevy::gilrs::GilrsPlugin>() {

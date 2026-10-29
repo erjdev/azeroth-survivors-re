@@ -200,6 +200,8 @@ pub(super) fn drive_hero(
     selection: Res<Selection>,
     rig: Res<CamRig>,
     aim: Res<AimPoint>,
+    controller: Res<super::controller_input::ControllerInput>,
+    loading: Res<crate::loading_screen::LoadingScreen>,
     world: super::Floor,
     auto: Option<Res<super::auto::Auto>>,
     mut player: ResMut<crate::player::Player>,
@@ -209,12 +211,14 @@ pub(super) fn drive_hero(
         Ok((mut tf, mut mv, mut hm)) => {
             let dt = time.delta_secs();
             let mut dir = Vec3::ZERO;
+            let mut analog = false;
             if let Some(auto) = auto
                 .as_deref()
                 .filter(|_| *phase.get() == Phase::Playing && run.dead_t.is_none())
             {
                 dir = super::auto::steer(auto);
-            } else if *phase.get() == Phase::Playing && run.dead_t.is_none() {
+            } else if *phase.get() == Phase::Playing && run.dead_t.is_none() && !loading.covering()
+            {
                 if keys.any_pressed([KeyCode::KeyW, KeyCode::ArrowUp]) {
                     dir.z -= 1.0;
                 }
@@ -227,6 +231,11 @@ pub(super) fn drive_hero(
                 if keys.any_pressed([KeyCode::KeyD, KeyCode::ArrowRight]) {
                     dir.x += 1.0;
                 }
+                if dir == Vec3::ZERO {
+                    let [x, y] = controller.frame.movement;
+                    dir = Vec3::new(x, 0.0, -y);
+                    analog = dir != Vec3::ZERO;
+                }
                 // In orbit mode WASD is camera-relative; in fixed mode it stays world-relative.
                 if rig.mode == CamMode::Orbit {
                     let (sy, cy) = rig.yaw.sin_cos();
@@ -238,6 +247,7 @@ pub(super) fn drive_hero(
             // strafes as a player does; unlocked (or driven), he faces where he runs.
             let face = (rig.mode == CamMode::Fixed
                 && auto.is_none()
+                && !analog
                 && *phase.get() == Phase::Playing
                 && run.dead_t.is_none())
             .then(|| aim.0.map(|a| flat(a - pos)))
@@ -249,8 +259,9 @@ pub(super) fn drive_hero(
                 tf.rotation = tf.rotation.slerp(target, (dt * 20.0).min(1.0));
             }
             if dir != Vec3::ZERO && dt > 0.0 {
+                let strength = dir.length().min(1.0);
                 let dir = dir.normalize();
-                let speed = run.stats().speed * run.haste_mult();
+                let speed = run.stats().speed * run.haste_mult() * strength;
                 pos += dir * speed * dt;
                 mv.speed = speed;
                 mv.flags = match face {
@@ -282,9 +293,14 @@ pub(super) fn drive_hero(
             // Jump height is relative to the floor, not the input to the next floor probe.
             let feet = pos - Vec3::Y * hm.air;
             let ground = world.height(feet).unwrap_or(feet.y);
-            let playing = *phase.get() == Phase::Playing && run.dead_t.is_none();
+            let playing =
+                *phase.get() == Phase::Playing && run.dead_t.is_none() && !loading.covering();
             // Space hops: lift off the terrain, then gravity brings the hero back down.
-            if playing && keys.just_pressed(KeyCode::Space) && hm.vy == 0.0 && hm.air == 0.0 {
+            if playing
+                && (keys.just_pressed(KeyCode::Space) || controller.frame.jump)
+                && hm.vy == 0.0
+                && hm.air == 0.0
+            {
                 hm.vy = JUMP_SPEED;
             }
             if playing && (hm.vy != 0.0 || hm.air > 0.0) {
@@ -333,6 +349,7 @@ pub(super) fn place_camera(
     mut rig: ResMut<CamRig>,
     mut camera_settings: ResMut<super::camera::CameraSettings>,
     mut trace: Local<super::camera::CameraTrace>,
+    controller: Res<super::controller_input::ControllerInput>,
     loading: Res<crate::loading_screen::LoadingScreen>,
     mut wheel: MessageReader<MouseWheel>,
     mouse: Res<ButtonInput<MouseButton>>,
@@ -353,6 +370,16 @@ pub(super) fn place_camera(
             .any_pressed([MouseButton::Left, MouseButton::Right])
             .then_some(motion.delta),
         wheel.read(),
+    );
+    camera_input::analog(
+        &mut rig,
+        &camera_settings,
+        if *phase.get() == Phase::Playing && !loading.covering() {
+            controller.frame
+        } else {
+            Default::default()
+        },
+        time.delta_secs(),
     );
     // With no hero yet, the focus `drive_hero` grounded.
     let focus = hero.single().map_or(player.pos, |t| t.translation);
