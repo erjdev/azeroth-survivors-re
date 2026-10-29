@@ -5,6 +5,22 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Starter equipment readability — 2026-10-29
+
+The reference starter uses nine equipment icons. The existing per-cell labels
+crowded the narrow center column (notably Shoulders at 1280×720). Use the compact
+icon strip with verified stock empty-slot art and one full-width inspection line.
+Pointer hover or keyboard/controller focus must identify the slot and equipped
+item, never a separate cosmetic override. Clearing focus/hover or rebuilding the
+strip must not retain stale item text. Clicking still opens that slot in Collection.
+Native 1280×720 confirms all nine empty-slot images render, with before/after
+captures in the changelog. Collected/compact/native interaction acceptance remains
+open because window automation lost access after the empty capture. Reusable
+`starter-equipment-1280.txt` and `starter-equipment-640x480-125.txt` presets target
+hero 1 in a partial/collected disposable fixture. Native build: 1m48s.
+All 580 Survivors runtime tests and the eight-package gate pass (formatting,
+Clippy, tests; 31 optional-addon skips), including inspection reset and focus priority.
+
 ## Fresh-account entry acceptance — 2026-10-29
 
 At 640×480 with 125% UI, the fresh starter displayed “No hero of this class”

@@ -35,6 +35,14 @@ Refresh the relevant page here for a visual milestone, and add its before/after 
 responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures).
 
 
+### Starter equipment readability
+
+The starter uses a compact equipment strip with recognizable empty slots and a
+shared hover/focus inspection line. The current native capture covers empty slots
+at 1280×720; compact and collected interaction acceptance is still open.
+
+![Starter empty equipment strip](docs/images/screenshots/2026-10-29-starter-equipment/empty.jpg)
+
 ### Enemy equipment specimens
 
 Native noncombat preview, 2026-10-29: verified NPC weapon and shield metadata now

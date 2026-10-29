@@ -943,6 +943,42 @@ mod tests {
     }
 
     #[test]
+    fn focused_starter_equipment_precedes_hover_and_survives_no_stale_entity() {
+        use super::super::starter_equipment::{refresh, Detail, SlotInfo};
+        use bevy::ecs::system::RunSystemOnce;
+        let mut world = World::new();
+        let hovered = world
+            .spawn((Interaction::Hovered, SlotInfo("Helm · Empty".into())))
+            .id();
+        let focused = world
+            .spawn((
+                Interaction::None,
+                SlotInfo("Shoulders · Equipped item".into()),
+            ))
+            .id();
+        let detail = world.spawn((Detail, Text::new(""))).id();
+        world.insert_resource(ControllerFocus {
+            focused: Some(focused),
+            ..default()
+        });
+        world.run_system_once(refresh).unwrap();
+        assert_eq!(
+            world.get::<Text>(detail).unwrap().0,
+            "Shoulders · Equipped item"
+        );
+        world.despawn(focused);
+        world.run_system_once(refresh).unwrap();
+        assert_eq!(world.get::<Text>(detail).unwrap().0, "Helm · Empty");
+        world.despawn(hovered);
+        world.run_system_once(refresh).unwrap();
+        assert!(world
+            .get::<Text>(detail)
+            .unwrap()
+            .0
+            .starts_with("Point or focus"));
+    }
+
+    #[test]
     fn focused_talent_details_precede_pointer_hover_without_spending_points() {
         let mut world = World::new();
         let hovered = world

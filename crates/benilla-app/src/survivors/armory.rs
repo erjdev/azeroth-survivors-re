@@ -16,6 +16,8 @@ mod weapon_alternatives;
 pub(super) use controls::style as style_controls;
 pub(super) use scrollbar::{input as scrollbar_input, update as update_scrollbars};
 mod door;
+mod starter_equipment;
+pub(super) use starter_equipment::refresh as starter_equipment_details;
 mod drop_page;
 #[cfg(any(test, not(target_arch = "wasm32")))]
 pub(super) mod preview;

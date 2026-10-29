@@ -232,6 +232,7 @@ impl Plugin for SurvivorsPlugin {
                         armory::style_controls,
                         armory::scroll_collection,
                         armory::codex_details,
+                        armory::starter_equipment_details,
                         armory::talent_details,
                         armory::keep_talent_inspection_visible,
                         armory::fill_talent_art,

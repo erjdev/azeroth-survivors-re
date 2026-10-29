@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Compact starter equipment strip
+
+Replaced crowded per-slot captions with the reference's compact icon strip.
+Empty slots use stock paper-doll artwork; one full-width line identifies the
+focused/hovered slot and equipped item. Cosmetic overrides do not change that
+identity, and slot selection still opens Collection.
+
+![Before: narrow cells crowd slot captions](images/screenshots/2026-10-29-starter-equipment/before.jpg)
+
+![After: recognizable empty slots and one inspection line](images/screenshots/2026-10-29-starter-equipment/empty.jpg)
+
+Native macOS 1280×720 confirms all nine empty-slot images render. Further collected,
+compact and native keyboard/pointer interaction checks remain open after window
+automation lost access. This capture does not establish those checks. Native build:
+1m48s. All 580 Survivors runtime tests and the eight-package gate pass
+(formatting, Clippy, tests; 31 optional-addon skips). Reusable wide/compact
+starter-equipment presets are included.
+
 ## 2026-10-29 — Explicit first-run hero selection
 
 The starter now opens hero creation/selection when no hero is selected, instead

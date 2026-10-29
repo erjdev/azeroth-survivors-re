@@ -1357,6 +1357,11 @@ fn gear_lines(
             row.spawn((
                 Button,
                 Act::OpenEquipment(slot),
+                super::starter_equipment::SlotInfo(format!(
+                    "{} · {}",
+                    campaign::SLOTS[slot],
+                    piece.as_ref().map_or("Empty", |piece| piece.name)
+                )),
                 Node {
                     min_width: Val::Px(0.0),
                     flex_direction: FlexDirection::Column,
@@ -1373,26 +1378,12 @@ fn gear_lines(
                 if let Some(piece) = piece {
                     super::super::gear_icons::spawn_visual(cell, piece.visual, 30.0);
                 } else {
-                    cell.spawn(Node {
-                        width: Val::Px(30.0),
-                        height: Val::Px(30.0),
-                        align_items: AlignItems::Center,
-                        justify_content: JustifyContent::Center,
-                        ..default()
-                    })
-                    .with_children(|empty| line(empty, font, "—", 12.0, DIM));
+                    super::starter_equipment::empty(cell, slot);
                 }
-                line(cell, font, campaign::SLOTS[slot], 9.0, DIM);
             });
         }
     });
-    line(
-        body,
-        font,
-        "Select a slot to inspect its gear in Collection.",
-        11.0,
-        DIM,
-    );
+    super::starter_equipment::detail(body, font);
     if campaign::two_handed(class) {
         line(
             body,
