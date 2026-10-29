@@ -9488,3 +9488,19 @@ formatting/Clippy/test gate passes after repairing a test-only incremental cache
 affected by a full disk; 4,827 app unit tests pass, with 31 optional-addon skips
 across the gate. Native macOS screenshots verify wide and compact keyboard paging.
 The full pre-merge gates and Windows/native-wheel/attended gameplay remain open.
+
+### 2026-10-29 — Regrowth participates in existing healing builds
+
+Gift of Nature now increases both Regrowth healing portions, while Moonglow applies
+its existing recovery conversion. Shared-core grouped healing preserves the
+healing multiplier used by triggered heals; unrelated damage and spell-specific
+Rejuvenation bonuses remain excluded. Installed evidence is recorded in the Druid
+dependency audit. Definition coverage remains 301/432, Druid 28/47.
+
+Native macOS screenshots verify the Gift of Nature 4→5 rank description at
+1280×720 and Moonglow at 640×720 / 125%; build time was 16s. Core tests cover
+rank caps, class/spell exclusions and refunds; runtime tests verify actual direct
+and periodic amounts and recovery. Windows and attended combat remain open.
+
+Validation: the required eight-package formatting/Clippy/test gate passes, including
+4,828 app unit tests and 309 core tests; 31 optional-addon tests skip on this machine.

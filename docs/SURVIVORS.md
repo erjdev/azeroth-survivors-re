@@ -1049,6 +1049,11 @@ The immediate heal uses hero critical chance plus Improved Regrowth (node 825):
 +10 percentage points per rank, five ranks, capped at 100% final chance. Critical
 healing is fixed at 150%; offensive critical-damage bonuses do not increase it.
 Periodic healing cannot crit, and healing does not emit damage hits or trigger
-Nature's Grace. The talent does not acquire the spell. Existing explicitly scoped
-Rejuvenation conversions still affect Rejuvenation only. Cards show direct healing,
-periodic rate, duration and recovery upgrades inline, with each changed unit once.
+Nature's Grace. The talent does not acquire the spell.
+
+Gift of Nature adds 2% healing per rank to both Rejuvenation and Regrowth, including
+both direct and periodic portions. Moonglow reduces Regrowth recovery by 3% per
+rank, capped at three ranks, alongside its existing spells (mana-cost conversion).
+Other explicitly Rejuvenation-scoped conversions still affect Rejuvenation only.
+Cards show direct healing, periodic rate, duration and recovery upgrades inline,
+with each changed unit once.

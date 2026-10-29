@@ -593,6 +593,10 @@ impl Milestones {
                         effect.damage *= 1.0 + value;
                         effect.crit += value;
                     }
+                    TalentStat::SpellGroupHealing(spells) if spells.contains(&key) => {
+                        effect.damage *= 1.0 + value;
+                        healing_multiplier *= 1.0 + value;
+                    }
                     TalentStat::SpellHealing(spell) if spell == key => {
                         effect.damage *= 1.0 + value;
                         healing_multiplier *= 1.0 + value;
@@ -1769,6 +1773,7 @@ pub enum TalentStat {
     SpellDamage(&'static str),
     SpellAbsorb(&'static str),
     SpellHealing(&'static str),
+    SpellGroupHealing(&'static [&'static str]),
     ImprovedDrainLife,
     Conflagrate,
     PresenceOfMind,
@@ -2127,6 +2132,7 @@ impl TalentDefinition {
             | TalentStat::SpellShield(_)
             | TalentStat::SpellAbsorb(_)
             | TalentStat::ImprovedDrainLife
+            | TalentStat::SpellGroupHealing(_)
             | TalentStat::SpellHealing(_)
             | TalentStat::SpellRadius(_)
             | TalentStat::SpellGroupRange(_) => (100.0, "%"),
@@ -2349,7 +2355,7 @@ impl TalentDefinition {
             TalentStat::SecondaryStunDuration(_) => (1.0, " s added stun duration"),
             TalentStat::SecondaryRootDuration(_) => (1.0, " s added root duration"),
             TalentStat::SpellAbsorb(_) => (100.0, "% absorption"),
-            TalentStat::SpellHealing(_) => (100.0, "% healing"),
+            TalentStat::SpellHealing(_) | TalentStat::SpellGroupHealing(_) => (100.0, "% healing"),
             TalentStat::ImprovedDrainLife => (100.0, "% drain healing"),
             TalentStat::Conflagrate => (1.0, " sec Shadowburn cooldown advanced per Immolate cast"),
             TalentStat::PresenceOfMind => (
@@ -3999,6 +4005,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ImprovedDrainLife
             | TalentStat::Conflagrate
             | TalentStat::PresenceOfMind
+            | TalentStat::SpellGroupHealing(_)
             | TalentStat::SpellHealing(_)
             | TalentStat::SpellDamageAndCrit(_)
             | TalentStat::SpellDamage(_)
@@ -5544,6 +5551,7 @@ mod stat_talent_tests {
                     | TalentStat::ImprovedDrainLife
                     | TalentStat::Conflagrate
                     | TalentStat::PresenceOfMind
+                    | TalentStat::SpellGroupHealing(_)
                     | TalentStat::SpellHealing(_)
                     | TalentStat::SpellDamageAndCrit(_)
                     | TalentStat::SpellDamage(_)

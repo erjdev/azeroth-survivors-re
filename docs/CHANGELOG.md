@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Regrowth healing builds
+
+Gift of Nature now boosts both parts of Regrowth; Moonglow shortens its recovery.
+Their green inline descriptions identify the affected spells. Native macOS checks
+cover 1280×720 and 640×720 / 125%; incremental build: 16s. Talent coverage stays
+301/432. The scoped formatting/Clippy/test gate passes (31 optional-addon skips).
+Windows and attended combat remain open.
+
+![Gift of Nature applies to both healing spells](images/screenshots/2026-10-29-regrowth-talents/gift-wide.png)
+
+![Moonglow includes Regrowth at compact scale](images/screenshots/2026-10-29-regrowth-talents/moonglow-compact.png)
+
 ## 2026-10-29 — Regrowth and readable wrapped cards
 
 Druids can acquire Regrowth: immediate healing plus an independent heal over time.

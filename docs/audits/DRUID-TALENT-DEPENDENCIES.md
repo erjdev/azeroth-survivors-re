@@ -102,3 +102,16 @@ effect and a 21-second periodic heal with 3-second amplitude, a 2-second cast ti
 40-yard range and 120 flat mana cost. Its direct value has a die range and level
 term, so do not copy the base-point field as the final healing amount. The authored
 Survivors conversion is documented in [the mechanics spec](../SURVIVORS.md#druid-regrowth-and-improved-regrowth).
+
+## Existing healing talent integration
+
+Installed Gift of Nature (828; spells 17104 and 24943–24946) increases all healing
+by 2/4/6/8/10%. Moonglow (783; 16845–16847) explicitly includes Regrowth in its
+3/6/9% mana-cost reduction. Both now include the acquired Regrowth path: Gift
+scales direct and periodic healing; Moonglow uses the existing recovery conversion.
+Improved Rejuvenation remains spell-specific. Coverage stays 28/47, since these
+are existing definitions gaining a missing consumer, not new definitions.
+
+Nature's Focus (823; 17063/17065–17068) names Healing Touch, Regrowth and Tranquility
+in its installed pushback-protection rule. Its current explicit Rejuvenation-only
+healing conversion remains separate work to reconcile with those spell lifecycles.
