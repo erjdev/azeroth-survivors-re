@@ -18,6 +18,8 @@ pub mod coords;
 pub mod materials;
 pub mod minimap_grid;
 mod spatial_cache;
+#[cfg(feature = "survivors-visibility")]
+pub mod survivors_mask;
 pub mod trace;
 
 mod anim_rng;

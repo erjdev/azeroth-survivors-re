@@ -48,6 +48,8 @@ pub type WowModelMaterial = ExtendedMaterial<StandardMaterial, WowModelExt>;
 /// (`clutter_fade.w`) ground clutter; both fade opacity with depth-write on, as the reference does.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct WowModelKey {
+    #[cfg(feature = "survivors-visibility")]
+    actor_mask: bool,
     fade: bool,
     clutter: bool,
     /// Additive glow card (`clutter_fade.z` bit 2).
@@ -74,6 +76,8 @@ impl From<&WowModelExt> for WowModelKey {
     fn from(e: &WowModelExt) -> Self {
         let markers = e.clutter_fade.z as u32;
         Self {
+            #[cfg(feature = "survivors-visibility")]
+            actor_mask: markers & crate::survivors_mask::MARKER != 0,
             fade: e.model_flags.y > 0.5,
             clutter: e.clutter_fade.w > 0.5,
             additive: markers & 4 != 0,
@@ -312,6 +316,10 @@ impl MaterialExtension for WowModelExt {
                     },
                 });
             }
+        }
+        #[cfg(feature = "survivors-visibility")]
+        if key.actor_mask {
+            crate::survivors_mask::specialize(descriptor);
         }
         Ok(())
     }

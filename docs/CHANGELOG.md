@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Actor mask for occlusion silhouettes
+
+Added an opt-in actor-only render view that follows source model poses, textures,
+visibility and gameplay allegiance. It keeps nearest-surface depth separately from
+color, follows camera resizing, and clears inactive views. This prepares the missing
+red-enemy/green-friendly compositor; no silhouette settings or visible reveal are
+shipping yet. GPU fixture and Windows acceptance remain open.
+
+552 Survivors tests, the material pipeline test, feature Clippy and the native
+incremental build (38s) pass. Eight-package scoped checks pass with 31 missing-addon
+skips. Full pre-merge gates remain required.
+
+No interface appearance changed. The existing inline talent/settings captures remain
+current; actual silhouette captures are required once the render fixture is verified.
+
 ## 2026-10-28 — Silhouette renderer contract
 
 Audited the missing red/green silhouette path separately from scenery cutaway.

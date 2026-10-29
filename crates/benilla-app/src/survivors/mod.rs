@@ -6,6 +6,8 @@
 
 mod abilities;
 mod account;
+#[cfg(feature = "survivors-visibility")]
+mod actor_mask;
 mod appearance;
 mod armory;
 mod auto;
@@ -90,7 +92,7 @@ impl Plugin for SurvivorsPlugin {
         #[cfg(not(target_arch = "wasm32"))]
         app.add_plugins(armory::preview::plugin);
         #[cfg(feature = "survivors-visibility")]
-        app.add_plugins(visibility::plugin);
+        app.add_plugins((visibility::plugin, actor_mask::plugin));
         // Present before `OnEnter(InWorld)`, where the UI lifecycle decides not to load FrameXML.
         app.insert_resource(crate::run_mode::CaptureMode)
             .add_plugins((

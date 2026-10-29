@@ -1885,7 +1885,10 @@ Renderer audit (2026-10-28): the existing path implements scenery cutaway only.
 required nearest-actor mask, completed scene-depth comparison, allegiance and
 concealment rules, render ordering and isolated visual acceptance. The new core
 comparison/filter contract is tested but has no renderer consumer. Persisted
-silhouette switches and red/green GPU output remain unimplemented.
+silhouette switches and composited red/green GPU output remain unimplemented.
+An opt-in actor-only render view now mirrors source creature meshes/materials with
+separate nearest-surface depth; see the audit for its lifecycle and validation limits.
+GPU fixture acceptance and the scene-depth compositor are the next required steps.
 
 Use separate policies for foliage visibility, body collision and solid-world camera collision.
 A canopy obscuring the hero is not by itself a reason to collapse the camera boom. The

@@ -54,6 +54,32 @@ filter/color policy. Tests cover visible actors, nearer/farther scenery, backgro
 invalid depth, tolerance and all filter combinations. It has no renderer consumer
 and is not evidence of GPU precision, source-mask correctness or visual behavior.
 
+## Actor-mask implementation checkpoint
+
+`WOW_SURVIVORS_ACTOR_MASK=1` enables an experimental separate actor view in native
+builds with `survivors-visibility`. It mirrors visible Creature model parts and their
+mesh tags, source materials and live transforms; portrait layers are excluded.
+Gameplay ancestry assigns enemy red, friendly green, or neutral blue ownership.
+Neutral actors remain in depth ownership for the future compositor.
+
+The dedicated material variant preserves source textures, animation and alpha tests,
+then writes categorical color with blending disabled and nearest-surface reverse-Z
+depth. Allegiance uses an HDR color target; depth uses a separate sampleable depth
+attachment, rather than packing distance into half-float alpha. Camera projection,
+viewport, pose and target size follow the world view. Missing/minimized views and
+menu/game-over states disable the mask and clear mirrors/material references.
+
+CPU evidence: all 552 Survivors tests pass, including active camera creation,
+resize/pose tracking, missing-target disable/recovery and inactive cleanup. A separate
+material pipeline test verifies blending overrides and nearest-depth writes. Feature
+Clippy and the native incremental build pass. The active-view test caught the invalid
+fixed-size layer constructor; the mask now uses the dynamic layer constructor.
+
+This is renderer infrastructure, disabled by default. There is no compositor or
+settings consumer yet. CPU lifecycle/pipeline tests do not establish shader compilation,
+GPU precision, animated source fidelity, MSAA edges or Windows acceptance. The next
+step is an isolated native render fixture, followed by the scene-depth compositor.
+
 ## Required isolated visual acceptance
 
 Use an isolated noncombat render fixture with an actual posed hero, enemy and

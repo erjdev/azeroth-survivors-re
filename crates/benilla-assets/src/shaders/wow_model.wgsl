@@ -827,5 +827,11 @@ fn fragment(in: WowVsOut, @builtin(front_facing) is_front: bool) -> WowFragOut {
     // Raw gamma out: blending happens in gamma like the reference's byte framebuffer; the frame
     // decodes once, in the FFXGlow combine.
     out.color = vec4<f32>(out_rgb, select(faded_alpha, 1.0, opaque_intent));
+#ifdef SURVIVORS_ACTOR_MASK
+    // Keep all source skinning and alpha-test decisions above. The companion depth
+    // attachment stores full-precision depth; color contains allegiance only.
+    if (faded_alpha <= 0.001) { discard; }
+    out.color = vec4<f32>(m.sidn.xyz, 1.0);
+#endif
     return out;
 }
