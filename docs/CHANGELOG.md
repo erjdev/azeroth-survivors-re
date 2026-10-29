@@ -4,6 +4,14 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Paladin implementation dependencies
+
+Audited all eighteen unfinished Paladin talents against installed data and current
+combat consumers. The [dependency map](audits/PALADIN-TALENT-DEPENDENCIES.md)
+separates healing, melee/seals, shield block, incoming critical/control events and
+blessings. Next: distinctly sourced Retribution Aura. No gameplay, coverage or
+visual change; named definitions remain 305/432.
+
 ## 2026-10-29 — Read Codex details with the keyboard
 
 Page Up/Down and Home/End now scroll Codex details, with a visible shortcut hint.

@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Remaining Paladin dependencies — 2026-10-29
+
+All eighteen pending nodes now have an [installed-data dependency audit](audits/PALADIN-TALENT-DEPENDENCIES.md).
+Current defense outcomes lack block and incoming critical metadata; primary
+attributes, Paladin physical swings and its healing/blessing spells are also
+missing consumers. The next independent integration is a distinctly sourced
+Retribution Aura, before enabling its scoped improvement. Existing thorns must
+not silently become every class's retaliation effect. Coverage remains 305/432
+(Paladin 26/44); this audit introduces no mechanics or visual changes.
+
 ## Codex keyboard reading — 2026-10-29
 
 At 640×480 / 125%, native Page Down does nothing while Mind Flay's description

@@ -20,7 +20,7 @@ target/debug/survivors-audit wow-data/Data --spell-evidence 20111
 
 ## Missing runtime consumer
 
-The current Paladin pool in `survivors-core/src/data.rs` contains Hammer of Wrath,
+At the original audit, the Paladin pool in `survivors-core/src/data.rs` contained Hammer of Wrath,
 Consecration, Holy Shock, Exorcism, Holy Wrath, Hammer of Justice, Divine Shield
 and Judgement. Their configured spell IDs are 24275, 26573, 25912, 879, 2812,
 853, 642 and 20271. Each resolves to school 1 (Holy) in checkout data. A `Strike`
@@ -38,6 +38,11 @@ Pending user decision: add a basic automatic melee swing outside the six ability
 slots, or a physical melee ability acquired through cards. This is separate from
 the pending equipped-weapon-versus-authored-base damage decision for Stormstrike.
 No new attack, slot policy or weapon damage formula is selected by this audit.
+
+Follow-up at `fdabe73`: Repentance adds a ninth Paladin ability, but no physical
+weapon attack. Coverage is now 305/432 (Paladin 26/44); both specializations remain
+pending. The [complete Paladin dependency map](PALADIN-TALENT-DEPENDENCIES.md)
+tracks the other missing consumers.
 
 After resolving the attack policy:
 
