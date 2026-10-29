@@ -5,6 +5,30 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Compact Collection inspection — 2026-10-29
+
+Native 640×480 / 125% reproduction: selecting a cell left its details and Equip
+controls below the full collection grid. Compact selection now opens a dedicated
+scrollable inspector with a fixed Back button; Escape/controller Back returns to
+the grid. Keep the grid and inspector offsets independent, retain the inspector
+across source-tab navigation, and reset its offset for a newly inspected item.
+Character's Inspect in Collection and starter equipment navigation use the same
+view. Wide layouts retain the reference's simultaneous three-column composition.
+Normal, Poor and Raid Epic items share existing ownership/equipment/look rules;
+inspection itself changes no persistent gear or progression.
+
+Acceptance: native macOS 640×480 verifies direct selection and equip; 640×720 at
+125% verifies independent collection/detail scrolling, source round trip, Back,
+Escape and reset-to-heading for a different item. Direct 1280×720 launch verifies
+all three wide columns. An intermediate resized capture extended offscreen and was
+replaced by the valid direct-launch capture. One native session lost automation
+input after stalls; a clean restart completed the remaining checks. No performance
+claim follows from these captures. Regression coverage includes owned/unowned
+normal and supplemental inspector actions, fixed Back placement, independent scroll
+memory and page transitions. The eight-package gate passes (31 optional-addon
+skips), after repairing imports in the added test. Final native build: 1m23s.
+Windows, physical gamepad and the full account/body matrix remain open.
+
 ## Priest description consistency — 2026-10-29
 
 Darkness's description omitted Mind Flay despite `PRIEST_SHADOW` already including

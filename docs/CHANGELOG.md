@@ -4,6 +4,29 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Compact Collection item inspector
+
+Selecting an item on compact screens now opens its details and equipment actions
+immediately. Back and Escape restore the previous collection position; source-tab
+round trips retain the inspector position. The Back button stays visible while
+scrolling. Wide layouts keep the reference's three columns.
+
+Native macOS checks cover 640×480 and 640×720 / 125%, item selection, equip,
+source navigation, lower appearance controls, Back/Escape and fresh-item position.
+1280×720 verifies the wide layout. The eight-package formatting/Clippy/test gate
+passes (31 optional-addon skips); final incremental build: 1m23s. Windows and
+physical controller input remain unverified.
+
+![Before: item selection leaves details below the grid](images/screenshots/2026-10-29-collection-inspector/before.png)
+
+![After: item details and actions open directly](images/screenshots/2026-10-29-collection-inspector/detail.png)
+
+![Scrolled details keep Back and appearance controls reachable](images/screenshots/2026-10-29-collection-inspector/detail-bottom.png)
+
+![Back restores the collection reading position](images/screenshots/2026-10-29-collection-inspector/grid-restored.png)
+
+![Wide Collection retains the three-column layout](images/screenshots/2026-10-29-collection-inspector/wide.png)
+
 ## 2026-10-29 — Priest upgrade descriptions
 
 Darkness now explicitly lists Mind Flay and its channel damage, matching the

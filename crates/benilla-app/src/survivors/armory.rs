@@ -67,7 +67,8 @@ const GOLD: Color = Color::srgb(1.0, 0.82, 0.0);
 
 /// Clicks and the mouse button, one system parameter so the menu system stays within Bevy's limit.
 #[derive(SystemParam)]
-pub(super) struct Pointer<'w> {
+pub(super) struct Pointer<'w, 's> {
+    roots: Query<'w, 's, &'static ComputedNode, With<ArmoryRoot>>,
     clicks: Res<'w, GlueClicks>,
     controller: Res<'w, controller::ControllerFocus>,
     mouse: Res<'w, ButtonInput<MouseButton>>,
@@ -188,6 +189,8 @@ pub(super) struct Armory {
     piece: usize,
     supplemental_piece: Option<String>,
     collection_scroll: Vec2,
+    collection_inspecting: bool,
+    collection_detail_scroll: Vec2,
     drop_zone: usize,
     drop_scroll: Vec2,
     character_scroll: Vec2,
@@ -222,6 +225,8 @@ impl Default for Armory {
             piece: 0,
             supplemental_piece: None,
             collection_scroll: Vec2::ZERO,
+            collection_inspecting: false,
+            collection_detail_scroll: Vec2::ZERO,
             drop_zone: 0,
             drop_scroll: Vec2::ZERO,
             character_scroll: Vec2::ZERO,
@@ -249,6 +254,24 @@ impl Armory {
             self.open_page(Page::DropTables);
         }
     }
+    fn inspect_collection(&mut self, compact: bool) {
+        if self.page == Page::Collection && compact {
+            self.collection_inspecting = true;
+            self.collection_detail_scroll = Vec2::ZERO;
+        }
+    }
+
+    fn back(&mut self, compact: bool) {
+        if self.page == Page::Collection && self.collection_inspecting && compact {
+            self.collection_inspecting = false;
+        } else if self.page == Page::Heroes && self.manage_heroes {
+            self.manage_heroes = false;
+        } else {
+            self.open_page(Page::Door);
+        }
+        self.focus = 0;
+    }
+
     pub(super) fn open_page(&mut self, page: Page) {
         self.rename = None;
         self.page = page;
@@ -313,6 +336,8 @@ pub(super) enum Act {
     PetSlot(u8),
     Tabard(u8),
     Talent(u32),
+    CollectionBack,
+    CollectionInspect,
     InspectPiece(usize),
     InspectSupplemental(String),
     WearSupplemental(String),
@@ -350,6 +375,7 @@ pub(super) fn input(
         mut native,
     } = keyboard;
     let native_cosmetic_click = native.read(raw.read());
+    let compact = pointer.roots.single().is_ok_and(collection::compact_width);
     if *phase.get() != Phase::Menu {
         typing.0 = false;
         keyboard.clear();
@@ -391,12 +417,7 @@ pub(super) fn input(
     }
     // Keep Typing set for the whole frame, including the Enter that finishes an edit.
     if !typing.0 && keys.just_pressed(KeyCode::Escape) && armory.page != Page::Door {
-        if armory.page == Page::Heroes && armory.manage_heroes {
-            armory.manage_heroes = false;
-        } else {
-            armory.open_page(Page::Door);
-        }
-        armory.focus = 0;
+        armory.back(compact);
     }
     if pointer.mouse.just_released(MouseButton::Right) || pointer.controller.refund.is_some() {
         for (entity, act, interaction) in &acts {
@@ -481,11 +502,20 @@ pub(super) fn input(
                 armory.manage_heroes = open;
                 armory.focus = 0;
             }
+            Act::CollectionBack => armory.collection_inspecting = false,
+            Act::CollectionInspect => {
+                armory.open_page(Page::Collection);
+                armory.inspect_collection(compact);
+            }
             Act::InspectPiece(index) => {
                 armory.piece = index.min(campaign::PIECES - 1);
                 armory.supplemental_piece = None;
+                armory.inspect_collection(compact);
             }
-            Act::InspectSupplemental(key) => armory.supplemental_piece = Some(key),
+            Act::InspectSupplemental(key) => {
+                armory.supplemental_piece = Some(key);
+                armory.inspect_collection(compact);
+            }
             Act::WearSupplemental(key) | Act::ShowSupplemental(key) => {
                 let class = picked_class(&account, &selection);
                 if account.select_supplemental(class, &key, matches!(act, Act::ShowSupplemental(_)))
@@ -501,6 +531,7 @@ pub(super) fn input(
                 let band = account.classes[class].equipment.worn[slot].unwrap_or(0);
                 armory.piece = usize::from(band) * campaign::GRID_SLOTS + slot;
                 armory.open_page(Page::Collection);
+                armory.inspect_collection(compact);
             }
             Act::WearPiece(slot, band) => {
                 let class = picked_class(&account, &selection);
@@ -1034,8 +1065,7 @@ pub(super) fn refresh(
     }
     let mut compact_collection = false;
     if let Ok((mut node, computed)) = roots.single_mut() {
-        let width = computed.size.x * computed.inverse_scale_factor;
-        compact_collection = width > 0.0 && width < 1100.0;
+        compact_collection = collection::compact_width(computed);
         let display = if show_door {
             Display::Flex
         } else {
@@ -2275,6 +2305,7 @@ fn signature(
     }
     n = fold(n, u64::from(armory.pet_slot));
     n = fold(n, armory.piece as u64);
+    n = fold(n, u64::from(armory.collection_inspecting));
     n = fold(
         n,
         hash_str(armory.supplemental_piece.as_deref().unwrap_or("")),

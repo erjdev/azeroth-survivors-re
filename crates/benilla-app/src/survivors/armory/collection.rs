@@ -8,6 +8,11 @@ use bevy::prelude::*;
 use bevy::ui::RelativeCursorPosition;
 use survivors_core::layout::Layout;
 
+pub(super) fn compact_width(node: &ComputedNode) -> bool {
+    let width = node.size.x * node.inverse_scale_factor;
+    width > 0.0 && width < 1100.0
+}
+
 const DIM: Color = Color::srgb(0.65, 0.60, 0.44);
 const BONUS: Color = Color::srgb(0.45, 0.9, 0.4);
 
@@ -17,6 +22,7 @@ pub(in crate::survivors) struct CollectionScroll;
 #[derive(Component)]
 pub(in crate::survivors) enum CompactScroll {
     Collection,
+    CollectionDetail,
     Drops,
     Character,
     Starter,
@@ -35,6 +41,7 @@ pub(in crate::survivors) fn remember_scroll(
         if position.0.is_finite() {
             let saved = match page {
                 CompactScroll::Collection => &mut armory.collection_scroll,
+                CompactScroll::CollectionDetail => &mut armory.collection_detail_scroll,
                 CompactScroll::Drops => &mut armory.drop_scroll,
                 CompactScroll::Character => &mut armory.character_scroll,
                 CompactScroll::Starter => &mut armory.starter_scroll,
@@ -138,6 +145,7 @@ mod scroll_restore_tests {
             (CompactScroll::CharacterColumn(2), 320.0),
             (CompactScroll::CodexColumn(1), 380.0),
             (CompactScroll::Collection, 900.0),
+            (CompactScroll::CollectionDetail, 44.0),
         ] {
             app.world_mut()
                 .spawn((marker, ScrollPosition(Vec2::new(0., y))));
@@ -149,6 +157,7 @@ mod scroll_restore_tests {
         assert_eq!(armory.character_columns.map(|p| p.y), [0., 0., 320.]);
         assert_eq!(armory.codex_columns.map(|p| p.y), [0., 380.]);
         assert_eq!(armory.collection_scroll.y, 900.);
+        assert_eq!(armory.collection_detail_scroll.y, 44.);
         let saved = armory.collection_columns[1];
         app.world_mut().clear_entities();
         {
@@ -363,6 +372,27 @@ pub(super) fn build(
     layout: &Layout,
     compact: bool,
 ) {
+    if compact && armory.collection_inspecting {
+        chip(
+            panel,
+            font,
+            "Back to collection",
+            Act::CollectionBack,
+            false,
+        );
+        compact_column(
+            panel,
+            CompactScroll::CollectionDetail,
+            armory.collection_detail_scroll,
+            layout,
+            |body| {
+                section(body, layout, |body| {
+                    detail(strings, body, font, armory, account, selection, layout)
+                });
+            },
+        );
+        return;
+    }
     if compact {
         compact_column(
             panel,
@@ -372,10 +402,7 @@ pub(super) fn build(
             |body| {
                 section(body, layout, |body| {
                     grid(body, font, armory, account, selection, layout, true);
-                    text(body, font, "Select a piece; its details follow the collection. E: worn · L: shown as a look", layout.body_size, DIM);
-                });
-                section(body, layout, |body| {
-                    detail(strings, body, font, armory, account, selection, layout)
+                    text(body, font, "Select a piece for details and equipment actions. E: worn · L: shown as a look", layout.body_size, DIM);
                 });
                 section(body, layout, |body| {
                     super::character::body_controls(body, art, font, account, selection, layout);
@@ -1535,6 +1562,75 @@ fn missing(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn compact_inspector_keeps_actions_reachable_and_back_outside_its_scroll() {
+        for supplemental in [false, true] {
+            for owned in [false, true] {
+                let mut account = super::super::super::account::blank();
+                let key = "poor:warrior:hands";
+                if owned {
+                    account.classes[0].pieces[0] = 1;
+                    account.supplemental.collect(0, key);
+                }
+                let armory = Armory {
+                    page: super::super::Page::Collection,
+                    collection_inspecting: true,
+                    collection_scroll: Vec2::new(0., 300.),
+                    collection_detail_scroll: Vec2::new(0., 40.),
+                    supplemental_piece: supplemental.then(|| key.to_owned()),
+                    ..default()
+                };
+                let mut world = World::new();
+                let root = world
+                    .commands()
+                    .spawn(Node::default())
+                    .with_children(|panel| {
+                        build(
+                            &crate::survivors::localization::Strings::default(),
+                            panel,
+                            &GlueArt::default(),
+                            &Handle::default(),
+                            &armory,
+                            &account,
+                            &Selection {
+                                class: Some(0),
+                                ..default()
+                            },
+                            &Layout::default(),
+                            true,
+                        );
+                    })
+                    .id();
+                world.flush();
+                let back = world
+                    .query::<(Entity, &Act)>()
+                    .iter(&world)
+                    .find_map(|(entity, action)| (*action == Act::CollectionBack).then_some(entity))
+                    .unwrap();
+                assert_eq!(world.get::<ChildOf>(back).unwrap().parent(), root);
+                let positions: Vec<_> = world
+                    .query::<(&CompactScroll, &ScrollPosition)>()
+                    .iter(&world)
+                    .collect();
+                assert_eq!(positions.len(), 1);
+                assert!(matches!(positions[0].0, CompactScroll::CollectionDetail));
+                assert_eq!(positions[0].1 .0.y, 40.);
+                let actions: Vec<_> = world.query::<&Act>().iter(&world).collect();
+                assert_eq!(
+                    actions.iter().any(|action| matches!(
+                        action,
+                        Act::WearPiece(0, Some(0)) | Act::WearSupplemental(_)
+                    )),
+                    owned
+                );
+                assert!(!actions.iter().any(|action| matches!(
+                    action,
+                    Act::InspectPiece(_) | Act::InspectSupplemental(_)
+                )));
+            }
+        }
+    }
 
     #[test]
     fn character_look_controls_follow_supplemental_slot_and_ownership() {

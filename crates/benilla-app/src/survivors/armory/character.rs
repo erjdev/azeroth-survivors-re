@@ -120,7 +120,7 @@ fn look_panel(
         body,
         font,
         "Inspect in Collection",
-        super::Act::Page(super::Page::Collection),
+        super::Act::CollectionInspect,
         false,
     );
 }

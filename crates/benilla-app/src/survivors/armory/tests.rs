@@ -302,3 +302,41 @@ fn a_locked_zone_does_not_start() {
         Some("Warsong Gulch world content is not ready")
     );
 }
+
+#[test]
+fn collection_inspection_preserves_grid_and_source_round_trip() {
+    use super::{Armory, Page};
+    use bevy::prelude::{default, Vec2};
+    let mut armory = Armory {
+        page: Page::Collection,
+        collection_scroll: Vec2::new(0., 350.),
+        collection_detail_scroll: Vec2::new(0., 80.),
+        ..default()
+    };
+    armory.inspect_collection(false);
+    assert!(!armory.collection_inspecting);
+    armory.inspect_collection(true);
+    assert!(armory.collection_inspecting);
+    assert_eq!(armory.collection_detail_scroll, Vec2::ZERO);
+    assert_eq!(armory.collection_scroll.y, 350.);
+    armory.collection_detail_scroll.y = 50.;
+    armory.open_drop_source(0);
+    armory.open_page(Page::Collection);
+    assert!(armory.collection_inspecting);
+    assert_eq!(armory.collection_detail_scroll.y, 50.);
+    armory.back(true);
+    assert!(armory.page == Page::Collection);
+    assert!(!armory.collection_inspecting);
+    assert_eq!(armory.collection_scroll.y, 350.);
+    armory.back(true);
+    assert!(armory.page == Page::Door);
+    armory.inspect_collection(true);
+    assert!(!armory.collection_inspecting);
+    armory.open_page(Page::Collection);
+    armory.inspect_collection(true);
+    armory.back(false);
+    assert!(
+        armory.page == Page::Door,
+        "wide layout keeps ordinary Back behavior"
+    );
+}

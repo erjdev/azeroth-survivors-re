@@ -47,6 +47,7 @@ impl ActionContext {
                 Page::Rewards => armory.reward_page,
                 Page::Achievements => armory.achieve,
                 Page::Heroes => u8::from(armory.manage_heroes),
+                Page::Collection => u8::from(armory.collection_inspecting),
                 _ => 0,
             },
         }
@@ -130,11 +131,12 @@ pub(in crate::survivors) fn navigate(
         ),
         (Or<(With<Act>, With<TalentInfo>)>, With<Button>),
     >,
-    (grid_items, equipment_details, achievement_pages, clips): (
+    (grid_items, equipment_details, achievement_pages, clips, roots): (
         Query<(), With<CollectionGridItem>>,
         Query<(&ComputedNode, &UiGlobalTransform), With<super::starter_equipment::Detail>>,
         Query<Entity, With<super::achievement_page::ScrollCategory>>,
         Query<&CalculatedClip>,
+        Query<&ComputedNode, With<ArmoryRoot>>,
     ),
     parents: Query<&ChildOf>,
     mut scrolls: Query<(
@@ -286,10 +288,8 @@ pub(in crate::survivors) fn navigate(
                 focus.talent = None;
                 focus.action = None;
             } else if pressed(GamepadButton::East) {
-                if armory.page == Page::Heroes && armory.manage_heroes {
-                    armory.manage_heroes = false;
-                } else if armory.page != Page::Door {
-                    armory.open_page(Page::Door);
+                if armory.page != Page::Door {
+                    armory.back(roots.single().is_ok_and(collection::compact_width));
                 }
                 focus.focused = None;
                 focus.talent = None;
