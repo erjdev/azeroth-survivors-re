@@ -127,6 +127,9 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 );
             }
             prose!(" within ", range, " for ", damage);
+            if def.key == "ghostly_strike" {
+                prose!(". A landed original hit grants 15 percentage points melee dodge for 7 sec; repeated hits refresh without stacking");
+            }
             if def.key == "hemorrhage" {
                 prose!(". Surviving targets take +3 damage from each subsequent physical hit or bleed tick for 30 charges or 15 sec; recasting refreshes the effect");
             }

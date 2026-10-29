@@ -497,6 +497,7 @@ impl Milestones {
                                 | "gouge"
                                 | "kidney_shot"
                                 | "hemorrhage"
+                                | "ghostly_strike"
                         ) =>
                     {
                         effect.crit += value;
@@ -512,6 +513,7 @@ impl Milestones {
                                 | "gouge"
                                 | "kidney_shot"
                                 | "hemorrhage"
+                                | "ghostly_strike"
                         ) =>
                     {
                         effect.crit += value;
@@ -533,6 +535,7 @@ impl Milestones {
                                 | "gouge"
                                 | "kidney_shot"
                                 | "hemorrhage"
+                                | "ghostly_strike"
                         ) =>
                     {
                         effect.damage *=
@@ -549,6 +552,7 @@ impl Milestones {
                                 | "gouge"
                                 | "kidney_shot"
                                 | "hemorrhage"
+                                | "ghostly_strike"
                         ) =>
                     {
                         effect.damage *= 1.0 + value;
@@ -783,7 +787,10 @@ impl Milestones {
             && critical
             && damage.is_finite()
             && damage > 0.0
-            && matches!(key, "backstab" | "sinister_strike" | "gouge" | "hemorrhage")
+            && matches!(
+                key,
+                "backstab" | "sinister_strike" | "gouge" | "hemorrhage" | "ghostly_strike"
+            )
         {
             self.trained_value(TalentStat::SealFate).clamp(0.0, 1.0)
         } else {
@@ -802,6 +809,7 @@ impl Milestones {
                     | "gouge"
                     | "kidney_shot"
                     | "hemorrhage"
+                    | "ghostly_strike"
             )
         {
             self.trained_value(TalentStat::Remorseless)
@@ -889,6 +897,7 @@ impl Milestones {
                     | "gouge"
                     | "kidney_shot"
                     | "hemorrhage"
+                    | "ghostly_strike"
             ),
             _ => false,
         };
@@ -925,6 +934,7 @@ impl Milestones {
                     | "gouge"
                     | "kidney_shot"
                     | "hemorrhage"
+                    | "ghostly_strike"
             ),
             _ => false,
         };
@@ -3531,9 +3541,11 @@ const ROGUE_SPELLS: &[&str] = &[
     "kidney_shot",
     "backstab",
     "hemorrhage",
+    "ghostly_strike",
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 303, max_rank: 1, name: "Ghostly Strike", description: "Ghostly Strike: +20% strike damage. A landed original hit grants 15 percentage points melee dodge for 7 sec; does not grant the spell", stat: TalentStat::SpellDamage("ghostly_strike"), per_rank: 0.20 },
     TalentDefinition { id: 681, max_rank: 1, name: "Hemorrhage", description: "Hemorrhage: +20% strike damage. Its physical vulnerability remains +3 damage for 30 charges or 15 sec; does not grant the spell", stat: TalentStat::SpellDamage("hemorrhage"), per_rank: 0.20 },
     TalentDefinition {
         id: 274, max_rank: 2, name: "Murder",
@@ -4349,7 +4361,7 @@ mod stat_talent_tests {
                 "blade_flurry" => 0.85 * 0.9,
                 "gouge" | "kidney_shot" => 0.8 * 0.9,
                 "sinister_strike" => 0.9 * 0.9,
-                "backstab" | "rupture" | "eviscerate" | "hemorrhage" => 0.9,
+                "backstab" | "rupture" | "eviscerate" | "hemorrhage" | "ghostly_strike" => 0.9,
                 _ => 1.0,
             };
             let mut expected = base.cast(key);
@@ -7367,6 +7379,7 @@ mod dagger_specialization_tests {
                                     | "gouge"
                                     | "kidney_shot"
                                     | "hemorrhage"
+                                    | "ghostly_strike"
                             )
                         {
                             expected.crit += 0.01 * f32::from(rank.min(5));
@@ -7436,6 +7449,7 @@ mod rogue_sword_tests {
                                         | "gouge"
                                         | "kidney_shot"
                                         | "hemorrhage"
+                                        | "ghostly_strike"
                                 );
                             let expected = if eligible {
                                 0.01 * f32::from(rank.min(5))
@@ -7502,6 +7516,7 @@ mod fist_specialization_tests {
                                     | "gouge"
                                     | "kidney_shot"
                                     | "hemorrhage"
+                                    | "ghostly_strike"
                             )
                         {
                             expected.crit += 0.01 * f32::from(rank.min(5));
@@ -7586,6 +7601,7 @@ mod rogue_mace_tests {
                                     | "gouge"
                                     | "kidney_shot"
                                     | "hemorrhage"
+                                    | "ghostly_strike"
                             );
                         let mut expected = base.cast(key);
                         if eligible {
@@ -7674,6 +7690,7 @@ mod weapon_expertise_tests {
                                     | "gouge"
                                     | "kidney_shot"
                                     | "hemorrhage"
+                                    | "ghostly_strike"
                             )
                         {
                             expected.damage *= 1.0 + bonus;
@@ -7726,7 +7743,11 @@ mod seal_fate_tests {
                                 && damage == 10.0
                                 && matches!(
                                     key,
-                                    "backstab" | "sinister_strike" | "gouge" | "hemorrhage"
+                                    "backstab"
+                                        | "sinister_strike"
+                                        | "gouge"
+                                        | "hemorrhage"
+                                        | "ghostly_strike"
                                 ) {
                                 0.2 * f32::from(rank.min(5))
                             } else {

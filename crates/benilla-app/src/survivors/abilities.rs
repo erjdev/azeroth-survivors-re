@@ -1786,6 +1786,14 @@ pub(super) fn apply_hits(
                     }
                 }
             }
+            if run.alive()
+                && original
+                && h.origin == HitOrigin::Hero
+                && h.source == "ghostly_strike"
+                && removed > 0.0
+            {
+                run.ghostly_strike.apply(impact_time);
+            }
             en.hp -= dmg;
             if run.alive()
                 && en.hp > 0.0
@@ -11133,3 +11141,7 @@ fn cast_direct_heal(run: &mut Run, p: &Params, max_hp: f32, rng: &mut Rng) -> Op
 #[cfg(test)]
 #[path = "healing_touch_tests.rs"]
 mod healing_touch_tests;
+
+#[cfg(test)]
+#[path = "ghostly_strike_tests.rs"]
+mod ghostly_strike_tests;

@@ -488,6 +488,9 @@ pub(super) fn hero_vitals(
     if run.thorns_t > 0.0 {
         shown.push(run.thorns_spell);
     }
+    if run.ghostly_strike.remaining(run.elapsed) > 0.0 {
+        shown.push(14278);
+    }
     if run.healing.contains("rejuvenation") {
         shown.push(774);
     }

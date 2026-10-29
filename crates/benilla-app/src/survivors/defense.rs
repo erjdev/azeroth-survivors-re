@@ -51,7 +51,11 @@ pub(super) fn contact(
         };
         let deterrence = run.milestones.deterrence_avoidance(run.elapsed);
         let parry = deterrence + run.milestones.melee_parry();
-        let dodge = (aspect_dodge + deterrence + run.milestones.melee_dodge()).clamp(0.0, 1.0);
+        let dodge = (aspect_dodge
+            + deterrence
+            + run.milestones.melee_dodge()
+            + run.ghostly_strike.dodge(run.elapsed))
+        .clamp(0.0, 1.0);
         if dodge + parry > 0.0 {
             let roll = roll();
             if roll.is_finite() && roll >= 0.0 && roll < (dodge + parry).min(1.0) {

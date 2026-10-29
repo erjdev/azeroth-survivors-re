@@ -2,7 +2,7 @@
 
 The initial checkout-data audit found 27/47 matching Druid definitions. Regrowth
 and node 825 now have runtime consumers; nineteen nodes below remain provisional.
-Current coverage is 28/47 Druid and 302/432 overall. Installed reference rules and
+Current coverage is 28/47 Druid and 303/432 overall. Installed reference rules and
 Survivors conversions remain distinct.
 
 ## Reproduce

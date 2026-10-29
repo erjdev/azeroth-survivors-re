@@ -9586,3 +9586,22 @@ Audit validation: the eight-package formatting/Clippy/test gate passes (31
 optional-addon skips). Actual CLI runs verify Tranquility radius row 9 resolves
 to 20 yards and Healing Touch radius row 0 reports None. No native UI change in
 this checkpoint; prior screenshots remain the current visual evidence.
+
+### 2026-10-29 — Ghostly Strike melee defense
+
+Add acquired Ghostly Strike, named damage training and a shared-core seven-second
+dodge window. Installed 14278 confirms 125% weapon damage, 15% dodge, seven-second
+duration and 20-second recovery; authored base damage/resource conversion is in
+SURVIVORS.md. Acceptance covers ownership, positive landed damage, killing blows,
+generated-event exclusions, actual incoming avoidance, expiry, class/rank scope,
+builder integration and native card/talent descriptions. Windows, attended combat
+and balance remain open. No Tranquility policy is inferred from this work.
+
+Native previews verified 1280×720 cards and 640×720 / 125% training text with
+inline green damage and fixed white dodge values. Final incremental build: 27s.
+The definition audit reports 303/432 overall, Rogue 38/51. Definition coverage
+is not full gameplay or saved-spec acceptance; those limits remain open above.
+
+Final verification: eight-package formatting/Clippy/test gate green after poison
+eligibility and shield-preservation regression checks (31 optional-addon skips).
+The first gate also passed; the repeat validates those later test/source additions.

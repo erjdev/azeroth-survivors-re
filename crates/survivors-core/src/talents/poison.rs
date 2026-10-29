@@ -44,6 +44,7 @@ impl Coating {
                 source,
                 "backstab"
                     | "hemorrhage"
+                    | "ghostly_strike"
                     | "sinister_strike"
                     | "eviscerate"
                     | "blade_flurry"

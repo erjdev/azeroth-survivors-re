@@ -1966,6 +1966,13 @@ fn reactive_buff_status(run: &Run) -> String {
         return String::new();
     }
     let mut active = Vec::new();
+    let ghostly_remaining = run.ghostly_strike.remaining(run.elapsed);
+    if ghostly_remaining > 0.0 {
+        active.push(format!(
+            "Ghostly Strike: +15% melee dodge ({:.0}s)",
+            ghostly_remaining.ceil()
+        ));
+    }
     let deterrence_remaining = run.milestones.deterrence_remaining(run.elapsed);
     if deterrence_remaining > 0.0 {
         active.push(format!(

@@ -1107,3 +1107,20 @@ and Nature's Swiftness (15%) multiply recovery. Gift of Nature and Nature's Focu
 each multiply healing by +2%/rank. These extend the existing authored conversions;
 their Rejuvenation benefits are retained. Improved Regrowth and Improved Rejuvenation
 remain specific to their named spells. No talent acquires Healing Touch for free.
+
+### Rogue Ghostly Strike
+
+Ghostly Strike (14278) is acquired through the normal six-slot Rogue spell pool:
+25 authored base damage, 20-second recovery and 5-yard melee targeting. The
+installed spell deals 125% weapon damage, grants 15 percentage points dodge for
+seven seconds and awards a combo point. Survivors uses authored base damage and
+its existing Seal Fate recovery conversion instead of Energy/combo resources.
+
+An original hero strike that removes health refreshes a non-stacking seven-second
++15 percentage-point melee dodge window, even on a killing blow. Missing/dead
+victims, zero damage, pets, splash copies and generated weapon strikes cannot
+activate it. Dodge adds to other avoidance before shields, uses active gameplay
+time, and never protects a pet. Mode restart clears the window. The fixed dodge
+amount/duration do not scale with ability rank; damage/recovery use normal ranks.
+Its one-rank talent adds 20% strike damage without acquiring the spell. Applicable
+weapon talents, poisons, Remorseless Attacks and Seal Fate recognize the strike.

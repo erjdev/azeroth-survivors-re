@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Ghostly Strike and melee defense
+
+Rogues can acquire Ghostly Strike: landed hits grant a refreshing seven-second
+dodge window. Its talent boosts strike damage; weapon, poison and Seal Fate
+rules recognize it. Native macOS screenshots show wide upgrade cards and compact
+training text. Final incremental build: 27s. Windows, purchase/restart and attended
+combat/balance remain open. Definition coverage: 303/432 (Rogue 38/51). The final
+eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+![Ghostly Strike upgrades and fixed dodge benefit](images/screenshots/2026-10-29-ghostly-strike/cards-wide.png)
+
+![Ghostly Strike training at 640×720 and 125%](images/screenshots/2026-10-29-ghostly-strike/talent-compact.png)
+
 ## 2026-10-29 — Tranquility implementation evidence
 
 Spell auditing now resolves effect radii and channel-interruption flags. Tranquility

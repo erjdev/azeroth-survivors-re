@@ -400,3 +400,19 @@ fn healing_touch_inline_growth_is_direct_healing_with_no_periodic_or_damage_clai
         && text.ends_with(" health")
         && *color == card_growth::GAIN));
 }
+
+#[test]
+fn ghostly_strike_keeps_fixed_defense_separate_from_green_damage_growth() {
+    let spans = describe(
+        Choice::NewAbility(data::ability("ghostly_strike")),
+        &Run::default(),
+    );
+    let text: String = spans.iter().map(|(t, _)| t.as_str()).collect();
+    assert!(text.contains("15 percentage points melee dodge for 7 sec"));
+    assert!(spans
+        .iter()
+        .any(|(t, c)| t.contains(" » ") && t.contains("damage") && *c == card_growth::GAIN));
+    assert!(!spans
+        .iter()
+        .any(|(t, c)| t.contains("15 percentage points") && *c == card_growth::GAIN));
+}
