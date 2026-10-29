@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Compact settings acceptance
+
+Native 640×480/125% checks verify readable Run Options, Graphics, Controls and
+Audio; Tab/Enter category navigation; Escape back to Run Options; and Done back
+to the starter with fixed bottom actions. No runtime changes were needed.
+The Graphics interface-size value shows the saved 100% preference while this
+development-only preview temporarily renders at 125%.
+
+Independent enemy/friendly silhouette filters are still absent from Graphics,
+not hidden by scrolling. This checkpoint does not establish world visibility,
+physical-controller or Windows acceptance. Runtime tested: `9ee285e`; its 543
+Survivors tests and scoped checks were already green (31 addon-data skips).
+
+![Run Options at 640×480 and 125%](images/screenshots/2026-10-28-scaled-settings/run-options.jpg)
+![All current Graphics controls fit](images/screenshots/2026-10-28-scaled-settings/graphics.jpg)
+![Keyboard focus remains visible in Controls](images/screenshots/2026-10-28-scaled-settings/controls.jpg)
+![Audio selected through Tab and Enter](images/screenshots/2026-10-28-scaled-settings/audio.jpg)
+![Done returns to the starter and fixed bottom actions](images/screenshots/2026-10-28-scaled-settings/starter-return.jpg)
+
 ## 2026-10-28 — Live interface-scale previews
 
 Preview presets now change interface size alongside page and resolution, without

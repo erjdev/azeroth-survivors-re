@@ -305,4 +305,10 @@ this repository is licensed under
 
 ### Run Options
 
+Native compact settings at 640×480 with a temporary 125% preview scale. Keyboard
+navigation and return paths verified; silhouette filters remain unimplemented.
+
+![Compact Graphics settings](docs/images/screenshots/2026-10-28-scaled-settings/graphics.jpg)
+
+
 ![Run Options](docs/images/screenshots/2026-10-27-run-options/wide.png)

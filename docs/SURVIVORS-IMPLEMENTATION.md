@@ -302,6 +302,16 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
+Compact settings acceptance (2026-10-28, runtime `9ee285e`): native 640×480 at
+125% preview scale verifies Run Options, Graphics, Controls and Audio layouts,
+Tab/Enter category activation, Escape back to Run Options and Done back to the
+starter with its fixed bottom actions. No runtime change was needed; five native
+captures are inline in CHANGELOG and the compact settings example is in README.
+Graphics currently exposes auto-push and scenery cutaway only: independent
+occluded-friendly/enemy silhouette filters are absent, not below a scroll fold.
+World visibility and physical-controller/Windows acceptance remain open. The
+preview override intentionally leaves the saved interface-size readout at 100%.
+
 Live preview scale (2026-10-28): optional `scale` covers 75–125% without changing
 saved settings; omission restores the saved preference and invalid requests
 retain the previous page/size/scale. Native Rewards checks at 640×480/125% and
