@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Priest talent save acceptance
+
+Native macOS interaction now verifies Improved Healing purchase (2/3 → 3/3,
+34 → 33 unspent points), independent Spec 2, restart retention and right-click
+refund back to rank 2 / 34 points. Saved allocations match both transitions in
+an isolated profile. This closes the previous menu acceptance gap; Windows and
+attended gameplay remain open. No source change or rebuild was needed.
+
+![Improved Healing retained after restart](images/screenshots/2026-10-29-greater-heal-saves/restarted.png)
+
+![Independent second Priest spec](images/screenshots/2026-10-29-greater-heal-saves/spec-two.png)
+
+![Refund restores the point and previous rank](images/screenshots/2026-10-29-greater-heal-saves/refunded.png)
+
 ## 2026-10-29 — Greater Heal and Priest healing builds
 
 Priests can acquire Greater Heal, with fixed 150% critical healing and scoped

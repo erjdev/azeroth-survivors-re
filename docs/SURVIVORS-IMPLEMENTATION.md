@@ -9654,3 +9654,15 @@ coverage is 304/432 (Priest 31/47). Native purchase/restart remains open: the pr
 window became unavailable before that interaction. Windows and attended combat/
 balance are not established by this checkpoint. Screenshots are inline in CHANGELOG
 and the README gallery.
+
+
+### 2026-10-29 — Improved Healing native save acceptance
+
+On the verified 19677f9 native build at 1280×720, the isolated Priest profile
+purchases rank 2 → 3 (34 → 33 unspent), switches to independent empty Spec 2,
+returns to Spec 1 and retains rank 3 / 33 points after quit/relaunch. Right-click
+refund restores rank 2 / 34 points. Both saved allocations match the exact expected
+node ranks and leave the other specs empty. Actual screenshots are inline in the
+changelog and the README talent gallery. This closes the preceding native
+purchase/restart gap; Windows and attended gameplay remain open. No code change;
+the previous green scoped gate still applies. Screenshot paths and whitespace checked.
