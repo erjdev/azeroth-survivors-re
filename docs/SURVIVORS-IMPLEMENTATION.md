@@ -5,6 +5,22 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Codex keyboard reading — 2026-10-29
+
+At 640×480 / 125%, native Page Down does nothing while Mind Flay's description
+extends below the details pane. Extend the existing achievement reading controls
+to Codex details: Page Up/Down moves 80% of its viewport, Home/End reaches either
+end. Catalog position and selection stay unchanged; typing, overlays, card previews
+and other pages retain their input guards. Add a compact hint under Details.
+Native macOS acceptance passes at 640×480 / 125%: Page Down exposes full Mind
+Flay effect text, Home/End reaches the boundaries, Page Up returns to the heading,
+Character/Drop Tables round trips preserve reading position, and selecting Cleave
+resets details without moving the catalog. The 1280×720 capture retains the
+reference two-column composition and readable hint. Incremental play build:
+1m24s (linker unwind-table and existing `block` warnings). Eight-package
+formatting/Clippy/test gate passes (31 optional-addon skips). Windows and
+physical-controller acceptance remain open.
+
 ## Codex entry reading position — 2026-10-29
 
 Native 640×480 / 125% reproduction: scroll Wrath's details, then select Starfire.
@@ -15,12 +31,14 @@ from `intentions/survivors_codex_tab.png`, stacked at compact widths. The existi
 refresh-system regression now checks both scroll surfaces and unrelated changes.
 The refresh-system regression passes. Native rebuilt keyboard selection shows the
 Starfire heading and name at 640×480 / 125%; the exact wheel→selection replay and
-tab-return check remain open because pointer automation lost its window binding
+tab-return check initially remained open because pointer automation lost its window binding
 after rebuild (keyboard/screenshot access continued). The normal launcher is
 restored. Incremental play build: 1m27s, with linker unwind-table and existing
 `block` future-compatibility warnings. The eight-package formatting/Clippy/test
 gate passes (4,858 app unit tests, 10 ignored; 31 optional-addon skips across the
-suite). Windows and physical-controller acceptance remain open.
+suite). Follow-up native keyboard acceptance above now verifies tab-return and
+selection reset; exact pointer replay, Windows and physical-controller checks
+remain open.
 
 ## Repentance — 2026-10-29
 

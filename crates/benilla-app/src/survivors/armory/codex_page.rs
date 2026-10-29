@@ -339,6 +339,13 @@ pub(super) fn build(
             ),
             |details| {
                 super::typography::section(details, font, "Details", layout.title_size, GOLD);
+                label(
+                    details,
+                    font,
+                    "Read: PgUp / PgDn · Home / End",
+                    layout.body_size - 3.0,
+                    DIM,
+                );
                 details
                     .spawn(Node {
                         width: Val::Percent(100.0),

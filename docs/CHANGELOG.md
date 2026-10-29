@@ -4,6 +4,27 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Read Codex details with the keyboard
+
+Page Up/Down and Home/End now scroll Codex details, with a visible shortcut hint.
+Native 640×480 / 125% checks verify full effect text, boundaries, tab-return
+persistence and resetting details for a new entry. The catalog stays in place;
+1280×720 keeps the reference two-column layout. Incremental build: 1m24s.
+Eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+Windows and physical-controller acceptance remain open.
+
+![Before: Page Down leaves the effect below the viewport](images/screenshots/2026-10-29-codex-reading/before.png)
+
+![Page Down exposes the complete effect](images/screenshots/2026-10-29-codex-reading/page-down.png)
+
+![Home returns to the heading and shortcut hint](images/screenshots/2026-10-29-codex-reading/home.png)
+
+![Returning from other Armory tabs keeps the reading position](images/screenshots/2026-10-29-codex-reading/returned.png)
+
+![Selecting Cleave resets its description to the heading](images/screenshots/2026-10-29-codex-reading/new-entry.png)
+
+![Wide Codex retains its two-column layout](images/screenshots/2026-10-29-codex-reading/wide.png)
+
 ## 2026-10-29 — Start new Codex entries at the top
 
 Selecting another entry now resets its details to the heading, retaining the
