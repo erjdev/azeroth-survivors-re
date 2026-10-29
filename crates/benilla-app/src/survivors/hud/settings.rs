@@ -84,6 +84,8 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
                             checkboxes::row(body, font, Knob::InvertY);
                             sliders::row(body, font, Knob::CameraSpeed);
                             sliders::row(body, font, Knob::ZoomSpeed);
+                            sliders::row(body, font, Knob::StickDeadZone);
+                            body.spawn(text(font, "Gamepad: left stick moves, right stick turns, A / South jumps, bumpers / triggers zoom, Start pauses. Release controls after resuming.", 14., DIM));
                             body.spawn(text(font, "C: fixed / orbit camera. In orbit mode, drag either mouse button to rotate. Scroll to zoom.", 14., DIM));
                             body.spawn(text(font, "WASD / arrows: move relative to the orbit camera. Space: jump. Escape: pause.", 14., DIM));
                         }

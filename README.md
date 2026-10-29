@@ -246,7 +246,11 @@ outline between controls; **south / Enter / Space** selects. Focus scrolls into
 view automatically. **East** returns to the starter. Text entry still needs a
 keyboard. Talents and milestones show descriptions when focused. **Backspace / controller
 west** refunds one point from the focused talent, respecting row and prerequisite
-requirements. Other hover details and controller gameplay remain unfinished.
+requirements. During a run, **left stick** moves, **right stick** turns the camera,
+**south** jumps, **bumpers/triggers** zoom and **Start** pauses. Keyboard movement
+has priority. Controls saves a **0–50% stick dead zone** (25% default); release
+sticks/buttons after resume or controller handoff. Physical-controller and Windows
+gameplay acceptance remain open.
 
 ## The game data (not in this repo)
 
@@ -307,6 +311,8 @@ this repository is licensed under
 
 Native compact settings at 640×480 with a temporary 125% preview scale. Keyboard
 navigation and return paths verified; silhouette filters remain unimplemented.
+
+![Saved controller settings at 640×480/125%](docs/images/screenshots/2026-10-28-dead-zone/compact-defaults.jpg)
 
 ![Compact Graphics settings](docs/images/screenshots/2026-10-28-scaled-settings/graphics.jpg)
 

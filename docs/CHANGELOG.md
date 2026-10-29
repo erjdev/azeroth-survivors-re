@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Saved controller dead zone
+
+Controls now includes the reference-style stick dead-zone slider: 0–50% in
+one-percent steps, defaulting to 25%. Pointer and keyboard edits apply to both
+sticks immediately, survive restart and reset with Controls defaults.
+Native checks verified 31% after restart and 25% after reset, at 1100×720/100%
+and 640×480/125%; Defaults and Done remain accessible.
+
+549 Survivors tests, feature Clippy and six-package scoped checks pass
+(31 missing-addon skips); native build passed in 1m18s. Full pre-merge gates,
+physical-controller feel, attended movement/collision, Windows and the broader
+resolution matrix remain open.
+
+![Controls with the default dead zone](images/screenshots/2026-10-28-dead-zone/wide.jpg)
+![Keyboard adjusts the focused slider one percent](images/screenshots/2026-10-28-dead-zone/keyboard.jpg)
+![31% survives restart at compact size and 125% scale](images/screenshots/2026-10-28-dead-zone/compact-restarted.jpg)
+![Controls defaults restores 25%](images/screenshots/2026-10-28-dead-zone/compact-defaults.jpg)
+
 ## 2026-10-28 — Analog controller gameplay wiring
 
 Left stick now drives analog movement; right stick controls the camera using

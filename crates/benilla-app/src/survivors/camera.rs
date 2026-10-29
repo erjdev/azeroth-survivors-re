@@ -9,6 +9,7 @@ pub(super) struct CameraSettings {
     pub invert_y: bool,
     pub camera_speed: f32,
     pub zoom_speed: f32,
+    pub stick_dead_zone: f32,
     resolved_distance: Option<f32>,
 }
 
@@ -30,6 +31,7 @@ impl CameraSettings {
             invert_y: false,
             camera_speed: 1.,
             zoom_speed: 1.,
+            stick_dead_zone: survivors_core::controller::DEFAULT_DEAD_ZONE,
             resolved_distance: None,
         };
         for line in text.lines() {
@@ -42,6 +44,14 @@ impl CameraSettings {
                 ["invert_x", "1"] => settings.invert_x = true,
                 ["invert_y", "0"] => settings.invert_y = false,
                 ["invert_y", "1"] => settings.invert_y = true,
+                ["stick_dead_zone", value] => {
+                    if let Ok(value) = value.parse::<f32>() {
+                        if value.is_finite() {
+                            settings.stick_dead_zone =
+                                value.clamp(0., survivors_core::controller::MAX_DEAD_ZONE);
+                        }
+                    }
+                }
                 [key @ ("camera_speed" | "zoom_speed"), value] => {
                     if let Ok(value) = value.parse::<f32>() {
                         if value.is_finite() {
@@ -61,13 +71,14 @@ impl CameraSettings {
 
     fn encode(&self) -> String {
         format!(
-            "auto_push {}\ncutaway {}\ninvert_x {}\ninvert_y {}\ncamera_speed {}\nzoom_speed {}\n",
+            "auto_push {}\ncutaway {}\ninvert_x {}\ninvert_y {}\ncamera_speed {}\nzoom_speed {}\nstick_dead_zone {}\n",
             u8::from(self.auto_push),
             u8::from(self.cutaway),
             u8::from(self.invert_x),
             u8::from(self.invert_y),
             self.camera_speed,
-            self.zoom_speed
+            self.zoom_speed,
+            self.stick_dead_zone
         )
     }
 
@@ -104,7 +115,19 @@ impl CameraSettings {
         self.invert_y = false;
         self.camera_speed = 1.;
         self.zoom_speed = 1.;
+        self.stick_dead_zone = survivors_core::controller::DEFAULT_DEAD_ZONE;
         self.save();
+    }
+
+    pub fn set_dead_zone(&mut self, value: f32) {
+        if !value.is_finite() {
+            return;
+        }
+        let value = value.clamp(0., survivors_core::controller::MAX_DEAD_ZONE);
+        if self.stick_dead_zone != value {
+            self.stick_dead_zone = value;
+            self.save();
+        }
     }
 
     pub fn set_speed(&mut self, zoom: bool, value: f32) {
@@ -205,6 +228,25 @@ mod tests {
     use super::*;
 
     #[test]
+    fn dead_zone_loads_old_saves_bounds_values_and_round_trips() {
+        for (text, expected) in [
+            ("", 0.25),
+            ("stick_dead_zone 0.3", 0.3),
+            ("stick_dead_zone -1", 0.),
+            ("stick_dead_zone 3", 0.5),
+            ("stick_dead_zone NaN", 0.25),
+            ("stick_dead_zone inf", 0.25),
+        ] {
+            let settings = CameraSettings::parse(text);
+            assert_eq!(settings.stick_dead_zone, expected);
+            assert_eq!(
+                CameraSettings::parse(&settings.encode()).stick_dead_zone,
+                expected
+            );
+        }
+    }
+
+    #[test]
     fn speeds_load_safely_and_scale_mouse_input_without_changing_inversion() {
         for (text, expected) in [
             ("", (1., 1.)),
@@ -254,6 +296,7 @@ mod tests {
                 invert_y: !enabled,
                 camera_speed: 1.5,
                 zoom_speed: 0.5,
+                stick_dead_zone: 0.3,
                 resolved_distance: Some(4.0),
             };
             let loaded = CameraSettings::parse(&settings.encode());

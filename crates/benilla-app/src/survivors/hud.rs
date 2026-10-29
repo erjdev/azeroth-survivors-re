@@ -186,6 +186,7 @@ pub(super) struct TipBody;
 pub(super) enum Knob {
     CameraSpeed,
     ZoomSpeed,
+    StickDeadZone,
     InvertX,
     InvertY,
     Master,
@@ -1576,7 +1577,11 @@ pub(super) fn apply_settings(
         return;
     }
     for (knob, position) in edits.set.drain(..) {
-        if let Some(value) = settings::sliders::speed_value(knob, position) {
+        if knob == Knob::StickDeadZone {
+            if let Some(value) = settings::sliders::dead_zone_value(position) {
+                camera.set_dead_zone(value);
+            }
+        } else if let Some(value) = settings::sliders::speed_value(knob, position) {
             camera.set_speed(knob == Knob::ZoomSpeed, value);
         } else if !matches!(knob, Knob::CameraSpeed | Knob::ZoomSpeed) {
             settings::sliders::apply(&mut cvars, knob, position);

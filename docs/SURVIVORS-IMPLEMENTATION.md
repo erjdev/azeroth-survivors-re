@@ -303,12 +303,15 @@ presentation; it does not imply full controller or resolution acceptance.
 ## Current priority — starter interface first (2026-10-26)
 
 Controller integration (2026-10-28): raw stick sampling now feeds analog hero
-movement and camera controls with the 25% radial filter applied once. Keyboard
+movement and camera controls with a saved radial dead zone applied once (25% default). Keyboard
 movement takes precedence; South jumps and Start pauses. Input is suppressed
 outside active, focused play and requires neutral gestures after resume/handoff.
 [Controller input audit](audits/CONTROLLER-INPUT.md) tracks the implementation and
-remaining acceptance: persistent dead-zone slider/reset, settings screenshots,
-physical-device feel and Windows validation. These remain open.
+remaining acceptance: physical-device feel, attended movement/collision and Windows
+validation. The saved 0–50% slider, one-percent keyboard adjustment, restart and
+Controls reset are verified in native menus at 1100×720/100% and 640×480/125%.
+Four screenshots are inline in CHANGELOG; 549 app tests cover the input/settings
+contracts. These checks do not close full controller or resolution acceptance.
 
 Compact settings acceptance (2026-10-28, runtime `9ee285e`): native 640×480 at
 125% preview scale verifies Run Options, Graphics, Controls and Audio layouts,

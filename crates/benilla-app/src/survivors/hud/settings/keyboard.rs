@@ -33,7 +33,7 @@ fn order(category: Category, phase: Phase) -> Vec<Target> {
             Knob::Scale,
             Knob::InterfaceScale,
         ],
-        Category::Controls => &[Knob::CameraSpeed, Knob::ZoomSpeed],
+        Category::Controls => &[Knob::CameraSpeed, Knob::ZoomSpeed, Knob::StickDeadZone],
         Category::About => &[],
     };
     if category == Category::Controls {

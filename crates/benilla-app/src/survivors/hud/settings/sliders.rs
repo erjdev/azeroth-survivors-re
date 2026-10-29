@@ -15,6 +15,15 @@ struct Spec {
     name: &'static str,
     steps: &'static [f32],
 }
+const DEAD_ZONE_STEPS: [f32; 51] = {
+    let mut values = [0.; 51];
+    let mut i = 0;
+    while i < values.len() {
+        values[i] = i as f32 / 100.;
+        i += 1;
+    }
+    values
+};
 fn spec(knob: Knob) -> Spec {
     let (label, name, steps): (_, _, &'static [f32]) = match knob {
         Knob::CameraSpeed => (
@@ -27,6 +36,7 @@ fn spec(knob: Knob) -> Spec {
             "",
             &[0.25, 0.5, 0.75, 1., 1.25, 1.5, 2., 2.5, 3.],
         ),
+        Knob::StickDeadZone => ("Stick dead zone", "", &DEAD_ZONE_STEPS),
         Knob::Master => ("Master", "MasterVolume", &[]),
         Knob::Effects => ("Effects", "SoundVolume", &[]),
         Knob::Music => ("Music", "MusicVolume", &[]),
@@ -51,7 +61,7 @@ fn spec(knob: Knob) -> Spec {
 fn category(knob: Knob) -> Category {
     match knob {
         Knob::Master | Knob::Effects | Knob::Music | Knob::Ambience => Category::Audio,
-        Knob::CameraSpeed | Knob::ZoomSpeed => Category::Controls,
+        Knob::CameraSpeed | Knob::ZoomSpeed | Knob::StickDeadZone => Category::Controls,
         _ => Category::Graphics,
     }
 }
@@ -79,6 +89,12 @@ impl Spec {
     }
 }
 
+pub(in crate::survivors::hud) fn dead_zone_value(position: f32) -> Option<f32> {
+    position
+        .is_finite()
+        .then(|| spec(Knob::StickDeadZone).value(position))
+}
+
 pub(in crate::survivors::hud) fn speed_value(knob: Knob, position: f32) -> Option<f32> {
     (matches!(knob, Knob::CameraSpeed | Knob::ZoomSpeed) && position.is_finite())
         .then(|| spec(knob).value(position))
@@ -91,6 +107,7 @@ pub(super) fn current(
 ) -> f32 {
     match knob {
         Knob::InterfaceScale if cvars.num("useUiScale").unwrap_or(0.) == 0. => 1.,
+        Knob::StickDeadZone => camera.stick_dead_zone,
         Knob::CameraSpeed => camera.camera_speed,
         Knob::ZoomSpeed => camera.zoom_speed,
         _ => cvars.num(spec(knob).name).unwrap_or(0.),
@@ -307,6 +324,33 @@ pub(in crate::survivors) fn refresh(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn dead_zone_slider_keyboard_and_display_share_the_same_percent_scale() {
+        let cvars = crate::cvars::Cvars::default();
+        let mut camera = super::super::super::super::camera::CameraSettings::default();
+        for percent in 0..=50 {
+            camera.stick_dead_zone = percent as f32 / 100.;
+            let current = current(&cvars, &camera, Knob::StickDeadZone);
+            assert_eq!(
+                dead_zone_value(spec(Knob::StickDeadZone).position(current)),
+                Some(current)
+            );
+            let right = nudge(&cvars, &camera, Knob::StickDeadZone, 1.);
+            assert_eq!(
+                dead_zone_value(right),
+                Some((percent + 1).min(50) as f32 / 100.)
+            );
+            let left = nudge(&cvars, &camera, Knob::StickDeadZone, -1.);
+            assert_eq!(
+                dead_zone_value(left),
+                Some((percent - 1).max(0) as f32 / 100.)
+            );
+        }
+        assert_eq!(dead_zone_value(f32::NAN), None);
+        assert_eq!(dead_zone_value(-1.), Some(0.));
+        assert_eq!(dead_zone_value(2.), Some(0.5));
+    }
+
     #[test]
     fn interface_size_tracks_resolution_and_restores_automatic_sizing() {
         use bevy::ecs::system::RunSystemOnce;

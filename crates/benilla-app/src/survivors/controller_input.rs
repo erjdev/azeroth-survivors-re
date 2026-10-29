@@ -3,7 +3,7 @@ use super::{hud::PausePage, Phase, Run};
 use bevy::input::gamepad::RawGamepadEvent;
 use bevy::{prelude::*, window::PrimaryWindow};
 use std::collections::HashMap;
-use survivors_core::controller::{Frame, DEFAULT_DEAD_ZONE};
+use survivors_core::controller::Frame;
 
 #[derive(Resource, Default)]
 pub(super) struct ControllerInput {
@@ -19,6 +19,7 @@ pub(super) fn sample(
     mut events: MessageReader<RawGamepadEvent>,
     pads: Query<(Entity, &Gamepad)>,
     windows: Query<&Window, With<PrimaryWindow>>,
+    settings: Res<super::camera::CameraSettings>,
     phase: Res<State<Phase>>,
     run: Res<Run>,
     page: Res<PausePage>,
@@ -73,7 +74,7 @@ pub(super) fn sample(
         zoom: inward - outward,
         jump: pad.just_pressed(GamepadButton::South),
     }
-    .filtered(DEFAULT_DEAD_ZONE, true);
+    .filtered(settings.stick_dead_zone, true);
     if !active || input.pause || keys.just_pressed(KeyCode::Escape) {
         input.armed = false;
     } else if !input.armed
@@ -100,10 +101,14 @@ mod tests {
         app.add_plugins(bevy::input::InputPlugin)
             .init_resource::<ControllerInput>()
             .init_resource::<Run>()
+            .init_resource::<super::super::camera::CameraSettings>()
             .init_resource::<PausePage>()
             .init_resource::<crate::loading_screen::LoadingScreen>()
             .insert_resource(State::new(Phase::Playing))
             .add_systems(PreUpdate, sample.after(bevy::input::InputSystems));
+        app.world_mut()
+            .resource_mut::<super::super::camera::CameraSettings>()
+            .stick_dead_zone = 0.25;
         let window = app
             .world_mut()
             .spawn((
@@ -178,6 +183,22 @@ mod tests {
             app.world().resource::<ControllerInput>().frame,
             Frame::default()
         );
+    }
+
+    #[test]
+    fn changing_the_preference_updates_both_sticks_without_new_device_events() {
+        let (mut app, pad, _) = fixture();
+        axis(&mut app, pad, GamepadAxis::LeftStickX, 0.625);
+        axis(&mut app, pad, GamepadAxis::RightStickY, 0.625);
+        for (dead_zone, expected) in [(0.25, 0.5), (0.5, 0.25), (0., 0.625)] {
+            app.world_mut()
+                .resource_mut::<super::super::camera::CameraSettings>()
+                .stick_dead_zone = dead_zone;
+            app.update();
+            let frame = app.world().resource::<ControllerInput>().frame;
+            assert_eq!(frame.movement, [expected, 0.]);
+            assert_eq!(frame.look, [0., expected]);
+        }
     }
 
     #[test]
