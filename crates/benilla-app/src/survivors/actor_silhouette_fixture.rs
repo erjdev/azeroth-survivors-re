@@ -14,6 +14,9 @@ enum Case {
     Foliage,
     FrontOff,
     Concealed,
+    Enemies,
+    Friendlies,
+    Neither,
 }
 impl Case {
     fn parse(text: &str) -> Option<Self> {
@@ -25,6 +28,9 @@ impl Case {
             "foliage" => Self::Foliage,
             "front-off" => Self::FrontOff,
             "concealed" => Self::Concealed,
+            "enemies" => Self::Enemies,
+            "friendlies" => Self::Friendlies,
+            "neither" => Self::Neither,
             _ => return None,
         })
     }
@@ -81,6 +87,7 @@ fn show(
     mut commands: Commands,
     mut fixture: ResMut<Fixture>,
     mut mask: ResMut<Mask>,
+    mut settings: ResMut<crate::survivors::camera::CameraSettings>,
     mut run: ResMut<crate::survivors::Run>,
     time: Res<Time>,
     font: Res<crate::survivors::hud::HudFont>,
@@ -129,6 +136,10 @@ fn show(
     }
     let case = fixture.case;
     mask.enabled = case != Case::FrontOff;
+    settings.silhouette_enemies =
+        !matches!(case, Case::Friendlies | Case::Neither | Case::FrontOff);
+    settings.silhouette_friendlies =
+        !matches!(case, Case::Enemies | Case::Neither | Case::FrontOff);
     for mut root in &mut roots {
         root.display = Display::None;
     }

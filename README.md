@@ -363,19 +363,20 @@ this repository is licensed under
 ### Run Options
 
 Native compact settings at 640×480 with a temporary 125% preview scale. Keyboard
-navigation and return paths verified; silhouette filters remain unimplemented.
+navigation and return paths verified. Independent saved silhouette filters are now
+available under Graphics (experimental, off by default).
 
 ![Saved controller settings at 640×480/125%](docs/images/screenshots/2026-10-28-dead-zone/compact-defaults.jpg)
 
 Developer rendering checkpoint (2026-10-29): a noncombat native fixture verifies
 full/partial obstruction, scenery behind actors, alpha-cutout holes and concealed
 actors at 4× MSAA on Metal. Only obscured portions receive red/green. The renderer
-remains disabled by default; persisted filters, overlap/performance, Windows and
-real Elwynn acceptance remain open.
+remains off by default; independent enemy/friendly switches save and survive
+restart. Overlap/performance, Windows and real Elwynn acceptance remain open.
 
 ![Partial obstruction preserves visible actor shading](docs/images/screenshots/2026-10-29-silhouette-blockers/partial-msaa4.png)
 
-![Compact Graphics settings](docs/images/screenshots/2026-10-28-scaled-settings/graphics.jpg)
+![Compact Graphics with saved visibility filters](docs/images/screenshots/2026-10-29-silhouette-filters/graphics-compact.png)
 
 
 ![Run Options](docs/images/screenshots/2026-10-27-run-options/wide.png)

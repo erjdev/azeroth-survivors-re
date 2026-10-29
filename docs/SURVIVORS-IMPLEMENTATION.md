@@ -2167,7 +2167,9 @@ render ordering. Native Metal 1×/4× passes execute; a noncombat 4× fixture ve
 full/partial obstruction, scenery behind actors, synthetic alpha-cutout holes and
 concealment/reveal. Screenshots are inline in CHANGELOG and README.
 
-Persisted independent filters, mixed-actor overlap, distance/render-scale coverage,
+Independent filters now save under Graphics and pass native click/restart/reset
+acceptance; all four combinations render correctly in the isolated fixture.
+Mixed-actor overlap, distance/render-scale coverage,
 duplicate-pass performance, Windows and attended real-map acceptance remain open.
 The compositor is disabled by default. Isolated rendering evidence does not close
 the reported Elwynn foliage cutaway issue.
@@ -9693,3 +9695,19 @@ concealed/revealed actors. A discovered culling-order bug in production concealm
 is fixed with a schedule regression. See [the audit](audits/OCCLUDED-SILHOUETTES.md).
 Saved filters, overlap/performance and real-map/Windows acceptance remain pending;
 this does not close the foliage cutaway report or the full visibility milestone.
+
+### Saved silhouette filters checkpoint (2026-10-29)
+
+Graphics now exposes independent enemy/friendly switches, both off by default.
+Preferences are saved with the camera settings and feed extracted per-view filter
+state. Cached shader variants apply filters after nearest-actor classification;
+disabled groups remain in the mask to prevent revealing farther actors through them.
+Both-off removes the composite view and, outside diagnostics, disables the mask.
+
+Native macOS clicks verify enemy-only, both, friendly-only, restart persistence and
+Graphics reset. Labels now keep a readable width without exceeding 80% of their row;
+640×720 / 125% fits the complete panel/footer. Native Metal 4× captures show all four
+filter combinations. Tests cover old/invalid saves, all combinations, category reset,
+source-view propagation and activation without an environment flag. See the changelog
+and silhouette audit for captures. Mixed overlap, render-scale/distance/performance,
+Windows and real Elwynn/interior acceptance remain pending.

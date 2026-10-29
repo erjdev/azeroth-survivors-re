@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Saved enemy and friendly visibility filters
+
+Graphics now has independent “Show obscured enemies” and “Show obscured friendlies”
+switches. Both default off; selections save immediately, survive restart, and reset
+with Graphics defaults. Native clicks verify independence and reset. Checkbox labels
+now have more room at compact sizes; 640×720 / 125% fits the panel and footer.
+Metal 4× MSAA captures verify all four filter combinations; enemy-only and
+friendly-only also pass without MSAA. Mixed-actor overlap,
+performance, real-map and Windows acceptance remain open. Native builds: 2m03s for
+the feature, 35s for the compact layout adjustment. The required eight-package
+formatting/Clippy/test gate passes (31 optional-addon skips).
+
+![Compact Graphics with the friendly filter selected](images/screenshots/2026-10-29-silhouette-filters/graphics-compact.png)
+
+| Enemy only | Friendly only |
+| --- | --- |
+| ![Red enemies only](images/screenshots/2026-10-29-silhouette-filters/enemies-msaa4.png) | ![Green friendlies only](images/screenshots/2026-10-29-silhouette-filters/friendlies-msaa4.png) |
+
 ## 2026-10-29 — Obstruction previews and concealment correctness
 
 A noncombat native fixture now previews full/partial walls, scenery behind actors

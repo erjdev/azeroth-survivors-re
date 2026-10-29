@@ -18,7 +18,7 @@ use bevy::{
 };
 
 #[derive(Component, Clone, Copy, ExtractComponent)]
-pub(super) struct SilhouetteView;
+pub(super) struct SilhouetteView(pub survivors_core::silhouette::Filters);
 
 #[derive(Component)]
 struct Inputs {
@@ -68,13 +68,20 @@ fn prepare(
     cache: Res<PipelineCache>,
     masks: Query<(&SampledMask, &ExtractedCamera, &ExtractedView), With<ActorMaskView>>,
     views: Query<
-        (Entity, &ExtractedCamera, &ExtractedView, &ViewTarget, &Msaa),
+        (
+            Entity,
+            &ExtractedCamera,
+            &ExtractedView,
+            &ViewTarget,
+            &Msaa,
+            &SilhouetteView,
+        ),
         With<SilhouetteView>,
     >,
     mut last_status: Local<Option<(usize, usize)>>,
     mut variants: Local<
         std::collections::HashMap<
-            (TextureFormat, bool),
+            (TextureFormat, bool, bool, bool),
             (CachedRenderPipelineId, BindGroupLayoutDescriptor),
         >,
     >,
@@ -84,7 +91,7 @@ fn prepare(
         debug!(?status, "silhouette input availability");
         *last_status = Some(status);
     }
-    for (entity, camera, view, target, msaa) in &views {
+    for (entity, camera, view, target, msaa, filters) in &views {
         let Ok((mask, mask_camera, mask_view)) = masks.single() else {
             commands.entity(entity).remove::<Inputs>();
             continue;
@@ -109,7 +116,12 @@ fn prepare(
         }
         let multi = mask.samples > 1;
         let (pipeline, layout) = variants
-            .entry((target.main_texture_format(), multi))
+            .entry((
+                target.main_texture_format(),
+                multi,
+                filters.0.enemies,
+                filters.0.friendlies,
+            ))
             .or_insert_with(|| {
                 let float = TextureSampleType::Float { filterable: false };
                 let layout = BindGroupLayoutDescriptor::new(
@@ -136,11 +148,17 @@ fn prepare(
                         ),
                     ),
                 );
-                let defs = if multi {
+                let mut defs = if multi {
                     vec!["MULTISAMPLED".into()]
                 } else {
                     vec![]
                 };
+                if filters.0.enemies {
+                    defs.push("SHOW_ENEMIES".into());
+                }
+                if filters.0.friendlies {
+                    defs.push("SHOW_FRIENDLIES".into());
+                }
                 let pipeline = cache.queue_render_pipeline(RenderPipelineDescriptor {
                     label: Some("survivors_silhouette".into()),
                     layout: vec![layout.clone()],

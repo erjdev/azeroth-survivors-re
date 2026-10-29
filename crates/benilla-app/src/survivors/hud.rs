@@ -197,6 +197,8 @@ pub(super) enum Knob {
     MusicOn,
     AutoPush,
     Cutaway,
+    EnemySilhouettes,
+    FriendlySilhouettes,
     View,
     Grass,
     Spells,
@@ -1592,6 +1594,8 @@ pub(super) fn apply_settings(
             camera.toggle();
         } else if knob == Knob::Cutaway {
             camera.toggle_cutaway();
+        } else if matches!(knob, Knob::EnemySilhouettes | Knob::FriendlySilhouettes) {
+            camera.toggle_silhouette(knob == Knob::EnemySilhouettes);
         } else if matches!(knob, Knob::InvertX | Knob::InvertY) {
             camera.toggle_inversion(knob == Knob::InvertX);
         } else {

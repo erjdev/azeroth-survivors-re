@@ -12,6 +12,8 @@ pub(super) fn row(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, knob: Knob
         Knob::MusicOn => "Enable music",
         Knob::AutoPush => "Auto-push camera",
         Knob::Cutaway => "Scenery cutaway",
+        Knob::EnemySilhouettes => "Show obscured enemies",
+        Knob::FriendlySilhouettes => "Show obscured friendlies",
         _ => unreachable!("checkbox requires a boolean preference"),
     };
     ui.spawn((
@@ -30,7 +32,8 @@ pub(super) fn row(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, knob: Knob
             text(font, label, 14., GOLD),
             Node {
                 width: Val::Percent(34.),
-                min_width: Val::Px(0.),
+                min_width: Val::Px(180.),
+                max_width: Val::Percent(80.),
                 ..default()
             },
         ));
@@ -102,6 +105,8 @@ pub(in crate::survivors) fn refresh(
             Knob::InvertY => camera.invert_y,
             Knob::AutoPush => camera.auto_push,
             Knob::Cutaway => camera.cutaway,
+            Knob::EnemySilhouettes => camera.silhouette_enemies,
+            Knob::FriendlySilhouettes => camera.silhouette_friendlies,
             _ => unreachable!("checkbox requires a boolean preference"),
         };
         let want = if enabled {

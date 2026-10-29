@@ -174,6 +174,7 @@ fn sync(
     mut commands: Commands,
     mut mask: ResMut<Mask>,
     phase: Res<State<Phase>>,
+    settings: Res<super::camera::CameraSettings>,
     view: Query<
         (&Camera, &Projection, &GlobalTransform, &Msaa),
         (With<WorldCamera>, Without<ActorMaskView>),
@@ -212,7 +213,7 @@ fn sync(
             _ => None,
         })
         .collect();
-    let active = mask.enabled
+    let active = (mask.enabled || settings.silhouette_enemies || settings.silhouette_friendlies)
         && (!matches!(phase.get(), Phase::Menu | Phase::GameOver)
             || ((mask.preview || mask.fixture) && *phase.get() == Phase::Menu));
     let source = view.single().ok().filter(|(camera, _, _, _)| {
@@ -381,10 +382,12 @@ fn sync(
 fn silhouette_views(
     mut commands: Commands,
     mask: Res<Mask>,
+    settings: Res<super::camera::CameraSettings>,
     cameras: Query<&Camera, With<ActorMaskView>>,
     mut views: Query<(Entity, &mut Camera3d), With<WorldCamera>>,
 ) {
-    let active = mask.enabled
+    let filters = settings.silhouette_filters();
+    let active = (filters.enemies || filters.friendlies)
         && mask
             .camera
             .is_some_and(|e| cameras.get(e).is_ok_and(|c| c.is_active));
@@ -393,7 +396,9 @@ fn silhouette_views(
             camera.depth_texture_usages = (TextureUsages::from(camera.depth_texture_usages)
                 | TextureUsages::TEXTURE_BINDING)
                 .into();
-            commands.entity(entity).insert(silhouette::SilhouetteView);
+            commands
+                .entity(entity)
+                .insert(silhouette::SilhouetteView(filters));
         } else {
             commands
                 .entity(entity)
@@ -409,6 +414,9 @@ mod tests {
     fn compositor_tracks_mask_activation_without_marking_other_cameras() {
         use bevy::ecs::system::RunSystemOnce;
         let mut world = World::new();
+        world.insert_resource(super::super::camera::CameraSettings::parse(
+            "silhouette_enemies 1\nsilhouette_friendlies 1",
+        ));
         let source = world.spawn((WorldCamera, Camera3d::default())).id();
         let portrait = world.spawn(Camera3d::default()).id();
         let mask_camera = world.spawn((ActorMaskView, Camera::default())).id();
@@ -424,10 +432,33 @@ mod tests {
             TextureUsages::from(world.get::<Camera3d>(source).unwrap().depth_texture_usages)
                 .contains(TextureUsages::TEXTURE_BINDING)
         );
+        for (enemies, friendlies) in [(true, false), (false, true), (true, true), (false, false)] {
+            let mut settings = world.resource_mut::<super::super::camera::CameraSettings>();
+            settings.silhouette_enemies = enemies;
+            settings.silhouette_friendlies = friendlies;
+            world.run_system_once(silhouette_views).unwrap();
+            let view = world.get::<silhouette::SilhouetteView>(source);
+            assert_eq!(
+                view.map(|v| v.0),
+                (enemies || friendlies).then_some(survivors_core::silhouette::Filters {
+                    enemies,
+                    friendlies
+                })
+            );
+        }
+        world
+            .resource_mut::<super::super::camera::CameraSettings>()
+            .silhouette_enemies = true;
         world.get_mut::<Camera>(mask_camera).unwrap().is_active = false;
         world.run_system_once(silhouette_views).unwrap();
         assert!(world.get::<silhouette::SilhouetteView>(source).is_none());
         world.get_mut::<Camera>(mask_camera).unwrap().is_active = true;
+        world
+            .resource_mut::<super::super::camera::CameraSettings>()
+            .silhouette_enemies = false;
+        world
+            .resource_mut::<super::super::camera::CameraSettings>()
+            .silhouette_friendlies = false;
         world.resource_mut::<Mask>().enabled = false;
         world.run_system_once(silhouette_views).unwrap();
         assert!(world.get::<silhouette::SilhouetteView>(source).is_none());
@@ -438,6 +469,9 @@ mod tests {
         use bevy::ecs::system::RunSystemOnce;
         for phase in [Phase::Menu, Phase::GameOver, Phase::Playing] {
             let mut world = World::new();
+            world.insert_resource(super::super::camera::CameraSettings::parse(
+                "silhouette_enemies 1\nsilhouette_friendlies 1",
+            ));
             world.insert_resource(State::new(phase));
             world.init_resource::<Assets<Image>>();
             world.init_resource::<Assets<WowModelMaterial>>();
@@ -472,12 +506,15 @@ mod tests {
     fn mask_view_tracks_world_target_size_and_pose_without_replacing_resources() {
         use bevy::{camera::RenderTargetInfo, ecs::system::RunSystemOnce};
         let mut world = World::new();
+        world.insert_resource(super::super::camera::CameraSettings::parse(
+            "silhouette_enemies 1\nsilhouette_friendlies 1",
+        ));
         world.insert_resource(State::new(Phase::Playing));
         world.init_resource::<Assets<Image>>();
         world.init_resource::<Assets<WowModelMaterial>>();
         world.init_resource::<Messages<AssetEvent<WowModelMaterial>>>();
         world.insert_resource(Mask {
-            enabled: true,
+            enabled: false,
             ..default()
         });
         let mut source = Camera::default();
@@ -545,6 +582,9 @@ mod tests {
         use benilla_world::billboard::BillboardCard;
         use bevy::ecs::system::RunSystemOnce;
         let mut world = World::new();
+        world.insert_resource(super::super::camera::CameraSettings::parse(
+            "silhouette_enemies 1\nsilhouette_friendlies 1",
+        ));
         let actor = |kind| crate::net::NetEntity {
             kind,
             display_id: Some(49),

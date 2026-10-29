@@ -5,6 +5,8 @@ use bevy::prelude::*;
 pub(super) struct CameraSettings {
     pub auto_push: bool,
     pub cutaway: bool,
+    pub silhouette_enemies: bool,
+    pub silhouette_friendlies: bool,
     pub invert_x: bool,
     pub invert_y: bool,
     pub camera_speed: f32,
@@ -23,10 +25,12 @@ impl Default for CameraSettings {
 }
 
 impl CameraSettings {
-    fn parse(text: &str) -> Self {
+    pub(super) fn parse(text: &str) -> Self {
         let mut settings = Self {
             auto_push: true,
             cutaway: true,
+            silhouette_enemies: false,
+            silhouette_friendlies: false,
             invert_x: false,
             invert_y: false,
             camera_speed: 1.,
@@ -40,6 +44,10 @@ impl CameraSettings {
                 ["auto_push", "1"] => settings.auto_push = true,
                 ["cutaway", "0"] => settings.cutaway = false,
                 ["cutaway", "1"] => settings.cutaway = true,
+                ["silhouette_enemies", "0"] => settings.silhouette_enemies = false,
+                ["silhouette_enemies", "1"] => settings.silhouette_enemies = true,
+                ["silhouette_friendlies", "0"] => settings.silhouette_friendlies = false,
+                ["silhouette_friendlies", "1"] => settings.silhouette_friendlies = true,
                 ["invert_x", "0"] => settings.invert_x = false,
                 ["invert_x", "1"] => settings.invert_x = true,
                 ["invert_y", "0"] => settings.invert_y = false,
@@ -71,9 +79,11 @@ impl CameraSettings {
 
     fn encode(&self) -> String {
         format!(
-            "auto_push {}\ncutaway {}\ninvert_x {}\ninvert_y {}\ncamera_speed {}\nzoom_speed {}\nstick_dead_zone {}\n",
+            "auto_push {}\ncutaway {}\nsilhouette_enemies {}\nsilhouette_friendlies {}\ninvert_x {}\ninvert_y {}\ncamera_speed {}\nzoom_speed {}\nstick_dead_zone {}\n",
             u8::from(self.auto_push),
             u8::from(self.cutaway),
+            u8::from(self.silhouette_enemies),
+            u8::from(self.silhouette_friendlies),
             u8::from(self.invert_x),
             u8::from(self.invert_y),
             self.camera_speed,
@@ -93,10 +103,28 @@ impl CameraSettings {
         self.save();
     }
 
+    pub fn toggle_silhouette(&mut self, enemies: bool) {
+        if enemies {
+            self.silhouette_enemies = !self.silhouette_enemies;
+        } else {
+            self.silhouette_friendlies = !self.silhouette_friendlies;
+        }
+        self.save();
+    }
+
+    pub fn silhouette_filters(&self) -> survivors_core::silhouette::Filters {
+        survivors_core::silhouette::Filters {
+            enemies: self.silhouette_enemies,
+            friendlies: self.silhouette_friendlies,
+        }
+    }
+
     /// Reset Graphics preferences only, preserving the independent Controls category.
     pub fn restore_defaults(&mut self) {
         self.auto_push = true;
         self.cutaway = true;
+        self.silhouette_enemies = false;
+        self.silhouette_friendlies = false;
         self.resolved_distance = None;
         self.save();
     }
@@ -287,11 +315,45 @@ mod tests {
     }
 
     #[test]
+    fn silhouette_filters_are_independent_persistent_and_graphics_scoped() {
+        for enemies in [false, true] {
+            for friendlies in [false, true] {
+                let mut settings = CameraSettings::parse("invert_x 1\ncamera_speed 2");
+                if enemies {
+                    settings.toggle_silhouette(true);
+                }
+                if friendlies {
+                    settings.toggle_silhouette(false);
+                }
+                let mut loaded = CameraSettings::parse(&settings.encode());
+                assert_eq!(
+                    loaded.silhouette_filters(),
+                    survivors_core::silhouette::Filters {
+                        enemies,
+                        friendlies
+                    }
+                );
+                loaded.restore_controls();
+                assert_eq!(loaded.silhouette_filters(), settings.silhouette_filters());
+                settings.restore_defaults();
+                assert!(!settings.silhouette_enemies && !settings.silhouette_friendlies);
+                assert!(settings.invert_x);
+                assert_eq!(settings.camera_speed, 2.);
+            }
+        }
+        let old =
+            CameraSettings::parse("cutaway 0\nsilhouette_enemies broken\nsilhouette_friendlies 9");
+        assert!(!old.silhouette_enemies && !old.silhouette_friendlies && !old.cutaway);
+    }
+
+    #[test]
     fn preferences_round_trip_and_old_or_invalid_files_keep_collision_enabled() {
         for enabled in [false, true] {
             let settings = CameraSettings {
                 auto_push: enabled,
                 cutaway: !enabled,
+                silhouette_enemies: enabled,
+                silhouette_friendlies: !enabled,
                 invert_x: enabled,
                 invert_y: !enabled,
                 camera_speed: 1.5,
@@ -302,6 +364,8 @@ mod tests {
             let loaded = CameraSettings::parse(&settings.encode());
             assert_eq!(loaded.auto_push, enabled);
             assert_eq!(loaded.cutaway, !enabled);
+            assert_eq!(loaded.silhouette_enemies, enabled);
+            assert_eq!(loaded.silhouette_friendlies, !enabled);
             assert_eq!(loaded.resolved_distance, None);
             assert_eq!(loaded.invert_x, enabled);
             assert_eq!(loaded.invert_y, !enabled);

@@ -39,7 +39,14 @@ fn fragment(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
 #endif
         // Depth32Float tolerance is provisional until the distance/backend matrix passes.
         if front > 0.0 && front <= 1.0 && scene <= 1.0 && scene - front > 0.00001 {
-            if actor.r > 0.5 || actor.g > 0.5 {
+            var enabled = false;
+#ifdef SHOW_ENEMIES
+            enabled = enabled || actor.r > 0.5;
+#endif
+#ifdef SHOW_FRIENDLIES
+            enabled = enabled || actor.g > 0.5;
+#endif
+            if enabled {
                 tint += vec3<f32>(actor.r, actor.g, 0.0);
                 coverage += 1.0;
             }

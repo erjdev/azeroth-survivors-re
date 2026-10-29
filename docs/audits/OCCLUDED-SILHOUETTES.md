@@ -212,3 +212,40 @@ render-scale/size coverage, draw cost, Windows, attended Elwynn and interiors.
 
 Final eight-package formatting/Clippy/test gate passes (31 optional-addon skips),
 including the concealment regression and documented culling-schedule API boundary.
+
+## Saved filter acceptance (2026-10-29)
+
+Graphics switches now consume the independent filter contract. Both default off;
+old/invalid preference files keep them off. Each toggle saves immediately. Graphics
+reset restores both off without altering Controls, and Controls reset preserves them.
+A per-view extracted Filters value specializes cached pipelines by enemy/friendly
+bits. Classification still includes neutral and disabled groups; only the composite
+color decision is filtered. Both-off removes the composite view and stops mask work
+outside explicit diagnostics. Menu portrait views remain untouched.
+
+Native evidence under `docs/images/screenshots/2026-10-29-silhouette-filters/`:
+
+- `graphics-enemies.png`: enemy-only after native click; saved file agrees.
+- `graphics-restarted.png`: friendly-only retained after restart. Intermediate both-on
+  state and Graphics reset were verified against the saved file.
+- `compact-before.png` / `graphics-compact.png`: narrow checkbox labels corrected;
+  final 640×720 / 125% panel and footer fit, with native friendly toggle verified.
+- `both-msaa4.png`, `enemies-msaa4.png`, `friendlies-msaa4.png`, `neither-msaa4.png`:
+  identical opaque wall fixture with each filter combination, native Metal 4× MSAA.
+  Red/green appearance matches the filter state; no shader validation errors logged.
+
+The fixture overrides filter values in memory; it does not exercise persistence.
+Persistence acceptance above uses ordinary Options with the fixture disabled.
+First menu launch suffered long frame hitches and unavailable native input; it exited
+normally, and subsequent launches were responsive. No performance claim follows.
+The feature build took 2m03s; final compact-layout build took 35.31s.
+Mixed-actor overlap, other render scales/distances, performance, Windows and attended
+real-map acceptance remain open. This is not closure of the Elwynn foliage report.
+
+Single-sample follow-up: `enemies-msaa1.png` and `friendlies-msaa1.png` verify the
+two independently filtered shader variants with `WOW_MSAA=1` (no MSAA), in the same
+isolated fixture. No shader validation errors were logged in that run either.
+
+Final eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+A disk-full example link was retried after removing only superseded unlocked compiler
+snapshots; the latest cache for every variant and dependency builds were retained.

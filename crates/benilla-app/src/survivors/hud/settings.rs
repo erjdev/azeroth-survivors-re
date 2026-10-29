@@ -104,6 +104,9 @@ pub(super) fn build(col: &mut ChildSpawnerCommands, font: &Handle<Font>) {
                             checkboxes::row(body, font, Knob::AutoPush);
                             if cfg!(feature = "survivors-visibility") {
                                 checkboxes::row(body, font, Knob::Cutaway);
+                                checkboxes::row(body, font, Knob::EnemySilhouettes);
+                                checkboxes::row(body, font, Knob::FriendlySilhouettes);
+                                body.spawn(text(font, "Experimental: obscured enemies appear red; you and friendly companions appear green.", 12., DIM));
                             }
                         }
                         Category::About => {

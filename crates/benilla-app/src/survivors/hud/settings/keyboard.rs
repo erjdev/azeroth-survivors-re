@@ -51,6 +51,8 @@ fn order(category: Category, phase: Phase) -> Vec<Target> {
             targets.push(Target::Action(UiAction::Toggle(Knob::AutoPush)));
             if cfg!(feature = "survivors-visibility") {
                 targets.push(Target::Action(UiAction::Toggle(Knob::Cutaway)));
+                targets.push(Target::Action(UiAction::Toggle(Knob::EnemySilhouettes)));
+                targets.push(Target::Action(UiAction::Toggle(Knob::FriendlySilhouettes)));
             }
         }
         Category::About if phase == Phase::Menu => {

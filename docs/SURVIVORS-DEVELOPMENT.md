@@ -830,8 +830,15 @@ With an isolated validation profile and selected hero, set
 `WOW_SURVIVORS_SILHOUETTE_FIXTURE` to an absolute text-file path before launch.
 The developer-only fixture stays in the menu and stages posed actors with no AI.
 Write one case to the file: `clear`, `front`, `partial`, `behind`, `foliage`,
-`front-off`, or `concealed`; changes apply live every 250ms. `foliage` is a synthetic
+`front-off`, `concealed`, `enemies`, `friendlies`, or `neither`; changes apply live every 250ms. `foliage` is a synthetic
 checker alpha-cutout, not a map asset. Left is an enemy-render specimen, center is
 the saved hero, right is neutral. `front-off` disables the compositor. Remove the
 environment variable for ordinary menu use. See the silhouette audit for evidence
 and remaining acceptance work.
+
+The three filter cases use the same opaque wall with enemy-only, friendly-only,
+or neither group enabled. Other fixture cases enable both except `front-off`.
+These fixture overrides are in memory only; native Options persistence acceptance
+must run without the fixture environment variable. Normal play uses Graphics →
+Show obscured enemies / Show obscured friendlies; both default off, independently
+of scenery cutaway and camera push-in. No developer environment flag is needed.
