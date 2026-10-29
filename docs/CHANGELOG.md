@@ -4,6 +4,28 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Keep pending rewards within reach
+
+Pending purchases now show a fixed Confirm/Undo bar when the sidebar controls
+scroll out of view. The bar shows pending changes and remaining points, then hides
+when the sidebar returns or the draft clears. Wide layouts retain the reference rail.
+
+Native macOS 640×720 / 125% verifies staging, Undo, sidebar return and Confirm.
+Restart at 1280×720 retains the purchased rank and 25 → 5 points; pending resets
+use the wide sidebar without duplicate controls. Build: 1m42s. All 4,851 app unit
+tests and the eight-package gate pass (31 optional-addon skips). Windows and
+physical-controller checks remain open.
+
+![Before: a pending purchase with Confirm offscreen](images/screenshots/2026-10-29-reward-confirm/before.png)
+
+![After: pending purchases keep Confirm and Undo visible](images/screenshots/2026-10-29-reward-confirm/after.png)
+
+![Confirm applies the rank and point cost](images/screenshots/2026-10-29-reward-confirm/confirmed.png)
+
+![Purchased rank and balance survive restart](images/screenshots/2026-10-29-reward-confirm/restarted-wide.png)
+
+![Wide pending changes retain sidebar controls](images/screenshots/2026-10-29-reward-confirm/wide-pending.png)
+
 ## 2026-10-29 — Direct inspection from compact Drop Tables
 
 Selecting an encounter drop now opens its stats, equipment and appearance actions

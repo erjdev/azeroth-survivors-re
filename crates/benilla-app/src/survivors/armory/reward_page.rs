@@ -23,6 +23,60 @@ pub(in crate::survivors) fn remember_scroll(
     }
 }
 
+#[derive(Component)]
+pub(in crate::survivors) struct SidebarActions;
+#[derive(Component)]
+pub(in crate::survivors) struct PendingActions;
+
+/// Pending purchases must remain actionable when the reference rail scrolls away.
+pub(in crate::survivors) fn keep_actions_visible(
+    armory: Res<Armory>,
+    viewport: Query<(&ComputedNode, &UiGlobalTransform), With<ScrollCategory>>,
+    sidebar: Query<(&ComputedNode, &UiGlobalTransform), With<SidebarActions>>,
+    mut pending: Query<&mut Node, With<PendingActions>>,
+) {
+    let Ok((view, transform)) = viewport.single() else {
+        return;
+    };
+    if view.size().min_element() <= 0.0 {
+        return;
+    }
+    let bounds = Rect::from_center_size(transform.translation, view.size());
+    let visible = sidebar.single().is_ok_and(|(node, transform)| {
+        let rect = Rect::from_center_size(transform.translation, node.size());
+        node.size().min_element() > 0.0 && bounds.contains(rect.min) && bounds.contains(rect.max)
+    });
+    let display = if !armory.reward_draft.is_empty() && !visible {
+        Display::Flex
+    } else {
+        Display::None
+    };
+    for mut node in &mut pending {
+        if node.display != display {
+            node.display = display;
+        }
+    }
+}
+
+fn purchase_actions(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, pending: bool) {
+    for (label, act, selected) in [
+        ("Confirm", Act::ConfirmRewards, true),
+        ("Undo", Act::UndoRewards, false),
+    ] {
+        let node = Node {
+            min_height: Val::Px(24.0),
+            padding: UiRect::horizontal(Val::Px(7.0)),
+            justify_content: JustifyContent::Center,
+            ..default()
+        };
+        if pending {
+            super::controls::button(ui, font, label, act, selected, node);
+        } else {
+            super::controls::disabled(ui, font, label, node);
+        }
+    }
+}
+
 const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 
 fn text(
@@ -86,13 +140,8 @@ pub(super) fn build(
             if pending {
                 text(side, font, format!("{} pending {}", armory.reward_draft.codes().len(), if armory.reward_draft.codes().len() == 1 { "change" } else { "changes" }), 13.0, hud::card_growth::GAIN);
             }
-            side.spawn(Node { flex_wrap: FlexWrap::Wrap, column_gap: Val::Px(4.0), ..default() }).with_children(|buttons| {
-                for (label, act, selected) in [("Confirm", Act::ConfirmRewards, true), ("Undo", Act::UndoRewards, false)] {
-                    let node = Node { min_height: Val::Px(24.0), padding: UiRect::horizontal(Val::Px(7.0)), justify_content: JustifyContent::Center, ..default() };
-                    if pending { super::controls::button(buttons, font, label, act, selected, node); }
-                    else { super::controls::disabled(buttons, font, label, node); }
-                }
-            });
+            side.spawn((SidebarActions, Node { flex_wrap: FlexWrap::Wrap, column_gap: Val::Px(4.0), ..default() }))
+                .with_children(|buttons| purchase_actions(buttons, font, pending));
             side.spawn(Node { width: Val::Percent(100.0), flex_direction: FlexDirection::Column, row_gap: Val::Px(2.0), ..default() }).with_children(|categories| {
                 for (i, name) in ["Perks", "Companions", "Tabards"].iter().enumerate() {
                     super::controls::button(categories, font, name, Act::RewardPage(i as u8), armory.reward_page == i as u8,
@@ -115,6 +164,38 @@ pub(super) fn build(
             }
         });
     });
+    panel
+        .spawn((
+            PendingActions,
+            Node {
+                display: Display::None,
+                width: Val::Percent(100.0),
+                flex_shrink: 0.0,
+                flex_wrap: FlexWrap::Wrap,
+                align_items: AlignItems::Center,
+                column_gap: Val::Px(8.0),
+                row_gap: Val::Px(4.0),
+                padding: UiRect::all(Val::Px(6.0)),
+                border: UiRect::all(Val::Px(1.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.035, 0.027, 0.014)),
+            BorderColor::all(FRAME),
+        ))
+        .with_children(|bar| {
+            text(
+                bar,
+                font,
+                format!(
+                    "{} pending · {} points remaining",
+                    armory.reward_draft.codes().len(),
+                    account.unspent()
+                ),
+                13.0,
+                GOLD,
+            );
+            purchase_actions(bar, font, !armory.reward_draft.is_empty());
+        });
 }
 
 fn remove_pending(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, armory: &Armory, code: u8) {
@@ -620,6 +701,125 @@ fn tabards(panel: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Acco
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pending_actions_remain_reachable_when_sidebar_is_clipped() {
+        let mut account = crate::survivors::account::blank();
+        for class in 0..9 {
+            account.grant_zone(class, 0);
+        }
+        account.grant_new();
+        let points = account.unspent();
+        let mut armory = Armory::default();
+        armory.reward_draft.stage(&account, 0).unwrap();
+        let mut app = App::new();
+        app.insert_resource(armory)
+            .add_systems(Update, keep_actions_visible);
+        app.world_mut().spawn((
+            ScrollCategory(0),
+            ComputedNode {
+                size: Vec2::new(600., 400.),
+                ..default()
+            },
+            UiGlobalTransform::from_xy(300., 300.),
+        ));
+        let sidebar = app
+            .world_mut()
+            .spawn((
+                SidebarActions,
+                ComputedNode {
+                    size: Vec2::new(200., 40.),
+                    ..default()
+                },
+                UiGlobalTransform::from_xy(150., 140.),
+            ))
+            .id();
+        let bar = app
+            .world_mut()
+            .spawn((PendingActions, Node::default()))
+            .id();
+        for (y, expected) in [
+            (140., Display::None),
+            (90., Display::Flex),
+            (110., Display::Flex),
+            (490., Display::Flex),
+            (460., Display::None),
+        ] {
+            app.world_mut()
+                .entity_mut(sidebar)
+                .insert(UiGlobalTransform::from_xy(150., y));
+            app.update();
+            assert_eq!(app.world().get::<Node>(bar).unwrap().display, expected);
+            assert_eq!(
+                account.unspent(),
+                points,
+                "visibility must not commit a draft"
+            );
+        }
+        app.world_mut()
+            .entity_mut(sidebar)
+            .insert(UiGlobalTransform::from_xy(150., 600.));
+        app.world_mut()
+            .resource_mut::<Armory>()
+            .reward_draft
+            .clear();
+        app.update();
+        assert_eq!(
+            app.world().get::<Node>(bar).unwrap().display,
+            Display::None,
+            "Undo removes the pending bar even with the rail offscreen"
+        );
+    }
+
+    #[test]
+    fn pending_bar_is_outside_the_catalog_scroll_and_uses_the_same_transaction_actions() {
+        let mut account = crate::survivors::account::blank();
+        for class in 0..9 {
+            account.grant_zone(class, 0);
+        }
+        account.grant_new();
+        let mut armory = Armory::default();
+        armory.reward_draft.stage(&account, 0).unwrap();
+        let mut world = World::new();
+        let root = world
+            .commands()
+            .spawn(Node::default())
+            .with_children(|ui| build(ui, &Handle::default(), &armory, &account))
+            .id();
+        world.flush();
+        let bar = world
+            .query_filtered::<Entity, With<PendingActions>>()
+            .single(&world)
+            .unwrap();
+        assert_eq!(world.get::<ChildOf>(bar).unwrap().parent(), root);
+        let actions: Vec<_> = world
+            .get::<Children>(bar)
+            .unwrap()
+            .iter()
+            .filter_map(|child| world.get::<Act>(child))
+            .collect();
+        assert_eq!(
+            actions
+                .iter()
+                .filter(|a| matches!(a, Act::ConfirmRewards))
+                .count(),
+            1
+        );
+        assert_eq!(
+            actions
+                .iter()
+                .filter(|a| matches!(a, Act::UndoRewards))
+                .count(),
+            1
+        );
+        assert!(world
+            .get::<super::super::collection::CollectionScroll>(bar)
+            .is_none());
+        assert_eq!(
+            world.get::<Node>(bar).unwrap().overflow,
+            Overflow::visible()
+        );
+    }
 
     #[test]
     fn category_offsets_follow_the_rendered_page_and_reject_invalid_positions() {

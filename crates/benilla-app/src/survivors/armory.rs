@@ -25,7 +25,9 @@ mod drop_page;
 pub(super) mod preview;
 mod reward_draft;
 mod reward_page;
-pub(super) use reward_page::remember_scroll as remember_reward_scroll;
+pub(super) use reward_page::{
+    keep_actions_visible as keep_reward_actions_visible, remember_scroll as remember_reward_scroll,
+};
 mod name_edit;
 mod name_input;
 mod typography;

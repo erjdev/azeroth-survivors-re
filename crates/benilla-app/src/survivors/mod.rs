@@ -237,6 +237,7 @@ impl Plugin for SurvivorsPlugin {
                         armory::starter_equipment_details,
                         armory::talent_details,
                         armory::keep_talent_inspection_visible,
+                        armory::keep_reward_actions_visible,
                         armory::fill_talent_art,
                         armory::fill_talent_background,
                         armory::fill_talent_headings,

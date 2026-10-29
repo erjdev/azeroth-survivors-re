@@ -5,6 +5,29 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Reward confirmation reachability — 2026-10-29
+
+Native 640×720 / 125% reproduction: staging Veteran's Lessons from the scrolled
+perk list leaves Confirm/Undo outside the viewport, despite the pending message.
+Retain the reference sidebar controls; when they are clipped and a draft exists,
+show a fixed bar with pending count, preview balance and the same Confirm/Undo
+actions. Hide it when the sidebar returns to view or the draft is cleared. No
+purchase, refund or persistence rules change. Reference:
+`intentions/survivors_rewards_tab_perks.png`.
+
+Native macOS acceptance passes at 640×720 / 125%: stage Veteran's Lessons,
+Undo without spending, return to the sidebar (bar hides), then Confirm from the
+fixed bar. A 1280×720 restart retains rank one and 5 of the original 25 points;
+a pending reset keeps the wide sidebar controls without a duplicate bar. Partial
+clipping, empty drafts and fixed action placement have regression coverage.
+Play build: 1m42s. All 4,851 app unit tests and the eight-package formatting/Clippy/
+test gate pass (31 optional-addon skips). Initial compile exposed marker visibility
+required by system registration; corrected before this build. A construction test
+incorrectly assumed fixed nodes lack Bevy's automatic ScrollPosition; it now
+checks the actual scroll marker and overflow behavior. One automation
+session lost input targeting; clean restart completed the purchase checks.
+Windows, physical gamepad and the remaining acceptance matrix remain open.
+
 ## Compact Drop Tables inspection — 2026-10-29
 
 Extend the compact Collection inspector to encounter and supplemental drops.

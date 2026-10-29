@@ -24,6 +24,8 @@ minimum-window onboarding and restart captures are in the changelog.
 
 ![Greater Heal acquisition and inline upgrades](docs/images/screenshots/2026-10-29-greater-heal/cards-wide.png)
 
+![Pending Rewards keep Confirm and Undo visible while browsing](docs/images/screenshots/2026-10-29-reward-confirm/after.png)
+
 ![Compact Drop Tables opens selected drop stats and actions](docs/images/screenshots/2026-10-29-drop-inspector/detail.png)
 
 ![Compact Collection opens item details and equipment controls directly](docs/images/screenshots/2026-10-29-collection-inspector/detail.png)
