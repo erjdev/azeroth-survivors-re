@@ -9539,3 +9539,18 @@ and leaves Specs 2/3 empty. Native captures are inline in CHANGELOG and README.
 This closes the native purchase/restart slice above, not Windows or combat acceptance.
 No source changes or coverage increase; the implementation gate remains the green
 04399ff gate (4,832 app / 310 core tests). Documentation links and whitespace checked.
+
+### 2026-10-29 — Nature's Focus healing integration
+
+Checkout node 823 (17063/17065–17068) names Healing Touch, Regrowth and Tranquility
+for 14–70% pushback protection. Extend the existing authored +2%/rank healing
+conversion to Regrowth while retaining Rejuvenation. Both healing portions multiply
+Gift of Nature; crit, recovery, duration and other spells remain unchanged. No new
+definition is claimed. Acceptance: bounded ranks, class/spell scope, stacking,
+refund, real direct/periodic healing and native wide/compact inline description.
+Windows and attended combat remain open.
+
+Validation: eight-package formatting/Clippy/test gate green (31 optional-addon skips).
+Native macOS previews at 1280×720 and 640×720 / 125% show the complete inline
+8 → 10% healing change. Screenshots are embedded in CHANGELOG and README. The
+incremental play build took 15 seconds. Coverage stays 302/432 (Druid 28/47).

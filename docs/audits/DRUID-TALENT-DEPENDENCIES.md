@@ -113,5 +113,7 @@ Improved Rejuvenation remains spell-specific. Coverage stays 28/47, since these
 are existing definitions gaining a missing consumer, not new definitions.
 
 Nature's Focus (823; 17063/17065–17068) names Healing Touch, Regrowth and Tranquility
-in its installed pushback-protection rule. Its current explicit Rejuvenation-only
-healing conversion remains separate work to reconcile with those spell lifecycles.
+in its installed pushback-protection rule. Its explicit +2%/rank healing conversion now includes Rejuvenation and Regrowth,
+including both direct and periodic healing; Gift of Nature multiplies it. Healing
+Touch and Tranquility lifecycles remain separate work. The authored healing bonus
+is not the installed 14/28/42/56/70% pushback-protection chance.

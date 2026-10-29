@@ -86,7 +86,7 @@ fn regrowth_training_reaches_cast_chance_and_refreshes_only_its_periodic_effect(
 }
 
 #[test]
-fn restoration_and_moonglow_reach_direct_healing_periodic_healing_and_recovery() {
+fn restoration_focus_and_moonglow_reach_both_heals_and_recovery() {
     let mut run = Run {
         hp: 10.,
         ..Default::default()
@@ -104,7 +104,7 @@ fn restoration_and_moonglow_reach_direct_healing_periodic_healing_and_recovery()
         ..Default::default()
     };
     let plain = Params::new(&owned, &stats, base);
-    let trained = base.with_ranks(&[(2, 828, 5), (0, 783, 3)]);
+    let trained = base.with_ranks(&[(2, 828, 5), (2, 823, 5), (0, 783, 3)]);
     let p = Params::new(&owned, &stats, trained);
     assert!((p.cooldown - plain.cooldown * 0.91).abs() < 0.00001);
     assert_eq!(p.duration, plain.duration);
@@ -112,8 +112,8 @@ fn restoration_and_moonglow_reach_direct_healing_periodic_healing_and_recovery()
     assert_eq!(p.crit_damage, plain.crit_damage);
     let (healed, critical) = cast_regrowth(&mut run, &p, 100., &mut Rng(123)).unwrap();
     assert!(!critical);
-    assert!((healed - 26.4).abs() < 0.00001);
-    assert!((run.healing.advance(12.) - 26.4).abs() < 0.00001);
+    assert!((healed - 29.04).abs() < 0.00001);
+    assert!((run.healing.advance(12.) - 29.04).abs() < 0.00001);
     // Spell-specific Rejuvenation training cannot accidentally increase Regrowth.
     let isolated = Params::new(&owned, &stats, trained.with_ranks(&[(2, 830, 3)]));
     assert_eq!(isolated.dmg, plain.dmg);

@@ -27,7 +27,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation and Regrowth: +2% healing per rank, including direct and periodic healing. Does not change critical chance, duration or damage", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth"]), per_rank: 0.02 },
     TalentDefinition { id: 821, max_rank: 5, name: "Improved Mark of the Wild", description: "+4 hero armor per rank (Survivors permanent Mark of the Wild conversion)", stat: TalentStat::Armor, per_rank: 4.0 },
     TalentDefinition { id: 824, max_rank: 5, name: "Improved Healing Touch", description: "Rejuvenation: 3% shorter cooldown per rank (Survivors Healing Touch cast-time conversion)", stat: TalentStat::SpellCooldown("rejuvenation"), per_rank: 0.03 },
-    TalentDefinition { id: 823, max_rank: 5, name: "Nature's Focus", description: "Rejuvenation: +2% healing per rank (Survivors healing reliability conversion; no spell pushback)", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.02 },
+    TalentDefinition { id: 823, max_rank: 5, name: "Nature's Focus", description: "Rejuvenation and Regrowth: +2% direct and periodic healing per rank, multiplying Gift of Nature. Does not change critical chance or recovery (Survivors healing reliability conversion; no spell pushback)", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth"]), per_rank: 0.02 },
     TalentDefinition { id: 841, max_rank: 5, name: "Subtlety", description: "+1 percentage point hero damage reduction per rank (Survivors threat-reduction conversion)", stat: TalentStat::Reduction, per_rank: 0.01 },
     TalentDefinition { id: 843, max_rank: 5, name: "Tranquil Spirit", description: "Rejuvenation: 2% shorter cooldown per rank (Survivors healing mana-cost conversion)", stat: TalentStat::SpellCooldown("rejuvenation"), per_rank: 0.02 },
  ];
@@ -640,5 +640,53 @@ mod healing_group_tests {
         assert!(text.contains("8 » 10% healing"), "{text}");
         assert!(!spans.is_empty());
         assert!(text.contains("Regrowth"));
+    }
+}
+
+#[cfg(test)]
+mod focus_tests {
+    use crate::talents::{talent_definition, CastEffect, Milestones};
+
+    #[test]
+    fn focus_scopes_both_heals_stacks_with_gift_and_refunds_cleanly() {
+        for class in 0..9 {
+            for rank in [0, 1, 3, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 823, rank)]);
+                let factor = if class == 8 {
+                    1. + 0.02 * f32::from(rank.min(5))
+                } else {
+                    1.
+                };
+                for key in ["rejuvenation", "regrowth"] {
+                    assert_eq!(
+                        trained.cast(key),
+                        CastEffect {
+                            damage: factor,
+                            ..Default::default()
+                        }
+                    );
+                    let combined = base.with_ranks(&[(2, 823, rank), (2, 828, rank)]);
+                    assert!((combined.cast(key).damage - factor * factor).abs() < 0.00001);
+                }
+                for key in ["wrath", "thorns", "renew", "holy_light"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+        let (text, spans) = talent_definition(8, 823)
+            .unwrap()
+            .inline_description_with_values(4)
+            .unwrap();
+        assert!(text.contains("Regrowth"));
+        assert!(
+            text.contains("8 » 10% direct and periodic healing"),
+            "{text}"
+        );
+        assert!(!spans.is_empty());
     }
 }

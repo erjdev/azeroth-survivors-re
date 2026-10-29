@@ -143,7 +143,7 @@ green inline upgrade values. Purchase and compact captures are in the [changelog
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>
-    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-29-regrowth-talents/moonglow-compact.png" alt="Compact Talents"><br>2026-10-29 · Moonglow includes Regrowth; readable inline values at 640×720 / 125% UI size.</td>
+    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-29-natures-focus/compact.png" alt="Compact Talents"><br>2026-10-29 · Nature’s Focus includes both Regrowth healing portions; inline growth at 640×720 / 125% UI size.</td>
   </tr>
 </table>
 

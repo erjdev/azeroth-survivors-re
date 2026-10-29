@@ -1054,7 +1054,12 @@ Nature's Grace. The talent does not acquire the spell.
 Gift of Nature adds 2% healing per rank to both Rejuvenation and Regrowth, including
 both direct and periodic portions. Moonglow reduces Regrowth recovery by 3% per
 rank, capped at three ranks, alongside its existing spells (mana-cost conversion).
-Other explicitly Rejuvenation-scoped conversions still affect Rejuvenation only.
+Nature's Focus also adds 2% direct and periodic healing per rank to both spells,
+multiplying Gift of Nature (five ranks). This extends its existing Rejuvenation
+healing-reliability conversion to Regrowth, which the installed pushback-protection
+talent names. Survivors has no spell pushback; the 2% value is authored, not the
+installed 14–70% interruption protection. It changes neither critical chance nor
+recovery. Other explicitly Rejuvenation-scoped conversions remain unchanged.
 Cards show direct healing, periodic rate, duration and recovery upgrades inline,
 with each changed unit once.
 

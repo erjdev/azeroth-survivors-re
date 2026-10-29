@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Nature's Focus includes Regrowth
+
+Nature's Focus now boosts both parts of Regrowth alongside Rejuvenation, multiplying
+Gift of Nature. Green inline text names both spells. Native macOS captures verify
+wide and compact / 125% layouts; incremental build: 15s. The eight-package
+formatting/Clippy/test gate passes (31 optional-addon skips). Definition coverage
+remains 302/432; Windows and attended combat remain open.
+
+![Nature's Focus in the Druid talent tree](images/screenshots/2026-10-29-natures-focus/wide.png)
+
+![Inline healing growth at 640×720 and 125%](images/screenshots/2026-10-29-natures-focus/compact.png)
+
 ## 2026-10-29 — Talent purchase and saved-spec acceptance
 
 Native macOS interaction at 1280×720 verifies Hemorrhage purchase (31 → 30
