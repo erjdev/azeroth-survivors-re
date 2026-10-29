@@ -946,9 +946,7 @@ pub(super) fn cast_abilities(
                 }
             }
             Kind::Heal => {
-                if run.hp < stats.max_hp * 0.85 {
-                    run.heal_rate = p.dmg / p.duration.max(1.0);
-                    run.heal_t = p.duration;
+                if start_healing(&mut run, def.key, p.dmg, p.duration, stats.max_hp) {
                     fx.cast(me, def.spell, &[me], None);
                     fx.number(me, p.dmg, false, COLOR_HEAL);
                     true
@@ -8065,16 +8063,16 @@ mod milestone_tests {
             let effect = trained.cast("rejuvenation");
             let expected = if points >= 30 { 10. } else { 5. };
             run.hp = 50.;
-            run.heal_rate = 3.;
-            run.heal_t = 10.;
+            run.healing.refresh("rejuvenation", 30., 10.);
+            let periodic = run.healing.clone();
             assert_eq!(finish_milestone_cast(&mut run, effect, 100.), expected);
             assert_eq!(run.hp, 50. + expected);
-            assert_eq!((run.heal_rate, run.heal_t), (3., 10.));
+            assert_eq!(run.healing, periodic);
             let healing = trained.with_ranks(&[(2, 844, 1), (2, 830, 3), (2, 828, 5), (2, 823, 5)]);
             run.hp = 50.;
             let restored = finish_milestone_cast(&mut run, healing.cast("rejuvenation"), 100.);
             assert!((restored - expected * 1.15 * 1.1 * 1.1).abs() < 0.00001);
-            assert_eq!((run.heal_rate, run.heal_t), (3., 10.));
+            assert_eq!(run.healing, periodic);
             run.hp = 99.;
             assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 1.);
             run.hp = 100.;
@@ -8139,8 +8137,8 @@ mod milestone_tests {
         run.shield_t = 8.;
         finish_milestone_cast(&mut run, trained.cast("thorns"), 100.);
         assert_eq!((run.shield, run.shield_t), (20., 8.));
-        run.heal_rate = 3.;
-        run.heal_t = 10.;
+        run.healing.refresh("rejuvenation", 30., 10.);
+        let periodic = run.healing.clone();
         run.hp = 50.;
         let before_swiftmend = Milestones {
             points: [0, 0, 29],
@@ -8154,7 +8152,7 @@ mod milestone_tests {
             finish_milestone_cast(&mut run, trained.cast("rejuvenation"), 100.),
             5.
         );
-        assert_eq!((run.heal_rate, run.heal_t), (3., 10.));
+        assert_eq!(run.healing, periodic);
         run.hp = 99.;
         assert_eq!(
             finish_milestone_cast(&mut run, trained.cast("rejuvenation"), 100.),
@@ -11003,3 +11001,44 @@ mod slow_tests;
 #[cfg(test)]
 #[path = "pet_ownership_tests.rs"]
 mod pet_ownership_tests;
+
+/// Automatic healing snapshots a successful cast without replacing another spell's effect.
+fn start_healing(
+    run: &mut Run,
+    source: &'static str,
+    total: f32,
+    duration: f32,
+    max_hp: f32,
+) -> bool {
+    run.alive() && run.hp < max_hp * 0.85 && run.healing.refresh(source, total, duration)
+}
+
+#[cfg(test)]
+mod healing_cast_tests {
+    use super::*;
+
+    #[test]
+    fn automatic_healing_gates_before_refreshing_and_snapshots_the_cast() {
+        let mut run = Run {
+            hp: 50.,
+            ..Default::default()
+        };
+        run.healing.refresh("other_heal", 12., 6.);
+        assert!(start_healing(&mut run, "rejuvenation", 30., 10., 100.));
+        assert_eq!(run.hp, 50., "a periodic cast has no immediate payment");
+        assert_eq!(run.healing.advance(2.), 10.);
+        let before = run.healing.clone();
+        for (hp, dead) in [(85., None), (100., None), (0., None), (50., Some(0.))] {
+            run.hp = hp;
+            run.dead_t = dead;
+            assert!(!start_healing(&mut run, "rejuvenation", 60., 10., 100.));
+            assert_eq!(run.healing, before);
+        }
+        run.hp = 50.;
+        run.dead_t = None;
+        assert!(!start_healing(&mut run, "rejuvenation", 60., 0., 100.));
+        assert_eq!(run.healing, before);
+        assert!(start_healing(&mut run, "rejuvenation", 60., 10., 100.));
+        assert_eq!(run.healing.advance(20.), 68.);
+    }
+}

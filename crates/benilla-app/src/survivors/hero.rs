@@ -438,10 +438,7 @@ fn regenerate(run: &mut Run, stats: &super::Stats, dt: f32) {
         return;
     }
     let mut heal = stats.regen * dt + run.blessed_recovery.advance(run.milestones, dt);
-    if run.heal_t > 0.0 {
-        heal += run.heal_rate * dt.min(run.heal_t);
-        run.heal_t = (run.heal_t - dt).max(0.0);
-    }
+    heal += run.healing.advance(dt);
     if run.blood_craze_t > 0.0 {
         heal +=
             stats.max_hp * run.milestones.blood_craze_fraction() * dt.min(run.blood_craze_t) / 6.0;
@@ -491,7 +488,7 @@ pub(super) fn hero_vitals(
     if run.thorns_t > 0.0 {
         shown.push(run.thorns_spell);
     }
-    if run.heal_t > 0.0 {
+    if run.healing.contains("rejuvenation") {
         shown.push(774);
     }
     for owned in &run.abilities {
@@ -980,8 +977,7 @@ mod reactive_talent_tests {
             hurt_hero(&mut run, 1.);
             let lethal = run.hp;
             stats.regen = 100.;
-            run.heal_t = 5.;
-            run.heal_rate = 100.;
+            run.healing.refresh("rejuvenation", 500., 5.);
             run.blood_craze_t = 6.;
             regenerate(&mut run, &stats, 1.);
             assert_eq!(run.hp, lethal, "no regeneration path revives a lethal hit");
@@ -1016,5 +1012,43 @@ mod reactive_talent_tests {
         run.hp = 1.;
         hurt_hero(&mut run, 100.);
         assert_eq!(run.enrage_t, 0., "lethal damage cannot activate Enrage");
+    }
+}
+
+#[cfg(test)]
+mod periodic_healing_tests {
+    use super::*;
+
+    #[test]
+    fn independent_heals_expire_during_overheal_and_do_not_revive() {
+        let mut run = Run {
+            hp: 10.,
+            ..Default::default()
+        };
+        let mut stats = run.stats();
+        stats.regen = 0.;
+        stats.max_hp = 100.;
+        run.healing.refresh("rejuvenation", 30., 10.);
+        run.healing.refresh("other_heal", 12., 6.);
+        regenerate(&mut run, &stats, 0.);
+        assert_eq!(run.hp, 10.);
+        regenerate(&mut run, &stats, 2.);
+        assert_eq!(run.hp, 20.);
+        run.hp = 99.;
+        regenerate(&mut run, &stats, 8.);
+        assert_eq!(run.hp, 100.);
+        run.hp = 50.;
+        regenerate(&mut run, &stats, 1.);
+        assert_eq!(run.hp, 50., "overhealing is not stored for later damage");
+        assert!(!run.healing.contains("rejuvenation"));
+        assert!(!run.healing.contains("other_heal"));
+        for (hp, dead) in [(0., None), (10., Some(0.))] {
+            run.hp = hp;
+            run.dead_t = dead;
+            run.healing.refresh("rejuvenation", 30., 10.);
+            regenerate(&mut run, &stats, 20.);
+            assert_eq!(run.hp, hp);
+        }
+        assert_eq!(Run::default().healing, Default::default());
     }
 }

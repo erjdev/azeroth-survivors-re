@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Independent healing effects
+
+Rejuvenation now runs through shared healing rules that keep each spell's timer
+separate. Recasts refresh only their own effect, healing cannot revive a dead
+hero, and overhealing is not saved for later. This prepares Regrowth without yet
+adding it to the spell pool. Native incremental build: 1m54s. No interface change
+in this checkpoint. The scoped formatting/Clippy/test gate passes (31 optional-addon
+skips), including 307 core rules tests. Windows and attended gameplay remain open.
+
 ## 2026-10-29 — Druid implementation boundaries
 
 Audited the twenty remaining Druid talents and their form, attack and resource

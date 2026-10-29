@@ -9454,3 +9454,18 @@ form IDs are distinct from display IDs; Clearcasting has a 15-second proc lifeti
 and Moonkin's installed aura differs from our existing explicit milestone
 conversion. Forms, feral attacks, art mappings and no-mana conversions remain work;
 this audit adds no gameplay behavior. Coverage remains 300/432 (Druid 27/47).
+
+
+### 2026-10-29 — Independent periodic healing foundation
+
+Rejuvenation now uses `survivors-core::healing::HealingOverTime`, with one snapshot
+and remaining lifetime per source. Same-source recasts replace unpaid healing;
+independent sources coexist, paused time pays nothing, and expired overhealing is
+not banked. Runtime tests retain the health threshold, lethal-hit boundary and
+Swiftmend interaction. This removes the shared-timer obstacle to Regrowth; its
+actual spell, critical healing, talent and visual integration remain pending.
+No talent coverage increase or new UI milestone is claimed.
+
+Validation: native incremental build passes in 1m54s; scoped formatting, Clippy
+and tests pass, including 307 core tests (31 optional-addon skips across the gate).
+Windows and attended gameplay are not validated by this checkpoint.

@@ -85,3 +85,20 @@ control duration. These are reference inputs, not adopted Survivors balance valu
 6. Finish Regrowth/Tranquility and non-form dependencies separately. Capture native
    starter/talent changes at wide and narrow sizes; attended gameplay and Windows
    validation remain separate acceptance steps.
+
+## Healing foundation now wired
+
+Rejuvenation now uses shared-core source-owned healing effects rather than a single
+run-wide timer. Recasting refreshes only that spell, other sources retain their
+remaining healing, and long frames pay only the unexpired amount. Health caps,
+lethal-hit exclusion and the existing automatic below-85% trigger remain enforced
+by the runtime. Swiftmend still leaves the periodic effect intact. Regrowth is not
+yet in the acquisition pool: its direct heal, critical rules, training, card text
+and native screenshots remain the next complete spell slice.
+
+For the next slice, installed Regrowth rank-one spell 8936 has a direct healing
+effect and a 21-second periodic heal with 3-second amplitude, a 2-second cast time,
+40-yard range and 120 flat mana cost. Its direct value has a die range and level
+term, so do not copy the base-point field as the final healing amount. Survivors
+must explicitly author its automatic recovery, self-targeting, scaling and periodic
+cadence; the shared timer alone does not implement those rules or healing criticals.
