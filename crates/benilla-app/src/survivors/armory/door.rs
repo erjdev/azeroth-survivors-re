@@ -1193,7 +1193,16 @@ fn enter_bar(
     account: &Account,
     selection: &Selection,
 ) {
-    let (title, under) = enter_copy(armory, account, selection);
+    let (title, under, action) = if selection.character.is_none() {
+        (
+            "Create or choose a hero".into(),
+            "Keep talent progress on your named hero".into(),
+            Act::Page(super::Page::Heroes),
+        )
+    } else {
+        let (title, under) = enter_copy(armory, account, selection);
+        (title, under, Act::Enter)
+    };
     ui.spawn(Node {
         width: Val::Percent(100.0),
         flex_wrap: FlexWrap::Wrap,
@@ -1223,7 +1232,7 @@ fn enter_bar(
             font,
             &title,
             &under,
-            Act::Enter,
+            action,
             true,
             Node {
                 width: Val::Percent(45.0),

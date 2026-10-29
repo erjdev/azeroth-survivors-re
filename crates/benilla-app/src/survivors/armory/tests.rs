@@ -246,8 +246,8 @@ fn stale_or_cross_class_hero_cannot_start_or_reset_the_previous_run() {
         hp: 37.0,
         ..Default::default()
     };
-    for id in [paladin, u32::MAX] {
-        selection.character = Some(id);
+    for id in [Some(paladin), Some(u32::MAX), None] {
+        selection.character = id;
         let mut armory = super::Armory::default();
         let mut next = bevy::prelude::NextState::Unchanged;
         super::try_enter(
@@ -272,8 +272,13 @@ fn stale_or_cross_class_hero_cannot_start_or_reset_the_previous_run() {
 
 #[test]
 fn a_locked_zone_does_not_start() {
-    let account = account::blank();
-    let mut selection = Selection::default();
+    let mut account = account::empty();
+    let id = account.create("Zone", "Guard", 0).unwrap();
+    let mut selection = Selection {
+        character: Some(id),
+        class: Some(0),
+        ..Default::default()
+    };
     let elwynn = data::MAPS
         .iter()
         .position(|m| m.name == "Elwynn Forest")

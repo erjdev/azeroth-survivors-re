@@ -811,6 +811,11 @@ pub(super) fn enter_refused(
     if let Some(notice) = account.recovery_notice() {
         return Some(notice.into());
     }
+    if selection.character.is_none() {
+        return Some(
+            "Create or choose a hero before entering; talent progress belongs to that hero.".into(),
+        );
+    }
     if let Some(id) = selection.character {
         let Some(hero) = account.character(id) else {
             return Some("This hero is no longer available. Choose a hero before entering.".into());

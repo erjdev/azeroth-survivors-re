@@ -1,0 +1,5 @@
+# Pair with the fresh fixture to inspect hero onboarding without starting a run.
+page = starter
+width = 640
+height = 480
+scale = 1.25

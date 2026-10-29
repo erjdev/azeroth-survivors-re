@@ -82,6 +82,11 @@ Rewards shows the unspent achievement points on the tab. The same frame is the f
 before a run, and the Armory opened from that door. The glue race and class screen is where
 a hero's body is chosen. It is not the menu.
 
+Starting a run requires a saved, selected hero of the selected class. Without one,
+the starter's primary action opens hero creation/selection so the player knows
+which hero will receive talent progression. Stale or mismatched hero selections
+must also be rejected before changing run state.
+
 The front door is three columns.
 
 - Class: the nine classes, the selected class's fantasy in one line, health, the spell it

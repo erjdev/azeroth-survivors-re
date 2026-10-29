@@ -4,6 +4,29 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Explicit first-run hero selection
+
+The starter now opens hero creation/selection when no hero is selected, instead
+of offering a run that silently chooses a fallback hero at settlement. Mouse and
+keyboard entry require a valid saved hero of the selected class. The older
+settlement fallback remains intact for compatibility.
+
+Native macOS checks cover fresh-account creation at 640×480 / 125%, Enter staying
+inside name editing and Run Options, restart retention at 1280×720, and switching
+to a class without a hero. 577 runtime tests pass; incremental native build: 1m12s.
+Formatting, Clippy and the eight-package gate pass (31 optional-addon skips).
+Windows and attended combat acceptance remain open.
+
+![Before: entry offered without a selected hero](images/screenshots/2026-10-29-starter-onboarding/before.jpg)
+
+![After: explicit creation or selection at 640×480 and 125%](images/screenshots/2026-10-29-starter-onboarding/after.jpg)
+
+![Named hero creation at the minimum window size](images/screenshots/2026-10-29-starter-onboarding/creation.jpg)
+
+![Run Options stays outside gameplay after Enter](images/screenshots/2026-10-29-starter-onboarding/options.jpg)
+
+![Full restart retains Rowan and restores zone entry](images/screenshots/2026-10-29-starter-onboarding/restart.jpg)
+
 ## 2026-10-29 — Disarm weapon visibility
 
 Connected enemy-owned disarm clocks to the existing weapon attachment flag.

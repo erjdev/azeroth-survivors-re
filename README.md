@@ -16,6 +16,12 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Fresh accounts now choose or create a named hero before entering a run. Native
+minimum-window onboarding and restart captures are in the changelog.
+
+![Fresh starter onboarding at 640×480 and 125% UI](docs/images/screenshots/2026-10-29-starter-onboarding/after.jpg)
+
+
 ![Mind Flay inline upgrades](docs/images/screenshots/2026-10-28-mind-flay/cards-wide.jpg)
 
 ## Interface gallery

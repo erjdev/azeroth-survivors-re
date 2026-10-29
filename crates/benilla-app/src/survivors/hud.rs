@@ -3548,11 +3548,14 @@ mod settings_navigation_tests {
         world.init_resource::<ButtonInput<KeyCode>>();
         world.init_resource::<super::super::renown::Renown>();
         world.init_resource::<super::super::stash::Stash>();
-        world.insert_resource(super::super::account::empty());
+        let mut account = super::super::account::empty();
+        let hero = account.create("Entry", "Test", 0).unwrap();
+        world.insert_resource(account);
         world.init_resource::<super::super::Typing>();
         world.init_resource::<super::super::armory::Armory>();
         world.insert_resource(Selection {
             class: Some(0),
+            character: Some(hero),
             looks: vec![(49, 1, 0)],
             look: Some(0),
             map: data::MAPS
@@ -3580,6 +3583,17 @@ mod settings_navigation_tests {
         world
             .resource_mut::<super::super::armory::Armory>()
             .open_page(super::super::armory::Page::Door);
+        world.resource_mut::<Selection>().character = None;
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Enter);
+        world.run_system_once(keys).unwrap();
+        assert!(matches!(
+            world.resource::<NextState<Phase>>(),
+            NextState::Unchanged
+        ));
+        world.resource_mut::<Selection>().character = Some(hero);
         world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
         world
             .resource_mut::<ButtonInput<KeyCode>>()
@@ -3600,11 +3614,14 @@ mod settings_navigation_tests {
             world.init_resource::<ButtonInput<KeyCode>>();
             world.init_resource::<super::super::renown::Renown>();
             world.init_resource::<super::super::stash::Stash>();
-            world.insert_resource(super::super::account::empty());
+            let mut account = super::super::account::empty();
+            let hero = account.create("Entry", "Test", 0).unwrap();
+            world.insert_resource(account);
             world.init_resource::<super::super::Typing>();
             world.init_resource::<super::super::armory::Armory>();
             world.insert_resource(Selection {
                 class: Some(0),
+                character: Some(hero),
                 looks: vec![(49, 1, 0)],
                 look: Some(0),
                 map: data::MAPS

@@ -5,6 +5,20 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Fresh-account entry acceptance — 2026-10-29
+
+At 640×480 with 125% UI, the fresh starter displayed “No hero of this class”
+while offering Enter Elwynn Forest. The common entry guard allowed a missing hero,
+and settlement silently created/chose a fallback hero afterward. The primary action now opens creation/selection; the shared entry guard requires
+a valid saved hero of the selected class before mutating a run. The legacy
+settlement fallback remains. Native macOS checks pass for creation, naming Enter,
+Run Options/Enter isolation at 640×480 / 125%, and restart retention at 1280×720.
+Switching to an uncreated class restores the onboarding action and carries that
+class into creation. Reproduce with `python3 scripts/survivors-ui-fixture.py fresh
+--preset starter-fresh-640x480-125.txt --run` (add `--executable` for an existing build). 577 runtime tests pass; native build 1m12s. Inline before/after
+and flow captures are in the changelog. Formatting, Clippy and the eight-package
+gate pass (31 optional-addon skips). Windows/attended combat remain open.
+
 ## Disarm status prerequisite — 2026-10-29
 
 Independent Disarm/Riposte clocks and equipment/immunity eligibility now have
