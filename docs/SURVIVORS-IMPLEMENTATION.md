@@ -9570,3 +9570,19 @@ optional-addon skips. Native macOS captures verify 1280×720 acquisition/upgrade
 cards and the rank-4 talent at 640×720 / 125%. Incremental build: 42 seconds.
 Screenshots are inline in CHANGELOG and the README. This proves preview rendering
 and automated behavior, not attended gameplay or Windows acceptance.
+
+### 2026-10-29 — Tranquility channel dependency audit
+
+[Tranquility evidence](audits/TRANQUILITY.md) distinguishes zero cast range from
+its installed 20-yard effect radius, 10-second / 2-second pulse channel, movement
+interrupt mask and five-minute category recovery. The audit CLI now exposes radii
+and channel flags. Existing damage channels and continuous healing cannot be
+silently reused as the complete spell. There is no healing-threat consumer for
+Improved Tranquility; it remains provisional. The user's movement/attack policy
+answer is pending. The audit defines lifecycle, recipient and validation work;
+no spell implementation or talent coverage increase is claimed.
+
+Audit validation: the eight-package formatting/Clippy/test gate passes (31
+optional-addon skips). Actual CLI runs verify Tranquility radius row 9 resolves
+to 20 yards and Healing Touch radius row 0 reports None. No native UI change in
+this checkpoint; prior screenshots remain the current visual evidence.

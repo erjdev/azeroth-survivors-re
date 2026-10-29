@@ -5,6 +5,7 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
     let spells = benilla_formats::load_spell_catalog(chain)?;
     let durations = benilla_formats::load_spell_durations(chain)?;
     let ranges = benilla_formats::load_spell_ranges(chain)?;
+    let radii = benilla_formats::load_spell_radii(chain)?;
     let cast_times = benilla_formats::load_spell_cast_times(chain)?;
     let row = spells
         .get(id)
@@ -45,6 +46,11 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
         row.targets, row.max_affected_targets, row.caster_aura_state, row.target_aura_state
     );
     println!(
+        "attributes={:#x} attributes_ex={:#x} attributes_ex2={:#x} attributes_ex3={:#x} attributes_ex4={:#x} channel_interrupt_flags={:#x}",
+        row.attributes, row.attributes_ex, row.attributes_ex2, row.attributes_ex3,
+        row.attributes_ex4, row.channel_interrupt_flags
+    );
+    println!(
         "casting_time_index={} cast_time={:?}",
         row.casting_time_index,
         cast_times.get(row.casting_time_index)
@@ -77,6 +83,11 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
             row.effect_die_sides[slot], row.effect_real_points_per_level[slot], row.effect_misc_value[slot],
             row.effect_trigger_spell[slot], row.effect_amplitude[slot], row.effect_implicit_target_a[slot],
             row.effect_implicit_target_b[slot], row.effect_chain_targets[slot]);
+        println!(
+            "  radius_index={} radius={:?}",
+            row.effect_radius_index[slot],
+            radii.get(row.effect_radius_index[slot])
+        );
     }
     println!("Fields are raw DBC values. Server-side formulas and Survivors scaling require separate evidence or explicit authored rules.");
     Ok(())

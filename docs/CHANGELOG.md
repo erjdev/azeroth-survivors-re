@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Tranquility implementation evidence
+
+Spell auditing now resolves effect radii and channel-interruption flags. Tranquility
+has a 20-yard area despite zero cast range; its channel and threat talent need
+separate runtime support. The [dependency audit](audits/TRANQUILITY.md) records
+verified rules and acceptance work. No gameplay/UI change or coverage increase;
+movement/attack policy awaits the user's decision. Scoped checks pass
+(31 optional-addon skips).
+
 ## 2026-10-29 — Healing Touch and direct-healing builds
 
 Druids can acquire Healing Touch for immediate self-healing. Six healing/recovery
