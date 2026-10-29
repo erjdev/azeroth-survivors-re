@@ -47,6 +47,14 @@ Windows and native pointer-hover inspection remain open.
 
 ![Compact keyboard inspection stays above the footer](docs/images/screenshots/2026-10-29-equipment-focus/after.jpg)
 
+### Achievement keyboard scrolling
+
+Page Up/Down scroll the achievement cards; Home/End jump to the top/bottom.
+Native 640×480 / 125% acceptance, 2026-10-29, reaches the full Veteran reward and
+final zone rows. Before/after captures are in the changelog.
+
+![Compact achievement keyboard paging](docs/images/screenshots/2026-10-29-achievement-paging/after.png)
+
 ### Combat demon specimens
 
 Native menu-only lineup, 2026-10-29: Imp, Voidwalker, Succubus and Felhunter.

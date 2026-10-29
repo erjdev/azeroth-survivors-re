@@ -22,7 +22,7 @@ const ICONS: [&str; 6] = [
 ];
 
 #[derive(Component)]
-pub(in crate::survivors) struct ScrollCategory(usize);
+pub(in crate::survivors) struct ScrollCategory(pub(super) usize);
 
 pub(in crate::survivors) fn remember_scroll(
     mut armory: ResMut<Armory>,

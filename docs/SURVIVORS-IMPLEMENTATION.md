@@ -5,6 +5,22 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Achievement keyboard reachability — 2026-10-29
+
+Native 640×480 / 125% acceptance found that directional focus reveals the category
+buttons but cannot scroll all noninteractive achievement cards; Page Down did nothing.
+Achievements now supports Page Up/Down (80% viewport) and Home/End, using logical
+scroll units at high DPI and existing settings/loading/typing/card-preview guards.
+An ECS regression covers bounds, high-DPI movement and no category activation.
+Native checks verify Lifetime Page Down, Home, Zones End and Page Up; actual
+before/after captures are inline in the changelog and README. The intention summary
+image remains the reference for layout; this change adds navigation only.
+Mouse-wheel automation was unavailable, so this session does not establish wheel
+or category-scroll restoration acceptance. Windows remains open.
+The `achievements-lifetime-640x480-125.txt` preset reproduces the compact case.
+Validation: native play build 1m18s; 4,820 app unit tests and the eight-package
+formatting/Clippy/test gate pass (31 optional-addon skips).
+
 ## Paladin weapon talent prerequisite — 2026-10-29
 
 [Installed-data audit](audits/PALADIN-WEAPON-TALENTS.md) confirms nodes 1429/1410

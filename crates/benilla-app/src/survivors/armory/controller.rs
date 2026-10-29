@@ -128,9 +128,10 @@ pub(in crate::survivors) fn navigate(
         ),
         (Or<(With<Act>, With<TalentInfo>)>, With<Button>),
     >,
-    (grid_items, equipment_details): (
+    (grid_items, equipment_details, achievement_pages): (
         Query<(), With<CollectionGridItem>>,
         Query<(&ComputedNode, &UiGlobalTransform), With<super::starter_equipment::Detail>>,
+        Query<Entity, With<super::achievement_page::ScrollCategory>>,
     ),
     parents: Query<&ChildOf>,
     mut scrolls: Query<(
@@ -243,7 +244,37 @@ pub(in crate::survivors) fn navigate(
         let pressed = |button| pad.is_some_and(|pad| pad.just_pressed(button));
         let key_select = keys.just_pressed(KeyCode::Enter) || keys.just_pressed(KeyCode::Space);
         if pad.is_some() || keys.get_just_pressed().next().is_some() {
-            if pressed(GamepadButton::Start) {
+            if armory.page == Page::Achievements
+                && [
+                    KeyCode::PageUp,
+                    KeyCode::PageDown,
+                    KeyCode::Home,
+                    KeyCode::End,
+                ]
+                .into_iter()
+                .any(|key| keys.just_pressed(key))
+            {
+                if let Ok(page) = achievement_pages.single() {
+                    if let Ok((_, node, _, mut scroll)) = scrolls.get_mut(page) {
+                        if node.size().y > 0.0 {
+                            let viewport = node.size().y * node.inverse_scale_factor();
+                            let maximum = ((node.content_size.y - node.size().y)
+                                * node.inverse_scale_factor())
+                            .max(0.0);
+                            let target = if keys.just_pressed(KeyCode::Home) {
+                                0.0
+                            } else if keys.just_pressed(KeyCode::End) {
+                                maximum
+                            } else if keys.just_pressed(KeyCode::PageUp) {
+                                scroll.0.y - viewport * 0.8
+                            } else {
+                                scroll.0.y + viewport * 0.8
+                            };
+                            scroll.0.y = target.clamp(0.0, maximum);
+                        }
+                    }
+                }
+            } else if pressed(GamepadButton::Start) {
                 // The shared Options handler owns this press later in the frame.
                 focus.focused = None;
                 focus.talent = None;
@@ -383,6 +414,74 @@ pub(in crate::survivors) fn navigate(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn achievements_page_keys_reach_noninteractive_content_and_respect_overlays() {
+        let mut world = World::new();
+        world.init_resource::<ButtonInput<MouseButton>>();
+        world.init_resource::<ButtonInput<KeyCode>>();
+        world.insert_resource(State::new(Phase::Menu));
+        world.init_resource::<hud::PausePage>();
+        world.init_resource::<super::super::super::cards::PreviewHand>();
+        world.init_resource::<crate::loading_screen::LoadingScreen>();
+        world.init_resource::<Typing>();
+        world.insert_resource(Armory {
+            page: Page::Achievements,
+            ..default()
+        });
+        world.init_resource::<ControllerFocus>();
+        let page = world
+            .spawn((
+                super::super::achievement_page::ScrollCategory(0),
+                Node {
+                    overflow: Overflow::scroll_y(),
+                    ..default()
+                },
+                ComputedNode {
+                    size: Vec2::splat(400.),
+                    content_size: Vec2::new(400., 1400.),
+                    inverse_scale_factor: 0.5,
+                    ..default()
+                },
+                UiGlobalTransform::default(),
+                ScrollPosition::default(),
+            ))
+            .id();
+        let mut schedule = Schedule::default();
+        schedule.add_systems(navigate);
+        for (key, expected) in [
+            (KeyCode::PageDown, 160.),
+            (KeyCode::End, 500.),
+            (KeyCode::PageDown, 500.),
+            (KeyCode::PageUp, 340.),
+            (KeyCode::Home, 0.),
+            (KeyCode::PageUp, 0.),
+        ] {
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world.resource_mut::<ButtonInput<KeyCode>>().press(key);
+            schedule.run(&mut world);
+            assert_eq!(world.get::<ScrollPosition>(page).unwrap().0.y, expected);
+            assert!(world.resource::<ControllerFocus>().activated.is_none());
+        }
+        for guard in 0..4 {
+            world.resource_mut::<hud::PausePage>().open = guard == 0;
+            world.resource_mut::<Typing>().0 = guard == 1;
+            world
+                .resource_mut::<super::super::super::cards::PreviewHand>()
+                .0 = guard == 2;
+            world.resource_mut::<Armory>().page = if guard == 3 {
+                Page::Rewards
+            } else {
+                Page::Achievements
+            };
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(KeyCode::End);
+            schedule.run(&mut world);
+            assert_eq!(world.get::<ScrollPosition>(page).unwrap().0.y, 0.);
+        }
+    }
+
     use super::*;
     #[test]
     fn page_actions_retain_focus_without_replaying_and_clear_for_hero_or_page_changes() {

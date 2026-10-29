@@ -4,6 +4,27 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Keyboard scrolling for achievements
+
+Page Up/Down now scroll achievement text by 80% of the viewport; Home/End jump to
+the bounds. Arrow navigation alone could reveal category buttons but not every
+noninteractive card. Native 640×480 / 125% checks cover the full Veteran reward,
+account footer, return to heading and final Zones rows. Mouse-wheel automation
+was unavailable in this session; Windows acceptance remains open. Native build:
+1m18s; 4,820 app unit tests and the eight-package gate pass (31 optional-addon skips).
+
+Before: the lower Veteran text is clipped and Page Down has no effect.
+
+![Before keyboard paging](images/screenshots/2026-10-29-achievement-paging/before.png)
+
+After: Page Down reveals the full card and account footer.
+
+![Keyboard paging reveals the full reward](images/screenshots/2026-10-29-achievement-paging/after.png)
+
+End reaches the final zone achievements without changing categories.
+
+![End reaches the last zone rows](images/screenshots/2026-10-29-achievement-paging/zones-end.png)
+
 ## 2026-10-29 — Paladin melee prerequisite
 
 Verified both weapon-specialization talents require physical melee damage, while
