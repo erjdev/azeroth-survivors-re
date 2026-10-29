@@ -476,6 +476,7 @@ pub(in crate::survivors) fn refresh_details(
     mut details: Query<(&DetailText, &mut Text)>,
     mut cells: Query<(&CatalogCell, &mut BorderColor)>,
     mut art: Query<(Entity, &mut DetailArt)>,
+    mut scrolls: Query<(&collection::CompactScroll, &mut ScrollPosition)>,
     mut commands: Commands,
     font: Res<super::super::hud::HudFont>,
     layout: Res<super::super::UiLayout>,
@@ -492,14 +493,23 @@ pub(in crate::survivors) fn refresh_details(
             Color::srgb(0.17, 0.15, 0.10)
         });
     }
+    let mut selection_changed = false;
     for (entity, mut previous) in &mut art {
         if previous.0 != armory.codex_entry {
+            selection_changed = true;
             previous.0 = armory.codex_entry;
             commands.entity(entity).despawn_related::<Children>();
             if let Some(id) = armory.codex_entry {
                 commands.entity(entity).with_children(|image| {
                     entry_icon(image, &font.0, id, layout.value.title_size * 3.0, true)
                 });
+            }
+        }
+    }
+    if selection_changed {
+        for (pane, mut position) in &mut scrolls {
+            if matches!(pane, collection::CompactScroll::CodexColumn(1)) {
+                position.0 = Vec2::ZERO;
             }
         }
     }
@@ -534,7 +544,17 @@ mod tests {
             .add_systems(Update, refresh_details);
         let scroll = app
             .world_mut()
-            .spawn(ScrollPosition(Vec2::new(0.0, 250.0)))
+            .spawn((
+                collection::CompactScroll::CodexColumn(0),
+                ScrollPosition(Vec2::new(0.0, 250.0)),
+            ))
+            .id();
+        let detail_scroll = app
+            .world_mut()
+            .spawn((
+                collection::CompactScroll::CodexColumn(1),
+                ScrollPosition(Vec2::ZERO),
+            ))
             .id();
         app.world_mut().spawn((DetailText(false), Text::default()));
         let art = app
@@ -559,8 +579,27 @@ mod tests {
             .iter(app.world())
             .count();
         assert_eq!(icons, 1);
+        app.world_mut()
+            .get_mut::<ScrollPosition>(detail_scroll)
+            .unwrap()
+            .0
+            .y = 120.0;
+        app.world_mut().resource_mut::<Armory>().note = "Unrelated change".into();
+        app.update();
+        assert_eq!(
+            app.world()
+                .get::<ScrollPosition>(detail_scroll)
+                .unwrap()
+                .0
+                .y,
+            120.0
+        );
         app.world_mut().resource_mut::<Armory>().codex_entry = Some(codex_jewel(2, 0));
         app.update();
+        assert_eq!(
+            app.world().get::<ScrollPosition>(detail_scroll).unwrap().0,
+            Vec2::ZERO
+        );
         assert_ne!(app.world().get::<Children>(art).unwrap()[0], first_image);
         assert_ne!(
             *app.world().get::<BorderColor>(cell).unwrap(),

@@ -22,6 +22,8 @@ minimum-window onboarding and restart captures are in the changelog.
 ![Fresh starter onboarding at 640×480 and 125% UI](docs/images/screenshots/2026-10-29-starter-onboarding/after.jpg)
 
 
+![Compact Codex entry details](docs/images/screenshots/2026-10-29-codex-selection/after.png)
+
 ![Repentance talent-unlocked control and inline upgrades](docs/images/screenshots/2026-10-29-repentance/cards-wide.png)
 
 ![Repentance saved spec after restart](docs/images/screenshots/2026-10-29-repentance/restarted.png)

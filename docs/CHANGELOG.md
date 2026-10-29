@@ -4,6 +4,20 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Start new Codex entries at the top
+
+Selecting another entry now resets its details to the heading, retaining the
+catalog's position. Unrelated updates keep the current reading position. Native
+640×480 / 125% reproduced the clipped Starfire name; the refresh-system regression
+passes. Rebuilt keyboard selection is captured below. Exact wheel replay and
+native tab-return verification remain open after pointer automation failed.
+Incremental play build: 1m27s. Eight-package formatting/Clippy/test gate passes
+(31 optional-addon skips); Windows and physical-controller checks remain open.
+
+![Before: new entry retains the old scroll and clips its name](images/screenshots/2026-10-29-codex-selection/before.png)
+
+![Rebuilt keyboard selection: Starfire heading and name visible](images/screenshots/2026-10-29-codex-selection/after.png)
+
 ## 2026-10-29 — Repentance and damage-breaking control
 
 Training Repentance unlocks its ability cards. Acquired Repentance incapacitates

@@ -5,6 +5,23 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Codex entry reading position — 2026-10-29
+
+Native 640×480 / 125% reproduction: scroll Wrath's details, then select Starfire.
+The previous reading offset clips the new name and heading. Reset the details
+pane on an entry change while retaining catalog position; unrelated updates and
+returning to the same entry retain reading position. Preserve the two-pane design
+from `intentions/survivors_codex_tab.png`, stacked at compact widths. The existing
+refresh-system regression now checks both scroll surfaces and unrelated changes.
+The refresh-system regression passes. Native rebuilt keyboard selection shows the
+Starfire heading and name at 640×480 / 125%; the exact wheel→selection replay and
+tab-return check remain open because pointer automation lost its window binding
+after rebuild (keyboard/screenshot access continued). The normal launcher is
+restored. Incremental play build: 1m27s, with linker unwind-table and existing
+`block` future-compatibility warnings. The eight-package formatting/Clippy/test
+gate passes (4,858 app unit tests, 10 ignored; 31 optional-addon skips across the
+suite). Windows and physical-controller acceptance remain open.
+
 ## Repentance — 2026-10-29
 
 The [installed-data contract](audits/REPENTANCE.md) now reaches talent-gated
