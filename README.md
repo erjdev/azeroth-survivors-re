@@ -38,10 +38,14 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 ### Starter equipment readability
 
 The starter uses a compact equipment strip with recognizable empty slots and a
-shared hover/focus inspection line. The current native capture covers empty slots
-at 1280×720; compact and collected interaction acceptance is still open.
+shared hover/focus inspection line. Native captures cover empty slots at 1280×720
+and collected gear at 640×480 / 125%. Keyboard navigation keeps the description
+above the footer; mouse and Enter select the equipped item in Collection.
+Windows and native pointer-hover inspection remain open.
 
 ![Starter empty equipment strip](docs/images/screenshots/2026-10-29-starter-equipment/empty.jpg)
+
+![Compact keyboard inspection stays above the footer](docs/images/screenshots/2026-10-29-equipment-focus/after.jpg)
 
 ### Enemy equipment specimens
 

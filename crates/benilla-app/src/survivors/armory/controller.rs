@@ -128,7 +128,10 @@ pub(in crate::survivors) fn navigate(
         ),
         (Or<(With<Act>, With<TalentInfo>)>, With<Button>),
     >,
-    grid_items: Query<(), With<CollectionGridItem>>,
+    (grid_items, equipment_details): (
+        Query<(), With<CollectionGridItem>>,
+        Query<(&ComputedNode, &UiGlobalTransform), With<super::starter_equipment::Detail>>,
+    ),
     parents: Query<&ChildOf>,
     mut scrolls: Query<(
         &Node,
@@ -334,8 +337,20 @@ pub(in crate::survivors) fn navigate(
                         let margin = 6. / node.inverse_scale_factor().max(0.001);
                         let top = transform.translation.y - node.size().y / 2. + margin;
                         let bottom = transform.translation.y + node.size().y / 2. - margin;
-                        let item_top = item.center.y - item.size.y / 2.;
-                        let item_bottom = item.center.y + item.size.y / 2.;
+                        let mut item_top = item.center.y - item.size.y / 2.;
+                        let mut item_bottom = item.center.y + item.size.y / 2.;
+                        // The starter's shared description is part of inspecting a slot.
+                        if matches!(
+                            focus.action.as_ref().map(|(_, action, _)| action),
+                            Some(Act::OpenEquipment(_))
+                        ) {
+                            if let Ok((detail, transform)) = equipment_details.single() {
+                                item_top =
+                                    item_top.min(transform.translation.y - detail.size().y / 2.);
+                                item_bottom =
+                                    item_bottom.max(transform.translation.y + detail.size().y / 2.);
+                            }
+                        }
                         let delta = if item_top < top {
                             item_top - top
                         } else if item_bottom > bottom {
@@ -655,6 +670,22 @@ mod tests {
         assert_eq!(world.resource::<ControllerFocus>().activated, None);
         assert!(world.get::<Outline>(button).is_some());
         assert_eq!(world.get::<ScrollPosition>(scroller).unwrap().0.y, 66.);
+        // A starter equipment description below the icon must also clear the footer.
+        world.entity_mut(button).insert(Act::OpenEquipment(2));
+        world.spawn((
+            super::super::starter_equipment::Detail,
+            ComputedNode {
+                size: Vec2::new(200., 60.),
+                ..default()
+            },
+            UiGlobalTransform::from_xy(100., 360.),
+            ChildOf(wrapper),
+        ));
+        *world.resource_mut::<ControllerFocus>() = ControllerFocus::default();
+        world.get_mut::<ScrollPosition>(scroller).unwrap().0.y = 0.;
+        press(&mut world, &mut schedule, GamepadButton::South);
+        assert_eq!(world.get::<ScrollPosition>(scroller).unwrap().0.y, 101.);
+
         press(&mut world, &mut schedule, GamepadButton::South);
         assert_eq!(world.resource::<ControllerFocus>().activated, Some(button));
         world.get_mut::<Gamepad>(pad).unwrap().digital_mut().clear();

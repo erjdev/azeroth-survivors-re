@@ -4,6 +4,30 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Keep equipment inspection above the footer
+
+Keyboard focus now scrolls both the equipment icon and its description into view.
+The compact native check caught text hidden behind the fixed footer even though
+its selected icon was visible. At 640×480 / 125%, all nine equipped slots fit,
+stat text wraps, and selecting shoulders opens the equipped piece in Collection.
+
+![Before: keyboard focus leaves the description below the footer](images/screenshots/2026-10-29-equipment-focus/before.jpg)
+
+![After: keyboard focus reveals the item name above the footer](images/screenshots/2026-10-29-equipment-focus/after.jpg)
+
+![Compact equipped strip and wrapped stats](images/screenshots/2026-10-29-equipment-focus/compact.jpg)
+
+![Shoulder selection opens the equipped Uncommon piece](images/screenshots/2026-10-29-equipment-focus/collection.jpg)
+
+Native keyboard selection identifies the main-hand blade and Enter opens that
+same equipped Rare piece. 580 runtime tests pass, including high-DPI scrolling
+of the icon/description pair. Incremental native build: 1m18s. Windows acceptance
+and native pointer-hover inspection remain open. Formatting, Clippy and the
+eight-package gate pass (31 optional-addon skips). The gate required rebuilding
+its application artifacts after disk exhaustion; dependency caches were retained.
+
+![Keyboard Enter selects the equipped blade](images/screenshots/2026-10-29-equipment-focus/keyboard-collection.jpg)
+
 ## 2026-10-29 — Compact starter equipment strip
 
 Replaced crowded per-slot captions with the reference's compact icon strip.

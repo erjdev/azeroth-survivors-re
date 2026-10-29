@@ -5,6 +5,20 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Starter equipment focus visibility — 2026-10-29
+
+Native compact acceptance at 640×480 / 125% exposed a footer clipping issue:
+keyboard navigation revealed the selected equipment icon but left the shared
+inspection text below the viewport. Treat the icon and its measured description
+bounds as one scroll target. Preserve ordinary control scrolling and DPI conversion.
+The collected fixture confirms all nine icons fit, stats wrap, and clicking the
+shoulder slot opens its equipped Uncommon piece in Collection. Native keyboard
+focus now reveals the main-hand blade name above the footer; Enter opens that
+same equipped Rare piece. Inline before/after evidence is in the changelog.
+580 runtime tests pass, including high-DPI icon/description scroll bounds; native
+build 1m18s. Formatting, Clippy and the eight-package gate pass (31 optional-addon
+skips). Windows and native pointer-hover inspection remain open.
+
 ## Starter equipment readability — 2026-10-29
 
 The reference starter uses nine equipment icons. The existing per-cell labels
