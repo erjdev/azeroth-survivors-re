@@ -21,6 +21,9 @@ use bevy::{
 };
 use std::collections::{HashMap, HashSet};
 
+#[cfg(not(target_arch = "wasm32"))]
+#[path = "actor_silhouette_fixture.rs"]
+mod fixture;
 #[path = "actor_mask_preview.rs"]
 mod preview;
 #[path = "actor_silhouette.rs"]
@@ -36,10 +39,15 @@ pub(crate) struct ActorMaskView;
 #[derive(Component)]
 struct Mirror;
 
+// Render-only specimens never receive Enemy/AI components.
+#[derive(Component)]
+struct FixtureSide(u8);
+
 #[derive(Resource, Default)]
 struct Mask {
     enabled: bool,
     preview: bool,
+    fixture: bool,
     camera: Option<Entity>,
     image: Handle<Image>,
     size: UVec2,
@@ -53,8 +61,11 @@ pub(super) fn plugin(app: &mut App) {
     {
         mask.preview = crate::run_mode::dev_affordances()
             && std::env::var("WOW_SURVIVORS_ACTOR_MASK_PREVIEW").is_ok_and(|v| v == "1");
-        mask.enabled =
-            mask.preview || std::env::var("WOW_SURVIVORS_ACTOR_MASK").is_ok_and(|v| v == "1");
+        mask.fixture = fixture::plugin(app);
+        mask.preview &= !mask.fixture;
+        mask.enabled = mask.fixture
+            || mask.preview
+            || std::env::var("WOW_SURVIVORS_ACTOR_MASK").is_ok_and(|v| v == "1");
     }
     if mask.preview {
         preview::plugin(app);
@@ -101,7 +112,17 @@ type Owners<'w, 's> = Query<
         Option<&'static InheritedVisibility>,
     ),
 >;
-type Allegiance<'w, 's> = Query<'w, 's, (Has<Hero>, Has<Enemy>, Has<HunterPet>, Has<Fetcher>)>;
+type Allegiance<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Has<Hero>,
+        Has<Enemy>,
+        Has<HunterPet>,
+        Has<Fetcher>,
+        Option<&'static FixtureSide>,
+    ),
+>;
 
 fn owner_side(mut entity: Entity, owners: &Owners, allegiance: &Allegiance) -> Option<u8> {
     // Billboard batches are world roots; follow their explicit attachment before parents.
@@ -117,8 +138,8 @@ fn owner_side(mut entity: Entity, owners: &Owners, allegiance: &Allegiance) -> O
                 benilla_protocol::EntityKind::Player | benilla_protocol::EntityKind::Unit
             )
         }) {
-            let (hero, enemy, pet, companion) = allegiance.get(entity).ok()?;
-            return Some(side(hero, enemy, pet, companion));
+            let (hero, enemy, pet, companion, specimen) = allegiance.get(entity).ok()?;
+            return Some(specimen.map_or_else(|| side(hero, enemy, pet, companion), |side| side.0));
         }
         entity = card
             .and_then(|card| card.follows())
@@ -193,7 +214,7 @@ fn sync(
         .collect();
     let active = mask.enabled
         && (!matches!(phase.get(), Phase::Menu | Phase::GameOver)
-            || (mask.preview && *phase.get() == Phase::Menu));
+            || ((mask.preview || mask.fixture) && *phase.get() == Phase::Menu));
     let source = view.single().ok().filter(|(camera, _, _, _)| {
         active
             && camera.is_active

@@ -411,3 +411,67 @@ fn mark_parameters_ignore_damage_crit_area_and_other_amulets() {
         130.0
     );
 }
+
+#[test]
+fn concealment_follows_scene_culling_and_reveal_uses_its_current_verdict() {
+    use crate::survivors::perception::{self, Concealed};
+    use benilla_world::{exterior_cull::ExteriorCullSet, world_unit::WorldUnit};
+    #[derive(Resource)]
+    struct Admitted(bool);
+    fn elect(admitted: Res<Admitted>, mut roots: Query<&mut Visibility, With<WorldUnit>>) {
+        for mut visible in &mut roots {
+            *visible = if admitted.0 {
+                Visibility::Inherited
+            } else {
+                Visibility::Hidden
+            };
+        }
+    }
+    let (mut app, target, _) = fixture("arcane_shot", 100.0);
+    let caster = hunter(&mut app);
+    app.world_mut().entity_mut(target).insert((
+        Concealed,
+        Visibility::Inherited,
+        WorldUnit {
+            wades: true,
+            scale: 1.,
+            height: 1.,
+            bound: Some(bevy::camera::primitives::Aabb::default()),
+        },
+    ));
+    app.insert_resource(Admitted(true));
+    // Register concealment first: its ordering must come from the production plugin.
+    app.add_plugins(perception::plugin);
+    app.add_systems(PostUpdate, elect.in_set(ExteriorCullSet));
+    app.world_mut().run_schedule(PostUpdate);
+    assert_eq!(
+        *app.world().get::<Visibility>(target).unwrap(),
+        Visibility::Hidden
+    );
+    mark(&mut app, target, caster, 120.0);
+    app.world_mut().resource_mut::<Admitted>().0 = false;
+    app.world_mut().run_schedule(PostUpdate);
+    assert_eq!(
+        *app.world().get::<Visibility>(target).unwrap(),
+        Visibility::Hidden,
+        "reveal never bypasses scene culling"
+    );
+    app.world_mut().resource_mut::<Admitted>().0 = true;
+    app.world_mut().run_schedule(PostUpdate);
+    assert_eq!(
+        *app.world().get::<Visibility>(target).unwrap(),
+        Visibility::Inherited
+    );
+    app.world_mut().resource_mut::<Run>().elapsed = 121.;
+    app.world_mut().run_schedule(PostUpdate);
+    assert_eq!(
+        *app.world().get::<Visibility>(target).unwrap(),
+        Visibility::Hidden
+    );
+    app.world_mut().entity_mut(target).remove::<Concealed>();
+    app.world_mut().run_schedule(PostUpdate);
+    assert_eq!(
+        *app.world().get::<Visibility>(target).unwrap(),
+        Visibility::Inherited
+    );
+}

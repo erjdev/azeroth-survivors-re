@@ -168,11 +168,7 @@ impl Plugin for SurvivorsPlugin {
             .add_plugins(bevy::ui_render::UiMaterialPlugin::<hud::SweepUiMaterial>::default())
             .add_systems(Startup, hud::setup_hud)
             .add_systems(Update, hero::daylight)
-            .add_systems(
-                PostUpdate,
-                perception::sync
-                    .before(bevy::camera::visibility::VisibilitySystems::VisibilityPropagate),
-            )
+            .add_plugins(perception::plugin)
             .add_systems(Update, hunter_pet::update_status.after(hunter_pet::fight))
             .add_systems(
                 PostUpdate,

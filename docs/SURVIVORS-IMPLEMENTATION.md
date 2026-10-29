@@ -2160,21 +2160,17 @@ scales. No sheen may wash across neighboring cards, backdrop, text panels or the
 
 ## Camera visibility, silhouettes and solid-world push-in
 
-Renderer audit (2026-10-28): the existing path implements scenery cutaway only.
-[Silhouette implementation audit](audits/OCCLUDED-SILHOUETTES.md) records the
-required nearest-actor mask, completed scene-depth comparison, allegiance and
-concealment rules, render ordering and isolated visual acceptance. The new core
-comparison/filter contract is tested but has no renderer consumer. Persisted
-silhouette switches and composited red/green GPU output remain unimplemented.
-An opt-in actor-only render view now mirrors source creature meshes/materials with
-separate nearest-surface depth; see the audit for its lifecycle and validation limits.
-First Metal mask captures now verify a posed player with equipment and live
-character/target-size changes. Detached billboard ownership was corrected from this
-inspection; hidden actor owners and ownerless effects are excluded. Captures are inline
-in CHANGELOG. The mask now follows world MSAA and writes dedicated sampleable color/depth attachments.
-Native 1×/4× previews run; the debug image still uses the ordinary resolve. Sampling the
-new attachments, mixed-actor blocker acceptance, duplicate-pass performance and the
-scene-depth compositor remain open.
+Renderer status (2026-10-29): scenery cutaway and an opt-in red/green actor
+compositor now have separate paths. The [silhouette audit](audits/OCCLUDED-SILHOUETTES.md)
+records nearest-actor ownership, per-sample scene-depth comparison, concealment and
+render ordering. Native Metal 1×/4× passes execute; a noncombat 4× fixture verifies
+full/partial obstruction, scenery behind actors, synthetic alpha-cutout holes and
+concealment/reveal. Screenshots are inline in CHANGELOG and README.
+
+Persisted independent filters, mixed-actor overlap, distance/render-scale coverage,
+duplicate-pass performance, Windows and attended real-map acceptance remain open.
+The compositor is disabled by default. Isolated rendering evidence does not close
+the reported Elwynn foliage cutaway issue.
 
 Use separate policies for foliage visibility, body collision and solid-world camera collision.
 A canopy obscuring the hero is not by itself a reason to collapse the camera boom. The
@@ -9688,3 +9684,12 @@ independent saved enemy/friendly switches, duplicate mask draw reduction and Win
 Final eight-package formatting/Clippy/test gate passes, including the new activation
 regression (31 optional-addon skips). A disk-full test build was retried after
 removing older unlocked compiler snapshots while retaining each latest cache.
+
+### Obstruction fixture and concealment checkpoint (2026-10-29)
+
+Native noncombat 4× MSAA captures now cover clear, opaque/partial obstruction,
+scenery behind actors, synthetic alpha-cutout holes, disabled compositor and
+concealed/revealed actors. A discovered culling-order bug in production concealment
+is fixed with a schedule regression. See [the audit](audits/OCCLUDED-SILHOUETTES.md).
+Saved filters, overlap/performance and real-map/Windows acceptance remain pending;
+this does not close the foliage cutaway report or the full visibility milestone.

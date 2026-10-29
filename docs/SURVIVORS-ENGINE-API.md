@@ -31,3 +31,14 @@ server-less starting map, including platforms without process environment writes
 It accepts a `Map.dbc` ID and precedes the environment/default selection. It is
 not an in-session travel API: runtime changes use the existing map state/events.
 Publishing this existing launcher contract does not change startup behavior.
+
+## Scene visibility ordering
+
+`exterior_cull::ExteriorCullSet` is the fork's scheduling boundary for the engine's
+fresh WorldUnit visibility verdict in PostUpdate. Gameplay concealment runs after
+this set and before Bevy VisibilityPropagate; it may hide an admitted actor but
+must preserve the current culling verdict when revealing it. The noncombat render
+fixture uses the same ordering. This publishes the existing set without changing
+the culling algorithm or granting access to renderer storage. A schedule regression
+covers reveal while culled and concealment after admission. The leak ceiling is
+unchanged.

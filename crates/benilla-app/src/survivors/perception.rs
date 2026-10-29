@@ -30,25 +30,44 @@ impl Perception<'_, '_> {
     }
 }
 
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(
+        PostUpdate,
+        sync.after(benilla_world::exterior_cull::ExteriorCullSet)
+            .before(bevy::camera::visibility::VisibilitySystems::VisibilityPropagate),
+    );
+}
+
 /// Remember the root's original setting, including an independently hidden root.
 #[derive(Component)]
 pub(super) struct ConcealmentVisibility(Visibility);
 
+#[allow(clippy::type_complexity)]
 pub(super) fn sync(
     mut commands: Commands,
     run: Res<Run>,
     hero: Query<Entity, With<Hero>>,
     perception: Perception,
     mut enemies: Query<
-        (Entity, &mut Visibility, Option<&ConcealmentVisibility>),
+        (
+            Entity,
+            &mut Visibility,
+            Option<&ConcealmentVisibility>,
+            Option<&benilla_world::world_unit::WorldUnit>,
+        ),
         With<super::enemies::Enemy>,
     >,
 ) {
     let observer = run.alive().then(|| hero.single().ok()).flatten();
-    for (entity, mut visibility, saved) in &mut enemies {
+    for (entity, mut visibility, saved, body) in &mut enemies {
+        // Elected bodies receive a fresh scene verdict every frame. Concealment may hide
+        // that verdict, but revealing must not restore an old in-frustum/out-of-frustum state.
+        let elected = body.is_some_and(|body| body.bound.is_some());
         if perception.visible(observer, entity, run.elapsed) {
             if let Some(saved) = saved {
-                *visibility = saved.0;
+                if !elected {
+                    *visibility = saved.0;
+                }
                 commands.entity(entity).remove::<ConcealmentVisibility>();
             }
         } else {

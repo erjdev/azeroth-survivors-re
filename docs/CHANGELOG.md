@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Obstruction previews and concealment correctness
+
+A noncombat native fixture now previews full/partial walls, scenery behind actors
+and alpha-cutout holes without playing a session. At 4× MSAA, only blocked actor
+portions receive red/green; neutral actors remain untinted. Testing exposed a
+concealment ordering bug: scene culling could make hidden enemies visible again.
+Concealment now follows culling, with a regression covering reveal and re-hide.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips);
+native build: 1m12s. The renderer remains experimental; saved filters,
+overlap/performance, Windows and real Elwynn acceptance remain open.
+
+![Only the blocked portions receive silhouette color](images/screenshots/2026-10-29-silhouette-blockers/partial-msaa4.png)
+
+![Concealed enemy stays absent while the hero remains highlighted](images/screenshots/2026-10-29-silhouette-blockers/concealed-msaa4.png)
+
 ## 2026-10-29 — Experimental occluded-actor depth compositor
 
 The opt-in renderer now compares completed scene depth against each actor-mask

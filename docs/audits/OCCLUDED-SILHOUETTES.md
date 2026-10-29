@@ -179,3 +179,36 @@ new renderer build 2m38s). A lifecycle regression checks source-only activation 
 removal when the mask is disabled/inactive; unrelated portrait cameras stay unmarked.
 
 Final scoped eight-package check passes, with 31 optional-addon skips.
+
+## Isolated obstruction acceptance (2026-10-29)
+
+The menu-only fixture uses posed models above the map, with an authored opaque
+wall or checker alpha-cutout. These are synthetic blockers, not Elwynn foliage
+acceptance. No combat/AI components or session are started. Native Metal 4× MSAA
+captures under `docs/images/screenshots/2026-10-29-silhouette-blockers/`:
+
+| Capture | Observed result |
+| --- | --- |
+| clear-msaa4.png | Normal visible actors, no tint |
+| front-off-msaa4.png | Wall hides all actors with compositor disabled |
+| front-msaa4.png | Enemy red, hero green, neutral absent |
+| partial-msaa4.png | Blocked portions tinted, visible portions retain shading |
+| behind-msaa4.png | Wall behind actors causes no highlight |
+| alpha-cutout-msaa4.png | Holes preserve visible shading, opaque cells tint blocked actors |
+| concealed-before-msaa4.png | Failure: culling overwrote the fixture's Hidden setting |
+| concealed-msaa4.png | Fixed: concealed enemy absent, hero still green |
+| revealed-again-msaa4.png | Enemy silhouette returns after concealment removal |
+
+The failure exposed the same ordering vulnerability in production perception.
+`perception::sync` now runs after ExteriorCullSet and before VisibilityPropagate.
+Revealing an elected WorldUnit preserves the fresh culling verdict rather than
+restoring a stale saved value; non-elected roots retain original-value restoration.
+A schedule regression covers admitted/culled, marked, expired and unconcealed
+states. Fixture concealment validates rendering; the regression exercises actual
+production perception. Final native build: 1m12s.
+
+Still open: mixed actor overlap and disabled groups, persisted filters, distance/
+render-scale/size coverage, draw cost, Windows, attended Elwynn and interiors.
+
+Final eight-package formatting/Clippy/test gate passes (31 optional-addon skips),
+including the concealment regression and documented culling-schedule API boundary.

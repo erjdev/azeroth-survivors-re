@@ -823,3 +823,15 @@ or mismatched inputs and the first encoded GPU composite. Test `WOW_MSAA=1` and
 `WOW_MSAA=4` separately. A transient size mismatch during resize is skipped safely.
 Full obstruction/overlap/filter acceptance is tracked in
 [audits/OCCLUDED-SILHOUETTES.md](audits/OCCLUDED-SILHOUETTES.md).
+
+### Noncombat silhouette obstruction fixture
+
+With an isolated validation profile and selected hero, set
+`WOW_SURVIVORS_SILHOUETTE_FIXTURE` to an absolute text-file path before launch.
+The developer-only fixture stays in the menu and stages posed actors with no AI.
+Write one case to the file: `clear`, `front`, `partial`, `behind`, `foliage`,
+`front-off`, or `concealed`; changes apply live every 250ms. `foliage` is a synthetic
+checker alpha-cutout, not a map asset. Left is an enemy-render specimen, center is
+the saved hero, right is neutral. `front-off` disables the compositor. Remove the
+environment variable for ordinary menu use. See the silhouette audit for evidence
+and remaining acceptance work.

@@ -367,12 +367,13 @@ navigation and return paths verified; silhouette filters remain unimplemented.
 
 ![Saved controller settings at 640×480/125%](docs/images/screenshots/2026-10-28-dead-zone/compact-defaults.jpg)
 
-Developer rendering checkpoint (2026-10-29): the experimental scene-depth
-compositor executes on Metal at 1× and 4× MSAA. This raw actor-mask overlay is a
-diagnostic, not proof of obscured-only output. Blocker/overlap fixtures, persisted
-filters and Windows acceptance remain open; the feature is disabled by default.
+Developer rendering checkpoint (2026-10-29): a noncombat native fixture verifies
+full/partial obstruction, scenery behind actors, alpha-cutout holes and concealed
+actors at 4× MSAA on Metal. Only obscured portions receive red/green. The renderer
+remains disabled by default; persisted filters, overlap/performance, Windows and
+real Elwynn acceptance remain open.
 
-![Raw actor-mask diagnostic at 4× MSAA](docs/images/screenshots/2026-10-29-silhouette-compositor/mask-msaa4.png)
+![Partial obstruction preserves visible actor shading](docs/images/screenshots/2026-10-29-silhouette-blockers/partial-msaa4.png)
 
 ![Compact Graphics settings](docs/images/screenshots/2026-10-28-scaled-settings/graphics.jpg)
 
