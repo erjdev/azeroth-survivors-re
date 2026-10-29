@@ -16,6 +16,13 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Character controls now keep keyboard focus on nearby appearance arrows in compact
+layouts. Troll feature changes survive restart without changing equipped gear.
+
+![Saved Troll appearance after restart](docs/images/screenshots/2026-10-29-troll-appearance/restarted.png)
+
+![Compact feature controls after keyboard update](docs/images/screenshots/2026-10-29-troll-appearance/tusks-changed.png)
+
 Fresh accounts now choose or create a named hero before entering a run. Native
 minimum-window onboarding and restart captures are in the changelog.
 

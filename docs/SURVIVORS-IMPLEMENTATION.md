@@ -5,6 +5,24 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Character appearance navigation acceptance — 2026-10-29
+
+Compared Character layout against `intentions/survivors_character_tab.png` and
+captured native Troll male/female previews. A 640×720 / 125% keyboard check exposed
+Up from Randomize features skipping the adjacent arrows for the header. Focus now
+prioritizes overlapping rows/columns and scores perpendicular edge gaps rather
+than center separation; a regression covers
+wide-button/arrow/header geometry alongside existing grid navigation tests.
+Native replay reaches the Tusks arrow and changes 4/6 to 5/6; final-build replay
+also verifies horizontal movement between arrows. Restart at 1280×720
+retains female Troll features, and the account diff confirms equipment, other
+heroes and progression remain unchanged. Captures are inline in CHANGELOG and
+README. This verifies these macOS keyboard cases, not the full race/body/input
+matrix; Windows, pointer and physical-controller acceptance remain open. Final
+eight-package formatting/Clippy/test gate passes (31 optional-addon skips); the
+final incremental native build took 30 seconds.
+
+
 ## Healing Light save acceptance — 2026-10-29
 
 Native macOS keyboard interaction now verifies three-rank purchase, restart,

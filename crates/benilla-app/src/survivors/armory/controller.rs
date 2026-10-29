@@ -100,9 +100,14 @@ fn step(items: &[Item], current: Option<Entity>, direction: Vec2) -> Option<Enti
         .filter_map(|item| {
             let offset = item.center - from.center;
             let along = offset.dot(direction);
-            (along > 1.).then_some((item.entity, along + offset.perp_dot(direction).abs() * 3.))
+            // Wide controls overlap nearby arrow columns even when their centers
+            // are far apart; measure the perpendicular gap between their edges.
+            let perpendicular = Vec2::new(direction.y.abs(), direction.x.abs());
+            let reach = (from.size + item.size).dot(perpendicular) * 0.5;
+            let gap = (offset.perp_dot(direction).abs() - reach).max(0.);
+            (along > 1.).then_some((item.entity, gap > 0., along + gap * 3.))
         })
-        .min_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)))
+        .min_by(|a, b| a.1.cmp(&b.1).then(a.2.total_cmp(&b.2)).then(a.0.cmp(&b.0)))
         .map(|item| item.0)
         .or(current)
 }
@@ -633,6 +638,33 @@ mod tests {
         assert_eq!(step(&clipped, None, Vec2::Y), Some(items[1].entity));
         assert_eq!(step(&clipped, Some(items[2].entity), Vec2::NEG_Y), first);
     }
+    #[test]
+    fn wide_feature_button_reaches_adjacent_arrows_before_distant_header() {
+        let items: Vec<_> = [
+            (Vec2::new(310., 550.), Vec2::new(550., 25.)),
+            (Vec2::new(55., 500.), Vec2::splat(25.)),
+            (Vec2::new(565., 500.), Vec2::splat(25.)),
+            (Vec2::new(350., 150.), Vec2::new(130., 30.)),
+            (Vec2::new(310., 650.), Vec2::new(550., 45.)),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(index, (center, size))| Item {
+            entity: Entity::from_bits(index as u64 + 1),
+            center,
+            size,
+            visible_center: true,
+        })
+        .collect();
+        let randomize = Some(items[0].entity);
+        let left = Some(items[1].entity);
+        let right = Some(items[2].entity);
+        assert_eq!(step(&items, randomize, Vec2::NEG_Y), left);
+        assert_eq!(step(&items, left, Vec2::X), right);
+        assert_eq!(step(&items, right, Vec2::Y), randomize);
+        assert_eq!(step(&items, Some(items[4].entity), Vec2::NEG_Y), randomize);
+    }
+
     #[test]
     fn collection_grid_focus_survives_equipped_sidebar_duplicate() {
         let mut world = World::new();

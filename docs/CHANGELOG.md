@@ -4,6 +4,30 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Compact Character controls and saved Troll features
+
+Keyboard focus now accounts for button widths: Up from Randomize features reaches
+nearby feature arrows instead of skipping to the header; Left/Right stay on the
+feature row. Native macOS verification
+at 640×720 / 125% changes Tusks 4 → 5; restart at 1280×720 retains the female
+Troll and 5/6 selection. The save diff changes only features, preserving equipment
+and progression. Wide male/female and compact female model captures are included.
+Final incremental build: 30 seconds. The eight-package formatting/Clippy/test gate
+passes (31 optional-addon skips). Windows and physical-controller checks remain open.
+
+![Before: Up skips feature arrows for the header](images/screenshots/2026-10-29-troll-appearance/before-focus.png)
+
+![After: Up reaches the Tusks arrow](images/screenshots/2026-10-29-troll-appearance/after-focus.png)
+
+![Keyboard activation changes Tusks to 5/6](images/screenshots/2026-10-29-troll-appearance/tusks-changed.png)
+
+![Saved Troll appearance after restart](images/screenshots/2026-10-29-troll-appearance/restarted.png)
+
+![Male Troll preview](images/screenshots/2026-10-29-troll-appearance/male-wide.png)
+
+![Compact female Troll preview](images/screenshots/2026-10-29-troll-appearance/female-compact.png)
+
+
 ## 2026-10-29 — Healing Light saved-spec acceptance
 
 Native macOS keyboard navigation verifies all three ranks, restart persistence,
