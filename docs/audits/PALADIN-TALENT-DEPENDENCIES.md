@@ -92,5 +92,6 @@ milestones. Avoided/invalid/inactive contact emits nothing; absorbed and immune
 contacts respond, consistently with existing temporary reflection. Only the hero
 is protected, not pets or party members. This authored self-aura conversion
 coexists with passive Sanctity Aura and temporary Thorns; party aura exclusivity
-is not represented. Native purchase/refund/restart and attended Windows combat
-remain acceptance work beyond the automated acquisition/contact checks.
+is not represented. Native macOS pointer purchase/refund/restart and independent-spec acceptance
+now pass, with a catalog-backed save regression for both ranks. Physical-controller
+and attended Windows combat acceptance remain open.

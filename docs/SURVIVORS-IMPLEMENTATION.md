@@ -5,6 +5,22 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Retribution Aura save acceptance — 2026-10-29
+
+The isolated native Paladin profile now verifies pointer purchase of both ranks,
+restart with 2/2 and 34 points, independent empty Spec 2 with 51 points, return to
+Spec 1, and right-click refund to 0/2 and 36 points. Reading the saved allocation
+confirms only the original fifteen points remain. Compact 640×720 / 125% effect
+text is captured. The installed-catalog save regression now includes node 1405,
+both rank multipliers, maximum-rank rejection, independent specs and persisted
+refund. No production behavior changed in this acceptance checkpoint.
+Windows, physical-controller and attended combat remain open. Next independent
+implementation work is Paladin healing and its scoped critical-event consumers;
+interruptible casts and mana conversions need their own explicit rules.
+
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+
 ## Acquired Retribution Aura — 2026-10-29
 
 Spell 7294 now occupies one acquired Paladin ability slot and persists for the run.

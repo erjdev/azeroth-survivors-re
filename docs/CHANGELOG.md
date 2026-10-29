@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Retribution Aura saved-spec acceptance
+
+Native macOS clicks verify both ranks, restart persistence, an independent empty
+Spec 2, return to trained Spec 1 and right-click refunds. The point budget goes
+36 → 34 → 36; the saved allocation returns to its starting state. Compact 125%
+inspection keeps the complete effect readable. A catalog-backed regression now
+covers both ranks across save/reload, spec switching and refund. Windows,
+physical controller and attended combat remain unverified.
+
+![Both ranks survive restart](images/screenshots/2026-10-29-retribution-aura/restarted.png)
+
+![Second spec remains independent](images/screenshots/2026-10-29-retribution-aura/spec-two.png)
+
+![Refund restores both points](images/screenshots/2026-10-29-retribution-aura/refunded.png)
+
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+
 ## 2026-10-29 — Retribution Aura and its improvement
 
 Paladins can acquire a persistent self aura that returns Holy damage on contact.

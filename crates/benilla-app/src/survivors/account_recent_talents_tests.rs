@@ -19,6 +19,14 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         .unwrap();
     for (class, node, row, max_rank, key, initial) in [
         (
+            1,
+            1405,
+            3,
+            2,
+            "retribution_aura",
+            vec![(2, 1401, 5), (2, 1407, 5), (2, 1403, 5)],
+        ),
+        (
             4,
             408,
             3,
@@ -85,7 +93,9 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
             assert!(account.learn_talent(hero, tree, node, max_rank, row, true));
             let trained = account.milestones_picked(class, Some(hero));
             let mut expected = before.cast(key);
-            if node == 408 {
+            if node == 1405 {
+                expected.damage *= 1.0 + 0.25 * f32::from(rank);
+            } else if node == 408 {
                 expected.cooldown *= 1. - 0.05 * f32::from(rank);
             } else if node == 825 {
                 expected.crit += 0.1 * f32::from(rank);
