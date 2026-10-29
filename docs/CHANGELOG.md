@@ -4,6 +4,13 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Enemy weapon audit
+
+Added a reproducible equipment audit for all 476 enemy identities. It identifies
+missing NPC item/equipment metadata needed for real disarm and Riposte; unresolved
+entries remain explicit. Gameplay and visuals are unchanged. See the
+[findings and implementation sequence](audits/ENEMY-EQUIPMENT.md).
+
 ## 2026-10-29 — Real dodge and parry talents
 
 Warrior, Paladin and Rogue Deflection now grant melee parry instead of armor or

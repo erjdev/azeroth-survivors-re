@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Enemy weapon prerequisite — 2026-10-29
+
+The [equipment audit](audits/ENEMY-EQUIPMENT.md) now joins every authored enemy
+identity to pinned equipment/item evidence. It exposes missing NPC item and
+equipment records, so disarm eligibility must not be inferred from humanoid type
+or a nonzero equipment ID. Resolve virtual-item metadata, authored attack channels
+and disarmed fallback damage before implementing Riposte/Improved Disarm.
+No runtime behavior changed in this audit.
+
 ## Shared talent avoidance — 2026-10-29
 
 Warrior/Paladin/Rogue Deflection and Rogue Lightning Reflexes now use real
