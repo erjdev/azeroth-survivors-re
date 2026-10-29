@@ -18,12 +18,14 @@ final build. The final incremental play build takes 14 seconds.
 
 Native macOS previews verify green inline duration/recovery/target changes at
 1280×720 and 640×720 / 125%, plus the compact talent description. The isolated
-30-point Retribution fixture loads correctly. Native purchase/refund/spec/restart
-verification remains open: pointer automation failed and did not change the save;
-the normal validation launcher is restored. Attended combat, Windows, rendered
+30-point Retribution fixture now passes native keyboard purchase, refund, restart,
+switch to an empty spec and return to the trained spec. A catalog-backed save
+regression also verifies row/max-rank guards, refund persistence and immutable run
+snapshots. Pointer and physical-controller acceptance remain open; the normal
+validation launcher is restored. Attended combat, Windows, rendered
 combat aura acceptance and the broader seven-phase matrix remain open. Named
 definition coverage is 305/432 (Paladin 26/44), not a claim of full acceptance.
-Final eight-package formatting/Clippy/test gate passes: 4,857 app unit tests
+Final eight-package formatting/Clippy/test gate passes: 4,858 app unit tests
 passed, 10 ignored; 31 optional-addon tests skip across the scoped suite.
 
 ## Reward confirmation reachability — 2026-10-29

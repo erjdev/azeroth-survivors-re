@@ -3020,6 +3020,97 @@ mod tests {
     }
 
     #[test]
+    fn repentance_unlock_tracks_catalog_rows_saved_specs_refunds_and_run_snapshots() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(1);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![];
+        assert!(!account.learn_talent(hero, 2, 1441, 1, 6, true));
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.dbc[0] = vec![
+            (2, 1401, 5),
+            (2, 1407, 5),
+            (2, 1403, 5),
+            (2, 1411, 5),
+            (2, 1631, 2),
+            (2, 1634, 2),
+            (2, 1409, 1),
+            (2, 1402, 5),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        assert!(!account
+            .milestones_picked(1, Some(hero))
+            .ability_unlocked("repentance"));
+        assert!(account.learn_talent(hero, 2, 1441, 1, 6, true));
+        assert!(!account.learn_talent(hero, 2, 1441, 1, 6, true));
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let snapshot = account.milestones_picked(1, Some(hero));
+        assert!(snapshot.ability_unlocked("repentance"));
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert!(loaded.talents_valid(loaded.character(hero).unwrap()));
+        assert!(loaded
+            .milestones_picked(1, Some(hero))
+            .ability_unlocked("repentance"));
+        loaded.select_spec(hero, 1);
+        assert!(!loaded
+            .milestones_picked(1, Some(hero))
+            .ability_unlocked("repentance"));
+        loaded.select_spec(hero, 0);
+        assert!(loaded
+            .milestones_picked(1, Some(hero))
+            .ability_unlocked("repentance"));
+        let mut invalid = loaded.character(hero).unwrap().clone();
+        invalid.dbc[0]
+            .iter_mut()
+            .find(|entry| entry.1 == 1402)
+            .unwrap()
+            .2 -= 1;
+        assert!(
+            !loaded.talents_valid(&invalid),
+            "a trained capstone still needs 30 earlier points"
+        );
+        assert!(!loaded.unlearn_talent(hero, 1402, false));
+        assert!(loaded.unlearn_talent(hero, 1441, true));
+        assert!(!loaded
+            .milestones_picked(1, Some(hero))
+            .ability_unlocked("repentance"));
+        assert_eq!(
+            loaded.character(hero).unwrap().dbc[0]
+                .iter()
+                .map(|entry| u32::from(entry.2))
+                .sum::<u32>(),
+            30
+        );
+        let refunded = parse(&encode(&loaded)).unwrap();
+        assert!(!refunded
+            .milestones_picked(1, Some(hero))
+            .ability_unlocked("repentance"));
+        assert!(
+            snapshot.ability_unlocked("repentance"),
+            "an existing run retains its captured spec"
+        );
+    }
+
+    #[test]
     fn hawk_purchase_saved_specs_and_refund_match_runtime() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

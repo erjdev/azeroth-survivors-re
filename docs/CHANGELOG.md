@@ -14,8 +14,9 @@ changes to duration, recovery and target count, with each unit written once.
 Native macOS previews cover 1280×720 and 640×720 / 125%. Final incremental build:
 14 seconds. Automated targeting, damage, poison, movement/expiry and offer checks
 pass, as does the eight-package gate (31 optional-addon skips). Native
-purchase/refund/restart verification remains open after pointer automation failed;
-Windows and attended combat also remain open. Named definitions: 305/432,
+keyboard purchase/refund, restart and switching between trained/empty specs now
+pass. A catalog-backed regression covers row gates, saved refunds and run snapshots.
+Pointer/controller, Windows and attended combat remain open. Named definitions: 305/432,
 Paladin 26/44; this count is not full gameplay acceptance.
 
 ![Repentance inline upgrades](images/screenshots/2026-10-29-repentance/cards-wide.png)
@@ -23,6 +24,16 @@ Paladin 26/44; this count is not full gameplay acceptance.
 ![Compact Repentance cards at 125%](images/screenshots/2026-10-29-repentance/cards-compact.png)
 
 ![Compact talent unlock description](images/screenshots/2026-10-29-repentance/talent-compact.png)
+
+![Repentance trained through native keyboard input](images/screenshots/2026-10-29-repentance/trained.png)
+
+![Refund restores the untrained talent](images/screenshots/2026-10-29-repentance/refunded.png)
+
+![Trained spec survives restart](images/screenshots/2026-10-29-repentance/restarted.png)
+
+![Alternate spec remains untrained](images/screenshots/2026-10-29-repentance/alternate-spec.png)
+
+![Returning restores the trained spec](images/screenshots/2026-10-29-repentance/returned-spec.png)
 
 ## 2026-10-29 — Keep pending rewards within reach
 
