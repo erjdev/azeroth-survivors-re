@@ -5,6 +5,20 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Illumination — 2026-10-29
+
+The approved no-mana conversion is implemented: effective critical Holy Light or
+Flash of Light healing has a 20/40/60/80/100% chance to refund half that cast’s
+final recovery after cooldown bonuses. Other classes, damage, ineffective healing
+and Holy Shock’s noncritical side heal cannot trigger it. Later casts retain their
+normal recovery. Inline green text shows the changing proc chance.
+
+Tests cover every rank, proc outcomes, upgraded-spell recovery, no-cast RNG,
+purchase/save/reload, independent specs and refund. Native screenshots cover
+1280×720 and 640×720 at 125% UI size. Native purchase, Windows and attended combat
+remain unverified. Incremental play build: 19 seconds.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
 ## Healing Way — 2026-10-29
 
 Node 1648 now provides its source-specific 33/66/100% proc chance: successful
@@ -104,7 +118,7 @@ save or gameplay source changed; the preceding eight-package check remains valid
 
 Illumination's no-mana policy was confirmed by the user on 2026-10-29: its
 20–100% proc chance refunds half the triggering heal's recovery time after
-eligible effective critical healing. Implementation is next after Healing Way. Do not infer a healing critical from
+eligible effective critical healing. Implemented in the Illumination checkpoint above. Do not infer a healing critical from
 Holy Shock's damage critical: its current separate cast heal is noncritical.
 
 ## Paladin healing scope — 2026-10-29

@@ -116,4 +116,9 @@ critical consumer; mere cast or damage-critical events cannot satisfy it.
 The user chose a refund of half the triggering heal's recovery time, with the
 installed 20/40/60/80/100% proc chance. Implement from effective eligible healing
 criticals; Holy Shock damage criticals must not count as healing criticals.
-This resolves the earlier no-mana policy question; implementation is next.
+Implemented for effective critical Holy Light and Flash of Light healing. The
+refund halves the triggering cast’s final recovery after cooldown bonuses; it
+does not permanently change the spell. Holy Shock remains excluded while its
+cast heal is noncritical. Tests cover every rank, failed/successful proc rolls,
+actual cast recovery and purchase/save/spec/refund. Native wide/compact tooltip
+captures are recorded; native purchase, Windows and attended combat are pending.

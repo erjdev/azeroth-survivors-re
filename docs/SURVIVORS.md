@@ -1198,4 +1198,8 @@ and damage cannot trigger or receive this bonus; death and run reset clear it.
 Confirmed by the user on 2026-10-29: retain the installed 20–100% proc chance,
 but refund half the triggering heal's recovery time instead of mana. This applies
 to eligible effective critical healing, not damage criticals or noncritical
-cast-heal side effects. Implementation and acceptance remain pending.
+cast-heal side effects. Implemented for effective critical Holy Light and Flash of
+Light healing: ranks grant 20/40/60/80/100% chance to halve that cast’s final
+recovery after cooldown bonuses. Later casts retain their normal recovery.
+Holy Shock’s current noncritical cast heal is excluded. Windows and attended
+combat acceptance remain pending.

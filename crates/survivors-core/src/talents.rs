@@ -21,6 +21,7 @@ pub use natures_grace::NaturesGrace;
 pub use poison::{Coating, DeadlyPoison};
 pub use rogue::{AdrenalineRushClock, BladeFlurryClock, PreparationClock};
 mod healing_way;
+mod illumination;
 mod shaman;
 pub use healing_way::HealingWay;
 mod warlock;
@@ -1793,6 +1794,7 @@ pub enum TalentStat {
     MeleeDodge,
     PowerInfusion,
     HealingLight,
+    Illumination,
     Preparation,
     SiphonLife,
     Nightfall,
@@ -2176,6 +2178,7 @@ impl TalentDefinition {
             | TalentStat::HolyReach
             | TalentStat::ArcaneInstability
             | TalentStat::ForceOfWill
+            | TalentStat::Illumination
             | TalentStat::HealingWay
             | TalentStat::TotemHealing
             | TalentStat::SpiritualHealing
@@ -2472,6 +2475,7 @@ impl TalentDefinition {
             TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
+            TalentStat::Illumination => (100.0, "% critical-heal recovery refund chance"),
             TalentStat::SpiritualHealing => (100.0, "% Greater Heal, Renew and Holy Nova healing"),
             TalentStat::PetWrath => (1.0, " upgraded Bestial Wrath window"),
             TalentStat::PetIntimidation => (1.0, " empowered bite every 60 sec"),
@@ -3039,6 +3043,14 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
         description: "Hammer of Justice: 10% shorter cooldown per rank",
         stat: TalentStat::SpellCooldown("hammer_of_justice"),
         per_rank: 0.1,
+    },
+    TalentDefinition {
+        id: 1461,
+        max_rank: 5,
+        name: "Illumination",
+        description: "Effective critical Holy Light or Flash of Light heals: 20% chance per rank to refund half that cast's recovery time, after cooldown bonuses. Excludes damage and Holy Shock's noncritical cast heal (Survivors mana conversion)",
+        stat: TalentStat::Illumination,
+        per_rank: 0.20,
     },
     TalentDefinition {
         id: 1627,
@@ -4015,6 +4027,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::InspirationArmor
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
+            | TalentStat::Illumination
             | TalentStat::HealingWay
             | TalentStat::TotemHealing
             | TalentStat::ShamanShieldAbsorption
@@ -5562,6 +5575,7 @@ mod stat_talent_tests {
                     | TalentStat::InspirationArmor
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
+                    | TalentStat::Illumination
                     | TalentStat::HealingWay
                     | TalentStat::TotemHealing
                     | TalentStat::ShamanShieldAbsorption

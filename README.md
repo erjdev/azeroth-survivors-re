@@ -16,6 +16,13 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Illumination now refunds half a critical heal’s recovery on a successful talent
+proc, with the rank’s chance highlighted inline.
+
+![Illumination talent inspection](docs/images/screenshots/2026-10-29-illumination/wide.png)
+
+![Compact Illumination tooltip](docs/images/screenshots/2026-10-29-illumination/compact.png)
+
 Healing Way now has its three-rank proc chance and capped, timed healing bonus.
 
 ![Healing Way talent inspection](docs/images/screenshots/2026-10-29-healing-way/untrained.png)

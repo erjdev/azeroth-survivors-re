@@ -197,3 +197,85 @@ fn healing_way_boosts_only_subsequent_effective_wave_casts() {
     assert_eq!(app.world().resource::<Rng>().0, seed);
     assert!(app.world().resource::<Messages<Hit>>().is_empty());
 }
+
+#[test]
+fn illumination_refunds_half_the_actual_recovery_only_after_eligible_critical_healing() {
+    for key in ["holy_light", "flash_of_light"] {
+        for rank in 0..=5 {
+            for critical in [false, true] {
+                for refund in [false, true] {
+                    if refund && (!critical || rank == 0) || !refund && critical && rank == 5 {
+                        continue;
+                    }
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                    let mut run = Run {
+                        class: &data::CLASSES[1],
+                        ..Default::default()
+                    };
+                    run.milestones = Milestones {
+                        class: 1,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(0, 1461, rank)]);
+                    run.hp = run.stats().max_hp;
+                    run.abilities.push(Owned {
+                        def: data::ability(key),
+                        level: 4,
+                        cd: 0.,
+                    });
+                    let p = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+                    let chance = run.milestones.illumination_chance(key, 1., critical);
+                    let seed = (1..100000)
+                        .find(|seed| {
+                            let mut rng = Rng(*seed);
+                            let crit = rng.f32() < p.crit;
+                            let proc = chance > 0. && rng.f32() < chance;
+                            crit == critical && proc == refund
+                        })
+                        .unwrap();
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(seed))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    assert_eq!(
+                        app.world().resource::<Rng>().0,
+                        seed,
+                        "full-health cast spends no RNG"
+                    );
+                    {
+                        let mut run = app.world_mut().resource_mut::<Run>();
+                        run.hp = 1.;
+                        run.abilities[0].cd = 0.;
+                    }
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let expected_heal =
+                        (1. + p.dmg * if critical { 1.5 } else { 1. }).min(run.stats().max_hp);
+                    assert!((run.hp - expected_heal).abs() < 0.0001);
+                    assert_eq!(
+                        run.abilities[0].cd,
+                        p.cooldown * if refund { 0.5 } else { 1. },
+                        "{key} rank {rank} critical {critical} refund {refund}"
+                    );
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                    assert_eq!(
+                        Params::new(&run.abilities[0], &run.stats(), run.milestones).cooldown,
+                        p.cooldown,
+                        "refund does not permanently change the spell"
+                    );
+                }
+            }
+        }
+    }
+}

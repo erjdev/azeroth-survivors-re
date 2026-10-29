@@ -985,6 +985,12 @@ pub(super) fn cast_abilities(
                     cast_direct_heal(&mut run, &p, stats.max_hp, &mut rng)
                 {
                     run.record_direct_healing(def.key, healed, critical);
+                    let refund_chance = run
+                        .milestones
+                        .illumination_chance(def.key, healed, critical);
+                    if refund_chance > 0. && rng.f32() < refund_chance {
+                        p.cooldown *= 0.5;
+                    }
                     if healed > 0.
                         && survivors_core::talents::HealingWay::chance(run.milestones, def.key) > 0.
                     {

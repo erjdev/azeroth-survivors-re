@@ -19,6 +19,14 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         .unwrap();
     for (class, node, row, max_rank, key, initial) in [
         (
+            1,
+            1461,
+            3,
+            5,
+            "holy_light",
+            vec![(0, 1450, 5), (0, 1449, 5), (0, 1432, 5)],
+        ),
+        (
             5,
             1648,
             4,
@@ -124,7 +132,12 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
             assert!(account.learn_talent(hero, tree, node, max_rank, row, true));
             let trained = account.milestones_picked(class, Some(hero));
             let mut expected = before.cast(key);
-            if node == 1648 {
+            if node == 1461 {
+                assert_eq!(
+                    trained.illumination_chance(key, 1., true),
+                    0.2 * f32::from(rank)
+                );
+            } else if node == 1648 {
                 let expected_chance = [0., 0.33, 0.66, 1.][usize::from(rank)];
                 assert_eq!(
                     survivors_core::talents::HealingWay::chance(trained, key),
