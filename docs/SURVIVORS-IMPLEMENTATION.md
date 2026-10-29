@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Shared combat-pet health — 2026-10-29
+
+Hunter health now consumes engine-independent `combat_pet::Vitality` for damage,
+capped living-only healing, proportional maximum-health changes and recovery deadlines.
+Frenzy and Spirit Bond timers remain Hunter-owned; enemy targeting, corpse appearance,
+floor-checked respawn and status labels retain their existing runtime paths. This
+provides reusable health rules, not a shared ECS pet component or demon lifecycle.
+Demon sacrifice versus defeat, acquisition, casts, resources and recovery policy
+remain explicit unfinished work. No talent or visual change is claimed.
+
 ## Native demon appearance — 2026-10-29
 
 A development-only menu lineup now uses the four verified display IDs, normal unit

@@ -497,7 +497,7 @@ pub(super) fn move_enemies(
         let forced_pet = taunt
             .filter(|taunt| run.elapsed < taunt.until)
             .and_then(|taunt| pets.get(taunt.pet).ok())
-            .filter(|(_, _, pet, _)| pet.hp > 0.0)
+            .filter(|(_, _, pet, _)| pet.vitality.hp > 0.0)
             .map(|(entity, tf, _, _)| (entity, tf.translation));
         let pet_target = if e.boss {
             None
@@ -506,7 +506,7 @@ pub(super) fn move_enemies(
         } else {
             pets.iter()
                 .filter(|(_, tf, pet, _)| {
-                    pet.hp > 0.0
+                    pet.vitality.hp > 0.0
                         && tf.translation.distance(pos) <= 4.0
                         && tf.translation.distance(pos) < (hpos - pos).length()
                         && world.line_clear(pos, tf.translation)
@@ -601,7 +601,7 @@ pub(super) fn move_enemies(
             let (taken, avoided) = if let Some((entity, _)) = pet_target {
                 let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
                 let taken = pet.hurt(raw, run.elapsed);
-                if pet.hp <= 0.0 {
+                if pet.vitality.hp <= 0.0 {
                     units::kill_unit(&mut store);
                 }
                 (taken, None)

@@ -167,3 +167,22 @@ appearance, not animation timing, performance, Windows, spells or combat behavio
 
 The eight-package formatting/Clippy/test gate passes (31 optional-addon skips),
 including 4,819 passing app unit tests. Windows visual acceptance remains open.
+
+
+## Shared health prerequisite — 2026-10-29
+
+The Hunter wolf now uses `survivors_core::combat_pet::Vitality`. It owns health,
+maximum health, a configured recovery interval and the first lethal-hit deadline.
+Healing cannot resurrect it, repeated lethal hits cannot postpone recovery, and
+maximum-health changes retain its health fraction. Hunter frenzy and Spirit Bond
+remain separate. The runtime still controls corpse visuals, valid respawn placement,
+attention and active run time. Enemy attention still queries `HunterPet` directly.
+
+This is a reusable health primitive, not full demon lifecycle acceptance. Demons
+must explicitly distinguish sacrifice from defeat and define their summon/recovery
+policy before consuming these rules; do not copy automatic wolf recovery blindly.
+
+Shared-health validation: 304 core and 584 runtime tests pass; the native play
+build succeeds in 1m58s. No new screenshot is implied by this rules-only change.
+
+The final eight-package formatting/Clippy/test gate passes (31 optional-addon skips).

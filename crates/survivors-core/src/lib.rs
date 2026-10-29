@@ -38,3 +38,5 @@ pub mod enemy_equipment;
 #[cfg(test)]
 mod enemy_equipment_tests;
 pub mod slows;
+
+pub mod combat_pet;

@@ -15,10 +15,7 @@ pub(super) const SOURCE: &str = "Hunter Pet";
 
 #[derive(Component, Default)]
 pub(super) struct HunterPet {
-    pub(super) hp: f32,
-    max_hp: f32,
-    revive_at: Option<f32>,
-    recovery: f32,
+    pub(super) vitality: survivors_core::combat_pet::Vitality,
     bond_elapsed: f32,
     cooldown: f32,
     frenzy: survivors_core::talents::PetFrenzy,
@@ -28,21 +25,17 @@ impl HunterPet {
     fn new(run: &Run) -> Self {
         let max_hp = maximum_health(run);
         Self {
-            hp: max_hp,
-            max_hp,
-            recovery: run.milestones.hunter_pet(run.elapsed).recovery,
+            vitality: survivors_core::combat_pet::Vitality::new(
+                max_hp,
+                run.milestones.hunter_pet(run.elapsed).recovery,
+            ),
             ..Default::default()
         }
     }
 
     pub(super) fn hurt(&mut self, damage: f32, now: f32) -> f32 {
-        if self.hp <= 0.0 || !damage.is_finite() || damage <= 0.0 {
-            return 0.0;
-        }
-        let removed = damage.min(self.hp);
-        self.hp -= removed;
-        if self.hp <= 0.0 {
-            self.revive_at = Some(now + self.recovery);
+        let removed = self.vitality.hurt(damage, now);
+        if removed > 0.0 && self.vitality.hp <= 0.0 {
             self.frenzy = Default::default();
             self.bond_elapsed = 0.0;
         }
@@ -76,13 +69,17 @@ pub(super) fn update_status(
         pets.single().map_or_else(
             |_| String::new(),
             |pet| {
-                if let Some(at) = pet.revive_at {
+                if let Some(at) = pet.vitality.revive_at {
                     format!(
                         "Wolf recovering · {:.0} sec",
                         (at - run.elapsed).max(0.0).ceil()
                     )
                 } else {
-                    format!("Wolf {:.0} / {:.0}", pet.hp.ceil(), pet.max_hp.ceil())
+                    format!(
+                        "Wolf {:.0} / {:.0}",
+                        pet.vitality.hp.ceil(),
+                        pet.vitality.max_hp.ceil()
+                    )
                 }
             },
         )
@@ -161,7 +158,7 @@ pub(super) fn fight(
     for (entity, mut tf, mut movement, mut pet) in &mut pets {
         movement.flags = 0;
         movement.speed = 0.0;
-        if let Some(at) = pet.revive_at {
+        if let Some(at) = pet.vitality.revive_at {
             navigation.forget(entity);
             if run.elapsed >= at && world.can_spawn(hpos, RADIUS) {
                 commands.entity(entity).despawn();
@@ -169,17 +166,15 @@ pub(super) fn fight(
             continue;
         }
         let max_hp = maximum_health(&run);
-        if max_hp != pet.max_hp {
-            pet.hp = (pet.hp / pet.max_hp * max_hp).clamp(0.0, max_hp);
-            pet.max_hp = max_hp;
-        }
-        pet.hp = (pet.hp + pet.max_hp * bonus.mend * dt).min(pet.max_hp);
+        pet.vitality.resize(max_hp);
+        let maximum = pet.vitality.max_hp;
+        pet.vitality.heal(maximum * bonus.mend * dt);
         if bonus.spirit_bond > 0.0 {
             pet.bond_elapsed += dt;
             let pulses = (pet.bond_elapsed / 10.0).floor();
             if pulses > 0.0 {
                 pet.bond_elapsed %= 10.0;
-                pet.hp = (pet.hp + pet.max_hp * bonus.spirit_bond * pulses).min(pet.max_hp);
+                pet.vitality.heal(maximum * bonus.spirit_bond * pulses);
                 run.heal(stats.max_hp * bonus.spirit_bond * pulses, stats.max_hp);
             }
         }
@@ -458,7 +453,7 @@ mod tests {
             .query_filtered::<Entity, With<HunterPet>>()
             .single(app.world())
             .unwrap();
-        assert_eq!(app.world().get::<HunterPet>(dead).unwrap().hp, 0.0);
+        assert_eq!(app.world().get::<HunterPet>(dead).unwrap().vitality.hp, 0.0);
         // Switching back to the hero must not grant another attack in the same cooldown.
         app.world_mut()
             .query_filtered::<&mut Transform, With<Hero>>()
@@ -482,8 +477,8 @@ mod tests {
             .query::<&HunterPet>()
             .single(app.world())
             .unwrap();
-        assert_eq!(pet.hp, 60.0);
-        assert_eq!(pet.revive_at, None);
+        assert_eq!(pet.vitality.hp, 60.0);
+        assert_eq!(pet.vitality.revive_at, None);
     }
 
     #[test]
@@ -517,7 +512,7 @@ mod tests {
             .query::<&HunterPet>()
             .single(app.world())
             .unwrap();
-        assert!((pet.hp - 69.0).abs() < 0.0001);
+        assert!((pet.vitality.hp - 69.0).abs() < 0.0001);
     }
 
     #[test]
@@ -536,35 +531,50 @@ mod tests {
                 .query_filtered::<Entity, With<HunterPet>>()
                 .single(app.world())
                 .unwrap();
-            let max_hp = app.world().get::<HunterPet>(pet).unwrap().max_hp;
-            app.world_mut().get_mut::<HunterPet>(pet).unwrap().hp = max_hp / 2.0;
+            let max_hp = app.world().get::<HunterPet>(pet).unwrap().vitality.max_hp;
+            app.world_mut()
+                .get_mut::<HunterPet>(pet)
+                .unwrap()
+                .vitality
+                .hp = max_hp / 2.0;
             let hero_hp = app.world().resource::<Run>().hp;
             // Ten 100 ms frames heal exactly one second of trained regeneration.
             for _ in 0..10 {
                 app.world_mut().run_system_once(fight).unwrap();
             }
             let expected = max_hp * (0.5 + 0.01 * f32::from(rank.min(2)));
-            assert!((app.world().get::<HunterPet>(pet).unwrap().hp - expected).abs() < 0.0001);
+            assert!(
+                (app.world().get::<HunterPet>(pet).unwrap().vitality.hp - expected).abs() < 0.0001
+            );
             assert_eq!(app.world().resource::<Run>().hp, hero_hp);
             app.world_mut()
                 .resource_mut::<Time>()
                 .advance_by(std::time::Duration::ZERO);
             app.world_mut().run_system_once(fight).unwrap();
-            assert!((app.world().get::<HunterPet>(pet).unwrap().hp - expected).abs() < 0.0001);
+            assert!(
+                (app.world().get::<HunterPet>(pet).unwrap().vitality.hp - expected).abs() < 0.0001
+            );
             app.world_mut()
                 .resource_mut::<Time>()
                 .advance_by(std::time::Duration::from_secs(1));
-            app.world_mut().get_mut::<HunterPet>(pet).unwrap().hp = max_hp;
+            app.world_mut()
+                .get_mut::<HunterPet>(pet)
+                .unwrap()
+                .vitality
+                .hp = max_hp;
             app.world_mut().run_system_once(fight).unwrap();
-            assert_eq!(app.world().get::<HunterPet>(pet).unwrap().hp, max_hp);
+            assert_eq!(
+                app.world().get::<HunterPet>(pet).unwrap().vitality.hp,
+                max_hp
+            );
             app.world_mut()
                 .get_mut::<HunterPet>(pet)
                 .unwrap()
                 .hurt(max_hp, 0.0);
             app.world_mut().run_system_once(fight).unwrap();
             let defeated = app.world().get::<HunterPet>(pet).unwrap();
-            assert_eq!(defeated.hp, 0.0);
-            assert_eq!(defeated.revive_at, Some(10.0));
+            assert_eq!(defeated.vitality.hp, 0.0);
+            assert_eq!(defeated.vitality.revive_at, Some(10.0));
         }
     }
 
@@ -592,21 +602,31 @@ mod tests {
             .resource_mut::<Time>()
             .advance_by(std::time::Duration::from_secs(9));
         app.world_mut().run_system_once(fight).unwrap();
-        assert_eq!(app.world().get::<HunterPet>(entity).unwrap().hp, 30.0);
+        assert_eq!(
+            app.world().get::<HunterPet>(entity).unwrap().vitality.hp,
+            30.0
+        );
         assert_eq!(app.world().resource::<Run>().hp, max * 0.5);
         app.world_mut()
             .resource_mut::<Time>()
             .advance_by(std::time::Duration::from_secs(1));
         app.world_mut().run_system_once(fight).unwrap();
-        assert!((app.world().get::<HunterPet>(entity).unwrap().hp - 31.2).abs() < 0.0001);
+        assert!((app.world().get::<HunterPet>(entity).unwrap().vitality.hp - 31.2).abs() < 0.0001);
         assert!((app.world().resource::<Run>().hp - max * 0.52).abs() < 0.0001);
-        app.world_mut().get_mut::<HunterPet>(entity).unwrap().hp = 59.9;
+        app.world_mut()
+            .get_mut::<HunterPet>(entity)
+            .unwrap()
+            .vitality
+            .hp = 59.9;
         app.world_mut().resource_mut::<Run>().hp = max - 0.1;
         app.world_mut()
             .resource_mut::<Time>()
             .advance_by(std::time::Duration::from_secs(20));
         app.world_mut().run_system_once(fight).unwrap();
-        assert_eq!(app.world().get::<HunterPet>(entity).unwrap().hp, 60.0);
+        assert_eq!(
+            app.world().get::<HunterPet>(entity).unwrap().vitality.hp,
+            60.0
+        );
         assert_eq!(app.world().resource::<Run>().hp, max);
         app.world_mut()
             .get_mut::<HunterPet>(entity)
@@ -616,6 +636,7 @@ mod tests {
             (app.world()
                 .get::<HunterPet>(entity)
                 .unwrap()
+                .vitality
                 .revive_at
                 .unwrap()
                 - 6.0)
@@ -741,13 +762,13 @@ mod tests {
                 .entity_mut(enemy)
                 .insert(PetTaunt { pet, until: 6.0 });
             app.world_mut().resource_mut::<Run>().elapsed = now;
-            let hp = app.world().get::<HunterPet>(pet).unwrap().hp;
+            let hp = app.world().get::<HunterPet>(pet).unwrap().vitality.hp;
             let hero_hp = app.world().resource::<Run>().hp;
             app.world_mut()
                 .run_system_once(super::super::enemies::move_enemies)
                 .unwrap();
             assert_eq!(
-                app.world().get::<HunterPet>(pet).unwrap().hp < hp,
+                app.world().get::<HunterPet>(pet).unwrap().vitality.hp < hp,
                 expected_pet_damage
             );
             assert_eq!(
@@ -799,8 +820,8 @@ mod tests {
             .query::<&HunterPet>()
             .single(app.world())
             .unwrap();
-        assert_eq!(pet.max_hp, 66.0);
-        assert_eq!(pet.hp, 33.0);
+        assert_eq!(pet.vitality.max_hp, 66.0);
+        assert_eq!(pet.vitality.hp, 33.0);
     }
 
     #[test]
@@ -826,6 +847,7 @@ mod tests {
                 .query::<&HunterPet>()
                 .single(app.world())
                 .unwrap()
+                .vitality
                 .hp,
             0.0
         );
@@ -993,7 +1015,10 @@ mod tests {
                 1,
                 "bite after trained interval at rank {rank}"
             );
-            assert_eq!(app.world().get::<HunterPet>(pet).unwrap().recovery, 10.0);
+            assert_eq!(
+                app.world().get::<HunterPet>(pet).unwrap().vitality.recovery,
+                10.0
+            );
         }
     }
 

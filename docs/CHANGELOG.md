@@ -4,6 +4,15 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Shared combat-pet health
+
+Moved the Hunter wolf's damage, healing, health scaling and recovery deadline into
+reusable core rules. Healing cannot revive a defeated pet, and repeated lethal hits
+cannot delay its recovery. Hunter-specific talents and respawn placement stay intact.
+304 core and 584 runtime tests pass; native incremental build: 1m58s. No visual
+change or newly enabled talent is included. The eight-package formatting/Clippy/test
+gate passes (31 optional-addon skips).
+
 ## 2026-10-29 — Native demon specimens
 
 Added an opt-in menu preview of the Imp, Voidwalker, Succubus and Felhunter using
