@@ -5,6 +5,20 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Native pointer scrolling acceptance — 2026-10-29
+
+Closes the earlier unverified macOS wheel/drag cases for Talents and Achievements.
+Using the final native build from da74882 and isolated fixture data, actual wheel
+input at 640×720 / 125% reaches lower talent trees. Dragging its scrollbar reaches
+the final spec controls and returns to the first row. The same session verifies
+Zones card wheel scrolling and scrollbar return without moving the category grid.
+A live preview resize to 640×480 / 125% verifies the category rail wheel independently
+of cards, the card scrollbar independently of the rail, and Collection → Zones
+restoration of both pane positions. Screenshots are inline in CHANGELOG; README
+shows the current minimum-height achievement evidence. No source/build change or
+new automated test run; the dc5e233 scoped gate remains applicable. Windows input,
+other pages' native pointer checks and attended gameplay are not established here.
+
 ## Achievement navigation rail — 2026-10-29
 
 The Zones intention keeps the category rail separate from the long achievement

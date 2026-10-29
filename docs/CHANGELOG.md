@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Native pointer scrolling acceptance
+
+Actual macOS wheel and scrollbar interactions pass in the taller talent page at
+640×720 / 125%: lower trees, spec controls and return to the first row are reachable.
+At 640×480 / 125%, achievement categories and cards scroll independently; switching
+Collection → Zones restores the card position. The preview resized live without a
+rebuild. No code change; Windows input acceptance remains open.
+
+![Talent rows reached with the mouse wheel](images/screenshots/2026-10-29-pointer-scroll/talents-wheel.png)
+
+![Spec controls reached by dragging the talent scrollbar](images/screenshots/2026-10-29-pointer-scroll/talents-drag-bottom.png)
+
+![Category rail scrolled while the first Zone cards stay in place](images/screenshots/2026-10-29-pointer-scroll/achievement-rail-wheel.png)
+
+![Zone reading position restored after a category round trip](images/screenshots/2026-10-29-pointer-scroll/achievement-roundtrip.png)
+
 ## 2026-10-29 — Talent saves and refunds verified
 
 Ghostly Strike purchase, separate specs, restart and refund now pass native macOS

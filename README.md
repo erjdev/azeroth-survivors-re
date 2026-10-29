@@ -24,6 +24,11 @@ minimum-window onboarding and restart captures are in the changelog.
 
 ![Ghostly Strike acquisition and upgrades](docs/images/screenshots/2026-10-29-ghostly-strike/cards-wide.png)
 
+Native wheel/scrollbar acceptance now covers the taller talent trees and independent
+achievement panes on macOS, including category round-trip restoration.
+
+![Independent achievement scrolling at minimum height](docs/images/screenshots/2026-10-29-pointer-scroll/achievement-roundtrip.png)
+
 ## Interface gallery
 
 Actual checkout captures, dated below. Many use isolated fixture accounts; a screenshot
