@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Analog controller foundation
+
+Added circular stick filtering with continuous analog strength, bounded diagonal
+speed and inactive-input clearing. The [controller audit](audits/CONTROLLER-INPUT.md)
+records missing runtime and settings integration, including avoiding double dead-zone
+filtering with Bevy. No analog movement or new UI is enabled yet.
+
+284 core tests and core Clippy pass. Six-package scoped checks pass with 31
+missing-addon skips; full pre-merge gates remain required. No visual change;
+the current settings screenshots below remain accurate, including the absent
+dead-zone slider.
+
 ## 2026-10-28 — Compact settings acceptance
 
 Native 640×480/125% checks verify readable Run Options, Graphics, Controls and

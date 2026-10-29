@@ -302,6 +302,13 @@ presentation; it does not imply full controller or resolution acceptance.
 
 ## Current priority — starter interface first (2026-10-26)
 
+Controller dependency audit (2026-10-28): the reference dead-zone slider needs
+an analog movement/camera consumer; current gamepad support covers menu buttons.
+The pure radial filter and inactive-frame clearing now have regression coverage.
+[Controller input audit](audits/CONTROLLER-INPUT.md) records the Bevy per-axis
+filtering interaction and required sampling, runtime, persistence, UI and device
+acceptance work. No runtime analog controls or slider are enabled by this foundation.
+
 Compact settings acceptance (2026-10-28, runtime `9ee285e`): native 640×480 at
 125% preview scale verifies Run Options, Graphics, Controls and Audio layouts,
 Tab/Enter category activation, Escape back to Run Options and Done back to the
