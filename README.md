@@ -17,11 +17,12 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
 Illumination now refunds half a critical heal’s recovery on a successful talent
-proc, with the rank’s chance highlighted inline.
+proc, with the rank’s chance highlighted inline. Native macOS checks cover
+purchase, independent specs, refund, restart and compact scrolling.
 
-![Illumination talent inspection](docs/images/screenshots/2026-10-29-illumination/wide.png)
+![Illumination talent inspection](docs/images/screenshots/2026-10-29-illumination/trained.png)
 
-![Compact Illumination tooltip](docs/images/screenshots/2026-10-29-illumination/compact.png)
+![Compact Illumination tooltip](docs/images/screenshots/2026-10-29-illumination/compact-purchase.png)
 
 Healing Way now has its three-rank proc chance and capped, timed healing bonus.
 

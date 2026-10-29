@@ -10,13 +10,14 @@ Critical Holy Light and Flash of Light heals now have a 20–100% chance by tale
 rank to refund half that cast’s final recovery. Damage and Holy Shock’s current
 noncritical heal are excluded. Green inline text shows the chance upgrade.
 Rank/proc/cast and purchase/save/spec/refund tests accompany the change. Native
-wide/compact tooltips verified; native purchase, Windows and attended combat
-remain unverified. Incremental build: 19 seconds.
+macOS checks now verify all five purchases, independent specs, row gating, refund,
+save/restart and compact scrolling/re-purchase. Windows, physical controller and
+attended combat remain unverified. Incremental build: 19 seconds.
 The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
 
-![Illumination in the Paladin talent tree](images/screenshots/2026-10-29-illumination/wide.png)
+![Illumination trained to rank five](images/screenshots/2026-10-29-illumination/trained.png)
 
-![Compact Illumination tooltip at 125% UI size](images/screenshots/2026-10-29-illumination/compact.png)
+![Compact Illumination purchase after save/restart](images/screenshots/2026-10-29-illumination/compact-purchase.png)
 
 ## 2026-10-29 — Healing Way talent
 

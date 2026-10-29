@@ -15,8 +15,11 @@ normal recovery. Inline green text shows the changing proc chance.
 
 Tests cover every rank, proc outcomes, upgraded-spell recovery, no-cast RNG,
 purchase/save/reload, independent specs and refund. Native screenshots cover
-1280×720 and 640×720 at 125% UI size. Native purchase, Windows and attended combat
-remain unverified. Incremental play build: 19 seconds.
+1280×720 and 640×720 at 125% UI size. Native macOS pointer purchase through 5/5,
+independent spec selection, rejection without earlier-row points, one-rank refund,
+save/restart at 4/5 and compact scrolling/re-purchase now pass. The isolated test
+profile preserves the production save. Windows, physical controller and attended
+combat remain unverified. Incremental play build: 19 seconds.
 The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
 
 ## Healing Way — 2026-10-29
@@ -1735,15 +1738,15 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
 | --- | ---: | ---: |
 | Warrior | 42 / 52 | 9 / 9 |
-| Paladin | 25 / 44 | 9 / 9 |
+| Paladin | 28 / 44 | 9 / 9 |
 | Hunter | 42 / 46 | 9 / 9 |
-| Rogue | 37 / 51 | 9 / 9 |
-| Priest | 30 / 47 | 9 / 9 |
-| Shaman | 31 / 46 | 9 / 9 |
+| Rogue | 38 / 51 | 9 / 9 |
+| Priest | 31 / 47 | 9 / 9 |
+| Shaman | 32 / 46 | 9 / 9 |
 | Mage | 38 / 49 | 9 / 9 |
 | Warlock | 29 / 50 | 9 / 9 |
 | Druid | 28 / 47 | 9 / 9 |
-| Total | 302 / 432 | 81 / 81 |
+| Total | 308 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing

@@ -121,4 +121,29 @@ refund halves the triggering cast’s final recovery after cooldown bonuses; it
 does not permanently change the spell. Holy Shock remains excluded while its
 cast heal is noncritical. Tests cover every rank, failed/successful proc rolls,
 actual cast recovery and purchase/save/spec/refund. Native wide/compact tooltip
-captures are recorded; native purchase, Windows and attended combat are pending.
+captures are recorded. Native macOS purchase/spec/refund/restart acceptance now
+passes as described below; Windows, controller and attended combat remain pending.
+
+
+## Illumination native acceptance — 2026-10-29
+
+Validated the `68fb544` implementation with the isolated Illumination profile and
+`docs/ui-previews/illumination-talents-{1280,640}.txt`; only the preview page,
+hero, inspection target and viewport were supplied by the fixture. Ranks below
+were changed through native pointer input, not by rewriting the save.
+
+- Start: first spec has 15 legal prerequisite points and 36 unspent; node 1461 is 0/5.
+- Buy five ranks: 20 spent, 31 unspent, 5/5 and green 100% chance.
+- Select spec 2: zero spent, 51 unspent, 0/5; clicking Illumination cannot buy it.
+  Spec 1 retains its 20 points. Return to spec 1 restores 5/5.
+- Right-click refund: 19 spent, 32 unspent, 4/5 and green 80 → 100% chance.
+  Disk row contains `0:1461:4` in spec 1; spec 2 remains empty.
+- Quit cleanly and restart at 640×720 / 125%: 4/5 and 19 Holy points return.
+  Scroll to the lower Holy rows and buy rank five; the node and pinned inspection
+  both show 5/5. The node remains reachable after the UI rebuild.
+
+Screenshots under `docs/images/screenshots/2026-10-29-illumination/`:
+`trained.png`, `second-spec.png`, `refunded.png`, `restarted-compact.png`,
+`compact-purchase.png`. The prior eight-package gate remains applicable: no
+runtime code changed during acceptance. A fresh checkout-data audit reports
+28/44 Paladin definitions and 308/432 total; definitions are not combat acceptance.
