@@ -5,6 +5,7 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
     let spells = benilla_formats::load_spell_catalog(chain)?;
     let durations = benilla_formats::load_spell_durations(chain)?;
     let ranges = benilla_formats::load_spell_ranges(chain)?;
+    let cast_times = benilla_formats::load_spell_cast_times(chain)?;
     let row = spells
         .get(id)
         .context("spell ID is absent from this install")?;
@@ -41,6 +42,30 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
     println!(
         "targets={:#x} maximum_targets={} caster_aura_state={} target_aura_state={}",
         row.targets, row.max_affected_targets, row.caster_aura_state, row.target_aura_state
+    );
+    println!(
+        "casting_time_index={} cast_time={:?}",
+        row.casting_time_index,
+        cast_times.get(row.casting_time_index)
+    );
+    // Keep power type signed: health costs use -2, not a very large mana type.
+    println!(
+        "power_type={} flat_cost={} cost_per_level={} base_mana_percent={} cost_per_second={}",
+        row.power_type as i32,
+        row.mana_cost,
+        row.mana_cost_per_level,
+        row.mana_cost_pct,
+        row.mana_per_second
+    );
+    println!(
+        "equipped_item_class={} subclass_mask={:#x} inventory_type_mask={:#x} reagents={:?}",
+        row.equipped_item_class,
+        row.equipped_item_subclass_mask,
+        row.equipped_item_inventory_type_mask,
+        row.reagents
+            .iter()
+            .filter(|(item, count)| *item != 0 && *count != 0)
+            .collect::<Vec<_>>()
     );
     for slot in 0..3 {
         if row.effects[slot] == 0 {

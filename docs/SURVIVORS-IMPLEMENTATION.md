@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Warlock demon dependency audit — 2026-10-29
+
+The installed catalog still has 300/432 definitions, including 29/50 Warlock nodes.
+[Warlock demon contract](audits/WARLOCK-DEMONS.md) records twelve missing nodes,
+summon identities, cast/resource evidence and the required pet ownership/lifecycle
+work. Starter choice versus acquired summon is pending user input. Neither species
+nor talent behavior is enabled by this audit. The spell evidence tool now exposes
+cast-time rows, signed power type, costs, equipment masks and reagents to avoid
+inventing these dependencies from talent descriptions alone.
+
 ## Starter equipment focus visibility — 2026-10-29
 
 Native compact acceptance at 640×480 / 125% exposed a footer clipping issue:

@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Warlock demon requirements
+
+Audited twelve missing demon talents and their summon dependencies. The spell
+evidence tool now reports cast times, resource costs, weapon restrictions and
+reagents. [The implementation contract](audits/WARLOCK-DEMONS.md) separates combat
+demons from pickup companions and records the required runtime and starter work.
+No demon or additional talent is enabled yet; definition coverage remains 300/432.
+Verified fifteen spell reports against checkout data; the eight-package gate passes
+(formatting, Clippy, tests; 31 optional-addon skips).
+
 ## 2026-10-29 — Keep equipment inspection above the footer
 
 Keyboard focus now scrolls both the equipment icon and its description into view.
