@@ -1089,3 +1089,21 @@ freezes it. The debuff marker clears on expiry, charge exhaustion or death.
 Hemorrhage can trigger equipped poisons and Seal Fate's existing finisher-recovery
 conversion; it does not gain bonuses explicitly limited to Sinister Strike or
 Backstab. Missing spells and other remaining Rogue talents stay separate work.
+
+### Druid Healing Touch
+
+Healing Touch (5185) joins the Druid six-slot acquisition pool as immediate
+self-healing: 40 base health, 16-second recovery, automatically below 85% health.
+These are authored Survivors values. The installed rank-one spell has a 1.5-second
+cast time, 25 mana cost, 40-yard friendly range and a variable, level-scaled heal;
+Survivors replaces that lifecycle with automatic self-casting and recovery.
+Normal rank power/recovery applies. Critical heals use hero/spell critical chance
+and fixed 150% healing; offensive critical damage does not apply. Overhealing is
+discarded, dead heroes cannot be revived, and existing periodic healing is untouched.
+Extra targets do not add recipients; healing does not emit damaging hits.
+
+Improved Healing Touch (3%/rank), Tranquil Spirit (2%/rank), Moonglow (3%/rank)
+and Nature's Swiftness (15%) multiply recovery. Gift of Nature and Nature's Focus
+each multiply healing by +2%/rank. These extend the existing authored conversions;
+their Rejuvenation benefits are retained. Improved Regrowth and Improved Rejuvenation
+remain specific to their named spells. No talent acquires Healing Touch for free.

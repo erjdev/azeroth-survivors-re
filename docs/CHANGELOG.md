@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Healing Touch and direct-healing builds
+
+Druids can acquire Healing Touch for immediate self-healing. Six healing/recovery
+talents now support it; critical healing is fixed at 150% and leaves ongoing heals
+untouched. Cards show healing and recovery growth inline. Native macOS captures
+verify wide cards and compact talent text; incremental build: 42s. Definition
+coverage stays 302/432. The eight-package formatting/Clippy/test gate passes
+(31 optional-addon skips). Windows, attended combat and balance remain open.
+
+![Healing Touch acquisition and upgrades](images/screenshots/2026-10-29-healing-touch/cards-wide.png)
+
+![Improved Healing Touch at 640×720 and 125%](images/screenshots/2026-10-29-healing-touch/talent-compact.png)
+
 ## 2026-10-29 — Nature's Focus includes Regrowth
 
 Nature's Focus now boosts both parts of Regrowth alongside Rejuvenation, multiplying

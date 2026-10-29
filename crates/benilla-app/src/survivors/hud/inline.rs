@@ -245,6 +245,15 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 duration
             );
         }
+        Kind::DirectHeal => {
+            prose!(
+                "Below 85% health, heals you immediately for ",
+                (a.dmg, b.dmg, " health"),
+                ". Has ",
+                (a.crit * 100., b.crit * 100., "% chance"),
+                " to critically heal for 150%"
+            );
+        }
         Kind::Regrowth => {
             prose!("Below 85% health, heals you immediately for ", (a.dmg, b.dmg, " health"),
                 ", then restores ", (a.dot, b.dot, " health per second"), " for ", duration,

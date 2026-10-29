@@ -317,7 +317,7 @@ impl Params {
             } else {
                 (stats.crit + effect.crit).min(1.0)
             },
-            crit_damage: if o.def.kind == Kind::Regrowth {
+            crit_damage: if matches!(o.def.kind, Kind::Regrowth | Kind::DirectHeal) {
                 1.5
             } else {
                 stats.crit_damage + effect.crit_damage
@@ -948,6 +948,19 @@ pub(super) fn cast_abilities(
                     run.thorns_t = p.duration;
                     run.thorns_spell = def.spell;
                     fx.cast(me, def.spell, &[me], None);
+                    true
+                } else {
+                    false
+                }
+            }
+            Kind::DirectHeal => {
+                if let Some((healed, critical)) =
+                    cast_direct_heal(&mut run, &p, stats.max_hp, &mut rng)
+                {
+                    fx.cast(me, def.spell, &[me], None);
+                    if healed > 0.0 {
+                        fx.number(me, healed, critical, COLOR_HEAL);
+                    }
                     true
                 } else {
                     false
@@ -11108,3 +11121,15 @@ mod regrowth_tests;
 #[cfg(test)]
 #[path = "hemorrhage_tests.rs"]
 mod hemorrhage_tests;
+
+fn cast_direct_heal(run: &mut Run, p: &Params, max_hp: f32, rng: &mut Rng) -> Option<(f32, bool)> {
+    if !run.alive() || run.hp >= max_hp * 0.85 || !max_hp.is_finite() || max_hp <= 0.0 {
+        return None;
+    }
+    let (amount, critical) = roll(rng, p.crit, p.crit_damage, p.dmg);
+    Some((run.heal(amount, max_hp), critical))
+}
+
+#[cfg(test)]
+#[path = "healing_touch_tests.rs"]
+mod healing_touch_tests;

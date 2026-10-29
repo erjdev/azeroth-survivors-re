@@ -92,6 +92,7 @@ pub(in crate::survivors) fn legend_effect(
             def.kind,
             Kind::Heal
                 | Kind::Regrowth
+                | Kind::DirectHeal
                 | Kind::Shield
                 | Kind::Immune
                 | Kind::Thorns
@@ -121,7 +122,7 @@ pub(in crate::survivors) fn legendary_changes(
         Kind::Aspect => "Dodge chance multiplier",
         Kind::Mark => "Mark power multiplier",
         Kind::Curse => "Curse potency multiplier",
-        Kind::Heal | Kind::Regrowth => "Healing bonus",
+        Kind::Heal | Kind::Regrowth | Kind::DirectHeal => "Healing bonus",
         Kind::Shield => "Absorb bonus",
         _ => "Damage bonus",
     };
@@ -153,7 +154,7 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
     };
     if def.kind != Kind::Immune && def.kind != Kind::Dot {
         let label = match def.kind {
-            Kind::Heal | Kind::Regrowth => "Healing",
+            Kind::Heal | Kind::Regrowth | Kind::DirectHeal => "Healing",
             Kind::Shield => "Absorb",
             _ => "Damage",
         };

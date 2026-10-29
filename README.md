@@ -22,7 +22,7 @@ minimum-window onboarding and restart captures are in the changelog.
 ![Fresh starter onboarding at 640×480 and 125% UI](docs/images/screenshots/2026-10-29-starter-onboarding/after.jpg)
 
 
-![Hemorrhage strike and vulnerability upgrades](docs/images/screenshots/2026-10-29-hemorrhage/cards-wide.png)
+![Healing Touch acquisition and upgrades](docs/images/screenshots/2026-10-29-healing-touch/cards-wide.png)
 
 ## Interface gallery
 

@@ -82,6 +82,8 @@ pub enum Kind {
     Heal,
     /// Direct healing plus `dot` healing per second for `duration`; only direct healing can crit.
     Regrowth,
+    /// Immediate self-healing with a fixed 150% critical multiplier.
+    DirectHeal,
     /// Drops a totem that casts `sub` for `duration`.
     Totem,
 }
@@ -1067,6 +1069,14 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "healing_touch",
+        5185,
+        DirectHeal {
+            damage: 40.0,
+            cooldown: 16.0
+        }
+    ),
+    ability!(
         "regrowth",
         8936,
         Regrowth {
@@ -1434,6 +1444,7 @@ pub static CLASSES: &[ClassDef] = &[
             "thorns",
             "rejuvenation",
             "regrowth",
+            "healing_touch",
         ],
         looks: &[
             1706, 1732, 2106, 2115, 2121, 2250, 2255, 2261, 3300, 3301, 3302, 3819, 3820, 7357,

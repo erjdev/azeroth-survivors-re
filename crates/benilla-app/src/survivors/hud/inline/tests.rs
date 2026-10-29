@@ -385,3 +385,18 @@ fn regrowth_inline_growth_names_both_heals_and_never_claims_damage() {
         && text.ends_with(" health per second")
         && *color == card_growth::GAIN));
 }
+
+#[test]
+fn healing_touch_inline_growth_is_direct_healing_with_no_periodic_or_damage_claim() {
+    let spans = describe(
+        Choice::NewAbility(data::ability("healing_touch")),
+        &Run::default(),
+    );
+    let text: String = spans.iter().map(|(text, _)| text.as_str()).collect();
+    assert!(text.contains("immediately"));
+    assert!(text.contains("critically heal for 150%"));
+    assert!(!text.contains("damage") && !text.contains("per second"));
+    assert!(spans.iter().any(|(text, color)| text.contains(" » ")
+        && text.ends_with(" health")
+        && *color == card_growth::GAIN));
+}

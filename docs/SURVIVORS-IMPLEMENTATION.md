@@ -9554,3 +9554,19 @@ Validation: eight-package formatting/Clippy/test gate green (31 optional-addon s
 Native macOS previews at 1280×720 and 640×720 / 125% show the complete inline
 8 → 10% healing change. Screenshots are embedded in CHANGELOG and README. The
 incremental play build took 15 seconds. Coverage stays 302/432 (Druid 28/47).
+
+### 2026-10-29 — Healing Touch acquisition and training
+
+Add a direct-healing ability to the Druid pool with installed spell identity 5185.
+Authored values and recovery conversions are specified in SURVIVORS.md. Wire named
+Healing Touch training and existing healing/recovery groups without removing saved
+Rejuvenation benefits. Acceptance covers automatic threshold, death, overheal,
+critical multiplier, untouched periodic sources, failed-cast RNG, talent composition,
+spell-specific exclusions, acquisition identity and native inline card/talent text.
+Windows and attended combat/balance remain separate gates; coverage is unchanged.
+
+Validation: required eight-package formatting/Clippy/test gate green, with 31
+optional-addon skips. Native macOS captures verify 1280×720 acquisition/upgrade
+cards and the rank-4 talent at 640×720 / 125%. Incremental build: 42 seconds.
+Screenshots are inline in CHANGELOG and the README. This proves preview rendering
+and automated behavior, not attended gameplay or Windows acceptance.

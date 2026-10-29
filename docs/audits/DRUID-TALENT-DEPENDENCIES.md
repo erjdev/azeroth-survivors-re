@@ -115,5 +115,17 @@ are existing definitions gaining a missing consumer, not new definitions.
 Nature's Focus (823; 17063/17065–17068) names Healing Touch, Regrowth and Tranquility
 in its installed pushback-protection rule. Its explicit +2%/rank healing conversion now includes Rejuvenation and Regrowth,
 including both direct and periodic healing; Gift of Nature multiplies it. Healing
-Touch and Tranquility lifecycles remain separate work. The authored healing bonus
+Touch is now acquired direct healing with the same conversion; Tranquility remains
+separate work. The authored healing bonus
 is not the installed 14/28/42/56/70% pushback-protection chance.
+
+## Healing Touch dependency resolved
+
+Acquired Healing Touch now uses spell 5185, direct self-healing and fixed 150%
+critical healing. Installed Improved Healing Touch (824) names that spell with
+0.1 sec/rank cast reduction; Tranquil Spirit (843) names Healing Touch/Tranquility
+with 2%/rank mana reduction; Moonglow (783) includes Healing Touch at 3%/rank.
+Their existing explicit recovery conversions now reach this ability, together with
+Nature's Swiftness. Gift of Nature and Nature's Focus scale its healing. Existing
+Rejuvenation benefits remain deliberate authored rules. Values and acceptance
+limits are in SURVIVORS.md and the implementation plan; no coverage increase.
