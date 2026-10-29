@@ -21,6 +21,9 @@ use bevy::{
 };
 use std::collections::{HashMap, HashSet};
 
+#[path = "actor_mask_preview.rs"]
+mod preview;
+
 // Reserved above the portrait/UI-model layer ladder. This camera is never a WorldCamera.
 const LAYER: usize = 128;
 
@@ -32,6 +35,7 @@ struct Mirror;
 #[derive(Resource, Default)]
 struct Mask {
     enabled: bool,
+    preview: bool,
     camera: Option<Entity>,
     image: Handle<Image>,
     size: UVec2,
@@ -43,7 +47,13 @@ pub(super) fn plugin(app: &mut App) {
     let mut mask = Mask::default();
     #[cfg(not(target_arch = "wasm32"))]
     {
-        mask.enabled = std::env::var("WOW_SURVIVORS_ACTOR_MASK").is_ok_and(|v| v == "1");
+        mask.preview = crate::run_mode::dev_affordances()
+            && std::env::var("WOW_SURVIVORS_ACTOR_MASK_PREVIEW").is_ok_and(|v| v == "1");
+        mask.enabled =
+            mask.preview || std::env::var("WOW_SURVIVORS_ACTOR_MASK").is_ok_and(|v| v == "1");
+    }
+    if mask.preview {
+        preview::plugin(app);
     }
     app.insert_resource(mask)
         .add_plugins(ExtractComponentPlugin::<ActorMaskView>::default())
@@ -72,6 +82,42 @@ fn color(side: u8) -> Vec3 {
         2 => Vec3::Y,
         _ => Vec3::Z,
     }
+}
+
+type Owners<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Option<&'static ChildOf>,
+        Option<&'static benilla_world::billboard::BillboardCard>,
+        Option<&'static crate::net::NetEntity>,
+        Option<&'static InheritedVisibility>,
+    ),
+>;
+type Allegiance<'w, 's> = Query<'w, 's, (Has<Hero>, Has<Enemy>, Has<HunterPet>, Has<Fetcher>)>;
+
+fn owner_side(mut entity: Entity, owners: &Owners, allegiance: &Allegiance) -> Option<u8> {
+    // Billboard batches are world roots; follow their explicit attachment before parents.
+    // The bound also prevents malformed attachment cycles from hanging a frame.
+    for _ in 0..64 {
+        let (parent, card, actor, visible) = owners.get(entity).ok()?;
+        if visible.is_some_and(|visible| !visible.get()) {
+            return None;
+        }
+        if actor.is_some_and(|actor| {
+            matches!(
+                actor.kind,
+                benilla_protocol::EntityKind::Player | benilla_protocol::EntityKind::Unit
+            )
+        }) {
+            let (hero, enemy, pet, companion) = allegiance.get(entity).ok()?;
+            return Some(side(hero, enemy, pet, companion));
+        }
+        entity = card
+            .and_then(|card| card.follows())
+            .or_else(|| parent.map(ChildOf::parent))?;
+    }
+    None
 }
 
 type Parts<'w, 's> = Query<
@@ -124,8 +170,8 @@ fn sync(
         ),
         (With<Mirror>, Without<WorldCamera>, Without<ActorMaskView>),
     >,
-    parents: Query<&ChildOf>,
-    allegiance: Query<(Has<Hero>, Has<Enemy>, Has<HunterPet>, Has<Fetcher>)>,
+    owners: Owners,
+    allegiance: Allegiance,
     mut images: ResMut<Assets<Image>>,
     mut materials: ResMut<Assets<WowModelMaterial>>,
     mut events: MessageReader<AssetEvent<WowModelMaterial>>,
@@ -137,7 +183,9 @@ fn sync(
             _ => None,
         })
         .collect();
-    let active = mask.enabled && !matches!(phase.get(), Phase::Menu | Phase::GameOver);
+    let active = mask.enabled
+        && (!matches!(phase.get(), Phase::Menu | Phase::GameOver)
+            || (mask.preview && *phase.get() == Phase::Menu));
     let source = view.single().ok().filter(|(camera, _, _)| {
         active
             && camera.is_active
@@ -228,21 +276,9 @@ fn sync(
         {
             continue;
         }
-        let mut ancestor = entity;
-        let mut group = 0;
-        // Hierarchies are acyclic in Bevy; the bound also guards malformed test data.
-        for _ in 0..64 {
-            if let Ok((hero, enemy, pet, companion)) = allegiance.get(ancestor) {
-                group = side(hero, enemy, pet, companion);
-                if group != 0 {
-                    break;
-                }
-            }
-            let Ok(parent) = parents.get(ancestor) else {
-                break;
-            };
-            ancestor = parent.parent();
-        }
+        let Some(group) = owner_side(entity, &owners, &allegiance) else {
+            continue;
+        };
         let key = (source.0.id(), group);
         if !materials.contains(key.0) {
             continue;
@@ -412,6 +448,56 @@ mod tests {
         world.insert_resource(State::new(Phase::Menu));
         world.run_system_once(sync).unwrap();
         assert!(!world.get::<Camera>(camera).unwrap().is_active);
+    }
+
+    #[test]
+    fn detached_item_cards_follow_actor_ownership_and_concealment() {
+        use benilla_world::billboard::BillboardCard;
+        use bevy::ecs::system::RunSystemOnce;
+        let mut world = World::new();
+        let actor = |kind| crate::net::NetEntity {
+            kind,
+            display_id: Some(49),
+            scale: 1.0,
+        };
+        let hero = world
+            .spawn((
+                actor(benilla_protocol::EntityKind::Unit),
+                Hero { vy: 0.0, air: 0.0 },
+                InheritedVisibility::VISIBLE,
+            ))
+            .id();
+        let joint = world.spawn(ChildOf(hero)).id();
+        let card = world
+            .spawn((
+                BillboardCard::frame_following(
+                    benilla_formats::BillboardKind::Spherical,
+                    Vec3::ZERO,
+                    joint,
+                ),
+                InheritedVisibility::VISIBLE,
+            ))
+            .id();
+        let neutral = world
+            .spawn((
+                actor(benilla_protocol::EntityKind::Unit),
+                InheritedVisibility::VISIBLE,
+            ))
+            .id();
+        let effect = world.spawn_empty().id();
+        world
+            .run_system_once(move |owners: Owners, allegiance: Allegiance| {
+                assert_eq!(owner_side(card, &owners, &allegiance), Some(2));
+                assert_eq!(owner_side(neutral, &owners, &allegiance), Some(0));
+                assert_eq!(owner_side(effect, &owners, &allegiance), None);
+            })
+            .unwrap();
+        *world.get_mut::<InheritedVisibility>(hero).unwrap() = InheritedVisibility::HIDDEN;
+        world
+            .run_system_once(move |owners: Owners, allegiance: Allegiance| {
+                assert_eq!(owner_side(card, &owners, &allegiance), None);
+            })
+            .unwrap();
     }
 
     #[test]

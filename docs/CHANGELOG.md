@@ -4,6 +4,25 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Native actor-mask preview
+
+The developer preview now displays the real posed player mask without starting a run.
+Metal inspection caught detached weapon cards losing their actor ownership; they now
+follow attachment links and respect hidden owners. Ownerless effect meshes are excluded,
+while neutral actors still own depth. Live character replacement and resizing were
+checked at 1100×720 and 640×720. Native incremental build: 1m12s.
+
+![Before: detached weapon card incorrectly owns neutral blue pixels](images/screenshots/2026-10-28-actor-mask/before.jpg)
+
+![Corrected Warrior mask including equipped weapon](images/screenshots/2026-10-28-actor-mask/warrior.jpg)
+
+![Live character replacement and compact target resize](images/screenshots/2026-10-28-actor-mask/paladin-compact.jpg)
+
+These are raw debug masks, not the finished see-through effect. Scene-depth compositing,
+enemy/neutral overlap, filter settings, broader GPU precision and Windows acceptance
+remain open. All 553 Survivors tests, feature Clippy and eight-package scoped checks
+pass (31 missing-addon skips). Full pre-merge gates remain required.
+
 ## 2026-10-28 — Actor mask for occlusion silhouettes
 
 Added an opt-in actor-only render view that follows source model poses, textures,

@@ -1888,7 +1888,10 @@ comparison/filter contract is tested but has no renderer consumer. Persisted
 silhouette switches and composited red/green GPU output remain unimplemented.
 An opt-in actor-only render view now mirrors source creature meshes/materials with
 separate nearest-surface depth; see the audit for its lifecycle and validation limits.
-GPU fixture acceptance and the scene-depth compositor are the next required steps.
+First Metal mask captures now verify a posed player with equipment and live
+character/target-size changes. Detached billboard ownership was corrected from this
+inspection; hidden actor owners and ownerless effects are excluded. Captures are inline
+in CHANGELOG. Mixed-actor blocker acceptance and the scene-depth compositor remain open.
 
 Use separate policies for foliage visibility, body collision and solid-world camera collision.
 A canopy obscuring the hero is not by itself a reason to collapse the camera boom. The

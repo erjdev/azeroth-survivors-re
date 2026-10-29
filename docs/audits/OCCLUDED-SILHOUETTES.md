@@ -78,7 +78,44 @@ fixed-size layer constructor; the mask now uses the dynamic layer constructor.
 This is renderer infrastructure, disabled by default. There is no compositor or
 settings consumer yet. CPU lifecycle/pipeline tests do not establish shader compilation,
 GPU precision, animated source fidelity, MSAA edges or Windows acceptance. The next
-step is an isolated native render fixture, followed by the scene-depth compositor.
+step is mixed-actor obstruction validation and the scene-depth compositor.
+
+## First native mask evidence
+
+With a development build, `WOW_SURVIVORS_ACTOR_MASK_PREVIEW=1` enables the mask in
+the menu and displays its color attachment above the starter. Use an isolated
+`BENILLA_HOME` and the existing UI preview file to choose a saved hero and size;
+no run or combat is needed. Player builds ignore the preview flag. This is a
+diagnostic overlay, not a new player-facing interface.
+
+On Apple M1 Max / Metal, the shader compiled with `WOW_RIG_SKIN` and
+`SURVIVORS_ACTOR_MASK`, no blending, depth writes, reverse-Z GreaterEqual and one
+sample. Captures in `../images/screenshots/2026-10-28-actor-mask/` show a Warrior
+at 1100×720 and a live switch to a Paladin at 640×720. The initial capture exposed
+a detached weapon billboard classified as neutral; ownership now follows
+`BillboardCard::follows()` before ordinary parent links and requires a Unit/Player
+owner. Hidden owners reject their detached cards, and ownerless effects are excluded.
+
+This proves the pictured player mask and live replacement/resize on Metal. It does
+not prove depth comparison, obscured-only output, enemy/neutral overlap, all poses,
+MSAA equivalence or Windows. The separate blocker fixture remains required below.
+
+## Compositor integration constraints
+
+`Node3d::EndMainPass → silhouette node → StartMainPassPostProcessing` provides
+an explicit edge before the existing FFX combine while seeing completed scenery
+and actor depth. A new extracted marker must identify the source world view;
+`WorldCamera` itself is not an extracted component. Match target size, projection
+and viewport before consuming the mask, and skip rather than use stale attachments.
+
+The world defaults to 4× MSAA; the current experimental mask is single-sample.
+Bevy 0.18.1 exposes `ViewTarget::sampled_main_texture_view()`, but its multisampled
+color attachment is created with **RENDER_ATTACHMENT only** in `prepare_view_targets`.
+It cannot simply be bound as a sampled texture. Matching mask depth MSAA while
+reading resolved allegiance color also loses per-sample ownership where different
+actors overlap. Resolve this with appropriately owned sampleable attachments or an
+equivalent verified pass before claiming MSAA edge/overlap acceptance. Do not force
+the player's world MSAA off or silently treat mixed resolved colors as one actor.
 
 ## Required isolated visual acceptance
 

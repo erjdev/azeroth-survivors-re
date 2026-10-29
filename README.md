@@ -314,6 +314,11 @@ navigation and return paths verified; silhouette filters remain unimplemented.
 
 ![Saved controller settings at 640×480/125%](docs/images/screenshots/2026-10-28-dead-zone/compact-defaults.jpg)
 
+Developer rendering checkpoint (2026-10-28): raw posed actor mask on Metal. This is
+not the finished occlusion reveal; compositing and independent filters remain pending.
+
+![Developer actor mask with equipped weapon](docs/images/screenshots/2026-10-28-actor-mask/warrior.jpg)
+
 ![Compact Graphics settings](docs/images/screenshots/2026-10-28-scaled-settings/graphics.jpg)
 
 
