@@ -4,6 +4,16 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Combat-pet hit ownership
+
+Hunter bites and periodic effects now carry explicit pet origin instead of relying
+on a damage-meter label. Pet attacks cannot acquire hero-only bonuses or procs by
+sharing an ability name; existing loot, leech and target-vulnerability behavior is
+preserved. This prepares the damage path for demons without enabling them yet.
+All 584 focused runtime tests pass; native incremental build: 3m11s. The eight-package
+gate passes formatting, Clippy and tests (31 optional-addon skips). No interface
+or rendered model changes are included in this checkpoint.
+
 ## 2026-10-29 — Warlock demon requirements
 
 Audited twelve missing demon talents and their summon dependencies. The spell

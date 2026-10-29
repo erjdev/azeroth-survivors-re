@@ -85,6 +85,7 @@ fn curses_replace_both_ways_refresh_without_stacking_and_preserve_other_effects(
         );
         e.root_t = 2.;
         e.dots.push(enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
             dps: 1.,
             left: 10.,
             tick: 1.,

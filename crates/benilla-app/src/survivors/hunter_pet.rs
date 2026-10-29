@@ -246,6 +246,7 @@ pub(super) fn fight(
                     }
                     let mut hit = Hit::direct(victim, damage, critical);
                     hit.source = SOURCE;
+                    hit.origin = super::abilities::HitOrigin::CombatPet;
                     if index == 0
                         && bonus.intimidation
                         && run.elapsed >= run.pet_intimidation_ready_at
@@ -423,6 +424,10 @@ mod tests {
                 !app.world().resource::<Messages<Hit>>().is_empty(),
                 expected
             );
+            for hit in app.world_mut().resource_mut::<Messages<Hit>>().drain() {
+                assert_eq!(hit.origin, super::super::abilities::HitOrigin::CombatPet);
+                assert_eq!(hit.source, SOURCE);
+            }
         }
     }
 

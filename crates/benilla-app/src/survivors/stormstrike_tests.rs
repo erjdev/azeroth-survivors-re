@@ -109,6 +109,7 @@ fn periodic_nature_ticks_consume_charges_but_zero_damage_preserves_them() {
         .unwrap()
         .dots
         .push(enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
             dps: 10.0,
             left: 3.0,
             tick: 1.0,

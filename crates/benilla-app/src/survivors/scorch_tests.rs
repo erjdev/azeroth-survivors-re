@@ -49,6 +49,7 @@ fn scorch_applies_after_damage_and_scales_only_catalog_fire_including_ticks() {
         );
         app.world_mut().resource_mut::<Messages<Hit>>().clear();
         app.world_mut().get_mut::<Enemy>(target).unwrap().dots = vec![enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
             dps: 10.,
             left: 1.,
             tick: 1.,

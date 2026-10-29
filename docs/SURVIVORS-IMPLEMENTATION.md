@@ -5,6 +5,19 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Combat-pet hit origin — 2026-10-29
+
+Direct and periodic damage now retain explicit hero/pet origin independently of
+meter labels. Hunter bites use the pet origin. Splash copies preserve it, and
+owner-only damage bonuses and talent procs must not be granted merely because a
+pet shares a hero ability key. Existing pet leech, multistrike, target vulnerability,
+kill credit and loot behavior remain. Tests cover deliberately colliding labels,
+periodic and splash damage, and lethal/overkill settlement. This is a demon
+prerequisite, not demon runtime or additional talent completion. Concrete demon
+caster state, spell metadata, acquisition and lifecycle remain in the demon contract.
+Validation: 584 focused runtime tests, native play build (3m11s), and the eight-package
+formatting/Clippy/test gate pass; 31 optional-addon tests skip.
+
 ## Warlock demon dependency audit — 2026-10-29
 
 The installed catalog still has 300/432 definitions, including 29/50 Warlock nodes.

@@ -48,6 +48,7 @@ pub(super) struct Enemy {
 }
 
 pub(super) struct Dot {
+    pub origin: super::abilities::HitOrigin,
     pub dps: f32,
     pub left: f32,
     pub tick: f32,

@@ -32,10 +32,13 @@ fn near(actual: f32, expected: f32) {
 
 #[test]
 fn direct_critical_and_pet_hits_settle_against_each_category() {
-    for (class, source) in [
-        (2, "arcane_shot"),
-        (3, "sinister_strike"),
-        (2, super::super::hunter_pet::SOURCE),
+    for (class, source, origin) in [
+        (2, "arcane_shot", HitOrigin::Hero),
+        (3, "sinister_strike", HitOrigin::Hero),
+        (2, super::super::hunter_pet::SOURCE, HitOrigin::CombatPet),
+        (2, "arcane_shot", HitOrigin::CombatPet),
+        (2, "Renamed companion", HitOrigin::CombatPet),
+        (2, super::super::hunter_pet::SOURCE, HitOrigin::Hero),
     ] {
         for kind in [
             CreatureType::Beast,
@@ -51,11 +54,12 @@ fn direct_critical_and_pet_hits_settle_against_each_category() {
                 let input = if critical { 200.0 } else { 100.0 };
                 app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
                     source,
+                    origin,
                     ..Hit::direct(target, input, critical)
                 });
                 advance(&mut app, &mut schedule, 0.0);
                 let matches = matches!(kind, CreatureType::Beast | CreatureType::Humanoid);
-                let factor = if !matches || source == super::super::hunter_pet::SOURCE {
+                let factor = if !matches || origin == HitOrigin::CombatPet {
                     1.0
                 } else if class == 3 {
                     1.02
@@ -143,6 +147,7 @@ fn murder_applies_once_to_instant_deadly_and_generic_periodic_damage() {
         .unwrap()
         .dots
         .push(super::super::enemies::Dot {
+            origin: HitOrigin::Hero,
             source: "rupture",
             dps: 10.0,
             left: 3.0,

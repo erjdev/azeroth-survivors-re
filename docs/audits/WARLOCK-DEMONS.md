@@ -83,10 +83,14 @@ before rendering. Never use the installed Applications game as evidence.
 6. Finish mana/threat/resistance/sacrifice dependencies and the remaining nodes.
    Missing mechanics stay explicitly pending, without claiming definition coverage.
 
-The current hit pipeline special-cases the string `Hunter Pet` to exclude owner
-creature-slaying bonuses. Introduce explicit pet source ownership before additional
-species: demon hits must not accidentally trigger player weapon poisons, Seal Fate,
-mark consumers or other owner-only attack procs. Decide which owner stats are
+The hit pipeline now carries explicit `Hero`/`CombatPet` origin on direct hits and
+periodic records; the Hunter wolf emits `CombatPet`. Origin survives splash and
+queued settlement, replacing the old `Hunter Pet` string exception. Pet hits bypass
+owner creature-slaying bonuses, ranged mark power, weapon poisons and owner talent
+triggers (including Seal Fate, Ignite, Combustion and periodic Nightfall). They retain
+existing target-vulnerability, multistrike, leech, meter and loot settlement.
+Future demons must supply their own spell metadata and concrete caster/lifecycle
+state; the origin tag does not implement demons, casts or pet resource policies. Decide which owner stats are
 intentionally inherited and test that list; do not inherit everything by accident.
 Hunter frenzy and Spirit Bond remain Hunter-specific. Pet damage retains normal
 victim death, meter, loot and leech settlement without duplicating kill credit.
@@ -106,3 +110,9 @@ Validation: fifteen installed spell reports exercise casted/instant spells, sign
 health cost, base-mana percentage, reagent and weapon restriction fields. The audit
 build and eight-package gate pass (formatting, Clippy, tests; 31 optional-addon
 skips). This is evidence/tooling validation, not demon gameplay acceptance.
+
+Hit-origin checkpoint: 584 focused runtime tests pass, including deliberately
+colliding hero/pet labels, owner poison/Seal Fate, Ignite/Combustion/Scorch, periodic
+Nightfall, splash/periodic propagation and one-time lethal loot/leech settlement.
+The native play build passes in 3m11s. The eight-package formatting/Clippy/test gate
+also passes (31 optional-addon skips). No demon model or interface is enabled.

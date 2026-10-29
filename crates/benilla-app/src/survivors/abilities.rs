@@ -10,9 +10,30 @@ use super::units::{self, flat, Fx, Marks, UnitSpec, COLOR_HEAL, COLOR_MELEE, COL
 use super::{Rng, Run, RunEntity};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
+/// Ownership is independent of the ability key or damage-meter label.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(super) enum HitOrigin {
+    #[default]
+    Hero,
+    CombatPet,
+}
+
+impl HitOrigin {
+    fn owner_talents(
+        self,
+        talents: survivors_core::talents::Milestones,
+    ) -> survivors_core::talents::Milestones {
+        match self {
+            Self::Hero => talents,
+            Self::CombatPet => Default::default(),
+        }
+    }
+}
+
 /// One blow landing on one enemy.
 #[derive(Message, Clone)]
 pub(super) struct Hit {
+    pub origin: HitOrigin,
     /// Active-run occurrence time; None means the current settlement update.
     pub occurred: Option<f32>,
     pub target: Entity,
@@ -35,6 +56,7 @@ pub(super) struct Hit {
 impl Hit {
     pub fn direct(target: Entity, damage: f32, crit: bool) -> Self {
         Self {
+            origin: HitOrigin::Hero,
             occurred: None,
             target,
             damage,
@@ -317,6 +339,7 @@ fn mark_secs(p: &Params) -> f32 {
 
 fn hit_for(def: &AbilityDef, p: &Params, target: Entity, damage: f32, crit: bool) -> Hit {
     Hit {
+        origin: HitOrigin::Hero,
         occurred: None,
         target,
         damage,
@@ -1156,6 +1179,7 @@ pub(super) fn tick_areas(
                     area.damage,
                 );
                 hits.write(Hit {
+                    origin: HitOrigin::Hero,
                     occurred: Some(now),
                     target: f.e,
                     damage: dmg,
@@ -1244,7 +1268,10 @@ fn refresh_deep_wounds(dots: &mut Vec<enemies::Dot>, total: f32) {
     if total <= 0.0 {
         return;
     }
-    if let Some(dot) = dots.iter_mut().find(|dot| dot.source == "Deep Wounds") {
+    if let Some(dot) = dots
+        .iter_mut()
+        .find(|dot| dot.origin == HitOrigin::Hero && dot.source == "Deep Wounds")
+    {
         dot.dps = dot.dps.max(total / 3.0);
         dot.left = 3.0;
         // Keep the next tick: repeated criticals must not postpone all bleed damage.
@@ -1253,6 +1280,7 @@ fn refresh_deep_wounds(dots: &mut Vec<enemies::Dot>, total: f32) {
             dots.remove(0);
         }
         dots.push(enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
             dps: total / 3.0,
             left: 3.0,
             tick: 1.0,
@@ -1266,7 +1294,10 @@ fn refresh_ignite(dots: &mut Vec<enemies::Dot>, added: f32) {
     if !added.is_finite() || added <= 0.0 {
         return;
     }
-    if let Some(dot) = dots.iter_mut().find(|dot| dot.source == "Ignite") {
+    if let Some(dot) = dots
+        .iter_mut()
+        .find(|dot| dot.origin == HitOrigin::Hero && dot.source == "Ignite")
+    {
         let ticks = (dot.left - dot.tick + 0.00001).floor().max(-1.0) + 1.0;
         let total = dot.dps * ticks + added;
         if total.is_finite() {
@@ -1278,6 +1309,7 @@ fn refresh_ignite(dots: &mut Vec<enemies::Dot>, added: f32) {
             dots.remove(0);
         }
         dots.push(enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
             dps: added / 4.0,
             left: 4.0,
             tick: 1.0,
@@ -1376,10 +1408,10 @@ fn sword_extra_hit(
 fn creature_multiplier(
     talents: survivors_core::talents::Milestones,
     kind: survivors_core::creature::CreatureType,
-    source: &str,
+    origin: HitOrigin,
     critical: bool,
 ) -> f32 {
-    if source == super::hunter_pet::SOURCE {
+    if origin == HitOrigin::CombatPet {
         1.0
     } else {
         talents.creature_damage_multiplier(kind, critical)
@@ -1544,7 +1576,7 @@ pub(super) fn apply_hits(
                     continue;
                 }
                 // Hamstring's conversion rolls once per original Thunder Clap victim, before splash.
-                let root = if run.alive() {
+                let root = if run.alive() && h.origin == HitOrigin::Hero {
                     run.milestones.hamstring_root_chance(h.source, h.damage)
                 } else {
                     0.0
@@ -1555,7 +1587,7 @@ pub(super) fn apply_hits(
                     }
                 }
                 // Only the original weapon hit may stun; splash copies below never roll this proc.
-                let mace = if run.alive() {
+                let mace = if run.alive() && h.origin == HitOrigin::Hero {
                     run.milestones.mace_stun_chance(h.source, h.damage)
                 } else {
                     0.0
@@ -1567,6 +1599,7 @@ pub(super) fn apply_hits(
                 }
                 // Only original landed hits roll. Splash copies and generated strikes never recurse.
                 let sword = if run.alive()
+                    && h.origin == HitOrigin::Hero
                     && run.milestones.sword_extra_attack_chance(h.source, h.damage) > 0.0
                 {
                     sword_extra_hit(&h, run.milestones, rng.f32())
@@ -1615,7 +1648,9 @@ pub(super) fn apply_hits(
             continue;
         }
         let stats = run.stats();
+        let owner_talents = h.origin.owner_talents(run.milestones);
         let mark_bonus = if run.alive()
+            && h.origin == HitOrigin::Hero
             && run.class.id == 3
             && h.damage > 0.0
             && h.ranged_power_scale.is_finite()
@@ -1636,7 +1671,8 @@ pub(super) fn apply_hits(
         };
         let impact_time = h.occurred.unwrap_or(now);
         // A curse refresh replaces only this caster's curse, never unrelated debuffs.
-        if matches!(h.source, "curse_of_agony" | "curse_of_weakness") {
+        if h.origin == HitOrigin::Hero && matches!(h.source, "curse_of_agony" | "curse_of_weakness")
+        {
             if !original {
                 continue;
             }
@@ -1656,14 +1692,15 @@ pub(super) fn apply_hits(
             if !accepted {
                 continue;
             }
-            en.dots.retain(|dot| dot.source != "curse_of_agony");
+            en.dots
+                .retain(|dot| dot.origin != HitOrigin::Hero || dot.source != "curse_of_agony");
             marks.remove(980);
             marks.remove(702);
         }
 
         let mut dmg = (h.damage + mark_bonus)
             * fire.multiplier(h.source, impact_time, spells.as_deref(), run.thorns_spell)
-            * creature_multiplier(run.milestones, en.def.creature_type, h.source, h.crit)
+            * creature_multiplier(run.milestones, en.def.creature_type, h.origin, h.crit)
             * run
                 .milestones
                 .shadow_damage_multiplier(h.source, en.shadow_weaving)
@@ -1687,7 +1724,7 @@ pub(super) fn apply_hits(
             dmg *= echoes as f32;
             let removed = dmg.min(en.hp.max(0.0));
             if run.alive() {
-                let talents = run.milestones;
+                let talents = owner_talents;
                 let elapsed = run.elapsed;
                 run.natures_grace
                     .hit(talents, h.source, removed, h.crit, elapsed);
@@ -1707,9 +1744,7 @@ pub(super) fn apply_hits(
             }
             en.hp -= dmg;
             if run.alive() && en.hp > 0.0 {
-                let chance = run
-                    .milestones
-                    .improved_scorch_chance(h.source, removed, original);
+                let chance = owner_talents.improved_scorch_chance(h.source, removed, original);
                 if chance > 0.0 && rng.f32() < chance {
                     fire.0.apply(impact_time);
                     marks.add(22959, (impact_time + 30.0 - now).max(0.0));
@@ -1722,14 +1757,14 @@ pub(super) fn apply_hits(
             } else {
                 0.0
             } + removed * stats.leech
-                + run.milestones.vampiric_healing(h.source, removed);
+                + owner_talents.vampiric_healing(h.source, removed);
             if heal > 0.0 {
                 run.heal(heal, stats.max_hp);
             }
             if en.hp > 0.0
                 && run.alive()
                 && survivors_core::talents::Coating::eligible(
-                    run.milestones,
+                    owner_talents,
                     h.source,
                     removed,
                     original,
@@ -1751,7 +1786,7 @@ pub(super) fn apply_hits(
                                     * creature_multiplier(
                                         run.milestones,
                                         en.def.creature_type,
-                                        coating.key(),
+                                        HitOrigin::Hero,
                                         false,
                                     )
                                     * run.milestones.kidney_exposure_multiplier(en.kidney_t);
@@ -1778,57 +1813,60 @@ pub(super) fn apply_hits(
                 }
             }
         }
-        let talents = run.milestones;
+        let talents = owner_talents;
         let elapsed = run.elapsed;
         run.combustion
             .hit(talents, h.source, h.damage, h.crit, elapsed);
-        run.record_flurry_hit(h.source, h.damage, h.crit);
-        run.record_vengeance_hit(h.source, dmg, h.crit);
-        let bleed = run.milestones.critical_bleed(h.source, h.damage, h.crit);
+        if h.origin == HitOrigin::Hero {
+            run.record_flurry_hit(h.source, h.damage, h.crit);
+            run.record_vengeance_hit(h.source, dmg, h.crit);
+        }
+        let bleed = owner_talents.critical_bleed(h.source, h.damage, h.crit);
         refresh_deep_wounds(&mut en.dots, bleed);
         refresh_ignite(
             &mut en.dots,
-            run.milestones.ignite(h.source, h.damage, h.crit),
+            owner_talents.ignite(h.source, h.damage, h.crit),
         );
         if h.dot > 0.0 && h.dot_dur > 0.0 {
             if en.dots.len() >= 6 {
                 en.dots.remove(0);
             }
             en.dots.push(enemies::Dot {
+                origin: h.origin,
                 dps: h.dot,
                 left: h.dot_dur,
                 tick: 1.0,
                 source: h.source,
             });
         }
-        let weaving = run.milestones.shadow_weaving_chance(h.source, h.damage);
+        let weaving = owner_talents.shadow_weaving_chance(h.source, h.damage);
         if weaving > 0.0 && rng.f32() < weaving {
             en.shadow_weaving.apply();
         }
-        let chill_chance = run.milestones.winters_chill_chance(h.source, h.damage);
+        let chill_chance = owner_talents.winters_chill_chance(h.source, h.damage);
         if chill_chance > 0.0 && rng.f32() < chill_chance {
             en.winters_chill.apply();
         }
-        let blackout = run.milestones.blackout_chance(h.source, h.damage);
+        let blackout = owner_talents.blackout_chance(h.source, h.damage);
         if blackout > 0.0 && rng.f32() < blackout {
             apply_blackout(&mut en);
         }
-        let impact_chance = run.milestones.impact_chance(h.source, h.damage);
+        let impact_chance = owner_talents.impact_chance(h.source, h.damage);
         if impact_chance > 0.0 && rng.f32() < impact_chance {
             apply_impact(&mut en);
         }
-        apply_destruction_control(&mut en, run.milestones, &h, &mut rng, impact_time);
-        let root_chance = run.milestones.wing_clip_root_chance(h.source, h.damage);
+        apply_destruction_control(&mut en, owner_talents, &h, &mut rng, impact_time);
+        let root_chance = owner_talents.wing_clip_root_chance(h.source, h.damage);
         if root_chance > 0.0 && rng.f32() < root_chance {
             en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
         }
-        let freeze_chance = run.milestones.frostbite_chance(h.source, h.damage);
+        let freeze_chance = owner_talents.frostbite_chance(h.source, h.damage);
         if freeze_chance > 0.0 && rng.f32() < freeze_chance {
             apply_frostbite(&mut en);
         }
         let boss = en.boss;
-        apply_secondary_control(&mut en, run.milestones, h.source, impact_time);
-        if h.source == "kidney_shot" && run.milestones.kidney_exposure_multiplier(1.0) > 1.0 {
+        apply_secondary_control(&mut en, owner_talents, h.source, impact_time);
+        if h.source == "kidney_shot" && owner_talents.kidney_exposure_multiplier(1.0) > 1.0 {
             if let Effect::Stun(t) = h.effect {
                 en.kidney_t = en.kidney_t.max(if boss { t * 0.3 } else { t });
             }
@@ -1886,11 +1924,12 @@ pub(super) fn apply_hits(
         let kidney_multiplier = run.milestones.kidney_exposure_multiplier(en.kidney_t);
         let creature_type = en.def.creature_type;
         for d in &mut en.dots {
+            let owner_talents = d.origin.owner_talents(run.milestones);
             for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
                 let mut tick = d.dps
                     * fire.multiplier(d.source, now, spells.as_deref(), 0)
-                    * creature_multiplier(run.milestones, creature_type, d.source, false)
+                    * creature_multiplier(run.milestones, creature_type, d.origin, false)
                     * echoes as f32
                     * run.milestones.shadow_damage_multiplier(d.source, weaving)
                     * kidney_multiplier;
@@ -1901,15 +1940,17 @@ pub(super) fn apply_hits(
                 }
                 let removed = tick.max(0.0).min(remaining_hp);
                 remaining_hp = (remaining_hp - removed).max(0.0);
-                vampiric_heal += run.milestones.vampiric_healing(d.source, removed);
-                apply_nightfall(&mut run, &mut rng, d.source, removed);
+                vampiric_heal += owner_talents.vampiric_healing(d.source, removed);
+                if d.origin == HitOrigin::Hero {
+                    apply_nightfall(&mut run, &mut rng, d.source, removed);
+                }
                 dealt += tick;
                 run.add_damage(d.source, tick);
-                let chance = run.milestones.shadow_weaving_chance(d.source, tick);
+                let chance = owner_talents.shadow_weaving_chance(d.source, tick);
                 if chance > 0.0 && rng.f32() < chance {
                     weaving.apply();
                 }
-                let chance = run.milestones.blackout_chance(d.source, tick);
+                let chance = owner_talents.blackout_chance(d.source, tick);
                 if chance > 0.0 && rng.f32() < chance {
                     blackout = true;
                 }
@@ -1926,7 +1967,7 @@ pub(super) fn apply_hits(
             let removed = (poison_damage
                 * nature
                 * kidney_multiplier
-                * creature_multiplier(run.milestones, creature_type, "deadly_poison", false))
+                * creature_multiplier(run.milestones, creature_type, HitOrigin::Hero, false))
             .max(0.0)
             .min(remaining_hp);
             remaining_hp -= removed;
@@ -2255,6 +2296,7 @@ mod milestone_tests {
     fn damage_over_time_delivers_all_ticks_across_frame_sizes() {
         for frames in [vec![3.5], vec![1.5, 1.5], vec![0.1; 31], vec![1.0; 4]] {
             let mut dot = enemies::Dot {
+                origin: crate::survivors::abilities::HitOrigin::Hero,
                 dps: 4.0,
                 left: 3.0,
                 tick: 1.0,
@@ -2265,6 +2307,7 @@ mod milestone_tests {
             assert_eq!(dot.advance(10.0), 0);
         }
         let mut dot = enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
             dps: 4.0,
             left: 2.5,
             tick: 1.0,
@@ -4746,6 +4789,7 @@ mod milestone_tests {
                                     poison: Default::default(),
                                     dots: if periodic {
                                         vec![enemies::Dot {
+                                            origin: crate::survivors::abilities::HitOrigin::Hero,
                                             dps: 10.0,
                                             left: 3.0,
                                             tick: 1.0,
@@ -4943,6 +4987,7 @@ mod milestone_tests {
                                 poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
                                         dps: 10.0,
                                         left: 3.0,
                                         tick: 1.0,
@@ -5056,6 +5101,7 @@ mod milestone_tests {
                                 poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
                                         dps: 10.,
                                         left: 3.,
                                         tick: 1.,
@@ -5173,6 +5219,7 @@ mod milestone_tests {
                                 poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
                                         dps: 10.0,
                                         left: 3.0,
                                         tick: 1.0,
@@ -5273,6 +5320,7 @@ mod milestone_tests {
                                 poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
                                         dps: 10.0,
                                         left: 3.0,
                                         tick: 1.0,
@@ -5381,6 +5429,7 @@ mod milestone_tests {
                                 poison: Default::default(),
                                 dots: if periodic {
                                     vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
                                         dps: 10.0,
                                         left: 3.0,
                                         tick: 1.0,
@@ -5482,6 +5531,7 @@ mod milestone_tests {
                             poison: Default::default(),
                             dots: if periodic {
                                 vec![enemies::Dot {
+                                    origin: crate::survivors::abilities::HitOrigin::Hero,
                                     dps: 10.0,
                                     left: 3.0,
                                     tick: 1.0,
@@ -5595,6 +5645,7 @@ mod milestone_tests {
                             poison: Default::default(),
                             dots: if periodic {
                                 vec![enemies::Dot {
+                                    origin: crate::survivors::abilities::HitOrigin::Hero,
                                     dps: 10.0,
                                     left: 3.0,
                                     tick: 1.0,
@@ -5708,6 +5759,7 @@ mod milestone_tests {
                             poison: Default::default(),
                             dots: if periodic {
                                 vec![enemies::Dot {
+                                    origin: crate::survivors::abilities::HitOrigin::Hero,
                                     dps: 10.0,
                                     left: 3.0,
                                     tick: 1.0,
@@ -5833,6 +5885,7 @@ mod milestone_tests {
                             poison: Default::default(),
                             dots: if periodic {
                                 vec![enemies::Dot {
+                                    origin: crate::survivors::abilities::HitOrigin::Hero,
                                     dps: 10.0,
                                     left: 3.0,
                                     tick: 1.0,
@@ -7322,6 +7375,7 @@ mod milestone_tests {
                         .unwrap()
                         .dots
                         .push(enemies::Dot {
+                            origin: crate::survivors::abilities::HitOrigin::Hero,
                             dps: 10.,
                             left: 1.,
                             tick: 1.,
@@ -7493,6 +7547,7 @@ mod milestone_tests {
                         en.slows = Default::default();
                         en.stun_t = 0.;
                         en.dots.push(enemies::Dot {
+                            origin: crate::survivors::abilities::HitOrigin::Hero,
                             dps: 10.,
                             left: 1.,
                             tick: 1.,
@@ -9850,6 +9905,7 @@ mod milestone_tests {
                     .unwrap()
                     .dots
                     .push(enemies::Dot {
+                        origin: crate::survivors::abilities::HitOrigin::Hero,
                         dps: 10.,
                         left: 1.,
                         tick: 1.,
@@ -10943,3 +10999,7 @@ mod weakness_tests;
 #[cfg(test)]
 #[path = "slow_tests.rs"]
 mod slow_tests;
+
+#[cfg(test)]
+#[path = "pet_ownership_tests.rs"]
+mod pet_ownership_tests;
