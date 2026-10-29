@@ -8,7 +8,8 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 Added a reproducible equipment audit for all 476 enemy identities. NPC-specific
 item metadata and legacy equipment now resolve every reference; the first
-player-item-only join was incomplete. Six lookup regressions pass. Real disarm
+player-item-only join was incomplete. Six lookup regressions pass. A new explicit-data audit validates 114 display/inventory
+pairs, 98 models and 119 textures from the checkout install. Real disarm
 and Riposte still need attack rules and runtime integration. Gameplay and visuals
 are unchanged. See the [findings and implementation sequence](audits/ENEMY-EQUIPMENT.md).
 

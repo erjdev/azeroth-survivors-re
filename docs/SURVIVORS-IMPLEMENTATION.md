@@ -11,9 +11,10 @@ The [equipment audit](audits/ENEMY-EQUIPMENT.md) now resolves every authored ene
 identity through NPC equipment metadata and the server's legacy raw fallback.
 The initial player-item join was incomplete; all 98 missing item IDs and three
 missing templates are now resolved. Six lookup regressions and full report
-reproduction pass. Validate installed models, then define authored attack channels
+reproduction pass. Installed asset validation now passes 114 display/inventory pairs, 98 models and
+119 textures. Define authored attack channels
 and disarmed fallback damage before implementing Riposte/Improved Disarm.
-No runtime behavior changed in this audit.
+No runtime behavior changed in this audit; attachment alignment/poses remain open.
 
 ## Shared talent avoidance — 2026-10-29
 

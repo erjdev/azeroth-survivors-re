@@ -13,7 +13,7 @@ immunity mask. It does **not** label an enemy disarmable merely because it has e
 Sources are the MaNGOS Zero database revision
 `325948a78015794e6cc626212bc19fee70c805b2`:
 [creatures](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_template.sql),
-[equipment](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_equip_template.sql), and
+[equipment](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_equip_template.sql),
 [NPC items](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_item_template.sql), and
 [legacy raw equipment](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_equip_template_raw.sql).
 The script pins all four SHA-256 hashes and checks schema, duplicate IDs and
@@ -45,7 +45,7 @@ the low byte of `equipslot` holds sheath type. The report preserves these factua
 fields and the display ID independently of gameplay damage or eligibility.
 Six unit regressions cover lookup precedence, empty slots, packed metadata,
 missing NPC items, missing equipment and zero-template behavior. Full report
-reproduction passes. Runtime attachment/model validation remains open.
+reproduction passes. Runtime attachment alignment and visual validation remain open.
 
 ## Implementation sequence
 
@@ -65,3 +65,27 @@ reproduction passes. Runtime attachment/model validation remains open.
 
 This is a data audit, not a gameplay change. No new screenshot is implied;
 runtime disarm and weapon visuals still require implementation and validation.
+
+## Installed asset validation
+
+```sh
+python3 docs/audits/enemy-equipment.py target/survivors-validation --visuals > /tmp/enemy-equipment-visuals.txt
+cargo run -p survivors-audit -- wow-data/Data --equipment-visuals /tmp/enemy-equipment-visuals.txt
+```
+
+The explicit checkout data passes all 114 display/inventory pairs: 98 unique M2
+models parse to renderable triangles and 119 referenced textures decode to nonempty
+images. The audit uses the renderer's Shield directory for inventory type 14 and
+Weapon directory otherwise, with independently named display textures and embedded
+model textures. It never guesses a texture filename from the model basename.
+
+The three legacy templates carry inventory type 1 despite being held items. The
+raw server path preserves that value; the audit follows the renderer rather than
+silently rewriting metadata. Native attachment/pose review must cover these cases.
+The manifest rejects malformed/empty inputs and out-of-range values, deduplicates
+identical pairs, and preserves different inventory values for the same display.
+This verifies asset decoding, not live enemy attachments or disarm behavior.
+
+Verification: six Python lookup regressions, two Rust manifest regressions,
+formatting, Clippy and the eight-package scoped test gate pass (31 optional-addon
+skips). No native screenshot is claimed for this headless asset audit.

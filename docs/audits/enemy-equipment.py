@@ -6,6 +6,7 @@ python3 docs/audits/enemy-equipment.py target/survivors-validation > report.csv
 import csv
 import hashlib
 import importlib.util
+import io
 import pathlib
 import re
 import sys
@@ -91,4 +92,13 @@ def resolve(equipment_id, slot, equipment, items, legacy):
 
 
 if __name__ == "__main__":
-    audit(pathlib.Path(sys.argv[1]), sys.stdout)
+    if len(sys.argv) == 3 and sys.argv[2] == "--visuals":
+        report = io.StringIO()
+        audit(pathlib.Path(sys.argv[1]), report)
+        rows = csv.DictReader(io.StringIO(report.getvalue()))
+        visuals = sorted({(int(row["item_display"]), int(row["inventory_type"]))
+                          for row in rows if int(row["item_display"]) != 0})
+        for display, inventory in visuals:
+            print(display, inventory)
+    else:
+        audit(pathlib.Path(sys.argv[1]), sys.stdout)
