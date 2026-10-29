@@ -4,6 +4,24 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Hunter ranged appearance acceptance
+
+The male Night Elf Hunter's Carapace Spine Crossbow fits the Character preview at
+1280×720 and 640×720 / 125%. Native keyboard actions hide the weapon without
+changing its equipped bonuses, preserve hiding after restart, and restore the worn
+appearance. The saved equipment row returns exactly to its initial value. No code
+change; the preceding eight-package gate applies. Other ranged weapons/body types,
+Windows, pointer/controller and in-map poses remain unverified.
+
+![Crossbow restored through the worn-appearance control](images/screenshots/2026-10-29-hunter-ranged/restored.png)
+
+![Hidden appearance persists after restart with bonuses intact](images/screenshots/2026-10-29-hunter-ranged/hidden-restarted.png)
+
+![Crossbow fits the compact preview](images/screenshots/2026-10-29-hunter-ranged/crossbow-compact.png)
+
+![Compact appearance controls and equipment bonuses](images/screenshots/2026-10-29-hunter-ranged/controls-compact.png)
+
+
 ## 2026-10-29 — Compact Character controls and saved Troll features
 
 Keyboard focus now accounts for button widths: Up from Randomize features reaches

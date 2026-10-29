@@ -405,3 +405,11 @@ variants, not additional vanilla item IDs. Main-hand weapons are excluded. No
 new install assets or unverified model references are introduced. Stats, set
 bonuses and future acquisition are authored Survivors rules documented in
 SURVIVORS.md, not imports of the vanilla items' powers or loot tables.
+
+## Native ranged preview acceptance — 2026-10-29
+
+Carapace Spine Crossbow (18738 / display 31239) now has male Night Elf Hunter
+Character-preview evidence at 1280×720 and 640×720 / 125%. Native keyboard hide,
+restart and worn-appearance restoration retain identical equipped bonuses.
+This covers that attachment and body only; other ranged weapons, body types and
+in-map animation remain open. See the [inline milestone captures](CHANGELOG.md).

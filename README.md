@@ -16,6 +16,13 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Hunter crossbow previews now have wide/compact and saved-visibility acceptance.
+Hiding the weapon preserves its equipped bonuses.
+
+![Hunter crossbow appearance restored](docs/images/screenshots/2026-10-29-hunter-ranged/restored.png)
+
+![Compact Hunter crossbow preview](docs/images/screenshots/2026-10-29-hunter-ranged/crossbow-compact.png)
+
 Character controls now keep keyboard focus on nearby appearance arrows in compact
 layouts. Troll feature changes survive restart without changing equipped gear.
 

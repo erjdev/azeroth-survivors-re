@@ -5,6 +5,21 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Ranged Character preview acceptance — 2026-10-29
+
+Phase 3 now has native macOS evidence for the male Night Elf Hunter with Carapace
+Spine Crossbow (entry 18738, display 31239): the complete model and attachment fit
+1280×720 and 640×720 / 125% Character panels. Keyboard selection → Hidden removes
+the attachment while bonuses stay unchanged; restarting retains it, and Worn piece
+restores the attachment. Saved `equipment 2 123456122 170000000` changes only its
+last cosmetic digit to 1 while hidden and returns exactly after restoration.
+This isolated fixture grants ownership for inspection; it does not verify acquisition.
+The screenshot composition follows `intentions/survivors_character_tab.png`.
+No source changed; the preceding eight-package gate remains applicable. Other
+ranged weapons, race/sex combinations, in-map poses, Windows and pointer/controller
+acceptance remain open. Captures are inline in CHANGELOG and README.
+
+
 ## Character appearance navigation acceptance — 2026-10-29
 
 Compared Character layout against `intentions/survivors_character_tab.png` and
