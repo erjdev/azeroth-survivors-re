@@ -9605,3 +9605,16 @@ is not full gameplay or saved-spec acceptance; those limits remain open above.
 Final verification: eight-package formatting/Clippy/test gate green after poison
 eligibility and shield-preservation regression checks (31 optional-addon skips).
 The first gate also passed; the repeat validates those later test/source additions.
+
+
+### 2026-10-29 — Recent talent save acceptance
+
+Installed-data regression coverage verifies Ghostly Strike, Hemorrhage and all five
+Improved Regrowth ranks through valid purchase, save/reload, independent spec
+switching and refund, including rejection at maximum rank and denied refunds.
+Native macOS Ghostly Strike acceptance uses a valid isolated 14-point starting spec:
+purchase spends one point (37 → 36), Spec 2 stays empty, restart retains rank 1,
+and right-click refund restores rank 0 / 37 points and the original saved allocation.
+Screenshots are inline in the changelog and refreshed in the README talent gallery.
+The scoped eight-package check passes with 31 optional-addon skips. This closes the
+Ghostly Strike purchase/restart slice; Windows and attended combat remain pending.

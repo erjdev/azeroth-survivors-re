@@ -107,7 +107,7 @@ omitting it restores saved settings. See [preview controls](docs/SURVIVORS-DEVEL
   </tr>
   <tr>
     <td width="50%"><strong>Codex</strong><br><img src="docs/images/screenshots/2026-10-28-codex-acquisition/wide.jpg" alt="Codex"><br>2026-10-28 · Amulet acquisition guidance and required talent training.<br><a href="docs/images/screenshots/2026-10-28-codex-acquisition/compact.jpg">640×720</a></td>
-    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-29-hemorrhage-persistence/restarted.png" alt="Hemorrhage rank and spent points retained after restart"><br>2026-10-29 · Taller rows, proportional artwork; purchase, separate specs, restart and refund verified on macOS.<br><a href="docs/images/screenshots/2026-10-29-talent-row-spacing/compact-bottom.png">640×720</a> · <a href="docs/CHANGELOG.md">Milestone screenshots</a></td>
+    <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-29-talent-save-acceptance/restarted.png" alt="Ghostly Strike rank and spent points retained after restart"><br>2026-10-29 · Taller rows, proportional artwork; purchase, separate specs, restart and refund verified on macOS.<br><a href="docs/images/screenshots/2026-10-29-talent-row-spacing/compact-bottom.png">640×720</a> · <a href="docs/CHANGELOG.md">Milestone screenshots</a></td>
   </tr>
   <tr>
     <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>

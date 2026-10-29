@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Talent saves and refunds verified
+
+Ghostly Strike purchase, separate specs, restart and refund now pass native macOS
+acceptance at 1280×720: 37 → 36 → 37 unspent points, with the saved allocation
+matching each transition. Automated installed-data checks also cover Hemorrhage
+and all five Improved Regrowth ranks across purchase, save/reload, spec switching
+and refund. The eight-package formatting/Clippy/test gate passes (31 optional-addon
+skips). Windows and attended combat remain open.
+
+![Ghostly Strike retained after restart](images/screenshots/2026-10-29-talent-save-acceptance/restarted.png)
+
+![Independent empty second spec](images/screenshots/2026-10-29-talent-save-acceptance/spec-two.png)
+
+![Refund restores the point and previous allocation](images/screenshots/2026-10-29-talent-save-acceptance/refunded.png)
+
 ## 2026-10-29 — Ghostly Strike and melee defense
 
 Rogues can acquire Ghostly Strike: landed hits grant a refreshing seven-second

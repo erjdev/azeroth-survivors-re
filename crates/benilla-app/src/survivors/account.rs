@@ -6425,3 +6425,7 @@ pets 2 3 1 1 2 0 1
         assert_eq!(account.character(id).unwrap().dbc_rank(99), 0);
     }
 }
+
+#[cfg(test)]
+#[path = "account_recent_talents_tests.rs"]
+mod recent_talents_tests;
