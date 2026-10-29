@@ -1187,5 +1187,15 @@ no enemy target and does not emit damage or replace periodic healing sources.
 
 The existing Improved Healing Wave, Tidal Focus, Purification and Restorative
 Totems conversions still affect only their documented totem mechanics. Healing
-Way remains unavailable until its source-specific stacking buff is implemented;
-adding this ability does not grant a talent or raise definition coverage.
+Way (1648) now has 33/66/100% chance after effective Healing Wave healing to add
+a 6% bonus to subsequent Healing Waves, up to three stacks. Successful procs
+refresh a shared 15-second expiry using active gameplay time. The triggering heal
+does not benefit from its own new stack. Other healing, overhealing-only events
+and damage cannot trigger or receive this bonus; death and run reset clear it.
+
+### Illumination conversion decision
+
+Confirmed by the user on 2026-10-29: retain the installed 20–100% proc chance,
+but refund half the triggering heal's recovery time instead of mana. This applies
+to eligible effective critical healing, not damage criticals or noncritical
+cast-heal side effects. Implementation and acceptance remain pending.

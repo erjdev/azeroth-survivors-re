@@ -16,8 +16,14 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Healing Way now has its three-rank proc chance and capped, timed healing bonus.
+
+![Healing Way talent inspection](docs/images/screenshots/2026-10-29-healing-way/untrained.png)
+
+![Compact Healing Way tooltip](docs/images/screenshots/2026-10-29-healing-way/compact.png)
+
 Shamans can now acquire Healing Wave, with inline healing and recovery upgrades.
-Healing Way talent integration remains in progress.
+Healing Way now adds its source-specific stacking healing bonus.
 
 ![Healing Wave acquisition and upgrades](docs/images/screenshots/2026-10-29-healing-wave/cards-wide.png)
 

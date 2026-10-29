@@ -978,10 +978,21 @@ pub(super) fn cast_abilities(
             }
             Kind::DirectHeal => {
                 p.crit = crit_chance;
+                p.dmg *= run
+                    .healing_way
+                    .multiplier(run.milestones, def.key, run.elapsed);
                 if let Some((healed, critical)) =
                     cast_direct_heal(&mut run, &p, stats.max_hp, &mut rng)
                 {
                     run.record_direct_healing(def.key, healed, critical);
+                    if healed > 0.
+                        && survivors_core::talents::HealingWay::chance(run.milestones, def.key) > 0.
+                    {
+                        let talents = run.milestones;
+                        let elapsed = run.elapsed;
+                        run.healing_way
+                            .record(talents, def.key, healed, elapsed, rng.f32());
+                    }
                     fx.cast(me, def.spell, &[me], None);
                     if healed > 0.0 {
                         fx.number(me, healed, critical, COLOR_HEAL);

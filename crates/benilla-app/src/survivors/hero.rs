@@ -516,6 +516,7 @@ pub(super) fn hero_vitals(
     if run.hp <= 0.0 {
         run.hp = 0.0;
         run.dead_t = Some(0.0);
+        run.healing_way = default();
         units::kill_unit(&mut store);
         marks.clear();
         marks.flush(entity, guid.0, &mut store, &mut fields);

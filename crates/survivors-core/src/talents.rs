@@ -20,7 +20,9 @@ pub use mage::{ArcanePowerClock, ColdSnapClock, CombustionClock};
 pub use natures_grace::NaturesGrace;
 pub use poison::{Coating, DeadlyPoison};
 pub use rogue::{AdrenalineRushClock, BladeFlurryClock, PreparationClock};
+mod healing_way;
 mod shaman;
+pub use healing_way::HealingWay;
 mod warlock;
 
 /// One catalog node and its proposed rank, for validating a single talent tree.
@@ -1735,6 +1737,7 @@ pub enum TalentStat {
     ImprovedVampiricEmbrace,
     WintersChill,
     ImprovedScorch,
+    HealingWay,
     ImprovedCurseWeakness,
     Shatter,
     Permafrost,
@@ -1959,6 +1962,9 @@ impl TalentDefinition {
         }
         type PercentPreview = (&'static str, &'static str, fn(u8) -> u8);
         let non_linear: Option<PercentPreview> = match self.stat {
+            TalentStat::HealingWay => {
+                Some(("33–100% chance", "% chance", healing_way::chance_percent))
+            }
             TalentStat::ImprovedScorch => {
                 Some(("33–100% chance", "% chance", crate::scorch::chance_percent))
             }
@@ -2170,6 +2176,7 @@ impl TalentDefinition {
             | TalentStat::HolyReach
             | TalentStat::ArcaneInstability
             | TalentStat::ForceOfWill
+            | TalentStat::HealingWay
             | TalentStat::TotemHealing
             | TalentStat::SpiritualHealing
             | TalentStat::ImprovedRenew
@@ -2315,7 +2322,7 @@ impl TalentDefinition {
 
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
-        if self.stat == TalentStat::HealingLight {
+        if matches!(self.stat, TalentStat::HealingLight | TalentStat::HealingWay) {
             let suffix = if rank >= self.max_rank {
                 " (maximum rank)"
             } else {
@@ -2535,7 +2542,7 @@ impl TalentDefinition {
             TalentStat::EnrageDamage => (100.0, "% damage while Enrage is active"),
             TalentStat::CriticalBleed => (100.0, "% of direct critical damage as bleed"),
             TalentStat::CriticalBurn => (100.0, "% of critical fire hit damage as Ignite"),
-            TalentStat::ImprovedScorch | TalentStat::ImprovedCurseWeakness => unreachable!("handled above"),
+            TalentStat::HealingWay | TalentStat::ImprovedScorch | TalentStat::ImprovedCurseWeakness => unreachable!("handled above"),
             TalentStat::WintersChill => (100.0, "% chance to apply Winter's Chill on frost damage"),
             TalentStat::Impact => (100.0, "% chance to stun on fire damage"),
             TalentStat::Blackout => (100.0, "% chance to stun on Shadow damage"),
@@ -4008,6 +4015,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::InspirationArmor
             | TalentStat::SpiritTap
             | TalentStat::ImprovedRenew
+            | TalentStat::HealingWay
             | TalentStat::TotemHealing
             | TalentStat::ShamanShieldAbsorption
             | TalentStat::AncestralHealingArmor
@@ -5554,6 +5562,7 @@ mod stat_talent_tests {
                     | TalentStat::InspirationArmor
                     | TalentStat::SpiritTap
                     | TalentStat::ImprovedRenew
+                    | TalentStat::HealingWay
                     | TalentStat::TotemHealing
                     | TalentStat::ShamanShieldAbsorption
                     | TalentStat::AncestralHealingArmor

@@ -130,3 +130,70 @@ fn healing_wave_cast_heals_without_a_target_and_never_deals_damage() {
         assert_eq!(run.inspiration_t, 0.);
     }
 }
+
+#[test]
+fn healing_way_boosts_only_subsequent_effective_wave_casts() {
+    let mut app = App::new();
+    let mut time = Time::<()>::default();
+    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+    let mut run = Run {
+        class: &data::CLASSES[5],
+        ..Default::default()
+    };
+    run.milestones = Milestones {
+        class: 5,
+        ..Default::default()
+    }
+    .with_ranks(&[(2, 1648, 3)]);
+    run.abilities.push(Owned {
+        def: data::ability("healing_wave"),
+        level: 1,
+        cd: 0.,
+    });
+    let p = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+    let seed = (1..100000).find(|seed| Rng(*seed).f32() >= p.crit).unwrap();
+    app.insert_resource(time)
+        .insert_resource(run)
+        .insert_resource(Rng(seed))
+        .init_resource::<PlaySeq>()
+        .init_resource::<PendingHits>()
+        .add_message::<CastEvent>()
+        .add_message::<SpellGoTargets>()
+        .add_message::<SwingMessage>()
+        .add_message::<crate::combat_text::CombatTextSpawn>()
+        .add_message::<Hit>();
+    app.world_mut()
+        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+    for (elapsed, bonus) in [
+        (0., 0.),
+        (1., 0.06),
+        (2., 0.12),
+        (3., 0.18),
+        (4., 0.18),
+        (19., 0.),
+    ] {
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.hp = 1.;
+            run.elapsed = elapsed;
+            run.abilities[0].cd = 0.;
+        }
+        app.world_mut().resource_mut::<Rng>().0 = seed;
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        let run = app.world().resource::<Run>();
+        assert!((run.hp - (1. + p.dmg * (1. + bonus))).abs() < 0.0001);
+        assert_eq!(run.abilities[0].cd, p.cooldown);
+    }
+    let before = app.world().resource::<Run>().healing_way;
+    {
+        let mut run = app.world_mut().resource_mut::<Run>();
+        run.hp = run.stats().max_hp;
+        run.elapsed = 20.;
+        run.abilities[0].cd = 0.;
+    }
+    app.world_mut().resource_mut::<Rng>().0 = seed;
+    app.world_mut().run_system_once(cast_abilities).unwrap();
+    assert_eq!(app.world().resource::<Run>().healing_way, before);
+    assert_eq!(app.world().resource::<Rng>().0, seed);
+    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+}

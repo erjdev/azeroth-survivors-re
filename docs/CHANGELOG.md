@@ -4,6 +4,22 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Healing Way talent
+
+Healing Way now gives effective Healing Wave casts a 33/66/100% proc chance to
+boost subsequent Healing Waves by 6%, stacking three times for 15 seconds.
+Procs refresh the duration; other healing and damage are excluded. Inline talent
+text highlights the changing chance. The eight-package gate passes, including
+real cast sequencing and purchase/save/spec/refund tests (31 optional-addon skips).
+Native wide/compact tooltips verified; native purchase input, Windows and attended
+combat remain unverified. Illumination's half-recovery refund is now user-approved
+and next in the plan.
+
+![Healing Way in the Shaman talent tree](images/screenshots/2026-10-29-healing-way/untrained.png)
+
+![Compact Healing Way inspection at 125% UI size](images/screenshots/2026-10-29-healing-way/compact.png)
+
+
 ## 2026-10-29 — Shaman Healing Wave
 
 Shamans can acquire Healing Wave: an automatic 40-health self-heal below 85%

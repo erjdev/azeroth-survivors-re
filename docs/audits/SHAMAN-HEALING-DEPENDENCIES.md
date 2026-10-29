@@ -23,13 +23,17 @@ cover acquisition and green inline healing/recovery values. Native card previews
 cover 1280×720 and 640×720 / 125%. Preview picks are disabled, so the screenshots
 are visual evidence rather than acquisition or combat evidence.
 
-## Next required implementation
+## Healing Way implementation
 
-Implement recipient-owned Healing Way stacks after successful Healing Wave
-casts; the triggering heal must not benefit from its newly granted stack. Cap at
-three, refresh a single 15-second expiry, advance on active gameplay time only,
-and clear on run reset/death. Scope the bonus to Healing Wave, excluding totem
-heals, other heals, shields and damage. Verify every rank's proc chance, expiry,
-refresh, refund/spec isolation, legal purchase, persistence and inline tooltips.
-Reconcile the existing explicitly authored totem training conversions before
-extending them to actual Shaman healing. No new talent is enabled by this slice.
+Node 1648 now uses the installed 33/66/100% proc chances and 6% / three-stack /
+15-second rules. The Survivors conversion requires positive effective healing.
+The cast applies existing stacks first, then rolls the new proc. It uses the run's
+active elapsed time and clears on death and run reset. Other healing and damage
+are excluded. The eight-package gate covers cast ordering, proc thresholds,
+expiry/refresh/cap, invalid inputs, legal purchase, save/reload, specs and refunds.
+31 optional-addon tests skip because their corpus is absent.
+
+Native tooltip captures cover wide/compact layouts; native purchase input failed
+with a computer-use window error, so interaction acceptance remains open alongside
+Windows and attended gameplay. Existing totem training conversions still need
+reconciliation before extending them to actual Shaman healing spells.

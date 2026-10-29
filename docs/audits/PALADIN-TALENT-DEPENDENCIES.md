@@ -110,3 +110,10 @@ Node 1444 applies 4/8/12% healing to them, with the previous Holy Shock cast-hea
 conversion preserved independently. Holy Power includes both healing-critical
 rolls. Illumination still needs an explicit no-mana policy and an effective-heal
 critical consumer; mere cast or damage-critical events cannot satisfy it.
+
+## Confirmed Illumination policy — 2026-10-29
+
+The user chose a refund of half the triggering heal's recovery time, with the
+installed 20/40/60/80/100% proc chance. Implement from effective eligible healing
+criticals; Holy Shock damage criticals must not count as healing criticals.
+This resolves the earlier no-mana policy question; implementation is next.

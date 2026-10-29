@@ -5,6 +5,22 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Healing Way — 2026-10-29
+
+Node 1648 now provides its source-specific 33/66/100% proc chance: successful
+Healing Wave healing can add a 6% stack for subsequent Healing Waves, up to three,
+refreshing one 15-second expiry. Active gameplay time controls expiry; death/run
+reset clears the state. Other heals and damage receive no bonus. The audit's
+explicit effective-healing conversion excludes overhealing-only events.
+
+The eight-package gate passes (31 optional-addon skips), including all proc
+thresholds, cap/refresh/expiry, actual cast sequencing, failed readiness, and legal
+purchase → save/reload → independent spec → refund. Native tooltip screenshots
+cover 1280×720 and 640×720 / 125%, retaining the intention tree layout and green
+inline values. Native purchase input failed with `noWindowsAvailable`; no native
+purchase, Windows or attended-combat acceptance is claimed. Build: 1m46s.
+
+
 ## Shaman healing prerequisite — 2026-10-29
 
 Phase 5 now has an actual acquired Healing Wave, using the documented authored
@@ -86,9 +102,9 @@ This closes keyboard purchase/save acceptance left open in the previous checkpoi
 pointer/controller, Windows and attended combat remain unverified. No production
 save or gameplay source changed; the preceding eight-package check remains valid.
 
-Illumination's no-mana policy is pending user choice: proposed half-recovery refund
-on eligible effective critical healing, with installed 20–100% chance, versus
-reserving the node for a future mana system. Do not infer a healing critical from
+Illumination's no-mana policy was confirmed by the user on 2026-10-29: its
+20–100% proc chance refunds half the triggering heal's recovery time after
+eligible effective critical healing. Implementation is next after Healing Way. Do not infer a healing critical from
 Holy Shock's damage critical: its current separate cast heal is noncritical.
 
 ## Paladin healing scope — 2026-10-29
