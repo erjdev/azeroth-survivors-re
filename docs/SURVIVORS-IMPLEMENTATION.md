@@ -9445,3 +9445,12 @@ claiming that behavior. Verify rank tables, nonmatching categories, critical
 versus ordinary damage, death/loot accounting, saves/specs/refunds, and native
 purchase text before advancing these three definitions. Finish poison integration
 before changing the main source for this follow-up.
+
+### 2026-10-29 — Druid form dependency audit
+
+[Twenty remaining Druid nodes](audits/DRUID-TALENT-DEPENDENCIES.md) now have
+checkout-data evidence, missing consumers and an implementation order. Verified
+form IDs are distinct from display IDs; Clearcasting has a 15-second proc lifetime,
+and Moonkin's installed aura differs from our existing explicit milestone
+conversion. Forms, feral attacks, art mappings and no-mana conversions remain work;
+this audit adds no gameplay behavior. Coverage remains 300/432 (Druid 27/47).

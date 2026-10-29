@@ -4,6 +4,13 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Druid implementation boundaries
+
+Audited the twenty remaining Druid talents and their form, attack and resource
+conversion dependencies against checkout data. The [implementation contract](audits/DRUID-TALENT-DEPENDENCIES.md)
+separates real shapeshifting from existing milestone bonuses. Documentation only;
+no new talent behavior or UI change. Coverage remains 300/432.
+
 ## 2026-10-29 — Achievement navigation stays in reach
 
 The category rail now scrolls independently from achievement cards, matching the
