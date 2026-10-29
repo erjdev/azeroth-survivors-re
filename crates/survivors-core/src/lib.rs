@@ -22,6 +22,7 @@ pub mod raid_sets;
 pub mod rewards;
 pub mod selection;
 pub mod sheet;
+pub mod silhouette;
 pub mod stormstrike;
 pub mod supplemental_gear;
 pub mod talents;

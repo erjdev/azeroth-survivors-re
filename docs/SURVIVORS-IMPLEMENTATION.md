@@ -1880,6 +1880,13 @@ scales. No sheen may wash across neighboring cards, backdrop, text panels or the
 
 ## Camera visibility, silhouettes and solid-world push-in
 
+Renderer audit (2026-10-28): the existing path implements scenery cutaway only.
+[Silhouette implementation audit](audits/OCCLUDED-SILHOUETTES.md) records the
+required nearest-actor mask, completed scene-depth comparison, allegiance and
+concealment rules, render ordering and isolated visual acceptance. The new core
+comparison/filter contract is tested but has no renderer consumer. Persisted
+silhouette switches and red/green GPU output remain unimplemented.
+
 Use separate policies for foliage visibility, body collision and solid-world camera collision.
 A canopy obscuring the hero is not by itself a reason to collapse the camera boom. The
 single-ray visual-geometry push-in prototype is not the intended foliage solution and does

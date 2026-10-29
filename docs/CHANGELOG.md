@@ -4,6 +4,19 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Silhouette renderer contract
+
+Audited the missing red/green silhouette path separately from scenery cutaway.
+Added a tested nearest-actor depth/filter contract and an implementation audit
+covering posed meshes, texture cutouts, concealment, render order and GPU precision.
+A reversed-depth duplicate draw is insufficient: it can reveal an actor's own
+back surfaces. The required actor mask/compositor and settings switches remain open.
+
+287 core tests, core Clippy and six-package scoped checks pass (31 missing-addon
+skips). Full pre-merge gates remain required. No GPU or UI behavior changed; the
+controller settings captures below remain current. Actual silhouette screenshots are still
+required after the renderer is implemented.
+
 ## 2026-10-28 — Saved controller dead zone
 
 Controls now includes the reference-style stick dead-zone slider: 0–50% in
