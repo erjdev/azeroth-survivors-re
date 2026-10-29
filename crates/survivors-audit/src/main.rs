@@ -4,6 +4,7 @@ use benilla_formats::{load_creature_catalog, load_map_catalog, open_chain, MapTi
 use survivors_core::{campaign, data, encounters};
 
 mod collection;
+mod creature_visuals;
 mod doodads;
 mod equipment;
 mod floor;
@@ -20,6 +21,10 @@ fn main() -> Result<()> {
         .context("usage: survivors-audit <explicit WoW Data directory>")?;
     let rest: Vec<_> = args.collect();
     let mut chain = open_chain(std::path::Path::new(&path))?;
+    if rest.len() == 2 && rest[0] == "--creature-visuals" {
+        let ids = rest[1].to_str().context("display IDs must be UTF-8")?;
+        return creature_visuals::report(&mut chain, ids);
+    }
     if rest.len() == 2 && rest[0] == "--equipment-visuals" {
         let manifest = std::fs::read_to_string(&rest[1]).context("reading equipment manifest")?;
         return equipment::report(&mut chain, &manifest);
@@ -69,7 +74,7 @@ fn main() -> Result<()> {
         if rest.len() != 5
             || (rest[0] != "--floor" && rest[0] != "--doodads" && rest[0] != "--terrain")
         {
-            bail!("usage: survivors-audit <Data> [--equipment-visuals <manifest> | --collection | --achievement-art | --locations | --talents | --talent-coverage | --talent-gaps | --talent-evidence <node ID> | --spell-evidence <spell ID> | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
+            bail!("usage: survivors-audit <Data> [--creature-visuals <comma-separated display IDs> | --equipment-visuals <manifest> | --collection | --achievement-art | --locations | --talents | --talent-coverage | --talent-gaps | --talent-evidence <node ID> | --spell-evidence <spell ID> | --terrain <map> <x> <y> <radius> | --floor <map> <x> <y> <z> | --doodads <map> <x> <y> <z>]");
         }
         let map = rest[1].to_str().context("map must be UTF-8")?.parse()?;
         let mut point = [0.0_f32; 3];

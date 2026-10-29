@@ -5,6 +5,14 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Demon model prerequisites — 2026-10-29
+
+The four summon templates now have reproducible, hash-checked display identities.
+The asset audit parses their skinned models and decodes eight distinct mesh textures;
+see [the demon contract](audits/WARLOCK-DEMONS.md#verified-model-identities--2026-10-29).
+This closes the identity/mesh-data prerequisite only. Native specimens, animations,
+particle textures, acquisition and gameplay remain open; no talent coverage changes.
+
 ## Combat-pet hit origin — 2026-10-29
 
 Direct and periodic damage now retain explicit hero/pet origin independently of

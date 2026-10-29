@@ -116,3 +116,34 @@ colliding hero/pet labels, owner poison/Seal Fate, Ignite/Combustion/Scorch, per
 Nightfall, splash/periodic propagation and one-time lethal loot/leech settlement.
 The native play build passes in 3m11s. The eight-package formatting/Clippy/test gate
 also passes (31 optional-addon skips). No demon model or interface is enabled.
+
+
+## Verified model identities — 2026-10-29
+
+The hash-checked MaNGOS Zero creature catalog resolves the summon entries to the
+following display IDs. [Identity output](demon-identities.csv) is reproducible with
+`python3 docs/audits/demon-identities.py target/survivors-validation`; it reuses the
+pinned catalog checksum from [the equipment audit](ENEMY-EQUIPMENT.md).
+
+| Demon | Template | Display | Model scale | Render triangles |
+| --- | ---: | ---: | ---: | ---: |
+| Imp | 416 | 4449 | 0.5 | 622 |
+| Voidwalker | 1860 | 1132 | 0.8 | 1,414 |
+| Succubus | 1863 | 4162 | 1.0 | 2,338 |
+| Felhunter | 417 | 850 | 0.5 | 843 |
+
+`cargo run -p survivors-audit -- wow-data/Data --creature-visuals 4449,1132,4162,850`
+parses each model using its CreatureDisplayInfo skin variations, rejects unresolved
+skin slots and empty geometry, and decodes all eight distinct mesh textures.
+The Succubus resolves body, wings and hair separately. Paths are deduplicated without
+case sensitivity, as in the MPQ lookup. Character-composed NPCs are explicitly
+rejected by this plain-creature audit instead of claiming their body atlas is checked.
+Triangle counts include render batches and are not unique geometric polygon counts.
+
+This verifies mesh assets only. Particle textures, animation suitability, scale in
+scene, native screenshots and combat behavior remain open. No install assets are
+copied into the repository, and no demon is enabled by this checkpoint.
+
+Validation: all four displays pass the installed-data audit; empty/malformed lists
+and nonexistent displays fail. The eight-package formatting/Clippy/test gate passes
+with 31 optional-addon skips. No native render is claimed.

@@ -4,6 +4,13 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Demon model verification
+
+Resolved all four summon templates to verified display IDs and decoded their models
+with eight mesh textures from checkout data. Added a repeatable creature asset audit;
+no demons are enabled yet. Native appearance, animation and combat remain pending.
+Installed-data audit and eight-package gate pass (31 optional-addon skips).
+
 ## 2026-10-29 — Combat-pet hit ownership
 
 Hunter bites and periodic effects now carry explicit pet origin instead of relying
