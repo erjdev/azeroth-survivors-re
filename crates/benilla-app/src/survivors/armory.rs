@@ -193,6 +193,8 @@ pub(super) struct Armory {
     collection_detail_scroll: Vec2,
     drop_zone: usize,
     drop_scroll: Vec2,
+    drop_inspecting: bool,
+    drop_detail_scroll: Vec2,
     character_scroll: Vec2,
     starter_scroll: Vec2,
     starter_panel_scroll: [Vec2; 3],
@@ -229,6 +231,8 @@ impl Default for Armory {
             collection_detail_scroll: Vec2::ZERO,
             drop_zone: 0,
             drop_scroll: Vec2::ZERO,
+            drop_inspecting: false,
+            drop_detail_scroll: Vec2::ZERO,
             character_scroll: Vec2::ZERO,
             starter_scroll: Vec2::ZERO,
             starter_panel_scroll: [Vec2::ZERO; 3],
@@ -249,22 +253,44 @@ impl Armory {
     fn open_drop_source(&mut self, zone: usize) {
         if zone < campaign::ZONES.len() {
             self.drop_zone = zone;
+            self.drop_inspecting = false;
             self.drop_scroll = Vec2::ZERO;
             self.drop_columns = [Vec2::ZERO; 4];
             self.open_page(Page::DropTables);
         }
     }
-    fn inspect_collection(&mut self, compact: bool) {
-        if self.page == Page::Collection && compact {
-            self.collection_inspecting = true;
-            self.collection_detail_scroll = Vec2::ZERO;
+    fn inspect_item(&mut self, compact: bool) {
+        if !compact {
+            return;
+        }
+        match self.page {
+            Page::Collection => {
+                self.collection_inspecting = true;
+                self.collection_detail_scroll = Vec2::ZERO;
+            }
+            Page::DropTables => {
+                self.drop_inspecting = true;
+                self.drop_detail_scroll = Vec2::ZERO;
+            }
+            _ => {}
         }
     }
 
+    fn close_inspector(&mut self) -> bool {
+        let inspecting = match self.page {
+            Page::Collection => &mut self.collection_inspecting,
+            Page::DropTables => &mut self.drop_inspecting,
+            _ => return false,
+        };
+        std::mem::take(inspecting)
+    }
+
     fn back(&mut self, compact: bool) {
-        if self.page == Page::Collection && self.collection_inspecting && compact {
-            self.collection_inspecting = false;
-        } else if self.page == Page::Heroes && self.manage_heroes {
+        if compact && self.close_inspector() {
+            self.focus = 0;
+            return;
+        }
+        if self.page == Page::Heroes && self.manage_heroes {
             self.manage_heroes = false;
         } else {
             self.open_page(Page::Door);
@@ -336,7 +362,7 @@ pub(super) enum Act {
     PetSlot(u8),
     Tabard(u8),
     Talent(u32),
-    CollectionBack,
+    ItemBack,
     CollectionInspect,
     InspectPiece(usize),
     InspectSupplemental(String),
@@ -502,19 +528,21 @@ pub(super) fn input(
                 armory.manage_heroes = open;
                 armory.focus = 0;
             }
-            Act::CollectionBack => armory.collection_inspecting = false,
+            Act::ItemBack => {
+                armory.close_inspector();
+            }
             Act::CollectionInspect => {
                 armory.open_page(Page::Collection);
-                armory.inspect_collection(compact);
+                armory.inspect_item(compact);
             }
             Act::InspectPiece(index) => {
                 armory.piece = index.min(campaign::PIECES - 1);
                 armory.supplemental_piece = None;
-                armory.inspect_collection(compact);
+                armory.inspect_item(compact);
             }
             Act::InspectSupplemental(key) => {
                 armory.supplemental_piece = Some(key);
-                armory.inspect_collection(compact);
+                armory.inspect_item(compact);
             }
             Act::WearSupplemental(key) | Act::ShowSupplemental(key) => {
                 let class = picked_class(&account, &selection);
@@ -531,7 +559,7 @@ pub(super) fn input(
                 let band = account.classes[class].equipment.worn[slot].unwrap_or(0);
                 armory.piece = usize::from(band) * campaign::GRID_SLOTS + slot;
                 armory.open_page(Page::Collection);
-                armory.inspect_collection(compact);
+                armory.inspect_item(compact);
             }
             Act::WearPiece(slot, band) => {
                 let class = picked_class(&account, &selection);
@@ -600,7 +628,10 @@ pub(super) fn input(
                     String::new()
                 };
             }
-            Act::BrowseDrops(index) => armory.drop_zone = index.min(ZONES.len() - 1),
+            Act::BrowseDrops(index) => {
+                armory.drop_zone = index.min(ZONES.len() - 1);
+                armory.drop_inspecting = false;
+            }
             Act::OpenDropSource(index) => armory.open_drop_source(index),
             Act::Zone(index) => {
                 pick_zone(&mut armory, &account, &mut selection, index);
@@ -2311,6 +2342,7 @@ fn signature(
         hash_str(armory.supplemental_piece.as_deref().unwrap_or("")),
     );
     n = fold(n, armory.drop_zone as u64);
+    n = fold(n, u64::from(armory.drop_inspecting));
     // Codex selection updates its detail text in place, preserving catalog scrolling.
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));

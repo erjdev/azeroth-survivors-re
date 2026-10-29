@@ -45,6 +45,10 @@ pub(super) fn build(
     layout: &Layout,
     compact: bool,
 ) {
+    if compact && armory.drop_inspecting {
+        collection::inspector(strings, ui, font, armory, account, selection, layout);
+        return;
+    }
     if compact {
         collection::compact_column(
             ui,
@@ -57,9 +61,6 @@ pub(super) fn build(
                 });
                 collection::section(body, layout, |body| {
                     sources(body, font, armory, account, selection, layout)
-                });
-                collection::section(body, layout, |body| {
-                    collection::detail(strings, body, font, armory, account, selection, layout)
                 });
                 collection::section(body, layout, |body| {
                     character::body_controls(body, art, font, account, selection, layout);

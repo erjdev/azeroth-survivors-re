@@ -24,6 +24,7 @@ pub(in crate::survivors) enum CompactScroll {
     Collection,
     CollectionDetail,
     Drops,
+    DropDetail,
     Character,
     Starter,
     StarterPanel(usize),
@@ -43,6 +44,7 @@ pub(in crate::survivors) fn remember_scroll(
                 CompactScroll::Collection => &mut armory.collection_scroll,
                 CompactScroll::CollectionDetail => &mut armory.collection_detail_scroll,
                 CompactScroll::Drops => &mut armory.drop_scroll,
+                CompactScroll::DropDetail => &mut armory.drop_detail_scroll,
                 CompactScroll::Character => &mut armory.character_scroll,
                 CompactScroll::Starter => &mut armory.starter_scroll,
                 CompactScroll::StarterPanel(index) => &mut armory.starter_panel_scroll[*index],
@@ -146,6 +148,7 @@ mod scroll_restore_tests {
             (CompactScroll::CodexColumn(1), 380.0),
             (CompactScroll::Collection, 900.0),
             (CompactScroll::CollectionDetail, 44.0),
+            (CompactScroll::DropDetail, 66.0),
         ] {
             app.world_mut()
                 .spawn((marker, ScrollPosition(Vec2::new(0., y))));
@@ -158,6 +161,7 @@ mod scroll_restore_tests {
         assert_eq!(armory.codex_columns.map(|p| p.y), [0., 380.]);
         assert_eq!(armory.collection_scroll.y, 900.);
         assert_eq!(armory.collection_detail_scroll.y, 44.);
+        assert_eq!(armory.drop_detail_scroll.y, 66.);
         let saved = armory.collection_columns[1];
         app.world_mut().clear_entities();
         {
@@ -361,6 +365,37 @@ pub(super) fn compact_column(
     });
 }
 
+/// The same item actions stay reachable from either compact catalog.
+pub(super) fn inspector(
+    strings: &crate::survivors::localization::Strings,
+    panel: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+    selection: &Selection,
+    layout: &Layout,
+) {
+    let (marker, offset, back) = match armory.page {
+        super::Page::Collection => (
+            CompactScroll::CollectionDetail,
+            armory.collection_detail_scroll,
+            "Back to collection",
+        ),
+        super::Page::DropTables => (
+            CompactScroll::DropDetail,
+            armory.drop_detail_scroll,
+            "Back to drop tables",
+        ),
+        _ => return,
+    };
+    chip(panel, font, back, Act::ItemBack, false);
+    compact_column(panel, marker, offset, layout, |body| {
+        section(body, layout, |body| {
+            detail(strings, body, font, armory, account, selection, layout)
+        });
+    });
+}
+
 pub(super) fn build(
     strings: &crate::survivors::localization::Strings,
     panel: &mut ChildSpawnerCommands,
@@ -373,24 +408,7 @@ pub(super) fn build(
     compact: bool,
 ) {
     if compact && armory.collection_inspecting {
-        chip(
-            panel,
-            font,
-            "Back to collection",
-            Act::CollectionBack,
-            false,
-        );
-        compact_column(
-            panel,
-            CompactScroll::CollectionDetail,
-            armory.collection_detail_scroll,
-            layout,
-            |body| {
-                section(body, layout, |body| {
-                    detail(strings, body, font, armory, account, selection, layout)
-                });
-            },
-        );
+        inspector(strings, panel, font, armory, account, selection, layout);
         return;
     }
     if compact {
@@ -1565,69 +1583,87 @@ mod tests {
 
     #[test]
     fn compact_inspector_keeps_actions_reachable_and_back_outside_its_scroll() {
-        for supplemental in [false, true] {
-            for owned in [false, true] {
-                let mut account = super::super::super::account::blank();
-                let key = "poor:warrior:hands";
-                if owned {
-                    account.classes[0].pieces[0] = 1;
-                    account.supplemental.collect(0, key);
-                }
-                let armory = Armory {
-                    page: super::super::Page::Collection,
-                    collection_inspecting: true,
-                    collection_scroll: Vec2::new(0., 300.),
-                    collection_detail_scroll: Vec2::new(0., 40.),
-                    supplemental_piece: supplemental.then(|| key.to_owned()),
-                    ..default()
-                };
-                let mut world = World::new();
-                let root = world
-                    .commands()
-                    .spawn(Node::default())
-                    .with_children(|panel| {
-                        build(
-                            &crate::survivors::localization::Strings::default(),
-                            panel,
-                            &GlueArt::default(),
-                            &Handle::default(),
-                            &armory,
-                            &account,
-                            &Selection {
-                                class: Some(0),
-                                ..default()
-                            },
-                            &Layout::default(),
-                            true,
-                        );
-                    })
-                    .id();
-                world.flush();
-                let back = world
-                    .query::<(Entity, &Act)>()
-                    .iter(&world)
-                    .find_map(|(entity, action)| (*action == Act::CollectionBack).then_some(entity))
-                    .unwrap();
-                assert_eq!(world.get::<ChildOf>(back).unwrap().parent(), root);
-                let positions: Vec<_> = world
-                    .query::<(&CompactScroll, &ScrollPosition)>()
-                    .iter(&world)
-                    .collect();
-                assert_eq!(positions.len(), 1);
-                assert!(matches!(positions[0].0, CompactScroll::CollectionDetail));
-                assert_eq!(positions[0].1 .0.y, 40.);
-                let actions: Vec<_> = world.query::<&Act>().iter(&world).collect();
-                assert_eq!(
-                    actions.iter().any(|action| matches!(
+        for page in [
+            super::super::Page::Collection,
+            super::super::Page::DropTables,
+        ] {
+            for supplemental in [false, true] {
+                for owned in [false, true] {
+                    let mut account = super::super::super::account::blank();
+                    let key = "poor:warrior:hands";
+                    if owned {
+                        account.classes[0].pieces[0] = 1;
+                        account.supplemental.collect(0, key);
+                    }
+                    let armory = Armory {
+                        page,
+                        drop_inspecting: true,
+                        drop_detail_scroll: Vec2::new(0., 40.),
+                        collection_inspecting: true,
+                        collection_scroll: Vec2::new(0., 300.),
+                        collection_detail_scroll: Vec2::new(0., 40.),
+                        supplemental_piece: supplemental.then(|| key.to_owned()),
+                        ..default()
+                    };
+                    let mut world = World::new();
+                    let root = world
+                        .commands()
+                        .spawn(Node::default())
+                        .with_children(|panel| {
+                            let builder = if page == super::super::Page::Collection {
+                                build
+                            } else {
+                                super::super::drop_page::build
+                            };
+                            builder(
+                                &crate::survivors::localization::Strings::default(),
+                                panel,
+                                &GlueArt::default(),
+                                &Handle::default(),
+                                &armory,
+                                &account,
+                                &Selection {
+                                    class: Some(0),
+                                    ..default()
+                                },
+                                &Layout::default(),
+                                true,
+                            );
+                        })
+                        .id();
+                    world.flush();
+                    let back = world
+                        .query::<(Entity, &Act)>()
+                        .iter(&world)
+                        .find_map(|(entity, action)| (*action == Act::ItemBack).then_some(entity))
+                        .unwrap();
+                    assert_eq!(world.get::<ChildOf>(back).unwrap().parent(), root);
+                    let positions: Vec<_> = world
+                        .query::<(&CompactScroll, &ScrollPosition)>()
+                        .iter(&world)
+                        .collect();
+                    assert_eq!(positions.len(), 1);
+                    assert!(matches!(
+                        (page, positions[0].0),
+                        (
+                            super::super::Page::Collection,
+                            CompactScroll::CollectionDetail
+                        ) | (super::super::Page::DropTables, CompactScroll::DropDetail)
+                    ));
+                    assert_eq!(positions[0].1 .0.y, 40.);
+                    let actions: Vec<_> = world.query::<&Act>().iter(&world).collect();
+                    assert_eq!(
+                        actions.iter().any(|action| matches!(
+                            action,
+                            Act::WearPiece(0, Some(0)) | Act::WearSupplemental(_)
+                        )),
+                        owned
+                    );
+                    assert!(!actions.iter().any(|action| matches!(
                         action,
-                        Act::WearPiece(0, Some(0)) | Act::WearSupplemental(_)
-                    )),
-                    owned
-                );
-                assert!(!actions.iter().any(|action| matches!(
-                    action,
-                    Act::InspectPiece(_) | Act::InspectSupplemental(_)
-                )));
+                        Act::InspectPiece(_) | Act::InspectSupplemental(_)
+                    )));
+                }
             }
         }
     }

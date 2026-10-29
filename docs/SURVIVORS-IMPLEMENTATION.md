@@ -5,6 +5,32 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Compact Drop Tables inspection — 2026-10-29
+
+Extend the compact Collection inspector to encounter and supplemental drops.
+The native before capture reproduces row selection without visible item controls
+at 640×480. Selection now opens a dedicated detail view with a fixed Back action;
+Escape restores the list offset. Detail offsets are independent across the two
+catalogs, tab switching retains their views, and source links explicitly exit the
+inspector to the requested zone. Browsing never changes the next-run zone.
+The wide composition remains based on `intentions/survivors_drop_tables_tab.png`.
+
+Native macOS acceptance: collected shoulders select/equip, unowned Poor gloves
+have no Equip action, wheel-scrolled list position survives Escape, and a source
+link opens Duskwood at its heading. At 640×720 / 125%, item controls remain readable;
+at 1280×720, selecting a row updates the side detail without replacing columns.
+Construction regressions cover both pages, owned/unowned normal and supplemental
+items, fixed Back placement and separate scroll memory. State regressions cover
+tab/source navigation and next-run zone independence. Build: 1m27s. All 4,849 app
+unit tests and the eight-package formatting/Clippy/test gate pass (31 optional-addon
+skips). The first test build exhausted disk; obsolete unlocked app cache snapshots
+were removed, retaining active caches and dependencies. The retry encountered
+undefined linker symbols in the app test cache after the interrupted compilation;
+that specific cache was rebuilt. One native automation
+session lost its window target; clean restart completed the checks. Screenshots
+are inline in CHANGELOG. Windows, physical gamepad, full account/body coverage,
+and the remaining seven-phase acceptance requirements are still open.
+
 ## Compact Collection inspection — 2026-10-29
 
 Native 640×480 / 125% reproduction: selecting a cell left its details and Equip

@@ -313,9 +313,9 @@ fn collection_inspection_preserves_grid_and_source_round_trip() {
         collection_detail_scroll: Vec2::new(0., 80.),
         ..default()
     };
-    armory.inspect_collection(false);
+    armory.inspect_item(false);
     assert!(!armory.collection_inspecting);
-    armory.inspect_collection(true);
+    armory.inspect_item(true);
     assert!(armory.collection_inspecting);
     assert_eq!(armory.collection_detail_scroll, Vec2::ZERO);
     assert_eq!(armory.collection_scroll.y, 350.);
@@ -330,13 +330,66 @@ fn collection_inspection_preserves_grid_and_source_round_trip() {
     assert_eq!(armory.collection_scroll.y, 350.);
     armory.back(true);
     assert!(armory.page == Page::Door);
-    armory.inspect_collection(true);
+    armory.inspect_item(true);
     assert!(!armory.collection_inspecting);
     armory.open_page(Page::Collection);
-    armory.inspect_collection(true);
+    armory.inspect_item(true);
     armory.back(false);
     assert!(
         armory.page == Page::Door,
         "wide layout keeps ordinary Back behavior"
     );
+}
+
+#[test]
+fn drop_inspection_keeps_browser_and_collection_state_separate() {
+    use super::{Armory, Page};
+    use bevy::prelude::{default, Vec2};
+    let mut armory = Armory {
+        page: Page::DropTables,
+        picked: Some(4),
+        drop_zone: 2,
+        piece: 10,
+        drop_scroll: Vec2::new(0., 300.),
+        collection_scroll: Vec2::new(0., 700.),
+        collection_inspecting: true,
+        collection_detail_scroll: Vec2::new(0., 90.),
+        ..default()
+    };
+    armory.inspect_item(false);
+    assert!(!armory.drop_inspecting);
+    armory.inspect_item(true);
+    assert!(armory.drop_inspecting);
+    assert_eq!(armory.drop_detail_scroll, Vec2::ZERO);
+    armory.drop_detail_scroll.y = 60.;
+    armory.open_page(Page::Collection);
+    assert!(armory.collection_inspecting);
+    assert_eq!(armory.collection_detail_scroll.y, 90.);
+    armory.open_page(Page::DropTables);
+    assert!(armory.drop_inspecting);
+    assert_eq!(armory.drop_detail_scroll.y, 60.);
+    armory.back(true);
+    assert!(armory.page == Page::DropTables);
+    assert!(!armory.drop_inspecting);
+    assert_eq!(armory.drop_scroll.y, 300.);
+    assert_eq!(armory.collection_scroll.y, 700.);
+    assert_eq!(
+        (armory.drop_zone, armory.piece, armory.picked),
+        (2, 10, Some(4))
+    );
+    armory.inspect_item(true);
+    armory.open_drop_source(1);
+    assert!(
+        !armory.drop_inspecting,
+        "a source link must show the encounter list"
+    );
+    assert_eq!(armory.drop_zone, 1);
+    assert_eq!(armory.drop_scroll, Vec2::ZERO);
+    assert_eq!(
+        armory.entered_zone(),
+        Some(4),
+        "browsing cannot change the next run"
+    );
+    assert!(armory.collection_inspecting);
+    assert_eq!(armory.collection_detail_scroll.y, 90.);
 }

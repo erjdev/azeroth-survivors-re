@@ -48,6 +48,7 @@ impl ActionContext {
                 Page::Achievements => armory.achieve,
                 Page::Heroes => u8::from(armory.manage_heroes),
                 Page::Collection => u8::from(armory.collection_inspecting),
+                Page::DropTables => u8::from(armory.drop_inspecting),
                 _ => 0,
             },
         }

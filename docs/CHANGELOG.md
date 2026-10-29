@@ -4,6 +4,31 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Direct inspection from compact Drop Tables
+
+Selecting an encounter drop now opens its stats, equipment and appearance actions
+immediately on compact screens. Back/Escape restores the encounter list position;
+source links open the requested zone. Collection and Drop Tables retain independent
+inspector positions. Wide layouts keep the reference's simultaneous columns.
+
+Native macOS checks cover 640×480 selection/equip, uncollected Poor gear, wheel
+scrolling, Escape restoration and source navigation; 640×720 / 125% confirms
+readable controls, and 1280×720 confirms wide selection. Play build: 1m27s.
+Windows and physical controller acceptance remain open. The eight-package
+formatting/Clippy/test gate passes (31 optional-addon skips).
+
+![Before: selecting a drop leaves its details below the list](images/screenshots/2026-10-29-drop-inspector/before.png)
+
+![After: the selected drop exposes its stats and actions](images/screenshots/2026-10-29-drop-inspector/detail.png)
+
+![Uncollected items remain unavailable to equip](images/screenshots/2026-10-29-drop-inspector/unowned.png)
+
+![Escape restores the encounter list position](images/screenshots/2026-10-29-drop-inspector/list-restored.png)
+
+![Compact inspection at 125% UI size](images/screenshots/2026-10-29-drop-inspector/detail-125.png)
+
+![Wide Drop Tables retains simultaneous columns](images/screenshots/2026-10-29-drop-inspector/wide.png)
+
 ## 2026-10-29 — Compact Collection item inspector
 
 Selecting an item on compact screens now opens its details and equipment actions
