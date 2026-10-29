@@ -108,7 +108,7 @@ and actor depth. A new extracted marker must identify the source world view;
 `WorldCamera` itself is not an extracted component. Match target size, projection
 and viewport before consuming the mask, and skip rather than use stale attachments.
 
-The world defaults to 4× MSAA; the current experimental mask is single-sample.
+The world defaults to 4× MSAA; the experimental mask now follows its sample count.
 Bevy 0.18.1 exposes `ViewTarget::sampled_main_texture_view()`, but its multisampled
 color attachment is created with **RENDER_ATTACHMENT only** in `prepare_view_targets`.
 It cannot simply be bound as a sampled texture. Matching mask depth MSAA while
@@ -116,6 +116,23 @@ reading resolved allegiance color also loses per-sample ownership where differen
 actors overlap. Resolve this with appropriately owned sampleable attachments or an
 equivalent verified pass before claiming MSAA edge/overlap acceptance. Do not force
 the player's world MSAA off or silently treat mixed resolved colors as one actor.
+
+## Sampleable attachment implementation
+
+`actor_mask_targets.rs` allocates cached Rgba16Float allegiance and Depth32Float
+textures with both RENDER_ATTACHMENT and TEXTURE_BINDING usage, matching the mask
+camera's sample count and physical target size. Its render node runs after EndMainPass
+and before StartMainPassPostProcessing, replaying opaque, alpha-mask and transparent
+mask queues into these owned attachments. Viewport and posed source-material pipelines
+are reused. Size/sample-count changes replace the cached pair; absent targets remove it.
+
+The current debug preview still displays the ordinary resolved mask. The owned pass
+adds a second actor draw while this experimental path is enabled; remove that duplicate
+work or measure and justify it before enabling the feature for players. Native Metal
+boots at WOW_MSAA=1 and 4 compiled matching mask variants and produced no validation
+errors. The screenshots in `../images/screenshots/2026-10-28-actor-samples/` prove only
+the pictured resolved preview and compatibility with the added pass. Sampling these
+attachments, mixed-actor ownership and depth comparison remain unverified.
 
 ## Required isolated visual acceptance
 

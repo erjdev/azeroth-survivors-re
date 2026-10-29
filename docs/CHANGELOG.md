@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-28 — Per-sample actor-mask storage
+
+The experimental mask now follows the world's MSAA setting. A dedicated pass reuses
+its posed-material draw queues to store sampleable allegiance and depth attachments,
+retaining ownership per sample for the pending compositor. No Bevy internals or player
+MSAA preferences changed. Native Metal previews run at 1× and 4×; build: 1m54s.
+
+![Four-sample Warrior preview](images/screenshots/2026-10-28-actor-samples/four-samples.jpg)
+
+![Single-sample compact Paladin preview](images/screenshots/2026-10-28-actor-samples/one-sample.jpg)
+
+These captures show the existing resolved preview with the new pass present. They do
+not prove sampling of the new attachments or mixed-actor occlusion. The compositor,
+blocker fixture, duplicate-pass cost and Windows acceptance remain open. All 553
+Survivors tests, feature Clippy and eight-package scoped checks pass (31 missing-addon
+skips). Full pre-merge gates remain required.
+
 ## 2026-10-28 — Native actor-mask preview
 
 The developer preview now displays the real posed player mask without starting a run.

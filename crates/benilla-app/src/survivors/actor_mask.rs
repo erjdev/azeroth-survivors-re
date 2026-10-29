@@ -23,6 +23,8 @@ use std::collections::{HashMap, HashSet};
 
 #[path = "actor_mask_preview.rs"]
 mod preview;
+#[path = "actor_mask_targets.rs"]
+mod targets;
 
 // Reserved above the portrait/UI-model layer ladder. This camera is never a WorldCamera.
 const LAYER: usize = 128;
@@ -55,6 +57,7 @@ pub(super) fn plugin(app: &mut App) {
     if mask.preview {
         preview::plugin(app);
     }
+    targets::plugin(app);
     app.insert_resource(mask)
         .add_plugins(ExtractComponentPlugin::<ActorMaskView>::default())
         .add_systems(
@@ -147,7 +150,7 @@ fn sync(
     mut mask: ResMut<Mask>,
     phase: Res<State<Phase>>,
     view: Query<
-        (&Camera, &Projection, &GlobalTransform),
+        (&Camera, &Projection, &GlobalTransform, &Msaa),
         (With<WorldCamera>, Without<ActorMaskView>),
     >,
     mut cameras: Query<
@@ -156,6 +159,7 @@ fn sync(
             &mut Projection,
             &mut Transform,
             &mut GlobalTransform,
+            &mut Msaa,
         ),
         (With<ActorMaskView>, Without<WorldCamera>, Without<Mirror>),
     >,
@@ -186,16 +190,16 @@ fn sync(
     let active = mask.enabled
         && (!matches!(phase.get(), Phase::Menu | Phase::GameOver)
             || (mask.preview && *phase.get() == Phase::Menu));
-    let source = view.single().ok().filter(|(camera, _, _)| {
+    let source = view.single().ok().filter(|(camera, _, _, _)| {
         active
             && camera.is_active
             && camera
                 .physical_target_size()
                 .is_some_and(|size| size.x > 0 && size.y > 0)
     });
-    let Some((camera, projection, transform)) = source else {
+    let Some((camera, projection, transform, msaa)) = source else {
         if let Some(entity) = mask.camera {
-            if let Ok((mut camera, _, _, _)) = cameras.get_mut(entity) {
+            if let Ok((mut camera, _, _, _, _)) = cameras.get_mut(entity) {
                 camera.is_active = false;
             }
         }
@@ -241,7 +245,7 @@ fn sync(
                     *transform,
                     Hdr,
                     Tonemapping::None,
-                    Msaa::Off,
+                    *msaa,
                     bevy::light::cluster::ClusterConfig::None,
                     RenderLayers::from_layers(&[LAYER]),
                 ))
@@ -258,7 +262,10 @@ fn sync(
                 mask.size = size;
             }
         }
-        if let Ok((mut target, mut optic, mut local, mut global)) = cameras.get_mut(entity) {
+        if let Ok((mut target, mut optic, mut local, mut global, mut samples)) =
+            cameras.get_mut(entity)
+        {
+            *samples = *msaa;
             target.is_active = true;
             target.order = camera.order.saturating_sub(1);
             target.viewport = camera.viewport.clone();
@@ -362,6 +369,7 @@ mod tests {
             let camera = world
                 .spawn((
                     ActorMaskView,
+                    Msaa::Sample4,
                     Camera::default(),
                     Projection::default(),
                     Transform::default(),
@@ -402,6 +410,7 @@ mod tests {
         let view = world
             .spawn((
                 WorldCamera,
+                Msaa::Sample4,
                 source,
                 Projection::default(),
                 GlobalTransform::IDENTITY,
@@ -413,6 +422,8 @@ mod tests {
         let image = mask.image.clone();
         assert!(!world.entity(camera).contains::<WorldCamera>());
         assert_eq!(world.get::<Camera>(camera).unwrap().order, -1);
+        assert_eq!(world.get::<Msaa>(camera), world.get::<Msaa>(view));
+        *world.get_mut::<Msaa>(view).unwrap() = Msaa::Off;
         let usage = world.get::<Camera3d>(camera).unwrap().depth_texture_usages;
         assert!(TextureUsages::from(usage).contains(TextureUsages::TEXTURE_BINDING));
         world
@@ -427,6 +438,7 @@ mod tests {
             GlobalTransform::from_translation(Vec3::new(3., 4., 5.));
         world.run_system_once(sync).unwrap();
         assert_eq!(world.resource::<Mask>().camera, Some(camera));
+        assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Off));
         assert_eq!(world.resource::<Mask>().image, image);
         let target = world.resource::<Assets<Image>>().get(&image).unwrap();
         assert_eq!(target.texture_descriptor.size.width, 1280);

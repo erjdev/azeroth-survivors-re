@@ -1891,7 +1891,10 @@ separate nearest-surface depth; see the audit for its lifecycle and validation l
 First Metal mask captures now verify a posed player with equipment and live
 character/target-size changes. Detached billboard ownership was corrected from this
 inspection; hidden actor owners and ownerless effects are excluded. Captures are inline
-in CHANGELOG. Mixed-actor blocker acceptance and the scene-depth compositor remain open.
+in CHANGELOG. The mask now follows world MSAA and writes dedicated sampleable color/depth attachments.
+Native 1×/4× previews run; the debug image still uses the ordinary resolve. Sampling the
+new attachments, mixed-actor blocker acceptance, duplicate-pass performance and the
+scene-depth compositor remain open.
 
 Use separate policies for foliage visibility, body collision and solid-world camera collision.
 A canopy obscuring the hero is not by itself a reason to collapse the camera boom. The
