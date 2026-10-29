@@ -75,3 +75,8 @@ optional-addon skips. The first sandboxed run failed only at the existing
 mock-login listener; the verified rerun had loopback permission. Rustdoc link
 validation passes with 150 benign warnings. No new screenshot is claimed because
 this checkpoint changes documentation only.
+
+Retaliation foundation follow-up: contact reflection now emits the actual ability
+key and cast-scaled damage once. A queued hit retains that identity if the active
+buff changes. Retribution Aura still requires its own acquisition/active-state
+policy and definition; this source fix does not enable node 1405.

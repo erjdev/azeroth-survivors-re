@@ -612,17 +612,8 @@ pub(super) fn move_enemies(
                 (taken, None)
             } else {
                 let strike = super::defense::contact(&mut run, ent, raw, || rng.f32());
-                if run.thorns_t > 0.0
-                    && matches!(
-                        strike.outcome,
-                        super::defense::Outcome::Landed { .. } | super::defense::Outcome::Immune
-                    )
-                {
-                    hits.write(Hit::direct(
-                        strike.attacker,
-                        run.thorns * run.stats().might,
-                        false,
-                    ));
+                if let Some(hit) = super::defense::reflection(&run, strike) {
+                    hits.write(hit);
                 }
                 if let Some(hit) = super::defense::counterattack(&mut run, strike) {
                     fx.cast(hero_e, 19306, &[hit.target], None);
@@ -1102,6 +1093,7 @@ mod spawn_tests {
                 immune_t: if immune { 5. } else { 0. },
                 thorns: 2.,
                 thorns_t: 5.,
+                thorns_spell: data::ability("thorns").spell,
                 ..Default::default()
             });
             app.add_message::<CastEvent>();
@@ -1174,7 +1166,7 @@ mod spawn_tests {
             );
             assert!(reflected.iter().all(|hit| attackers.contains(&hit.target)
                 && hit.damage == 2.
-                && hit.source == "Thorns"));
+                && hit.source == "thorns"));
             let swings: Vec<_> = app
                 .world_mut()
                 .resource_mut::<Messages<SwingMessage>>()

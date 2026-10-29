@@ -5,6 +5,29 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Retaliation source correctness — 2026-10-29
+
+The Retribution Aura prerequisite exposed two existing defects: cast parameters
+already include Might, but contact reflection multiplied by Might again; queued
+hits also used the shared `Thorns` source and read their school from the current
+buff at impact. Contact now emits the cast's damage once with its actual ability
+key and event time. Queued Thorns/Retaliation retains its school if the active buff
+changes; the existing named Retaliation consumers can identify their own hits.
+Absorbed and immune contacts retain their prior reflection policy; dodges/parries,
+expired buffs and invalid spell identities produce no reflected hit.
+
+Tests cover the real contact system, cast scaling and installed-school damage
+settlement after replacing the active buff. Final incremental build: 12s, with
+existing linker unwind-table/`block` warnings. The scoped gate exposed missing
+internal LLVM symbols in the debug app archive while linking `extended_launcher`.
+Only the matching app incremental directory and archive were quarantined; engine
+and dependency caches remain intact. The repaired test build took 3m25s; both
+new regressions pass. The recovered eight-package formatting/Clippy/test gate
+passes: 4,860 app tests, 10 ignored; 31 optional-addon skips across the suite.
+This is the source-identity foundation; Retribution Aura and its talent remain
+unimplemented, and definition coverage stays 305/432. No new menu layout or native
+combat screenshot is claimed; attended combat/Windows acceptance remains open.
+
 ## Remaining Paladin dependencies — 2026-10-29
 
 All eighteen pending nodes now have an [installed-data dependency audit](audits/PALADIN-TALENT-DEPENDENCIES.md).

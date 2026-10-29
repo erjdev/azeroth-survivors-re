@@ -188,6 +188,46 @@ fn reflection_uses_its_actual_spell_school_instead_of_the_shared_meter_name() {
 }
 
 #[test]
+fn queued_reflection_keeps_its_school_after_the_active_buff_changes() {
+    let path = benilla_formats::wow_data_or_skip!();
+    for (key, replacement, expected) in [
+        ("thorns", "retaliation", 988.0),
+        ("retaliation", "thorns", 990.0),
+    ] {
+        let (mut app, target, mut schedule) = fixture("instant_poison", 1000.0);
+        spell_data(&mut app, &path);
+        charge(&mut app, target);
+        let queued = {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.thorns = 10.0;
+            run.thorns_t = 5.0;
+            run.thorns_spell = data::ability(key).spell;
+            let hit = super::super::defense::reflection(
+                &run,
+                super::super::defense::Strike {
+                    attacker: target,
+                    outcome: super::super::defense::Outcome::Landed {
+                        absorbed: 0.0,
+                        health_removed: 1.0,
+                    },
+                },
+            )
+            .unwrap();
+            run.thorns_spell = data::ability(replacement).spell;
+            hit
+        };
+        app.world_mut()
+            .resource_mut::<Messages<Hit>>()
+            .write(queued);
+        advance(&mut app, &mut schedule, 0.0);
+        assert!(
+            (app.world().get::<Enemy>(target).unwrap().hp - expected).abs() < 0.001,
+            "{key}"
+        );
+    }
+}
+
+#[test]
 fn weapon_poison_procs_and_periodic_poison_use_damage_school() {
     let path = benilla_formats::wow_data_or_skip!();
     for (key, expected, remaining) in [("instant_poison", 963.6, 1), ("deadly_poison", 959.4, 0)] {

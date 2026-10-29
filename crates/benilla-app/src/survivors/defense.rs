@@ -76,6 +76,26 @@ pub(super) fn contact(
     }
 }
 
+/// Contact reflection keeps the cast's scaled damage and spell identity in the hit.
+pub(super) fn reflection(run: &Run, strike: Strike) -> Option<super::abilities::Hit> {
+    if !run.thorns_t.is_finite()
+        || run.thorns_t <= 0.0
+        || !run.thorns.is_finite()
+        || run.thorns <= 0.0
+        || !matches!(strike.outcome, Outcome::Landed { .. } | Outcome::Immune)
+    {
+        return None;
+    }
+    let def = super::data::ABILITIES
+        .iter()
+        .find(|def| def.spell == run.thorns_spell && def.kind == super::data::Kind::Thorns)?;
+    Some(super::abilities::Hit {
+        source: def.key,
+        occurred: Some(run.elapsed),
+        ..super::abilities::Hit::direct(strike.attacker, run.thorns, false)
+    })
+}
+
 /// Survivors consumes the parry immediately; cooldown blocks further responses, not avoidance.
 pub(super) fn counterattack(run: &mut Run, strike: Strike) -> Option<super::abilities::Hit> {
     let base = run.milestones.counterattack_damage();
@@ -165,6 +185,59 @@ mod tests {
             shield: 10.,
             shield_t: 10.,
             ..Default::default()
+        }
+    }
+
+    #[test]
+    fn reflection_preserves_cast_damage_identity_and_contact_outcomes() {
+        use super::super::{abilities::Params, data, Owned};
+        let attacker = Entity::from_bits(42);
+        for key in ["thorns", "retaliation"] {
+            let mut run = hunter();
+            let mut stats = run.stats();
+            stats.might = 2.0;
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.0,
+            };
+            let cast = Params::new(&owned, &stats, run.milestones);
+            run.thorns = cast.dmg;
+            run.thorns_spell = owned.def.spell;
+            run.thorns_t = cast.duration;
+            for outcome in [
+                Outcome::Landed {
+                    absorbed: 20.0,
+                    health_removed: 0.0,
+                },
+                Outcome::Immune,
+            ] {
+                let hit = reflection(&run, Strike { attacker, outcome }).unwrap();
+                assert_eq!(hit.source, key);
+                assert_eq!(hit.damage, owned.def.damage * 2.0);
+                assert_eq!(hit.target, attacker);
+                assert!(!hit.crit);
+                run.thorns_spell = 0;
+                assert_eq!(hit.source, key, "queued identity outlives the active buff");
+                run.thorns_spell = owned.def.spell;
+            }
+            for outcome in [
+                Outcome::Invalid,
+                Outcome::Inactive,
+                Outcome::Dodged,
+                Outcome::Parried,
+            ] {
+                assert!(reflection(&run, Strike { attacker, outcome }).is_none());
+            }
+            let strike = Strike {
+                attacker,
+                outcome: Outcome::Immune,
+            };
+            run.thorns_t = 0.0;
+            assert!(reflection(&run, strike).is_none());
+            run.thorns_t = 1.0;
+            run.thorns_spell = 0;
+            assert!(reflection(&run, strike).is_none());
         }
     }
 

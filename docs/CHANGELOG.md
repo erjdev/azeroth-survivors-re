@@ -4,6 +4,18 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Correct retaliation damage and attribution
+
+Thorns and Retaliation now apply the cast's damage multiplier once. Reflected hits
+retain their spell identity even if the active buff changes before impact, keeping
+school interactions and damage attribution correct. Avoided hits still do not
+reflect; absorbed/immune contacts retain their existing policy.
+
+Contact, scaling and installed-school regressions cover the fix. Final build: 12s;
+the eight-package gate passes (31 optional-addon skips) after repairing only the
+affected debug app cache. Retribution Aura remains next; no new talent or UI layout
+is added. Native combat and Windows acceptance remain open.
+
 ## 2026-10-29 — Paladin implementation dependencies
 
 Audited all eighteen unfinished Paladin talents against installed data and current
