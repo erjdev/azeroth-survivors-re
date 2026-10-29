@@ -323,6 +323,7 @@ pub(super) struct ArmoryRoot;
 
 #[derive(Component, Clone, PartialEq, Eq)]
 pub(super) enum Act {
+    RetrySave,
     Page(Page),
     ManageHeroes(bool),
     Pick(u32),
@@ -523,6 +524,7 @@ pub(super) fn input(
             continue;
         }
         match act.clone() {
+            Act::RetrySave => account.save(),
             Act::Page(page) => {
                 armory.open_page(page);
             }
@@ -787,8 +789,10 @@ pub(super) fn input(
         }
     }
     // Persist edits even when the OS closes the window directly from an Armory page.
-    // Clean accounts perform no disk I/O; failed writes remain dirty for retry.
-    account.save();
+    // A failed write waits for an explicit retry instead of hitting disk every frame.
+    if account.save_notice().is_none() {
+        account.save();
+    }
 }
 
 fn purchase_error(error: PurchaseError, strings: Option<&super::localization::Strings>) -> String {
@@ -2359,6 +2363,7 @@ fn signature(
     n = fold(n, hash_str(&armory.draft_first));
     n = fold(n, hash_str(&armory.draft_last));
     n = fold(n, hash_str(&armory.note));
+    n = fold(n, u64::from(account.save_notice().is_some()));
     n = fold(n, selection.character.unwrap_or(0) as u64);
     n = fold(n, u64::from(selection.version));
     n = fold(n, selection.map as u64);

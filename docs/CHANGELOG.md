@@ -4,6 +4,28 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Visible save failures and recovery
+
+Starter and Armory pages now show **Progress not saved** with **Retry save** after
+a failed write. Pending changes stay in memory; the previous save remains intact.
+The Armory no longer retries a failing write every frame. A successful save clears
+the warning. Save format and load-corruption safeguards are unchanged.
+
+Native macOS validation forced a real write failure while changing skin color,
+checked the old file byte-for-byte, retried after restoring access, and restarted
+with the new selection intact. Captures cover 1280×720 and 640×720 / 125% UI size.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+Windows, browser storage failures and keyboard/controller retry remain unverified.
+
+![Pending save at 1280×720](images/screenshots/2026-10-29-save-warning/wide.png)
+
+![Readable warning and retry at 125% UI size](images/screenshots/2026-10-29-save-warning/compact.png)
+
+![Warning clears after successful retry](images/screenshots/2026-10-29-save-warning/recovered.png)
+
+![Recovered appearance persists after restart](images/screenshots/2026-10-29-save-warning/restarted.png)
+
+
 ## 2026-10-29 — Hunter ranged appearance acceptance
 
 The male Night Elf Hunter's Carapace Spine Crossbow fits the Character preview at

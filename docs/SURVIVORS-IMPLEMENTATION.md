@@ -5,6 +5,25 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Save-write recovery acceptance — 2026-10-29
+
+Phase 1 now surfaces failed account writes throughout starter/Armory navigation,
+with Retry save and retained in-memory changes. The shared frame flush stops
+retrying after an error; explicit saves can recover. Load failures still preserve
+the original file and disable saving/runs separately. No save-format change.
+
+Native macOS: isolated Hunter skin 2/9 → 3/9 with a directory blocking the atomic
+temporary file. The previous save stayed byte-identical; failed retry retained the
+warning. Removing the test obstruction and clicking Retry saved only the new
+`features 3 4 0 2 1 6 2 3` row. Restart retained 3/9. Warning fits 1280×720 and
+640×720 / 125%; screenshots are inline in CHANGELOG and README. This extends the
+Character reference with failure feedback, retaining its layout and visual style.
+Windows, browser-storage failure and keyboard/controller acceptance remain open.
+The native build completed in 1m46s while checks compiled concurrently. The
+eight-package gate passes, including real-write-failure recovery; 31 optional-addon
+tests skipped because their corpus is absent.
+
+
 ## Ranged Character preview acceptance — 2026-10-29
 
 Phase 3 now has native macOS evidence for the male Night Elf Hunter with Carapace

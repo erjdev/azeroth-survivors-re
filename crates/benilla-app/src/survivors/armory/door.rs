@@ -42,6 +42,7 @@ pub(super) fn build(
 ) {
     if armory.page == Page::RunOptions {
         header(ui, font);
+        save_warning(ui, font, account);
         panel(ui, art, false, None, |body| {
             heading(body, font, "Run Options");
             line(
@@ -106,6 +107,7 @@ pub(super) fn build(
     } else {
         armory_header(ui, font, armory, account, selection);
     }
+    save_warning(ui, font, account);
     if !note.is_empty() && (armory.page != Page::Codex || account.recovery_notice().is_some()) {
         line(ui, font, note, 13.0, GOLD);
     }
@@ -1661,3 +1663,30 @@ pub(super) fn bonus_line(
 
 #[cfg(test)]
 mod localization_tests;
+
+/// A write failure leaves in-memory progress intact and offers an explicit retry.
+fn save_warning(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Account) {
+    let Some(notice) = account.save_notice() else {
+        return;
+    };
+    ui.spawn(Node {
+        width: Val::Percent(100.0),
+        flex_shrink: 0.0,
+        flex_wrap: FlexWrap::Wrap,
+        align_items: AlignItems::Center,
+        column_gap: Val::Px(10.0),
+        row_gap: Val::Px(4.0),
+        ..default()
+    })
+    .with_children(|row| {
+        row.spawn((
+            hud::text_bundle(font, notice, 13.0, GOLD),
+            Node {
+                flex_basis: Val::Px(260.0),
+                flex_grow: 1.0,
+                ..default()
+            },
+        ));
+        super::chip(row, font, "Retry save", Act::RetrySave, false);
+    });
+}

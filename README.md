@@ -16,6 +16,13 @@ is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks t
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
+Failed account writes now show a visible warning and Retry save. Native checks
+verify that pending appearance changes survive recovery and restart.
+
+![Save warning at compact UI size](docs/images/screenshots/2026-10-29-save-warning/compact.png)
+
+![Successful retry clears the warning](docs/images/screenshots/2026-10-29-save-warning/recovered.png)
+
 Hunter crossbow previews now have wide/compact and saved-visibility acceptance.
 Hiding the weapon preserves its equipped bonuses.
 

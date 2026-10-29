@@ -174,6 +174,7 @@ pub(super) struct Account {
     pub tabard: u8,
     dirty: bool,
     load_failed: bool,
+    save_failed: bool,
     pub(super) talent_rules: Option<std::sync::Arc<super::talent_validation::Rules>>,
 }
 
@@ -210,6 +211,12 @@ impl Account {
         self.load_failed.then_some("Account could not be loaded. Saving and runs are disabled. Restore survivors-account.txt from a backup, or fix file access, then restart.")
     }
 
+    pub(super) fn save_notice(&self) -> Option<&'static str> {
+        (self.save_failed && self.dirty && !self.load_failed).then_some(
+            "Progress not saved. Keep the app open, check disk space or file access, then retry.",
+        )
+    }
+
     pub fn save(&mut self) {
         if !self.dirty || self.load_failed {
             return;
@@ -230,8 +237,12 @@ impl Account {
             ));
         }
         if self.dirty {
-            local_state::write_atomic(path, &encode(self))?;
+            if let Err(error) = local_state::write_atomic(path, &encode(self)) {
+                self.save_failed = true;
+                return Err(error);
+            }
             self.dirty = false;
+            self.save_failed = false;
         }
         Ok(())
     }
@@ -1118,6 +1129,7 @@ pub(super) fn empty() -> Account {
         tabard: 0,
         dirty: false,
         load_failed: false,
+        save_failed: false,
         talent_rules: None,
     }
 }
@@ -1862,11 +1874,14 @@ mod tests {
         let obstacle = path.with_extension("tmp");
         std::fs::create_dir(&obstacle).unwrap();
         assert!(account.save_to(&path).is_err());
+        assert!(account.save_notice().is_some());
+        assert!(account.recovery_notice().is_none());
         assert!(account.dirty);
         assert_eq!(std::fs::read_to_string(&path).unwrap(), original);
         std::fs::remove_dir(&obstacle).unwrap();
         account.save_to(&path).unwrap();
         assert!(!account.dirty);
+        assert!(account.save_notice().is_none());
         let disk = std::fs::read_to_string(&path).unwrap();
         assert_eq!(disk, pending);
         let restored = parse(&disk).unwrap();
