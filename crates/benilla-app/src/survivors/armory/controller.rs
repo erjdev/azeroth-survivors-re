@@ -76,12 +76,14 @@ struct Item {
     entity: Entity,
     center: Vec2,
     size: Vec2,
+    visible_center: bool,
 }
 
 fn step(items: &[Item], current: Option<Entity>, direction: Vec2) -> Option<Entity> {
     let Some(from) = items.iter().find(|item| Some(item.entity) == current) else {
         return items
             .iter()
+            .filter(|item| item.visible_center)
             .min_by(|a, b| {
                 a.center
                     .y
@@ -128,10 +130,11 @@ pub(in crate::survivors) fn navigate(
         ),
         (Or<(With<Act>, With<TalentInfo>)>, With<Button>),
     >,
-    (grid_items, equipment_details, achievement_pages): (
+    (grid_items, equipment_details, achievement_pages, clips): (
         Query<(), With<CollectionGridItem>>,
         Query<(&ComputedNode, &UiGlobalTransform), With<super::starter_equipment::Detail>>,
         Query<Entity, With<super::achievement_page::ScrollCategory>>,
+        Query<&CalculatedClip>,
     ),
     parents: Query<&ChildOf>,
     mut scrolls: Query<(
@@ -178,6 +181,9 @@ pub(in crate::survivors) fn navigate(
                 entity,
                 center: transform.translation,
                 size: node.size(),
+                visible_center: clips
+                    .get(entity)
+                    .map_or(true, |clip| clip.clip.contains(transform.translation)),
             })
             .collect();
         if !items.iter().any(|item| Some(item.entity) == focus.focused) {
@@ -266,9 +272,9 @@ pub(in crate::survivors) fn navigate(
                             } else if keys.just_pressed(KeyCode::End) {
                                 maximum
                             } else if keys.just_pressed(KeyCode::PageUp) {
-                                scroll.0.y - viewport * 0.8
+                                scroll.0.y.clamp(0.0, maximum) - viewport * 0.8
                             } else {
-                                scroll.0.y + viewport * 0.8
+                                scroll.0.y.clamp(0.0, maximum) + viewport * 0.8
                             };
                             scroll.0.y = target.clamp(0.0, maximum);
                         }
@@ -389,7 +395,12 @@ pub(in crate::survivors) fn navigate(
                         } else {
                             0.
                         };
-                        scroll.0.y = (scroll.0.y + delta * node.inverse_scale_factor()).max(0.);
+                        let maximum = ((node.content_size.y - node.size().y)
+                            * node.inverse_scale_factor())
+                        .max(0.0);
+                        scroll.0.y = (scroll.0.y.clamp(0.0, maximum)
+                            + delta * node.inverse_scale_factor())
+                        .clamp(0.0, maximum);
                         break;
                     }
                 }
@@ -480,6 +491,14 @@ mod tests {
             schedule.run(&mut world);
             assert_eq!(world.get::<ScrollPosition>(page).unwrap().0.y, 0.);
         }
+        world.resource_mut::<Armory>().page = Page::Achievements;
+        world.get_mut::<ScrollPosition>(page).unwrap().0.y = 900.;
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::PageUp);
+        schedule.run(&mut world);
+        assert_eq!(world.get::<ScrollPosition>(page).unwrap().0.y, 340.);
     }
 
     use super::*;
@@ -582,6 +601,7 @@ mod tests {
                 entity: Entity::from_bits(index as u64 + 1),
                 center: Vec2::new(x, y),
                 size: Vec2::splat(40.),
+                visible_center: true,
             })
             .collect();
         let first = Some(items[0].entity);
@@ -590,6 +610,12 @@ mod tests {
         assert_eq!(step(&items, first, Vec2::Y), Some(items[2].entity));
         assert_eq!(step(&items, first, Vec2::NEG_Y), first);
         assert_eq!(step(&[], first, Vec2::Y), None);
+        // Initial focus skips a category above the scrolled viewport, but explicit
+        // directional navigation still reaches it and can reveal it.
+        let mut clipped = items.clone();
+        clipped[0].visible_center = false;
+        assert_eq!(step(&clipped, None, Vec2::Y), Some(items[1].entity));
+        assert_eq!(step(&clipped, Some(items[2].entity), Vec2::NEG_Y), first);
     }
     #[test]
     fn collection_grid_focus_survives_equipped_sidebar_duplicate() {
@@ -735,6 +761,7 @@ mod tests {
                 },
                 ComputedNode {
                     size: Vec2::splat(200.),
+                    content_size: Vec2::new(200., 600.),
                     inverse_scale_factor: 0.5,
                     ..default()
                 },

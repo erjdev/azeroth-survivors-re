@@ -20,10 +20,23 @@ formatting/Clippy/test gate passes (31 optional-addon skips). Windows
 confirmation remains required; this macOS pass cannot settle an intermittent
 Windows-specific rendering failure.
 
-Pending separate regression: returning from Collection to the bottom of Zones
-achievements restores the category but loses the reading position at 640×480 /
-125%. Reproduced natively; investigate layout-time clamping before closing scroll
-restoration acceptance.
+## Scroll continuity and initial keyboard focus — 2026-10-29
+
+Native Zones End → first arrow focus → Collection → Achievements exposed a
+reading-position jump. The offset trace identified the first focus landing on a
+category above the clipped viewport, revealing it before departure. Initial
+keyboard focus must use visible controls; deliberate directional navigation may
+still reach offscreen content. A regression distinguishes those two cases.
+
+The shared wheel handler also destructively clamped requested offsets during
+intermediate layouts. Let Bevy clamp rendered geometry while retaining scroll
+intent; replace it only on input, starting from current bounds. Regression checks
+cover zero/partial/settled layouts and an immediate wheel or Page Up response
+after content shrinks. Native 640×480 / 125% acceptance verifies the full Zones →
+Collection → Zones round trip and Home; captures are inline in CHANGELOG. Final
+play build: 1m17s. Eight-package formatting/Clippy/test gates pass (31 optional-
+addon skips); Windows and native wheel input remain
+unverified (wheel behavior has headless input coverage).
 
 ## Achievement keyboard reachability — 2026-10-29
 

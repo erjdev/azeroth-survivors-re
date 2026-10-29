@@ -175,14 +175,17 @@ mod scroll_restore_tests {
     }
 
     #[test]
-    fn restored_scroll_waits_for_layout_then_clamps_to_actual_content() {
+    fn restored_scroll_survives_partial_layout_and_wheel_starts_at_visible_bound() {
         let mut app = App::new();
         app.add_message::<MouseWheel>().add_systems(Update, scroll);
         let entity = app
             .world_mut()
             .spawn((
                 CollectionScroll,
-                RelativeCursorPosition::default(),
+                RelativeCursorPosition {
+                    normalized: Some(Vec2::ZERO),
+                    ..default()
+                },
                 ComputedNode::default(),
                 ScrollPosition(Vec2::new(0., 250.)),
             ))
@@ -196,7 +199,29 @@ mod scroll_restore_tests {
             node.inverse_scale_factor = 1.;
         }
         app.update();
-        assert_eq!(app.world().get::<ScrollPosition>(entity).unwrap().0.y, 100.);
+        // Text wrapping can produce a nonzero but incomplete content height.
+        assert_eq!(app.world().get::<ScrollPosition>(entity).unwrap().0.y, 250.);
+        app.world_mut()
+            .get_mut::<ComputedNode>(entity)
+            .unwrap()
+            .content_size
+            .y = 500.;
+        app.update();
+        assert_eq!(app.world().get::<ScrollPosition>(entity).unwrap().0.y, 250.);
+        // A later resize renders at 100; the first upward tick must move immediately.
+        app.world_mut()
+            .get_mut::<ComputedNode>(entity)
+            .unwrap()
+            .content_size
+            .y = 200.;
+        app.world_mut().write_message(MouseWheel {
+            unit: MouseScrollUnit::Line,
+            x: 0.,
+            y: 1.,
+            window: Entity::PLACEHOLDER,
+        });
+        app.update();
+        assert_eq!(app.world().get::<ScrollPosition>(entity).unwrap().0.y, 76.);
     }
 }
 
@@ -224,8 +249,11 @@ pub(in crate::survivors) fn scroll(
         let hovered = cursor
             .normalized
             .is_some_and(|p| p.x.abs() <= 0.5 && p.y.abs() <= 0.5);
-        let target = pos.0.y - if hovered { dy } else { 0.0 };
-        pos.0.y = target.clamp(0.0, max);
+        // Bevy clamps rendered offsets itself. Preserve the requested reading position
+        // while text/art layout settles; only explicit input replaces that intent.
+        if hovered && dy != 0.0 {
+            pos.0.y = (pos.0.y.clamp(0.0, max) - dy).clamp(0.0, max);
+        }
     }
 }
 

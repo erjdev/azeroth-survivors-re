@@ -51,9 +51,10 @@ Windows and native pointer-hover inspection remain open.
 
 Page Up/Down scroll the achievement cards; Home/End jump to the top/bottom.
 Native 640×480 / 125% acceptance, 2026-10-29, reaches the full Veteran reward and
-final zone rows. Before/after captures are in the changelog.
+final zone rows. Initial keyboard focus preserves the reading position when
+leaving and returning. Before/after captures are in the changelog.
 
-![Compact achievement keyboard paging](docs/images/screenshots/2026-10-29-achievement-paging/after.png)
+![Achievement reading position preserved after a page round trip](docs/images/screenshots/2026-10-29-scroll-continuity/after.png)
 
 ### Combat demon specimens
 

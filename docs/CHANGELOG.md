@@ -4,6 +4,23 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Keep your place while navigating Armory
+
+Starting keyboard navigation no longer focuses a clipped category and pulls the
+page away from its reading position. Stored offsets survive partial layouts;
+wheel and paging input start from visible bounds after resizing. Native 640×480 /
+125% checks verify Zones → Collection → Zones and Home. Build: 1m17s. The
+eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+Windows and native mouse-wheel validation remain open.
+
+Before: returning to Zones loses the bottom-of-list position.
+
+![Before: reading position lost](images/screenshots/2026-10-29-scroll-continuity/before.png)
+
+After: the same navigation preserves the final achievement rows.
+
+![After: reading position retained](images/screenshots/2026-10-29-scroll-continuity/after.png)
+
 ## 2026-10-29 — More breathing room between talent rows
 
 Talent trees are 12.5% taller with the same icon size. Artwork retains its aspect
