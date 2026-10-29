@@ -5,6 +5,21 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Healing Light save acceptance — 2026-10-29
+
+Native macOS keyboard interaction now verifies three-rank purchase, restart,
+independent empty Spec 2, return to Spec 1 and Backspace refunds at 1280×720.
+Unspent points return 41 → 38 → 41, and the saved DBC allocation returns to its
+initial ten prerequisite points. Captures are inline in the changelog and README.
+This closes keyboard purchase/save acceptance left open in the previous checkpoint;
+pointer/controller, Windows and attended combat remain unverified. No production
+save or gameplay source changed; the preceding eight-package check remains valid.
+
+Illumination's no-mana policy is pending user choice: proposed half-recovery refund
+on eligible effective critical healing, with installed 20–100% chance, versus
+reserving the node for a future mana system. Do not infer a healing critical from
+Holy Shock's damage critical: its current separate cast heal is noncritical.
+
 ## Paladin healing scope — 2026-10-29
 
 Flash of Light is acquired independently (18 base health / 6s recovery), following

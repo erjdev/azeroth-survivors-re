@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Healing Light saved-spec acceptance
+
+Native macOS keyboard navigation verifies all three ranks, restart persistence,
+an independent empty Spec 2, return to trained Spec 1 and individual refunds.
+The point budget returns 41 → 38 → 41; the isolated saved allocation matches.
+No gameplay change; the preceding eight-package gate remains applicable.
+Pointer/controller, Windows and attended combat acceptance remain open.
+
+![Healing Light ranks retained after restart](images/screenshots/2026-10-29-flash-light/restarted.png)
+
+![Independent empty second spec](images/screenshots/2026-10-29-flash-light/spec-two.png)
+
+![Refund returns all three points](images/screenshots/2026-10-29-flash-light/refunded.png)
+
+
 ## 2026-10-29 — Flash of Light and healing training
 
 Paladins can acquire Flash of Light (18 base health / 6-second recovery).
