@@ -4,6 +4,27 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+## 2026-10-29 — Hunter parries and Counterattack
+
+Deterrence and Deflection now provide actual dodge/parry outcomes instead of
+provisional damage reduction. Counterattack responds to a parried attacker with
+40 base damage and a five-second root, subject to a five-second recovery.
+Avoidance preserves shields; unrelated enemies are not struck.
+
+![Counterattack purchase preview at 1280×720](images/screenshots/2026-10-29-counterattack/talents-wide.jpg)
+
+![Saved Counterattack rank and scrollable compact layout](images/screenshots/2026-10-29-counterattack/talents-compact.jpg)
+
+![Deterrence now grants dodge and parry](images/screenshots/2026-10-29-counterattack/deterrence-wide.jpg)
+
+![Deflection now grants parry chance](images/screenshots/2026-10-29-counterattack/deflection-compact.jpg)
+
+292 core and 570 runtime tests pass with checkout data; Clippy including tests
+and eight-package scoped checks pass (31 optional-addon skips). The scoped test
+run required loopback permission for its existing mock login server. Native macOS purchase/refund, prerequisite guard, spec isolation and
+save/relaunch verified. Incremental build: 1m11s. Windows combat and balance remain
+open; Hunter has 42/46 defined nodes, not full class acceptance.
+
 ## 2026-10-29 — Curse of Weakness and talent previews
 
 Warlocks can acquire Curse of Weakness to reduce each enemy physical hit. Its

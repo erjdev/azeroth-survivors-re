@@ -3093,19 +3093,90 @@ mod tests {
         let factor = |account: &Account, elapsed| {
             account
                 .milestones_picked(2, Some(hero))
-                .deterrence_multiplier(elapsed)
+                .deterrence_avoidance(elapsed)
         };
-        assert_eq!(factor(&account, 0.), 0.5);
-        assert_eq!(factor(&account, 10.), 1.);
+        assert_eq!(factor(&account, 0.), 0.25);
+        assert_eq!(factor(&account, 10.), 0.);
         let mut loaded = parse(&encode(&account)).unwrap();
         loaded.talent_rules = Some(rules);
-        assert_eq!(factor(&loaded, 180.), 0.5);
+        assert_eq!(factor(&loaded, 180.), 0.25);
         loaded.select_spec(hero, 1);
-        assert_eq!(factor(&loaded, 180.), 1.);
+        assert_eq!(factor(&loaded, 180.), 0.);
         loaded.select_spec(hero, 0);
-        assert_eq!(factor(&loaded, 180.), 0.5);
+        assert_eq!(factor(&loaded, 180.), 0.25);
         assert!(loaded.unlearn_talent(hero, 1308, true));
-        assert_eq!(factor(&loaded, 180.), 1.);
+        assert_eq!(factor(&loaded, 180.), 0.);
+    }
+
+    #[test]
+    fn counterattack_purchase_requires_deterrence_and_survives_saved_spec_refunds() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(2);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![
+            (2, 1311, 5),
+            (2, 1304, 5),
+            (2, 1622, 3),
+            (2, 1306, 2),
+            (2, 1322, 2),
+            (2, 1305, 3),
+        ];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        assert!(!account.learn_talent(hero, 2, 1312, 1, 4, false));
+        assert!(account.learn_talent(hero, 2, 1308, 1, 2, true));
+        let reduction = account.bonus(2, hero).reduction;
+        assert!(account.learn_talent(hero, 2, 1312, 1, 4, true));
+        assert_eq!(account.bonus(2, hero).reduction, reduction);
+        let trained = account.milestones_picked(2, Some(hero));
+        assert_eq!(trained.counterattack_damage(), 40.);
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(
+            loaded
+                .milestones_picked(2, Some(hero))
+                .counterattack_damage(),
+            40.
+        );
+        loaded.select_spec(hero, 1);
+        assert_eq!(
+            loaded
+                .milestones_picked(2, Some(hero))
+                .counterattack_damage(),
+            0.
+        );
+        loaded.select_spec(hero, 0);
+        let mut invalid = loaded.character(hero).unwrap().clone();
+        invalid.dbc[0].retain(|entry| entry.1 != 1308);
+        let allowed = loaded.talents_valid(&invalid);
+        assert!(!allowed, "catalog retains Counterattack prerequisite");
+        assert!(!loaded.unlearn_talent(hero, 1308, allowed));
+        assert!(loaded.unlearn_talent(hero, 1312, true));
+        assert_eq!(
+            loaded
+                .milestones_picked(2, Some(hero))
+                .counterattack_damage(),
+            0.
+        );
+        assert!(loaded.unlearn_talent(hero, 1308, true));
+        assert_eq!(
+            trained.counterattack_damage(),
+            40.,
+            "captured run retains selected build"
+        );
     }
 
     #[test]

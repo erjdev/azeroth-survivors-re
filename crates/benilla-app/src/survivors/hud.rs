@@ -1969,7 +1969,7 @@ fn reactive_buff_status(run: &Run) -> String {
     let deterrence_remaining = run.milestones.deterrence_remaining(run.elapsed);
     if deterrence_remaining > 0.0 {
         active.push(format!(
-            "Deterrence: 50% less incoming damage ({:.0}s)",
+            "Deterrence: +25% dodge and parry ({:.0}s)",
             deterrence_remaining.ceil()
         ));
     }
@@ -3883,14 +3883,14 @@ mod deterrence_status_tests {
         };
         assert_eq!(
             reactive_buff_status(&run),
-            "Deterrence: 50% less incoming damage (9s)"
+            "Deterrence: +25% dodge and parry (9s)"
         );
         run.elapsed = 10.;
         assert!(reactive_buff_status(&run).is_empty());
         run.elapsed = 180.;
         assert_eq!(
             reactive_buff_status(&run),
-            "Deterrence: 50% less incoming damage (10s)"
+            "Deterrence: +25% dodge and parry (10s)"
         );
         run.hp = 0.;
         assert!(reactive_buff_status(&run).is_empty());

@@ -9,6 +9,7 @@ pub(super) enum Outcome {
     Inactive,
     Immune,
     Dodged,
+    Parried,
     /// A connected attack may be wholly absorbed; that is still not a dodge or parry.
     Landed {
         absorbed: f32,
@@ -38,19 +39,26 @@ pub(super) fn contact(
     roll: impl FnOnce() -> f32,
 ) -> Strike {
     if run.class.id == 3 && raw.is_finite() && raw > 0.0 && run.alive() && run.immune_t <= 0.0 {
-        let chance = run
+        let dodge = run
             .abilities
             .iter()
             .find(|o| o.def.kind == super::data::Kind::Aspect)
             .map_or(0.0, |owned| {
                 super::abilities::Params::new(owned, &run.stats(), run.milestones).dodge_chance
             });
-        if chance > 0.0 {
+        let deterrence = run.milestones.deterrence_avoidance(run.elapsed);
+        let parry = deterrence + run.milestones.hunter_parry();
+        let dodge = (dodge + deterrence).clamp(0.0, 1.0);
+        if dodge + parry > 0.0 {
             let roll = roll();
-            if roll.is_finite() && roll >= 0.0 && roll < chance {
+            if roll.is_finite() && roll >= 0.0 && roll < (dodge + parry).min(1.0) {
                 return Strike {
                     attacker,
-                    outcome: Outcome::Dodged,
+                    outcome: if roll < dodge {
+                        Outcome::Dodged
+                    } else {
+                        Outcome::Parried
+                    },
                 };
             }
         }
@@ -59,6 +67,34 @@ pub(super) fn contact(
         attacker,
         outcome: hurt(run, raw),
     }
+}
+
+/// Survivors consumes the parry immediately; cooldown blocks further responses, not avoidance.
+pub(super) fn counterattack(run: &mut Run, strike: Strike) -> Option<super::abilities::Hit> {
+    let base = run.milestones.counterattack_damage();
+    let now = run.elapsed;
+    if strike.outcome != Outcome::Parried
+        || run.class.id != 3
+        || !run.alive()
+        || base <= 0.0
+        || !now.is_finite()
+        || now < 0.0
+        || !run.counterattack_ready_at.is_finite()
+        || now < run.counterattack_ready_at
+    {
+        return None;
+    }
+    let damage = base * run.stats().might;
+    if !damage.is_finite() || damage <= 0.0 || now + 5.0 <= now {
+        return None;
+    }
+    run.counterattack_ready_at = now + 5.0;
+    Some(super::abilities::Hit {
+        occurred: Some(now),
+        source: "Counterattack",
+        effect: super::data::Effect::Root(5.0),
+        ..super::abilities::Hit::direct(strike.attacker, damage, false)
+    })
 }
 
 pub(super) fn hurt(run: &mut Run, raw: f32) -> Outcome {
@@ -74,9 +110,7 @@ pub(super) fn hurt(run: &mut Run, raw: f32) -> Outcome {
     let stats = run.stats();
     let retaliation =
         run.thorns_t > 0.0 && run.thorns_spell == super::data::ability("retaliation").spell;
-    let raw = raw
-        * run.milestones.retaliation_risk(retaliation)
-        * run.milestones.deterrence_multiplier(run.elapsed);
+    let raw = raw * run.milestones.retaliation_risk(retaliation);
     let mut damage = run.milestones.after_flat_absorption(super::sheet::mitigate(
         raw,
         stats.armor,
@@ -111,6 +145,122 @@ pub(super) fn hurt(run: &mut Run, raw: f32) -> Outcome {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn hunter() -> Run {
+        Run {
+            class: &super::super::data::CLASSES[2],
+            milestones: survivors_core::talents::Milestones {
+                class: 2,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 1308, 1), (2, 1312, 1)]),
+            hp: 100.,
+            shield: 10.,
+            shield_t: 10.,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn deterrence_uses_one_exclusive_attack_table_without_flat_damage_reduction() {
+        let attacker = Entity::from_bits(42);
+        for (roll, expected) in [
+            (0., Outcome::Dodged),
+            (0.2499, Outcome::Dodged),
+            (0.25, Outcome::Parried),
+            (0.4999, Outcome::Parried),
+        ] {
+            let mut run = hunter();
+            assert_eq!(contact(&mut run, attacker, 20., || roll).outcome, expected);
+            assert_eq!((run.hp, run.shield), (100., 10.));
+        }
+        for roll in [0.5, 0.9999, 1., -1., f32::NAN] {
+            let mut run = hunter();
+            assert_eq!(
+                contact(&mut run, attacker, 20., || roll).outcome,
+                Outcome::Landed {
+                    absorbed: 10.,
+                    health_removed: 10.
+                }
+            );
+        }
+        let mut run = hunter();
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("aspect_of_the_monkey"),
+            level: 1,
+            cd: 0.,
+        });
+        assert_eq!(
+            contact(&mut run, attacker, 20., || 0.3299).outcome,
+            Outcome::Dodged
+        );
+        assert_eq!(
+            contact(&mut run, attacker, 20., || 0.33).outcome,
+            Outcome::Parried
+        );
+        assert_eq!(
+            contact(&mut run, attacker, 20., || 0.5799).outcome,
+            Outcome::Parried
+        );
+        run.elapsed = 10.;
+        assert!(matches!(
+            contact(&mut run, attacker, 20., || 0.25).outcome,
+            Outcome::Landed { .. }
+        ));
+        run.elapsed = 180.;
+        assert_eq!(
+            contact(&mut run, attacker, 20., || 0.33).outcome,
+            Outcome::Parried
+        );
+        run.immune_t = 1.;
+        assert_eq!(
+            contact(&mut run, attacker, 20., || panic!("immune must not roll")).outcome,
+            Outcome::Immune
+        );
+    }
+
+    #[test]
+    fn counterattack_requires_source_parry_and_training_and_consumes_only_active_run_cooldown() {
+        let attacker = Entity::from_bits(42);
+        let mut run = hunter();
+        for outcome in [
+            Outcome::Dodged,
+            Outcome::Immune,
+            Outcome::Invalid,
+            Outcome::Inactive,
+            Outcome::Landed {
+                absorbed: 10.,
+                health_removed: 0.,
+            },
+        ] {
+            assert!(counterattack(&mut run, Strike { attacker, outcome }).is_none());
+        }
+        let strike = Strike {
+            attacker,
+            outcome: Outcome::Parried,
+        };
+        let hit = counterattack(&mut run, strike).unwrap();
+        assert_eq!(hit.target, attacker);
+        assert_eq!(hit.damage, 40. * run.stats().might);
+        assert_eq!(hit.effect, super::super::data::Effect::Root(5.));
+        assert_eq!(hit.source, "Counterattack");
+        assert!(!hit.crit);
+        assert_eq!(hit.splash, 0.);
+        for now in [0., 0., 4.999, -1., f32::NAN, f32::INFINITY] {
+            run.elapsed = now;
+            assert!(counterattack(&mut run, strike).is_none());
+        }
+        run.elapsed = 5.;
+        assert!(counterattack(&mut run, strike).is_some());
+        run.elapsed = 10.;
+        run.hp = 0.;
+        assert!(counterattack(&mut run, strike).is_none());
+        run.hp = 100.;
+        run.milestones = run.milestones.with_ranks(&[(2, 1312, 1)]);
+        assert!(counterattack(&mut run, strike).is_none());
+        run.milestones = run.milestones.with_ranks(&[(2, 1308, 1)]);
+        assert!(counterattack(&mut run, strike).is_none());
+    }
 
     #[test]
     fn monkey_dodges_before_absorption_without_spending_invalid_or_immune_rolls() {

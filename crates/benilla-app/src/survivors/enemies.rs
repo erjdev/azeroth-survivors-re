@@ -598,13 +598,13 @@ pub(super) fn move_enemies(
         {
             e.attack_cd = if e.boss { 1.0 } else { 1.3 };
             let raw = curse.outgoing(e.damage, true, run.elapsed) * e.weaken;
-            let (taken, dodged) = if let Some((entity, _)) = pet_target {
+            let (taken, avoided) = if let Some((entity, _)) = pet_target {
                 let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
                 let taken = pet.hurt(raw, run.elapsed);
                 if pet.hp <= 0.0 {
                     units::kill_unit(&mut store);
                 }
-                (taken, false)
+                (taken, None)
             } else {
                 let strike = super::defense::contact(&mut run, ent, raw, || rng.f32());
                 if run.thorns_t > 0.0
@@ -619,15 +619,16 @@ pub(super) fn move_enemies(
                         false,
                     ));
                 }
-                (
-                    strike.outcome.health_removed(),
-                    strike.outcome == super::defense::Outcome::Dodged,
-                )
+                if let Some(hit) = super::defense::counterattack(&mut run, strike) {
+                    fx.cast(hero_e, 19306, &[hit.target], None);
+                    hits.write(hit);
+                }
+                (strike.outcome.health_removed(), Some(strike.outcome))
             };
-            if dodged {
-                fx.dodge(ent, target_e);
-            } else {
-                fx.swing(ent, target_e, taken);
+            match avoided {
+                Some(super::defense::Outcome::Dodged) => fx.dodge(ent, target_e),
+                Some(super::defense::Outcome::Parried) => fx.parry(ent, target_e),
+                _ => fx.swing(ent, target_e, taken),
             }
             if taken > 0.0 {
                 fx.number(target_e, taken, false, COLOR_HURT);

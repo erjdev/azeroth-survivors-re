@@ -1086,6 +1086,72 @@ mod tests {
             .is_empty());
     }
     #[test]
+    fn actual_parry_emits_counterattack_for_that_enemy_and_applies_root_once() {
+        for boss in [false, true] {
+            let mut app = setup();
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.milestones = survivors_core::talents::Milestones {
+                    class: 2,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 1308, 1), (2, 1312, 1)]);
+                run.shield = 10.;
+                run.shield_t = 10.;
+            }
+            let target = foe(&mut app, Vec3::X);
+            let other = foe(&mut app, Vec3::X * 20.);
+            {
+                let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
+                enemy.hp = 1000.;
+                enemy.max_hp = 1000.;
+                enemy.boss = boss;
+            }
+            let hp = app.world().resource::<Run>().hp;
+            app.insert_resource(Rng(1)); // First roll 0.280835: parry, above 25% dodge.
+            app.world_mut()
+                .run_system_once(super::super::enemies::move_enemies)
+                .unwrap();
+            assert_eq!(app.world().resource::<Run>().hp, hp);
+            assert_eq!(app.world().resource::<Run>().shield, 10.);
+            let swings: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<SwingMessage>>()
+                .drain()
+                .collect();
+            assert_eq!(swings.len(), 1);
+            assert_eq!(swings[0].attacker, target);
+            assert_eq!(swings[0].victim_state, 3);
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            assert_eq!(hits.len(), 1);
+            assert_eq!(hits[0].target, target);
+            assert_eq!(hits[0].source, "Counterattack");
+            let damage = hits[0].damage;
+            app.world_mut().write_message(hits[0].clone());
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            app.world_mut().resource_mut::<Messages<Hit>>().clear();
+            let enemy = app.world().get::<Enemy>(target).unwrap();
+            assert_eq!(enemy.hp, 1000. - damage);
+            assert_eq!(enemy.root_t, if boss { 1.5 } else { 5. });
+            assert_eq!(app.world().get::<Enemy>(other).unwrap().hp, 5.);
+            app.world_mut().get_mut::<Enemy>(target).unwrap().attack_cd = 0.;
+            app.insert_resource(Rng(1));
+            app.world_mut()
+                .run_system_once(super::super::enemies::move_enemies)
+                .unwrap();
+            assert!(
+                app.world().resource::<Messages<Hit>>().is_empty(),
+                "same-time parry cannot bypass recovery"
+            );
+            assert_eq!(app.world().resource::<Run>().hp, hp);
+        }
+    }
+
+    #[test]
     fn curse_weakness_reduces_actual_enemy_contact_before_percentage_weakening() {
         let mut losses = Vec::new();
         for amount in [0.0, 3.0, 20.0] {

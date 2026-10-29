@@ -386,12 +386,20 @@ impl Fx<'_> {
 
     /// A real dodge uses the existing defender animation and suppresses hit flinch/blood.
     pub fn dodge(&mut self, attacker: Entity, victim: Entity) {
+        self.avoidance(attacker, victim, 2);
+    }
+
+    pub fn parry(&mut self, attacker: Entity, victim: Entity) {
+        self.avoidance(attacker, victim, 3);
+    }
+
+    fn avoidance(&mut self, attacker: Entity, victim: Entity, victim_state: u32) {
         let seq = self.seq.next();
         self.swings.write(SwingMessage {
             attacker,
             victim: Some(victim),
             hit_info: 0,
-            victim_state: 2,
+            victim_state,
             damage: 0,
             displayed: false,
             seq,

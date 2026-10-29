@@ -70,11 +70,27 @@ impl Milestones {
         (10.0 - elapsed % 180.0).max(0.0)
     }
 
-    pub fn deterrence_multiplier(self, elapsed: f32) -> f32 {
+    pub fn deterrence_avoidance(self, elapsed: f32) -> f32 {
         if self.deterrence_remaining(elapsed) > 0.0 {
-            1.0 - self.trained_value(TalentStat::Deterrence)
+            self.trained_value(TalentStat::Deterrence)
         } else {
-            1.0
+            0.0
+        }
+    }
+
+    pub fn hunter_parry(self) -> f32 {
+        if self.class == 2 {
+            self.trained_value(TalentStat::HunterParry)
+        } else {
+            0.0
+        }
+    }
+
+    pub fn counterattack_damage(self) -> f32 {
+        if self.class == 2 && self.trained_value(TalentStat::Deterrence) > 0.0 {
+            self.trained_value(TalentStat::Counterattack)
+        } else {
+            0.0
         }
     }
 
@@ -373,6 +389,58 @@ mod tests {
 mod deterrence_tests {
     use super::*;
     #[test]
+    fn deflection_is_class_scoped_parry_and_does_not_change_flat_reduction() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 4, 5, 255] {
+                let trained = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 1311, rank)]);
+                let expected = if class == 2 {
+                    f32::from(rank.min(5)) * 0.01
+                } else {
+                    0.
+                };
+                assert!((trained.hunter_parry() - expected).abs() < 0.00001);
+            }
+        }
+        let node = super::super::talent_definition(2, 1311).unwrap();
+        assert!(node
+            .inline_description(4)
+            .unwrap()
+            .contains("4 » 5 percentage point"));
+    }
+
+    #[test]
+    fn counterattack_requires_both_hunter_talents_and_highlights_base_damage() {
+        for class in 0..9 {
+            for rank in [0, 1, 255] {
+                let trained = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 1308, 1), (2, 1312, rank)]);
+                assert_eq!(
+                    trained.counterattack_damage(),
+                    if class == 2 && rank > 0 { 40. } else { 0. }
+                );
+                assert_eq!(
+                    trained
+                        .with_ranks(&[(2, 1312, rank)])
+                        .counterattack_damage(),
+                    0.
+                );
+            }
+        }
+        let node = super::super::talent_definition(2, 1312).unwrap();
+        let (description, spans) = node.inline_description_with_values(0).unwrap();
+        assert!(description.contains("0 » 40 base damage"));
+        assert_eq!(&description[spans[0].clone()], "0 » 40 base damage");
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
+
+    #[test]
     fn deterrence_windows_use_run_time_and_capped_hunter_training() {
         for class in 0..9 {
             for rank in [0, 1, 255] {
@@ -400,13 +468,13 @@ mod deterrence_tests {
                     };
                     assert!((trained.deterrence_remaining(elapsed) - expected).abs() < 0.0001);
                     assert_eq!(
-                        trained.deterrence_multiplier(elapsed),
-                        if expected > 0. { 0.5 } else { 1. }
+                        trained.deterrence_avoidance(elapsed),
+                        if expected > 0. { 0.25 } else { 0. }
                     );
                 }
                 for elapsed in [-1., f32::NAN, f32::INFINITY] {
                     assert_eq!(trained.deterrence_remaining(elapsed), 0.);
-                    assert_eq!(trained.deterrence_multiplier(elapsed), 1.);
+                    assert_eq!(trained.deterrence_avoidance(elapsed), 0.);
                 }
             }
         }
@@ -414,7 +482,7 @@ mod deterrence_tests {
         assert!(node
             .inline_description(0)
             .unwrap()
-            .contains("0 » 50% less incoming damage"));
+            .contains("0 » 25% dodge and parry chance"));
         assert!(!node.inline_description(1).unwrap().contains(" » "));
     }
 }

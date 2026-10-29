@@ -1734,6 +1734,8 @@ pub enum TalentStat {
     BladeFlurry,
     ImprovedHawk,
     Deterrence,
+    Counterattack,
+    HunterParry,
     PowerInfusion,
     Preparation,
     SiphonLife,
@@ -2034,6 +2036,7 @@ impl TalentDefinition {
             | TalentStat::FlatAbsorption
             | TalentStat::Preparation
             | TalentStat::ColdSnap => (1.0, ""),
+            TalentStat::Counterattack => (1.0, "damage"),
             TalentStat::Conflagrate
             | TalentStat::NaturesGrace
             | TalentStat::PresenceOfMind
@@ -2052,6 +2055,7 @@ impl TalentDefinition {
             | TalentStat::AdrenalineRush
             | TalentStat::BladeFlurry
             | TalentStat::Deterrence
+            | TalentStat::HunterParry
             | TalentStat::Combustion
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
@@ -2144,6 +2148,7 @@ impl TalentDefinition {
             "%" => &["%", " percentage point", " percentage points"],
             "time" => &[" sec", " second", " seconds"],
             "distance" => &[" yd"],
+            "damage" => &[" base damage"],
             _ => &[""],
         };
         let mut candidates = Vec::new();
@@ -2397,7 +2402,9 @@ impl TalentDefinition {
                 "% shorter Rogue cast cooldown during Adrenaline Rush",
             ),
             TalentStat::ImprovedHawk => (100.0, "% Hunter shot haste during Improved Hawk"),
-            TalentStat::Deterrence => (100.0, "% less incoming damage during Deterrence"),
+            TalentStat::Deterrence => (100.0, " percentage points dodge and parry during Deterrence"),
+            TalentStat::Counterattack => (1.0, " base Counterattack damage"),
+            TalentStat::HunterParry => (100.0, " percentage points melee parry"),
             TalentStat::Combustion => (100.0, "% Fire critical chance per direct hit"),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
             TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
@@ -3071,8 +3078,13 @@ static HUNTER_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 1308, max_rank: 1, name: "Deterrence",
-        description: "Automatically take 50% less incoming damage for 10 sec at run start and every 180 sec of gameplay time. Multiplies armor and other damage reduction before shields. Pauses stop the window; missed windows are not stored (Survivors dodge/parry conversion)",
-        stat: TalentStat::Deterrence, per_rank: 0.50,
+        description: "Automatically gain 25% dodge and parry chance for 10 sec at run start and every 180 sec of gameplay time. Adds to Aspect of the Monkey dodge; avoided melee hits consume no shield. Pauses stop the window; missed windows are not stored (Survivors automatic activation)",
+        stat: TalentStat::Deterrence, per_rank: 0.25,
+    },
+    TalentDefinition {
+        id: 1312, max_rank: 1, name: "Counterattack",
+        description: "After a melee parry, automatically strike that attacker for 40 base damage and root it for 5 sec (bosses: 1.5 sec). Scales with damage bonuses; cannot be blocked, dodged or parried. Recovers 5 sec after use. Requires Deterrence; no stored charge (Survivors automatic response)",
+        stat: TalentStat::Counterattack, per_rank: 40.0,
     },
     TalentDefinition {
         id: 1622, max_rank: 5, name: "Survivalist",
@@ -3193,8 +3205,8 @@ static HUNTER_TALENTS: &[TalentDefinition] = &[
         id: 1311,
         max_rank: 5,
         name: "Deflection",
-        description: "+1% damage reduction per rank (Survivors conversion)",
-        stat: TalentStat::Reduction,
+        description: "+1 percentage point melee parry chance per rank; parries prevent the hit before shields and can trigger trained Counterattack",
+        stat: TalentStat::HunterParry,
         per_rank: 0.01,
     },
     TalentDefinition {
@@ -3901,6 +3913,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::PetFrenzy
             | TalentStat::Preparation
             | TalentStat::AbilityUnlock(_)
+            | TalentStat::Counterattack
             | TalentStat::ColdSnap
             | TalentStat::PetMend
             | TalentStat::PetCooldown
@@ -3932,6 +3945,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::AdrenalineRush
             | TalentStat::BladeFlurry
             | TalentStat::Deterrence
+            | TalentStat::HunterParry
             | TalentStat::Combustion
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
@@ -5364,7 +5378,8 @@ mod stat_talent_tests {
         let bonus = stat_adjustment(2, &ranks);
         assert_eq!(bonus.armor, 24.);
         assert!((bonus.speed - 0.08).abs() < 0.00001);
-        assert!((bonus.reduction - 0.05).abs() < 0.00001);
+        assert_eq!(bonus.reduction, 0.);
+        assert!((trained.hunter_parry() - 0.05).abs() < 0.00001);
         assert!((bonus.crit - 0.03).abs() < 0.00001);
         assert_eq!(trained.with_ranks(&[]), base);
         let excessive: Vec<_> = ranks
@@ -5441,6 +5456,7 @@ mod stat_talent_tests {
                     | TalentStat::PetFrenzy
                     | TalentStat::Preparation
                     | TalentStat::AbilityUnlock(_)
+                    | TalentStat::Counterattack
                     | TalentStat::ColdSnap
                     | TalentStat::PetMend
                     | TalentStat::PetCooldown
@@ -5473,6 +5489,7 @@ mod stat_talent_tests {
                     | TalentStat::AdrenalineRush
                     | TalentStat::BladeFlurry
                     | TalentStat::Deterrence
+                    | TalentStat::HunterParry
                     | TalentStat::Combustion
                     | TalentStat::ArcanePower
                     | TalentStat::PowerInfusion

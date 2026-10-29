@@ -9,8 +9,41 @@ contact dodge outcomes, with tests for training and saved specs. Native wide/com
 full native integration passed in 15m17s (31 missing-addon skips per data/player run). Node 1343 now also has acquired mark power, caster-owned target selection, ranged
 impact integration, concealment reveal and tracking state. Core/app regressions
 and native talent purchase/save previews pass; rendered world/minimap acceptance
-remains open. Five Hunter definitions remain pending (41/46 defined). The table
+remains open. The following reactive checkpoint brings this to four pending definitions (42/46 defined). The table
 below preserves the original installed rules and dependency assessment.
+
+## Parry and Counterattack — 2026-10-29
+
+Installed node 1308 / spell 19263 grants **25 percentage points each** of dodge
+and parry for 10 seconds. Node 1311 / spells 19295, 19297, 19298, 19301 and 19300
+grants 1/2/3/4/5 percentage points parry. These now replace the earlier generic
+50% Deterrence and 1%-per-rank Deflection damage-reduction conversions.
+
+The Hunter contact table uses one roll: Monkey plus Deterrence dodge first,
+then Deflection plus Deterrence parry, then a landed hit. Outcomes are exclusive;
+parries consume no shield, health, reflection or on-damage recovery. Invalid,
+immune and dead contacts do not roll. Deterrence retains automatic 10-second
+windows at run start and every 180 seconds of active gameplay. Deflection supplies
+parry outside those windows. Neither protects a pet or non-contact damage.
+
+Counterattack node 1312 requires Deterrence. The Survivors automatic conversion
+immediately strikes the actual parried attacker for 40 base damage and roots it
+for 5 seconds (existing boss-control rule: 1.5 seconds). Damage bonuses and the
+shared multistrike settlement apply; this automatic response does not roll a
+critical hit. It uses spell 19306 visuals and has the installed 5-second category
+recovery. No charge or later activation window is invented: a parry during recovery
+is still avoided but cannot queue a future response. Pauses leave the run clock
+unchanged. Death prevents queued Counterattack settlement; new runs reset recovery.
+It uses the direct hit path, without a block/dodge/parry roll for the victim.
+
+This completes the named reactive dependency in code, not attended combat or
+Windows visual acceptance. All 292 core and 570 runtime tests pass with checkout data; Clippy including tests
+and eight-package scoped checks pass (31 optional-addon skips). The first sandboxed
+scoped run could not bind its existing loopback mock login server; the permitted
+rerun passed. Native purchase/refund, prerequisite guard, spec isolation, save/relaunch and
+wide/compact descriptions pass. Four screenshots are embedded in the changelog.
+The incremental native macOS build took 1m11s. The remaining four Hunter nodes require pet vision,
+incoming hit/impairment resistance, Feign Death and primary attributes.
 
 ## Reproduce the evidence
 
@@ -61,9 +94,8 @@ requirements and why the ranged flag alone cannot select damage coefficients.
 Start with defensive attack outcomes and aspect state, then Improved Aspect of the
 Monkey and Counterattack. Both must consume the actual outcome, with source identity
 retained; do not infer a parry from zero health loss (immunity, armor and shields
-can also prevent damage). Existing Deterrence is an explicitly documented timed
-damage-reduction conversion, not a producer of parry events. Preserve its current
-behavior until any revised interaction is specified and tested.
+can also prevent damage). The earlier Deterrence conversion did not produce parries. The reactive checkpoint
+above supersedes that conversion with installed avoidance values and verified contact outcomes.
 
 Follow with marked-target ranged damage, incoming impairment resistance, Feign
 Death, pet vision and primary attributes. Shared systems should also support the
@@ -75,11 +107,11 @@ death cleanup, and interaction with existing protection. Capture native green
 inline upgrade text at wide and compact sizes and embed it in the changelog.
 Attended Windows combat and balance acceptance remain separate from unit tests.
 
-The incoming-hit follow-up introduces `survivors/defense.rs::contact`: its result
+The original incoming-hit follow-up introduced `survivors/defense.rs::contact`: its result
 retains the attacker and distinguishes landed, immune, inactive and invalid hits.
 Landed outcomes report absorbed damage and actual health removed separately.
-This removes the ambiguous scalar boundary; it does not yet add avoidance rolls
-or reactive windows. `survivors/mod.rs::Stats` still has
+This removed the ambiguous scalar boundary. The aspect and reactive checkpoints
+subsequently added real dodge/parry outcomes and immediate Counterattack responses. `survivors/mod.rs::Stats` still has
 derived combat stats but no primary attributes; `survivors/hunter_pet.rs` supplies
 the combat wolf and taunt. This is a dependency assessment of Survivors, not a claim
 that upstream's networked WoW client lacks these concepts.

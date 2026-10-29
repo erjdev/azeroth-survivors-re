@@ -1534,6 +1534,9 @@ pub(super) fn apply_hits(
     while let Some(step) = steps.pop_front() {
         let (h, original) = match step {
             Step::Expand(h) => {
+                if h.source == "Counterattack" && !run.alive() {
+                    continue;
+                }
                 // Earlier hits have settled before this target's eligibility and proc rolls.
                 if !enemies
                     .get(h.target)

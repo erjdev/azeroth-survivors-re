@@ -1006,3 +1006,15 @@ own legendary power scales potency, while global damage and critical stats do no
 Grim Reach increases targeting range. Weakness and Agony replace one another per
 affected enemy, including Agony's supplemental curse slow; unrelated effects remain.
 See [the curse audit](audits/CURSES.md) for damage order and acceptance limits.
+
+### Hunter parry and Counterattack
+
+Deflection adds 1–5 percentage points of melee parry. Deterrence automatically adds
+25 percentage points each of dodge and parry for 10 seconds at run start and every
+180 seconds of active gameplay. These replace their provisional damage reductions.
+Monkey and Deterrence dodge precede parry on one exclusive contact roll; avoided
+hits consume no shield or health. Counterattack requires Deterrence and automatically
+strikes the actual parried attacker for 40 base damage with a five-second root
+(1.5 seconds on bosses), recovering five seconds after use. It stores no charge,
+does not critically strike, and uses the shared damage/multistrike settlement.
+See the [mechanics audit](audits/HUNTER-TALENT-DEPENDENCIES.md) for exact scope.

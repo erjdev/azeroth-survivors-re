@@ -5,6 +5,18 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Hunter reactive defense — 2026-10-29
+
+Replace provisional Deterrence/Deflection reduction with real, source-preserving
+melee dodge/parry outcomes and connect Counterattack to the parried attacker.
+Preserve the installed 25% Deterrence bonuses, 1–5% Deflection, 40 base damage,
+5-second root and category recovery. Survivors automatically consumes the response;
+no stored charge. The [Hunter audit](audits/HUNTER-TALENT-DEPENDENCIES.md)
+specifies avoidance ordering, boss control, pause/death behavior and acceptance.
+Native purchase/refund, prerequisite guard, spec isolation, save/relaunch and
+1280×720/640×720 screenshots pass. 292 core and 570 runtime tests pass with checkout
+data; Clippy including tests passes. Windows combat and balance remain open.
+
 ## Curse of Weakness dependency — 2026-10-29
 
 Acquisition, exact 6/13/20% talent ranks, flat physical-hit reduction and two-way
@@ -1101,7 +1113,7 @@ first-hero settlement defect. Zone/content and full run acceptance remain open.
 Individual talents remain substantially incomplete; the coverage table below is
 catalog evidence, not a substitute for combat or visual acceptance.
 
-### Talent definition coverage — 2026-10-28
+### Talent definition coverage — 2026-10-29
 
 Read from this checkout's `wow-data/Data` using:
 
@@ -1114,14 +1126,14 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | --- | ---: | ---: |
 | Warrior | 42 / 52 | 9 / 9 |
 | Paladin | 25 / 44 | 9 / 9 |
-| Hunter | 41 / 46 | 9 / 9 |
+| Hunter | 42 / 46 | 9 / 9 |
 | Rogue | 36 / 51 | 9 / 9 |
-| Priest | 29 / 47 | 9 / 9 |
+| Priest | 30 / 47 | 9 / 9 |
 | Shaman | 31 / 46 | 9 / 9 |
-| Mage | 37 / 49 | 9 / 9 |
-| Warlock | 28 / 50 | 9 / 9 |
+| Mage | 38 / 49 | 9 / 9 |
+| Warlock | 29 / 50 | 9 / 9 |
 | Druid | 27 / 47 | 9 / 9 |
-| Total | 296 / 432 | 81 / 81 |
+| Total | 300 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing
