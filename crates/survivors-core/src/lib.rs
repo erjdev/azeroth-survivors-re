@@ -46,3 +46,4 @@ pub mod healing;
 pub mod earthbind;
 pub mod ghostly_strike;
 pub mod hemorrhage;
+pub mod stoneclaw;

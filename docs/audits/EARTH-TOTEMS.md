@@ -148,3 +148,41 @@ was refreshed from this final build. No engine API allowance was expanded.
 
 The final eight-package scoped gate passes formatting, Clippy and tests, including
 the API-wall regression, with 31 optional-addon skips.
+
+## Stoneclaw lifecycle foundation — 2026-10-29
+
+`survivors-core::stoneclaw` now owns a destructible 15-second lifetime in active
+run time. It accepts the caller's final health, retaining maximum health for
+presentation. Damage removes only the remaining totem health; overkill does not
+spill into the hero. Destruction and observed expiry cannot be reversed by stale
+timestamps. Recasting requires a fresh instance and replacement of the old entity.
+Paused run clocks retain the lifetime. Invalid health, clocks and damage are
+rejected; fractional cast times retain the expiry boundary within float precision.
+
+Four focused core tests pass: frame partitions/pause/terminal expiry, fractional
+cast times, configured health/destruction/replacement, and invalid/stale inputs.
+Health fixtures include 50, 62.5 and 75, but this does **not** enable Earth's Grasp.
+The caller still needs to supply the implemented level/rank/talent scaling.
+
+The exported constants record installed rank-one health 50, lifetime 15 seconds,
+radius 8 yards, category recovery 30 seconds and effect threat 22. No pulse cadence
+or targeting decision is inferred from those constants. The user decision between
+accumulating threat overcome by damage and forced targeting remains pending.
+
+Stoneclaw is not a playable offer yet. Remaining work: targeting policy and pulse
+cadence, enemy attention/navigation and damage integration, grounded deployment,
+replacement/cleanup, rank and talent scaling, inline card text, and native visual
+and attended gameplay acceptance. This checkpoint has no UI change or screenshot.
+
+Integration map for the targeting decision: `abilities.rs` carries `HitOrigin`
+and applies direct, proc and periodic damage; threat must use actual health removed
+at those consumers, not pre-mitigation `Hit.damage`, and must not count a proc twice.
+`enemies.rs::move_enemies` currently prioritizes forced/local pet attention, then
+nearby Earthbind, then the hero; Stoneclaw needs explicit precedence and live-target
+validation there, including expiry/replacement. Existing navigation must retain
+its blocked-route state when the target changes. A fixed taunt is not equivalent
+to spell 5729's raw threat amount; either chosen adaptation must be documented.
+
+Stoneclaw lifecycle validation: all four focused tests and the eight-package
+scoped formatting, Clippy and test gate pass (31 optional-addon skips).
+No native deployment or rendered evidence is claimed for this core-only change.

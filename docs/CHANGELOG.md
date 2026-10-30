@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Stoneclaw lifecycle foundation
+
+Added shared health, damage and 15-second lifetime rules, including pause,
+terminal expiry and fresh replacement. Four focused tests pass. Targeting policy
+is pending; Stoneclaw is not selectable and Earth's Grasp remains incomplete.
+Headless groundwork only—no interface change or new screenshot.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
 ## 2026-10-29 — Verified Earth and Fire Totem specimens
 
 Earthbind's solid body renders correctly in the settled native preview, including

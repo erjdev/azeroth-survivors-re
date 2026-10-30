@@ -5,6 +5,14 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Stoneclaw lifecycle foundation — 2026-10-29
+
+Shared rules now cover configured health, destructible lifetime, pause, expiry
+and fresh replacement. Four focused regressions pass. The targeting-policy
+question is pending; Stoneclaw remains unavailable and Earth's Grasp remains
+incomplete. Runtime integration, scaling and native acceptance are still required;
+see the [earth-totem audit](audits/EARTH-TOTEMS.md). No UI change is claimed.
+
 ## Earthbind model verification — 2026-10-29
 
 Settled native specimens show Earthbind's solid body and effects, repeated beside
