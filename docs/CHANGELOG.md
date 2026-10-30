@@ -5,7 +5,23 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Verified Earth and Fire Totem specimens
+
+Earthbind's solid body renders correctly in the settled native preview, including
+on a second launch beside Fire Totem. The earlier capture did not establish a
+persistent rendering failure; this supersedes that appearance finding. Added
+live animation/material diagnostics and per-sequence alpha samples to the asset
+audit. No gameplay model or renderer workaround was needed. Final build: 44s.
+Combat deployment, destruction visuals and Windows acceptance remain open.
+The final scoped formatting, Clippy and test gate passes (31 optional-addon skips).
+
+![Settled Earthbind specimen](images/screenshots/2026-10-29-earthbind/model-settled.png)
+
+![Earth and Fire Totems on a second launch](images/screenshots/2026-10-29-earthbind/model-pair.png)
+
 ## 2026-10-29 — Model preview catches Earthbind appearance gap
+
+Superseded by the settled native checks above; retained as investigation history.
 
 Added a menu-only preview for up to eight creature displays, so model checks do
 not require a combat session. Earthbind's current display renders a green effect

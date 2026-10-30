@@ -134,13 +134,14 @@ Before/after captures are in the changelog.
 
 ![Independent achievement navigation and cards](docs/images/screenshots/2026-10-29-achievement-panes/compact-end.png)
 
-### Earthbind model investigation
+### Earth and Fire Totem specimens
 
-The menu-only model preview currently reveals a green effect without a clearly
-visible solid totem. This records an open visual issue; deployment acceptance
-remains pending. See [the audit](docs/audits/EARTH-TOTEMS.md).
+Settled native previews verify the solid models and visible effects, including a
+repeat launch. The earlier incomplete-body capture did not establish a persistent
+rendering failure. Combat deployment and Windows checks remain open; see
+[the audit](docs/audits/EARTH-TOTEMS.md).
 
-![Earthbind appearance issue](docs/images/screenshots/2026-10-29-earthbind/model-before.png)
+![Earth and Fire Totem specimens](docs/images/screenshots/2026-10-29-earthbind/model-pair.png)
 
 ### Combat demon specimens
 

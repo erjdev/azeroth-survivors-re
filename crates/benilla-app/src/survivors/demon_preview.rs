@@ -42,7 +42,8 @@ pub(super) fn plugin(app: &mut App) {
         app.insert_resource(specimens);
         app.add_systems(
             PostUpdate,
-            show.before(bevy::transform::TransformSystems::Propagate)
+            (show, report)
+                .before(bevy::transform::TransformSystems::Propagate)
                 .run_if(in_state(Phase::Menu)),
         );
     }
@@ -129,4 +130,67 @@ fn show(
         BackgroundColor(Color::BLACK),
         GlobalZIndex(1000),
     ));
+}
+
+/// Log the settled native state once, so a screenshot can be checked against the
+/// actual animation slot and material visibility rather than guessed from pixels.
+fn report(
+    time: Res<Time>,
+    mut began: Local<Option<f32>>,
+    mut reported: Local<bool>,
+    specimens: Query<
+        (
+            Entity,
+            &Transform,
+            &AnimationPlayer,
+            &benilla_assets::ModelAnimations,
+        ),
+        With<Specimen>,
+    >,
+    children: Query<&Children>,
+    parts: Query<(
+        &benilla_world::doodad_anim::MatAnim,
+        &Visibility,
+        &InheritedVisibility,
+    )>,
+) {
+    if *reported || specimens.is_empty() {
+        return;
+    }
+    let start = began.get_or_insert(time.elapsed_secs());
+    if time.elapsed_secs() - *start < 5.0 {
+        return;
+    }
+    for (entity, transform, player, animations) in &specimens {
+        let playing: Vec<_> = player
+            .playing_animations()
+            .filter_map(|(node, active)| {
+                animations
+                    .clips
+                    .iter()
+                    .find(|clip| clip.node == *node)
+                    .map(|clip| {
+                        (
+                            clip.anim_id,
+                            clip.seq_index,
+                            active.seek_time(),
+                            active.weight(),
+                        )
+                    })
+            })
+            .collect();
+        info!(?entity, position = ?transform.translation, ?playing, "model preview: specimen");
+        for child in children.iter_descendants(entity) {
+            if let Ok((alpha, visibility, inherited)) = parts.get(child) {
+                info!(
+                    ?child,
+                    alpha = alpha.current,
+                    ?visibility,
+                    visible = inherited.get(),
+                    "model preview: material"
+                );
+            }
+        }
+    }
+    *reported = true;
 }

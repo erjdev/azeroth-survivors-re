@@ -23,6 +23,18 @@ pub fn report(chain: &mut Chain, ids: &str) -> Result<()> {
         if triangles == 0 {
             bail!("display {id}: no render triangles");
         }
+        for (index, mesh) in meshes.iter().enumerate() {
+            if let Some(alpha) = &mesh.alpha_anim {
+                for (slot, sequence) in alpha.slots().iter().enumerate() {
+                    println!(
+                        "  BATCH {index} SLOT {slot}: alpha at 0/0.5/1s = {:.3}/{:.3}/{:.3}",
+                        sequence.sample(0.0, 0.0),
+                        sequence.sample(0.5, 0.5),
+                        sequence.sample(1.0, 1.0)
+                    );
+                }
+            }
+        }
         for mesh in &meshes {
             if mesh.skin_slot.is_some() && mesh.texture.is_none() {
                 bail!(

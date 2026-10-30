@@ -5,12 +5,14 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
-## Earthbind model investigation — 2026-10-29
+## Earthbind model verification — 2026-10-29
 
-The new menu-only model preview exposed a visual gap: display 4588 shows a green
-effect without a clearly visible solid totem. The failure capture is embedded
-in CHANGELOG/README. Resolve the display/animation/material identity before
-closing rendered deployment acceptance; see the [audit](audits/EARTH-TOTEMS.md).
+Settled native specimens show Earthbind's solid body and effects, repeated beside
+Fire Totem on a second launch. Live diagnostics confirm idle slot 1 and visible
+materials at alpha 1. This supersedes the earlier insufficient screenshot's
+persistent-failure interpretation. No model/renderer change was necessary.
+Combat deployment, destruction visuals and Windows remain open; screenshots are
+inline in CHANGELOG/README and evidence is in the [audit](audits/EARTH-TOTEMS.md).
 
 ## Earthbind runtime and offers — 2026-10-29
 

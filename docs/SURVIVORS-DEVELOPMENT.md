@@ -852,3 +852,9 @@ The preview hides the normal menu and hero; quit and unset the variable to retur
 Invalid or zero IDs are rejected. The flag takes precedence over the existing
 `WOW_SURVIVORS_DEMON_PREVIEW=1` four-demon lineup. This verifies rendering only,
 not acquisition, deployment, AI, health or combat effects.
+
+For animated specimens, the preview logs the active file sequence/seek time and
+descendant material alpha/visibility once after five seconds. Check this evidence
+alongside a settled capture; the timer alone is not proof that every asset is ready.
+`survivors-audit <Data> --creature-visuals <IDs>` also reports baked per-sequence
+material alpha at 0, 0.5 and 1 seconds to distinguish asset data from runtime state.

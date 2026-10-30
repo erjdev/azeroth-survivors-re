@@ -87,7 +87,10 @@ The runtime eight-package formatting, Clippy and test gate also passes with
 before the successful rerun. Native card rendering and the play build pass;
 the remaining acceptance items above are not closed by those results.
 
-## Native model investigation — 2026-10-29
+## Initial native model investigation — 2026-10-29
+
+Superseded by the settled checks below. This initial capture did not establish a
+persistent rendering failure.
 
 `WOW_SURVIVORS_MODEL_PREVIEW=4588` renders a menu-only specimen at native scale,
 grounded with the same floor query used by other model specimens. At 1280×720,
@@ -108,3 +111,40 @@ ordinary visual specimens with no Earthbind, enemy or combat-pet components.
 
 Validation: native incremental build passed in 1m42s; the eight-package scoped
 formatting, Clippy and test gate passed with 31 optional-addon skips.
+
+## Settled native model verification — 2026-10-29
+
+The same display 4588 renders a solid body and green effects after loading.
+A second launch with displays 4588 and 4589 renders both Earth and Fire Totems.
+Screenshots `model-settled.png` and `model-pair.png` are embedded in CHANGELOG and
+the pair in README. No model identity, gameplay or material workaround was made.
+The initial capture is retained as investigation history, not a proven defect.
+Its transient cause was not measured; do not infer a load-time guarantee from it.
+
+Read-only evidence from the checkout:
+
+- `m2seq`: file slot 0 = Spawn 127 (1.867s), slot 1 = Stand 0 (1.5s),
+  slot 2 = Death 1 (1.2s).
+- `m2batch`: body batch 5 is opaque, 227 vertices, with FirePlaceTex01 texture.
+- Extended `survivors-audit --creature-visuals 4588` samples baked alpha at
+  0/0.5/1 seconds. Body batch 5 is 1/1/1 for Spawn and Stand; 1/1/0 for Death.
+- Live preview report: slot 1, seek ~0.376s, four descendant material components
+  at alpha 1 with inherited visibility true. Root position (-95,58.88147,9548.5)
+  matches the independent terrain probe's floor height 58.88147.
+- Repeat launch: both models in slot 1 at ~0.391s; four descendant materials
+  each at alpha 1 and visible. World-root billboard cards are outside this
+  descendant-only report; the screenshot independently shows their effects.
+
+The preview logs once after five seconds with an animated specimen present.
+This provides runtime context for captures, not a blanket readiness assertion.
+The native incremental build passed in 1m10s. Actual ability deployment,
+destruction timing, particle fidelity, racial variants and Windows remain open.
+
+Final diagnostic revision reports all active clips directly as
+`(animation ID, file slot, seek seconds, weight)`, avoiding an unpublished engine
+helper caught by the API-wall gate. The final native build passed in 43.50s;
+a third launch reports `(0, 1, ~0.205, 1.0)` for both specimens. The pair capture
+was refreshed from this final build. No engine API allowance was expanded.
+
+The final eight-package scoped gate passes formatting, Clippy and tests, including
+the API-wall regression, with 31 optional-addon skips.
