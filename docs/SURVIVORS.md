@@ -1185,8 +1185,12 @@ Survivors tuning, not the installed spell's mana/cast-time simulation. Ranks use
 the shared healing/recovery growth and critical heals restore 150%. It requires
 no enemy target and does not emit damage or replace periodic healing sources.
 
-Improved Healing Wave, Tidal Focus and Restorative Totems still affect only
-their documented totem mechanics. Purification and Tidal Mastery also train
+Improved Healing Wave and Tidal Focus reduce Healing Wave recovery by 4% and
+2% per rank respectively, multiplying each other and other recovery modifiers.
+Both retain their existing totem deployment reductions. At rank five in both,
+base recovery is 8.64 seconds instead of 12; healing per cast is unchanged. These
+retain the authored cast-time/mana-cost conversions, not vanilla resource rules.
+Restorative Totems remains totem-only. Purification and Tidal Mastery also train
 Healing Wave as specified below. Healing
 Way (1648) now has 33/66/100% chance after effective Healing Wave healing to add
 a 6% bonus to subsequent Healing Waves, up to three stacks. Successful procs

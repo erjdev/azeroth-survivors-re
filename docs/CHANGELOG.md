@@ -5,6 +5,26 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Healing Wave recovery training
+
+Improved Healing Wave and Tidal Focus now shorten Healing Wave recovery by
+4%/2% per rank, preserving their totem effects. Both at maximum rank reduce the
+base recovery from 12 to 8.64 seconds. Green descriptions name the affected heal.
+Restorative Totems and Totemic Focus remain totem-only.
+
+Native macOS purchase to 5/5, refunds and restart pass in a separate spec;
+wide/compact captures show full green recovery labels and saved 4/5 ranks.
+Eight-package gate and 321 core tests pass (31 optional-addon skips).
+Windows/controller and attended combat remain open. Incremental build: 17 seconds.
+
+![Improved Healing Wave recovery scope](images/screenshots/2026-10-29-shaman-recovery/improved-wide.png)
+
+![Improved Healing Wave compact description](images/screenshots/2026-10-29-shaman-recovery/improved-compact.png)
+
+![Tidal Focus recovery scope](images/screenshots/2026-10-29-shaman-recovery/tidal-wide.png)
+
+![Tidal Focus compact description](images/screenshots/2026-10-29-shaman-recovery/tidal-compact.png)
+
 ## 2026-10-29 — Compact hero-roster acceptance
 
 Native checks with an isolated 24-hero account verify wrapped roster buttons at

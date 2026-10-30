@@ -123,8 +123,7 @@ fn healing_wave_is_acquired_and_keeps_totem_only_training_separate() {
     let trained = Params::new(
         &owned,
         &stats,
-        run.milestones
-            .with_ranks(&[(2, 586, 5), (2, 593, 5), (2, 588, 5)]),
+        run.milestones.with_ranks(&[(2, 595, 5), (2, 588, 5)]),
     );
     assert_eq!(base.dmg, 40.);
     assert_eq!(base.cooldown, 12.);

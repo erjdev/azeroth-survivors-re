@@ -101,3 +101,37 @@ healing, without a critical roll. The new Healing Wave critical-event producer
 makes the original trigger implementable. The user has been asked whether to
 replace the old conversion, retain both effects or keep the existing behavior.
 Do not treat that question as approval; the implementation remains unchanged.
+
+
+## Healing Wave recovery training — 2026-10-29
+
+Nodes 586 and 593 now include Healing Wave in their existing authored recovery
+conversions: 4% and 2% per rank, multiplied independently. Their totem deployment
+behavior is retained. Totemic Focus remains totem-only, and Restorative Totems
+still changes only deployment healing. Other heals, damage, critical chance,
+range, duration, pulse rate and target counts are unchanged by these two nodes.
+
+Raw checkout evidence (`--talent-evidence 586` and `593`) confirms the original
+rules: Healing Wave cast time minus 100–500 ms, and healing mana cost minus
+1–5%. The existing Survivors 4%/2% recovery tuning is deliberately retained;
+it is not presented as those installed spell values. Both maximum ranks turn
+12-second base recovery into 8.64 seconds, before other modifiers.
+
+Tests cover class scope, capped ranks, refunds, composition and other-class heals;
+actual cast tests check cooldown assignment, effective healing, critical outcomes,
+no damage events and no RNG use at full health. Catalog-backed purchase, saved
+spec independence, reload and refund tests now include both first-row nodes.
+Native captures show both descriptions at 1280×720 and 640×720 / 125%. An early
+pointer failure was superseded by a successful final-build session: starting from
+empty spec 2, both nodes trained to 5/5 (10 spent, 41 available), then right-click
+refunds returned both to 4/5 (8 spent, 43 available). Restart retained both ranks;
+compact captures show their green inline 16→20% and 8→10% recovery improvements.
+The saved row preserves spec 1's separate 35-point build and stores
+`2:586:4,2:593:4` in spec 2. No save edits occurred between purchase and restart.
+Windows, controller, compact purchase and attended combat remain open.
+
+The eight-package formatting/Clippy/test gate passes, with 31 optional-addon skips;
+all 321 core tests pass. Earlier runs exposed obsolete spell-scope and green-label
+expectations. The shared label parser now colors “shorter recovery” with its value,
+including Nature's Grace. Incremental native build: 16.57 seconds.
+Ancestral Healing still awaits the separate policy decision above.

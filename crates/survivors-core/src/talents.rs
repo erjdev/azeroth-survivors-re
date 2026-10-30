@@ -1870,6 +1870,7 @@ fn inline_stat_label(tail: &str) -> &str {
         " shield absorption",
         " buff strength",
         " shorter deployment cooldown",
+        " shorter recovery",
         " hero damage",
         " initial targeting range",
         " chance",
@@ -6898,7 +6899,8 @@ mod inline_stat_label_tests {
             (1, 1402, "+0 » 3% Paladin Holy damage"),
             (2, 1351, "+0 » 20% damage-reduction duration"),
             (5, 612, "+0 » 5% shield absorption"),
-            (5, 586, "0 » 4% shorter deployment cooldown"),
+            (5, 586, "0 » 4% shorter recovery"),
+            (5, 593, "0 » 2% shorter recovery"),
             (5, 1641, "+0 » 10% initial targeting range"),
         ] {
             let node = talent_definition(class, id).unwrap();

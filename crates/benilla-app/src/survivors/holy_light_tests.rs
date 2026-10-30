@@ -92,7 +92,12 @@ fn healing_wave_cast_heals_without_a_target_and_never_deals_damage() {
                 ..Default::default()
             };
             run.milestones.class = 5;
-            run.milestones = run.milestones.with_ranks(&[(2, 592, rank), (2, 594, rank)]);
+            run.milestones = run.milestones.with_ranks(&[
+                (2, 592, rank),
+                (2, 594, rank),
+                (2, 586, rank),
+                (2, 593, rank),
+            ]);
             run.hp = run.stats().max_hp;
             run.abilities.push(Owned {
                 def: data::ability("healing_wave"),
@@ -106,6 +111,14 @@ fn healing_wave_cast_heals_without_a_target_and_never_deals_damage() {
                 run.milestones.with_ranks(&[]),
             );
             assert!((p.dmg - 40. * (1. + 0.02 * f32::from(rank))).abs() < 0.0001);
+            assert!(
+                (p.cooldown
+                    - base.cooldown
+                        * (1. - 0.04 * f32::from(rank))
+                        * (1. - 0.02 * f32::from(rank)))
+                .abs()
+                    < 0.0001
+            );
             assert!((p.crit - base.crit - 0.01 * f32::from(rank)).abs() < 0.0001);
             let seed = (1..100000)
                 .find(|seed| {

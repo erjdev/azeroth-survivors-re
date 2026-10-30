@@ -12,6 +12,8 @@ pub(super) const CASTS: &[&str] = &[
     "frost_shock",
 ];
 
+const HEALING_RECOVERY: &[&str] = &["healing_wave", "searing_totem", "magma_totem"];
+
 const CRITICAL_CASTS: &[&str] = &[
     "lightning_bolt",
     "chain_lightning",
@@ -30,8 +32,8 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 612, max_rank: 5, name: "Shield Specialization", description: "Earth Shock: +5% shield absorption per rank, adding to Guardian Totems. Requires the 10-point Enhancement shield milestone; no equipped shield required (Survivors block conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.05 },
     TalentDefinition { id: 616, max_rank: 1, name: "Parry", description: "+5% hero damage reduction per rank (Survivors parry conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.05 },
     TalentDefinition { id: 609, max_rank: 2, name: "Guardian Totems", description: "Earth Shock: +10% shield absorption per rank. Requires the 10-point Enhancement shield milestone; shield duration and damage are unchanged (Survivors defensive-totem conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.10 },
-    TalentDefinition { id: 586, max_rank: 5, name: "Improved Healing Wave", description: "Searing Totem and Magma Totem: 4% shorter deployment cooldown per rank (Survivors healing cast-time conversion). Healing still requires the 10-point Restoration milestone; pulse rate and healing per deployment are unchanged", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.04 },
-    TalentDefinition { id: 593, max_rank: 5, name: "Tidal Focus", description: "Searing Totem and Magma Totem: 2% shorter deployment cooldown per rank, multiplying other cooldown training (Survivors healing mana-cost conversion). Healing per deployment is unchanged", stat: TalentStat::SpellGroupCooldown(TOTEMS), per_rank: 0.02 },
+    TalentDefinition { id: 586, max_rank: 5, name: "Improved Healing Wave", description: "Healing Wave and Searing/Magma Totem deployment: 4% shorter recovery per rank (Survivors cast-time conversion). Totem healing requires the 10-point Restoration milestone; healing amount and pulse rate are unchanged", stat: TalentStat::SpellGroupCooldown(HEALING_RECOVERY), per_rank: 0.04 },
+    TalentDefinition { id: 593, max_rank: 5, name: "Tidal Focus", description: "Healing Wave and Searing/Magma Totem deployment: 2% shorter recovery per rank, multiplying other recovery training (Survivors mana-cost conversion). Healing amount and pulse rate are unchanged", stat: TalentStat::SpellGroupCooldown(HEALING_RECOVERY), per_rank: 0.02 },
     TalentDefinition { id: 601, max_rank: 5, name: "Anticipation", description: "+1% hero damage reduction per rank (Survivors dodge conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.01 },
     TalentDefinition { id: 1643, max_rank: 5, name: "Weapon Mastery", description: "+2% hero damage per rank, including spells and totems (Survivors weapon-damage conversion)", stat: TalentStat::Damage, per_rank: 0.02 },
     TalentDefinition { id: 602, max_rank: 5, name: "Flurry", description: "Direct lightning and shock criticals grant 5% haste per rank for 3 seconds; further criticals refresh without stacking. Totems, Lightning Shield and periodic damage cannot trigger it (Survivors spell-critical conversion)", stat: TalentStat::FlurryHaste, per_rank: 0.05 },
@@ -363,7 +365,7 @@ mod healing_cadence_tests {
     use crate::talents::{talent_definition, Milestones};
 
     #[test]
-    fn healing_cadence_changes_only_totem_deployment_cooldown() {
+    fn healing_cadence_changes_wave_and_totem_recovery_only() {
         for class in 0..9 {
             for points in [0, 9, 10, 30] {
                 let base = Milestones {
@@ -373,14 +375,16 @@ mod healing_cadence_tests {
                 };
                 for rank in [0, 1, 4, 5, 255] {
                     let trained = base.with_ranks(&[(2, 586, rank), (2, 593, rank)]);
-                    for key in crate::data::CLASSES[5]
-                        .pool
-                        .iter()
-                        .copied()
-                        .chain(["renew", "rejuvenation"])
-                    {
+                    for key in crate::data::CLASSES[5].pool.iter().copied().chain([
+                        "renew",
+                        "rejuvenation",
+                        "holy_light",
+                        "flash_of_light",
+                        "greater_heal",
+                        "regrowth",
+                    ]) {
                         let mut expected = base.cast(key);
-                        if class == 5 && super::TOTEMS.contains(&key) {
+                        if class == 5 && super::HEALING_RECOVERY.contains(&key) {
                             let r = f32::from(rank.min(5));
                             expected.cooldown *= (1. - 0.04 * r) * (1. - 0.02 * r);
                         }
@@ -394,12 +398,12 @@ mod healing_cadence_tests {
             .unwrap()
             .inline_description(4)
             .unwrap()
-            .contains("16 » 20% shorter deployment cooldown"));
+            .contains("16 » 20% shorter recovery"));
         assert!(talent_definition(5, 593)
             .unwrap()
             .inline_description(4)
             .unwrap()
-            .contains("8 » 10% shorter deployment cooldown"));
+            .contains("8 » 10% shorter recovery"));
     }
 }
 

@@ -216,6 +216,11 @@ locked pending world readiness. This capture does not establish raid gameplay.
 2026-10-27 · 1600×900 native preview: taller trees, adjacent saved specs and a
 green inline upgrade values. Purchase and compact captures are in the [changelog](docs/CHANGELOG.md).
 
+Healing Wave now receives Improved Healing Wave and Tidal Focus recovery training;
+both at rank five reduce base recovery from 12 to 8.64 seconds.
+
+![Healing Wave recovery training](docs/images/screenshots/2026-10-29-shaman-recovery/improved-wide.png)
+
 ### Options and upgrade previews
 
 <table>

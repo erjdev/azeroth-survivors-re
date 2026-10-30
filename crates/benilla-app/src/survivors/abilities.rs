@@ -9192,7 +9192,7 @@ mod milestone_tests {
                 5,
                 595,
                 5,
-                &["searing_totem", "magma_totem"][..],
+                &["healing_wave", "searing_totem", "magma_totem"][..],
                 0.20,
             ),
             (
@@ -9201,7 +9201,7 @@ mod milestone_tests {
                 5,
                 586,
                 5,
-                &["searing_totem", "magma_totem"][..],
+                &["healing_wave", "searing_totem", "magma_totem"][..],
                 0.10,
             ),
             (

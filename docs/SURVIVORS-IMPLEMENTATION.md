@@ -10120,3 +10120,19 @@ filter combinations. Tests cover old/invalid saves, all combinations, category r
 source-view propagation and activation without an environment flag. See the changelog
 and silhouette audit for captures. Mixed overlap, render-scale/distance/performance,
 Windows and real Elwynn/interior acceptance remain pending.
+
+
+## Healing Wave recovery training — 2026-10-29
+
+Improved Healing Wave and Tidal Focus now train their named heal, retaining the
+existing authored 4%/2%-per-rank recovery conversion and totem deployment scope.
+Both maximum ranks compose to 8.64-second base recovery. Totemic Focus and
+Restorative Totems remain totem-only. Definition coverage stays 308/432; these
+are existing definitions gaining their missing direct-heal consumer.
+
+Rank/scope, actual cast and catalog-backed save/spec/refund checks cover the
+change. Four native wide/compact tooltip captures are embedded in CHANGELOG;
+native maximum-rank purchase, one-rank refunds and restart passed in independent
+spec 2. Eight-package gate and 321 core tests pass (31 optional-addon skips).
+Windows/controller, compact purchase and attended-combat acceptance remain open.
+See [the reconciliation and reference evidence](audits/SHAMAN-HEALING-DEPENDENCIES.md#healing-wave-recovery-training--2026-10-29).

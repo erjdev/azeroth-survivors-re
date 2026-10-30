@@ -140,7 +140,7 @@ mod tests {
         let definition = super::super::talent_definition(8, 789).unwrap();
         let (text, highlights) = definition.inline_description_with_values(0).unwrap();
         assert_eq!(highlights.len(), 1);
-        assert_eq!(&text[highlights[0].clone()], "0 » 0.5 sec");
+        assert_eq!(&text[highlights[0].clone()], "0 » 0.5 sec shorter recovery");
         assert!(!definition.inline_description(1).unwrap().contains(" » "));
     }
 }
