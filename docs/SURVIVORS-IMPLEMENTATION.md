@@ -9,6 +9,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Native wide/short talent acceptance — 2026-10-30
+
+The [native talent audit](audits/TALENTS-WIDE-SHORT.md) adds Warrior layout,
+locked-node inspection and milestone reachability at 1440×600 / 125%, plus a
+100% comparison. It supplements browser ultrawide evidence. Screenshots are
+inline in CHANGELOG and README. Other classes, Windows, controller and the
+remaining resolution matrix remain open; no runtime change is claimed.
+
 ## Stoneclaw distance retention — 2026-10-30
 
 Forced targeting now takes precedence over the 75-yard enemy recycling rule.

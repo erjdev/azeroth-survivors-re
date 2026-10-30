@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Native talents in wide, short windows
+
+Verified the native Warrior talent page at 1440×600 / 125% and 100%: aligned
+artwork, separated ranks, readable inspector and reachable capstones/milestones.
+Locked selection preserves all 51 points. No runtime changes; Windows and other
+class/resolution cases remain open. [Evidence](audits/TALENTS-WIDE-SHORT.md).
+
+![Wide short talent layout](images/screenshots/2026-10-30-talents-wide-short/top.png)
+
+![Scrolled milestone rows and pinned inspector](images/screenshots/2026-10-30-talents-wide-short/milestones.png)
+
 ## 2026-10-30 — Stoneclaw keeps distant captives
 
 Captured enemies keep attacking a living Stoneclaw when the hero moves away;
