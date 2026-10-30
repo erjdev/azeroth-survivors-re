@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+The native wide/short talent layout matrix now covers all nine classes at
+1440×600 / 125%. [Sixteen new class captures and remaining limits](docs/audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30).
+
+![Paladin talent artwork](docs/images/screenshots/2026-10-30-talent-class-matrix/paladin-top.png)
+
 Native talent checks now cover wide, short windows with scrolling to every
 milestone and a readable pinned inspector. [Evidence and limits](docs/audits/TALENTS-WIDE-SHORT.md).
 

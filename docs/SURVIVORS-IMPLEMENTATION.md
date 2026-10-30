@@ -9,6 +9,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## All-class native talent layout matrix — 2026-10-30
+
+All nine classes now have top-row and complete milestone-footer evidence at
+1440×600 / 125% on native macOS. Sixteen additional captures and the earlier
+Warrior check are indexed in the [talent layout audit](audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30).
+This closes that class/layout cell only; other resolutions, platforms, full
+interaction and gameplay acceptance remain open. No talent mechanics changed.
+
 ## Native wide/short talent acceptance — 2026-10-30
 
 The [native talent audit](audits/TALENTS-WIDE-SHORT.md) adds Warrior layout,

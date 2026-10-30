@@ -38,3 +38,101 @@ remain applicable; they were not rerun for screenshots/docs. Windows, physical
 controllers, other classes at this size and the remaining resolution matrix
 are still open. Startup/interaction hitch warnings occurred in this run; these
 screenshots establish layout and reachability, not frame-time acceptance.
+
+## Complete class layout matrix — 2026-10-30
+
+Native follow-up on the same runtime code now covers the other eight classes
+at **1440×600 / 125%**, using collected fixture heroes 2–9. Each page was read
+at the top and scrolled to its bottom. All three class-specific tree headings,
+art backgrounds, top-row rank labels, capstones and nine milestone labels are
+visible without horizontal clipping. Each top capture shows 51 unspent points
+and three empty specs; this pass performs no talent purchase.
+
+Paladin's cathedral, city and rune-circle backgrounds match the reference's
+art identities. Its actual 1.12 node arrangement differs from the illustrative
+reference; this check does not assert identical talent placement or mechanics.
+The other classes use their own art and seven-row grids. Switching heroes
+through the watched preview starts each previously unvisited tree at the top.
+
+Reproduce with the existing `talents-1440x600-125.txt` preset and `--hero N
+--spec 1` using `scripts/survivors-ui-fixture.py collected`; fixture IDs 1–9
+follow Warrior, Paladin, Hunter, Rogue, Priest, Shaman, Mage, Warlock, Druid.
+The prior Warrior screenshots complete the nine-class matrix at this one size.
+
+<details>
+<summary>Paladin: top and complete milestone footer</summary>
+
+![Paladin top rows](../images/screenshots/2026-10-30-talent-class-matrix/paladin-top.png)
+
+![Paladin milestone footer](../images/screenshots/2026-10-30-talent-class-matrix/paladin-bottom.png)
+
+</details>
+
+<details>
+<summary>Hunter: top and complete milestone footer</summary>
+
+![Hunter top rows](../images/screenshots/2026-10-30-talent-class-matrix/hunter-top.png)
+
+![Hunter milestone footer](../images/screenshots/2026-10-30-talent-class-matrix/hunter-bottom.png)
+
+</details>
+
+<details>
+<summary>Rogue: top and complete milestone footer</summary>
+
+![Rogue top rows](../images/screenshots/2026-10-30-talent-class-matrix/rogue-top.png)
+
+![Rogue milestone footer](../images/screenshots/2026-10-30-talent-class-matrix/rogue-bottom.png)
+
+</details>
+
+<details>
+<summary>Priest: top and complete milestone footer</summary>
+
+![Priest top rows](../images/screenshots/2026-10-30-talent-class-matrix/priest-top.png)
+
+![Priest milestone footer](../images/screenshots/2026-10-30-talent-class-matrix/priest-bottom.png)
+
+</details>
+
+<details>
+<summary>Shaman: top and complete milestone footer</summary>
+
+![Shaman top rows](../images/screenshots/2026-10-30-talent-class-matrix/shaman-top.png)
+
+![Shaman milestone footer](../images/screenshots/2026-10-30-talent-class-matrix/shaman-bottom.png)
+
+</details>
+
+<details>
+<summary>Mage: top and complete milestone footer</summary>
+
+![Mage top rows](../images/screenshots/2026-10-30-talent-class-matrix/mage-top.png)
+
+![Mage milestone footer](../images/screenshots/2026-10-30-talent-class-matrix/mage-bottom.png)
+
+</details>
+
+<details>
+<summary>Warlock: top and complete milestone footer</summary>
+
+![Warlock top rows](../images/screenshots/2026-10-30-talent-class-matrix/warlock-top.png)
+
+![Warlock milestone footer](../images/screenshots/2026-10-30-talent-class-matrix/warlock-bottom.png)
+
+</details>
+
+<details>
+<summary>Druid: top and complete milestone footer</summary>
+
+![Druid top rows](../images/screenshots/2026-10-30-talent-class-matrix/druid-top.png)
+
+![Druid milestone footer](../images/screenshots/2026-10-30-talent-class-matrix/druid-bottom.png)
+
+</details>
+
+This supersedes the earlier “other classes at this size” limitation only for
+macOS 1440×600 / 125% layout and pointer scrolling. Other sizes/scales, Windows,
+controllers, full tooltip coverage, purchases and combat remain separate.
+No runtime code or talent-coverage count changed. The app exited and its
+launcher was restored. The existing source gate remains applicable.

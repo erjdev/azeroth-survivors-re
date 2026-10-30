@@ -5,6 +5,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — All-class native talent layout matrix
+
+All nine classes now have native macOS layout evidence at 1440×600 / 125%:
+three illustrated trees, separated ranks and reachable capstones/milestones.
+Added 16 captures for the remaining eight classes; Paladin art matches the
+reference identities. No runtime changes or new talent mechanics.
+[Class gallery and limits](audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30).
+
+![Paladin reference artwork in native UI](images/screenshots/2026-10-30-talent-class-matrix/paladin-top.png)
+
+![Druid milestone footer](images/screenshots/2026-10-30-talent-class-matrix/druid-bottom.png)
+
 ## 2026-10-30 — Native talents in wide, short windows
 
 Verified the native Warrior talent page at 1440×600 / 125% and 100%: aligned
