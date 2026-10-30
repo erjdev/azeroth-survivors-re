@@ -5,6 +5,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Collection source names
+
+Poor and Raid Epic rows now name their drop zones instead of omitting them or
+saying “Sources pending.” Native macOS previews at 1280×720 and 640×720 verify
+readable labels; the source link still shows Naxxramas's world-readiness lock.
+Incremental native build: 75 seconds. The eight-package scoped gate passes
+with 31 optional-addon skips. No reward or unlock rules changed.
+
+![Collection source overview](images/screenshots/2026-10-30-collection-sources/wide.png)
+
+![Compact Raid Epic source](images/screenshots/2026-10-30-collection-sources/compact-raid.png)
+
 ## 2026-10-30 — Virtuous Robe sleeve repair
 
 Fixed skin-colored cuffs on the male Virtuous Robe by falling back to that robe's

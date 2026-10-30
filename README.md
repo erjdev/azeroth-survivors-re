@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Collection quality rows now name their drop zones, including Poor and Raid Epic
+gear. Zone readiness remains visible on the linked Drop Tables page.
+
+![Collection source names](docs/images/screenshots/2026-10-30-collection-sources/wide.png)
+
 Virtuous Robe now has fabric cuffs on the male body even when worn without
 bracers. [Native comparisons and validation](docs/audits/COLLECTION-BODY-ART.md)
 cover the robe alone, matching pieces and the female control.

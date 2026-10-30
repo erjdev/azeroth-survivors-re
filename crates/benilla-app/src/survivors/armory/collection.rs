@@ -7,6 +7,7 @@ use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 use bevy::ui::RelativeCursorPosition;
 use survivors_core::layout::Layout;
+use survivors_core::supplemental_gear;
 
 pub(super) fn compact_width(node: &ComputedNode) -> bool {
     let width = node.size.x * node.inverse_scale_factor;
@@ -764,10 +765,15 @@ fn grid(
                     layout.body_size - 2.0,
                     DIM,
                 );
-                if raid {
-                    text(label, font, "Sources pending", layout.body_size - 3.0, DIM);
-                }
-                let mut zones = Vec::new();
+                let mut zones = if raid {
+                    vec![campaign::ZONES[supplemental_gear::RAID_DROP_ZONE].name]
+                } else if band.is_none() {
+                    supplemental_gear::POOR_DROP_ZONES
+                        .map(|zone| campaign::ZONES[zone].name)
+                        .to_vec()
+                } else {
+                    Vec::new()
+                };
                 for drop in campaign::DROPS
                     .iter()
                     .filter(|drop| Some(drop.band) == band)

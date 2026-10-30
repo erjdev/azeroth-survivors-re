@@ -1,5 +1,5 @@
 # Inspect the current class raid armor without granting or equipping it.
-# Raid acquisition remains pending; this only opens the item inspector.
+# Inspection only; existing zone readiness and acquisition locks still apply.
 page = collection
 width = 1280
 height = 720

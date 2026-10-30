@@ -10307,3 +10307,14 @@ resolve all 646 display/inventory/sex variants. Virtuous Robe's missing male low
 sleeve uses a narrowly scoped Survivors fallback, verified in the Human male/female
 Armory previews, alone and with matching pieces. This closes that observed cuff
 defect; the full race/platform/combined-equipment visual acceptance remains open.
+
+### Collection source overview — 2026-10-30
+
+The Poor and Raid Epic overview rows now use the shared reward source zones,
+matching the intention reference's compact zone labels. Native macOS validation
+at 1280×720 and 640×720 verifies both labels and scrolling. Following the raid
+source still displays “Naxxramas world content is not ready”; this does not close
+world acceptance. Evidence: [wide](images/screenshots/2026-10-30-collection-sources/wide.png),
+[compact Poor](images/screenshots/2026-10-30-collection-sources/compact-poor.png),
+[compact Raid Epic](images/screenshots/2026-10-30-collection-sources/compact-raid.png),
+and [readiness](images/screenshots/2026-10-30-collection-sources/naxxramas-readiness.png).
