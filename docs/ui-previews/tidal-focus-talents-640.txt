@@ -1,6 +1,6 @@
 page=talents
 width=640
 height=720
+scale=1.25
 hero=6
 talent=593
-scale=1.25

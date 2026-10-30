@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Compact recovery talent acceptance — 2026-10-29
+
+Improved Healing Wave and Tidal Focus now have native macOS 640×720 / 125%
+purchase, one-rank refund and restart evidence in the
+[healing audit](audits/SHAMAN-HEALING-DEPENDENCIES.md). The repurchased Tidal Focus
+rank persists with 9 spent / 42 available and independent specs. Screenshots
+are inline in CHANGELOG and README. No runtime change; Windows/controller and
+attended combat remain open. This supersedes their compact pointer gap.
+
 ## Remaining Mage consumers — 2026-10-29
 
 The [Mage dependency audit](audits/MAGE-TALENT-DEPENDENCIES.md) records installed

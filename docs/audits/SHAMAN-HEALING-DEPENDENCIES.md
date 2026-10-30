@@ -153,3 +153,20 @@ performed every purchase/refund. This closes the compact pointer gap for these
 three nodes, not keyboard, physical controller, Windows or attended combat.
 Improved Healing Wave and Tidal Focus compact purchasing remain unverified.
 No runtime source changed; the preceding green gate remains applicable.
+
+## Compact recovery talent acceptance — 2026-10-29
+
+Native macOS, 640×720 / 125%, runtime including `82b227b`, isolated
+`target/ui-fixtures/compact-recovery` profile: Improved Healing Wave 586 and
+Tidal Focus 593 each purchase 4 → 5 and right-click refund 5 → 4. The pinned
+descriptions remain readable with green inline 16 » 20% / 8 » 10% growth;
+Restoration icons remain reachable by scrolling. Tidal Focus was repurchased
+before restart: Spec 2 retains ranks 4/5 and 5/5, 9 spent / 42 available.
+Spec 1 retains 35 points; Spec 3 remains empty. Save-file inspection agrees.
+
+This closes the compact pointer gap for these two nodes. The intention image's
+art-backed trees, rank badges and separate spec totals are retained, stacked
+at this width. No code change or new combat claim. Windows/controller and
+attended combat remain open. Three captures under
+`docs/images/screenshots/2026-10-29-compact-recovery/` are embedded in CHANGELOG;
+the purchase view is also in README. The normal validation launcher is restored.

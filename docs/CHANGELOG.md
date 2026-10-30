@@ -5,6 +5,19 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Compact recovery talent acceptance
+
+Improved Healing Wave and Tidal Focus purchase/refund correctly at 640×720 /
+125% on macOS. Green inline values and icons remain readable; restart retains
+the repurchased rank and 9 spent / 42 available. Documentation and captures only;
+Windows/controller and attended combat remain open.
+
+![Improved Healing Wave purchased](images/screenshots/2026-10-29-compact-recovery/healing-wave-purchase.png)
+
+![Tidal Focus purchased](images/screenshots/2026-10-29-compact-recovery/tidal-focus-purchase.png)
+
+![Rank and point totals survive restart](images/screenshots/2026-10-29-compact-recovery/restarted-totals.png)
+
 ## 2026-10-29 — Remaining Mage mechanics mapped
 
 Recorded installed rules and implementation dependencies for the eleven remaining
