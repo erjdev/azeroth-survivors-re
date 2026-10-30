@@ -9,6 +9,15 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Stoneclaw distance retention — 2026-10-30
+
+Forced targeting now takes precedence over the 75-yard enemy recycling rule.
+Captured ordinary enemies continue approaching a living totem when the hero
+leaves; expiry restores normal recycling. The actual movement-system regression
+failed before the fix and passes afterward, alongside all eight existing
+Stoneclaw tests. See the [earth-totem audit](audits/EARTH-TOTEMS.md).
+Attended combat and Windows acceptance remain open.
+
 ## Druid form visual prerequisites — 2026-10-30
 
 The [Druid dependency audit](audits/DRUID-TALENT-DEPENDENCIES.md#verified-form-models--2026-10-30)

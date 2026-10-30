@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Stoneclaw keeps distant captives
+
+Captured enemies keep attacking a living Stoneclaw when the hero moves away;
+the 75-yard recycling rule no longer interrupts forced targeting. Expiry restores
+normal recycling. The new movement regression failed before the fix; all nine
+Stoneclaw tests now pass. Native incremental build: 15 seconds. Eight-package
+scoped gate green, with 31 optional-addon-data skips. Attended combat and Windows
+acceptance remain open. [Evidence](audits/EARTH-TOTEMS.md#distant-captured-enemies--2026-10-30).
+
 ## 2026-10-30 — Weapon-damage dependency evidence
 
 Verified the seven Paladin weapon identities against pinned damage/speed data.

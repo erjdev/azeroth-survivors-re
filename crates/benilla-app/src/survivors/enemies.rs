@@ -514,21 +514,6 @@ pub(super) fn move_enemies(
         let to_hero = flat(hpos - pos);
         let dist = to_hero.length();
 
-        // Strays far behind are brought back in front, as the reference genre does.
-        if dist > 75.0 {
-            navigation.forget(ent);
-            recycle(
-                &world,
-                selection.map_def(),
-                hpos,
-                &mut tf.translation,
-                e.radius,
-            );
-            mv.speed = 0.0;
-            mv.flags = 0;
-            continue;
-        }
-
         // Acquisition needs visibility; captured foes stay forced until this
         // deployment ends. Stoneclaw takes precedence over pet attention.
         let stoneclaw_target = if e.boss {
@@ -551,6 +536,21 @@ pub(super) fn move_enemies(
                     }
                 })
         };
+        // A living Stoneclaw keeps its captives even when the hero leaves them behind.
+        if dist > 75.0 && stoneclaw_target.is_none() {
+            navigation.forget(ent);
+            recycle(
+                &world,
+                selection.map_def(),
+                hpos,
+                &mut tf.translation,
+                e.radius,
+            );
+            mv.speed = 0.0;
+            mv.flags = 0;
+            continue;
+        }
+
         // Ordinary foes engage a closer living wolf within four yards and line of sight.
         // Bosses keep pressure on the hero; there is no global pet threat table.
         let forced_pet = taunt

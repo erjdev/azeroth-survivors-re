@@ -279,3 +279,44 @@ fn earths_grasp_changes_deployed_health_and_damage_budget() {
         );
     }
 }
+
+#[test]
+fn stoneclaw_retains_distant_captives_until_expiry_then_recycles() {
+    let (mut app, hero, enemy) = setup(true);
+    let totem = deployed(&mut app);
+    move_once(&mut app);
+    assert!(app
+        .world()
+        .get::<stoneclaw::Stoneclaw>(totem)
+        .unwrap()
+        .captured
+        .contains(&enemy));
+    app.world_mut()
+        .get_mut::<Transform>(hero)
+        .unwrap()
+        .translation = Vec3::X * 100.;
+    let before = app.world().get::<Transform>(enemy).unwrap().translation;
+    move_once(&mut app);
+    let retained = app.world().get::<Transform>(enemy).unwrap().translation;
+    assert!(
+        retained.x < before.x,
+        "captured enemy must keep approaching the totem"
+    );
+    assert!(
+        retained.distance(before) < 5.,
+        "captured enemy must not teleport"
+    );
+    app.world_mut().resource_mut::<Run>().elapsed = 15.;
+    move_once(&mut app);
+    let released = app.world().get::<Transform>(enemy).unwrap().translation;
+    // This fixture has no supported replacement near the distant hero: normal
+    // recycling parks the enemy until streamed floor becomes available.
+    assert_eq!(released, retained);
+    assert_eq!(
+        app.world()
+            .get::<crate::creature_anim::MovementState>(enemy)
+            .unwrap()
+            .speed,
+        0.
+    );
+}

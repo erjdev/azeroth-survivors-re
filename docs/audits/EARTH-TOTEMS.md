@@ -258,3 +258,23 @@ against checkout DBC identities and rank caps. This is definition coverage only.
 
 Final eight-package formatting, Clippy and test gate: green, 31 optional-addon
 corpus skips. Both new runtime tests and the shared-rule tests pass.
+
+## Distant captured enemies — 2026-10-30
+
+The actual movement-system regression reproduced an early-exit bug: once the
+hero moved more than 75 yards away, recycling stopped a captured enemy's
+approach before Stoneclaw targeting was evaluated. On streamed terrain that
+same path could relocate it near the hero. Target resolution now precedes
+recycling; a living Stoneclaw prevents recycling of its ordinary captives.
+Expiry, destruction and replacement still release the target normally.
+
+The regression captures an ordinary enemy, moves the hero 100 yards away,
+checks continued movement toward the totem without teleporting, then expires
+the totem. In this fixture no supported distant replacement exists, so the
+normal recycling path parks the released enemy until terrain is available.
+This is headless runtime evidence, not attended combat or Windows acceptance.
+
+Validation: all nine Stoneclaw runtime tests pass; incremental native build
+passes in 14.75 seconds. The eight-package scoped formatting, Clippy and test
+gate passes with 31 optional-addon-data skips. No UI change or new visual
+acceptance is claimed.
