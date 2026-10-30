@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Grounded fire-totem deployment
+
+Searing and Magma now check ground height, body clearance and a clear path from
+the hero before spawning. Blocked nearby offsets fall back to the hero's feet;
+missing support retries without casting. Damage, lifetime and cadence stay the
+same. Two actual-cast regressions fail before the fix and pass afterward,
+covering both totems, slopes, walls and absent ground. Final native build: 14 seconds.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+Headless placement checks only; no UI change or new screenshot. Attended terrain
+and Windows validation remain open.
+
 ## 2026-10-30 — Silhouette overlap acceptance
 
 Added live noncombat overlap cases to the render fixture. Native Metal / 4× MSAA

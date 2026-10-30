@@ -31,3 +31,29 @@ and final gate were captured in `/tmp/totem-timing-before.log` and
 `/tmp/totem-timing-check.log` during this session.
 The incremental native macOS play build passes in 1m07s; its existing linker
 warning and the `block` dependency's future-compatibility warning remain.
+
+## Fire-totem placement — 2026-10-30
+
+Searing and Magma used an unchecked two-yard horizontal offset at the hero's
+height. Their actual cast system now grounds that candidate with the shared
+`Floor` support query and checks body clearance plus connectivity from the hero.
+A rejected offset falls back to supported hero feet. If neither position is
+valid (including absent world collision), no unit or cast effect is emitted;
+the normal 0.2-second unsuccessful-cast retry applies instead of full recovery.
+Existing attack cadence, damage, lifetime and stacking are unchanged.
+
+`fire_totem_placement_tests.rs` casts both abilities against real synthetic
+physics geometry. It covers missing support, a 1:2 slope and a solid wall at
+the preferred offset. Before the fix, the missing-ground test spawned a floating
+totem and the slope test spawned at `(2, 0, 0)` instead of `(2, 1, 0)`.
+These are headless runtime regressions, not attended map or visual acceptance.
+No interface changed, so this checkpoint adds no screenshot.
+
+Both new actual-cast tests pass after the fix (`/tmp/fire-totem-after.log`);
+the final native play-profile build passes in 14.08 seconds
+(`/tmp/fire-totem-final-build.log`) after Clippy’s behavior-preserving `Option::and` simplification.
+
+The full eight-package formatting, Clippy and test gate passes with 31 expected
+optional-addon skips (`/tmp/fire-totem-check.log`). Two existing deployment tests
+now supply real floor geometry while retaining their original healing, cooldown,
+range and Totemic Mastery assertions; both pass alongside the new regressions.

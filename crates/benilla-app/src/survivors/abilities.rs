@@ -1079,13 +1079,23 @@ pub(super) fn cast_abilities(
                 fired
             }
             Kind::Totem => {
-                if foes
+                let at = foes
                     .first()
-                    .is_some_and(|f| f.dist <= p.range.max(p.radius) + 6.0)
-                {
+                    .filter(|f| f.dist <= p.range.max(p.radius) + 6.0)
+                    .and(channel_world.as_ref())
+                    .and_then(|floor| {
+                        let a = rng.range(0.0, std::f32::consts::TAU);
+                        let preferred = hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 2.0;
+                        // Keep the nearby offset when supported; never deploy through a
+                        // wall, inside a solid body, or suspended over missing ground.
+                        [preferred, hpos].into_iter().find_map(|candidate| {
+                            let y = floor.height(candidate)?;
+                            let at = Vec3::new(candidate.x, y, candidate.z);
+                            floor.can_spawn_from(hpos, at, 0.4).then_some(at)
+                        })
+                    });
+                if let Some(pos) = at {
                     fx.cast(me, def.spell, &[], None);
-                    let a = rng.range(0.0, std::f32::consts::TAU);
-                    let pos = hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 2.0;
                     let serial = run.guid();
                     let totem = units::spawn_unit(
                         &mut commands,
@@ -9046,6 +9056,7 @@ mod milestone_tests {
                                 },
                             ));
                         }
+                        super::fire_totem_placement_tests::support_cast_fixture(&mut app);
                         app.world_mut().run_system_once(cast_abilities).unwrap();
                         let fired = enemy_count > 0 && initial_hp > 0. && cooldown == 0.;
                         if fired {
@@ -9178,6 +9189,7 @@ mod milestone_tests {
                             },
                         ));
                     }
+                    super::fire_totem_placement_tests::support_cast_fixture(&mut app);
                     app.world_mut().run_system_once(cast_abilities).unwrap();
                     let world = app.world_mut();
                     let mut deployed = world.query::<(&Transform, &Totem)>();
@@ -11322,3 +11334,7 @@ mod earthbind_tests;
 #[cfg(test)]
 #[path = "stoneclaw_tests.rs"]
 mod stoneclaw_tests;
+
+#[cfg(test)]
+#[path = "fire_totem_placement_tests.rs"]
+mod fire_totem_placement_tests;

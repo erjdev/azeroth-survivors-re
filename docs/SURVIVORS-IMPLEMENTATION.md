@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Fire-totem ground placement — 2026-10-30
+
+Searing and Magma now share the floor-support, body-space and connectivity
+requirements already used by the earth totems. Their preferred nearby position
+is grounded; invalid offsets fall back to the hero's supported feet. No valid
+position means a short retry without a spawned entity or cast effect. The
+[totem audit](audits/TOTEM-CADENCE.md) records the actual-cast regressions and
+pre-fix failures. This fixes deployment correctness, not the still-pending
+Improved Fire Totems node or attended terrain/Windows acceptance.
+
 ## Earth's Grasp — 2026-10-29
 
 Node 572 now applies both installed bonuses: +25/50% Stoneclaw health and
