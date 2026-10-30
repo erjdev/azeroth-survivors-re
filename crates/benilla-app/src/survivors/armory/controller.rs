@@ -137,10 +137,11 @@ pub(in crate::survivors) fn navigate(
         ),
         (Or<(With<Act>, With<TalentInfo>)>, With<Button>),
     >,
-    (grid_items, equipment_details, achievement_pages, codex_pages, clips, roots): (
+    (grid_items, equipment_details, achievement_pages, reward_pages, codex_pages, clips, roots): (
         Query<(), With<CollectionGridItem>>,
         Query<(&ComputedNode, &UiGlobalTransform), With<super::starter_equipment::Detail>>,
         Query<Entity, With<super::achievement_page::ScrollCategory>>,
+        Query<Entity, With<super::reward_page::ScrollCategory>>,
         Query<(Entity, &collection::CompactScroll)>,
         Query<&CalculatedClip>,
         Query<&ComputedNode, With<ArmoryRoot>>,
@@ -259,18 +260,21 @@ pub(in crate::survivors) fn navigate(
         let pressed = |button| pad.is_some_and(|pad| pad.just_pressed(button));
         let key_select = keys.just_pressed(KeyCode::Enter) || keys.just_pressed(KeyCode::Space);
         if pad.is_some() || keys.get_just_pressed().next().is_some() {
-            if matches!(armory.page, Page::Achievements | Page::Codex)
-                && [
-                    KeyCode::PageUp,
-                    KeyCode::PageDown,
-                    KeyCode::Home,
-                    KeyCode::End,
-                ]
-                .into_iter()
-                .any(|key| keys.just_pressed(key))
+            if matches!(
+                armory.page,
+                Page::Achievements | Page::Codex | Page::Rewards
+            ) && [
+                KeyCode::PageUp,
+                KeyCode::PageDown,
+                KeyCode::Home,
+                KeyCode::End,
+            ]
+            .into_iter()
+            .any(|key| keys.just_pressed(key))
             {
                 let reading_pane = match armory.page {
                     Page::Achievements => achievement_pages.single().ok(),
+                    Page::Rewards => reward_pages.single().ok(),
                     Page::Codex => codex_pages.iter().find_map(|(entity, pane)| {
                         matches!(pane, collection::CompactScroll::CodexColumn(1)).then_some(entity)
                     }),
@@ -441,7 +445,7 @@ pub(in crate::survivors) fn navigate(
 mod tests {
     #[test]
     fn reading_page_keys_reach_noninteractive_content_and_respect_overlays() {
-        for page_kind in [Page::Achievements, Page::Codex] {
+        for page_kind in [Page::Achievements, Page::Codex, Page::Rewards] {
             let mut world = World::new();
             world.init_resource::<ButtonInput<MouseButton>>();
             world.init_resource::<ButtonInput<KeyCode>>();
@@ -458,6 +462,7 @@ mod tests {
             let page = world
                 .spawn((
                     super::super::achievement_page::ScrollCategory(0),
+                    super::super::reward_page::ScrollCategory(0),
                     collection::CompactScroll::CodexColumn(1),
                     Node {
                         overflow: Overflow::scroll_y(),
@@ -503,7 +508,7 @@ mod tests {
                     .resource_mut::<super::super::super::cards::PreviewHand>()
                     .0 = guard == 2;
                 world.resource_mut::<Armory>().page =
-                    if guard == 3 { Page::Rewards } else { page_kind };
+                    if guard == 3 { Page::Door } else { page_kind };
                 world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
                 world
                     .resource_mut::<ButtonInput<KeyCode>>()

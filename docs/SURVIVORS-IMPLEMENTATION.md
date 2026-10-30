@@ -10362,3 +10362,11 @@ now verifies pointer purchases, floating Confirm/Undo, scrolling to all looks,
 and saved training/appearance versus discarded drafts after a 640×480 restart.
 This supersedes those prior automation limitations for the exercised cases only.
 Keyboard paging, Windows, controllers and broader reward acceptance remain open.
+
+### Rewards reading-key acceptance — 2026-10-30
+
+Rewards now participates in the existing reading-key input path. The real-system
+regression and native 640×480 captures verify Page Up/Down, Home/End and category
+coverage; see [keyboard evidence](audits/COMPANION-READABILITY.md#rewards-keyboard-paging--2026-10-30).
+This closes the previously reported Rewards paging gap for the exercised native
+cases. Windows and physical-controller acceptance remain open.

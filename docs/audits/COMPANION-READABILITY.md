@@ -78,3 +78,36 @@ No runtime code changed; the source gate at 697c174 remains the applicable
 validation (eight scoped packages, 31 optional-addon skips). No new gate run is
 claimed. Windows, physical controllers, keyboard paging, all purchase combinations
 and attended companion gameplay remain open. The app was quit and launcher restored.
+
+## Rewards keyboard paging — 2026-10-30
+
+The follow-up's inert End key was a missing runtime connection: the reading-key
+handler accepted Achievements and Codex only. Rewards now selects its own scroll
+surface for Page Up/Down (80% of the visible logical height) and Home/End. Positions
+are bounded to content, and settings, typing and card-preview guards still apply.
+This supersedes the earlier keyboard-paging limitation for the cases below.
+
+The real navigation-system regression now includes Rewards alongside the two
+existing reading pages. It checks all four keys, both boundaries, clamping of an
+out-of-range starting offset, overlay guards, unrelated scroll preservation and
+absence of button activation. The focused regression passed.
+
+Native 640×480 / requested 125% (with existing short-window auto-fit): End reaches
+the complete Companion appearance list; Page Up returns toward upgrades; Home
+returns to the currency/first card; Page Down advances through the middle cards.
+End also works on Perks and Tabards. Currency remained 285, Long Leash rank 1,
+Squirrel worn, and no tabard worn. Six unedited captures are retained under
+`docs/images/screenshots/2026-10-30-rewards-paging/`.
+
+![End reaches every Companion look](../images/screenshots/2026-10-30-rewards-paging/end-companions.png)
+
+![Page Up returns toward upgrades](../images/screenshots/2026-10-30-rewards-paging/page-up-companions.png)
+
+![End on Perks](../images/screenshots/2026-10-30-rewards-paging/end-perks.png)
+
+Native incremental build: 1m15s. The preview was quit and temporary launcher
+restored. Windows, physical controllers and broad reward/gameplay acceptance
+remain open.
+
+The Rewards paging source passes the eight-package scoped formatting, clippy
+and test gate with 31 optional addon-data skips. Full landing gates remain open.

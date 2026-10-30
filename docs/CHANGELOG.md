@@ -5,6 +5,16 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Rewards keyboard paging
+
+Page Up/Down and Home/End now scroll Rewards, matching Achievements and Codex.
+Native short-window checks cover Companions, Perks and Tabards; the navigation
+regression covers bounds, overlays and no accidental activation. Native build
+passed in 75s; scoped gate passed with 31 optional addon-data skips.
+[Evidence and limits](audits/COMPANION-READABILITY.md#rewards-keyboard-paging--2026-10-30).
+
+![Keyboard End reaches all Companion looks](images/screenshots/2026-10-30-rewards-paging/end-companions.png)
+
 ## 2026-10-30 — Companion purchase and restart checks
 
 Native follow-up verifies preview, undo, confirmation while scrolled, immediate

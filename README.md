@@ -17,6 +17,10 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Rewards supports Page Up/Down and Home/End across all three categories.
+
+![Keyboard paging through Rewards](docs/images/screenshots/2026-10-30-rewards-paging/page-up-companions.png)
+
 Native Companion checks verify confirmed purchases and appearance persistence,
 while unconfirmed purchases are discarded on restart.
 
