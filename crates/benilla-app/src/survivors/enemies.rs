@@ -527,9 +527,8 @@ pub(super) fn move_enemies(
                 (e, pos, super::hunter_pet::RADIUS)
             });
         let to_target = flat(target_pos - pos);
-        if pet_target.is_some() && world.line_clear(pos, target_pos) {
-            navigation.forget(ent);
-        }
+        // Seeing a pet over low scenery does not make the body route clear.
+        // Keep blocked time and detours; waypoint() handles a moving destination.
 
         // Under Fade the horde has lost the hero: it mills where it stands.
         let lost = run.mobile.vanish_t > 0.0 && !e.boss;
@@ -1516,3 +1515,7 @@ mod elite_chest_tests {
         assert!(claim_elite_chest(&mut run));
     }
 }
+
+#[cfg(test)]
+#[path = "enemy_navigation_tests.rs"]
+mod navigation_tests;

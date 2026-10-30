@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Pet pursuit around low fences
+
+Enemies keep their detour search when a Hunter pet is visible over a low fence.
+Previously, sight cleared the route every frame even though the body could not
+cross. A headless movement regression reproduces the old failure and checks a
+walk around the fence followed by contact with the pet. Broader Elwynn/Windows
+playtesting remains open. The eight-package gate passes (31 optional-addon skips).
+No UI change or new rendered screenshot is claimed.
+
 ## 2026-10-29 — Compact healing talent acceptance
 
 At 640×720 / 125% UI size, native macOS purchases and right-click refunds pass

@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Visible-pet fence routing — 2026-10-29
+
+Enemy pursuit no longer discards its blocked timer and detour whenever a Hunter
+pet is visible. Low fences can block body movement while leaving the sight ray
+clear. The [routing audit](audits/PET-PURSUIT-NAVIGATION.md) records the actual
+movement-system regression and validation. Existing bounded incremental A* is
+retained; this is not an IDA* or navmesh implementation. The broader Elwynn,
+crowded-wave and Windows attended acceptance remains open.
+
 ## Shaman weapon parry — 2026-10-29
 
 Node 616 now uses actual contact avoidance with a worn melee weapon, replacing
