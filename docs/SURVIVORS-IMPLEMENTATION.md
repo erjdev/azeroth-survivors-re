@@ -10318,3 +10318,13 @@ world acceptance. Evidence: [wide](images/screenshots/2026-10-30-collection-sour
 [compact Poor](images/screenshots/2026-10-30-collection-sources/compact-poor.png),
 [compact Raid Epic](images/screenshots/2026-10-30-collection-sources/compact-raid.png),
 and [readiness](images/screenshots/2026-10-30-collection-sources/naxxramas-readiness.png).
+
+### Collection attachment source coverage — 2026-10-30
+
+The collection command now parses head/shoulder/held models and decodes selected
+materials as well as icons and body overlays. All eight race/two-body helmet
+suffixes are checked. The checkout passes 1,055 attachment variants, 869 unique
+models and 221 textures; shared meshes retain per-display skin validation.
+[Audit and limitations](audits/COLLECTION-BODY-ART.md#attachment-asset-coverage--2026-10-30).
+This supplies asset availability evidence for phases 2–4; native attachment fit,
+combined outfits, animations, particles and Windows remain acceptance work.

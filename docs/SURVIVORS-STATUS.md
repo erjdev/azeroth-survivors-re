@@ -61,6 +61,9 @@ The [body-art audit and native follow-up](audits/COLLECTION-BODY-ART.md) now pas
 646/646 variants using 746 armor textures. A narrow Survivors fallback repairs
 Virtuous Robe’s absent male lower sleeve; Human male/female previews are verified.
 This does not establish the full race/platform/equipment appearance matrix.
+Attachment source assets now also pass 1,055 variants across 869 models and 221
+textures, including all race/body helmet suffixes. This checks geometry and
+material availability; rendered attachment alignment remains unverified.
 
 These results do not imply every other zone is ready. ADT checks cannot prove WMO
 interior support, traversability or encounters. All nine classes report zero

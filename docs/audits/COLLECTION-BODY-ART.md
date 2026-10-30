@@ -102,3 +102,34 @@ linkage. Removing obsolete quarantined artifacts and rebuilding only the affecte
 `benilla-app` test incremental cache resolved both. Shared dependency caches and
 the 41-second native play build were retained. No source changes were needed for
 that environment repair.
+
+## Attachment asset coverage — 2026-10-30
+
+The same `--collection` command now also checks head, shoulder and held mesh
+assets for every ordinary/supplemental collection identity and alternative weapon.
+It mirrors `entities/equipment/mod.rs::ensure_item_model`: independent model and
+skin basenames; both authored shoulder columns; Weapon/Shield folders; and the
+16 helmet suffixes (`Hu`, `Or`, `Dw`, `Ni`, `Sc`, `Ta`, `Gn`, `Tr`, each M/F).
+An absent model column is deliberately model-less, including one-sided shoulders.
+Clothing remains covered by the separate body-overlay audit.
+
+The checkout passes **1,055 display/inventory attachment variants**, **869 unique
+parsed models with render triangles**, and **221 selected decoded textures**.
+The model loader supplies embedded texture references; type-2 object batches
+require their display-selected skin. Reusing one model never skips another
+item's skin. Unused display skin names do not establish a rendered dependency.
+Missing geometry, required skins, unreadable files or invalid textures fail the
+collection command with item/display context. No game data is modified or copied.
+
+Three regressions cover race/body suffixes, independent shoulder columns and
+skin names, inventory directories, legitimate model-less/clothing cases, empty
+geometry, missing required skins and different skins on a shared model. All 19
+audit tests pass. The retained native build completes in 3.13 seconds.
+
+This closes source-asset coverage for these attachments, **not** attachment
+alignment, combined outfits, particles, animation, native race/body previews or
+Windows acceptance. Runtime/UI rendering is unchanged; no new screenshot is
+claimed. The native screenshots above remain evidence only for their shown cases.
+
+Final verification: the eight-package formatting/Clippy/test gate passes with
+31 optional-addon corpus skips. The collection audit has no reported gaps.

@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Collection attachment asset coverage
+
+Extended collection checks to helmets for every race/body, both shoulders and
+held gear: 1,055 variants, 869 models and 221 textures pass. All 19 audit tests
+pass; the eight-package scoped gate is green (31 optional-addon skips).
+[Coverage and limits](audits/COLLECTION-BODY-ART.md#attachment-asset-coverage--2026-10-30).
+Runtime appearance is unchanged; rendered alignment and animation remain open.
+
 ## 2026-10-30 — Collection source names
 
 Poor and Raid Epic rows now name their drop zones instead of omitting them or

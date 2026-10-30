@@ -11,11 +11,13 @@ fn artwork(
     displays: &ItemDisplayCatalog,
     checked: &mut HashSet<u32>,
     body: &mut super::collection_body::BodyArt,
+    attachments: &mut super::collection_attachments::AttachmentArt,
     visual: gear_visuals::GearVisual,
 ) -> Result<()> {
     let display = displays
         .get(visual.display_id)
         .context("missing display row")?;
+    attachments.check(chain, visual.display_id, visual.inventory_type, display)?;
     if checked.contains(&visual.display_id) {
         return body.check(chain, visual.display_id, visual.inventory_type, display);
     }
@@ -36,6 +38,7 @@ pub fn report(chain: &mut Chain) -> Result<()> {
     let displays = benilla_formats::load_item_display_catalog(chain)?;
     let mut checked = HashSet::new();
     let mut body = super::collection_body::BodyArt::default();
+    let mut attachments = super::collection_attachments::AttachmentArt::default();
     let mut gaps = Vec::new();
     for (class, definition) in data::CLASSES.iter().enumerate() {
         let mut verified = 0;
@@ -45,14 +48,20 @@ pub fn report(chain: &mut Chain) -> Result<()> {
                     let name = campaign::piece_name(class, slot, band).context("missing name")?;
                     let visual = gear_visuals::piece(class, slot, band)
                         .context("missing visual identity")?;
-                    artwork(chain, &displays, &mut checked, &mut body, visual).with_context(
-                        || {
-                            format!(
-                                "{name}, item {}, display {}",
-                                visual.item_id, visual.display_id
-                            )
-                        },
-                    )?;
+                    artwork(
+                        chain,
+                        &displays,
+                        &mut checked,
+                        &mut body,
+                        &mut attachments,
+                        visual,
+                    )
+                    .with_context(|| {
+                        format!(
+                            "{name}, item {}, display {}",
+                            visual.item_id, visual.display_id
+                        )
+                    })?;
                     if !campaign::DROPS.iter().any(|row| {
                         row.band == band
                             && row.slot == slot
@@ -79,7 +88,14 @@ pub fn report(chain: &mut Chain) -> Result<()> {
                 let result = supplemental_gear::piece(class, slot, tier)
                     .context("missing supplemental identity")
                     .and_then(|piece| {
-                        artwork(chain, &displays, &mut checked, &mut body, piece.visual)
+                        artwork(
+                            chain,
+                            &displays,
+                            &mut checked,
+                            &mut body,
+                            &mut attachments,
+                            piece.visual,
+                        )
                     });
                 match result {
                     Ok(()) => supplemental += 1,
@@ -90,16 +106,17 @@ pub fn report(chain: &mut Chain) -> Result<()> {
                 }
             }
         }
-        println!("COLLECTION: {} · {verified}/54 named identities with decoded icons/body overlays and scheduled sources · {supplemental}/17 supplemental identities with decoded icons/body overlays", definition.name);
+        println!("COLLECTION: {} · {verified}/54 named identities with decoded icons/body overlays/attachment assets and scheduled sources · {supplemental}/17 supplemental identities with decoded icons/body overlays/attachment assets", definition.name);
     }
     for weapon in (0..data::CLASSES.len()).flat_map(survivors_core::weapon_alternatives::choices) {
-        match artwork(chain, &displays, &mut checked, &mut body, weapon.visual) {
+        match artwork(chain, &displays, &mut checked, &mut body, &mut attachments, weapon.visual) {
             Ok(()) => println!("WEAPON ALTERNATIVE: {} · item {} · display {} · icon decoded; gameplay acquisition and model rendering require separate acceptance", weapon.name, weapon.visual.item_id, weapon.visual.display_id),
             Err(error) => gaps.push(format!("{} alternative: {error:#}", weapon.name)),
         }
     }
     println!("{} unique display icons decoded. Supplemental checks establish identity/art only; Raid Epic kill settlement is verified separately; zone access remains gated by world readiness.", checked.len());
-    println!("BODY ART: {} display/inventory/sex variants checked through the shared isolated-piece compositor plan; {} unique selected body textures decoded. Empty plans need no body overlay. Head/shoulder/held meshes and combined-layer appearance require separate validation.", body.variant_count(), body.texture_count());
+    attachments.report();
+    println!("BODY ART: {} display/inventory/sex variants checked through the shared isolated-piece compositor plan; {} unique selected body textures decoded. Empty plans need no body overlay. Combined-layer appearance requires separate validation.", body.variant_count(), body.texture_count());
     println!("Scope excludes equipped model rendering, stat balance, zone unlocks, traversal and live acquisition. Item IDs/names use the repository's pinned template mappings; the MPQ verifies display rows and icon data, not server item templates.");
     if !gaps.is_empty() {
         bail!("{} collection gaps:\n{}", gaps.len(), gaps.join("\n"));
