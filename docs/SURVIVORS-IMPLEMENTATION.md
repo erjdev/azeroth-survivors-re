@@ -10337,3 +10337,12 @@ hide/restore and a 640×720 saved-look restart. Eight unedited captures are save
 and representative images embedded in CHANGELOG/README. This verifies the shown
 assembly/containment and persistence cases; other outfits, races, animation,
 Windows and physical controllers remain open. No runtime change or combat claim.
+
+### Companion obstacle fetching — 2026-10-30
+
+[Runtime acceptance](audits/COMPANION-FETCHING.md) adds collision-checked local
+routes to fetch and return trips, ground-targeted hovering pickups and
+three-dimensional/line-of-sight collection. The real-system fence regression
+requires a detour, single bonus settlement and return. Phase 6's fetch behavior
+has stronger headless evidence; attended terrain, Windows and broad multi-storey
+navigation remain open. No new UI or rendered evidence is claimed.

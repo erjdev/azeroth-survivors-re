@@ -7,7 +7,9 @@ use super::account::PetRanks;
 use super::enemies::{self, Gem, GemKind};
 use super::hero::Hero;
 use super::units::{self, flat, yaw_toward};
-use super::Floor;
+use super::{navigation::Navigation, Floor, Selection};
+
+const BODY_RADIUS: f32 = 0.35;
 use super::{Phase, Run};
 use crate::creature_anim::{move_flags, MovementState};
 
@@ -237,6 +239,8 @@ pub(super) fn herd(
     mut stash: ResMut<super::stash::Stash>,
     mut next: ResMut<NextState<Phase>>,
     world: Floor,
+    selection: Res<Selection>,
+    mut navigation: Local<Navigation>,
     hero: Query<&Transform, (With<Hero>, Without<Fetcher>)>,
     mut pets: Query<(Entity, &mut Transform, &mut MovementState, &mut Fetcher), Without<Hero>>,
     mut gems: PickupQuery<'_, '_>,
@@ -263,6 +267,9 @@ pub(super) fn herd(
         if *present {
             continue;
         }
+        if !world.can_spawn(hero_tf.translation, BODY_RADIUS) {
+            continue;
+        }
         spawn_fetcher(
             &mut commands,
             &mut run,
@@ -275,7 +282,15 @@ pub(super) fn herd(
     let dt = time.delta_secs();
     let magnet = run.stats().magnet;
     let hero_pos = hero_tf.translation;
-    for (_, mut tf, mut mv, mut pet) in &mut pets {
+    let bodies: Vec<_> = pets
+        .iter()
+        .map(|(entity, tf, ..)| (entity, tf.translation, BODY_RADIUS))
+        .collect();
+    navigation.advance(dt, selection.map, &bodies, |from, to, radius| {
+        let end = world.travel(from, to, radius);
+        (flat(end - to).length() < 0.1 && world.can_spawn(end, radius)).then_some(end)
+    });
+    for (entity, mut tf, mut mv, mut pet) in &mut pets {
         if usize::from(pet.slot) >= want {
             continue;
         }
@@ -288,6 +303,8 @@ pub(super) fn herd(
         if pet.rest > 0.0 {
             pet.rest = (pet.rest - dt).max(0.0);
             step_toward(
+                entity,
+                &mut navigation,
                 &mut tf,
                 &mut mv,
                 follow_at(hero_pos, pet.slot),
@@ -300,6 +317,8 @@ pub(super) fn herd(
         let rows = gem_rows(&gems, hero_pos, tf.translation);
         let Some(pick) = choose(&rows, &plan) else {
             step_toward(
+                entity,
+                &mut navigation,
                 &mut tf,
                 &mut mv,
                 follow_at(hero_pos, pet.slot),
@@ -312,17 +331,21 @@ pub(super) fn herd(
         let Some(gem_pos) = rows.iter().find(|row| row.0 == pick).map(|row| row.4) else {
             continue;
         };
-        if flat(gem_pos - tf.translation).length() <= plan.grasp {
+        if gem_pos.distance(tf.translation) <= plan.grasp
+            && world.line_clear(tf.translation, gem_pos)
+        {
             let mut taken = Vec::new();
             for (e, gtf, g) in &gems {
                 if g.pulled {
                     continue;
                 }
-                if flat(gtf.translation - tf.translation).length() > plan.grasp {
+                if gtf.translation.distance(tf.translation) > plan.grasp
+                    || !world.line_clear(tf.translation, gtf.translation)
+                {
                     continue;
                 }
                 let kind = drop_of(g.kind);
-                let from_hero = flat(gtf.translation - hero_pos).length();
+                let from_hero = gtf.translation.distance(hero_pos);
                 if in_reach(kind, from_hero, &plan) {
                     taken.push((e, g.kind));
                 }
@@ -335,11 +358,21 @@ pub(super) fn herd(
                 enemies::bank_gem(&mut run, &mut stash, &mut next, kind, plan.gold_bonus);
                 commands.entity(e).despawn();
             }
+            navigation.forget(entity);
             pet.rest = plan.rest;
             mv.speed = 0.0;
             mv.flags = 0;
         } else {
-            step_toward(&mut tf, &mut mv, gem_pos, plan.speed, dt, &world);
+            step_toward(
+                entity,
+                &mut navigation,
+                &mut tf,
+                &mut mv,
+                gem_pos,
+                plan.speed,
+                dt,
+                &world,
+            );
         }
     }
 }
@@ -356,8 +389,8 @@ fn gem_rows(
             (
                 i,
                 drop_of(g.kind),
-                flat(tf.translation - hero).length(),
-                flat(tf.translation - pet).length(),
+                tf.translation.distance(hero),
+                tf.translation.distance(pet),
                 tf.translation,
             )
         })
@@ -377,7 +410,10 @@ fn follow_at(hero: Vec3, slot: u8) -> Vec3 {
     hero + Vec3::new(side, 0.0, 1.6)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn step_toward(
+    entity: Entity,
+    navigation: &mut Navigation,
     tf: &mut Transform,
     mv: &mut MovementState,
     goal: Vec3,
@@ -385,26 +421,40 @@ fn step_toward(
     dt: f32,
     world: &Floor,
 ) {
-    let mut pos = tf.translation;
-    let delta = flat(goal - pos);
-    let dist = delta.length();
-    if dist <= 0.8 {
-        mv.speed = 0.0;
-        mv.flags = 0;
+    mv.speed = 0.0;
+    mv.flags = 0;
+    let at = tf.translation;
+    // Pickups hover half a yard above their support; route to feet, not art height.
+    let goal = world
+        .height(goal)
+        .map_or(goal, |y| Vec3::new(goal.x, y, goal.z));
+    if at.distance(goal) <= 0.8 && world.line_clear(at, goal) {
+        navigation.forget(entity);
         return;
     }
-    let step = (speed * dt).min(dist);
-    pos = world.slide(pos, pos + delta / dist * step, 0.35);
-    if let Some(h) = world.height(pos) {
-        pos.y = h;
-    }
-    tf.translation = pos;
-    tf.rotation = tf.rotation.slerp(
-        Quat::from_rotation_y(yaw_toward(delta)),
-        (dt * 12.0).min(1.0),
+    let waypoint = navigation.waypoint(entity, at, goal).unwrap_or(goal);
+    let delta = flat(waypoint - at);
+    let step = (speed * dt).min(delta.length());
+    let desired = at + delta.normalize_or_zero() * step;
+    let end = world.travel(at, desired, BODY_RADIUS);
+    navigation.observe(
+        entity,
+        at,
+        goal,
+        BODY_RADIUS,
+        flat(end - desired).length() > 0.05,
+        dt,
     );
-    mv.speed = speed;
-    mv.flags = move_flags::FORWARD;
+    tf.translation = end;
+    let traveled = flat(end - at);
+    if traveled.length_squared() > 0.0001 {
+        tf.rotation = tf.rotation.slerp(
+            Quat::from_rotation_y(yaw_toward(traveled)),
+            (dt * 12.0).min(1.0),
+        );
+        mv.speed = speed;
+        mv.flags = move_flags::FORWARD;
+    }
 }
 
 fn spawn_fetcher(commands: &mut Commands, run: &mut Run, pos: Vec3, slot: u8, ranks: PetRanks) {
@@ -434,6 +484,133 @@ mod tests {
     use super::*;
 
     #[test]
+    fn fetcher_collection_requires_local_distance_and_clear_sight() {
+        use avian3d::prelude::{Collider, RigidBody};
+        use bevy::ecs::system::RunSystemOnce;
+        for (wall, height, collected) in
+            [(false, 0.5, true), (true, 0.5, false), (false, 4.5, false)]
+        {
+            let mut app = super::super::floor::tests::fixture(&[0.]);
+            app.init_resource::<Selection>();
+            let mut account = super::super::account::empty();
+            account.pets.owned = 1;
+            app.insert_resource(account);
+            app.insert_resource(Run::default());
+            app.insert_resource(super::super::stash::Stash::blank());
+            app.init_resource::<NextState<Phase>>();
+            app.world_mut()
+                .spawn((Hero { vy: 0., air: 0. }, Transform::default()));
+            app.world_mut().spawn((
+                Fetcher { slot: 0, rest: 0. },
+                Transform::default(),
+                MovementState::default(),
+            ));
+            let coin = app
+                .world_mut()
+                .spawn((
+                    Gem::new(GemKind::Gold(10)),
+                    Transform::from_xyz(1., height, 0.),
+                ))
+                .id();
+            if wall {
+                app.world_mut().spawn((
+                    RigidBody::Static,
+                    Collider::cuboid(0.1, 4., 6.),
+                    Transform::from_xyz(0.5, 2., 0.),
+                ));
+            }
+            app.update();
+            app.world_mut().run_system_once(herd).unwrap();
+            assert_eq!(
+                app.world().get_entity(coin).is_err(),
+                collected,
+                "wall={wall}, height={height}"
+            );
+            assert_eq!(
+                app.world().resource::<Run>().gold_found,
+                if collected { 10 } else { 0 }
+            );
+        }
+    }
+
+    #[test]
+    fn fetcher_routes_around_fence_and_returns_after_banking_once() {
+        use avian3d::prelude::{Collider, RigidBody};
+        use bevy::ecs::system::RunSystemOnce;
+        let mut app = super::super::floor::tests::fixture(&[0.]);
+        app.init_resource::<Selection>();
+        let mut account = super::super::account::empty();
+        account.pets.owned = 1;
+        account.pets.instinct[0] = 1;
+        app.insert_resource(account);
+        app.insert_resource(Run::default());
+        app.insert_resource(super::super::stash::Stash::blank());
+        app.init_resource::<NextState<Phase>>();
+        let start = Vec3::X * -4.;
+        let goal = Vec3::X * 4.;
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::cuboid(0.4, 0.8, 6.),
+            Transform::from_xyz(0., 0.4, 0.),
+        ));
+        app.world_mut()
+            .spawn((Hero { vy: 0., air: 0. }, Transform::from_translation(start)));
+        let pet = app
+            .world_mut()
+            .spawn((
+                Fetcher { slot: 0, rest: 0. },
+                Transform::from_translation(start),
+                MovementState::default(),
+            ))
+            .id();
+        let coin = app
+            .world_mut()
+            .spawn((
+                Gem::new(GemKind::Gold(10)),
+                Transform::from_translation(goal + Vec3::Y * 0.5),
+            ))
+            .id();
+        app.update();
+        app.world_mut()
+            .run_system_once(move |floor: Floor| {
+                assert!(
+                    floor.line_clear(start, goal),
+                    "sight alone does not prove body clearance"
+                );
+                assert!(floor.travel(start, goal, BODY_RADIUS).distance(goal) > 1.);
+            })
+            .unwrap();
+        let mut time = Time::<()>::default();
+        time.advance_by(std::time::Duration::from_secs_f32(0.05));
+        app.insert_resource(time);
+        let system = app.world_mut().register_system(herd);
+        let mut detoured = false;
+        let mut banked = false;
+        let mut returned = false;
+        for _ in 0..1000 {
+            app.world_mut().run_system(system).unwrap();
+            let at = app.world().get::<Transform>(pet).unwrap().translation;
+            assert!(at.y.abs() < 0.05, "never climb the fence: {at:?}");
+            detoured |= at.z.abs() > 3.;
+            if app.world().get_entity(coin).is_err() {
+                assert!(detoured, "must walk around before banking");
+                banked = true;
+                assert_eq!(app.world().resource::<Run>().gold_found, 11);
+                if at.distance(follow_at(start, 0)) <= 0.9 {
+                    returned = true;
+                    break;
+                }
+            }
+        }
+        assert!(banked, "fetcher must reach the coin beyond the fence");
+        assert!(returned, "return trip must also route around the fence");
+        assert_eq!(
+            app.world().resource::<super::super::stash::Stash>().gold,
+            11
+        );
+    }
+
+    #[test]
     fn two_companions_bank_each_shared_pickup_once_before_deferred_despawn() {
         use bevy::ecs::system::RunSystemOnce;
         for slots in [[0, 1], [1, 0]] {
@@ -442,6 +619,7 @@ mod tests {
             account.pets.owned = 2;
             account.pets.instinct = [1, 1];
             app.insert_resource(account);
+            app.init_resource::<Selection>();
             app.insert_resource(Run::default());
             app.insert_resource(super::super::stash::Stash::blank());
             app.init_resource::<NextState<Phase>>();
@@ -497,6 +675,7 @@ mod tests {
                 account.pets.owned = 2;
                 account.pets.instinct = [1, 1];
                 app.insert_resource(account);
+                app.init_resource::<Selection>();
                 let mut run = Run::default();
                 if !alive {
                     run.hp = 0.0;

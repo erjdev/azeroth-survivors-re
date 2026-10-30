@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Companion fetch routing
+
+Companions now route around obstacles while fetching and returning. Pickups
+require local three-dimensional reach and clear sight; blocked pets stop their
+walk animation. Gold bonuses and exactly-once collection remain intact.
+[Runtime regression and limits](audits/COMPANION-FETCHING.md).
+Seven companion tests, the scoped gate (31 optional addon skips), and the native
+build passed. Headless logic checkpoint; no UI change or new screenshot.
+
 ## 2026-10-30 — Plate appearance checks
 
 Native Gnome/Tauren male and female previews verify visible Dreadnaught equipment.
