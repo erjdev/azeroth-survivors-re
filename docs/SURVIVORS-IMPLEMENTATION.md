@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Achievement reading layout — 2026-10-29
+
+Achievement cards and summary progress use one full-width column on narrow
+content panels and two equal columns on wider panels, preserving incomplete-row
+alignment from the intention. Native summary checks cover 640×720 / 125% and
+1280×720; short-window Feats checks cover 640×480 and both pending companions.
+Page Down/End remain usable. Screenshots are inline in CHANGELOG and the README
+gallery; [evidence and presets](audits/ACHIEVEMENT-READABILITY.md) record scope.
+This does not close Windows or the full interface acceptance matrix.
+
 ## Stoneclaw lifecycle foundation — 2026-10-29
 
 Shared rules now cover configured health, destructible lifetime, pause, expiry

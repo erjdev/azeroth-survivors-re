@@ -261,14 +261,47 @@ fn meter(ui: &mut ChildSpawnerCommands, fraction: f32) {
     });
 }
 
+#[derive(Component)]
+pub(in crate::survivors) struct CardGrid;
+
+/// Keep the reference's two columns only when each has room for its icon,
+/// points badge and readable text. Measure the content pane, including UI scale.
+pub(in crate::survivors) fn layout_grids(
+    mut grids: Query<(&ComputedNode, &mut Node), With<CardGrid>>,
+) {
+    for (computed, mut node) in &mut grids {
+        let width = computed.size().x * computed.inverse_scale_factor();
+        if width <= 0.0 {
+            continue;
+        }
+        let columns = if width < 568.0 { 1 } else { 2 };
+        let tracks = vec![RepeatedGridTrack::minmax(
+            columns,
+            MinTrackSizingFunction::Px(0.0),
+            MaxTrackSizingFunction::Fraction(1.0),
+        )];
+        if node.grid_template_columns != tracks {
+            node.grid_template_columns = tracks;
+        }
+    }
+}
+
 fn grid(ui: &mut ChildSpawnerCommands, body: impl FnOnce(&mut ChildSpawnerCommands)) {
-    ui.spawn(Node {
-        width: Val::Percent(100.0),
-        flex_wrap: FlexWrap::Wrap,
-        column_gap: Val::Px(8.0),
-        row_gap: Val::Px(8.0),
-        ..default()
-    })
+    ui.spawn((
+        CardGrid,
+        Node {
+            width: Val::Percent(100.0),
+            display: Display::Grid,
+            grid_template_columns: vec![RepeatedGridTrack::minmax(
+                1,
+                MinTrackSizingFunction::Px(0.0),
+                MaxTrackSizingFunction::Fraction(1.0),
+            )],
+            column_gap: Val::Px(8.0),
+            row_gap: Val::Px(8.0),
+            ..default()
+        },
+    ))
     .with_children(body);
 }
 
@@ -502,9 +535,7 @@ fn card(
 ) {
     ui.spawn((
         Node {
-            flex_basis: Val::Percent(48.0),
-            flex_grow: 0.0,
-            min_width: Val::Px(200.0),
+            min_width: Val::Px(0.0),
             padding: UiRect::all(Val::Px(9.0)),
             column_gap: Val::Px(8.0),
             border: UiRect::all(Val::Px(1.0)),
@@ -655,9 +686,7 @@ fn summary(
     grid(body, |grid| {
         for (i, name) in NAMES.iter().enumerate().skip(1) {
             grid.spawn(Node {
-                flex_basis: Val::Percent(48.0),
-                flex_grow: 0.0,
-                min_width: Val::Px(200.0),
+                min_width: Val::Px(0.0),
                 column_gap: Val::Px(8.0),
                 ..default()
             })

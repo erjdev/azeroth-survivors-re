@@ -5,6 +5,21 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Readable achievement cards across window sizes
+
+Narrow achievement panels now use full-width cards and progress rows, giving
+names, descriptions and earned dates more room. Wide panels retain the reference's
+two equal columns, including incomplete rows. Native checks pass at 640×720 / 125%,
+1280×720, and 640×480 with the existing short-window fit. Page Down/End reach the
+summary's bottom and both pending companion achievements. Build: 1m57s.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
+![Compact readable achievement summary](images/screenshots/2026-10-29-achievement-reading/compact.png)
+
+![Wide summary preserves two equal columns](images/screenshots/2026-10-29-achievement-reading/wide.png)
+
+![Short-window placeholder achievements remain readable](images/screenshots/2026-10-29-achievement-reading/short-feats.png)
+
 ## 2026-10-29 — Stoneclaw lifecycle foundation
 
 Added shared health, damage and 15-second lifetime rules, including pause,

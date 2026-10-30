@@ -201,7 +201,7 @@ reachable, including selection of the final hero and lower management controls.
     <td width="50%"><strong>Talents</strong><br><img src="docs/images/screenshots/2026-10-29-greater-heal-saves/restarted.png" alt="Improved Healing rank and spent points retained after restart"><br>2026-10-29 · Taller rows, proportional artwork; purchase, separate specs, restart and refund verified on macOS.<br><a href="docs/images/screenshots/2026-10-29-talent-row-spacing/compact-bottom.png">640×720</a> · <a href="docs/CHANGELOG.md">Milestone screenshots</a></td>
   </tr>
   <tr>
-    <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-26-achievement-art/summary-1280.png" alt="Achievements"><br>2026-10-26 · Categories, progress and earned dates.</td>
+    <td width="50%"><strong>Achievements</strong><br><img src="docs/images/screenshots/2026-10-29-achievement-reading/wide.png" alt="Achievements"><br>2026-10-29 · Two columns on wide panels; full-width cards and progress on narrow panels. Compact keyboard paging verified.</td>
     <td width="50%"><strong>Perks</strong><br><img src="docs/images/screenshots/2026-10-26-reward-focus/two-upgrades-1280.png" alt="Perks"><br>2026-10-26 · Staged upgrades and retained keyboard focus.</td>
   </tr>
   <tr>

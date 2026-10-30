@@ -3,7 +3,8 @@
 
 mod achievement_page;
 pub(super) use achievement_page::{
-    layout as layout_achievements, remember_scroll as remember_achievement_scroll,
+    layout as layout_achievements, layout_grids as layout_achievement_grids,
+    remember_scroll as remember_achievement_scroll,
 };
 mod character;
 mod cloak;
