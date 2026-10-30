@@ -279,6 +279,15 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 duration
             );
         }
+        Kind::Totem if def.key == "stoneclaw_totem" => {
+            prose!(
+                "Drops a 50-health totem for ",
+                duration,
+                ". Forces visible ordinary enemies within ",
+                radius,
+                " to attack it until it dies or expires. Bosses are immune. Replaces your previous Stoneclaw Totem"
+            );
+        }
         Kind::Totem if def.key == "earthbind_totem" => {
             prose!(
                 "Drops a 5-health totem for ",

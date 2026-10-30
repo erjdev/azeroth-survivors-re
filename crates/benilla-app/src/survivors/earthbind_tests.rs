@@ -5,7 +5,7 @@ use avian3d::prelude::*;
 use benilla_world::collision::MoverTraceExclusions;
 use bevy::ecs::system::RunSystemOnce;
 
-fn setup(supported: bool) -> (App, Entity, Entity) {
+pub(super) fn setup(supported: bool) -> (App, Entity, Entity) {
     let (mut app, target, _) = fixture("earthbind_totem", 1000.0);
     app.add_plugins((
         MinimalPlugins,

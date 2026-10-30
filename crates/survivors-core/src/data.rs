@@ -918,6 +918,16 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "stoneclaw_totem",
+        5730,
+        Totem {
+            cooldown: 30.0,
+            radius: 8.0,
+            duration: 15.0,
+            totem: (4588, 5729)
+        }
+    ),
+    ability!(
         "searing_totem",
         3599,
         Totem {
@@ -1449,6 +1459,7 @@ pub static CLASSES: &[ClassDef] = &[
             "flame_shock",
             "frost_shock",
             "earthbind_totem",
+            "stoneclaw_totem",
             "searing_totem",
             "magma_totem",
             "lightning_shield",

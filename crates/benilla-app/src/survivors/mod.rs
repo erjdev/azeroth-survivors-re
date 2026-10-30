@@ -51,6 +51,7 @@ mod perception;
 mod renown;
 mod spawn;
 mod stash;
+mod stoneclaw;
 mod talent_validation;
 #[cfg(feature = "survivors-text")]
 pub(crate) mod text_placement;
@@ -196,6 +197,7 @@ impl Plugin for SurvivorsPlugin {
                     marking::prune,
                     abilities::cast_abilities,
                     earthbind::tick,
+                    stoneclaw::tick,
                     abilities::tick_areas,
                     hunter_pet::fight,
                     abilities::apply_hits,

@@ -1,0 +1,5 @@
+page=cards
+width=640
+height=720
+scale=1.25
+abilities=stoneclaw_totem:0,stoneclaw_totem:1,stoneclaw_totem:5

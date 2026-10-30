@@ -282,7 +282,7 @@ impl Params {
             },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
-            duration: if o.def.key == "earthbind_totem"
+            duration: if matches!(o.def.key, "earthbind_totem" | "stoneclaw_totem")
                 || matches!(
                     o.def.kind,
                     Kind::Channel
@@ -503,6 +503,7 @@ pub(super) fn cast_abilities(
     channel_world: Option<super::Floor>,
     mut hits: MessageWriter<Hit>,
     earthbinds: Query<Entity, With<super::earthbind::Earthbind>>,
+    stoneclaws: Query<Entity, With<super::stoneclaw::Stoneclaw>>,
 ) {
     let dt = time.delta_secs();
     if !run.alive() || dt <= 0.0 {
@@ -1046,6 +1047,23 @@ pub(super) fn cast_abilities(
                             hpos,
                             p.radius,
                             earthbinds.iter(),
+                        )
+                    });
+                if fired {
+                    fx.cast(me, def.spell, &[], None);
+                }
+                fired
+            }
+            Kind::Totem if def.key == "stoneclaw_totem" => {
+                let fired = foes.first().is_some_and(|foe| foe.dist <= p.radius + 6.0)
+                    && channel_world.as_ref().is_some_and(|floor| {
+                        super::stoneclaw::deploy(
+                            &mut commands,
+                            &mut run,
+                            floor,
+                            hpos,
+                            p.radius,
+                            stoneclaws.iter(),
                         )
                     });
                 if fired {
@@ -11293,3 +11311,7 @@ mod totem_timing_tests;
 #[cfg(test)]
 #[path = "earthbind_tests.rs"]
 mod earthbind_tests;
+
+#[cfg(test)]
+#[path = "stoneclaw_tests.rs"]
+mod stoneclaw_tests;

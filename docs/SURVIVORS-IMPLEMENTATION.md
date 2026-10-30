@@ -15,13 +15,17 @@ Page Down/End remain usable. Screenshots are inline in CHANGELOG and the README
 gallery; [evidence and presets](audits/ACHIEVEMENT-READABILITY.md) record scope.
 This does not close Windows or the full interface acceptance matrix.
 
-## Stoneclaw lifecycle foundation — 2026-10-29
+## Stoneclaw forced targeting — 2026-10-29
 
-Shared rules now cover configured health, destructible lifetime, pause, expiry
-and fresh replacement. Four focused regressions pass. The targeting-policy
-question is pending; Stoneclaw remains unavailable and Earth's Grasp remains
-incomplete. Runtime integration, scaling and native acceptance are still required;
-see the [earth-totem audit](audits/EARTH-TOTEMS.md). No UI change is claimed.
+Confirmed: Stoneclaw forces ordinary enemies to target it while it lives; bosses
+are immune. Runtime integration makes it a Shaman offer with 50 health, 15-second
+lifetime and 30-second base recovery. Visible enemies entering its eight-yard
+base radius remain captured until destruction, expiry or replacement, even if
+later outside the radius or out of sight. Stoneclaw takes priority over pet
+attention and keeps enemies engaged when the hero vanishes. Existing navigation
+still handles obstacles. Ranks improve radius/recovery; health/lifetime stay fixed.
+Earth's Grasp scaling and native combat acceptance remain separate unfinished work.
+See the [earth-totem audit](audits/EARTH-TOTEMS.md).
 
 ## Earthbind model verification — 2026-10-29
 

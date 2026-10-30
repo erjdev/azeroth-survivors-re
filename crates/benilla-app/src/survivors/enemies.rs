@@ -392,6 +392,7 @@ pub(super) fn move_enemies(
             Without<Enemy>,
             Without<Hero>,
             Without<super::earthbind::Earthbind>,
+            Without<super::stoneclaw::Stoneclaw>,
         ),
     >,
     mut earthbinds: Query<
@@ -405,6 +406,21 @@ pub(super) fn move_enemies(
             Without<Enemy>,
             Without<Hero>,
             Without<super::hunter_pet::HunterPet>,
+            Without<super::stoneclaw::Stoneclaw>,
+        ),
+    >,
+    mut stoneclaws: Query<
+        (
+            Entity,
+            &Transform,
+            &mut super::stoneclaw::Stoneclaw,
+            &mut ObjectStore,
+        ),
+        (
+            Without<Enemy>,
+            Without<Hero>,
+            Without<super::hunter_pet::HunterPet>,
+            Without<super::earthbind::Earthbind>,
         ),
     >,
     mut fx: Fx,
@@ -513,6 +529,28 @@ pub(super) fn move_enemies(
             continue;
         }
 
+        // Acquisition needs visibility; captured foes stay forced until this
+        // deployment ends. Stoneclaw takes precedence over pet attention.
+        let stoneclaw_target = if e.boss {
+            None
+        } else {
+            stoneclaws
+                .iter_mut()
+                .find_map(|(entity, tf, mut totem, _)| {
+                    if !totem.life.alive(run.elapsed) {
+                        return None;
+                    }
+                    if totem.captured.contains(&ent)
+                        || (tf.translation.distance_squared(pos) <= totem.radius * totem.radius
+                            && world.line_clear(pos, tf.translation))
+                    {
+                        totem.captured.insert(ent);
+                        Some((entity, tf.translation))
+                    } else {
+                        None
+                    }
+                })
+        };
         // Ordinary foes engage a closer living wolf within four yards and line of sight.
         // Bosses keep pressure on the hero; there is no global pet threat table.
         let forced_pet = taunt
@@ -520,7 +558,7 @@ pub(super) fn move_enemies(
             .and_then(|taunt| pets.get(taunt.pet).ok())
             .filter(|(_, _, pet, _)| pet.vitality.hp > 0.0)
             .map(|(entity, tf, _, _)| (entity, tf.translation));
-        let pet_target = if e.boss {
+        let pet_target = if e.boss || stoneclaw_target.is_some() {
             None
         } else if forced_pet.is_some() {
             forced_pet
@@ -541,7 +579,7 @@ pub(super) fn move_enemies(
         };
         // Nearby destructible utility totems can draw ordinary foes; pet attention wins.
         // Bosses retain the hero target. This is local attention, not a global threat table.
-        let earthbind_target = if e.boss || pet_target.is_some() {
+        let earthbind_target = if e.boss || stoneclaw_target.is_some() || pet_target.is_some() {
             None
         } else {
             earthbinds
@@ -559,7 +597,9 @@ pub(super) fn move_enemies(
                 })
                 .map(|(entity, tf, _, _)| (entity, tf.translation))
         };
-        let (target_e, target_pos, target_radius) = if let Some((entity, pos)) = pet_target {
+        let (target_e, target_pos, target_radius) = if let Some((entity, pos)) = stoneclaw_target {
+            (entity, pos, super::stoneclaw::BODY_RADIUS)
+        } else if let Some((entity, pos)) = pet_target {
             (entity, pos, super::hunter_pet::RADIUS)
         } else if let Some((entity, pos)) = earthbind_target {
             (entity, pos, super::earthbind::BODY_RADIUS)
@@ -571,7 +611,7 @@ pub(super) fn move_enemies(
         // Keep blocked time and detours; waypoint() handles a moving destination.
 
         // Under Fade the horde has lost the hero: it mills where it stands.
-        let lost = run.mobile.vanish_t > 0.0 && !e.boss;
+        let lost = run.mobile.vanish_t > 0.0 && !e.boss && stoneclaw_target.is_none();
         let held = e.stun_t > 0.0 || e.root_t > 0.0 || e.incapacitate_t > 0.0 || lost;
         let contact = (target_pos - pos).length() <= target_radius + e.radius + 0.35
             && world.line_clear(pos, target_pos);
@@ -642,7 +682,14 @@ pub(super) fn move_enemies(
         {
             e.attack_cd = if e.boss { 1.0 } else { 1.3 };
             let raw = curse.outgoing(e.damage, true, run.elapsed) * e.weaken;
-            let (taken, avoided) = if let Some((entity, _)) = pet_target {
+            let (taken, avoided) = if let Some((entity, _)) = stoneclaw_target {
+                let (_, _, mut totem, mut store) = stoneclaws.get_mut(entity).unwrap();
+                let taken = totem.life.hurt(raw, run.elapsed);
+                if totem.life.health() <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+                (taken, None)
+            } else if let Some((entity, _)) = pet_target {
                 let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
                 let taken = pet.hurt(raw, run.elapsed);
                 if pet.vitality.hp <= 0.0 {

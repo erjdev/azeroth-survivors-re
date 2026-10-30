@@ -1,4 +1,4 @@
-//! Stoneclaw's destructible lifetime, independent of its pending targeting policy.
+//! Stoneclaw's destructible lifetime, independent of the runtime forced-targeting policy.
 //! Spell 5730 supplies the rank-one base health and lifetime. The caller supplies
 //! the final health after level/rank/talent scaling; this module does not invent it.
 
@@ -6,7 +6,6 @@ pub const BASE_HEALTH: f32 = 50.0;
 pub const LIFETIME: f32 = 15.0;
 pub const RADIUS: f32 = 8.0;
 pub const RECOVERY: f32 = 30.0;
-pub const THREAT_PER_PULSE: f32 = 22.0;
 
 #[derive(Clone, Debug)]
 pub struct Stoneclaw {

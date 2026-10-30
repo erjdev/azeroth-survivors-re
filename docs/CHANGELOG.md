@@ -5,6 +5,23 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Stoneclaw forced targeting
+
+Stoneclaw is now a Shaman spell: ordinary enemies it catches attack the totem
+until destruction, expiry or replacement; bosses are immune. Pet attention and
+hero invisibility do not interrupt it. Grounded placement, damage absorption and
+target release are connected to the runtime. Ranks improve radius/recovery;
+Earth's Grasp scaling remains pending. Native cards pass at 1280×720 and
+640×720 / 125%, including third-card scrolling. Incremental build: 1m43s.
+Live combat and Windows acceptance remain open. Seven runtime regressions
+and the eight-package formatting, Clippy and test gate pass (31 optional-addon skips).
+
+![Stoneclaw acquisition and inline upgrades](images/screenshots/2026-10-29-stoneclaw/cards-wide.png)
+
+![Compact Stoneclaw cards](images/screenshots/2026-10-29-stoneclaw/cards-compact.png)
+
+![Final compact Stoneclaw upgrade remains reachable](images/screenshots/2026-10-29-stoneclaw/cards-compact-third.png)
+
 ## 2026-10-29 — Readable achievement cards across window sizes
 
 Narrow achievement panels now use full-width cards and progress rows, giving

@@ -15,7 +15,8 @@ Read from `wow-data/Data` with `survivors-audit --spell-evidence`:
 Talent evidence for Earth's Grasp 572 resolves to +25/50% Stoneclaw health
 and +10/20% Earthbind radius. Implementing Earthbind alone does not complete it.
 Stoneclaw's effect row does not establish an unconditional fixation duration;
-resolve its actual threat/targeting policy before implementing that consumer.
+the user selected forced targeting while the totem lives (2026-10-29). This is
+an explicit Survivors adaptation, not an interpretation of the threat row.
 
 Display audit: 4588 decodes `Creature/Spells/EarthElementalTotem.mdx` with
 11 batches and 268 triangles. All referenced textures decode. This verifies an
@@ -186,3 +187,40 @@ to spell 5729's raw threat amount; either chosen adaptation must be documented.
 Stoneclaw lifecycle validation: all four focused tests and the eight-package
 scoped formatting, Clippy and test gate pass (31 optional-addon skips).
 No native deployment or rendered evidence is claimed for this core-only change.
+
+## Stoneclaw forced-target runtime — 2026-10-29
+
+The user's decision supersedes the pending threat policy above. Stoneclaw is a
+Shaman offer: spell 5730, verified Earth display 4588, 50 health, 15 seconds,
+30-second base recovery and eight-yard base acquisition radius. Recasting
+replaces only the previous Stoneclaw. Ground support and clear placement are
+required. The authored health stays fixed across ability ranks; radius and
+recovery use the shared upgrade curve. Earth's Grasp remains pending.
+
+Visible ordinary enemies entering the spherical radius are captured until this
+individual deployment dies, expires or is replaced. Hero damage does not break
+attention; moving outside the radius or losing sight does not release it.
+Stoneclaw wins over forced/local pet attention and Earthbind attention. Bosses
+are immune. Hero vanish does not freeze enemies engaged with Stoneclaw. Movement
+still uses existing navigation, contact still requires line of sight, and damage
+uses enemy outgoing modifiers without hero defenses/reflection or overkill spill.
+The active-run clock handles pause; hero death removes the active totem.
+
+The raw 22-threat value is not used. No global threat table, new pulse cadence,
+server authority, race variant mapping or live-combat visual acceptance is claimed.
+
+Native macOS menu-only previews verify the full description at 1280×720 and
+640×720 / 125%, including End navigation to the third card. Screenshots are
+embedded in CHANGELOG and README uses the wide view. The acquisition card follows
+the established future-growth convention (rank one to two); upgrade cards show
+the actual next rank. No live combat or Windows check was performed. The play
+build passed in 1m43s with the existing linker warning. Capture timeouts recovered
+by raising the same live window; the launcher was restored after closing it.
+
+Seven runtime regressions pass: forced pursuit/retention/expiry; boss and range
+exclusion; fatal damage without hero spill/reflection; grounded placement,
+replacement and hero death; Shaman-only offers/fixed lifetime; pet-taunt and
+vanish precedence; visibility on acquisition with retention after occlusion.
+
+The eight-package formatting, Clippy and test gate is green, with 31 expected
+optional-addon corpus skips. No new test failure remains.
