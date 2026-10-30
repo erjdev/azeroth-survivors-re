@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Companion purchase and restart checks
+
+Native follow-up verifies preview, undo, confirmation while scrolled, immediate
+appearance selection, and restart at 640×480. Confirmed Long Leash and Squirrel
+persist; unconfirmed Quick Paws is discarded. [Evidence and limits](audits/COMPANION-READABILITY.md#native-interaction-follow-up--runtime-697c174).
+No runtime change; keyboard paging and Windows remain open.
+
+![Purchase actions stay reachable while scrolled](images/screenshots/2026-10-30-companion-interactions/pending-scrolled.png)
+
+![Confirmed training survives a short-window restart](images/screenshots/2026-10-30-companion-interactions/restarted-640.png)
+
 ## 2026-10-30 — Readable Companion cards
 
 Companion upgrades now stack into one column when the content pane is narrow,

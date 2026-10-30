@@ -42,3 +42,39 @@ was started. The preview process stopped after app quit, and the temporary launc
 
 The eight-package scoped gate passed formatting, clippy and tests with 31
 optional addon-corpus skips. Full landing and platform acceptance remain open.
+
+## Native interaction follow-up — runtime 697c174
+
+A fresh computer-use connection and app launch restored pointer delivery. This
+supersedes the earlier pointer/scroll/restart limitation for the cases below;
+keyboard End did not visibly move the page and is not counted as acceptance.
+The same isolated collected fixture was used, without editing its purchases.
+
+| Action | Observed result |
+| --- | --- |
+| Preview Long Leash at 800×600 | Rank 1, 285 points, one pending change. |
+| Scroll to Looks | Confirm/Undo remain in the fixed bottom bar. |
+| Undo from the bottom bar | Rank returns to 0 and currency returns to 300. |
+| Repeat and Confirm from the bottom bar | Rewards confirmed; 285 points and rank 1 retained. |
+| Select Squirrel | Worn label and first-companion label update immediately; currency stays 285. |
+| Preview Quick Paws, then quit without confirming | Draft shows rank 1 and 270 points before quit. |
+| Restart at 640×480 | Long Leash rank 1, Quick Paws rank 0, 285 points, no pending draft. |
+| Scroll to Looks after restart | Squirrel remains worn; all appearances including Panda Cub and Sapphiron are reachable with pending criteria labels. |
+
+Saved fixture row after restart: `pets 1 1 0 0 0 1 0 0` (one companion,
+leash rank 1, paws rank 0, Squirrel in the first appearance slot).
+Eight unedited screenshots are stored in
+`docs/images/screenshots/2026-10-30-companion-interactions/`.
+
+![Pending upgrade with persistent actions](../images/screenshots/2026-10-30-companion-interactions/pending-scrolled.png)
+
+![Undo restores currency and rank](../images/screenshots/2026-10-30-companion-interactions/undone-800.png)
+
+![Restart preserves only confirmed training](../images/screenshots/2026-10-30-companion-interactions/restarted-640.png)
+
+![Saved appearance and complete locked looks](../images/screenshots/2026-10-30-companion-interactions/restarted-looks-640.png)
+
+No runtime code changed; the source gate at 697c174 remains the applicable
+validation (eight scoped packages, 31 optional-addon skips). No new gate run is
+claimed. Windows, physical controllers, keyboard paging, all purchase combinations
+and attended companion gameplay remain open. The app was quit and launcher restored.

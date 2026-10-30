@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Native Companion checks verify confirmed purchases and appearance persistence,
+while unconfirmed purchases are discarded on restart.
+
+![Companion training after restart](docs/images/screenshots/2026-10-30-companion-interactions/restarted-640.png)
+
 Companion reward cards adapt to the available reading width while preserving
 our reference's two-column layout on wide screens.
 [Native comparisons and limits](docs/audits/COMPANION-READABILITY.md).

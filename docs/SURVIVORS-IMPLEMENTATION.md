@@ -10354,3 +10354,11 @@ text strips and verify an adaptive one/two-column grid at three window sizes.
 Four screenshots and three reusable presets are retained. This improves the
 starter Rewards acceptance; purchase/scroll input was not verified in this pass
 because native automation failed to deliver it. Windows acceptance remains open.
+
+### Companion purchase follow-up — 2026-10-30
+
+[Native interaction evidence](audits/COMPANION-READABILITY.md#native-interaction-follow-up--runtime-697c174)
+now verifies pointer purchases, floating Confirm/Undo, scrolling to all looks,
+and saved training/appearance versus discarded drafts after a 640×480 restart.
+This supersedes those prior automation limitations for the exercised cases only.
+Keyboard paging, Windows, controllers and broader reward acceptance remain open.
