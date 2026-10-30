@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Earthbind lifecycle foundation
+
+Added shared rules for Earthbind's health, destruction, expiry and timed slow
+pulses, using checkout spell evidence. Runtime deployment/targeting and UI are
+next; Earthbind is not selectable yet and Earth's Grasp remains pending.
+No interface change or new screenshot is claimed.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
 ## 2026-10-29 — Totems retain their attack cadence
 
 Searing and Magma Totems now deliver attacks due before expiry even across long

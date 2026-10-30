@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Earthbind lifecycle foundation — 2026-10-29
+
+The [earth-totem audit](audits/EARTH-TOTEMS.md) records checkout spell/model
+evidence and the required runtime/UI integration. Shared rules now cover
+Earthbind's five health, destruction, bounded lifetime and timestamped slow
+pulses. No offer or runtime entity is enabled yet. Next: grounded deployment,
+replacement, enemy attacks against the totem, slow application and visual
+acceptance. Earth's Grasp stays pending until Stoneclaw also has a real consumer;
+coverage remains 308/432. This does not close the talent phase.
+
 ## Totem cadence — 2026-10-29
 
 The [totem timing audit](audits/TOTEM-CADENCE.md) records a reproduced runtime

@@ -43,5 +43,6 @@ pub mod combat_pet;
 
 pub mod healing;
 
+pub mod earthbind;
 pub mod ghostly_strike;
 pub mod hemorrhage;
