@@ -4,6 +4,7 @@ use benilla_formats::{load_creature_catalog, load_map_catalog, open_chain, MapTi
 use survivors_core::{campaign, data, encounters};
 
 mod collection;
+mod collection_body;
 mod creature_visuals;
 mod doodads;
 mod equipment;

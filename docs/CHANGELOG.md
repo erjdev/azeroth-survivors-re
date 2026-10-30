@@ -5,6 +5,16 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Collection body-art coverage
+
+Collection checks now decode the armor overlays used by both body variants,
+beyond inventory icons. They verify 746 textures and expose one source-art review
+case: Virtuous Robe's male lower sleeve is absent while its female sleeve exists.
+[Evidence and remaining visual check](audits/COLLECTION-BODY-ART.md). No runtime
+appearance changed; no new rendered screenshot is claimed. All 16 audit tests
+and the eight-package scoped gate pass (31 optional-addon skips); the content
+audit intentionally remains failing pending that visual review.
+
 ## 2026-10-30 — Blackrock floor connectivity audit
 
 The read-only floor tool now measures connected source faces without joining
