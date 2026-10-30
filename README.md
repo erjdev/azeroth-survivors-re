@@ -17,6 +17,12 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Virtuous Robe now has fabric cuffs on the male body even when worn without
+bracers. [Native comparisons and validation](docs/audits/COLLECTION-BODY-ART.md)
+cover the robe alone, matching pieces and the female control.
+
+![Repaired Virtuous Robe in the Character page](docs/images/screenshots/2026-10-30-virtuous-robe/male-robe-fixed.png)
+
 Healing Wave now benefits from Purification healing and Tidal Mastery critical
 chance, with the changing values highlighted inline. Native macOS checks verify
 purchase, refund, independent specs and restart alongside Healing Way.

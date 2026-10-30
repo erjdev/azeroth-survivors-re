@@ -190,7 +190,15 @@ impl SkinComposites {
 /// A plan's work over the shared chain, which each read locks for its archive lookup alone.
 fn work(plan: CompositePlan, chain: Arc<Mutex<Chain>>) -> Work {
     Box::new(move || {
-        plan.run(|path| read_texture(&chain, path))
+        #[cfg(feature = "survivors-text")]
+        let read = |path: &str| {
+            survivors_core::appearance_assets::read(crate::survivors::active(), path, |candidate| {
+                read_texture(&chain, candidate)
+            })
+        };
+        #[cfg(not(feature = "survivors-text"))]
+        let read = |path: &str| read_texture(&chain, path);
+        plan.run(read)
             .inspect_err(|e| warn!("body skin composite failed: {e:#}"))
             .ok()
     })

@@ -8,6 +8,7 @@ pub(super) struct BodyArt {
     checked: HashSet<(u32, u8)>,
     textures: HashSet<String>,
     variants: HashSet<(u32, u8, u8)>,
+    fallbacks: HashSet<String>,
 }
 
 fn body_slot(inventory: u8) -> Option<usize> {
@@ -57,14 +58,19 @@ impl BodyArt {
             let start = failures.len();
             for step in &plan {
                 let result = first_decodable(&step.candidates(sex), |path| {
-                    if self.textures.contains(path) {
-                        return Ok(());
+                    let resolved = survivors_core::appearance_assets::read(true, path, |candidate| {
+                        if !self.textures.contains(candidate) {
+                            let image = benilla_blp::decode(&chain.read_file(candidate)?)?;
+                            if image.width == 0 || image.height == 0 {
+                                bail!("empty body overlay");
+                            }
+                            self.textures.insert(candidate.to_owned());
+                        }
+                        Ok::<_, anyhow::Error>(candidate.to_owned())
+                    })?;
+                    if resolved != path && self.fallbacks.insert(path.to_owned()) {
+                        println!("SURVIVORS BODY FALLBACK: display {id}, inventory {inventory}, sex {sex}, layer {}: {path} -> {resolved}", step.layer);
                     }
-                    let image = benilla_blp::decode(&chain.read_file(path)?)?;
-                    if image.width == 0 || image.height == 0 {
-                        bail!("empty body overlay");
-                    }
-                    self.textures.insert(path.to_owned());
                     Ok(())
                 })
                 .with_context(|| {

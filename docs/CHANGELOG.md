@@ -5,6 +5,19 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Virtuous Robe sleeve repair
+
+Fixed skin-colored cuffs on the male Virtuous Robe by falling back to that robe's
+existing sleeve art when its male texture is unavailable. Native macOS previews
+verify the robe alone, matching gear and the unchanged female version. Collection
+body-art checks now pass all 646 variants; native incremental build: 41 seconds.
+The eight-package scoped gate passes with 31 optional-addon skips.
+[Scope and comparisons](audits/COLLECTION-BODY-ART.md).
+
+![Before: missing male sleeve](images/screenshots/2026-10-30-virtuous-robe/male-robe.png)
+
+![After: repaired male sleeve](images/screenshots/2026-10-30-virtuous-robe/male-robe-fixed.png)
+
 ## 2026-10-30 — Collection body-art coverage
 
 Collection checks now decode the armor overlays used by both body variants,

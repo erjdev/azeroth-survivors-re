@@ -57,9 +57,10 @@ The current content audit fails with exactly these three reported gaps:
 - Scarlet Monastery: start-floor validation still needed; ADT terrain returns 0.
 - Naxxramas: start-floor validation still needed; ADT terrain returns about 124.75.
 
-A separate [body-art audit](audits/COLLECTION-BODY-ART.md) decodes 746 armor
-textures but leaves one review gap: Virtuous Robe has no male lower-arm sleeve
-asset. The female asset exists; whether this is intentional needs native review.
+The [body-art audit and native follow-up](audits/COLLECTION-BODY-ART.md) now pass
+646/646 variants using 746 armor textures. A narrow Survivors fallback repairs
+Virtuous Robe’s absent male lower sleeve; Human male/female previews are verified.
+This does not establish the full race/platform/equipment appearance matrix.
 
 These results do not imply every other zone is ready. ADT checks cannot prove WMO
 interior support, traversability or encounters. All nine classes report zero
@@ -98,3 +99,7 @@ run full land gates before merging. The runtime gate at `7d4959a` and subsequent
 eight scoped packages with 31 optional-addon skips; that is not Windows, attended
 combat, or full-workspace land acceptance. Model and UI previews use isolated
 profiles and checkout data, never the installed Applications game.
+
+The Virtuous Robe appearance checkpoint also passes the eight-package scoped
+gate (31 optional-addon skips), with native Human male/female screenshots linked
+in the body-art audit. Other body/platform cases remain open.

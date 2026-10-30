@@ -10298,3 +10298,12 @@ native maximum-rank purchase, one-rank refunds and restart passed in independent
 spec 2. Eight-package gate and 321 core tests pass (31 optional-addon skips).
 Windows/controller, compact purchase and attended-combat acceptance remain open.
 See [the reconciliation and reference evidence](audits/SHAMAN-HEALING-DEPENDENCIES.md#healing-wave-recovery-training--2026-10-29).
+
+
+### Collection body-art repair — 2026-10-30
+
+The [body-art audit and native comparison](audits/COLLECTION-BODY-ART.md) now
+resolve all 646 display/inventory/sex variants. Virtuous Robe's missing male lower
+sleeve uses a narrowly scoped Survivors fallback, verified in the Human male/female
+Armory previews, alone and with matching pieces. This closes that observed cuff
+defect; the full race/platform/combined-equipment visual acceptance remains open.
