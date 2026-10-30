@@ -53,7 +53,7 @@ cargo run -p survivors-audit -- wow-data/Data
 
 The current content audit fails with exactly these three reported gaps:
 
-- Blackrock Mountain: no configured map entry.
+- Blackrock Mountain: no configured map entry. The [source-face audit](SURVIVORS-LOCATIONS.md#blackrock-source-face-connectivity--2026-10-30) now identifies conservative connected components; clearance and routing remain open.
 - Scarlet Monastery: start-floor validation still needed; ADT terrain returns 0.
 - Naxxramas: start-floor validation still needed; ADT terrain returns about 124.75.
 
@@ -90,7 +90,7 @@ Keep feature commits and pushes on the feature branch. Embed native screenshots
 for visual milestones in [CHANGELOG](CHANGELOG.md), the README and PR; store them
 under `docs/images/screenshots/`. No UI change means no invented screenshot.
 Run `cargo survivors-build` and the scoped `scripts/check.sh` for source changes;
-run full land gates before merging. The last source gate (`7d4959a`) passed all
+run full land gates before merging. The runtime gate at `7d4959a` and subsequent floor-connectivity audit gate passed all
 eight scoped packages with 31 optional-addon skips; that is not Windows, attended
 combat, or full-workspace land acceptance. Model and UI previews use isolated
 profiles and checkout data, never the installed Applications game.

@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Blackrock floor connectivity audit
+
+The read-only floor tool now measures connected source faces without joining
+stacked floors or corner contacts. Blackrock's quarry anchor reaches 2,483 faces;
+Forgewright's anchor selects a two-face platform. All 14 audit tests and the
+eight-package formatting, Clippy and test gate pass (31 optional-addon skips). This
+supports future interior navigation work; it does not unlock the zone or prove
+body clearance. No UI change or new screenshot.
+
 ## 2026-10-30 — Current acceptance index
 
 Added a concise [phase and decision index](SURVIVORS-STATUS.md) to separate current

@@ -8,6 +8,7 @@ mod creature_visuals;
 mod doodads;
 mod equipment;
 mod floor;
+mod floor_region;
 mod locations;
 mod spell_evidence;
 mod talent_coverage;

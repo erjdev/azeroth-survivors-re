@@ -896,3 +896,38 @@ acquisition is still unimplemented. Item IDs/names come from the pinned template
 mappings; the install verifies display/icon data, not server item templates.
 These checks do not establish equipped-model appearance, zone unlocks, live loot,
 traversal or balancing and do not change any readiness gate.
+
+## Blackrock source-face connectivity — 2026-10-30
+
+`--floor` now also reports the upward-facing source component containing the
+highest eligible anchor floor inside the existing `z - 8 .. z + 2` window.
+It joins only exact shared 3D edges, normalizes signed zero, deduplicates faces,
+and refuses edges owned by more than two faces. It does not bridge corners,
+T-junctions, disconnected edges or stacked floors by XY proximity. This is a
+conservative source-topology audit, not a navigation mesh or body-clearance proof.
+
+| Anchor | Connected faces | Surface area (square yards) | Boundary edges | Ambiguous edges excluded |
+| --- | ---: | ---: | ---: | ---: |
+| Quarry `-7380 -950 172` | 2,483 | 48,546.08 | 1,067 | 20 |
+| Forgewright `-7596 -1115 253` | 2 | 19.92 | 4 | 0 |
+
+The quarry component spans raw bounds `[-7501.17,-1123.60,160.65]` to
+`[-7051.11,-856.44,186.93]`. Its bounding rectangle is **not** a supported arena;
+existing hole measurements still apply. Forgewright selects a small two-triangle
+platform at z≈252.71, illustrating why nearby XY floors and a complete sample
+ring do not establish connected area. Exact-edge topology can under-connect
+meshes at seams/T-junctions; do not infer physical isolation solely from the
+component size.
+
+Four focused regressions cover shared edges/duplicate area, separate storeys and
+corner contacts, slope eligibility, and non-manifold exclusions. Both actual
+Blackrock probes were rerun against the checkout data. The result narrows the
+next investigation to body-clearance corridors, boundary/seam classification,
+step links and obstacle-aware routes through the quarry component. No arena,
+spawn or readiness flag is changed, and no combat/visual acceptance is claimed.
+
+Validation: all 14 audit-tool tests and its all-target Clippy pass. The eight-package
+scoped gate passes (31 optional-addon skips). Final output wording was separately
+rechecked with formatting, audit Clippy and all audit tests. Logs:
+`/tmp/floor-region-check.log`, `/tmp/floor-region-final-tests.log`, and
+`/tmp/blackrock-region-{quarry,forgewright}.log`. No native client source changed.

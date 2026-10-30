@@ -14,7 +14,7 @@ pub(super) fn placement(rotation: [f32; 3]) -> Quat {
         * Quat::from_rotation_x(rotation[2].to_radians() - FRAC_PI_2)
 }
 
-fn floor_z(triangle: &[Vec3; 3], point: Vec3) -> Option<f32> {
+pub(super) fn floor_z(triangle: &[Vec3; 3], point: Vec3) -> Option<f32> {
     let [a, b, c] = *triangle;
     let ab = b - a;
     let ac = c - a;
@@ -118,6 +118,13 @@ pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
         }));
     }
     let point = Vec3::from_array(point);
+    match crate::floor_region::connected(&triangles, point) {
+        Some(region) => println!("WMO floor-face component: {region:?}"),
+        None => {
+            println!("WMO floor-face component: no eligible anchor face in runtime height window")
+        }
+    }
+    println!("Component scope: exact shared 3D edges of upward faces only; excludes corner contacts and non-manifold edges. Not a navigation mesh: body clearance, walls, water, T-junctions and step links remain unverified.");
     let mut heights: Vec<_> = triangles.iter().filter_map(|t| floor_z(t, point)).collect();
     heights.sort_by(f32::total_cmp);
     heights.dedup_by(|a, b| (*a - *b).abs() < 0.05);
@@ -164,7 +171,7 @@ pub fn probe(chain: &mut Chain, map: u32, point: [f32; 3]) -> Result<()> {
     if let Some((distance, at, layers)) = nearest_miss {
         println!("Nearest unsupported sample: {distance:.3} horizontal yards at {:?}, {layers} distinct floor levels", at.to_array());
     }
-    println!("Scope: walking faces of complete WMO groups referenced by the start ADT. Excludes doodads, neighbouring-only placements, walls, connectivity, camera visibility and rendered identity. Ring samples are not proof of a traversable disk.");
+    println!("Scope: walking faces of complete WMO groups referenced by the start ADT. Excludes doodads, neighbouring-only placements, walls, body-clearance routes, camera visibility and rendered identity. Ring samples are not proof of a traversable disk.");
     Ok(())
 }
 
