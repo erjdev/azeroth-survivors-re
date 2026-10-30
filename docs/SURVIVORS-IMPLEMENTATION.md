@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Druid form visual prerequisites — 2026-10-30
+
+The [Druid dependency audit](audits/DRUID-TALENT-DEPENDENCIES.md#verified-form-models--2026-10-30)
+now records verified Night Elf/Tauren Cat, Bear and Moonkin displays, decoded
+textures and a native six-model specimen capture. Model discovery is complete
+for those identities; player transforms, scaling/collision, equipment restoration
+and combat remain open. Form-selection policy is awaiting the user's answer.
+This does not increase named-talent coverage or complete shapeshifting.
+
 ## Fire-totem ground placement — 2026-10-30
 
 Searing and Magma now share the floor-support, body-space and connectivity

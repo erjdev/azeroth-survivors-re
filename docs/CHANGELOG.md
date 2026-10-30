@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Druid form visual prerequisites
+
+Verified Night Elf/Tauren Cat, Bear and Moonkin models and all ten referenced
+textures. Native menu-only specimens render all six bodies with active animation
+clips. This establishes usable base artwork, not playable shapeshifting; selection,
+transitions, attacks and Windows checks remain open. No runtime source changed.
+
+![Druid forms: Night Elf/Tauren pairs for Cat, Bear and Moonkin](images/screenshots/2026-10-30-druid-forms/faction-pairs.png)
+
 ## 2026-10-30 — Grounded fire-totem deployment
 
 Searing and Magma now check ground height, body clearance and a clear path from

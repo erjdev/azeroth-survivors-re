@@ -2,7 +2,7 @@
 
 The initial checkout-data audit found 27/47 matching Druid definitions. Regrowth
 and node 825 now have runtime consumers; nineteen nodes below remain provisional.
-Current coverage is 28/47 Druid and 303/432 overall. Installed reference rules and
+Current coverage is 28/47 Druid and 309/432 overall. Installed reference rules and
 Survivors conversions remain distinct.
 
 ## Reproduce
@@ -129,3 +129,42 @@ Their existing explicit recovery conversions now reach this ability, together wi
 Nature's Swiftness. Gift of Nature and Nature's Focus scale its healing. Existing
 Rejuvenation benefits remain deliberate authored rules. Values and acceptance
 limits are in SURVIVORS.md and the implementation plan; no coverage increase.
+
+## Verified form models — 2026-10-30
+
+The faction display mapping was checked against vMaNGOS's
+[`GetShapeshiftDisplayInfo`](https://github.com/vmangos/core/blob/development/src/game/Spells/SpellAuras.cpp)
+(read 2026-10-30). This is server-emulator reference evidence, not a field supplied
+by the installed 14-column `SpellShapeshiftForm.dbc`. No external code was copied.
+The local creature catalog and mesh/texture decoder independently verified all six
+models from this checkout's `wow-data/Data`:
+
+| Form | Night Elf display | Tauren display | Triangles (NE / Tauren) |
+| --- | ---: | ---: | ---: |
+| Cat | 892 | 8571 | 742 / 738 |
+| Bear / Dire Bear | 2281 | 2289 | 673 / 735 |
+| Moonkin | 15374 | 15375 | 1032 / 980 |
+
+The catalog supplies distinct cat, bear and owlbear paths/skins for both factions;
+all ten unique mesh textures decode. Reproduce with:
+
+```sh
+target/debug/survivors-audit wow-data/Data --creature-visuals 892,8571,2281,2289,15374,15375
+```
+
+Using the existing developer-only `WOW_SURVIVORS_MODEL_PREVIEW` with those IDs,
+a native macOS menu-only capture at 1280×720 verifies each textured body.
+Left to right: Night Elf Cat, Tauren Cat, Night Elf Bear, Tauren Bear, Night Elf
+Moonkin, Tauren Moonkin. The settled preview report confirms an active animation
+clip on all six; it does not establish every combat animation. The preview uses
+creature display scaling, not final player transformation scaling or collision.
+No combat was started; the app was closed and its temporary launcher restored.
+
+![Faction-specific Druid form specimens](../images/screenshots/2026-10-30-druid-forms/faction-pairs.png)
+
+This clears the base model/skin discovery prerequisite. Form acquisition and
+selection, non-vanilla race policy, equipment hide/restore, player scale/collision,
+camera bounds, attack consumers and Windows acceptance remain open. The user has
+been asked whether forms are selected on the starter, acquired as run cards, or
+manually switched during play; that decision has not been inferred from the
+model evidence. No talent definition coverage changes in this checkpoint.

@@ -112,6 +112,13 @@ Refresh the relevant page here for a visual milestone, and add its before/after 
 responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-DEVELOPMENT.md#readme-captures).
 
 
+### Druid form artwork
+
+Native specimens verify the Night Elf/Tauren pairs for Cat, Bear and Moonkin.
+These are visual prerequisites; playable shapeshifting is still pending.
+
+![Six Druid form specimens](docs/images/screenshots/2026-10-30-druid-forms/faction-pairs.png)
+
 ### Starter equipment readability
 
 The starter uses nine equipment icons and a shared hover/focus inspection line.
