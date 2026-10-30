@@ -133,3 +133,44 @@ claimed. The native screenshots above remain evidence only for their shown cases
 
 Final verification: the eight-package formatting/Clippy/test gate passes with
 31 optional-addon corpus skips. The collection audit has no reported gaps.
+
+## Native Gnome/Tauren plate checks — 2026-10-30
+
+Native macOS menu-only validation of the `a7be32e` runtime (unchanged by the
+`3f95c1c` audit) uses a disposable collected fixture, hero 1, Warrior equipment
+`666666666`, initially all worn appearances `000000000`: full Dreadnaught armor
+and Thunderfury. Race/body and look changes thereafter use native pointer input.
+The primary layout reference remains `intentions/survivors_character_tab.png`.
+
+Both Gnome bodies render the helmet, shoulders and held weapon at 1280×720.
+Female rotation follows the turn buttons. Hiding only the weapon appearance
+reveals the armor and allows the existing camera fit to move closer; equipment
+bonus text remains unchanged. Both Tauren bodies show the full armor with the
+weapon hidden, and the male also shows the restored weapon. These captures prove
+visible assembly and containment for the shown angles, not every animation or
+absence of clipping from every viewpoint. Thunderfury obscures the small body's
+torso from the default angle; the hidden-weapon view is the stronger armor evidence.
+
+After restoring then hiding the Tauren male weapon through UI, restart at
+640×720 retains the body and hidden look. Disk agrees: `body 1 6 0`,
+`equipment 0 666666666 000000001`. The compact preview contains the full figure
+and rotation controls. No save edits occurred between interaction and restart.
+The normal launcher is restored; no combat was started. No source changed, so
+the preceding green scoped gate remains applicable. Windows, other outfits,
+other race/body combinations and combat animation remain open.
+
+![Gnome male, full outfit](../images/screenshots/2026-10-30-plate-bodies/gnome-male.png)
+
+![Gnome female, full outfit](../images/screenshots/2026-10-30-plate-bodies/gnome-female.png)
+
+![Gnome female, rotated](../images/screenshots/2026-10-30-plate-bodies/gnome-female-turned.png)
+
+![Gnome female, weapon appearance hidden](../images/screenshots/2026-10-30-plate-bodies/gnome-female-weapon-hidden.png)
+
+![Tauren female, weapon appearance hidden](../images/screenshots/2026-10-30-plate-bodies/tauren-female-weapon-hidden.png)
+
+![Tauren male, weapon appearance hidden](../images/screenshots/2026-10-30-plate-bodies/tauren-male-weapon-hidden.png)
+
+![Tauren male, full outfit](../images/screenshots/2026-10-30-plate-bodies/tauren-male.png)
+
+![Tauren male, compact restart](../images/screenshots/2026-10-30-plate-bodies/tauren-male-restarted-compact.png)

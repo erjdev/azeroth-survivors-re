@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Plate appearance checks
+
+Native Gnome/Tauren male and female previews verify visible Dreadnaught equipment.
+Weapon appearance hide/restore keeps gear bonuses; a compact restart preserves
+the selected Tauren body and hidden look. [Eight captures and limits](audits/COLLECTION-BODY-ART.md#native-gnometauren-plate-checks--2026-10-30).
+No runtime change; Windows and the full outfit matrix remain open.
+
+![Gnome armor with weapon appearance hidden](images/screenshots/2026-10-30-plate-bodies/gnome-female-weapon-hidden.png)
+
+![Compact Tauren after restart](images/screenshots/2026-10-30-plate-bodies/tauren-male-restarted-compact.png)
+
 ## 2026-10-30 — Collection attachment asset coverage
 
 Extended collection checks to helmets for every race/body, both shoulders and

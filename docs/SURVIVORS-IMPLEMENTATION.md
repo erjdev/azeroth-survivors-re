@@ -10328,3 +10328,12 @@ models and 221 textures; shared meshes retain per-display skin validation.
 [Audit and limitations](audits/COLLECTION-BODY-ART.md#attachment-asset-coverage--2026-10-30).
 This supplies asset availability evidence for phases 2–4; native attachment fit,
 combined outfits, animations, particles and Windows remain acceptance work.
+
+### Gnome/Tauren plate appearance acceptance — 2026-10-30
+
+[Native evidence](audits/COLLECTION-BODY-ART.md#native-gnometauren-plate-checks--2026-10-30)
+adds both Gnome and Tauren bodies with Dreadnaught armor, Thunderfury look
+hide/restore and a 640×720 saved-look restart. Eight unedited captures are saved
+and representative images embedded in CHANGELOG/README. This verifies the shown
+assembly/containment and persistence cases; other outfits, races, animation,
+Windows and physical controllers remain open. No runtime change or combat claim.

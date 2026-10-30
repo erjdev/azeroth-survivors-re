@@ -17,6 +17,12 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Native appearance checks now include Gnome and Tauren bodies with Dreadnaught
+armor, plus weapon-look persistence across a compact restart.
+[Evidence and limits](docs/audits/COLLECTION-BODY-ART.md#native-gnometauren-plate-checks--2026-10-30).
+
+![Tauren appearance restored in a compact window](docs/images/screenshots/2026-10-30-plate-bodies/tauren-male-restarted-compact.png)
+
 Collection quality rows now name their drop zones, including Poor and Raid Epic
 gear. Zone readiness remains visible on the linked Drop Tables page.
 
