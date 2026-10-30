@@ -5,6 +5,23 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Starter equipment inspection verified
+
+Native pointer and keyboard checks now cover collected and empty slots at
+1280×720 and the stacked 640×480 layout (125% requested, short-window fit).
+Appearance-only shoulders leave equipped bonuses and inspection unchanged;
+mouse/Enter open the worn piece, and leaving a slot restores the hint.
+This is acceptance evidence for existing behavior, with no runtime changes.
+Windows and physical-controller acceptance remain open.
+
+![Starter shows worn gear independently of its appearance](images/screenshots/2026-10-30-starter-inspection/wide-independent-look.png)
+
+![Keyboard opens the worn item while another piece supplies its look](images/screenshots/2026-10-30-starter-inspection/wide-keyboard-collection.png)
+
+![Compact pointer inspection](images/screenshots/2026-10-30-starter-inspection/compact-pointer.png)
+
+![Compact worn-item details](images/screenshots/2026-10-30-starter-inspection/compact-collection.png)
+
 ## 2026-10-29 — Earth's Grasp connects both earth totems
 
 Earth's Grasp now increases Stoneclaw health by 25/50% and Earthbind radius by

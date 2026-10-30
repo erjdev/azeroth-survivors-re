@@ -695,8 +695,10 @@ Pointer hover or keyboard/controller focus must identify the slot and equipped
 item, never a separate cosmetic override. Clearing focus/hover or rebuilding the
 strip must not retain stale item text. Clicking still opens that slot in Collection.
 Native 1280×720 confirms all nine empty-slot images render, with before/after
-captures in the changelog. Collected/compact/native interaction acceptance remains
-open because window automation lost access after the empty capture. Reusable
+captures in the changelog. The 2026-10-30 [native acceptance pass](audits/STARTER-EQUIPMENT-ACCEPTANCE.md)
+closes collected/compact/macOS pointer and keyboard inspection: worn versus
+cosmetic identity, empty-slot text, focus priority, hint reset and correct
+Collection navigation. Windows and physical-controller checks remain open. Reusable
 `starter-equipment-1280.txt` and `starter-equipment-640x480-125.txt` presets target
 hero 1 in a partial/collected disposable fixture. Native build: 1m48s.
 All 580 Survivors runtime tests and the eight-package gate pass (formatting,

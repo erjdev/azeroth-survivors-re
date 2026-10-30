@@ -114,15 +114,15 @@ responsive variants to the changelog. See [capture instructions](docs/SURVIVORS-
 
 ### Starter equipment readability
 
-The starter uses a compact equipment strip with recognizable empty slots and a
-shared hover/focus inspection line. Native captures cover empty slots at 1280×720
-and collected gear at 640×480 / 125%. Keyboard navigation keeps the description
-above the footer; mouse and Enter select the equipped item in Collection.
-Windows and native pointer-hover inspection remain open.
+The starter uses nine equipment icons and a shared hover/focus inspection line.
+Native macOS checks cover collected/empty slots, independent appearances and
+mouse/keyboard inspection at 1280×720 and 640×480 (125% requested, short-window
+fit). Selecting a slot opens its worn item in Collection. Windows and physical
+controller checks remain open. See the [acceptance record](docs/audits/STARTER-EQUIPMENT-ACCEPTANCE.md).
 
-![Starter empty equipment strip](docs/images/screenshots/2026-10-29-starter-equipment/empty.jpg)
+![Starter equipment remains independent of its appearance](docs/images/screenshots/2026-10-30-starter-inspection/wide-independent-look.png)
 
-![Compact keyboard inspection stays above the footer](docs/images/screenshots/2026-10-29-equipment-focus/after.jpg)
+![Compact pointer inspection](docs/images/screenshots/2026-10-30-starter-inspection/compact-pointer.png)
 
 ### Achievement keyboard scrolling
 
