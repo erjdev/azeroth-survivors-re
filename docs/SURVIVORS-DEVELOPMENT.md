@@ -842,3 +842,13 @@ These fixture overrides are in memory only; native Options persistence acceptanc
 must run without the fixture environment variable. Normal play uses Graphics →
 Show obscured enemies / Show obscured friendlies; both default off, independently
 of scenery cutaway and camera push-in. No developer environment flag is needed.
+
+### Menu-only creature model inspection
+
+Use a development build with `WOW_SURVIVORS_MODEL_PREVIEW=4588 cargo survivors`
+(and the checkout's `WOW_DATA`) to inspect one creature display without combat.
+Comma-separated IDs show up to eight specimens at native scale on the menu floor.
+The preview hides the normal menu and hero; quit and unset the variable to return.
+Invalid or zero IDs are rejected. The flag takes precedence over the existing
+`WOW_SURVIVORS_DEMON_PREVIEW=1` four-demon lineup. This verifies rendering only,
+not acquisition, deployment, AI, health or combat effects.

@@ -42,7 +42,7 @@ invalid clocks/damage and integration with the existing source-owned slow state.
 
 Earthbind is now a Shaman offer. It deploys at the hero's grounded feet only when
 supported, clear placement is available and enemies are nearby. Recasting removes
-only the previous Earthbind. The actual entity uses the verified earth-totem
+only the previous Earthbind. The actual entity uses the decoded earth-totem
 model and five health; ordinary foes may attack it when it is closer than the
 hero, within four yards and visible. Existing pet attention takes priority;
 bosses continue targeting the hero. These are authored local-attention rules,
@@ -86,3 +86,25 @@ The runtime eight-package formatting, Clippy and test gate also passes with
 31 optional-addon skips. An initial class-offer test compile error was corrected
 before the successful rerun. Native card rendering and the play build pass;
 the remaining acceptance items above are not closed by those results.
+
+## Native model investigation — 2026-10-29
+
+`WOW_SURVIVORS_MODEL_PREVIEW=4588` renders a menu-only specimen at native scale,
+grounded with the same floor query used by other model specimens. At 1280×720,
+the current display shows a green effect without a clearly visible solid body.
+This is a failed appearance checkpoint, not proof of a correct deployed totem.
+The capture is embedded in CHANGELOG and README. No combat was started.
+
+The repeated checkout decode confirms 11 batches / 268 triangles and four
+textures: DemonRune1, green_glow3, green_glow2 and FirePlaceTex01. Successful
+mesh/texture decoding does not establish the intended creature-entry mapping
+or final appearance. Next: resolve the intended solid-body display and inspect
+its animations/materials before changing the gameplay model. Race variants,
+actual deployment, particles and Windows acceptance remain open.
+
+The generic preview accepts one to eight nonzero comma-separated display IDs;
+it preserves the existing demon preview flag and is development-only. It spawns
+ordinary visual specimens with no Earthbind, enemy or combat-pet components.
+
+Validation: native incremental build passed in 1m42s; the eight-package scoped
+formatting, Clippy and test gate passed with 31 optional-addon skips.

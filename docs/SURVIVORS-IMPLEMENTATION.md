@@ -5,6 +5,13 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Earthbind model investigation — 2026-10-29
+
+The new menu-only model preview exposed a visual gap: display 4588 shows a green
+effect without a clearly visible solid totem. The failure capture is embedded
+in CHANGELOG/README. Resolve the display/animation/material identity before
+closing rendered deployment acceptance; see the [audit](audits/EARTH-TOTEMS.md).
+
 ## Earthbind runtime and offers — 2026-10-29
 
 Earthbind is now acquired through Shaman offers, grounded before deployment,

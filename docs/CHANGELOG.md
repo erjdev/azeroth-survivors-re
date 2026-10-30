@@ -5,6 +5,16 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Model preview catches Earthbind appearance gap
+
+Added a menu-only preview for up to eight creature displays, so model checks do
+not require a combat session. Earthbind's current display renders a green effect
+without a clearly visible solid totem; appearance acceptance remains open.
+The capture below records the issue, not a finished visual. Native build: 1m42s.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
+![Earthbind model investigation: green effect without a solid body](images/screenshots/2026-10-29-earthbind/model-before.png)
+
 ## 2026-10-29 — Destructible Earthbind Totem
 
 Shamans can acquire a grounded Earthbind that slows nearby enemies without damage.

@@ -134,6 +134,14 @@ Before/after captures are in the changelog.
 
 ![Independent achievement navigation and cards](docs/images/screenshots/2026-10-29-achievement-panes/compact-end.png)
 
+### Earthbind model investigation
+
+The menu-only model preview currently reveals a green effect without a clearly
+visible solid totem. This records an open visual issue; deployment acceptance
+remains pending. See [the audit](docs/audits/EARTH-TOTEMS.md).
+
+![Earthbind appearance issue](docs/images/screenshots/2026-10-29-earthbind/model-before.png)
+
 ### Combat demon specimens
 
 Native menu-only lineup, 2026-10-29: Imp, Voidwalker, Succubus and Felhunter.
