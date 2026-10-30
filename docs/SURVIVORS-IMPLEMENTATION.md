@@ -5,6 +5,24 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## First-visit spec scroll continuity — 2026-10-29
+
+The native minimum-size check exposed a first-visit jump to the top when selecting
+another talent spec. Scroll memory now falls back to the last rendered position
+for that same hero only when the destination spec has no remembered position.
+Revisits keep their own offsets, and another hero starts at the top. This is
+session-local UI state; saved talent ranks and the save format are unchanged.
+
+The scroll regression checks first-visit inheritance, independent remembered specs
+and hero isolation. Native macOS 640×480 / 125% checks cover scrollbar reachability,
+Spec 1 → 2 → empty 3 → 1, preserved 35/8/0 point totals, and Elemental Mastery's
+long description. The two-column wrap retains the intention image's tree/spec
+structure and the user's taller-tree requirement. Inline before/after screenshots
+are in CHANGELOG, with the final view in README. Windows/controller and the full
+resolution matrix remain open. Incremental build: 1m16s.
+
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
 ## Visible-pet fence routing — 2026-10-29
 
 Enemy pursuit no longer discards its blocked timer and detour whenever a Hunter

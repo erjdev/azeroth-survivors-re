@@ -231,14 +231,22 @@ mod scroll_tests {
         // Selection may already point at the next spec while the old tree still exists.
         app.world_mut().resource_mut::<Account>().characters[0].spec = 1;
         app.update();
-        app.world_mut().despawn(old);
-        app.world_mut()
-            .spawn((ScrollKey(id, 1), ScrollPosition(Vec2::new(0., 420.))));
-        app.update();
         let selection = Selection {
             character: Some(id),
             ..default()
         };
+        assert_eq!(
+            app.world()
+                .resource::<ScrollMemory>()
+                .offset(app.world().resource::<Account>(), &selection)
+                .y,
+            250.,
+            "first visit inherits the same hero's rendered position"
+        );
+        app.world_mut().despawn(old);
+        app.world_mut()
+            .spawn((ScrollKey(id, 1), ScrollPosition(Vec2::new(0., 420.))));
+        app.update();
         let memory = app.world().resource::<ScrollMemory>();
         let mut account = app.world().resource::<Account>().clone();
         assert_eq!(memory.offset(&account, &selection).y, 420.);
@@ -263,14 +271,21 @@ mod scroll_tests {
 pub(in crate::survivors) struct ScrollKey(u32, u8);
 
 #[derive(Resource, Default)]
-pub(in crate::survivors) struct ScrollMemory(std::collections::BTreeMap<ScrollKey, Vec2>);
+pub(in crate::survivors) struct ScrollMemory {
+    specs: std::collections::BTreeMap<ScrollKey, Vec2>,
+    last: std::collections::BTreeMap<u32, Vec2>,
+}
 
 impl ScrollMemory {
     pub(super) fn offset(&self, account: &Account, selection: &Selection) -> Vec2 {
         selection
             .character
             .and_then(|id| account.character(id))
-            .and_then(|hero| self.0.get(&ScrollKey(hero.id, hero.spec)))
+            .and_then(|hero| {
+                self.specs
+                    .get(&ScrollKey(hero.id, hero.spec))
+                    .or_else(|| self.last.get(&hero.id))
+            })
             .copied()
             .unwrap_or_default()
     }
@@ -285,10 +300,15 @@ pub(in crate::survivors) fn remember_scroll(
     if armory.page != super::Page::Talents {
         return;
     }
-    memory.0.retain(|key, _| account.character(key.0).is_some());
+    memory
+        .specs
+        .retain(|key, _| account.character(key.0).is_some());
+    memory.last.retain(|id, _| account.character(*id).is_some());
     for (key, position) in &surfaces {
         if position.0.is_finite() {
-            memory.0.insert(*key, position.0);
+            memory.specs.insert(*key, position.0);
+            // First visits to another spec keep its controls in view; revisits use that spec's offset.
+            memory.last.insert(key.0, position.0);
         }
     }
 }

@@ -5,6 +5,22 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Talent spec navigation stays in view
+
+The first visit to another spec inherits the current hero's scroll position,
+so compact layouts keep the spec controls reachable. Revisits retain each spec's
+own position; heroes remain independent. Native macOS checks at 640×480 / 125%
+verify Spec 1 → 2 → empty 3 → 1 with unchanged 35/8/0 point totals and a readable
+long description. Incremental build: 1m16s. Windows/controller checks remain open.
+
+![Before: switching specs jumped to the top](images/screenshots/2026-10-29-spec-scroll/before.png)
+
+![After: first visit keeps spec controls visible](images/screenshots/2026-10-29-spec-scroll/after.png)
+
+![Returning to the original spec](images/screenshots/2026-10-29-spec-scroll/returned.png)
+
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
 ## 2026-10-29 — Pet pursuit around low fences
 
 Enemies keep their detour search when a Hunter pet is visible over a low fence.

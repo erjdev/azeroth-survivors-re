@@ -235,7 +235,7 @@ and weapon requirement appear inline. Purchase, refund and compact restart verif
   </tr>
   <tr>
     <td width="50%"><strong>Jewelry rewards</strong><br><img src="docs/images/screenshots/2026-10-26-jewelry-preview/cards-1280.png" alt="Jewelry rewards"><br>2026-10-26 · Held preview cards for rapid UI iteration.</td>
-    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-29-compact-healing/tidal-purchase.png" alt="Compact Talents"><br>2026-10-29 · Purification, Healing Way and Tidal Mastery compact purchases, refunds and saved totals verified at 640×720 / 125% UI size.</td>
+    <td width="50%"><strong>Compact Talents</strong><br><img src="docs/images/screenshots/2026-10-29-spec-scroll/after.png" alt="Compact Talents"><br>2026-10-29 · First visits to another spec keep controls in view. Native 640×480 / 125% switching and long descriptions verified; purchase/refund captures remain in the changelog.</td>
   </tr>
 </table>
 
