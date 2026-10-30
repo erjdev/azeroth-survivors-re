@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Totems retain their attack cadence
+
+Searing and Magma Totems now deliver attacks due before expiry even across long
+frames, preserving the fractional timer. Empty pulses cannot bank attacks for
+later targets. Real-system regressions reproduce both old failures. Headless
+combat timing change only; no new rendered screenshot or fast-mode claim.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+Incremental native macOS build: 1m07s.
+
 ## 2026-10-29 — Compact recovery talent acceptance
 
 Improved Healing Wave and Tidal Focus purchase/refund correctly at 640×720 /

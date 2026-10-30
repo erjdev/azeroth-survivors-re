@@ -5,6 +5,15 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Totem cadence — 2026-10-29
+
+The [totem timing audit](audits/TOTEM-CADENCE.md) records a reproduced runtime
+defect: long frames dropped attacks and expiry discarded due pulses. Both
+Searing and Magma now preserve cadence and deliver due attacks within their
+remaining lifetime before fading. No new talent definition or fast mode is
+claimed. Headless frame-partition checks cover the actual system; attended
+gameplay and Windows validation remain open.
+
 ## Compact recovery talent acceptance — 2026-10-29
 
 Improved Healing Wave and Tidal Focus now have native macOS 640×720 / 125%

@@ -1277,61 +1277,61 @@ pub(super) fn tick_areas(
 
     for (e, tf, mut totem) in &mut totems {
         let stats = stats.for_spell(totem.source);
+        // Advance only through the remaining lifetime; retain fractional cadence.
+        let active_dt = dt.min(totem.left.max(0.0));
+        let was_alive = totem.left > 0.0;
         totem.left -= dt;
+        totem.tick -= active_dt;
+        while was_alive && totem.tick <= 0.00001 {
+            totem.tick += if totem.pulse { 2.0 } else { 1.0 };
+            let pos = tf.translation;
+            if totem.pulse {
+                let targets = around(&live, pos, totem.radius);
+                if targets.is_empty() {
+                    continue;
+                }
+                fx.cast(e, totem.cast, &[], None);
+                for f in &targets {
+                    let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
+                    hits.write(Hit {
+                        color: COLOR_SPELL,
+                        source: totem.source,
+                        ..Hit::direct(f.e, dmg, crit)
+                    });
+                }
+            } else {
+                let target = live
+                    .iter()
+                    .filter(|f| perception.visible(heroes.single().ok(), f.e, now))
+                    .map(|f| (flat(f.pos - pos).length(), f))
+                    .filter(|(d, _)| *d <= totem.range)
+                    .min_by(|a, b| a.0.total_cmp(&b.0));
+                let Some((dist, f)) = target else { continue };
+                fx.cast(e, totem.cast, &[f.e], None);
+                let speed = spells
+                    .as_deref()
+                    .and_then(|s| s.catalog.get(totem.cast))
+                    .map_or(0.0, |d| d.speed);
+                let delay = if speed > 0.0 { dist / speed } else { 0.0 };
+                let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
+                schedule(
+                    &mut pending,
+                    &mut hits,
+                    now,
+                    delay,
+                    Hit {
+                        color: COLOR_SPELL,
+                        source: totem.source,
+                        ..Hit::direct(f.e, dmg, crit)
+                    },
+                );
+            }
+        }
         if totem.left <= 0.0 {
             commands
                 .entity(e)
                 .remove::<Totem>()
                 .insert(benilla_world::model_fade::DespawnFade::default());
-            continue;
-        }
-        totem.tick -= dt;
-        if totem.tick > 0.0 {
-            continue;
-        }
-        let pos = tf.translation;
-        if totem.pulse {
-            let targets = around(&live, pos, totem.radius);
-            totem.tick = 2.0;
-            if targets.is_empty() {
-                continue;
-            }
-            fx.cast(e, totem.cast, &[], None);
-            for f in &targets {
-                let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
-                hits.write(Hit {
-                    color: COLOR_SPELL,
-                    source: totem.source,
-                    ..Hit::direct(f.e, dmg, crit)
-                });
-            }
-        } else {
-            totem.tick = 1.0;
-            let target = live
-                .iter()
-                .filter(|f| perception.visible(heroes.single().ok(), f.e, now))
-                .map(|f| (flat(f.pos - pos).length(), f))
-                .filter(|(d, _)| *d <= totem.range)
-                .min_by(|a, b| a.0.total_cmp(&b.0));
-            let Some((dist, f)) = target else { continue };
-            fx.cast(e, totem.cast, &[f.e], None);
-            let speed = spells
-                .as_deref()
-                .and_then(|s| s.catalog.get(totem.cast))
-                .map_or(0.0, |d| d.speed);
-            let delay = if speed > 0.0 { dist / speed } else { 0.0 };
-            let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
-            schedule(
-                &mut pending,
-                &mut hits,
-                now,
-                delay,
-                Hit {
-                    color: COLOR_SPELL,
-                    source: totem.source,
-                    ..Hit::direct(f.e, dmg, crit)
-                },
-            );
         }
     }
 }
@@ -11262,3 +11262,7 @@ mod repentance_tests;
 #[cfg(test)]
 #[path = "holy_light_tests.rs"]
 mod holy_light_tests;
+
+#[cfg(test)]
+#[path = "totem_timing_tests.rs"]
+mod totem_timing_tests;
