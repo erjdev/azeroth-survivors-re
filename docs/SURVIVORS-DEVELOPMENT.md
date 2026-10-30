@@ -843,6 +843,14 @@ must run without the fixture environment variable. Normal play uses Graphics →
 Show obscured enemies / Show obscured friendlies; both default off, independently
 of scenery cutaway and camera push-in. No developer environment flag is needed.
 
+Overlap cases keep the camera and opaque wall fixed. `overlap-clear` removes the
+wall to show the saved hero in front of the enemy specimen. `overlap-both` adds
+the wall with both colors enabled; `overlap-enemies` disables friendly color but
+must retain friendly depth ownership. `overlap-neutral` puts the neutral specimen
+in front of the enemy instead (the hero moves left). The nearer actor must hide
+the farther enemy's color where their silhouettes overlap. These are synthetic
+renderer checks, not real-map foliage acceptance.
+
 ### Menu-only creature model inspection
 
 Use a development build with `WOW_SURVIVORS_MODEL_PREVIEW=4588 cargo survivors`

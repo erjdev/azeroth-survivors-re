@@ -4,9 +4,11 @@
 
 The cutaway and silhouette requirements are separate. The current
 `survivors/visibility.rs` probes rendered scenery and uploads a camera/hero aperture;
-`survivors_cutaway.wgsl` removes scenery fragments inside that aperture. The experimental actor compositor now compares its separate mask with completed
-scene depth. Graphics still exposes no silhouette switches: filter persistence and
-obstruction acceptance remain incomplete. This audit does not establish rendered acceptance.
+`survivors_cutaway.wgsl` removes scenery fragments inside that aperture. The opt-in
+actor compositor compares a separate actor mask with completed scene depth.
+Independent Graphics switches persist and have native restart/reset evidence.
+The checkpoints below establish synthetic obstruction, filter and mixed-actor
+rendering on Metal. They do not establish Windows or real-map foliage acceptance.
 
 Actors use `WowModelMaterial`, with posed meshes, `MeshTag` palette/alpha payloads,
 animated material slots and cutout textures. A generic unlit copy would lose parts
@@ -249,3 +251,28 @@ isolated fixture. No shader validation errors were logged in that run either.
 Final eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
 A disk-full example link was retried after removing only superseded unlocked compiler
 snapshots; the latest cache for every variant and dependency builds were retained.
+
+## Mixed-actor depth acceptance (2026-10-30)
+
+The developer-only fixture now supports live `overlap-clear`, `overlap-both`,
+`overlap-enemies` and `overlap-neutral` cases. A nearer hero or neutral specimen
+stands in front of a larger enemy specimen; the unchanged opaque wall obscures
+both. These actors have no combat or AI components.
+
+Native Metal at 1280×720 / 4× MSAA verifies:
+
+- Clear view: normally shaded hero visibly stands in front of the enemy.
+- Both filters: green hero owns the overlap; red appears around it.
+- Enemy-only: the hero remains an uncolored hole in red, preserving depth when
+  its filter is disabled.
+- Neutral in front: the neutral body and cutout wings suppress the farther red
+  color while the separate hero remains green.
+
+Captures: `../images/screenshots/2026-10-30-silhouette-overlap/` (clear, both,
+enemies, neutral). No shader errors or panics were logged. A transient native
+capture timeout recovered by raising the same running window. Build: 1m25s.
+This closes the pictured mixed-actor case on Metal, not all poses/distances,
+render scales, performance, Windows or attended real-map acceptance.
+
+Final eight-package formatting, Clippy and test gate passes, with 31 expected
+optional-addon skips (`/tmp/silhouette-overlap-check.log`).

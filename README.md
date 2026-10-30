@@ -472,6 +472,12 @@ restart. Overlap/performance, Windows and real Elwynn acceptance remain open.
 
 ![Partial obstruction preserves visible actor shading](docs/images/screenshots/2026-10-29-silhouette-blockers/partial-msaa4.png)
 
+Native Metal overlap checks also verify that disabling friendly color preserves
+its depth against a farther enemy; neutral bodies retain the same ownership.
+This is a noncombat fixture, not real-map or Windows acceptance.
+
+![Disabled friendly occludes the farther enemy silhouette](docs/images/screenshots/2026-10-30-silhouette-overlap/enemies.png)
+
 ![Compact Graphics with saved visibility filters](docs/images/screenshots/2026-10-29-silhouette-filters/graphics-compact.png)
 
 

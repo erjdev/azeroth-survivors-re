@@ -5,6 +5,23 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Silhouette overlap acceptance
+
+Added live noncombat overlap cases to the render fixture. Native Metal / 4× MSAA
+confirms that nearer friendly and neutral bodies hide a farther enemy silhouette;
+disabling friendly color preserves that depth ownership. Clear actors remain
+normally shaded. No production rendering behavior changed. Build: 1m25s.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+Windows, performance and real-map foliage acceptance remain open.
+
+![Clear arrangement: hero in front of enemy](images/screenshots/2026-10-30-silhouette-overlap/clear.png)
+
+![Both filters preserve nearest actor color](images/screenshots/2026-10-30-silhouette-overlap/both.png)
+
+![Disabled friendly still blocks the farther red silhouette](images/screenshots/2026-10-30-silhouette-overlap/enemies.png)
+
+![Neutral body and wings retain depth ownership](images/screenshots/2026-10-30-silhouette-overlap/neutral.png)
+
 ## 2026-10-30 — Starter equipment inspection verified
 
 Native pointer and keyboard checks now cover collected and empty slots at

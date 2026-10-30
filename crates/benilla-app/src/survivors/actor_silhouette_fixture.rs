@@ -17,6 +17,10 @@ enum Case {
     Enemies,
     Friendlies,
     Neither,
+    OverlapClear,
+    OverlapBoth,
+    OverlapEnemies,
+    OverlapNeutral,
 }
 impl Case {
     fn parse(text: &str) -> Option<Self> {
@@ -31,6 +35,10 @@ impl Case {
             "enemies" => Self::Enemies,
             "friendlies" => Self::Friendlies,
             "neither" => Self::Neither,
+            "overlap-clear" => Self::OverlapClear,
+            "overlap-both" => Self::OverlapBoth,
+            "overlap-enemies" => Self::OverlapEnemies,
+            "overlap-neutral" => Self::OverlapNeutral,
             _ => return None,
         })
     }
@@ -93,9 +101,26 @@ fn show(
     font: Res<crate::survivors::hud::HudFont>,
     mut hero: Query<
         (&mut Transform, &mut Visibility),
-        (With<Hero>, Without<WorldCamera>, Without<Barrier>),
+        (
+            With<Hero>,
+            Without<WorldCamera>,
+            Without<Barrier>,
+            Without<FixtureSide>,
+        ),
     >,
-    mut cameras: Query<&mut Transform, (With<WorldCamera>, Without<Hero>, Without<Barrier>)>,
+    mut cameras: Query<
+        &mut Transform,
+        (
+            With<WorldCamera>,
+            Without<Hero>,
+            Without<Barrier>,
+            Without<FixtureSide>,
+        ),
+    >,
+    mut specimens: Query<
+        (&FixtureSide, &mut Transform),
+        (Without<Hero>, Without<WorldCamera>, Without<Barrier>),
+    >,
     mut roots: Query<
         &mut Node,
         Or<(
@@ -138,8 +163,10 @@ fn show(
     mask.enabled = case != Case::FrontOff;
     settings.silhouette_enemies =
         !matches!(case, Case::Friendlies | Case::Neither | Case::FrontOff);
-    settings.silhouette_friendlies =
-        !matches!(case, Case::Enemies | Case::Neither | Case::FrontOff);
+    settings.silhouette_friendlies = !matches!(
+        case,
+        Case::Enemies | Case::Neither | Case::FrontOff | Case::OverlapEnemies
+    );
     for mut root in &mut roots {
         root.display = Display::None;
     }
@@ -148,7 +175,27 @@ fn show(
         10_000.,
         hero.translation.z,
     ));
-    hero.translation = center;
+    let overlap = matches!(
+        case,
+        Case::OverlapClear | Case::OverlapBoth | Case::OverlapEnemies | Case::OverlapNeutral
+    );
+    hero.translation = center
+        + if case == Case::OverlapNeutral {
+            Vec3::X * -3.5
+        } else if overlap {
+            Vec3::Z
+        } else {
+            Vec3::ZERO
+        };
+    for (side, mut transform) in &mut specimens {
+        let offset = match (overlap, side.0) {
+            (true, 1) => Vec3::new(0.35, 0., -1.),
+            (true, 0) if case == Case::OverlapNeutral => Vec3::Z,
+            (_, 1) => Vec3::X * -3.5,
+            _ => Vec3::X * 3.5,
+        };
+        transform.translation = center + offset;
+    }
     hero.rotation = Quat::from_rotation_y(units::yaw_toward(Vec3::Z));
     *hero_visibility = Visibility::Visible;
     let target = center + Vec3::Y * 1.5;
@@ -156,12 +203,19 @@ fn show(
         *camera = Transform::from_translation(target + Vec3::new(0., 0.5, 13.))
             .looking_at(target, Vec3::Y);
     }
-    let title = format!("Silhouette render fixture · {case:?} · no combat\nLeft: enemy specimen · center: saved hero · right: neutral specimen");
+    let arrangement = if case == Case::OverlapNeutral {
+        "Center: neutral in front of enemy · left: saved hero"
+    } else if overlap {
+        "Center: saved hero in front of enemy · right: neutral specimen"
+    } else {
+        "Left: enemy specimen · center: saved hero · right: neutral specimen"
+    };
+    let title = format!("Silhouette render fixture · {case:?} · no combat\n{arrangement}");
     for mut text in &mut caption {
         text.0.clone_from(&title);
     }
     if let Ok((mut transform, mut visibility, mut material)) = barrier.single_mut() {
-        *visibility = if case == Case::Clear {
+        *visibility = if matches!(case, Case::Clear | Case::OverlapClear) {
             Visibility::Hidden
         } else {
             Visibility::Visible

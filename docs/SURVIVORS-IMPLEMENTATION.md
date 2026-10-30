@@ -2714,8 +2714,11 @@ concealment/reveal. Screenshots are inline in CHANGELOG and README.
 
 Independent filters now save under Graphics and pass native click/restart/reset
 acceptance; all four combinations render correctly in the isolated fixture.
-Mixed-actor overlap, distance/render-scale coverage,
-duplicate-pass performance, Windows and attended real-map acceptance remain open.
+A 2026-10-30 noncombat Metal 4× MSAA overlap fixture verifies that nearer
+friendly and neutral bodies retain depth ownership over a farther enemy, even
+with friendly color disabled. Captures and repeatable controls are in the audit.
+Distance/render-scale coverage, duplicate-pass performance, Windows and attended
+real-map acceptance remain open.
 The compositor is disabled by default. Isolated rendering evidence does not close
 the reported Elwynn foliage cutaway issue.
 
