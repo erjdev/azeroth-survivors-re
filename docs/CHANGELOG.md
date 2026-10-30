@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Weapon-damage dependency evidence
+
+Verified the seven Paladin weapon identities against pinned damage/speed data.
+Vanilla numbers do not follow our rarity progression; multi-school weapons also
+need separate damage handling. [Evidence and reproducible audit](audits/PALADIN-WEAPON-TALENTS.md#weapon-damage-source-evidence--2026-10-30)
+records the boundary before weapon talents are enabled. Two extractor tests pass;
+no runtime/UI change or new screenshot.
+
 ## 2026-10-30 — Rewards keyboard paging
 
 Page Up/Down and Home/End now scroll Rewards, matching Achievements and Codex.

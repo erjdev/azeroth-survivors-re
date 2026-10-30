@@ -65,3 +65,55 @@ or visual acceptance. No installed assets are copied and no new screenshot is cl
 Repository validation: the eight-package formatting/Clippy/test gate passes with
 31 optional-addon skips. The existing rustdoc link gate also passes (150 benign
 warnings). These checks do not enable or validate either missing talent.
+
+## Weapon-damage source evidence — 2026-10-30
+
+The [pinned MaNGOS Zero item catalog](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/item_template.sql)
+contains weapon damage ranges and millisecond attack delays, unlike the display
+metadata. A fresh read of that exact upstream revision matches the cached file's
+SHA-256 `cbba79ec53c0bc451d75270d3ea3bc1264a6ae49ae60e7005cd6300a374a766b`.
+The SQL is read as data, never executed. This is community server evidence, not
+proof of original Blizzard server formulas or Survivors balance.
+
+[CSV](paladin-weapon-damage.csv) covers the seven current Paladin main-hand
+identities (Poor plus six ordinary tiers), with Warrior Thunderfury as an explicit
+mixed-school comparison. It is not an audit of every class or every weapon.
+
+| Survivors tier | Item | Entry | Source physical damage | Source delay (ms) |
+| --- | --- | ---: | ---: | ---: |
+| Poor | Cracked Sledge | 1414 | 10–15 | 3300 |
+| Common | Quel'Serrar | 18348 | 84–126 | 2000 |
+| Uncommon | Hammer of the Grand Crusader | 18717 | 116–175 | 2700 |
+| Rare | Bonereaver's Edge | 17076 | 206–310 | 3400 |
+| Epic | The Untamed Blade | 19334 | 192–289 | 3400 |
+| Rank 14 | Grand Marshal's Battle Hammer | 18867 | 235–353 | 3800 |
+| Legendary | Corrupted Ashbringer | 22691 | 259–389 | 3600 |
+
+These source numbers must **not** silently become Survivors stats. The Rare
+identity has more base physical damage than the Epic identity at the same speed.
+Source rarity also differs: Quel'Serrar is vanilla Epic but Survivors Common.
+Direct import would therefore not implement the requested rarity progression.
+The same catalog gives Thunderfury 44–115 physical plus 16–30 Nature damage;
+collapsing all components into a physical hit would misapply school-specific
+training. A weapon's proc spells are separate fields, not part of those ranges.
+
+The next implementation must explicitly choose an authored, rarity-aware damage
+policy or another approved conversion. Preserve worn identity, distinguish swing
+cadence from cooldown/recovery, and retain damage-school components if using
+source damage. Attack acquisition remains the outstanding Paladin choice; no
+attack or talent is enabled by this audit.
+
+Reproduce from the ignored cached catalog (or a fresh copy of the pinned URL):
+
+```sh
+python3 docs/audits/weapon-damage.py target/gear-catalog/item_template.sql \
+  1414 18348 18717 17076 19334 18867 22691 19019
+python3 docs/audits/test_weapon_damage.py
+```
+
+The extractor verifies the complete source hash before parsing, validates all
+requested rows before output, and retains all five damage components. Two tests
+cover escaped names, separate schools, hash drift, duplicate rows, missing items,
+nonweapons, invalid delays/ranges and invalid schools. Both pass; regenerating the
+CSV reproduces the checked-in report. No Rust/runtime/UI changed, so no new native
+build, scoped gate or screenshot is claimed. Definition coverage remains unchanged.

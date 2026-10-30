@@ -10370,3 +10370,12 @@ regression and native 640×480 captures verify Page Up/Down, Home/End and catego
 coverage; see [keyboard evidence](audits/COMPANION-READABILITY.md#rewards-keyboard-paging--2026-10-30).
 This closes the previously reported Rewards paging gap for the exercised native
 cases. Windows and physical-controller acceptance remain open.
+
+### Weapon-damage inputs — 2026-10-30
+
+[Source evidence](audits/PALADIN-WEAPON-TALENTS.md#weapon-damage-source-evidence--2026-10-30)
+now verifies all seven Paladin main-hand identities and a mixed-school comparison.
+Direct vanilla damage import would invert Rare/Epic progression for these items.
+A rarity-aware runtime formula and attack acquisition must be explicit before
+weapon specializations, seals, Stormstrike or Riposte are counted complete.
+This is dependency evidence only; no definition coverage or gameplay claim changes.
