@@ -15,6 +15,7 @@ inspired by Aethus’s game; it is not a build of that game's source code. Imple
 is ongoing; the [acceptance contract](docs/SURVIVORS-IMPLEMENTATION.md) tracks the intended
 scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
+The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
 Healing Wave now benefits from Purification healing and Tidal Mastery critical
 chance, with the changing values highlighted inline. Native macOS checks verify

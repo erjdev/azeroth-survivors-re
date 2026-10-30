@@ -5,6 +5,13 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Current acceptance index
+
+Added a concise [phase and decision index](SURVIVORS-STATUS.md) to separate current
+requirements from historical checkpoints. Fresh audits confirm 309/432 named
+talent definitions and three content gaps: Blackrock Mountain's map entry, plus
+Scarlet Monastery/Naxxramas floor validation. No runtime or UI change.
+
 ## 2026-10-30 — Druid form visual prerequisites
 
 Verified Night Elf/Tauren Cat, Bear and Moonkin models and all ten referenced

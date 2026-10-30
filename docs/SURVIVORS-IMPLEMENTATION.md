@@ -5,6 +5,10 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase summary,
+remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
+not a cumulative declaration that every earlier pending item is still open.
+
 ## Druid form visual prerequisites — 2026-10-30
 
 The [Druid dependency audit](audits/DRUID-TALENT-DEPENDENCIES.md#verified-form-models--2026-10-30)
