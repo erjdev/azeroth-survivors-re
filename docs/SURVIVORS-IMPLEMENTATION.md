@@ -5,6 +5,16 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Remaining Mage consumers — 2026-10-29
+
+The [Mage dependency audit](audits/MAGE-TALENT-DEPENDENCIES.md) records installed
+rules and missing consumers for all eleven remaining nodes. Clearcasting's
+proposed next-damaging-spell half-recovery conversion awaits confirmation.
+Wards need incoming school identity, Counterspell needs enemy casting, and
+armor/wand talents need their actual stat or attack consumers. Existing
+same-name haste/area passives do not satisfy Intellect/Amplify Magic semantics.
+Coverage remains 38/49 Mage and 308/432 overall; no runtime change is claimed.
+
 ## First-visit spec scroll continuity — 2026-10-29
 
 The native minimum-size check exposed a first-visit jump to the top when selecting

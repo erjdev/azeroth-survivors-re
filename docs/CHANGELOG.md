@@ -5,6 +5,13 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Remaining Mage mechanics mapped
+
+Recorded installed rules and implementation dependencies for the eleven remaining
+Mage talents, including wards, Counterspell and resource conversions. The plan
+now distinguishes missing combat consumers from existing same-name passives.
+Documentation only; no new behavior, coverage increase or rendered screenshot.
+
 ## 2026-10-29 — Talent spec navigation stays in view
 
 The first visit to another spec inherits the current hero's scroll position,
