@@ -1919,6 +1919,17 @@ Character run could not be inspected because the Mac was locked and was stopped.
 Rendered fit, Manage/Back/Escape interaction, large-roster scrolling and updated
 README screenshots still need verification; this is not visual acceptance.
 
+Native roster acceptance (2026-10-29, runtime `fd8da1a`): an isolated 24-hero
+account fits wrapped roster buttons at 640×720 and 640×480 with 125% UI scale.
+Pointer selection of hero 24 (Zora Roster) opens its dressed Human Warrior.
+Manage heroes reopens the roster; wheel scrolling reaches the lower account
+upgrades and appearance controls; Escape leaves management. The compact view
+retains its scroll offset on Escape, so the model header can be above the viewport.
+Three native captures are embedded in CHANGELOG, with the roster in README.
+This closes the 24-hero compact roster case, not arbitrary roster sizes, controller
+navigation, Windows DPI, or the full race/resolution matrix. No runtime changes.
+
+
 Hero creation acceptance (2026-10-27): labeled first/last names and nine direct
 class choices replace the unlabeled cycling controls. Creation returns to the
 Character appearance controls; account upgrades have their own section. Native

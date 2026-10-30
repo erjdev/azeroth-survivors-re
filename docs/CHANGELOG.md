@@ -4,6 +4,21 @@ Feature milestones, newest first. These are development checkpoints, not release
 Detailed changes remain in Git; unfinished work remains in the [implementation plan](SURVIVORS-IMPLEMENTATION.md).
 
 
+
+## 2026-10-29 — Compact hero-roster acceptance
+
+Native checks with an isolated 24-hero account verify wrapped roster buttons at
+640×720 and 640×480, both at 125% UI scale. Selecting the final hero returns to
+its dressed Character view. Manage heroes, scrolling to account upgrades and
+appearance controls, and Escape back to Character work. No runtime changes;
+Windows DPI and controller coverage remain open.
+
+![24-hero roster at the minimum window size](images/screenshots/2026-10-29-large-roster/compact-roster.png)
+
+![Final hero selected and rendered](images/screenshots/2026-10-29-large-roster/last-hero.png)
+
+![Account upgrades below the roster remain reachable](images/screenshots/2026-10-29-large-roster/scrolled-controls.png)
+
 ## 2026-10-29 — Healing Wave talent scaling
 
 Purification now boosts Healing Wave by 2% per rank; Tidal Mastery adds one

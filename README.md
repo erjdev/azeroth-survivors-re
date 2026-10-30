@@ -175,6 +175,11 @@ omitting it restores saved settings. See [preview controls](docs/SURVIVORS-DEVEL
 </table>
 
 
+Native 24-hero roster acceptance at 640×480 and 125% UI scale: every hero is
+reachable, including selection of the final hero and lower management controls.
+
+![Compact 24-hero roster](docs/images/screenshots/2026-10-29-large-roster/compact-roster.png)
+
 ### Armory
 
 <table>
