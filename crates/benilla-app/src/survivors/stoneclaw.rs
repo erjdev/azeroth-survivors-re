@@ -20,12 +20,13 @@ pub(super) fn deploy(
     floor: &Floor,
     feet: Vec3,
     radius: f32,
+    health: f32,
     previous: impl Iterator<Item = Entity>,
 ) -> bool {
     if !radius.is_finite() || radius <= 0.0 || !run.alive() {
         return false;
     }
-    let Some(life) = rules::Stoneclaw::deploy(run.elapsed, rules::BASE_HEALTH) else {
+    let Some(life) = rules::Stoneclaw::deploy(run.elapsed, health) else {
         return false;
     };
     let Some(y) = floor.height(feet) else {

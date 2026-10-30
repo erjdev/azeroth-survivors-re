@@ -239,3 +239,29 @@ fn earthbind_is_offered_only_to_shamans() {
         );
     }
 }
+
+#[test]
+fn earths_grasp_expands_actual_earthbind_pulse_without_changing_health_or_slow() {
+    for (rank, radius) in [(0, 10.), (1, 11.), (2, 12.)] {
+        let (mut app, _, target) = setup(true);
+        app.world_mut().resource_mut::<Run>().milestones = survivors_core::talents::Milestones {
+            class: 5,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 572, rank)]);
+        let totem = deployed(&mut app);
+        let body = app.world().get::<earthbind::Earthbind>(totem).unwrap();
+        assert_eq!(body.radius, radius);
+        assert_eq!(body.life.health(), 5.);
+        app.world_mut()
+            .get_mut::<Transform>(target)
+            .unwrap()
+            .translation = Vec3::X * 11.5;
+        app.world_mut().resource_mut::<Run>().elapsed = 3.;
+        app.world_mut().run_system_once(earthbind::tick).unwrap();
+        assert_eq!(
+            app.world().get::<Enemy>(target).unwrap().slows.state(3.),
+            if rank == 2 { (0.5, 5.) } else { (1., 0.) }
+        );
+    }
+}

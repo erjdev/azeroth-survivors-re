@@ -448,6 +448,9 @@ impl Milestones {
                             effect.radius *= 1.0 + value;
                         }
                     }
+                    TalentStat::EarthsGrasp if key == "earthbind_totem" => {
+                        effect.radius *= 1.0 + 0.1 * value;
+                    }
                     TalentStat::TotemicMastery => {
                         if key == "searing_totem" {
                             effect.range *= 1.0 + value;
@@ -726,6 +729,11 @@ impl Milestones {
         } else {
             0.
         }
+    }
+
+    /// Earth's Grasp changes only Stoneclaw health, not hero or other totem health.
+    pub fn stoneclaw_health(self) -> f32 {
+        crate::stoneclaw::BASE_HEALTH * (1.0 + 0.25 * self.trained_value(TalentStat::EarthsGrasp))
     }
 
     fn trained_value(self, stat: TalentStat) -> f32 {
@@ -1775,6 +1783,7 @@ pub enum TalentStat {
     TotemHealing,
     Purification,
     TotemicMastery,
+    EarthsGrasp,
     ShamanShieldAbsorption,
     AncestralHealingArmor,
     PetHealth,
@@ -1948,6 +1957,27 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::EarthsGrasp {
+            let rank = rank.min(self.max_rank);
+            let next = rank.saturating_add(1).min(self.max_rank);
+            let value = |scale: u8, unit: &str| {
+                if rank == next {
+                    format!("{}{unit}", rank * scale)
+                } else {
+                    format!("{} » {}{unit}", rank * scale, next * scale)
+                }
+            };
+            let mut text = "Stoneclaw Totem: +".to_owned();
+            let start = text.len() - 1;
+            text.push_str(&value(25, "% health"));
+            let first = start..text.len();
+            text.push_str(". Earthbind Totem: +");
+            let start = text.len() - 1;
+            text.push_str(&value(10, "% radius"));
+            let second = start..text.len();
+            text.push_str(". Requires the respective acquired spell; duration, recovery, Stoneclaw acquisition radius and Earthbind slow strength are unchanged");
+            return Some((text, vec![first, second]));
+        }
         if self.stat == TalentStat::HealingLight {
             let rank = rank.min(self.max_rank);
             let next = rank.saturating_add(1).min(self.max_rank);
@@ -2334,7 +2364,10 @@ impl TalentDefinition {
 
     /// This node's contribution only, before other talents, equipment and milestones.
     pub fn rank_preview(&self, rank: u8) -> String {
-        if matches!(self.stat, TalentStat::HealingLight | TalentStat::HealingWay) {
+        if matches!(
+            self.stat,
+            TalentStat::HealingLight | TalentStat::HealingWay | TalentStat::EarthsGrasp
+        ) {
             let suffix = if rank >= self.max_rank {
                 " (maximum rank)"
             } else {
@@ -2483,6 +2516,7 @@ impl TalentDefinition {
             TalentStat::AncestralHealingArmor => (1.0, " armor after effective totem healing"),
             TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
+            TalentStat::EarthsGrasp => return self.inline_description(rank).unwrap(),
             TalentStat::Purification => (100.0, "% Healing Wave and totem deployment healing"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::Illumination => (100.0, "% critical-heal recovery refund chance"),
@@ -4044,6 +4078,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::ShamanShieldAbsorption
             | TalentStat::AncestralHealingArmor
             | TalentStat::TotemicMastery
+            | TalentStat::EarthsGrasp
             | TalentStat::PetWrath
             | TalentStat::PetIntimidation
             | TalentStat::PetRecovery
@@ -5593,6 +5628,7 @@ mod stat_talent_tests {
                     | TalentStat::ShamanShieldAbsorption
                     | TalentStat::AncestralHealingArmor
                     | TalentStat::TotemicMastery
+                    | TalentStat::EarthsGrasp
                     | TalentStat::PetWrath
                     | TalentStat::PetIntimidation
                     | TalentStat::PetRecovery

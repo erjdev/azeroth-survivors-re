@@ -281,7 +281,9 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
         }
         Kind::Totem if def.key == "stoneclaw_totem" => {
             prose!(
-                "Drops a 50-health totem for ",
+                "Drops a totem with ",
+                (a.totem_health, b.totem_health, " health"),
+                " for ",
                 duration,
                 ". Forces visible ordinary enemies within ",
                 radius,

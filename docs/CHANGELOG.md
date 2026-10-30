@@ -5,6 +5,24 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Earth's Grasp connects both earth totems
+
+Earth's Grasp now increases Stoneclaw health by 25/50% and Earthbind radius by
+10/20%. Both bonuses appear green inline and reach the deployed totems and spell
+cards. Native wide/compact purchase, refund and save/relaunch checks pass;
+rank-one Stoneclaw displays 62.5 health. Incremental build: 19 seconds.
+Two shared-rule tests, two runtime regressions and the eight-package formatting,
+Clippy and test gate pass (31 optional-addon skips). Definition coverage: 309/432.
+Live combat and Windows validation remain open.
+
+![Both Earth's Grasp bonuses inline](images/screenshots/2026-10-29-earths-grasp/talent-wide.png)
+
+![Compact talent refund and next-rank preview](images/screenshots/2026-10-29-earths-grasp/talent-compact-refund.png)
+
+![Compact maximum rank](images/screenshots/2026-10-29-earths-grasp/talent-compact-max.png)
+
+![Saved talent values in the totem cards](images/screenshots/2026-10-29-earths-grasp/cards-saved-rank.png)
+
 ## 2026-10-29 — Stoneclaw forced targeting
 
 Stoneclaw is now a Shaman spell: ordinary enemies it catches attack the totem

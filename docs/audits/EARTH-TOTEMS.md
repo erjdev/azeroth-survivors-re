@@ -224,3 +224,37 @@ vanish precedence; visibility on acquisition with retention after occlusion.
 
 The eight-package formatting, Clippy and test gate is green, with 31 expected
 optional-addon corpus skips. No new test failure remains.
+
+## Earth's Grasp integration — 2026-10-29
+
+Node 572 is now defined at two ranks. Checkout spell rows 16043/16130 specify
++25/50% Stoneclaw health and +10/20% Earthbind radius. The shared talent snapshot
+produces 50/62.5/75 health at ranks 0/1/2; deployment passes that value into the
+actual lifecycle. Earthbind's cast radius is multiplied by 1/1.1/1.2, so its
+runtime pulse and upgrade description use the same radius. Ability rank, equipment
+area and the talent compose through the existing cast parameters. Other totems,
+Stoneclaw acquisition radius, recovery, lifetime and slow strength are unchanged.
+The talent replaces the provisional 1% generic damage per spent point.
+
+Two shared-rule tests cover capped ranks, class/scope isolation, resetting and
+both colored inline values. Two runtime tests cover deployed health and fatal
+contact at every rank, and actual Earthbind pulse reach at 11.5 yards. With no
+other modifiers, only rank two reaches that target, with the original 50% slow.
+
+Native macOS preview: 1280×720 and 640×720 / 125% show both green bonuses without
+clipping. Purchased ranks 0→1→2, refunded to one, confirmed the saved DBC record,
+then relaunched into selected-profile cards. Stoneclaw shows 62.5 health; the
+Earthbind card includes both saved talent and equipment radius. All captures are
+under `docs/images/screenshots/2026-10-29-earths-grasp/`; CHANGELOG embeds them and
+README uses the compact refund view. Presets are under `docs/ui-previews/`.
+Incremental play build: 18.71 seconds, with the existing linker warning.
+
+This supersedes the earlier incomplete Earth's Grasp consumer status. It does
+not close live combat visuals, race-specific totem appearance, Windows validation
+or the remaining talent definitions. No combat session was started.
+
+Fresh `survivors-audit --talent-coverage` matches Shaman 33/46 and total 309/432
+against checkout DBC identities and rank caps. This is definition coverage only.
+
+Final eight-package formatting, Clippy and test gate: green, 31 optional-addon
+corpus skips. Both new runtime tests and the shared-rule tests pass.

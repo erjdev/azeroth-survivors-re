@@ -244,3 +244,38 @@ fn stoneclaw_requires_sight_to_acquire_but_not_to_retain() {
     move_once(&mut app);
     assert!(app.world().get::<Transform>(enemy).unwrap().translation.x < before);
 }
+
+#[test]
+fn earths_grasp_changes_deployed_health_and_damage_budget() {
+    for (rank, health) in [(0, 50.), (1, 62.5), (2, 75.)] {
+        let (mut app, hero, enemy) = setup(true);
+        app.world_mut().resource_mut::<Run>().milestones = survivors_core::talents::Milestones {
+            class: 5,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 572, rank)]);
+        let totem = deployed(&mut app);
+        let body = app.world().get::<stoneclaw::Stoneclaw>(totem).unwrap();
+        assert_eq!(body.life.health(), health);
+        assert_eq!(body.life.maximum_health(), health);
+        assert_eq!(body.radius, 8.);
+        app.world_mut()
+            .get_mut::<Transform>(hero)
+            .unwrap()
+            .translation = Vec3::X * 3.;
+        app.world_mut()
+            .get_mut::<Transform>(enemy)
+            .unwrap()
+            .translation = Vec3::X * 0.5;
+        app.world_mut().get_mut::<Enemy>(enemy).unwrap().damage = 60.;
+        move_once(&mut app);
+        assert_eq!(
+            app.world()
+                .get::<stoneclaw::Stoneclaw>(totem)
+                .unwrap()
+                .life
+                .health(),
+            (health - 60.).max(0.)
+        );
+    }
+}

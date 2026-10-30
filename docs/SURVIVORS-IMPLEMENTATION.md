@@ -5,6 +5,17 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Earth's Grasp — 2026-10-29
+
+Node 572 now applies both installed bonuses: +25/50% Stoneclaw health and
++10/20% Earthbind radius. The runtime deployment, actual slow pulse radius and
+spell-card values consume the purchased talent. Dual inline green values describe
+each next rank. Native purchase/refund (0→1→2→1), wide/compact layouts, save and
+relaunch into selected-profile cards are verified. Stoneclaw shows 62.5 health at
+rank one; Earthbind radius also composes with equipment. Live combat and Windows
+acceptance remain open. Coverage is now Shaman 33/46, overall 309/432; this
+supersedes the pending Earth's Grasp notes below, not the unfinished talent phase.
+
 ## Achievement reading layout — 2026-10-29
 
 Achievement cards and summary progress use one full-width column on narrow
@@ -1884,11 +1895,11 @@ cargo run -p survivors-audit -- wow-data/Data --talent-gaps
 | Hunter | 42 / 46 | 9 / 9 |
 | Rogue | 38 / 51 | 9 / 9 |
 | Priest | 31 / 47 | 9 / 9 |
-| Shaman | 32 / 46 | 9 / 9 |
+| Shaman | 33 / 46 | 9 / 9 |
 | Mage | 38 / 49 | 9 / 9 |
 | Warlock | 29 / 50 | 9 / 9 |
 | Druid | 28 / 47 | 9 / 9 |
-| Total | 308 / 432 | 81 / 81 |
+| Total | 309 / 432 | 81 / 81 |
 
 The command checks definition names/rank caps against actual selectable DBC nodes,
 rejects unknown authored node IDs or mismatched tree ordering, and lists missing

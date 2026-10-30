@@ -190,6 +190,7 @@ struct Foe {
 /// The numbers one cast uses, from the ability's level and the hero's stats.
 pub(super) struct Params {
     pub dmg: f32,
+    pub totem_health: f32,
     pub ranged_power_scale: f32,
     pub poison_chance: f32,
     pub dodge_chance: f32,
@@ -279,6 +280,11 @@ impl Params {
                 0
             } else {
                 o.count(stats) as usize + effect.extra_targets
+            },
+            totem_health: if o.def.key == "stoneclaw_totem" {
+                milestones.stoneclaw_health()
+            } else {
+                0.0
             },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
@@ -1063,6 +1069,7 @@ pub(super) fn cast_abilities(
                             floor,
                             hpos,
                             p.radius,
+                            p.totem_health,
                             stoneclaws.iter(),
                         )
                     });

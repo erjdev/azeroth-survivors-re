@@ -24,6 +24,7 @@ const CRITICAL_CASTS: &[&str] = &[
 ];
 
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 572, max_rank: 2, name: "Earth's Grasp", description: "Stoneclaw Totem: +25% health per rank. Earthbind Totem: +10% radius per rank. Requires the respective acquired spell; duration, recovery, Stoneclaw acquisition radius and Earthbind slow strength are unchanged", stat: TalentStat::EarthsGrasp, per_rank: 1.0 },
     TalentDefinition { id: 1648, max_rank: 3, name: "Healing Way", description: "Effective Healing Wave casts have a 33–100% chance to grant +6% healing to subsequent Healing Waves for 15 sec. Stacks up to 3 times; successful procs refresh the duration. Requires acquired Healing Wave; excludes other healing", stat: TalentStat::HealingWay, per_rank: 1.0 },
     TalentDefinition { id: 583, max_rank: 3, name: "Nature's Guidance", description: "Lightning Bolt, Chain Lightning and shocks: +1% direct and periodic damage per rank. Excludes totems, Lightning Shield and other-class abilities (Survivors hit-chance conversion)", stat: TalentStat::SpellGroupDamage(CASTS), per_rank: 0.01 },
     TalentDefinition { id: 573, max_rank: 1, name: "Elemental Mastery", description: "Automatically adds +100% critical chance to the next successful Lightning Bolt, Chain Lightning or shock cast, including extra targets. Ready at run start; recovers 180 sec after use. Pauses stop recovery. Excludes totems, Lightning Shield and periodic ticks (Survivors automatic conversion).", stat: TalentStat::ElementalMastery, per_rank: 1.0 },
@@ -627,5 +628,72 @@ mod direct_healing_tests {
                 );
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod earths_grasp_tests {
+    use crate::talents::{stat_adjustment, talent_definition, Milestones};
+
+    #[test]
+    fn earths_grasp_scales_only_stoneclaw_health_and_earthbind_radius() {
+        for rank in [0, 1, 2, 3, 255] {
+            let trained = Milestones {
+                class: 5,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 572, rank)]);
+            let rank = f32::from(rank.min(2));
+            assert_eq!(trained.stoneclaw_health(), 50. * (1. + 0.25 * rank));
+            assert_eq!(trained.cast("earthbind_totem").radius, 1. + 0.1 * rank);
+            for key in [
+                "stoneclaw_totem",
+                "searing_totem",
+                "magma_totem",
+                "frost_nova",
+            ] {
+                assert_eq!(
+                    trained.cast(key),
+                    Milestones {
+                        class: 5,
+                        ..Default::default()
+                    }
+                    .cast(key)
+                );
+            }
+        }
+        let base = Milestones {
+            class: 5,
+            ..Default::default()
+        };
+        assert_eq!(base.with_ranks(&[]).stoneclaw_health(), 50.);
+        for class in [0, 1, 2, 3, 4, 6, 7, 8] {
+            let m = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 572, 2)]);
+            assert_eq!(m.stoneclaw_health(), 50.);
+            assert_eq!(m.cast("earthbind_totem").radius, 1.);
+        }
+        // Replaces the provisional 1% generic damage per spent point.
+        let hero = stat_adjustment(5, &[(0, 572, 2)]);
+        assert_eq!(
+            (hero.health, hero.area, hero.cooldown, hero.might),
+            (0., 0., 0., -0.02)
+        );
+    }
+
+    #[test]
+    fn earths_grasp_preview_colors_both_bonuses_and_caps_rank() {
+        let node = talent_definition(5, 572).unwrap();
+        let (text, ranges) = node.inline_description_with_values(1).unwrap();
+        assert_eq!(
+            ranges.iter().map(|r| &text[r.clone()]).collect::<Vec<_>>(),
+            ["+25 » 50% health", "+10 » 20% radius"]
+        );
+        let text = node.inline_description(255).unwrap();
+        assert!(text.starts_with("Stoneclaw Totem: +50% health. Earthbind Totem: +20% radius."));
+        assert!(!text.contains('»'));
     }
 }
