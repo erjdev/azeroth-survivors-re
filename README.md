@@ -17,9 +17,10 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 
 Healing Wave now benefits from Purification healing and Tidal Mastery critical
-chance, with the changing values highlighted inline.
+chance, with the changing values highlighted inline. Native macOS checks verify
+purchase, refund, independent specs and restart alongside Healing Way.
 
-![Purification healing scope](docs/images/screenshots/2026-10-29-shaman-healing-training/purification-wide.png)
+![Purification healing scope](docs/images/screenshots/2026-10-29-shaman-healing-training/purification-trained.png)
 
 ![Compact Tidal Mastery description](docs/images/screenshots/2026-10-29-shaman-healing-training/tidal-compact.png)
 
@@ -33,9 +34,9 @@ purchase, independent specs, refund, restart and compact scrolling.
 
 Healing Way now has its three-rank proc chance and capped, timed healing bonus.
 
-![Healing Way talent inspection](docs/images/screenshots/2026-10-29-healing-way/untrained.png)
+![Healing Way talent inspection](docs/images/screenshots/2026-10-29-healing-way/trained.png)
 
-![Compact Healing Way tooltip](docs/images/screenshots/2026-10-29-healing-way/compact.png)
+![Compact Healing Way tooltip](docs/images/screenshots/2026-10-29-healing-way/restarted-compact.png)
 
 Shamans can now acquire Healing Wave, with inline healing and recovery upgrades.
 Healing Way now adds its source-specific stacking healing bonus.

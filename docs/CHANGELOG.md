@@ -9,13 +9,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 Purification now boosts Healing Wave by 2% per rank; Tidal Mastery adds one
 percentage point of healing-critical chance per rank. Existing totem behavior
 is preserved. Inline green text explains both scopes. Cast and saved-spec checks
-cover all ranks; native wide/compact descriptions verified. Native purchase,
-Windows/controller and attended combat remain open. Incremental build: 16s.
+cover all ranks. Native macOS checks now verify maximum-rank purchase, refund,
+independent specs and restart for both nodes plus Healing Way. Wide/compact
+descriptions verified; Windows/controller and attended combat remain open.
+Incremental build: 16s.
 The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
 
-![Purification applies to Healing Wave](images/screenshots/2026-10-29-shaman-healing-training/purification-wide.png)
+![Purification applies to Healing Wave](images/screenshots/2026-10-29-shaman-healing-training/purification-trained.png)
 
-![Tidal Mastery at compact UI scale](images/screenshots/2026-10-29-shaman-healing-training/tidal-compact.png)
+![Saved Shaman healing ranks after restart](images/screenshots/2026-10-29-shaman-healing-training/restarted.png)
 
 ## 2026-10-29 — Illumination recovery refund
 
@@ -39,13 +41,13 @@ boost subsequent Healing Waves by 6%, stacking three times for 15 seconds.
 Procs refresh the duration; other healing and damage are excluded. Inline talent
 text highlights the changing chance. The eight-package gate passes, including
 real cast sequencing and purchase/save/spec/refund tests (31 optional-addon skips).
-Native wide/compact tooltips verified; native purchase input, Windows and attended
-combat remain unverified. Illumination's half-recovery refund is now user-approved
-and next in the plan.
+Native macOS purchase/refund/spec/restart now passes with the shared Shaman
+healing check above; wide/compact tooltips verified. Windows and attended combat
+remain open. Illumination’s half-recovery refund is implemented.
 
-![Healing Way in the Shaman talent tree](images/screenshots/2026-10-29-healing-way/untrained.png)
+![Healing Way in the Shaman talent tree](images/screenshots/2026-10-29-healing-way/trained.png)
 
-![Compact Healing Way inspection at 125% UI size](images/screenshots/2026-10-29-healing-way/compact.png)
+![Compact Healing Way inspection at 125% UI size](images/screenshots/2026-10-29-healing-way/restarted-compact.png)
 
 
 ## 2026-10-29 — Shaman Healing Wave

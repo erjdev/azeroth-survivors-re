@@ -15,9 +15,13 @@ critical rolls inside the added chance; catalog-backed purchase/save/spec/refund
 checks cover both nodes. These existing definitions do not increase coverage.
 
 Native wide/compact tooltip screenshots show green inline changes for both nodes.
-Native pointer purchase hit a window-automation error and remains unverified,
-as do Windows, physical controller and attended combat. Incremental build: 16s.
+Native macOS purchase through maximum rank, one-rank refunds, independent specs
+and restart now pass for Purification, Tidal Mastery and Healing Way together.
+The healing audit records exact totals and captures. Windows, physical controller,
+compact purchase and attended combat remain unverified. Incremental build: 16s.
 Older totem-only cast-time/critical conversions still require reconciliation.
+Ancestral Healing’s replacement-versus-preservation choice is awaiting the user;
+its audited original trigger is 8/16/25% armor for 15 seconds after healing crits.
 The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
 
 ## Illumination — 2026-10-29
@@ -49,8 +53,8 @@ The eight-package gate passes (31 optional-addon skips), including all proc
 thresholds, cap/refresh/expiry, actual cast sequencing, failed readiness, and legal
 purchase → save/reload → independent spec → refund. Native tooltip screenshots
 cover 1280×720 and 640×720 / 125%, retaining the intention tree layout and green
-inline values. Native purchase input failed with `noWindowsAvailable`; no native
-purchase, Windows or attended-combat acceptance is claimed. Build: 1m46s.
+inline values. Native purchase/refund/spec/restart acceptance now passes in the shared Shaman
+healing check above. Windows and attended-combat acceptance remain open. Build: 1m46s.
 
 
 ## Shaman healing prerequisite — 2026-10-29

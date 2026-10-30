@@ -70,3 +70,34 @@ explicit totem conversions and require separate reconciliation.
 Final verification: all 321 core tests and the eight-package scoped gate pass;
 31 optional-addon tests skip because their corpus is unavailable. Earlier runs
 identified two obsolete exclusion/tooltip expectations, updated for the new scope.
+
+
+## Native saved-spec acceptance — 2026-10-29
+
+The earlier automation failures are superseded for purchase/refund/save by this
+successful macOS run of the `fd8da1a` implementation. An isolated Fenn Preview
+profile started with 25 legal Restoration points and 26 unspent. Pointer input
+trained Healing Way to 3/3, Tidal Mastery to 5/5 and Purification to 5/5: 38 spent,
+13 unspent. Right-clicking each once produced 2/3, 4/5 and 4/5: 35 spent, 16 unspent.
+Spec 2 stayed empty with 51 available; returning to spec 1 and restarting retained
+all three refunded ranks and the point totals. The saved row independently
+confirms `2:1648:2,2:594:4,2:592:4` in the first spec and empty other specs.
+
+Wide captures include all three node counters, totals and independent-spec state.
+A compact 640×720 / 125% capture confirms the restored Healing Way description.
+Screenshots are stored in the Healing Way and Shaman healing training milestone
+folders. Preview configuration selects the inspected talent; purchases and refunds
+used native input. No account data was edited between purchase and restart.
+Windows, physical controller, compact purchase of these nodes and attended combat
+remain open. No runtime source changed; the preceding green eight-package gate
+and 321 core tests remain applicable.
+
+## Ancestral Healing decision pending
+
+Raw node 581 references triggers 16177, 16236 and 16237. Their aura 101 values
+are 8/16/25% armor and all last 15 seconds. The current authored conversion grants
+12/24/36 flat armor for 10 seconds after effective Searing/Magma deployment
+healing, without a critical roll. The new Healing Wave critical-event producer
+makes the original trigger implementable. The user has been asked whether to
+replace the old conversion, retain both effects or keep the existing behavior.
+Do not treat that question as approval; the implementation remains unchanged.
