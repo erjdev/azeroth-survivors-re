@@ -5,6 +5,17 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Earthbind runtime and offers — 2026-10-29
+
+Earthbind is now acquired through Shaman offers, grounded before deployment,
+replaced on recast and destructible by nearby ordinary foes. Its independent
+slow area deals no damage, preserves other slows and uses the existing boss
+reduction. The [audit](audits/EARTH-TOTEMS.md) records rules, tests and remaining
+acceptance. Native wide/compact card screenshots are inline in CHANGELOG/README;
+rendered deployment, attended gameplay and Windows remain open. Earth's Grasp
+is still pending Stoneclaw; talent coverage remains 308/432. This supersedes
+the previous core-only/not-selectable status.
+
 ## Earthbind lifecycle foundation — 2026-10-29
 
 The [earth-totem audit](audits/EARTH-TOTEMS.md) records checkout spell/model

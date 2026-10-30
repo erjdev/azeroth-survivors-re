@@ -5,6 +5,21 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Destructible Earthbind Totem
+
+Shamans can acquire a grounded Earthbind that slows nearby enemies without damage.
+It has five health, can be destroyed by nearby foes, and replaces only the previous
+Earthbind. Upgrades show radius/recovery inline in green. Native wide/compact
+card checks pass; deployed-model, Windows and attended gameplay checks remain open.
+Earth's Grasp still awaits Stoneclaw. Incremental native build: 1m50s.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
+![Earthbind acquisition and upgrades](images/screenshots/2026-10-29-earthbind/cards-wide.png)
+
+![Compact Earthbind cards](images/screenshots/2026-10-29-earthbind/cards-compact.png)
+
+![Third compact upgrade remains reachable](images/screenshots/2026-10-29-earthbind/cards-compact-third.png)
+
 ## 2026-10-29 — Earthbind lifecycle foundation
 
 Added shared rules for Earthbind's health, destruction, expiry and timed slow

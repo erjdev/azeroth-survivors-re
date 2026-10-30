@@ -1227,3 +1227,19 @@ remains totem-only. Tidal Mastery adds one percentage point of Healing Wave
 critical chance per rank (five ranks), alongside its existing lightning/shock
 scope. Healing Wave criticals heal for 150%; totem deployment healing cannot crit.
 These effects require acquired Healing Wave and do not alter its recovery.
+
+
+### Earthbind Totem
+
+Shamans can acquire Earthbind through normal ability offers. It deploys at the
+hero's supported feet with 5 health for 45 seconds, replacing the previous
+Earthbind only. Starting after 3 seconds, it pulses every 3 seconds: enemies
+within 10 yards are slowed by 50% for 5 seconds (bosses: 25%). It deals no damage.
+Rank growth increases radius and shortens the base 15-second recovery, while
+health/lifetime/slow strength stay fixed. Area bonuses affect the radius; extra
+targets do not limit or duplicate the area.
+
+Ordinary enemies can attack a closer, visible Earthbind within four yards. Pet
+attention takes precedence; bosses retain the hero target. Destruction stops
+pulses without hurting the hero. This local-attention rule does not implement
+Stoneclaw threat or enable Earth's Grasp, which still needs both named consumers.

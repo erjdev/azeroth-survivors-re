@@ -279,6 +279,15 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 duration
             );
         }
+        Kind::Totem if def.key == "earthbind_totem" => {
+            prose!(
+                "Drops a 5-health totem for ",
+                duration,
+                ". Every 3 sec it slows every enemy within ",
+                radius,
+                " by 50% (bosses: 25%) for 5 sec. Replaces your previous Earthbind Totem"
+            );
+        }
         Kind::Totem if def.key == "magma_totem" => {
             prose!(
                 "Drops a totem for ",

@@ -23,6 +23,7 @@ mod defense;
 #[cfg(not(target_arch = "wasm32"))]
 mod demon_preview;
 mod disarm;
+mod earthbind;
 mod enemies;
 #[cfg(not(target_arch = "wasm32"))]
 mod equipment_preview;
@@ -193,6 +194,7 @@ impl Plugin for SurvivorsPlugin {
                     enemies::move_enemies,
                     marking::prune,
                     abilities::cast_abilities,
+                    earthbind::tick,
                     abilities::tick_areas,
                     hunter_pet::fight,
                     abilities::apply_hits,

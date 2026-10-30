@@ -388,7 +388,24 @@ pub(super) fn move_enemies(
             &mut super::hunter_pet::HunterPet,
             &mut ObjectStore,
         ),
-        (Without<Enemy>, Without<Hero>),
+        (
+            Without<Enemy>,
+            Without<Hero>,
+            Without<super::earthbind::Earthbind>,
+        ),
+    >,
+    mut earthbinds: Query<
+        (
+            Entity,
+            &Transform,
+            &mut super::earthbind::Earthbind,
+            &mut ObjectStore,
+        ),
+        (
+            Without<Enemy>,
+            Without<Hero>,
+            Without<super::hunter_pet::HunterPet>,
+        ),
     >,
     mut fx: Fx,
     mut hits: MessageWriter<Hit>,
@@ -522,10 +539,33 @@ pub(super) fn move_enemies(
                 })
                 .map(|(entity, tf, _, _)| (entity, tf.translation))
         };
-        let (target_e, target_pos, target_radius) = pet_target
-            .map_or((hero_e, hpos, HERO_RADIUS), |(e, pos)| {
-                (e, pos, super::hunter_pet::RADIUS)
-            });
+        // Nearby destructible utility totems can draw ordinary foes; pet attention wins.
+        // Bosses retain the hero target. This is local attention, not a global threat table.
+        let earthbind_target = if e.boss || pet_target.is_some() {
+            None
+        } else {
+            earthbinds
+                .iter()
+                .filter(|(_, tf, totem, _)| {
+                    totem.life.alive(run.elapsed)
+                        && tf.translation.distance(pos) <= 4.0
+                        && tf.translation.distance(pos) < (hpos - pos).length()
+                        && world.line_clear(pos, tf.translation)
+                })
+                .min_by(|(_, a, _, _), (_, b, _, _)| {
+                    a.translation
+                        .distance_squared(pos)
+                        .total_cmp(&b.translation.distance_squared(pos))
+                })
+                .map(|(entity, tf, _, _)| (entity, tf.translation))
+        };
+        let (target_e, target_pos, target_radius) = if let Some((entity, pos)) = pet_target {
+            (entity, pos, super::hunter_pet::RADIUS)
+        } else if let Some((entity, pos)) = earthbind_target {
+            (entity, pos, super::earthbind::BODY_RADIUS)
+        } else {
+            (hero_e, hpos, HERO_RADIUS)
+        };
         let to_target = flat(target_pos - pos);
         // Seeing a pet over low scenery does not make the body route clear.
         // Keep blocked time and detours; waypoint() handles a moving destination.
@@ -606,6 +646,13 @@ pub(super) fn move_enemies(
                 let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
                 let taken = pet.hurt(raw, run.elapsed);
                 if pet.vitality.hp <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+                (taken, None)
+            } else if let Some((entity, _)) = earthbind_target {
+                let (_, _, mut totem, mut store) = earthbinds.get_mut(entity).unwrap();
+                let taken = totem.life.hurt(raw, run.elapsed);
+                if totem.life.health() <= 0.0 {
                     units::kill_unit(&mut store);
                 }
                 (taken, None)

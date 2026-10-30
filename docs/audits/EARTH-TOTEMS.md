@@ -37,31 +37,52 @@ stops future pulses, and replacement creates a fresh independent state.
 
 Four core regressions cover fine/coarse frame partitions, destruction, replacement,
 invalid clocks/damage and integration with the existing source-owned slow state.
-No card, runtime entity, health target or new talent definition is enabled yet.
 
-## Remaining integration, in order
+## Runtime integration
 
-1. Deploy a grounded, separately owned Earthbind entity from a Shaman offer.
-   Replace the previous Earthbind without removing unrelated fire totems.
-   Define rank growth and show radius/recovery changes green and inline.
-2. Let enemy contacts damage its real five-health state, with a documented
-   targeting policy and the existing collision-safe approach. Destruction and
-   expiry must stop pulses and remove the model; enemy hits must not redirect
-   excess damage into the hero or activate hero-only defenses.
-3. Apply zero-damage slows within the current totem radius using original pulse
-   times. Extra targets must not cap the area or duplicate locations. Preserve
-   stronger independent slows; leaving the radius allows the last slow to expire.
-4. Verify actual deployment, replacement, target loss, damage/destruction, pause,
-   death/reset and long-frame outcomes. Do not turn this into an unattended combat
-   probe; use headless system tests and a menu-only visual fixture.
-5. Verify the model and card at wide/compact sizes, capture native screenshots
-   inline in CHANGELOG/README, then retain attended gameplay and Windows checks.
-6. Add Stoneclaw's full health/threat behavior before enabling Earth's Grasp.
+Earthbind is now a Shaman offer. It deploys at the hero's grounded feet only when
+supported, clear placement is available and enemies are nearby. Recasting removes
+only the previous Earthbind. The actual entity uses the verified earth-totem
+model and five health; ordinary foes may attack it when it is closer than the
+hero, within four yards and visible. Existing pet attention takes priority;
+bosses continue targeting the hero. These are authored local-attention rules,
+not a global threat table or Stoneclaw taunt implementation.
 
-This is a shared-rule foundation, not a playable Earthbind or completed talent.
-Coverage remains 308/432. No new rendered screenshot is claimed.
+The independent area affects every live enemy in its spherical radius, without
+an extra-target cap or damage messages. It uses original pulse times, retains
+stronger independent slows, and leaves the last slow to expire after a target
+moves away. Bosses use the existing 25% slow cap. Fatal contact removes only
+totem health, with no hero defenses, reflection or spillover damage. Destruction,
+expiry and hero death remove the active component and fade the model. The system
+runs under the existing Playing/loading-screen gates; run cleanup owns its entity.
 
-Validation: the eight-package scoped formatting, Clippy and test gate passes
-with checkout data (31 optional-addon skips), including all four Earthbind tests.
-The initial focused four-test run also passed. No native runtime behavior is
-claimed from these shared-rule tests.
+Ranks increase radius and shorten recovery through the shared upgrade curve;
+health, lifetime, pulse interval and slow strength stay fixed. Fire-totem-specific
+training retains its documented scope. Earth's Grasp remains pending until
+Stoneclaw has a real health/threat consumer; coverage remains 308/432.
+
+Six runtime regressions cover grounded deployment/replacement, zero-damage slow
+pulses and departure/expiry, actual enemy destruction without hero reflection,
+rank scaling, independent slow overlap/boss reduction, and Shaman-only offers.
+All six pass in the final scoped gate.
+
+Native macOS card previews pass at 1280×720 and 640×720 / 125%, including scrolling
+to the third compact card. Green radius/recovery values stay inline and units
+appear once. Three screenshots under `docs/images/screenshots/2026-10-29-earthbind/`
+are embedded in CHANGELOG; README includes the wide view. The preview disables
+picks, so screenshots do not establish live acquisition or combat acceptance.
+The incremental play build passes in 1m50s with the existing unwind/linker warning.
+
+## Remaining acceptance
+
+- Rendered deployed-model/particle acceptance, attended gameplay and Windows.
+- Explicit pause/death/reset, blocked placement and pet/boss attention scenarios
+  beyond the current tests; class offer inclusion is not a live acquisition test.
+- Stoneclaw's complete threat/health behavior, then both Earth's Grasp effects.
+
+The earlier core-only scoped gate passed with 31 optional-addon skips. This
+runtime checkpoint supersedes the previous not-selectable foundation status.
+The runtime eight-package formatting, Clippy and test gate also passes with
+31 optional-addon skips. An initial class-offer test compile error was corrected
+before the successful rerun. Native card rendering and the play build pass;
+the remaining acceptance items above are not closed by those results.

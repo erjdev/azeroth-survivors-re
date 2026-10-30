@@ -282,10 +282,15 @@ impl Params {
             },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
-            duration: if matches!(
-                o.def.kind,
-                Kind::Channel | Kind::Mark | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
-            ) {
+            duration: if o.def.key == "earthbind_totem"
+                || matches!(
+                    o.def.kind,
+                    Kind::Channel
+                        | Kind::Mark
+                        | Kind::Coating(_)
+                        | Kind::Aspect
+                        | Kind::ContactAura
+                ) {
                 o.def.duration
             } else {
                 o.duration() * effect.duration
@@ -497,6 +502,7 @@ pub(super) fn cast_abilities(
     mut channels: Option<ResMut<super::channeling::Channels>>,
     channel_world: Option<super::Floor>,
     mut hits: MessageWriter<Hit>,
+    earthbinds: Query<Entity, With<super::earthbind::Earthbind>>,
 ) {
     let dt = time.delta_secs();
     if !run.alive() || dt <= 0.0 {
@@ -1029,6 +1035,23 @@ pub(super) fn cast_abilities(
                 } else {
                     false
                 }
+            }
+            Kind::Totem if def.key == "earthbind_totem" => {
+                let fired = foes.first().is_some_and(|foe| foe.dist <= p.radius + 6.0)
+                    && channel_world.as_ref().is_some_and(|floor| {
+                        super::earthbind::deploy(
+                            &mut commands,
+                            &mut run,
+                            floor,
+                            hpos,
+                            p.radius,
+                            earthbinds.iter(),
+                        )
+                    });
+                if fired {
+                    fx.cast(me, def.spell, &[], None);
+                }
+                fired
             }
             Kind::Totem => {
                 if foes
@@ -11266,3 +11289,7 @@ mod holy_light_tests;
 #[cfg(test)]
 #[path = "totem_timing_tests.rs"]
 mod totem_timing_tests;
+
+#[cfg(test)]
+#[path = "earthbind_tests.rs"]
+mod earthbind_tests;
