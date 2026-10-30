@@ -5,6 +5,22 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Compact healing talent acceptance
+
+At 640×720 / 125% UI size, native macOS purchases and right-click refunds pass
+for Purification, Healing Way and Tidal Mastery. Lower rows remain reachable;
+restart retains refunded ranks and 35 spent / 16 available. This closes their
+compact pointer gap; keyboard/controller, Windows and attended combat remain open.
+No runtime changes.
+
+![Purification purchased in compact layout](images/screenshots/2026-10-29-compact-healing/purification-purchase.png)
+
+![Healing Way purchased in compact layout](images/screenshots/2026-10-29-compact-healing/healing-way-purchase.png)
+
+![Tidal Mastery purchased in compact layout](images/screenshots/2026-10-29-compact-healing/tidal-purchase.png)
+
+![Refunded ranks and totals after restart](images/screenshots/2026-10-29-compact-healing/restarted-totals.png)
+
 ## 2026-10-29 — Shaman weapon parry
 
 Parry now avoids melee contact with a worn weapon instead of reducing all damage.

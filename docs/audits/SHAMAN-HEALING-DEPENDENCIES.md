@@ -135,3 +135,21 @@ all 321 core tests pass. Earlier runs exposed obsolete spell-scope and green-lab
 expectations. The shared label parser now colors “shorter recovery” with its value,
 including Nature's Grace. Incremental native build: 16.57 seconds.
 Ancestral Healing still awaits the separate policy decision above.
+
+## Compact pointer acceptance — 2026-10-29
+
+With the `0b6c591` runtime at 640×720 / 125%, native pointer input selected
+spec 1, purchased Purification 4→5, Healing Way 2→3 and Tidal Mastery 4→5,
+then right-click refunded each once. Wheel and scrollbar dragging reached the
+lower Restoration rows and spec footer. Descriptions remained readable and the
+purchases retained their scroll position. Restart restored spec 1, Tidal Mastery
+4/5 and 35 spent / 16 available; the saved row independently confirms Healing Way
+2/3 and Purification 4/5, with spec 2's separate eight points preserved.
+
+Screenshots: `docs/images/screenshots/2026-10-29-compact-healing/`. Only the
+isolated fixture was changed; no account edits occurred during the interaction.
+Preview configuration chose the inspected description, while native pointer input
+performed every purchase/refund. This closes the compact pointer gap for these
+three nodes, not keyboard, physical controller, Windows or attended combat.
+Improved Healing Wave and Tidal Focus compact purchasing remain unverified.
+No runtime source changed; the preceding green gate remains applicable.

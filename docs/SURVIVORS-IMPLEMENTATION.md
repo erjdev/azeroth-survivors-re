@@ -32,7 +32,9 @@ Native wide/compact tooltip screenshots show green inline changes for both nodes
 Native macOS purchase through maximum rank, one-rank refunds, independent specs
 and restart now pass for Purification, Tidal Mastery and Healing Way together.
 The healing audit records exact totals and captures. Windows, physical controller,
-compact purchase and attended combat remain unverified. Incremental build: 16s.
+and attended combat remain unverified. Compact pointer purchases/refunds now pass
+for these three nodes; see the healing audit’s compact acceptance checkpoint.
+Incremental build: 16s.
 Older totem-only cast-time/critical conversions still require reconciliation.
 Ancestral Healing’s replacement-versus-preservation choice is awaiting the user;
 its audited original trigger is 8/16/25% armor for 15 seconds after healing crits.
