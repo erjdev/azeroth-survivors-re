@@ -18,6 +18,20 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         .clone()
         .unwrap();
     for (class, node, row, max_rank, key, initial) in [
+        (
+            5,
+            616,
+            4,
+            1,
+            "lightning_bolt",
+            vec![
+                (1, 614, 5),
+                (1, 613, 5),
+                (1, 605, 2),
+                (1, 615, 5),
+                (1, 601, 3),
+            ],
+        ),
         (5, 586, 0, 5, "healing_wave", vec![]),
         (5, 593, 0, 5, "healing_wave", vec![]),
         (
@@ -151,12 +165,18 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
             "node {node}"
         );
         let tree = initial.first().map_or(2, |entry| entry.0);
+        if node == 616 {
+            assert!(account.collect_poor_drop(class, 8).is_some());
+        }
         let before = account.milestones_picked(class, Some(hero));
         for rank in 1..=max_rank {
             assert!(account.learn_talent(hero, tree, node, max_rank, row, true));
             let trained = account.milestones_picked(class, Some(hero));
             let mut expected = before.cast(key);
-            if node == 586 || node == 593 {
+            if node == 616 {
+                assert_eq!(trained.melee_parry(), 0.05);
+                assert_eq!(before.melee_parry(), 0.);
+            } else if node == 586 || node == 593 {
                 expected.cooldown *= 1. - if node == 586 { 0.04 } else { 0.02 } * f32::from(rank);
             } else if node == 592 {
                 expected.damage *= 1. + 0.02 * f32::from(rank);
@@ -193,6 +213,33 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         loaded.talent_rules = Some(rules.clone());
         assert!(loaded.talents_valid(loaded.character(hero).unwrap()));
         assert_eq!(loaded.milestones_picked(class, Some(hero)), trained);
+        if node == 616 {
+            let snapshot = loaded.milestones_picked(class, Some(hero));
+            let key = survivors_core::supplemental_gear::piece(
+                class,
+                8,
+                survivors_core::gear_tier::GearTier::Poor,
+            )
+            .unwrap()
+            .key;
+            assert!(loaded.wear_piece(class, 8, None));
+            assert!(loaded.select_supplemental(class, &key, true));
+            assert_eq!(
+                loaded.milestones_picked(class, Some(hero)).melee_parry(),
+                0.,
+                "cosmetic-only weapon cannot parry"
+            );
+            assert_eq!(
+                snapshot.melee_parry(),
+                0.05,
+                "running snapshot remains immutable"
+            );
+            assert!(loaded.select_supplemental(class, &key, false));
+            assert_eq!(
+                loaded.milestones_picked(class, Some(hero)).melee_parry(),
+                0.05
+            );
+        }
         loaded.select_spec(hero, 1);
         assert!(loaded.character(hero).unwrap().dbc[1].is_empty());
         assert_eq!(

@@ -30,7 +30,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 591, max_rank: 1, name: "Nature's Swiftness", description: "Earth, Flame and Frost Shock: 15% shorter cooldown per rank, multiplying Convection, Reverberation and the 20-point Restoration milestone. Totem deployment, pulse rate and healing are unchanged (Survivors instant-cast conversion)", stat: TalentStat::SpellGroupCooldown(SHOCKS), per_rank: 0.15 },
     TalentDefinition { id: 581, max_rank: 3, name: "Ancestral Healing", description: "When Searing or Magma Totem deployment restores health: +12 armor per rank for 10 sec. Refreshes without stacking; excludes overhealing, regeneration and totem attacks (Survivors healing-critical conversion)", stat: TalentStat::AncestralHealingArmor, per_rank: 12.0 },
     TalentDefinition { id: 612, max_rank: 5, name: "Shield Specialization", description: "Earth Shock: +5% shield absorption per rank, adding to Guardian Totems. Requires the 10-point Enhancement shield milestone; no equipped shield required (Survivors block conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.05 },
-    TalentDefinition { id: 616, max_rank: 1, name: "Parry", description: "+5% hero damage reduction per rank (Survivors parry conversion; applies to all incoming damage)", stat: TalentStat::Reduction, per_rank: 0.05 },
+    TalentDefinition { id: 616, max_rank: 1, name: "Parry", description: "With a worn melee weapon: +5 percentage points melee parry chance per rank (Survivors chance). Avoids a contact attack before shields or health; cosmetic weapons and non-contact damage do not qualify", stat: TalentStat::MeleeParry, per_rank: 0.05 },
     TalentDefinition { id: 609, max_rank: 2, name: "Guardian Totems", description: "Earth Shock: +10% shield absorption per rank. Requires the 10-point Enhancement shield milestone; shield duration and damage are unchanged (Survivors defensive-totem conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.10 },
     TalentDefinition { id: 586, max_rank: 5, name: "Improved Healing Wave", description: "Healing Wave and Searing/Magma Totem deployment: 4% shorter recovery per rank (Survivors cast-time conversion). Totem healing requires the 10-point Restoration milestone; healing amount and pulse rate are unchanged", stat: TalentStat::SpellGroupCooldown(HEALING_RECOVERY), per_rank: 0.04 },
     TalentDefinition { id: 593, max_rank: 5, name: "Tidal Focus", description: "Healing Wave and Searing/Magma Totem deployment: 2% shorter recovery per rank, multiplying other recovery training (Survivors mana-cost conversion). Healing amount and pulse rate are unchanged", stat: TalentStat::SpellGroupCooldown(HEALING_RECOVERY), per_rank: 0.02 },
@@ -121,11 +121,7 @@ mod tests {
             assert_eq!(bonus.health, 4. * r);
             assert_eq!(bonus.armor, 8. * r);
             assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
-            assert!(
-                (bonus.reduction - 0.02 * short - 0.01 * r - if rank > 0 { 0.05 } else { 0. })
-                    .abs()
-                    < 0.00001
-            );
+            assert!((bonus.reduction - 0.02 * short - 0.01 * r).abs() < 0.00001);
             assert!((bonus.crit - 0.01 * r).abs() < 0.00001);
             let supported: u32 = DEFINITIONS
                 .iter()
@@ -474,15 +470,12 @@ mod shield_specialization_tests {
                         assert_eq!(actual, expected);
                     }
                     assert_eq!(trained.with_ranks(&[]), base);
-                    assert_eq!(
-                        stat_adjustment(class, &[(1, 616, rank)]).reduction,
-                        if class == 5 && rank > 0 { 0.05 } else { 0. }
-                    );
+                    assert_eq!(stat_adjustment(class, &[(1, 616, rank)]).reduction, 0.);
                 }
             }
         }
         let stacked = stat_adjustment(5, &[(1, 616, 1), (1, 601, 5), (0, 1640, 3)]);
-        assert!((stacked.reduction - 0.16).abs() < 0.000001);
+        assert!((stacked.reduction - 0.11).abs() < 0.000001);
         assert!(talent_definition(5, 612)
             .unwrap()
             .inline_description(4)

@@ -38,3 +38,24 @@ including tests and eight-package scoped checks pass (31 optional-addon skips).
 Native incremental build: 20 seconds. Native purchases for all three classes,
 Rogue refund/spec isolation, and restart retention pass. Wide/compact screenshots
 are embedded in CHANGELOG; Windows attended combat and balance remain open.
+
+## Shaman Parry — 2026-10-29
+
+Installed node 616 teaches spell 18848 through spell 16268 (effect 36). The
+passive uses effect 22, miscellaneous value 90, equipped class 2 and subclass
+mask 0x2a5f3. Neither description supplies a numeric chance. Survivors explicitly
+authors a 5% chance with a worn melee weapon; this is not claimed as a DBC-derived
+probability. Cosmetic selections never provide weapon eligibility.
+
+This replaces the prior flat reduction. Eligible contact is parried before
+shields/health and does not reflect damage or grant Hunter Counterattack.
+Non-contact damage is unchanged. Core tests cover class/rank bounds, weapon kinds,
+refunds and green labels; runtime tests cover roll boundaries and actual damage.
+Catalog-backed account tests verify purchase/save/spec/refund, unequipping,
+cosmetic-only selection, re-equipping and stable earlier run snapshots.
+
+Native macOS checks purchased, refunded, repurchased and restarted Parry in an
+isolated profile. Wide and compact screenshots live in
+`docs/images/screenshots/2026-10-29-shaman-parry/`. All 322 core tests and the
+eight-package gate pass (31 optional-addon skips); incremental build took 18s.
+Native equipment changes, Windows/controller and attended combat are not claimed.

@@ -3,6 +3,10 @@ use super::{Milestones, TalentStat};
 
 impl Milestones {
     pub fn melee_parry(self) -> f32 {
+        // Shaman learns weapon-dependent Parry, unlike the other classes' Deflection bonuses.
+        if self.class == 5 && self.weapon.is_none() {
+            return 0.;
+        }
         self.trained_value(TalentStat::MeleeParry)
     }
 
@@ -53,5 +57,58 @@ mod tests {
             assert!(text.contains("4 » 5 percentage point"), "{text}");
             assert!(text.contains(if dodge { "dodge" } else { "parry" }));
         }
+    }
+}
+
+#[cfg(test)]
+mod shaman_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+
+    #[test]
+    fn shaman_parry_requires_training_and_worn_melee_and_refunds_remove_it() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 255] {
+                for kind in [
+                    None,
+                    Some(MeleeKind::Axe),
+                    Some(MeleeKind::Mace),
+                    Some(MeleeKind::Sword),
+                    Some(MeleeKind::Polearm),
+                    Some(MeleeKind::Staff),
+                    Some(MeleeKind::Fist),
+                    Some(MeleeKind::Dagger),
+                ] {
+                    let t = Milestones {
+                        class,
+                        weapon: kind.map(|kind| MeleeWeapon {
+                            kind,
+                            two_handed: false,
+                        }),
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(1, 616, rank)]);
+                    assert_eq!(
+                        t.melee_parry(),
+                        if class == 5 && rank > 0 && kind.is_some() {
+                            0.05
+                        } else {
+                            0.
+                        }
+                    );
+                    assert_eq!(t.melee_dodge(), 0.);
+                    assert_eq!(t.with_ranks(&[]).melee_parry(), 0.);
+                    assert_eq!(
+                        crate::talents::stat_adjustment(class, &[(1, 616, rank)]).reduction,
+                        0.
+                    );
+                }
+            }
+        }
+        let node = crate::talents::talent_definition(5, 616).unwrap();
+        let (text, ranges) = node.inline_description_with_values(0).unwrap();
+        assert!(ranges
+            .iter()
+            .any(|r| &text[r.clone()] == "+0 » 5 percentage points melee parry chance"));
     }
 }

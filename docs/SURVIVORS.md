@@ -1012,6 +1012,15 @@ Grim Reach increases targeting range. Weakness and Agony replace one another per
 affected enemy, including Agony's supplemental curse slow; unrelated effects remain.
 See [the curse audit](audits/CURSES.md) for damage order and acceptance limits.
 
+### Shaman weapon parry
+
+Parry (616) grants an authored 5% melee-contact parry chance while a melee weapon
+is worn. Cosmetic weapons do not qualify. This replaces its earlier 5% general
+damage reduction. A parry preserves shields and health, does not reflect damage,
+and cannot trigger Hunter Counterattack; non-contact damage receives no benefit.
+The chance is explicit Survivors tuning, not a numeric value from the installed
+passive. Eligibility is captured with equipped gear at run start.
+
 ### Hunter parry and Counterattack
 
 Deflection adds 1–5 percentage points of melee parry. Deterrence automatically adds

@@ -1881,6 +1881,7 @@ fn inline_stat_label(tail: &str) -> &str {
         " armor",
         " hero critical chance",
         " critical chance",
+        " melee parry chance",
         " critical damage",
         " hero movement speed",
         " movement speed",

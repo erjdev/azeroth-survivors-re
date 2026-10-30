@@ -221,6 +221,11 @@ both at rank five reduce base recovery from 12 to 8.64 seconds.
 
 ![Healing Wave recovery training](docs/images/screenshots/2026-10-29-shaman-recovery/improved-wide.png)
 
+Shaman Parry now avoids contact attacks with a worn melee weapon; its 5% chance
+and weapon requirement appear inline. Purchase, refund and compact restart verified.
+
+![Shaman weapon parry after restart](docs/images/screenshots/2026-10-29-shaman-parry/restarted-compact.png)
+
 ### Options and upgrade previews
 
 <table>

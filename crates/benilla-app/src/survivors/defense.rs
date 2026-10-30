@@ -327,6 +327,79 @@ mod tests {
     }
 
     #[test]
+    fn shaman_parry_avoids_contact_with_worn_weapon_without_flat_reduction() {
+        use survivors_core::{
+            gear_loadout::{MeleeKind, MeleeWeapon},
+            talents::Milestones,
+        };
+        let attacker = Entity::from_bits(42);
+        let setup = || Run {
+            class: &super::super::data::CLASSES[5],
+            milestones: Milestones {
+                class: 5,
+                weapon: Some(MeleeWeapon {
+                    kind: MeleeKind::Mace,
+                    two_handed: false,
+                }),
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 616, 1)]),
+            hp: 100.,
+            shield: 10.,
+            shield_t: 10.,
+            thorns_t: 10.,
+            thorns: 20.,
+            thorns_spell: super::super::data::ability("thorns").spell,
+            ..Default::default()
+        };
+        let mut run = setup();
+        let strike = contact(&mut run, attacker, 20., || 0.04999);
+        assert_eq!(
+            strike,
+            Strike {
+                attacker,
+                outcome: Outcome::Parried
+            }
+        );
+        assert_eq!((run.hp, run.shield), (100., 10.));
+        assert!(reflection(&run, strike).is_none());
+        assert!(counterattack(&mut run, strike).is_none());
+        assert_eq!(
+            contact(&mut run, attacker, 20., || 0.05).outcome,
+            Outcome::Landed {
+                absorbed: 10.,
+                health_removed: 10.
+            }
+        );
+        let mut run = setup();
+        assert_eq!(
+            hurt(&mut run, 20.),
+            Outcome::Landed {
+                absorbed: 10.,
+                health_removed: 10.
+            }
+        );
+        for trained in [false, true] {
+            let mut run = setup();
+            if trained {
+                run.milestones.weapon = None;
+            } else {
+                run.milestones = run.milestones.with_ranks(&[]);
+            }
+            assert_eq!(
+                contact(&mut run, attacker, 20., || panic!(
+                    "ineligible parry must not roll"
+                ))
+                .outcome,
+                Outcome::Landed {
+                    absorbed: 10.,
+                    health_removed: 10.
+                }
+            );
+        }
+    }
+
+    #[test]
     fn trained_class_avoidance_prevents_contact_before_shields_and_retains_attacker() {
         let attacker = Entity::from_bits(42);
         for (class, tree, node, outcome) in [

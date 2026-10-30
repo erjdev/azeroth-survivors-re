@@ -5,6 +5,20 @@ This plan implements [the Armory specification](SURVIVORS.md) and its
 replacement design or a claim that the illustrated game already exists. Git records
 completed changes. Each phase must pass its acceptance criteria before it is called done.
 
+## Shaman weapon parry — 2026-10-29
+
+Node 616 now uses actual contact avoidance with a worn melee weapon, replacing
+its old 5% general reduction. The authored 5% chance and installed learn/passive
+spell evidence are recorded in the [avoidance audit](audits/MELEE-AVOIDANCE.md).
+Cosmetics do not qualify; refunds and unequipping remove eligibility for future
+run snapshots. Catalog coverage remains 308/432 (Shaman 32/46).
+
+Native macOS purchase, refund, repurchase and restart pass at 1280×720 and
+640×720 / 125%; screenshots are inline in CHANGELOG and README. Equipment,
+spec isolation and actual contact outcomes have automated coverage. All 322 core
+tests and the eight-package gate pass (31 optional-addon skips). Incremental build:
+18 seconds. Windows, physical controller and attended combat remain unverified.
+
 ## Healing Wave talent consumers — 2026-10-29
 
 Purification and Tidal Mastery now affect acquired Healing Wave: +2% healing and
@@ -7487,7 +7501,7 @@ Audited Shield Specialization (612, five ranks) and Parry (616, one rank) now ha
 explicit Survivors rules. Shield Specialization adds 5% absorb strength per rank
 to Guardian Totems' 10% per rank. Both require the 10-point Enhancement shield;
 max training yields 4.35% maximum-health absorption for the existing three seconds.
-Parry converts to 5% general damage reduction, adding to Anticipation and Elemental
+Superseded by the 2026-10-29 weapon-parry checkpoint above: Parry originally converted to 5% general damage reduction, adding to Anticipation and Elemental
 Warding. Neither requires an equipped shield or a separate parry simulation.
 
 The shared shield contribution was renamed ShamanShieldAbsorption; saves continue

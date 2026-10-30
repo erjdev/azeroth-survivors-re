@@ -5,6 +5,22 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-29 — Shaman weapon parry
+
+Parry now avoids melee contact with a worn weapon instead of reducing all damage.
+Its explicit Survivors chance is 5%; cosmetic weapons do not qualify. Green inline
+text shows the chance and equipment requirement. Native purchase, refund and
+restart pass at wide/compact sizes. Equipment, saved specs and combat outcomes
+have automated coverage; attended combat and Windows remain open.
+322 core tests and the eight-package gate pass (31 optional-addon skips).
+Incremental build: 18 seconds.
+
+![Trained weapon parry](images/screenshots/2026-10-29-shaman-parry/trained.png)
+
+![Refund restores the available point](images/screenshots/2026-10-29-shaman-parry/refunded.png)
+
+![Saved Parry at compact size after restart](images/screenshots/2026-10-29-shaman-parry/restarted-compact.png)
+
 ## 2026-10-29 — Healing Wave recovery training
 
 Improved Healing Wave and Tidal Focus now shorten Healing Wave recovery by
