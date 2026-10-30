@@ -77,6 +77,31 @@ fn purchase_actions(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, pending:
     }
 }
 
+#[derive(Component)]
+pub(in crate::survivors) struct CompanionGrid;
+
+/// Reserve reading space after the icon and purchase controls, using the pane's
+/// logical width so stacked layouts and UI scaling share the same breakpoint.
+pub(in crate::survivors) fn layout_companions(
+    mut grids: Query<(&ComputedNode, &mut Node), With<CompanionGrid>>,
+) {
+    for (computed, mut node) in &mut grids {
+        let width = computed.size().x * computed.inverse_scale_factor();
+        if width <= 0.0 {
+            continue;
+        }
+        let columns = if width < 648.0 { 1 } else { 2 };
+        let tracks = vec![RepeatedGridTrack::minmax(
+            columns,
+            MinTrackSizingFunction::Px(0.0),
+            MaxTrackSizingFunction::Fraction(1.0),
+        )];
+        if node.grid_template_columns != tracks {
+            node.grid_template_columns = tracks;
+        }
+    }
+}
+
 const FRAME: Color = Color::srgb(0.48, 0.37, 0.12);
 
 fn text(
@@ -449,7 +474,7 @@ pub(super) fn companions(
 ) {
     use super::super::companions::trip;
     panel.spawn(hud::text_bundle(font, "Instincts fill the first companion, then the second. Further purchases replace the first companion's instinct. Appearance selection does not change this order.", 12.0, DIM));
-    panel.spawn(Node { width: Val::Percent(100.0), display: Display::Grid, grid_template_columns: vec![RepeatedGridTrack::minmax(2, MinTrackSizingFunction::Px(0.0), MaxTrackSizingFunction::Fraction(1.0))], column_gap: Val::Px(8.0), row_gap: Val::Px(8.0), ..default() }).with_children(|grid| {
+    panel.spawn((CompanionGrid, Node { width: Val::Percent(100.0), display: Display::Grid, grid_template_columns: vec![RepeatedGridTrack::minmax(1, MinTrackSizingFunction::Px(0.0), MaxTrackSizingFunction::Fraction(1.0))], column_gap: Val::Px(8.0), row_gap: Val::Px(8.0), ..default() })).with_children(|grid| {
         for code in [13, 6, 7, 8, 9, 10, 11] {
             let pets = &account.pets;
             let target = account.instinct_target();

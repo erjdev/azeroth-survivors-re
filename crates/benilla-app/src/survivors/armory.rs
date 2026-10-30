@@ -27,7 +27,8 @@ pub(super) mod preview;
 mod reward_draft;
 mod reward_page;
 pub(super) use reward_page::{
-    keep_actions_visible as keep_reward_actions_visible, remember_scroll as remember_reward_scroll,
+    keep_actions_visible as keep_reward_actions_visible, layout_companions,
+    remember_scroll as remember_reward_scroll,
 };
 mod name_edit;
 mod name_input;

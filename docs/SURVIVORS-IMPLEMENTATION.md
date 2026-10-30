@@ -10346,3 +10346,11 @@ three-dimensional/line-of-sight collection. The real-system fence regression
 requires a detour, single bonus settlement and return. Phase 6's fetch behavior
 has stronger headless evidence; attended terrain, Windows and broad multi-storey
 navigation remain open. No new UI or rendered evidence is claimed.
+
+### Companion card reading widths — 2026-10-30
+
+[Native comparisons](audits/COMPANION-READABILITY.md) reproduce narrow two-column
+text strips and verify an adaptive one/two-column grid at three window sizes.
+Four screenshots and three reusable presets are retained. This improves the
+starter Rewards acceptance; purchase/scroll input was not verified in this pass
+because native automation failed to deliver it. Windows acceptance remains open.

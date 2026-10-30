@@ -5,6 +5,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Readable Companion cards
+
+Companion upgrades now stack into one column when the content pane is narrow,
+keeping descriptions and green comparisons readable. Wide windows retain the
+reference's two-column grid. [Native comparisons and limits](audits/COMPANION-READABILITY.md)
+cover 800×600, 640×480 and 1280×720; interaction acceptance remains open.
+Native build: 2m00s. Scoped gate passed with 31 optional addon-data skips.
+
+![Compact Companion cards](images/screenshots/2026-10-30-companion-reading/after-800.png)
+
+![Wide Companion layout](images/screenshots/2026-10-30-companion-reading/wide-1280.png)
+
 ## 2026-10-30 — Companion fetch routing
 
 Companions now route around obstacles while fetching and returning. Pickups

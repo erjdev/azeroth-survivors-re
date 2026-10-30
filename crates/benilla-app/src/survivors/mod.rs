@@ -153,6 +153,7 @@ impl Plugin for SurvivorsPlugin {
                 (
                     armory::layout_achievements,
                     armory::layout_achievement_grids,
+                    armory::layout_companions,
                     armory::scrollbar_input,
                     armory::update_scrollbars,
                 )

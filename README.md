@@ -17,6 +17,12 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Companion reward cards adapt to the available reading width while preserving
+our reference's two-column layout on wide screens.
+[Native comparisons and limits](docs/audits/COMPANION-READABILITY.md).
+
+![Readable compact Companion rewards](docs/images/screenshots/2026-10-30-companion-reading/after-800.png)
+
 Native appearance checks now include Gnome and Tauren bodies with Dreadnaught
 armor, plus weapon-look persistence across a compact restart.
 [Evidence and limits](docs/audits/COLLECTION-BODY-ART.md#native-gnometauren-plate-checks--2026-10-30).
