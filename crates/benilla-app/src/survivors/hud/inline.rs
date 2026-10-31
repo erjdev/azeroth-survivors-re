@@ -62,6 +62,19 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
     );
     let cooldown = (a.cooldown, b.cooldown, " sec");
     let burst = def.duration <= 0.0;
+    if def.key == "kick" {
+        prose!("Deal ", damage, " to up to ", count, " within ", range,
+            ". Waits for an ordinary visible caster with clear line of sight. An original damaging hit locks its interrupted spell school for 5 sec");
+        if a.silence_chance > 0. || b.silence_chance > 0. {
+            prose!(
+                " and has ",
+                (a.silence_chance * 100., b.silence_chance * 100., "% chance"),
+                " to silence it for 2 sec"
+            );
+        }
+        prose!(". Recharges in ", cooldown, ".");
+        return out.0;
+    }
     match def.kind {
         Kind::Silence => {
             prose!(

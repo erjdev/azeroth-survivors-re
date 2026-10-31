@@ -741,6 +741,14 @@ impl Milestones {
         crate::stoneclaw::BASE_HEALTH * (1.0 + 0.25 * self.trained_value(TalentStat::EarthsGrasp))
     }
 
+    pub fn kick_silence(self) -> f32 {
+        if self.class == 3 {
+            self.trained_value(TalentStat::KickSilence).clamp(0., 1.)
+        } else {
+            0.
+        }
+    }
+
     /// Improved Counterspell changes silence chance, never interrupt lockout duration.
     pub fn counterspell_silence(self) -> f32 {
         if self.class == 6 {
@@ -1738,6 +1746,7 @@ pub struct TalentDefinition {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
     CounterspellSilence,
+    KickSilence,
     AbilityUnlock(&'static str),
     MonkeyDodge,
     HunterMarkPower,
@@ -2254,6 +2263,7 @@ impl TalentDefinition {
             | TalentStat::SealFate
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
+            | TalentStat::KickSilence
             | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
             | TalentStat::HunterMarkPower
@@ -2518,6 +2528,7 @@ impl TalentDefinition {
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::CreatureDamage { .. } => (100.0, "% damage against matching creatures"),
             TalentStat::PoisonChance => (100.0, "% additional poison application chance"),
+            TalentStat::KickSilence => (100.0, "% Kick silence chance"),
             TalentStat::CounterspellSilence => (100.0, "% Counterspell silence chance"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
             TalentStat::MaceStun | TalentStat::RogueMace => (100.0, "% stun chance"),
@@ -3690,6 +3701,7 @@ static MAGE_TALENTS: &[TalentDefinition] = &[
 // Explicit membership excludes neutral jewelry abilities and spells from other classes.
 const ROGUE_SPELLS: &[&str] = &[
     "sinister_strike",
+    "kick",
     "eviscerate",
     "blade_flurry",
     "rupture",
@@ -3701,6 +3713,7 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 206, max_rank: 2, name: "Improved Kick", description: "Acquired Kick: 50% chance per rank for an original damaging hit to silence a surviving ordinary enemy for 2 sec, independently of its interrupted school. Does not grant Kick or change its 5 sec school lockout", stat: TalentStat::KickSilence, per_rank: 0.5 },
     TalentDefinition { id: 303, max_rank: 1, name: "Ghostly Strike", description: "Ghostly Strike: +20% strike damage. A landed original hit grants 15 percentage points melee dodge for 7 sec; does not grant the spell", stat: TalentStat::SpellDamage("ghostly_strike"), per_rank: 0.20 },
     TalentDefinition { id: 681, max_rank: 1, name: "Hemorrhage", description: "Hemorrhage: +20% strike damage. Its physical vulnerability remains +3 damage for 30 charges or 15 sec; does not grant the spell", stat: TalentStat::SpellDamage("hemorrhage"), per_rank: 0.20 },
     TalentDefinition {
@@ -4150,6 +4163,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SealFate
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
+            | TalentStat::KickSilence
             | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
             | TalentStat::HunterMarkPower
@@ -4534,7 +4548,8 @@ mod stat_talent_tests {
                 "blade_flurry" => 0.85 * 0.9,
                 "gouge" | "kidney_shot" => 0.8 * 0.9,
                 "sinister_strike" => 0.9 * 0.9,
-                "backstab" | "rupture" | "eviscerate" | "hemorrhage" | "ghostly_strike" => 0.9,
+                "kick" | "backstab" | "rupture" | "eviscerate" | "hemorrhage"
+                | "ghostly_strike" => 0.9,
                 _ => 1.0,
             };
             let mut expected = base.cast(key);
@@ -5710,6 +5725,7 @@ mod stat_talent_tests {
                     | TalentStat::SealFate
                     | TalentStat::CreatureDamage { .. }
                     | TalentStat::PoisonChance
+                    | TalentStat::KickSilence
                     | TalentStat::CounterspellSilence
                     | TalentStat::MonkeyDodge
                     | TalentStat::HunterMarkPower
@@ -8278,5 +8294,40 @@ mod silence_unlock_tests {
             (15487, 20., 45., 5.)
         );
         assert!(crate::data::CLASSES[4].pool.contains(&def.key));
+    }
+}
+
+#[cfg(test)]
+mod kick_tests {
+    use super::*;
+    #[test]
+    fn kick_silence_is_scoped_capped_and_does_not_modify_its_damage_or_lockout() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, 2, 3, 255] {
+                let trained = base.with_ranks(&[(1, 206, rank)]);
+                assert_eq!(
+                    trained.kick_silence(),
+                    if class == 3 {
+                        f32::from(rank.min(2)) * 0.5
+                    } else {
+                        0.
+                    }
+                );
+                assert_eq!(trained.cast("kick"), base.cast("kick"));
+                assert_eq!(trained.with_ranks(&[]).kick_silence(), 0.);
+            }
+        }
+        let def = crate::data::ability("kick");
+        assert_eq!(
+            (def.spell, def.damage, def.range, def.duration, def.cooldown),
+            (1766, 15., 5., 5., 10.)
+        );
+        let def = talent_definition(3, 206).unwrap();
+        let (text, ranges) = def.inline_description_with_values(1).unwrap();
+        assert_eq!(&text[ranges[0].clone()], "50 » 100% chance");
     }
 }

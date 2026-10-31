@@ -459,3 +459,39 @@ fn counterspell_upgrade_uses_inline_recovery_and_target_units_without_rank_noise
         "{spans:?}"
     );
 }
+
+#[test]
+fn kick_inline_growth_keeps_damage_green_and_control_durations_fixed() {
+    let run = Run {
+        class: &data::CLASSES[3],
+        milestones: survivors_core::talents::Milestones {
+            class: 3,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 206, 2)]),
+        abilities: vec![Owned {
+            def: data::ability("kick"),
+            level: 1,
+            cd: 0.,
+        }],
+        ..Default::default()
+    };
+    let spans = describe(Choice::Upgrade(0), &run);
+    let text = plain(&spans);
+    assert!(
+        spans
+            .iter()
+            .any(|(text, color)| text == "15 » 19.5 damage" && *color == card_growth::GAIN),
+        "{spans:?}"
+    );
+    assert!(text.contains("5 sec"));
+    assert!(text.contains("2 sec"));
+    assert!(text.contains("100% chance"));
+    assert!(!text.contains("new rank"));
+    let mut stats = run.stats();
+    stats.targets = 2;
+    let high = super::super::cast_at(data::ability("kick"), 8, &stats, run.milestones);
+    assert_eq!(high.duration, 5.);
+    assert_eq!(high.silence_chance, 1.);
+    assert_eq!(high.count, 6);
+}

@@ -263,7 +263,9 @@ impl Params {
             },
             dodge_chance,
             mark_power,
-            silence_chance: if o.def.kind == Kind::Silence {
+            silence_chance: if o.def.key == "kick" {
+                milestones.kick_silence()
+            } else if o.def.kind == Kind::Silence {
                 1.
             } else if o.def.kind == Kind::Interrupt {
                 milestones.counterspell_silence()
@@ -296,7 +298,7 @@ impl Params {
             },
             radius: o.radius(stats) * effect.radius,
             range: o.def.range * effect.range + effect.range_yards,
-            duration: if matches!(o.def.key, "earthbind_totem" | "stoneclaw_totem")
+            duration: if matches!(o.def.key, "earthbind_totem" | "stoneclaw_totem" | "kick")
                 || matches!(
                     o.def.kind,
                     Kind::Interrupt
@@ -822,6 +824,33 @@ pub(super) fn cast_abilities(
                 } else {
                     &visible
                 };
+                let casting_foes;
+                let visible: &[Foe] = if def.key == "kick" {
+                    let Some(world) = channel_world.as_ref() else {
+                        continue;
+                    };
+                    casting_foes = visible
+                        .iter()
+                        .copied()
+                        .filter(|foe| {
+                            foe.hp > 0.
+                                && hpos.distance(foe.pos) <= p.range
+                                && world.line_clear(hpos, foe.pos)
+                                && enemies.get(foe.e).is_ok_and(|(_, _, enemy, caster)| {
+                                    !enemy.boss
+                                        && caster.state.active().is_some_and(|cast| {
+                                            now >= cast.started
+                                                && now < cast.finishes
+                                                && (cast.spell.interruptible
+                                                    || p.silence_chance > 0.)
+                                        })
+                                })
+                        })
+                        .collect::<Vec<_>>();
+                    &casting_foes
+                } else {
+                    visible
+                };
                 let rear_foes;
                 let candidates: &[Foe] = if def.requires_rear {
                     rear_foes = visible
@@ -1246,7 +1275,8 @@ pub(super) fn cast_abilities(
         };
         run.abilities[i].cd = if fired {
             p.cooldown
-        } else if matches!(def.kind, Kind::Interrupt | Kind::Silence)
+        } else if def.key == "kick"
+            || matches!(def.kind, Kind::Interrupt | Kind::Silence)
             || def.requires_rear
             || matches!(p.effect, Effect::Incapacitate(_))
         {
@@ -1707,6 +1737,7 @@ pub(super) fn apply_hits(
         &mut FireVulnerability,
         &mut super::curse::CurseState,
         &mut HemorrhageVulnerability,
+        &mut super::enemy_casting::Caster,
     )>,
     mut fx: Fx,
     mut loot: MessageWriter<Loot>,
@@ -1906,8 +1937,18 @@ pub(super) fn apply_hits(
             }
             Step::Settle(hit, original) => (hit, original),
         };
-        let Ok((e, guid, tf, mut en, mut store, mut marks, mut fire, mut curse, mut hemorrhage)) =
-            enemies.get_mut(h.target)
+        let Ok((
+            e,
+            guid,
+            tf,
+            mut en,
+            mut store,
+            mut marks,
+            mut fire,
+            mut curse,
+            mut hemorrhage,
+            mut caster,
+        )) = enemies.get_mut(h.target)
         else {
             continue;
         };
@@ -2049,6 +2090,32 @@ pub(super) fn apply_hits(
                 if chance > 0.0 && rng.f32() < chance {
                     fire.0.apply(impact_time);
                     marks.add(22959, (impact_time + 30.0 - now).max(0.0));
+                }
+            }
+            if run.alive()
+                && en.hp > 0.
+                && !en.boss
+                && original
+                && h.origin == HitOrigin::Hero
+                && h.source == "kick"
+                && removed > 0.
+            {
+                let active = caster.state.active();
+                let interrupted = matches!(
+                    caster.state.interrupt(impact_time, 5.),
+                    survivors_core::casting::Interrupt::Interrupted(_)
+                );
+                let chance = owner_talents.kick_silence();
+                let silenced = chance > 0.
+                    && (chance >= 1. || rng.f32() < chance)
+                    && caster.state.silence(impact_time, 2.);
+                if interrupted || silenced {
+                    if let Some(cast) = active {
+                        fx.cancel_cast(e, cast.spell.id);
+                    }
+                }
+                if silenced {
+                    fx.impact(e, 18425);
                 }
             }
             run.add_damage(h.source, dmg);
@@ -2215,7 +2282,7 @@ pub(super) fn apply_hits(
     }
 
     // The over-time ticks, once a second each.
-    for (e, guid, tf, mut en, mut store, mut marks, fire, _, mut hemorrhage) in &mut enemies {
+    for (e, guid, tf, mut en, mut store, mut marks, fire, _, mut hemorrhage, _) in &mut enemies {
         if en.dead || (en.dots.is_empty() && !en.poison.active()) {
             continue;
         }

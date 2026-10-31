@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Rogues can acquire Kick, with separate Improved Kick silence training and green
+inline upgrades. [Native purchase/refund/restart and card evidence](docs/audits/ROGUE-KICK.md).
+
+![Kick inline upgrades](docs/images/screenshots/2026-10-30-rogue-kick/cards-wide.jpg)
+
 Priest Silence now unlocks through training and can be acquired during a run.
 [Native purchase, refund, restart and card evidence](docs/audits/PRIEST-SILENCE.md).
 

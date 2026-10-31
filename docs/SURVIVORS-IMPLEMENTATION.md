@@ -134,6 +134,15 @@ rank persists with 9 spent / 42 available and independent specs. Screenshots
 are inline in CHANGELOG and README. No runtime change; Windows/controller and
 attended combat remain open. This supersedes their compact pointer gap.
 
+## Rogue Kick and Improved Kick — 2026-10-30
+
+[Kick and node 206](audits/ROGUE-KICK.md) now connect acquired physical damage to
+five-second school interruption and independently trained two-second silence.
+Original-hit settlement, targeting, excluded damage origins, saved training and
+inline growth have regression evidence. Native purchase/refund/restart and seven
+wide/compact captures are recorded. Fresh definition coverage is 314/432 (Rogue
+39/51); 118 definitions and broader gameplay/platform acceptance remain open.
+
 ## Priest Silence unlock — 2026-10-30
 
 [Silence node 541](audits/PRIEST-SILENCE.md) now unlocks acquired all-school silence,

@@ -212,6 +212,16 @@ macro_rules! ability {
 
 pub static ABILITIES: &[AbilityDef] = &[
     ability!(
+        "kick",
+        1766,
+        Melee {
+            damage: 15.0,
+            cooldown: 10.0,
+            range: 5.0,
+            duration: 5.0
+        }
+    ),
+    ability!(
         "silence",
         15487,
         Silence {
@@ -1425,6 +1435,7 @@ pub static CLASSES: &[ClassDef] = &[
         start: "sinister_strike",
         pool: &[
             "sinister_strike",
+            "kick",
             "eviscerate",
             "blade_flurry",
             "rupture",

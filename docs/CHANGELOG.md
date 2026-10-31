@@ -5,6 +5,19 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Kick and Improved Kick
+
+Rogues can acquire Kick to damage and interrupt nearby ordinary casters. Improved
+Kick adds a separate 50/100% two-second silence chance. Only original damaging
+hits apply control; splash copies do not. Native purchases, refund, restart and
+wide/compact inline cards are verified, with seven screenshots. Scoped checks and
+native build pass (31 optional-addon skips). Definition coverage: 314/432.
+Attended combat and Windows remain open. [Mechanics and evidence](audits/ROGUE-KICK.md).
+
+![Kick inline upgrades](images/screenshots/2026-10-30-rogue-kick/cards-wide.jpg)
+
+![Compact saved Improved Kick rank](images/screenshots/2026-10-30-rogue-kick/restarted-compact.jpg)
+
 ## 2026-10-30 — Priest Silence unlock
 
 Training Silence now unlocks an acquired five-second spellcasting block, with
