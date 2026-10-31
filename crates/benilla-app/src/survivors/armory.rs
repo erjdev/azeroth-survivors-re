@@ -32,6 +32,8 @@ pub(super) use reward_page::{
 };
 mod name_edit;
 mod name_input;
+mod name_pointer;
+pub(super) use name_pointer::input as name_pointer_input;
 mod typography;
 pub(super) use typography::{apply as style_headings, DisplayHeading};
 mod talent_background;
@@ -636,8 +638,11 @@ pub(super) fn input(
                 }
             }
             Act::Focus(slot) => {
-                armory.focus = slot;
-                armory.name_cursor = None;
+                // Pointer presses place the caret via the shaped text; release must keep it.
+                if pointer.controller.activated == Some(entity) {
+                    armory.focus = slot;
+                    armory.name_cursor = None;
+                }
             }
             Act::DraftClass(class) => {
                 if class < CLASSES.len() {
@@ -2324,11 +2329,18 @@ fn name_field(
         |body| {
             let gold = Color::srgb(0.91, 0.78, 0.40);
             if !focused {
-                body.spawn(hud::text_bundle(
-                    font,
-                    if value.is_empty() { "name" } else { value },
-                    13.0,
-                    gold,
+                body.spawn((
+                    hud::text_bundle(
+                        font,
+                        if value.is_empty() { "name" } else { value },
+                        13.0,
+                        gold,
+                    ),
+                    name_pointer::Segment {
+                        slot,
+                        start: 0,
+                        end: value.len(),
+                    },
                 ));
             } else {
                 let start = edit.sel_start.min(edit.sel_end);
@@ -2339,11 +2351,18 @@ fn name_field(
                 } else {
                     (&value[..edit.cursor], "|", &value[edit.cursor..])
                 };
-                for (text, highlight) in [(before, false), (middle, selected), (after, false)] {
+                let split = if selected { start } else { edit.cursor };
+                let tail = if selected { end } else { edit.cursor };
+                for (text, highlight, start, end) in [
+                    (before, false, 0, split),
+                    (middle, selected, split, tail),
+                    (after, false, tail, value.len()),
+                ] {
                     if text.is_empty() {
                         continue;
                     }
                     body.spawn((
+                        name_pointer::Segment { slot, start, end },
                         hud::text_bundle(
                             font,
                             text,

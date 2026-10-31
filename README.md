@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Hero names also support clicking to place the caret and dragging to select text.
+[Pointer editing evidence and limits](docs/audits/NAME-POINTER.md).
+
+![Mouse selection in starter rename](docs/images/screenshots/2026-10-31-name-pointer/starter-reverse-selection.jpg)
+
 Hero names now support keyboard caret movement and partial selection, including
 replacement within a name. [Validation and limits](docs/audits/NAME-CARET.md).
 

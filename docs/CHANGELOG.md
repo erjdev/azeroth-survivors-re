@@ -5,6 +5,20 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-31 — Mouse editing for hero names
+
+Click inside a name to place its caret; drag in either direction to select letters.
+Selection follows actual font widths and UI scale, survives redraws, and remains
+selected after release. Seventeen focused tests, the six-package gate and
+native/WebGPU builds pass (31 optional-addon skips). Native compact creation,
+wide starter rename and restart are verified. [Evidence and limits](audits/NAME-POINTER.md).
+
+![Compact creation drag selection](images/screenshots/2026-10-31-name-pointer/creation-drag-selection.jpg)
+
+![Wide starter reverse selection](images/screenshots/2026-10-31-name-pointer/starter-reverse-selection.jpg)
+
+![Mouse-edited name after restart](images/screenshots/2026-10-31-name-pointer/starter-restarted.jpg)
+
 ## 2026-10-31 — Edit any part of a hero name
 
 Creation and rename fields now support keyboard caret movement and partial

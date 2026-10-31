@@ -9,6 +9,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Pointer name editing — 2026-10-31
+
+[Mouse caret placement and drag selection](audits/NAME-POINTER.md) now use the
+rendered letter boundaries. Native compact creation and wide starter rename,
+including forward/reverse selection and restart, are verified. Browser clipboard
+and remaining platform acceptance stay open. This supersedes mouse-editing gaps
+in historical checkpoints below.
+
 ## Keyboard name editing — 2026-10-31
 
 [Keyboard caret and partial selection](audits/NAME-CARET.md) now use the engine

@@ -229,6 +229,7 @@ impl Plugin for SurvivorsPlugin {
                     (
                         armory::controller::navigate,
                         armory::input.run_if(not(cards::preview_active)),
+                        armory::name_pointer_input.run_if(not(cards::preview_active)),
                     )
                         .chain(),
                     hud::keys.run_if(not(cards::preview_active)),
