@@ -145,6 +145,38 @@ pub(super) fn counterattack(run: &mut Run, strike: Strike) -> Option<super::abil
 }
 
 pub(super) fn hurt(run: &mut Run, raw: f32) -> Outcome {
+    hurt_kind(run, raw, true)
+}
+
+/// Incoming spells retain source identity and bypass melee avoidance/flat armor.
+/// Raw damage already includes any caster-side critical multiplier.
+#[derive(Clone, Copy, Debug)]
+pub(super) struct SpellStrike {
+    pub attacker: Entity,
+    pub spell: u32,
+    pub school: survivors_core::casting::School,
+    pub critical: bool,
+    pub outcome: Outcome,
+}
+
+pub(super) fn spell(
+    run: &mut Run,
+    attacker: Entity,
+    spell: u32,
+    school: survivors_core::casting::School,
+    raw: f32,
+    critical: bool,
+) -> SpellStrike {
+    SpellStrike {
+        attacker,
+        spell,
+        school,
+        critical,
+        outcome: hurt_kind(run, raw, false),
+    }
+}
+
+fn hurt_kind(run: &mut Run, raw: f32, physical: bool) -> Outcome {
     if !raw.is_finite() || raw <= 0.0 {
         return Outcome::Invalid;
     }
@@ -160,7 +192,7 @@ pub(super) fn hurt(run: &mut Run, raw: f32) -> Outcome {
     let raw = raw * run.milestones.retaliation_risk(retaliation);
     let mut damage = run.milestones.after_flat_absorption(super::sheet::mitigate(
         raw,
-        stats.armor,
+        if physical { stats.armor } else { 0. },
         stats.reduction,
     ));
     let absorbed = if run.shield_t > 0.0 && run.shield > 0.0 {

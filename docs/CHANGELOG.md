@@ -5,6 +5,16 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — First enemy spellcaster
+
+Darkeye Bonecaster now casts its verified Frostbolt, with interruptible windup,
+Frost damage and a temporary movement slow. Casts preserve pet/Stoneclaw attention
+and cancel on lost targets, obstruction or control. Seven runtime regressions
+pass; scoped formatting/Clippy/tests and the native build also pass (31 optional-
+addon skips). Player interrupt acquisition, broader spell rosters and attended visual /
+Windows checks remain pending. [Evidence and tuning](audits/ENEMY-CASTING.md#darkeye-bonecaster-integration--2026-10-30).
+No new screenshot: in-map visuals have not yet been attended and verified.
+
 ## 2026-10-30 — Casting rules groundwork
 
 Added shared cast timing, target retention, interruption, school lockout and silence

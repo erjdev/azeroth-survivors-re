@@ -25,6 +25,7 @@ mod demon_preview;
 mod disarm;
 mod earthbind;
 mod enemies;
+mod enemy_casting;
 #[cfg(not(target_arch = "wasm32"))]
 mod equipment_preview;
 mod floor;
@@ -537,6 +538,7 @@ pub(super) struct Run {
     pub shield: f32,
     pub shield_t: f32,
     pub immune_t: f32,
+    pub incoming_slows: survivors_core::slows::Slows,
     pub enrage_t: f32,
     pub battle_shout: survivors_core::battle_shout::BattleShout,
     pub ancestral_healing_t: f32,
@@ -644,6 +646,7 @@ impl Default for Run {
             shield: 0.0,
             shield_t: 0.0,
             immune_t: 0.0,
+            incoming_slows: Default::default(),
             enrage_t: 0.0,
             battle_shout: default(),
             ancestral_healing_t: 0.0,

@@ -20,7 +20,8 @@ use crate::net::{FieldChanged, Guid, ObjectStore};
     super::abilities::FireVulnerability,
     super::abilities::HemorrhageVulnerability,
     super::curse::CurseState,
-    super::disarm::DisarmState
+    super::disarm::DisarmState,
+    super::enemy_casting::Caster
 )]
 pub(super) struct Enemy {
     pub def: &'static EnemyDef,
@@ -377,6 +378,7 @@ pub(super) fn move_enemies(
             &mut MovementState,
             Option<&super::hunter_pet::PetTaunt>,
             &super::curse::CurseState,
+            &mut super::enemy_casting::Caster,
         ),
         Without<Hero>,
     >,
@@ -431,6 +433,14 @@ pub(super) fn move_enemies(
         return;
     }
     let Ok((hero_e, htf)) = hero.single() else {
+        for (ent, _, _, mut mv, _, _, mut caster) in &mut enemies {
+            if let Some(cast) = caster.state.active() {
+                fx.cancel_cast(ent, cast.spell.id);
+                caster.state.cancel();
+            }
+            mv.speed = 0.;
+            mv.flags = 0;
+        }
         return;
     };
     let hpos = htf.translation;
@@ -440,8 +450,8 @@ pub(super) fn move_enemies(
     const CELL: f32 = 3.0;
     let bodies: Vec<(Entity, Vec3, f32)> = enemies
         .iter()
-        .filter(|(_, _, e, _, _, _)| !e.dead)
-        .map(|(ent, tf, e, _, _, _)| (ent, tf.translation, e.radius))
+        .filter(|(_, _, e, _, _, _, _)| !e.dead)
+        .map(|(ent, tf, e, _, _, _, _)| (ent, tf.translation, e.radius))
         .collect();
     navigation.advance(dt, selection.map, &bodies, |from, to, radius| {
         let map = selection.map_def();
@@ -484,9 +494,13 @@ pub(super) fn move_enemies(
         push.insert(ent, acc);
     }
 
-    for (ent, mut tf, mut e, mut mv, taunt, curse) in &mut enemies {
+    for (ent, mut tf, mut e, mut mv, taunt, curse, mut caster) in &mut enemies {
         let e = &mut *e;
         if e.dead {
+            if let Some(cast) = caster.state.active() {
+                fx.cancel_cast(ent, cast.spell.id);
+                caster.state.cancel();
+            }
             if mv.speed != 0.0 || mv.flags != 0 {
                 mv.speed = 0.0;
                 mv.flags = 0;
@@ -538,6 +552,10 @@ pub(super) fn move_enemies(
         };
         // A living Stoneclaw keeps its captives even when the hero leaves them behind.
         if dist > 75.0 && stoneclaw_target.is_none() {
+            if let Some(cast) = caster.state.active() {
+                fx.cancel_cast(ent, cast.spell.id);
+                caster.state.cancel();
+            }
             navigation.forget(ent);
             recycle(
                 &world,
@@ -612,7 +630,87 @@ pub(super) fn move_enemies(
 
         // Under Fade the horde has lost the hero: it mills where it stands.
         let lost = run.mobile.vanish_t > 0.0 && !e.boss && stoneclaw_target.is_none();
-        let held = e.stun_t > 0.0 || e.root_t > 0.0 || e.incapacitate_t > 0.0 || lost;
+        let can_cast = super::enemy_casting::Caster::enabled(e.def.template_entry);
+        let connected = can_cast
+            && run.alive()
+            && !hero_down
+            && !lost
+            && e.stun_t <= 0.0
+            && e.fear_t <= 0.0
+            && e.incapacitate_t <= 0.0
+            && pos.distance(target_pos) <= super::enemy_casting::RANGE
+            && world.line_clear(pos, target_pos);
+        let (started, completed, cancelled) = caster.step(target_e, run.elapsed, connected);
+        if started {
+            fx.begin_cast(ent, super::enemy_casting::FROSTBOLT.id);
+        }
+        if cancelled {
+            fx.cancel_cast(ent, super::enemy_casting::FROSTBOLT.id);
+        }
+        if completed {
+            // Survivors tuning uses the roster's scaled damage, not raw vanilla damage.
+            // Spell damage ignores physical-only Curse of Weakness and melee reflection.
+            let raw = e.damage * 3.0 * e.weaken;
+            let taken;
+            let mut critical = false;
+            if let Some((entity, _)) = stoneclaw_target {
+                let (_, _, mut totem, mut store) = stoneclaws.get_mut(entity).unwrap();
+                taken = totem.life.hurt(raw, run.elapsed);
+                if totem.life.health() <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+            } else if let Some((entity, _)) = pet_target {
+                let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
+                taken = pet.hurt(raw, run.elapsed);
+                if pet.vitality.hp <= 0.0 {
+                    units::kill_unit(&mut store);
+                } else {
+                    pet.incoming_slows
+                        .apply(super::enemy_casting::SLOW, 0.5, 2., run.elapsed);
+                }
+            } else if let Some((entity, _)) = earthbind_target {
+                let (_, _, mut totem, mut store) = earthbinds.get_mut(entity).unwrap();
+                taken = totem.life.hurt(raw, run.elapsed);
+                if totem.life.health() <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+            } else {
+                let strike = super::defense::spell(
+                    &mut run,
+                    ent,
+                    super::enemy_casting::FROSTBOLT.id,
+                    super::enemy_casting::FROSTBOLT.school,
+                    raw,
+                    false,
+                );
+                taken = strike.outcome.health_removed();
+                critical = strike.critical;
+                debug_assert_eq!(
+                    (strike.attacker, strike.spell),
+                    (ent, super::enemy_casting::FROSTBOLT.id)
+                );
+                if run.alive()
+                    && matches!(strike.outcome, super::defense::Outcome::Landed { .. })
+                    && strike.school == survivors_core::casting::School::Frost
+                {
+                    let now = run.elapsed;
+                    run.incoming_slows
+                        .apply(super::enemy_casting::SLOW, 0.5, 2., now);
+                }
+            }
+            fx.cast(ent, super::enemy_casting::FROSTBOLT.id, &[target_e], None);
+            if taken > 0. {
+                fx.number(target_e, taken, critical, COLOR_HURT);
+            }
+        }
+        // A connected ranged caster waits in place through recovery. Silence/lockout
+        // permits melee fallback; roots block movement but do not interrupt casting.
+        let ranged = connected
+            && (caster.state.active().is_some()
+                || caster
+                    .state
+                    .available(super::enemy_casting::FROSTBOLT.school, run.elapsed));
+        let held = e.stun_t > 0.0 || e.root_t > 0.0 || e.incapacitate_t > 0.0 || lost || ranged;
         let contact = (target_pos - pos).length() <= target_radius + e.radius + 0.35
             && world.line_clear(pos, target_pos);
         let mut step = Vec3::ZERO;
@@ -673,6 +771,8 @@ pub(super) fn move_enemies(
         }
 
         if contact
+            && !ranged
+            && !completed
             && !lost
             && e.stun_t <= 0.0
             && e.fear_t <= 0.0

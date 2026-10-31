@@ -337,6 +337,24 @@ pub(super) struct Fx<'w> {
 const MAX_VISUAL_HITS: usize = 12;
 
 impl Fx<'_> {
+    pub fn begin_cast(&mut self, caster: Entity, spell: u32) {
+        self.casts.write(CastEvent {
+            entity: caster,
+            spell_id: spell,
+            kind: CastEventKind::Start,
+            seq: self.seq.next(),
+        });
+    }
+
+    pub fn cancel_cast(&mut self, caster: Entity, spell: u32) {
+        self.casts.write(CastEvent {
+            entity: caster,
+            spell_id: spell,
+            kind: CastEventKind::Fail,
+            seq: self.seq.next(),
+        });
+    }
+
     /// `SMSG_SPELL_GO`: the cast kit on the caster, and a missile or an impact at each hit.
     pub fn cast(&mut self, caster: Entity, spell: u32, hits: &[Entity], dest: Option<Vec3>) {
         let seq = self.seq.next();

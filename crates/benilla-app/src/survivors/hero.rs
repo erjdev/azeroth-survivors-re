@@ -261,7 +261,10 @@ pub(super) fn drive_hero(
             if dir != Vec3::ZERO && dt > 0.0 {
                 let strength = dir.length().min(1.0);
                 let dir = dir.normalize();
-                let speed = run.stats().speed * run.haste_mult() * strength;
+                let speed = run.stats().speed
+                    * run.haste_mult()
+                    * strength
+                    * run.incoming_slows.state(run.elapsed).0;
                 pos += dir * speed * dt;
                 mv.speed = speed;
                 mv.flags = match face {

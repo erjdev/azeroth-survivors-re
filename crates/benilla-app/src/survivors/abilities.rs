@@ -11383,3 +11383,7 @@ mod fire_totem_placement_tests;
 #[cfg(test)]
 #[path = "weapon_attack_tests.rs"]
 mod weapon_attack_tests;
+
+#[cfg(test)]
+#[path = "enemy_casting_tests.rs"]
+mod enemy_casting_tests;

@@ -3,8 +3,9 @@
 ## Shared lifecycle — 2026-10-30
 
 `survivors-core::casting` now provides a per-caster lifecycle for six magic schools.
-This is a prerequisite implementation, not a playable enemy spell or a completed
-talent. Current named talent coverage remains 311/432.
+At `a73d9ae`, this was a prerequisite implementation without a playable enemy
+spell. The follow-up below connects the first caster. Named talent coverage
+remains 311/432.
 
 The installed Counterspell evidence in the [Mage audit](MAGE-TALENT-DEPENDENCIES.md)
 requires distinct interruption, school lockout and silence. The shared rules accept
@@ -60,6 +61,65 @@ selecting the first cast; no spell is assigned by this checkpoint.
    death, proc recursion and restart. Add cast feedback and native screenshots;
    attended gameplay and Windows acceptance must follow before claiming completion.
 
-Until those steps exist, the current enemy contact loop is unchanged. These core
+At the initial `a73d9ae` checkpoint, the enemy contact loop was unchanged. Those core
 rules alone do not satisfy Counterspell, Kick, Shield Bash, Silence, casting
 pushback, spell-critical reflection or the remaining talent acceptance contract.
+
+
+## Darkeye Bonecaster integration — 2026-10-30
+
+The first producer now resolves creature template 1522 → spell list 15220 →
+Frostbolt 13322 using the same pinned database revision as the equipment audit.
+[Source spell list](https://github.com/mangoszero/database/blob/325948a78015794e6cc626212bc19fee70c805b2/World/Setup/FullDB/creature_spells.sql)
+slot one specifies spell 13322, probability 100, target selector 1, cast flags 8,
+zero initial delay and repeat delay 2–2. These raw fields establish the identity;
+the following Survivors policies are explicit rather than a full server-AI port.
+
+Reproduce the installed spell evidence with:
+
+```sh
+target/debug/survivors-audit wow-data/Data --spell-evidence 13322
+```
+
+The checkout reports Frost school (4), 3,000 ms cast time, 40-yard range, a
+2,000 ms slow aura with base points −51 plus one, and a damage effect with raw
+base points 47 / die sides 17. Survivors uses the cast time, range and 50% slow
+for two seconds. Damage is authored as three times this enemy's existing scaled
+contact damage, including its current percentage weakening. It does not import
+vanilla mana costs or raw damage. No spell critical roll is added in this step.
+
+The caster waits in range during casting/recovery and starts again two seconds
+after completion or cancellation. It does not accumulate catch-up casts after a
+long frame. School lockout/silence allows its existing melee fallback. Roots do
+not interrupt casting; stun, fear, incapacitation, lost attention, death, range
+or line-of-sight loss do. Recycled enemies discard their unfinished cast.
+
+Existing attention ordering remains Stoneclaw, pet, nearby utility totem, hero.
+Changing that selected target cancels the old cast rather than redirecting its
+payload. Boss attention exclusions remain intact. The caster emits start, failure
+and release animation events with the installed spell identity. Damage settles
+at completion using the existing immediate-damage visual convention; missile
+travel time is not yet a separate settlement clock.
+
+Hero spell settlement retains attacker, spell, school and critical metadata and
+bypasses melee dodge/parry, flat armor, Counterattack and contact retaliation.
+General reduction, absorption and existing on-damage effects still apply. Frost
+slow applies to a surviving landed hero hit even if fully absorbed; immunity
+prevents it. Pet damage/slow stays on the pet; immobile totems only take damage.
+The strongest incoming slow multiplies actual hero/pet movement, and expires in
+active-run time. Fresh run/pet state clears it. Physical Curse of Weakness does
+not reduce Frost damage; existing percentage weakening does.
+
+Seven actual-runtime tests pass: cast/recovery timing and one-time settlement,
+armor bypass without melee retaliation, eight cancellation cases, immunity/
+absorption/pause, school-lockout melee fallback, Stoneclaw target switching,
+pet-only delivery and missing-hero cancellation. Test build: 2m35s; execution: 0.06s.
+The six-package scoped formatting/Clippy/test gate passes with 31 optional-addon
+skips, and the documentation-link check passes. The native play build passes in
+2m40s, reporting a linker warning that `__eh_frame` exceeds the compact-unwind
+offset encoding limit (possible exception-handling performance impact), plus the
+existing `block` future-compatibility warning. Build storage passes at 66.25 GiB.
+This does not implement acquired player interrupts, incoming spell criticals,
+resistance/ward policies or other enemy spells. Named talent coverage remains
+311/432. Attended combat, cast animation readability and Windows verification
+remain open; no unattended combat or new in-map screenshot is claimed.

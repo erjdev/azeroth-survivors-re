@@ -134,6 +134,18 @@ rank persists with 9 spent / 42 available and independent specs. Screenshots
 are inline in CHANGELOG and README. No runtime change; Windows/controller and
 attended combat remain open. This supersedes their compact pointer gap.
 
+## First enemy spell consumer — 2026-10-30
+
+Darkeye Bonecaster now uses its verified Frostbolt identity in the actual enemy
+loop: a three-second cast, 40-yard range, source-owned Frost damage and a two-second
+50% movement slow. Stoneclaw/pet attention is preserved; a changed target cancels
+instead of redirecting the cast. Seven actual-runtime tests pass, including
+cancellation, pauses, armor bypass, immunity, absorption and pet/totem delivery.
+[Evidence, explicit tuning and remaining acceptance](audits/ENEMY-CASTING.md#darkeye-bonecaster-integration--2026-10-30).
+Acquired player interrupts, other spellcasters, wards/resistances and attended
+visual/Windows checks remain open. This adds a required talent consumer boundary;
+named definitions remain 311/432.
+
 ## Shared enemy casting prerequisite — 2026-10-30
 
 [The casting lifecycle](audits/ENEMY-CASTING.md) now distinguishes school-specific

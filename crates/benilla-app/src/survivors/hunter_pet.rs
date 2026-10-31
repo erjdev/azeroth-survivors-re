@@ -16,6 +16,7 @@ pub(super) const SOURCE: &str = "Hunter Pet";
 #[derive(Component, Default)]
 pub(super) struct HunterPet {
     pub(super) vitality: survivors_core::combat_pet::Vitality,
+    pub(super) incoming_slows: survivors_core::slows::Slows,
     bond_elapsed: f32,
     cooldown: f32,
     frenzy: survivors_core::talents::PetFrenzy,
@@ -263,7 +264,8 @@ pub(super) fn fight(
         } else if !in_reach || target.is_some() {
             let waypoint = navigation.waypoint(entity, at, goal).unwrap_or(goal);
             let dir = units::flat(waypoint - at);
-            let speed = stats.speed.max(7.0) * 1.15 * bonus.speed;
+            let speed =
+                stats.speed.max(7.0) * 1.15 * bonus.speed * pet.incoming_slows.state(run.elapsed).0;
             let step = (speed * dt).min(dir.length());
             let desired = at + dir.normalize_or_zero() * step;
             let end = world.travel(at, desired, RADIUS);
