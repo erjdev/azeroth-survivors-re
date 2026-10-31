@@ -89,6 +89,43 @@ These aliases prevent accidental variant switches; they do not remove recompilat
 when Rust source changes, shorten first builds, or isolate the large app crate.
 Shipping and browser configurations still need their own acceptance checks.
 
+### Build storage budget
+
+Development and test builds now disable debug symbols (`profile.dev.debug = 0`;
+tests inherit dev). Incremental compilation and dependency optimization remain
+enabled. The play profile is unchanged. This avoids retaining the full macOS
+split-debug objects that accumulated over 1 TiB in `target/debug/deps`. Ordinary
+panic messages and tests still work, but debugger locals and source-line
+backtraces require an explicit diagnostic build.
+
+For a native diagnostic session, use a separate disposable target directory:
+
+```sh
+CARGO_TARGET_DIR=target/diagnostic CARGO_PROFILE_DEV_DEBUG=2 CARGO_PROFILE_DEV_SPLIT_DEBUGINFO=packed cargo survivors-test
+```
+
+This is a cold build, not the normal iteration command. Packed symbols avoid the
+macOS loose-object debug format; delete `target/diagnostic` after debugging, with
+all builds stopped. Do not use these flags for browser builds. Cargo profile or
+flag overrides in the environment can override the repository defaults.
+
+Cargo's build output has no project size cap. Before a long implementation batch
+and at each milestone, run `python3 scripts/check-build-storage.py`. It reports
+free space and the allocated size of the selected Cargo target directory, and
+returns failure above 100 GiB of build output or below 30 GiB free. These are
+maintenance thresholds, not an enforced filesystem quota. Stop builds and review
+obsolete profiles/variants when it fails; do not let a warning silently become a
+terabyte. The command never deletes files and honors `CARGO_TARGET_DIR`.
+
+To recover from the October 30 incident, `target/debug/deps` was cleared with all
+Rust builds stopped. It contains generated output, not source, saves or game data.
+The next debug/test build must recreate dependencies. Other target directories,
+including the warm play cache, were preserved. Deleting deps alone can leave
+incremental and build-script caches behind; inspect the storage report before
+removing any additional generated directory. Never clean caches while a build or
+validation process is using them. Keep the standard aliases above and avoid
+unnecessary feature/profile variants; do not routinely wipe the warm cache.
+
 ### Windows checkout launchers
 
 Run `scripts\survivors.cmd` from cmd, or `./scripts/survivors.ps1` from PowerShell.

@@ -12,6 +12,10 @@ changing client code, and treat this file as authoritative for the fork's crates
 
 ## Survivors progress checkpoints
 
+- Before a long build batch and at each milestone, run `python3 scripts/check-build-storage.py`.
+  Stop and review generated output if it exceeds 100 GiB or free space falls below 30 GiB.
+  Preserve warm caches during normal iteration; use the standard Survivors aliases and the
+  diagnostic-symbol workflow in `docs/SURVIVORS-DEVELOPMENT.md` instead of changing flags ad hoc.
 - Keep `docs/CHANGELOG.md` succinct: group changes by feature milestone/version, not commit.
   This user-requested Survivors changelog is an exception to the upstream no-changelog rule.
 - Store milestone screenshots in `docs/images/screenshots/<milestone>/`, link them from the

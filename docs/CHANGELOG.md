@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Build storage recovery
+
+Cleared generated debug dependencies after loose macOS debug objects grew beyond
+1 TiB. Everyday dev/tests now omit debug symbols while retaining incremental
+compilation; the play cache is preserved. Added a read-only 100 GiB build-output /
+30 GiB free-space budget check and an opt-in diagnostic-symbol workflow.
+[Maintenance guide](SURVIVORS-DEVELOPMENT.md#build-storage-budget).
+Profile smoke tests verify initial compilation, incremental edits and warm reuse;
+storage-check fixtures pass. Full game validation requires a fresh dependency
+build and remains pending. No UI change in this maintenance milestone.
+
 ## 2026-10-30 — Paladin automatic weapon attacks
 
 Paladins swing their worn melee weapon automatically outside the six ability slots.
