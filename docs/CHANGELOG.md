@@ -5,6 +5,20 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-31 — Select and replace hero names
+
+Creation and rename fields support Command-A/Ctrl-A with a visible selection
+highlight, typing to replace, and Backspace/Delete to clear. Shortcut letters no
+longer leak into names. Native 640×480 checks verify creation, rename, cancellation
+and saved identity after restart. Five focused tests, native build and six-package
+formatting/Clippy/test gate pass (31 optional-addon skips).
+[Evidence and platform limits](audits/NAME-SELECTION.md). Clipboard and cursor
+editing remain open.
+
+![Name selection during creation](images/screenshots/2026-10-31-name-selection/creation-selected.jpg)
+
+![Starter rename selection](images/screenshots/2026-10-31-name-selection/rename-selected.jpg)
+
 ## 2026-10-31 — Minimum-window hero creation
 
 Native 640×480 onboarding now has captured evidence for empty-name rejection,

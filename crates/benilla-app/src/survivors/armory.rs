@@ -172,6 +172,7 @@ pub(super) struct Armory {
     manage_heroes: bool,
     /// 0 none; 1/2 creation names; 3/4 selected-hero rename.
     focus: u8,
+    name_selection: Option<u8>,
     rename: Option<name_edit::Draft>,
     draft_first: String,
     draft_last: String,
@@ -215,6 +216,7 @@ impl Default for Armory {
             page: Page::initial(),
             manage_heroes: false,
             focus: 0,
+            name_selection: None,
             rename: None,
             draft_first: "Adventurer".into(),
             draft_last: "Stormwind".into(),
@@ -404,8 +406,11 @@ pub(super) fn input(
         mut shortcut,
         mut raw,
         mut native,
+        mut names,
     } = keyboard;
-    let native_cosmetic_click = native.read(raw.read());
+    let raw_events: Vec<_> = raw.read().collect();
+    let name_events = names.read(raw_events.iter().copied());
+    let native_cosmetic_click = native.read(raw_events.iter().copied());
     let compact = pointer.roots.single().is_ok_and(collection::compact_width);
     if *phase.get() != Phase::Menu {
         typing.0 = false;
@@ -441,9 +446,30 @@ pub(super) fn input(
         armory.focus = 0;
     }
     typing.0 = armory.focus != 0 && (armory.page == Page::Heroes || armory.rename.is_some());
-    for event in keyboard.read() {
+    if name_events.is_empty() {
+        // Retain synthetic Bevy input for headless checks and non-winit event producers.
+        for event in keyboard.read() {
+            if typing.0 {
+                name_input::feed(
+                    event,
+                    keys.any_pressed([
+                        KeyCode::SuperLeft,
+                        KeyCode::SuperRight,
+                        KeyCode::ControlLeft,
+                        KeyCode::ControlRight,
+                    ]),
+                    &mut armory,
+                    &mut account,
+                    &selection,
+                );
+            }
+        }
+    } else {
+        keyboard.clear();
         if typing.0 {
-            name_input::feed(event, &mut armory, &mut account, &selection);
+            for (event, command) in &name_events {
+                name_input::feed(event, *command, &mut armory, &mut account, &selection);
+            }
         }
     }
     // Keep Typing set for the whole frame, including the Enter that finishes an edit.
@@ -613,7 +639,10 @@ pub(super) fn input(
                     armory.note.clear();
                 }
             }
-            Act::Focus(slot) => armory.focus = slot,
+            Act::Focus(slot) => {
+                armory.focus = slot;
+                armory.name_selection = None;
+            }
             Act::DraftClass(class) => {
                 if class < CLASSES.len() {
                     armory.draft_class = class;
@@ -701,12 +730,14 @@ pub(super) fn input(
                 index,
             ),
             Act::EditName => {
+                armory.name_selection = None;
                 armory.rename = name_edit::Draft::begin(&account, &selection);
                 armory.focus = if armory.rename.is_some() { 3 } else { 0 };
                 armory.note.clear();
             }
             Act::SaveName => save_name(&mut armory, &mut account, &selection),
             Act::CancelName => {
+                armory.name_selection = None;
                 armory.rename = None;
                 armory.focus = 0;
                 armory.note.clear();
@@ -1309,13 +1340,7 @@ fn heroes(
                 })
                 .with_children(|field| {
                     field.spawn(hud::text_bundle(font, title, 13.0, GOLD));
-                    chip(
-                        field,
-                        font,
-                        &field_label(value, armory.focus == slot),
-                        Act::Focus(slot),
-                        armory.focus == slot,
-                    );
+                    name_field(field, font, value, slot, armory);
                 });
             }
         });
@@ -2280,6 +2305,49 @@ fn notes_page(panel: &mut impl ChipParent, font: &Handle<Font>) {
         });
 }
 
+fn name_field(
+    parent: &mut impl ChipParent,
+    font: &Handle<Font>,
+    value: &str,
+    slot: u8,
+    armory: &Armory,
+) {
+    let focused = armory.focus == slot;
+    let selected = focused && armory.name_selection == Some(slot) && !value.is_empty();
+    controls::content_button(
+        parent,
+        Act::Focus(slot),
+        focused,
+        Node {
+            min_height: Val::Px(22.0),
+            justify_content: JustifyContent::Center,
+            margin: UiRect::new(Val::Px(0.0), Val::Px(4.0), Val::Px(2.0), Val::Px(0.0)),
+            padding: UiRect::horizontal(Val::Px(6.0)),
+            ..default()
+        },
+        |body| {
+            let label = field_label(value, focused && !selected);
+            body.spawn((
+                hud::text_bundle(
+                    font,
+                    &label,
+                    13.0,
+                    if selected {
+                        Color::WHITE
+                    } else {
+                        Color::srgb(0.91, 0.78, 0.40)
+                    },
+                ),
+                BackgroundColor(if selected {
+                    Color::srgb(0.16, 0.32, 0.55)
+                } else {
+                    Color::NONE
+                }),
+            ));
+        },
+    );
+}
+
 fn field_label(text: &str, focused: bool) -> String {
     let shown = if text.is_empty() { "name" } else { text };
     if focused {
@@ -2354,6 +2422,7 @@ fn signature(
     // Codex selection updates its detail text in place, preserving catalog scrolling.
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
+    n = fold(n, u64::from(armory.name_selection.unwrap_or(0)));
     n = fold(n, u64::from(armory.manage_heroes));
     n = fold(n, armory.draft_class as u64);
     if let Some(draft) = &armory.rename {

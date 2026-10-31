@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Hero names support Command-A/Ctrl-A selection and replacement, including saved
+starter renames. [Native evidence and limits](docs/audits/NAME-SELECTION.md).
+
+![Name selection](docs/images/screenshots/2026-10-31-name-selection/creation-selected.jpg)
+
 Minimum-window hero creation is verified through appearance changes and restart
 at 640×480 on macOS. [Native evidence and limits](docs/audits/CHARACTER-CREATION-MINIMUM.md).
 

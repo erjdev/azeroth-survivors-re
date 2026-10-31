@@ -845,20 +845,8 @@ fn hero_column(
                         .as_ref()
                         .filter(|draft| Some(draft.hero) == selection.character)
                     {
-                        super::chip(
-                            row,
-                            font,
-                            &super::field_label(&draft.first, armory.focus == 3),
-                            Act::Focus(3),
-                            armory.focus == 3,
-                        );
-                        super::chip(
-                            row,
-                            font,
-                            &super::field_label(&draft.last, armory.focus == 4),
-                            Act::Focus(4),
-                            armory.focus == 4,
-                        );
+                        super::name_field(row, font, &draft.first, 3, armory);
+                        super::name_field(row, font, &draft.last, 4, armory);
                         super::chip(row, font, "Save", Act::SaveName, false);
                         super::chip(row, font, "Cancel", Act::CancelName, false);
                         return;

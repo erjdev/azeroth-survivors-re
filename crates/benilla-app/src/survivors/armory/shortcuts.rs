@@ -9,6 +9,7 @@ pub(in crate::survivors) struct Keyboard<'w, 's> {
     pub(super) shortcut: Local<'s, RightClickModifiers>,
     pub(super) raw: MessageReader<'w, 's, bevy::winit::RawWinitWindowEvent>,
     pub(super) native: Local<'s, NativeModifiers>,
+    pub(super) names: Local<'s, super::name_input::NativeText>,
 }
 
 #[derive(Default)]

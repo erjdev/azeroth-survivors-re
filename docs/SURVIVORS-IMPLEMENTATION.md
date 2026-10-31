@@ -9,6 +9,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Name selection and replacement — 2026-10-31
+
+[Command-A/Ctrl-A selection](audits/NAME-SELECTION.md) now works in creation and
+starter rename fields, with native compact creation/save/cancel/restart evidence.
+This resolves whole-name selection from the minimum-window audit. Partial
+selection, cursor movement, clipboard editing and remaining platform acceptance
+stay open.
+
 ## Minimum-window character creation — 2026-10-31
 
 The [native creation audit](audits/CHARACTER-CREATION-MINIMUM.md) verifies empty-name

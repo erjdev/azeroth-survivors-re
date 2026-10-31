@@ -34,6 +34,9 @@ legibility on every display density.
   color 7/9. Saved account rows independently confirm hero ID 2, its body and
   feature values; the selected-hero file also retains ID 2.
 
+Later follow-up: [whole-name selection and replacement](NAME-SELECTION.md) now
+passes native checks. The following describes the earlier `dd3304d` build.
+
 The initial Command-A attempt did **not** select the name. The custom field
 appended the character instead; the subsequent Backspace removed it, leaving the
 default draft. Clicking Create then made Adventurer Stormwind (Warrior), before
