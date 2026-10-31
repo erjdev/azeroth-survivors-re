@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Paladin automatic weapon attacks
+
+Paladins swing their worn melee weapon automatically outside the six ability slots.
+Attacks respect range, concealment and solid obstacles; haste, criticals and extra
+targets use existing stats. Initial tuning and dependent talent work are documented
+in the [weapon audit](audits/PALADIN-WEAPON-TALENTS.md#automatic-weapon-attack--2026-10-30).
+Five actual-runtime tests, native build and the eight-package formatting/Clippy/test
+gate pass (31 optional-addon skips). No interface change or new screenshot milestone; attended combat and Windows verification remain open.
+
 ## 2026-10-30 — All-class native talent layout matrix
 
 All nine classes now have native macOS layout evidence at 1440×600 / 125%:

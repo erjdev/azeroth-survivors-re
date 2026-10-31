@@ -667,8 +667,10 @@ formatting/Clippy/test gate pass (31 optional-addon skips).
 need physical melee weapon damage. All eight current Paladin ability spell IDs
 are Holy, and `Strike` is a targeting shape rather than a weapon-damage guarantee.
 Do not apply weapon specialization to Judgement or Consecration as a substitute.
-Basic melee outside slots versus an acquired physical ability is pending user input;
-implementation and native talent acceptance remain open. Coverage stays 300/432.
+Resolved 2026-10-30: automatic melee outside the six ability slots. The basic
+attack foundation uses worn identity and geometry checks; see the audit for
+authored tuning. Dependent talent implementation/native acceptance remain open.
+The original audit coverage was 300/432.
 
 ## Shared combat-pet health — 2026-10-29
 

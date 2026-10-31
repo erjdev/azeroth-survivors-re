@@ -18,14 +18,14 @@ target/debug/survivors-audit wow-data/Data --spell-evidence 20196
 target/debug/survivors-audit wow-data/Data --spell-evidence 20111
 ```
 
-## Missing runtime consumer
+## Original missing runtime consumer
 
 At the original audit, the Paladin pool in `survivors-core/src/data.rs` contained Hammer of Wrath,
 Consecration, Holy Shock, Exorcism, Holy Wrath, Hammer of Justice, Divine Shield
 and Judgement. Their configured spell IDs are 24275, 26573, 25912, 879, 2812,
 853, 642 and 20271. Each resolves to school 1 (Holy) in checkout data. A `Strike`
 ability shape only describes target selection; it does not make the hit a physical
-weapon attack. There is no separate Paladin basic melee swing in the current run.
+weapon attack. There was no separate Paladin basic melee swing at this audit.
 
 Existing Warrior specialization uses an explicit list of weapon attacks. Reusing
 its one-/two-handed condition alone for Paladin would either produce no effect or
@@ -34,10 +34,8 @@ actual physical-damage consumer exists. Coverage remains 300/432 (Paladin 25/44)
 
 ## Decision and integration
 
-Pending user decision: add a basic automatic melee swing outside the six ability
-slots, or a physical melee ability acquired through cards. This is separate from
-the pending equipped-weapon-versus-authored-base damage decision for Stormstrike.
-No new attack, slot policy or weapon damage formula is selected by this audit.
+User decision (2026-10-30): Paladins start with an automatic physical attack
+outside the six ability slots. Stormstrike remains a separate pending decision.
 
 Follow-up at `fdabe73`: Repentance adds a ninth Paladin ability, but no physical
 weapon attack. Coverage is now 305/432 (Paladin 26/44); both specializations remain
@@ -117,3 +115,36 @@ cover escaped names, separate schools, hash drift, duplicate rows, missing items
 nonweapons, invalid delays/ranges and invalid schools. Both pass; regenerating the
 CSV reproduces the checked-in report. No Rust/runtime/UI changed, so no new native
 build, scoped gate or screenshot is claimed. Definition coverage remains unchanged.
+
+## Automatic weapon attack — 2026-10-30
+
+Paladins automatically swing an owned, worn melee weapon without occupying an
+ability slot or appearing in level-up drafts. Empty/unowned/ranged gear does not
+supply a swing; cosmetic overrides cannot supply weapon identity. The existing
+selected-character run snapshot supplies that identity.
+
+Initial Survivors tuning is 24 base damage every 2 seconds for one-handed weapons,
+36 every 3 seconds for two-handed weapons (equal 12 base DPS). Existing Might,
+critical chance/multiplier and haste apply; gear rarity contributes through the
+existing permanent stat bonuses. This is authored baseline tuning, not imported
+vanilla item damage, a new weapon-stat table, or finalized balance. Spell cooldown
+reduction and area bonuses do not change the basic swing.
+
+Targets must be alive, visible to the hero, within 3 yards plus enemy radius in
+three dimensions, floor-supported and unobstructed by solid geometry. Extra-target
+bonuses add nearby eligible victims; they do not create area attacks. No eligible
+target spends no swing. Paused/dead simulation cannot attack or advance its clock.
+The existing swing animation and hit settlement feed the Weapon Attack meter row.
+
+Weapon-specialization talent definitions, seals and other attack-dependent talents
+remain pending individual implementation and native UI evidence. No new talent
+coverage or attended combat/Windows acceptance is claimed by this foundation.
+
+Validation: five actual-runtime regressions pass for one-/two-handed settlement,
+cadence, six occupied slots, pause/death, gear absence, concealment, three-dimensional
+range, solid-wall occlusion, extra targets and haste. Native incremental build passes
+(74 seconds); macOS linker reports its existing large-unwind-table warning.
+No new native UI screenshot is claimed for this combat-only checkpoint.
+
+The eight-package scoped formatting/Clippy/test gate passes with 31 optional-addon
+corpus skips. Logs: `/tmp/paladin-auto-{test,build,check}.log`.

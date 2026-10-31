@@ -551,6 +551,8 @@ pub(super) struct Run {
     pub thorns_t: f32,
     pub pet_intimidation_ready_at: f32,
     pub counterattack_ready_at: f32,
+    /// Independent of the six drafted ability slots. Active simulation seconds.
+    pub weapon_attack_cd: f32,
     pub thorns_spell: u32,
     pub healing: survivors_core::healing::HealingOverTime,
     /// The class mobility's cooldown and running effect.
@@ -656,6 +658,7 @@ impl Default for Run {
             thorns_t: 0.0,
             pet_intimidation_ready_at: 0.0,
             counterattack_ready_at: 0.0,
+            weapon_attack_cd: 0.0,
             thorns_spell: 0,
             healing: Default::default(),
             mobile: mobility::MobilityState::default(),

@@ -83,7 +83,6 @@ approved conversion for one spell does not authorize applying it to all others.
 | Ancestral Healing: replace, combine with, or retain the existing authored armor effect | [Shaman critical-heal armor behavior](audits/SHAMAN-HEALING-DEPENDENCIES.md). |
 | Stormstrike weapon-damage input | [Shaman melee attack and vulnerability application](audits/SHAMAN-MELEE-DEPENDENCIES.md). |
 | Disarmed enemies stop weapon attacks or retain an unarmed attack | [Enemy equipment and disarm consumers](audits/ENEMY-EQUIPMENT.md). |
-| Paladin basic physical attack outside slots versus acquired attack | [Weapon-scoped talents and seals](audits/PALADIN-WEAPON-TALENTS.md). |
 | Tranquility movement and attack handling | [Channel lifecycle and healing](audits/TRANQUILITY.md). |
 
 Resolved rules remain resolved: Stoneclaw forces ordinary captured enemies to
@@ -91,6 +90,8 @@ attack it while alive; bosses are immune. Illumination refunds half the effectiv
 critical heal's recovery on its rank-scaled proc. Battlegrounds retain horde
 survival with faction-themed encounters. Gear duplicates give no power; higher
 rarities add/strengthen stats. Extra targets affect single-target attacks only.
+Paladins automatically attack with worn melee weapons outside the six ability slots;
+[initial implementation and tuning](audits/PALADIN-WEAPON-TALENTS.md#automatic-weapon-attack--2026-10-30).
 
 ## Reporting and verification
 
