@@ -191,6 +191,9 @@ impl Milestones {
 
     pub fn ability_unlocked(self, key: &str) -> bool {
         match key {
+            "silence" => {
+                self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("silence")) > 0.0
+            }
             "mind_flay" => {
                 self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("mind_flay")) > 0.0
             }
@@ -3903,6 +3906,11 @@ const PRIEST_SHADOW: &[&str] = &[
 // Vanilla identities and rank caps; automatic-cast conversions are labeled in descriptions.
 #[rustfmt::skip]
 const PRIEST_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 541, max_rank: 1, name: "Silence",
+        description: "Unlocks Silence in ability choices. Acquire it during the run to silence ordinary casting enemies for 5 sec. Waits for a visible cast with clear line of sight. Does not occupy an ability slot until acquired or prevent melee attacks",
+        stat: TalentStat::AbilityUnlock("silence"), per_rank: 1.0,
+    },
     TalentDefinition {
         id: 408, max_rank: 3, name: "Improved Healing",
         description: "Greater Heal: 5% shorter cooldown per rank. Does not grant the ability; excludes Holy Nova and Renew (Survivors mana-cost conversion)",
@@ -8244,5 +8252,31 @@ mod counterspell_tests {
             assert!(!changed.contains("10 sec"));
             assert!(text.contains("Does not grant"));
         }
+    }
+}
+
+#[cfg(test)]
+mod silence_unlock_tests {
+    use super::*;
+
+    #[test]
+    fn silence_unlock_is_priest_only_refundable_and_not_a_damage_bonus() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            assert!(!base.ability_unlocked("silence"));
+            let trained = base.with_ranks(&[(2, 541, 1)]);
+            assert_eq!(trained.ability_unlocked("silence"), class == 4);
+            assert_eq!(trained.cast("silence"), base.cast("silence"));
+            assert!(!trained.with_ranks(&[]).ability_unlocked("silence"));
+        }
+        let def = crate::data::ability("silence");
+        assert_eq!(
+            (def.spell, def.range, def.cooldown, def.duration),
+            (15487, 20., 45., 5.)
+        );
+        assert!(crate::data::CLASSES[4].pool.contains(&def.key));
     }
 }

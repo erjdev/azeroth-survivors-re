@@ -2804,6 +2804,7 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
         && matches!(
             def.kind,
             Kind::Interrupt
+                | Kind::Silence
                 | Kind::Channel
                 | Kind::Bolt
                 | Kind::Strike
@@ -2859,6 +2860,7 @@ fn ability_tip(
     let range = match def.kind {
         Kind::Melee => Some("Melee Range".to_string()),
         Kind::Interrupt
+        | Kind::Silence
         | Kind::Mark
         | Kind::Bolt
         | Kind::Strike
@@ -3021,6 +3023,7 @@ fn ability_tip(
     if !matches!(
         def.kind,
         Kind::Interrupt
+            | Kind::Silence
             | Kind::Shield
             | Kind::Immune
             | Kind::Heal
@@ -4359,5 +4362,58 @@ mod healing_wave_offer_tests {
                 .iter()
                 .any(|(text, color)| text == expected && *color == card_growth::GAIN));
         }
+    }
+}
+
+#[cfg(test)]
+mod silence_tests {
+    use super::*;
+
+    #[test]
+    fn silence_requires_training_then_uses_an_ability_slot_and_inline_growth() {
+        let mut run = Run {
+            class: &data::CLASSES[4],
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut rng = Rng(42);
+        assert!(!choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|c| matches!(c, Choice::NewAbility(d) if d.key == "silence")));
+        run.milestones = run.milestones.with_ranks(&[(2, 541, 1)]);
+        assert!(run.abilities.is_empty());
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == "silence"))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, "silence");
+        let def = run.abilities[0].def;
+        let a = cast_at(def, 1, &run.stats(), run.milestones);
+        let b = cast_at(def, 2, &run.stats(), run.milestones);
+        let spans = inline::ability(def, &a, &b);
+        assert!(spans
+            .iter()
+            .any(|(text, color)| text == "45 » 41.8 sec" && *color == card_growth::GAIN));
+        let text: String = spans.iter().map(|(text, _)| text.as_str()).collect();
+        assert!(text.contains("5 sec"));
+        assert!(!text.contains("new rank"));
+        assert!(!text.contains("45 sec »"));
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(!coating_available(&run, def));
     }
 }

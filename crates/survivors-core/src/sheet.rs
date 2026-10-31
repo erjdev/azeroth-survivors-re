@@ -59,6 +59,7 @@ pub fn extra_targets(kind: Kind, base_count: u32, bonus: u32) -> u32 {
     let single = matches!(
         kind,
         Kind::Interrupt
+            | Kind::Silence
             | Kind::Channel
             | Kind::Mark
             | Kind::Curse

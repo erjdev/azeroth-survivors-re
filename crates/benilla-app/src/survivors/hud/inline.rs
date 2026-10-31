@@ -63,6 +63,14 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
     let cooldown = (a.cooldown, b.cooldown, " sec");
     let burst = def.duration <= 0.0;
     match def.kind {
+        Kind::Silence => {
+            prose!(
+                "Silence up to ",
+                (a.count as f32, b.count as f32, if b.count == 1 { " ordinary caster" } else { " ordinary casters" }),
+                " within ", range, " for ", duration,
+                ", preventing all spellcasting. Waits for a visible cast with clear line of sight; does not damage enemies or prevent melee attacks"
+            );
+        }
         Kind::Interrupt => {
             prose!(
                 "Interrupt up to ",

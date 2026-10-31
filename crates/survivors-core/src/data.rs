@@ -40,6 +40,8 @@ impl ClassDef {
 pub enum Kind {
     /// Interrupt currently casting enemies; never emits damage or an area effect.
     Interrupt,
+    /// Prevent all magic casting without a school-specific interrupt lockout.
+    Silence,
     /// Fixed connected victims, one pulse per second for three seconds.
     Channel,
     /// Caster-owned ranged vulnerability and tracking; never emits a damage hit.
@@ -209,6 +211,15 @@ macro_rules! ability {
 }
 
 pub static ABILITIES: &[AbilityDef] = &[
+    ability!(
+        "silence",
+        15487,
+        Silence {
+            cooldown: 45.0,
+            range: 20.0,
+            duration: 5.0
+        }
+    ),
     ability!(
         "counterspell",
         2139,
@@ -1444,6 +1455,7 @@ pub static CLASSES: &[ClassDef] = &[
             "holy_fire",
             "mind_blast",
             "mind_flay",
+            "silence",
             "holy_nova",
             "greater_heal",
             "psychic_scream",

@@ -19,6 +19,20 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         .unwrap();
     for (class, node, row, max_rank, key, initial) in [
         (
+            4,
+            541,
+            4,
+            1,
+            "silence",
+            vec![
+                (2, 464, 5),
+                (2, 465, 5),
+                (2, 463, 5),
+                (2, 542, 2),
+                (2, 481, 3),
+            ],
+        ),
+        (
             6,
             88,
             3,
@@ -228,6 +242,9 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
             if matches!(node, 1429 | 1410) {
                 expected.damage *= 1. + 0.02 * f32::from(rank);
                 assert_eq!(trained.cast("judgement"), before.cast("judgement"));
+            } else if node == 541 {
+                assert!(!before.ability_unlocked(key));
+                assert!(trained.ability_unlocked(key));
             } else if node == 88 {
                 assert_eq!(trained.counterspell_silence(), 0.5 * f32::from(rank));
             } else if node == 1402 {

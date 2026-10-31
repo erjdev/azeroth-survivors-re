@@ -134,6 +134,15 @@ rank persists with 9 spent / 42 available and independent specs. Screenshots
 are inline in CHANGELOG and README. No runtime change; Windows/controller and
 attended combat remain open. This supersedes their compact pointer gap.
 
+## Priest Silence unlock — 2026-10-30
+
+[Silence node 541](audits/PRIEST-SILENCE.md) now unlocks acquired all-school silence,
+with actual cast cancellation, fixed five-second expiry and continued melee
+pursuit. Native purchase/refund/repurchase/restart and wide/compact card captures
+are recorded. Fresh coverage is 313/432 (Priest 32/47); 119 definitions remain
+provisional. Attended combat, Windows and the remaining class consumers remain
+required. This does not close the talent or integration phases.
+
 ## Counterspell acquisition and training — 2026-10-30
 
 [Counterspell acceptance](audits/COUNTERSPELL.md) connects the acquired Mage ability

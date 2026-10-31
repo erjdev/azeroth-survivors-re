@@ -43,3 +43,11 @@ Each completed group needs rank/prerequisite and saved-spec checks, actual event
 consumers, pause/death/expiry handling and scope isolation. UI changes need native
 wide/compact screenshots with green inline deltas. Attended combat and Windows
 acceptance remain separate. This audit changes no coverage count or game rule.
+
+## Silence follow-up — 2026-10-30
+
+[Node 541 and its acquired spell](PRIEST-SILENCE.md) now have actual enemy-cast
+cancellation and silence consumers, with runtime and native UI evidence. This
+supersedes the missing-consumer note for Silence above. Priest coverage is now
+32/47 and overall coverage is 313/432; the other fifteen Priest nodes remain
+provisional. Attended combat and Windows acceptance are still required.

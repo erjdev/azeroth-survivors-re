@@ -98,6 +98,7 @@ pub(in crate::survivors) fn legend_effect(
                 | Kind::Thorns
                 | Kind::ContactAura
                 | Kind::Interrupt
+                | Kind::Silence
                 | Kind::Channel
                 | Kind::Dot
                 | Kind::Curse
@@ -107,7 +108,10 @@ pub(in crate::survivors) fn legend_effect(
         ) {
             bonus.crit_damage = 0.0;
         }
-        if matches!(def.kind, Kind::Interrupt | Kind::Immune | Kind::WeaponBuff) {
+        if matches!(
+            def.kind,
+            Kind::Interrupt | Kind::Silence | Kind::Immune | Kind::WeaponBuff
+        ) {
             bonus.might = 0.0;
         }
         (key, bonus)
@@ -199,6 +203,7 @@ fn ability_changes(def: &AbilityDef, a: &Cast, b: &Cast) -> String {
     if matches!(
         def.kind,
         Kind::Interrupt
+            | Kind::Silence
             | Kind::Channel
             | Kind::Mark
             | Kind::Bolt

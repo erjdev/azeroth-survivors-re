@@ -263,7 +263,9 @@ impl Params {
             },
             dodge_chance,
             mark_power,
-            silence_chance: if o.def.kind == Kind::Interrupt {
+            silence_chance: if o.def.kind == Kind::Silence {
+                1.
+            } else if o.def.kind == Kind::Interrupt {
                 milestones.counterspell_silence()
             } else {
                 0.
@@ -298,6 +300,7 @@ impl Params {
                 || matches!(
                     o.def.kind,
                     Kind::Interrupt
+                        | Kind::Silence
                         | Kind::Channel
                         | Kind::Mark
                         | Kind::Coating(_)
@@ -333,6 +336,7 @@ impl Params {
             crit: if matches!(
                 o.def.kind,
                 Kind::Interrupt
+                    | Kind::Silence
                     | Kind::Curse
                     | Kind::Channel
                     | Kind::Mark
@@ -674,7 +678,7 @@ pub(super) fn cast_abilities(
         .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
-            Kind::Interrupt => {
+            Kind::Interrupt | Kind::Silence => {
                 let Some(world) = channel_world.as_ref() else {
                     continue;
                 };
@@ -701,18 +705,33 @@ pub(super) fn cast_abilities(
                 for &target in &targets {
                     let (_, _, _, mut caster) = enemies.get_mut(target).unwrap();
                     let spell = caster.state.active().unwrap().spell.id;
-                    let interrupted = matches!(
-                        caster.state.interrupt(now, p.duration),
-                        survivors_core::casting::Interrupt::Interrupted(_)
-                    );
+                    let interrupted = def.kind == Kind::Interrupt
+                        && matches!(
+                            caster.state.interrupt(now, p.duration),
+                            survivors_core::casting::Interrupt::Interrupted(_)
+                        );
                     let silenced = p.silence_chance > 0.
                         && (p.silence_chance >= 1. || rng.f32() < p.silence_chance)
-                        && caster.state.silence(now, 4.);
+                        && caster.state.silence(
+                            now,
+                            if def.kind == Kind::Silence {
+                                p.duration
+                            } else {
+                                4.
+                            },
+                        );
                     if interrupted || silenced {
                         fx.cancel_cast(target, spell);
                     }
                     if silenced {
-                        fx.impact(target, 18469);
+                        fx.impact(
+                            target,
+                            if def.kind == Kind::Silence {
+                                def.spell
+                            } else {
+                                18469
+                            },
+                        );
                     }
                 }
                 if !targets.is_empty() {
@@ -1227,7 +1246,7 @@ pub(super) fn cast_abilities(
         };
         run.abilities[i].cd = if fired {
             p.cooldown
-        } else if def.kind == Kind::Interrupt
+        } else if matches!(def.kind, Kind::Interrupt | Kind::Silence)
             || def.requires_rear
             || matches!(p.effect, Effect::Incapacitate(_))
         {

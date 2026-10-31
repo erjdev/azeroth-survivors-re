@@ -5,6 +5,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Priest Silence unlock
+
+Training Silence now unlocks an acquired five-second spellcasting block, with
+separate interruption immunity and no damage or melee suppression. Native
+purchase/refund/restart and wide/compact cards are verified; green inline upgrades
+retain units once. Scoped checks and native build pass (31 optional-addon skips).
+Coverage is 313/432 named talents. Attended combat and Windows remain open. [Mechanics and evidence](audits/PRIEST-SILENCE.md).
+
+![Silence inline card upgrades](images/screenshots/2026-10-30-priest-silence/cards-wide.jpg)
+
+![Compact Silence unlock after restart](images/screenshots/2026-10-30-priest-silence/talent-restarted-compact.jpg)
+
 ## 2026-10-30 — Counterspell and silence training
 
 Mages can acquire Counterspell; Improved Counterspell adds a separate 50/100%

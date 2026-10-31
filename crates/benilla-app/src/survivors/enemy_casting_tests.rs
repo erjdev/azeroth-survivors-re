@@ -457,3 +457,157 @@ fn counterspell_parameters_keep_control_durations_fixed_and_suppress_damage_scal
         assert!(p.cooldown <= 30.);
     }
 }
+
+fn silence_setup(trained: bool) -> (App, Entity, Entity) {
+    let (mut app, hero, enemy) = counterspell_setup(0);
+    {
+        let mut run = app.world_mut().resource_mut::<Run>();
+        run.class = &data::CLASSES[4];
+        run.milestones = survivors_core::talents::Milestones {
+            class: 4,
+            ..Default::default()
+        }
+        .with_ranks(if trained { &[(2, 541, 1)] } else { &[] });
+        run.abilities[0].def = data::ability("silence");
+    }
+    (app, hero, enemy)
+}
+
+#[test]
+fn priest_silence_cancels_even_interrupt_immune_cast_and_expires_without_school_lock() {
+    use survivors_core::casting::School;
+    for interruptible in [false, true] {
+        let (mut app, _, enemy) = silence_setup(true);
+        {
+            let mut caster = app
+                .world_mut()
+                .get_mut::<enemy_casting::Caster>(enemy)
+                .unwrap();
+            let mut old = caster.state.active().unwrap();
+            old.spell.interruptible = interruptible;
+            caster.state.cancel();
+            assert!(caster.state.start(old.spell, old.target, 0.));
+        }
+        let position = app.world().get::<Transform>(enemy).unwrap().translation;
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        let caster = app.world().get::<enemy_casting::Caster>(enemy).unwrap();
+        assert!(caster.state.active().is_none());
+        for school in [
+            School::Holy,
+            School::Fire,
+            School::Nature,
+            School::Frost,
+            School::Shadow,
+            School::Arcane,
+        ] {
+            assert!(!caster.state.available(school, 5.99));
+            assert!(caster.state.available(school, 6.));
+        }
+        assert_eq!(app.world().resource::<Run>().abilities[0].cd, 45.);
+        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+        tick(&mut app, 3.);
+        assert_eq!(app.world().resource::<Run>().hp, 1000.);
+        assert!(
+            app.world()
+                .get::<Transform>(enemy)
+                .unwrap()
+                .translation
+                .distance(Vec3::ZERO)
+                < position.length(),
+            "silence must permit pursuit"
+        );
+        tick(&mut app, 5.99);
+        assert!(app
+            .world()
+            .get::<enemy_casting::Caster>(enemy)
+            .unwrap()
+            .state
+            .active()
+            .is_none());
+        tick(&mut app, 6.);
+        assert!(app
+            .world()
+            .get::<enemy_casting::Caster>(enemy)
+            .unwrap()
+            .state
+            .active()
+            .is_some());
+    }
+}
+
+#[test]
+fn priest_silence_waits_for_training_live_targets_and_clear_casts() {
+    use avian3d::prelude::*;
+    for case in 0..9 {
+        let (mut app, _, enemy) = silence_setup(case != 0);
+        match case {
+            0 => {}
+            1 => app
+                .world_mut()
+                .get_mut::<enemy_casting::Caster>(enemy)
+                .unwrap()
+                .state
+                .cancel(),
+            2 => app.world_mut().get_mut::<Enemy>(enemy).unwrap().boss = true,
+            3 => app.world_mut().get_mut::<Enemy>(enemy).unwrap().hp = 0.,
+            4 => {
+                app.world_mut()
+                    .get_mut::<Transform>(enemy)
+                    .unwrap()
+                    .translation = Vec3::X * 21.
+            }
+            5 => {
+                app.world_mut()
+                    .entity_mut(enemy)
+                    .insert(crate::survivors::perception::Concealed);
+            }
+            6 => app.world_mut().resource_mut::<Run>().elapsed = 3.,
+            7 => app.world_mut().resource_mut::<Run>().hp = 0.,
+            _ => {
+                app.world_mut().spawn((
+                    RigidBody::Static,
+                    Collider::cuboid(0.2, 5., 5.),
+                    Transform::from_xyz(2., 1., 0.),
+                ));
+                app.update();
+            }
+        }
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(
+            app.world().resource::<Run>().abilities[0].cd,
+            0.,
+            "case {case}"
+        );
+        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+    }
+}
+
+#[test]
+fn priest_silence_rank_growth_never_extends_control_or_adds_damage() {
+    let (app, _, _) = silence_setup(true);
+    let run = app.world().resource::<Run>();
+    let mut stats = run.stats();
+    stats.targets = 2;
+    stats.might = 10.;
+    stats.crit = 1.;
+    for level in 1..=data::MAX_ABILITY_LEVEL {
+        let p = Params::new(
+            &crate::survivors::Owned {
+                def: data::ability("silence"),
+                level,
+                cd: 0.,
+            },
+            &stats,
+            run.milestones,
+        );
+        assert_eq!(
+            (p.dmg, p.dot, p.crit, p.duration, p.silence_chance),
+            (0., 0., 0., 5., 1.)
+        );
+        assert_eq!(
+            p.count,
+            3 + [3, 5, 7].iter().filter(|&&rank| level >= rank).count()
+        );
+        assert!(p.cooldown <= 45.);
+    }
+}
