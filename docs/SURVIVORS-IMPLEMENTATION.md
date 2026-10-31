@@ -273,7 +273,9 @@ warning. Removing the test obstruction and clicking Retry saved only the new
 Character reference with failure feedback, retaining its layout and visual style.
 The [2026-10-30 keyboard follow-up](audits/SAVE-RECOVERY-KEYBOARD.md) verifies a
 Paladin talent purchase, failed retry, successful retry and restart at 1280×720.
-Compact keyboard, Windows, browser-storage failure and controller acceptance remain open.
+The minimum-window follow-up verifies keyboard retry and restart at 640×480 with
+requested 125% scale and automatic fitting. Windows, browser-storage failure and
+controller acceptance remain open.
 The native build completed in 1m46s while checks compiled concurrently. The
 eight-package gate passes, including real-write-failure recovery; 31 optional-addon
 tests skipped because their corpus is absent.

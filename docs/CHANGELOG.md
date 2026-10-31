@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Minimum-window save recovery
+
+At 640×480, keyboard retry keeps the warning and focus on failure, then saves the
+pending talent refund after recovery. Restart retains the exact change. Three
+native captures extend the wide-window evidence; no runtime changes. Windows,
+controller and browser failures remain open. [Evidence](audits/SAVE-RECOVERY-KEYBOARD.md#minimum-window-follow-up--2026-10-30).
+
+![Minimum-window save warning and keyboard focus](images/screenshots/2026-10-30-save-keyboard-compact/failed-640x480.jpg)
+
 ## 2026-10-30 — Vengeance supports weapon attacks
 
 Paladin weapon criticals now activate Vengeance, and later swings receive its
