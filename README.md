@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Native keyboard save-recovery checks now cover failure, retry and restart without
+losing the pending talent purchase. [Evidence and limits](docs/audits/SAVE-RECOVERY-KEYBOARD.md).
+
+![Keyboard save recovery](docs/images/screenshots/2026-10-30-save-keyboard/failed-retry.jpg)
+
 Paladin weapon specializations now describe matching one-/two-handed automatic
 attack bonuses inline. Native purchase, refund, independent specs and restart
 checks cover wide and compact layouts.

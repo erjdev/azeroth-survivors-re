@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Keyboard save recovery verified
+
+Native keyboard checks now cover a failed talent save, failed retry, successful
+retry and restart. The previous save stays intact during failure; recovery writes
+only the purchased rank. No runtime changes. Windows, controller and browser
+acceptance remain open. [Evidence](audits/SAVE-RECOVERY-KEYBOARD.md).
+
+![Keyboard retry retains unsaved progress](images/screenshots/2026-10-30-save-keyboard/failed-retry.jpg)
+
 ## 2026-10-30 — Paladin weapon specialization
 
 One-/two-handed specialization now improves the matching worn weapon's automatic

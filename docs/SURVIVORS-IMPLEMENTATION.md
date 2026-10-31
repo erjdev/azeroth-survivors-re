@@ -271,7 +271,9 @@ warning. Removing the test obstruction and clicking Retry saved only the new
 `features 3 4 0 2 1 6 2 3` row. Restart retained 3/9. Warning fits 1280×720 and
 640×720 / 125%; screenshots are inline in CHANGELOG and README. This extends the
 Character reference with failure feedback, retaining its layout and visual style.
-Windows, browser-storage failure and keyboard/controller acceptance remain open.
+The [2026-10-30 keyboard follow-up](audits/SAVE-RECOVERY-KEYBOARD.md) verifies a
+Paladin talent purchase, failed retry, successful retry and restart at 1280×720.
+Compact keyboard, Windows, browser-storage failure and controller acceptance remain open.
 The native build completed in 1m46s while checks compiled concurrently. The
 eight-package gate passes, including real-write-failure recovery; 31 optional-addon
 tests skipped because their corpus is absent.
