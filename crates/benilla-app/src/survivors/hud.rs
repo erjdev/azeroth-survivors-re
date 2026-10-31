@@ -2490,7 +2490,9 @@ pub(super) fn apply_ui_scale(
     cvars: Res<crate::cvars::Cvars>,
     windows: Query<&Window, With<PrimaryWindow>>,
     mut scale: ResMut<UiScale>,
-    preview: Option<Res<super::armory::preview::Preview>>,
+    #[cfg(any(test, not(target_arch = "wasm32")))] preview: Option<
+        Res<super::armory::preview::Preview>,
+    >,
 ) {
     let Ok(window) = windows.single() else { return };
     let multiplier = if cvars.num("useUiScale").unwrap_or(0.) != 0. {
@@ -2502,6 +2504,7 @@ pub(super) fn apply_ui_scale(
     } else {
         1.
     };
+    #[cfg(any(test, not(target_arch = "wasm32")))]
     let multiplier = preview
         .as_deref()
         .and_then(|preview| preview.scale())

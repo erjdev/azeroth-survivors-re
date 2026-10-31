@@ -49,6 +49,113 @@ impl NativeText {
     }
 }
 
+/// Shares the engine's process-wide clipboard and its actual Wayland display.
+#[derive(bevy::ecs::system::SystemParam)]
+pub(super) struct Clipboard<'w, 's> {
+    host: bevy::prelude::NonSendMut<'w, crate::textinput::HostClipboard>,
+    windows: bevy::prelude::Query<
+        'w,
+        's,
+        &'static bevy::window::RawHandleWrapper,
+        bevy::prelude::With<bevy::window::PrimaryWindow>,
+    >,
+}
+
+trait Pasteboard {
+    fn read(&mut self) -> Option<String>;
+    fn write(&mut self, text: &str);
+}
+
+struct Host<'a> {
+    clipboard: &'a mut crate::textinput::HostClipboard,
+    display: Option<*mut std::ffi::c_void>,
+}
+
+impl Pasteboard for Host<'_> {
+    fn read(&mut self) -> Option<String> {
+        self.clipboard.read(self.display)
+    }
+
+    fn write(&mut self, text: &str) {
+        self.clipboard.write(self.display, text);
+    }
+}
+
+impl Clipboard<'_, '_> {
+    pub(super) fn feed(
+        &mut self,
+        event: &KeyboardInput,
+        command: bool,
+        armory: &mut Armory,
+        account: &mut Account,
+        selection: &Selection,
+    ) {
+        let display = crate::textinput::wayland_display(self.windows.single().ok());
+        feed_clipboard(
+            event,
+            command,
+            armory,
+            account,
+            selection,
+            &mut Host {
+                clipboard: &mut self.host,
+                display,
+            },
+        );
+    }
+}
+
+fn feed_clipboard(
+    event: &KeyboardInput,
+    command: bool,
+    armory: &mut Armory,
+    account: &mut Account,
+    selection: &Selection,
+    clipboard: &mut impl Pasteboard,
+) {
+    if command && event.state == ButtonState::Pressed && armory.focus != 0 {
+        match event.key_code {
+            KeyCode::KeyV => {
+                if let Some(text) = clipboard.read() {
+                    // Pasted names follow exactly the same filtering, limit and selection rules.
+                    let mut pasted = event.clone();
+                    pasted.text = Some(text.into());
+                    feed(&pasted, false, armory, account, selection);
+                }
+                return;
+            }
+            KeyCode::KeyC | KeyCode::KeyX => {
+                if armory.name_selection == Some(armory.focus) {
+                    let value = match armory.focus {
+                        1 => Some(&armory.draft_first),
+                        2 => Some(&armory.draft_last),
+                        3 => armory.rename.as_ref().map(|draft| &draft.first),
+                        4 => armory.rename.as_ref().map(|draft| &draft.last),
+                        _ => None,
+                    };
+                    if let Some(value) = value.filter(|value| !value.is_empty()) {
+                        clipboard.write(value);
+                        if event.key_code == KeyCode::KeyX {
+                            // An unavailable pasteboard must never turn Cut into data loss.
+                            if clipboard.read().as_deref() != Some(value.as_str()) {
+                                armory.note = "Clipboard unavailable; name kept.".into();
+                                return;
+                            }
+                            let mut delete = event.clone();
+                            delete.key_code = KeyCode::Backspace;
+                            delete.text = None;
+                            feed(&delete, false, armory, account, selection);
+                        }
+                    }
+                }
+                return;
+            }
+            _ => {}
+        }
+    }
+    feed(event, command, armory, account, selection);
+}
+
 pub(super) fn feed(
     event: &KeyboardInput,
     command: bool,
@@ -154,6 +261,195 @@ mod tests {
             repeat: false,
             window: Entity::PLACEHOLDER,
         }
+    }
+
+    #[derive(Default)]
+    struct MemoryClipboard(Option<String>);
+
+    impl Pasteboard for MemoryClipboard {
+        fn read(&mut self) -> Option<String> {
+            self.0.clone()
+        }
+
+        fn write(&mut self, text: &str) {
+            self.0 = Some(text.to_owned());
+        }
+    }
+
+    #[test]
+    fn clipboard_copy_cut_paste_respects_selection_and_rename_commit() {
+        let mut account = crate::survivors::account::empty();
+        let id = account.create("Old", "Hero", 0).unwrap();
+        let selection = Selection {
+            class: Some(0),
+            character: Some(id),
+            ..Default::default()
+        };
+        let mut armory = Armory {
+            rename: super::super::name_edit::Draft::begin(&account, &selection),
+            focus: 3,
+            ..Default::default()
+        };
+        let mut clipboard = MemoryClipboard(Some("Preserve".into()));
+        // Without a selection, neither copy nor cut changes the clipboard or draft.
+        for key in [KeyCode::KeyC, KeyCode::KeyX] {
+            feed_clipboard(
+                &event(key, None),
+                true,
+                &mut armory,
+                &mut account,
+                &selection,
+                &mut clipboard,
+            );
+        }
+        assert_eq!(clipboard.0.as_deref(), Some("Preserve"));
+        assert_eq!(armory.rename.as_ref().unwrap().first, "Old");
+        for key in [KeyCode::KeyA, KeyCode::KeyC] {
+            feed_clipboard(
+                &event(key, None),
+                true,
+                &mut armory,
+                &mut account,
+                &selection,
+                &mut clipboard,
+            );
+        }
+        assert_eq!(clipboard.0.as_deref(), Some("Old"));
+        assert_eq!(armory.rename.as_ref().unwrap().first, "Old");
+        feed_clipboard(
+            &event(KeyCode::KeyX, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert!(armory.rename.as_ref().unwrap().first.is_empty());
+        assert_eq!(account.character(id).unwrap().first, "Old");
+        feed_clipboard(
+            &event(KeyCode::KeyV, Some("v")),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.rename.as_ref().unwrap().first, "Old");
+        for (key, command) in [
+            (KeyCode::Tab, false),
+            (KeyCode::KeyA, true),
+            (KeyCode::KeyV, true),
+            (KeyCode::Enter, false),
+        ] {
+            feed_clipboard(
+                &event(key, None),
+                command,
+                &mut armory,
+                &mut account,
+                &selection,
+                &mut clipboard,
+            );
+        }
+        assert_eq!(account.character(id).unwrap().last, "Old");
+        assert!(armory.rename.is_none());
+    }
+
+    #[test]
+    fn unavailable_clipboard_cannot_erase_a_cut_name() {
+        struct Unavailable;
+        impl Pasteboard for Unavailable {
+            fn read(&mut self) -> Option<String> {
+                None
+            }
+            fn write(&mut self, _: &str) {}
+        }
+        let mut account = crate::survivors::account::empty();
+        let mut armory = Armory {
+            focus: 1,
+            draft_first: "Keep".into(),
+            name_selection: Some(1),
+            ..Default::default()
+        };
+        feed_clipboard(
+            &event(KeyCode::KeyX, Some("x")),
+            true,
+            &mut armory,
+            &mut account,
+            &Selection::default(),
+            &mut Unavailable,
+        );
+        assert_eq!(armory.draft_first, "Keep");
+        assert_eq!(armory.name_selection, Some(1));
+        assert_eq!(armory.note, "Clipboard unavailable; name kept.");
+    }
+
+    #[test]
+    fn paste_filters_limits_and_preserves_selection_when_no_valid_text_exists() {
+        let mut account = crate::survivors::account::empty();
+        let selection = Selection::default();
+        let mut armory = Armory {
+            focus: 1,
+            draft_first: "Selected".into(),
+            name_selection: Some(1),
+            ..Default::default()
+        };
+        let mut clipboard = MemoryClipboard::default();
+        for text in [None, Some(""), Some("123\n\t😀")] {
+            clipboard.0 = text.map(str::to_owned);
+            feed_clipboard(
+                &event(KeyCode::KeyV, Some("v")),
+                true,
+                &mut armory,
+                &mut account,
+                &selection,
+                &mut clipboard,
+            );
+            assert_eq!(armory.draft_first, "Selected");
+            assert_eq!(armory.name_selection, Some(1));
+        }
+        clipboard.0 = Some("Abc-def' ghi123456789jklmnop".into());
+        feed_clipboard(
+            &event(KeyCode::KeyV, Some("v")),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.draft_first, "Abc-def' ghijklm");
+        assert!(armory.name_selection.is_none());
+        clipboard.0 = Some("More".into());
+        feed_clipboard(
+            &event(KeyCode::KeyV, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.draft_first, "Abc-def' ghijklm");
+        let mut released = event(KeyCode::KeyX, None);
+        released.state = ButtonState::Released;
+        armory.name_selection = Some(1);
+        feed_clipboard(
+            &released,
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.draft_first, "Abc-def' ghijklm");
+        armory.focus = 0;
+        feed_clipboard(
+            &event(KeyCode::KeyV, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.draft_first, "Abc-def' ghijklm");
     }
 
     #[test]

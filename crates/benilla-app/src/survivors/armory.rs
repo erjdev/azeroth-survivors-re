@@ -407,6 +407,7 @@ pub(super) fn input(
         mut raw,
         mut native,
         mut names,
+        mut clipboard,
     } = keyboard;
     let raw_events: Vec<_> = raw.read().collect();
     let name_events = names.read(raw_events.iter().copied());
@@ -450,7 +451,7 @@ pub(super) fn input(
         // Retain synthetic Bevy input for headless checks and non-winit event producers.
         for event in keyboard.read() {
             if typing.0 {
-                name_input::feed(
+                clipboard.feed(
                     event,
                     keys.any_pressed([
                         KeyCode::SuperLeft,
@@ -468,7 +469,7 @@ pub(super) fn input(
         keyboard.clear();
         if typing.0 {
             for (event, command) in &name_events {
-                name_input::feed(event, *command, &mut armory, &mut account, &selection);
+                clipboard.feed(event, *command, &mut armory, &mut account, &selection);
             }
         }
     }

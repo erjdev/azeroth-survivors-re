@@ -5,6 +5,20 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-31 — Paste hero names
+
+Creation and starter rename fields support native copy, cut and paste with
+Command/Ctrl shortcuts. Pasted names obey the existing character and length
+rules; unavailable clipboard access cannot erase a cut name. Eight focused tests,
+the six-package gate and native build pass (31 optional-addon skips). Native
+640×480 checks verify paste filtering, creation, rename, cancellation and restart.
+WebGPU compilation also passes after guarding the native-only preview scale override.
+[Evidence and platform limits](audits/NAME-CLIPBOARD.md).
+
+![Pasted names during creation](images/screenshots/2026-10-31-name-clipboard/creation-pasted.jpg)
+
+![Pasted rename retained after restart](images/screenshots/2026-10-31-name-clipboard/rename-restarted.jpg)
+
 ## 2026-10-31 — Rewards refund and restart acceptance
 
 Native checks verify both perk refunds, preview/undo, third-reset rejection,

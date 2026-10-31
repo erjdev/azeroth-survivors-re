@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Native name fields now support copy, cut and paste, with filtering and saved
+rename verification. [Evidence and limits](docs/audits/NAME-CLIPBOARD.md).
+
+![Pasted names during creation](docs/images/screenshots/2026-10-31-name-clipboard/creation-pasted.jpg)
+
 Both perk refunds preserve companion investment and cosmetics across restart;
 a third refund is rejected. [Native acceptance and limits](docs/audits/REWARD-RESETS.md).
 

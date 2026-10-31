@@ -52,3 +52,6 @@ optional-addon tests skip because the addon corpus is absent. Local Markdown
 targets and diff formatting pass. Windows and full pre-merge gates are not
 claimed by this checkpoint.
 
+
+Native clipboard support follows in [the clipboard audit](NAME-CLIPBOARD.md);
+its platform limits supersede this checkpoint's native clipboard gap.

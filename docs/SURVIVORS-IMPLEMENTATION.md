@@ -9,6 +9,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Native name clipboard — 2026-10-31
+
+[Creation and rename clipboard input](audits/NAME-CLIPBOARD.md) now supports
+copy/cut/paste with existing filtering and length limits. Native compact
+creation, cancellation and restart evidence accompanies the scoped tests and
+build. Cursor/partial selection, browser clipboard and other platform acceptance
+remain open.
+
 ## Rewards reset acceptance — 2026-10-31
 
 [Native two-reset evidence](audits/REWARD-RESETS.md) verifies exact refunds,
