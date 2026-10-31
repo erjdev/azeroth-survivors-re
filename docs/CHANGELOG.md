@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Casting rules groundwork
+
+Added shared cast timing, target retention, interruption, school lockout and silence
+rules with nine focused regressions. Enemy spell producers and talent consumers
+are still pending; no gameplay or UI change is claimed. All 345 shared-rule tests
+pass, as does the six-package scoped gate (31 optional-addon skips).
+[Integration boundary and next steps](audits/ENEMY-CASTING.md).
+
 ## 2026-10-30 — Minimum-window save recovery
 
 At 640×480, keyboard retry keeps the warning and focus on failure, then saves the

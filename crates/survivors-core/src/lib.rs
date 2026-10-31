@@ -4,6 +4,7 @@
 pub const CHEST_DISPLAY: u32 = 10;
 
 pub mod campaign;
+pub mod casting;
 pub mod channel;
 pub mod controller;
 pub mod creature;

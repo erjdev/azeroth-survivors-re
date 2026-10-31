@@ -134,6 +134,15 @@ rank persists with 9 spent / 42 available and independent specs. Screenshots
 are inline in CHANGELOG and README. No runtime change; Windows/controller and
 attended combat remain open. This supersedes their compact pointer gap.
 
+## Shared enemy casting prerequisite — 2026-10-30
+
+[The casting lifecycle](audits/ENEMY-CASTING.md) now distinguishes school-specific
+interrupt lockouts from silence and retains target identity and completion times.
+Nine focused rules tests and the complete shared-rule suite pass. This is not yet
+connected to enemy spell producers or incoming spell settlement. The audit lists
+those integration steps before Counterspell/Kick and related talents can count
+as functional. Named talent coverage remains 311/432; no UI change.
+
 ## Remaining Mage consumers — 2026-10-29
 
 The [Mage dependency audit](audits/MAGE-TALENT-DEPENDENCIES.md) records installed
