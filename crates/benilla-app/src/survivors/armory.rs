@@ -172,7 +172,7 @@ pub(super) struct Armory {
     manage_heroes: bool,
     /// 0 none; 1/2 creation names; 3/4 selected-hero rename.
     focus: u8,
-    name_selection: Option<u8>,
+    name_cursor: Option<name_input::Cursor>,
     rename: Option<name_edit::Draft>,
     draft_first: String,
     draft_last: String,
@@ -216,7 +216,7 @@ impl Default for Armory {
             page: Page::initial(),
             manage_heroes: false,
             focus: 0,
-            name_selection: None,
+            name_cursor: None,
             rename: None,
             draft_first: "Adventurer".into(),
             draft_last: "Stormwind".into(),
@@ -453,12 +453,7 @@ pub(super) fn input(
             if typing.0 {
                 clipboard.feed(
                     event,
-                    keys.any_pressed([
-                        KeyCode::SuperLeft,
-                        KeyCode::SuperRight,
-                        KeyCode::ControlLeft,
-                        KeyCode::ControlRight,
-                    ]),
+                    crate::textinput::mods_now(&keys),
                     &mut armory,
                     &mut account,
                     &selection,
@@ -468,8 +463,8 @@ pub(super) fn input(
     } else {
         keyboard.clear();
         if typing.0 {
-            for (event, command) in &name_events {
-                clipboard.feed(event, *command, &mut armory, &mut account, &selection);
+            for (event, mods) in &name_events {
+                clipboard.feed(event, *mods, &mut armory, &mut account, &selection);
             }
         }
     }
@@ -642,7 +637,7 @@ pub(super) fn input(
             }
             Act::Focus(slot) => {
                 armory.focus = slot;
-                armory.name_selection = None;
+                armory.name_cursor = None;
             }
             Act::DraftClass(class) => {
                 if class < CLASSES.len() {
@@ -731,14 +726,14 @@ pub(super) fn input(
                 index,
             ),
             Act::EditName => {
-                armory.name_selection = None;
+                armory.name_cursor = None;
                 armory.rename = name_edit::Draft::begin(&account, &selection);
                 armory.focus = if armory.rename.is_some() { 3 } else { 0 };
                 armory.note.clear();
             }
             Act::SaveName => save_name(&mut armory, &mut account, &selection),
             Act::CancelName => {
-                armory.name_selection = None;
+                armory.name_cursor = None;
                 armory.rename = None;
                 armory.focus = 0;
                 armory.note.clear();
@@ -2314,7 +2309,7 @@ fn name_field(
     armory: &Armory,
 ) {
     let focused = armory.focus == slot;
-    let selected = focused && armory.name_selection == Some(slot) && !value.is_empty();
+    let edit = name_input::editor(value, slot, armory.name_cursor);
     controls::content_button(
         parent,
         Act::Focus(slot),
@@ -2327,35 +2322,44 @@ fn name_field(
             ..default()
         },
         |body| {
-            let label = field_label(value, focused && !selected);
-            body.spawn((
-                hud::text_bundle(
+            let gold = Color::srgb(0.91, 0.78, 0.40);
+            if !focused {
+                body.spawn(hud::text_bundle(
                     font,
-                    &label,
+                    if value.is_empty() { "name" } else { value },
                     13.0,
-                    if selected {
-                        Color::WHITE
-                    } else {
-                        Color::srgb(0.91, 0.78, 0.40)
-                    },
-                ),
-                BackgroundColor(if selected {
-                    Color::srgb(0.16, 0.32, 0.55)
+                    gold,
+                ));
+            } else {
+                let start = edit.sel_start.min(edit.sel_end);
+                let end = edit.sel_start.max(edit.sel_end);
+                let selected = start != end;
+                let (before, middle, after) = if selected {
+                    (&value[..start], &value[start..end], &value[end..])
                 } else {
-                    Color::NONE
-                }),
-            ));
+                    (&value[..edit.cursor], "|", &value[edit.cursor..])
+                };
+                for (text, highlight) in [(before, false), (middle, selected), (after, false)] {
+                    if text.is_empty() {
+                        continue;
+                    }
+                    body.spawn((
+                        hud::text_bundle(
+                            font,
+                            text,
+                            13.0,
+                            if highlight { Color::WHITE } else { gold },
+                        ),
+                        BackgroundColor(if highlight {
+                            Color::srgb(0.16, 0.32, 0.55)
+                        } else {
+                            Color::NONE
+                        }),
+                    ));
+                }
+            }
         },
     );
-}
-
-fn field_label(text: &str, focused: bool) -> String {
-    let shown = if text.is_empty() { "name" } else { text };
-    if focused {
-        format!("{shown}_")
-    } else {
-        shown.to_string()
-    }
 }
 
 fn signature(
@@ -2423,7 +2427,16 @@ fn signature(
     // Codex selection updates its detail text in place, preserving catalog scrolling.
     n = fold(n, armory.picked.unwrap_or(99) as u64);
     n = fold(n, u64::from(armory.focus));
-    n = fold(n, u64::from(armory.name_selection.unwrap_or(0)));
+    if let Some(cursor) = armory.name_cursor {
+        for value in [
+            cursor.slot as u64,
+            cursor.at as u64,
+            cursor.start as u64,
+            cursor.end as u64,
+        ] {
+            n = fold(n, value);
+        }
+    }
     n = fold(n, u64::from(armory.manage_heroes));
     n = fold(n, armory.draft_class as u64);
     if let Some(draft) = &armory.rename {

@@ -5,6 +5,19 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-31 — Edit any part of a hero name
+
+Creation and rename fields now support keyboard caret movement and partial
+selection, with inline selection highlights. Copy/cut/paste and deletion act on
+the selected letters; middle insertion preserves the remaining suffix and name
+length limit. Twelve tests, the scoped gate and native/WebGPU builds pass.
+Native compact-window creation, rename, cancellation and restart verified.
+[Evidence and remaining input/platform limits](audits/NAME-CARET.md).
+
+![Partial surname selection](images/screenshots/2026-10-31-name-caret/creation-selection.jpg)
+
+![Edited name after restart](images/screenshots/2026-10-31-name-caret/rename-restarted.jpg)
+
 ## 2026-10-31 — Paste hero names
 
 Creation and starter rename fields support native copy, cut and paste with

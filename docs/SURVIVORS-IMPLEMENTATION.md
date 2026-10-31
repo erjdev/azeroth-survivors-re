@@ -9,6 +9,15 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Keyboard name editing — 2026-10-31
+
+[Keyboard caret and partial selection](audits/NAME-CARET.md) now use the engine
+edit-box core and OS keymap. Native compact-window creation, partial rename,
+cancellation and restart are verified. Twelve focused tests, scoped gate and
+native/WebGPU builds pass. Mouse caret placement/drag selection, browser clipboard
+and remaining platform acceptance stay open; this supersedes the keyboard-caret
+gaps in the historical checkpoints below.
+
 ## Native name clipboard — 2026-10-31
 
 [Creation and rename clipboard input](audits/NAME-CLIPBOARD.md) now supports

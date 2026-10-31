@@ -1,7 +1,85 @@
 //! Preserve OS text and key ordering, including repeated presses within one frame.
 use super::{Account, Armory, Selection};
+use crate::textinput::{Chord, Mods};
+use benilla_ui::{script::EditAction, widget::EditBoxState};
 use bevy::input::{keyboard::KeyboardInput, ButtonState};
 use bevy::prelude::KeyCode;
+
+/// Byte offsets into a single name field; editing is delegated to the shared engine.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) struct Cursor {
+    pub slot: u8,
+    pub at: usize,
+    pub start: usize,
+    pub end: usize,
+}
+
+impl Cursor {
+    #[cfg(test)]
+    fn selected(slot: u8, len: usize) -> Self {
+        Self {
+            slot,
+            at: len,
+            start: 0,
+            end: len,
+        }
+    }
+}
+
+pub(super) fn editor(value: &str, slot: u8, cursor: Option<Cursor>) -> EditBoxState {
+    let mut edit = EditBoxState {
+        text: value.to_owned(),
+        cursor: value.len(),
+        sel_start: value.len(),
+        sel_end: value.len(),
+        max_letters: 16,
+        ..Default::default()
+    };
+    if let Some(cursor) = cursor.filter(|cursor| cursor.slot == slot) {
+        let boundary = |position: usize| value.floor_char_boundary(position.min(value.len()));
+        edit.cursor = boundary(cursor.at);
+        edit.sel_start = boundary(cursor.start);
+        edit.sel_end = boundary(cursor.end);
+    }
+    edit
+}
+
+fn field(armory: &mut Armory) -> Option<&mut String> {
+    match armory.focus {
+        1 => Some(&mut armory.draft_first),
+        2 => Some(&mut armory.draft_last),
+        3 => armory.rename.as_mut().map(|draft| &mut draft.first),
+        4 => armory.rename.as_mut().map(|draft| &mut draft.last),
+        _ => None,
+    }
+}
+
+fn insert(edit: &mut EditBoxState, text: &str) {
+    let selected = edit.selected_text().map_or(0, |text| text.chars().count());
+    let available = 16usize.saturating_sub(edit.text.chars().count() - selected);
+    let accepted: String = text
+        .chars()
+        .filter(|ch| ch.is_ascii_alphabetic() || " -'".contains(*ch))
+        .take(available)
+        .collect();
+    if !accepted.is_empty() {
+        edit.insert(&accepted);
+    }
+}
+
+fn shortcut(event: &KeyboardInput, mods: Mods) -> Option<Chord> {
+    // Survivors accepts both Command and Ctrl for its existing clipboard shortcuts.
+    if (mods.sup || mods.ctrl) && !mods.alt {
+        match event.key_code {
+            KeyCode::KeyA => return Some(Chord::Edit(EditAction::SelectAll)),
+            KeyCode::KeyC => return Some(Chord::Copy),
+            KeyCode::KeyX => return Some(Chord::Cut),
+            KeyCode::KeyV => return Some(Chord::Paste),
+            _ => {}
+        }
+    }
+    crate::textinput::chord(event.key_code, None, mods, cfg!(target_os = "macos"))
+}
 
 /// Raw modifier snapshots preserve Command/Ctrl across a press and release in one frame.
 #[derive(Default)]
@@ -13,7 +91,7 @@ impl NativeText {
     pub(super) fn read<'a>(
         &mut self,
         events: impl Iterator<Item = &'a bevy::winit::RawWinitWindowEvent>,
-    ) -> Vec<(KeyboardInput, bool)> {
+    ) -> Vec<(KeyboardInput, Mods)> {
         use winit::event::WindowEvent;
         let mut inputs = Vec::new();
         for raw in events {
@@ -39,7 +117,12 @@ impl NativeText {
                             event,
                             bevy::prelude::Entity::PLACEHOLDER,
                         ),
-                        modifiers.super_key() || modifiers.control_key(),
+                        Mods {
+                            shift: modifiers.shift_key(),
+                            ctrl: modifiers.control_key(),
+                            alt: modifiers.alt_key(),
+                            sup: modifiers.super_key(),
+                        },
                     ));
                 }
                 _ => {}
@@ -85,7 +168,7 @@ impl Clipboard<'_, '_> {
     pub(super) fn feed(
         &mut self,
         event: &KeyboardInput,
-        command: bool,
+        mods: Mods,
         armory: &mut Armory,
         account: &mut Account,
         selection: &Selection,
@@ -93,7 +176,7 @@ impl Clipboard<'_, '_> {
         let display = crate::textinput::wayland_display(self.windows.single().ok());
         feed_clipboard(
             event,
-            command,
+            mods,
             armory,
             account,
             selection,
@@ -107,75 +190,18 @@ impl Clipboard<'_, '_> {
 
 fn feed_clipboard(
     event: &KeyboardInput,
-    command: bool,
+    mods: Mods,
     armory: &mut Armory,
     account: &mut Account,
     selection: &Selection,
     clipboard: &mut impl Pasteboard,
 ) {
-    if command && event.state == ButtonState::Pressed && armory.focus != 0 {
-        match event.key_code {
-            KeyCode::KeyV => {
-                if let Some(text) = clipboard.read() {
-                    // Pasted names follow exactly the same filtering, limit and selection rules.
-                    let mut pasted = event.clone();
-                    pasted.text = Some(text.into());
-                    feed(&pasted, false, armory, account, selection);
-                }
-                return;
-            }
-            KeyCode::KeyC | KeyCode::KeyX => {
-                if armory.name_selection == Some(armory.focus) {
-                    let value = match armory.focus {
-                        1 => Some(&armory.draft_first),
-                        2 => Some(&armory.draft_last),
-                        3 => armory.rename.as_ref().map(|draft| &draft.first),
-                        4 => armory.rename.as_ref().map(|draft| &draft.last),
-                        _ => None,
-                    };
-                    if let Some(value) = value.filter(|value| !value.is_empty()) {
-                        clipboard.write(value);
-                        if event.key_code == KeyCode::KeyX {
-                            // An unavailable pasteboard must never turn Cut into data loss.
-                            if clipboard.read().as_deref() != Some(value.as_str()) {
-                                armory.note = "Clipboard unavailable; name kept.".into();
-                                return;
-                            }
-                            let mut delete = event.clone();
-                            delete.key_code = KeyCode::Backspace;
-                            delete.text = None;
-                            feed(&delete, false, armory, account, selection);
-                        }
-                    }
-                }
-                return;
-            }
-            _ => {}
-        }
-    }
-    feed(event, command, armory, account, selection);
-}
-
-pub(super) fn feed(
-    event: &KeyboardInput,
-    command: bool,
-    armory: &mut Armory,
-    account: &mut Account,
-    selection: &Selection,
-) {
     if event.state != ButtonState::Pressed || armory.focus == 0 {
-        return;
-    }
-    if command {
-        if event.key_code == KeyCode::KeyA {
-            armory.name_selection = Some(armory.focus);
-        }
-        // Shortcut letters must never become part of the name.
         return;
     }
     match event.key_code {
         KeyCode::Enter | KeyCode::NumpadEnter => {
-            armory.name_selection = None;
+            armory.name_cursor = None;
             if armory.rename.is_some() {
                 super::save_name(armory, account, selection);
             } else {
@@ -184,14 +210,14 @@ pub(super) fn feed(
             return;
         }
         KeyCode::Escape => {
-            armory.name_selection = None;
+            armory.name_cursor = None;
             armory.rename = None;
             armory.focus = 0;
             armory.note.clear();
             return;
         }
         KeyCode::Tab => {
-            armory.name_selection = None;
+            armory.name_cursor = None;
             armory.focus = match armory.focus {
                 1 => 2,
                 2 => 1,
@@ -203,46 +229,48 @@ pub(super) fn feed(
         }
         _ => {}
     }
-    let selected = armory.name_selection == Some(armory.focus);
-    let field = match armory.focus {
-        1 => &mut armory.draft_first,
-        2 => &mut armory.draft_last,
-        3 | 4 => {
-            let Some(draft) = armory.rename.as_mut() else {
-                return;
-            };
-            if armory.focus == 3 {
-                &mut draft.first
-            } else {
-                &mut draft.last
+    let slot = armory.focus;
+    let cursor = armory.name_cursor;
+    let Some(value) = field(armory) else { return };
+    let mut edit = editor(value, slot, cursor);
+    match shortcut(event, mods) {
+        Some(Chord::Edit(action)) => {
+            edit.apply(action);
+        }
+        Some(Chord::Copy | Chord::Cut) => {
+            if let Some(text) = edit.selected_text() {
+                clipboard.write(&text);
+                if shortcut(event, mods) == Some(Chord::Cut) {
+                    // An unavailable pasteboard must never turn Cut into data loss.
+                    if clipboard.read().as_deref() != Some(text.as_str()) {
+                        armory.note = "Clipboard unavailable; name kept.".into();
+                        return;
+                    }
+                    edit.cut_selection();
+                }
             }
         }
-        _ => return,
-    };
-    let previous = field.clone();
-    if event.key_code == KeyCode::Backspace || (selected && event.key_code == KeyCode::Delete) {
-        if selected {
-            field.clear();
-            armory.name_selection = None;
-        } else {
-            field.pop();
-        }
-    } else if let Some(text) = &event.text {
-        let accepted: String = text
-            .chars()
-            .filter(|ch| ch.is_ascii_alphabetic() || " -'".contains(*ch))
-            .collect();
-        if selected && !accepted.is_empty() {
-            field.clear();
-            armory.name_selection = None;
-        }
-        for ch in accepted.chars() {
-            if field.chars().count() < 16 {
-                field.push(ch);
+        Some(Chord::Paste) => {
+            if let Some(text) = clipboard.read() {
+                insert(&mut edit, &text);
             }
         }
+        None if !mods.sup && (!mods.ctrl || mods.alt) => {
+            if let Some(text) = &event.text {
+                insert(&mut edit, text);
+            }
+        }
+        None => {}
     }
-    if *field != previous {
+    let changed = *value != edit.text;
+    *value = edit.text;
+    armory.name_cursor = Some(Cursor {
+        slot,
+        at: edit.cursor,
+        start: edit.sel_start,
+        end: edit.sel_end,
+    });
+    if changed {
         armory.note.clear();
     }
 }
@@ -251,6 +279,50 @@ pub(super) fn feed(
 mod tests {
     use super::*;
     use bevy::{input::keyboard::Key, prelude::Entity};
+
+    fn feed_clipboard(
+        event: &KeyboardInput,
+        command: bool,
+        armory: &mut Armory,
+        account: &mut Account,
+        selection: &Selection,
+        clipboard: &mut impl Pasteboard,
+    ) {
+        super::feed_clipboard(
+            event,
+            Mods {
+                ctrl: command,
+                ..Default::default()
+            },
+            armory,
+            account,
+            selection,
+            clipboard,
+        );
+    }
+
+    fn feed(
+        event: &KeyboardInput,
+        command: bool,
+        armory: &mut Armory,
+        account: &mut Account,
+        selection: &Selection,
+    ) {
+        feed_clipboard(
+            event,
+            command,
+            armory,
+            account,
+            selection,
+            &mut MemoryClipboard::default(),
+        );
+    }
+
+    fn has_selection(armory: &Armory) -> bool {
+        armory
+            .name_cursor
+            .is_some_and(|c| c.slot == armory.focus && c.start != c.end)
+    }
 
     fn event(key_code: KeyCode, text: Option<&str>) -> KeyboardInput {
         KeyboardInput {
@@ -274,6 +346,212 @@ mod tests {
         fn write(&mut self, text: &str) {
             self.0 = Some(text.to_owned());
         }
+    }
+
+    #[test]
+    fn caret_inserts_and_deletes_inside_a_name_without_touching_the_suffix() {
+        let mut armory = Armory {
+            focus: 1,
+            draft_first: "MiraDawn".into(),
+            ..Default::default()
+        };
+        let mut account = crate::survivors::account::empty();
+        let selection = Selection::default();
+        let mut clipboard = MemoryClipboard::default();
+        let mut send = |key, text, mods| {
+            super::feed_clipboard(
+                &event(key, text),
+                mods,
+                &mut armory,
+                &mut account,
+                &selection,
+                &mut clipboard,
+            )
+        };
+        send(KeyCode::Home, None, Mods::default());
+        for _ in 0..4 {
+            send(KeyCode::ArrowRight, None, Mods::default());
+        }
+        send(KeyCode::Space, Some(" "), Mods::default());
+        send(KeyCode::Delete, None, Mods::default());
+        send(KeyCode::KeyD, Some("D"), Mods::default());
+        send(KeyCode::Backspace, None, Mods::default());
+        send(KeyCode::KeyD, Some("D"), Mods::default());
+        assert_eq!(armory.draft_first, "Mira Dawn");
+        assert_eq!(armory.name_cursor.unwrap().at, 6);
+    }
+
+    #[test]
+    fn partial_selection_copies_cuts_and_replaces_only_the_selected_letters() {
+        let mut armory = Armory {
+            focus: 1,
+            draft_first: "Mira Dawn".into(),
+            ..Default::default()
+        };
+        let mut account = crate::survivors::account::empty();
+        let selection = Selection::default();
+        let mut clipboard = MemoryClipboard::default();
+        for _ in 0..4 {
+            super::feed_clipboard(
+                &event(KeyCode::ArrowLeft, None),
+                Mods {
+                    shift: true,
+                    ..Default::default()
+                },
+                &mut armory,
+                &mut account,
+                &selection,
+                &mut clipboard,
+            );
+        }
+        feed_clipboard(
+            &event(KeyCode::KeyC, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(clipboard.0.as_deref(), Some("Dawn"));
+        feed_clipboard(
+            &event(KeyCode::KeyX, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.draft_first, "Mira ");
+        feed_clipboard(
+            &event(KeyCode::KeyV, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.draft_first, "Mira Dawn");
+        super::feed_clipboard(
+            &event(KeyCode::Home, None),
+            Mods::default(),
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        for _ in 0..4 {
+            super::feed_clipboard(
+                &event(KeyCode::ArrowRight, None),
+                Mods {
+                    shift: true,
+                    ..Default::default()
+                },
+                &mut armory,
+                &mut account,
+                &selection,
+                &mut clipboard,
+            );
+        }
+        clipboard.0 = Some("Lena123".into());
+        feed_clipboard(
+            &event(KeyCode::KeyV, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.draft_first, "Lena Dawn");
+        assert_eq!(armory.name_cursor.unwrap().at, 4);
+    }
+
+    #[test]
+    fn full_names_preserve_unselected_suffix_when_pasting_in_the_middle() {
+        let mut armory = Armory {
+            focus: 1,
+            draft_first: "Abcdefghijklmnop".into(),
+            name_cursor: Some(Cursor {
+                slot: 1,
+                at: 4,
+                start: 2,
+                end: 4,
+            }),
+            ..Default::default()
+        };
+        let mut account = crate::survivors::account::empty();
+        let selection = Selection::default();
+        let mut clipboard = MemoryClipboard(Some("XYZ".into()));
+        feed_clipboard(
+            &event(KeyCode::KeyV, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(armory.draft_first, "AbXYefghijklmnop");
+        feed(
+            &event(KeyCode::KeyQ, Some("Q")),
+            false,
+            &mut armory,
+            &mut account,
+            &selection,
+        );
+        assert_eq!(armory.draft_first, "AbXYefghijklmnop");
+        assert_eq!(armory.name_cursor.unwrap().at, 4);
+    }
+
+    #[test]
+    fn word_movement_extends_selection_and_tab_resets_the_next_field_caret() {
+        let mut armory = Armory {
+            focus: 1,
+            draft_first: "Mira Dawn".into(),
+            draft_last: "Vale".into(),
+            ..Default::default()
+        };
+        let mut account = crate::survivors::account::empty();
+        let selection = Selection::default();
+        let mut clipboard = MemoryClipboard::default();
+        let word = Mods {
+            shift: true,
+            ctrl: !cfg!(target_os = "macos"),
+            alt: cfg!(target_os = "macos"),
+            ..Default::default()
+        };
+        super::feed_clipboard(
+            &event(KeyCode::ArrowLeft, None),
+            word,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        feed_clipboard(
+            &event(KeyCode::KeyC, None),
+            true,
+            &mut armory,
+            &mut account,
+            &selection,
+            &mut clipboard,
+        );
+        assert_eq!(clipboard.0.as_deref(), Some("Dawn"));
+        feed(
+            &event(KeyCode::Tab, None),
+            false,
+            &mut armory,
+            &mut account,
+            &selection,
+        );
+        feed(
+            &event(KeyCode::KeyS, Some("s")),
+            false,
+            &mut armory,
+            &mut account,
+            &selection,
+        );
+        assert_eq!(armory.draft_first, "Mira Dawn");
+        assert_eq!(armory.draft_last, "Vales");
+        assert_eq!(armory.name_cursor.unwrap().slot, 2);
     }
 
     #[test]
@@ -367,7 +645,7 @@ mod tests {
         let mut armory = Armory {
             focus: 1,
             draft_first: "Keep".into(),
-            name_selection: Some(1),
+            name_cursor: Some(Cursor::selected(1, 4)),
             ..Default::default()
         };
         feed_clipboard(
@@ -379,7 +657,7 @@ mod tests {
             &mut Unavailable,
         );
         assert_eq!(armory.draft_first, "Keep");
-        assert_eq!(armory.name_selection, Some(1));
+        assert!(has_selection(&armory));
         assert_eq!(armory.note, "Clipboard unavailable; name kept.");
     }
 
@@ -390,7 +668,7 @@ mod tests {
         let mut armory = Armory {
             focus: 1,
             draft_first: "Selected".into(),
-            name_selection: Some(1),
+            name_cursor: Some(Cursor::selected(1, 8)),
             ..Default::default()
         };
         let mut clipboard = MemoryClipboard::default();
@@ -405,7 +683,7 @@ mod tests {
                 &mut clipboard,
             );
             assert_eq!(armory.draft_first, "Selected");
-            assert_eq!(armory.name_selection, Some(1));
+            assert!(has_selection(&armory));
         }
         clipboard.0 = Some("Abc-def' ghi123456789jklmnop".into());
         feed_clipboard(
@@ -417,7 +695,7 @@ mod tests {
             &mut clipboard,
         );
         assert_eq!(armory.draft_first, "Abc-def' ghijklm");
-        assert!(armory.name_selection.is_none());
+        assert!(!has_selection(&armory));
         clipboard.0 = Some("More".into());
         feed_clipboard(
             &event(KeyCode::KeyV, None),
@@ -430,7 +708,7 @@ mod tests {
         assert_eq!(armory.draft_first, "Abc-def' ghijklm");
         let mut released = event(KeyCode::KeyX, None);
         released.state = ButtonState::Released;
-        armory.name_selection = Some(1);
+        armory.name_cursor = Some(Cursor::selected(1, armory.draft_first.len()));
         feed_clipboard(
             &released,
             true,
@@ -535,7 +813,7 @@ mod tests {
             &selection,
         );
         assert_eq!(armory.draft_first, "Old");
-        assert_eq!(armory.name_selection, Some(1));
+        assert!(has_selection(&armory));
         feed(
             &event(KeyCode::Digit1, Some("123")),
             false,
@@ -544,7 +822,7 @@ mod tests {
             &selection,
         );
         assert_eq!(armory.draft_first, "Old");
-        assert_eq!(armory.name_selection, Some(1));
+        assert!(has_selection(&armory));
         armory.note = "Old error".into();
         feed(
             &event(KeyCode::KeyN, Some("New")),
@@ -555,7 +833,7 @@ mod tests {
         );
         assert_eq!(armory.draft_first, "New");
         assert!(armory.note.is_empty());
-        assert_eq!(armory.name_selection, None);
+        assert!(!has_selection(&armory));
         feed(
             &event(KeyCode::KeyV, Some("v")),
             true,
@@ -579,7 +857,7 @@ mod tests {
             &selection,
         );
         assert!(armory.draft_first.is_empty());
-        assert_eq!(armory.name_selection, None);
+        assert!(!has_selection(&armory));
     }
 
     #[test]
@@ -622,7 +900,7 @@ mod tests {
             &selection,
         );
         assert!(armory.rename.is_none());
-        assert_eq!(armory.name_selection, None);
+        assert!(!has_selection(&armory));
         assert_eq!(account.character(id).unwrap().last, "Hero");
     }
 
