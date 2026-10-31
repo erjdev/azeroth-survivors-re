@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-31 — Incremental cache cleanup
+
+Cleared local debug/play incremental compiler state with no compiler running,
+reclaiming 38.88 GiB; total build output is now 29.62 GiB. Compiled dependencies
+and executables remain. Documented the rebuild tradeoff and cross-machine cache
+locations. The storage budget check passes; its thresholds require maintenance,
+not automatic eviction. No visual change or new game build.
+
 ## 2026-10-31 — Improved Sprint
 
 Sprint training now grants 50/100% chance to remove current slows and roots on

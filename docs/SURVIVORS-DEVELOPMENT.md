@@ -129,6 +129,16 @@ Never clean caches while a build or
 validation process is using them. Keep the standard aliases above and avoid
 unnecessary feature/profile variants; do not routinely wipe the warm cache.
 
+Incremental folders contain disposable compiler state, separate from compiled
+libraries in `deps`. With all Cargo/rustc processes stopped, deleting
+`target/debug/incremental` and `target/play/incremental` preserves dependencies,
+executables, saves and game data; subsequent source builds lose incremental reuse
+until those caches warm again. Check nested target/platform directories and
+`CARGO_TARGET_DIR` when the reported size differs between machines. Keeping
+incremental compilation enabled favors fast iteration; it does not impose a disk
+limit. On October 31, clearing these two local caches reclaimed 38.88 GiB of
+allocated output, leaving 29.62 GiB in `target`. This does not clean other machines.
+
 ### Windows checkout launchers
 
 Run `scripts\survivors.cmd` from cmd, or `./scripts/survivors.ps1` from PowerShell.
