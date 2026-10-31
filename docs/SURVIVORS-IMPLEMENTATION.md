@@ -9,6 +9,15 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Minimum-window character creation — 2026-10-31
+
+The [native creation audit](audits/CHARACTER-CREATION-MINIMUM.md) verifies empty-name
+rejection, Mage creation, race/body/features and restart retention at 640×480,
+125% requested scale with automatic short-window fit. The reference layout stacks
+into scrollable sections. Command-A/Ctrl-A selection and cursor editing remain
+polish work; other platform/body/resolution cells and controller input remain open.
+No runtime changes or broader phase completion are claimed.
+
 ## All-class native talent layout matrix — 2026-10-30
 
 All nine classes now have top-row and complete milestone-footer evidence at

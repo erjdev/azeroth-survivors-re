@@ -5,6 +5,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-31 — Minimum-window hero creation
+
+Native 640×480 onboarding now has captured evidence for empty-name rejection,
+Mage creation, Gnome female appearance changes and selected-hero/feature retention
+after restart. This is validation of the existing UI, with 125% requested scale
+and automatic short-window fit. Command-A selection remains unsupported; Windows
+and controller acceptance remain open. [Evidence and limits](audits/CHARACTER-CREATION-MINIMUM.md).
+
+![Created hero retained after restart](images/screenshots/2026-10-31-creation-minimum/starter-restarted.jpg)
+
+![Appearance retained after restart](images/screenshots/2026-10-31-creation-minimum/appearance-restarted.jpg)
+
 ## 2026-10-31 — Incremental cache cleanup
 
 Cleared local debug/play incremental compiler state with no compiler running,

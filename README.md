@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Minimum-window hero creation is verified through appearance changes and restart
+at 640×480 on macOS. [Native evidence and limits](docs/audits/CHARACTER-CREATION-MINIMUM.md).
+
+![Created hero after restart](docs/images/screenshots/2026-10-31-creation-minimum/starter-restarted.jpg)
+
 Improved Sprint now removes current movement impairments on its trained proc,
 with green inline chance and persisted training. [Native evidence and limits](docs/audits/IMPROVED-SPRINT.md).
 
