@@ -1,6 +1,6 @@
 # Current Survivors acceptance status
 
-Reviewed 2026-10-31 after name selection and native creation/rename/restart validation.
+Reviewed 2026-10-31 after native two-reset Rewards and restart validation.
 This is an index into the [seven-phase contract](SURVIVORS-IMPLEMENTATION.md), not
 a replacement scope or a completion declaration. Historical checkpoints describe
 their own dates; later evidence can supersede their pending notes.
@@ -26,7 +26,7 @@ their own dates; later evidence can supersede their pending notes.
 | 3. Character and Collection | Responsive production pages, owned/empty/locked states, source navigation and comparisons; [starter inspection acceptance](audits/STARTER-EQUIPMENT-ACCEPTANCE.md) and [minimum-window creation/restart](audits/CHARACTER-CREATION-MINIMUM.md), plus [name selection and saved renames](audits/NAME-SELECTION.md). | Remaining platform/resolution/body matrix, partial name selection, cursor and clipboard editing, and complete art/content correspondence, not just populated cells. |
 | 4. Twelve zones / gear | Current content audit finds names and drops for every class's 54 ordinary collection cells. | Three audit gaps below, then traversal, encounters, world identity, icons/models, raid sets and attended readiness validation. |
 | 5. Talents | 315/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 117 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
-| 6. Codex / achievements / rewards | Seen-item persistence, catalog counts, reward drafts/refunds and independent cosmetics implemented; responsive native examples recorded. [Companion fetch routing](audits/COMPANION-FETCHING.md) has fence/return and blocked-collection regressions; [adaptive reward cards](audits/COMPANION-READABILITY.md) have native layout, purchase/undo, keyboard paging and saved-versus-draft restart evidence. | Complete perk/companion gameplay and platform acceptance; catalog totals, settlement and persistence end to end. Placeholder achievement criteria deliberately remain unearnable. |
+| 6. Codex / achievements / rewards | Seen-item persistence, catalog counts, reward drafts/refunds and independent cosmetics implemented; responsive native examples recorded, including [both perk refunds and restart preservation](audits/REWARD-RESETS.md). [Companion fetch routing](audits/COMPANION-FETCHING.md) has fence/return and blocked-collection regressions; [adaptive reward cards](audits/COMPANION-READABILITY.md) have native layout, purchase/undo, keyboard paging and saved-versus-draft restart evidence. | Complete perk/companion gameplay and platform acceptance; catalog totals, settlement and persistence end to end. Placeholder achievement criteria deliberately remain unearnable. |
 | 7. Integration / visuals | Native production-page previews, including [all nine talent classes at 1440×600 / 125%](audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30), retained build caches, screenshot reporting and scoped gates; synthetic camera/silhouette evidence. | Attended game loop, real foliage/interior camera cases, Windows and physical-controller checks, full land gates and all reference-page acceptance. |
 
 ## Current audit results

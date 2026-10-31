@@ -5,6 +5,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-31 — Rewards refund and restart acceptance
+
+Native checks verify both perk refunds, preview/undo, third-reset rejection,
+and preserved companion investment, distinct instincts and worn tabard after
+restart. Balances reconcile across Rewards pages and saved records. Captures
+cover 1100×720 and the 640×480 rejection state. No runtime changes; gameplay and
+Windows acceptance remain open. [Evidence](audits/REWARD-RESETS.md).
+
+![Companions retained after perk refunds](images/screenshots/2026-10-31-reward-resets/companions-restarted.jpg)
+
+![Reset limit at minimum window size](images/screenshots/2026-10-31-reward-resets/third-reset-compact.jpg)
+
 ## 2026-10-31 — Select and replace hero names
 
 Creation and rename fields support Command-A/Ctrl-A with a visible selection

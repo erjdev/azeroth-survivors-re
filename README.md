@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Both perk refunds preserve companion investment and cosmetics across restart;
+a third refund is rejected. [Native acceptance and limits](docs/audits/REWARD-RESETS.md).
+
+![Companions after refunds and restart](docs/images/screenshots/2026-10-31-reward-resets/companions-restarted.jpg)
+
 Hero names support Command-A/Ctrl-A selection and replacement, including saved
 starter renames. [Native evidence and limits](docs/audits/NAME-SELECTION.md).
 

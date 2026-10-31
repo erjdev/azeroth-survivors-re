@@ -9,6 +9,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Rewards reset acceptance — 2026-10-31
+
+[Native two-reset evidence](audits/REWARD-RESETS.md) verifies exact refunds,
+preview/undo, rejection after both resets, and companion/cosmetic preservation
+through restart. Wide purchase flows and minimum-window rejection are captured.
+Phase 6 remains open for actual gameplay, achievement settlement and remaining
+platform acceptance; this checkpoint changes no runtime code.
+
 ## Name selection and replacement — 2026-10-31
 
 [Command-A/Ctrl-A selection](audits/NAME-SELECTION.md) now works in creation and
