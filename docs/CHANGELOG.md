@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Vengeance supports weapon attacks
+
+Paladin weapon criticals now activate Vengeance, and later swings receive its
+existing eight-second damage bonus. Pets and hits that remove no health cannot
+trigger it. Updated green inline text passes native wide/compact purchase,
+refund and restart checks. Shared rules and the six-package scoped gate pass
+(31 optional-addon skips); attended combat and Windows remain open.
+[Evidence and validation limits](audits/PALADIN-VENGEANCE.md).
+
+![Vengeance weapon and Holy bonus after restart](images/screenshots/2026-10-30-vengeance/compact-restarted.jpg)
+
 ## 2026-10-30 — Keyboard save recovery verified
 
 Native keyboard checks now cover a failed talent save, failed retry, successful

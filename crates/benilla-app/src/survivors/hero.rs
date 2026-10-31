@@ -786,11 +786,15 @@ mod reactive_talent_tests {
             )
         };
         let before = params("judgement", &run);
+        let weapon_before = run.stats().for_spell("Weapon Attack").might;
         let other = params("smite", &run);
         run.record_vengeance_hit("judgement", 10., false);
         assert_eq!(run.vengeance_t, 0.);
         run.record_vengeance_hit("judgement", 10., true);
         assert_eq!(run.vengeance_t, 8.);
+        assert!(
+            (run.stats().for_spell("Weapon Attack").might - weapon_before * 1.15).abs() < 0.0001
+        );
         let after = params("judgement", &run);
         assert!((after.dmg - before.dmg * 1.15).abs() < 0.0001);
         assert_eq!(params("smite", &run).dmg, other.dmg);
@@ -802,10 +806,12 @@ mod reactive_talent_tests {
         assert_eq!(run.vengeance_t, 8.);
         assert_eq!(params("judgement", &run).dmg, after.dmg);
         advance_buffs(&mut run, 9.);
+        assert_eq!(run.stats().for_spell("Weapon Attack").might, weapon_before);
         assert_eq!(params("judgement", &run).dmg, before.dmg);
         assert!((ground.dmg - params("consecration", &run).dmg * 1.15).abs() < 0.0001);
         run.record_vengeance_hit("judgement", 10., true);
         run.milestones = run.milestones.with_ranks(&[(2, 1409, 1)]);
+        assert_eq!(run.stats().for_spell("Weapon Attack").might, weapon_before);
         assert_eq!(params("judgement", &run).dmg, before.dmg);
         run.hp = 0.;
         run.vengeance_t = 0.;

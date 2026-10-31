@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Vengeance now includes Paladin automatic weapon attacks, with its changing bonus
+shown inline. [Native captures and validation](docs/audits/PALADIN-VENGEANCE.md).
+
+![Vengeance weapon and Holy damage](docs/images/screenshots/2026-10-30-vengeance/compact-restarted.jpg)
+
 Native keyboard save-recovery checks now cover failure, retry and restart without
 losing the pending talent purchase. [Evidence and limits](docs/audits/SAVE-RECOVERY-KEYBOARD.md).
 

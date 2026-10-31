@@ -2072,7 +2072,7 @@ fn reactive_buff_status(run: &Run) -> String {
         .vengeance_bonus(run.alive() && run.vengeance_t > 0.0);
     if vengeance > 0.0 {
         active.push(format!(
-            "Vengeance +{:.0}% Paladin Holy damage ({:.0}s)",
+            "Vengeance +{:.0}% weapon / Holy damage ({:.0}s)",
             vengeance * 100.0,
             run.vengeance_t.ceil()
         ));

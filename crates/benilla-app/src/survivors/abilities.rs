@@ -1920,6 +1920,10 @@ pub(super) fn apply_hits(
             let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
             dmg *= echoes as f32;
             let removed = dmg.min(en.hp.max(0.0));
+            // Vengeance requires an original hero critical that actually removes health.
+            if original && h.origin == HitOrigin::Hero {
+                run.record_vengeance_hit(h.source, removed, h.crit);
+            }
             if run.alive() {
                 let talents = owner_talents;
                 let elapsed = run.elapsed;
@@ -2036,7 +2040,6 @@ pub(super) fn apply_hits(
             .hit(talents, h.source, h.damage, h.crit, elapsed);
         if h.origin == HitOrigin::Hero {
             run.record_flurry_hit(h.source, h.damage, h.crit);
-            run.record_vengeance_hit(h.source, dmg, h.crit);
         }
         let bleed = owner_talents.critical_bleed(h.source, h.damage, h.crit);
         refresh_deep_wounds(&mut en.dots, bleed);

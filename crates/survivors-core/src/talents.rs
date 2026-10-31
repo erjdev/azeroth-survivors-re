@@ -876,7 +876,7 @@ impl Milestones {
             && damage.is_finite()
             && damage > 0.0
             && key != "consecration"
-            && PALADIN_HOLY.contains(&key)
+            && (key == "Weapon Attack" || PALADIN_HOLY.contains(&key))
     }
 
     pub fn flurry_haste(self, active: bool) -> f32 {
@@ -1866,7 +1866,7 @@ fn inline_stat_label(tail: &str) -> &str {
         " retaliation damage",
         " bleed damage",
         " weakening duration",
-        " Paladin Holy damage",
+        " Paladin weapon and Holy damage",
         " damage-reduction duration",
         " shorter bite cooldown",
         " shorter recovery after defeat",
@@ -2583,7 +2583,7 @@ impl TalentDefinition {
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::SealFate => (100.0, "% finisher recovery chance on a builder critical hit"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
-            TalentStat::Vengeance => (100.0, "% Paladin Holy damage while Vengeance is active"),
+            TalentStat::Vengeance => (100.0, "% Paladin weapon and Holy damage while Vengeance is active"),
             TalentStat::InspirationArmor => (100.0, "% armor after Holy Nova healing"),
             TalentStat::BlessedRecovery => (100.0, "% health damage restored over 6 sec"),
             TalentStat::BloodCrazeHealing => {
@@ -3001,7 +3001,7 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 1402, max_rank: 5, name: "Vengeance",
-        description: "Direct Paladin Holy critical hits grant +3% Paladin Holy damage per rank for 8 sec; refreshes without stacking. New Consecration casts snapshot the bonus; its ticks cannot trigger it",
+        description: "Direct Paladin weapon or Holy critical hits grant +3% Paladin weapon and Holy damage per rank for 8 sec; refreshes without stacking. New Consecration casts snapshot the bonus; its ticks cannot trigger it",
         stat: TalentStat::Vengeance, per_rank: 0.03,
     },
     TalentDefinition {
@@ -5338,6 +5338,14 @@ mod stat_talent_tests {
                 }
                 assert!(!trained.triggers_vengeance(key, 10., false));
             }
+            assert_eq!(
+                trained.triggers_vengeance("Weapon Attack", 10., true),
+                rank > 0
+            );
+            assert!(!trained.triggers_vengeance("Weapon Attack", 10., false));
+            for damage in [0., -1., f32::NAN, f32::INFINITY] {
+                assert!(!trained.triggers_vengeance("Weapon Attack", damage, true));
+            }
             for key in [
                 "divine_shield",
                 "smite",
@@ -6945,7 +6953,7 @@ mod inline_stat_label_tests {
             (0, 127, "+0 » 10% bleed damage"),
             (0, 147, "+0 » 10% reflected damage"),
             (0, 161, "+0 » 10% weakening duration"),
-            (1, 1402, "+0 » 3% Paladin Holy damage"),
+            (1, 1402, "+0 » 3% Paladin weapon and Holy damage"),
             (2, 1351, "+0 » 20% damage-reduction duration"),
             (5, 612, "+0 » 5% shield absorption"),
             (5, 586, "0 » 4% shorter recovery"),
@@ -6995,7 +7003,7 @@ mod inline_stat_label_tests {
         for rank in [0, 1, 5, 255] {
             let (text, ranges) = vengeance.inline_description_with_values(rank).unwrap();
             assert_eq!(ranges.len(), 1);
-            assert!(text[ranges[0].clone()].ends_with("% Paladin Holy damage"));
+            assert!(text[ranges[0].clone()].ends_with("% Paladin weapon and Holy damage"));
             assert!(text[ranges[0].end..].contains("8 sec"));
         }
         let force = talent_definition(4, 1202).unwrap();

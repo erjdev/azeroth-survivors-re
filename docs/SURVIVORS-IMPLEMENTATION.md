@@ -10425,3 +10425,12 @@ Both data-enabled gate runs have 31 optional-addon skips. The fresh definition
 audit is 311/432 overall and 30/44 Paladin; 121 nodes remain provisional. Ten
 native captures are retained, with representative inline images in CHANGELOG and
 README. This advances phase 5 without closing its combat/platform acceptance.
+
+
+## Vengeance weapon integration — 2026-10-30
+
+[Vengeance now consumes actual automatic weapon criticals and boosts subsequent
+swings](audits/PALADIN-VENGEANCE.md), alongside its existing Holy-spell behavior.
+The original-hit/effective-damage gate excludes pets and secondary splash. Native
+wide/compact purchase, refund and restart evidence is recorded; this corrects an
+existing named node and does not increase definition coverage or close phase 5.

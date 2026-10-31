@@ -226,3 +226,71 @@ fn paladin_weapon_training_reaches_actual_damage_and_physical_vulnerability() {
         }
     }
 }
+
+#[test]
+fn vengeance_weapon_criticals_boost_later_swings_without_stacking() {
+    for two_handed in [false, true] {
+        let (mut app, _, target) = setup(two_handed);
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.milestones = run.milestones.with_ranks(&[(2, 1402, 5)]);
+            run.bonus.crit = 1.;
+        }
+        let mut previous = 0.;
+        for swing in 0..3 {
+            app.world_mut().resource_mut::<Run>().weapon_attack_cd = 0.;
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hit = app
+                .world()
+                .resource::<Messages<Hit>>()
+                .iter_current_update_messages()
+                .next()
+                .unwrap()
+                .clone();
+            assert!(hit.crit);
+            if swing == 1 {
+                assert!((hit.damage - previous * 1.15).abs() < 0.001);
+            }
+            if swing == 2 {
+                assert_eq!(hit.damage, previous);
+            }
+            previous = hit.damage;
+            let before = app.world().get::<Enemy>(target).unwrap().hp;
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            assert!(
+                (before - app.world().get::<Enemy>(target).unwrap().hp - hit.damage).abs() < 0.001
+            );
+            assert_eq!(app.world().resource::<Run>().vengeance_t, 8.);
+            app.world_mut().resource_mut::<Messages<Hit>>().clear();
+        }
+    }
+}
+
+#[test]
+fn vengeance_rejects_pet_noncritical_and_ineffective_weapon_hits() {
+    for case in 0..6 {
+        let (mut app, _, target) = setup(false);
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.milestones = run.milestones.with_ranks(&[(2, 1402, 5)]);
+            if case == 5 {
+                run.hp = 0.;
+            }
+        }
+        let mut hit = Hit {
+            source: "Weapon Attack",
+            ..Hit::direct(target, 10., true)
+        };
+        match case {
+            0 => hit.origin = HitOrigin::CombatPet,
+            1 => hit.crit = false,
+            2 => hit.damage = 0.,
+            3 => app.world_mut().get_mut::<Enemy>(target).unwrap().hp = 0.,
+            4 => app.world_mut().get_mut::<Enemy>(target).unwrap().dead = true,
+            _ => {}
+        }
+        app.world_mut().resource_mut::<Messages<Hit>>().write(hit);
+        app.world_mut().run_system_once(apply_hits).unwrap();
+        assert_eq!(app.world().resource::<Run>().vengeance_t, 0., "case {case}");
+    }
+}

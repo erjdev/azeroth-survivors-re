@@ -118,3 +118,9 @@ in the [weapon audit](audits/PALADIN-WEAPON-TALENTS.md#weapon-specialization-imp
 The fresh source-data audit reports 30/44 Paladin and 311/432 total definitions;
 this does not close the remaining 121 nodes, attended combat, Windows or the
 seven-phase contract. Build output remains within the maintenance budget.
+
+
+Vengeance follow-up: [weapon-critical activation and subsequent swing damage](audits/PALADIN-VENGEANCE.md)
+now accompany the existing Holy bonus. Native wide/compact purchase, refund and
+restart pass. Definition totals are unchanged; this closes a consumer gap within
+an already named node, not the remaining 121 talent definitions.

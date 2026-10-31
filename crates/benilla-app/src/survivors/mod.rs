@@ -488,7 +488,7 @@ impl Stats {
                 apply_sheet(&mut scoped, bonus);
             }
         }
-        if survivors_core::talents::PALADIN_HOLY.contains(&key) {
+        if key == "Weapon Attack" || survivors_core::talents::PALADIN_HOLY.contains(&key) {
             scoped.might *= 1.0 + self.vengeance;
         }
         if survivors_core::battle_shout::BattleShout::affects(key) {
