@@ -1,0 +1,5 @@
+# Select a Warlock; inspect Soul Link without spending points.
+page=talents
+talent=1282
+width=640
+height=720

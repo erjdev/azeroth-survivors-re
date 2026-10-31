@@ -10,12 +10,27 @@ syncing upstream is [docs/UPSTREAM.md](docs/UPSTREAM.md). Upstream's own map and
 client crates are `docs/METHOD.md`, `docs/MAP.md` and `docs/CONTRIBUTING.md`; read them before
 changing client code, and treat this file as authoritative for the fork's crates and process.
 
+## Survivors progress checkpoints
+
+- Before a long build batch and at each milestone, run `python3 scripts/check-build-storage.py`.
+  Stop and review generated output if it exceeds 100 GiB or free space falls below 30 GiB.
+  Preserve warm caches during normal iteration; use the standard Survivors aliases and the
+  diagnostic-symbol workflow in `docs/SURVIVORS-DEVELOPMENT.md` instead of changing flags ad hoc.
+- Keep `docs/CHANGELOG.md` succinct: group changes by feature milestone/version, not commit.
+  This user-requested Survivors changelog is an exception to the upstream no-changelog rule.
+- Store milestone screenshots in `docs/images/screenshots/<milestone>/` and embed
+  representative captures inline in the changelog, README and PR description. Text links
+  alone do not satisfy visual milestone reporting. Preserve historical captures.
+- After committing a coherent checkpoint on a feature branch, push that branch to `origin`
+  so it can be followed and built on another computer. Do not push directly to `main` or
+  force-push; report validation limits alongside the milestone.
+
 ## What lives where
 
 | path | what | whose |
 |---|---|---|
 | `crates/benilla-*` | the client: formats, world, UI, protocol, app | upstream's, plus our `#[cfg]`-gated carries |
-| `crates/benilla-app/src/webbridge/` | the JavaScript bridge, wasm side | ours |
+| `crates/benilla-app/src/ui_webbridge/` | the JavaScript bridge, wasm side | ours |
 | `crates/wenilla` | the wasm entry crate (`#[wasm_bindgen(start)]`) | ours |
 | `crates/wenilla-host` | local dev server: static files, `/data/*`, `/ws/*` relay. Loopback only. | ours |
 | `crates/wenilla-realm` | the realm service: login, play page, admin panel, relay. This runs in prod. | ours |

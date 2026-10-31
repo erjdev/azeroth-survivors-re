@@ -1,0 +1,4 @@
+page=codex
+width=1280
+height=720
+entry=legend:raptor_strike

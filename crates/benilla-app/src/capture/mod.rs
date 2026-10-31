@@ -79,6 +79,8 @@ mod probe_vendor_swap;
 mod probes;
 mod realm_list;
 mod scenarios;
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) mod survivors_tools;
 use crate::run_mode::CaptureMode;
 pub(crate) use depth_probe::DepthProbePlugin;
 use fixtures::seed_ui_fixture;

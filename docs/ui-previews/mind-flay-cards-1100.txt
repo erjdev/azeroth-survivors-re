@@ -1,0 +1,6 @@
+page=cards
+width=1100
+height=720
+hero=5
+abilities=mind_flay:1,mind_blast:1,shadow_word_pain:1
+profile=selected

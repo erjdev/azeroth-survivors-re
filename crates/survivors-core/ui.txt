@@ -1,0 +1,9 @@
+# Armory layout. Widths are percentages; spacing/type are logical pixels.
+# Native dev builds reload complete valid edits, including talent typography/panels.
+left_width = 23
+right_width = 24
+gap = 8
+padding = 10
+body_size = 12
+title_size = 18
+cell_height = 40

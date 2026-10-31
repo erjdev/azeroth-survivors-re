@@ -13,7 +13,7 @@ default = ["dev"]
 dev = ["benilla-app/dev"]
 
 [dependencies]
-benilla-app = { path = "../benilla-app", default-features = false }
+benilla-app = { path = "../benilla-app", default-features = false, features = ["survivors-visibility", "survivors-terrain", "survivors-text"] }
 
 [build-dependencies]
 benilla-buildstamp = { path = "../benilla-buildstamp" }

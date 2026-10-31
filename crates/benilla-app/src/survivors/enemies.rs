@@ -4,18 +4,25 @@
 use std::collections::HashMap;
 
 use benilla_world::rig_anim::GlobalSeqDrive;
-use benilla_world::world_point::WorldPoint;
 use bevy::prelude::*;
 
 use super::abilities::Hit;
 use super::data::{self, EnemyDef};
 use super::hero::{self, Hero, HERO_RADIUS};
 use super::units::{self, flat, yaw_toward, Fx, Marks, UnitSpec, COLOR_HURT};
+use super::Floor;
 use super::{Phase, Rng, Run, Selection};
 use crate::creature_anim::{move_flags, MovementState};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
 #[derive(Component)]
+#[require(
+    super::abilities::FireVulnerability,
+    super::abilities::HemorrhageVulnerability,
+    super::curse::CurseState,
+    super::disarm::DisarmState,
+    super::enemy_casting::Caster
+)]
 pub(super) struct Enemy {
     pub def: &'static EnemyDef,
     pub hp: f32,
@@ -27,22 +34,43 @@ pub(super) struct Enemy {
     pub boss: bool,
     pub elite: bool,
     pub attack_cd: f32,
-    pub slow: f32,
-    pub slow_t: f32,
+    pub slows: survivors_core::slows::Slows,
     pub root_t: f32,
+    pub frozen_t: f32,
+    pub winters_chill: survivors_core::talents::WintersChill,
+    pub kidney_t: f32,
+    pub shadow_weaving: survivors_core::talents::ShadowWeaving,
     pub stun_t: f32,
     pub fear_t: f32,
+    pub incapacitate_t: f32,
     pub weaken: f32,
     pub weaken_t: f32,
+    pub poison: survivors_core::talents::DeadlyPoison,
     pub dots: Vec<Dot>,
     pub dead: bool,
 }
 
 pub(super) struct Dot {
+    pub origin: super::abilities::HitOrigin,
     pub dps: f32,
     pub left: f32,
     pub tick: f32,
     pub source: &'static str,
+}
+
+impl Dot {
+    /// Count each due one-second tick, including the last at expiry, across long frames.
+    pub(super) fn advance(&mut self, dt: f32) -> u32 {
+        let elapsed = dt.max(0.0).min(self.left.max(0.0));
+        self.left = (self.left - elapsed).max(0.0);
+        self.tick -= elapsed;
+        if self.tick > 0.00001 || elapsed == 0.0 {
+            return 0;
+        }
+        let ticks = (-self.tick + 0.00001).floor() as u32 + 1;
+        self.tick += ticks as f32;
+        ticks
+    }
 }
 
 /// A corpse playing its death before it fades.
@@ -83,6 +111,16 @@ pub(super) struct Gem {
     pub(super) kind: GemKind,
     pub(super) pulled: bool,
     speed: f32,
+}
+
+impl Gem {
+    pub(super) fn new(kind: GemKind) -> Self {
+        Self {
+            kind,
+            pulled: false,
+            speed: 6.0,
+        }
+    }
 }
 
 /// The `GameObjectDisplayInfo` row and scale a pickup wears: a wisp per experience tier, the
@@ -127,8 +165,9 @@ fn spawn_enemy(
             level: def.level,
             faction: units::FACTION_MONSTER,
             bytes0: 1 << 8,
-            weapons: &[],
-            sheath: 0,
+            weapons: survivors_core::enemy_equipment::for_template(def.template_entry)
+                .unwrap_or_default(),
+            sheath: 1,
         },
         pos,
         yaw_toward(hero - pos),
@@ -146,13 +185,18 @@ fn spawn_enemy(
             boss,
             elite: elite && !boss,
             attack_cd: 0.5,
-            slow: 1.0,
-            slow_t: 0.0,
+            slows: Default::default(),
             root_t: 0.0,
+            frozen_t: 0.0,
+            winters_chill: Default::default(),
+            shadow_weaving: Default::default(),
+            kidney_t: 0.0,
             stun_t: 0.0,
             fear_t: 0.0,
+            incapacitate_t: 0.0,
             weaken: 1.0,
             weaken_t: 0.0,
+            poison: Default::default(),
             dots: Vec::new(),
             dead: false,
         },
@@ -160,9 +204,25 @@ fn spawn_enemy(
     ));
 }
 
-fn ground(world: &WorldPoint, mut p: Vec3, fallback: f32) -> Vec3 {
-    p.y = world.terrain_height_under(p).unwrap_or(fallback);
+fn ground(world: &Floor, mut p: Vec3, fallback: f32) -> Vec3 {
+    p.y = world.height(p).unwrap_or(fallback);
     p
+}
+
+/// Recycling has the same geometry and arena constraints as a new spawn. Keep the
+/// old position while streamed geometry has no safe replacement.
+fn recycle(world: &Floor, map: &data::MapDef, hero: Vec3, at: &mut Vec3, radius: f32) {
+    let direction = flat(hero - *at);
+    if let Some(safe) = super::spawn::point(
+        world,
+        map,
+        hero,
+        direction.z.atan2(direction.x),
+        38.0,
+        radius,
+    ) {
+        *at = safe;
+    }
 }
 
 /// Keep the horde topped up on a ring outside the view, with the bosses and the encircling waves
@@ -177,10 +237,10 @@ pub(super) fn spawn_enemies(
     hero: Query<&Transform, With<Hero>>,
     enemies: Query<&Enemy>,
     chests: Query<&Chest>,
-    world: WorldPoint,
+    world: Floor,
 ) {
     let Ok(h) = hero.single() else { return };
-    if run.dead_t.is_some() {
+    if !run.alive() {
         return;
     }
     let hpos = h.translation;
@@ -188,67 +248,71 @@ pub(super) fn spawn_enemies(
     let roster = data::roster(selection.map);
     let pool = data::wave_pool(elapsed, roster.enemies.len());
 
-    let due_bosses = ((elapsed / data::BOSS_EVERY_SECS) as u32).min(roster.bosses.len() as u32);
-    while run.bosses < due_bosses {
-        let def = &roster.bosses[run.bosses as usize];
+    let map = selection.map_def();
+    while let Some(def) = super::encounters::next(selection.map, run.bosses, elapsed) {
         let a = rng.range(0.0, std::f32::consts::TAU);
-        let pos = ground(
-            &world,
-            hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 30.0,
-            hpos.y,
-        );
+        let Some(pos) = super::spawn::point(&world, map, hpos, a, 30.0, radius_for(def)) else {
+            // The same scheduled boss remains pending until a supported, clear position exists.
+            break;
+        };
         spawn_enemy(&mut commands, &mut run, def, pos, hpos, true, false);
         run.bosses += 1;
         run.banner = Some((format!("{} approaches!", def.name), 4.0));
     }
 
-    // Half way between bosses, a closing ring of the moment's weakest.
+    // Plan a complete ring before spawning any of it, so a retry cannot duplicate half a wave.
     let due_rings = ((elapsed + data::BOSS_EVERY_SECS / 2.0) / data::BOSS_EVERY_SECS) as u32;
     if run.rings < due_rings {
-        run.rings = due_rings;
         let def = &roster.enemies[pool[0]];
         let n = 28 + (data::progress(elapsed) * 60.0) as usize;
-        for i in 0..n {
-            let a = i as f32 / n as f32 * std::f32::consts::TAU;
-            let pos = ground(
-                &world,
-                hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 26.0,
-                hpos.y,
-            );
-            let elite = super::campaign::is_named_elite(selection.map_def().name, def.name);
-            spawn_enemy(&mut commands, &mut run, def, pos, hpos, false, elite);
+        let positions: Option<Vec<_>> = (0..n)
+            .map(|i| {
+                let a = i as f32 / n as f32 * std::f32::consts::TAU;
+                super::spawn::point(&world, map, hpos, a, 26.0, radius_for(def))
+            })
+            .collect();
+        if let Some(positions) = positions {
+            for pos in positions {
+                let elite = super::campaign::is_named_elite(map.name, def.name);
+                spawn_enemy(&mut commands, &mut run, def, pos, hpos, false, elite);
+            }
+            run.rings = due_rings;
+            run.banner = Some(("They're surrounding you!".into(), 3.0));
         }
-        run.banner = Some(("They're surrounding you!".into(), 3.0));
     }
 
     if !run.stocked {
-        run.stocked = true;
-        for i in 0..3 {
-            let a = i as f32 / 3.0 * std::f32::consts::TAU;
-            let pos = ground(
-                &world,
-                hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 14.0,
-                hpos.y,
-            );
-            spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::A);
+        let positions: Option<Vec<_>> = (0..3)
+            .map(|i| {
+                let a = i as f32 / 3.0 * std::f32::consts::TAU;
+                super::spawn::point(&world, map, hpos, a, 14.0, 1.0)
+            })
+            .collect();
+        if let Some(positions) = positions {
+            for pos in positions {
+                spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::A);
+            }
+            run.stocked = true;
         }
     }
 
     spawner.chest_t -= time.delta_secs();
     if spawner.chest_t <= 0.0 {
-        spawner.chest_t = 45.0;
         let woods = chests
             .iter()
             .filter(|c| c.tier == super::campaign::ChestTier::C)
             .count();
-        if woods < 3 {
+        if woods >= 3 {
+            spawner.chest_t = 45.0;
+        } else {
             let a = rng.range(0.0, std::f32::consts::TAU);
-            let pos = ground(
-                &world,
-                hpos + Vec3::new(a.cos(), 0.0, a.sin()) * rng.range(16.0, 24.0),
-                hpos.y,
-            );
-            spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::C);
+            let distance = rng.range(16.0, 24.0);
+            if let Some(pos) = super::spawn::point(&world, map, hpos, a, distance, 1.0) {
+                spawn_chest(&mut commands, &mut run, pos, super::campaign::ChestTier::C);
+                spawner.chest_t = 45.0;
+            } else {
+                spawner.chest_t = 0.5;
+            }
         }
     }
 
@@ -267,7 +331,9 @@ pub(super) fn spawn_enemies(
         let def = &roster.enemies[pool[rng.index(pool.len())]];
         let a = rng.range(0.0, std::f32::consts::TAU);
         let r = rng.range(34.0, 42.0);
-        let pos = ground(&world, hpos + Vec3::new(a.cos(), 0.0, a.sin()) * r, hpos.y);
+        let Some(pos) = super::spawn::point(&world, map, hpos, a, r, radius_for(def)) else {
+            continue;
+        };
         let elite = super::campaign::is_named_elite(selection.map_def().name, def.name);
         spawn_enemy(&mut commands, &mut run, def, pos, hpos, false, elite);
     }
@@ -280,7 +346,13 @@ fn spawn_chest(
     tier: super::campaign::ChestTier,
 ) {
     let serial = run.guid();
-    let e = units::spawn_object(commands, serial, super::campaign::chest_display(tier), 1.15, pos);
+    let e = units::spawn_object(
+        commands,
+        serial,
+        super::campaign::chest_display(tier),
+        1.15,
+        pos,
+    );
     commands.entity(e).insert(Chest {
         gold: super::campaign::chest_gold(tier, run.level),
         tier,
@@ -292,10 +364,67 @@ fn spawn_chest(
 #[allow(clippy::type_complexity)]
 pub(super) fn move_enemies(
     time: Res<Time>,
+    channels: Option<Res<super::channeling::Channels>>,
+    mut rng: ResMut<Rng>,
     mut run: ResMut<Run>,
-    world: WorldPoint,
+    world: Floor,
+    selection: Res<Selection>,
     hero: Query<(Entity, &Transform), (With<Hero>, Without<Enemy>)>,
-    mut enemies: Query<(Entity, &mut Transform, &mut Enemy, &mut MovementState), Without<Hero>>,
+    mut enemies: Query<
+        (
+            Entity,
+            &mut Transform,
+            &mut Enemy,
+            &mut MovementState,
+            Option<&super::hunter_pet::PetTaunt>,
+            &super::curse::CurseState,
+            &mut super::enemy_casting::Caster,
+        ),
+        Without<Hero>,
+    >,
+    mut navigation: Local<super::navigation::Navigation>,
+    mut pets: Query<
+        (
+            Entity,
+            &Transform,
+            &mut super::hunter_pet::HunterPet,
+            &mut ObjectStore,
+        ),
+        (
+            Without<Enemy>,
+            Without<Hero>,
+            Without<super::earthbind::Earthbind>,
+            Without<super::stoneclaw::Stoneclaw>,
+        ),
+    >,
+    mut earthbinds: Query<
+        (
+            Entity,
+            &Transform,
+            &mut super::earthbind::Earthbind,
+            &mut ObjectStore,
+        ),
+        (
+            Without<Enemy>,
+            Without<Hero>,
+            Without<super::hunter_pet::HunterPet>,
+            Without<super::stoneclaw::Stoneclaw>,
+        ),
+    >,
+    mut stoneclaws: Query<
+        (
+            Entity,
+            &Transform,
+            &mut super::stoneclaw::Stoneclaw,
+            &mut ObjectStore,
+        ),
+        (
+            Without<Enemy>,
+            Without<Hero>,
+            Without<super::hunter_pet::HunterPet>,
+            Without<super::earthbind::Earthbind>,
+        ),
+    >,
     mut fx: Fx,
     mut hits: MessageWriter<Hit>,
 ) {
@@ -304,18 +433,34 @@ pub(super) fn move_enemies(
         return;
     }
     let Ok((hero_e, htf)) = hero.single() else {
+        for (ent, _, _, mut mv, _, _, mut caster) in &mut enemies {
+            if let Some(cast) = caster.state.active() {
+                fx.cancel_cast(ent, cast.spell.id);
+                caster.state.cancel();
+            }
+            mv.speed = 0.;
+            mv.flags = 0;
+        }
         return;
     };
     let hpos = htf.translation;
-    let hero_down = run.dead_t.is_some();
+    let hero_down = !run.alive();
 
     // Separation over a coarse grid: only neighbours in the same or adjacent cells push.
     const CELL: f32 = 3.0;
     let bodies: Vec<(Entity, Vec3, f32)> = enemies
         .iter()
-        .filter(|(_, _, e, _)| !e.dead)
-        .map(|(ent, tf, e, _)| (ent, tf.translation, e.radius))
+        .filter(|(_, _, e, _, _, _, _)| !e.dead)
+        .map(|(ent, tf, e, _, _, _, _)| (ent, tf.translation, e.radius))
         .collect();
+    navigation.advance(dt, selection.map, &bodies, |from, to, radius| {
+        let map = selection.map_def();
+        if flat(to - hero::arena(map)).length() + radius > map.leash {
+            return None;
+        }
+        let end = world.travel(from, to, radius);
+        (flat(end - to).length() < 0.1 && world.can_spawn(end, radius)).then_some(end)
+    });
     let key = |p: Vec3| ((p.x / CELL).floor() as i32, (p.z / CELL).floor() as i32);
     let mut grid: HashMap<(i32, i32), Vec<usize>> = HashMap::new();
     for (i, b) in bodies.iter().enumerate() {
@@ -349,9 +494,13 @@ pub(super) fn move_enemies(
         push.insert(ent, acc);
     }
 
-    for (ent, mut tf, mut e, mut mv) in &mut enemies {
+    for (ent, mut tf, mut e, mut mv, taunt, curse, mut caster) in &mut enemies {
         let e = &mut *e;
         if e.dead {
+            if let Some(cast) = caster.state.active() {
+                fx.cancel_cast(ent, cast.spell.id);
+                caster.state.cancel();
+            }
             if mv.speed != 0.0 || mv.flags != 0 {
                 mv.speed = 0.0;
                 mv.flags = 0;
@@ -359,17 +508,18 @@ pub(super) fn move_enemies(
             continue;
         }
         e.attack_cd -= dt;
+        e.winters_chill.advance(dt);
+        e.shadow_weaving.advance(dt);
         for t in [
-            &mut e.slow_t,
             &mut e.root_t,
+            &mut e.frozen_t,
             &mut e.stun_t,
+            &mut e.kidney_t,
             &mut e.fear_t,
+            &mut e.incapacitate_t,
             &mut e.weaken_t,
         ] {
             *t = (*t - dt).max(0.0);
-        }
-        if e.slow_t <= 0.0 {
-            e.slow = 1.0;
         }
         if e.weaken_t <= 0.0 {
             e.weaken = 1.0;
@@ -378,28 +528,213 @@ pub(super) fn move_enemies(
         let to_hero = flat(hpos - pos);
         let dist = to_hero.length();
 
-        // Strays far behind are brought back in front, as the reference genre does.
-        if dist > 75.0 {
-            let back = hpos + to_hero.normalize_or_zero() * 38.0;
-            tf.translation = ground(&world, back, hpos.y);
+        // Acquisition needs visibility; captured foes stay forced until this
+        // deployment ends. Stoneclaw takes precedence over pet attention.
+        let stoneclaw_target = if e.boss {
+            None
+        } else {
+            stoneclaws
+                .iter_mut()
+                .find_map(|(entity, tf, mut totem, _)| {
+                    if !totem.life.alive(run.elapsed) {
+                        return None;
+                    }
+                    if totem.captured.contains(&ent)
+                        || (tf.translation.distance_squared(pos) <= totem.radius * totem.radius
+                            && world.line_clear(pos, tf.translation))
+                    {
+                        totem.captured.insert(ent);
+                        Some((entity, tf.translation))
+                    } else {
+                        None
+                    }
+                })
+        };
+        // A living Stoneclaw keeps its captives even when the hero leaves them behind.
+        if dist > 75.0 && stoneclaw_target.is_none() {
+            if let Some(cast) = caster.state.active() {
+                fx.cancel_cast(ent, cast.spell.id);
+                caster.state.cancel();
+            }
+            navigation.forget(ent);
+            recycle(
+                &world,
+                selection.map_def(),
+                hpos,
+                &mut tf.translation,
+                e.radius,
+            );
+            mv.speed = 0.0;
+            mv.flags = 0;
             continue;
         }
 
+        // Ordinary foes engage a closer living wolf within four yards and line of sight.
+        // Bosses keep pressure on the hero; there is no global pet threat table.
+        let forced_pet = taunt
+            .filter(|taunt| run.elapsed < taunt.until)
+            .and_then(|taunt| pets.get(taunt.pet).ok())
+            .filter(|(_, _, pet, _)| pet.vitality.hp > 0.0)
+            .map(|(entity, tf, _, _)| (entity, tf.translation));
+        let pet_target = if e.boss || stoneclaw_target.is_some() {
+            None
+        } else if forced_pet.is_some() {
+            forced_pet
+        } else {
+            pets.iter()
+                .filter(|(_, tf, pet, _)| {
+                    pet.vitality.hp > 0.0
+                        && tf.translation.distance(pos) <= 4.0
+                        && tf.translation.distance(pos) < (hpos - pos).length()
+                        && world.line_clear(pos, tf.translation)
+                })
+                .min_by(|(_, a, _, _), (_, b, _, _)| {
+                    a.translation
+                        .distance_squared(pos)
+                        .total_cmp(&b.translation.distance_squared(pos))
+                })
+                .map(|(entity, tf, _, _)| (entity, tf.translation))
+        };
+        // Nearby destructible utility totems can draw ordinary foes; pet attention wins.
+        // Bosses retain the hero target. This is local attention, not a global threat table.
+        let earthbind_target = if e.boss || stoneclaw_target.is_some() || pet_target.is_some() {
+            None
+        } else {
+            earthbinds
+                .iter()
+                .filter(|(_, tf, totem, _)| {
+                    totem.life.alive(run.elapsed)
+                        && tf.translation.distance(pos) <= 4.0
+                        && tf.translation.distance(pos) < (hpos - pos).length()
+                        && world.line_clear(pos, tf.translation)
+                })
+                .min_by(|(_, a, _, _), (_, b, _, _)| {
+                    a.translation
+                        .distance_squared(pos)
+                        .total_cmp(&b.translation.distance_squared(pos))
+                })
+                .map(|(entity, tf, _, _)| (entity, tf.translation))
+        };
+        let (target_e, target_pos, target_radius) = if let Some((entity, pos)) = stoneclaw_target {
+            (entity, pos, super::stoneclaw::BODY_RADIUS)
+        } else if let Some((entity, pos)) = pet_target {
+            (entity, pos, super::hunter_pet::RADIUS)
+        } else if let Some((entity, pos)) = earthbind_target {
+            (entity, pos, super::earthbind::BODY_RADIUS)
+        } else {
+            (hero_e, hpos, HERO_RADIUS)
+        };
+        let to_target = flat(target_pos - pos);
+        // Seeing a pet over low scenery does not make the body route clear.
+        // Keep blocked time and detours; waypoint() handles a moving destination.
+
         // Under Fade the horde has lost the hero: it mills where it stands.
-        let lost = run.mobile.vanish_t > 0.0 && !e.boss;
-        let held = e.stun_t > 0.0 || e.root_t > 0.0 || lost;
-        let contact = dist <= HERO_RADIUS + e.radius + 0.35;
+        let lost = run.mobile.vanish_t > 0.0 && !e.boss && stoneclaw_target.is_none();
+        let can_cast = super::enemy_casting::Caster::enabled(e.def.template_entry);
+        let connected = can_cast
+            && run.alive()
+            && !hero_down
+            && !lost
+            && e.stun_t <= 0.0
+            && e.fear_t <= 0.0
+            && e.incapacitate_t <= 0.0
+            && pos.distance(target_pos) <= super::enemy_casting::RANGE
+            && world.line_clear(pos, target_pos);
+        let (started, completed, cancelled) = caster.step(target_e, run.elapsed, connected);
+        if started {
+            fx.begin_cast(ent, super::enemy_casting::FROSTBOLT.id);
+        }
+        if cancelled {
+            fx.cancel_cast(ent, super::enemy_casting::FROSTBOLT.id);
+        }
+        if completed {
+            // Survivors tuning uses the roster's scaled damage, not raw vanilla damage.
+            // Spell damage ignores physical-only Curse of Weakness and melee reflection.
+            let raw = e.damage * 3.0 * e.weaken;
+            let taken;
+            let mut critical = false;
+            if let Some((entity, _)) = stoneclaw_target {
+                let (_, _, mut totem, mut store) = stoneclaws.get_mut(entity).unwrap();
+                taken = totem.life.hurt(raw, run.elapsed);
+                if totem.life.health() <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+            } else if let Some((entity, _)) = pet_target {
+                let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
+                taken = pet.hurt(raw, run.elapsed);
+                if pet.vitality.hp <= 0.0 {
+                    units::kill_unit(&mut store);
+                } else {
+                    pet.incoming_slows
+                        .apply(super::enemy_casting::SLOW, 0.5, 2., run.elapsed);
+                }
+            } else if let Some((entity, _)) = earthbind_target {
+                let (_, _, mut totem, mut store) = earthbinds.get_mut(entity).unwrap();
+                taken = totem.life.hurt(raw, run.elapsed);
+                if totem.life.health() <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+            } else {
+                let strike = super::defense::spell(
+                    &mut run,
+                    ent,
+                    super::enemy_casting::FROSTBOLT.id,
+                    super::enemy_casting::FROSTBOLT.school,
+                    raw,
+                    false,
+                );
+                taken = strike.outcome.health_removed();
+                critical = strike.critical;
+                debug_assert_eq!(
+                    (strike.attacker, strike.spell),
+                    (ent, super::enemy_casting::FROSTBOLT.id)
+                );
+                if run.alive()
+                    && matches!(strike.outcome, super::defense::Outcome::Landed { .. })
+                    && strike.school == survivors_core::casting::School::Frost
+                {
+                    let now = run.elapsed;
+                    run.incoming_slows
+                        .apply(super::enemy_casting::SLOW, 0.5, 2., now);
+                }
+            }
+            fx.cast(ent, super::enemy_casting::FROSTBOLT.id, &[target_e], None);
+            if taken > 0. {
+                fx.number(target_e, taken, critical, COLOR_HURT);
+            }
+        }
+        // A connected ranged caster waits in place through recovery. Silence/lockout
+        // permits melee fallback; roots block movement but do not interrupt casting.
+        let ranged = connected
+            && (caster.state.active().is_some()
+                || caster
+                    .state
+                    .available(super::enemy_casting::FROSTBOLT.school, run.elapsed));
+        let held = e.stun_t > 0.0 || e.root_t > 0.0 || e.incapacitate_t > 0.0 || lost || ranged;
+        let contact = (target_pos - pos).length() <= target_radius + e.radius + 0.35
+            && world.line_clear(pos, target_pos);
         let mut step = Vec3::ZERO;
         let mut speed = 0.0;
+        if held || hero_down || e.fear_t > 0.0 {
+            navigation.forget(ent);
+        }
+        let waypoint = navigation.waypoint(ent, pos, target_pos);
         if !held && !hero_down {
             let dir = if e.fear_t > 0.0 {
-                -to_hero.normalize_or_zero()
+                -to_target.normalize_or_zero()
             } else {
-                to_hero.normalize_or_zero()
+                flat(waypoint.unwrap_or(target_pos) - pos).normalize_or_zero()
             };
             if !contact || e.fear_t > 0.0 {
-                speed = e.speed * e.slow;
+                let slowed = curse.movement(e.slows.state(run.elapsed).0, run.elapsed);
+                speed = e.speed
+                    * channels
+                        .as_ref()
+                        .map_or(slowed, |channels| channels.movement(ent, slowed));
                 step = dir * speed;
+                if let Some(point) = waypoint {
+                    step = step.clamp_length_max(flat(point - pos).length() / dt);
+                }
             }
             if dir != Vec3::ZERO {
                 let target = Quat::from_rotation_y(yaw_toward(dir));
@@ -408,8 +743,25 @@ pub(super) fn move_enemies(
         }
         let shove = push.get(&ent).copied().unwrap_or_default();
         let mut next = pos + step * dt + shove * (dt * 8.0).min(0.5);
+        next = if waypoint.is_some() {
+            world.travel(pos, next, e.radius)
+        } else {
+            world.slide(pos, next, e.radius)
+        };
         next = ground(&world, next, pos.y);
         tf.translation = next;
+        if !held && !hero_down && e.fear_t <= 0.0 && !contact {
+            let expected = speed * dt;
+            let progress = flat(next - pos).dot(step.normalize_or_zero());
+            navigation.observe(
+                ent,
+                next,
+                target_pos,
+                e.radius,
+                expected > 0.001 && progress < expected * 0.2,
+                dt,
+            );
+        }
         if speed > 0.0 {
             mv.speed = speed;
             mv.flags = move_flags::FORWARD;
@@ -419,35 +771,85 @@ pub(super) fn move_enemies(
         }
 
         if contact
+            && !ranged
+            && !completed
             && !lost
             && e.stun_t <= 0.0
             && e.fear_t <= 0.0
+            && e.incapacitate_t <= 0.0
             && e.attack_cd <= 0.0
             && !hero_down
         {
             e.attack_cd = if e.boss { 1.0 } else { 1.3 };
-            let raw = e.damage * e.weaken;
-            let taken = hero::hurt_hero(&mut run, raw);
-            fx.swing(ent, hero_e, taken);
-            if taken > 0.0 {
-                fx.number(hero_e, taken, false, COLOR_HURT);
+            let raw = curse.outgoing(e.damage, true, run.elapsed) * e.weaken;
+            let (taken, avoided) = if let Some((entity, _)) = stoneclaw_target {
+                let (_, _, mut totem, mut store) = stoneclaws.get_mut(entity).unwrap();
+                let taken = totem.life.hurt(raw, run.elapsed);
+                if totem.life.health() <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+                (taken, None)
+            } else if let Some((entity, _)) = pet_target {
+                let (_, _, mut pet, mut store) = pets.get_mut(entity).unwrap();
+                let taken = pet.hurt(raw, run.elapsed);
+                if pet.vitality.hp <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+                (taken, None)
+            } else if let Some((entity, _)) = earthbind_target {
+                let (_, _, mut totem, mut store) = earthbinds.get_mut(entity).unwrap();
+                let taken = totem.life.hurt(raw, run.elapsed);
+                if totem.life.health() <= 0.0 {
+                    units::kill_unit(&mut store);
+                }
+                (taken, None)
+            } else {
+                let strike = super::defense::contact(&mut run, ent, raw, || rng.f32());
+                if let Some(hit) = super::defense::reflection(&run, strike) {
+                    hits.write(hit);
+                }
+                if let Some(hit) = super::defense::aura_reflection(&run, strike) {
+                    hits.write(hit);
+                }
+                if let Some(hit) = super::defense::counterattack(&mut run, strike) {
+                    fx.cast(hero_e, 19306, &[hit.target], None);
+                    hits.write(hit);
+                }
+                (strike.outcome.health_removed(), Some(strike.outcome))
+            };
+            match avoided {
+                Some(super::defense::Outcome::Dodged) => fx.dodge(ent, target_e),
+                Some(super::defense::Outcome::Parried) => fx.parry(ent, target_e),
+                _ => fx.swing(ent, target_e, taken),
             }
-            if run.thorns_t > 0.0 {
-                hits.write(Hit::direct(ent, run.thorns * run.stats().might, false));
+            if taken > 0.0 {
+                fx.number(target_e, taken, false, COLOR_HURT);
             }
         }
     }
 }
 
 /// Mark timers run down; the state kits reap with them.
+#[allow(clippy::type_complexity)]
 pub(super) fn tick_marks(
     time: Res<Time>,
-    mut units: Query<(Entity, &Guid, &mut ObjectStore, &mut Marks), With<Enemy>>,
+    run: Res<Run>,
+    mut units: Query<
+        (
+            Entity,
+            &Guid,
+            &mut ObjectStore,
+            &mut Marks,
+            Option<&super::marking::Marked>,
+        ),
+        With<Enemy>,
+    >,
     mut fields: MessageWriter<FieldChanged>,
 ) {
     let dt = time.delta_secs();
-    for (entity, guid, mut store, mut marks) in &mut units {
+    for (entity, guid, mut store, mut marks, mark) in &mut units {
         marks.tick(dt);
+        marks.hunter_mark(mark.map_or(0.0, |m| m.0.remaining(run.elapsed)));
         marks.flush(entity, guid.0, &mut store, &mut fields);
     }
 }
@@ -476,6 +878,20 @@ pub(super) fn mark_dying(commands: &mut Commands, e: Entity) {
 /// Most gems on the ground at once; past it, a kill's worth joins an existing gem.
 const MAX_GEMS: usize = 350;
 
+/// At most five special elite chests: first after one minute, then at least 90 seconds apart.
+/// Boss rewards remain independent. Updating immediately also bounds same-frame death bursts.
+fn claim_elite_chest(run: &mut Run) -> bool {
+    if run.elite_chests >= 5
+        || run.elapsed < 60.0
+        || (run.elite_chests > 0 && run.elapsed - run.last_elite_chest < 90.0)
+    {
+        return false;
+    }
+    run.elite_chests += 1;
+    run.last_elite_chest = run.elapsed;
+    true
+}
+
 pub(super) fn drop_loot(
     mut commands: Commands,
     mut drops: MessageReader<Loot>,
@@ -490,9 +906,19 @@ pub(super) fn drop_loot(
         gold += if d.boss { 10 + run.level / 4 } else { 1 };
         gold_at = d.pos;
         if d.boss {
-            spawn_chest(&mut commands, &mut run, d.pos, super::campaign::ChestTier::A);
-        } else if d.elite {
-            spawn_chest(&mut commands, &mut run, d.pos, super::campaign::ChestTier::B);
+            spawn_chest(
+                &mut commands,
+                &mut run,
+                d.pos,
+                super::campaign::ChestTier::A,
+            );
+        } else if d.elite && claim_elite_chest(&mut run) {
+            spawn_chest(
+                &mut commands,
+                &mut run,
+                d.pos,
+                super::campaign::ChestTier::B,
+            );
         }
         if d.boss || rng.f32() < 0.015 {
             let heal = GemKind::Heal(if d.boss { 1000.0 } else { 30.0 });
@@ -523,11 +949,7 @@ pub(super) fn drop_loot(
 fn spawn_gem(commands: &mut Commands, serial: u64, pos: Vec3, kind: GemKind) {
     let (display, scale) = look_for(kind);
     let e = units::spawn_object(commands, serial, display, scale, pos + Vec3::Y * 0.5);
-    commands.entity(e).insert(Gem {
-        kind,
-        pulled: false,
-        speed: 6.0,
-    });
+    commands.entity(e).insert(Gem::new(kind));
 }
 
 /// Gems in the magnet's reach fly to the hero; levels bank as they land.
@@ -541,7 +963,7 @@ pub(super) fn collect_gems(
     mut gems: Query<(Entity, &mut Transform, &mut Gem)>,
 ) {
     let Ok(h) = hero.single() else { return };
-    if run.dead_t.is_some() {
+    if !run.alive() {
         return;
     }
     let dt = time.delta_secs();
@@ -575,10 +997,15 @@ pub(super) fn bank_gem(
     kind: GemKind,
     gold_bonus: f32,
 ) {
+    if !run.alive() {
+        return;
+    }
     let stats = run.stats();
     match kind {
         GemKind::Xp(xp) => run.xp += xp as f32 * data::XP_RATE * stats.growth,
-        GemKind::Heal(hp) => run.hp = (run.hp + hp).min(stats.max_hp),
+        GemKind::Heal(hp) => {
+            run.heal(hp, stats.max_hp);
+        }
         GemKind::Gold(n) => {
             let n = super::sheet::gold_amount(n, stats.gold_find * gold_bonus);
             run.gold_found += n;
@@ -631,7 +1058,7 @@ pub(super) fn collect_chests(
     chests: Query<(Entity, &Transform, &Chest)>,
 ) {
     let Ok(h) = hero.single() else { return };
-    if run.dead_t.is_some() {
+    if !run.alive() {
         return;
     }
     for (e, tf, chest) in &chests {
@@ -658,3 +1085,631 @@ pub(super) fn collect_chests(
         commands.entity(e).despawn();
     }
 }
+#[cfg(test)]
+mod spawn_tests {
+    use super::*;
+    use avian3d::prelude::*;
+    use benilla_world::collision::MoverTraceExclusions;
+    use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn disarm_visual_state_tracks_overlap_pause_expiry_and_dead_or_ineligible_targets() {
+        use super::super::disarm::{sync, DisarmState};
+        use crate::{creature_anim::UNIT_FLAG_DISARMED, net::ObjectStore};
+        use survivors_core::disarm::{Disarm, Eligibility, Source};
+        let mut app = App::new();
+        app.init_resource::<Run>();
+        app.world_mut()
+            .run_system_once(|mut commands: Commands, mut run: ResMut<Run>| {
+                for entry in [98, 116, 30, 3975] {
+                    let def = (0..data::MAPS.len())
+                        .find_map(|map| {
+                            let roster = data::roster(map);
+                            roster
+                                .enemies
+                                .iter()
+                                .chain(&roster.bosses)
+                                .find(|def| def.template_entry == entry)
+                        })
+                        .unwrap();
+                    spawn_enemy(
+                        &mut commands,
+                        &mut run,
+                        def,
+                        Vec3::ZERO,
+                        Vec3::X,
+                        false,
+                        false,
+                    );
+                }
+            })
+            .unwrap();
+        let actors: Vec<_> = app
+            .world_mut()
+            .query::<(Entity, &Enemy)>()
+            .iter(app.world())
+            .map(|(id, enemy)| (enemy.def.template_entry, id))
+            .collect();
+        let gnoll = actors.iter().find(|(entry, _)| *entry == 98).unwrap().1;
+        let baseline: Vec<_> = (0..3)
+            .map(|slot| {
+                let store = app.world().get::<ObjectStore>(gnoll).unwrap();
+                (
+                    store.0.unit_virtual_item_display(slot),
+                    store.0.unit_virtual_item_info(slot),
+                    store.0.unit_virtual_item_sheath(slot),
+                )
+            })
+            .collect();
+        for (_, id) in &actors {
+            // Seed even ineligible targets to verify that the runtime rejects bad state.
+            let mut state = app.world_mut().get_mut::<DisarmState>(*id).unwrap();
+            state.0.apply(Eligibility::Weapon, Source::Disarm, 10., 0.);
+            state.0.apply(Eligibility::Weapon, Source::Riposte, 6., 1.);
+            app.world_mut()
+                .get_mut::<ObjectStore>(*id)
+                .unwrap()
+                .0
+                .merge(benilla_protocol::ObjectFields::from_pairs(&[(46, 0x100)]));
+        }
+        for now in [1., 1., 4., 7., 10.] {
+            app.world_mut().resource_mut::<Run>().elapsed = now;
+            if now == 4. {
+                app.world_mut()
+                    .get_mut::<DisarmState>(gnoll)
+                    .unwrap()
+                    .0
+                    .remove(Source::Disarm);
+            }
+            app.world_mut().run_system_once(sync).unwrap();
+            for (entry, id) in &actors {
+                let active = match entry {
+                    98 => now < 7.,
+                    116 => now < 10.,
+                    _ => false,
+                };
+                assert_eq!(
+                    app.world().get::<ObjectStore>(*id).unwrap().0.unit_flags(),
+                    0x100 | if active { UNIT_FLAG_DISARMED } else { 0 },
+                    "entry {entry} at {now}"
+                );
+            }
+            let store = app.world().get::<ObjectStore>(gnoll).unwrap();
+            for (slot, expected) in baseline.iter().enumerate() {
+                let slot = slot as u8;
+                assert_eq!(
+                    &(
+                        store.0.unit_virtual_item_display(slot),
+                        store.0.unit_virtual_item_info(slot),
+                        store.0.unit_virtual_item_sheath(slot)
+                    ),
+                    expected
+                );
+            }
+        }
+        for dead_flag in [false, true] {
+            app.world_mut()
+                .get_mut::<DisarmState>(gnoll)
+                .unwrap()
+                .0
+                .apply(Eligibility::Weapon, Source::Riposte, 6., 10.);
+            {
+                let mut enemy = app.world_mut().get_mut::<Enemy>(gnoll).unwrap();
+                enemy.dead = dead_flag;
+                enemy.hp = if dead_flag { 1. } else { 0. };
+            }
+            app.world_mut().run_system_once(sync).unwrap();
+            assert_eq!(
+                app.world().get::<DisarmState>(gnoll).unwrap().0,
+                Disarm::default()
+            );
+            assert_eq!(
+                app.world()
+                    .get::<ObjectStore>(gnoll)
+                    .unwrap()
+                    .0
+                    .unit_flags(),
+                0x100
+            );
+        }
+    }
+
+    #[test]
+    fn spawned_enemies_preserve_all_audited_virtual_equipment() {
+        let mut app = App::new();
+        app.init_resource::<Run>();
+        app.world_mut()
+            .run_system_once(|mut commands: Commands, mut run: ResMut<Run>| {
+                for map in 0..data::MAPS.len() {
+                    let roster = data::roster(map);
+                    for enemy in roster.enemies.iter().chain(&roster.bosses) {
+                        spawn_enemy(
+                            &mut commands,
+                            &mut run,
+                            enemy,
+                            Vec3::ZERO,
+                            Vec3::X,
+                            false,
+                            false,
+                        );
+                    }
+                }
+            })
+            .unwrap();
+        let mut checked = 0;
+        for (enemy, store) in app
+            .world_mut()
+            .query::<(&Enemy, &crate::net::ObjectStore)>()
+            .iter(app.world())
+        {
+            let expected = survivors_core::enemy_equipment::for_template(enemy.def.template_entry)
+                .expect(enemy.def.name);
+            for slot in 0..3 {
+                let item = expected.iter().find(|item| item.0 == u16::from(slot));
+                assert_eq!(
+                    store.0.unit_virtual_item_display(slot).unwrap_or_default(),
+                    item.map_or(0, |item| item.1),
+                    "{} slot {slot}",
+                    enemy.def.name
+                );
+                if let Some(&(_, _, class, subclass, material, inventory, sheath)) = item {
+                    assert_eq!(
+                        store.0.unit_virtual_item_info(slot),
+                        Some((class, subclass, material, inventory))
+                    );
+                    assert_eq!(store.0.unit_virtual_item_sheath(slot), Some(sheath));
+                }
+            }
+            checked += 1;
+        }
+        assert!(checked > 400);
+    }
+
+    #[test]
+    fn contact_keeps_reflection_target_and_stops_health_loss_at_death() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for (immune, dodge) in [(false, false), (true, false), (false, true), (true, true)] {
+            let mut app = App::new();
+            app.add_plugins((
+                MinimalPlugins,
+                TransformPlugin,
+                AssetPlugin::default(),
+                bevy::scene::ScenePlugin,
+                PhysicsPlugins::new(PostUpdate),
+            ));
+            app.init_asset::<Mesh>();
+            app.init_resource::<MoverTraceExclusions>();
+            app.init_resource::<Selection>();
+            app.init_resource::<Rng>();
+            app.init_resource::<PlaySeq>();
+            app.insert_resource(Run {
+                abilities: vec![super::super::Owned {
+                    def: data::ability("retribution_aura"),
+                    level: 1,
+                    cd: 0.0,
+                }],
+                hp: 5.,
+                shield: 2.,
+                shield_t: 5.,
+                immune_t: if immune { 5. } else { 0. },
+                thorns: 2.,
+                thorns_t: 5.,
+                thorns_spell: data::ability("thorns").spell,
+                ..Default::default()
+            });
+            app.add_message::<CastEvent>();
+            app.add_message::<SpellGoTargets>();
+            app.add_message::<SwingMessage>();
+            app.add_message::<crate::combat_text::CombatTextSpawn>();
+            app.add_message::<Hit>();
+            app.world_mut()
+                .spawn((Hero { vy: 0., air: 0. }, Transform::default()));
+            if dodge {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.class = &data::CLASSES[2];
+                run.milestones.class = 2;
+                run.abilities.push(super::super::Owned {
+                    def: data::ability("aspect_of_the_monkey"),
+                    level: 1,
+                    cd: 0.,
+                });
+            }
+            app.insert_resource(Rng(0));
+            app.finish();
+            app.cleanup();
+            app.update();
+            app.world_mut()
+                .run_system_once(|mut commands: Commands, mut run: ResMut<Run>| {
+                    for pos in [Vec3::X * 0.5, -Vec3::X * 0.5] {
+                        spawn_enemy(
+                            &mut commands,
+                            &mut run,
+                            &data::roster(0).enemies[0],
+                            pos,
+                            Vec3::ZERO,
+                            false,
+                            false,
+                        );
+                    }
+                })
+                .unwrap();
+            let attackers: Vec<_> = app
+                .world_mut()
+                .query::<(Entity, &mut Enemy)>()
+                .iter_mut(app.world_mut())
+                .map(|(entity, mut enemy)| {
+                    enemy.damage = 100.;
+                    enemy.attack_cd = 0.;
+                    entity
+                })
+                .collect();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.01));
+            app.insert_resource(time);
+            app.world_mut().run_system_once(move_enemies).unwrap();
+            let run = app.world().resource::<Run>();
+            assert_eq!(run.hp, if immune || dodge { 5. } else { 0. });
+            assert_eq!(run.shield, if immune || dodge { 2. } else { 0. });
+            let reflected: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            assert_eq!(
+                reflected.len() / 2,
+                if immune {
+                    2
+                } else if dodge {
+                    0
+                } else {
+                    1
+                }
+            );
+            assert!(reflected.iter().all(|hit| attackers.contains(&hit.target)
+                && ((hit.damage == 2. && hit.source == "thorns")
+                    || (hit.damage == 5. && hit.source == "retribution_aura"))));
+            let swings: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<SwingMessage>>()
+                .drain()
+                .collect();
+            assert_eq!(swings.len(), 2);
+            assert!(swings
+                .iter()
+                .all(|s| s.victim_state == if dodge && !immune { 2 } else { 1 }));
+            // A new update after death cannot reflect again or consume expired hit state.
+            if !immune && !dodge {
+                app.world_mut().run_system_once(move_enemies).unwrap();
+                assert_eq!(app.world().resource::<Run>().hp, 0.);
+                assert_eq!(app.world().resource::<Messages<Hit>>().len(), 0);
+            }
+        }
+    }
+
+    #[test]
+    fn enemy_updates_expire_kidney_exposure_independently_of_longer_control() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use survivors_core::talents::Milestones;
+        for boss in [false, true] {
+            for frame_seconds in [0.05, 0.25, 1.0] {
+                let mut app = App::new();
+                app.add_plugins((
+                    MinimalPlugins,
+                    TransformPlugin,
+                    AssetPlugin::default(),
+                    bevy::scene::ScenePlugin,
+                    PhysicsPlugins::new(PostUpdate),
+                ));
+                app.init_asset::<Mesh>();
+                app.init_resource::<MoverTraceExclusions>();
+                app.init_resource::<Run>();
+                app.init_resource::<Selection>();
+                app.init_resource::<Rng>();
+                app.init_resource::<PlaySeq>();
+                app.add_message::<CastEvent>();
+                app.add_message::<SpellGoTargets>();
+                app.add_message::<SwingMessage>();
+                app.add_message::<crate::combat_text::CombatTextSpawn>();
+                app.add_message::<Hit>();
+                app.world_mut()
+                    .spawn((Hero { vy: 0., air: 0. }, Transform::default()));
+                app.finish();
+                app.cleanup();
+                app.update();
+                app.world_mut()
+                    .run_system_once(move |mut commands: Commands, mut run: ResMut<Run>| {
+                        spawn_enemy(
+                            &mut commands,
+                            &mut run,
+                            &data::roster(0).enemies[0],
+                            Vec3::X * 5.,
+                            Vec3::ZERO,
+                            boss,
+                            false,
+                        );
+                    })
+                    .unwrap();
+                let entity = app
+                    .world_mut()
+                    .query_filtered::<Entity, With<Enemy>>()
+                    .single(app.world())
+                    .unwrap();
+                let duration = if boss { 3.5 * 0.3 } else { 3.5 };
+                {
+                    let mut enemy = app.world_mut().get_mut::<Enemy>(entity).unwrap();
+                    assert_eq!(enemy.kidney_t, 0., "new enemies cannot inherit exposure");
+                    enemy.kidney_t = duration;
+                    enemy.stun_t = 20.;
+                    enemy.root_t = 30.;
+                }
+                let trained = Milestones {
+                    class: 3,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 279, 3)]);
+                // A frozen simulation delta cannot consume the vulnerability window.
+                app.world_mut().insert_resource(Time::<()>::default());
+                app.world_mut().run_system_once(move_enemies).unwrap();
+                assert_eq!(app.world().get::<Enemy>(entity).unwrap().kidney_t, duration);
+                let mut elapsed = 0.;
+                while elapsed < duration + frame_seconds {
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs_f32(frame_seconds));
+                    app.world_mut().run_system_once(move_enemies).unwrap();
+                    elapsed += frame_seconds;
+                    let enemy = app.world().get::<Enemy>(entity).unwrap();
+                    let remaining = (duration - elapsed).max(0.);
+                    assert!((enemy.kidney_t - remaining).abs() < 0.00001);
+                    assert!(enemy.stun_t > 0. && enemy.root_t > 0.);
+                    assert_eq!(
+                        trained.kidney_exposure_multiplier(enemy.kidney_t),
+                        if enemy.kidney_t > 0. { 1.09 } else { 1. }
+                    );
+                }
+                assert_eq!(app.world().get::<Enemy>(entity).unwrap().kidney_t, 0.);
+            }
+        }
+    }
+
+    #[test]
+    fn streaming_floor_defers_bosses_and_initial_chests_without_losing_or_duplicating_them() {
+        let mut app = App::new();
+        app.add_plugins((
+            MinimalPlugins,
+            TransformPlugin,
+            AssetPlugin::default(),
+            bevy::scene::ScenePlugin,
+            PhysicsPlugins::new(PostUpdate),
+        ));
+        app.init_asset::<Mesh>();
+        app.init_resource::<MoverTraceExclusions>();
+        app.init_resource::<Run>();
+        app.init_resource::<Rng>();
+        app.init_resource::<Spawner>();
+        let map = data::MAPS
+            .iter()
+            .position(|m| m.name == "Elwynn Forest")
+            .unwrap();
+        let center = super::super::hero::arena(&data::MAPS[map]);
+        app.insert_resource(Selection {
+            map,
+            stage: map,
+            ..default()
+        });
+        app.world_mut().resource_mut::<Run>().elapsed = 10_000.;
+        app.world_mut().spawn((
+            Hero { vy: 0., air: 0. },
+            Transform::from_translation(center),
+        ));
+        app.finish();
+        app.cleanup();
+        app.update();
+        let old = center - Vec3::X * 100.;
+        let deferred = app
+            .world_mut()
+            .run_system_once(move |floor: Floor| {
+                let mut at = old;
+                recycle(&floor, &data::MAPS[map], center, &mut at, 1.0);
+                at
+            })
+            .unwrap();
+        assert_eq!(deferred, old, "missing streamed floor must defer recycling");
+        app.world_mut().run_system_once(spawn_enemies).unwrap();
+        let run = app.world().resource::<Run>();
+        assert_eq!(run.bosses, 0);
+        assert_eq!(run.rings, 0);
+        assert!(!run.stocked);
+        assert_eq!(
+            app.world_mut().query::<&Enemy>().iter(app.world()).count(),
+            0
+        );
+        assert_eq!(
+            app.world_mut().query::<&Chest>().iter(app.world()).count(),
+            0
+        );
+
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::trimesh(
+                vec![
+                    Vec3::new(-200., 0., -200.),
+                    Vec3::new(200., 0., -200.),
+                    Vec3::new(200., 0., 200.),
+                    Vec3::new(-200., 0., 200.),
+                ],
+                vec![[0, 2, 1], [0, 3, 2]],
+            ),
+            Transform::from_translation(center),
+        ));
+        app.update();
+        app.world_mut()
+            .run_system_once(move |floor: Floor| {
+                // An outward recycle near the leash must still fit the enemy's body.
+                let map = &data::MAPS[map];
+                let hero = center + Vec3::X * (map.leash - 1.);
+                for radius in [0.6, 3.0] {
+                    let mut at = hero - Vec3::X * 100.;
+                    recycle(&floor, map, hero, &mut at, radius);
+                    assert!(flat(at - center).length() + radius < map.leash);
+                    assert!(flat(at - hero).length() >= 6.);
+                    assert!((at.y - center.y).abs() < 0.01);
+                    assert!(floor.can_spawn(at, radius));
+                }
+            })
+            .unwrap();
+        app.world_mut().run_system_once(spawn_enemies).unwrap();
+        let bosses = app.world().resource::<Run>().bosses;
+        assert!(bosses > 0);
+        assert!(app.world().resource::<Run>().stocked);
+        assert!(super::super::encounters::next(map, bosses, 10_000.).is_none());
+        for _ in 0..3 {
+            app.world_mut().run_system_once(spawn_enemies).unwrap();
+        }
+        assert_eq!(app.world().resource::<Run>().bosses, bosses);
+        assert_eq!(
+            app.world_mut()
+                .query::<&Enemy>()
+                .iter(app.world())
+                .filter(|e| e.boss)
+                .count(),
+            bosses as usize
+        );
+        assert_eq!(
+            app.world_mut()
+                .query::<&Chest>()
+                .iter(app.world())
+                .filter(|c| c.tier == super::super::campaign::ChestTier::A)
+                .count(),
+            3
+        );
+    }
+}
+
+#[cfg(test)]
+mod lethal_pickup_tests {
+    use super::*;
+
+    #[test]
+    fn human_xp_and_gold_apply_to_hero_and_companion_pickups() {
+        let mut run = Run {
+            race: 1,
+            ..Default::default()
+        };
+        let mut stash = super::super::stash::Stash::default();
+        let mut next = NextState::Unchanged;
+        bank_gem(&mut run, &mut stash, &mut next, GemKind::Xp(1), 1.0);
+        assert!((run.xp - data::XP_RATE * 1.1).abs() < 0.001);
+        bank_gem(&mut run, &mut stash, &mut next, GemKind::Gold(100), 1.0);
+        assert_eq!(run.gold_found, 120);
+        bank_gem(&mut run, &mut stash, &mut next, GemKind::Gold(100), 1.1);
+        assert_eq!(run.gold_found, 252);
+    }
+
+    #[test]
+    fn lethal_hit_blocks_healing_and_level_up_before_death_animation() {
+        for kind in [GemKind::Heal(1000.), GemKind::Xp(10000), GemKind::Gold(100)] {
+            let mut run = Run {
+                hp: 0.,
+                ..Default::default()
+            };
+            let mut stash = super::super::stash::Stash::default();
+            let mut next = NextState::Unchanged;
+            bank_gem(&mut run, &mut stash, &mut next, kind, 1.);
+            assert_eq!(run.hp, 0.);
+            assert_eq!(run.xp, 0.);
+            assert_eq!(run.level, 1);
+            assert_eq!(run.pending_levels, 0);
+            assert_eq!(run.gold_found, 0);
+            assert!(matches!(next, NextState::Unchanged));
+        }
+    }
+}
+
+#[cfg(test)]
+mod elite_chest_tests {
+    use super::*;
+
+    #[test]
+    fn death_batches_limit_elite_chests_without_suppressing_boss_rewards() {
+        let mut app = App::new();
+        app.init_resource::<Run>()
+            .init_resource::<Rng>()
+            .add_message::<Loot>()
+            .add_systems(Update, drop_loot);
+        // Exercise the real message reader and deferred chest spawns, including
+        // bosses flagged as elites and ordinary kills mixed into crowded waves.
+        for (elapsed, expected_elites) in [
+            (59.9, 0),
+            (60., 1),
+            (149.9, 1),
+            (150., 2),
+            (240., 3),
+            (330., 4),
+            (420., 5),
+            (3600., 5),
+        ] {
+            app.world_mut().resource_mut::<Run>().elapsed = elapsed;
+            for index in 0..100 {
+                app.world_mut().write_message(Loot {
+                    pos: Vec3::X * index as f32,
+                    xp: 1,
+                    boss: index == 0,
+                    elite: index % 2 == 0,
+                });
+            }
+            app.update();
+            let world = app.world_mut();
+            let mut chests = world.query::<&Chest>();
+            let elite_count = chests
+                .iter(world)
+                .filter(|chest| chest.tier == super::super::campaign::ChestTier::B)
+                .count();
+            assert_eq!(elite_count, expected_elites, "elapsed={elapsed}");
+            assert_eq!(world.resource::<Run>().elite_chests as usize, elite_count);
+        }
+        let world = app.world_mut();
+        let mut chests = world.query::<&Chest>();
+        assert_eq!(
+            chests
+                .iter(world)
+                .filter(|chest| chest.tier == super::super::campaign::ChestTier::A)
+                .count(),
+            8,
+            "each boss keeps its reward even before eligibility and after the elite cap"
+        );
+        // A frame without deaths must not replay the prior batch.
+        app.update();
+        let world = app.world_mut();
+        assert_eq!(world.query::<&Chest>().iter(world).count(), 13);
+    }
+
+    #[test]
+    fn elite_bursts_obey_spacing_cap_and_new_run_reset() {
+        let mut run = Run::default();
+        for second in [0., 30., 59.9] {
+            run.elapsed = second;
+            assert!(!claim_elite_chest(&mut run));
+        }
+        for index in 0..5 {
+            run.elapsed = 60. + index as f32 * 90.;
+            assert!(claim_elite_chest(&mut run));
+            for _ in 0..100 {
+                assert!(!claim_elite_chest(&mut run));
+            }
+            run.elapsed += 89.9;
+            assert!(!claim_elite_chest(&mut run));
+        }
+        run.elapsed = 3600.;
+        assert!(!claim_elite_chest(&mut run));
+        run = Run {
+            elapsed: 60.,
+            ..default()
+        };
+        assert!(claim_elite_chest(&mut run));
+    }
+}
+
+#[cfg(test)]
+#[path = "enemy_navigation_tests.rs"]
+mod navigation_tests;

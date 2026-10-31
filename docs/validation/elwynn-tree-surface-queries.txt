@@ -1,0 +1,98 @@
+Static streamed-world snapshot, no hero input. Bevy coordinates; yards.
+Surface points are first triangle/plane intersections at placement origin height + 1 yard.
+They identify hull surfaces, not necessarily walkable terrain or visible trunk centers.
+
+probe: settled focus Some((31, 49)), points 12; read-only queries, not hero movement
+probe: surface12576 direction Vec3(1.0, 0.0, 0.0), start Vec3(-161.11946, 59.407803, 9531.464), slide advance 6.573, travel advance 4.916, requested 12, line clear false
+steps: surface12576 direction Vec3(1.0, 0.0, 0.0), end Vec3(-156.02768, 59.77125, 9531.488), advance 5.092, sideways 0.024, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12576 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-149.11946, 60.10275, 9531.464), slide advance 12.000, travel advance 0.000, requested 12, line clear true
+steps: surface12576 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-161.11946, 59.407803, 9531.464), advance 12.000, sideways 0.000, missing floor samples 5; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12576 direction Vec3(0.0, 0.0, 1.0), start Vec3(-155.11946, 59.82984, 9525.464), slide advance 7.740, travel advance 4.805, requested 12, line clear false
+steps: surface12576 direction Vec3(0.0, 0.0, 1.0), end Vec3(-155.38176, 59.801662, 9530.57), advance 5.106, sideways 0.262, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12576 direction Vec3(0.0, 0.0, -1.0): no start floor
+probe: surface12578 direction Vec3(1.0, 0.0, 0.0), start Vec3(-160.78549, 59.419422, 9521.464), slide advance 5.059, travel advance 4.250, requested 12, line clear false
+steps: surface12578 direction Vec3(1.0, 0.0, 0.0), end Vec3(-156.49054, 59.7415, 9521.469), advance 4.295, sideways 0.005, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12578 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-148.78549, 59.870663, 9521.464), slide advance 5.272, travel advance 5.170, requested 12, line clear true
+steps: surface12578 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-158.81554, 59.620644, 9522.225), advance 10.030, sideways -0.761, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12578 direction Vec3(0.0, 0.0, 1.0), start Vec3(-154.78549, 59.633343, 9515.464), slide advance 4.581, travel advance 4.513, requested 12, line clear true
+steps: surface12578 direction Vec3(0.0, 0.0, 1.0), end Vec3(-153.9839, 59.873425, 9525.167), advance 9.703, sideways -0.802, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12578 direction Vec3(0.0, 0.0, -1.0), start Vec3(-154.78549, 59.840298, 9527.464), slide advance 5.320, travel advance 5.250, requested 12, line clear false
+steps: surface12578 direction Vec3(0.0, 0.0, -1.0), end Vec3(-153.97597, 59.787804, 9518.321), advance 9.143, sideways 0.810, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12579 direction Vec3(1.0, 0.0, 0.0), start Vec3(-160.11594, 59.535458, 9527.902), slide advance 5.337, travel advance 5.207, requested 12, line clear false
+steps: surface12579 direction Vec3(1.0, 0.0, 0.0), end Vec3(-150.10872, 60.034542, 9526.76), advance 10.007, sideways -1.143, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12579 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-148.11594, 60.60551, 9527.902), slide advance 8.942, travel advance 0.000, requested 12, line clear false
+steps: surface12579 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-148.48853, 60.695606, 9527.703), advance 0.373, sideways 0.199, missing floor samples 48; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12579 direction Vec3(0.0, 0.0, 1.0), start Vec3(-154.11594, 59.84484, 9521.902), slide advance 6.076, travel advance 5.188, requested 12, line clear false
+steps: surface12579 direction Vec3(0.0, 0.0, 1.0), end Vec3(-155.5327, 59.794613, 9530.779), advance 8.877, sideways 1.417, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12579 direction Vec3(0.0, 0.0, -1.0), start Vec3(-154.11594, 59.907566, 9533.902), slide advance 4.991, travel advance 0.000, requested 12, line clear false
+steps: surface12579 direction Vec3(0.0, 0.0, -1.0), end Vec3(-154.9218, 59.829407, 9523.487), advance 10.415, sideways -0.806, missing floor samples 5; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12580 direction Vec3(1.0, 0.0, 0.0), start Vec3(-106.507454, 59.379368, 9520.363), slide advance 11.846, travel advance 4.750, requested 12, line clear true
+steps: surface12580 direction Vec3(1.0, 0.0, 0.0), end Vec3(-94.51561, 59.650414, 9520.3545), advance 11.992, sideways -0.009, missing floor samples 1; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12580 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-94.507454, 59.64867, 9520.363), slide advance 8.031, travel advance 5.343, requested 12, line clear false
+steps: surface12580 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-99.99002, 59.643646, 9520.359), advance 5.483, sideways 0.004, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12580 direction Vec3(0.0, 0.0, 1.0): no start floor
+probe: surface12580 direction Vec3(0.0, 0.0, -1.0), start Vec3(-100.507454, 59.19888, 9526.363), slide advance 11.166, travel advance 4.267, requested 12, line clear true
+steps: surface12580 direction Vec3(0.0, 0.0, -1.0), end Vec3(-100.07284, 59.636612, 9520.562), advance 5.802, sideways 0.435, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface599354 direction Vec3(1.0, 0.0, 0.0), start Vec3(-108.2848, 58.613342, 9513.695), slide advance 5.399, travel advance 0.000, requested 12, line clear false
+steps: surface599354 direction Vec3(1.0, 0.0, 0.0), end Vec3(-97.9286, 59.457584, 9512.521), advance 10.356, sideways -1.174, missing floor samples 8; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface599354 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-96.2848, 59.847538, 9513.695), slide advance 5.437, travel advance 3.846, requested 12, line clear false
+steps: surface599354 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-100.31738, 59.179356, 9513.444), advance 4.033, sideways 0.251, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface599354 direction Vec3(0.0, 0.0, 1.0), start Vec3(-102.2848, 58.662483, 9507.695), slide advance 5.513, travel advance 4.297, requested 12, line clear false
+steps: surface599354 direction Vec3(0.0, 0.0, 1.0), end Vec3(-102.18791, 58.83512, 9512.948), advance 5.253, sideways -0.097, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface599354 direction Vec3(0.0, 0.0, -1.0), start Vec3(-102.2848, 59.47959, 9519.695), slide advance 4.389, travel advance 0.000, requested 12, line clear false
+steps: surface599354 direction Vec3(0.0, 0.0, -1.0), end Vec3(-102.71186, 59.931873, 9515.141), advance 4.555, sideways -0.427, missing floor samples 38; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12683 direction Vec3(1.0, 0.0, 0.0), start Vec3(-147.05449, 59.31471, 9573.541), slide advance 10.372, travel advance 3.123, requested 12, line clear false
+steps: surface12683 direction Vec3(1.0, 0.0, 0.0), end Vec3(-135.97647, 59.69987, 9574.562), advance 11.078, sideways 1.021, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12683 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-135.05449, 59.746403, 9573.541), slide advance 11.676, travel advance 2.750, requested 12, line clear true
+steps: surface12683 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-146.9265, 59.31912, 9573.991), advance 11.872, sideways -0.450, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12683 direction Vec3(0.0, 0.0, 1.0), start Vec3(-141.05449, 59.508633, 9567.541), slide advance 11.998, travel advance 4.500, requested 12, line clear true
+steps: surface12683 direction Vec3(0.0, 0.0, 1.0), end Vec3(-141.05449, 59.477554, 9579.541), advance 12.000, sideways 0.000, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface12683 direction Vec3(0.0, 0.0, -1.0), start Vec3(-141.05449, 59.477554, 9579.541), slide advance 7.490, travel advance 4.752, requested 12, line clear false
+steps: surface12683 direction Vec3(0.0, 0.0, -1.0), end Vec3(-140.77954, 59.87509, 9574.009), advance 5.532, sideways 0.275, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210507 direction Vec3(1.0, 0.0, 0.0), start Vec3(-112.008804, 59.23396, 9586.05), slide advance 6.544, travel advance 5.178, requested 12, line clear false
+steps: surface210507 direction Vec3(1.0, 0.0, 0.0), end Vec3(-101.45173, 60.003315, 9585.076), advance 10.557, sideways -0.974, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210507 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-100.008804, 60.183548, 9586.05), slide advance 4.760, travel advance 1.384, requested 12, line clear false
+steps: surface210507 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-111.007706, 59.342014, 9585.296), advance 10.999, sideways 0.754, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210507 direction Vec3(0.0, 0.0, 1.0), start Vec3(-106.008804, 59.58254, 9580.05), slide advance 5.456, travel advance 0.000, requested 12, line clear false
+steps: surface210507 direction Vec3(0.0, 0.0, 1.0), end Vec3(-105.99458, 59.783413, 9585.349), advance 5.299, sideways -0.014, missing floor samples 1; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210507 direction Vec3(0.0, 0.0, -1.0), start Vec3(-106.008804, 59.878372, 9592.05), slide advance 3.543, travel advance 0.000, requested 12, line clear false
+steps: surface210507 direction Vec3(0.0, 0.0, -1.0), end Vec3(-106.48283, 60.755726, 9590.813), advance 1.236, sideways -0.474, missing floor samples 44; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210508 direction Vec3(1.0, 0.0, 0.0), start Vec3(-110.373184, 59.47281, 9580.777), slide advance 11.974, travel advance 0.000, requested 12, line clear true
+steps: surface210508 direction Vec3(1.0, 0.0, 0.0), end Vec3(-98.373184, 59.45538, 9580.777), advance 12.000, sideways 0.000, missing floor samples 2; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210508 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-98.373184, 59.45538, 9580.777), slide advance 5.625, travel advance 5.250, requested 12, line clear false
+steps: surface210508 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-103.686165, 59.636616, 9580.766), advance 5.313, sideways 0.012, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210508 direction Vec3(0.0, 0.0, 1.0), start Vec3(-104.373184, 59.35395, 9574.777), slide advance 0.427, travel advance 0.000, requested 12, line clear false
+steps: surface210508 direction Vec3(0.0, 0.0, 1.0), end Vec3(-103.66138, 59.925285, 9585.249), advance 10.472, sideways -0.712, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210508 direction Vec3(0.0, 0.0, -1.0), start Vec3(-104.373184, 59.9752, 9586.777), slide advance 7.760, travel advance 0.000, requested 12, line clear true
+steps: surface210508 direction Vec3(0.0, 0.0, -1.0), end Vec3(-103.9696, 59.42113, 9576.688), advance 10.089, sideways 0.404, missing floor samples 1; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210509 direction Vec3(1.0, 0.0, 0.0), start Vec3(-125.78908, 59.376564, 9590.741), slide advance 5.839, travel advance 5.183, requested 12, line clear false
+steps: surface210509 direction Vec3(1.0, 0.0, 0.0), end Vec3(-119.82051, 59.411186, 9589.777), advance 5.969, sideways -0.964, missing floor samples 4; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210509 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-113.78908, 59.201538, 9590.741), slide advance 11.996, travel advance 0.000, requested 12, line clear true
+steps: surface210509 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-125.78908, 59.376564, 9590.741), advance 12.000, sideways 0.000, missing floor samples 3; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210509 direction Vec3(0.0, 0.0, 1.0), start Vec3(-119.78908, 59.290073, 9584.741), slide advance 11.430, travel advance 3.000, requested 12, line clear true
+steps: surface210509 direction Vec3(0.0, 0.0, 1.0), end Vec3(-119.89288, 59.283173, 9588.213), advance 3.472, sideways 0.104, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210509 direction Vec3(0.0, 0.0, -1.0), start Vec3(-119.78908, 59.45544, 9596.741), slide advance 10.010, travel advance 4.585, requested 12, line clear true
+steps: surface210509 direction Vec3(0.0, 0.0, -1.0), end Vec3(-120.24757, 59.29379, 9585.048), advance 11.693, sideways -0.458, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210510 direction Vec3(1.0, 0.0, 0.0), start Vec3(-109.45922, 59.52932, 9576.059), slide advance 0.000, travel advance 0.000, requested 12, line clear false
+steps: surface210510 direction Vec3(1.0, 0.0, 0.0), end Vec3(-109.45922, 59.52932, 9576.059), advance 0.000, sideways 0.000, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210510 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-97.45922, 58.958843, 9576.059), slide advance 5.142, travel advance 5.113, requested 12, line clear false
+steps: surface210510 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-106.538086, 59.467052, 9575.58), advance 9.079, sideways 0.479, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210510 direction Vec3(0.0, 0.0, 1.0): no start floor
+probe: surface210510 direction Vec3(0.0, 0.0, -1.0), start Vec3(-103.45922, 59.703876, 9582.059), slide advance 5.393, travel advance 5.278, requested 12, line clear false
+steps: surface210510 direction Vec3(0.0, 0.0, -1.0), end Vec3(-103.61883, 59.39733, 9576.683), advance 5.376, sideways -0.160, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210511 direction Vec3(1.0, 0.0, 0.0), start Vec3(-108.68824, 59.40738, 9569.804), slide advance 4.557, travel advance 4.436, requested 12, line clear false
+steps: surface210511 direction Vec3(1.0, 0.0, 0.0), end Vec3(-98.714806, 58.88147, 9568.958), advance 9.973, sideways -0.846, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210511 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-96.68824, 58.88147, 9569.804), slide advance 5.395, travel advance 5.260, requested 12, line clear false
+steps: surface210511 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-105.744415, 59.16911, 9568.96), advance 9.056, sideways 0.844, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210511 direction Vec3(0.0, 0.0, 1.0), start Vec3(-102.68824, 58.88147, 9563.804), slide advance 5.291, travel advance 5.149, requested 12, line clear false
+steps: surface210511 direction Vec3(0.0, 0.0, 1.0), end Vec3(-101.872116, 59.09687, 9574.092), advance 10.288, sideways -0.816, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210511 direction Vec3(0.0, 0.0, -1.0), start Vec3(-102.68824, 59.268906, 9575.804), slide advance 4.951, travel advance 4.256, requested 12, line clear false
+steps: surface210511 direction Vec3(0.0, 0.0, -1.0), end Vec3(-102.64789, 59.087624, 9571.4795), advance 4.324, sideways 0.040, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210512 direction Vec3(1.0, 0.0, 0.0), start Vec3(-108.82107, 59.382465, 9594.123), slide advance 8.785, travel advance 4.568, requested 12, line clear false
+steps: surface210512 direction Vec3(1.0, 0.0, 0.0), end Vec3(-97.47145, 60.826458, 9594.945), advance 11.350, sideways 0.822, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210512 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-96.82107, 60.925198, 9594.123), slide advance 6.395, travel advance 5.025, requested 12, line clear true
+steps: surface210512 direction Vec3(-1.0, 0.0, 0.0), end Vec3(-107.72856, 59.48629, 9594.832), advance 10.907, sideways -0.709, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210512 direction Vec3(0.0, 0.0, 1.0), start Vec3(-102.82107, 60.1849, 9588.123), slide advance 6.140, travel advance 4.188, requested 12, line clear false
+steps: surface210512 direction Vec3(0.0, 0.0, 1.0), end Vec3(-101.64127, 59.747227, 9598.518), advance 10.395, sideways -1.180, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input
+probe: surface210512 direction Vec3(0.0, 0.0, -1.0), start Vec3(-102.82107, 59.502033, 9600.123), slide advance 5.295, travel advance 5.260, requested 12, line clear false
+steps: surface210512 direction Vec3(0.0, 0.0, -1.0), end Vec3(-104.263336, 59.987656, 9594.091), advance 6.032, sideways -1.442, missing floor samples 0; 48 quarter-yard attempts, static world snapshot, not live input

@@ -1,0 +1,2 @@
+# Synthetic UI fixture; never player progression or content-readiness evidence.
+next 1

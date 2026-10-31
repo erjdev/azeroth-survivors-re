@@ -1,0 +1,692 @@
+//! Audited Druid identities; conversions are explicit until forms and feral attacks exist.
+use super::{TalentDefinition, TalentStat};
+const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
+pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 825, max_rank: 5, name: "Improved Regrowth", description: "Regrowth: +10 percentage points direct-healing critical chance per rank. Critical heals restore 150%; periodic healing cannot crit. Does not grant the spell", stat: TalentStat::SpellCrit("regrowth"), per_rank: 0.10 },
+    TalentDefinition { id: 789, max_rank: 1, name: "Nature's Grace", description: "Damaging Druid spell criticals grant one refreshing 15 sec charge: the next successful Wrath or Starfire has 0.5 sec shorter recovery, after other cooldown modifiers. Failed casts and instant spells do not consume it (Survivors cast-time conversion)", stat: TalentStat::NaturesGrace, per_rank: 0.5 },
+    TalentDefinition { id: 827, max_rank: 1, name: "Insect Swarm", description: "Insect Swarm applies +2% reduced outgoing damage to affected enemies for 10 sec, including bosses. Stronger reductions take priority. Damage, cooldown and targeting are unchanged; does not grant the spell (Survivors hit-chance conversion)", stat: TalentStat::InsectSwarmWeakening, per_rank: 0.02 },
+    TalentDefinition { id: 808, max_rank: 5, name: "Heart of the Wild", description: "+4% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health (Survivors stamina conversion; no form required)", stat: TalentStat::MaximumHealth, per_rank: 0.04 },
+    TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "+3 percentage points hero critical chance, adding to Sharpened Claws and equipped bonuses (Survivors self-only conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.03 },
+    TalentDefinition { id: 761, max_rank: 1, name: "Nature's Grasp", description: "Entangling Roots: 15% shorter cooldown, multiplying Improved Entangling Roots and the 10-point Balance milestone (Survivors automatic defensive-root conversion)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.15 },
+    TalentDefinition { id: 921, max_rank: 4, name: "Improved Nature's Grasp", description: "Entangling Roots: +10% root duration per rank; bosses retain 30% duration (Survivors automatic-root reliability conversion)", stat: TalentStat::SpellDuration("entangling_roots"), per_rank: 0.10 },
+    TalentDefinition { id: 787, max_rank: 3, name: "Improved Entangling Roots", description: "Entangling Roots: 3% shorter cooldown per rank, multiplying Nature's Grasp and the 10-point Balance milestone (Survivors cast reliability conversion; no spell pushback)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.03 },
+    TalentDefinition { id: 831, max_rank: 1, name: "Nature's Swiftness", description: "Rejuvenation and Healing Touch: 15% shorter cooldown, multiplying individual cooldown ranks (Survivors automatic instant-cast conversion)", stat: TalentStat::SpellGroupCooldown(&["rejuvenation", "healing_touch"]), per_rank: 0.15 },
+    TalentDefinition { id: 844, max_rank: 1, name: "Swiftmend", description: "Rejuvenation immediately heals 5% maximum health once per successful cast; adds to the 30-point Restoration milestone for 10% total before healing bonuses. Does not consume healing over time (Survivors automatic conversion)", stat: TalentStat::SpellHeal("rejuvenation"), per_rank: 0.05 },
+    TalentDefinition { id: 764, max_rank: 2, name: "Nature's Reach", description: "Wrath, Moonfire, Starfire, Entangling Roots and Hurricane: +10% targeting range per rank. Hurricane's radius and target counts are unchanged; excludes Insect Swarm, Thorns and healing", stat: TalentStat::SpellGroupRange(&["wrath", "moonfire", "starfire", "entangling_roots", "hurricane"]), per_rank: 0.10 },
+    TalentDefinition { id: 762, max_rank: 5, name: "Improved Wrath", description: "Wrath: 4% shorter cooldown per rank (Survivors cast-time conversion)", stat: TalentStat::SpellCooldown("wrath"), per_rank: 0.04 },
+    TalentDefinition { id: 763, max_rank: 5, name: "Improved Moonfire", description: "Moonfire: +2% direct and periodic damage and +2 percentage points critical chance per rank", stat: TalentStat::SpellDamageAndCrit("moonfire"), per_rank: 0.02 },
+    TalentDefinition { id: 782, max_rank: 3, name: "Improved Thorns", description: "Thorns: +10% retaliation damage per rank", stat: TalentStat::SpellDamage("thorns"), per_rank: 0.1 },
+    TalentDefinition { id: 792, max_rank: 5, name: "Vengeance", description: "Wrath, Moonfire and Starfire: +10 percentage points critical damage per rank", stat: TalentStat::SpellGroupCritDamage(BALANCE), per_rank: 0.1 },
+    TalentDefinition { id: 784, max_rank: 5, name: "Improved Starfire", description: "Starfire: 3% shorter cooldown per rank (Survivors cast-time conversion)", stat: TalentStat::SpellCooldown("starfire"), per_rank: 0.03 },
+    TalentDefinition { id: 783, max_rank: 3, name: "Moonglow", description: "Wrath, Moonfire, Starfire, Rejuvenation, Regrowth and Healing Touch: 3% shorter cooldown per rank (Survivors mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(&["wrath", "moonfire", "starfire", "rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.03 },
+    TalentDefinition { id: 790, max_rank: 5, name: "Moonfury", description: "Wrath, Moonfire and Starfire: +2% direct and periodic damage per rank", stat: TalentStat::SpellGroupDamage(BALANCE), per_rank: 0.02 },
+    TalentDefinition { id: 794, max_rank: 5, name: "Thick Hide", description: "+8 hero armor per rank (Survivors conversion)", stat: TalentStat::Armor, per_rank: 8.0 },
+    TalentDefinition { id: 807, max_rank: 2, name: "Feline Swiftness", description: "+5% hero movement speed per rank (Survivors conversion; no form required)", stat: TalentStat::Speed, per_rank: 0.05 },
+    TalentDefinition { id: 798, max_rank: 3, name: "Sharpened Claws", description: "+2 percentage points hero critical chance per rank (Survivors conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.02 },
+    TalentDefinition { id: 830, max_rank: 3, name: "Improved Rejuvenation", description: "Rejuvenation: +5% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.05 },
+    TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation, Regrowth and Healing Touch: +2% healing per rank, including direct and periodic healing. Does not change critical chance, duration or damage", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.02 },
+    TalentDefinition { id: 821, max_rank: 5, name: "Improved Mark of the Wild", description: "+4 hero armor per rank (Survivors permanent Mark of the Wild conversion)", stat: TalentStat::Armor, per_rank: 4.0 },
+    TalentDefinition { id: 824, max_rank: 5, name: "Improved Healing Touch", description: "Rejuvenation and Healing Touch: 3% shorter cooldown per rank (Survivors Healing Touch cast-time conversion)", stat: TalentStat::SpellGroupCooldown(&["rejuvenation", "healing_touch"]), per_rank: 0.03 },
+    TalentDefinition { id: 823, max_rank: 5, name: "Nature's Focus", description: "Rejuvenation, Regrowth and Healing Touch: +2% direct and periodic healing per rank, multiplying Gift of Nature. Does not change critical chance or recovery (Survivors healing reliability conversion; no spell pushback)", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.02 },
+    TalentDefinition { id: 841, max_rank: 5, name: "Subtlety", description: "+1 percentage point hero damage reduction per rank (Survivors threat-reduction conversion)", stat: TalentStat::Reduction, per_rank: 0.01 },
+    TalentDefinition { id: 843, max_rank: 5, name: "Tranquil Spirit", description: "Rejuvenation and Healing Touch: 2% shorter cooldown per rank (Survivors healing mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(&["rejuvenation", "healing_touch"]), per_rank: 0.02 },
+ ];
+pub(super) fn apply_milestones(points: [u32; 3], key: &str, effect: &mut super::CastEffect) {
+    if points[0] >= 10 && key == "entangling_roots" {
+        effect.cooldown *= 0.85;
+    }
+    if points[0] >= 20 && key == "moonfire" {
+        effect.damage *= 1.25;
+    }
+    if points[0] >= 30 && BALANCE.contains(&key) {
+        effect.crit += 0.05;
+    }
+    if key == "thorns" {
+        if points[1] >= 10 {
+            effect.cooldown *= 0.85;
+        }
+        if points[1] >= 20 {
+            effect.shield_fraction = 0.05;
+        }
+        if points[1] >= 30 {
+            effect.heal_fraction = 0.03;
+        }
+    }
+    if key == "rejuvenation" {
+        if points[2] >= 10 {
+            effect.damage *= 1.2; // Heal spells store total healing in damage.
+        }
+        if points[2] >= 20 {
+            effect.cooldown *= 0.85;
+        }
+        if points[2] >= 30 {
+            effect.heal_fraction = 0.05;
+        }
+    }
+}
+
+pub(super) fn description(tree: usize, threshold: u32) -> Option<&'static str> {
+    match (tree, threshold) {
+        (0, 10) => Some("Entangling Roots: 15% shorter cooldown (Survivors automatic Nature's Grasp)"),
+        (0, 20) => Some("Moonfire: +25% direct and periodic damage, multiplying individual ranks (Survivors Improved Moonfire milestone)"),
+        (0, 30) => Some("Wrath, Moonfire and Starfire: +5 percentage points critical chance; periodic ticks do not crit (Survivors Moonkin Form; no form required)"),
+        (1, 10) => Some("Thorns: 15% shorter cooldown (Survivors Ferocity; feral attacks remain separate work)"),
+        (1, 20) => Some("Thorns grants a non-stacking 5% maximum-health absorb for 3 seconds once per successful cast (Survivors Heart of the Wild; no form required)"),
+        (1, 30) => Some("Thorns heals 3% maximum health once per successful cast, not per retaliation (Survivors Leader of the Pack; no form required)"),
+        (2, 10) => Some("Rejuvenation: +20% total healing, multiplying individual healing ranks (Survivors Improved Healing Touch)"),
+        (2, 20) => Some("Rejuvenation: 15% shorter cooldown, multiplying Moonglow (Survivors automatic Nature's Swiftness)"),
+        (2, 30) => Some("Rejuvenation also immediately heals 5% maximum health once per successful cast; its healing over time remains intact (Survivors automatic Swiftmend)"),
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::talents::{stat_adjustment, CastEffect, Milestones};
+    #[test]
+    fn druid_training_caps_composes_and_resets() {
+        let base = Milestones {
+            class: 8,
+            ..Default::default()
+        };
+        for rank in [0, 1, 3, 5, 255] {
+            let ranks: Vec<_> = DEFINITIONS.iter().map(|n| (0, n.id, rank)).collect();
+            let trained = base.with_ranks(&ranks);
+            let r = f32::from(rank.min(5));
+            let short = f32::from(rank.min(3));
+            for (key, damage, cooldown, crit, crit_damage) in [
+                (
+                    "wrath",
+                    1. + 0.02 * r,
+                    (1. - 0.04 * r) * (1. - 0.03 * short),
+                    0.,
+                    0.1 * r,
+                ),
+                (
+                    "moonfire",
+                    (1. + 0.02 * r).powi(2),
+                    1. - 0.03 * short,
+                    0.02 * r,
+                    0.1 * r,
+                ),
+                (
+                    "starfire",
+                    1. + 0.02 * r,
+                    (1. - 0.03 * r) * (1. - 0.03 * short),
+                    0.,
+                    0.1 * r,
+                ),
+                ("thorns", 1. + 0.1 * short, 1., 0., 0.),
+                (
+                    "rejuvenation",
+                    (1. + 0.05 * short) * (1. + 0.02 * r).powi(2),
+                    (1. - 0.03 * short)
+                        * (1. - 0.03 * r)
+                        * (1. - 0.02 * r)
+                        * if rank > 0 { 0.85 } else { 1. },
+                    0.,
+                    0.,
+                ),
+            ] {
+                let e = trained.cast(key);
+                assert!((e.damage - damage).abs() < 0.00001, "{key}");
+                assert!((e.cooldown - cooldown).abs() < 0.00001, "{key}");
+                assert!((e.crit - crit).abs() < 0.00001, "{key}");
+                assert!((e.crit_damage - crit_damage).abs() < 0.00001, "{key}");
+                assert_eq!((e.radius, e.duration, e.extra_targets), (1., 1., 0));
+                let expected_heal = if key == "rejuvenation" && rank > 0 {
+                    0.05 * damage
+                } else {
+                    0.
+                };
+                assert!((e.heal_fraction - expected_heal).abs() < 0.00001);
+            }
+            for key in ["hurricane", "entangling_roots", "insect_swarm", "fireball"] {
+                let range = if matches!(key, "hurricane" | "entangling_roots") {
+                    1. + 0.10 * f32::from(rank.min(2))
+                } else {
+                    1.
+                };
+                assert_eq!(
+                    trained.cast(key),
+                    CastEffect {
+                        range,
+                        cooldown: if key == "entangling_roots" {
+                            (1. - 0.15 * f32::from(rank.min(1))) * (1. - 0.03 * short)
+                        } else {
+                            1.
+                        },
+                        duration: if key == "entangling_roots" {
+                            1. + 0.10 * f32::from(rank.min(4))
+                        } else {
+                            1.
+                        },
+                        ..Default::default()
+                    }
+                );
+            }
+            let bonus = stat_adjustment(8, &ranks);
+            assert_eq!(bonus.armor, 12. * r);
+            assert!((bonus.reduction - 0.01 * r).abs() < 0.00001);
+            assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
+            assert!((bonus.crit - 0.02 * short - 0.03 * f32::from(rank.min(1))).abs() < 0.00001);
+            assert_eq!(trained.with_ranks(&[]), base);
+        }
+    }
+    #[test]
+    fn restoration_nodes_are_individually_scoped_and_multiply_with_milestones() {
+        for rank in [0, 1, 5, 255] {
+            let r = f32::from(rank.min(5));
+            for (id, healing, cooldown) in [
+                (824, 1., 1. - 0.03 * r),
+                (823, 1. + 0.02 * r, 1.),
+                (843, 1., 1. - 0.02 * r),
+            ] {
+                let base = Milestones {
+                    class: 8,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, id, rank)]);
+                assert!((trained.cast("rejuvenation").damage - healing).abs() < 0.00001);
+                assert!((trained.cast("rejuvenation").cooldown - cooldown).abs() < 0.00001);
+                for key in ["wrath", "moonfire", "thorns", "holy_nova"] {
+                    assert_eq!(trained.cast(key), CastEffect::default());
+                }
+                let milestones = Milestones {
+                    points: [0, 0, 30],
+                    ..base
+                }
+                .with_ranks(&[(2, id, rank)])
+                .cast("rejuvenation");
+                assert!((milestones.damage - healing * 1.2).abs() < 0.00001);
+                assert!((milestones.cooldown - cooldown * 0.85).abs() < 0.00001);
+                assert!((milestones.heal_fraction - 0.05 * healing).abs() < 0.00001);
+            }
+        }
+    }
+
+    #[test]
+    fn druid_previews_identify_healing_and_both_moonfire_benefits() {
+        let node = |id| DEFINITIONS.iter().find(|n| n.id == id).unwrap();
+        assert_eq!(
+            node(763).rank_preview(1),
+            "This talent: 2 » 4% damage; 2 » 4% critical chance next rank"
+        );
+        assert_eq!(
+            node(763).rank_preview(255),
+            "This talent: 10% damage; 10% critical chance (maximum rank)"
+        );
+        assert_eq!(
+            node(830).rank_preview(1),
+            "This talent: 5 to 10% healing next rank"
+        );
+        assert_eq!(
+            node(828).rank_preview(255),
+            "This talent: 10% healing (maximum rank)"
+        );
+    }
+    #[test]
+    fn druid_ranks_do_not_leak_to_other_classes() {
+        let ranks: Vec<_> = DEFINITIONS.iter().map(|n| (0, n.id, 255)).collect();
+        for class in 0..8 {
+            let trained = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&ranks);
+            for key in BALANCE
+                .iter()
+                .chain(["thorns", "rejuvenation", "entangling_roots"].iter())
+            {
+                assert_eq!(trained.cast(key), CastEffect::default());
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod milestone_tests {
+    use super::*;
+    use crate::talents::{CastEffect, Milestones};
+
+    #[test]
+    fn druid_milestones_unlock_at_each_threshold_and_stay_scoped() {
+        let base = Milestones {
+            class: 8,
+            ..Default::default()
+        };
+        for (tree, keys) in [
+            (0, &["entangling_roots", "moonfire", "wrath"][..]),
+            (1, &["thorns", "thorns", "thorns"][..]),
+            (2, &["rejuvenation", "rejuvenation", "rejuvenation"][..]),
+        ] {
+            for (index, key) in keys.iter().enumerate() {
+                let threshold = (index as u32 + 1) * 10;
+                let mut before = base;
+                before.points[tree] = threshold - 1;
+                let mut after = before;
+                after.points[tree] = threshold;
+                assert!(description(tree, threshold).is_some());
+                assert_ne!(before.cast(key), after.cast(key));
+                assert_eq!(after.cast("fireball"), CastEffect::default());
+            }
+        }
+        let all = Milestones {
+            points: [30; 3],
+            ..base
+        }
+        .with_ranks(&[
+            (0, 763, 5),
+            (0, 783, 3),
+            (0, 790, 5),
+            (0, 782, 3),
+            (2, 830, 3),
+            (2, 828, 5),
+        ]);
+        assert!((all.cast("moonfire").damage - 1.25 * 1.1 * 1.1).abs() < 0.00001);
+        assert!((all.cast("moonfire").crit - 0.15).abs() < 0.00001);
+        assert!((all.cast("rejuvenation").damage - 1.2 * 1.15 * 1.1).abs() < 0.00001);
+        assert!((all.cast("rejuvenation").cooldown - 0.85 * 0.91).abs() < 0.00001);
+        assert!((all.cast("thorns").damage - 1.3).abs() < 0.00001);
+        assert_eq!(all.cast("thorns").shield_fraction, 0.05);
+        assert_eq!(all.cast("thorns").shield_seconds, 3.);
+        assert_eq!(all.cast("thorns").heal_fraction, 0.03);
+        assert!((all.cast("rejuvenation").heal_fraction - 0.05 * 1.15 * 1.1).abs() < 0.00001);
+        for key in [
+            "wrath",
+            "moonfire",
+            "starfire",
+            "hurricane",
+            "insect_swarm",
+            "entangling_roots",
+            "thorns",
+            "rejuvenation",
+        ] {
+            let e = all.cast(key);
+            assert_eq!((e.radius, e.duration, e.extra_targets), (1., 1., 0));
+        }
+        for key in ["hurricane", "insect_swarm"] {
+            assert_eq!(all.cast(key), CastEffect::default());
+        }
+    }
+}
+
+#[cfg(test)]
+mod restoration_capstones {
+    use crate::talents::Milestones;
+
+    #[test]
+    fn individual_restoration_cooldown_and_heal_compose_and_reset() {
+        for class in 0..9 {
+            for points in [0, 19, 20, 29, 30, 40] {
+                let base = Milestones {
+                    class,
+                    points: [0, 0, points],
+                    ..Default::default()
+                };
+                for rank in [0, 1, 255] {
+                    let trained = base.with_ranks(&[(2, 831, rank), (2, 844, rank)]);
+                    let before = base.cast("rejuvenation");
+                    let after = trained.cast("rejuvenation");
+                    let active = class == 8 && rank > 0;
+                    assert!(
+                        (after.cooldown - before.cooldown * if active { 0.85 } else { 1. }).abs()
+                            < 0.00001
+                    );
+                    assert!(
+                        (after.heal_fraction
+                            - before.heal_fraction
+                            - if active { 0.05 } else { 0. })
+                        .abs()
+                            < 0.00001
+                    );
+                    assert_eq!(
+                        (
+                            after.damage,
+                            after.duration,
+                            after.radius,
+                            after.extra_targets
+                        ),
+                        (
+                            before.damage,
+                            before.duration,
+                            before.radius,
+                            before.extra_targets
+                        )
+                    );
+                    assert_eq!(trained.with_ranks(&[]).cast("rejuvenation"), before);
+                    for key in ["wrath", "thorns", "holy_shock", "renew"] {
+                        assert_eq!(trained.cast(key), base.cast(key));
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod healing_composition_tests {
+    use crate::talents::Milestones;
+
+    #[test]
+    fn healing_training_scales_both_portions_without_unlocking_or_changing_other_casts() {
+        for points in [0, 29, 30] {
+            for swiftmend in [0, 1] {
+                let base = Milestones {
+                    class: 8,
+                    points: [0, 0, points],
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 844, swiftmend)]);
+                for rank in [0, 1, 5, 255] {
+                    let mut ranks = [
+                        (2, 844, swiftmend),
+                        (2, 830, rank),
+                        (2, 828, rank),
+                        (2, 823, rank),
+                    ];
+                    let trained = base.with_ranks(&ranks);
+                    ranks.reverse();
+                    assert_eq!(
+                        trained.cast("rejuvenation"),
+                        base.with_ranks(&ranks).cast("rejuvenation")
+                    );
+                    let scale = (1. + 0.05 * f32::from(rank.min(3)))
+                        * (1. + 0.02 * f32::from(rank.min(5))).powi(2);
+                    let before = base.cast("rejuvenation");
+                    let actual = trained.cast("rejuvenation");
+                    assert!((actual.damage - before.damage * scale).abs() < 0.00001);
+                    assert!((actual.heal_fraction - before.heal_fraction * scale).abs() < 0.00001);
+                    assert_eq!(actual.cooldown, before.cooldown);
+                    for key in ["thorns", "moonfire", "wrath", "holy_nova"] {
+                        assert_eq!(trained.cast(key), base.cast(key));
+                    }
+                    assert_eq!(trained.with_ranks(&[(2, 844, swiftmend)]), base);
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod root_training_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn roots_compose_at_milestone_boundaries_and_reset() {
+        for points in [0, 9, 10, 30] {
+            let base = Milestones {
+                class: 8,
+                points: [points, 0, 0],
+                ..Default::default()
+            };
+            for rank in [0, 1, 3, 4, 255] {
+                let ranks = [(0, 761, rank), (0, 921, rank), (0, 787, rank)];
+                let trained = base.with_ranks(&ranks);
+                let before = base.cast("entangling_roots");
+                let after = trained.cast("entangling_roots");
+                let scale =
+                    (1. - 0.15 * f32::from(rank.min(1))) * (1. - 0.03 * f32::from(rank.min(3)));
+                assert!((after.cooldown - before.cooldown * scale).abs() < 0.00001);
+                assert!((after.duration - (1. + 0.1 * f32::from(rank.min(4)))).abs() < 0.00001);
+                assert_eq!(
+                    (after.damage, after.radius, after.extra_targets),
+                    (before.damage, before.radius, before.extra_targets)
+                );
+                assert_eq!(trained.with_ranks(&[]), base);
+                for key in ["wrath", "moonfire", "hurricane", "thorns", "frost_nova"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+        let duration = talent_definition(8, 921).unwrap();
+        assert_eq!(duration.inline_description(1).unwrap(), "Entangling Roots: +10 » 20% root duration; bosses retain 30% duration (Survivors automatic-root reliability conversion)");
+    }
+}
+
+#[cfg(test)]
+mod leader_tests {
+    use super::super::{stat_adjustment, talent_definition};
+
+    #[test]
+    fn leader_adds_to_claws_caps_and_removes_its_placeholder_damage() {
+        for rank in [0, 1, 255] {
+            let base = stat_adjustment(8, &[(1, 798, 3)]);
+            let trained = stat_adjustment(8, &[(1, 798, 3), (1, 809, rank)]);
+            let effective = f32::from(rank.min(1));
+            assert!((trained.crit - base.crit - 0.03 * effective).abs() < 0.00001);
+            assert!((trained.might - base.might + 0.01 * effective).abs() < 0.00001);
+            assert_eq!(stat_adjustment(0, &[(1, 809, rank)]).crit, 0.0);
+        }
+        assert_eq!(stat_adjustment(8, &[]).crit, 0.0);
+        let node = talent_definition(8, 809).unwrap();
+        assert!(node
+            .inline_description(0)
+            .unwrap()
+            .starts_with("+0 » 3 percentage points hero critical chance"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod heart_tests {
+    use crate::talents::{stat_adjustment, talent_definition, Milestones};
+    #[test]
+    fn heart_scales_health_only_with_bounded_ranks() {
+        for rank in [0, 1, 3, 5, 255] {
+            let ranks = [(1, 808, rank)];
+            for class in 0..9 {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&ranks);
+                let r = if class == 8 {
+                    f32::from(rank.min(5))
+                } else {
+                    0.0
+                };
+                assert!((trained.health_multiplier() - 1.0 - 0.04 * r).abs() < 0.00001);
+                assert!((stat_adjustment(class, &ranks).might + 0.01 * r).abs() < 0.00001);
+                assert_eq!(trained.with_ranks(&[]).health_multiplier(), 1.0);
+                for key in ["wrath", "rejuvenation", "thorns", "moonfire"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+        assert!(talent_definition(8, 808)
+            .unwrap()
+            .inline_description(0)
+            .unwrap()
+            .starts_with("+0 » 4% maximum health"));
+    }
+}
+
+#[cfg(test)]
+mod swarm_tests {
+    use crate::{
+        data::Effect,
+        talents::{talent_definition, Milestones},
+    };
+    #[test]
+    fn weakening_is_scoped_capped_and_does_not_change_damage_or_other_control() {
+        for class in 0..9 {
+            for rank in [0, 1, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 827, rank)]);
+                for key in ["insect_swarm", "moonfire", "thorns", "scorpid_sting"] {
+                    let active = class == 8 && rank > 0 && key == "insect_swarm";
+                    match trained.control(key, Effect::None) {
+                        Effect::Weaken(m, t) if active => {
+                            assert_eq!(m, 0.98);
+                            assert_eq!(t, 10.);
+                        }
+                        Effect::None if !active => {}
+                        _ => panic!("unexpected control for class {class}, rank {rank}, {key}"),
+                    }
+                    assert!(matches!(
+                        trained.with_ranks(&[]).control(key, Effect::None),
+                        Effect::None
+                    ));
+                    assert!(matches!(
+                        trained.control(key, Effect::Weaken(0.5, 3.)),
+                        Effect::Weaken(0.5, 3.)
+                    ));
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+            }
+        }
+        let node = talent_definition(8, 827).unwrap();
+        let (text, ranges) = node.inline_description_with_values(0).unwrap();
+        assert_eq!(&text[ranges[0].clone()], "+0 » 2% reduced outgoing damage");
+        assert!(text.contains("for 10 sec"));
+        assert!(!node.inline_description(1).unwrap().contains(" » "));
+    }
+}
+
+#[cfg(test)]
+mod regrowth_tests {
+    use crate::talents::{talent_definition, Milestones};
+
+    #[test]
+    fn regrowth_training_caps_scopes_and_resets_without_affecting_other_heals() {
+        for class in 0..9 {
+            for rank in [0, 1, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 825, rank)]);
+                let mut expected = base.cast("regrowth");
+                if class == 8 {
+                    expected.crit += 0.1 * f32::from(rank.min(5));
+                }
+                assert_eq!(trained.cast("regrowth"), expected);
+                assert_eq!(trained.cast("rejuvenation"), base.cast("rejuvenation"));
+                assert_eq!(trained.cast("wrath"), base.cast("wrath"));
+                assert_eq!(
+                    trained.with_ranks(&[]).cast("regrowth"),
+                    base.cast("regrowth")
+                );
+            }
+        }
+        let (text, values) = talent_definition(8, 825)
+            .unwrap()
+            .inline_description_with_values(1)
+            .unwrap();
+        assert!(text.contains("10 » 20"), "{text}");
+        assert!(!values.is_empty());
+        assert!(text.contains("150%"));
+        assert!(text.contains("periodic") || text.contains("Periodic"));
+    }
+}
+
+#[cfg(test)]
+mod healing_group_tests {
+    use crate::talents::{talent_definition, CastEffect, Milestones};
+
+    #[test]
+    fn gift_and_moonglow_cover_both_heals_without_granting_unrelated_bonuses() {
+        for rank in [0, 1, 3, 5, 255] {
+            let base = Milestones {
+                class: 8,
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(2, 828, rank), (0, 783, rank)]);
+            let healing = 1. + 0.02 * f32::from(rank.min(5));
+            let cooldown = 1. - 0.03 * f32::from(rank.min(3));
+            for key in ["rejuvenation", "regrowth"] {
+                assert_eq!(
+                    trained.cast(key),
+                    CastEffect {
+                        damage: healing,
+                        cooldown,
+                        ..Default::default()
+                    }
+                );
+            }
+            for key in ["wrath", "moonfire", "starfire"] {
+                assert_eq!(
+                    trained.cast(key),
+                    CastEffect {
+                        cooldown,
+                        ..Default::default()
+                    }
+                );
+            }
+            for key in ["thorns", "insect_swarm", "hurricane", "renew", "holy_light"] {
+                assert_eq!(trained.cast(key), base.cast(key), "{key}");
+            }
+            assert_eq!(trained.with_ranks(&[]), base);
+            let other = Milestones {
+                class: 4,
+                ..Default::default()
+            };
+            assert_eq!(
+                other
+                    .with_ranks(&[(2, 828, rank), (0, 783, rank)])
+                    .cast("regrowth"),
+                other.cast("regrowth")
+            );
+        }
+        let (text, spans) = talent_definition(8, 828)
+            .unwrap()
+            .inline_description_with_values(4)
+            .unwrap();
+        assert!(text.contains("8 » 10% healing"), "{text}");
+        assert!(!spans.is_empty());
+        assert!(text.contains("Regrowth"));
+    }
+}
+
+#[cfg(test)]
+mod focus_tests {
+    use crate::talents::{talent_definition, CastEffect, Milestones};
+
+    #[test]
+    fn focus_scopes_both_heals_stacks_with_gift_and_refunds_cleanly() {
+        for class in 0..9 {
+            for rank in [0, 1, 3, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 823, rank)]);
+                let factor = if class == 8 {
+                    1. + 0.02 * f32::from(rank.min(5))
+                } else {
+                    1.
+                };
+                for key in ["rejuvenation", "regrowth"] {
+                    assert_eq!(
+                        trained.cast(key),
+                        CastEffect {
+                            damage: factor,
+                            ..Default::default()
+                        }
+                    );
+                    let combined = base.with_ranks(&[(2, 823, rank), (2, 828, rank)]);
+                    assert!((combined.cast(key).damage - factor * factor).abs() < 0.00001);
+                }
+                for key in ["wrath", "thorns", "renew", "holy_light"] {
+                    assert_eq!(trained.cast(key), base.cast(key));
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+        let (text, spans) = talent_definition(8, 823)
+            .unwrap()
+            .inline_description_with_values(4)
+            .unwrap();
+        assert!(text.contains("Regrowth"));
+        assert!(
+            text.contains("8 » 10% direct and periodic healing"),
+            "{text}"
+        );
+        assert!(!spans.is_empty());
+    }
+}

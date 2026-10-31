@@ -1,0 +1,7 @@
+# Scroll the catalog to Druid, select Wrath, scroll Details down, then select Starfire.
+# New entries start at their heading; the catalog remains at Druid.
+page=codex
+entry=legend:mind_flay
+width=640
+height=480
+scale=1.25

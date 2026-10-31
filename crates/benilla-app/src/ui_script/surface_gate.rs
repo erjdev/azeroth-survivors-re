@@ -130,12 +130,16 @@ fn the_production_gate_catches_a_name_put_back() {
     );
     s.run(
         "UnitAura = function() end \
+         LOCALE_unverified = true \
          BenillaLayerThing = 1 \
          getmetatable(CreateFrame('GameTooltip')).__index.BenillaSetItemById = function() end",
     )
     .unwrap();
     let (globals, methods) = production_beyond(&s, &engine);
-    assert_eq!(globals, vec!["UnitAura".to_string()]);
+    assert_eq!(
+        globals,
+        vec!["LOCALE_unverified".to_string(), "UnitAura".to_string()]
+    );
     assert!(
         methods.contains(&"GameTooltip:BenillaSetItemById".to_string()),
         "{methods:?}"

@@ -1,0 +1,6 @@
+page=achievements
+category=feats
+width=640
+height=480
+scale=1.25
+hero=1

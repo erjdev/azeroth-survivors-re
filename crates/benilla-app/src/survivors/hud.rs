@@ -1,11 +1,23 @@
 //! The mode's screens, in bevy_ui since FrameXML is off: the class and hero pick, the in-run HUD,
 //! the level-up cards, pause, and the results.
 
+pub(super) mod card_growth;
+mod draft;
+pub(super) mod inline;
+mod settings;
+use super::localization::Strings;
+pub(super) use settings::checkboxes::refresh as refresh_settings;
+pub(super) use settings::keyboard::navigate as settings_keyboard;
+pub(super) use settings::sliders::{
+    input as settings_slider_input, refresh as refresh_settings_sliders,
+};
+
 use std::collections::HashMap;
 
 use benilla_ui::script::nameplate;
 use benilla_world::view::WorldCamera;
 use bevy::prelude::*;
+type MeterValueFilter = (Without<MeterHead>, Without<MeterName>);
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
 use bevy::ui_render::ui_material::{MaterialNode, UiMaterial};
@@ -47,6 +59,8 @@ pub(super) struct LevelText;
 #[derive(Component)]
 pub(super) struct TimerText;
 #[derive(Component)]
+pub(super) struct ReactiveBuffText;
+#[derive(Component)]
 pub(super) struct KillText;
 #[derive(Component)]
 pub(super) struct HpFrame;
@@ -68,6 +82,9 @@ pub(super) struct AbilityRow;
 pub(super) struct PassiveRow;
 #[derive(Component)]
 pub(super) struct OfferRow;
+
+#[derive(Component)]
+pub(super) struct LevelHint;
 /// The line under LEVEL UP: which level this is.
 #[derive(Component)]
 pub(super) struct LevelUpSub;
@@ -78,9 +95,9 @@ pub(super) struct LevelTitle;
 /// A radial cooldown sweep over one ability icon: `sweep` is the remaining fraction
 /// (1.0 = just cast, 0.0 = ready), drawn by `ui_sweep.wgsl`.
 #[derive(Asset, TypePath, AsBindGroup, Clone)]
-pub(super) struct SweepUiMaterial {
+pub(crate) struct SweepUiMaterial {
     #[uniform(0)]
-    pub(super) sweep: f32,
+    pub(crate) sweep: f32,
 }
 
 impl UiMaterial for SweepUiMaterial {
@@ -167,16 +184,26 @@ pub(super) struct TipBody;
 
 #[derive(Clone, Copy, PartialEq)]
 pub(super) enum Knob {
+    CameraSpeed,
+    ZoomSpeed,
+    StickDeadZone,
+    InvertX,
+    InvertY,
     Master,
     Effects,
     Music,
     Ambience,
     Sound,
     MusicOn,
+    AutoPush,
+    Cutaway,
+    EnemySilhouettes,
+    FriendlySilhouettes,
     View,
     Grass,
     Spells,
     Scale,
+    InterfaceScale,
 }
 
 #[derive(Component, Clone, Copy, PartialEq)]
@@ -186,22 +213,26 @@ pub(super) enum UiAction {
     Quit,
     OpenSettings,
     CloseSettings,
-    Adjust(Knob, i8),
+    SettingsCategory(settings::Category),
+    BuildNotes,
+    RestoreSettings(settings::Category),
     Toggle(Knob),
 }
 
-/// Settings replaces the pause buttons until Back.
+/// Shared settings hide the starter or replace pause buttons until Back/Escape.
 #[derive(Resource, Default)]
 pub(super) struct PausePage {
     pub open: bool,
+    category: settings::Category,
 }
 
 /// Knob clicks, applied by [`apply_settings`] so this screen does not share the cvar lock
 /// with the rest of the client.
 #[derive(Resource, Default)]
 pub(super) struct SettingEdits {
-    adjust: Vec<(Knob, i8)>,
+    set: Vec<(Knob, f32)>,
     toggle: Vec<Knob>,
+    restore: Option<settings::Category>,
 }
 
 #[derive(Component)]
@@ -209,9 +240,6 @@ pub(super) struct PauseMain;
 
 #[derive(Component)]
 pub(super) struct SettingsPanel;
-
-#[derive(Component, Clone, Copy)]
-pub(super) struct SettingReadout(Knob);
 
 #[derive(Component)]
 pub(super) struct MeterRoot;
@@ -250,7 +278,7 @@ pub(super) enum Choice {
 /// The level-up cards on offer.
 #[derive(Resource, Default)]
 pub(super) struct Offer {
-    choices: Vec<Choice>,
+    pub(super) choices: Vec<Choice>,
 }
 
 impl Offer {
@@ -576,6 +604,11 @@ pub(super) fn setup_hud(
                         line.spawn((LevelText, text(f, "Level 1", 14.0, GOLD)));
                         line.spawn((KillText, text(f, "Kills 0", 14.0, Color::WHITE)));
                     });
+                    col.spawn((ReactiveBuffText, centered(f, "", 14.0, card_growth::GAIN)));
+                    col.spawn((
+                        super::hunter_pet::PetStatusText,
+                        centered(f, "", 14.0, card_growth::GAIN),
+                    ));
                 });
                 // The minimap cluster's column.
                 row.spawn(Node {
@@ -765,53 +798,6 @@ pub(super) fn setup_hud(
             bevy::ui::FocusPolicy::Pass,
         ))
         .with_children(|root| {
-            // The slow golden burst behind everything.
-            root.spawn((
-                super::cards::Rays,
-                Node {
-                    position_type: PositionType::Absolute,
-                    width: Val::Px(1400.0),
-                    height: Val::Px(1400.0),
-                    left: Val::Percent(50.0),
-                    top: Val::Percent(50.0),
-                    margin: UiRect::new(
-                        Val::Px(-700.0),
-                        Val::Px(0.0),
-                        Val::Px(-700.0),
-                        Val::Px(0.0),
-                    ),
-                    ..default()
-                },
-                BackgroundGradient(vec![
-                    Gradient::Conic(ConicGradient::new(
-                        UiPosition::CENTER,
-                        (0..24)
-                            .map(|i| {
-                                let a = i as f32 / 24.0 * std::f32::consts::TAU;
-                                let on = i % 2 == 0;
-                                AngularColorStop::new(
-                                    if on {
-                                        Color::srgba(1.0, 0.8, 0.3, 0.07)
-                                    } else {
-                                        Color::srgba(1.0, 0.8, 0.3, 0.0)
-                                    },
-                                    a,
-                                )
-                            })
-                            .collect(),
-                    )),
-                    Gradient::Radial(RadialGradient::new(
-                        UiPosition::CENTER,
-                        RadialGradientShape::ClosestSide,
-                        vec![
-                            ColorStop::percent(Color::srgba(1.0, 0.75, 0.25, 0.22), 0.0),
-                            ColorStop::percent(Color::srgba(0.0, 0.0, 0.0, 0.0), 100.0),
-                        ],
-                    )),
-                ]),
-                UiTransform::default(),
-                bevy::ui::FocusPolicy::Pass,
-            ));
             root.spawn((LevelTitle, centered(f, "LEVEL UP", 52.0, GOLD)));
             root.spawn((
                 LevelUpSub,
@@ -819,14 +805,32 @@ pub(super) fn setup_hud(
             ));
             root.spawn((
                 OfferRow,
+                ScrollPosition::default(),
                 Node {
+                    width: Val::Percent(94.0),
+                    max_width: Val::Px(1280.0),
+                    max_height: Val::Percent(70.0),
+                    flex_shrink: 1.0,
+                    flex_wrap: FlexWrap::Wrap,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Stretch,
                     column_gap: Val::Px(22.0),
-                    // Room for a hovered card's lift.
-                    margin: UiRect::new(Val::ZERO, Val::ZERO, Val::Px(28.0), Val::Px(16.0)),
+                    row_gap: Val::Px(36.0),
+                    overflow: Overflow::scroll_y(),
+                    // Reserve space inside the scrollport for hover, tilt and pick motion.
+                    padding: UiRect::axes(Val::Px(24.0), Val::Px(40.0)),
                     ..default()
                 },
             ));
-            root.spawn(centered(f, "Click a card, or press 1, 2 or 3", 14.0, DIM));
+            root.spawn((
+                LevelHint,
+                centered(
+                    f,
+                    "Click a card or press its number · Scroll or PgUp/PgDn for more",
+                    14.0,
+                    DIM,
+                ),
+            ));
         });
 
     // --- Pause. ---
@@ -886,59 +890,21 @@ pub(super) fn setup_hud(
                 SettingsPanel,
                 Node {
                     display: Display::None,
+                    width: Val::Percent(90.0),
+                    max_width: Val::Px(800.0),
+                    padding: UiRect::all(Val::Px(18.0)),
+                    border: UiRect::all(Val::Px(1.0)),
+                    border_radius: BorderRadius::all(Val::Px(6.0)),
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
                     row_gap: Val::Px(14.0),
                     ..default()
                 },
+                BackgroundColor(Color::srgb(0.035, 0.025, 0.015)),
+                BorderColor::all(EDGE),
             ))
             .with_children(|col| {
-                col.spawn(centered(f, "Settings", 36.0, GOLD));
-                col.spawn(Node {
-                    column_gap: Val::Px(28.0),
-                    ..default()
-                })
-                .with_children(|row| {
-                    row.spawn(Node {
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(6.0),
-                        ..default()
-                    })
-                    .with_children(|sound| {
-                        sound.spawn(text(f, "Sound", 16.0, GOLD));
-                        for knob in [Knob::Master, Knob::Effects, Knob::Music, Knob::Ambience] {
-                            setting_row(sound, f, knob);
-                        }
-                        for knob in [Knob::Sound, Knob::MusicOn] {
-                            toggle_row(sound, f, knob);
-                        }
-                    });
-                    row.spawn(Node {
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(6.0),
-                        ..default()
-                    })
-                    .with_children(|gfx| {
-                        gfx.spawn(text(f, "Graphics", 16.0, GOLD));
-                        for knob in [Knob::View, Knob::Grass, Knob::Spells, Knob::Scale] {
-                            setting_row(gfx, f, knob);
-                        }
-                    });
-                });
-                col.spawn((
-                    button(UiAction::CloseSettings, BUTTON),
-                    Node {
-                        width: Val::Px(240.0),
-                        justify_content: JustifyContent::Center,
-                        padding: UiRect::axes(Val::Px(20.0), Val::Px(8.0)),
-                        border: UiRect::all(Val::Px(2.0)),
-                        border_radius: BorderRadius::all(Val::Px(4.0)),
-                        ..default()
-                    },
-                ))
-                .with_children(|b| {
-                    b.spawn(text(f, "Back", 20.0, Color::WHITE));
-                });
+                settings::build(col, f);
             });
         });
 
@@ -968,14 +934,30 @@ pub(super) fn setup_hud(
             Visibility::Hidden,
         ))
         .with_children(|root| {
-            root.spawn((OverTitle, centered(f, "", 64.0, GOLD)));
+            root.spawn((
+                OverTitle,
+                centered(f, "", 64.0, GOLD),
+                Node {
+                    max_width: Val::Percent(90.0),
+                    ..default()
+                },
+            ));
             root.spawn((
                 OverLine,
                 centered(f, "", 18.0, Color::srgb(0.85, 0.78, 0.6)),
+                Node {
+                    max_width: Val::Percent(90.0),
+                    ..default()
+                },
             ));
             // The run in numbers, one tile each.
             root.spawn(Node {
-                column_gap: Val::Px(12.0),
+                width: Val::Percent(80.0),
+                max_width: Val::Px(900.0),
+                flex_wrap: FlexWrap::Wrap,
+                justify_content: JustifyContent::Center,
+                column_gap: Val::Percent(1.5),
+                row_gap: Val::Px(12.0),
                 margin: UiRect::vertical(Val::Px(14.0)),
                 ..default()
             })
@@ -986,7 +968,8 @@ pub(super) fn setup_hud(
                 {
                     row.spawn((
                         Node {
-                            width: Val::Px(128.0),
+                            width: Val::Percent(18.0),
+                            min_width: Val::Px(100.0),
                             flex_direction: FlexDirection::Column,
                             align_items: AlignItems::Center,
                             padding: UiRect::axes(Val::Px(10.0), Val::Px(12.0)),
@@ -1007,11 +990,20 @@ pub(super) fn setup_hud(
                     });
                 }
             });
-            root.spawn((OverStats, centered(f, "", 15.0, DIM)));
+            root.spawn((
+                OverStats,
+                centered(f, "", 15.0, DIM),
+                Node {
+                    max_width: Val::Percent(85.0),
+                    ..default()
+                },
+            ));
             root.spawn((
                 edged_button(UiAction::MainMenu, BUTTON, GOLD),
                 Node {
-                    width: Val::Px(260.0),
+                    width: Val::Percent(30.0),
+                    min_width: Val::Px(180.0),
+                    max_width: Val::Px(320.0),
                     justify_content: JustifyContent::Center,
                     padding: UiRect::axes(Val::Px(20.0), Val::Px(11.0)),
                     margin: UiRect::top(Val::Px(8.0)),
@@ -1051,7 +1043,7 @@ pub(super) fn menu_preview(
     selection: Res<Selection>,
     mut run: ResMut<Run>,
     heroes: Query<Entity, With<Hero>>,
-    world: benilla_world::world_point::WorldPoint,
+    world: super::Floor,
     mut shown: Local<Option<(usize, u32, usize)>>,
 ) {
     if *phase.get() != Phase::Menu {
@@ -1072,7 +1064,7 @@ pub(super) fn menu_preview(
         return;
     };
     let mut pos = hero::arena(selection.stage_def());
-    if let Some(h) = world.terrain_height_under(pos) {
+    if let Some(h) = world.height(pos) {
         pos.y = h;
     }
     let serial = run.guid();
@@ -1139,15 +1131,119 @@ pub(super) fn start_run(
 }
 
 fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
+    choices_excluding(run, rng, n, &[])
+}
+
+fn coating_available(run: &Run, def: &AbilityDef) -> bool {
+    if !run.milestones.ability_unlocked(def.key) {
+        return false;
+    }
+    if def.kind == Kind::Aspect {
+        return run.milestones.class == 2
+            && run.abilities.len() < data::MAX_ABILITIES
+            && !run.abilities.iter().any(|o| o.def.kind == Kind::Aspect);
+    }
+    !matches!(def.kind, Kind::Coating(_))
+        || (run.milestones.class == 3
+            && run.abilities.len() < data::MAX_ABILITIES
+            && !run
+                .abilities
+                .iter()
+                .any(|o| matches!(o.def.kind, Kind::Coating(_))))
+}
+
+#[cfg(test)]
+mod monkey_tests {
+    use super::*;
+    use crate::survivors::campaign;
+
+    #[test]
+    fn aspect_cards_grant_one_aspect_and_preview_real_dodge_values() {
+        let mut run = Run {
+            class: &data::CLASSES[2],
+            milestones: survivors_core::talents::Milestones {
+                class: 2,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let def = data::ability("aspect_of_the_monkey");
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        offer.choices = vec![Choice::NewAbility(def)];
+        pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+        assert_eq!(run.abilities.len(), 1, "stale cards cannot stack aspects");
+        assert!(choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|c| matches!(c, Choice::Upgrade(0))));
+        let mut stats = run.stats();
+        let a = cast_at(def, 1, &stats, run.milestones);
+        let b = cast_at(def, 2, &stats, run.milestones);
+        assert!((a.dodge_chance - 0.08).abs() < 0.00001);
+        assert!(inline::ability(def, &a, &b)
+            .iter()
+            .any(|(text, color)| text == "8 » 10% chance" && *color == card_growth::GAIN));
+        assert!(base_ability_body(def).contains("8% chance"));
+        stats.might = 100.;
+        stats.crit = 1.;
+        stats.haste = 1.;
+        stats.targets = 5;
+        let boosted = cast_at(def, 1, &stats, run.milestones);
+        assert_eq!(boosted.dodge_chance, a.dodge_chance);
+        assert_eq!(
+            (boosted.dmg, boosted.cooldown, boosted.crit, boosted.count),
+            (0., 0., 0., 0)
+        );
+        stats.legendary = Some((
+            def.key,
+            campaign::Bonus {
+                might: 0.05,
+                ..Default::default()
+            },
+        ));
+        assert!((cast_at(def, 1, &stats, run.milestones).dodge_chance - 0.084).abs() < 0.00001);
+        stats.legendary = Some((
+            "arcane_shot",
+            campaign::Bonus {
+                might: 1.,
+                ..Default::default()
+            },
+        ));
+        assert_eq!(
+            cast_at(def, 1, &stats, run.milestones).dodge_chance,
+            a.dodge_chance
+        );
+    }
+}
+
+fn choices_excluding(run: &Run, rng: &mut Rng, n: usize, excluded: &[Choice]) -> Vec<Choice> {
     let mut pool: Vec<(Choice, f32)> = Vec::new();
     for (i, o) in run.abilities.iter().enumerate() {
-        if o.level < data::MAX_ABILITY_LEVEL {
+        if o.level < data::MAX_ABILITY_LEVEL && o.def.usable_with(run.milestones.weapon) {
             pool.push((Choice::Upgrade(i), 1.2));
         }
     }
     if run.abilities.len() < data::MAX_ABILITIES {
         for key in run.class.pool {
-            if !run.abilities.iter().any(|o| o.def.key == *key) {
+            if coating_available(run, data::ability(key))
+                && data::ability(key).usable_with(run.milestones.weapon)
+                && !run.abilities.iter().any(|o| o.def.key == *key)
+            {
                 pool.push((Choice::NewAbility(data::ability(key)), 1.0));
             }
         }
@@ -1164,6 +1260,7 @@ fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
             }
         }
     }
+    pool.retain(|(card, _)| !excluded.iter().any(|other| draft::same(*card, *other)));
     let mut out = Vec::with_capacity(n);
     while out.len() < n && !pool.is_empty() {
         let total: f32 = pool.iter().map(|(_, w)| w).sum();
@@ -1178,7 +1275,7 @@ fn choices_for(run: &Run, rng: &mut Rng, n: usize) -> Vec<Choice> {
         }
         out.push(pool.swap_remove(idx).0);
     }
-    if out.is_empty() {
+    if out.is_empty() && excluded.is_empty() {
         out.push(Choice::Heal);
     }
     out
@@ -1227,7 +1324,8 @@ pub(super) fn skip_hand(
     if !run.can_skip {
         return false;
     }
-    let gold = super::sheet::gold_amount(super::rewards::skip_gold(run.level), run.stats().gold_find);
+    let gold =
+        super::sheet::gold_amount(super::rewards::skip_gold(run.level), run.stats().gold_find);
     run.gold_found += gold;
     stash.add_gold(gold);
     run.banner = Some((format!("Skipped the hand for {gold} gold"), 2.5));
@@ -1248,15 +1346,28 @@ pub(super) fn banish_card(run: &mut Run, offer: &mut Offer, rng: &mut Rng, index
     if run.banishes == 0 || index >= offer.choices.len() {
         return false;
     }
-    offer.choices.remove(index);
+    let original_rng = rng.0;
     let replacement = if run.trading {
-        trade_choices(run, rng, 0.0).into_iter().next()
+        trade_choices_excluding(run, rng, 0.0, &offer.choices)
+            .into_iter()
+            .next()
     } else {
-        choices_for(run, rng, 1).into_iter().next()
+        choices_excluding(run, rng, 1, &offer.choices)
+            .into_iter()
+            .next()
     };
-    if let Some(card) = replacement {
-        offer.choices.push(card);
-    }
+    // An exhausted roll leaves the hand and charge intact, including a one-card chest.
+    let Some(card) = replacement else {
+        // A free failed attempt must not become repeated free jewelry rolls.
+        rng.0 = original_rng;
+        run.banish_armed = false;
+        run.banner = Some((
+            "No distinct replacement rolled; banish charge kept".into(),
+            2.5,
+        ));
+        return false;
+    };
+    offer.choices[index] = card;
     run.banishes -= 1;
     run.banish_armed = false;
     true
@@ -1269,19 +1380,34 @@ pub(super) fn pick(
     rng: &mut Rng,
     next: &mut NextState<Phase>,
 ) {
+    if !run.alive() {
+        return;
+    }
     let Some(&choice) = offer.choices.get(i) else {
         return;
     };
+    if let Choice::NewAbility(def) = choice {
+        if !def.usable_with(run.milestones.weapon) || !coating_available(run, def) {
+            return;
+        }
+    }
     match choice {
         Choice::NewAbility(def) => run.abilities.push(Owned {
             def,
             level: 1,
-            cd: 0.3,
+            cd: if matches!(def.kind, Kind::Aspect | Kind::ContactAura) {
+                0.0
+            } else {
+                0.3
+            },
         }),
         Choice::Upgrade(k) => run.abilities[k].level += 1,
         Choice::NewPassive(p) => run.passives.push((p, 1)),
         Choice::UpPassive(k) => run.passives[k].1 += 1,
-        Choice::Heal => run.hp = run.stats().max_hp,
+        Choice::Heal => {
+            let max_hp = run.stats().max_hp;
+            run.heal(max_hp, max_hp);
+        }
         Choice::Jewel(kind) => run.worn.equip(kind),
     }
     run.version += 1;
@@ -1309,6 +1435,20 @@ fn advance(run: &mut Run, offer: &mut Offer, rng: &mut Rng, next: &mut NextState
 }
 
 fn trade_choices(run: &mut Run, rng: &mut Rng, extra: f32) -> Vec<Choice> {
+    trade_choices_excluding(run, rng, extra, &[])
+}
+
+fn trade_choices_excluding(
+    run: &mut Run,
+    rng: &mut Rng,
+    extra: f32,
+    excluded: &[Choice],
+) -> Vec<Choice> {
+    let excluded: Vec<_> = excluded
+        .iter()
+        .filter_map(|card| draft::trade(*card, run))
+        .collect();
+    let owned: Vec<usize> = (0..run.abilities.len()).collect();
     let upgradeable: Vec<usize> = run
         .abilities
         .iter()
@@ -1323,42 +1463,40 @@ fn trade_choices(run: &mut Run, rng: &mut Rng, extra: f32) -> Vec<Choice> {
         rng.next_u64() as u32,
         rng.next_u64() as u32,
     ];
-    super::campaign::trade_cards(&upgradeable, luck, rolls, picks, extra)
-        .into_iter()
-        .map(|card| match card {
-            super::campaign::TradeCard::Upgrade(i) => Choice::Upgrade(i),
-            super::campaign::TradeCard::Ring(i) => Choice::Jewel(super::campaign::JewelKind::Ring(i as u8)),
-            super::campaign::TradeCard::Trinket(i) => {
-                Choice::Jewel(super::campaign::JewelKind::Trinket(i as u8))
-            }
-            super::campaign::TradeCard::Amulet(i) => {
-                Choice::Jewel(super::campaign::JewelKind::Amulet(i as u8))
-            }
-            super::campaign::TradeCard::Legend(i) => {
-                let key = run.abilities[i].def.key;
-                if !run.seen_legends.contains(&key) {
-                    run.seen_legends.push(key);
-                }
-                Choice::Jewel(super::campaign::JewelKind::Legend(key))
-            }
-        })
-        .collect()
+    super::campaign::trade_cards_excluding(
+        &owned,
+        &upgradeable,
+        luck,
+        rolls,
+        picks,
+        extra,
+        &excluded,
+    )
+    .into_iter()
+    .map(|card| match card {
+        super::campaign::TradeCard::Upgrade(i) => Choice::Upgrade(i),
+        super::campaign::TradeCard::Ring(i) => {
+            Choice::Jewel(super::campaign::JewelKind::Ring(i as u8))
+        }
+        super::campaign::TradeCard::Trinket(i) => {
+            Choice::Jewel(super::campaign::JewelKind::Trinket(i as u8))
+        }
+        super::campaign::TradeCard::Amulet(i) => {
+            Choice::Jewel(super::campaign::JewelKind::Amulet(i as u8))
+        }
+        super::campaign::TradeCard::Legend(i) => {
+            let key = run.abilities[i].def.key;
+            Choice::Jewel(super::campaign::JewelKind::Legend(key))
+        }
+    })
+    .collect()
 }
 
 pub(super) fn looks_for(
     class: &data::ClassDef,
     creatures: &crate::entities::Creatures,
 ) -> Vec<(u32, u8, u8)> {
-    let mut out: Vec<(u32, u8, u8)> = Vec::new();
-    for &d in class.looks {
-        if let Some((race, sex)) = creatures.display_race_sex(d) {
-            if !out.iter().any(|&(_, r, s)| r == race && s == sex) {
-                out.push((d, race, sex));
-            }
-        }
-    }
-    out.sort_by_key(|&(_, r, s)| (r, s));
-    out
+    super::look_catalog::resolve(class, |display| creatures.display_race_sex(display))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1372,6 +1510,7 @@ pub(super) fn buttons(
     mut edits: ResMut<SettingEdits>,
     mut page: ResMut<PausePage>,
     phase: Res<State<Phase>>,
+    mut armory: ResMut<super::armory::Armory>,
 ) {
     for (interaction, action, base, mut bg) in &mut presses {
         match interaction {
@@ -1379,20 +1518,55 @@ pub(super) fn buttons(
             Interaction::None => bg.0 = base.0,
             Interaction::Pressed => {
                 bg.0 = BUTTON_HOT;
-                match (*action, *phase.get()) {
-                    (UiAction::Resume, Phase::Paused) => next.set(Phase::Playing),
-                    (UiAction::MainMenu, Phase::Paused | Phase::GameOver) => next.set(Phase::Menu),
-                    (UiAction::Quit, Phase::Paused | Phase::GameOver | Phase::Menu) => {
-                        exit.write(AppExit::Success);
-                    }
-                    (UiAction::OpenSettings, Phase::Paused) => page.open = true,
-                    (UiAction::CloseSettings, Phase::Paused) => page.open = false,
-                    (UiAction::Adjust(knob, dir), Phase::Paused) => edits.adjust.push((knob, dir)),
-                    (UiAction::Toggle(knob), Phase::Paused) => edits.toggle.push(knob),
-                    _ => {}
-                }
+                activate_action(
+                    *action,
+                    *phase.get(),
+                    &mut next,
+                    &mut exit,
+                    &mut edits,
+                    &mut page,
+                    &mut armory,
+                );
             }
         }
+    }
+}
+
+/// Shared by pointer and keyboard activation; phase/modal guards stay in one place.
+#[allow(clippy::too_many_arguments)]
+fn activate_action(
+    action: UiAction,
+    phase: Phase,
+    next: &mut NextState<Phase>,
+    exit: &mut MessageWriter<AppExit>,
+    edits: &mut SettingEdits,
+    page: &mut PausePage,
+    armory: &mut super::armory::Armory,
+) {
+    match (action, phase) {
+        (UiAction::Resume, Phase::Paused) => next.set(Phase::Playing),
+        (UiAction::MainMenu, Phase::Paused | Phase::GameOver) => next.set(Phase::Menu),
+        (UiAction::Quit, Phase::Paused | Phase::GameOver | Phase::Menu) => {
+            exit.write(AppExit::Success);
+        }
+        (UiAction::OpenSettings, Phase::Paused) => page.open = true,
+        (UiAction::CloseSettings, Phase::Paused | Phase::Menu) => page.open = false,
+        (UiAction::SettingsCategory(category), Phase::Paused | Phase::Menu) if page.open => {
+            page.category = category;
+        }
+        (UiAction::RestoreSettings(category), Phase::Menu | Phase::Paused)
+            if page.open && category == page.category =>
+        {
+            edits.restore = Some(category);
+        }
+        (UiAction::BuildNotes, Phase::Menu) if page.open => {
+            page.open = false;
+            armory.open_page(super::armory::Page::Notes);
+        }
+        (UiAction::Toggle(knob), Phase::Paused | Phase::Menu) if page.open => {
+            edits.toggle.push(knob);
+        }
+        _ => {}
     }
 }
 
@@ -1402,88 +1576,63 @@ pub(super) fn close_settings(mut page: ResMut<PausePage>) {
 
 pub(super) fn apply_settings(
     mut edits: ResMut<SettingEdits>,
+    mut camera: ResMut<super::camera::CameraSettings>,
     mut cvars: ResMut<crate::cvars::Cvars>,
 ) {
-    if edits.adjust.is_empty() && edits.toggle.is_empty() {
+    if edits.set.is_empty() && edits.toggle.is_empty() && edits.restore.is_none() {
         return;
     }
-    for (knob, dir) in edits.adjust.drain(..) {
-        adjust_knob(&mut cvars, knob, dir);
+    for (knob, position) in edits.set.drain(..) {
+        if knob == Knob::StickDeadZone {
+            if let Some(value) = settings::sliders::dead_zone_value(position) {
+                camera.set_dead_zone(value);
+            }
+        } else if let Some(value) = settings::sliders::speed_value(knob, position) {
+            camera.set_speed(knob == Knob::ZoomSpeed, value);
+        } else if !matches!(knob, Knob::CameraSpeed | Knob::ZoomSpeed) {
+            settings::sliders::apply(&mut cvars, knob, position);
+        }
     }
     for knob in edits.toggle.drain(..) {
-        toggle_knob(&mut cvars, knob);
+        if knob == Knob::AutoPush {
+            camera.toggle();
+        } else if knob == Knob::Cutaway {
+            camera.toggle_cutaway();
+        } else if matches!(knob, Knob::EnemySilhouettes | Knob::FriendlySilhouettes) {
+            camera.toggle_silhouette(knob == Knob::EnemySilhouettes);
+        } else if matches!(knob, Knob::InvertX | Knob::InvertY) {
+            camera.toggle_inversion(knob == Knob::InvertX);
+        } else {
+            toggle_knob(&mut cvars, knob);
+        }
     }
-}
-
-fn setting_row(ui: &mut ChildSpawnerCommands, f: &Handle<Font>, knob: Knob) {
-    ui.spawn(Node {
-        column_gap: Val::Px(6.0),
-        align_items: AlignItems::Center,
-        ..default()
-    })
-    .with_children(|row| {
-        row.spawn((
-            button(UiAction::Adjust(knob, -1), BUTTON),
-            Node {
-                width: Val::Px(32.0),
-                height: Val::Px(28.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                border: UiRect::all(Val::Px(1.0)),
-                ..default()
-            },
-        ))
-        .with_children(|b| {
-            b.spawn(text(f, "−", 18.0, Color::WHITE));
-        });
-        row.spawn((
-            SettingReadout(knob),
-            Node {
-                width: Val::Px(168.0),
-                ..default()
-            },
-            text(f, "", 14.0, Color::WHITE),
-        ));
-        row.spawn((
-            button(UiAction::Adjust(knob, 1), BUTTON),
-            Node {
-                width: Val::Px(32.0),
-                height: Val::Px(28.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                border: UiRect::all(Val::Px(1.0)),
-                ..default()
-            },
-        ))
-        .with_children(|b| {
-            b.spawn(text(f, "+", 18.0, Color::WHITE));
-        });
-    });
-}
-
-fn toggle_row(ui: &mut ChildSpawnerCommands, f: &Handle<Font>, knob: Knob) {
-    ui.spawn((
-        button(UiAction::Toggle(knob), BUTTON),
-        Node {
-            width: Val::Px(244.0),
-            justify_content: JustifyContent::Center,
-            padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
-            border: UiRect::all(Val::Px(1.0)),
-            ..default()
-        },
-    ))
-    .with_children(|b| {
-        b.spawn((SettingReadout(knob), text(f, "", 14.0, Color::WHITE)));
-    });
+    if let Some(category) = edits.restore.take() {
+        settings::restore_cvars(&mut cvars, category);
+        if category == settings::Category::Graphics {
+            camera.restore_defaults();
+        } else if category == settings::Category::Controls {
+            camera.restore_controls();
+        }
+    }
 }
 
 pub(super) fn sync_pause_page(
     page: Res<PausePage>,
     mut main: Query<&mut Node, With<PauseMain>>,
     mut settings: Query<&mut Node, (With<SettingsPanel>, Without<PauseMain>)>,
+    categories: settings::Categories,
 ) {
-    let main_display = if page.open { Display::None } else { Display::Flex };
-    let settings_display = if page.open { Display::Flex } else { Display::None };
+    categories.sync(&page);
+    let main_display = if page.open {
+        Display::None
+    } else {
+        Display::Flex
+    };
+    let settings_display = if page.open {
+        Display::Flex
+    } else {
+        Display::None
+    };
     for mut node in &mut main {
         if node.display != main_display {
             node.display = main_display;
@@ -1492,90 +1641,6 @@ pub(super) fn sync_pause_page(
     for mut node in &mut settings {
         if node.display != settings_display {
             node.display = settings_display;
-        }
-    }
-}
-
-pub(super) fn refresh_settings(
-    cvars: Res<crate::cvars::Cvars>,
-    mut readouts: Query<(&SettingReadout, &mut Text)>,
-) {
-    for (readout, mut text) in &mut readouts {
-        let want = knob_text(&cvars, readout.0);
-        if **text != want {
-            **text = want;
-        }
-    }
-}
-
-fn knob_text(cvars: &crate::cvars::Cvars, knob: Knob) -> String {
-    let pct = |name: &str, fallback: f32| {
-        let v = cvars.num(name).unwrap_or(fallback).clamp(0.0, 1.0);
-        (v * 100.0).round() as i32
-    };
-    match knob {
-        Knob::Master => format!("Master  {}%", pct("MasterVolume", 1.0)),
-        Knob::Effects => format!("Effects  {}%", pct("SoundVolume", 1.0)),
-        Knob::Music => format!("Music  {}%", pct("MusicVolume", 0.4)),
-        Knob::Ambience => format!("Ambience  {}%", pct("AmbienceVolume", 0.6)),
-        Knob::Sound => {
-            let on = cvars.num("MasterSoundEffects").unwrap_or(1.0) != 0.0;
-            format!("Sound  {}", if on { "On" } else { "Off" })
-        }
-        Knob::MusicOn => {
-            let on = cvars.num("EnableMusic").unwrap_or(1.0) != 0.0;
-            format!("Music  {}", if on { "On" } else { "Off" })
-        }
-        Knob::View => {
-            let v = cvars.num("farclip").unwrap_or(350.0).round() as i32;
-            format!("View distance  {v}")
-        }
-        Knob::Grass => {
-            let v = cvars.num("WorldDetail").unwrap_or(1.0).round() as i32;
-            let name = match v {
-                0 => "Low",
-                1 => "Medium",
-                _ => "High",
-            };
-            format!("Grass  {name}")
-        }
-        Knob::Spells => {
-            let v = cvars.num("spellEffectLevel").unwrap_or(2.0).round() as i32;
-            let name = match v {
-                0 => "Low",
-                1 => "Medium",
-                _ => "High",
-            };
-            format!("Spell detail  {name}")
-        }
-        Knob::Scale => {
-            let v = cvars.num("renderScale").unwrap_or(1.0);
-            format!("Render scale  {}%", (v * 100.0).round() as i32)
-        }
-    }
-}
-
-fn adjust_knob(cvars: &mut crate::cvars::Cvars, knob: Knob, dir: i8) {
-    let step_volume = |cvars: &mut crate::cvars::Cvars, name: &str, fallback: f32| {
-        let cur = cvars.num(name).unwrap_or(fallback);
-        let next = ((cur * 10.0).round() + f32::from(dir)).clamp(0.0, 10.0) / 10.0;
-        cvars.set(name, &format!("{next:.1}"));
-    };
-    match knob {
-        Knob::Master => step_volume(cvars, "MasterVolume", 1.0),
-        Knob::Effects => step_volume(cvars, "SoundVolume", 1.0),
-        Knob::Music => step_volume(cvars, "MusicVolume", 0.4),
-        Knob::Ambience => step_volume(cvars, "AmbienceVolume", 0.6),
-        Knob::Sound | Knob::MusicOn => {}
-        Knob::View => {
-            const STEPS: [f32; 6] = [177.0, 250.0, 350.0, 500.0, 650.0, 777.0];
-            step_list(cvars, "farclip", &STEPS, dir, |v| format!("{}", v.round() as i32));
-        }
-        Knob::Grass => step_int(cvars, "WorldDetail", 1, dir, 0, 2),
-        Knob::Spells => step_int(cvars, "spellEffectLevel", 2, dir, 0, 2),
-        Knob::Scale => {
-            const STEPS: [f32; 7] = [0.5, 0.6, 0.75, 1.0, 1.25, 1.5, 2.0];
-            step_list(cvars, "renderScale", &STEPS, dir, |v| format!("{v:.2}"));
         }
     }
 }
@@ -1590,30 +1655,6 @@ fn toggle_knob(cvars: &mut crate::cvars::Cvars, knob: Knob) {
     cvars.set(name, if on { "0" } else { "1" });
 }
 
-fn step_int(cvars: &mut crate::cvars::Cvars, name: &str, fallback: i32, dir: i8, lo: i32, hi: i32) {
-    let cur = cvars.num(name).unwrap_or(fallback as f32).round() as i32;
-    let next = (cur + i32::from(dir)).clamp(lo, hi);
-    cvars.set(name, &next.to_string());
-}
-
-fn step_list(
-    cvars: &mut crate::cvars::Cvars,
-    name: &str,
-    steps: &[f32],
-    dir: i8,
-    fmt: impl Fn(f32) -> String,
-) {
-    let cur = cvars.num(name).unwrap_or(steps[0]);
-    let mut best = 0;
-    for (i, step) in steps.iter().enumerate() {
-        if (step - cur).abs() < (steps[best] - cur).abs() {
-            best = i;
-        }
-    }
-    let next = (best as i32 + i32::from(dir)).clamp(0, steps.len() as i32 - 1) as usize;
-    cvars.set(name, &fmt(steps[next]));
-}
-
 pub(super) fn refresh_meter(
     phase: Res<State<Phase>>,
     run: Res<Run>,
@@ -1622,7 +1663,7 @@ pub(super) fn refresh_meter(
     mut head: Query<&mut Text, With<MeterHead>>,
     mut lines: Query<(&MeterLine, &mut Visibility), Without<MeterRoot>>,
     mut names: Query<(&MeterName, &mut Text), Without<MeterHead>>,
-    mut values: Query<(&MeterValue, &mut Text), (Without<MeterHead>, Without<MeterName>)>,
+    mut values: Query<(&MeterValue, &mut Text), MeterValueFilter>,
     mut fills: Query<(&MeterFill, &mut Node)>,
 ) {
     let show = *phase.get() == Phase::Playing || *phase.get() == Phase::Paused;
@@ -1702,23 +1743,35 @@ fn source_name(key: &str, spells: Option<&crate::ui_action::Spells>) -> String {
 }
 
 pub(super) fn keys(
+    focus: Option<Res<super::armory::controller::ControllerFocus>>,
+    mut settings: ResMut<PausePage>,
     keys: Res<ButtonInput<KeyCode>>,
     phase: Res<State<Phase>>,
     renown: Res<super::renown::Renown>,
     stash: Res<super::stash::Stash>,
     account: Res<super::account::Account>,
     typing: Res<super::Typing>,
+    controller: Option<Res<super::controller_input::ControllerInput>>,
     mut armory: ResMut<super::armory::Armory>,
     mut selection: ResMut<Selection>,
     mut run: ResMut<Run>,
     mut next: ResMut<NextState<Phase>>,
 ) {
+    if focus.is_some_and(|focus| focus.keyboard_selected) {
+        return;
+    }
+    if settings.open {
+        if keys.just_pressed(KeyCode::Escape) {
+            settings.open = false;
+        }
+        return;
+    }
     match phase.get() {
         Phase::Menu => {
-            let ranks = selection
-                .class
-                .map(|i| renown.ranks(i))
-                .unwrap_or([0; 3]);
+            if armory.is_run_options() {
+                return;
+            }
+            let ranks = selection.class.map(|i| renown.ranks(i)).unwrap_or([0; 3]);
             let class = selection.class.unwrap_or(0);
             let hero = selection.character;
             if !typing.0 && keys.just_pressed(KeyCode::Enter) {
@@ -1733,13 +1786,13 @@ pub(super) fn keys(
                     stash.gear(),
                     account.bonus_picked(class, hero),
                 ) {
-                    run.apply_perks(account.perks);
+                    run.finish_start(account.perks, account.milestones_picked(class, hero));
                     next.set(Phase::Playing);
                 }
             }
         }
         Phase::Playing => {
-            if keys.just_pressed(KeyCode::Escape) {
+            if keys.just_pressed(KeyCode::Escape) || controller.is_some_and(|input| input.pause) {
                 next.set(Phase::Paused);
             }
         }
@@ -1775,13 +1828,21 @@ pub(super) fn refresh_menu(
     }
 }
 
+/// Art sources stay typed: item display IDs must never be resolved as spell IDs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum CardIcon {
+    Spell(u32),
+    Item(u32),
+    Missing,
+}
+
 /// What a level-up card shows.
 pub(super) struct CardText {
-    pub spell: u32,
+    pub icon: CardIcon,
     pub name: String,
     pub tag: String,
     pub tag_color: Color,
-    pub desc: String,
+    pub intro: String,
     /// `(rank now, top rank)`, for the pips; `None` for the healthstone.
     pub ranks: Option<(u8, u8)>,
 }
@@ -1793,144 +1854,337 @@ pub(super) fn describe_card(
 ) -> CardText {
     let new = Color::srgb(0.3, 1.0, 0.3);
     match choice {
-        Choice::NewAbility(def) => {
-            let stats = run.stats();
-            let c = cast_at(def, 1, &stats);
-            CardText {
-                spell: def.spell,
-                name: spell_name(spells, def.spell, def.key),
-                tag: "New spell".into(),
-                tag_color: new,
-                desc: format!("{}.", ability_body(def, &c)),
-                ranks: Some((0, data::MAX_ABILITY_LEVEL)),
-            }
-        }
+        Choice::NewAbility(def) => CardText {
+            icon: CardIcon::Spell(def.spell),
+            name: spell_name(spells, def.spell, def.key),
+            tag: "New spell".into(),
+            tag_color: new,
+            intro: String::new(),
+            ranks: Some((0, data::MAX_ABILITY_LEVEL)),
+        },
         Choice::Upgrade(k) => {
             let o = &run.abilities[k];
             let next = o.level + 1;
-            let stats = run.stats();
-            let (a, b) = (
-                cast_at(o.def, o.level, &stats),
-                cast_at(o.def, next, &stats),
-            );
-            // What actually changes, as before → after.
-            let mut lines = Vec::new();
-            let (da, db) = if a.dmg > 0.0 {
-                (a.dmg, b.dmg)
-            } else {
-                (a.dot, b.dot)
-            };
-            if db > da {
-                lines.push(format!("Damage {} » {}", num(da), num(db)));
-            }
-            if b.cooldown < a.cooldown - 0.01 {
-                lines.push(format!(
-                    "Cooldown {}s » {}s",
-                    num(a.cooldown),
-                    num(b.cooldown)
-                ));
-            }
-            if b.count > a.count {
-                lines.push(format!("Targets {} » {}", a.count, b.count));
-            }
-            if b.radius > a.radius + 0.05 {
-                lines.push(format!("Area {} » {} yd", num(a.radius), num(b.radius)));
-            }
-            if b.duration > a.duration + 0.05 {
-                lines.push(format!("Lasts {}s » {}s", num(a.duration), num(b.duration)));
-            }
             CardText {
-                spell: o.def.spell,
+                icon: CardIcon::Spell(o.def.spell),
                 name: spell_name(spells, o.def.spell, o.def.key),
                 tag: format!("Rank {} » {next}", o.level),
                 tag_color: Color::WHITE,
-                desc: lines.join("\n"),
+                intro: String::new(),
                 ranks: Some((o.level, data::MAX_ABILITY_LEVEL)),
             }
         }
         Choice::NewPassive(p) => CardText {
-            spell: p.spell,
+            icon: CardIcon::Spell(p.spell),
             name: p.name.into(),
             tag: "New talent".into(),
             tag_color: new,
-            desc: passive_text(p.stat, p.per_level),
+            intro: String::new(),
             ranks: Some((0, data::MAX_PASSIVE_LEVEL)),
         },
         Choice::UpPassive(k) => {
             let (p, level) = run.passives[k];
-            let fmt = |v: f32| match p.stat {
-                Stat::Regen | Stat::Armor => num(v),
-                _ => pct(v),
-            };
             CardText {
-                spell: p.spell,
+                icon: CardIcon::Spell(p.spell),
                 name: p.name.into(),
                 tag: format!("Rank {level} » {}", level + 1),
                 tag_color: Color::WHITE,
-                desc: format!(
-                    "{}\n{} » {}",
-                    stat_label(p.stat),
-                    fmt(p.per_level * f32::from(level)),
-                    fmt(p.per_level * f32::from(level + 1)),
-                ),
+                intro: String::new(),
                 ranks: Some((level, data::MAX_PASSIVE_LEVEL)),
             }
         }
         Choice::Heal => CardText {
-            spell: 5720,
+            icon: CardIcon::Spell(5720),
             name: "Healthstone".into(),
             tag: "Restore".into(),
             tag_color: Color::WHITE,
-            desc: "Everything is mastered. Restores all health.".into(),
+            intro: String::new(),
             ranks: None,
         },
-        Choice::Jewel(kind) => jewel_card(kind, run),
+        Choice::Jewel(kind) => jewel_card(kind, spells),
     }
 }
 
-fn jewel_card(kind: super::campaign::JewelKind, run: &Run) -> CardText {
+fn jewel_card(
+    kind: super::campaign::JewelKind,
+    spells: Option<&crate::ui_action::Spells>,
+) -> CardText {
     use super::campaign::{JewelKind, AMULET_NAMES, RING_NAMES, TRINKET_NAMES};
-    let (spell, name, tag, desc) = match kind {
+    let (icon, name, tag, desc) = match kind {
         JewelKind::Ring(i) => (
-            11196u32,
-            RING_NAMES.get(i as usize).copied().unwrap_or("Ring").to_string(),
+            CardIcon::Missing,
+            RING_NAMES
+                .get(i as usize)
+                .copied()
+                .unwrap_or("Ring")
+                .to_string(),
             "Ring",
             "Worn for this run. A second ring fills the other hand.",
         ),
         JewelKind::Trinket(i) => (
-            11810u32,
-            TRINKET_NAMES.get(i as usize).copied().unwrap_or("Trinket").to_string(),
+            CardIcon::Missing,
+            TRINKET_NAMES
+                .get(i as usize)
+                .copied()
+                .unwrap_or("Trinket")
+                .to_string(),
             "Trinket",
             "Worn for this run. Two trinkets can be carried.",
         ),
         JewelKind::Amulet(i) => (
-            19383u32,
-            AMULET_NAMES.get(i as usize).copied().unwrap_or("Amulet").to_string(),
+            CardIcon::Missing,
+            AMULET_NAMES
+                .get(i as usize)
+                .copied()
+                .unwrap_or("Amulet")
+                .to_string(),
             "Amulet",
             "Worn for this run. One amulet.",
         ),
         JewelKind::Legend(key) => {
-            let spell = run
-                .abilities
-                .iter()
-                .find(|o| o.def.key == key)
-                .map(|o| o.def.spell)
-                .unwrap_or(0);
+            let def = data::ABILITIES.iter().find(|def| def.key == key);
             (
-                spell,
-                super::campaign::legendary_amulet(key),
+                def.map_or(CardIcon::Missing, |def| CardIcon::Spell(def.spell)),
+                def.map_or_else(
+                    || super::campaign::legendary_amulet(key),
+                    |def| format!("Amulet of {}", spell_name(spells, def.spell, def.key)),
+                ),
                 "Legendary amulet",
                 "Seen once dealt, whether or not you take it. One legendary amulet for this run.",
             )
         }
     };
+    let icon = if matches!(kind, JewelKind::Legend(_)) {
+        icon
+    } else {
+        super::jewel_icons::display(&name).map_or(CardIcon::Missing, CardIcon::Item)
+    };
     CardText {
-        spell,
+        icon,
         name,
         tag: tag.into(),
         tag_color: GOLD,
-        desc: desc.into(),
+        intro: desc.into(),
         ranks: None,
+    }
+}
+
+fn reactive_buff_status(run: &Run) -> String {
+    if run.dead_t.is_some() || run.hp <= 0.0 {
+        return String::new();
+    }
+    let mut active = Vec::new();
+    let ghostly_remaining = run.ghostly_strike.remaining(run.elapsed);
+    if ghostly_remaining > 0.0 {
+        active.push(format!(
+            "Ghostly Strike: +15% melee dodge ({:.0}s)",
+            ghostly_remaining.ceil()
+        ));
+    }
+    let deterrence_remaining = run.milestones.deterrence_remaining(run.elapsed);
+    if deterrence_remaining > 0.0 {
+        active.push(format!(
+            "Deterrence: +25% dodge and parry ({:.0}s)",
+            deterrence_remaining.ceil()
+        ));
+    }
+    let hawk_remaining = run.hawk.remaining(run.milestones, run.elapsed);
+    if hawk_remaining > 0.0 {
+        active.push(format!(
+            "Improved Hawk: +{:.0}% shot haste ({:.0}s)",
+            100.0 * run.hawk.haste(run.milestones, "arcane_shot", run.elapsed),
+            hawk_remaining.ceil()
+        ));
+    }
+    let rush_remaining = run.adrenaline_rush.remaining(run.milestones, run.elapsed);
+    if rush_remaining > 0.0 {
+        active.push(format!(
+            "Adrenaline Rush: 50% shorter Rogue cast cooldown ({:.0}s)",
+            rush_remaining.ceil()
+        ));
+    }
+    if let Some((bonus, criticals)) = run.combustion.progress(run.milestones, run.elapsed) {
+        active.push(format!(
+            "Combustion +{:.0}% Fire critical chance ({criticals}/3 critical hits)",
+            bonus * 100.0
+        ));
+    }
+    let power_remaining = run.arcane_power.remaining(run.milestones, run.elapsed);
+    if power_remaining > 0.0 {
+        active.push(format!(
+            "Arcane Power +30% Mage damage ({:.0}s)",
+            power_remaining.ceil()
+        ));
+    }
+    let infusion_remaining = run.power_infusion.remaining(run.milestones, run.elapsed);
+    if infusion_remaining > 0.0 {
+        active.push(format!(
+            "Power Infusion +20% Priest damage/healing ({:.0}s)",
+            infusion_remaining.ceil()
+        ));
+    }
+    let inspiration = run
+        .milestones
+        .inspiration_multiplier(run.inspiration_t > 0.)
+        - 1.;
+    if inspiration > 0. {
+        active.push(format!(
+            "Inspiration +{:.0}% armor ({:.0}s)",
+            inspiration * 100.,
+            run.inspiration_t.ceil()
+        ));
+    }
+    let ancestral = run
+        .milestones
+        .ancestral_healing_armor(run.ancestral_healing_t > 0.);
+    if ancestral > 0. {
+        active.push(format!(
+            "Ancestral Healing +{ancestral:.0} armor ({:.0}s)",
+            run.ancestral_healing_t.ceil()
+        ));
+    }
+    let shout_remaining = run.battle_shout.remaining(run.elapsed);
+    if run.alive() && shout_remaining > 0.0 {
+        active.push(format!(
+            "Battle Shout +{} weapon damage ({:.0}s)",
+            pct(run.battle_shout.bonus("cleave", run.elapsed)),
+            shout_remaining.ceil()
+        ));
+    }
+    let enrage = run.milestones.enrage_damage(run.enrage_t > 0.0) - 1.0;
+    if enrage > 0.0 {
+        active.push(format!(
+            "Enrage +{:.0}% damage ({:.0}s)",
+            enrage * 100.0,
+            run.enrage_t.ceil()
+        ));
+    }
+    let flurry = run.milestones.flurry_haste(run.flurry_t > 0.0);
+    if flurry > 0.0 {
+        active.push(format!(
+            "Flurry +{:.0}% haste ({:.0}s)",
+            flurry * 100.0,
+            run.flurry_t.ceil()
+        ));
+    }
+    let vengeance = run
+        .milestones
+        .vengeance_bonus(run.alive() && run.vengeance_t > 0.0);
+    if vengeance > 0.0 {
+        active.push(format!(
+            "Vengeance +{:.0}% weapon / Holy damage ({:.0}s)",
+            vengeance * 100.0,
+            run.vengeance_t.ceil()
+        ));
+    }
+    let recovery = run.blessed_recovery.remaining(run.milestones);
+    if recovery > 0. {
+        active.push(format!("Blessed Recovery ({:.0}s)", recovery.ceil()));
+    }
+    let healing = run.milestones.blood_craze_fraction();
+    if healing > 0.0 && run.blood_craze_t > 0.0 {
+        active.push(format!(
+            "Blood Craze +{:.2}% health/sec ({:.0}s)",
+            healing * 100.0 / 6.0,
+            run.blood_craze_t.ceil()
+        ));
+    }
+    let regen = run.milestones.spirit_tap_regen();
+    if regen > 0.0 && run.spirit_tap_t > 0.0 {
+        active.push(format!(
+            "Spirit Tap +{:.0}% health/sec ({:.0}s)",
+            regen * 100.0,
+            run.spirit_tap_t.ceil()
+        ));
+    }
+    active.join("\n")
+}
+
+#[cfg(test)]
+mod reactive_buff_tests {
+    use super::*;
+
+    #[test]
+    fn inspiration_status_expires_on_refund_and_death() {
+        let mut run = Run {
+            inspiration_t: 14.2,
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 361, 3)]),
+            ..Default::default()
+        };
+        assert_eq!(reactive_buff_status(&run), "Inspiration +24% armor (15s)");
+        run.inspiration_t = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.inspiration_t = 8.;
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 10.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+
+    #[test]
+    fn spirit_tap_status_reports_regeneration_and_expiry() {
+        let mut run = Run {
+            spirit_tap_t: 14.2,
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 465, 1)]),
+            ..Default::default()
+        };
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Spirit Tap +1% health/sec (15s)"
+        );
+        run.spirit_tap_t = 0.0;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.spirit_tap_t = 10.0;
+        run.hp = 0.0;
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+
+    #[test]
+    fn active_talents_show_effects_and_remaining_seconds_only_while_alive() {
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones::default().with_ranks(&[
+                (1, 155, 5),
+                (1, 156, 5),
+                (1, 661, 3),
+            ]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.enrage_t = 3.2;
+        run.flurry_t = 2.1;
+        run.blood_craze_t = 5.1;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Enrage +20% damage (4s)\nFlurry +25% haste (3s)\nBlood Craze +0.50% health/sec (6s)"
+        );
+        run.flurry_t = 0.;
+        assert!(!reactive_buff_status(&run).contains("Flurry"));
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 10.;
+        run.dead_t = Some(0.);
+        assert!(reactive_buff_status(&run).is_empty());
+        run.dead_t = None;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+        run.milestones = survivors_core::talents::Milestones {
+            class: 5,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 602, 5)]);
+        run.flurry_t = 2.1;
+        assert_eq!(reactive_buff_status(&run), "Flurry +25% haste (3s)");
+        run.flurry_t = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
     }
 }
 
@@ -1944,6 +2198,7 @@ pub(super) fn refresh_hud(
     renown: Res<super::renown::Renown>,
     stash: Res<super::stash::Stash>,
     font: Res<HudFont>,
+    strings: Option<Res<Strings>>,
     mut texts: ParamSet<(
         Query<&mut Text, With<LevelText>>,
         Query<&mut Text, With<TimerText>>,
@@ -1952,12 +2207,15 @@ pub(super) fn refresh_hud(
         Query<&mut Text, With<OverTitle>>,
         Query<&mut Text, With<OverStats>>,
         Query<&mut Text, With<XpText>>,
+        Query<&mut Text, With<ReactiveBuffText>>,
     )>,
     mut xp_fill: Query<&mut Node, With<XpFill>>,
     rows: Query<(Entity, Has<AbilityRow>), Or<(With<AbilityRow>, With<PassiveRow>)>>,
     mut sweeps: ResMut<Assets<SweepUiMaterial>>,
     mut last_version: Local<Option<u32>>,
 ) {
+    let fallback = Strings::default();
+    let strings = strings.as_deref().unwrap_or(&fallback);
     let need = data::xp_to_next(run.level);
     if let Ok(mut n) = xp_fill.single_mut() {
         n.width = Val::Percent((run.xp / need * 100.0).clamp(0.0, 100.0));
@@ -1969,11 +2227,17 @@ pub(super) fn refresh_hud(
         }
     }
     if let Ok(mut t) = texts.p0().single_mut() {
-        **t = format!("Level {}", run.level);
+        **t = strings.by_key("UNIT_LEVEL_TEMPLATE", "Level %s", &[run.level.into()]);
     }
     let secs = run.elapsed as u32;
     if let Ok(mut t) = texts.p1().single_mut() {
         **t = format!("{:02}:{:02}", secs / 60, secs % 60);
+    }
+    if let Ok(mut text) = texts.p7().single_mut() {
+        let next = reactive_buff_status(&run);
+        if text.0 != next {
+            text.0 = next;
+        }
     }
     let kills = run.kills;
     if let Ok(mut t) = texts.p2().single_mut() {
@@ -2014,11 +2278,16 @@ pub(super) fn refresh_hud(
         **t = title;
     }
     let summary = format!(
-        "{} {} in {}   —   {} marks   —   {} gold   —   press Enter to play again",
+        "{} {} in {}   —   {} {}   —   {} gold   —   press Enter to play again",
         crate::char_select::race_name(run.race),
         run.class.name,
         selection.map_def().name,
         renown.last_earned,
+        if renown.last_earned == 1 {
+            "mark"
+        } else {
+            "marks"
+        },
         run.gold_found,
     );
     if let Ok(mut t) = texts.p5().single_mut() {
@@ -2216,13 +2485,31 @@ pub(super) fn fill_art(
     }
 }
 
-/// The reference lays its UI out on a screen 768 units tall at any resolution (`useUiScale` off).
+/// Height-relative sizing, with an optional persistent readability multiplier.
 pub(super) fn apply_ui_scale(
+    cvars: Res<crate::cvars::Cvars>,
     windows: Query<&Window, With<PrimaryWindow>>,
     mut scale: ResMut<UiScale>,
+    #[cfg(any(test, not(target_arch = "wasm32")))] preview: Option<
+        Res<super::armory::preview::Preview>,
+    >,
 ) {
     let Ok(window) = windows.single() else { return };
-    let want = window.height() / 768.0;
+    let multiplier = if cvars.num("useUiScale").unwrap_or(0.) != 0. {
+        cvars
+            .num("uiScale")
+            .filter(|v| v.is_finite())
+            .unwrap_or(1.)
+            .clamp(0.75, 1.25)
+    } else {
+        1.
+    };
+    #[cfg(any(test, not(target_arch = "wasm32")))]
+    let multiplier = preview
+        .as_deref()
+        .and_then(|preview| preview.scale())
+        .unwrap_or(multiplier);
+    let want = window.height() / 768.0 * multiplier;
     if want > 0.0 && (scale.0 - want).abs() > 1e-4 {
         scale.0 = want;
     }
@@ -2370,8 +2657,6 @@ impl TipLine {
     }
 }
 
-/// A number as the tooltips print it: whole when near enough, else to one decimal.
-
 /// The results screen's tiles and its line under the title.
 #[allow(clippy::type_complexity)]
 pub(super) fn refresh_results(
@@ -2428,170 +2713,109 @@ fn num(v: f32) -> String {
     }
 }
 
+// Small regeneration talents must remain visible rather than rounding back to baseline.
+fn regen_num(v: f32) -> String {
+    format!("{v:.3}")
+        .trim_end_matches('0')
+        .trim_end_matches('.')
+        .to_owned()
+}
+
 fn pct(v: f32) -> String {
     format!("{}%", num(v * 100.0))
 }
 
 /// The numbers an ability casts with at a level, as [`super::abilities::cast_abilities`] takes
 /// them from [`Owned`].
-struct Cast {
-    dmg: f32,
-    dot: f32,
-    count: u32,
-    radius: f32,
-    duration: f32,
-    cooldown: f32,
+type Cast = super::abilities::Params;
+
+fn cast_at(
+    def: &'static AbilityDef,
+    level: u8,
+    stats: &Stats,
+    milestones: survivors_core::talents::Milestones,
+) -> Cast {
+    Cast::new(
+        &Owned {
+            def,
+            level,
+            cd: 0.0,
+        },
+        stats,
+        milestones,
+    )
 }
 
-fn cast_at(def: &'static AbilityDef, level: u8, stats: &Stats) -> Cast {
-    let o = Owned {
-        def,
-        level,
-        cd: 0.0,
-    };
-    let mult = o.damage_mult() * stats.might;
-    Cast {
-        dmg: def.damage * mult,
-        dot: def.dot * mult,
-        count: o.count(stats),
-        radius: o.radius(stats),
-        duration: o.duration(),
-        cooldown: o.cooldown(stats),
-    }
-}
-
-fn effect_text(effect: Effect) -> Option<String> {
-    Some(match effect {
-        Effect::None => return None,
-        Effect::Slow(m, t) => format!("slowing them by {} for {} sec", pct(1.0 - m), num(t)),
-        Effect::Root(t) => format!("freezing them in place for {} sec", num(t)),
-        Effect::Stun(t) => format!("stunning them for {} sec", num(t)),
-        Effect::Fear(t) => format!("sending them fleeing for {} sec", num(t)),
-        Effect::Weaken(m, t) => format!(
-            "cutting their damage by {} for {} sec",
-            pct(1.0 - m),
-            num(t)
-        ),
-        Effect::Drain(f) => format!("healing you for {} of the damage", pct(f)),
-        Effect::Execute(f) => format!("killing them outright below {} health", pct(f)),
-    })
-}
-
-/// What an ability does at these numbers, in the voice of a spell description.
+/// Plain tooltips share the card's prose and effective values.
 fn ability_body(def: &AbilityDef, c: &Cast) -> String {
-    let d = num(c.dmg);
-    let burst = def.duration <= 0.0;
-    let mut s = match def.kind {
-        Kind::Bolt | Kind::Strike | Kind::Melee => {
-            let toughest = matches!(def.key, "pyroblast" | "aimed_shot" | "exorcism" | "starfire");
-            let melee = def.kind == Kind::Melee;
-            let who = match (toughest, melee, c.count) {
-                (true, _, 1) => "the toughest enemy in range".to_string(),
-                (true, _, n) => format!("the {n} toughest enemies in range"),
-                (false, true, 1) => "the closest enemy".into(),
-                (false, true, n) => format!("the {n} closest enemies"),
-                (false, false, 1) => "the nearest enemy".into(),
-                (false, false, n) => format!("the {n} nearest enemies"),
-            };
-            let mut s = format!("{} {who} for {d} damage", if melee { "Strikes" } else { "Hits" });
-            if c.radius > 0.0 && !melee {
-                s += &format!(", and everything within {} yd of the hit", num(c.radius));
-            }
-            s
-        }
-        Kind::Nova => format!("Deals {d} damage to every enemy within {} yd of you", num(c.radius)),
-        Kind::Cone => format!("Deals {d} damage to every enemy in a {} yd cone toward the closest", num(c.radius)),
-        Kind::Ground | Kind::GroundSelf => {
-            let at = if def.kind == Kind::GroundSelf { "around you" } else { "on the thickest pack" };
-            if burst {
-                format!("Strikes a {} yd area {at} for {d} damage", num(c.radius))
-            } else {
-                format!(
-                    "Covers a {} yd area {at} for {} sec, dealing {d} damage every second",
-                    num(c.radius),
-                    num(c.duration)
-                )
-            }
-        }
-        Kind::Chain => format!(
-            "Strikes the nearest enemy for {d} damage, then jumps to {} more within {} yd of each other, 15% weaker with every jump",
-            c.count,
-            num(c.radius)
-        ),
-        Kind::Dot => format!(
-            "Afflicts {} enemies in range with {} damage every second for {} sec",
-            c.count,
-            num(c.dot),
-            num(c.duration)
-        ),
-        Kind::Aura => format!(
-            "Every {} sec, deals {d} damage to every enemy within {} yd of you",
-            num(c.cooldown),
-            num(c.radius)
-        ),
-        Kind::Orbit => format!(
-            "Every {} sec, zaps {} within {} yd of you for {d} damage",
-            num(c.cooldown),
-            if c.count == 1 { "an enemy".to_string() } else { format!("{} enemies", c.count) },
-            num(c.radius)
-        ),
-        Kind::Shield => format!("Absorbs the next {d} damage you take within {} sec", num(c.duration)),
-        Kind::Immune => format!(
-            "When an enemy closes in, makes you immune to all damage for {} sec",
-            num(c.duration)
-        ),
-        Kind::Thorns => format!(
-            "When enemies close in, deals {d} damage to every attacker for {} sec",
-            num(c.duration)
-        ),
-        Kind::Heal => format!("Below 85% health, heals you for {d} over {} sec", num(c.duration)),
-        Kind::Totem if def.key == "magma_totem" => format!(
-            "Drops a totem for {} sec that burns every enemy within {} yd for {d} damage every 2 sec",
-            num(c.duration),
-            num(c.radius)
-        ),
-        Kind::Totem => format!(
-            "Drops a totem for {} sec that hits the nearest enemy within {} yd for {d} damage every second",
-            num(c.duration),
-            num(def.range)
-        ),
-    };
-    // Areas that tick carry no over-time part; a burst leaves a 5 second one.
-    let ground = matches!(def.kind, Kind::Ground | Kind::GroundSelf);
-    if c.dot > 0.0 && def.kind != Kind::Dot && (!ground || burst) {
-        let secs = if ground { 5.0 } else { c.duration };
-        s += &format!(
-            ", then {} damage every second for {} sec",
-            num(c.dot),
-            num(secs)
-        );
+    inline::ability(def, c, c)
+        .into_iter()
+        .map(|(text, _)| text)
+        .collect()
+}
+
+/// Catalog prose uses rank one without a hero's equipment, training or run upgrades.
+pub(super) fn base_ability_body(def: &'static AbilityDef) -> String {
+    let base = Run::default();
+    let cast = cast_at(def, 1, &base.stats(), base.milestones);
+    let body = ability_body(def, &cast);
+    if matches!(
+        def.kind,
+        Kind::Aura | Kind::Orbit | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+    ) {
+        body
+    } else {
+        format!("{body} Recharges in {} sec.", num(cast.cooldown))
     }
-    if let Some(e) = effect_text(def.effect) {
-        s += ", ";
-        s += &e;
-    }
-    s.push('.');
-    s
 }
 
 /// What the next rank changes, at the current stats.
-fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast) -> String {
+fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> String {
     let what = match def.kind {
         Kind::Shield => "absorbed",
-        Kind::Heal => "healing",
+        Kind::Heal | Kind::Regrowth | Kind::DirectHeal => "healing",
         _ => "damage",
     };
     let mut gains = Vec::new();
+    if def.kind == Kind::Mark {
+        gains.push(format!("{} ranged attack power", num(next.mark_power)));
+    }
+    if def.kind == Kind::Aspect {
+        gains.push(format!("{} dodge chance", pct(next.dodge_chance)));
+    }
+    if def.kind == Kind::WeaponBuff {
+        gains.push(format!("{} weapon damage bonus", pct(next.weapon_bonus)));
+    }
     if next.dmg > 0.0 && def.kind != Kind::Dot && def.kind != Kind::Immune {
         gains.push(format!("{} {what}", num(next.dmg)));
     }
+    if let Effect::Weakness(amount, _) = next.effect {
+        gains.push(format!("{} less damage per physical hit", num(amount)));
+    }
     if next.dot > 0.0 {
-        gains.push(format!("{} damage per second", num(next.dot)));
+        gains.push(format!(
+            "{} {} per second",
+            num(next.dot),
+            if def.kind == Kind::Regrowth {
+                "healing"
+            } else {
+                "damage"
+            }
+        ));
     }
     if next.count != now.count
         && matches!(
             def.kind,
-            Kind::Bolt | Kind::Strike | Kind::Melee | Kind::Dot | Kind::Chain | Kind::Orbit
+            Kind::Interrupt
+                | Kind::Silence
+                | Kind::Channel
+                | Kind::Bolt
+                | Kind::Strike
+                | Kind::Melee
+                | Kind::Dot
+                | Kind::Curse
+                | Kind::Chain
+                | Kind::Orbit
         )
     {
         gains.push(match def.kind {
@@ -2603,19 +2827,34 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast) -> String {
         gains.push(format!("{} yd", num(next.radius)));
     }
     if next.duration > 0.0 {
-        gains.push(format!("{} sec", num(next.duration)));
+        gains.push(strings.by_key(
+            "SPELL_DURATION_SEC",
+            "%s sec",
+            &[num(next.duration).as_str().into()],
+        ));
     }
-    gains.push(format!("{} sec cooldown", num(next.cooldown)));
+    if !matches!(
+        def.kind,
+        Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+    ) {
+        gains.push(strings.by_key(
+            "SPELL_RECAST_TIME_SEC",
+            "%s sec cooldown",
+            &[num(next.cooldown).as_str().into()],
+        ));
+    }
     gains.join(", ")
 }
 
 fn ability_tip(
     o: &Owned,
+    milestones: survivors_core::talents::Milestones,
     stats: &Stats,
     spells: Option<&crate::ui_action::Spells>,
+    strings: &Strings,
 ) -> Vec<TipLine> {
     let def = o.def;
-    let now = cast_at(def, o.level, stats);
+    let now = cast_at(def, o.level, stats, milestones);
     let mut lines = vec![
         TipLine::new(spell_name(spells, def.spell, def.key), Color::WHITE)
             .header()
@@ -2623,39 +2862,207 @@ fn ability_tip(
     ];
     let range = match def.kind {
         Kind::Melee => Some("Melee Range".to_string()),
-        Kind::Bolt | Kind::Strike | Kind::Chain | Kind::Dot | Kind::Ground | Kind::Totem => {
-            Some(format!("{} yd range", num(def.range)))
-        }
+        Kind::Interrupt
+        | Kind::Silence
+        | Kind::Mark
+        | Kind::Bolt
+        | Kind::Strike
+        | Kind::Chain
+        | Kind::Dot
+        | Kind::Curse
+        | Kind::Ground
+        | Kind::Totem => Some(strings.by_key(
+            "SPELL_RANGE",
+            "%s yd range",
+            &[num(now.range).as_str().into()],
+        )),
         _ => None,
     };
-    let mut cast = TipLine::new("Casts itself", Color::WHITE);
+    let coating = matches!(
+        def.kind,
+        Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+    );
+    let mut cast = TipLine::new(
+        if def.kind == Kind::Aspect {
+            "Aspect · active for the run"
+        } else if def.kind == Kind::ContactAura {
+            "Self aura · active for the run"
+        } else if coating {
+            "Weapon coating · active while equipped"
+        } else {
+            "Casts itself"
+        },
+        Color::WHITE,
+    );
     if let Some(range) = range {
         cast = cast.right(range, Color::WHITE);
     }
     lines.push(cast);
-    lines.push(
-        TipLine::new("Instant", Color::WHITE)
-            .right(format!("{} sec cooldown", num(now.cooldown)), Color::WHITE),
-    );
+    if !coating {
+        lines.push(TipLine::new("Instant", Color::WHITE).right(
+            strings.by_key(
+                "SPELL_RECAST_TIME_SEC",
+                "%s sec cooldown",
+                &[num(now.cooldown).as_str().into()],
+            ),
+            Color::WHITE,
+        ));
+    }
     lines.push(TipLine::new(ability_body(def, &now), GOLD));
+    for (verb, duration, boss_duration) in [
+        (
+            "stuns",
+            milestones.secondary_stun(def.key, false),
+            milestones.secondary_stun(def.key, true),
+        ),
+        (
+            "roots",
+            milestones.secondary_root(def.key, false),
+            milestones.secondary_root(def.key, true),
+        ),
+    ] {
+        if duration > 0. {
+            lines.push(TipLine::new(
+                format!(
+                    "Also {verb} for {} sec (bosses: {boss_duration:.2} sec).",
+                    num(duration)
+                ),
+                card_growth::GAIN,
+            ));
+        }
+    }
+    let remorseless = milestones.remorseless_crit(def.key);
+    if remorseless > 0.0 {
+        lines.push(TipLine::new(
+            format!("Remorseless Attacks: after a kill, the next successful Rogue melee cast gains +{} critical chance; expires after 20 sec.", pct(remorseless)),
+            card_growth::GAIN,
+        ));
+    }
+    let shatter = milestones.shatter(def.key, true);
+    if shatter > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Shatter: +{} critical chance against frozen enemies.",
+                pct(shatter)
+            ),
+            card_growth::GAIN,
+        ));
+    }
+    let chill = milestones.winters_chill_chance(def.key, now.dmg);
+    if chill > 0.0 {
+        lines.push(TipLine::new(
+            format!("Winter's Chill: {} chance on frost damage to add a 15 sec stack; +2% Frost critical chance against that enemy per stack, up to 10%.", pct(chill)),
+            card_growth::GAIN,
+        ));
+    }
+    let impact = milestones.impact_chance(def.key, now.dmg);
+    if impact > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Impact: {} chance on fire damage to stun for 1 sec (bosses: 0.3 sec).",
+                pct(impact)
+            ),
+            card_growth::GAIN,
+        ));
+    }
+    let frostbite = milestones.frostbite_chance(def.key, now.dmg);
+    if frostbite > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Frostbite: {} chance on frost damage to freeze for 5 sec (bosses: 1.5 sec).",
+                pct(frostbite)
+            ),
+            card_growth::GAIN,
+        ));
+    }
+    let ignite = milestones.ignite(def.key, 1.0, true);
+    if ignite > 0.0 {
+        lines.push(TipLine::new(
+            format!("Ignite: critical hits add {} of their damage to a four-tick burn; unpaid damage carries forward.", pct(ignite)),
+            card_growth::GAIN,
+        ));
+    }
+    let effect = milestones.cast(def.key);
+    if effect.immune_seconds > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Grants {} sec immunity once per successful cast; preserves longer immunity.",
+                num(effect.immune_seconds)
+            ),
+            card_growth::GAIN,
+        ));
+    }
+    if effect.shield_fraction > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Absorbs {} maximum health for {} sec once per successful cast; does not stack.",
+                pct(effect.shield_fraction),
+                num(effect.shield_seconds)
+            ),
+            card_growth::GAIN,
+        ));
+    }
+    if let Some((key, seconds)) = effect.cooldown_advance {
+        let target = super::data::ability(key);
+        lines.push(TipLine::new(
+            format!(
+                "Advances {} cooldown by {} sec once per successful cast.",
+                spell_name(spells, target.spell, target.key),
+                num(seconds)
+            ),
+            card_growth::GAIN,
+        ));
+    }
+    if effect.storm_fraction > 0.0 {
+        lines.push(TipLine::new(
+            format!(
+                "Divine Storm: {} damage within {} yd of you once per cast.",
+                num(now.dmg * effect.storm_fraction),
+                num(6.0 * stats.area)
+            ),
+            GOLD,
+        ));
+    }
     if !matches!(
         def.kind,
-        Kind::Shield | Kind::Immune | Kind::Heal | Kind::Dot
+        Kind::Interrupt
+            | Kind::Silence
+            | Kind::Shield
+            | Kind::Immune
+            | Kind::Heal
+            | Kind::Regrowth
+            | Kind::DirectHeal
+            | Kind::Dot
+            | Kind::Curse
+            | Kind::WeaponBuff
+            | Kind::Coating(_)
+            | Kind::Aspect
+            | Kind::Mark
     ) {
         lines.push(TipLine::new(
             format!(
-                "{} chance to critically strike for double damage",
-                pct(stats.crit)
+                "{} chance to critically strike for {} damage",
+                pct(now.crit),
+                pct(now.crit_damage.max(1.0))
             ),
             DIM,
         ));
     }
     if o.level < data::MAX_ABILITY_LEVEL {
-        let next = cast_at(def, o.level + 1, stats);
-        lines.push(TipLine::new("Next rank:", Color::WHITE));
-        lines.push(TipLine::new(next_rank(def, &now, &next), GOLD));
+        let next = cast_at(def, o.level + 1, stats, milestones);
+        lines.push(TipLine::new(
+            strings.text("TOOLTIP_TALENT_NEXT_RANK", "Next rank:"),
+            Color::WHITE,
+        ));
+        lines.push(TipLine::new(
+            next_rank(def, &now, &next, strings),
+            card_growth::GAIN,
+        ));
     } else {
-        lines.push(TipLine::new("Highest rank", DIM));
+        lines.push(TipLine::new(
+            strings.text("HONOR_HIGHEST_RANK", "Highest rank"),
+            DIM,
+        ));
     }
     lines
 }
@@ -2682,16 +3089,13 @@ fn passive_text(stat: Stat, v: f32) -> String {
         Stat::Might => format!("Increases all damage you deal by {}.", pct(v)),
         Stat::MaxHp => format!("Increases your maximum health by {}.", pct(v)),
         Stat::Speed => format!("Increases your movement speed by {}.", pct(v)),
-        Stat::Regen => format!("Restores {} health every second.", num(v)),
+        Stat::Regen => format!("Restores {} health every second.", regen_num(v)),
         Stat::Haste => format!("Your abilities recharge {} faster.", pct(v)),
         Stat::Area => format!("Increases the size of your areas of effect by {}.", pct(v)),
         Stat::Magnet => format!("Increases your pickup range by {}.", pct(v)),
         Stat::Growth => format!("Increases the experience you gain by {}.", pct(v)),
         Stat::Armor => format!("Reduces the damage of every hit you take by {}.", num(v)),
-        Stat::Crit => format!(
-            "Increases your chance to critically strike for double damage by {}.",
-            pct(v)
-        ),
+        Stat::Crit => format!("Increases your critical strike chance by {}.", pct(v)),
     }
 }
 
@@ -2701,7 +3105,7 @@ fn stat_total(stat: Stat, s: &Stats) -> String {
         Stat::Might => format!("Damage dealt: {}", pct(s.might)),
         Stat::MaxHp => format!("Maximum health: {}", num(s.max_hp)),
         Stat::Speed => format!("Movement speed: {} yd per second", num(s.speed)),
-        Stat::Regen => format!("Health restored: {} per second", num(s.regen)),
+        Stat::Regen => format!("Health restored: {} per second", regen_num(s.regen)),
         Stat::Haste => format!("Cooldowns: {} shorter", pct(s.haste.min(0.65))),
         Stat::Area => format!("Area of effect: {}", pct(s.area)),
         Stat::Magnet => format!("Pickup range: {} yd", num(s.magnet)),
@@ -2711,22 +3115,34 @@ fn stat_total(stat: Stat, s: &Stats) -> String {
     }
 }
 
-fn passive_tip(p: &PassiveDef, level: u8, stats: &Stats) -> Vec<TipLine> {
+fn passive_tip(
+    p: &PassiveDef,
+    level: u8,
+    stats: &Stats,
+    run: &Run,
+    strings: &Strings,
+) -> Vec<TipLine> {
     let mut lines = vec![
         TipLine::new(p.name, Color::WHITE)
             .header()
             .right(format!("Rank {level}"), TIP_GREY),
-        TipLine::new(passive_text(p.stat, p.per_level * f32::from(level)), GOLD),
+        TipLine::new(passive_text(p.stat, run.passive_value(p, level)), GOLD),
         TipLine::new(stat_total(p.stat, stats), Color::WHITE),
     ];
     if level < data::MAX_PASSIVE_LEVEL {
-        lines.push(TipLine::new("Next rank:", Color::WHITE));
         lines.push(TipLine::new(
-            passive_text(p.stat, p.per_level * f32::from(level + 1)),
-            GOLD,
+            strings.text("TOOLTIP_TALENT_NEXT_RANK", "Next rank:"),
+            Color::WHITE,
+        ));
+        lines.push(TipLine::new(
+            passive_text(p.stat, run.passive_value(p, level + 1)),
+            card_growth::GAIN,
         ));
     } else {
-        lines.push(TipLine::new("Highest rank", DIM));
+        lines.push(TipLine::new(
+            strings.text("HONOR_HIGHEST_RANK", "Highest rank"),
+            DIM,
+        ));
     }
     lines
 }
@@ -2798,6 +3214,7 @@ pub(super) fn icon_tooltip(
     run: Res<Run>,
     spells: Option<Res<crate::ui_action::Spells>>,
     font: Res<HudFont>,
+    strings: Option<Res<Strings>>,
     ui_scale: Res<UiScale>,
     mut assets: Option<ResMut<benilla_assets::WorldAssets>>,
     mut images: ResMut<Assets<Image>>,
@@ -2811,6 +3228,8 @@ pub(super) fn icon_tooltip(
     mut built: Local<Option<(Entity, Entity)>>,
     mut shown: Local<Option<(TipFor, u32)>>,
 ) {
+    let fallback = Strings::default();
+    let strings = strings.as_deref().unwrap_or(&fallback);
     let Some((frame, body)) = *built else {
         if let Some(assets) = assets.as_deref_mut() {
             *built = Some(spawn_tooltip(
@@ -2857,17 +3276,23 @@ pub(super) fn icon_tooltip(
         TipFor::Ability(i) => run
             .abilities
             .get(i)
-            .map(|o| ability_tip(o, &stats, spells.as_deref())),
+            .map(|o| ability_tip(o, run.milestones, &stats, spells.as_deref(), strings)),
         TipFor::Passive(i) => run
             .passives
             .get(i)
-            .map(|&(p, level)| passive_tip(p, level, &stats)),
+            .map(|&(p, level)| passive_tip(p, level, &stats, &run, strings)),
         TipFor::Mobility => run.mobility().map(|m| {
             vec![
                 TipLine::new(spell_name(spells.as_deref(), m.spell, m.name), Color::WHITE).header(),
-                TipLine::new("Press F", Color::WHITE)
-                    .right(format!("{} sec cooldown", num(m.cooldown)), Color::WHITE),
-                TipLine::new(m.desc, GOLD),
+                TipLine::new("Press F", Color::WHITE).right(
+                    strings.by_key(
+                        "SPELL_RECAST_TIME_SEC",
+                        "%s sec cooldown",
+                        &[num(m.cooldown).as_str().into()],
+                    ),
+                    Color::WHITE,
+                ),
+                TipLine::new(m.description(), GOLD),
             ]
         }),
     };
@@ -2914,7 +3339,10 @@ pub(super) fn icon_tooltip(
 
 #[allow(clippy::type_complexity)]
 pub(super) fn show_panels(
+    settings: Res<PausePage>,
     phase: Res<State<Phase>>,
+    preview: Res<super::cards::PreviewHand>,
+    mut hints: Query<&mut Text, With<LevelHint>>,
     mut roots: ParamSet<(
         Query<(&mut Visibility, &mut Node), With<MenuRoot>>,
         Query<(&mut Visibility, &mut Node), With<HudRoot>>,
@@ -2924,6 +3352,16 @@ pub(super) fn show_panels(
     )>,
 ) {
     let p = *phase.get();
+    let hint = if preview.0 {
+        "Preview only · Picks disabled · Scroll or PgUp/PgDn for more"
+    } else {
+        "Click a card or press its number · Scroll or PgUp/PgDn for more"
+    };
+    for mut text in &mut hints {
+        if text.0 != hint {
+            text.0 = hint.into();
+        }
+    }
     // A hidden panel leaves the layout too: a merely invisible button still takes clicks.
     let set = |(mut v, mut node): (Mut<Visibility>, Mut<Node>), on: bool| {
         let want = if on {
@@ -2940,18 +3378,1045 @@ pub(super) fn show_panels(
         }
     };
     for root in &mut roots.p0() {
-        set(root, p == Phase::Menu);
+        set(root, p == Phase::Menu && !preview.0 && !settings.open);
     }
     for root in &mut roots.p1() {
         set(root, p != Phase::Menu && p != Phase::GameOver);
     }
     for root in &mut roots.p2() {
-        set(root, p == Phase::LevelUp);
+        set(root, p == Phase::LevelUp || preview.0);
     }
     for root in &mut roots.p3() {
-        set(root, p == Phase::Paused);
+        set(
+            root,
+            p == Phase::Paused || (p == Phase::Menu && settings.open),
+        );
     }
     for root in &mut roots.p4() {
         set(root, p == Phase::GameOver);
+    }
+}
+
+#[cfg(test)]
+mod talent_tooltip_tests;
+
+#[cfg(test)]
+mod card_icon_tests {
+    use super::super::campaign::{JewelKind, AMULET_NAMES, RING_NAMES, TRINKET_NAMES};
+    use super::*;
+
+    #[test]
+    fn mage_can_acquire_and_upgrade_mana_shield_through_normal_offers() {
+        let mut run = Run {
+            class: &data::CLASSES[6],
+            hp: 100.,
+            ..Default::default()
+        };
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let slot = offer
+            .choices
+            .iter()
+            .position(
+                |choice| matches!(choice, Choice::NewAbility(def) if def.key == "mana_shield"),
+            )
+            .unwrap();
+        pick(
+            slot,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(
+            (run.abilities[0].def.key, run.abilities[0].level),
+            ("mana_shield", 1)
+        );
+        offer.choices = choices_for(&run, &mut rng, 100);
+        assert!(!offer
+            .choices
+            .iter()
+            .any(|choice| matches!(choice, Choice::NewAbility(def) if def.key == "mana_shield")));
+        let slot = offer
+            .choices
+            .iter()
+            .position(|choice| matches!(choice, Choice::Upgrade(0)))
+            .unwrap();
+        pick(
+            slot,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities[0].level, 2);
+    }
+
+    #[test]
+    fn hunter_can_acquire_and_upgrade_attacks_and_mark_through_normal_offers() {
+        for key in [
+            "hunters_mark",
+            "scorpid_sting",
+            "raptor_strike",
+            "mongoose_bite",
+            "wing_clip",
+        ] {
+            let mut run = Run {
+                class: &data::CLASSES[2],
+                hp: 100.,
+                ..Default::default()
+            };
+            let mut rng = Rng(42);
+            let mut offer = Offer {
+                choices: choices_for(&run, &mut rng, 100),
+            };
+            let slot = offer
+                .choices
+                .iter()
+                .position(|choice| matches!(choice, Choice::NewAbility(def) if def.key == key))
+                .unwrap();
+            pick(
+                slot,
+                &mut run,
+                &mut offer,
+                &mut rng,
+                &mut NextState::default(),
+            );
+            assert_eq!(run.abilities.len(), 1);
+            assert_eq!((run.abilities[0].def.key, run.abilities[0].level), (key, 1));
+            offer.choices = choices_for(&run, &mut rng, 100);
+            assert!(!offer
+                .choices
+                .iter()
+                .any(|choice| matches!(choice, Choice::NewAbility(def) if def.key == key)));
+            let slot = offer
+                .choices
+                .iter()
+                .position(|choice| matches!(choice, Choice::Upgrade(0)))
+                .unwrap();
+            pick(
+                slot,
+                &mut run,
+                &mut offer,
+                &mut rng,
+                &mut NextState::default(),
+            );
+            assert_eq!(run.abilities[0].level, 2);
+        }
+    }
+
+    #[test]
+    fn chest_jewelry_resolves_item_art_and_keeps_legend_spell_art() {
+        let mut run = Run::default();
+        for (names, kind) in [
+            (
+                RING_NAMES.as_slice(),
+                JewelKind::Ring as fn(u8) -> JewelKind,
+            ),
+            (
+                TRINKET_NAMES.as_slice(),
+                JewelKind::Trinket as fn(u8) -> JewelKind,
+            ),
+            (
+                AMULET_NAMES.as_slice(),
+                JewelKind::Amulet as fn(u8) -> JewelKind,
+            ),
+        ] {
+            for (i, name) in names.iter().enumerate() {
+                let card = describe_card(Choice::Jewel(kind(i as u8)), &run, None);
+                assert_eq!(card.name, *name);
+                assert_eq!(
+                    card.icon,
+                    CardIcon::Item(super::super::jewel_icons::display(name).unwrap())
+                );
+            }
+        }
+        for kind in [
+            JewelKind::Ring(255),
+            JewelKind::Trinket(255),
+            JewelKind::Amulet(255),
+        ] {
+            assert_eq!(
+                describe_card(Choice::Jewel(kind), &run, None).icon,
+                CardIcon::Missing
+            );
+        }
+        for def in data::ABILITIES {
+            let card = describe_card(
+                Choice::Jewel(JewelKind::Legend(def.key)),
+                &Run::default(),
+                None,
+            );
+            assert_eq!(card.icon, CardIcon::Spell(def.spell), "{}", def.key);
+            assert_eq!(
+                card.name,
+                format!("Amulet of {}", def.key.replace('_', " "))
+            );
+        }
+        let def = data::ability("cleave");
+        run.abilities.push(super::super::Owned {
+            def,
+            level: 1,
+            cd: 0.,
+        });
+        assert_eq!(
+            describe_card(Choice::Jewel(JewelKind::Legend("cleave")), &run, None).icon,
+            CardIcon::Spell(def.spell)
+        );
+        assert_eq!(
+            describe_card(Choice::NewAbility(def), &run, None).icon,
+            CardIcon::Spell(def.spell)
+        );
+        assert_eq!(
+            describe_card(Choice::Heal, &run, None).icon,
+            CardIcon::Spell(5720)
+        );
+    }
+}
+
+#[cfg(test)]
+mod settings_navigation_tests {
+    use super::*;
+    use bevy::ecs::system::RunSystemOnce;
+
+    #[test]
+    fn run_options_blocks_enter_until_returning_to_starter() {
+        let mut world = World::new();
+        world.insert_resource(State::new(Phase::Menu));
+        world.init_resource::<NextState<Phase>>();
+        world.init_resource::<ButtonInput<KeyCode>>();
+        world.init_resource::<super::super::renown::Renown>();
+        world.init_resource::<super::super::stash::Stash>();
+        let mut account = super::super::account::empty();
+        let hero = account.create("Entry", "Test", 0).unwrap();
+        world.insert_resource(account);
+        world.init_resource::<super::super::Typing>();
+        world.init_resource::<super::super::armory::Armory>();
+        world.insert_resource(Selection {
+            class: Some(0),
+            character: Some(hero),
+            looks: vec![(49, 1, 0)],
+            look: Some(0),
+            map: data::MAPS
+                .iter()
+                .position(|map| map.name == "Elwynn Forest")
+                .unwrap(),
+            ..default()
+        });
+        world.init_resource::<Run>();
+        world.insert_resource(PausePage {
+            open: false,
+            ..default()
+        });
+        world
+            .resource_mut::<super::super::armory::Armory>()
+            .open_page(super::super::armory::Page::RunOptions);
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Enter);
+        world.run_system_once(keys).unwrap();
+        assert!(matches!(
+            world.resource::<NextState<Phase>>(),
+            NextState::Unchanged
+        ));
+        world
+            .resource_mut::<super::super::armory::Armory>()
+            .open_page(super::super::armory::Page::Door);
+        world.resource_mut::<Selection>().character = None;
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Enter);
+        world.run_system_once(keys).unwrap();
+        assert!(matches!(
+            world.resource::<NextState<Phase>>(),
+            NextState::Unchanged
+        ));
+        world.resource_mut::<Selection>().character = Some(hero);
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::Enter);
+        world.run_system_once(keys).unwrap();
+        assert!(matches!(
+            world.resource::<NextState<Phase>>(),
+            NextState::Pending(Phase::Playing)
+        ));
+    }
+
+    #[test]
+    fn settings_consume_enter_and_escape_without_starting_or_resuming_a_run() {
+        for phase in [Phase::Menu, Phase::Paused] {
+            let mut world = World::new();
+            world.insert_resource(State::new(phase));
+            world.init_resource::<NextState<Phase>>();
+            world.init_resource::<ButtonInput<KeyCode>>();
+            world.init_resource::<super::super::renown::Renown>();
+            world.init_resource::<super::super::stash::Stash>();
+            let mut account = super::super::account::empty();
+            let hero = account.create("Entry", "Test", 0).unwrap();
+            world.insert_resource(account);
+            world.init_resource::<super::super::Typing>();
+            world.init_resource::<super::super::armory::Armory>();
+            world.insert_resource(Selection {
+                class: Some(0),
+                character: Some(hero),
+                looks: vec![(49, 1, 0)],
+                look: Some(0),
+                map: data::MAPS
+                    .iter()
+                    .position(|map| map.name == "Elwynn Forest")
+                    .unwrap(),
+                ..default()
+            });
+            world.init_resource::<Run>();
+            world.insert_resource(PausePage {
+                open: true,
+                ..default()
+            });
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(KeyCode::Enter);
+            world.run_system_once(keys).unwrap();
+            assert!(world.resource::<PausePage>().open);
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Unchanged
+            ));
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(KeyCode::Escape);
+            world.run_system_once(keys).unwrap();
+            assert!(!world.resource::<PausePage>().open);
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Unchanged
+            ));
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world
+                .resource_mut::<ButtonInput<KeyCode>>()
+                .press(if phase == Phase::Menu {
+                    KeyCode::Enter
+                } else {
+                    KeyCode::Escape
+                });
+            world.run_system_once(keys).unwrap();
+            assert!(matches!(
+                world.resource::<NextState<Phase>>(),
+                NextState::Pending(Phase::Playing)
+            ));
+        }
+    }
+
+    #[test]
+    fn starter_settings_remove_menu_from_layout_and_back_restores_it() {
+        let mut world = World::new();
+        world.insert_resource(State::new(Phase::Menu));
+        world.insert_resource(PausePage {
+            open: true,
+            ..default()
+        });
+        world.init_resource::<super::super::cards::PreviewHand>();
+        let menu = world
+            .spawn((MenuRoot, Visibility::Inherited, Node::default()))
+            .id();
+        let pause = world
+            .spawn((PauseRoot, Visibility::Hidden, Node::default()))
+            .id();
+        world.run_system_once(show_panels).unwrap();
+        assert_eq!(world.get::<Node>(menu).unwrap().display, Display::None);
+        assert_eq!(world.get::<Visibility>(menu), Some(&Visibility::Hidden));
+        assert_eq!(world.get::<Node>(pause).unwrap().display, Display::Flex);
+        world.resource_mut::<PausePage>().open = false;
+        world.run_system_once(show_panels).unwrap();
+        assert_eq!(world.get::<Node>(menu).unwrap().display, Display::Flex);
+        assert_eq!(world.get::<Node>(pause).unwrap().display, Display::None);
+    }
+}
+
+#[cfg(test)]
+mod ancestral_status_tests {
+    use super::*;
+    #[test]
+    fn ancestral_status_requires_a_living_hero_and_active_training() {
+        let mut run = Run {
+            hp: 50.,
+            ancestral_healing_t: 9.2,
+            milestones: survivors_core::talents::Milestones {
+                class: 5,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 581, 2)]),
+            ..Default::default()
+        };
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Ancestral Healing +24 armor (10s)"
+        );
+        run.ancestral_healing_t = 0.;
+        assert_eq!(reactive_buff_status(&run), "");
+        run.ancestral_healing_t = 5.;
+        run.hp = 0.;
+        assert_eq!(reactive_buff_status(&run), "");
+    }
+}
+
+#[cfg(test)]
+mod arcane_power_status_tests {
+    use super::*;
+    #[test]
+    fn power_status_only_shows_a_trained_living_hero_during_the_burst() {
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 87, 1)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.arcane_power.consume(run.milestones, "fireball", 0.0);
+        run.elapsed = 1.2;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Arcane Power +30% Mage damage (14s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.elapsed = 15.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 1.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod power_infusion_status_tests {
+    use super::*;
+    #[test]
+    fn infusion_status_expires_and_hides_on_death_or_refund() {
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 322, 1)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.power_infusion.consume(run.milestones, "smite", 0.);
+        run.elapsed = 1.2;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Power Infusion +20% Priest damage/healing (14s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.elapsed = 15.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 1.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod hawk_status_tests {
+    use super::*;
+    #[test]
+    fn active_hawk_status_expires_and_hides_on_death_or_refund() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[2],
+            milestones: survivors_core::talents::Milestones {
+                class: 2,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 1382, 5)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hawk.proc(run.milestones, "arcane_shot", 0., 0.);
+        run.elapsed = 1.2;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Improved Hawk: +15% shot haste (11s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.elapsed = 15.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 1.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod adrenaline_rush_status_tests {
+    use super::*;
+    #[test]
+    fn active_rush_status_expires_and_hides_on_death_or_refund() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[3],
+            milestones: survivors_core::talents::Milestones {
+                class: 3,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 205, 1)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.adrenaline_rush
+            .consume(run.milestones, "sinister_strike", 0.);
+        run.elapsed = 1.2;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Adrenaline Rush: 50% shorter Rogue cast cooldown (14s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.elapsed = 15.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 1.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod combustion_status_tests {
+    use super::*;
+    #[test]
+    fn combustion_status_tracks_burst_and_hides_on_completion_refund_or_death() {
+        let mut run = Run {
+            milestones: survivors_core::talents::Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 36, 1)]),
+            ..Default::default()
+        };
+        assert!(reactive_buff_status(&run).is_empty());
+        run.combustion
+            .hit(run.milestones, "fireball", 10., true, 0.);
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Combustion +20% Fire critical chance (1/3 critical hits)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        let trained = run.milestones;
+        run.milestones = trained.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+        run.milestones = trained;
+        run.combustion.hit(trained, "fireball", 10., true, 0.);
+        run.combustion.hit(trained, "fireball", 10., true, 0.);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod deterrence_status_tests {
+    use super::*;
+    #[test]
+    fn deterrence_status_tracks_windows_and_hides_on_death_or_refund() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[2],
+            milestones: survivors_core::talents::Milestones {
+                class: 2,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 1308, 1)]),
+            elapsed: 1.2,
+            ..Default::default()
+        };
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Deterrence: +25% dodge and parry (9s)"
+        );
+        run.elapsed = 10.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.elapsed = 180.;
+        assert_eq!(
+            reactive_buff_status(&run),
+            "Deterrence: +25% dodge and parry (10s)"
+        );
+        run.hp = 0.;
+        assert!(reactive_buff_status(&run).is_empty());
+        run.hp = 100.;
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(reactive_buff_status(&run).is_empty());
+    }
+}
+#[cfg(test)]
+mod poison_offer_tests {
+    use super::*;
+    use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn coating_choice_excludes_the_other_coating_but_preserves_upgrades() {
+        for key in ["instant_poison", "deadly_poison"] {
+            let mut run = Run {
+                class: &data::CLASSES[3],
+                hp: 100.0,
+                milestones: survivors_core::talents::Milestones {
+                    class: 3,
+                    weapon: Some(MeleeWeapon {
+                        kind: MeleeKind::Dagger,
+                        two_handed: false,
+                    }),
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+            let mut rng = Rng(42);
+            let mut offer = Offer {
+                choices: choices_for(&run, &mut rng, 100),
+            };
+            for expected in ["instant_poison", "deadly_poison"] {
+                assert!(offer
+                    .choices
+                    .iter()
+                    .any(|c| matches!(c, Choice::NewAbility(d) if d.key == expected)));
+            }
+            let index = offer
+                .choices
+                .iter()
+                .position(|c| matches!(c, Choice::NewAbility(d) if d.key == key))
+                .unwrap();
+            pick(
+                index,
+                &mut run,
+                &mut offer,
+                &mut rng,
+                &mut NextState::default(),
+            );
+            assert_eq!(run.abilities.len(), 1);
+            let choices = choices_for(&run, &mut rng, 100);
+            assert!(!choices
+                .iter()
+                .any(|c| matches!(c, Choice::NewAbility(d) if matches!(d.kind, Kind::Coating(_)))));
+            assert!(choices.iter().any(|c| matches!(c, Choice::Upgrade(0))));
+            offer.choices = vec![Choice::NewAbility(data::ability(
+                if key == "instant_poison" {
+                    "deadly_poison"
+                } else {
+                    "instant_poison"
+                },
+            ))];
+            pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+            assert_eq!(
+                run.abilities.len(),
+                1,
+                "stale cards cannot add a second coating"
+            );
+            offer.choices = vec![Choice::Upgrade(0)];
+            pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+            assert_eq!(run.abilities[0].level, 2);
+            run.abilities.clear();
+            run.milestones.weapon = None;
+            assert!(!choices_for(&run, &mut rng, 100)
+                .iter()
+                .any(|c| matches!(c, Choice::NewAbility(d) if matches!(d.kind, Kind::Coating(_)))));
+            offer.choices = vec![Choice::NewAbility(data::ability(key))];
+            pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+            assert!(run.abilities.is_empty());
+        }
+    }
+    #[test]
+    fn poison_cards_use_inline_green_damage_and_never_claim_an_autocast() {
+        let run = Run::default();
+        for key in ["instant_poison", "deadly_poison"] {
+            let def = data::ability(key);
+            let a = cast_at(def, 1, &run.stats(), run.milestones);
+            let b = cast_at(def, 2, &run.stats(), run.milestones);
+            let spans = inline::ability(def, &a, &b);
+            assert!(spans.iter().any(|(text, color)| text.contains(" » ")
+                && text.ends_with(" damage")
+                && *color == card_growth::GAIN));
+            let body = base_ability_body(def);
+            assert!(!body.contains("Recharges"));
+            assert!(!body.contains("cooldown"));
+            assert!(body.contains("One coating per run"));
+            assert_eq!(a.cooldown, 0.0);
+            assert_eq!(a.count, 0);
+            assert_eq!(a.crit, 0.0);
+            if key == "deadly_poison" {
+                assert_eq!(b.duration, 12.0);
+                assert!(body.contains("every 3 sec for 12 sec"));
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod mind_flay_tests {
+    use super::*;
+    #[test]
+    fn talent_unlock_controls_offers_and_acquisition_with_inline_tick_growth() {
+        let mut run = Run {
+            class: &data::CLASSES[4],
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let def = data::ability("mind_flay");
+        let mut rng = Rng(42);
+        assert!(!choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key)));
+        run.milestones = run.milestones.with_ranks(&[(2, 501, 1)]);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, "mind_flay");
+        let mut stats = run.stats();
+        let a = cast_at(def, 1, &stats, run.milestones);
+        let b = cast_at(def, 2, &stats, run.milestones);
+        assert!(inline::ability(def, &a, &b)
+            .iter()
+            .any(|(text, color)| text == "25 » 32.5 damage" && *color == card_growth::GAIN));
+        stats.targets = 2;
+        stats.crit = 1.0;
+        stats.haste = 1.0;
+        let boosted = cast_at(def, 1, &stats, run.milestones);
+        assert_eq!(
+            (
+                boosted.count,
+                boosted.duration,
+                boosted.crit,
+                boosted.cooldown
+            ),
+            (3, 3.0, 0.0, 3.0)
+        );
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(!coating_available(&run, def));
+    }
+}
+
+#[cfg(test)]
+mod weakness_preview_tests {
+    use super::*;
+    #[test]
+    fn weakness_preview_shows_inline_potency_and_shared_units() {
+        let mut run = Run {
+            class: &data::CLASSES[7],
+            milestones: survivors_core::talents::Milestones {
+                class: 7,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(
+                |choice| matches!(choice,Choice::NewAbility(def) if def.key=="curse_of_weakness"),
+            )
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, "curse_of_weakness");
+        assert!(choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|choice| matches!(choice, Choice::Upgrade(0))));
+        let def = data::ability("curse_of_weakness");
+        let a = cast_at(def, 1, &run.stats(), run.milestones);
+        let b = cast_at(def, 2, &run.stats(), run.milestones);
+        let spans = inline::ability(def, &a, &b);
+        assert!(spans
+            .iter()
+            .any(|(text, color)| text == "3 » 3.9 damage" && *color == card_growth::GAIN));
+        assert!(spans
+            .iter()
+            .any(|(text, color)| text == "12 » 13.2 sec" && *color == card_growth::GAIN));
+        let prose = spans.into_iter().map(|(text, _)| text).collect::<String>();
+        assert!(!prose.contains("every second"));
+        assert!(!prose.contains("0 damage"));
+        assert!(prose.contains("Replaces your other curse"));
+    }
+}
+
+#[cfg(test)]
+mod repentance_offer_tests {
+    use super::*;
+    #[test]
+    fn talent_unlock_controls_offers_and_acquisition_with_inline_tick_growth() {
+        let mut run = Run {
+            class: &data::CLASSES[1],
+            milestones: survivors_core::talents::Milestones {
+                class: 1,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let def = data::ability("repentance");
+        let mut rng = Rng(42);
+        assert!(!choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key)));
+        run.milestones = run.milestones.with_ranks(&[(2, 1441, 1)]);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, "repentance");
+        let mut stats = run.stats();
+        let a = cast_at(def, 1, &stats, run.milestones);
+        let b = cast_at(def, 2, &stats, run.milestones);
+        assert!(inline::ability(def, &a, &b)
+            .iter()
+            .any(|(text, color)| text == "6 » 6.6 sec" && *color == card_growth::GAIN));
+        stats.targets = 2;
+        let boosted = cast_at(def, 1, &stats, run.milestones);
+        assert_eq!(boosted.count, 3);
+        assert_eq!(boosted.dmg, 0.0);
+        assert_eq!(boosted.effect, Effect::Incapacitate(6.0));
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(!coating_available(&run, def));
+    }
+}
+
+#[cfg(test)]
+mod retribution_aura_offer_tests {
+    use super::*;
+    #[test]
+    fn ordinary_acquisition_and_inline_growth_have_no_timer_or_target_scaling() {
+        let mut run = Run {
+            class: &data::CLASSES[1],
+            ..Default::default()
+        };
+        run.milestones.class = 1;
+        let def = data::ability("retribution_aura");
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, def.key);
+        let mut stats = run.stats();
+        stats.targets = 5;
+        stats.haste = 2.0;
+        stats.area = 2.0;
+        let a = cast_at(def, 1, &stats, run.milestones);
+        let b = cast_at(def, 2, &stats, run.milestones);
+        assert_eq!((a.count, b.count), (0, 0));
+        assert_eq!(
+            (a.cooldown, a.range, a.radius, a.duration, a.crit),
+            (0.0, 0.0, 0.0, 0.0, 0.0)
+        );
+        assert!(inline::ability(def, &a, &b)
+            .iter()
+            .any(|(text, color)| text == "5 » 6.5 Holy damage" && *color == card_growth::GAIN));
+        let body = base_ability_body(def);
+        assert!(body.contains("Active for the run"));
+        assert!(!body.contains("Recharges"));
+    }
+}
+
+#[cfg(test)]
+mod holy_light_offer_tests {
+    use super::*;
+    #[test]
+    fn holy_light_is_acquired_and_shows_inline_healing_and_recovery() {
+        for (key, health, recovery) in [
+            ("holy_light", "40 » 52 health", "12 » 11.2 sec"),
+            ("flash_of_light", "18 » 23.4 health", "6 » 5.6 sec"),
+        ] {
+            let mut run = Run {
+                class: &data::CLASSES[1],
+                ..Default::default()
+            };
+            run.milestones.class = 1;
+            let def = data::ability(key);
+            let mut rng = Rng(42);
+            let mut offer = Offer {
+                choices: choices_for(&run, &mut rng, 100),
+            };
+            let index = offer
+                .choices
+                .iter()
+                .position(|c| matches!(c, Choice::NewAbility(d) if d.key == def.key))
+                .unwrap();
+            pick(
+                index,
+                &mut run,
+                &mut offer,
+                &mut rng,
+                &mut NextState::default(),
+            );
+            assert_eq!(run.abilities[0].def.key, def.key);
+            let a = cast_at(def, 1, &run.stats(), run.milestones);
+            let b = cast_at(def, 2, &run.stats(), run.milestones);
+            let spans = inline::ability(def, &a, &b);
+            assert!(spans
+                .iter()
+                .any(|(text, color)| text == health && *color == card_growth::GAIN));
+            assert!(spans
+                .iter()
+                .any(|(text, color)| text == recovery && *color == card_growth::GAIN));
+            for rank in 0..=5 {
+                let trained = run.milestones.with_ranks(&[(0, 1627, rank)]);
+                assert!((trained.cast(key).crit - 0.02 * f32::from(rank)).abs() < 0.0001);
+                assert_eq!(
+                    trained.cast("healing_touch"),
+                    run.milestones.cast("healing_touch")
+                );
+                assert_eq!(
+                    trained.cast("retribution_aura"),
+                    run.milestones.cast("retribution_aura")
+                );
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod healing_wave_offer_tests {
+    use super::*;
+    #[test]
+    fn healing_wave_enters_normal_offers_and_shows_green_inline_growth() {
+        let mut run = Run {
+            class: &data::CLASSES[5],
+            ..Default::default()
+        };
+        run.milestones.class = 5;
+        let mut rng = Rng(42);
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == "healing_wave"))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        let def = data::ability("healing_wave");
+        assert_eq!(run.abilities[0].def.key, def.key);
+        let a = cast_at(def, 1, &run.stats(), run.milestones);
+        let b = cast_at(def, 2, &run.stats(), run.milestones);
+        let spans = inline::ability(def, &a, &b);
+        for expected in ["40 » 52 health", "12 » 11.2 sec"] {
+            assert!(spans
+                .iter()
+                .any(|(text, color)| text == expected && *color == card_growth::GAIN));
+        }
+    }
+}
+
+#[cfg(test)]
+mod silence_tests {
+    use super::*;
+
+    #[test]
+    fn silence_requires_training_then_uses_an_ability_slot_and_inline_growth() {
+        let mut run = Run {
+            class: &data::CLASSES[4],
+            milestones: survivors_core::talents::Milestones {
+                class: 4,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut rng = Rng(42);
+        assert!(!choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|c| matches!(c, Choice::NewAbility(d) if d.key == "silence")));
+        run.milestones = run.milestones.with_ranks(&[(2, 541, 1)]);
+        assert!(run.abilities.is_empty());
+        let mut offer = Offer {
+            choices: choices_for(&run, &mut rng, 100),
+        };
+        let index = offer
+            .choices
+            .iter()
+            .position(|c| matches!(c, Choice::NewAbility(d) if d.key == "silence"))
+            .unwrap();
+        pick(
+            index,
+            &mut run,
+            &mut offer,
+            &mut rng,
+            &mut NextState::default(),
+        );
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].def.key, "silence");
+        let def = run.abilities[0].def;
+        let a = cast_at(def, 1, &run.stats(), run.milestones);
+        let b = cast_at(def, 2, &run.stats(), run.milestones);
+        let spans = inline::ability(def, &a, &b);
+        assert!(spans
+            .iter()
+            .any(|(text, color)| text == "45 » 41.8 sec" && *color == card_growth::GAIN));
+        let text: String = spans.iter().map(|(text, _)| text.as_str()).collect();
+        assert!(text.contains("5 sec"));
+        assert!(!text.contains("new rank"));
+        assert!(!text.contains("45 sec »"));
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert!(!coating_available(&run, def));
     }
 }

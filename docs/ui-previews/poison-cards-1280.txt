@@ -1,0 +1,6 @@
+page=cards
+width=1280
+height=720
+hero=4
+abilities=instant_poison:0,instant_poison:1,deadly_poison:0
+profile=selected

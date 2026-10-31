@@ -1,0 +1,10547 @@
+# Survivors implementation contract
+
+This plan implements [the Armory specification](SURVIVORS.md) and its
+[intention images](intentions/). It is a work breakdown and acceptance contract, not a
+replacement design or a claim that the illustrated game already exists. Git records
+completed changes. Each phase must pass its acceptance criteria before it is called done.
+
+Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase summary,
+remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
+not a cumulative declaration that every earlier pending item is still open.
+
+## Pointer name editing — 2026-10-31
+
+[Mouse caret placement and drag selection](audits/NAME-POINTER.md) now use the
+rendered letter boundaries. Native compact creation and wide starter rename,
+including forward/reverse selection and restart, are verified. Browser clipboard
+and remaining platform acceptance stay open. This supersedes mouse-editing gaps
+in historical checkpoints below.
+
+## Keyboard name editing — 2026-10-31
+
+[Keyboard caret and partial selection](audits/NAME-CARET.md) now use the engine
+edit-box core and OS keymap. Native compact-window creation, partial rename,
+cancellation and restart are verified. Twelve focused tests, scoped gate and
+native/WebGPU builds pass. Mouse caret placement/drag selection, browser clipboard
+and remaining platform acceptance stay open; this supersedes the keyboard-caret
+gaps in the historical checkpoints below.
+
+## Native name clipboard — 2026-10-31
+
+[Creation and rename clipboard input](audits/NAME-CLIPBOARD.md) now supports
+copy/cut/paste with existing filtering and length limits. Native compact
+creation, cancellation and restart evidence accompanies the scoped tests and
+build. Cursor/partial selection, browser clipboard and other platform acceptance
+remain open.
+
+## Rewards reset acceptance — 2026-10-31
+
+[Native two-reset evidence](audits/REWARD-RESETS.md) verifies exact refunds,
+preview/undo, rejection after both resets, and companion/cosmetic preservation
+through restart. Wide purchase flows and minimum-window rejection are captured.
+Phase 6 remains open for actual gameplay, achievement settlement and remaining
+platform acceptance; this checkpoint changes no runtime code.
+
+## Name selection and replacement — 2026-10-31
+
+[Command-A/Ctrl-A selection](audits/NAME-SELECTION.md) now works in creation and
+starter rename fields, with native compact creation/save/cancel/restart evidence.
+This resolves whole-name selection from the minimum-window audit. Partial
+selection, cursor movement, clipboard editing and remaining platform acceptance
+stay open.
+
+## Minimum-window character creation — 2026-10-31
+
+The [native creation audit](audits/CHARACTER-CREATION-MINIMUM.md) verifies empty-name
+rejection, Mage creation, race/body/features and restart retention at 640×480,
+125% requested scale with automatic short-window fit. The reference layout stacks
+into scrollable sections. Command-A/Ctrl-A selection and cursor editing remain
+polish work; other platform/body/resolution cells and controller input remain open.
+No runtime changes or broader phase completion are claimed.
+
+## All-class native talent layout matrix — 2026-10-30
+
+All nine classes now have top-row and complete milestone-footer evidence at
+1440×600 / 125% on native macOS. Sixteen additional captures and the earlier
+Warrior check are indexed in the [talent layout audit](audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30).
+This closes that class/layout cell only; other resolutions, platforms, full
+interaction and gameplay acceptance remain open. No talent mechanics changed.
+
+## Native wide/short talent acceptance — 2026-10-30
+
+The [native talent audit](audits/TALENTS-WIDE-SHORT.md) adds Warrior layout,
+locked-node inspection and milestone reachability at 1440×600 / 125%, plus a
+100% comparison. It supplements browser ultrawide evidence. Screenshots are
+inline in CHANGELOG and README. Other classes, Windows, controller and the
+remaining resolution matrix remain open; no runtime change is claimed.
+
+## Stoneclaw distance retention — 2026-10-30
+
+Forced targeting now takes precedence over the 75-yard enemy recycling rule.
+Captured ordinary enemies continue approaching a living totem when the hero
+leaves; expiry restores normal recycling. The actual movement-system regression
+failed before the fix and passes afterward, alongside all eight existing
+Stoneclaw tests. See the [earth-totem audit](audits/EARTH-TOTEMS.md).
+Attended combat and Windows acceptance remain open.
+
+## Druid form visual prerequisites — 2026-10-30
+
+The [Druid dependency audit](audits/DRUID-TALENT-DEPENDENCIES.md#verified-form-models--2026-10-30)
+now records verified Night Elf/Tauren Cat, Bear and Moonkin displays, decoded
+textures and a native six-model specimen capture. Model discovery is complete
+for those identities; player transforms, scaling/collision, equipment restoration
+and combat remain open. Form-selection policy is awaiting the user's answer.
+This does not increase named-talent coverage or complete shapeshifting.
+
+## Fire-totem ground placement — 2026-10-30
+
+Searing and Magma now share the floor-support, body-space and connectivity
+requirements already used by the earth totems. Their preferred nearby position
+is grounded; invalid offsets fall back to the hero's supported feet. No valid
+position means a short retry without a spawned entity or cast effect. The
+[totem audit](audits/TOTEM-CADENCE.md) records the actual-cast regressions and
+pre-fix failures. This fixes deployment correctness, not the still-pending
+Improved Fire Totems node or attended terrain/Windows acceptance.
+
+## Earth's Grasp — 2026-10-29
+
+Node 572 now applies both installed bonuses: +25/50% Stoneclaw health and
++10/20% Earthbind radius. The runtime deployment, actual slow pulse radius and
+spell-card values consume the purchased talent. Dual inline green values describe
+each next rank. Native purchase/refund (0→1→2→1), wide/compact layouts, save and
+relaunch into selected-profile cards are verified. Stoneclaw shows 62.5 health at
+rank one; Earthbind radius also composes with equipment. Live combat and Windows
+acceptance remain open. Coverage is now Shaman 33/46, overall 309/432; this
+supersedes the pending Earth's Grasp notes below, not the unfinished talent phase.
+
+## Achievement reading layout — 2026-10-29
+
+Achievement cards and summary progress use one full-width column on narrow
+content panels and two equal columns on wider panels, preserving incomplete-row
+alignment from the intention. Native summary checks cover 640×720 / 125% and
+1280×720; short-window Feats checks cover 640×480 and both pending companions.
+Page Down/End remain usable. Screenshots are inline in CHANGELOG and the README
+gallery; [evidence and presets](audits/ACHIEVEMENT-READABILITY.md) record scope.
+This does not close Windows or the full interface acceptance matrix.
+
+## Stoneclaw forced targeting — 2026-10-29
+
+Confirmed: Stoneclaw forces ordinary enemies to target it while it lives; bosses
+are immune. Runtime integration makes it a Shaman offer with 50 health, 15-second
+lifetime and 30-second base recovery. Visible enemies entering its eight-yard
+base radius remain captured until destruction, expiry or replacement, even if
+later outside the radius or out of sight. Stoneclaw takes priority over pet
+attention and keeps enemies engaged when the hero vanishes. Existing navigation
+still handles obstacles. Ranks improve radius/recovery; health/lifetime stay fixed.
+Earth's Grasp scaling and native combat acceptance remain separate unfinished work.
+See the [earth-totem audit](audits/EARTH-TOTEMS.md).
+
+## Earthbind model verification — 2026-10-29
+
+Settled native specimens show Earthbind's solid body and effects, repeated beside
+Fire Totem on a second launch. Live diagnostics confirm idle slot 1 and visible
+materials at alpha 1. This supersedes the earlier insufficient screenshot's
+persistent-failure interpretation. No model/renderer change was necessary.
+Combat deployment, destruction visuals and Windows remain open; screenshots are
+inline in CHANGELOG/README and evidence is in the [audit](audits/EARTH-TOTEMS.md).
+
+## Earthbind runtime and offers — 2026-10-29
+
+Earthbind is now acquired through Shaman offers, grounded before deployment,
+replaced on recast and destructible by nearby ordinary foes. Its independent
+slow area deals no damage, preserves other slows and uses the existing boss
+reduction. The [audit](audits/EARTH-TOTEMS.md) records rules, tests and remaining
+acceptance. Native wide/compact card screenshots are inline in CHANGELOG/README;
+rendered deployment, attended gameplay and Windows remain open. Earth's Grasp
+is still pending Stoneclaw; talent coverage remains 308/432. This supersedes
+the previous core-only/not-selectable status.
+
+## Earthbind lifecycle foundation — 2026-10-29
+
+The [earth-totem audit](audits/EARTH-TOTEMS.md) records checkout spell/model
+evidence and the required runtime/UI integration. Shared rules now cover
+Earthbind's five health, destruction, bounded lifetime and timestamped slow
+pulses. No offer or runtime entity is enabled yet. Next: grounded deployment,
+replacement, enemy attacks against the totem, slow application and visual
+acceptance. Earth's Grasp stays pending until Stoneclaw also has a real consumer;
+coverage remains 308/432. This does not close the talent phase.
+
+## Totem cadence — 2026-10-29
+
+The [totem timing audit](audits/TOTEM-CADENCE.md) records a reproduced runtime
+defect: long frames dropped attacks and expiry discarded due pulses. Both
+Searing and Magma now preserve cadence and deliver due attacks within their
+remaining lifetime before fading. No new talent definition or fast mode is
+claimed. Headless frame-partition checks cover the actual system; attended
+gameplay and Windows validation remain open.
+
+## Compact recovery talent acceptance — 2026-10-29
+
+Improved Healing Wave and Tidal Focus now have native macOS 640×720 / 125%
+purchase, one-rank refund and restart evidence in the
+[healing audit](audits/SHAMAN-HEALING-DEPENDENCIES.md). The repurchased Tidal Focus
+rank persists with 9 spent / 42 available and independent specs. Screenshots
+are inline in CHANGELOG and README. No runtime change; Windows/controller and
+attended combat remain open. This supersedes their compact pointer gap.
+
+## Improved Sprint — 2026-10-31
+
+[Node 222](audits/IMPROVED-SPRINT.md) now grants 50/100% chance to remove current
+incoming movement impairments on manual Sprint activation, without changing
+mobility timing. Shared slow state rejects delayed effects older than a cleanse.
+Native purchases/refund/restart and four wide/compact captures verify inline
+chance and persistence. Coverage is 315/432 (Rogue 40/51); remaining definitions,
+attended combat and platform acceptance stay open.
+
+## Rogue Kick and Improved Kick — 2026-10-30
+
+[Kick and node 206](audits/ROGUE-KICK.md) now connect acquired physical damage to
+five-second school interruption and independently trained two-second silence.
+Original-hit settlement, targeting, excluded damage origins, saved training and
+inline growth have regression evidence. Native purchase/refund/restart and seven
+wide/compact captures are recorded. Fresh definition coverage is 314/432 (Rogue
+39/51); 118 definitions and broader gameplay/platform acceptance remain open.
+
+## Priest Silence unlock — 2026-10-30
+
+[Silence node 541](audits/PRIEST-SILENCE.md) now unlocks acquired all-school silence,
+with actual cast cancellation, fixed five-second expiry and continued melee
+pursuit. Native purchase/refund/repurchase/restart and wide/compact card captures
+are recorded. Fresh coverage is 313/432 (Priest 32/47); 119 definitions remain
+provisional. Attended combat, Windows and the remaining class consumers remain
+required. This does not close the talent or integration phases.
+
+## Counterspell acquisition and training — 2026-10-30
+
+[Counterspell acceptance](audits/COUNTERSPELL.md) connects the acquired Mage ability
+and Improved Counterspell node 88 to actual enemy casting. Ten-second school
+lockout and independent four-second silence retain their installed meanings;
+automatic targeting, ordinary-enemy restriction and ability rank growth are
+explicit Survivors adaptations. Native wide/compact purchase, refund, restart
+and green inline card captures are recorded. Coverage is now 312/432 (Mage
+39/49); 120 definitions remain provisional. Attended combat, Windows and the
+remaining class consumers are still required before the talent phase closes.
+
+## First enemy spell consumer — 2026-10-30
+
+Darkeye Bonecaster now uses its verified Frostbolt identity in the actual enemy
+loop: a three-second cast, 40-yard range, source-owned Frost damage and a two-second
+50% movement slow. Stoneclaw/pet attention is preserved; a changed target cancels
+instead of redirecting the cast. Seven actual-runtime tests pass, including
+cancellation, pauses, armor bypass, immunity, absorption and pet/totem delivery.
+[Evidence, explicit tuning and remaining acceptance](audits/ENEMY-CASTING.md#darkeye-bonecaster-integration--2026-10-30).
+Acquired player interrupts, other spellcasters, wards/resistances and attended
+visual/Windows checks remain open. This adds a required talent consumer boundary;
+named definitions remain 311/432.
+
+## Shared enemy casting prerequisite — 2026-10-30
+
+[The casting lifecycle](audits/ENEMY-CASTING.md) now distinguishes school-specific
+interrupt lockouts from silence and retains target identity and completion times.
+Nine focused rules tests and the complete shared-rule suite pass. This is not yet
+connected to enemy spell producers or incoming spell settlement. The audit lists
+those integration steps before Counterspell/Kick and related talents can count
+as functional. Named talent coverage remains 311/432; no UI change.
+
+## Remaining Mage consumers — 2026-10-29
+
+The [Mage dependency audit](audits/MAGE-TALENT-DEPENDENCIES.md) records installed
+rules and missing consumers for all eleven remaining nodes. Clearcasting's
+proposed next-damaging-spell half-recovery conversion awaits confirmation.
+Wards need incoming school identity, Counterspell needs enemy casting, and
+armor/wand talents need their actual stat or attack consumers. Existing
+same-name haste/area passives do not satisfy Intellect/Amplify Magic semantics.
+Coverage remains 38/49 Mage and 308/432 overall; no runtime change is claimed.
+
+## First-visit spec scroll continuity — 2026-10-29
+
+The native minimum-size check exposed a first-visit jump to the top when selecting
+another talent spec. Scroll memory now falls back to the last rendered position
+for that same hero only when the destination spec has no remembered position.
+Revisits keep their own offsets, and another hero starts at the top. This is
+session-local UI state; saved talent ranks and the save format are unchanged.
+
+The scroll regression checks first-visit inheritance, independent remembered specs
+and hero isolation. Native macOS 640×480 / 125% checks cover scrollbar reachability,
+Spec 1 → 2 → empty 3 → 1, preserved 35/8/0 point totals, and Elemental Mastery's
+long description. The two-column wrap retains the intention image's tree/spec
+structure and the user's taller-tree requirement. Inline before/after screenshots
+are in CHANGELOG, with the final view in README. Windows/controller and the full
+resolution matrix remain open. Incremental build: 1m16s.
+
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
+## Visible-pet fence routing — 2026-10-29
+
+Enemy pursuit no longer discards its blocked timer and detour whenever a Hunter
+pet is visible. Low fences can block body movement while leaving the sight ray
+clear. The [routing audit](audits/PET-PURSUIT-NAVIGATION.md) records the actual
+movement-system regression and validation. Existing bounded incremental A* is
+retained; this is not an IDA* or navmesh implementation. The broader Elwynn,
+crowded-wave and Windows attended acceptance remains open.
+
+## Shaman weapon parry — 2026-10-29
+
+Node 616 now uses actual contact avoidance with a worn melee weapon, replacing
+its old 5% general reduction. The authored 5% chance and installed learn/passive
+spell evidence are recorded in the [avoidance audit](audits/MELEE-AVOIDANCE.md).
+Cosmetics do not qualify; refunds and unequipping remove eligibility for future
+run snapshots. Catalog coverage remains 308/432 (Shaman 32/46).
+
+Native macOS purchase, refund, repurchase and restart pass at 1280×720 and
+640×720 / 125%; screenshots are inline in CHANGELOG and README. Equipment,
+spec isolation and actual contact outcomes have automated coverage. All 322 core
+tests and the eight-package gate pass (31 optional-addon skips). Incremental build:
+18 seconds. Windows, physical controller and attended combat remain unverified.
+
+## Healing Wave talent consumers — 2026-10-29
+
+Purification and Tidal Mastery now affect acquired Healing Wave: +2% healing and
++1 percentage point healing-critical chance per rank respectively. Installed
+rank evidence and preserved totem behavior are recorded in the
+[healing audit](audits/SHAMAN-HEALING-DEPENDENCIES.md). Actual cast tests exercise
+critical rolls inside the added chance; catalog-backed purchase/save/spec/refund
+checks cover both nodes. These existing definitions do not increase coverage.
+
+Native wide/compact tooltip screenshots show green inline changes for both nodes.
+Native macOS purchase through maximum rank, one-rank refunds, independent specs
+and restart now pass for Purification, Tidal Mastery and Healing Way together.
+The healing audit records exact totals and captures. Windows, physical controller,
+and attended combat remain unverified. Compact pointer purchases/refunds now pass
+for these three nodes; see the healing audit’s compact acceptance checkpoint.
+Incremental build: 16s.
+Older totem-only cast-time/critical conversions still require reconciliation.
+Ancestral Healing’s replacement-versus-preservation choice is awaiting the user;
+its audited original trigger is 8/16/25% armor for 15 seconds after healing crits.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+## Illumination — 2026-10-29
+
+The approved no-mana conversion is implemented: effective critical Holy Light or
+Flash of Light healing has a 20/40/60/80/100% chance to refund half that cast’s
+final recovery after cooldown bonuses. Other classes, damage, ineffective healing
+and Holy Shock’s noncritical side heal cannot trigger it. Later casts retain their
+normal recovery. Inline green text shows the changing proc chance.
+
+Tests cover every rank, proc outcomes, upgraded-spell recovery, no-cast RNG,
+purchase/save/reload, independent specs and refund. Native screenshots cover
+1280×720 and 640×720 at 125% UI size. Native macOS pointer purchase through 5/5,
+independent spec selection, rejection without earlier-row points, one-rank refund,
+save/restart at 4/5 and compact scrolling/re-purchase now pass. The isolated test
+profile preserves the production save. Windows, physical controller and attended
+combat remain unverified. Incremental play build: 19 seconds.
+The eight-package formatting, Clippy and test gate passes (31 optional-addon skips).
+
+## Healing Way — 2026-10-29
+
+Node 1648 now provides its source-specific 33/66/100% proc chance: successful
+Healing Wave healing can add a 6% stack for subsequent Healing Waves, up to three,
+refreshing one 15-second expiry. Active gameplay time controls expiry; death/run
+reset clears the state. Other heals and damage receive no bonus. The audit's
+explicit effective-healing conversion excludes overhealing-only events.
+
+The eight-package gate passes (31 optional-addon skips), including all proc
+thresholds, cap/refresh/expiry, actual cast sequencing, failed readiness, and legal
+purchase → save/reload → independent spec → refund. Native tooltip screenshots
+cover 1280×720 and 640×720 / 125%, retaining the intention tree layout and green
+inline values. Native purchase/refund/spec/restart acceptance now passes in the shared Shaman
+healing check above. Windows and attended-combat acceptance remain open. Build: 1m46s.
+
+
+## Shaman healing prerequisite — 2026-10-29
+
+Phase 5 now has an actual acquired Healing Wave, using the documented authored
+self-heal tuning in SURVIVORS.md. The [healing audit](audits/SHAMAN-HEALING-DEPENDENCIES.md)
+records installed spell/Healing Way evidence and the remaining recipient-stack
+work. No new talent definition is claimed. Existing totem conversions remain
+unchanged; source tests explicitly guard their separation.
+
+Native acquisition/upgrade card previews follow
+`intentions/survivors_level_up_selection_screen.png`, with the user's requested
+inline green growth in place of separate summaries. Captures cover 1280×720 and
+640×720 / 125%; picks are disabled in this visual fixture. Actual acquisition and
+cast outcomes are covered by automated tests, not these screenshots. Windows,
+attended gameplay and balance remain unverified. Build: 15 seconds incremental.
+The eight-package formatting/Clippy/test gate passes with 31 optional-addon skips.
+Native observation failed during the compact lower-card keyboard check; that
+specific interaction is not claimed as verified.
+
+
+## Save-write recovery acceptance — 2026-10-29
+
+Phase 1 now surfaces failed account writes throughout starter/Armory navigation,
+with Retry save and retained in-memory changes. The shared frame flush stops
+retrying after an error; explicit saves can recover. Load failures still preserve
+the original file and disable saving/runs separately. No save-format change.
+
+Native macOS: isolated Hunter skin 2/9 → 3/9 with a directory blocking the atomic
+temporary file. The previous save stayed byte-identical; failed retry retained the
+warning. Removing the test obstruction and clicking Retry saved only the new
+`features 3 4 0 2 1 6 2 3` row. Restart retained 3/9. Warning fits 1280×720 and
+640×720 / 125%; screenshots are inline in CHANGELOG and README. This extends the
+Character reference with failure feedback, retaining its layout and visual style.
+The [2026-10-30 keyboard follow-up](audits/SAVE-RECOVERY-KEYBOARD.md) verifies a
+Paladin talent purchase, failed retry, successful retry and restart at 1280×720.
+The minimum-window follow-up verifies keyboard retry and restart at 640×480 with
+requested 125% scale and automatic fitting. Windows, browser-storage failure and
+controller acceptance remain open.
+The native build completed in 1m46s while checks compiled concurrently. The
+eight-package gate passes, including real-write-failure recovery; 31 optional-addon
+tests skipped because their corpus is absent.
+
+
+## Ranged Character preview acceptance — 2026-10-29
+
+Phase 3 now has native macOS evidence for the male Night Elf Hunter with Carapace
+Spine Crossbow (entry 18738, display 31239): the complete model and attachment fit
+1280×720 and 640×720 / 125% Character panels. Keyboard selection → Hidden removes
+the attachment while bonuses stay unchanged; restarting retains it, and Worn piece
+restores the attachment. Saved `equipment 2 123456122 170000000` changes only its
+last cosmetic digit to 1 while hidden and returns exactly after restoration.
+This isolated fixture grants ownership for inspection; it does not verify acquisition.
+The screenshot composition follows `intentions/survivors_character_tab.png`.
+No source changed; the preceding eight-package gate remains applicable. Other
+ranged weapons, race/sex combinations, in-map poses, Windows and pointer/controller
+acceptance remain open. Captures are inline in CHANGELOG and README.
+
+
+## Character appearance navigation acceptance — 2026-10-29
+
+Compared Character layout against `intentions/survivors_character_tab.png` and
+captured native Troll male/female previews. A 640×720 / 125% keyboard check exposed
+Up from Randomize features skipping the adjacent arrows for the header. Focus now
+prioritizes overlapping rows/columns and scores perpendicular edge gaps rather
+than center separation; a regression covers
+wide-button/arrow/header geometry alongside existing grid navigation tests.
+Native replay reaches the Tusks arrow and changes 4/6 to 5/6; final-build replay
+also verifies horizontal movement between arrows. Restart at 1280×720
+retains female Troll features, and the account diff confirms equipment, other
+heroes and progression remain unchanged. Captures are inline in CHANGELOG and
+README. This verifies these macOS keyboard cases, not the full race/body/input
+matrix; Windows, pointer and physical-controller acceptance remain open. Final
+eight-package formatting/Clippy/test gate passes (31 optional-addon skips); the
+final incremental native build took 30 seconds.
+
+
+## Healing Light save acceptance — 2026-10-29
+
+Native macOS keyboard interaction now verifies three-rank purchase, restart,
+independent empty Spec 2, return to Spec 1 and Backspace refunds at 1280×720.
+Unspent points return 41 → 38 → 41, and the saved DBC allocation returns to its
+initial ten prerequisite points. Captures are inline in the changelog and README.
+This closes keyboard purchase/save acceptance left open in the previous checkpoint;
+pointer/controller, Windows and attended combat remain unverified. No production
+save or gameplay source changed; the preceding eight-package check remains valid.
+
+Illumination's no-mana policy was confirmed by the user on 2026-10-29: its
+20–100% proc chance refunds half the triggering heal's recovery time after
+eligible effective critical healing. Implemented in the Illumination checkpoint above. Do not infer a healing critical from
+Holy Shock's damage critical: its current separate cast heal is noncritical.
+
+## Paladin healing scope — 2026-10-29
+
+Flash of Light is acquired independently (18 base health / 6s recovery), following
+Holy Light's automatic self-heal conversion. Holy Power covers both. Healing Light
+now applies the installed 4/8/12% direct-healing multiplier to Holy Light and Flash
+of Light, while retaining the existing 1/2/3%-maximum-health Holy Shock cast heal.
+Its two contributions have distinct green inline values. The catalog-backed save
+regression exercises all three ranks for both direct spells, separate specs and
+refund; real cast tests exercise both spells with and without training.
+
+Native previews verify wide cards and compact 125% talent text; final incremental
+build took 14 seconds. Native purchase replay was blocked by the computer-use
+window-targeting error, so it remains open despite the automated saved-spec coverage.
+The final eight-package formatting/Clippy/test gate passes: 4,864 app tests and
+314 core tests, with 31 optional-addon skips.
+
+Definition coverage remains 306/432: an existing named node gained its missing
+consumer. Next is Illumination's no-mana policy and effective-critical-healing
+consumer, then other missing Paladin dependencies. Casting pushback, incoming
+control, shield blocking, physical attacks and full Windows/combat acceptance
+remain unfinished. No production save was used for native previews.
+
+
+## Paladin direct-healing foundation — 2026-10-29
+
+Holy Light is now an ordinary acquired ability, following the documented automatic
+self-heal conversion used by Healing Touch and Greater Heal. Its 40 health / 12s
+recovery are authored values, not a claim of vanilla cast/mana fidelity. Installed
+spell 635 has a 2.5s cast, 35 mana, 40-yard friendly targeting and a variable heal.
+Holy Power's existing authored 2%/rank critical chance now includes Holy Light;
+DBC node 1627 specifies 1%/rank, so the Survivors balance remains explicit.
+
+The actual cast-system regression covers skipped full-health casts, ordinary and
+critical healing, preservation of periodic healing and Holy Shock-only Divine
+Favor readiness, recovery and absence of damage hits. Offer and inline-text checks
+cover acquisition, rank values and scoped Holy Power ranks. Native wide/compact
+cards are captured; the final play build took 16 seconds. Definition coverage
+remains 306/432: no provisional node was promoted by adding this spell.
+
+Next: Flash of Light and a coherent Healing Light/Illumination treatment. Healing
+Light retains its existing Holy Shock cast-heal behavior for now; its name alone
+does not establish direct-heal support. Pushback, interruption, mana-refund policy,
+Windows/controller and attended combat acceptance remain unfinished.
+
+The eight-package formatting/Clippy/test gate passes, including 4,864 app tests
+(31 optional-addon skips).
+
+
+## Retribution Aura save acceptance — 2026-10-29
+
+The isolated native Paladin profile now verifies pointer purchase of both ranks,
+restart with 2/2 and 34 points, independent empty Spec 2 with 51 points, return to
+Spec 1, and right-click refund to 0/2 and 36 points. Reading the saved allocation
+confirms only the original fifteen points remain. Compact 640×720 / 125% effect
+text is captured. The installed-catalog save regression now includes node 1405,
+both rank multipliers, maximum-rank rejection, independent specs and persisted
+refund. No production behavior changed in this acceptance checkpoint.
+Windows, physical-controller and attended combat remain open. Next independent
+implementation work is Paladin healing and its scoped critical-event consumers;
+interruptible casts and mana conversions need their own explicit rules.
+
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+
+## Acquired Retribution Aura — 2026-10-29
+
+Spell 7294 now occupies one acquired Paladin ability slot and persists for the run.
+Its self-only contact response has its own Holy source and independently coexists
+with timed Thorns. Node 1405 is a scoped +25/50% damage improvement; coverage is
+306/432 definitions, Paladin 27/44. This is definition/runtime coverage, not full
+class acceptance. The [dependency audit](audits/PALADIN-TALENT-DEPENDENCIES.md)
+records the authored self-aura policy and remaining acceptance work.
+
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips),
+including all 4,862 app unit tests. Final play build: 15s; existing linker and
+`block` future-compatibility warnings remain.
+Automated checks exercise ordinary offer/acquisition, rank growth, both talent
+ranks, immunity/absorption/avoidance, simultaneous reflection and the real enemy
+contact system's death boundary. Native cards are captured wide and compact;
+preview fixtures are under `docs/ui-previews/retribution-aura-cards-*.txt`.
+Next: native talent purchase/refund/restart and independent-spec acceptance, then
+Paladin healing dependencies. Windows combat and full seven-phase acceptance
+remain open. No unattended combat was run.
+
+
+## Retaliation source correctness — 2026-10-29
+
+The Retribution Aura prerequisite exposed two existing defects: cast parameters
+already include Might, but contact reflection multiplied by Might again; queued
+hits also used the shared `Thorns` source and read their school from the current
+buff at impact. Contact now emits the cast's damage once with its actual ability
+key and event time. Queued Thorns/Retaliation retains its school if the active buff
+changes; the existing named Retaliation consumers can identify their own hits.
+Absorbed and immune contacts retain their prior reflection policy; dodges/parries,
+expired buffs and invalid spell identities produce no reflected hit.
+
+Tests cover the real contact system, cast scaling and installed-school damage
+settlement after replacing the active buff. Final incremental build: 12s, with
+existing linker unwind-table/`block` warnings. The scoped gate exposed missing
+internal LLVM symbols in the debug app archive while linking `extended_launcher`.
+Only the matching app incremental directory and archive were quarantined; engine
+and dependency caches remain intact. The repaired test build took 3m25s; both
+new regressions pass. The recovered eight-package formatting/Clippy/test gate
+passes: 4,860 app tests, 10 ignored; 31 optional-addon skips across the suite.
+This is the source-identity foundation; Retribution Aura and its talent remain
+unimplemented, and definition coverage stays 305/432. No new menu layout or native
+combat screenshot is claimed; attended combat/Windows acceptance remains open.
+
+## Remaining Paladin dependencies — 2026-10-29
+
+All eighteen pending nodes now have an [installed-data dependency audit](audits/PALADIN-TALENT-DEPENDENCIES.md).
+Current defense outcomes lack block and incoming critical metadata; primary
+attributes, Paladin physical swings and its healing/blessing spells are also
+missing consumers. The next independent integration is a distinctly sourced
+Retribution Aura, before enabling its scoped improvement. Existing thorns must
+not silently become every class's retaliation effect. Coverage remains 305/432
+(Paladin 26/44); this audit introduces no mechanics or visual changes.
+
+## Codex keyboard reading — 2026-10-29
+
+At 640×480 / 125%, native Page Down does nothing while Mind Flay's description
+extends below the details pane. Extend the existing achievement reading controls
+to Codex details: Page Up/Down moves 80% of its viewport, Home/End reaches either
+end. Catalog position and selection stay unchanged; typing, overlays, card previews
+and other pages retain their input guards. Add a compact hint under Details.
+Native macOS acceptance passes at 640×480 / 125%: Page Down exposes full Mind
+Flay effect text, Home/End reaches the boundaries, Page Up returns to the heading,
+Character/Drop Tables round trips preserve reading position, and selecting Cleave
+resets details without moving the catalog. The 1280×720 capture retains the
+reference two-column composition and readable hint. Incremental play build:
+1m24s (linker unwind-table and existing `block` warnings). Eight-package
+formatting/Clippy/test gate passes (31 optional-addon skips). Windows and
+physical-controller acceptance remain open.
+
+## Codex entry reading position — 2026-10-29
+
+Native 640×480 / 125% reproduction: scroll Wrath's details, then select Starfire.
+The previous reading offset clips the new name and heading. Reset the details
+pane on an entry change while retaining catalog position; unrelated updates and
+returning to the same entry retain reading position. Preserve the two-pane design
+from `intentions/survivors_codex_tab.png`, stacked at compact widths. The existing
+refresh-system regression now checks both scroll surfaces and unrelated changes.
+The refresh-system regression passes. Native rebuilt keyboard selection shows the
+Starfire heading and name at 640×480 / 125%; the exact wheel→selection replay and
+tab-return check initially remained open because pointer automation lost its window binding
+after rebuild (keyboard/screenshot access continued). The normal launcher is
+restored. Incremental play build: 1m27s, with linker unwind-table and existing
+`block` future-compatibility warnings. The eight-package formatting/Clippy/test
+gate passes (4,858 app unit tests, 10 ignored; 31 optional-addon skips across the
+suite). Follow-up native keyboard acceptance above now verifies tab-return and
+selection reset; exact pointer replay, Windows and physical-controller checks
+remain open.
+
+## Repentance — 2026-10-29
+
+The [installed-data contract](audits/REPENTANCE.md) now reaches talent-gated
+acquisition, humanoid targeting and damage-breaking incapacitation. Movement and
+contact attacks stop; direct/pet, periodic and poison damage wake the target and
+remove its aura without clearing unrelated control. Six new regressions exercise
+actual cast, hit, movement and offer consumers. A failed readiness regression
+exposed the generic 0.2-second retry delay; Repentance now stays ready when there
+is no eligible target. Initial compile/Clippy issues were corrected before the
+final build. The final incremental play build takes 14 seconds.
+
+Native macOS previews verify green inline duration/recovery/target changes at
+1280×720 and 640×720 / 125%, plus the compact talent description. The isolated
+30-point Retribution fixture now passes native keyboard purchase, refund, restart,
+switch to an empty spec and return to the trained spec. A catalog-backed save
+regression also verifies row/max-rank guards, refund persistence and immutable run
+snapshots. Pointer and physical-controller acceptance remain open; the normal
+validation launcher is restored. Attended combat, Windows, rendered
+combat aura acceptance and the broader seven-phase matrix remain open. Named
+definition coverage is 305/432 (Paladin 26/44), not a claim of full acceptance.
+Final eight-package formatting/Clippy/test gate passes: 4,858 app unit tests
+passed, 10 ignored; 31 optional-addon tests skip across the scoped suite.
+
+## Reward confirmation reachability — 2026-10-29
+
+Native 640×720 / 125% reproduction: staging Veteran's Lessons from the scrolled
+perk list leaves Confirm/Undo outside the viewport, despite the pending message.
+Retain the reference sidebar controls; when they are clipped and a draft exists,
+show a fixed bar with pending count, preview balance and the same Confirm/Undo
+actions. Hide it when the sidebar returns to view or the draft is cleared. No
+purchase, refund or persistence rules change. Reference:
+`intentions/survivors_rewards_tab_perks.png`.
+
+Native macOS acceptance passes at 640×720 / 125%: stage Veteran's Lessons,
+Undo without spending, return to the sidebar (bar hides), then Confirm from the
+fixed bar. A 1280×720 restart retains rank one and 5 of the original 25 points;
+a pending reset keeps the wide sidebar controls without a duplicate bar. Partial
+clipping, empty drafts and fixed action placement have regression coverage.
+Play build: 1m42s. All 4,851 app unit tests and the eight-package formatting/Clippy/
+test gate pass (31 optional-addon skips). Initial compile exposed marker visibility
+required by system registration; corrected before this build. A construction test
+incorrectly assumed fixed nodes lack Bevy's automatic ScrollPosition; it now
+checks the actual scroll marker and overflow behavior. One automation
+session lost input targeting; clean restart completed the purchase checks.
+Windows, physical gamepad and the remaining acceptance matrix remain open.
+
+## Compact Drop Tables inspection — 2026-10-29
+
+Extend the compact Collection inspector to encounter and supplemental drops.
+The native before capture reproduces row selection without visible item controls
+at 640×480. Selection now opens a dedicated detail view with a fixed Back action;
+Escape restores the list offset. Detail offsets are independent across the two
+catalogs, tab switching retains their views, and source links explicitly exit the
+inspector to the requested zone. Browsing never changes the next-run zone.
+The wide composition remains based on `intentions/survivors_drop_tables_tab.png`.
+
+Native macOS acceptance: collected shoulders select/equip, unowned Poor gloves
+have no Equip action, wheel-scrolled list position survives Escape, and a source
+link opens Duskwood at its heading. At 640×720 / 125%, item controls remain readable;
+at 1280×720, selecting a row updates the side detail without replacing columns.
+Construction regressions cover both pages, owned/unowned normal and supplemental
+items, fixed Back placement and separate scroll memory. State regressions cover
+tab/source navigation and next-run zone independence. Build: 1m27s. All 4,849 app
+unit tests and the eight-package formatting/Clippy/test gate pass (31 optional-addon
+skips). The first test build exhausted disk; obsolete unlocked app cache snapshots
+were removed, retaining active caches and dependencies. The retry encountered
+undefined linker symbols in the app test cache after the interrupted compilation;
+that specific cache was rebuilt. One native automation
+session lost its window target; clean restart completed the checks. Screenshots
+are inline in CHANGELOG. Windows, physical gamepad, full account/body coverage,
+and the remaining seven-phase acceptance requirements are still open.
+
+## Compact Collection inspection — 2026-10-29
+
+Native 640×480 / 125% reproduction: selecting a cell left its details and Equip
+controls below the full collection grid. Compact selection now opens a dedicated
+scrollable inspector with a fixed Back button; Escape/controller Back returns to
+the grid. Keep the grid and inspector offsets independent, retain the inspector
+across source-tab navigation, and reset its offset for a newly inspected item.
+Character's Inspect in Collection and starter equipment navigation use the same
+view. Wide layouts retain the reference's simultaneous three-column composition.
+Normal, Poor and Raid Epic items share existing ownership/equipment/look rules;
+inspection itself changes no persistent gear or progression.
+
+Acceptance: native macOS 640×480 verifies direct selection and equip; 640×720 at
+125% verifies independent collection/detail scrolling, source round trip, Back,
+Escape and reset-to-heading for a different item. Direct 1280×720 launch verifies
+all three wide columns. An intermediate resized capture extended offscreen and was
+replaced by the valid direct-launch capture. One native session lost automation
+input after stalls; a clean restart completed the remaining checks. No performance
+claim follows from these captures. Regression coverage includes owned/unowned
+normal and supplemental inspector actions, fixed Back placement, independent scroll
+memory and page transitions. The eight-package gate passes (31 optional-addon
+skips), after repairing imports in the added test. Final native build: 1m23s.
+Windows, physical gamepad and the full account/body matrix remain open.
+
+## Priest description consistency — 2026-10-29
+
+Darkness's description omitted Mind Flay despite `PRIEST_SHADOW` already including
+it. Name the spell and channel/periodic scope explicitly; reconcile Shadow Reach's
+written table with its existing Mind Flay range consumer. Native wide and compact
+previews show the green inline comparison without clipping. These are description
+fixes, not new talent mechanics: coverage remains 304/432 (Priest 31/47).
+The [remaining-node audit](audits/PRIEST-TALENT-DEPENDENCIES.md) records the sixteen
+missing consumers and separates named mechanics from existing milestone conversions.
+The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
+
+## Native pointer scrolling acceptance — 2026-10-29
+
+Closes the earlier unverified macOS wheel/drag cases for Talents and Achievements.
+Using the final native build from da74882 and isolated fixture data, actual wheel
+input at 640×720 / 125% reaches lower talent trees. Dragging its scrollbar reaches
+the final spec controls and returns to the first row. The same session verifies
+Zones card wheel scrolling and scrollbar return without moving the category grid.
+A live preview resize to 640×480 / 125% verifies the category rail wheel independently
+of cards, the card scrollbar independently of the rail, and Collection → Zones
+restoration of both pane positions. Screenshots are inline in CHANGELOG; README
+shows the current minimum-height achievement evidence. No source/build change or
+new automated test run; the dc5e233 scoped gate remains applicable. Windows input,
+other pages' native pointer checks and attended gameplay are not established here.
+
+## Achievement navigation rail — 2026-10-29
+
+The Zones intention keeps the category rail separate from the long achievement
+list. Independent rail/card viewports and visible scrollbars now retain
+rail position across categories and one card position per category. Page Up/Down
+and Home/End target cards; directional focus and wheel/drag target their own pane.
+Below 560 logical layout units, the rail stacks above the cards with a 35% height
+and switches to a compact points line and six-button grid. Native checks cover
+1280×720, 640×720 / 125%, 640×480 / 125%, independent sidebar focus scrolling,
+and category round-trip restoration. Screenshots are inline in CHANGELOG; the
+final build took 3m12s. All 4,821 app unit tests and the eight-package gate pass
+(31 optional-addon skips). Windows and native wheel/drag acceptance remain separate.
+
+## Talent row spacing follow-up — 2026-10-29
+
+The user's intermittent Windows report asks for taller artwork panels and more
+separation between icons, particularly on narrow screens. Increase the proportional
+grid's reference height from 640 to 720 design units (12.5%); retain readable icon
+size, seven evenly spaced rows, aspect-preserving art and wrapped, scrollable panels.
+The height cap grows proportionally, preventing single-column expansion from
+producing unlimited gaps. Use `intentions/survivors_talent_tab.png` as the visual
+reference. Native checks verified 800×600 and 1280×720 previews plus seventh-row keyboard
+inspection at 640×720 / 125%. Actual captures are inline in CHANGELOG and the
+README gallery. The incremental play build took 21 seconds; the eight-package
+formatting/Clippy/test gate passes (31 optional-addon skips). Windows
+confirmation remains required; this macOS pass cannot settle an intermittent
+Windows-specific rendering failure.
+
+## Scroll continuity and initial keyboard focus — 2026-10-29
+
+Native Zones End → first arrow focus → Collection → Achievements exposed a
+reading-position jump. The offset trace identified the first focus landing on a
+category above the clipped viewport, revealing it before departure. Initial
+keyboard focus must use visible controls; deliberate directional navigation may
+still reach offscreen content. A regression distinguishes those two cases.
+
+The shared wheel handler also destructively clamped requested offsets during
+intermediate layouts. Let Bevy clamp rendered geometry while retaining scroll
+intent; replace it only on input, starting from current bounds. Regression checks
+cover zero/partial/settled layouts and an immediate wheel or Page Up response
+after content shrinks. Native 640×480 / 125% acceptance verifies the full Zones →
+Collection → Zones round trip and Home; captures are inline in CHANGELOG. Final
+play build: 1m17s. Eight-package formatting/Clippy/test gates pass (31 optional-
+addon skips); Windows and native wheel input remain
+unverified (wheel behavior has headless input coverage).
+
+## Achievement keyboard reachability — 2026-10-29
+
+Native 640×480 / 125% acceptance found that directional focus reveals the category
+buttons but cannot scroll all noninteractive achievement cards; Page Down did nothing.
+Achievements now supports Page Up/Down (80% viewport) and Home/End, using logical
+scroll units at high DPI and existing settings/loading/typing/card-preview guards.
+An ECS regression covers bounds, high-DPI movement and no category activation.
+Native checks verify Lifetime Page Down, Home, Zones End and Page Up; actual
+before/after captures are inline in the changelog and README. The intention summary
+image remains the reference for layout; this change adds navigation only.
+Mouse-wheel automation was unavailable, so this session does not establish wheel
+or category-scroll restoration acceptance. Windows remains open.
+The `achievements-lifetime-640x480-125.txt` preset reproduces the compact case.
+Validation: native play build 1m18s; 4,820 app unit tests and the eight-package
+formatting/Clippy/test gate pass (31 optional-addon skips).
+
+## Paladin weapon talent prerequisite — 2026-10-29
+
+[Installed-data audit](audits/PALADIN-WEAPON-TALENTS.md) confirms nodes 1429/1410
+need physical melee weapon damage. All eight current Paladin ability spell IDs
+are Holy, and `Strike` is a targeting shape rather than a weapon-damage guarantee.
+Do not apply weapon specialization to Judgement or Consecration as a substitute.
+Resolved 2026-10-30: automatic melee outside the six ability slots. The basic
+attack foundation uses worn identity and geometry checks; see the audit for
+authored tuning. Dependent talent implementation/native acceptance remain open.
+The original audit coverage was 300/432.
+
+## Shared combat-pet health — 2026-10-29
+
+Hunter health now consumes engine-independent `combat_pet::Vitality` for damage,
+capped living-only healing, proportional maximum-health changes and recovery deadlines.
+Frenzy and Spirit Bond timers remain Hunter-owned; enemy targeting, corpse appearance,
+floor-checked respawn and status labels retain their existing runtime paths. This
+provides reusable health rules, not a shared ECS pet component or demon lifecycle.
+Demon sacrifice versus defeat, acquisition, casts, resources and recovery policy
+remain explicit unfinished work. No talent or visual change is claimed.
+
+## Native demon appearance — 2026-10-29
+
+A development-only menu lineup now uses the four verified display IDs, normal unit
+rendering and model scales. A native 1280×720 macOS capture shows all four specimens
+with skins and visible effects; it is embedded in the changelog and README. The
+preview adds no combat-pet or enemy components, and modifies no account progression.
+Native build: 1m34s. Summoning/acquisition, combat animation, casting, movement,
+defeat/recovery and Windows remain open; talent coverage is unchanged.
+
+## Demon model prerequisites — 2026-10-29
+
+The four summon templates now have reproducible, hash-checked display identities.
+The asset audit parses their skinned models and decodes eight distinct mesh textures;
+see [the demon contract](audits/WARLOCK-DEMONS.md#verified-model-identities--2026-10-29).
+This closes the identity/mesh-data prerequisite only. Native specimens, animations,
+particle textures, acquisition and gameplay remain open; no talent coverage changes.
+
+## Combat-pet hit origin — 2026-10-29
+
+Direct and periodic damage now retain explicit hero/pet origin independently of
+meter labels. Hunter bites use the pet origin. Splash copies preserve it, and
+owner-only damage bonuses and talent procs must not be granted merely because a
+pet shares a hero ability key. Existing pet leech, multistrike, target vulnerability,
+kill credit and loot behavior remain. Tests cover deliberately colliding labels,
+periodic and splash damage, and lethal/overkill settlement. This is a demon
+prerequisite, not demon runtime or additional talent completion. Concrete demon
+caster state, spell metadata, acquisition and lifecycle remain in the demon contract.
+Validation: 584 focused runtime tests, native play build (3m11s), and the eight-package
+formatting/Clippy/test gate pass; 31 optional-addon tests skip.
+
+## Warlock demon dependency audit — 2026-10-29
+
+The installed catalog still has 300/432 definitions, including 29/50 Warlock nodes.
+[Warlock demon contract](audits/WARLOCK-DEMONS.md) records twelve missing nodes,
+summon identities, cast/resource evidence and the required pet ownership/lifecycle
+work. Starter choice versus acquired summon is pending user input. Neither species
+nor talent behavior is enabled by this audit. The spell evidence tool now exposes
+cast-time rows, signed power type, costs, equipment masks and reagents to avoid
+inventing these dependencies from talent descriptions alone.
+
+## Starter equipment focus visibility — 2026-10-29
+
+Native compact acceptance at 640×480 / 125% exposed a footer clipping issue:
+keyboard navigation revealed the selected equipment icon but left the shared
+inspection text below the viewport. Treat the icon and its measured description
+bounds as one scroll target. Preserve ordinary control scrolling and DPI conversion.
+The collected fixture confirms all nine icons fit, stats wrap, and clicking the
+shoulder slot opens its equipped Uncommon piece in Collection. Native keyboard
+focus now reveals the main-hand blade name above the footer; Enter opens that
+same equipped Rare piece. Inline before/after evidence is in the changelog.
+580 runtime tests pass, including high-DPI icon/description scroll bounds; native
+build 1m18s. Formatting, Clippy and the eight-package gate pass (31 optional-addon
+skips). Windows and native pointer-hover inspection remain open.
+
+## Starter equipment readability — 2026-10-29
+
+The reference starter uses nine equipment icons. The existing per-cell labels
+crowded the narrow center column (notably Shoulders at 1280×720). Use the compact
+icon strip with verified stock empty-slot art and one full-width inspection line.
+Pointer hover or keyboard/controller focus must identify the slot and equipped
+item, never a separate cosmetic override. Clearing focus/hover or rebuilding the
+strip must not retain stale item text. Clicking still opens that slot in Collection.
+Native 1280×720 confirms all nine empty-slot images render, with before/after
+captures in the changelog. The 2026-10-30 [native acceptance pass](audits/STARTER-EQUIPMENT-ACCEPTANCE.md)
+closes collected/compact/macOS pointer and keyboard inspection: worn versus
+cosmetic identity, empty-slot text, focus priority, hint reset and correct
+Collection navigation. Windows and physical-controller checks remain open. Reusable
+`starter-equipment-1280.txt` and `starter-equipment-640x480-125.txt` presets target
+hero 1 in a partial/collected disposable fixture. Native build: 1m48s.
+All 580 Survivors runtime tests and the eight-package gate pass (formatting,
+Clippy, tests; 31 optional-addon skips), including inspection reset and focus priority.
+
+## Fresh-account entry acceptance — 2026-10-29
+
+At 640×480 with 125% UI, the fresh starter displayed “No hero of this class”
+while offering Enter Elwynn Forest. The common entry guard allowed a missing hero,
+and settlement silently created/chose a fallback hero afterward. The primary action now opens creation/selection; the shared entry guard requires
+a valid saved hero of the selected class before mutating a run. The legacy
+settlement fallback remains. Native macOS checks pass for creation, naming Enter,
+Run Options/Enter isolation at 640×480 / 125%, and restart retention at 1280×720.
+Switching to an uncreated class restores the onboarding action and carries that
+class into creation. Reproduce with `python3 scripts/survivors-ui-fixture.py fresh
+--preset starter-fresh-640x480-125.txt --run` (add `--executable` for an existing build). 577 runtime tests pass; native build 1m12s. Inline before/after
+and flow captures are in the changelog. Formatting, Clippy and the eight-package
+gate pass (31 optional-addon skips). Windows/attended combat remain open.
+
+## Disarm status prerequisite — 2026-10-29
+
+Independent Disarm/Riposte clocks and equipment/immunity eligibility now have
+engine-free coverage (302 core tests pass). All 456 template immunity masks are
+reproducibly generated from pinned evidence. Runtime synchronization now feeds
+the existing disarm attachment/animation flag, retaining equipment metadata and
+clearing invalid/dead target state. Visual validation is recorded in the equipment audit. The user decision on weaker punches versus suppressed weapon
+contacts remains pending; do not silently choose that damage rule. Subsequent
+work must connect contact settlement, acquisition and
+Improved Disarm; Riposte still needs equipped-player weapon damage.
+
+## Enemy equipment rendering — 2026-10-29
+
+Generated metadata now feeds the existing virtual-item attachment renderer for all
+roster templates. Core coverage and runtime spawn tests pass (298/576), and native
+noncombat previews capture Defias Bandit, Riverpaw Taskmaster and Scarlet Torturer.
+The [equipment audit](audits/ENEMY-EQUIPMENT.md) records generation and preview
+commands. Full-roster animation/pose acceptance and Windows remain open. This does
+not implement attack channels, disarm eligibility, disarmed fallback damage or
+Riposte's equipped-weapon damage dependency.
+
+## Enemy weapon prerequisite — 2026-10-29
+
+The [equipment audit](audits/ENEMY-EQUIPMENT.md) now resolves every authored enemy
+identity through NPC equipment metadata and the server's legacy raw fallback.
+The initial player-item join was incomplete; all 98 missing item IDs and three
+missing templates are now resolved. Six lookup regressions and full report
+reproduction pass. Installed asset validation now passes 114 display/inventory pairs, 98 models and
+119 textures. Define authored attack channels
+and disarmed fallback damage before implementing Riposte/Improved Disarm.
+No runtime behavior changed in this audit; attachment alignment/poses remain open.
+
+## Shared talent avoidance — 2026-10-29
+
+Warrior/Paladin/Rogue Deflection and Rogue Lightning Reflexes now use real
+contact parry/dodge outcomes, replacing armor/reduction substitutes. All ranks,
+refunds, class isolation and saved-spec activation are tested. Native wide/compact
+purchase previews and Rogue refund/spec/restart checks pass. Four actual screenshots
+are embedded in CHANGELOG. 296 core and 575 runtime tests, Clippy including tests,
+and eight-package scoped checks pass (31 optional-addon skips); native build: 20 sec.
+[The avoidance audit](audits/MELEE-AVOIDANCE.md) records installed evidence and the
+remaining Riposte weapon-damage/disarm dependency. Definition coverage is unchanged;
+Windows combat and balance remain open.
+
+## Independent ordinary slows — 2026-10-29
+
+Spell, secondary-talent and Aftermath slows now retain their own expiry and refresh
+ordering. The strongest active source controls movement without borrowing another
+source's duration; curse and channel ownership remain separate. The reproduced
+2.5-second/10-second overlap regression is fixed. 295 core and 573 runtime tests
+pass, including actual movement speed and delayed hit ordering. Native build,
+Clippy including tests and eight-package scoped checks pass (31 optional-addon skips).
+See [the slow audit](audits/SLOWS.md). Multiplayer caster identity and attended
+Windows combat remain open; no UI or definition-coverage increase is claimed.
+
+## Hunter reactive defense — 2026-10-29
+
+Replace provisional Deterrence/Deflection reduction with real, source-preserving
+melee dodge/parry outcomes and connect Counterattack to the parried attacker.
+Preserve the installed 25% Deterrence bonuses, 1–5% Deflection, 40 base damage,
+5-second root and category recovery. Survivors automatically consumes the response;
+no stored charge. The [Hunter audit](audits/HUNTER-TALENT-DEPENDENCIES.md)
+specifies avoidance ordering, boss control, pause/death behavior and acceptance.
+Native purchase/refund, prerequisite guard, spec isolation, save/relaunch and
+1280×720/640×720 screenshots pass. 292 core and 570 runtime tests pass with checkout
+data; Clippy including tests passes. Windows combat and balance remain open.
+
+## Curse of Weakness dependency — 2026-10-29
+
+Acquisition, exact 6/13/20% talent ranks, flat physical-hit reduction and two-way
+curse replacement are wired. Agony refreshes replace its periodic effect rather
+than stacking copies; unrelated debuffs survive replacement. The [curse audit](audits/CURSES.md)
+records authored duration/recast, rank and legendary scaling, target rules and
+remaining Windows/attended-combat acceptance. Native purchase/refund, spec isolation,
+save/relaunch and 1280×720/640×720 previews pass; 290 core and 566 runtime tests pass. Node 1006 is no longer a generic damage bonus.
+
+The narrow-layout expectation remains explicit: preserve artwork proportions and
+readable icon spacing with taller, scrollable trees instead of squeezing all rows
+into the viewport. The 640×720 screenshot in this checkpoint verifies the existing
+640-unit grid and 52-unit icon design introduced by the roomier-tree checkpoint.
+
+## Curse ownership prerequisite — 2026-10-28
+
+Curse of Exhaustion now has its own clock so refreshing it cannot extend a
+stronger ordinary slow. The reproduced overlap regression and all 560 Survivors
+runtime tests pass with installed data; feature Clippy and eight-package scoped
+checks pass (31 missing-addon skips). The [curse audit](audits/CURSES.md) records the defect,
+independent-clock acceptance and the installed rules for the subsequent acquired
+Curse of Weakness and its 6/13/20% talent. The following acquisition checkpoint implements node 1006; its native UI acceptance is recorded above; attended combat remains open.
+
+## Mage Scorch dependency — 2026-10-28
+
+Scorch and Improved Scorch are connected as an acquired spell plus real
+per-target Fire vulnerability. The [Scorch audit](audits/SCORCH.md) records installed
+rank rules, authored base balance, proc exclusions, preserved catalog ordering and
+runtime/UI evidence. All 289 core and 557 Survivors runtime tests pass. Native
+macOS purchases/refunds, spec isolation, save/reload and wide/compact card previews
+are verified. Windows visuals, attended combat and tuning remain open.
+
+## Priest channel dependency — 2026-10-28
+
+Mind Flay needs a persistent channel, not an ordinary damage-over-time cast.
+The [channel audit](audits/MIND-FLAY.md) records installed spell evidence, the
+existing engine beam/pose path and runtime/UI acceptance. Pure channel timing
+now fixes targets, emits scheduled pulses once and supports cancellation;
+279 core tests and core Clippy pass. A runtime adapter now validates connected
+victims, emits damage pulses and composes independent movement slows. Acquired
+ability unlock, card prose and independent beam anchors are now wired locally.
+All 541 app tests pass. Native purchase/save and
+1100×720 / 640×720 previews are verified, with inline changelog captures. Coverage
+is 297/432 (Priest 30/47). Rendered combat beams, concurrent-cast pose and Windows
+acceptance remain open; see the audit for timing limits. Channel casting now
+checks solid-world obstruction before committing targets or spell recovery; a
+blocked nearest enemy no longer hides a farther clear victim. Regression tests
+cover obstruction-aware targeting, paid-tick Shadow talent interactions, Power
+Infusion snapshots after expiry, Shadow Reach, pause/resume and exactly-once
+catch-up. Historical target-modifier timing requires the shared event timeline
+described in the audit. The shared direct-hit queue now retains occurrence times
+and orders due channel pulses, missiles and current-frame hits. Ordering regressions
+and native build pass. Proc/splash preparation now occurs per original hit so
+earlier deaths prevent later effects. All 541 app tests, feature Clippy and
+six-package scoped checks pass (31 missing-addon skips). Full pre-merge gates remain required.
+
+## Shaman melee dependency — 2026-10-28
+
+Installed evidence confirms Elemental Devastation needs a melee beneficiary,
+which the current Shaman pool lacks. The next dependency is a real weapon attack
+and Stormstrike, followed by the spell-critical-to-melee-critical buff. The
+[Shaman dependency audit](audits/SHAMAN-MELEE-DEPENDENCIES.md) records exact DBC
+rows and acceptance work. Target-owned Stormstrike charge rules are implemented
+and covered by 276 passing core tests and core Clippy. Runtime Nature-damage
+consumption now covers direct, periodic, poison and reflection paths; an acquired
+attack must still apply the vulnerability. Runtime attachment,
+attack/weapon scaling, talent UI and visual acceptance remain open. Coverage
+stays 296/432; no provisional talent is relabeled as implemented.
+
+## Acquired Hunter's Mark — 2026-10-28
+
+The offered mark, five-rank training, explicit power curve, capped +target
+selection, replacement/refresh, world aura synchronization and distinct minimap
+marker are implemented locally. Card prose shows inline green ranged-power
+changes and names the attacks that benefit. The authored rules are recorded in
+[SURVIVORS.md](SURVIVORS.md); vanilla evidence remains separate in the audit.
+273 core and 521 app tests pass, including actual casts/offers, save/spec/refund
+and inline text. Feature-enabled Clippy passes; native incremental build took
+2m03s; the final localized build took 1m16s. Native card previews at 1600×900 and 640×720 and talent previews at
+1100×720 and 640×720 were inspected and captured. A disposable Hunter purchased
+Efficiency 5/5 and Improved Hunter's Mark 3/5 through the UI; the saved file
+confirms those ranks. Definition coverage is 296/432 (Hunter 41/46), not full
+gameplay acceptance. Scoped integration passes for all six affected/dependent packages, with 31
+missing-addon skips. Full pre-merge gates remain required. Rendered world aura/minimap,
+attended combat and Windows acceptance remain open.
+
+Preview follow-up: direct selected-profile cards now resolve the staged hero's
+appearance before taking the production run snapshot. Saved race/gender wins;
+unavailable saved bodies wait rather than showing another race's bonuses. Menu
+selection and world location stay unchanged until the whole request is ready.
+The regression covers cross-class selection, missing appearance data and legacy
+saves. All 522 app tests and feature-enabled Clippy pass; native build took 46s.
+Native direct launch into Hunter cards and hot switching to Priest cards passed
+with saved training reflected in the values; both states are captured in the changelog.
+Do not mix acquisition and upgrades of the same ability in one synthetic hand:
+that state cannot occur in ordinary offers.
+
+## Concealment integration — 2026-10-28
+
+A shared enemy-concealment predicate now gates direct casts, chained targets,
+pet bites, ranged totems and minimap dots. The caster's live mark reveals its
+victim; expiry, caster replacement/loss and removal of concealment update the
+result. Ground damage remains spatial, so concealed enemies inside an existing
+area can be hit. Enemy-root visibility preserves its pre-concealment setting
+and is applied before Bevy's visibility propagation; camera cutaways cannot
+change this gameplay predicate. Ordinary target selection reuses its existing
+list without an additional allocation when no concealment exists.
+
+All 515 app tests and feature-enabled Clippy pass. These include five new
+regressions for direct casts, area pulses, pet targeting, visibility restoration
+and stationary minimap updates. Native build passed in 2m28s. Scoped formatting,
+Clippy and tests pass for `benilla-app`, `benilla`, `warcraft-survivors` and
+`wenilla`, with 31 missing-addon skips. Full pre-merge gates remain mandatory. No authored encounter conceals enemies
+yet, and no mark offer, distinctive tracking icon or training definition is
+exposed. This does not advance talent coverage or claim visual acceptance.
+
+## Marked-target damage foundation — 2026-10-28
+
+Target-owned marks now have caster identity, an active-run expiry and a separate
+reveal predicate. Casts snapshot normalized ranged attack-power coefficients for
+Aimed Shot and Multi-Shot. Hit settlement reads the individual victim's current
+mark, including delayed impacts and 70% splash copies; caster/target death removes
+its benefit. Arcane Shot, stings, traps, pets and melee do not inherit this bonus.
+
+272 core and 510 feature-enabled app tests pass, including actual delayed-hit,
+splash, critical-scaling and death-cleanup cases. Clippy and the incremental native build (1m50s) pass. Full integration passed
+in 16m13s, with 31 missing-addon skips per data/player run. No
+acquired Mark offer, talent definition or tracking/reveal UI is exposed yet. The
+remaining work in [the audit](audits/HUNTERS-MARK.md) still governs acceptance.
+
+## Hunter's Mark preparation — 2026-10-28
+
+The read-only spell inspector (`survivors-audit <Data> --spell-evidence <ID>`)
+now exposes base spell effects, duration, range, recovery, target codes and family
+flags. The [Mark audit](audits/HUNTERS-MARK.md) verifies four installed ranks and
+five talent modifiers, and adds minimap/concealment tracking to the acceptance
+requirements. Ranged attack power and attack coefficients still need an explicit
+implementation; the ranged flag alone is insufficient. No new talent is counted.
+Eight audit tests, Clippy and CLI input checks pass; full native integration passed
+in 5m23s, with 31 missing-addon skips per data/player run.
+
+## Acquired Hunter aspect — 2026-10-28
+
+Aspect of the Monkey now uses actual contact dodge outcomes: acquired ability rank,
+five-rank training and its own legendary amulet determine the chance. It bypasses
+shield consumption and damage-taken effects on a dodge, preserves attacker identity,
+and emits the existing dodge animation message. One aspect per run is enforced at
+offer generation and selection. The ability is appended to the Hunter pool to retain
+existing Codex positions. There is no new avoidance benefit without acquiring it.
+
+270 core tests and 506 app tests pass, including probability boundaries, actual
+contact/reflection behavior, scoped previews, legal purchase/save/spec/refund flows,
+and class isolation. Native 1600×900 and 640×720 card/talent captures verify inline values and
+readability. Purchasing rank 5 persists and spends one point. The full integration
+gate passed in 15m17s, with 31 missing-addon skips per data/player run. Definition coverage is 295/432 (Hunter 40/46).
+Parry, reactive windows, other aspects, attended Windows combat and balance remain
+open. The original three illustrated trees and separate detail column are retained.
+
+## Incoming-hit foundation — 2026-10-28
+
+Hero contact resolution now retains attacker identity and explicitly distinguishes
+landed, immune, inactive and invalid hits. Landed results report shield absorption
+separately from health removed; full absorption does not mean dodge or parry.
+Lethal damage stops at zero health, and subsequent same-update attackers cannot
+trigger more reflected strikes from the defeated hero. Invalid damage is rejected.
+Existing mitigation order and reflection during immunity remain unchanged.
+
+This is the shared boundary for future defensive outcomes. No avoidance chance,
+aspect, reactive window or new talent definition is implemented by this change.
+At this checkpoint, Aspect of the Monkey and Counterattack were pending, with the same wide/compact
+visual and attended combat acceptance requirements as the dependency audit.
+
+## Remaining Hunter dependencies — 2026-10-28
+
+The [seven-node audit](audits/HUNTER-TALENT-DEPENDENCIES.md) records installed rank
+rules and missing systems. Start with defensive attack outcomes and aspect state;
+Counterattack must react to a real parry with attacker identity. Current Deterrence
+mitigation cannot stand in for that event. Mark, impairment resistance, Feign Death,
+pet vision and primary attributes follow. The reproducible `--talent-evidence`
+command exposes exact rank data without claiming the mechanics are implemented.
+Audit baseline: 294/432 overall and 39/46 Hunter; the acquired-aspect follow-up above supersedes it.
+
+## Visual reporting acceptance (hard requirement)
+
+Every major UI checkpoint includes actual inline screenshots in `docs/CHANGELOG.md`,
+stored under `docs/images/screenshots/<milestone>/`, plus a concise summary and
+feature-branch commit/push. Links alone are insufficient. Compare against the matching
+intention screenshot as the visual north star; record intentional departures and
+unfinished details. Keep README screenshots current. Follow the
+[checkpoint workflow](SURVIVORS-DEVELOPMENT.md#following-feature-milestones).
+The 2026-10-25 starter checkpoint captures Character, ten-hero management, Talents
+and Companions at 1280×720. Responsive variants and interaction acceptance remain open.
+
+## Integration audit — 2026-10-27
+
+Full-workspace Clippy and app unit tests now pass. Account selection passes with
+local mock-server socket permission. The starter-only `Backdrop` material has an
+explicit menu exemption, supported by its test removing the material from in-run
+pause screens. Preview activation uses `run_mode::dev_affordances()`; a test in the
+player configuration proves a preview environment variable cannot install state
+or the watcher. Runtime preview activation remains native-only.
+
+The reference-string audit now passes without allowance changes. Appearance,
+tooltip, settings, level, regeneration, equipment and legacy rank labels resolve
+runtime keys. The latest checkpoint passes 446 Survivors app tests, app Clippy,
+and native Collection validation. Injected translations cover argument order,
+signs, fractional values, percentage units and green upgrade spans.
+
+The latest full integration run passed formatting and workspace-wide Clippy.
+Dedicated test files and UI-feed paths restore the VM audit's original 40-file
+ceiling without changing test bodies or relaxing the gate. Browser asset checks
+now follow this checkout's standalone launcher, reject missing source modules,
+and verify generated glue and optional storage initialization. Two Rust packaging,
+six build-script and seven browser tests pass.
+
+The world-API audit now passes at its original 107-leak ceiling. Render-candidate
+selection lives behind `SceneryProbe`; gameplay no longer enumerates merged blobs.
+The intentional fork visibility surface and existing startup-map setter have an
+[API record](SURVIVORS-ENGINE-API.md). All 449 feature-enabled Survivors tests and
+all-target app Clippy pass, including installed Elwynn canopy regressions.
+The [full native chain](validation/2026-10-27-integration.md) now passes, including
+no-install and player tests. Each data/player stage skips 31 addon-corpus tests.
+Live translated-layout, addon-corpus and Windows visual acceptance remain open.
+Browser compilation previously passed with five warnings. The talent-sidebar follow-up also passes the full chain; both runs are recorded
+with their skip counts and platform limits.
+
+## Healing correctness — 2026-10-27
+
+Drain and gear leech now use enemy health actually removed, matching Siphon Life
+and Vampiric Embrace. Direct multistrikes and periodic damage can no longer heal
+from overkill. Damage reporting remains unchanged. The actual hit-system test
+covers direct/periodic lethal hits, multistrike, stacked Siphon ranks/milestones,
+maximum-health caps, dead heroes and a second update against the dead target.
+This is combat-accounting coverage; live balance remains open.
+
+Improved Drain Life (1004, five ranks) now multiplies Death Coil's drain by
+1 + 0.02 per rank; damage, cooldown, targeting and cast-healing milestones are
+unchanged. Rules and real-hit tests cover rank caps, refund, overkill and healing
+caps. 189 core/366 app tests, Clippy and native build pass. The compact preview
+exposed fixed-height talent-panel clipping; panels now grow with their contents.
+Native 640×720 and 1024×720/125% captures verify the full green description,
+purchase persistence and tree proportions. Windows and live balance remain open.
+
+## Mage Arcane Power — 2026-10-27
+
+Node 87 now starts a 15-second, +30% Mage damage window on a successful cast,
+recovering 180 active seconds after activation. Cast damage, burns and ground
+areas retain their multiplier; subsequent casts cannot refresh the window. HUD
+status exposes the remaining duration. Core and actual cast tests cover targeting
+failure, pause, extra targets, expiry/recovery, foreign spells and Blizzard damage.
+Native 1280×720 and 640×720 captures verify the green preview, purchase, full text
+and saved rank, using the real Arcane prerequisite chain (30 → 31 points).
+201 core/385 app tests, both Clippy gates and native build pass. Definition coverage
+is 247/432 (Mage 33/49). HUD rendering in combat, live balance and Windows gameplay
+remain unverified; these captures cover the starter talent page.
+
+## Rogue Precision — 2026-10-27
+
+Precision (181) now adds 1% Rogue direct/periodic damage per rank, capped at five.
+This explicit Survivors hit-chance conversion excludes foreign and neutral abilities.
+Core tests cover rank bounds, class/spell scope, milestone composition and refunds;
+app parameter tests cover damage with unchanged timing and targeting. Native
+1280×720 purchase and 640×720 scrolling captures verify the green preview, saved
+rank 1, six Combat points and 45 unspent. The existing reference-aligned three-tree
+layout is unchanged. 200 core/383 app tests, both Clippy gates and native build pass.
+Coverage is 246/432 (Rogue 22/51); live balance and Windows acceptance remain open.
+The Rogue save integration now loads the real DBC catalog and covers a legal
+Precision build across hero/spec selection, reload and respec. It distinguishes
+the generic ten-point damage bonus from Precision, verifies milestone cooldown
+stacking and preserves snapshots already copied into active runs.
+
+## Hero identity at run entry — 2026-10-27
+
+Explicit stale or cross-class hero selections now fail the shared menu entry gate.
+Their stat lookup returns no bonuses, matching the already-empty talent snapshot,
+instead of falling back to the first hero or another class. Regression coverage
+exercises the real front-door start helper and checks that refusal preserves the
+previous run. Re-selecting a matching hero restores entry. No-hero class previews
+retain their existing fallback. This is a boundary-state fix; normal UI selection
+and appearance restoration remain covered by their separate acceptance checks.
+
+## Windows build acceptance — 2026-10-27
+
+The CI gate now links the player executable in addition to checking the development
+launcher and testing core rules. A successful run uploads only the executable under
+its checkout SHA for attended playtesting. GitHub reports zero repository workflow
+runs at this audit; runner execution, artifact availability and GPU acceptance are
+still unproven. The [artifact workflow](SURVIVORS-DEVELOPMENT.md#windows-build-artifacts)
+documents the build mode and data-path requirement.
+Local validation: YAML parses, the no-default-features player check passes on macOS
+with five non-dev warnings, and 199 core tests pass under the same play profile.
+These checks do not substitute for Windows compilation or linking.
+
+## Windows foliage reproduction evidence — 2026-10-27
+
+The opt-in `survivors_visibility=trace` target records rendered blockers and fade
+inputs. Follow the [Windows capture workflow](SURVIVORS-DEVELOPMENT.md#diagnosing-scenery-reveal-on-windows)
+to pair the obscured and clear camera states with the exact build. Existing canopy
+and fade tests pass; closure still requires the reported runtime scene, not those
+synthetic rays alone. Texture-alpha accuracy remains a known probe limitation.
+
+## Paladin Divine Favor — 2026-10-27
+
+Node 1433 now readies one guaranteed-critical Holy Shock with 120-second recovery.
+Core and actual cast tests cover bounded ranks, exclusions, no-target retention,
+paused frames and additional targets. Other classes retain their three-minute
+critical-charge recovery. Native 1280×720 purchase and 640×720 scrolling captures
+verify the green value, 20 → 21 Holy points, 31 → 30 unspent and saved rank 1.
+The live-balance and full talent acceptance requirements remain open.
+
+## Priest Inner Focus — 2026-10-27
+
+Node 348 now has an automatic 25-percentage-point next-cast critical bonus with
+180-second recovery. Core and actual cast tests cover class/spell scoping, no-target
+retention, paused frames, multiple direct targets, unchanged burns and recovery.
+Native reference-aligned Talents captures verify the green inline preview, purchase
+(10 → 11 Discipline points, 41 → 40 unspent) and saved rank. Definition coverage
+reaches 244/432, Priest 24/47; this is not complete talent or live-balance acceptance.
+The reload/catalog integration test additionally covers pending catalog suspension,
+valid/invalid/empty spec selection, cross-hero/class isolation, respec persistence
+and unchanged active-run snapshots. The main coverage table below is reconciled
+with the current DBC audit, rather than only recording counts in milestone notes.
+Native compact validation also verifies full-description scrolling, refund,
+repurchase and saved rank at 640×720 with 125% interface size. Wide and compact
+screenshots are inline in the same changelog milestone. This covers this talent's
+presentation; it does not imply full controller or resolution acceptance.
+
+## Current priority — starter interface first (2026-10-26)
+
+Controller integration (2026-10-28): raw stick sampling now feeds analog hero
+movement and camera controls with a saved radial dead zone applied once (25% default). Keyboard
+movement takes precedence; South jumps and Start pauses. Input is suppressed
+outside active, focused play and requires neutral gestures after resume/handoff.
+[Controller input audit](audits/CONTROLLER-INPUT.md) tracks the implementation and
+remaining acceptance: physical-device feel, attended movement/collision and Windows
+validation. The saved 0–50% slider, one-percent keyboard adjustment, restart and
+Controls reset are verified in native menus at 1100×720/100% and 640×480/125%.
+Four screenshots are inline in CHANGELOG; 549 app tests cover the input/settings
+contracts. These checks do not close full controller or resolution acceptance.
+
+Compact settings acceptance (2026-10-28, runtime `9ee285e`): native 640×480 at
+125% preview scale verifies Run Options, Graphics, Controls and Audio layouts,
+Tab/Enter category activation, Escape back to Run Options and Done back to the
+starter with its fixed bottom actions. No runtime change was needed; five native
+captures are inline in CHANGELOG and the compact settings example is in README.
+Graphics currently exposes auto-push and scenery cutaway only: independent
+occluded-friendly/enemy silhouette filters are absent, not below a scroll fold.
+World visibility and physical-controller/Windows acceptance remain open. The
+preview override intentionally leaves the saved interface-size readout at 100%.
+
+Live preview scale (2026-10-28): optional `scale` covers 75–125% without changing
+saved settings; omission restores the saved preference and invalid requests
+retain the previous page/size/scale. Native Rewards checks at 640×480/125% and
+1100×720/100% verify draft retention, Undo, scrolling and one/two-column reflow.
+Screenshots and reusable presets are checked in. A clipped 1280×800 capture is
+not counted as acceptance; the broader platform/resolution matrix remains open.
+
+Chest eligibility correction (2026-10-28): separate owned abilities from those
+with remaining upgrades, so reaching maximum rank does not remove the associated
+legendary amulet from chest offers. Preserve luck/category rolls, distinct cards
+and replacement exclusions. Regression coverage includes mixed/capped/empty
+rosters and the actual HUD choice conversion. Validation results are recorded in
+the changelog; this changes reward eligibility, not the card layout.
+
+Codex acquisition guidance (2026-10-28): legendary entries explain that the
+associated ability must be acquired in-run; talent-gated entries name their
+training prerequisite from the talent definitions. Native 1100×720 and 640×720
+previews verify readable guidance and independent detail scrolling through all
+bonuses. Ordinary Mind Blast correctly omits a talent prerequisite. Captures are
+embedded in the changelog and README. This does not complete acquisition balance.
+
+Latest talent readability requirement (2026-10-28 follow-up): use a 300:640
+width-to-height grid ratio and 52-unit maximum icons, following the shared
+height-relative UI scale. At the 300-unit reference width, row centers are 14%
+farther apart and icons are 8% larger than the previous 560/48 layout. Narrow
+panels scale proportionally and wrap rather than squeezing all trees into one row.
+Do not combine a minimum height with this aspect ratio: Bevy can expand the width
+beyond its parent. Cap single-column expansion at 800 design units and center the
+bounded canvas at enlarged UI sizes. Artwork retains its own 300:331 proportions
+with centered side cropping. Validate wide and compact views, lower-row access,
+and enlarged UI scale whenever changing this layout. Windows confirmation is open.
+
+Earlier compact validation (2026-10-27): a 288-unit preferred content width leaves
+room for two columns at 640×720, then using the 420-unit grid-height floor and
+proportional artwork. The former 296-unit preference missed the two-column fit.
+The native trained fixture verifies Mura's separate spec scroll offsets, Improved
+Healing Wave purchase/refund (4→5→4; 17→16→17 points), Collection round-trip
+restoration, and Nara starting independently before Mura's prior view returns.
+Hero changes used the watched preview request. A fresh 1600×900 launch verifies
+four columns and persisted spec two; scroll offsets intentionally remain session
+local. Native build: 23 seconds; formatting/diff checks pass. Inline evidence is
+in CHANGELOG; the README compact gallery is updated. Windows, physical controllers
+and exhaustive class/scale combinations remain open.
+
+
+Talent inspection now stays visible above the trees when wrapping/scrolling puts
+full details off-screen. Both displays share the same inline upgrade content;
+new inspection resets summary scrolling. Native 800×600 keyboard focus/purchase
+and scrolling to full details, plus a 640×480 long Hunter description, are captured
+in the changelog. This preserves taller artwork without forcing players to scroll
+away from an icon to read its effect. Windows acceptance remains open.
+
+Talents typography, panel padding and gaps now participate in validated native
+live layout reloads. Same-process wide/compact captures confirm retained selection,
+scrollable descriptions, invalid-edit rejection and default restoration. Tree art
+and node geometry retain their proportions. This improves iteration speed; it does
+not close Windows foliage, spawn/pathfinding or chest reproduction acceptance.
+
+
+Achievement cards now keep the same proportional column width on incomplete rows,
+matching the intention's aligned columns. Native wide/compact Feats captures verify
+five-card alignment, readable text and scrolling. The shared card style also serves
+recent/almost-complete summaries; broader layout acceptance remains open.
+
+Fast native UI previews now support all three Rewards categories and all six
+Achievement categories through a validated optional `category` key. Page, category
+and dimensions apply together; omission preserves the manual category and invalid
+combinations retain the previous view. Reusable wide Feats/compact Tabards requests
+and documentation are checked in. All 261 app tests pass; native direct launch,
+invalid-request retention and cross-page live reload have inline screenshot evidence.
+Broader fixture automation and remaining page-specific preview controls stay open.
+
+Tabard cards now use shared hover/pressed feedback, gold outlines and burgundy
+selection. Native wide/compact validation covers icon selection, removal, keyboard
+focus/selection, scrolling and saved appearance after restart. Inline screenshots
+are in CHANGELOG/README. The single verified Guild Tabard remains the catalog.
+The 2026-10-27 compact/125% check exposed a missing render connection despite
+saved selection: `gear_body` now supplies slot 18 and the visual-only item 5976
+(display 20621) to the shared menu/run hero compositor. Native Gnome female
+before/after captures verify restart restoration and removal; 366 app tests,
+Clippy and native build pass. Live combat, other bodies and additional cosmetics
+remain open. The rapid direction-plus-select
+issue is now fixed: when both arrive in one frame, navigation runs before selection.
+An initial combined gesture establishes focus without activating; Enter is consumed
+so it cannot fall through to starting a run. Keyboard/controller ECS regression
+coverage verifies the destination, one-frame activation and modal blocking. Native
+Right+Space and Left+Enter sequences now work without a second press; this does not
+establish physical-controller or arbitrary multi-event ordering acceptance.
+
+Achievement category rows now share one full-width action/focus surface with
+separate label/count alignment and progress beneath, following the summary
+reference. Native wide/compact checks cover icon and progress clicks, whole-row
+focus, Space selection and compact summary scrolling. Inline evidence is in the
+changelog/README. First-earned UTC dates now persist for new grants and appear on
+summary/category cards. Legacy achievements remain undated; date metadata never
+grants points or unlocks, and repeated grants preserve the original date. Native
+wide/compact restart evidence and save compatibility/calendar tests verify this.
+The 58 catalog entries now use authored requirement-themed vanilla icons; related
+zone/class tiers share icons. The explicit-data `--achievement-art` audit checks
+all referenced files, and native summary/category captures document the artwork.
+Jeweler’s Eye now measures half the complete jewelry Codex (currently 56/112),
+combining deduplicated shared discoveries with valid class legendary discoveries.
+Legacy awards remain earned; the separate 36-legendary rule remains under the
+clearer Legendary discoveries name. Core/account tests and native before/after
+fixtures verify thresholds, persistence, duplicate protection and a single grant.
+Legendary now awards 25 points for all nine legendary gear pieces of one class.
+The best single-class collection drives progress; duplicate drops, lower rarities
+and cross-class pieces cannot fill it. Saved duplicate achievement IDs cannot inflate
+points/counts. Core/account tests and native 8/9-to-earned screenshots verify this.
+Reference catalog expansion and broader per-page interaction acceptance remain open.
+
+Options now opens shared pause settings from the starter and all Armory pages.
+The menu leaves layout while settings is visible; its mouse/keyboard actions are
+blocked. Back/Escape restores the existing page/draft; Enter cannot start a run.
+Paused Escape closes settings before a subsequent Escape resumes. A bounded,
+opaque bordered panel improves readability and supports wide/compact rendering.
+Native 1280×720 / 640×720 checks verified MasterVolume 100→90%, auto-push On→Off,
+both values after restart, Enter isolation and return to Talents. The two ECS
+regressions cover modal key consumption and menu layout/input removal. All 226
+Survivors tests, native build, workspace Clippy, formatting and render lint pass.
+Inline screenshots are in CHANGELOG/README.
+
+The category checkpoint adds three inline screenshots. Native wide/compact
+checks cover switching all three panels, MasterVolume 90→80%, auto-push Off→On,
+saved values, Enter isolation, Done and the About→build-notes route. All 33 focused
+HUD tests and workspace Clippy pass; the new regression guards the notes action
+against leaving a paused run. An actual restart and audible output were not retested.
+
+Audio/Graphics now each restore their own registered defaults; Graphics also resets
+camera preferences to the built-in defaults rather than reloading saved values.
+The title uses the installed Morpheus font and Defaults/Done align at lower right.
+All 228 Survivors tests pass, including category isolation and normal CVar change
+callbacks. Native 1280×720 / 640×720 checks verify both resets, unrelated-category
+preservation, About hiding defaults, and saved values after relaunch. Build,
+workspace Clippy, formatting and render lint pass; two inline screenshots record
+this checkpoint. Audible output and in-world camera effects were not retested.
+
+Numeric Audio/Graphics controls now use proportional gold sliders with separate
+labels and readouts. Audio snaps to 1%; graphics retain all supported stops. Ordered
+window events preserve short drags, clamp past the track and stop on release,
+window focus loss or leaving Options. Tests cover short drags at 1×/2× display
+scale and every supported graphics stop; all 230 Survivors tests pass. Native
+1280×720 / 640×720 checks verify click/drag, maximum clamping, 37% audio, all four
+graphics sliders, defaults/fills, Enter isolation and volume after relaunch.
+Build, workspace Clippy, formatting and render lint pass; screenshots are inline
+in CHANGELOG/README. Audible output was not tested.
+
+Compared against `survivors_paused_options_gamepad.png`: Audio, Graphics and About
+now use left-side category navigation and a focused bordered content panel.
+Options now supports Tab/Shift-Tab and Up/Down focus, Left/Right slider steps,
+Home/End limits and Enter/Space activation. A white outline marks the focused
+control; hidden categories are skipped. Mac raw modifier events preserve Shift-Tab.
+Done runs after the HUD shortcut handler, preventing the same Enter from starting
+or resuming a run. ECS tests cover both phases; native wide/compact checks cover
+focus, slider steps/limits, category activation, Done, pointer handoff and build
+notes. Screenshots are embedded in CHANGELOG/README.
+Audio and camera switches now use reference-style labeled gold checkboxes,
+aligned with slider controls. The entire row accepts clicks and keyboard focus;
+checkmarks are drawn from two strokes rather than relying on a font glyph.
+Native wide/compact checks cover label/box clicks, Space activation, checkbox
+states, Graphics defaults and persisted music state after relaunch. All 38 focused
+HUD tests, native build, workspace Clippy, formatting and render lint pass. New
+screenshots are inline in CHANGELOG/README; audible output and in-world camera
+effects were not retested.
+Controls now exposes saved mouse X/Y inversion with category defaults and current
+movement/camera guidance. The camera applies inversion to orbit drag, and camera
+rotation/zoom/mode input is limited to Playing. Old saves default both axes off;
+Graphics resets preserve inversion, and Controls resets preserve collision/cutaway.
+233 Survivors tests cover direction mapping and persistence compatibility; native
+wide/compact checks cover mouse/keyboard toggles, both reset boundaries and saved
+inversion after relaunch. Build, workspace Clippy, formatting and render lint pass;
+screenshots are inline in CHANGELOG/README. In-world inversion and paused camera
+isolation still need live acceptance checks. The shared runtime camera-input path
+now has regression coverage for all non-playing phases, loading-screen coverage,
+blocked wheel-event consumption, independent inversion, fixed-view restoration,
+line/pixel zoom equivalence and pitch/zoom limits. Loading coverage also suppresses
+camera gestures while the world is not ready. All 236 Survivors tests, native
+build, workspace Clippy, formatting and render lint pass. Controls now includes independent saved camera/zoom sensitivity (25–300%,
+100% default), with matching pointer and keyboard steps. Controls reset restores
+both speeds and inversion while preserving Graphics; Graphics reset preserves
+Controls. Old or invalid saves retain safe speed defaults. All 238 Survivors tests
+pass, including rotation/zoom scaling. Native wide/compact checks cover clicks,
+dragging, keyboard limits/steps, reset isolation and persistence after relaunch;
+new screenshots are embedded in CHANGELOG/README. In-world feel, gamepad navigation,
+bindings and other settings remain required.
+Controller discovery is enabled for Survivors (the stock client keeps it disabled).
+Start opens Options from Menu/Paused; D-pad up/down focuses, left/right adjusts,
+south selects and east closes. This shares keyboard focus and setting actions,
+and only one controller supplies new presses per frame. Synthetic ECS checks cover
+both menu states, toggles, slider changes, back, held input, gameplay rejection and
+card-preview rejection. Native compact validation covers backend startup and help
+layout, with a keyboard-focused screenshot in CHANGELOG/README. Physical controller
+acceptance, other starter pages and gameplay remain unfinished.
+The starter/Armory primary actions now share directional controller/keyboard focus:
+D-pad/arrows navigate by screen position, south/Enter/Space activates the existing
+Act path, and controller east returns to the starter. First controller selection
+establishes focus; held input cannot repeat activation. Focus clears for Options,
+text entry, loading, pointer presses and non-menu phases. Scrolled controls reveal
+through the actual vertical scroll container, skipping non-scrolling wrappers and
+leaving a margin for the outline. Focused Enter is consumed before the global run
+shortcut. Native compact evidence covers Options/Achievements, Space category
+selection, and equipment/lower-action scroll reveal; two screenshots are embedded
+in CHANGELOG/README. Controller ECS tests cover the shared path and nested-scroll
+regression. Physical devices, complete per-page traversal, other hover details,
+non-talent secondary actions, name entry without a keyboard and controller gameplay
+remain open.
+Talent and milestone descriptions now follow keyboard/controller focus before
+mouse hover, using the same title, rank preview and supported-effect tint. Pure
+milestone rows join focus navigation without becoming purchase actions. Inspection
+never activates a talent or spends a point; the page help describes arrows/D-pad.
+Other hover surfaces and physical-device acceptance remain open.
+Talent refunds now accept Backspace/controller west on the focused talent through
+the same row/prerequisite checks as right-click. Requests last one frame, clear
+under modals/text entry and cannot trigger secondary equipment actions. Native
+Backspace validation refunded rank 4→3, returned one point and verified the saved
+spec. Talent and milestone focus now survives tree entity replacement, including
+the intermediate layout frame, using rank-independent identity scoped to the hero.
+Restoration does not replay an action and clears on page/hero changes or modal
+and pointer handoff. Rewards now also retains focus by action, hero and category
+through rebuild/layout delay. Repeated +/− actions preserve their outline; missing
+or disabled controls drop focus, and category/page changes, modals and pointer input
+clear the identity. Native 1280×720 checks verify two upgrades, two individual undos,
+correct repricing, disabled-control inactivity and an unchanged account file.
+Physical controller acceptance and focus retention on other pages remain open.
+This exposes existing controls; it does not complete the reference Options page
+or establish audible output/engine setting effectiveness. About exposes the existing
+notes/restart page from the starter; it is unavailable during a paused run.
+Downloaded self-updates remain future work. Run Options still only reports Normal difficulty.
+
+
+Starter actions now use the shared gold-outline/burgundy control style. Armory,
+Talents and entry actions contain both title and subtitle within the button.
+Enter uses proportional width with bounded wrapping rather than a fixed texture.
+Options/Quit share the new style on all Armory pages; Random/Look use text-sized
+controls. Native 1280×720 / 640×720 checks verified full-card Armory/Talents
+navigation, long Gates of Ahn'Qiraj text, lock preservation, Options navigation and
+Quit. Build, workspace Clippy, formatting and render lint pass. Screenshots are
+embedded in CHANGELOG/README. Options now opens shared preferences;
+Run Options still only reports Normal difficulty.
+The starter now has an original silhouette backdrop (see Stable starter backdrop below).
+Outdoor zone illustrations remain open.
+
+Starter portraits now include the reference's faction pill and circular class
+badge, derived from the selected race/class and runtime class atlas. Badge size
+and corner offsets follow the portrait. Native Horde Warrior → Alliance Mage
+switching, drag rotation, 1280×720 / 640×720 layout and scroll clipping passed;
+three screenshots accompany the changelog/README. Native build, workspace Clippy,
+formatting and render lint pass. Starter control styling, background and outdoor
+zone illustrations remain open.
+
+Collection equip/unequip actions now preview the complete equipment contribution,
+including worn-set gains/losses. The shared bonus formatter uses green/red numeric
+comparisons with one unit. 110 core and 194 app tests pass; native wide/compact
+checks verified preview totals against actual removal/restoration. Screenshots
+are inline in the changelog. All-class and all-item visual acceptance remains open.
+
+Collection detail now groups icon/name/quality/ownership in the bordered identity
+card from the Collection intention. A collected Warrior fixture verifies selection
+changes and long-name wrapping at 1280×720 and 640×720, with inline changelog
+captures. This does not complete collection-page styling or the item catalog:
+Poor gear now has catalog, save, UI and ordinary-enemy drop integration; distinct
+raid-epic identities, acquisition and set builds remain open.
+
+Rogue has sixteen explicit individual talents: Improved Slice and Dice, Elusiveness,
+Vigor, Remorseless Attacks, Lightning Reflexes, Deflection,
+Camouflage, Sleight of Hand, Improved Eviscerate, Malice,
+Improved Sinister Strike, Serrated Blades, Deadliness, Improved Gouge, Lethality
+and Aggression. Their effects replace provisional rank damage; exact rules are
+in `SURVIVORS.md`. All 105 core tests pass. Account coverage verifies save/reload,
+hero/class isolation, spec switching and reset persistence. Native 1280×720
+checks cover descriptions, purchase/refund and prerequisite/row gates, with
+inline changelog screenshots compared against the talent-page intention.
+Two combat-parameter/hit regressions also cover ability ranks 1/3/8, equipment
+composition, critical rolls, Rupture ticks and matching Gouge stun/marker durations.
+Assassination and Combat now also implement all six 10/20/30-point milestones:
+critical chance/damage and guaranteed Eviscerate criticals; cooldown reductions
+and a wider single Blade Flurry area. 106 core and 191 Survivors app tests pass.
+Two live captures show independent active 30-point specs and exact descriptions.
+Subtlety completes the nine Rogue milestones with a Gouge absorb, Kidney Shot
+advancing Gouge, and Gouge advancing Eviscerate. Shared cooldown-advance handling
+preserves Paladin behavior. All 107 core and 192 app tests pass. Subtlety descriptions
+were checked in the compact layout, with wide/compact inline screenshots.
+The four defense/mobility nodes replace provisional damage with reduction, armor
+or movement speed. 108 core tests and the local talent audit pass; native
+Camouflage/Deflection refund/rebuy checks and two screenshots cover 1280×720.
+Remorseless Attacks adds a non-stacking, 20-second kill-triggered bonus to the
+next successful eligible melee cast. 109 core and 193 app tests pass, including
+rank limits, expiry, refresh and consumption. Wide/compact captures document
+the description; native refund/rebuy was verified. An additional ECS regression
+exercises all four eligible auto-casts with two targets: failed target selection
+preserves the proc, the successful cast shares it, and the next cast loses it.
+An active-proc HUD indicator
+and live combat acceptance remain open, alongside other Rogue nodes and
+remaining compact descriptions.
+
+The user authorized lore-appropriate racials for all races. All eight now have
+explicit rules in `SURVIVORS.md` and shared core effects applied to the run sheet;
+Human rules remain intact. Timed effects use gameplay time. Two core tests and
+four run-stat tests pass, and wide/compact Orc starter screenshots verify the
+visible descriptions. Extended combat and balance acceptance remains open.
+
+Companion artwork now matches the reference's Quick Paws, bird, Long Leash,
+frog, serpent, Zergling and cockroach icons. Runtime paths were verified against
+the checkout patch chain and native wide/compact captures are inline in the
+changelog. In-world pet animation/scale and broader Rewards layout acceptance
+remain open; icon matching does not establish those checks.
+
+Companion upgrade rows now keep equal widths, including Second Companion.
+Looks and Tabards use adaptive grid columns; Looks fits four columns at 1280×720
+and three at 640×720 without stretching its last row. Live layout/selection checks
+and three inline screenshots cover this checkpoint. Companion artwork and other
+page-specific details remain open; this is not full Rewards visual acceptance.
+
+Companion upgrade cards now follow the compact Perk structure: inline rank pips,
+right-side cost/+⁄− controls and purchased-state tint. Preview, disabled purchases,
+pending removal/point restoration, compact text fit and appearance switching
+passed live checks; three new inline screenshots preserve the earlier captures.
+Artwork and other page-specific details still need reference alignment.
+No companion cost or effect changed.
+
+Rewards currency/category rail now emphasizes available points and uses full-width
+category buttons. Confirm/Undo remain visible but disabled without a draft.
+Preview, category switching with pending changes, Undo and 1280/640×720 fit
+passed live checks; three screenshots are inline in the changelog. Companion/
+Tabard cards and other page-specific reference details remain unfinished.
+
+Major Armory sections now have centered headings and flexible, fading gold
+rules. Wide Collection/Achievements/Rewards and compact Talent Points were
+verified live with four inline screenshots. This completes the shared section
+framing pass; remaining texture buttons, portrait
+badges and page-specific details still need reference alignment.
+
+Reward perks now use compact reference-style cards with name-adjacent rank
+markers and cost/+/− controls at right. Disabled max-rank/unaffordable purchases,
+pending-rank removal and point restoration passed live checks at 1280×720;
+640×720 wrapping was captured after scrolling. Three screenshots are inline in
+the changelog. Companion/Tabard styling remains open; no costs or perk effects
+changed.
+
+Navigation and shared Armory controls now use gold outlines, burgundy selection
+and hover/pressed feedback. Text-sized tabs wrap; Done only appears inside the
+Armory. Equipment actions, reward preview/Undo, navigation and 1280/640×720 fit
+were checked live. Texture-based starter and Options/Quit controls still need
+alignment, along with the other remaining items below.
+
+Starter title, section headings and zone names now use runtime-loaded Morpheus;
+body copy keeps the HUD face. Wide/compact rendering, outline alignment, long
+zone names and zone-selection rebuilds passed live checks with three screenshots.
+Armory primary section headings now share that face across all seven pages;
+1280×720 page switching and compact/scrolled Talents passed live checks, with
+eight inline changelog screenshots and refreshed README gallery images. Buttons,
+decorative dividers, portrait badges, outdoor zone art and broader styling still
+need reference alignment. This does not establish full interface acceptance.
+
+Starter class selection now follows the reference's three-by-three wide grid,
+using proportional icon sizing, centered labels and class-colored selection.
+Wide 1280/1100 and compact 640×720 layouts, plus class switching, were verified
+live with three inline changelog screenshots. Equipment now uses shared grid
+columns, fixing the stretched final slot at 1100 pixels. Worn/empty states,
+1280/1100/640 layouts and wrapped main-hand inspection were verified live.
+Typography, portrait badges and broader starter styling still need reference alignment.
+
+Starter manual naming now uses a hero-bound draft with Save/Cancel, Enter/Escape
+and Tab. Live checks cover blank rejection, save/cancel, Enter isolation,
+640×720 layout and restart persistence; screenshots are inline in the changelog.
+The shared name handler now uses ordered keyboard events: rapid repeated letters,
+Backspace, Tab and Enter passed both regression and live starter/creation checks.
+OS text supplies capitalization; the existing ASCII name filter and 16-character
+limit remain. Reference typography and control styling remain open.
+
+Talent headings now resolve specialization artwork through the installed
+TalentTab → SpellIcon catalogs, with points aligned opposite the name. Missing
+art leaves a text heading. The Survivors adapter is separate from the stock
+talent catalog. Mage and Paladin were checked live at 1280×720, plus Paladin at
+640×720; its custom milestone text-only fallback also passed. Three screenshots
+are inline in the changelog. Typography and custom Paladin milestone artwork remain open.
+
+Talent milestone icons now resolve by the milestone name within its installed
+talent tab, then use that talent's spell icon. Locked icons dim alongside their
+text; earned icons brighten. Custom milestones absent from the vanilla tree
+retain text-only fallback. Custom Paladin milestone artwork and typography remain open reference-alignment work.
+
+Named prerequisite checkpoint: Shatter/Improved Frost Nova verified live with
+missing, partial and complete prerequisite ranks, protected refunds and restart
+persistence. Blocked purchase/refund feedback now names both talents and the
+required rank. Three screenshots accompany the changelog. Higher-tier and
+cross-class acceptance remain open; custom milestone icons and typography still need alignment.
+
+Mage Frost row gating now has live 1280×720 evidence: blocked supporting refund,
+dependent-first refund returning two points, and rejected spending after the row
+relocks. Three screenshots are inline in the changelog. Named prerequisite chains
+and higher-tier builds remain open; this does not complete the talent audit.
+
+Starter selected-zone details now expand inside the selected row, matching the
+reference's placement. Switching Elwynn/Warsong collapses the old row; available
+and locked states, wrapping and crop updates were verified at 1280×720/640×720.
+Existing catalog descriptions remain separate from verified encounter completeness.
+
+Starter zone artwork checkpoint verified at 1280×720 and 640×720: runtime art,
+responsive cropping and locked banner clicks passed for Warsong/Naxxramas.
+Three captures are inline in the changelog. Use installed Map.dbc → LoadingScreens.dbc artwork
+for instance/battleground rows, cropped to the current row aspect ratio. Keep
+names and lock reasons visible and retain text-only fallback. Continent loading
+screens are shared and do not qualify as distinct outdoor zone illustrations;
+Elwynn, Duskwood, Un'Goro, Feralas, Gurubashi, Gates of Ahn'Qiraj and the undefined
+Blackrock Mountain map still need appropriate zone-specific artwork. Never bundle
+extracted client assets. Loading artwork is a visual aid, not evidence of world
+content readiness.
+
+Human racial checkpoint: the reference's Perception (+15% damage for 10 seconds
+every 30), Human Spirit (+10% run XP) and Diplomacy (+20% gold) now reach the run
+sheet and appear on the starter. First Perception activation is at 30 seconds.
+Core boundary tests and app tests cover stat stacking, legendary damage and
+hero/companion pickups. Human/Gnome switching and 1280×720/640×720 descriptions
+were checked live. Other racial rules, Perception combat feedback and full live
+combat acceptance remain open. Existing per-award gold rounding is retained.
+The starter Look button now opens Character's body controls. Look → Character
+→ Escape was verified live at 1280×720 with the selected Mage retained. The
+older creation workflow remains separate.
+
+Starter portrait checkpoint verified at 1280×720 and 640×720: the selected
+hero's saved body/appearance renders beside their name and race in a proportional
+pane. Live Warrior/Mage switching, Character round trip, scroll clipping and
+drag rotation passed. The shared renderer keeps rigid equipment framed. Four
+actual captures are inline in the changelog. Faction/class portrait badges and
+inline name editing remain differences from the reference.
+
+Starter equipment/responsive checkpoint verified at 1280×720 and 640×720:
+worn-item icons use verified equipment display identities with quality borders;
+empty slots remain labeled. Slot selection opens the worn piece in Collection.
+Below 1100 UI units, Class/Hero/Zone stack in a shared scroll surface with an
+independent session offset; entry controls stay outside the scroll. Live shoulders
+inspection, lower-zone reachability and Collection/Escape scroll restoration passed.
+Still open against the main-menu intention: illustrated zone rows,
+decorative typography, remaining racial bonuses and wider viewport acceptance.
+
+Talent saved-build live checkpoint verified at 1280×720 with an isolated Warrior
+and Mage: distinct Warrior specs (Arms 3/Fury 2), Mage spec 3 (Frost 1), selected-spec
+restoration across hero switches and restart, and resetting only the active Warrior
+spec. Save-file readback preserves Warrior spec 1 and Mage spec 3 after the reset.
+Screenshots are inline in the changelog. Still open: all-class combat acceptance,
+deep prerequisite/refund interaction checks and narrow per-spec scroll live validation.
+Stale action feedback is now cleared by page navigation; Talent → Character and
+Talent → Escape were checked live at 1280×720. Starter finale copy now shares the
+combat schedule lookup with Drop Tables and displays names plus time. Elwynn's
+Fedfennel at 16:00 and locked Duskwood's progression requirement were checked live;
+a regression covers finale identity/time for every map. Zone readiness remains separate.
+
+Character responsive checkpoint verified at 1280×720, 640×720 and 640×900:
+below 1100 UI units, stack a proportional square hero preview, appearance/features,
+equipment and item details in one scroll surface. Character, Collection and Drop
+Tables retain separate offsets. Wide screens retain the intention's
+appearance/model/features composition. Live body/feature edits, Warrior/Mage
+switching, tab return and restart persistence passed with an isolated account.
+Saved appearances no longer trigger the obsolete “Open Look” prompt. Actual captures
+are inline in the changelog. Final typography, wide-column scrolling remain separate acceptance; the Talent checkpoint above
+records the verified two-hero/spec persistence scope.
+
+Drop Tables responsive checkpoint verified at 1280×720 and 640×720: below 1100 UI units, wrap zone
+choices and stack sources, item details and equipment in one scroll surface.
+Retain an independent session scroll offset on selection and tab return. Wide
+encounter rows place source/time beside item/icon, matching the reference; zone
+choices show quality and collection count. Browsing must never select the next
+run zone. Live lower-row selection, equip and Collection round trip retain scrolling.
+Finale labels derive from the combat schedule, not the legacy zone boss name.
+Source identities, missing zone content and wide-column scroll restoration remain
+separate acceptance. Actual screenshots are inline in the changelog.
+
+Gear stat checkpoint verified at 1280×720: [slot profiles](SURVIVORS-GEAR-STATS.md) replace
+the shared non-glove bonus sequence. Each current band adds one stat and strengthens
+retained stats; only selected equipment contributes, regardless of duplicate count.
+This is initial tuning. Poor gear now has authored identities and starter-zone
+sources; distinct raid epics, build-specific raid sets and combat balance remain open.
+
+Shared Armory header checkpoint verified: title, wrapping tabs and selected
+class/collection subtitle follow the references; the starter keeps its game title.
+Collection's duplicate subtitle is removed. The 640-pixel check exposes crowded Collection
+slot labels. Narrow Collection reflow is verified at 640×720 and 640×900: below 1100 UI units,
+stack the collection, selected-item details, equipment and missing drops in one
+scroll surface. Wrap labeled tiles at a readable minimum width; preserve scrolling
+on item actions and tab return. A 1280×720 restart confirms the reference's three
+panes and saved equipment/appearance choices. Typography and item-stat/content
+acceptance remain open.
+
+Codex presentation checkpoint verified at 1280×720 and 640×720: legendary amulets use a verified necklace
+silhouette plus an associated spell badge, shared jewelry aligns with the class rows,
+and selection highlights the catalog cell and shows a larger detail image. The generic
+legendary silhouette is representative art, not a claim that generated amulets have
+vanilla item identities. Distinct legendary artwork and complete catalog expansion
+remain required. Live badge clicks, unseen/shared entries and lower-row selection
+retain the catalog scroll position; actual captures are inline in the changelog.
+Mark of the Champion art is resolved by the explicit variant choice recorded below.
+
+Tabard presentation checkpoint: replaced the plain name buttons and
+client display-ID text with illustrated cosmetic tiles using the Companion Looks
+reference. Keep the verified one-tabard catalog, immediate account persistence,
+and a clear None/Remove choice. Live wide/narrow selection, unchanged points and
+restart persistence are captured in the changelog. Additional tabards require
+verified client mappings; character-model previews remain open.
+
+Achievement presentation checkpoint: replaced plain rows with the intention's
+points badge, category rail, recently earned cards, five category progress bars,
+and counted achievement cards. Descriptions derive from the same catalog variants
+that evaluate completion. No earned dates are stored, so cards use “Earned”. Category
+icons are verified local substitutes; boss-specific art and decorative crest work
+remain open. Responsive layout uses wrapping proportional columns and scrolling,
+with separate session offsets for Summary and each category. Live 1280×720 and
+640×720 captures, lower-zone reachability and navigation scroll restoration are
+recorded inline in the changelog.
+
+
+Rewards confirmation checkpoint: Perk/Companion purchases and perk resets are held
+in a session draft. Confirm validates the entire batch against the latest account
+before applying it; Undo discards the batch. Navigation retains pending choices,
+run entry requires Confirm/Undo, and closing the app discards unconfirmed choices.
+Cosmetic selections remain immediate. Per-card minus controls remove the latest
+pending purchase of that type and replay the remaining draft. Removal is atomic:
+if it invalidates a later purchase or changes an instinct destination, the player
+must undo that dependent purchase first. Confirmed purchases still use Reset perks
+for refunds; a card minus only edits the current draft. Live wide/narrow removal,
+rank repricing, confirm, reset undo and Companion undo are captured in the changelog.
+Three regression tests cover repricing and dependency/destination preservation.
+
+User clarification implemented: Deathless Hour and no u are visible placeholder
+achievements with no satisfiable criterion or points. Panda Cub and Sapphiron remain
+locked behind those entries until future criteria are implemented; rules are not
+inferred from their names. Completion totals exclude these two pending entries:
+56 available achievements, with Feats completable at 3/3 while all five cards
+remain visible. Core/UI regressions and native 640×720/125% screenshots verify
+the totals, including saves containing placeholder IDs.
+
+
+Rewards scroll checkpoint: session offsets are tracked independently for the three
+categories and attached to the rendered category. At 640×720 a live Perk purchase
+and Collection round trip preserve the scrolled view; the changelog contains before,
+after and return captures. ECS coverage checks category changes and rejects invalid
+offsets. Live Companion/Tabard category scroll coverage remains open.
+
+
+Perk preview checkpoint: all six Perks render green inline current→next effects with
+units once, using core mechanics for XP, hand size and drop chance. Capped perks
+show their current effect only. Live Veteran's Lessons purchases verified both ranks
+and max state; 640×720 wrapping is captured in the changelog. Core tests cover unit
+formatting and all caps. Companion previews, staged purchasing and Rewards scroll
+continuity remain open; reset-count wording is now corrected.
+
+
+Rewards visual checkpoint: currency/reset/category rail and illustrated two-column
+Perk cards replace the draft rows. Existing account purchase actions are reused.
+Live isolated-account validation confirms a 15-point purchase, rank pip/next cost,
+refund and reset consumption, plus 640×720 stacked layout. See the changelog for
+inline captures. Still required: green current→next effect previews, Confirm/Undo
+staging, Companion/Tabard illustrated content, scroll preservation across purchase
+rebuilds, reset singular wording, and typography matching the intention.
+
+
+Talent presentation checkpoint: panels use the available page height, with a readable
+minimum and the existing wrapping/outer scroll. Live Warrior captures at 1280×720
+and 640×720 verify taller trees, spending and lower-panel reachability. Singular
+“1 point” is corrected. Reference icons, typography and artwork black margins remain
+open; see the latest changelog for inline evidence and validation scope.
+
+
+Live Talent validation (2026-10-25): isolated Warrior fixture confirms 800×720
+three-tree-plus-wrapped-detail layout, wheel reachability, spending/reset totals,
+and scroll restoration after reset and a Collection round trip. In-process preview
+resize to 640×720 confirms two-column layout and lower-tree left-click spend /
+right-click refund without losing scroll. See inline evidence in the changelog.
+Remaining: live per-spec/per-hero restoration, other classes, reference header and
+milestone icons, full-height illustrated tree art, typography, and singular “point”.
+
+
+Companion purchase clarity: preserve the reference's first-instinct-to-first,
+next-to-second assignment. The existing replacement behavior targets the first
+companion once owned slots are filled; show that destination, the replaced instinct
+and the 30-point cost before purchase. Appearance slot selection is independent of
+instinct assignment and must not imply otherwise. Display each companion's current
+instinct and the three concrete effects. Reject unknown instincts without charging,
+and reject appearance changes to an unowned second companion. Perk resets continue
+to leave companion purchases intact. The full illustrated Rewards layout, pips,
+icons and live purchase/screenshot checks remain acceptance work.
+Validation: all 171 Survivors tests pass, including assignment, duplicate rejection,
+exact charges, insufficient funds, save/reload and perk-refund isolation. Workspace
+Clippy, formatting, render-pass lint and the native build (28 seconds) pass. The
+rendered page and end-to-end purchase interactions have not been visually verified.
+
+Talent scroll continuity checkpoint: a session-local cache remembers each rendered
+hero/spec's scroll position before menu actions rebuild the tree. Returning to a
+tab or spec restores its own position; a different hero starts independently.
+The shared scroll clamp waits for a nonzero computed layout before constraining
+a restored offset to actual content bounds. Two ECS regression tests cover old-tree
+identity during spec switching and restored-offset clamping after layout. All 170
+Survivors tests, workspace Clippy, formatting, render-pass lint and the native build
+(2m05s) pass. Live wheel,
+spend/refund, tab/spec-switch and resize checks still require visual validation.
+
+Talent responsiveness checkpoint: tree and spec/detail panels use proportional
+growth with a 240-unit preferred basis and 200-unit minimum width, wrapping into
+additional rows as available width falls. The page owns vertical scrolling instead
+of each nested panel; talent detail text already persists after pointer exit, so
+the last inspected node can be read after scrolling to a wrapped detail panel.
+Workspace Clippy, formatting, render-pass lint and the native build (21 seconds)
+pass. Rendered 16:9/4:3/narrow comparisons, icon/label fit, wheel behavior and
+scroll-position behavior after spending/refunding or switching specs remain to be
+verified. No new screenshot or responsive visual acceptance is claimed.
+
+Saved-spec preview follow-up (2026-10-27): paired `--hero` / `--spec` options
+select a saved build inside a newly created fixture, preserve all ranks and other
+heroes, and set the watched talent request to the selected hero. Eight Python
+isolation tests pass; the native 640×720 preview confirms Nara/spec 2 with 29
+Enhancement points. The development guide documents the command and the changelog
+embeds its screenshot. This speeds menu acceptance without gameplay sessions.
+
+Preview fixture checkpoint: `scripts/survivors-ui-fixture.py` now copies checked-in
+synthetic fresh/partial/collected saves into new isolated state directories and
+prints a direct-page launch command. Existing directories and symlink destinations
+are refused. The real account parser and save round trip validate the fixtures;
+168 Survivors tests, two script isolation tests, workspace Clippy, formatting and
+render-pass lint pass. The collected fixture contains all 54 ownership cells per
+class and ten heroes, not verified item/zone completion. All fixtures intentionally
+omit zone clears and spent talent builds. Rendered fixture/resolution comparisons,
+populated spec fixtures and purchased reward states remain open. See the
+[fixture workflow](SURVIVORS-DEVELOPMENT.md#deterministic-account-fixtures).
+
+Prioritize the starter/menu and Armory interface pages before further zone content
+or in-map expansion. Build a fast, repeatable UI preview loop: direct page/fixture
+selection, isolated deterministic account data, immediate viewport changes and
+screenshots without playing through a session. Reuse compiled engine dependencies;
+use hot-reloaded layout/style/content where practical. Preview the production UI
+components so a separate mockup cannot drift from the game. Existing held-card
+and F12 tools help but do not complete this requirement.
+
+The reported cutaway defect is an immediate correction: activate only when scenery
+blocks the actual camera-to-player sightline; buildings behind or beside a visible
+player must remain opaque. Fade reveal strength linearly over 500 ms of real time,
+and fade back when visibility returns. Preserve collision throughout.
+
+Later feature: unlockable fast mode with 1.0× normal, 1.1×, 1.25×, 1.5× and 2× game
+speed. Unlock criteria remain to be designed. Scale simulation consistently
+(movement, attacks, cooldowns, waves and encounter clocks), leaving UI/input and
+visibility fades on real time. Do not enable this feature during the starter-UI
+pass; record its unlock/persistence, timing and reward/balance acceptance later.
+
+## Current PR boundary and post-merge physics (2026-10-25)
+
+Fast-preview checkpoint: native dev builds accept `WOW_SURVIVORS_UI_PREVIEW`, an
+opt-in local file with page/width/height. Complete valid edits switch production
+pages and logical window size during the menu without restarting; incomplete or
+invalid edits retain the view, and active runs defer updates. Account state and
+character-name drafts remain intact. Two new tests cover validation and applying
+the request; all 165 Survivors tests in the app-only feature build pass, as do
+workspace Clippy, formatting, render-pass lint and the native play build (1m48s).
+The app-only test command caused a different dependency feature build (7m59s);
+prefer the established workspace test build plus filtered executable for subsequent
+checks to avoid switching cache variants. Startup logs show the preview request
+was applied. Live rendered page-switch/resize verification and screenshots remain
+pending: the Mac was locked, so the validation app was stopped without UI inspection.
+Deterministic account fixtures and hot reload across the remaining pages are still open.
+
+Finish the interface and initial account/setup experience in this PR before starting
+Box3D work. The acceptance scope includes character creation/selection, talents and
+saved specs, gear/appearance and rarity rules, progression/unlocks, achievements and
+rewards, and the documented starter/Armory expectations. These must have working
+state transitions and persistence, clear locked/empty/owned states, responsive
+layouts, inline green upgrade values with units shown once, and milestone screenshots
+in README. A displayed page or placeholder is not acceptance. Preserve the detailed
+phase criteria below; this priority change does not silently mark outstanding rules
+or functionality complete. Finish the fast production-UI preview workflow and verify
+representative fresh and progressed accounts across supported screen sizes.
+
+Further zone expansion follows the interface pass. Explicitly later features, including
+unlockable fast mode, remain later work. Review the PR's remaining acceptance gaps,
+complete required checks, and merge the interface/setup PR before beginning a separate
+Box3D integration branch/PR. Do not add Box3D dependencies or migrate physics in this PR.
+
+Post-merge physics direction: evaluate [Box3D](https://github.com/erincatto/box3d)
+against the existing Avian 0.6 integration. This is a backend migration/extension,
+not the first physics system: movement, floor support, scene queries, camera collision
+and enemy detours already depend on collision queries. Box3D's upstream library is
+C17; plan a pinned native build, Rust bindings and a safe ownership layer, followed
+by a repository-owned Bevy plugin. Do not assume a fork of Bevy itself is necessary.
+Audit collider import, terrain/WMO/M2 geometry, collision layers, ray/shape/overlap
+queries, character movement, fixed stepping, events and teardown before replacement.
+Prove native platform builds and the existing wasm target's linking/thread/SIMD
+constraints independently; upstream's Emscripten example does not prove compatibility
+with this workspace's wasm32-unknown-unknown build. Benchmark against Avian and retain
+regression coverage for floors, walls, foliage, camera occlusion and crowded movement.
+
+Survivors currently has no authoritative gameplay server. The realm/login/relay
+service is not a Survivors physics host. A future multiplayer design must separately
+define authority, shared collision assets, fixed ticks, input/snapshot protocols,
+prediction and reconciliation before deciding which simulation runs on the server.
+Box3D alone supplies neither networking nor navigation; the current local A* planner
+would consume the chosen backend's queries. Server integration is a future architecture
+decision, not an automatic dependency of the interface PR or a reason to modify the
+realm service now.
+
+## Architecture and ownership
+
+The game is local simulation in Rust, on Bevy 0.18.1 and wgpu 27. The
+`warcraft-survivors` launcher calls into `benilla-app`; Survivors owns its mode under
+`crates/benilla-app/src/survivors/`. Native Bevy UI and the existing glue widgets draw
+menus. MPQ archives, DBC catalogs, item displays, models, icons and terrain come from the
+player's read-only 1.12.1 install. There is no gameplay server for this mode.
+Do not replace the menu with a website or bundle reference art as runtime assets.
+
+Keep changes in Survivors-owned files. Reuse `benilla-world`, the model attachment
+systems, glue art, tooltip primitives, and catalog loaders through their existing
+interfaces. Any necessary upstream carry must obey AGENTS.md. Native is the daily loop;
+wasm uses the same rules with the existing web entry and platform persistence seams.
+
+| Responsibility | Implementation seam |
+| --- | --- |
+| Mode state, run resources, stat assembly | `survivors/mod.rs` |
+| Class abilities, map/creature catalogs | `survivors-core/src/data.rs` |
+| Campaign gates, pieces, drop rows, talent rules | `survivors-core/src/campaign.rs` |
+| Named heroes, class progress, saves, settlement | `survivors/account.rs` |
+| Armory actions and pages | `survivors/armory.rs`, `survivors/armory/door.rs` |
+| Glue appearance and selected hero | `survivors/menu.rs`, `survivors/hero.rs` |
+| Enemy timing, movement, pickups | `survivors/enemies.rs` |
+| Combat and death awards | `survivors/abilities.rs` |
+| Drafts, temporary jewelry, pause/results | `survivors/cards.rs`, `survivors/hud.rs` |
+| Achievement/perk catalog and companions | `survivors-core/src/rewards.rs`, `survivors/companions.rs` |
+| Formula boundaries | `survivors-core/src/sheet.rs` |
+
+## Existing foundations and remaining gaps
+
+The three-column Armory door, twelve-zone registry, locked-zone explanations, a 54-cell
+collection save, three saved specs, real Talent.dbc presentation, achievement categories,
+perks, companion controls, tabard selection, jewelry catalogs, and combat already exist.
+They must be extended rather than replaced with independent copies.
+
+Current source audit (2026-10-26): all six existing bands have named gear entries.
+Selected worn equipment and independent cosmetic choices persist; only worn pieces
+supply bonuses (`account.rs`, `survivors-core/gear_loadout.rs`). Collection and drop
+pages use icons and detail panes. Poor gear has 81 class/slot identities, a grid
+row, stable-key saves and ordinary-enemy starter-zone acquisition. Raid Epic has
+72 armor identities, six-stat pieces, persistent selection and class-specific
+2/4/6-piece bonuses; acquisition and live balance remain open.
+
+Settlement credits the selected valid hero and guards repeated awards; regression
+coverage includes save/reload and invalid references. This supersedes the original
+first-hero settlement defect. Zone/content and full run acceptance remain open.
+Individual talents remain substantially incomplete; the coverage table below is
+catalog evidence, not a substitute for combat or visual acceptance.
+
+### Talent definition coverage — 2026-10-29
+
+Read from this checkout's `wow-data/Data` using:
+
+```sh
+cargo run -p survivors-audit -- wow-data/Data --talent-coverage
+cargo run -p survivors-audit -- wow-data/Data --talent-gaps
+```
+
+| Class | Matching individual definitions / selectable nodes | Milestone descriptions / 9 |
+| --- | ---: | ---: |
+| Warrior | 42 / 52 | 9 / 9 |
+| Paladin | 28 / 44 | 9 / 9 |
+| Hunter | 42 / 46 | 9 / 9 |
+| Rogue | 38 / 51 | 9 / 9 |
+| Priest | 31 / 47 | 9 / 9 |
+| Shaman | 33 / 46 | 9 / 9 |
+| Mage | 38 / 49 | 9 / 9 |
+| Warlock | 29 / 50 | 9 / 9 |
+| Druid | 28 / 47 | 9 / 9 |
+| Total | 309 / 432 | 81 / 81 |
+
+The command checks definition names/rank caps against actual selectable DBC nodes,
+rejects unknown authored node IDs or mismatched tree ordering, and lists missing
+nodes with `--talent-gaps`. Missing effects are reported without failing identity
+validation. Milestone counts measure available descriptions, not runtime proof;
+each milestone still needs the acceptance evidence described in Phase 5. Imported
+saves and generic fallback bonuses do not make missing individual effects complete.
+The next class-content work must address these gaps, including combat-pet/form
+mechanisms where needed, rather than treating milestone coverage as class completion.
+
+## Rule decisions
+
+Preserve waves, horde counts, level-up drafts, chest trades, renown and relics until an
+explicit replacement exists. Keep permanent class collection separate from run jewelry.
+A class has nine equipment slots and six collection bands: Common, Uncommon, Rare, Epic,
+PvP, Legendary. Two-handed weapons consume only main hand. Only worn gear affects stats;
+cosmetic overrides and tabards never do. A full worn nine-slot set earns its bonus.
+
+One hundred talent experience earns one point, capped at 51. Each hero stores three
+independent specs. Tree rows require earlier-row investment; refunds must not strand
+higher rows or prerequisite talents. Milestones at 10/20/30 must change actual abilities.
+
+The user resolved the reference conflicts: duplicates add no power, and +target affects
+single-target attacks only, never extra AoE locations. Quality strengthens existing stat
+lines and adds a new stat line at each step. Raid epics need a tier beyond ordinary epics,
+an additional stat, and build-oriented set bonuses. The glove numbers given by the user
+are illustrative, not final universal coefficients. Preserve poor-to-epic progression and
+represent raid epics explicitly while extending the existing six-band collection model.
+
+Screenshot sample totals are illustrative, never fabricated progress. Item/creature names
+pictured on a different map require verified substitutions documented in the catalog.
+
+Use only this checkout for game-data discovery. Do not inspect or use any installed
+Azeroth Survivors application as a source. Fetch the separate data through this repository's
+`scripts/fetch-data.sh` into gitignored `wow-data/Data`, and pass that exact path via
+`WOW_DATA` for validation. Keep validation scratch files under `target/`.
+
+Unspecified balance coefficients are implementation decisions: centralize and document
+them, test monotonicity/caps, and distinguish them from numbers explicitly specified by the
+references. Talent XP must eventually incorporate survival time, kills, defeated bosses,
+win, later-zone scaling and Veteran's Lessons. Spawned bosses are not defeated bosses. Initial tuning retains the level × 2, kills / 10
+and win 40 (loss 8) base, adds one XP per ten survived seconds and ten per defeated
+boss, then adds 10% per later campaign zone. The award is capped by the hero's 51-point
+limit. Catch-up compares the best hero of the class with the best hero of the account.
+
+## Phase 1 — progression integrity
+
+1. Credit the selected valid hero at settlement; handle absent/stale/wrong-class selections
+   without corrupting another class. Keep class-wide drops and clears class-wide.
+2. Make rewards idempotent for repeated settlement, and cap XP without integer overflow.
+3. Use one campaign encounter schedule for displayed times and actual spawns. Resolve
+   names against the map roster. A missing encounter must prevent content readiness.
+4. End campaign runs only when the final scheduled boss can actually be defeated. Preserve
+   the non-campaign arena timer where no campaign schedule exists.
+5. Count defeated bosses separately and implement the documented XP inputs and catch-up.
+
+Acceptance: selected second hero receives rewards, first hero does not; repeat settlement
+cannot pay twice; save/reload preserves rewards. Every listed encounter spawns exactly
+once at its listed threshold, including across a large time step. Final drops remain
+obtainable; dead heroes cannot win simultaneously. UI and combat use the same drop odds.
+
+## Phase 2 — equipment and persistence
+
+2026-10-25 evidence: all 39 account tests pass, including a real temporary-file
+write failure that preserves the old save, keeps dirty state and succeeds on
+retry. A native full restart retained a common equipped helmet, a legendary
+cosmetic override and an explicitly empty shoulder slot with identical totals.
+The screenshot is inline in the changelog. Explicit appearance buttons work.
+The automated macOS Shift-right-click mismatch was traced to native aggregate
+modifier flags arriving without physical key events. Reading those flags in event
+order now selects the legendary look while retaining the common equipped helmet
+and unchanged totals. A following ordinary right-click removed/restored equipment
+without changing the look. Five shortcut regressions cover key release, aggregate
+flags, focus loss, window destruction and window isolation. Native macOS shortcut
+acceptance is verified for this fixture; other platforms/model variants remain open.
+
+
+Add per-class selected gear for all nine slots, with explicit empty slots. Migrate old
+saves to their former strongest-owned loadout once. New drops fill an empty slot but do
+not replace a deliberate choice. Reject unowned, invalid-slot and out-of-range choices.
+Store appearance separately: worn item, a collected override, or hidden. Validate all
+save references, preserve old heroes/specs/achievements, and retain dirty state after a
+failed write. Keep saves under the existing local-state resolver.
+
+Acceptance: choosing a lower-quality piece changes combat and displayed totals; owning a
+stronger piece alone does not. Unequipping removes its stats and a full-set bonus. Duplicates never increase power. Cosmetic changes never alter stats. Class isolation,
+legacy migration, malformed references and round trips have regression tests.
+
+## Phase 3 — collection and character surfaces
+
+Short-window acceptance (2026-10-27, runtime `2e8f6c8`): native macOS partial
+Warrior fixture at 800×600, with Graphics confirming 125% interface size. Common
+helm unequip changes equipment armor 26 → 20 and damage 4% → 2%; its separately
+selected look remains. A full restart retains `021010101 230000000`, showing an
+L badge without E despite ownership of a stronger helm. Source navigation selects
+Hogger's row and returns to the same item/scroll position. All item actions and
+look controls are reachable. The reference's three columns deliberately stack.
+Screenshots are inline in CHANGELOG and linked in the README gallery; the reusable
+`collection-common-helm-800x600.txt` preset starts this case. Other platform and
+resolution combinations remain open; no production code change was required.
+
+Native body acceptance (2026-10-27, runtime `25ebf07`): disposable full-collection
+Warlock fixture verifies dressed Orc female and Undead male at 1280×720, Gnome
+female at 640×720, and compact hairstyle adjustment from 2/7 to 3/7. A full
+restart restores Gnome female and the changed hairstyle. Saved equipment remains
+`123456123 170000000` throughout (including hidden helm and independent shoulder
+look). Captures are inline in CHANGELOG and the README gallery. This extends
+macOS model/UI acceptance only; full body/resolution and Windows checks stay open.
+
+Equipment comparison addition (2026-10-27): both item-detail paths explain
+full nine-slot and Raid Epic 2/4/6-piece bonuses gained/lost, alongside aggregate
+stat changes. Replacements preserving thresholds produce no warning. Headless
+UI coverage spans all nine classes; native 1024×768 loss/restoration captures
+are inline in CHANGELOG. 358 app tests, app-test Clippy and native build pass.
+
+Native acceptance addition (2026-10-27, runtime `6de93e9`): a disposable full
+54-piece Druid fixture at 1024×768 verifies dressed male/female Night Elf models,
+drag rotation, reachable lower controls, persisted sex change with unchanged
+selected equipment, and Character→Collection preserving Feralheart Spaulders.
+The reference's three columns deliberately stack at this width. Four actual
+captures are embedded in CHANGELOG; README includes the model and equipment view.
+This adds one class/race/resolution case, not full matrix or in-run acceptance.
+
+Character Look checkpoint (2026-10-25): the wide Features column now ends in
+shared appearance actions rather than repeating the full Collection detail panel.
+“Inspect in Collection” retains the selected item and exposes its full sources,
+comparisons and equipment actions there. Native 1280×720 verified helmet hiding
+with unchanged bonuses and navigation to the selected shoulder; 640×720 verified
+reachable actions below equipment. Captures are inline in the changelog. Native
+build, workspace Clippy, formatting and render-pass lint pass. Other race/model
+and resolution combinations remain open.
+
+Feature-control presentation checkpoint (2026-10-25): the five appearance controls
+use full-width bordered rows with centered labels/counters and edge-aligned arrows,
+following `intentions/survivors_character_tab.png`. Native 1280×720/640×720 checks
+verified increment/decrement and stable compact scroll position. The wide capture
+also shows the dressed model and rotation controls fitting the central column.
+Inline captures are in the changelog; native build, workspace Clippy, formatting
+and render-pass lint pass. This does not close the full race/model/resolution matrix.
+
+Character composition checkpoint (2026-10-25): the name/class now sit inside the
+central column above a larger proportional model pane. The default view no longer
+stacks roster, creation, renown and relic controls below the model; Manage heroes
+opens those controls in the central column. Selection/creation returns to the model,
+and an absent selected hero exposes management automatically. All saved heroes are
+listed rather than only the first eight. Equipment and appearance columns remain
+available, and preview-file navigation resets only the local management view.
+167 Survivors app tests pass following the workspace test build, with Clippy,
+formatting, render-pass lint and a one-minute native build. The direct 1280×720
+Character run could not be inspected because the Mac was locked and was stopped.
+Rendered fit, Manage/Back/Escape interaction, large-roster scrolling and updated
+README screenshots still need verification; this is not visual acceptance.
+
+Native roster acceptance (2026-10-29, runtime `fd8da1a`): an isolated 24-hero
+account fits wrapped roster buttons at 640×720 and 640×480 with 125% UI scale.
+Pointer selection of hero 24 (Zora Roster) opens its dressed Human Warrior.
+Manage heroes reopens the roster; wheel scrolling reaches the lower account
+upgrades and appearance controls; Escape leaves management. The compact view
+retains its scroll offset on Escape, so the model header can be above the viewport.
+Three native captures are embedded in CHANGELOG, with the roster in README.
+This closes the 24-hero compact roster case, not arbitrary roster sizes, controller
+navigation, Windows DPI, or the full race/resolution matrix. No runtime changes.
+
+
+Hero creation acceptance (2026-10-27): labeled first/last names and nine direct
+class choices replace the unlabeled cycling controls. Creation returns to the
+Character appearance controls; account upgrades have their own section. Native
+640×720 and 1024×720 at 125% verify keyboard name entry, Druid creation, saved
+female Night Elf appearance after restart, and a new Mage draft leaving the saved
+Druid/account bytes unchanged. 369 app tests, app-test Clippy and native build pass.
+Before/after/restart screenshots are inline in the changelog; README is updated.
+Fresh-account Talents now offers a direct creation action and explains earned
+points, three specs and free resets. Native 640×480 at 125% verifies navigation to
+the form without account mutations; native build and app-test Clippy pass. Inline
+before/after/navigation captures are in the changelog. Populated talent trees retain
+their reference-derived layout; remaining individual effects are still incomplete.
+
+Minimum-window follow-up at 640×480 verifies reachable creation controls,
+empty-name rejection, longer-name entry and Tab navigation without changing account
+bytes. Correcting a name now clears stale feedback; rejected input preserves it.
+Before/after screenshots are embedded in the changelog.
+This does not close the full race/controller/Windows DPI matrix.
+
+Build the nine-by-six collection grid with quality headers, owned/unseen states and
+selected-item detail. Use catalog-backed item icons, names, source, chance, stats, worn
+state and appearance controls. Show real collection counts, never 54 named placeholders.
+Character has appearance controls, equipment, summed bonuses, and a rotatable dressed
+paper doll. Share selected hero/race/sex/features with the existing appearance flow.
+Use the reference gold/black frame, spacing, hierarchy and readable scroll behavior.
+
+Acceptance: every owned cell can be inspected and equipped; worn and cosmetic changes
+appear on the paper doll and in a run; tooltips remain inside the viewport. Test empty,
+partial and full accounts at 1280×720 and 1920×1080 plus UI scaling. Compare screenshots
+with the intention images; compilation alone does not establish visual completion.
+Apply the responsive-layout contract below to every surface, including the combat HUD
+and draft cards, rather than treating these two resolutions as fixed design canvases.
+
+Interface-size control (2026-10-27): Graphics exposes 75/85/100/110/125% of the
+height-relative UI baseline, independent of render scale, through persistent
+`uiScale`/`useUiScale` settings. Graphics defaults restores automatic sizing.
+365 app tests and Clippy pass, including three window heights at 1×/2× DPI.
+Native 1280×720 and 640×720 checks verify 125% Options/Character, full restart
+persistence and restoration. Additional `e254ce2` native checks cover full
+Collection and Warlock Talents at 640×720/125%: wrapping equipment rows,
+scrolling details, unequip/re-equip with preserved cosmetic overrides, proportional
+tree artwork and a saved Demonic Embrace purchase. Disposable fixture; no new
+runtime changes. Further 640×720/125% checks verify Feats cards and placeholder
+criteria, companion locks, and a staged/confirmed Banish purchase (285→270 points,
+rank 1 persisted in the disposable save). Captures are inline in CHANGELOG.
+Tabards also have compact/125% selection and rendered removal evidence (see
+current-priority notes). Codex/Drop Tables at 640×720/125% also have native
+`7d054a5` evidence: 39 seeded shared jewelry entries wrap, amulet selection retains
+catalog scroll, and Collection's source button opens the matching Elwynn drop row.
+This does not verify natural acquisition or unfinished zone tables. Other scales,
+card drafts and combat HUD still require acceptance.
+
+
+Collection shares Character’s inline faction portraits and race/sex controls. Live
+1280×720 edits carried through to the Character model, with all nine empty equipment
+slots visible. The full account/resolution matrix remains outstanding.
+
+Collection cells now render verified artwork with dim unowned pieces and corner E/L badges.
+Owned icons, combined badges and legendary selection passed at 1440×900; unowned artwork
+passed at 1280×720. Missing-item entries share dimmed icons, and rarity rows list zones
+from implemented drops. Clicking a source icon selected its matching grid cell and details
+at 1280×720. Missing content remains a placeholder, pending phase 4.
+
+Current Character checkpoint: equipment rows now include runtime item icons, selected-item
+highlights and aligned empty slots, shared with Collection. Live 1440×900 checks covered
+all nine icons, selection/details and unequip/re-equip; the native build and 71 focused tests passed.
+Proportional scroll columns expose worn equipment,
+summed equipment bonuses and shared item/look actions alongside existing hero controls.
+Named heroes now persist independent race/sex choices, with legacy migration and invalid-save
+coverage in the 57-test Survivors suite. The 2026-10-25 compact acceptance checkpoint
+verified Warrior → Paladin → Warrior switching, saved sex/model/class gear and
+restoration of all five Warrior feature values in a ten-hero account. Roster and
+creation controls fit at 640×720. Actual 1920×1080 acceptance remains open: macOS
+clamped the requested window, so that capture was rejected.
+The current hero uses the stock player compositor and attachments for selected armor,
+weapons and independent cosmetic overrides in both the world and full-body preview.
+The [gear visual catalog](SURVIVORS-GEAR-VISUALS.md) maps 91 distinct existing item names
+to vanilla identities and supplies item-detail icons; class-specific Atiesh variants now
+resolve through pinned quest rewards. Missing rarity cells remain unresolved. At 1440×900, a seeded human male account verified plate armor,
+helmet/chest hiding, weapon appearance independent of equipped bonuses, and world entry.
+Native build, 44 core tests and 62 Survivors/preview tests passed. The preview now fits
+rigid attachment bounds using proportional padding; Thunderfury framing was checked at
+1440×900 and 1280×720, rotation at 1440×900 and a fixed uncached axe replacement at
+1280×720. Pending local attachment loads
+keep the equipment resolver awake until ready. Weapon poses, other races, sexes and
+ranged attachments still need visual checks. Turn buttons work. Character now exposes class-valid race and sex choices beside the
+loadout, persisted per named hero through the existing body model. Missing sexes now
+use another verified trainer preset of the same race; every existing class race resolves
+both sexes against the local DBC/model data without changing its preferred presets. Skin, face, hair
+and race-specific features now have bounded dials and randomization, persisted per hero.
+Feature descriptor changes refresh the stock compositor and preview. Native build and 71
+focused tests passed; live edits, switching heroes and restart persistence were checked at
+1440×900 and 1280×720. Race portraits now use the runtime atlas, grouped by faction,
+with selected-sex artwork and unavailable class races dimmed and inert. Live portrait/sex
+selection and disabled Paladin choices passed at 1280×720. Broader multi-resolution
+acceptance remains unfinished. Creation-time feature readiness now participates in the page refresh signature, while
+ordinary dial values do not. A newly created Paladin exposed all five controls immediately;
+hair edits retained preview rotation in live 1280×720 validation. Feature-only edits update counters in place, preserving the
+Character tree, scroll state and preview. Transient dark or missing
+button glyphs still appear after UI actions, even without a full rebuild; removing shadows
+or raising caption layers did not resolve the broader issue. Model dragging now consumes
+ordered window events so short gestures are retained. Short/reverse drags and rejection of
+presses outside the preview passed live at 1280×720; sensitivity follows preview width.
+
+Drop Tables now has a proportional zone browser and encounter/item rows alongside shared
+appearance, equipment and item details. Browsing does not change the run destination.
+Source counts and entries come from DROPS; unimplemented tables remain explicit. Native
+build and 72 focused tests passed, including all twelve views’ source/action wiring.
+Live 1280×720 checks covered Elwynn/Duskwood, source selection, missing-content state and
+returning to the unchanged run destination. Drop Tables, Collection sources and item details now show effective Keen Eye rates using
+the same capped probability function as combat. Boss eligibility comes from the encounter
+schedule, not the zone-summary boss name. Live rank-two labels (70% from 60% base) fit
+at 1280×720. The wider layout/content matrix remains open.
+
+## Phase 4 — all twelve zones and gear content
+
+Read-only [location evidence](SURVIVORS-LOCATIONS.md) now records local map metadata and
+terrain-supported candidates for Warsong Gulch, Arathi Basin and Alterac Valley. Reproduce
+with `survivors-audit <Data> --locations`; none of these candidates establishes readiness.
+
+
+Complete the ordered path in SURVIVORS.md. For each zone, verify terrain/map coordinates,
+creature displays, named encounter roster, schedule, boss, slot/band drops and class item
+mapping. Use body-collision floors for heroes, enemies, companions and mobility destinations, including
+WMO interiors and bridges. A local grounding probe starts two yards above the feet and ends
+eight yards below; it must hold the current/authored height when no floor is available rather
+than snap to distant terrain. Jump height stays relative to those feet. Validate outdoor
+slopes and layered interior fixtures separately. Bounded grounding is not wall collision,
+spawn placement, pathfinding, or proof of indoor camera visibility; those need their own
+traversability checks before a zone can become ready.
+
+Spawn candidates must fit their body radius inside the arena and have support under the
+center and four footprint edges. Clamping a ring near the boundary must not place a monster
+on the hero: require at least six yards, or body radius plus two yards if larger. Retry
+other directions when support is missing. Scheduled bosses remain pending until spawned;
+initial chests and surrounding waves are planned as complete batches before counters advance.
+A missing streamed floor must neither consume an encounter nor duplicate part of a batch.
+These checks do not prove line of sight or a walkable route through walls.
+
+Horizontal movement sweeps a capsule against body collision and slides along obstacles;
+Survivors uses its existing separation radius with a one-yard cylindrical section and a
+0.03-yard floor clearance. Blink and Charge stop along their straight path and require a
+supported destination. Charge can stun only a reached target with a clear solid-world line
+of sight; enemy contact damage likewise requires a clear line. Validate walls, tangential
+movement, outdoor slopes, stairs and indoor combat. This collision layer is not route finding,
+and vertical jump ceilings need a separate acceptance check. Steep contact normals
+must constrain sliding horizontally: allowing a capsule to climb a sloped trunk and then
+snap to the ground can push it inside the hull. The placed Un'Goro tree regression checks
+80 grounded steps for capsule penetration; see [location evidence](SURVIVORS-LOCATIONS.md).
+This does not establish navigation or complete zone readiness.
+
+Audit Elwynn tree trunks specifically: visible trunks must block heroes, enemies, companions
+and mobility sweeps. Trace missing collision through source model collision, transforms,
+streaming registration and the body-query filter; do not assume visible foliage triangles
+are a suitable solid collider. Where source trunk collision is absent, author a conservative
+trunk proxy without making the whole canopy impassable. Verify contact from several sides,
+sliding, tile unload/reload and representative tree variants. Missing tree collision is an
+open defect even when walls already pass collision tests.
+
+Navigation is a separate requirement: choose a navmesh or equivalent walkable-route solution
+after auditing the collision data. Actors must route around trunks and walls, traverse valid
+stairs/doorways, respect disconnected floors, and recover when streamed routes change. A
+navmesh does not repair a missing movement collider; a movement sweep does not prove routing.
+Do not mark a zone ready from floor probes alone.
+
+Connect item ids to names/icons/displays from available catalogs. Fill all 54
+cells for each of nine classes with verified content. Content readiness is derived from
+these dependencies rather than a trusted boolean. Never unlock a label with no world.
+
+Acceptance: every zone is traversable after its previous clear and talent gate; every
+piece has an obtainable source and every source resolves to a scheduled creature. New
+accounts start in Elwynn; old clears retain stable identities. Drop Tables and actual
+awards read one catalog, including Keen Eye. Verify each world location against game data.
+
+## Phase 5 — talents that change play
+
+Audit the checkout’s configured data catalog with
+`cargo run -p survivors-audit -- "$PWD/wow-data/Data" --talents` before assigning effects
+to real talent IDs. The audit reports each class's native tab order, node IDs, row/column,
+rank spells and prerequisites, and rejects an order that differs from Survivors' three
+tree identities. Use an explicit checkout data path; never discover another installed game.
+
+The Talents page uses three illustrated tree panels and a separate spec/details sidebar.
+Load each tree’s four background tiles from the explicitly configured client data. Display
+rank counters, prerequisite connections, and 10/20/30 milestone rows; keep all controls
+reachable at 1280×720 and 1920×1080, including after spending or refunding a rank.
+
+Keep three real named class trees and three saved specs. Define explicit supported talent
+and milestone effects against Survivors abilities. Use vanilla rank patterns and row
+requirements while following the named Survivors milestone design. Implement each effect
+through shared combat/stat calculations, not tooltip-only prose. Paladin's named milestones
+are the first vertical slice; then cover every class. Surface effects and selected spec
+on the door and run sheet. Preserve migration from the skeleton arrays.
+
+Individual Paladin talents use audited DBC node IDs and vanilla rank caps. Their
+listed effect replaces the provisional +1% damage per spent rank; it does not stack on top
+of that placeholder. All spent ranks still count toward tree milestones. These are explicit
+Survivors conversions: there is no mana resource or separate parry/miss roll in this mode.
+
+| Talent ID | Name | Ranks | Survivors effect per rank |
+| --- | --- | --- | --- |
+| 1450 | Divine Strength | 5 | +2% damage |
+| 1449 | Divine Intellect | 5 | +1% cooldown reduction |
+| 1422 | Improved Devotion Aura | 5 | +8 armor |
+| 1630 | Precision | 3 | +1 percentage point critical chance |
+| 1423 | Toughness | 5 | +6 armor |
+| 1629 | Anticipation | 5 | +1 percentage point damage reduction |
+| 1401 | Improved Blessing of Might | 5 | +2% damage |
+| 1403 | Deflection | 5 | +1 percentage point damage reduction |
+| 1411 | Conviction | 5 | +1 percentage point critical chance |
+| 1634 | Pursuit of Justice | 2 | +4% movement speed |
+| 1631 | Improved Judgement | 2 | Judgement cooldown shortened by 10% |
+| 1521 | Improved Hammer of Justice | 3 | Hammer of Justice cooldown shortened by 10% |
+| 1627 | Holy Power | 5 | Holy Shock +2 percentage points critical chance |
+| 1435 | Consecration | 1 | Consecration +20% damage |
+| 1502 | Holy Shock | 1 | Holy Shock +25% damage |
+| 1444 | Healing Light | 3 | Holy Shock heals 1% maximum health once per successful cast |
+| 1443 | Improved Lay on Hands | 2 | Divine Shield heals 5% maximum health once per successful cast |
+| 1425 | Guardian's Favor | 2 | Divine Shield +15% duration |
+| 1421 | Redoubt | 5 | Divine Shield cooldown shortened by 3% |
+
+Healing Light adds to Daybreak's 3% healing, and can heal before Daybreak is unlocked.
+Improved Lay on Hands is a Survivors conversion onto Divine Shield because Lay on Hands
+is not in the eight-ability class pool. Guardian's Favor and Redoubt improve that same
+survival window rather than adding absent block or blessing mechanics. Healing occurs
+only after a successful cast, once per cast regardless of target count, and cannot exceed
+maximum health. Divine Shield still requires a nearby enemy before it casts. Its duration
+modifier affects actual invulnerability; shield absorption is a separate mechanic.
+
+
+Spell-specific cooldown reductions add within that node and multiply with the ability's
+normal cooldown and milestone modifier. Spell damage multiplies with ordinary damage
+and milestones; critical chance adds and is capped by shared combat parameters. These
+nodes improve abilities already available in the class pool; they do not grant an extra
+ability slot or bypass level-up acquisition. They never add area targets or extra healing
+triggers. Snapshot ranks with the selected hero/spec so edits cannot alter an active run.
+
+
+Use the selected spec's ranks in both the account sheet and run-start snapshot. Reset
+removes only that spec's effects. A talent detail line must distinguish these implemented
+conversions from nodes whose individual effects still need implementation; do not display
+vanilla spell prose as if mana, parry or other absent mechanics were functional. The catalog
+audit must reject mismatched IDs, names or rank caps for supported nodes.
+
+Warrior individual talents now use the same selected-spec snapshot and comparison path.
+The following audited nodes replace their provisional +1% damage per rank; spent points
+still count toward existing tree milestones. These are Survivors conversions, not claims
+that rage, parry, or the original MMO talent behavior exists. Unsupported individual nodes remain unfinished; all nine named Warrior milestones
+have implementations described below.
+
+| Talent ID | Name | Ranks | Survivors effect per rank |
+| --- | --- | --- | --- |
+| 124 | Improved Heroic Strike | 3 | Heroic Strike cooldown shortened by 5% |
+| 127 | Improved Rend | 3 | Deep Wounds bleed damage +10% |
+| 121 | Deep Wounds | 3 | Direct criticals add 4% of hit damage to the three-second bleed |
+| 130 | Deflection | 5 | +1 percentage point damage reduction |
+| 128 | Improved Thunder Clap | 3 | Thunder Clap cooldown shortened by 10% |
+| 662 | Impale | 2 | +10 percentage points critical damage |
+| 133 | Sweeping Strikes | 1 | Sweeping Strikes +20% damage |
+| 135 | Mortal Strike | 1 | Mortal Strike +25% damage |
+| 158 | Booming Voice | 5 | Demoralizing Shout +10% radius |
+| 161 | Improved Demoralizing Shout | 5 | Demoralizing Shout +10% weakening duration |
+| 157 | Cruelty | 5 | +1 percentage point critical chance |
+| 166 | Improved Cleave | 3 | Cleave +10% damage |
+| 1542 | Improved Execute | 2 | Execute cooldown shortened by 10% |
+| 138 | Anticipation | 5 | +1 percentage point damage reduction |
+| 140 | Toughness | 5 | +6 armor |
+| 147 | Improved Revenge | 3 | Retaliation +10% reflected damage |
+| 150 | Improved Shield Wall | 2 | Retaliation +15% duration |
+| 153 | Last Stand | 1 | Retaliation heals an additional 5% maximum health once per cast |
+| 167 | Bloodthirst | 1 | Execute heals an additional 2% maximum health once per cast |
+| 160 | Piercing Howl | 1 | Demoralizing Shout gains two seconds of 50% slow; bosses are slowed 25% |
+| 152 | Concussion Blow | 1 | Heroic Strike gains one second of stun; bosses receive 30% duration |
+| 1601 | Shield Specialization | 5 | Heroic Strike absorbs +1% maximum health per rank for three seconds |
+| 145 | Improved Shield Block | 3 | Heroic Strike absorb lasts +0.5 seconds per rank; requires an absorb source |
+| 148 | Shield Slam | 1 | Heroic Strike absorbs an additional 3% maximum health |
+| 155 | Enrage | 5 | After health damage from a nonlethal hit, +4% damage per rank for four seconds |
+
+Ranks add within each node; cast multipliers compose with ordinary stats and legendary
+bonuses. Booming Voice changes the actual shout area, never its number of locations.
+Damage talents improve already-acquired abilities rather than granting free abilities.
+Improved Shield Wall extends the actual Retaliation buff, including Death Wish's incoming-
+damage risk when that milestone is active. Last Stand and Bloodthirst node healing adds to
+the same-name milestone healing, caps at maximum health, and applies once per successful
+cast regardless of extra targets. The nodes do not grant the corresponding ability.
+The data audit now checks every supported class catalog for missing nodes as well as
+wrong names and rank limits. Save format remains unchanged.
+
+Warrior Arms milestones now have these explicit Survivors effects in addition to the
+existing baseline tree stat bonuses:
+
+| Points | Milestone | Behavior |
+| --- | --- | --- |
+| 10 | Deep Wounds | Critical Cleave, Heroic Strike, Execute and Mortal Strike hits bleed for 12% of their pre-execute/echo hit damage over three seconds |
+| 20 | Sweeping Strikes | Sweeping Strikes aura radius multiplied by 1.30; no additional areas |
+| 30 | Mortal Strike | Mortal Strike damage multiplied by 1.25 |
+
+Deep Wounds snapshots its damage, keeps one bleed per enemy, and refreshes to three seconds
+while retaining the stronger DPS and next tick time. A weaker critical cannot weaken the
+active bleed. Ticks cannot crit or recursively apply the bleed; they retain the existing
+DoT multistrike/leech rules and appear under Deep Wounds in the damage meter. The six-effect
+DoT cap still applies. Damage-over-time now processes every due whole-second tick within
+its remaining duration, including the final tick across a long frame; it never ticks beyond
+expiry. Individual Deep Wounds node ranks and the Fury/Protection milestones are specified below.
+These coefficients are provisional Survivors balance, not original MMO behavior.
+
+Warrior Fury milestones use these explicit Survivors conversions:
+
+| Points | Milestone | Behavior |
+| --- | --- | --- |
+| 10 | Piercing Howl | Demoralizing Shout also slows movement by 50% for three seconds; bosses by 25% |
+| 20 | Death Wish | Retaliation reflects 30% more damage; incoming damage increases by 10% only while that buff is active |
+| 30 | Bloodthirst | A successful Execute cast heals 3% maximum health once, capped at full health |
+
+Piercing Howl preserves the shout's existing damage weakening, keeps any stronger active
+slow, and does not create extra areas. Death Wish snapshots the reflected damage at cast;
+its incoming penalty multiplies raw damage before normal mitigation and shield absorption,
+while immunity still prevents damage. Other reflection buffs do not trigger the penalty.
+Bloodthirst heals per cast, not per target, echo, or kill; Execute still needs a valid target.
+Individual talent ranks and the existing baseline tree bonuses compose with these effects.
+Protection milestones are specified below.
+
+Warrior Protection milestones use these explicit Survivors conversions:
+
+| Points | Milestone | Behavior |
+| --- | --- | --- |
+| 10 | Last Stand | A successful Retaliation cast heals 10% maximum health once, capped at full health |
+| 20 | Concussion Blow | Heroic Strike stuns each struck target for one second; bosses for 0.3 seconds |
+| 30 | Shield Slam | A successful Heroic Strike cast grants an absorb of 3% maximum health for three seconds, once per cast |
+
+Concussion Blow preserves a longer existing stun. Shield Slam does not multiply with target
+count or stack absorption. It replenishes an equal/weaker active shield or replaces an
+expired shield; it neither weakens nor extends a stronger active shield. Normal shield
+absorption and the HUD use the same existing shield state. Last Stand composes with Fury's
+Retaliation damage/risk. All nine Warrior milestone behaviors are implemented, but full
+manual build validation and remaining individual talent effects are still required.
+Coefficients are provisional Survivors balance rather than original MMO behavior.
+
+Paladin milestone balance uses the following explicit Survivors behavior. These are custom
+survival-mode effects, not claims about the original MMO spells. Existing per-point/stat
+bonuses remain the baseline; named milestone behavior is additional. Snapshot tree points
+from the selected hero/spec at run start, including legacy spreads. A cast benefit occurs
+only on a successful cast and once regardless of how many targets that cast hits.
+
+| Tree | 10 points | 20 points | 30 points |
+| --- | --- | --- | --- |
+| Holy | Divine Favor: Holy Shock gains 20 percentage points of critical chance | Daybreak: Holy Shock restores 3% maximum health, capped at full health | Light's Grace: Holy Shock cooldown multiplied by 0.8 |
+| Protection | Hallowed Ground: Consecration radius and duration multiplied by 1.25 | Ardent Defender: reduce the portion of damage below 35% health by 20%, after shields, including hits crossing that threshold | Hammer of the Righteous: Hammer of Justice gains two direct targets |
+| Retribution | Seal of Command: Judgement damage multiplied by 1.25 | The Art of War: Judgement advances an owned Hammer of Wrath cooldown by one second, never below zero | Divine Storm: each Judgement cast releases one hero-centered six-yard area dealing 50% of its modified damage, without critical strikes or recursive procs |
+
+Area bonuses scale Divine Storm's radius; extra targets cannot duplicate its location or
+Daybreak healing. Combat and spell tooltips must use shared cast parameters. Verify the
+thresholds, mitigation across the threshold, healing cap, cooldown floor, class isolation,
+spec selection and persistence. Remaining individual talent nodes and other classes require
+the same explicit behavior contract and combat integration.
+
+Mage now has implemented behavior for all nine tree milestones. Arcane and Fire
+use these provisional Survivors conversions, additional to individual node ranks
+and existing tree stat bonuses:
+
+| Tree | 10 points | 20 points | 30 points |
+| --- | --- | --- | --- |
+| Arcane | Arcane Focus: Arcane Missiles/Explosion gain 5 percentage points critical chance | Presence of Mind: each successful Arcane Missiles cast advances an owned Arcane Explosion cooldown by 2 seconds, never below zero | Arcane Power: Arcane Missiles/Explosion deal 20% more damage |
+| Fire | Improved Fireball: Fireball deals 25% more damage, including splash | Critical Mass: Fire spells gain 10 percentage points critical chance, additive with node ranks | Combustion: Fire spells gain 20 percentage points critical damage |
+
+Fire scope is Fireball, Fire Blast, Flamestrike, Pyroblast and Blast Wave; Ignite
+remains excluded from recursive cast benefits. The increased direct critical damage
+can still strengthen its existing Ignite seed. These milestones do not add targets
+or area locations. Presence of Mind never grants an unowned spell. Shared cast
+parameters and the completion handler drive both combat and tooltip descriptions.
+Frost's existing milestones remain unchanged; individual unimplemented Mage nodes
+and full live combat/balance acceptance remain open.
+
+Shaman now implements all nine milestones using its existing ability pool. These
+are provisional automatic Survivors conversions; they do not claim the original
+MMO spells or add a mana resource, Healing Wave spell, or a new totem type.
+
+| Tree | 10 points | 20 points | 30 points |
+| --- | --- | --- | --- |
+| Elemental | Convection: Lightning Bolt, Chain Lightning and all three shocks have 10% shorter cooldowns | Elemental Focus: Lightning Bolt/Chain Lightning gain 10 percentage points critical chance | Elemental Mastery: Chain Lightning always critically strikes |
+| Enhancement | Ancestral Knowledge: each successful Earth Shock cast grants a non-stacking 3% maximum-health absorb for 3 seconds | Elemental Weapons: Searing/Magma Totem and Lightning Shield deal 20% more damage | Stormstrike: Earth Shock deals 25% more damage and hits one additional direct target |
+| Restoration | Improved Healing Wave: deploying Searing/Magma Totem heals 3% maximum health once | Nature's Swiftness: Earth/Flame/Frost Shock cooldowns multiply by 0.85, composing with Convection | Mana Tide Totem: deploying either Searing/Magma Totem advances an owned counterpart's cooldown by 2 seconds |
+
+Totem pulses cannot repeat deployment healing or cooldown benefits. Healing caps
+at maximum health, cooldowns stop at zero, and the absorb never stacks or replaces
+a stronger active shield. Totem area sizes and counts remain unchanged. Milestone
+thresholds, cast parameters and tooltips share the engine-independent rules.
+Thirteen audited Shaman nodes now have individual effects, replacing their generic
+damage fallback. Values below are per rank and provisional Survivors tuning.
+
+| Talent ID / name | Ranks | Effect |
+| --- | --- | --- |
+| 564 Convection | 5 | Lightning and shocks: 2% shorter cooldown; mana-cost conversion |
+| 563 Concussion | 5 | Lightning and shocks: +2% direct and periodic damage |
+| 561 Call of Flame | 3 | Searing/Magma Totem: +5% damage |
+| 575 Reverberation | 5 | All three shocks: 3% shorter cooldown |
+| 562 Call of Thunder | 5 | Lightning Bolt/Chain Lightning: +1 percentage point critical chance |
+| 721 Lightning Mastery | 5 | Lightning Bolt/Chain Lightning: 4% shorter cooldown; cast-time conversion |
+| 565 Elemental Fury | 1 | Lightning and shocks: +50 percentage points critical damage |
+| 614 Ancestral Knowledge | 5 | +4 maximum health; mana conversion |
+| 613 Thundering Strikes | 5 | +1 percentage point hero critical chance, including spells/totems; conversion |
+| 607 Improved Lightning Shield | 3 | Lightning Shield: +5% damage |
+| 615 Toughness | 5 | +8 hero armor; conversion |
+| 595 Totemic Focus | 5 | Searing/Magma Totem: 3% shorter deployment cooldown; mana-cost conversion |
+| 594 Tidal Mastery | 5 | Lightning and shocks: +1 percentage point critical chance; deployment healing cannot crit |
+
+Lightning means Lightning Bolt/Chain Lightning; shocks means Earth/Flame/Frost Shock.
+Tests cover rank caps, reset, class/spell isolation, milestone composition and direct,
+periodic and totem parameters. Native purchases verify green previews and persisted
+ranks on an isolated character. The other 33 nodes and full live combat/balance
+acceptance remain open.
+
+Warlock has sixteen audited individual effects. Values are per rank and provisional:
+
+| Talent ID / name | Ranks | Effect |
+| --- | --- | --- |
+| 1002 Nightfall | 2 | Corruption ticks have a 2% chance per rank to ready an owned Shadow Bolt; instant-cast conversion, no stored charge |
+| 1041 Siphon Life | 1 | Corruption/Curse of Agony heal 5% of health actually removed; adds to the 30-point milestone for 10% total; automatic conversion |
+| 1021 Grim Reach | 2 | Corruption, Curse of Agony and Death Coil: +10% targeting range |
+| 964 Destructive Reach | 2 | Shadow Bolt, Immolate, Searing Pain, Shadowburn and Rain of Fire: +10% targeting range; no radius or Hellfire change |
+| 1003 Improved Corruption | 5 | Corruption: 4% shorter cooldown; cast-time conversion |
+| 1284 Improved Curse of Agony | 3 | Curse of Agony: +2% periodic damage |
+| 1042 Shadow Mastery | 5 | Shadow Bolt, Corruption, Curse of Agony, Death Coil, Shadowburn: +2% damage |
+| 1223 Demonic Embrace | 5 | +5 maximum health; stamina conversion |
+| 944 Improved Shadow Bolt | 5 | Shadow Bolt: +4% damage; conversion from critical-hit vulnerability |
+| 941 Cataclysm | 5 | Destruction spells: 2% shorter cooldown; mana-cost conversion |
+| 943 Bane | 5 | Shadow Bolt/Immolate: 4% shorter cooldown; cast-time conversion |
+| 981 Devastation | 5 | Destruction spells: +1 percentage point critical chance |
+| 965 Improved Searing Pain | 5 | Searing Pain: +2 percentage points critical chance |
+| 961 Improved Immolate | 5 | Immolate: +5% direct and periodic damage; Survivors conversion |
+| 967 Ruin | 1 | Destruction spells: +50 percentage points critical damage |
+| 966 Emberstorm | 5 | Immolate, Rain of Fire, Hellfire, Searing Pain: +2% damage |
+
+Destruction includes Shadow Bolt, Immolate, Rain of Fire, Hellfire, Searing Pain
+and Shadowburn. These definitions replace generic damage fallback and do not grant
+unowned abilities. Area locations, target counts and durations stay unchanged.
+The remaining 34 nodes and live balance acceptance remain open. No demon companion
+system is claimed by this first group.
+
+Soul Link node (1282, one rank) adds a 5% maximum-health absorb to each
+successful Death Coil cast, for three seconds. It combines with the 30-point
+Demonology milestone for 10%, refreshes without stacking, and preserves stronger
+active absorbs. This follows the existing automatic milestone conversion: it
+requires an acquired Death Coil, does not summon a demon, and leaves damage,
+drain healing, cooldown and targeting unchanged. Refunding removes the node's
+contribution to future casts while retaining any earned milestone.
+
+All nine Warlock milestones now use explicit automatic Survivors adaptations:
+
+| Tree | 10 points | 20 points | 30 points |
+| --- | --- | --- | --- |
+| Affliction | Improved Corruption: Corruption cooldown ×0.9 | Nightfall: each successful Corruption cast advances an owned Shadow Bolt cooldown by 1 second | Siphon Life: Corruption/Curse of Agony heal 5% of enemy health actually removed |
+| Demonology | Improved Healthstone: each successful Death Coil cast heals 3% maximum health, additional to its drain | Demonic Sacrifice: all nine Warlock spells gain 10% direct/periodic damage | Soul Link: Death Coil grants a non-stacking 5% maximum-health absorb for 3 seconds |
+| Destruction | Improved Shadow Bolt: Shadow Bolt damage ×1.25 | Ruin: Destruction spells gain 20 percentage points critical damage | Conflagrate: each successful Immolate cast advances an owned Shadowburn cooldown by 2 seconds |
+
+Damage/cooldown bonuses multiply individual nodes; critical damage adds to Ruin
+training. Cast benefits occur once, not per target or tick. Cooldowns stop at zero
+and never grant unowned spells; absorbs preserve stronger active shields. Siphon
+Life uses the existing direct/periodic damage pipeline, excludes overkill and dead
+targets, caps healing and cannot revive the player. Demonology conversions require
+no demon. These provisional rules still need live combat and balance acceptance.
+
+Druid has seventeen audited individual effects. Values are per rank and provisional:
+
+| Talent ID / name | Ranks | Effect |
+| --- | --- | --- |
+| 762 Improved Wrath | 5 | Wrath: 4% shorter cooldown; cast-time conversion |
+| 763 Improved Moonfire | 5 | Moonfire: +2% direct/periodic damage and +2 percentage points critical chance |
+| 782 Improved Thorns | 3 | Thorns: +10% retaliation damage |
+| 792 Vengeance | 5 | Wrath/Moonfire/Starfire: +10 percentage points critical damage |
+| 784 Improved Starfire | 5 | Starfire: 3% shorter cooldown; cast-time conversion |
+| 783 Moonglow | 3 | Wrath/Moonfire/Starfire/Rejuvenation: 3% shorter cooldown; mana-cost conversion |
+| 790 Moonfury | 5 | Wrath/Moonfire/Starfire: +2% direct/periodic damage |
+| 794 Thick Hide | 5 | +8 hero armor; conversion |
+| 807 Feline Swiftness | 2 | +5% hero movement speed; conversion without forms |
+| 798 Sharpened Claws | 3 | +2 percentage points hero critical chance; conversion without forms |
+| 830 Improved Rejuvenation | 3 | Rejuvenation: +5% healing |
+| 828 Gift of Nature | 5 | Rejuvenation: +2% healing |
+| 821 Improved Mark of the Wild | 5 | +4 hero armor; permanent Mark conversion |
+| 824 Improved Healing Touch | 5 | Rejuvenation: 3% shorter cooldown; cast-time conversion |
+| 823 Nature's Focus | 5 | Rejuvenation: +2% healing; healing reliability conversion |
+| 841 Subtlety | 5 | +1 percentage point hero damage reduction; threat conversion |
+| 843 Tranquil Spirit | 5 | Rejuvenation: 2% shorter cooldown; healing mana-cost conversion |
+
+Healing previews identify healing explicitly. Individual Rejuvenation ranks multiply
+its existing total heal over the same duration; those ranks do not add an instant heal.
+Moonfire previews show both damage and critical chance. These effects replace the
+generic damage fallback. Remaining 30 nodes, forms/feral attacks and live
+combat/balance acceptance remain open.
+
+All nine Druid milestones have explicit automatic Survivors adaptations:
+
+| Tree / points | Effect |
+| --- | --- |
+| Balance 10 · Nature's Grasp | Entangling Roots cooldown ×0.85 |
+| Balance 20 · Improved Moonfire | Moonfire direct/periodic damage ×1.25 |
+| Balance 30 · Moonkin Form | Wrath/Moonfire/Starfire +5 percentage points critical chance; no form required |
+| Feral 10 · Ferocity | Thorns cooldown ×0.85; feral attacks remain separate work |
+| Feral 20 · Heart of the Wild | Thorns cast grants a 5% maximum-health absorb for 3 sec; no stacking |
+| Feral 30 · Leader of the Pack | Thorns cast heals 3% maximum health once, not per retaliation |
+| Restoration 10 · Improved Healing Touch | Rejuvenation total healing ×1.2 |
+| Restoration 20 · Nature's Swiftness | Rejuvenation cooldown ×0.85 |
+| Restoration 30 · Swiftmend | Rejuvenation cast also immediately heals 5% maximum health; preserves the HoT |
+
+Multipliers compose with individual training. These milestones do not add targets,
+area locations or duration; periodic damage does not gain critical strikes. Cast
+healing caps at maximum health and cannot revive; absorbs preserve stronger active
+shields. Core/app tests cover thresholds and runtime parameters/finish behavior.
+Native screenshots verify preview text on an empty spec, not live combat balance.
+
+Acceptance: each selectable talent has a documented implemented effect; 10/20/30 milestone
+threshold tests and representative combat tests prove those behaviors. Switching specs
+changes the next run without losing either spread. Free reset and right-click refund keep
+all dependency constraints valid. A row requires five points per tier in strictly earlier
+rows of the same tree, after the proposed edit; its own ranks and deeper ranks cannot
+support it. Preserve the full prerequisite rank (DBC stores that rank zero-based), and
+validate both proposed spends and refunds against the catalog. No points leak across heroes.
+
+## Phase 6 — codex, achievements and rewards
+
+Turn jewelry lists into icon grids with details and unseen states. Expand only with actual
+implemented offers; ensure every legendary amulet maps to a class ability and seen status
+persists when dealt, including abandoned runs. Provide achievement summary, recent earns,
+five categories, progress and total points calculated from the catalog. Expand feats with
+real content. Finish reward pips, costs, two perk refunds, shared point economy, verified
+companion looks, distinct instincts and cosmetic tabards.
+
+Acceptance: purchases and refunds cannot duplicate points or reset companion investment;
+perks change the described run behavior; companions fetch coins/wisps without opening
+chests or behaving like a magnet. All cosmetics use verified displays. Totals reconcile
+across tabs, saves and achievements; locked rows explain requirements.
+
+Codex source status (2026-10-26): `Account::legendary_progress` counts recognized
+entries in the selected class's ability catalog, excluding duplicate/foreign save
+names. `remember_jewelry` records discovery when cards are dealt, including shared
+jewelry; these discoveries persist without equipping run-only effects. The page
+uses icon grids and selected-item details. This supersedes the initial raw-count
+and missing-discovery defects. Keep expansion tied to implemented offers and
+retain the end-to-end acceptance requirements above.
+
+## Phase 7 — integration and visual acceptance
+
+Finish the shared frame and all reference layouts, including Done, Run Options, zone title
+on Enter World, equipment bonuses and class/race identity. Test first launch, existing
+save, creation, appearance, selected spec, locked/open zones, start/pause/abandon/death/win,
+reward settlement, restart and reload. Resolve overflow and keyboard/mouse focus; typing
+must not accidentally start a run. Missing art/data should produce an honest usable state.
+
+Run the native play-profile build (`cargo survivors-build`), focused Survivors tests,
+`scripts/check.sh`, and wasm check where the wasm toolchain is available. Run repository
+land gates before landing a PR. Record actual results and limitations in commit/PR text,
+not a claim of passing from code inspection. No auto-merge or deployment is part of this
+implementation task.
+
+Complete the responsive UI, bounded card effects, camera visibility options and README
+screenshot gallery specified below as part of visual acceptance.
+
+## Evidence and completion
+
+Each phase needs rule tests, save migration coverage where applicable, and an integration
+check of the user-visible effect. Use seeded data for probabilistic boundary tests rather
+than flaky sampling. Do not write fixtures into the player's save or install. Keep tests
+independent of a real install where possible; explicitly report data-dependent skips.
+
+Full completion means all seven phases satisfy their acceptance criteria and all intended
+screens and mechanics work together. Missing game data, unverified assets, unresolved
+mechanics or unavailable rendering evidence remain open requirements; they are not grounds
+to mark the full goal complete. Progress check-ins should name completed behavior, evidence,
+and the next unresolved dependency. Commit coherent verified pieces on the implementation
+branch as the user requested.
+
+## Development and distribution requirements
+
+The user's additional requirement is fast iteration with as much hot reloading as practical,
+and a distributable executable that can offer future updates. These are part of completion,
+not optional follow-ups. Follow [development and distribution](SURVIVORS-DEVELOPMENT.md):
+measure warm rebuilds, keep engine compilation cached, isolate pure game rules, grow validated
+live data/UI reloads, and implement a prompted authenticated updater once its release channel
+and signing configuration are defined. A no-op build, pure-rule test, live tuning edit and
+packaged restart/update/rollback each need their own evidence. Do not claim arbitrary Rust
+hot reloading from asset watching or claim self-updating from the existing local restart.
+
+Validation workflow update (2026-10-28): `check.sh` now scopes from a successful
+full-gate tree when compiler, gate script and data identity match. Missing or
+invalid metadata falls back to the branch comparison. Docs-only progress updates
+can preserve a completed gate stamp; source edits during the run cannot. Sixteen
+isolated regression tests pass, covering changed/deleted/untracked/staged files,
+reverts, invalid snapshots, environment drift and explicit full-check overrides.
+These tests also run in PR CI. Full pre-land gates remain mandatory. Full integration
+passed in 5m08s (31 missing-addon skips per data/player run). The following
+documentation-only check used the saved baseline and passed in 7.56s. This improves
+validation reuse; it does not provide arbitrary Rust hot reloading.
+
+## Gear profiles and collection acceptance details
+
+Each ordinary quality step adds exactly one stat line and increases all existing lines.
+Gloves use health/pickup/area/reduction/damage as their initial stat identity. The user's
+example coefficients are initial tuning, not claims about vanilla item stats. Other slots
+need their own profiles in the complete item catalog. Poor and raid tiers need explicit
+collection identities and obtainable sources; formulas alone do not complete a tier.
+
+Health and pickup bonuses must reach the run sheet and item details. Keep meaningful
+fractional percentages visible. Cover exact line counts, monotonic prior lines, lower-quality
+selection, duplicate immunity, invalid indices and application-level stat propagation.
+
+The collection must show owned counts by row, equipped and appearance markers, completion
+progress, and selectable missing-item sources filtered by the chosen hero's open zones.
+Item detail and combat must read the same slot-specific formula. Complete icon-backed cells,
+three-column composition and actual appearance rendering, then validate against the reference
+screen with the repository-local data. Record test and build evidence in commit messages;
+compilation and formula tests do not replace rendered acceptance.
+
+
+## Responsive interface and bounded effects
+
+Preserve the composition, hierarchy and relative proportions in `docs/intentions/` across
+reasonable screen sizes. Use viewport-relative panel sizes, proportional columns, anchors,
+and shared UI scaling instead of a single fixed-pixel canvas. Ratios need minimum readable
+text and usable hit areas, sensible maximum widths, and bounded spacing; shrinking every
+pixel indefinitely is not acceptable. At narrower widths, use deliberate reflow or scrolling
+while retaining the reference hierarchy. Keep tooltips, dialogs and essential actions inside
+the usable viewport. Pointer hit regions must track the rendered layout.
+
+Cover the front door, every Armory tab, appearance, Run Options/settings, combat HUD,
+level-up cards, pause and results. Recompute on live window resize and display-scale changes;
+support windowed and fullscreen modes. Validate at least 1280×720 and 1920×1080 (16:9),
+1280×800 (16:10), 1280×1024 (5:4), 2560×1080 (ultrawide), and 3840×2160 with an appropriate
+readable UI scale. Also check high-DPI scaling and long text/full collections. Treat these as
+acceptance targets, not claims of current support. Report unavailable native sizes as
+unverified; a window clamped by macOS does not establish the requested framebuffer size.
+
+The level-up card sheen currently appears to extend outside the card. Investigate shader
+coordinates, effect bounds, clipping and scaling. Clip sheen to each card's intended shape
+and rounded corners; intentional outer glow must be a separate bounded effect. Test every
+rarity, hovered/selected cards, the full animation cycle, live resizing and non-default UI
+scales. No sheen may wash across neighboring cards, backdrop, text panels or the screen.
+
+## Camera visibility, silhouettes and solid-world push-in
+
+Renderer status (2026-10-29): scenery cutaway and an opt-in red/green actor
+compositor now have separate paths. The [silhouette audit](audits/OCCLUDED-SILHOUETTES.md)
+records nearest-actor ownership, per-sample scene-depth comparison, concealment and
+render ordering. Native Metal 1×/4× passes execute; a noncombat 4× fixture verifies
+full/partial obstruction, scenery behind actors, synthetic alpha-cutout holes and
+concealment/reveal. Screenshots are inline in CHANGELOG and README.
+
+Independent filters now save under Graphics and pass native click/restart/reset
+acceptance; all four combinations render correctly in the isolated fixture.
+A 2026-10-30 noncombat Metal 4× MSAA overlap fixture verifies that nearer
+friendly and neutral bodies retain depth ownership over a farther enemy, even
+with friendly color disabled. Captures and repeatable controls are in the audit.
+Distance/render-scale coverage, duplicate-pass performance, Windows and attended
+real-map acceptance remain open.
+The compositor is disabled by default. Isolated rendering evidence does not close
+the reported Elwynn foliage cutaway issue.
+
+Use separate policies for foliage visibility, body collision and solid-world camera collision.
+A canopy obscuring the hero is not by itself a reason to collapse the camera boom. The
+single-ray visual-geometry push-in prototype is not the intended foliage solution and does
+not establish visual acceptance.
+
+Provide a localized see-through/cutaway effect in obstructing scenery around the character,
+large enough to reveal nearby enemies and friendlies as well as the hero. Preserve scenery
+outside this region, with soft edges and stable transitions as the hero/camera moves. The
+mask must follow the projected character and remain appropriately sized across zoom levels,
+aspect ratios and UI scales. Support retained static geometry and ordinary/merged entity
+rendering; an entity-only effect misses much of the scenery. Do not change body solidity or
+remove whole trees to achieve visibility. Verify alpha-cutout foliage as well as opaque
+occluders, and ensure the reveal does not flicker when geometry is culled or streamed.
+
+Add persisted visibility filters for occluded players/friendlies and enemies, independently
+selectable (including both off). Render occluded entities as plain-color silhouettes: enemies
+red, players/friendlies green. Show only the occluded portions through scenery, retain normal
+rendering for visible portions, and classify by allegiance rather than mesh type. Use a depth-aware
+shader/pass or equivalent renderer implementation; respect spawn/despawn and normal entity
+visibility rules. Expose the controls in settings with immediate visual feedback. Verify
+mixed groups behind one obstacle and that each filter affects only its intended group.
+
+Add an explicit persisted “Auto-push camera in” option for solid-world obstructions. When
+enabled, caves, instance walls/ceilings and other solid boundaries must constrain the camera
+so its near plane does not stick outside the interior. Preserve the user's requested zoom,
+then smoothly restore it when clear, without oscillation, clipping or abrupt popping. Do not
+treat heroes or enemies as camera obstacles. Keep this control independent of the foliage
+cutaway and silhouette filters. Disabling it disables automatic boom adjustment, not actor
+collision or the independently enabled visibility effects.
+
+Validate dense Elwynn trees, clear outdoor terrain, cave entrances, narrow interiors,
+ceilings, corners and layered rooms separately. Check hero and nearby combat readability,
+body blocking, camera clipping, zoom restoration, filter persistence and combinations, streamed
+tile changes, frame rate and stability. Floor probes or a readable hero alone cannot establish
+all of these behaviors.
+
+## README interface screenshot gallery
+
+Export real screenshots of the implemented checkout UI to `docs/images/screenshots/<milestone>/` and embed them
+in README with descriptive captions and alt text. Cover the front door/zone selection,
+appearance, Character, Collection/item detail, Drop Tables, Codex, Talents, Achievements,
+Rewards, Run Options/settings (including visibility controls), combat HUD, level-up cards,
+pause and results. Include representative narrow/wide layouts and foliage cutaway/occluded
+silhouettes once implemented. Capture with isolated validation saves and checkout-local data.
+
+Show the actual interface, not intention mockups or fabricated finished states. Record capture
+viewport/UI scale in captions or a gallery index, keep images reasonably compressed and legible,
+and refresh them when the corresponding interface materially changes. Existing README images
+do not establish coverage of missing screens. Review every image for clipping, sheen leakage,
+readability and obsolete controls before calling the gallery complete. Unimplemented surfaces
+remain pending rather than receiving misleading screenshots.
+
+### Upgrade readability checkpoint
+
+**Updated requirement — inline comparisons.** Upgrade changes
+belong inside the descriptive sentence, replacing the separate comparison summary below it.
+For example: `Deal 20 » 43 damage to all enemies within 5 » 7yd of the player.`
+Render the complete `20 » 43 damage` and `5 » 7yd` spans in green, including both values,
+the arrow and units/stat wording. Show units only once, after the new value (for example,
+`4 » 3.7 sec`, `5 » 7 yd`, `20 » 40%`). Keep surrounding prose in its normal description color;
+do not color the whole sentence or duplicate the comparison in a footer.
+
+Apply this presentation consistently to ability, passive, item and other selectable upgrade
+cards in level-up/chest flows. Preserve next-rank previews for newly offered abilities/items,
+using the existing `Rank X » Y`, `New spell` or `New talent` label beneath the name
+for context. Do not repeat “Next rank” or “New rank” inside the description. Compare the same effective before/after values used by gameplay, including current
+talents, rarity and equipment; retain truthful red replacement losses and neutral no-change
+states. Use mixed-color text spans that wrap as one paragraph, not separate fixed-position
+labels. Verify multiple changing values, unchanged values, units, long descriptions, and
+wrapping at the required resolutions. Capture new inline previews for README milestones.
+
+The following describes the previous implementation and evidence, which does **not** satisfy
+the new inline requirement:
+
+Level-up/chest cards show green before/after scaling values from the casting parameters;
+new abilities and passives also preview their next rank. Jewelry compares the resulting
+worn loadout, including red replacement losses and a neutral no-change state. Next-rank
+hover text uses green as well. Validate every choice family at compact and wide sizes;
+current live evidence covers level-up cards at 1440×900, with jewelry replacement covered
+by rules tests. This does not change balance or imply missing item effects are implemented.
+
+### Integration checkpoint — 2026-10-24
+
+Workspace formatting and `cargo clippy --workspace --all-targets -- -D warnings` now pass.
+The cleanup names repeated Bevy query/bridge types, limits renown accessors and the legacy
+chest helper to tests, removes an unused chest-display alias, and corrects stale comments,
+Copy usage, defaults, test initializers and test-module placement. Rune pickup rules retain
+a narrowly scoped dead-code expectation because actual rune spawning remains incomplete.
+
+The full gate used checkout-local `wow-data/Data` and stopped at the app suite: 4,294
+passed, six failed, ten ignored. The empty-account mock-network test passes outside the
+sandbox with loopback permission. Five failures reproduce in the exact compiled binary:
+
+- `pipe_warm::menagerie`: `SweepUiMaterial` has no loading-cover warmup contributor.
+- `run_mode`: Survivors hot-reload modules directly reference the dev feature boundary.
+- `glue_strings`: local English AUTH_BANNED text is unchanged by Localize.
+- `ui_script::minimap_tests`: time tooltip returns `9:07 PM`, expected `21:07`.
+- `ui_script::surface_gate`: the loaded UI exposes `LOCALE_enUS`.
+
+Fix the two Survivors integration failures; investigate the locale/reference assumptions
+without weakening tests. The optional addon corpus is absent. The workspace gate is not
+green; no-install, player-test and live server round-trip success are not established.
+Reusing the exact test executable avoids a redundant package-only rebuild caused by different
+workspace feature unification. The diagnostic package-only rebuild was canceled deliberately;
+the original full workspace test process completed normally with failure status.
+
+The checkout-local patch chain confirms the locale mismatch: GlueLocalization.lua has an
+empty `Localize()` and FrameXML Localization.lua declares `LOCALE_enUS`, without setting
+24-hour time. The current tests/reference explicitly assume enGB. Add coverage for both
+locales while retaining the checks on actual overrides, tooltip refresh and unexpected globals.
+
+The warmup and dev-boundary failures are now repaired: cooldown UI draws a tiny real
+material node under the entry cover, and native instruments live in
+`capture/survivors_tools` behind `DevProbesPlugin`. The rebuilt workspace test binaries
+pass 69 Survivors tests, five pipeline-warm tests and five run-mode tests. Runtime layout
+resources and packaged defaults remain in gameplay; the watchers and probes are dev-only.
+
+Workspace/all-target Clippy with warnings denied and formatting pass. The native
+`warcraft-survivors --no-default-features` check passes with five existing-site warnings:
+four dev-only reexports and the unfulfilled rune dead-code expectation. Clean those up
+without suppressing player warnings globally. Full player tests and a live shader-warmup
+trace remain unverified; these focused checks do not establish a green full gate.
+
+### Locale integration checkpoint — 2026-10-24
+
+The three locale-dependent checks now pass against checkout-local enUS assets (15 focused
+tests total). Glue parsing is compared with actual Lua execution of the installed scripts;
+tooltip tests exercise both 12-hour and 24-hour modes. The reference adds only the verified
+`LOCALE_enUS` symbol, with provenance and generator support; a negative test rejects an
+invented locale global. The previous documentation-link gate passed. The full gate rerun
+passed formatting, Clippy and the app unit suite, then failed `cover_input_wall`: the
+portrait reads ordered `WindowEvent` input, and the browser bridge names
+`EventLoopProxyWrapper` / `WinitUserEvent`. The latter sends only WakeUp; the portrait
+consumes cursor/button events, so ensure loading-cover behavior is enforced before adding
+its verdict. Later gate stages remain unverified.
+
+### Loading-cover checkpoint — 2026-10-24
+
+The portrait now clears its own ordered-event reader and resets held drag state while the
+loading cover is active, before either drag or rotation-button handling. The mixed window
+event stream stays available to OS close/focus/lifecycle readers. The cover audit explicitly
+classifies this consumer rule and the browser’s WakeUp-only heartbeat. A regression test
+checks discarded gestures, preservation of the close request and fresh dragging afterward.
+The workspace test rebuild and nine focused checks pass, including the input audit.
+Formatting and workspace Clippy pass. The full gate passed the cover audit, then stopped
+at `launcher_shape`: the standalone example omitted `mlua-sys`. The example now includes
+all three patches and uses the confirmed fork URLs consistently. Both launcher-shape tests
+pass against the saved example. Continue the full gate; live interaction remains unverified.
+
+### Class Codex correctness checkpoint — 2026-10-24
+
+The visible legendary grid, cloak requirements and achievement snapshot now share
+`ClassDef::ability_keys()`, a unique start/pool catalog. Counting recognized catalog entries
+prevents duplicate or foreign names from inflating progress. Save parsing deduplicates
+seen rows while retaining unknown legacy names for compatibility. The new reload test
+exposed the legacy underscore/space encoding collision; recognized names are normalized
+against the class catalog to restore canonical ability keys. Regression coverage
+checks all nine classes before/after the final discovery, save reload and inflated input.
+The 45 core and 71 Survivors app tests pass, as do formatting and workspace Clippy.
+The full gate is still running. Shared jewelry
+discovery, icons, details and the responsive Codex layout are still unfinished.
+
+### Discovery and localization audit — 2026-10-24
+
+Shared discovery must observe the presented `Offer`, not all random candidates. Currently
+`banish_card` calls `trade_choices` and keeps only its first card, but `trade_choices` records
+every generated legendary candidate in `Run.seen_legends`. Record only displayed jewelry,
+persist it when offered (before selection/abandon), and keep equipment effects run-only.
+Regression cases must cover skipped offers, banish replacement, unshown candidates,
+cross-class shared discovery, duplicate offers and restart.
+
+The full gate passed launcher validation and reached `reference_strings`. Its assumption
+that each localization patch contains sentences is invalid for enUS. Base tables still
+must contribute; an independent fixture now verifies parsing inside `Localize()` and
+accepting an empty patch. The fixture passes. The real audit now exposes 29 Survivors
+literals duplicating shipped keys across seven files: account, armory, armory/door,
+appearance, hud, menu and armory/character. Resolve these from the installed string tables
+without adding a blanket exemption.
+
+The completed workspace `--no-fail-fast` run reports 7,917 passed, five failed and 18 ignored
+across 143 suites. Four failing targets remain:
+
+- `reference_strings`: the 29 duplicated Survivors literals above.
+- `ui_script_wall`: 42 gameplay-classified files name UiScript, ceiling 40. The new
+  glue-string oracle is test-only but lives in a gameplay file; separate test placement
+  from genuine gameplay dependencies before changing the boundary.
+- `web_assets` (two failures): absent `crates/wenilla-realm/templates/play.html` and a
+  missing `#fs` control in `web/index.html`. Reconcile these with this fork’s actual web
+  delivery surface rather than inventing an unused realm template.
+- `world_api_wall`: 108 unpublished engine items, ceiling 107. Identify the new dependency
+  and either remove it or publish the intentional API with its rationale.
+
+The optional addon corpus is absent. The no-install, documentation, render-pass and player
+stages of the full gate remain unverified for this checkpoint. This aggregate run establishes
+all current workspace test failures, not a green release gate.
+
+### Shared discovery checkpoint — 2026-10-24
+
+Discovery now records the displayed hand in `cards::deal_cards`, once the card row exists,
+and saves before a choice is required. Candidate generation no longer writes a run-level
+legendary journal. Only presented legendary entries from the run class advance its Codex;
+shared jewelry uses account-wide family/name keys in `jewel_seen` lines. Missing lines in
+old saves mean undiscovered, and unknown future names are retained without counting them.
+Returning to the menu retries any pending save. Equipment and run-only worn jewelry are
+unchanged. Shared Codex counts now reflect saved discovery rather than catalog size.
+
+Regression tests cover cross-class deduplication, invalid indices, save reload, unshown
+candidates and unchanged class equipment. The workspace rebuild and 73 Survivors tests
+pass, as does workspace Clippy. The native play build passed (3m05s). An isolated
+1280×720 live run verified green new-spell, talent and chest upgrade previews; the reached
+chest offered spells, so jewelry offering, skipping, banishing, abandonment and restart
+still need live validation. The empty Codex correctly showed zero shared discoveries,
+but its shared amulet row clips below the viewport at 720p. The reference icon grid,
+selected-entry details and responsive layout remain open. Card screenshots are in
+`docs/images/screenshots/2026-10-24-codex-discovery/`.
+
+
+### Codex layout checkpoint — 2026-10-24
+
+Replaced the draft page with a 74/26 catalog/detail split using the existing scrollable
+Armory columns. Class labels sit beside wrapping spell rows and use catalog class colors;
+all three shared categories and the account-wide discovered total/bar belong to the
+scrollable catalog. Selection has its own state instead of reusing another tab's status
+message. Shared detail text reports offered/unoffered state. Library check, app Clippy
+and native build pass (1m08s). A live 720p check reached all shared categories and the
+footer by scrolling, then selected Onyxia Tooth Pendant and verified its unseen details.
+Selection currently resets catalog scrolling; preserve that offset in the next pass.
+Jewelry artwork, amulet/spell badges,
+selected-icon treatment and detailed effect descriptions remain open. This is a layout
+checkpoint, not completion of the reference Codex.
+
+
+### Codex browsing follow-up — 2026-10-24
+
+Codex selection now updates a marked detail text node without rebuilding the catalog.
+A live 720p check scrolled to the footer, selected Onyxia Tooth Pendant and then The Eye
+of Hakkar, and verified both detail changes with the catalog/footer unmoved. The native
+play build passed (1m56s). Workspace test compilation and all 73 Survivors tests pass.
+
+
+### Shared jewelry artwork checkpoint — 2026-10-24
+
+The three shared Codex categories now use icon cells backed by the existing ItemDisplayInfo
+loader. The pinned item-template catalog resolves 38 item-to-display mappings; four
+abbreviated labels keep their saved names and map to the full source names documented in
+SURVIVORS-GEAR-VISUALS.md. Royal Seal variants share one display. Mark of the Champion's
+two distinct displays remain unresolved and its selectable cell shows a question mark.
+Icons dim according to saved discovery. Native build (1m44s), workspace test compilation
+and 74 Survivors tests pass with WOW_DATA set to the checkout data chain, including
+all 38 display/icon checks. A live 720p capture verifies the full grid and footer fit;
+Onyxia Tooth Pendant and the unresolved Mark both open the correct details.
+Legendary necklace art with spell badges, selected-cell indication and detailed effects
+remain open, along with live jewelry offer/restart persistence validation.
+
+
+### Codex effect audit — 2026-10-24
+
+Selected entries now show green bonuses computed by equipping the item into an empty
+`campaign::Worn`, using the same comparison formatter as chest cards. The heading makes
+clear this is the item's standalone bonus; chest cards still compare the actual loadout
+and expose replacement losses. Native build, workspace test compilation and 75 Survivors
+tests pass; live 720p validation confirmed the ring damage/critical-chance values in green.
+
+Mechanics discrepancy found at that checkpoint: `Worn::bonus` granted every legendary amulet global
++5% damage, +15 percentage points of critical damage and +1 direct-attack target,
+regardless of the associated spell. This does not satisfy the intended one-spell
+legendary enhancement. The following scope correction addresses this; Phase 6 remains incomplete.
+Shared jewelry still uses draft index-based bonus tables and needs a deliberate content
+pass, rather than importing vanilla stats or presenting the current draft as balanced.
+
+
+### Legendary spell scope — 2026-10-24
+
+Legendary bonuses now enter cast parameters only for their associated spell, leaving the
+shared character stat sheet unchanged. Direct casts and lingering areas/totems use that
+spell scope for critical damage; existing areas retain their damage snapshot, while their
+critical bonus follows the currently worn amulet as before. Single-target direct attacks
+can gain one target; area spells keep one area. Live damage tuning scales the bonus once.
+
+Chest comparisons label the affected spell and show replacement losses in red. Codex
+details show the same scoped bonuses and omit inapplicable extra targets. Bonus magnitudes
+remain draft values; distinct spell-specific legendary designs and balance are still pending.
+
+Validation: native play build and workspace test compilation pass; all 77 Survivors tests
+and 45 core rules tests pass. Live 720p checks confirm Consecration omits extra targets and
+Hammer of Wrath includes them; both captures are linked in the changelog. This does not
+clear the previously recorded full-workspace acceptance failures.
+
+
+### Warrior talent checkpoint — 2026-10-24
+
+Twelve nodes now use explicit class-specific effects. Rank snapshots are class-catalog
+indexed; re-snapshotting clears old training. Tests cover every supported rank, foreign
+classes and spells, caps, duplicate IDs, resetting training, account spec switching,
+save/reload, and the actual cast parameters for cooldown, damage and shout radius.
+Native build, workspace test compilation, 79 Survivors tests and 47 core tests pass.
+The configured 1.12.1 talent audit passes for all supported IDs, names and rank caps.
+Live 720p Heroic Strike and Booming Voice details fit; the changelog links the capture.
+Remaining class nodes and named milestones are still Phase 5 requirements.
+
+
+### Arms milestone checkpoint — 2026-10-24
+
+Deep Wounds, Sweeping Strikes and Mortal Strike now have their documented 10/20/30-point
+behaviors. The hit handler applies the bleed from the original critical hit, and shared
+DoT processing catches up due ticks without extending effects beyond expiry. Core tests
+check thresholds and excluded damage sources; app tests check refresh/no stacking,
+preserved tick timing, multiple frame sizes, expiration and cast/rank composition.
+Native build, workspace test compilation, 82 Survivors tests and 48 core tests pass.
+The Deep Wounds description fits in the live 720p sidebar; screenshot is in the changelog.
+This is not proof of a full manual Arms encounter or the full Phase 5 acceptance criteria.
+
+
+### Fury milestone checkpoint — 2026-10-24
+
+All three Fury milestones now use the documented combat paths. Core tests cover thresholds,
+class isolation, boss slowing and inactive-buff risk. App tests cover reflected cast damage,
+healing caps, absorption, immunity, expiry and an unrelated reflection buff.
+Native build, workspace test compilation, 83 Survivors tests and 49 core tests pass.
+Live 720p validation confirms the Death Wish benefit and penalty remain readable; the
+changelog links the screenshot. Full manual Fury combat validation remains outstanding.
+
+
+### Protection milestone checkpoint — 2026-10-24
+
+Last Stand, Concussion Blow and Shield Slam now use shared cast, hit and absorption paths.
+Core tests cover thresholds, class isolation, boss duration and mixed Fury/Protection
+allocation. App tests cover capped healing, extra-target cast parameters, shield refresh,
+absorption and preservation of stronger defenses. Native build, workspace test compilation,
+84 Survivors tests and 50 core tests pass. Live Shield Slam details fit at 720p; the changelog
+links the screenshot. Full manual Protection combat validation remains outstanding.
+
+
+### Warrior defensive talent checkpoint — 2026-10-24
+
+Sixteen individual Warrior nodes now have specific effects. Improved Revenge, Improved
+Shield Wall, Last Stand and Bloodthirst use existing reflected damage, duration and capped
+cast-healing paths. Shared rank tests exercise each new node at every rank; an app test
+checks cast parameters, milestone composition, healing caps and training reset. Native
+build, workspace test compilation, 85 Survivors tests, 50 core tests and the talent-data
+audit pass. Live 720p Improved Shield Wall details are captured in the changelog. Manual
+combat acceptance and remaining Warrior nodes are still unfinished.
+
+
+### Talent upgrade readability
+
+Supported individual talents show their implemented effect in green with a current-to-next-
+rank comparison. The comparison is explicitly the node's contribution, excluding other
+nodes, milestones and equipment. Maximum rank shows its final contribution without an
+next-rank comparison. Armor uses flat points; percentage effects use percentage units. Supported
+milestone effects also use green text. Unknown nodes retain an explicit pending notice in
+white. Names and rank headers remain white, and both talent layouts use the shared details
+system. This extends the green upgrade language used by level and chest cards.
+
+Validation: native build, workspace test compilation, 85 Survivors tests and 51 core tests
+pass. Live 720p comparison and supported-to-pending color reset verified; screenshot linked
+in the changelog and README. Maximum-rank formatting is covered by core tests.
+
+
+### Crowd-control duration contract
+
+Timed hit effects (slow, root, stun, fear and weakening) now gain 10% of their base duration
+per ability rank after rank one, matching the existing duration growth of buffs and DoTs.
+Spell-duration talent multipliers compose with that rank multiplier. The resulting effect
+is captured in cast parameters and carried into direct/delayed hits and ground areas;
+attached state markers use the same duration on direct hits. Strength, target count and area
+locations do not change. Drain fractions and execute thresholds are not durations and stay
+unchanged. Existing boss resistance is applied by the hit processor after this scaling.
+Upgrade cards compare effect duration separately from an area/buff/DoT lifetime.
+
+Improved Demoralizing Shout (audited ID 161, five ranks) replaces placeholder damage with
+10% additional weakening duration per rank. At ability rank three and talent rank five,
+its five-second base weakening lasts nine seconds. The separate Piercing Howl milestone
+slow still uses its own fixed three-second duration. These coefficients are provisional.
+
+Validation: native build, workspace test compilation, 86 Survivors tests, 51 core tests
+and the local talent-data audit pass. The new app regression checks rank/talent composition,
+hit/marker duration, unchanged strength/count/radius and non-timed effects. Live 720p talent
+details verified; full combat timing and balance validation remain outstanding.
+
+
+### Arena terrain survey checkpoint — 2026-10-24
+
+`survivors-audit <Data> --terrain <map> <x> <y> <radius>` now samples ADT terrain support,
+liquid depth, impassable chunks and estimated slope, including neighbouring tile loads.
+Six local surveys narrowed the next world-validation target to Warsong's 60-yard midpoint
+arena. Arathi's midpoint is wet/steep; Warsong's 150-yard disk includes holes and steep
+terrain; shrinking Alterac's midpoint disk does not remove its steep samples. The detailed
+[location evidence](SURVIVORS-LOCATIONS.md) records coordinates, counts, method and limits.
+Five audit tests and Clippy pass. World traversal, source model identity, WMO/doodad
+collision, camera behavior and encounter/reward implementation remain outstanding.
+
+
+### Warsong obstacle checkpoint — 2026-10-24
+
+The model audit now reports world-space hull bounds and center rays. Local data identifies
+17 hull-bearing props and eight zero-hull props with origins inside the 60-yard candidate.
+A center ray hits stump 596699 at 8.898 yards; its bounds approach much closer than its
+origin. Use this fixture for runtime collision and route tests; terrain-only clearance is
+insufficient. The location report records exact coordinates, evidence limits and the
+instance preview instructions below. Six audit tests and Clippy pass.
+
+
+### Instance rendering checkpoint — 2026-10-24
+
+Added development-only `--world-preview` to the Survivors launcher, exposing the existing
+engine viewer's map and coordinate overrides. Native build and live Warsong rendering
+passed at 1280×720; the README and changelog link the captured milestone. Reproduction is
+in the [location report](SURVIVORS-LOCATIONS.md#developer-instance-preview).
+This corrects the earlier missing-map-override claim: `WOW_MAP` already existed.
+Capsule contact/sliding, routing, tile reload and gameplay camera acceptance remain open.
+
+
+### Placed obstacle contact checkpoint — 2026-10-24
+
+Added a data-backed headless regression for Warsong stump 596699, using its actual ADT
+placement and the player's capsule radius. The source ray and body sweep are checked before
+removal, after removal and after re-registration. This tests the same `Floor::slide` used by
+player movement; it does not substitute for streamed-world traversal or Elwynn reproduction.
+See [fixture scope](SURVIVORS-LOCATIONS.md#placed-stump-capsule-regression).
+Workspace test compilation and all 87 focused Survivors tests pass with explicit checkout data.
+
+
+### Warrior bleed talents checkpoint — 2026-10-24
+
+Nineteen Warrior nodes now have explicit effects. Deep Wounds adds four percentage points
+per rank to the direct-critical bleed fraction, alongside the Arms 10-point milestone's
+12%. Improved Rend multiplies that bleed damage by 1 + 10% per rank. At maximum ranks,
+a 100-damage eligible critical with the milestone creates 31.2 damage over three seconds.
+Improved Rend alone does not grant a bleed. These are explicit Survivors conversions;
+no separate Rend ability is implied. The green rank preview uses the same coefficients.
+
+Existing non-stacking refresh behavior and tick scheduling remain unchanged. Bleed ticks,
+area pulses, reflected damage and other classes cannot trigger this bleed; execute and
+multistrike expansion still happen after the triggering damage snapshot is selected.
+Remaining Warrior nodes and full manual combat acceptance remain open.
+Native build, workspace test compilation, 52 core tests, 88 focused Survivors tests and
+the local talent identity/rank audit pass. Live 1280×720 validation confirms both new
+descriptions and green next-rank comparisons fit the sidebar. The empty validation account
+cannot spend points; its prerequisite/no-points messages are visible in the captures linked
+from README and the changelog. These are layout checks, not evidence of combat acceptance.
+
+
+### Warrior control talents checkpoint — 2026-10-24
+
+Twenty-one Warrior nodes now have explicit effects. Piercing Howl adds two seconds to
+Demoralizing Shout's secondary slow; Concussion Blow adds one second to Heroic Strike's
+secondary stun. Each node can supply its control effect, and adds duration when its
+same-name milestone is active (five-second slow / two-second stun). Boss slow remains
+25% rather than 50%; boss stun lasts 30% of the ordinary duration. These secondary
+durations are fixed contributions, independent of the shout's rank-scaled weakening.
+The effects refresh existing control timers rather than adding durations on repeated hits.
+
+Green node previews show seconds rather than percentages. Spec reset removes the nodes'
+contributions; the milestones keep their own behavior. No extra AoE locations, free abilities
+or change to shout damage weakening is introduced. Other talents and manual combat
+acceptance remain unfinished.
+
+Native build, workspace test compilation, 53 core tests, 88 focused Survivors tests and
+the local talent-data audit pass. Both green previews fit at 1280×720 on an empty validation
+spec. These checks do not establish full manual combat acceptance.
+
+
+### Warrior absorb talents checkpoint — 2026-10-24
+
+Twenty-four Warrior nodes now have effects. Shield Specialization grants Heroic Strike an
+absorb equal to 1% maximum health per rank; Shield Slam adds 3%. Both add to the Protection
+30-point milestone's 3%. All use a three-second base lifetime, extended by Improved Shield
+Block's 0.5 seconds per rank. Duration alone does not grant a shield. At all three node caps
+with the milestone, a 100-health hero receives 11 absorb for 4.5 seconds once per cast.
+
+The existing shield refresh policy remains: no stacking, no multiplier from extra targets,
+and no replacement or lifetime extension of a stronger active shield. These are Survivors
+conversions rather than an equipment-dependent block system. Green previews distinguish
+percentage of maximum health from added seconds. Remaining nodes, balancing and full
+manual combat acceptance remain open.
+
+Native build, workspace test compilation, 54 core tests, 89 focused Survivors tests and
+the local talent-data audit pass. Fresh shield-description captures and manual combat
+acceptance remain pending.
+
+
+### Reactive Warrior talent checkpoint — 2026-10-24
+
+Twenty-five Warrior nodes now have effects. Enrage triggers on actual health damage from
+a nonlethal hit, after immunity, mitigation and absorbs. It multiplies damage by
+1 + 4% per rank for four seconds; further qualifying hits refresh without stacking.
+The runtime timer uses the same gameplay clock as the other timed buffs, starts empty
+in a new run, and is not persisted. Its multiplier includes cast-local legendary damage
+while preserving each legendary's spell scope. Existing projectiles/DoTs retain their
+normal snapshot behavior. Green rank text names the conditional bonus explicitly.
+
+This is a Survivors conversion: it does not require an enemy critical-hit system.
+Immune hits, fully absorbed hits, lethal hits and untrained nodes do not activate it.
+Combat tests cover partial absorption, refresh, expiry and the lethal boundary. Dedicated
+buff artwork/indicator, manual combat feel and final balance remain pending.
+
+Native build, workspace test compilation, 54 core tests, 90 focused Survivors tests and
+the local talent-data audit pass. Live combat and fresh description captures remain pending.
+
+
+### Front-door talent integration checkpoint — 2026-10-24
+
+Live validation with an isolated Fury spec exposed an omitted talent snapshot in Armory's
+`try_enter`: permanent stats were copied, while spell-specific ranks and milestones reverted
+to defaults. The new front door uses this path. It now assigns the selected hero's active
+spec immediately after run initialization, matching the existing menu/restart/auto paths.
+A regression invokes the actual entry function with a selected second hero and second spec,
+then switches to an untrained hero to check that old effects do not leak into the next run.
+This finding means earlier unit and talent-page checks did not prove front-door combat
+activation; full class combat acceptance remains open.
+
+Enrage's runtime bonus and rounded-up remaining seconds appear in green under the combat
+clock. The line clears on expiry, lack of the talent, or death, and follows the HUD's parent
+layout/visibility. Dedicated buff artwork is still pending.
+
+The 1280×720 live run now shows the trained shout radius/duration in green upgrade
+comparisons and the active Enrage bonus/countdown. The [HUD capture](images/screenshots/2026-10-24-warrior-talents/enrage-hud-720.jpg)
+uses an isolated checkout validation save with a legal 20-point Fury allocation.
+White ability prose also now reads the cast's scaled effect instead of its raw definition,
+so shout duration agrees with the green preview. A regression covers base, trained and
+rank-two trained durations. This is targeted integration evidence, not full class acceptance.
+
+Native build, workspace test compilation and 92 focused Survivors tests pass. The corrected
+[shout card](images/screenshots/2026-10-24-warrior-talents/trained-shout-card-720.jpg)
+was also verified live: white text says 7.5 seconds; green next-rank text says 7.5 → 8.2 seconds.
+The hover glow still has a visibly rectangular outer boundary; card-effect visual acceptance
+remains open. Existing broad-workspace failures remain tracked separately.
+
+### Card lighting checkpoint — 2026-10-24
+
+The rectangular spill was the animated outer `BoxShadow`, separate from the card-sized
+landing sheen. Removed that shadow; hover now brightens the rounded border while preserving
+lift/tilt. The internal rarity-lighting surface also has rounded corners.
+
+Native build passes. Live captures show Epic, Rare and Uncommon cards together, without the
+outer rectangle, at [1280×720](images/screenshots/2026-10-24-card-lighting/hover-720.jpg) and
+after resizing the same open hand to [1280×800](images/screenshots/2026-10-24-card-lighting/hover-800.jpg).
+The render log confirms a 2560×1600 framebuffer for the latter on this 2× display. The long
+shout description and all green comparisons fit; selecting it after resizing adds its HUD
+icon and advances to the next hand. The UI tool required rebinding the still-running window
+after resize; the app was not restarted. These captures cover settled hover states, not
+every frame of dealing/selection. Common/Legendary, other aspect ratios, non-default UI
+scales and complete animation-cycle acceptance remain open.
+
+### Inline card-description checkpoint — 2026-10-24
+
+The shared level/chest card renderer now emits a single wrapped text paragraph with colored
+spans. Ability changes live inside the description: damage, radius, count, duration and
+cooldown use actual cast parameters; talent-scaled control durations use the cast effect.
+Unchanged values retain normal prose color. Both values, the arrow and relevant units are
+green when changed, with additional precision for small cooldown differences. New abilities
+and passives show their rank-one/rank-two comparison without repeating the rank label
+inside the description; the existing subtitle supplies that context. Passives and
+health restoration use inline descriptions; jewelry retains red scoped replacement losses
+and neutral duplicate/no-change notices within its paragraph. No separate summary is rendered.
+Plain ability tooltips reuse the same prose implementation.
+
+Native build passes. Live validation covers new spells/passives, Cleave rank-up, Whirlwind
+damage/radius and Retaliation duration at 1280×720 and the same hand after live resize to
+1280×800. See the [720p capture](images/screenshots/2026-10-24-inline-upgrades/upgrade-720.jpg)
+and [resized capture](images/screenshots/2026-10-24-inline-upgrades/upgrade-800.jpg).
+Fresh chest/jewelry/healthstone captures and the full resolution matrix remain unverified.
+
+Workspace test compilation and 96 focused Survivors tests pass. New regressions verify
+the mixed-color damage/radius spans, unchanged values, trained duration, cooldown precision,
+passive/healing/absorb units, and red/neutral jewelry replacement semantics. This does not
+clear the previously recorded broad-workspace gate failures.
+
+
+### Warrior utility training checkpoint — 2026-10-24
+
+Twenty-eight Warrior nodes now have explicit effects. Death Wish extends Retaliation by
+25%, including the existing Fury milestone risk while that buff remains active. Improved
+Disarm adds 10% weakening duration per rank to Demoralizing Shout; Improved Taunt reduces
+its cooldown by 10% per rank. Duration bonuses multiply with existing duration training.
+These are Survivors adaptations with provisional balance values, not vanilla spell claims.
+The shout retains one area and its separate slow duration. Generic damage-per-point is
+removed for these named effects through the shared stat adjustment. Remaining nodes,
+fresh talent screenshots and manual combat acceptance remain open.
+
+Validation: native build (22.5 seconds), workspace test compilation, 54 core tests,
+97 focused Survivors tests and the local talent-data audit pass. The suite also caught
+and corrected three stale Codex-page expectations for the single-unit comparison format.
+
+
+### Inline text visual checkpoint — 2026-10-24
+
+Live checkout validation at 1280×720, then resizing the same paused hand to 1280×800 and
+1024×768, confirms readable single-unit comparisons and no prose rank labels. Selecting
+Cleave at the narrow size grants rank two. The next hand verifies area, cooldown and
+percentage comparisons at 1024×768. Screenshots are linked in README and the changelog.
+This proves those sampled hands at default UI scale; it does not close chest/jewelry,
+all-rarity, long-description or complete viewport/UI-scale acceptance. The isolated
+validation save was used; the launch wrapper was restored and the app closed without
+querying a stale app handle.
+
+
+### Blood Craze and lethal-hit healing checkpoint — 2026-10-24
+
+Blood Craze (local DBC node 661, three ranks) restores 1% maximum health per rank over
+six seconds after a surviving health-damaging hit. Additional hits refresh one timer;
+immunity and full absorbs cannot trigger it. This is an explicit Survivors adaptation
+with provisional balance: it triggers on health damage rather than an enemy critical.
+Healing uses the current maximum health and only the active portion of a frame, caps at
+maximum health, and remains separate from cast healing. The timer follows gameplay time
+and therefore pauses with the run. It is run-only, with no save-format change.
+
+Regeneration now refuses to heal at zero health, preventing passive or timed healing from
+undoing a lethal hit before the death check. Tests cover frame-size independence, refresh,
+immunity/absorption, capped healing, lethal damage, talent caps, reset and class isolation.
+Warrior has 29 supported nodes. Fresh talent/HUD captures, dedicated buff presentation,
+manual combat acceptance and remaining class nodes are still open.
+
+Validation: native build, workspace test compilation, 55 core tests, 98 focused Survivors
+tests and the local talent-data audit pass. Full workspace gates were not rerun.
+
+
+### Flurry training checkpoint — 2026-10-24
+
+Flurry (local DBC node 156, five ranks) grants 5% haste per rank for three seconds after
+a successful direct critical from Cleave, Heroic Strike, Execute or Mortal Strike.
+Further eligible criticals refresh one timer; periodic areas, bleeds and reflection do
+not trigger it. This is a provisional Survivors adaptation, not vanilla's charge model.
+It uses the existing haste rule (percentage shorter cooldowns, additive with other haste
+and subject to its floor); it affects subsequent cast cooldowns, not an already-running
+cooldown. Gameplay pause freezes the timer. Expiry removes the bonus, and dead heroes
+cannot activate it. It changes neither damage nor target count.
+
+Warrior now has 30 supported nodes. The run-only training snapshot holds 64 entries so
+continued class implementation can exceed the previous 32-node limit; saves still store
+DBC IDs/ranks. A capacity regression checks every implemented class catalog. Remaining
+nodes, dedicated Flurry buff presentation, fresh screenshots and manual combat checks
+remain open.
+
+Validation: native build, workspace test compilation, 56 core tests, 99 focused Survivors
+tests and the local talent-data audit pass. Full workspace gates were not rerun.
+
+
+### Reactive talent HUD checkpoint — 2026-10-24
+
+The green status area beneath the clock now lists Enrage damage, Flurry haste and Blood
+Craze healing rate with their remaining seconds. Multiple active talents occupy separate
+lines, with no text for inactive, expired or untrained effects or a dead hero. Blood Craze
+shows percent maximum health per second, matching its six-second healing calculation.
+This extends the existing text HUD; dedicated buff icons/artwork remain open.
+
+Native build, workspace test compilation and 100 focused Survivors tests pass. Live
+1280×720 checks with an isolated 30-point Fury spec confirmed all three lines during a
+level-up pause, Blood Craze alone during combat, Flurry alone during combat, and clearing
+after expiry. README/changelog link gameplay captures of Flurry and the cleared HUD.
+The overlay dims underlying HUD text as before. Larger/smaller viewport acceptance and
+full manual combat validation remain open; the launch wrapper was restored after closing.
+
+
+### Charge training and mobility clock checkpoint — 2026-10-24
+
+Improved Charge adds 20% stun duration per rank; Improved Intercept reduces Charge's
+cooldown by 10% per rank. Both have two ranks verified against local DBC identities.
+At maximum training Charge stuns for 2.1 seconds and recharges in 6.4 seconds. These are
+provisional Survivors adaptations. A resolved mobility definition supplies the actual cast,
+HUD cooldown sweep and tooltip, preserving the 25-yard range, level-five unlock, collision
+checks and no-target lunge. Other classes' mobility is unaffected by Warrior ranks.
+Warrior now has 32 explicitly implemented nodes.
+
+Mobility cooldown, speed and vanish timers previously advanced outside gameplay. They now
+freeze on pause, level-up, menu, game over and loading screens; mobility cannot be cast
+behind a loading screen. Tests cover the resolved training/reset/class boundaries and
+all paused clock states. Fresh Charge tooltip captures and manual movement/combat checks
+remain open.
+
+Validation: native build, workspace test compilation, 56 core tests, 102 focused Survivors
+tests and the local talent-data audit pass. Full workspace gates were not rerun.
+
+
+### Lethal-hit boundary checkpoint — 2026-10-24
+
+Living means positive health with no death transition in progress. Shared combat healing
+now enforces that boundary for regeneration, spell/milestone heals, direct and periodic
+lifesteal, pickups and healthstone choices. Healing remains capped and returns the actual
+amount restored; nonpositive/nonfinite inputs grant nothing. Fresh-run health initialization
+is separate. A lethal hero cannot start new automatic or mobility casts, collect gems/chests,
+receive companion pickups, or accept a stale card choice before the death animation starts.
+This prevents same-frame healing from reviving the hero and XP from opening a level-up
+choice during the death transition. Already-launched attacks can still finish.
+
+Regression coverage includes shared healing caps and lethal-hit rejection, cast healing/
+shield rejection, and healing/XP/gold pickup rejection with no queued level-up. Manual
+death/result-screen validation and full workspace gates remain open.
+
+Validation: native build (33.9 seconds), workspace test compilation and 105 focused
+Survivors tests pass. Full workspace gates were not rerun.
+
+Live follow-up: death reached the results screen at 1280×720 on an isolated Night Elf
+Warrior save. Screenshot: `images/screenshots/2026-10-24-defeat/results-720.jpg`.
+Damage, XP and pickup multipliers were temporarily 0.1 to shorten the run, then restored
+to 1.0. This is results-flow evidence, not balance or same-frame healing-race verification.
+Replay follow-up at 1280×720: clicking Play again returned to hero selection; entering
+Elwynn again reset the clock (captured at 00:02), full health, level-one Cleave and zero
+damage. Evidence: `images/screenshots/2026-10-24-defeat/replay-720.jpg`. The same temporary
+tuning was restored afterward. Singular reward text now uses “1 mark”; the older results
+capture predates that text fix. Victory, keyboard replay and the results resolution matrix
+remain open.
+
+### Responsive results checkpoint — 2026-10-24
+
+Results layout now uses a proportional stat-row width with a maximum readable width,
+proportional tiles that wrap below their minimum readable size, constrained wrapping text,
+and a proportional replay button with minimum/maximum bounds. These bounds operate within
+the existing height-based UI scale rather than fixing the layout to one resolution.
+
+Native build passed in 29.84 seconds. Live resizing of one defeat screen verified 1280×720,
+640×720 and 480×720: summary text wraps and the smallest width places the five stat tiles
+in centered rows of three and two, with both buttons visible. Captures live under
+`images/screenshots/2026-10-24-results-layout/` and are linked in the README. This used the
+isolated death save and temporary 0.1 damage/XP/pickup tuning, restored after closing.
+The narrow checks cover results only; victory, larger counters and other interface pages
+still need their own validation. Full workspace gates were not rerun for this layout change.
+
+### Elwynn tree collision investigation — 2026-10-24
+
+Source-hull audit at map 0, `[-9548.5, 115, 61]` found collision geometry on the nearby
+thin-trunk and canopy-bearing tree variants (12 and 52 triangles respectively). The existing
+read-only runtime probe queried twelve placement origins within 50 yards, after the streamed
+world became presentable. Exact starts, directions and results are retained in
+`validation/elwynn-tree-queries.txt`; reproduction points are the placement positions from
+`cargo run -p survivors-audit -- "$WOW_DATA" --doodads 0 -9548.5 115 61`.
+
+Placement 12578 (ElwynnTreeMid01) blocks all four capsule approaches before the requested
+12 yards; the positive-X slide advances 5.569 yards and the straight mobility sweep 4.000.
+Placement 12580 (ElwynnTreeCanopy03) permits all four origin-centered straight sweeps.
+This rules out a blanket absence of tree colliders, but does not prove canopy trunk failure:
+placement origins and broad source bounds do not establish exact solid occupancy, and some
+approaches lack a valid starting floor. The next check must align a short repeated movement
+path with a visible/source trunk surface, compare it against the registered hull, and repeat
+after tile reload. No collision fix or navmesh requirement is claimed by these probes.
+
+Surface-aligned follow-up adds 48 quarter-yard walking queries with the same floor-height
+fallback as the hero, reporting lateral drift and missing floor samples. This is a static
+world snapshot, not live input. Reproduce with `WOW_SURVIVORS_COLLISION_PROBE` pointing to
+`docs/validation/elwynn-tree-surface-points.txt`; the points come from the source audit's
+first triangle/plane intersections one yard above each placement origin. Evidence is in
+`validation/elwynn-tree-surface-queries.txt`.
+
+Canopy placement 12580 now has a concrete asymmetric case: from Bevy
+`(-106.507454, 59.379368, 9520.363)` toward +X, repeated walking advances 11.992 yards
+with one missing floor sample. Reverse approach advances only 5.483 yards, with no missing
+floor samples. The -Z approach advances 5.802 yards with 0.435 yards lateral drift.
+This narrows investigation to surface orientation/terrain-height interactions at that exact
+location; it does not yet prove a rendered trunk penetration. Compare rendered placement
+and per-step height against its hull before changing the shared one-sided collision policy.
+Native build passed (10.61 seconds on the final probe revision); full gates were not rerun.
+
+The authored-tree regression now also follows 96 quarter-yard grounded walking steps for
+each of six tree variants from four directions. It checks that the capsule responds to
+the hull and ray-checks every resulting center segment for solid-face crossings. Passing
+the tree's center plane
+is not itself penetration: the canopyless variant can slide around its trunk with over
+three yards of lateral movement. This fixture uses level terrain and unrotated source
+hulls, so it cannot settle the placed-tree 12580 terrain interaction or rendered alignment.
+
+Validation: workspace test compilation and 105 focused Survivors tests pass, including
+all 2,304 repeated-walking segments. Center-ray checks do not prove clearance of every
+capsule edge or rendered surface; full workspace gates were not rerun.
+
+Real-placement follow-up loads tree 12580 with its authored rotation/scale and all terrain
+chunks in its tile. Both 48-step paths reproduce the runtime endpoints exactly, and each
+resulting center segment passes the independent one-sided ray check. This rules out a
+streamer-only cause for that particular asymmetry, but does not prove capsule-edge clearance.
+
+The source audit now reports generalized winding at the requested point. At the passing
+start's one-yard center, raw WoW `[-9520.363, 106.507454, 60.379368]`, tree 12580 yields
+`0.760050`; the opposite start `[-9520.363, 94.507454, 60.64867]` yields `-0.066071`.
+This supports an inside/open-hull start hypothesis, not an exact occupancy verdict: closed,
+consistently wound hulls should yield magnitude 1 inside and 0 outside. The new audit test
+covers a closed tetrahedron, reversal, exterior points and an intentionally missing face.
+Do not turn this candidate into a two-sided collision policy change without rendered trunk
+confirmation and an approach that demonstrably starts outside the solid hull.
+
+Validation: workspace test compilation, 106 focused Survivors tests and audit-tool tests
+pass. This fixture adds actual terrain/placement coverage; visual traversal and full gates
+remain open.
+
+### Live Elwynn trunk contact — 2026-10-24
+
+From a fresh isolated Warrior run, W approached the large visible trunk north of the spawn.
+The paused 00:08 approach and 00:18 contact captures retain the same trunk/ground framing
+following further forward input, consistent with blocking. A subsequent D sidestep changes
+that framing substantially at 00:24, showing movement away from the contact. Captures are
+under `images/screenshots/2026-10-24-tree-contact/` and linked in the README. The pause overlay
+partly covers the hero; these images are qualitative evidence, not measured travel distances
+or a verified placement-ID match. This does not close collision acceptance for every tree,
+angle, enemy/companion or tile reload.
+
+The trunk visibly obscures the hero/combat, reinforcing the separate cutaway/silhouette
+requirement. XP tuning was temporarily reduced to 0.1 after early level-up interruptions;
+movement/damage stayed normal and all tuning/launch settings were restored after closing.
+No gameplay or rendering code changed in this visual check.
+
+### Cutaway implementation foundation — 2026-10-24
+
+`survivors-core::visibility::Cutaway` defines the CPU reference for a projected circular
+reveal between camera and hero focus. Radius is specified in yards at the focus plane and
+scales with depth, with a smooth feather band and a focus-plane clearance. Off-axis scenery,
+geometry behind the camera/hero, disabled and invalid inputs stay visible. Tests cover the
+soft-edge midpoint, rotated/translated camera, depth scaling, hard edge and degenerate focus.
+All 59 core tests passed at this foundation checkpoint; renderer integration follows below.
+
+Renderer investigation found two load-bearing scenery paths: the retained `static_gx`
+shader and the `WowModelMaterial` shader for ordinary model draws/fade variants. Integration
+must cover both, keep actor/UI models out of the mask, and preserve alpha-tested foliage
+and depth behavior. Supply the same per-frame camera/hero focus to both, without rebuilding
+every material bind group each frame. Add persisted cutaway and ally/enemy silhouette
+controls independently of camera auto-push, then validate the recorded tree-contact scene
+and cave/interior cases. No collision changes are implied by this rendering work.
+
+### Scenery cutaway renderer — 2026-10-25
+
+The Survivors launcher enables the `survivors-visibility` feature across app, world and
+assets. A shared 32-byte tail after the fixed-capacity skin palette supplies camera/focus
+to both retained static scenery and ordinary/merged model shaders. A three-yard aperture
+at the hero focus plane uses a 25% feather with ordered coverage; discarded fragments
+leave depth clear for the hero and nearby combat. Actors, UI previews, ground clutter and
+WMO architecture are excluded from this first foliage implementation. Physical colliders
+are unchanged. The saved Scenery cutaway option is independent of Auto-push camera in;
+old settings default to cutaway enabled. Menu/results clear the focus buffer.
+
+Live validation at 1280×720: retained scenery and `WOW_STATIC_GX=0` ordinary model
+rendering both reveal the hero and nearby enemies through an Elwynn canopy; toggling off
+at the same paused camera restores the obstruction. Shader loading produced no errors.
+Settings fit and retain cutaway On/auto-push Off across restart. The original near-side
+trunk approach was mostly beyond the hero, so its unchanged appearance is not an occluded
+trunk test. The canopy captures include alpha-cutout leaves and an opaque branch.
+
+Evidence: [retained gameplay](images/screenshots/2026-10-25-cutaway/retained-gameplay.jpg),
+[ordinary gameplay](images/screenshots/2026-10-25-cutaway/ordinary-gameplay.jpg), and each
+path's on/off pair linked in the README. The captures use an isolated save, temporary
+experience multiplier 0.1 and auto-push Off to isolate the visibility effect. Tuning and
+launcher overrides were restored. No claim about balance or collision follows from these
+captures. Native build, workspace test compilation, 106 Survivors tests, 563 world tests
+(6 ignored), 103 asset tests and 59 core tests passed; final workspace Clippy, formatting, test compilation, the 106 Survivors tests and
+documentation/render-pass lints also pass after test-style cleanup. Full workspace test
+acceptance remains open (the previously recorded five failures were not re-audited here).
+
+Still to validate: camera motion/zoom and minimum useful reveal size, streaming/culling
+transitions, alternate aspect ratios and UI scales, opaque trunk occlusion, and all
+material variants.
+WMO/interior visibility, red/green depth-aware silhouettes and the full resolution matrix
+remain required; this integration does not close those acceptance items.
+
+### Viewport-scaled cutaway — 2026-10-25
+
+Replaced the initial three-yard radius with a projected diameter of 35% of the shorter
+viewport side. Radius follows the actual camera distance (including push-in), vertical FOV
+and current aspect ratio, after camera/transform updates. Camera and cutaway share their
+1.4-yard focus height. Invalid projection data disables the aperture.
+
+All 61 core tests pass, including near/default/far distances, two FOVs, landscape/portrait
+aspects and invalid projections. Native macOS build and workspace Clippy pass. This is
+mathematical and compile validation: live zoom/resize evidence, visual size judgment and
+the remaining visibility acceptance items above are still pending. Existing screenshots
+show the preceding fixed-radius implementation and are not evidence for this sizing change.
+
+Live follow-up: at 1280×720 in the retained renderer, toggling cutaway at the same paused
+canopy view removes/restores the obstruction. After wheel zoom-out, the hero and nearby
+wolves remain visible inside the centered aperture, with the feathered edge visible.
+[Farther-zoom capture](images/screenshots/2026-10-25-cutaway-sizing/farther-zoom.jpg);
+[on](images/screenshots/2026-10-25-cutaway-sizing/on.jpg) /
+[off](images/screenshots/2026-10-25-cutaway-sizing/off.jpg).
+No shader errors or panics appeared in the validation log. Exact camera distances were
+not instrumented, so these captures do not prove endpoint coverage or the precise 35%
+ratio. Resize, ordinary-renderer zoom and the wider matrix remain open. Isolated save,
+XP multiplier 0.1 and auto-push Off were used; launcher and tuning overrides were restored.
+
+### Warrior strike training — 2026-10-25
+
+Improved Overpower (131, two ranks) adds 10 percentage points of Heroic Strike critical
+chance per rank; the shared combat calculation caps total chance at 100%. Improved Slam
+(168, five ranks) shortens Mortal Strike cooldown by 5% per rank, multiplying with ordinary
+cooldown modifiers. These are explicit provisional Survivors adaptations: there is no
+Overpower dodge trigger or Slam cast bar. Neither grants a spell or changes target counts.
+Both replace their generic per-point damage fallback, follow the selected-spec snapshot,
+and reset with that spec. Local DBC identity/rank auditing covers both; Warrior now has
+34 implemented individual nodes. Remaining nodes and other classes are still required.
+
+Validation: native macOS build, workspace test compilation, workspace Clippy, formatting,
+62 core tests, 107 focused Survivors tests and local talent DBC audit pass. Tests include
+reset/class isolation, the actual combat critical cap and unchanged damage/radius/targets.
+Live talent-panel and combat validation remain pending; no new visual milestone is claimed.
+Full workspace test acceptance remains open.
+
+### Effective critical-hit descriptions — 2026-10-25
+
+Ability tooltips display critical chance and critical damage from the same effective cast
+parameters used in combat, including the 100% chance cap and minimum 100% damage multiplier.
+This replaces the misleading fixed double-damage claim when Impale or equipment adds
+critical damage. Critical-chance passive descriptions state only the chance they change;
+the inline comparison remains green with a single percentage unit. Combat rules are unchanged.
+
+Validation: native macOS build, workspace test compilation, workspace Clippy, formatting,
+render-pass lint and all 12 focused HUD tests pass. Coverage includes effective critical
+chance, baseline/boosted/minimum multipliers and green single-unit passive comparisons.
+Live tooltip validation and the broader acceptance contract remain open.
+
+### Un'Goro location investigation — 2026-10-25
+
+[Location evidence](SURVIVORS-LOCATIONS.md#ungoro-arena-suitability-and-height-lookup-discrepancy--2026-10-25)
+now rejects the configured summit footprint as a dry arena and records four crater-floor
+alternatives. The southern candidate exposes 17 fast-height lookup misses despite emitted
+mesh support. The audit reports these separately; runtime floors, map coordinates and
+locks remain unchanged. Resolve the lookup discrepancy and inspect collider/obstacle and
+rendered behavior before authoring the replacement. Encounters and all-class drop mapping
+remain required before readiness.
+
+### Terrain boundary recovery — 2026-10-25
+
+The Survivors launcher and audit opt into `survivors-terrain`. The format adapter preserves
+successful indexed height queries, then checks emitted triangles in nearby chunks only
+when the fast lookup misses. The broad-phase margin only chooses chunks; exact triangle
+containment determines support, and omitted hole triangles remain absent. The original
+lookup stays available to builds without the feature. This also reaches the world stream's
+existing height query through the shared format API; no colliders or authored maps change.
+
+The local Un'Goro regression reproduces the old miss at `(-7100, -1625)`, recovers the mesh
+height -271.66095, checks adjacent queries, and rejects an emptied/fully holed mesh and
+outside-tile points. This is height-query correctness, not approval of an arena, route
+connectivity, enemy spawn placement, or the zone's missing encounters and equipment drops.
+
+After the fix, the southern Un'Goro survey resolves all 1,257 samples with no wet,
+impassable or over-45-degree samples. Native macOS build, workspace test compilation,
+workspace Clippy, formatting, render-pass lint, five terrain tests, 108 focused Survivors
+tests and nine world-collision tests pass. The format crate also checks without default
+features or `survivors-terrain`. These are scoped tests; full workspace test acceptance,
+live movement/streaming and arena approval remain open.
+
+### Un'Goro candidate visual follow-up — 2026-10-25
+
+The southern location now has a README screenshot from the checkout world viewer and
+source-obstacle measurements in [location evidence](SURVIVORS-LOCATIONS.md). Tree placement
+304715 lies near the proposed center and supplies the next body-clearance/sliding fixture.
+The preview verifies rendering only: no live player, horde, gameplay camera, pathfinding
+or arena-readiness claim follows. Launch overrides were restored; authored coordinates,
+locks and reward definitions remain unchanged.
+
+
+### Hunter individual training — first nine nodes
+
+The explicit checkout-data audit confirms the following native node identities and caps.
+These are provisional Survivors effects, replacing each supported rank's temporary 1%
+global damage bonus. They do not grant abilities; selected-spec reset removes them.
+
+| Tree | Node | Ranks | Survivors effect per rank |
+| --- | --- | --- | --- |
+| Beast Mastery | 1395 Thick Hide | 3 | +8 hero armor; flat-armor conversion |
+| Beast Mastery | 1384 Pathfinding | 2 | +4% hero movement speed; no aspect requirement |
+| Marksmanship | 1341 Improved Concussive Shot | 5 | +10% slow duration, unchanged slow strength; conversion from stun chance |
+| Marksmanship | 1345 Aimed Shot | 1 | +25% owned Aimed Shot damage |
+| Marksmanship | 1346 Improved Arcane Shot | 5 | 5% shorter Arcane Shot cooldown |
+| Marksmanship | 1348 Improved Serpent Sting | 5 | +2% direct and periodic Serpent Sting damage |
+| Survival | 1311 Deflection | 5 | +1% damage reduction; no parry simulation |
+| Survival | 1306 Clever Traps | 2 | +15% direct and periodic Explosive Trap damage |
+| Survival | 1321 Killer Instinct | 3 | +1 percentage point critical chance |
+
+The same definitions supply node descriptions and rank previews. Spell multipliers apply
+through the existing combat parameter path, including periodic damage and control markers.
+Multi-Shot/Volley targeting and all area locations remain unchanged. Tests cover rank caps,
+duplicate saved ranks, reset, class isolation, removal of the generic damage baseline, and
+rank-one/rank-three combat parameters. Hunter pets, remaining nodes and nine milestones
+are still required; this is not complete Hunter acceptance. Visual talent-page validation
+and final balancing remain open.
+
+Validation for this checkpoint: 63 core tests, 110 Survivors app tests, native build,
+workspace test compilation, explicit-data talent audit, Clippy, formatting and render-pass
+lint pass. These checks do not prove live talent-page interaction or complete class balance.
+
+
+### Hunter Marksmanship groups
+
+Four more audited nodes bring Hunter to thirteen individual effects. Lethal Shots (1344,
+five ranks) adds one percentage point of critical chance per rank; Mortal Shots (1349,
+five ranks) adds six percentage points to the critical damage multiplier per rank.
+Their explicit shot group is Arcane Shot, Multi-Shot, Serpent Sting, Concussive Shot and
+Aimed Shot. These critical bonuses affect eligible direct hits, not periodic ticks.
+They exclude Volley and Explosive Trap. Mortal Shots is a Survivors conversion: a
+200% critical becomes 230% at five ranks, or 250% with another 20 points from equipment.
+
+Ranged Weapon Specialization (1362, five ranks) adds 1% direct/periodic damage per rank
+to that same group. Barrage (1347, three ranks) adds 4% damage per rank to Multi-Shot and
+Volley. Their damage multipliers compose: maximum Multi-Shot training yields
+`1.05 × 1.12 = 1.176` before other modifiers. Counts, ranges, radii and area locations
+are unchanged. The selected-spec definitions also feed tooltip previews and remove the
+temporary generic damage contribution for these ranks. Remaining Hunter work, including
+pets, other nodes and all milestones, is still open.
+
+Regressions cover every supported rank and affected/unaffected spell, class isolation,
+reset, duplicate/capped saves, critical chance capped at 100%, equipment critical damage,
+and unchanged area targeting. Live visual and full-class acceptance remain unverified.
+
+Validation: native build, workspace test compilation, 64 core tests, 111 Survivors app
+tests, explicit-data talent audit, Clippy, formatting and render-pass lint pass.
+
+
+### Hunter talent visual and persistence checkpoint
+
+The native build containing the thirteen individual Hunter effects was exercised with
+an isolated, seeded 51-point account at 1280×720. Spec 1 started with 33 Marksmanship
+points. Clicking capped Mortal Shots kept 5/5 and displayed its green description.
+Right-click refunded one rank: 32 points spent, 19 unspent, and `24 to 30%` in the green
+preview. Spec 2 started empty with 51 unspent; spending one Improved Concussive Shot
+rank showed its slow-duration effect and left Spec 1 at 32. Resetting Spec 2 cleared only
+that spec. Spec 3 remained empty throughout.
+
+Returning to Spec 1 and live-resizing to 1024×720 kept all three trees, milestone rows,
+spec controls, reset and the full description visible. Clicking Mortal Shots at the new
+position restored 5/5 and 33 points. Closing and reopening restored that allocation and
+the empty second spec, confirmed in the page and saved DBC-rank payload. Neither run
+logged an ERROR or panic. The app was closed through its current window handle without
+querying the exited app, and launch overrides were restored.
+
+Evidence: [Mortal Shots preview](images/screenshots/2026-10-25-hunter-talents/mortal-shots-720.jpg),
+[independent second spec](images/screenshots/2026-10-25-hunter-talents/spec-two-720.jpg),
+[narrow layout](images/screenshots/2026-10-25-hunter-talents/mortal-shots-1024.jpg).
+This validates these interactions and two dimensions, not the full resolution matrix,
+all talent nodes, live combat balance or complete Hunter acceptance. The single-point
+heading still reads `1 points`; copy polish remains open.
+
+
+### Hunter Marksmanship milestones
+
+Hunter Marksmanship now has explicit Survivors milestone behavior, additional to the
+existing baseline tree bonuses (the same convention as Warrior and Paladin). Effects are
+snapshotted from the selected hero/spec at run entry, including legacy tree point totals.
+
+| Points | Milestone | Behavior |
+| --- | --- | --- |
+| 10 | Efficiency | Arcane Shot, Multi-Shot, Serpent Sting, Concussive Shot and Aimed Shot cooldowns multiplied by 0.9 |
+| 20 | Mortal Shots | Those shots gain 20 percentage points of direct critical damage, added to equipment and individual training |
+| 30 | Trueshot Aura | Multi-Shot gains two direct targets; Aimed Shot damage multiplied by 1.25 |
+
+These are provisional survival-mode conversions. They do not grant unowned abilities.
+Volley and traps receive none of these milestone effects; their area targeting remains
+unchanged. Existing global baseline bonuses still apply through the normal stat rules.
+Maximum Improved Arcane Shot composes with Efficiency as `0.75 × 0.9 = 0.675`.
+Mortal Shots' five node ranks and its milestone add 50 percentage points together;
+with a 220% equipment-adjusted critical multiplier, eligible direct hits reach 270%.
+The Aimed Shot node and Trueshot Aura compose as `1.25 × 1.25 = 1.5625`.
+
+Tests cover threshold boundaries, unsupported trees/spells, cast parameters with existing
+extra targets, equipment critical damage, independent selected heroes/specs, persistence
+and reset. Beast Mastery and Survival milestones, remaining nodes, pets, live milestone
+UI/combat validation and final balance remain open.
+
+Validation: 65 core tests, 113 Survivors app tests, native build, workspace test compilation,
+Clippy, formatting and render-pass lint pass. No new live milestone screenshot is claimed.
+
+
+### Hunter control training
+
+Three audited nodes bring Hunter to sixteen individual effects. These are explicit,
+deterministic Survivors conversions, not the original chance-based/disorient/sleep rules.
+
+| Node | Ranks | Behavior |
+| --- | --- | --- |
+| 1353 Scatter Shot | 1 | Concussive Shot also stuns for 1 second; bosses for 0.3 seconds |
+| 1304 Entrapment | 5 | Explosive Trap hits root for 0.4 seconds per rank; bosses receive 30% duration |
+| 1325 Wyvern Sting | 1 | Serpent Sting also stuns for 1.5 seconds; bosses for 0.45 seconds |
+
+The normal hit path applies these controls alongside the spell's existing damage, periodic
+payload and slow. Existing longer stun/root timers win; refreshing does not add durations.
+Periodic damage ticks do not invoke this control path. Area hit pulses can refresh their
+root, but the talent creates no additional trap locations or targets. Boss control scaling
+is applied once. Reset clears the trained effects for subsequent snapshots; unowned spells
+are not granted. Individual node previews show seconds, and ability tooltips show ordinary
+and boss durations (including 0.45 seconds without rounding it to 0.5).
+
+Regression coverage includes source/class isolation, caps, reset, each Entrapment rank,
+ordinary/boss enemy timer application, preservation of stronger existing controls/slow,
+and tooltip duration agreement. Live control visuals, full-class balance, remaining
+Hunter nodes, pets and six other milestones remain open.
+
+Validation: 66 core tests, 115 Survivors app tests, native build, workspace test compilation,
+explicit-data talent audit, Clippy, formatting and render-pass lint pass.
+
+
+### Class-specific legendary visual identities — 2026-10-25
+
+Atiesh now resolves each existing Priest/Mage/Warlock/Druid band-five main-hand cell to
+its class quest reward and display. The [catalog evidence](SURVIVORS-GEAR-VISUALS.md#class-specific-atiesh)
+records the pinned quest/item join. Name-only lookups remain ambiguous. Ownership, stats,
+drops and zone locks are unchanged; this does not fill the 44 unnamed cells per class.
+Live attachment validation and complete obtainable collection coverage remain open.
+
+Validation: native play build (14.89 seconds), workspace test compilation, 67 core tests
+and 115 Survivors app tests pass. The explicit checkout data verifies all four Atiesh
+display rows and readable icon files. This is catalog evidence, not live attachment evidence.
+
+
+### Uncommon armor identities — 2026-10-25
+
+Added the eight dungeon-upgrade armor appearances for each class to band one (72 cells).
+The [catalog](SURVIVORS-GEAR-VISUALS.md#uncommon-armor-catalog) records the authored
+class/set assignments and pinned source. Names and rendering metadata share one identity
+table; common gear, weapons, save indices, rarity stats and duplicate behavior are unchanged.
+Each class now has 18 named cells and 36 unnamed cells. The new tier's weapon and all
+new acquisition rows remain pending; item details explicitly show unavailable sources.
+This is progress toward the full catalog, not completion of obtainable 54-piece collections.
+
+Live evidence: Hunter's Beastmaster cap displays its icon, uncommon title, three stat
+bonuses and unavailable-source message at [1280×720](images/screenshots/2026-10-25-uncommon-armor/hunter-720.png)
+and [1024×720](images/screenshots/2026-10-25-uncommon-armor/hunter-1024.png). Ownership
+remains 0/54 and no equip action is offered. At 1024 the Shoulders/Chest headings are
+too close; spacing remains a responsive-layout follow-up. Other classes' live armor
+attachments are not established by this collection-page check.
+
+Validation: native incremental build (24.22 seconds), workspace test compilation, 67
+core tests and 115 Survivors app tests pass. The slot-identity checks now cover both
+armor tiers for all classes; the local-data icon/display scan traverses every mapped
+collection cell, including the 72 additions. Formatting and render-pass lint pass.
+
+
+### Collection slot-heading spacing — 2026-10-25
+
+Resolved the narrow-grid heading issue found in the uncommon catalog check. Slot headings
+now occupy their full proportional columns, use centered alignment and derive their text
+size from the layout's body size. Live resize from 1024×720 to 1280×720 retains selection
+and separates Shoulders/Chest; Main Hand wraps only where needed. Evidence:
+[1024×720](images/screenshots/2026-10-25-collection-headings/collection-1024.png),
+[1280×720](images/screenshots/2026-10-25-collection-headings/collection-720.png).
+Native play build and formatting pass. This checks the default layout at these two sizes,
+not the full resolution/layout-setting matrix or other Armory pages.
+
+
+### Un'Goro scheduled armor sources — 2026-10-25
+
+The six existing roster bosses now have timed uncommon helm-through-feet rolls, backed
+by [pinned creature identity and placement evidence](SURVIVORS-LOCATIONS.md#ungoro-encounter-identity-and-source-table--2026-10-25).
+All nine classes have named visual identities for those cells. The encounter clock and
+source pages use the same rows; King Mosh arrives at 16:00 and victory requires all six
+kills. The drop page now explains the selected zone's lock, even when a table exists.
+Un'Goro remains world-locked: the current summit is unsuitable and the southern candidate
+still needs live gameplay/camera/spawn acceptance. Wrist/hands/weapon sources remain open.
+
+Live 1280×720 evidence verifies the [world-lock message and new sources](images/screenshots/2026-10-25-ungoro-drops/sources-720.png),
+scroll access to the sixth row, and [King Mosh's matching boots detail](images/screenshots/2026-10-25-ungoro-drops/final-item-720.png).
+Selection rebuilds the page and returns its source scroll to the top; preserving that
+scroll position remains UI follow-up. A transient automation-pipe disconnect recovered
+with the app still running and the requested selection applied. No live encounter or
+loot-award acceptance is claimed from this menu check.
+
+Validation: final native play build (29.08 seconds), workspace test compilation, 68 core
+tests, 115 Survivors app tests with explicit checkout data, workspace Clippy, formatting
+and render-pass lint pass. Core coverage checks every scheduled boundary, all-class name
+and display resolution, capped Keen Eye chances, last-boss victory timing and the retained
+world lock. No full workspace test pass or live loot-award completion is claimed.
+
+
+### Un'Goro early combat evidence — 2026-10-25
+
+The southern candidate now has [actual gameplay evidence](SURVIVORS-LOCATIONS.md#southern-candidate-gameplay-check--2026-10-25):
+22 seconds, level 3, 55 kills, chest upgrade and three functioning Hunter abilities.
+Moving away from the near-center tree opens the view. The minimap calls it The Marshlands,
+so arena naming must be reconciled before adoption. Full traversal with position evidence,
+prop/actor collision, camera occlusion, frame hitches and the complete encounter/reward run
+remain acceptance work. Temporary coordinates and readiness overrides were restored;
+Un'Goro remains locked. README now shows gameplay instead of only a free-camera preview.
+
+
+### Distinct initial chest hands — 2026-10-25
+
+The Un'Goro gameplay check showed Multi-Shot twice in one chest. Chest generation now
+samples unused rewards within each rolled category (upgrade, ordinary jewelry, legendary).
+An exhausted category adds no card, so one or two eligible spell upgrades produce a smaller
+hand without promoting an unsuccessful jewelry roll. Empty upgrade pools still offer
+ordinary jewelry. Legend identities retain the owned-ability index, including sparse lists.
+
+Core regression coverage reproduces the two-spell hand and checks uniqueness, eligibility
+and nonempty hands across zero, one, two and four eligible spells, repeated random picks,
+low/high luck and category boundaries. This covers initial chest generation; banish
+replacement can still independently select a card already present and needs the same
+hand-wide exclusion contract. Live rendering of the reduced chest hand remains to verify.
+
+Validation: native play build 53.14 seconds; workspace test compilation 3m 23s; 69 core
+and 115 Survivors app tests pass. Core Clippy, scoped formatting, diff whitespace and
+render-pass lint pass. No new live UI screenshot is claimed for this change.
+
+
+### Banish hand exclusions — 2026-10-25
+
+Level and chest replacement now exclude the entire original hand, including the selected
+card. Successful replacements preserve card order and spend one charge. An exhausted
+category keeps the original hand, charge and random state, disarms banish and cannot fall through into
+normal selection on the same number key. This closes the replacement duplicate path
+recorded above. Initial-hand and replacement draws share chest category thresholds;
+exclusions cannot promote an upgrade roll into jewelry.
+
+Regression cases cover varied level-hand seeds, preserving neighboring cards, one-card
+chests with both successful jewelry rolls and exhausted upgrade rolls, invalid indexes,
+fully capped level hands, and sparse owned-ability indexes for legendary exclusions.
+Live keyboard/mouse validation and reduced-hand screenshots remain open.
+
+Failed attempts restore the random state as well as keeping the charge, preventing repeated
+free retries from fishing for jewelry on an unchanged hand; the chest regression checks it.
+
+Final validation: native build 21.88 seconds, workspace test compilation 2m 09s, 70 core
+tests, 118 Survivors app tests with checkout data, workspace Clippy, scoped formatting,
+diff whitespace and render-pass lint pass. The tests include the final RNG restoration.
+
+
+### Live distinct-hand and banish validation — 2026-10-25
+
+Ran the committed behavior in Elwynn at 1280×720 with an isolated Hunter save and three
+fixture banish charges. No world-readiness or combat-tuning overrides were used. The
+[first hand](images/screenshots/2026-10-25-banish/before-720.png) offered Multi-Shot,
+Detect Lesser Invisibility and Serpent Sting. B then 2 replaced only the middle card
+with [Blessing of Kings](images/screenshots/2026-10-25-banish/after-720.png), preserving
+its neighbors and decreasing charges from three to two without selecting anything.
+Mouse selection of Kings resumed play and its passive icon appeared on the HUD.
+
+Keeping Arcane Shot as the sole owned spell produced a centered, readable
+[single-card chest](images/screenshots/2026-10-25-banish/single-chest-720.png) at 00:33.
+B then 1 rolled [Pendant of the Qiraji Guardian](images/screenshots/2026-10-25-banish/chest-replacement-720.png),
+spent the remaining charge and left the picker open. Clicking it advanced to the queued
+[next level hand](images/screenshots/2026-10-25-banish/chest-selected-720.png), with no
+banish hint. This live run sampled successful replacement, not the exhausted-roll case;
+that failure path remains proven by regression tests only. Two-card layout and additional
+screen sizes remain visual acceptance work.
+
+The jewelry screenshot exposed a misleading spell-only chest subtitle. It now reads
+“Choose your chest reward.” Captures above predate this wording change. The validation
+app was closed via its window, the launcher restored, and the log contains no panic/error
+lines. Fixture save and rewards remain isolated under target/survivors-validation/banish-state.
+
+
+### Uncommon weapon identities — 2026-10-25
+
+Added the [nine class weapon identities](SURVIVORS-GEAR-VISUALS.md#uncommon-weapon-catalog)
+to the shared uncommon table. All names are unique in the pinned SQL, their class masks
+permit the selected class, and entry/display/inventory/subclass/material/sheath fields
+match the source. All nine slots of band one now have names and visuals for all classes:
+19 named collection cells per class, 35 still unnamed. These are authored Survivors tier
+choices, not claims of vanilla set membership or equivalent vanilla rarity.
+
+Core coverage verifies class-specific weapon identities, weapon class/subclass and
+inventory placement, completeness of all band-one slots, distinct common/legendary
+weapons, and invalid-cell rejection. Existing app icon coverage enumerates every mapped
+cell against checkout data. Weapon sources, live race/sex attachment rendering, the other
+unnamed tiers and complete obtainability remain acceptance work. No ownership, save
+layout, stats, drop chance or zone readiness changes are included.
+
+Validation: native play build 11.76 seconds; workspace test compilation 59.93 seconds;
+71 core tests and 118 Survivors app tests with explicit checkout data pass, including
+mapped display/icon reads. Workspace Clippy, scoped formatting and render-pass lint pass.
+No live attachment or collection screenshot is claimed for the new weapons yet.
+
+
+### Complete uncommon source table — 2026-10-25
+
+Added three named encounters to the existing Un'Goro schedule: Clutchmother Zavas at 4:30
+(wrists), Gruff at 7:30 (hands), and U'cha at 15:00 (weapon). Pinned creature templates and
+map-1 placements verify their identities, models and Un'Goro membership; the complete
+[source table](SURVIVORS-LOCATIONS.md#ungoro-encounter-identity-and-source-table--2026-10-25)
+records entries, displays, GUIDs and coordinates. Times, boss status, combat levels/scales,
+60% base chances and slot assignments are authored Survivors tuning.
+
+All nine uncommon cells per class now have a source. Scheduling and preview probabilities
+still share the drop rows, and victory now waits for nine defeats and 16:00. Core coverage
+checks every time boundary, all nine slots exactly once, name/visual resolution for all
+classes and the retained world lock. Duplicate/no-extra-power rules are unchanged.
+This completes table coverage, not actual zone obtainability: arena acceptance, live
+boss/reward runs and tuning remain open. No new zone unlock or save migration is included.
+
+Validation: native play build 21.83 seconds; workspace test compilation 1 minute 56 seconds;
+71 core tests and 118 Survivors app tests with explicit checkout data pass. Workspace
+Clippy, formatting, render-pass lint and diff whitespace checks pass. These checks do not
+replace live nine-boss/reward validation or the outstanding full-workspace gate failures.
+
+### Uncommon reward persistence — 2026-10-25
+
+An account integration regression now replays every Un'Goro drop for every class. It
+checks ten owned pieces (the starting common helmet plus nine uncommon rewards), keeps
+the deliberately selected common helmet until explicitly changed, and verifies that
+equipping the uncommon helmet increases damage while its common appearance remains.
+It then saves/reloads an empty weapon slot and hidden gloves, repeats every reward, and
+checks unchanged serialization, stats, class isolation and clear flags. This exercises
+the real collection/equipment/save path without claiming live combat or zone readiness.
+
+Validation: workspace test compilation and all 119 Survivors app tests with explicit
+checkout data pass; workspace Clippy, formatting and render-pass lint pass. No runtime
+behavior changed, so no new native play build or screenshot is claimed for this regression.
+
+### Rare armor identities — 2026-10-25
+
+The next eight armor cells per class now resolve to verified names and appearance metadata
+from the pinned item templates. The [rare catalog](SURVIVORS-GEAR-VISUALS.md#rare-armor-catalog)
+records nine sets and their class masks. This is an authored Survivors tier assignment,
+not vanilla stat or raid-loot import. All 72 entries have distinct item IDs, correct armor
+subclasses and slot/robe inventory types. Names and visuals share the same table.
+
+Each class now has 27 of 54 named cells. Rare weapons, actual sources, live appearance
+validation, the remaining bands and explicit raid-epic/set mechanics remain incomplete.
+No ownership, save-slot mapping or world-readiness flag changes with this catalog addition.
+
+Validation: native build 12.75 seconds, workspace test compilation 19.84 seconds; 72 core
+tests and 119 app tests with explicit checkout data pass, including every mapped display
+and readable icon. Workspace Clippy, formatting and render-pass lint pass. A separate
+`rare-armor-state` fixture seeds 27 Warrior pieces and wears eight Rare armor pieces with
+the common axe. At 1280×720, collection icons, Rare helmet stats and missing-source text
+render without overlap; collection and human male preview captures are in the README.
+This is not natural acquisition or complete model/attachment/race/sex acceptance. The
+validation window was closed and its ordinary isolated launcher configuration restored.
+
+### Rare weapon identities — 2026-10-25
+
+Nine class-appropriate weapons complete the Rare tier's identities. The
+[catalog](SURVIVORS-GEAR-VISUALS.md#rare-weapon-catalog) records exact pinned template
+entries, display IDs, inventory types, subclasses, materials and sheath metadata. All
+names resolve uniquely and class masks permit their assigned class. Survivors rarity,
+stats and one-main-hand rules remain authoritative; vanilla raid loot, procs and weapon
+skill/talent restrictions are not imported.
+
+Each class has 28 of 54 named cells. All 81 Rare identities are distinct and have typed
+slot metadata; the weapon choices differ from each class's common, uncommon and legendary
+weapon. Acquisition sources, live attachments/poses and remaining content remain open.
+
+Validation: native play build 12.86 seconds, workspace test compilation 20.38 seconds;
+72 core tests and 119 app tests with explicit checkout data pass. Mapped display/icon
+reads include all nine new weapons. Workspace Clippy, formatting and render-pass lint
+pass. The README distinguishes the earlier eight-piece Rare screenshot from the current
+nine-piece catalog; no new live weapon-rendering evidence is claimed.
+
+### Feralas world and encounter foundation — 2026-10-25
+
+Appended Feralas to the map registry, preserving every existing persisted map index.
+Pinned templates/placements supply 15 enemy and nine boss identities; the source table
+and terrain evidence are in [locations](SURVIVORS-LOCATIONS.md#feralas-provisional-arena-and-source-table--2026-10-25).
+The 50-yard Snarler-area candidate passes sampled terrain support, water and slope checks.
+This is provisional world geometry evidence, not complete arena acceptance.
+
+The nine authored encounters provide every Rare slot at 60% base chance, from Snarler at
+3:00 to Skarr the Unbreakable at 16:00. The drop UI and scheduler share these rows. Victory
+requires all nine defeats; fully progressed heroes still receive the world-not-ready lock.
+The roster uses the existing health/damage/XP ladder and provisional speed/scale tuning.
+Live enemy behavior, camera/props, traversability, streaming, reward delivery and balance
+remain incomplete. No campaign unlock or new save layout is included.
+
+Validation: native build 20.49 seconds; workspace test compilation 2 minutes 28 seconds;
+73 core tests and 119 Survivors app tests with explicit checkout data pass. Workspace
+Clippy, formatting and render-pass lint pass. The rebuilt content audit resolves all
+Feralas creature model files and agrees on its 55.83 start/terrain height, but exits with
+476 overall gaps: five absent maps, two missing schedules, Naxxramas floor validation,
+and 26 unnamed plus 26 unsourced cells per class. This is not a green full-content gate.
+
+### Feralas rendered candidate and root collision — 2026-10-25
+
+The initial 1280×720 free-camera view confirms a forest corridor with visible roots and
+large nearby trunks/canopy. A screenshot is linked from the README. The doodad survey
+identifies nearby root/tree hulls, including a large tree whose origin is outside the
+arena but whose bounds overlap it. Details and exact placements are recorded in
+[locations](SURVIVORS-LOCATIONS.md#feralas-candidate-prop-and-visual-inspection--2026-10-25).
+
+The new placed-root regression loads actual ADT placement 245515 and its 60-triangle hull,
+applies the real rotation/scale, and reproduces the negative-WoW-X source ray. Capsule
+sweeps, explicit collider removal and re-registration test collision lifecycle in isolation
+from terrain. This does not cover stream-driven registration or grounded traversal.
+No readiness flag changed; the next acceptance work remains grounded actors, routes,
+gameplay camera visibility and live Feralas fights/rewards.
+
+Validation: workspace test compilation 2 minutes 6 seconds; all 120 Survivors app tests
+with explicit checkout data pass, including the placed Feralas root. Workspace Clippy,
+formatting, render-pass lint and diff whitespace checks pass. The preview used the prior
+verified native build; this checkpoint changes tests and evidence, not runtime behavior.
+
+### Grounded terrain and root traversal — 2026-10-25
+
+Extending the Feralas placement test with its actual terrain exposed three movement
+problems: horizontal sweeps stalled on rising ground, exact shared-edge floor rays
+could miss, and post-sweep grounding could place the capsule inside a widening root.
+Grounded walking now follows gentle slopes with rounded-base clearance, retries missed
+floor rays one centimetre away, and rejects a final grounded pose that overlaps solid
+geometry. Airborne walking retains its actual elevated sweep.
+
+The 220-step Feralas regression checks emitted terrain height and root overlap at every
+step, and requires at least 30 yards of progress before contact. The observed path ends
+39.24 yards ahead of the start, beside placement 245515. Synthetic uphill/downhill
+walking, wall sliding, and airborne clearance provide adjacent coverage. This is still
+a controlled geometry test: stream-driven registration, live horde performance of the
+additional overlap query, routes, gameplay camera behavior and encounters remain open.
+Feralas remains locked.
+
+Validation: all 121 Survivors app tests pass with explicit checkout data. Workspace test
+compilation took 2 minutes 53 seconds; the incremental native play build took 49.93 seconds.
+Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass. No gameplay screenshot was
+used as proof of capsule contact; the numeric geometry regression provides that evidence.
+
+### Horde collision timing baseline — 2026-10-25
+
+The Feralas geometry regression has an opt-in timing probe, using actual terrain and
+root placement 245515 with 1, 60 and 220 bodies (the current late-run population target).
+It excludes loading, rendering, enemy separation, other props and streaming. Bodies
+advance 0.08 yards per simulated frame with radii 0.6/1.3; 60 warm-up frames precede
+600 samples. This is an optimized test-profile measurement on the local arm64 Mac,
+not a gameplay FPS result or a portable performance guarantee.
+
+| Bodies | Movement median | Movement p95 | Movement max | Final-pose replay p95 | Advancing steps |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 0.008 ms | 0.054 ms | 0.056 ms | 0.005 ms | 414 / 600 |
+| 60 | 0.312 ms | 2.267 ms | 2.345 ms | 0.234 ms | 24,687 / 36,000 |
+| 220 | 4.241 ms | 9.800 ms | 10.041 ms | 0.825 ms | 77,564 / 132,000 |
+
+Final-pose replay independently times floor lookup plus overlap checking at the resulting
+positions; it is diagnostic, not an exact subtraction of time within the full movement
+pass. A first run without replay also measured 9.779 ms p95 for 220 bodies. Some bodies
+stop at geometry; advancing-step counts expose that limitation. The sweep/contact solver
+is the next profiling target. A 9.8 ms collision-only p95 is not accepted as completion
+of the horde performance requirement; full gameplay profiling and optimization remain open.
+
+Reproduce from the checkout (keep the workspace feature graph):
+
+```bash
+WOW_DATA="$PWD/wow-data/Data" WOW_SURVIVORS_FLOOR_BENCH=1 \
+  cargo test --workspace \
+  survivors::floor::tests::placed_feralas_root_blocks_the_candidate_crossing_and_unregisters \
+  -- --exact --nocapture
+```
+
+No timing threshold is asserted on shared CI hardware. The normal collision assertions
+still run before the probe. All 121 Survivors app tests with checkout data and workspace
+Clippy pass; the new probe is test-only and does not change the native executable.
+
+### Survivors sweep-and-slide optimization — 2026-10-25
+
+Survivors walking now resolves contact planes from successive body sweeps instead of
+collecting all nearby contact faces after each hit. It retains the shared one-sided
+body cast, 0.01-yard skin, four-pass limit, steep-wall flattening and final grounded
+overlap guard. Blocking planes accumulate so a slide cannot undo an earlier wall.
+This lives entirely in Survivors; upstream client movement is unchanged.
+
+All 15 floor tests pass, including a new two-wall corner that must permit tangential
+progress and reject penetration on repeated steps. Actual Elwynn canopy, Warsong stump,
+Un'Goro tree and Feralas root cases remain covered. Feralas's grounded crossing ends
+at Bevy `(135.10509, 56.806805, 4239.2686)`, with terrain/root checks at every step.
+
+The same opt-in workload measured 220-body movement p50 **2.994 ms**, p95 **5.772 ms**,
+max **5.861 ms**, versus baseline 4.241/9.800/10.041 ms. Advancing steps increased from
+77,564 to 78,625 of 132,000; the improvement is not from immobilizing more bodies.
+For 60 bodies, p95 fell from 2.267 to 1.332 ms. These are controlled test-profile
+measurements, not live FPS evidence. Live horde/rendering/streaming profiles, broader
+route coverage and Feralas gameplay acceptance remain open.
+
+Validation: all 122 Survivors app tests with checkout data, workspace Clippy, formatting,
+render-pass lint and diff whitespace checks pass. Native incremental build: 19.00 seconds;
+workspace test compilation: 2 minutes 38 seconds. No live gameplay performance claim is made.
+
+### Feralas live combat and partial reward persistence — 2026-10-25
+
+Ran the native checkout build with `WOW_SURVIVORS_AUTO=Warrior:late`,
+`WOW_SURVIVORS_MAP=Feralas`, explicit checkout `WOW_DATA`, and a new isolated
+`BENILLA_HOME=target/survivors-validation/feralas-live-state`. The existing validation
+autopilot can enter the locked candidate without changing player-facing readiness.
+The logical window was 1280×720; the saved Retina screenshot includes the title bar.
+
+The run began at simulated 600 seconds with max-rank Warrior abilities and reached
+219 living enemies. The final logged sample reached level 45, 398 kills and 130,820
+damage at simulated 624 seconds. Repeated level-ups paused combat, so this is not a
+normal progression/balance run. The screenshot shows a late-run single Healthstone
+card; its full-health wording (“Restores your health from 320 health”) needs cleanup.
+
+After close, the isolated account file owns Warrior cells `(band 2, slots 0..3)` and
+selects those four pieces: Helm, Pauldrons, Breastplate and Belt of Might. Other class
+collections remain empty. This supplies live drop-to-save evidence for four Rare
+slots; five slots, reload appearance checks and the final encounter remain unverified.
+
+Two early hitches were logged at 1,830 and 1,006 ms. The captured stall sample includes
+render/executor waits and does not establish their root cause. The old autopilot FPS
+number divided all accumulated frames by ten, including menu/level-up frames, so no
+combat FPS claim is made from that output. Validation telemetry now records actual
+interval duration, separate combat frames/time/FPS, and worst combat-frame duration;
+windows with no combat report `n/a`. Menu time is reset out of the sample.
+
+The README links the captured milestone. The app was closed through its fresh close
+control and the ordinary validation launcher restored. Feralas remains locked; live
+traversal, occlusion, full encounters/rewards, hitch diagnosis and performance remain open.
+
+A second isolated native run verified the new telemetry in real output: a 9.99-second
+window reported 49 overall FPS, 328 combat frames over 7.38 real seconds (44.5 combat
+FPS), and a 1,893.9 ms worst combat frame. This includes startup/asset work and is not a
+steady-state benchmark. Both validation apps were closed, and the normal launcher restored.
+Validation: all 124 Survivors app tests with checkout data pass; native incremental build
+took 1 minute 32 seconds. Workspace Clippy, formatting, render-pass lint and diff
+whitespace checks pass.
+
+### Rare reward/save coverage and full-health card text — 2026-10-25
+
+The all-class reward integration contract now runs against both Un'Goro's uncommon
+and Feralas's Rare tables. Across all nine Rare slots for all nine classes, it verifies
+collection, preservation of selected common gear, explicit rarity upgrades with stat
+increase, an independently selected common appearance, explicit empty/hidden slots,
+save/reload stability, duplicate replay without power changes, class isolation and no
+unearned zone clears. This extends automated coverage beyond the four Warrior slots
+observed live; it does not substitute for remaining live encounters or appearance checks.
+
+Healthstone now says “Already at full health.” when no healing is possible, fixing the
+awkward wording visible in the prior live screenshot. Damaged characters still see their
+current-to-maximum health comparison in green with one unit suffix. Full, over-cap and
+damaged-health text cases pass; the previous screenshot remains historical evidence.
+All 126 Survivors app tests pass with explicit checkout data.
+Native incremental build: 19.42 seconds; workspace test compilation: 2 minutes 39 seconds.
+Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass.
+
+### Complete Epic identity tier — 2026-10-25
+
+Added 72 armor identities and nine class-compatible weapons from the pinned item
+templates, giving every class 37 named cells out of 54. The eight-piece sets are Wrath,
+Judgement, Dragonstalker, Bloodfang, Transcendence, The Ten Storms, Netherwind, Nemesis
+and Stormrage. Exact entries, display/attachment metadata and authored tier decisions
+are documented in [gear visuals](SURVIVORS-GEAR-VISUALS.md#epic-identity-catalog).
+Survivors retains ordinary Epic stats and numeric save indices; no ownership, source,
+vanilla proc or set power is granted. Explicit raid-epic affixes/set builds remain open.
+
+All 81 entries are distinct and class/slot compatible. All 74 core tests and 126 app
+tests with checkout data pass, including display/icon resolution for the new items.
+Native incremental build: 12.63 seconds; workspace test compilation: 22.73 seconds.
+The full content audit still exits nonzero: 395 gaps, including 17 unnamed and 26
+unsourced cells per class plus the existing world/schedule gaps.
+
+A seeded human male Warrior menu renders the nine Epic names, bonuses and 37/54
+collection count; the README links its screenshot (1280×720 logical Retina window).
+Collection navigation could not be completed: CUA coordinate clicks repeatedly failed
+with `noWindowsAvailable` although AX/screenshot reads worked and the app was running.
+No collection-detail interaction or weapon pose acceptance is claimed. The app closed
+through its fresh AX close control, and the normal validation launcher was restored.
+Epic acquisition schedules, all-class appearance checks and remaining bands stay open.
+Workspace Clippy, formatting, render-pass lint and diff whitespace checks pass.
+
+### Legendary armor identity completion — 2026-10-25
+
+Added the eight armor identities for each of nine classes from the pinned vanilla
+Naxxramas sets: 72 distinct entries with verified class masks, armor subclasses, inventory
+slots and display/attachment metadata. Source-set rings are excluded. The existing
+Legendary weapons, including class-specific Atiesh variants, are unchanged. These are
+authored Survivors rarity assignments; vanilla raid loot and set powers are not imported.
+Exact set IDs and provenance are in [gear visuals](SURVIVORS-GEAR-VISUALS.md#legendary-armor-identity-catalog).
+
+Every class now has 45 of 54 named cells; the nine PvP cells remain unnamed. No ownership,
+drop source or zone readiness is granted. Acquisition schedules, live all-class/race/sex
+armor and attachment checks, and explicit raid-epic/set-build mechanics remain unfinished.
+
+Validation: all 75 core and 126 app tests with checkout data pass, including local reads
+of the new display/icon assets. Native incremental build took 12.66 seconds; workspace
+test compilation took 22.17 seconds. Formatting, render-pass lint and diff whitespace
+checks pass. The full content audit still exits nonzero with 323 gaps: nine unnamed and
+26 unsourced cells per class plus existing world/schedule gaps. No new live visual
+acceptance is claimed; the README labels the older Epic screenshot's historical count.
+Workspace Clippy also passes.
+
+### Complete PvP identity tier and collection mapping — 2026-10-25
+
+Added 81 PvP class/slot cells from 74 distinct pinned vanilla item identities: six-piece
+rank sets, compatible waist/wrist pieces and nine weapons. All nine classes now have
+54 named and mapped cells (486 total). Exact provenance and authored faction-independent
+assignments are in [gear visuals](SURVIVORS-GEAR-VISUALS.md). Vanilla honor/reputation
+requirements, stats and set powers are not imported. Numeric save slots remain stable;
+this catalog grants neither ownership nor acquisition sources. Existing Warlock Common
+and Uncommon Deathmist appearances remain shared; uniqueness is checked within each tier.
+
+Validation: 76 core and 126 Survivors app tests pass, including every mapped display/icon
+read using checkout data. Native incremental build took 12.81 seconds, workspace test
+compilation 21.86 seconds and workspace Clippy 17.10 seconds. Formatting and render-pass
+lint pass. Full content audit remains nonzero with 242 gaps: 26 unsourced cells per class
+and eight world/schedule gaps. These checks do not prove live appearance correctness.
+
+An isolated seeded Warrior fixture with 54 owned cells and PvP equipment reached the
+menu loading-complete log. Screenshot/interaction acceptance is pending: CUA reports the
+Mac locked and automatic unlock paused after physical input. No new image or visual
+acceptance is claimed. The launcher was restored to its normal configuration for future
+launches; the already-running fixture has not been closed through UI while locked.
+All-class/race/sex appearance checks, acquisition schedules and raid-epic/set mechanics
+remain required before completion.
+
+### Gurubashi Epic sources and outdoor identity correction — 2026-10-25
+
+Replaced Zul'Gurub raid identities in the Gurubashi Arena roster with 15 outdoor
+Stranglethorn foes and nine verified map-0 bosses. Corrected Shadowmaw Panther's display
+and the campaign's final-boss summary. Preserved tuning for retained foes and King
+Bangalash; new encounters use provisional authored tuning. The pinned creature templates
+and placement GUIDs are recorded in [locations](SURVIVORS-LOCATIONS.md#gurubashi-outdoor-roster-and-epic-schedule--2026-10-25).
+
+Nine timed encounters now roll all Epic slots for each class, from Kurmokk at 3:00 to
+King Mukla at 16:00. The shared drop table drives labels, rolls and combat scheduling.
+The acceptance test covers exact time boundaries, exhausted schedules, final victory
+requirements, all-class item resolution and the explicit world-readiness lock. The
+all-class reward/save contract additionally covers Epic ownership, selected equipment,
+independent appearances, duplicates, empty/hidden slots and isolation between classes.
+
+Gurubashi remains unavailable to ordinary progression: its previously optimistic ready
+flag is now false. A 709-point terrain survey supports the existing 30-yard disk at
+z=21.857, but does not establish wall collision, navigation, camera behavior or live
+encounter acceptance. No screenshot or live reward verification is claimed for this tier.
+
+Validation: all 77 core and 127 Survivors app tests pass with explicit checkout data.
+Native incremental build took 22.92 seconds; initial workspace test compilation took
+2m46s, followed by 23.10 seconds after retained-creature tuning was preserved. Workspace
+Clippy (17.16 seconds), formatting, render-pass lint and diff whitespace checks pass.
+The content audit resolves all new roster model files and now reports 160 gaps: 17
+unsourced cells per class, five missing maps, Ahn'Qiraj encounters and Naxxramas floor
+validation. Audit source coverage includes locked zones and is not proof of obtainable
+live progression; the zone readiness and full acceptance requirements remain separate.
+
+### Gurubashi arena collision evidence and PvP screenshot — 2026-10-25
+
+Added an explicit-data runtime fixture for the placed Gurubashi arena WMO and ADT.
+Eight sampled body/camera directions hit the surrounding structure outside the 30-yard
+play disk. Hero-radius and 1.3-yard bodies complete 64 grounded radial routes each,
+120 quarter-yard steps per route, with supported height and no WMO overlap. The camera
+helper shortens its boom to the sphere hit minus its safety margin. WMO removal clears
+the checked elevated corridor. Exact placement, ranges and scope are recorded in
+[locations](SURVIVORS-LOCATIONS.md#gurubashi-placed-wmo-boundary-evidence).
+
+The fixture uses separate parsed walking/camera face sets and does not exercise live
+streamer layer assignment, all wall headings, enemy routing, rendered cutaway or crowd
+performance. Gurubashi remains locked. This checkpoint changes test coverage only;
+no gameplay runtime change or new native build is needed for the fixture.
+
+The previously blocked PvP menu capture is now saved under
+`docs/images/screenshots/2026-10-25-pvp-catalog/equipped-menu.png` and linked in README.
+It shows seeded Warrior ownership of 54 cells and PvP names/bonuses, not earned drops
+or full appearance acceptance. The still-running binary predates the Gurubashi schedule,
+so its zone-lock wording is historical. The fixture closed through a fresh AX close
+control with no subsequent query of the closed app. Normal launcher configuration had
+already been restored in the prior checkpoint.
+
+Validation: all 128 Survivors app tests with explicit checkout data pass. Workspace
+test compilation took 1m57s for the final fixture; Clippy took 14.69 seconds and passes.
+Formatting, render-pass lint and diff whitespace checks pass. Core gameplay files are
+unchanged from the prior 77-test checkpoint; the overall goal remains incomplete.
+
+### Spawn body clearance — 2026-10-25
+
+Spawn placement previously checked the floor at the candidate center and four footprint
+edges but did not test the body's occupied space. It now checks a capsule with the actual
+spawn radius against body-collidable geometry after support passes, using the same slope
+clearance as movement. Candidates overlapping wall edges, low ceilings or other registered
+collision faces retry the remaining angular positions. When all candidates fail, existing
+boss scheduling retains the pending encounter instead of consuming it; ordinary spawns
+wait for a usable position.
+
+Regression coverage checks small/large bodies near a wall, a low ceiling and its removal,
+missing/mismatched floors, supported slopes, angular retry and fully occupied rings.
+The placed Gurubashi fixture also checks clearance and spawn candidates from a hero near
+the arena boundary across its 64 sampled headings for both tested body radii.
+
+This uses registered collision geometry. It is not navigation, a guarantee of a connected
+route to the player, or a volumetric containment test for an entire capsule enclosed by
+a hollow triangle mesh without touching its faces. Live streaming, crowd-performance and
+remaining zone acceptance still need validation. No readiness flag changes.
+
+Validation: all 130 Survivors app tests pass with explicit checkout data, including the
+real arena edge-spawn checks. Final workspace test compilation took 2m11s; native play
+build took 22.03 seconds; workspace Clippy took 14.94 seconds and passes. Formatting,
+render-pass lint and diff whitespace checks pass.
+
+An isolated native Warrior `:late` run in Gurubashi starts at 600 simulated seconds with
+all nine abilities at maximum rank. The captured results show 10:36, level 24, 409 kills,
+150.2k damage and six bosses. Autopilot began a second attempt before the app was closed;
+final save evidence spans both attempts. Warrior cells 27, 29 and 30 (Epic helm, chest,
+waist) are owned and selected (`404400000`); all zone-clear flags remain zero. This
+validates some actual reward persistence, not all nine encounters or normal acquisition.
+Screenshot: `docs/images/screenshots/2026-10-25-gurubashi-live/late-warrior-results.png`.
+
+The live log reaches 206 recorded enemies and has no ERROR/panic entries, but performance
+is not accepted: observed hitches reach 1,882ms, and later combat samples fall to
+roughly 7–9 FPS. The lowest reported combat sample is 4.3 FPS across only 2.10 combat
+seconds/nine frames, including a 1,090.9ms hitch; this is not a steady-state benchmark.
+Profiling must distinguish collision/spawning, rendering/effects and streaming before
+attributing the regression to a subsystem. Normal launcher restored; app closed via
+fresh AX control, without querying it after exit.
+
+A separate UI issue was observed during this run: chest jewelry cards still use generic
+spell-ID art (`jewel_card` in `hud.rs`), while the verified item-display mappings are only
+used by the Codex page. The trinket card showed a question-mark icon. Wire chest cards to
+the same item icon catalog and validate their live appearance in a subsequent checkpoint.
+The “no change” bonus line may represent an equivalent replacement and is not by itself
+proof of a missing effect.
+
+### Chest item artwork and repeatable inspection — 2026-10-25
+
+Resolved the chest-art issue observed in Gurubashi. Card descriptions now carry a typed
+spell/item/missing icon source. Ordinary jewelry routes through the same 38 verified
+item displays as the Codex instead of three unrelated generic spell IDs. Legendary
+amulets retain their associated spell icon; ordinary ability/passive/Healthstone cards
+retain spell art. Mark of the Champion remains explicitly unresolved, and invalid item
+indices cannot borrow an unrelated image. No reward, stat, rarity or save change.
+
+Added `WOW_SURVIVORS_AUTO=Warrior:chest` for repeatable UI inspection: it uses the existing
+late-run setup but leaves chest choices to manual input while ordinary level-ups still
+auto-pick. The workflow and isolation requirements are documented in development notes.
+
+Live 1280×720 logical Retina checks show Don Mauricio's Band, Ring of Protection and
+Onyxia Tooth Pendant with distinct item artwork. Selecting the ring updates the next
+hand's bonuses. Further manual selection reaches Talisman of Ephemeral Power and
+Zandalarian Hero Medallion with item artwork; the former no longer shows the question
+mark observed in the prior run. Both milestone screenshots are under
+`docs/images/screenshots/2026-10-25-chest-item-icons/` and linked in README. The run used
+an isolated save and accelerated max-rank abilities, not normal acquisition. No ERROR or
+panic entries appeared. Normal launcher restored and app closed through fresh AX state,
+without querying the closed app.
+
+Validation: all 131 Survivors app tests pass with explicit checkout data, including
+item-vs-spell source routing, missing identities and all shared icon reads. Native build
+took 1m19s; workspace Clippy took 48.96 seconds and passes. Final test compilation after
+the inspection-mode addition took 2m20s. Formatting, render-pass lint and diff whitespace
+checks pass. The full game goal remains incomplete, including Mark of the Champion,
+remaining zone/appearance acceptance and the recorded Gurubashi performance problem.
+
+### Unchanged minimap compositing — 2026-10-25
+
+The held-chest Gurubashi probe reproduces slow frames without combat updates: 218 live
+enemies remain frozen at 608 simulated seconds. Over 30 journal samples after 50 seconds
+of wall time, median per-window mean frame time was 71.52 ms, process CPU time per frame
+102.10 ms and main-thread CPU time 54.05 ms. These CPU counters are not GPU timing;
+Metal reported no GPU spans. The earlier stall sample included minimap compositing,
+but does not establish it as the principal bottleneck.
+
+The Survivors minimap now retains its composite when map directory, zoom, horizontal
+hero position, facing and ordered visible enemy positions are exactly unchanged.
+Dead and out-of-range enemies do not enter that snapshot. Changed inputs still use the
+same tile sampling, masking and ordered alpha blending; two reusable position buffers
+avoid allocating on each moving frame. The snapshot is committed only after image data
+is written. This removes redundant CPU rasterization and image uploads at a held chest
+without throttling moving scenes. Live performance acceptance remains open.
+
+Validation: native play build passed (1m57s initial, 20.81s final incremental rebuild);
+all 131 Survivors app tests pass on the final source with checkout data. Workspace
+Clippy, formatting and render-pass lint pass. A live 1440×900 logical Retina run shows
+the held map and updated dot layout after selecting a chest reward and resuming combat.
+No ERROR or panic entries appeared; validation app closed and normal launcher restored.
+
+This is not a demonstrated FPS improvement. The second run held 224 enemies with a
+different combat-text distribution, so it is not an identical-scene A/B benchmark.
+After compilation finished, 15 journal samples from 118–135 seconds had median
+per-window mean frame time 100.27 ms, process CPU 133.75 ms and main-thread CPU 80.51 ms.
+A stall sample during the earlier held portion contains no minimap compositor samples,
+but 174 samples in the combat-text SmartBucket overlap solver under float_combat_text.
+Investigate repeated overlap placement of frozen combat text next; confirm timings
+without concurrent compilation and test resumed combat as well. Logs and journals
+remain in the ignored target/survivors-validation/minimap-before/after paths (the log
+and CSV filenames use those stems). The full performance and content gates remain open.
+
+### Combat-text placement reuse — 2026-10-25
+
+The held-chest stall sample identifies SmartScreenRect placement beneath
+float_combat_text as substantial repeated main-thread work. Survivors now enables a
+separate survivors-text feature that wraps the stock claim bucket with an exact
+placement-prefix cache. Each frame still lays out and draws the text. An identical
+desired rectangle and viewport can reuse its prior solved seat only while all preceding
+requests and claims match; the first mismatch sends the rest of the frame through the
+stock solver. Shrinking crowds truncate stale suffixes. Changed caller claims are
+recorded, so they invalidate dependent placements in the current and following frames.
+No numbers, lifetime rules, sorting, color, movement, or overlap policy are removed.
+
+The carry lives in survivors/text_placement.rs; the upstream combat-text system has only
+a cfg-gated bucket parameter selection. Launchers without survivors-text keep the stock
+bucket. Regression cases compare actual rectangles with SmartBucket across paused
+frames, movement, viewport changes, reordering, removal/regrowth, and changed claims.
+
+A focused optimized harness includes the actual SmartBucket and new wrapper source,
+linked against this checkout's play-profile bevy_math. It seats 160 rectangles of
+32×25 pixels in a 1440×900 viewport, centers at (720 + 3*(i%16), 450 + 3*(i/16)),
+and asserts every cached result equals the stock result. Initial measurement:
+10.411 ms cold, 0.001 ms on each of three identical cached frames, 10.752 ms for
+a repeated stock frame. This isolates placement cost and is not an FPS benchmark.
+The first live attempt overlapped compilation and suffered multi-second frames;
+it is excluded from performance conclusions.
+
+Final validation: 133 Survivors app tests, 12 combat-text tests and 10 stock solver tests
+pass with explicit checkout data. Workspace Clippy, formatting, pass-span lint (1646
+files) and diff whitespace checks pass. Native final incremental build: 36.18 seconds.
+Final workspace test compilation: 3m35s including build-lock wait. Native macOS was
+validated; other platforms and the full historical workspace gate failures remain open.
+The focused harness repeated after compilation: 9.815 ms cold, 0.001 ms cached,
+10.109 ms stock, with identical output.
+
+The fresh isolated 1440×900 logical Retina Gurubashi probe started only after all builds
+and tests finished. It held 159 enemies at level 7 with zero combat updates. Across 39
+journal samples from 60–100 seconds, median per-window mean frame time was 60.23 ms,
+p95 70.64 ms, process CPU/frame 89.58 ms and main-thread CPU/frame 45.08 ms. This is
+still only about 16 FPS. Different crowds and damage-number distributions prevent an
+identical-scene comparison with prior runs; do not claim an overall FPS speedup from it.
+
+A fresh one-second CPU sample of that held scene contains no SmartBucket::resolve
+samples and only six samples under float_combat_text (one in the cached resolver).
+Rig-pose evaluation appears prominently (37 samples in the main-thread call tree),
+alongside rendering and waiting; investigate the broader frame schedule next rather
+than declaring animation the sole bottleneck. GPU timestamps remain unavailable.
+The sample and journal are in target/survivors-validation/text-cache-idle-sample.txt
+and text-cache-idle.csv.
+
+The screenshot under docs/images/screenshots/2026-10-25-combat-text-cache/chest.png
+shows preserved paused numbers. Selecting Band of the Unicorn resumes combat, raises
+kills from 20 to 30, and produces new damage numbers and the next chest; the new ring
+bonuses are reflected in subsequent comparisons. That short resumed combat window
+measured 23.4 FPS over 1.54 seconds, with a 267.5 ms hitch, so combat acceptance remains
+open too. No ERROR/panic entries appeared. Closed the app through fresh AX state,
+did not query it after exit, and restored the normal launcher. README links the evidence.
+
+### Foreground performance correction and focus telemetry — 2026-10-25
+
+Revalidated the previous slowdown evidence before changing animation. Unattended runs
+normally open behind the user's work through BgWinPlugin. Its documented macOS
+occlusion throttling makes background FPS unsuitable as attended-performance evidence.
+Earlier CPU observations still identify real redundant work removed by the caches, but
+the reported 7–16 FPS runs must not be treated as normal foreground gameplay benchmarks.
+
+With the same checked-in executable (4e49764), no compilation, WOW_BG=0 and
+WOW_FRAME_PHASES=25, a held Gurubashi chest with 228 enemies stayed at about 90 FPS.
+Across 40 journal samples at 40–80 seconds, median per-window mean frame time was
+11.11 ms, p95 15.54 ms, process CPU/frame 21.73 ms and main-thread CPU/frame 9.02 ms.
+The phase stamps perturb scheduling, so a second run omitted them and used Warrior:late
+to continue combat. Six combat windows measured 74.5, 58.6, 55.2, 72.8, 64.4 and
+45.0 FPS, spanning 1,380 frames and 20.81 seconds of combat across accelerated attempts.
+Their longest recorded frame was 46.4 ms; one sample had 227 live enemies. Neither run
+reported ERROR or panic. These are short, accelerated Warrior probes, not a normal
+balance run, a twelve-zone acceptance pass, or a controlled identical-scene A/B test.
+GPU timing was unavailable. Do not attribute the full FPS difference to either cache.
+
+The automated log now reports total sampled frames, unfocused frames, and frames whose
+window focus was unavailable, accumulated across the whole sample. Invalid/nonpositive
+deltas do not increment any of these counts. A regression covers mixed focus and missing
+window data while preserving the existing combat-only accounting. Focus alone does not
+prove visibility or absence of OS throttling. The development guide now supplies an
+explicit foreground, isolated-save profiling command and explains instrumentation limits.
+No animation behavior was changed: the evidence does not justify that change yet.
+
+Validation: all 134 Survivors app tests pass with checkout data, workspace Clippy passes
+(15.47 seconds), and the native incremental build passes (1m03s). Formatting,
+render-pass lint and diff whitespace checks pass. A final foreground live run on the
+new binary reported 812 frames, zero unfocused frames and zero unknown-focus frames
+over 9.99 seconds; its combat-only interval was 457 frames over 6.01 seconds (76.0 FPS).
+This verifies the new fields reach the log, not broad performance acceptance. The
+validation apps were closed through fresh AX controls without querying after exit,
+and the normal launcher was restored. No ERROR/panic entries appeared.
+
+
+### Ahn'Qiraj Legendary armor acquisition checkpoint — 2026-10-25
+
+The outdoor Gates of Ahn'Qiraj catalog now uses 18 waves and eight named Silithus
+bosses with identities verified against pinned creature templates and regional map-1
+placements. Authored encounter timing supplies all eight Legendary armor slots for
+all nine classes; Naxxramas retains the Legendary main hand. Setis is the final
+encounter at 16:00. See [the source and tuning table](SURVIVORS-LOCATIONS.md#gates-of-ahnqiraj-outdoor-roster-and-legendary-armor--2026-10-25).
+This replaces raid-interior creatures in the outdoor candidate, without claiming
+vanilla loot or natural placement at the arena.
+
+All 78 core and 135 Survivors app tests pass, including every class's reward acquisition,
+duplicate neutrality, selected equipment, independent appearances and save reload.
+Workspace test compilation, Clippy, formatting, the render-pass lint and the native
+play build pass. The content audit reports 87 remaining gaps: 81 PvP source cells,
+five missing map definitions and the Naxxramas start floor. Its scope does not prove
+world readiness, full equipment appearance, talents or UI acceptance.
+
+The isolated Warrior:late live probe entered the outdoor world with max-rank abilities
+at simulated 10:00. The captured level-up hand is at 10:26, level 23 and 305 kills.
+The saved account contains Legendary helm, shoulders and waist from the new encounters;
+other classes remain untouched and no zone clear is recorded. No ERROR or panic was
+logged. Loading/early combat hitches and an unknown creature sound kit 5519 were logged;
+the mixed-focus run is not attended-performance or natural-balance evidence. The app
+was closed and its normal launch wrapper restored.
+
+The terrain survey supports all 5,025 points but finds 111 steep samples. This zone
+remains locked pending traversal, camera, model-scale, full encounter and performance
+acceptance. Screenshot: [level-up during the roster probe](images/screenshots/2026-10-25-aq-roster/level-up.png).
+
+
+### Scarlet Monastery catalog and encounter checkpoint — 2026-10-25
+
+Added map 189 using the Cathedral courtyard candidate, 18 wave identities and eight
+bosses verified against the pinned map-189 creature placements. The roster combines
+wings in a Survivors arena; arrival order, speeds and scales are authored tuning.
+The exact identity table and floor limitations are in [location evidence](SURVIVORS-LOCATIONS.md#scarlet-monastery-candidate-and-roster--2026-10-25).
+No collection drops are assigned to this zone. Campaigns without collection loot now
+have an explicit boss schedule across 16 minutes, and victory waits for every boss
+rather than treating an empty drop table as an empty encounter schedule. Existing
+collection-drop schedules are preserved. Scarlet ends with Whitemane at 16:00.
+
+All 79 core tests pass, including before/at spawn times, schedule exhaustion, final
+kill/time victory boundaries and the locked campaign gate. Workspace Clippy, formatting,
+render-pass lint and the native play build pass. The data audit finds all roster models;
+its 87 remaining gaps now comprise four missing maps, two floor validations and 81 PvP
+source cells. The aggregate count stays unchanged because adding Scarlet exposes its
+WMO floor requirement, replacing its missing-map gap. The ADT floor at z=0 is not the
+courtyard walking surface at z=18.3377.
+
+An isolated Warrior:idle probe renders early combat on the courtyard floor. The
+[screenshot](images/screenshots/2026-10-25-scarlet-candidate/combat.png) shows 00:14,
+level 4 and 28 kills. It also shows enemies gathered against the side walls and a blank
+minimap background. Navigation around these barriers, complete footprint/body/camera
+validation, minimap imagery, all bosses, scale tuning and sustained performance remain
+open. This brief stationary probe does not establish traversal or balance. The campaign
+stays locked. The validation app was closed and its normal launcher restored.
+
+
+### Indoor minimap composition checkpoint — 2026-10-25
+
+Scarlet's blank minimap was reproduced in the courtyard. The explicit local
+`md5translate.trs` contains Cathedral group textures; its outdoor MonasteryInstances
+tiles instead reference the same uniform texture. The Survivors compositor previously
+looked up only ADT tiles. Building-group composition now uses the engine's existing
+portal flood selection, model placement, group ordering and authored tile grid. It
+samples group tiles with a half-texel inset and alpha threshold before applying the
+round mask, player arrow and enemy markers. Terrain composition remains the outdoor
+path. Background caching is separate from marker changes and invalidates on map,
+position, zoom, building transform, group or height changes.
+
+All 140 Survivors tests pass, including rotated placement, alpha threshold, layer
+order and the reused engine portal-selection regressions. Workspace test compilation,
+Clippy, formatting, render-pass lint (1,647 files) and native play build pass. The final
+native build took 58 seconds. The engine helper is compiled from its existing source
+with a narrowly scoped duplicate-module lint allowance; no upstream source is changed.
+
+The final live pass, after compilation stopped, verifies Cathedral textures, zoom-out,
+pause/resume and changing enemy markers. [Scarlet screenshot](images/screenshots/2026-10-25-indoor-minimap/scarlet.png).
+Short focused combat samples measured 61–73 FPS, but occasional one-second hitches
+remain. The first concurrent-build probe was much slower and is not a benchmark.
+An [Elwynn regression capture](images/screenshots/2026-10-25-indoor-minimap/elwynn.png)
+shows terrain imagery and markers still render after the automatic hero moved. Its
+camera is pushed very close to the character; that broader camera-obstruction issue
+remains open and is not hidden by the minimap check. Both validation apps were closed
+and the normal launcher restored.
+
+These checks do not prove all indoor floors, building transitions, exact texture
+alignment throughout rotated interiors, sustained performance or Scarlet traversal.
+The existing Survivors zoom radius remains shared indoors/outdoors; matching separate
+stock indoor zoom preferences is not claimed. No zone readiness gate was changed.
+
+### Camera obstruction instrumentation — 2026-10-25
+
+Added opt-in `WOW_SURVIVORS_CAMERA_TRACE=1`: one sample per real second records
+the focus, requested eye, collision-limited eye and smoothed eye in raw WoW coordinates,
+plus all three boom lengths. It leaves camera/collision behavior unchanged and does no
+formatting or logging when disabled.
+
+A fresh isolated moving Warrior run in Elwynn (map 0, default auto-push and cutaway on,
+1440×900, `WOW_BG=0`, no concurrent build) produced
+[107 samples](validation/elwynn-camera-trace.txt). All 98 samples with the requested
+30-yard gameplay boom also had a 30-yard collision limit. Canopy/branch occlusion remained
+visible during this run, but the previously captured close-camera state was not reproduced.
+These one-second samples cannot exclude shorter transients or establish the cause of the
+earlier screenshot. No tree collision fix is claimed.
+
+Next: record the same trace during a controlled approach to an obscuring trunk, retaining
+the exact focus/eye at any shortened boom, then compare its placed source hull and rendered
+surface. Preserve cave/interior collision while deciding how tree obstruction and cutaway
+should cooperate. Broad camera/navigation acceptance remains open.
+
+Validation: native play build passed in 1m31s; workspace test compilation passed in
+4m39s (including a build-lock wait), and all 140 Survivors app tests passed. Workspace
+Clippy, formatting, render-pass lint and diff whitespace checks pass. No full workspace
+test-pass or camera fix is claimed. The validation app was closed and normal launcher restored.
+
+### Placed-tree camera regression — 2026-10-25
+
+The camera fixture now loads Elwynn placement 12578 (ElwynnTreeMid01) from the explicit
+checkout patch chain, applying its real position, rotation and scale. Raw WoW focus
+`[-9517, 154.8, 61]`, a 61-degree elevation and a 30-yard boom toward negative WoW X
+produce a 7.439-yard collision-limited arm. The resolved camera sphere must not overlap
+the trunk; advancing it 0.15 yards must overlap. A parallel boom three yards away must
+remain clear. Removing the hull restores the full arm; reattaching it restores the same
+collision result.
+
+This is a repeatable authored-geometry regression, not a live rendered-scene reproduction.
+It excludes terrain, other placements, renderer alignment and actual tile streaming.
+The first candidate at WoW Y=155.2 missed the tapered upper trunk; checking the authored
+vertices corrected the fixture to Y=154.8. Do not interpret that miss as absent collision.
+The earlier close-camera screenshot remains unexplained; its next live reproduction can
+now be compared with this known source-hull contact.
+
+Validation: all 141 Survivors app tests pass with the checkout data, including the
+new overlap and reattachment assertions. Workspace test compilation, Clippy, formatting,
+render-pass lint and diff whitespace checks pass. This checkpoint changes test code only;
+the gameplay binary and camera behavior are unchanged.
+
+### Mage individual talent effects — 2026-10-25
+
+Verified these node names and rank caps against the checkout's Talent/Spell DBCs. These
+explicit Survivors effects replace the temporary +1% damage-per-rank fallback for these
+nodes only; existing tree bonuses remain. Talent acquisition does not automatically grant
+a spell card.
+
+| Node | Ranks | Effect per rank unless stated |
+|---|---:|---|
+| 76 Arcane Focus | 5 | Arcane Missiles/Explosion +2% damage; hit conversion |
+| 80 Improved Arcane Missiles | 5 | Arcane Missiles +5% damage; pushback conversion |
+| 1650 Magic Absorption | 5 | +1% damage reduction; resistance conversion |
+| 81 Improved Arcane Explosion | 3 | Arcane Explosion +2% critical chance |
+| 26 Improved Fireball | 5 | Fireball cooldown reduced 4%; cast-time conversion |
+| 27 Improved Fire Blast | 3 | Fire Blast cooldown reduced 5% |
+| 31 Improved Flamestrike | 3 | Flamestrike +5% critical chance |
+| 29 Pyroblast | 1 | Pyroblast +20% damage |
+| 33 Critical Mass | 3 | Fire spells +2% critical chance |
+| 32 Blast Wave | 1 | Blast Wave +20% damage |
+| 35 Fire Power | 5 | Fire spells +2% damage |
+| 37 Improved Frostbolt | 5 | Frostbolt cooldown reduced 4%; cast-time conversion |
+| 73 Ice Shards | 5 | Frost critical multiplier +0.10; explicit Survivors conversion |
+| 62 Improved Frost Nova | 2 | Frost Nova cooldown reduced 10% |
+| 61 Piercing Ice | 3 | Frost spells +2% damage |
+| 64 Improved Cone of Cold | 3 | Cone of Cold +10% damage |
+
+School membership is explicit: Arcane Missiles/Explosion; Fireball/Fire Blast/Flamestrike/
+Pyroblast/Blast Wave; Frostbolt/Frost Nova/Blizzard/Cone of Cold. Cross-class and neutral
+jewelry spells receive no school bonus. These talents do not add targets, area centers,
+radius or control duration.
+
+Ground-area ticks now combine their spell-scoped gear critical stats with the run's talent
+snapshot; previously they ignored talent critical chance/multiplier even though cast
+previews included them. This carries Flamestrike and Blizzard training into emitted hits.
+UI talent descriptions and spell previews use the same definitions/effective parameters.
+
+Remaining Mage nodes and tree milestones are still unfinished; this does not establish
+complete Mage gameplay, balance or visual acceptance.
+
+Validation: all 80 core and 144 Survivors app tests pass. Coverage includes school
+composition, rank clamping, class isolation, selected character/spec save/refund,
+effective cast/periodic damage, and actual area-hit messages for Flamestrike critical
+chance and Blizzard critical multiplier. The DBC talent audit, workspace test compilation,
+Clippy and native play build pass (native 35.77 seconds).
+
+The native menu loaded the isolated Test Mage with five Fireball ranks. Talent-page
+visual acceptance and a milestone screenshot remain pending: native coordinate input
+repeatedly returned `noWindowsAvailable` while AX/window captures and the app log showed
+the live menu. Raising/rebinding did not restore coordinate input. The app was closed via
+its AX close button and the normal launcher restored. No live trained-combat or
+multi-resolution claim is made for this checkpoint.
+
+### Mage Ignite — 2026-10-25
+
+DBC node 34 now has its five functional ranks. A critical Mage fire hit adds 8% of that
+hit's pre-multistrike damage per rank to one Ignite burn on the enemy. Fireball splash
+and critical Flamestrike area hits qualify; Frost, Arcane, neutral spells and Ignite
+ticks do not. This is an explicit Survivors adaptation using the existing fire school list.
+
+The burn pays over four one-second ticks. A fresh critical carries all unpaid scheduled
+damage into the new four-tick pool, retaining the next tick deadline so repeated criticals
+cannot postpone all damage. Existing unrelated DoTs retain their state; Ignite occupies
+one slot under the existing six-DoT limit. Death cleanup and tick multistrike use the
+existing damage-over-time path. Invalid/nonpositive additions leave the burn unchanged.
+
+Talent rank previews and affected spell tooltips expose the percentage in green. Removing
+the rank removes the effect/tooltip. Mage now has 17 functional individual nodes; remaining
+nodes, milestones, balance and visual acceptance remain open.
+
+Validation: 81 core and 146 Survivors app tests pass, including conservation of the unpaid
+burn pool across a partial tick, unchanged tick phase, expiry, non-recursion, class/school
+restrictions, capped ranks and the green trained-only spell tooltip. DBC audit, native
+play build (22.12 seconds), workspace test compilation, Clippy, formatting, render-pass
+lint and diff whitespace checks pass. A fresh CUA session again loaded the seeded Mage
+menu but coordinate clicks returned `noWindowsAvailable`; no new talent-page screenshot
+or live combat acceptance is claimed. Closed via AX and restored the normal launcher.
+
+
+### Mage Frostbite implementation checkpoint
+
+DBC node 38 now has three functional ranks: 5% freeze chance per rank on positive,
+finite Mage frost damage. This Survivors conversion includes Frostbolt, Frost Nova,
+Cone of Cold and Blizzard ground-area hits; unrelated spells and periodic burns do
+not qualify. Successful procs root ordinary enemies for 5 seconds and bosses for
+1.5 seconds, preserving any longer root. Damage does not break this root under the
+existing Survivors control rules. The proc consumes randomness only on eligible hits.
+Talent previews and affected spell tooltips show the trained chance in green.
+
+Mage now has 18 functional individual nodes. Shatter's conditional critical bonus,
+remaining nodes, distinct frozen-state semantics, balance and live visual acceptance
+remain unfinished. Frostbite currently uses the existing root movement control.
+
+Validation: 82 core and 147 Survivors app tests pass, including rank caps, class/source
+restrictions, invalid damage, ordinary/boss root duration, longer-root preservation and
+green trained-only tooltips. Workspace test compilation, explicit-data DBC talent audit,
+Clippy, formatting, render-pass lint and diff checks pass. Native play build: 20.88 seconds.
+No live combat or new screenshot evidence was collected for this checkpoint.
+
+
+### Mage Shatter and frozen-state checkpoint
+
+DBC node 67 has five functional ranks, each adding 10% critical chance to Mage spells
+against frozen targets. Arcane, Fire and Frost spells qualify; jewelry, other classes
+and periodic burns do not. Chance is capped at 100% after other critical bonuses.
+Direct attacks read the target state when the cast rolls its damage; ground areas read
+it on each tick. A spell that first applies a freeze does not retroactively gain the
+bonus on that hit. Splash retains the originating hit's existing critical semantics.
+
+Frost Nova and Frostbite now maintain a separate frozen timer alongside root movement
+control. Both use the existing 30% boss duration. Longer ordinary roots do not extend
+the freeze, and Hunter/other roots do not create it. Both timers decay during enemy
+updates; damage still does not break roots under the current Survivors rules.
+Green Shatter tooltips show the conditional chance on affected spells.
+
+Mage now has 19 functional individual nodes. Remaining talents, milestones, balancing
+and live visual acceptance remain open; this does not complete phase 5.
+
+Validation: 83 core and 148 Survivors app tests pass. Deterministic actual-hit checks
+cover Fireball, Flamestrike and Blizzard against frozen versus merely rooted enemies,
+and Fireball after freezing ends while a longer root remains. Additional checks cover
+rank caps, class/spell exclusions, boss freeze duration, longer-root preservation and
+green trained-only tooltips. DBC talent audit, workspace test compilation, Clippy,
+formatting, render-pass lint and diff checks pass. Native play build: 65 seconds.
+Live combat and screenshot validation remain open.
+
+
+### Mage frost slow talents checkpoint
+
+Permafrost (DBC 65, three ranks) strengthens Frostbolt, Cone of Cold and Blizzard
+slows by 3 percentage points and adds 1 second of slow duration per rank. Added
+seconds apply after ability-rank scaling. Frost Nova/Frostbite freezes and non-frost
+slows are unchanged. Improved Blizzard (DBC 63, three ranks) adds 10 percentage
+points of slow per rank to the existing 40% baseline; this is an explicit Survivors
+conversion rather than replacing the baseline with a talent requirement.
+
+The two effects add together: maximum training makes level-one Blizzard slow by
+79% for 4.5 seconds per tick. The existing boss cap remains 25% slow. Ground-area
+lifetime, damage, radius, cooldown and number of locations are unchanged. Runtime
+casts, area tick payloads, tooltips and cards use the same effective control values.
+Inline comparisons now compare both slow strengths and show each unit once.
+Mage now has 21 functional individual nodes; remaining talents, milestones, balance
+and live visual acceptance remain incomplete.
+
+Validation: 84 core and 150 Survivors app tests pass. Coverage includes rank caps,
+combined control effects, exclusions, level-scaled duration, unchanged combat/area
+parameters, actual Blizzard tick effects and green inline strength/duration comparisons.
+DBC talent audit, workspace test compilation, Clippy, formatting, render-pass lint and
+diff checks pass. Native play build: 13.85 seconds. No new live combat or screenshot
+acceptance is claimed for this checkpoint.
+
+
+### Mage UI verification and direct-close persistence repair
+
+Native coordinate input worked again for this session. Verified the Mage talent page
+at 1440×900 and 1280×720, refund/spend feedback for Shatter and Improved Blizzard,
+Ignite in an independent second spec, and Frostbite/Permafrost previews. Six captures
+are linked in the README under `docs/images/screenshots/2026-10-25-mage-talents/`.
+Permafrost's preview now compares both strength and duration rather than leaving its
+second benefit as a generic per-rank description.
+
+The initial live run exposed a persistence gap: Permafrost was refunded from 3 to 2
+on screen, but closing the OS window directly from Talents left rank 3 on disk.
+Armory input now flushes dirty account edits at the end of its menu update; a clean
+account does no disk I/O, and failed writes remain dirty for retry. This covers menu
+edits without relying on a later run, page transition or explicit Done action.
+
+Reproduction after the fix: refunded Permafrost to 2 at 720p, inspected the immediate
+saved rank, closed via the window's close button, relaunched and reopened Talents.
+Permafrost remained 2/3 with 25 Frost points; the independent Fire spec retained 10
+points. `reloaded-spec-720.png` records that state. The isolated validation account
+and launch wrapper were used; the normal wrapper was restored after closure.
+
+Validation: 85 core and 150 app tests, workspace test compilation, Clippy, formatting,
+render-pass lint and diff checks pass. Native build: 42.56 seconds. These are menu
+layout/persistence checks, not combat, frame-time or full responsive-matrix acceptance.
+Remaining class talents, other interface states and campaign/world acceptance remain open.
+
+
+### Mage targeting range checkpoint
+
+Flame Throwing (DBC 28, two ranks) gives targeted fire spells 10% more targeting
+range per rank, an explicit Survivors conversion. Arctic Reach (DBC 741, two ranks)
+gives Frostbolt and Blizzard 10% more targeting range per rank, and Frost Nova/Cone
+of Cold 10% more radius per rank. The selected-spec cast snapshot now carries range
+separately from radius; runtime selection and tooltip headers consume that same value.
+Other classes and Arcane spells do not inherit these effects.
+
+Fireball splash, Flamestrike area and Blizzard area retain their existing sizes.
+Blizzard/Flamestrike still choose one location; extra-target statistics do not multiply
+locations. Nova/Cone continue their existing area selection with the enlarged radius.
+Mage now has 23 functional individual nodes; remaining nodes, milestones, balancing
+and full live combat acceptance remain incomplete.
+
+Validation: 86 core and 151 Survivors app tests pass. Actual cast-system tests place
+enemies beyond untrained range, then verify trained Fireball/Frostbolt/Nova hits
+and exactly one trained Flamestrike/Blizzard area of unchanged radius. Core checks
+cover caps, reset, exclusions and target-count invariance; tooltip checks cover
+trained fire/frost and unchanged Arcane ranges. Workspace test compilation, explicit-data
+DBC talent audit, Clippy, formatting, render-pass lint and diff checks pass. Native
+play build: 21.28 seconds. Live range-boundary and new screenshot acceptance remain open.
+
+### Mage Impact and Incinerate checkpoint
+
+Impact (DBC 30, five ranks) grants a 2% chance per rank on damaging Mage fire hits
+to stun for one second, reduced to 0.3 seconds on bosses. This is an explicit
+Survivors conversion. Direct, splash and ground-area fire hits share the hit path;
+Ignite's periodic damage cannot trigger it. Longer existing stuns survive, and
+stunning never marks the target frozen for Shatter.
+
+Incinerate (DBC 1141, two ranks) adds 2% critical chance per rank to Fire Blast,
+composing with Critical Mass and equipment. Scorch is absent from the current
+ability pool, so this implementation does not claim a Scorch effect. The talent
+description states the implemented scope. Impact's affected spell tooltips show
+the trained proc chance in green. Mage now has 25 functional individual nodes;
+remaining nodes, milestones and full live combat acceptance stay open.
+
+Validation: 87 core and 152 Survivors app tests pass. Checks cover proc eligibility,
+rank caps, invalid damage, normal/boss stun duration, preservation of longer stuns,
+Fire Blast's combined critical chance at multiple ability levels, and green
+spell-specific tooltips. Workspace test compilation, explicit-data DBC talent audit,
+Clippy, formatting, render-pass lint and diff checks pass. Native play build:
+19.48 seconds. These checks do not establish live proc frequency or combat feel;
+new live combat/screenshot evidence remains open.
+
+### Mage Winter's Chill checkpoint
+
+Winter's Chill (DBC 68, five ranks) is now a per-enemy combat debuff. Each damaging
+Mage Frost hit has a 20% chance per rank to add a stack, refreshing a 15-second
+duration. Each stack adds two percentage points of Frost critical chance against
+that enemy, capped at five stacks. This is an explicit Survivors conversion;
+it applies to bosses without a control-duration reduction because it does not
+immobilize them. Expiry clears all stacks; the next application starts at one.
+
+Direct casts and ground-area ticks share target-dependent critical calculations.
+Winter's Chill combines with Shatter and existing critical chance, capped at 100%;
+it never makes an enemy frozen and never benefits Fire or Arcane damage. The hit
+that adds a stack retains its already-resolved critical result. Other class hits,
+zero/invalid damage and periodic Ignite damage cannot add stacks. New enemies
+start unchilled, and stacks remain run-only state, outside the account save format.
+Spell tooltips show the trained proc chance and the stack cap in green.
+
+Mage now has 26 functional individual nodes. Remaining class talents, milestones,
+balance, live combat feel and the broader seven-phase acceptance remain open.
+
+Validation: 89 core and 153 Survivors app tests pass. Core checks cover rank caps,
+spell/class exclusions, invalid damage, stack refresh/cap/expiry and Shatter
+composition. Actual cast/area systems use matching random seeds to distinguish
+Frostbolt and Blizzard criticals with and without stacks; expiry removes the
+direct-cast bonus. Workspace test compilation, Clippy, DBC talent audit, formatting,
+render-pass lint and diff checks pass. Native play build: 1m 35s.
+
+Live 1280×720 validation spent Winter's Chill 4→5 and refunded 5→4, updating
+Frost totals 30→31→30 and available points 21→20→21. The green final-rank
+preview and maximum-rank text fit the side panel. Both screenshots are in the
+README under the Mage milestone. The isolated account saved rank four; the app
+was closed and the normal launch wrapper restored. This proves menu behavior
+and layout, not live proc frequency, combat balance or the full resolution matrix.
+
+The live menu log also records roughly one-second frame hitches during this
+automated inspection. No panic/error was recorded and window closure completed,
+but these captures are not performance acceptance. Investigate the saved local
+stall samples before attributing the hitches to gameplay or UI automation.
+
+### Menu presentation follow-up
+
+[Controlled journal evidence](validation/mage-menu-presentation.md) associates
+the one-second stalls seen in the Winter's Chill screenshots with capture-time
+Metal drawable waits. Forty quiet journal rows had mean frame times
+15.13–16.70 ms; three screenshot calls reproduced 994–1005 ms hitch warnings.
+An earlier quiet interval also had a 359 ms hitch, so no general performance
+clearance is claimed. Performance acceptance must use journal/combat telemetry
+without simultaneous screenshot or accessibility inspection. No runtime change
+was justified; gameplay, traversal and full frame-budget acceptance stay open.
+
+### Mage Frost milestones and defensive conversions
+
+The named Frost milestones now have spell-specific effects in addition to the
+existing tree-stat rewards: 10 points (Improved Frostbolt) adds one Frostbolt
+target; 20 (Ice Shards) adds 20 percentage points to Frost critical damage;
+30 (Ice Barrier) grants a 10% maximum-health absorb for five seconds once per
+successful Frost Nova cast. Area location count and radius remain unchanged.
+
+Two individual DBC nodes now have explicit Survivors effects on the existing
+spell pool. Ice Block (72, one rank) grants 0.5 seconds of immunity on a successful
+Frost Nova; Ice Barrier (71, one rank, DBC prerequisite Ice Block) adds a 5%
+maximum-health Nova absorb. The individual absorb lasts three seconds alone,
+or five with the 30-point milestone. Together they absorb 15% maximum health.
+These conversions do not claim standalone Ice Block/Barrier spells in the pool.
+Mage now has 28 functional individual nodes and three functional Frost milestones.
+
+Defenses apply once per successful cast, not per enemy, echo or extra target.
+Failed target selection grants nothing; dead heroes cannot gain defenses. Absorbs
+refresh without stacking and preserve stronger existing shields; immunity keeps
+the longer remaining duration. The shared cast snapshot exposes these values to
+inline cards, and spell tooltips now describe talent-granted shields and immunity
+in green. Unit suffixes occur once per before/after comparison.
+
+Validation: 90 core and 156 Survivors app tests pass. Boundary tests cover
+9/10, 19/20 and 29/30 points, rank caps/reset and class/spell exclusions.
+The actual cast system verifies out-of-range Nova grants no defenses and an
+in-range Nova grants the combined absorb/immunity. Damage-path tests verify
+immunity, subsequent absorption, non-stacking and stronger-defense preservation.
+Tooltip and inline-span checks cover both benefits and one trailing unit.
+Workspace test compilation, explicit-data DBC talent audit (including the Ice
+Barrier prerequisite), Clippy, formatting, render-pass lint and diff checks pass.
+Native play build: 15.23 seconds. Live defensive timing, new card wrapping/screenshots
+and remaining Mage Arcane/Fire milestones still need acceptance.
+
+
+### Frost Nova card wrapping evidence — 2026-10-25
+
+The opt-in `WOW_SURVIVORS_AUTO=Mage:cards` inspection mode starts with the full
+rank-one class pool and holds both level-up and chest offers for manual selection.
+An isolated Mage account with 32 Frost points, including Ice Block and Ice Barrier,
+reached a normal Frost Nova upgrade offer at level 12. The complete description
+fits at 1280×720 and, with the same hand held, 1024×768. Damage, radius, freeze and
+cooldown comparisons are green with one trailing unit; unchanged 15% shield,
+5-second shield lifetime and 0.5-second immunity remain ordinary prose. All three
+cards and the selection footer are visible. Selecting Nova after resize produces
+`frost_nova:2` in the live run log and resumes play. Window close exits normally.
+
+README captures: [720p](images/screenshots/2026-10-25-mage-talents/frost-nova-card-720.jpg)
+and [1024×768](images/screenshots/2026-10-25-mage-talents/frost-nova-card-1024.jpg).
+The raw local log is `target/survivors-validation/nova-cards-live.log`; the normal
+validation launcher was restored after exit. Clippy, native build (42.45 seconds),
+formatting, render-pass lint and diff checks pass; seven existing inline-description
+tests also pass. This closes this card's two-size wrapping check only. Live defense
+timing, the full responsive matrix and remaining Mage implementation stay open.
+
+
+### Battleground mode decision — 2026-10-25
+
+User confirmed horde survival with faction-themed encounters for Warsong Gulch,
+Arathi Basin and Alterac Valley. The earlier mode question is resolved. Author
+map-appropriate waves and bosses, then verify placements, traversal, pacing and
+the assigned reward tiers (Warsong Uncommon, Arathi Rare, Alterac PvP); do not
+substitute spirit guides for combat bosses or
+require capture-the-flag, resource-control or player-versus-player systems.
+
+
+### Mage Arcane Instability and Elemental Precision — 2026-10-25
+
+Arcane Instability (DBC 421, three ranks, Presence of Mind prerequisite) now grants
+1% damage and one percentage point of critical chance per rank to the eleven Mage
+spells. Its talent preview shows both contributions. Elemental Precision (1649,
+three ranks) converts hit chance into 1% Fire/Frost damage per rank, consistent
+with the existing Survivors hit-stat conversion. Arcane spells do not receive
+Elemental Precision; other-class and neutral jewelry spells receive neither.
+Both replace their temporary generic per-point damage. Effects compose with
+school talents, affect direct and periodic spell damage, and leave area geometry,
+target counts and cooldowns unchanged. Thirty Mage nodes now have explicit rules;
+remaining nodes and Arcane/Fire milestones still require implementation.
+
+Core coverage checks every Mage spell, rank caps, reset and foreign classes,
+plus the dual-stat preview. App coverage checks direct/periodic damage, critical
+chance and unchanged geometry at ranks 1, 3 and 8. Live talent-page and combat
+acceptance for these two nodes remains open.
+
+Validation: 91 core and 157 Survivors app tests pass, as do workspace test
+compilation, Clippy, formatting, render-pass lint and diff checks. The explicit-data
+DBC talent audit confirms both three-rank identities and Instability's Presence
+of Mind prerequisite. Native incremental play build: 14.43 seconds. No new live
+capture or full-workspace test-pass claim is made for this checkpoint.
+
+
+### Warsong faction-survival content — 2026-10-25
+
+Added the map-489 candidate at the previously surveyed 60-yard midpoint arena,
+ten faction-themed wave archetypes, nine authored bosses and nine Uncommon slot
+sources. The final Warsong Gulch Warmaster arrives at 16:00; victory waits for all
+nine kills. Archetype template/display identities and the authored schedule are
+recorded in [location evidence](SURVIVORS-LOCATIONS.md#warsong-faction-survival-roster--2026-10-25).
+The shared source table drives combat schedules and the Armory drop page. All nine
+classes resolve every reward, with duplicate Un'Goro sources sharing ownership.
+Map indices remain stable because the destination was appended. The world-content
+lock remains until full traversal, spawn/crowd, camera and live encounter checks pass.
+
+Regression coverage checks each exact boss threshold, final victory, all slots,
+class reward resolution and the retained lock. Account coverage collects/reloads
+all nine classes, preserves selected gear and appearances, and checks cross-zone
+duplicates cannot change saved state. Arathi, Alterac and Blackrock remain missing
+map content; adding Warsong does not resolve the 81 PvP source-cell gaps.
+
+Validation: 92 core and 158 Survivors app tests pass, including Armory lock text.
+Workspace test compilation, Clippy, formatting, render-pass lint and diff checks
+pass. Native incremental build: 22.42 seconds. Explicit-data content audit finds
+Warsong terrain at z=309.30 and every roster model file. Its expected nonzero exit
+now reports 86 gaps: three missing maps, two floor validations, and 81 PvP sources.
+
+An isolated `Mage:all` run starts on map 489 and renders early faction enemies,
+combat and the HUD at 1280×720. The README capture at game 00:32 shows level six
+and 52 kills. It grants the full starting ability pool for validation and is not
+normal progression or balance evidence. The log records loading/capture-associated
+hitches and background frames; no performance clearance is claimed. Full boss
+sequence, late crowd routing, attachments and camera acceptance remain open.
+The app exited through its window close control and the validation launcher was
+restored. Local log: `target/survivors-validation/warsong-roster-live.log`.
+
+
+### Arathi faction-survival content — 2026-10-25
+
+Terrain/floor and model-hull surveys found a dry, supported 40-yard candidate near
+the stables, replacing the rejected map-art midpoint. The new map-529 definition
+uses `[1210, 1130, -54.705]`. Ten faction wave entries and nine authored bosses
+share the Rare source schedule, ending with Defiler Basin Warmaster at 16:00.
+The [location evidence](SURVIVORS-LOCATIONS.md#arathi-stables-area-survival-candidate--2026-10-25)
+records rejected candidates, measured support, obstacles, archetype provenance,
+and every boss/source. Appended map ordering preserves saved indices. Normal entry
+remains world-locked; survey support alone is not runtime traversal acceptance.
+
+Tests cover all boss thresholds, finale/victory, slot/class resolution and the
+retained lock. Account coverage checks all nine classes, selected equipment,
+independent appearances, save reload, and Feralas duplicate-source idempotence.
+No PvP-tier source cells are claimed by this Rare-tier map.
+
+Validation: 93 core and 159 Survivors app tests pass, with workspace test
+compilation, Clippy, formatting, render-pass lint and diff checks. Native play
+build: 22.41 seconds. The explicit-data audit finds Arathi's floor at z=-55.71
+and all roster model files. Its expected nonzero result is 85 gaps: two missing
+maps, two floor validations and 81 PvP source cells. Full world acceptance is
+broader than this data audit and remains required before changing `ready`.
+
+Live evidence: an isolated `Mage:all` run rendered map 529, its faction enemies,
+terrain, spells, HUD and minimap at 1280×720. The README capture shows 00:26;
+the run continued through at least 163 game seconds before a normal window-close
+exit. No ERROR or panic appeared in the local log. This artificial full-pool run
+does not validate balance, the complete boss sequence, attachments or traversal.
+Prominent rocks obscure parts of the arena; routing and camera/cutaway acceptance
+remain open. The validation launcher was restored after closing, without querying
+the closed app handle. Local log: `target/survivors-validation/arathi-roster-live.log`.
+
+
+### Alterac faction-survival content — 2026-10-25
+
+Added map 30's surveyed central 60-yard candidate, ten faction wave identities and
+nine bosses ending with Drek'Thar at 16:00. Their PvP-band drops supply all nine
+slots for all nine classes. Maps are appended to preserve saved indices; normal
+entry remains world-locked. The [location record](SURVIVORS-LOCATIONS.md#alterac-central-survival-candidate--2026-10-25)
+contains terrain comparisons, obstacle limits and template/display provenance.
+This implements the confirmed survival direction, without PvP objectives.
+
+Tests cover the boss thresholds, full schedule, victory timing, class/slot sources,
+retained lock, equipment, independent appearances, duplicate ownership and save
+reload. Live identity/attachment, complete-run, routing and camera evidence remain
+required; roster model files alone do not establish those properties.
+
+Validation: 94 core and 160 Survivors app tests pass, plus workspace test
+compilation, Clippy, formatting, render-pass lint and diff checks. Native play
+build: 23.26 seconds. The explicit-data audit finds all Alterac roster model files
+and source coverage for all 54 collection cells per class; its expected nonzero
+result is three gaps (Blackrock's absent map, Scarlet and Naxxramas floor checks).
+This count excludes world-readiness and the broader acceptance requirements.
+
+An isolated `Mage:all` preview loaded map 30 and rendered the Field of Strife,
+early creatures, terrain, spell effects and HUD. README links the gameplay capture
+at 00:16 and upgrade cards at 00:11, both 1280×720 logical resolution. The log
+reached 28 game seconds before a normal window-close exit, without ERROR or panic.
+This artificial full-pool run does not verify boss rendering, balance, full-run
+routing, equipment attachments or camera obstruction. The normal launcher was
+restored; no closed app handle was queried. Local log:
+`target/survivors-validation/alterac-roster-live.log`.
+
+
+### Blackrock floor and arena-shape investigation — 2026-10-25
+
+Seven interior candidates fail to support an entire 30-yard circular arena.
+The [floor evidence](SURVIVORS-LOCATIONS.md#blackrock-interior-floor-rejection--2026-10-25)
+records actual source anchors, support counts and stacked-floor exclusions.
+A fully supported boundary ring concealed interior gaps at Forgewright, so the
+floor audit now reports missing-face versus other-storey samples and the nearest
+unsupported sample. Shared triangle edges do not inflate the stacked-level count.
+
+Blackrock remains unconfigured. Its next requirement is a connected, height-aware
+playable region with safe spawn routes, body clearance and camera validation;
+a circular leash and a valid center floor cannot establish that. This also informs
+the existing indoor Scarlet/Naxxramas acceptance work. Eight audit tests and scoped
+Clippy pass; formatting and diff checks pass. Both classified local-data probes
+completed successfully. No native gameplay or navigation validation is claimed.
+
+
+### Enemy recycling geometry contract — 2026-10-25
+
+Routing investigation found that enemies more than 75 yards from the hero bypassed
+safe-spawn checks: recycling directly assigned a point 38 yards ahead, falling back
+to the hero's height when floor geometry was absent. This could place enemies
+outside the arena or inside solid/unsupported geometry.
+
+Recycling now uses the same bounded candidate selection as initial spawning:
+arena/body margin, distance from the hero, supported footprint and body clearance.
+If no candidate is safe, it retains the old position and retries on a later frame;
+its movement animation is stopped while repositioning. This does not establish
+connectivity to the hero. Obstacle routing and a height-aware Blackrock region
+remain required.
+
+The streamed-floor integration fixture now exercises recycling before floor load
+and after load near the arena boundary, for ordinary and large enemy radii. It
+checks deferral, body clearance, floor height and separation from the hero.
+
+Validation: all 160 Survivors app tests pass, including the extended streamed-floor
+fixture. Workspace test compilation, Clippy, native play build, formatting,
+render-pass lint and diff checks pass. No live obstacle-routing acceptance is
+claimed by this placement fix.
+
+
+### Incremental obstacle detours — 2026-10-25
+
+Stalled enemies now request local paths through the runtime collision geometry.
+The planner searches a two-yard grid with separate half-yard height keys; each
+edge must pass the existing grounded capsule travel and body-clearance checks,
+and stay inside the arena. A final connection must reach the target's actual
+height, so another storey is not accepted just because its XY matches.
+
+Work is incremental: eight edge probes total per frame, round-robin across at
+most 64 waiting requests, with at most 256 nodes per search. Movement continues
+under the existing collision rules while a request waits. Failed searches retry
+after a cooldown. Waypoints use grounded travel again during playback; a stale
+path cannot bypass a newly streamed solid surface. Target movement beyond six
+yards invalidates a route. Crowd control, fear, recycling, death/despawn and map
+changes discard the relevant route state.
+
+This is an initial local detour implementation, not full navigation acceptance.
+Narrow passages below grid resolution, long indoor routes, crowded queue latency,
+dynamic target behavior and real foliage/room geometry still need validation.
+It does not unlock Blackrock, Scarlet or other pending zones. The Blackrock
+playable-region and spawn-connectivity requirements remain open.
+
+
+Validation: all 164 Survivors app tests pass. New tests verify incremental detours
+around a finite wall, the global edge budget and queue rotation, dead/map/target
+invalidation, missing support, rejection of a goal on another storey, and route
+playback through real Avian capsule sweeps. The physics fixture confirms the direct
+path is blocked, finds a detour, and checks body clearance while walking every
+segment to the destination. Workspace test compilation, Clippy, formatting,
+render-pass lint and diff checks pass. Native play build: 1 minute 18 seconds.
+Live world navigation and performance acceptance are still pending.
+
+
+### Visibility gating and direct page preview — 2026-10-25
+
+The cutaway was previously applied whenever enabled. It now casts a camera/LOS
+scenery ray from the actual camera to the player focus, stopping before the focus
+plane; geometry behind or outside that sightline cannot activate it. Reveal strength
+fades linearly in and out over 500 ms using real time. The existing ordered-coverage
+shader interpolates scenery visibility while leaving colliders intact. This uses
+scenery camera colliders; rendered foliage without corresponding LOS geometry still
+requires visual coverage review.
+
+Native development `WOW_SURVIVORS_UI_PAGE` opens a named starter/Armory page directly.
+This uses production components, leaves progression intact and avoids playing a
+session. A fresh isolated account opened Collection at 1440×900 logical resolution;
+README includes the capture. This is direct page entry, not complete fixture or
+hot-reload tooling for every page. Normal launcher settings were restored after exit.
+
+Validation: 95 core tests, 165 app tests and one camera-layer physics regression
+pass. The regression moves the same building collider behind, in front of and
+beside the player sightline. Fade tests cover 500 ms timing and reversal without a
+jump. Workspace test compilation, Clippy, formatting, render-pass lint and diff
+checks pass; native play build took 2m 07s. The preview rendered successfully and
+closed normally. The user's exact building scene and visual fade still need live
+validation; the menu preview is not evidence for that behavior.
+
+### Companion card checkpoint — 2026-10-25
+
+Rewards now presents six companion upgrades/instincts as illustrated two-column cards.
+Range, speed, rest and instinct previews derive from `companions::trip`, with green
+current » next values and one unit. Purchases preserve account semantics and the
+first-empty-slot instinct order independently of Looks selection. Live 1280×720 and
+640×720 checks exercised Quick Paws, the second companion, Gold-sniffer then Wisp-herder;
+inline milestone captures are in the changelog and README. Native build, Clippy,
+formatting and render-pass lint pass. The reference's base Companion card, matching
+icon choices, illustrated expanded Looks catalog and Confirm/Undo staging remain open.
+Rune-hound labels the existing lack of rune spawning; no new gameplay is claimed.
+
+### Companion appearance checkpoint — 2026-10-25
+
+The existing five companion looks now render as wrapping illustrated tiles with a
+selected border and green Worn label. Added the free base Companion description,
+using trip-derived baseline range/rest/minimum sweep values, and reference card order.
+Icon paths were verified against the checkout patch chain. Live 1280×720/640×720
+checks selected first-slot Whelpling and second-slot Squirrel then Kingsnake without
+changing instincts or points; restart preserved both slots. Inline screenshots are
+in CHANGELOG and README. Native build, Clippy, formatting and render-pass lint pass.
+Remaining: the expanded achievement-gated looks catalog, closer icon art/denser spacing,
+Confirm/Undo purchases and broader resolution acceptance. No new pet models or gameplay
+were introduced in this checkpoint.
+
+### Companion catalog expansion — 2026-10-25
+
+Append-only look indices preserve the original Rabbit/Squirrel/Chicken/Snake/Whelpling
+saves. Added local DBC display mappings: Crimson Macaw 9554, Great Horned Owl 4615,
+Tree Frog 6295, Sprite Darter 6294, Zergling 10993, Undercity Cockroach 2177.
+Each catalog entry now owns its name, display and icon. Model and icon availability
+are covered by a patch-chain test; this does not establish live animation acceptance.
+
+Westfall Chicken follows the reference's Veteran requirement (achievement 65, 100 runs)
+for new accounts. A trailing pets-record flag preserves unrestricted Chicken access
+for existing seven-field saves, without granting achievement points or changing the
+selected appearance. Account selection enforces the same gate displayed by the UI.
+Panda Cub / Deathless Hour and Sapphiron / no u remain pending explicit achievement
+requirements; the reference names these gates but the written rules do not define them.
+
+The catalog check also exposed the old Black Whelpling display 629 as missing; it is
+corrected to pet-sized black display 6288, retaining saved index 4. Live isolated
+fixture checks verified Chicken rejects selection before Veteran and accepts it after
+100 synthetic runs award the achievement, plus Macaw selection and 640×720 reflow.
+Inline captures are in the changelog; in-world animation acceptance is still open.
+
+Validation: 174 Survivors tests, native build, workspace test compilation, Clippy,
+formatting and render-pass lint pass.
+
+### Rewards batch confirmation — 2026-10-25
+
+Purchase methods mutate memory only; the Armory saves the validated account after
+Confirm. The draft stores ordered reward codes and replays against the current
+account, preserving intervening cosmetic/achievement changes. Failed validation
+leaves both the live account and draft intact; there is no partial purchase.
+
+Live isolated-account checks: two perks preview 275→245 without changing the save;
+Undo restores both ranks/balance; Confirm writes the 30-point spend. Two Companion
+upgrades preview 245→215 at 1280×720 and 640×720. Restart retains the confirmed perks,
+245 points and two resets, discarding the pending Companion upgrades. Screenshots
+are embedded in CHANGELOG and README. Tests cover reset preview/Undo, atomic stale
+batch rejection, preserved intervening changes, insufficient points and duplicate
+confirmation. 177 Survivors tests, native build, workspace test compilation, Clippy,
+formatting and render-pass lint pass. The subsequent per-card undo milestone
+implemented minus controls for pending perk/companion purchases and resets, with
+dependency-safe replay (see the 2026-10-25 changelog).
+
+### Placeholder achievement gates — 2026-10-25
+
+Per the user's clarification, Deathless Hour (54) and no u (55) are visible under
+Feats with “Criteria pending”, no progress target, no points and an always-false
+completion predicate. Saved IDs cannot turn placeholders into earned achievements
+or selectable looks. Existing achievement IDs and look indices are unchanged.
+Panda Cub (look 11, display 10990) and Sapphiron (look 12, display 16033) extend the
+catalog; their tiles name the unavailable achievements. Icons and models resolve
+from the local 1.12.1 patch chain. Sapphiron uses the FrostWurm boss display mapping;
+companion-scale and animation validation are required before enabling its future gate.
+
+Live checks verified both placeholder looks refuse selection, Feats lists both as
+criteria pending, and all thirteen tiles fit after 640×720 reflow. Three inline
+captures accompany the changelog. 97 core tests and 178 Survivors app tests pass,
+as do the native build, workspace test compilation, Clippy, formatting and
+render-pass lint. Achievement-page typography/layout remains a separate UI task.
+
+### Rogue cooldown talents — 2026-10-25
+
+Improved Slice and Dice (277, three ranks) reduces Blade Flurry cooldown by 5%
+per rank. Elusiveness (247, two ranks) reduces Gouge/Kidney Shot cooldowns by 10%
+per rank. Vigor (382, one rank) reduces the six Rogue spells’ cooldowns by 10%.
+These explicitly labeled Survivors conversions replace provisional rank damage;
+spell membership excludes other-class and neutral jewelry abilities. Different
+reductions multiply with existing training, milestones and equipment.
+
+111 core tests and a ranked cast-parameter regression pass, covering scope,
+composition, rank clamping/reset and unchanged damage/control/targets. The local
+DBC audit confirms identities and rank counts. Native 1280×720 Vigor refund and
+repurchase and 640×720 Elusiveness refund/restore verify green text and readable
+previews. Screenshots are inline in the changelog. Live combat feel, final balance
+and remaining Rogue nodes are still open.
+
+### Imported talent budgets — 2026-10-25
+
+An imported spec with more points spent than the hero has earned keeps its saved
+ranks for repair, but contributes no talent stat bonuses, trained spell effects or
+milestones to a new run. Valid sibling specs still work. Refunding/resetting or
+earning enough points restores eligibility. The talent page explains the inactive
+state and dims milestone indicators. This enforces the earned-point budget only;
+full catalog/row/prerequisite validation of imported ranks remains a separate gap.
+
+The account regression covers save preservation, suspended bonuses and snapshots,
+sibling-spec isolation, refund recovery, additional earned points and unchanged
+existing run snapshots. Native 1280×720 evidence shows the warning and its removal
+after refunding the excess Vigor rank; before/after captures are in the changelog.
+
+All 202 Survivors app tests pass. Three older test fixtures now supply earned
+points for their deliberately assigned ranks. Native build, workspace Clippy,
+formatting and render-pass lint pass.
+
+### Saved talent row normalization — 2026-10-25
+
+Loading DBC specs now collapses repeated talent IDs within each spec to the highest
+rank, retaining the first tree assignment. This matches core training's highest-rank
+rule without multiplying tree points or milestone eligibility. Separate specs retain
+independent ranks. Malformed fields, trees outside 0–2, zero IDs/ranks and extra fields
+are discarded instead of coerced into a different tree. Canonical saves round-trip.
+This does not establish class membership, catalog rank caps, row unlocks or prerequisites;
+those checks remain open. No runtime UI or design change is included.
+
+Validation: all 42 account tests, workspace Clippy, formatting and render-pass lint pass.
+
+### Saved DBC catalog validation — 2026-10-25
+
+Runtime specs now validate against the loaded class catalog before contributing
+stat adjustments, spell training or milestones. Class/tree membership, maximum
+ranks, earlier-row points and prerequisites share the purchase validator. Unknown
+IDs, wrong trees and duplicate entries introduced outside the parser invalidate
+the spec. Invalid ranks remain saved for refunds/reset; other specs are independent.
+A pending catalog suspends DBC effects before menu/run consumers execute. Validation
+is evaluated against current ranks, so refund/reset recovery does not need a restart.
+
+The talent sidebar adds repair guidance and inactive milestones stay dim, preserving
+the intentions' three-tree/sidebar structure. Native 1280×720 captures verify illegal
+Vigor and recovery after refund. All 207 Survivors app tests, native build, workspace
+Clippy, formatting and render-pass lint pass. This closes the DBC class/rank/row/
+prerequisite gap recorded above. Legacy non-DBC spread rules, required-spell semantics
+outside Survivors' talent prerequisites, and unfinished individual talent effects
+are not expanded by this checkpoint.
+
+### Priest individual spell training — 2026-10-25
+
+Eight DBC-verified Priest nodes now have scoped spell effects rather than provisional
+general damage: Improved Power Word: Shield, Holy Specialization, Divine Fury,
+Searing Light, Improved Shadow Word: Pain, Improved Mind Blast, Improved Psychic
+Scream and Darkness. The spec records exact initial values. Shield growth is labeled
+absorption; conversion descriptions identify Survivors duration/cooldown rules.
+
+112 core tests and the focused app regression pass. The app test covers ranks 1/3/8,
+Holy Fire direct/burn damage, Pain duration, shield amount, critical chance and
+cooldowns composed with gear; foreign spells, counts, radii and control effects stay
+unchanged. Native 1280×720 Searing Light refund/repurchase and 640×720 Pain previews
+are captured inline in the changelog, using legal saved specs and the intention's
+three-tree/sidebar layout. Native build, workspace Clippy, formatting and render-pass
+lint pass. Priest milestones, remaining nodes and live combat balance remain open.
+
+### Priest tree milestones — 2026-10-25
+
+All nine Priest 10/20/30 milestones now have explicit spell interactions and readable
+Survivors conversion descriptions. Discipline links shield protection and Mind Blast;
+Holy adds scoped critical chance and successful-cast healing; Shadow adds a Mind Blast
+target, Pain cooldown advancement and a Psychic Scream absorb. Exact initial rules
+are in the spec. Existing tree-point bonuses remain, as with other implemented classes.
+
+113 core tests pass, covering exact thresholds, foreign-spell isolation, individual
+rank composition and AoE target invariants. Two Priest app tests pass, including
+actual cast-system execution with zero/three targets to verify once-per-cast healing,
+cooldown advances, shielding and immunity. Native 1280×720 Lightwell and 640×720
+Shadow Weaving descriptions are captured in the changelog from legal 30-point specs.
+Native build, workspace Clippy, formatting and render-pass lint pass. Remaining
+individual Priest talents, live combat balance and presentation refinement remain open.
+
+### Spirit Tap recovery — 2026-10-25
+
+The ninth individual Priest talent replaces provisional damage with a kill-triggered
+health regeneration conversion: 20% proc chance per rank, 1% maximum health per
+second for 15 seconds. Further procs refresh without stacking. Direct and periodic
+kills share the trigger; dead enemies cannot trigger again. Active-buff text reports
+remaining time. Removing training stops the healing benefit.
+
+114 core tests and four focused engine tests pass, including failed rolls, refresh,
+expiry across frame sizes, health caps and death. Native 1280×720 purchase/refund
+confirms the green 80 to 100% preview; the changelog and README embed its capture.
+Native build, workspace Clippy, formatting and render lint pass. Live combat
+presentation/balance and remaining Priest nodes remain open.
+
+### Priest casting range and area reach — 2026-10-25
+
+Holy Reach (DBC 1635, two ranks) now adds 10% per rank to Smite/Holy Fire casting
+range and Holy Nova radius. Shadow Reach (881, three ranks) adds one third of 20%
+per rank to Shadow Word: Pain/Mind Blast casting range. Psychic Scream is unchanged.
+Both replace provisional general damage. No added targets or duplicate AoE centers.
+
+115 core tests pass, including all-rank scope and separate range/radius checks.
+The engine parameter regression covers spell ranks 1/3/8 with gear haste/cooldown
+and confirms target count/control remain unchanged. DBC audit, native build,
+workspace Clippy, formatting and render lint pass. Native Holy purchase/refund
+at 1280×720 and compact Shadow description/max-rank guard at 640×720 are captured
+inline in the changelog. Live combat range acceptance and remaining nodes are open.
+
+### Effective casting distance on cards — 2026-10-25
+
+Card prose now includes targeting distance for bolts, strikes, melee attacks,
+periodic targeted spells, chains and placed ground areas. Existing totem distance
+text remains. Targeting distance and splash/area radius use separate effective
+combat parameters; changed values are green with a single trailing unit.
+
+29 HUD tests pass, including trained Priest range changes and unchanged-range
+coloring. An isolated Priest:cards run in The Barrens showed Smite's trained
+24-yard distance at 1280×720; selecting it advanced smite:1 to smite:2 and resumed
+combat. The changelog/README embed the capture. Native build, workspace Clippy,
+formatting and render lint pass. Other affected card layouts still need visual
+coverage; this does not close live range-boundary or full responsive acceptance.
+
+### Direct upgrade-card preview — 2026-10-25
+
+The native development preview accepts `page=cards` and one to four explicit
+`abilities=key:rank` entries. Rank zero means new ability; ranks 1–7 preview an
+upgrade. It uses production card layout/animation/scrolling with baseline stats,
+without waiting for combat or an offer. Live file edits resize or replace the hand.
+
+The overlay stays in Menu, blocks card picks/menu gameplay starts/autoplay, and
+skips discovery/reward writes. Returning to a regular page restores the original
+run and offer. Invalid requests retain the last view; the initial request waits
+for the UI to exist. Player/wasm builds do not expose the file-control entry point.
+
+Five preview tests pass, including parser bounds and repeated-hand restoration.
+Native 1280×720 and 640×720 captures show the same three-card hand and scrolling to
+the third card. Clicking/number/Enter did not pick or start combat; an invalid key
+kept the hand; returning to Talents succeeded. Account SHA-256 remained identical.
+The changelog and README embed screenshots. Talent/gear-aware card fixtures and
+non-ability reward previews remain future extensions of this development tool.
+
+Native build, workspace Clippy, formatting and render-pass lint pass for this checkpoint.
+
+### Long-description card acceptance — 2026-10-25
+
+Rechecked `docs/intentions/survivors_level_up_selection_screen.png` for the framed
+card hierarchy and green upgrade emphasis. Using the production preview, Blizzard
+7→8, Chain Lightning 6→7 and Shadow Word: Pain 5→6 fit at 1280×720 and 640×720.
+The compact third card wraps below the first row and is fully reachable by scrolling;
+the footer stays visible. Casting distance, area/jump radius, duration, damage and
+cooldown comparisons remain readable inside the card borders.
+
+The exact baseline-stat inputs are committed as `docs/ui-previews/long-cards-1280.txt`
+and `long-cards-640.txt`, with repeat instructions in the development guide. Three
+native screenshots are embedded in the changelog and the README links the presets.
+No engine code changed, so no rebuild was needed. This closes these three baseline
+card layouts at these two sizes only; extra talent text, other sizes and other
+card families retain their existing acceptance gaps.
+
+### Force of Will — 2026-10-25
+
+The twelfth individual Priest talent, DBC 1202 (five ranks), replaces provisional
+general damage with +1% Priest Holy/Shadow damage and +1 percentage point direct
+critical chance per rank. Shadow Word: Pain gains tick damage only; periodic ticks
+retain their existing non-critical execution. Shield absorption, foreign-class and
+jewelry spells remain unchanged. Damage multiplies with other scoped talents;
+critical chance adds and remains bounded by combat's existing cap.
+
+116 core tests pass, including all-rank scope, reset and combined training checks.
+The ranked engine regression passes at spell ranks 1/3/8. DBC audit, native build,
+workspace Clippy, formatting and render lint pass. Native 1280×720 purchase/refund
+shows the green 4→5% damage and critical preview, embedded in changelog/README.
+Live combat balancing and remaining Priest talents remain open.
+
+
+### Talent healing on cards — 2026-10-25
+
+The shared effective spell description includes cast healing for cards and tooltips,
+with the maximum-health percentage and once-per-successful-cast limit. The old
+separate tooltip line is removed. Changed healing follows green inline comparison
+rules; unchanged healing stays plain. Runtime healing behavior is unchanged.
+
+30 HUD tests cover trained Priest/Paladin healing and avoid duplicate tooltip
+rewards. Native build, workspace Clippy, formatting and render lint pass. A live
+Holy Fire rank 1 → 2 card with Holy talents fits at 1280×720; selection resumes
+combat with rank 2. The screenshot is embedded in the changelog and README.
+Compact talent-added descriptions and other healing card families still need
+visual acceptance.
+
+
+### Selected-build card previews — 2026-10-25
+
+`profile = selected` extends the direct card preview through the production
+run-start snapshot, including equipment, renown, relics, race, perks and validated
+talents. It waits for catalog/class/look readiness, uses a private Selection and
+keeps the original Run/Offer for restoration. Baseline is the default; profiles
+are only accepted on cards. Invalid profiles/duplicate keys are rejected.
+
+Six preview tests cover parsing, effect preservation, baseline clearing and
+original-state restoration. Native build, workspace Clippy, formatting and render
+lint pass. Native checks show Holy Fire/Holy Nova 7→8 talent healing fits at
+1280×720 and 640×720, with the wrapped shield card reachable by scrolling.
+Switching to baseline removes talent healing; returning to Talents works. The
+isolated account SHA-256 is unchanged. Screenshots are embedded in README and the
+changelog. This closes the compact Holy healing description check, not acceptance
+for all talents/classes or passive/jewelry card previews.
+
+
+### Priest defensive talents — 2026-10-25
+
+Improved Power Word: Fortitude (DBC 344, two ranks) adds 10 maximum health per
+rank. Improved Inner Fire (346, three ranks) adds 2 armor per rank. Spell Warding
+(411, five ranks) adds 2% damage reduction per rank. These replace each node's
+provisional damage bonus and flow through the selected hero/spec's account bonus
+into the run sheet. Rank previews expose health, armor and reduction respectively.
+
+Fortitude and Inner Fire are always active Survivors conversions, without upkeep
+or charges. Spell Warding uses general incoming reduction because damage schools
+are not yet modeled; its description explicitly covers all damage. The standard
+armor-before-reduction formula and reduction cap still apply. These are initial
+balance values, not a claim of completed Priest talent coverage.
+
+Validation: 116 core tests include every implemented talent at every rank. The
+app regression verifies health/armor/reduction reach the combat sheet, stay
+independent between heroes/specs, persist and reset without changing an active
+run snapshot. DBC audit, native build, workspace Clippy, formatting and render
+lint pass. Native Inner Fire 2→3 purchase and 3→2 refund show the 4→6 armor preview
+at 1280×720; screenshot embedded in README/changelog. Live damage balance and
+other defensive talent layouts remain unverified.
+
+
+### Blackout — 2026-10-25
+
+Priest Blackout (DBC 464, five ranks) replaces provisional damage with a 2% chance
+per rank for Priest Shadow damage to stun for three seconds (bosses: 0.9 seconds).
+Direct hits and Shadow Word: Pain ticks roll independently per damage event;
+multistrike damage is one event. The stun refreshes without adding duration and
+never shortens a longer stun. Zero/non-finite damage and foreign/Holy spells do
+not qualify. The selected spec snapshot controls the effect.
+
+The shared spell description exposes the chance and durations on cards/tooltips,
+using green comparisons when the chance changes. The core regression covers
+rank caps, class/source scope, invalid damage and reset. The app regression runs
+the real direct/periodic hit system for untrained/trained normal enemies and bosses,
+including longer-stun preservation. 117 core tests, the engine regression, DBC
+audit, native build, Clippy, formatting and render lint pass. Native rank 7→8
+cards fit at 1280×720 and 640×720, including the long Psychic Scream shield/stun
+text reached by scrolling. Screenshots are embedded in README/changelog. Live
+crowd-control balance and remaining talents are still open.
+
+
+### Vampiric Embrace — 2026-10-25
+
+DBC 484 (one rank) grants always-active self-healing for 20% of health removed by
+Priest Shadow spells. DBC 1638 (two ranks) adds five percentage points per rank,
+requires the base talent, and caps at 30% total. Both replace provisional generic
+damage. This is the Survivors conversion, without an upkeep debuff or party heal.
+Direct and periodic paths heal from actual remaining enemy health, excluding
+overkill; mixed periodic sources consume that health budget in tick order.
+Existing generic leech/drain behavior is unchanged. Shared card/tooltip prose
+shows the effective fraction and supports green inline changes.
+
+118 core tests cover talent identity scopes, base prerequisite, bounded ranks,
+invalid damage and reset. The app regression exercises real direct/periodic hits
+at all improvement ranks with living/dead players, overkill and already-dead
+targets. DBC audit, native build, Clippy, formatting and render lint pass. Native
+1280×720 and 640×720 checks show combined healing/Blackout/shield text fits, with
+the third compact card reachable by scrolling. Screenshots are embedded in README
+and changelog. Live healing balance and remaining talents remain unverified.
+
+
+### Shadow Weaving — 2026-10-25
+
+DBC 461 (five ranks) replaces provisional damage with a 20% application chance per
+rank on Priest Shadow damage, including Pain ticks. Each enemy independently
+stores up to five 3% vulnerability stacks for 15 seconds. Successful application
+refreshes the full duration after the triggering damage. Direct hits and periodic
+ticks use the stacks present before that event; multistrike remains one event.
+Expiry clears all stacks. Holy/foreign-class spells do not apply or benefit.
+Vampiric Embrace receives the resulting health removed, still excluding overkill.
+
+119 core tests cover bounded rank chance, spell/class scopes, invalid damage,
+reset, stack cap, refresh and expiry. The engine regression verifies first-hit vs
+second-hit damage for direct/periodic sources, trained/untrained and normal/boss
+enemies. DBC audit, native build, Clippy, formatting and render lint pass. Native
+1280×720 and 640×720 previews show vulnerability plus healing/control/shield text;
+scrolling reaches the full compact third card. Screenshots are embedded in README
+and changelog. Live vulnerability balance and remaining talents remain open.
+
+
+### Companion reference icons — 2026-10-25
+
+Compared `survivors_rewards_tab_companions.png` directly with decoded checkout
+patch-chain icons. Long Leash now uses Ability_Hunter_BeastCall; Black Kingsnake
+and Sprite Darter use Ability_Hunter_Pet_WindSerpent; Tree Frog uses Pet_Turtle,
+Zergling Pet_Scorpid, and Undercity Cockroach Pet_Crab. These intentionally follow
+the reference's illustrative choices rather than changing creature displays.
+Saved indices, unlock requirements and mechanics are unchanged.
+
+Native 1280×720 and 640×720 checks verified icon rendering and the complete
+scrollable Looks catalog. Screenshots are embedded in CHANGELOG and README.
+The actual-data model/icon test, native build, formatting and render lint pass;
+224 Survivors app integration tests passed before this icon-only change.
+In-world pet animation/scale acceptance and broader layout polish remain open.
+
+### Companion appearance control consistency — 2026-10-26
+
+Unlocked looks use the shared hover/pressed/selected control treatment. Locked
+looks retain their icon and achievement requirement without a Button/Act, so they
+are excluded from click and keyboard/controller action discovery. Native wide and
+compact previews verify selection by icon, locked Panda Cub rejection and readable
+scroll reachability. Screenshots are inline in CHANGELOG and the README gallery.
+Native build, workspace Clippy, formatting and render lint pass. Physical gamepad
+acceptance and in-world appearance validation remain open.
+
+### Saved Companion appearance validation — 2026-10-26
+
+Both saved look indices are checked after the complete account file has loaded,
+so achievement row order cannot change availability. Unknown indices and locked
+looks, including the two unachievable placeholders, fall back to Snowshoe Rabbit.
+Valid choices, earned Veteran and legacy Chicken access remain intact. A legitimate
+second-slot look is preserved even before that slot is owned. Regression coverage
+checks both slots and serialization; native screenshots verify repair, independent
+second-slot selection and restart persistence. All 262 app tests and the native
+build, workspace Clippy, formatting and render lint pass. In-world rendering
+acceptance remains open.
+
+### Hunter Survival milestones — 2026-10-26
+
+Three automatic Survivors adaptations complete Survival's milestone definitions:
+
+| Points / milestone | Effect |
+| --- | --- |
+| 10 · Monster Slaying | Serpent Sting and Explosive Trap direct/periodic damage ×1.2 |
+| 20 · Surefooted | Concussive Shot grants a 5% maximum-health absorb for 3 seconds once per successful cast; no stacking |
+| 30 · Wyvern Sting | Serpent Sting adds a 1-second stun (bosses: 0.3 seconds), additive with individual Wyvern Sting training |
+
+Monster Slaying applies to all enemy types as an authored poison/trap specialization;
+Surefooted uses an absorb as its defensive adaptation; Wyvern Sting uses the existing
+stun system rather than sleep. These provisional values require live combat and balance
+acceptance. Maximum individual training yields ×1.32 Serpent Sting damage, ×1.56
+Explosive Trap damage and a 2.5-second Serpent Sting stun (bosses: 0.75 seconds).
+No ability is granted by a milestone. Areas, range, targeting and periodic duration
+are unchanged; stronger existing shields are preserved. The absorb happens once per
+successful cast, and the stun is applied on the direct hit, not each periodic tick.
+
+135 core and 263 app tests pass, including threshold boundaries, rank composition,
+cast parameters, enemy control and non-stacking defenses. Native empty-spec previews
+verify all three descriptions; screenshots are inline in CHANGELOG/README. Native
+build, workspace Clippy, DBC coverage audit, formatting and render lint pass.
+Milestone coverage is 78/81. Hunter combat pets and the three Beast Mastery milestones
+remain open together, along with remaining individual talent nodes.
+
+### Codex spell prose and defensive legendary labels — 2026-10-26
+
+Legendary entries now use the shared card/tooltip spell prose for an explicitly
+unmodified rank-one preview, including recharge timing. Healing, absorbs, immunity,
+control and damage retain their actual meaning rather than displaying every base
+value as damage. Discovery labels match shared jewelry: previously offered/not offered.
+
+Codex and legendary offer comparisons share contextual Healing/Absorb labels. They
+omit critical-damage bonuses for Heal, Shield, Immune and Thorns, whose cast handlers
+do not roll critical strikes; immunity also omits the unused power multiplier.
+Replacement comparisons retain their red losses and green gains. This is a display
+correction, with no change to the underlying generic legendary bonus or save format.
+Distinct spell-specific legendary designs remain required: notably Divine Shield's
+current generic amulet has no effective benefit and now reports that honestly.
+
+Native 1280×720 healing and 640×720 absorb details fit with readable text and unchanged
+catalog selection behavior. Screenshots are embedded in CHANGELOG/README. Tests cover
+all catalog spell descriptions, defensive wording and legendary replacement/duplicate
+comparisons. Full catalog content and legendary balance acceptance remain open.
+
+Validation for this checkpoint: 265 app tests, native play build, workspace Clippy,
+formatting and render lint pass.
+
+### Live jewelry card previews — 2026-10-26
+
+The watched menu preview accepts one to four ring, trinket, amulet or legendary
+entries, with wide/compact presets under `docs/ui-previews/`. Catalog bounds and
+mutually exclusive ability/jewelry hands are checked before applying a request.
+Preview hand changes preserve the original run/offer until leaving cards; picks
+remain disabled. This extends the fast inspection loop to chest offers without
+requiring a run or granting discovery/progression.
+
+Visual inspection exposed raw legendary spell keys and missing icons when the
+spell was not learned. Legendary cards now resolve names and icons from the spell
+catalog, independently of the current loadout. This does not change acquisition,
+rarity, bonuses or saves. Passive-card presets and authored legendary effects remain
+open.
+
+Validation: 266 app tests, native play build, workspace Clippy, formatting and render
+lint pass. Native 1280×720 and 640×720 checks cover corrected icons/names, green
+bonuses, compact scrolling, disabled picks and return to the undiscovered Codex.
+Screenshots are embedded in CHANGELOG and README.
+
+### Windows playtest follow-up — 2026-10-26
+
+Browser parity correction, 2026-10-27: `wenilla` already called `run_survivors`
+but omitted the visibility, terrain and combat-text feature carries. Its dependency
+now enables the same three features as the native launcher. The WebGPU wasm check
+passes (five existing warnings), and Cargo's feature graph confirms propagation.
+This does not establish browser visual/gameplay acceptance or Windows scene closure.
+
+Platform gate added 2026-10-27: CI now checks `warcraft-survivors` on Windows
+(which enables the native visibility, terrain and text carries) and runs
+`survivors-core` tests there. The 179 rules tests pass locally and workflow YAML
+parses; the Windows runner result remains pending. This is compile/rules coverage,
+not visual acceptance of the reported scenes below.
+
+- **Foliage reveal:** replace the collision-only activation probe with rendered
+  scenery triangles from all three pick/render paths. Probe at 10 Hz after visibility
+  classification, ignore units and scenery behind the hero, and retain the 500 ms
+  fade. This is geometry visibility, not alpha-texture/pixel sampling; camera push-in
+  remains a separate collision feature. Exact Windows foliage scene acceptance is
+  still open.
+- **Spawns and routes:** require a clear solid-world segment from hero to spawn in
+  addition to supported, unoccupied body space. This conservatively rejects hollow
+  trunk interiors and unverified connections across fences; it can defer waves in
+  tight rooms. Existing enemies still use incremental A*, now servicing up to eight
+  requests × eight edge probes per frame, with 512 nodes per search and 64 pending
+  requests. IDA* has not been introduced; shared navigation regions, long fences,
+  enclosed areas and crowded Windows performance remain acceptance work.
+- **Elite chests:** first eligible named-elite death after 60 seconds, then at least
+  90 seconds apart, at most five per run. Same-frame bursts cannot multiply drops.
+  Boss/start/wooden rewards stay separate. Verified DBC displays are now 10/1/41
+  (Chest01/02/03); the previous 11/12 references were a sarcophagus and grave marker.
+  Chests remain solid and are routed around;
+  overlapping drops/enemies and the reported live Windows jam still need scene replay.
+- **Talent art:** use the painted 300×331 area of the padded 320×384 vanilla tile
+  canvas. Crop right/bottom padding at runtime, preserve aspect ratio, and keep all
+  icons and connectors in the same proportional coordinate space. Checked the
+  bottom-right alpha extents of all 28 shipped background variants (one has a final
+  transparent column). Native 1280×720/640×720 checks cover all three Hunter trees,
+  scrolling, and purchase/right-click refund at the visible icon. Screenshots are
+  embedded in CHANGELOG and README. No install assets are committed.
+
+These changes address identified causes, but do not claim reproduction or closure
+of the user's exact Windows gameplay scene. Recheck canopy reveal with scenery in
+front/behind, fence detours under an elite wave, and enemy movement past dropped
+chests on Windows before declaring those reports closed.
+
+A short manual native check confirms the new tier-A models render as chests, with
+an inline milestone capture. The UI preview's world remained at the Dark Portal;
+this is model evidence only, not an Elwynn navigation or spawn acceptance run.
+
+Validation: 135 core tests and 270 app tests pass with the visibility feature and
+explicit checkout data. Regressions cover render-only foliage, authored Elwynn
+trunk spawn rejection, actual body movement around fences and all three chest
+models, bounded route scheduling, and elite-drop cadence. Native play build,
+workspace Clippy, formatting, and render lint pass.
+
+### Divine Shield legendary effect — 2026-10-26
+
+The previously ineffective generic amulet now adds 15 percentage points of
+spell-local cooldown reduction for Divine Shield. The existing cap/minimum timer,
+rank scaling and talent composition apply. Immunity duration is unchanged. The
+shared hero sheet and other spells do not gain this bonus, repeated copies do not
+stack, and replacement removes it. No save migration is needed for run-only jewelry.
+
+Native 1280×720 and 640×720 cards show the green benefit; selecting the undiscovered
+Divine Shield Codex entry shows the same effect without marking it discovered.
+Screenshots are embedded in CHANGELOG and README. This resolves the ineffective
+Divine Shield reward noted above; remaining spell-specific legendary designs and
+live combat balance still require work.
+
+Validation: 135 core and 271 app tests pass. New checks cover rank-one/four/eight
+cast timing, unrelated spells, duplicate equips, replacement removal, green gains
+and red losses. Native play build, workspace Clippy, formatting and render lint pass.
+
+### Shared jewelry artwork completion — 2026-10-26
+
+The Codex audit reproduced the remaining question-mark icon. Mark of the Champion
+now explicitly uses vanilla item 23206/display 35649, verified in the pinned item
+templates and checkout data. The other same-name variant is not an additional
+Survivors item. This resolves the earlier unresolved-art notes without changing
+stats, discovery keys, or save format. All 39 shared jewelry entries must now resolve
+item artwork in both the catalog audit and chest-card tests; no exception remains.
+
+Native macOS checks cover the complete grid, selected undiscovered detail at
+1280×720, and the compact chest card at 640×720. Inline screenshots are in the
+changelog and README. Full legendary content and broader responsive acceptance
+remain open.
+
+Validation: all 271 app tests with explicit checkout data, native play build,
+workspace Clippy, formatting and render lint pass.
+
+### Paladin Retribution damage talents — 2026-10-26
+
+Sanctity Aura adds 10% damage to the seven Paladin Holy attacks. Vengeance grants
+3% damage per rank for eight seconds after a damaging direct Holy critical hit;
+further qualifying criticals refresh without stacking. Consecration benefits from
+the damage bonus when cast, retains that damage for its lifetime, and cannot trigger
+Vengeance from its ticks. Immunity, other-class abilities and neutral jewelry spells
+are excluded. Both effects multiply with existing cast bonuses; the shared hero
+sheet is not inflated by the conditional spell-local buff. Refund/spec replacement
+removes the bonus, expiry stops it, and a dead hero cannot activate it.
+
+Core tests cover rank bounds, trigger exclusions, spell scope and reset. App tests
+cover cast damage, refresh/expiry, no stacking, unrelated spells and removal. The
+native 1280×720 empty-spec preview verifies both descriptions and prerequisite
+refusal, not purchase or live combat balance. Screenshots are embedded in CHANGELOG
+and README. The DBC audit verifies Paladin 21/44 nodes and total 178/432; all 78/81
+milestone descriptions remain as before. Full talent and responsive acceptance is
+still open. 136 core tests and 272 app tests pass with explicit checkout data.
+Native play build, workspace Clippy, formatting and render lint pass.
+
+### Targeting-range talents — 2026-10-26
+
+Hawk Eye adds 2 yd per rank (three ranks) to Hunter shots, Serpent Sting and Volley,
+excluding Explosive Trap. Storm Reach adds 10% per rank (two ranks) to Lightning
+Bolt and Chain Lightning's initial targeting range. Grim Reach adds 10% per rank
+to Corruption, Curse of Agony and Death Coil. Destructive Reach adds 10% per rank
+to Shadow Bolt, Immolate, Searing Pain, Shadowburn and Rain of Fire. Nature's Reach
+adds 10% per rank to Wrath, Moonfire, Starfire, Entangling Roots and Hurricane.
+The latter three nodes have two ranks. Ground spells extend placement distance;
+area radius and chain bounce distance do not change. Player-centered effects,
+healing, unrelated spells and target counts are excluded.
+
+Core tests cover the full ability catalog, bounded ranks, foreign classes and reset.
+App tests exercise cast parameters and a target between base and trained range,
+plus unchanged damage, duration, cooldown, radius and count. Native 1280×720 Hunter
+and Warlock previews verify descriptions and locked-node refusal; live combat and
+the full responsive matrix remain open. Screenshots are embedded in CHANGELOG and
+README. The data audit verifies 183/432 nodes; milestone coverage remains 78/81.
+
+Validation: 137 core and 273 app tests pass with checkout data. Native play build,
+workspace Clippy, formatting and render lint pass.
+
+### Talent icon scaling and responsive evidence — 2026-10-26
+
+Compared with `intentions/survivors_talent_tab.png`: retain the three illustrated
+trees, rank badges, centered prerequisite lines and separate detail panel. Compact
+screens intentionally wrap panels. Native 1024×768 inspection exposed fixed-size
+icons crowding adjacent rank badges as artwork shrank. Icons now use 12% of tree
+width (36/300), capped at 36 logical pixels, square and centered on their grid
+coordinates. Background aspect ratio and readable text sizes are preserved.
+
+Native Warlock checks at 640×720, 1024×768 and 1280×720 verify spacing, long green
+descriptions and reflow. Before the fix, compact interaction checks verified an
+independent Spec 1 purchase and restoration of Spec 3's lower-panel scroll position.
+After the fix, 4:3 left-click increased Improved Corruption from 1 to 2, right-click
+restored rank 1 and the unspent total, and a locked Destructive Reach refused spend.
+The updated compact page still reaches its lower tree and complete description.
+Screenshots include before/after and final compact/wide views; README is updated.
+These checks do not establish all-class, physical-controller or Windows acceptance.
+
+Native play build (43 seconds), workspace Clippy, formatting and render lint pass.
+No mechanics changed; the prior 137 core / 273 app result was not rerun for this
+layout-only change. Reusable `talents-640.txt`, `talents-1024.txt` and
+`talents-1280.txt` presets are under `docs/ui-previews/`.
+
+### Direct talent inspection previews — 2026-10-26
+
+The opt-in native development preview accepts a positive `talent` DBC ID only on
+Talents. Validate against the selected hero's loaded tree before applying any page,
+size or inspection changes; loading data waits, unknown/foreign nodes and absent
+heroes reject the whole request. A valid request pins the actual node description
+and saved rank without triggering controller actions, purchasing or refunding.
+A valid reload omitting the selector clears the pin. Manual gameplay actions remain
+normal, so interaction testing continues to require isolated accounts.
+
+Native 1024×768 direct launch shows Grim Reach without clicking. Requesting Hunter
+Hawk Eye while a Warlock is selected preserves the prior description and dimensions,
+with a rejection log. A valid live change shows Destructive Reach at 640×720;
+clearing the selector restores ordinary milestone inspection. Fixture hashes before
+launch and after shutdown are identical. Inline screenshots are in CHANGELOG and
+README; the production layout remains aligned to the existing talent intention.
+
+46 Armory tests pass, including parse rejection, pinned detail priority, unchanged
+ranks/actions and restoring ordinary detail/color handling. Native play build,
+workspace Clippy, formatting and render lint pass. The client-data audit was rerun
+and the main coverage table updated to 183/432. No new mechanics or all-platform
+acceptance is claimed.
+
+### Collection completion and cloak eligibility — 2026-10-26
+
+The six-band equipment audit confirms one added stat line per band, stronger prior
+lines and independent worn/cosmetic selection. It also exposed a separate defect:
+cloak collection eligibility reused the nine-slot set predicate. A new complete-grid
+predicate now requires every catalog cell (54 currently) in one class, in both the
+selected-hero bonus path and achievement snapshot. Nine-slot Full set and worn-set
+bonuses are unchanged. Duplicate counts and another class's pieces cannot substitute
+for a missing cell. Ownership counts ignore bytes beyond the current catalog.
+
+Core tests cover missing/short grids, stack counts and trailing data. Account tests
+cover nine slots versus 53/54 cells, foreign-class isolation, exact cloak damage/speed
+contribution, reload, single achievement grant and preservation of old earned points.
+Legacy achievements do not supply cloak power if current feats are unmet. Native
+1280×720 seeded fixture reloads show Cloak bearer locked at 53 and earned at 54;
+that final legendary piece also grants Legendary (25 points), alongside the cloak's
+10. This verifies loading/presentation, not acquisition during a live run.
+
+Inline screenshots are embedded in CHANGELOG and README. Poor/raid-Epic identities,
+obtainable sources, distinct raid sets and their save/UI expansion remain required.
+
+Validation: 138 core and 276 app tests with checkout data pass, as do the native
+play build, workspace Clippy, formatting and render lint.
+
+
+### 2026-10-26 — Cloak progression presentation
+
+Character and Collection share an explicit cloak section below equipment bonuses:
+selected hero's class-cloak quality and actual bonus, talent-cap/raid/collection/amulet
+requirements, and the account's epic-class-cloak count. Completed requirements are
+green. The account legendary bonus is shown separately when eligible. Talent-cap
+credit requires the selected ID to belong to the requested class; a regression test
+covers foreign and missing IDs. Existing additive cloak mechanics are unchanged.
+
+This intentionally extends the Character reference while retaining its wide
+loadout/model/features layout and compact page scrolling. Native seeded screenshots
+at 1280×720 and 640×720 show the section and are embedded in CHANGELOG and README.
+No cosmetic cloak model or new acquisition source is included.
+
+Also corrected the development preview's system parameter and selection code to
+use the same compile gate as its module. Native play build, 277 app tests,
+non-development library check and workspace Clippy pass. Existing warnings remain
+in the non-development feature combination. The wasm target is not installed, so
+this milestone does not claim a wasm check or Windows gameplay acceptance.
+
+
+### 2026-10-26 — Passive-aware Improved Renew
+
+The checkout DBC identifies Improved Renew as talent 406, three ranks, Holy row 0.
+Renew is a Survivors passive, not an active spell: its talent now adds 5% regeneration
+per rank to that passive only. Training alone grants no regeneration. Other passive
+stats, gear/racial regeneration, Spirit Tap and healing spells are unaffected. The
+normal supported-node adjustment removes its provisional 1% damage per point.
+
+A shared Run passive-value calculation feeds the stat sheet, new/upgrade card prose,
+benefit summaries and passive tooltips. Regeneration formatting retains up to three
+decimal places, so the first talent rank's 0.5→0.525 health/sec is not hidden. Core
+coverage checks class isolation, rank bounds and spec reset; runtime tests check all
+Renew levels and an unrelated racial regeneration source; card tests check exact
+inline amounts, green tint and a single unit. Native seeded previews verify rank
+1→2 spending, saved rank 2, and wide/compact talent descriptions against the three-tree
+intention layout. No gameplay healing capture or Windows acceptance is claimed.
+
+Validation: 139 core and 279 app tests, native play build (27 seconds), workspace
+Clippy, formatting and render lint pass. The refreshed checkout-data audit reports
+184/432 matching talent definitions and 78/81 milestone descriptions; these counts
+do not establish gameplay acceptance.
+
+
+### 2026-10-26 — Passive card preview acceptance
+
+The watched UI request now supports `passives=key:rank`, with rank 0 acquisition
+and ranks 1–4 upgrades. It validates actual passive keys, bounded ranks, one-to-four
+cards, cards-page scope and one source per request (abilities/passives/jewelry).
+Selected profiles reuse run-start talents, while baseline profiles remove them.
+Preview hands replace their temporary passive list; leaving restores the original
+run, owned passives and offer. Picks and gameplay remain disabled by the existing
+preview guard. Wide/compact presets are included under docs/ui-previews.
+
+Native seeded checks show Improved Renew rank 1 yields 0.525→1.05, 1.05→1.575 and
+2.1→2.625 health/sec for new, rank-2 and rank-4 cards. A maximum-rank request with a
+new viewport preserves the existing view; a valid compact request resizes and scrolls
+to the final card; returning to Talents removes the overlay. The account hash is
+unchanged. Screenshots are inline in CHANGELOG and README. The bordered card layout
+was compared with the level-up intention; inline green amounts follow the user's
+later instruction. This verifies preview presentation, not live run acquisition.
+
+Validation: all 12 preview tests pass, including catalog/rank/source rejection,
+trained versus baseline values, switching hand types and original-state restoration.
+Native build, workspace Clippy, formatting and render lint pass.
+
+
+### 2026-10-26 — Armory action focus retention
+
+Generalize the Rewards-only action identity to starter and Armory controls, scoped
+by page, selected hero/class and applicable category (Rewards, Achievements, hero
+management). Talent nodes retain their rank-independent identity. A unique visible
+replacement receives focus after layout without replaying its action. Missing,
+disabled or ambiguous replacements drop the identity; page/hero/category changes,
+modal UI, typing and pointer handoff clear it. This supports repeated appearance,
+loadout and navigation actions when a page rebuilds. Physical-controller acceptance
+and comprehensive per-page traversal remain open.
+
+Native keyboard checks confirm two successive skin changes (2→1→10) keep the same
+outline, resizing to 640×720 restores/reveals the control, and navigating to Hair
+style then selecting changes 2→1 while retaining focus. Saved fixture feature bytes
+confirm both values. The wide screenshot is embedded in CHANGELOG/README; Character
+layout follows the existing intention comparison. All 282 app tests pass, including
+replacement/layout-delay/no-replay/hero-page boundaries across seven page/action
+pairs and the existing Rewards category, disabled-control and pointer guards.
+Native play build passes. This does not establish every page's live traversal or
+physical controller acceptance.
+Workspace Clippy, formatting and render lint also pass.
+
+
+### 2026-10-26 — Browser compile gate verified
+
+Installed the pinned Rust toolchain's wasm32-unknown-unknown target and the
+repository-pinned WASI SDK 27 under ignored tools/wasi-sdk. The CI command
+`cargo check --target wasm32-unknown-unknown -p wenilla --no-default-features --features webgpu`
+passes locally (five existing client warnings). This supersedes the earlier
+missing-target limitation; it establishes compilation, not linked browser or
+WebGPU runtime acceptance.
+
+Updated the browser startup test DOM mock for loading-screen CSS properties and
+child elements, and isolated animation intervals. All seven startup/journal tests
+pass using the bundled Node runtime; the system Node installation could not start
+because its llhttp dynamic library is missing. No application behavior or visual
+layout changed, so this checkpoint requires no new screenshot. Windows gameplay
+and browser runtime checks remain open.
+
+
+### 2026-10-26 — Individual Siphon Life training
+
+The checkout catalog identifies Siphon Life as Affliction talent 1041, one rank,
+row 4. Its Survivors conversion heals 5% of health actually removed by Corruption
+and Curse of Agony, adding to the independent 30-point milestone for 10% total.
+The shared direct/periodic hit pipeline already excludes overkill and dead targets
+and prevents reviving the hero. Training replaces the placeholder generic damage
+bonus; other spells/classes are excluded, and spec reset removes the trained part.
+
+140 core tests and 281 Survivors app tests pass, including individual/milestone
+composition, rank caps, invalid damage, class/spell scope, reset and actual hit
+processing. Native play build passes. Catalog coverage is 185/432 definitions and
+78/81 milestone descriptions. Native fixture checks verify purchase from 0/1 to
+1/1, one point spent, persisted spec 3, and readable wide/compact details after
+scrolling. Screenshots are embedded in CHANGELOG and README; preview presets pin
+talent 1041 without a run. The three-tree art/panel arrangement follows the
+intention reference and wraps at compact widths. Live combat balance remains open.
+Workspace Clippy, formatting and diff checks also pass.
+
+
+### 2026-10-26 — Individual Nightfall proc
+
+Nightfall (Affliction talent 1002, two ranks) replaces its generic damage fallback
+with a 2%/4% Corruption-tick chance to ready an owned Shadow Bolt. This Survivors
+instant-cast conversion does not grant the spell or bank a charge while it is ready.
+Each eligible tick rolls once after multistrike and actual health removal; direct
+hits, other spells, exhausted target health and dead heroes cannot trigger it.
+The 20-point Affliction milestone remains a separate guaranteed one-second advance
+on a successful Corruption cast. Spec changes remove individual training normally.
+
+141 core and 283 app tests pass, including a deterministic roll between the two
+rank probabilities, missing/ready spell ownership, single-roll consumption, direct
+versus periodic processing, invalid damage, class scope, caps and reset. The native
+play build, workspace Clippy, formatting and diff checks pass. Catalog audit verifies
+186/432 definitions and 78/81 milestone descriptions. Native fixture purchases
+0→1→2 spend two points and persist talent 1002 rank 2 in spec 3. Wide and compact
+screenshots show the next-rank preview and maximum-rank description without
+clipping, using the intention's art-backed trees and separate details panel.
+Screenshots are embedded in CHANGELOG/README and reusable preview presets are in
+docs/ui-previews. Live combat balance and the remaining talent catalog stay open.
+
+
+### 2026-10-26 — Render-only reveal integration and PR gate
+
+The active visibility adapter uses WorldPick rendered triangles, not physics
+collision. Removed its obsolete, unused collision-only helper from the world
+visibility module. New scheduled-system coverage feeds collider-free ordinary
+meshes and merged PickBlob members through the actual adapter into SceneryCutaway.
+It measures five 100 ms real-time updates to fully reveal and five to restore
+opacity after moving scenery behind the hero. It also checks focus/radius output,
+continued real-time fading while paused, disabled-option clearing, and reset on
+menu/game-over transitions. Existing triangle tests cover off-axis scenery and
+actor exclusion. No runtime rendering policy changed in this checkpoint.
+
+The previous PR workflow omitted Survivors tests, and the default documented test
+command excluded this feature-gated adapter. CI now runs survivors-core and the
+visibility-enabled Survivors app suite; the matching command is documented in
+SURVIVORS-DEVELOPMENT. Both commands pass locally: 141 core and 285 app tests.
+These fixtures do not prove alpha-texture-aware occlusion, retained StaticGx
+rendering, WMO cutaway, or the user's exact Windows foliage scene. Those remain
+open acceptance work. No new screenshot is claimed for this nonvisual checkpoint.
+Visibility-enabled app Clippy, formatting and diff checks also pass locally.
+
+
+### 2026-10-26 — Direct Collection preview acceptance
+
+The live preview parser accepts `piece = <band>:<slot>` on Collection pages only.
+All 54 existing cells are covered, including case/whitespace normalization and
+invalid/duplicate/cross-page rejection. Omission preserves the current inspection;
+selection does not grant or equip gear. Two reusable Epic Hands presets cover
+1280×720 and 640×720. Native validation switched between Epic Hands and Legendary
+Main Hand, rejected an invalid Off Hand request without resizing, and checked
+compact item details by scrolling. The post-startup account SHA-256 stayed unchanged
+through shutdown. 287 visibility-enabled app tests, native build, app Clippy,
+formatting and diff checks pass. Actual screenshots are embedded in CHANGELOG/README.
+
+Windows playtest follow-up remains an acceptance requirement for the existing
+corrections: test a rendered leaf canopy without collision between camera and hero,
+then move it behind the hero and verify the 500 ms fade; test Elwynn tree interiors
+and both sides of a fence for spawn rejection/routing; test enemy routes around a
+dropped chest and elite reward cadence (first at 60 seconds, 90-second spacing,
+maximum five, boss rewards separate). Record build SHA, location and renderer settings
+with captures. The implemented route search is bounded incremental A*, not IDA*.
+Talent artwork must retain its 300:331 painted proportions with centered square
+icons at wide and compact sizes. Existing macOS captures and synthetic tests do not
+close these exact Windows reproduction checks.
+A further headless regression loads six Elwynn source tree hulls and plays back
+body-clear A* detours from four directions (24 routes), with endpoints outside
+the model bounds. All pass alongside the fence/chest fixtures in the 368-test
+Survivors app suite. These unrotated flat-ground fixtures do not establish
+placement/terrain/crowd behavior in the reported Windows scene.
+A render-only regression also loads the four Elwynn canopy models and tests a
+nondegenerate triangle from each batch from both sides, with rotated/scaled
+placements on ordinary and merged pick paths. All 371 app tests pass. This verifies
+WorldPick mesh handling without colliders, not alpha-pixel visibility, streaming
+state, or the final GPU cutaway in the reported Windows scene.
+
+
+### 2026-10-26 — Individual Druid Restoration capstones
+
+Audited talent 831 (Nature's Swiftness, one rank) multiplies Rejuvenation cooldown
+by 0.85, composing with existing individual cooldown talents and the 20-point
+Restoration milestone. Talent 844 (Swiftmend, one rank) adds a 5% maximum-health
+immediate heal once per successful Rejuvenation cast, adding to the 30-point
+milestone for 10%. These are explicit automatic Survivors conversions. They do not
+change Rejuvenation's below-85%-health cast condition, grant the spell, consume its
+healing over time, change its geometry, or apply to other classes/spells.
+
+142 core and 288 visibility-enabled app tests pass. Coverage includes class/spell
+scope, rank caps, reset, milestone composition, cast parameters, capped healing,
+full/dead hero behavior and preservation of regeneration. The native play build
+(23 seconds), app Clippy, formatting and diff checks pass. Catalog audit confirms
+188/432 individual definitions and 78/81 milestone descriptions. Native fixture
+purchases spend two points (30→32) and persist 831/844 rank 1 in spec 3; wide and
+compact screenshots show the trained effects using the existing proportional
+art-backed trees. Fixture support includes the still-provisional Insect Swarm node;
+this milestone does not claim the full Restoration tree is complete. Screenshots
+are embedded in CHANGELOG/README, with Swiftmend preview presets for both widths.
+Live combat balance and Windows gameplay acceptance remain open.
+
+
+### 2026-10-26 — Character short-viewport acceptance
+
+At the supported minimum 640×480 viewport, the compact Character portrait's
+width-only sizing pushed its rotation controls below the initial view. Its square
+frame now uses the smaller of 60% column width and 52% viewport height. This keeps
+the reference's centered full-body figure while respecting short windows; the
+three-column wide layout is unchanged. Native before/after evidence verifies the
+full Human Warrior figure and both rotation controls, with actual left/right turn
+interaction and scrolling to appearance/equipment. Live resizing to 1024×768 and
+640×720 also keeps the full figure and controls visible. Added reusable Character
+preview presets (`page = heroes`) for all three sizes. Screenshots are inline in
+CHANGELOG and README. Native build (23 seconds), app Clippy, formatting and diff
+checks pass; no new rule tests are warranted for this layout-only bound. The full
+race/sex/equipment matrix, physical controllers and Windows DPI remain open.
+
+
+### 2026-10-26 — Character identity reference alignment
+
+Compared against intentions/survivors_character_tab.png, the central identity line
+was missing gender and race. It now describes the selected rendered body followed
+by the class name in its class color. Inline spans explicitly use the same font and
+body size. A class-catalog mismatch suppresses the body prefix while selection is
+loading, rather than describing an unrelated cached look. No save format changes.
+Native validation covers Male Human Warrior → Female Human Warrior → Female Tauren
+Warrior, then switching through Manage heroes to the saved Female Human Paladin.
+1280×720 and 640×480 captures verify identity, model fit and class coloring; these
+are embedded in CHANGELOG/README. The native build, app Clippy, formatting and diff
+checks pass. This presentation-only change does not add rule tests. Full race/sex/
+equipment coverage and Windows DPI remain open.
+
+
+### 2026-10-26 — README gallery consolidation
+
+The README had accumulated 781 lines of repeated milestone images alongside a
+stale gallery caption that dated newer captures as October 24. It now presents
+20 representative captures across starter, Character, hero management, Collection,
+Drop Tables, Codex, Talents, Achievements, all three Rewards categories, Options,
+upgrade cards and explicitly historical gameplay/results views. Dates are attached
+to individual captures; fixtures and platform acceptance limitations are stated.
+All 187 screenshot paths from the previous README milestone section are preserved
+in docs/SCREENSHOT-HISTORY.md, including the existing image embeds, with original
+files untouched. Existing
+CHANGELOG image embeds were preserved verbatim. Future checkpoints update the
+relevant README page while retaining inline milestone history in CHANGELOG.
+Local image/document references were checked. No UI or runtime behavior changed;
+this does not close fresh gameplay capture or full interface acceptance work.
+
+
+### 2026-10-26 — Retained foliage query coverage
+
+The retained renderer already participates in WorldPick independently of the entity
+pick set. A new feature-gated world test casts through an AlphaTest retained triangle
+with no entities or colliders, verifies its identity/distance, and checks clear rays,
+culled geometry, visibility removal and absence of the retained resource. CI runs
+this test alongside the existing ordinary/merged-mesh reveal integration tests.
+This checkpoint changes no runtime rendering. Texture-alpha sampling, GPU cutaway
+appearance, WMO cutaway and the exact Windows foliage replay remain open; synthetic
+query coverage does not close any of those acceptance requirements.
+Validation: the new public-query test and both existing retained-source tests pass;
+formatting and diff checks pass. The first world-test configuration build took four
+minutes; the adjacent cached test invocation finished in under one second. No game
+was launched and no new visual evidence is claimed.
+
+
+### 2026-10-26 — Individual Priest Spiritual Healing
+
+DBC 404 (five ranks) now provides 2% healing per rank to the current Priest healing
+sources: owned Renew and the 30-point Holy milestone's Holy Nova heal. It multiplies
+Improved Renew; at full training Renew is 1.265× baseline and Nova heals 5.5% maximum
+health. It does not grant an ability or unlock Nova healing early. Damage, absorbs,
+Spirit Tap, Vampiric Embrace and racial regeneration remain unchanged. The normal
+supported-node adjustment removes the old generic damage per point. Future Priest
+healing abilities must explicitly join this scope when implemented.
+
+Core coverage checks rank caps, class/spell isolation, milestone thresholds and
+reset. App coverage checks owned Renew with separate Troll regeneration and Nova
+healing, overheal/death caps. Native fixture spiritual-healing uses 25 support points
+(including still-provisional Improved Healing), purchases rank 1, verifies persistence,
+then refunds it at 640×720. Wide/compact screenshots are embedded in CHANGELOG and
+replace the relevant README gallery cells; the earlier Druid captures stay in the
+changelog/history. Reusable read-only preview requests are under docs/ui-previews/.
+The checkout-data audit reports 189/432 definitions and 78/81 milestone descriptions.
+This does not complete Priest talents, combat balance or Windows acceptance.
+Validation: 143 core tests, 290 visibility-enabled app tests, native play build
+(59 seconds), app Clippy, formatting and diff checks pass.
+
+
+### 2026-10-26 — Hunter Survivalist and completed startup health
+
+DBC 1622 replaces the generic damage placeholder with 2% final maximum health per
+rank (five ranks). A dedicated talent multiplier is applied after flat gear, passive,
+renown and racial health; no Bonus/save schema changes are needed. Core tests cover
+rank caps, duplicate saved entries, class isolation and reset. App tests combine
+Tauren health, renown, a health passive and flat gear bonuses, verify later flat
+bonuses scale, and verify stat queries do not alter current health.
+
+Startup previously filled health before setting the saved talent snapshot. All five
+entry/preview sites now finish through one startup helper that installs perks and
+talents before filling health. This helper is explicitly startup-only. The starter
+shows the talent percentage separately from the class card's base-health number.
+The latter is not a complete equipped character sheet.
+
+Native isolated fixture survivalist has ten supported prerequisite points (Deflection
+and Entrapment). Purchasing rank 1 persists; 1280×720 and 640×720 descriptions and
+the starter +2% summary were captured in CHANGELOG/README. The starter capture is
+bonus-text evidence, not acceptance of the full body/model matrix. Reusable talent
+preview files are included. All 144 core and 291 visibility-enabled app tests,
+native build, app Clippy, formatting and diff checks pass. Catalog coverage is
+190/432 individual talents and 78/81 milestones. No combat session was run; Windows
+and gameplay balance acceptance remain open.
+
+
+### 2026-10-26 — Hunter body identity visual verification
+
+A suspected Human/Dwarf mismatch in the previous small starter capture was checked
+at full size after a clean launch. It is the female Dwarf model; no renderer change
+was warranted. Native 1280×720 interaction then exercised female Dwarf → male Dwarf
+→ male Night Elf → female Night Elf on the same isolated Hunter. Each selection
+visibly updates the body, identity, race/gender selection and customization ranges;
+the full figure and turn controls fit. Four captures are embedded in CHANGELOG;
+README's Character cell now uses the Night Elf capture. The saved body ends at 4/1;
+the saved talent ranks and equipment selections remain unchanged.
+
+This adds evidence for these four unequipped Hunter bodies only. It does not prove
+all feature values, gear attachment combinations, every race/class, starter-panel
+resolution parity or Windows behavior. No runtime code changed and no code tests
+were rerun. The validation application was closed and its launcher restored.
+
+
+### 2026-10-26 — Character appearance position indicators
+
+Added the reference design's gold selected/dim unselected position dots under each
+appearance counter. Dot counts use the loaded race/body options; selection colors
+update without rebuilding the page. Sizing follows interface typography and fits
+within the available control width. Native Night Elf Hunter checks at 1280×720
+verified hair-style wraparound 7→1; at 640×720, 1→2 updates the indicator without
+resetting the scrolled feature panel. Both captures are embedded in CHANGELOG;
+README's existing Character cell is updated. Native build and app Clippy pass.
+This is menu evidence only; Windows gameplay reports remain open for exact-scene
+acceptance as recorded in the playtest correction milestone.
+
+
+### 2026-10-26 — Shaman Restoration deployment healing
+
+DBC 588 Restorative Totems (5 ranks) and 592 Purification (5 ranks) now add 5% and
+2% healing per rank respectively to Searing/Magma Totem's existing 10-point
+Restoration deployment pulse. Both are explicit Survivors conversions; neither
+unlocks healing early or changes damage, shield amounts or passive regeneration.
+At full ranks the 3%-maximum-health pulse becomes 4.05%. Generic point damage is
+removed for these supported nodes; tree milestone totals still count the points.
+
+Core regression coverage checks all classes, the 9/10-point unlock boundary, capped
+ranks, unrelated spells, passive scope and reset. Application coverage exercises
+actual cast completion with missing health, overhealing and a dead hero. Native
+1280×720 purchase and 640×720 refund of Purification persist correctly; both talent
+descriptions fit and screenshots are embedded in CHANGELOG and the existing README
+gallery cells. Preview presets are included. The fixture's row-zero supporting
+nodes remain provisional; this milestone does not claim the entire Restoration tree.
+No unattended combat was run; live balance and Windows acceptance remain open.
+
+Validation: 145 core tests, 291 visibility-enabled Survivors app tests, native build,
+core/app Clippy, formatting and diff checks pass. The DBC audit reports 192/432
+individual definitions and 78/81 milestone descriptions; neither is full acceptance.
+
+
+### 2026-10-26 — Druid healing composition correction
+
+SpellHealing bonuses now multiply both the spell's healing payload and any unlocked
+immediate heal. The immediate multiplier applies after collecting flat heals, so
+adding a later talent definition cannot bypass it. This fixes Improved Rejuvenation,
+Gift of Nature and Nature's Focus with Swiftmend and the Restoration 30-point pulse.
+The 10-point periodic-healing milestone still affects only periodic healing. Neither
+healing ranks alone nor this fix grants an immediate pulse before its unlock.
+
+Regression coverage checks capped ranks, milestone-only/Swiftmend-only/combined
+pulses, reversed saved rank order, refund, unchanged cooldown and unrelated spells.
+Application cast completion verifies the scaled heal without consuming the existing
+healing-over-time effect. The Swiftmend description clarifies that 10% is before
+healing bonuses. This is a rules correction; no new layout screenshots or live combat
+acceptance are claimed, and talent definition coverage is unchanged.
+
+Validation: all 146 core and 291 visibility-enabled Survivors app tests, native
+build, core/app Clippy, formatting and diff checks pass.
+
+
+### 2026-10-26 — Order-independent talent save references
+
+Talent rows are staged until all character records have loaded, matching appearance
+reference handling. This prevents silent rank loss when a valid save's talent rows
+precede character rows. The parser preserves last-row replacement behavior and
+ignores nonexistent references; malformed IDs no longer fall back to hero 0.
+
+The regression compares two heroes across all three specs in ordered/reordered
+saves, including duplicate-rank normalization, milestone snapshots, armor effects,
+and encode/decode persistence. It also checks duplicate row replacement, unknown
+hero IDs and malformed IDs alongside a legacy hero 0. This does not alter catalog,
+rank-budget or prerequisite validation. No interface or visual acceptance changed.
+
+Validation: 292 visibility-enabled Survivors app tests, native build, app Clippy,
+formatting and diff checks pass.
+
+
+### 2026-10-26 — Explicit gear tier rules and migration boundary
+
+Added `GearTier` to distinguish Poor, Common, Uncommon, Rare, ordinary Epic,
+Raid Epic, PvP and Legendary. Existing six collection bands keep their exact indexes
+and bonuses. Poor and Raid Epic deliberately have no legacy-band encoding: neither
+may alias an existing ownership cell or silently shift a saved equipment choice.
+Glove quality resolution now uses this shared tier mapping.
+
+All nine Poor profiles have one primary stat below Common. Raid Epic has six lines,
+strengthening ordinary Epic's five lines; initial tuning uses the existing PvP stat
+budget while retaining a distinct tier identity. Legendary remains seven lines.
+This is a rules foundation only: no new item is obtainable, no collection ownership
+is fabricated, and the existing collection remains 54 cells per class.
+
+Remaining integration sequence:
+1. Add stable named item identities for supplemental Poor and Raid Epic catalogs,
+   with class, slot, tier, verified display/icon and source references.
+2. Store supplemental ownership and worn/look references separately from legacy
+   band digits. Preserve legacy loadouts and the existing 54-piece collection feat;
+   give supplemental raid progression its own explicit completion rules.
+3. Add collection/source filters and comparison details using tier profiles;
+   duplicate supplemental drops remain ownership-only, never added stats.
+4. Author build-oriented raid sets with explicit 2/4/6-piece thresholds and scoped
+   effects, applied only from worn pieces. Cosmetic overrides cannot count.
+5. Connect verified encounter rewards and capture acquisition/equip/appearance,
+   save migration and duplicate-drop behavior at wide/compact resolutions.
+
+Regression coverage checks exact existing-band stats, distinct tier identities,
+invalid slots/bands, one added stat per progression step and strictly stronger
+existing lines for every slot. These checks are not catalog or gameplay acceptance.
+
+Validation: 148 core tests, all-target core Clippy, formatting and diff checks pass.
+Native play-profile build also passes; no runtime or visual session was needed for
+this rules-layer foundation.
+
+
+### 2026-10-26 — Verified supplemental Poor identities
+
+The supplemental catalog now resolves all 81 Poor class/slot combinations with
+stable named keys, exact template names and full visual metadata. Four armor
+families share 32 items across appropriate classes; nine weapons complete the slots.
+All 41 distinct templates were checked against the pinned source's Quality 0 rows.
+The key parser rejects unknown classes/slots, wrong tiers and trailing components;
+Raid Epic returns unresolved rather than borrowing ordinary Epic art.
+
+Core coverage checks uniqueness, key round trips, armor class, inventory slot and
+boundary rejection. The existing explicit-data application gear audit now checks
+supplemental displays and readable icon files as well as the old catalog. Details
+and source are in SURVIVORS-GEAR-VISUALS. Supplemental ownership/save/equipment,
+acquisition, UI comparisons, rendered body acceptance and raid identities/sets
+remain open. No screenshot is presented as evidence for an unrendered catalog.
+
+Validation: 149 core tests and 292 visibility-enabled app tests pass with
+`WOW_DATA=wow-data/Data` and `BENILLA_REQUIRE_DATA=1`, including the expanded gear
+display/icon audit. Native build, core/app Clippy, formatting and diff checks pass.
+
+
+### 2026-10-26 — Supplemental ownership persistence
+
+Added a validated, ordered ownership set keyed by supplemental catalog identity.
+`collect(class, key)` only accepts an existing piece of that class and returns true
+once; duplicate grants never create ranks or stacks. Account rows use
+`supplemental <class> <stable-key>`, independent of legacy grid and equipment digits.
+Rows work before or after class records. Unknown keys, wrong classes, malformed IDs
+and trailing fields are ignored. Old saves have an empty supplemental inventory.
+
+Core coverage exercises all 81 keys, wrong-class attempts, duplicates, invalid keys
+and deterministic ordering. Account coverage checks mixed-class ownership, duplicate
+rows, row order and encode/decode persistence while preserving existing equipment,
+clear flags, combat bonuses, collection feats and achievement IDs. Loading does not
+mark the save dirty. Ownership alone does not equip a piece or grant stats.
+
+Remaining: acquisition must use the ownership set and dirty/save transaction; worn
+and appearance references must resolve supplemental identities with slot validation;
+collection/source UI and comparisons need actual native screenshot acceptance. No
+new obtainable gear or visual acceptance is claimed by this persistence checkpoint.
+
+Validation: 150 core and 293 visibility-enabled app tests, native build, core/app
+Clippy, formatting and diff checks pass.
+
+
+### 2026-10-26 — Unified legacy/supplemental loadout resolver
+
+Added a core Loadout wrapper owning legacy choices plus stable supplemental worn
+and appearance references. Choosing a legacy worn piece clears that slot's
+supplemental reference; choosing a supplemental piece clears its legacy worn slot.
+Appearance setters similarly replace only the cosmetic choice. Worn/hidden modes
+and cross-tier cosmetic overrides resolve independently from combat power.
+
+Resolved pieces expose one name, visual and bonus. Resolution rechecks ownership,
+class and slot; unowned or foreign references cannot grant power or visuals. The
+combined bonus sums one item per slot and the existing full-nine-slot set bonus once.
+No raid set behavior is claimed. Tests cover both override directions, empty slots,
+hiding, wrong classes/slots, lost ownership, mixed-set gain/loss and exact stat
+compatibility across all nine classes and six legacy bands.
+
+This wrapper is not yet installed as ClassProgress equipment. Next integration must
+replace its legacy-only equipment consumer paths, persist supplemental worn/look
+references after ownership loads, and route Character/comparison/model consumers
+through the resolver before enabling UI actions. Until then, no runtime supplemental
+equip/appearance feature is claimed. This rules checkpoint has no visual change.
+
+Validation: 153 core tests, native build, all-target core Clippy, formatting and
+diff checks pass. No live UI or model acceptance was run for this core-only change.
+
+### 2026-10-26 — Live supplemental loadouts
+
+The account now adopts the shared loadout resolver for runtime stats, player
+appearance and equipment previews. Stable worn/look save rows are applied after
+ownership and legacy migration; malformed, unowned, foreign-class and wrong-slot
+references are ignored. Existing gear digits and legacy collection completion
+remain unchanged. New legacy drops do not overwrite an occupied supplemental slot.
+
+Owned Poor pieces can be inspected, equipped, unequipped or chosen as an independent
+appearance in Collection. The starter equipment strip resolves their real icons.
+UI invalidation includes supplemental ownership, worn and appearance choices.
+
+Still open: natural Poor acquisition, full catalog-row integration and completion
+semantics, raid-specific identities/acquisition/set builds, and Windows in-map
+appearance acceptance. This checkpoint does not grant Poor items to normal saves.
+
+### 2026-10-26 — Poor tier in the Collection grid
+
+Poor now occupies a nine-slot catalog row ahead of Common, using the same responsive
+cells, dim uncollected art, selection borders and E/L markers as the existing tiers.
+The temporary supplemental button list has been removed. Every class can inspect
+its nine Poor pieces, including unowned entries; ownership gates equip/look actions.
+Right-click equips or unequips owned Poor pieces; Shift-right-click selects their
+appearance, matching the existing grid interaction.
+
+The existing 54-piece count is explicitly labeled Common–Legendary; Poor has its own
+row count and does not silently change collection-achievement or cloak requirements.
+Natural acquisition and raid-specific catalog rows/sets still require implementation.
+
+### 2026-10-26 — Natural Poor gear acquisition
+
+Initial tuning gives ordinary Elwynn/Duskwood enemies a 2% aggregate Poor-drop
+chance, choosing one of nine slots uniformly. Named scheduled sources retain
+their existing table; bosses and elites cannot also roll this starter gear.
+The shared kill handler covers direct damage and periodic kills. Newly owned
+pieces fill empty slots only and use the existing discovery-save flow. Duplicates
+do not add power or re-equip; existing worn gear and independent looks are retained.
+Permanent equipment bonuses still apply at the next run boundary.
+
+Collection details and Drop Tables describe the same source/rate constant.
+Balancing and a supervised Windows in-map acceptance run remain open, as do
+raid-specific acquisition and build sets. No new chest is spawned by Poor drops.
+
+General piece-count and nine-slot Full set achievements include supplemental ownership;
+the class cloak collection feat still requires the 54 Common–Legendary cells.
+
+### Hunter combat companion foundation — 2026-10-26
+
+Hunter runs now summon one Timber Wolf (CreatureDisplayInfo 604), independent of
+purchased pickup companions. The wolf pursues living enemies within an 18-yard
+hero leash, follows the hero otherwise, and uses the existing grounded body sweeps
+and incremental local navigation. Bites require melee reach in three dimensions
+and solid-world line of sight. Damage enters the same Hit pipeline as player
+abilities, including kill credit, loot and the damage meter under “Hunter Pet”.
+
+Initial authored tuning: 8 + 2 × (run level − 1) base damage, global damage
+multiplier, 2-second attack cooldown, no criticals. Extra-target bonuses add nearby melee victims without increasing reach. Movement is
+115% of the greater of hero speed and 7 yards/second. The pet despawns when the hero
+is dead and is included in normal RunEntity cleanup. No save migration is needed.
+
+This is a combat foundation, not completion of Beast Mastery. Pet health, enemy
+threat, recovery, three BM milestones and individual pet talents remain open.
+Enemies still target the hero; this wolf cannot tank. Unreachable targets are not
+attacked through geometry or rescued by teleporting. Live model scale, animation,
+Elwynn pathing, balance and Windows acceptance remain to be checked.
+
+Validation: all 304 data-required Survivors app tests pass, including the wolf's
+spawn/class/death lifecycle, damage-to-kill/loot integration, cooldown, extra-target
+reach, rejection of bites through a solid wall and local model availability. These
+headless checks do not replace live visual or Windows acceptance.
+
+App Clippy, the incremental native build, formatting and diff checks pass.
+
+### Beast Mastery automatic milestones — 2026-10-26
+
+| Points / milestone | Combat wolf effect |
+| --- | --- |
+| 10 · Unleashed Fury | Bite damage ×1.2 |
+| 20 · Frenzy | Bite cooldown ×0.8 (2 → 1.6 seconds) |
+| 30 · Bestial Wrath | Bite damage ×1.5 during the first 10 seconds of each 30-second run-time cycle |
+
+These are automatic Survivors adaptations, separate from individual DBC talent
+training. Frenzy is a passive cooldown benefit, not a critical-strike proc. Wrath
+starts active, ends at 10 seconds, and returns at 30 seconds; menu/pause time does
+not advance its clock. The two damage bonuses multiply (×1.8 during Wrath), then
+scale with the wolf's level and global damage. Shots, traps, Volley and collectible
+pickup companions receive no bonus. No immunity or pet tanking is implied.
+
+All 81 named class/tree milestones now have runtime effects and descriptions.
+This count does not complete the individual talent catalog, pet health/threat,
+visual combat acceptance, or class balance. Hunter pet health/recovery and the
+remaining Beast Mastery individual nodes are still open.
+
+155 core and 305 data-required app tests pass. New tests cover threshold boundaries,
+periodic Wrath activation/expiry, class/tree isolation, unchanged Hunter spells,
+and actual enemy health changes and bite cooldowns through the combat pipeline.
+
+Native menu evidence: all three Beast Mastery descriptions inspected at 1280×720;
+Bestial Wrath remains fully readable after scrolling at 640×720. Captures under
+`docs/images/screenshots/2026-10-26-beast-mastery/` use an empty saved-spec fixture
+and are embedded in CHANGELOG and the existing README talent gallery. They prove
+menu presentation, not in-map pet rendering or balance. Clippy and native build
+pass; a final text-only glyph/unit correction was rebuilt and visually checked.
+
+### Individual Beast Mastery combat training — 2026-10-26
+
+The local 1.12.1 catalog verifies Unleashed Fury 1396 (5 ranks), Ferocity 1393
+(5), Frenzy 1397 (5, requires Ferocity 5), and Bestial Swiftness 1391 (1).
+The existing saved-spec validator continues to enforce DBC row/prerequisite rules.
+
+- Unleashed Fury: +4% pet damage/rank, multiplying the automatic damage milestones.
+- Ferocity: +2 percentage points pet crit/rank, added to global critical chance.
+  Wolf bites now use global critical damage; each extra melee victim rolls separately.
+- Frenzy: 20% proc chance/rank on positive-damage pet criticals for 30% bite haste
+  over 8 seconds. Repeat procs refresh to 8 seconds without stacking. The triggering
+  bite starts the shortened cooldown; an already-running cooldown is not rescaled
+  when the buff expires. Pause/selection screens freeze the timer.
+- Bestial Swiftness: +30% grounded pet movement speed, leaving melee reach and the
+  18-yard hero leash unchanged.
+
+These pet-only nodes replace their temporary per-point global damage fallback;
+Hunter spells and pickup companions gain none of the explicit pet bonuses. Full
+training and damage milestones produce ×2.16 bite damage during Wrath. The automatic
+Frenzy milestone and active proc combine to a 1.6 / 1.3 ≈ 1.231-second bite cooldown.
+Pet health/threat, other pet nodes, live rendering/pathing and balance remain open.
+
+Validation: 157 core and 307 data-required app tests pass. The new checks cover
+rank bounds/reset, composition and isolation, Frenzy proc thresholds and nonstacking
+refresh/expiry, deterministic real critical damage and cooldowns, and actual
+supported movement with/without Bestial Swiftness. No live balance claim is made.
+
+The local DBC coverage audit reports 196/432 individual nodes and 81/81 milestone
+definitions. Clippy, native build, formatting and diff checks pass. Native menu
+screenshots under `docs/images/screenshots/2026-10-26-beast-training/` show the valid
+30-point seeded spec, Frenzy's next-rank chance and Ferocity's maximum-rank value.
+The compact capture verifies the full Frenzy text after scrolling. Screenshots are
+embedded in CHANGELOG and the existing README talent gallery; they do not certify
+in-map animation, live pathing, Windows presentation or combat balance.
+
+### Combat wolf health and recovery — 2026-10-26
+
+The wolf now has 60 + 6 × (run level − 1) maximum health. Endurance Training
+(DBC 1389, five ranks) multiplies that by 1 + 0.03 × rank. Level growth preserves
+health percentage instead of fully healing an injured wolf.
+
+Non-boss enemies choose a living wolf only when it is closer than the hero,
+within four yards, and visible through the solid-world line check. Bosses keep
+attacking the hero. This is proximity targeting, not a complete threat table or
+an Intimidation taunt. Pet-target changes discard stale hero routes. Contact uses
+three-dimensional distance, so actors on different floors cannot melee each other.
+Enemy attack cooldowns remain shared across target switches. Pet damage does not
+consume hero health, shields or trigger hero Thorns.
+
+At zero health the wolf plays death, stops moving/attacking and loses Frenzy.
+After ten seconds of run time it is replaced at the hero's supported position;
+unsafe positions defer recovery. A new entity restores full health and clears
+combat state. No healing, pet armor, resurrection spell, aggro persistence or
+boss taunting is implied. The HUD shows current/max wolf health or recovery time.
+Pause and selection screens do not consume the recovery timer.
+
+Validation: 157 core and 311 data-required app tests pass, including nearby enemy
+damage, boss exclusion, shared cooldown on target switch, no hero Thorns from pet
+damage, defeat/recovery, HUD text, and level-growth health fractions. Clippy,
+formatting and the native play build pass. DBC coverage is 197/432 individual
+talents and 81/81 automatic milestones.
+
+Native menu captures at 1280×720 and 640×720 show Endurance Training's 12 to 15%
+preview in a valid 29-point spec. They are embedded in CHANGELOG and README.
+The in-map HUD, wolf death animation and Windows combat behavior still require
+live acceptance; headless tests and menu screenshots do not establish those.
+
+### Hunter pet sustain — 2026-10-26
+
+Implement DBC nodes 1625 (Improved Revive Pet) and 1388 (Spirit Bond), each with
+two ranks. Recovery is snapshotted from the run's spec when the wolf spawns,
+reducing ten seconds by 20% per rank. Spirit Bond restores 1% of each recipient's
+own maximum health per rank at ten-second living-wolf intervals. Long frames
+retain pulse count and remainder; health caps prevent overhealing. Death clears
+the interval, recovery creates a fresh timer, and the Playing system gate freezes
+it during pauses and selections. These effects replace their placeholder global
+damage contribution. Full pet threat, remaining talents and live acceptance stay
+open.
+
+Validation: 158 core and 312 data-required app tests pass, covering rank bounds,
+class isolation, actual dual healing, interval boundary, overheal caps, defeated
+pet inactivity and six-second trained recovery. Clippy, formatting and native
+build pass. The local DBC audit reports 199/432 individual talents and 81/81
+automatic milestone definitions. Native previews show both new talents in a
+valid 32-point spec, including the full compact Spirit Bond description after
+scrolling. Captures are embedded in CHANGELOG and README; live combat and
+Windows presentation remain unverified by these menu checks.
+
+### Intimidation — 2026-10-26
+
+DBC node 1387 now empowers one nearest wolf bite every 60 seconds: three seconds
+of stun through the normal Hit pipeline, and six seconds of forced pet attention
+for ordinary enemies. Extra targets still take normal bites. Bosses receive the
+existing 0.3 stun multiplier and never forced attention. The cooldown lives on
+Run, so death and recovery cannot refresh it. A taunt references the exact pet
+entity and expires against run time; a dead or replaced wolf invalidates it.
+Forced targets continue using grounded route planning around intervening solids.
+This is an authored Survivors automatic ability, not a complete threat table.
+
+Validation: 158 core and 315 data-required app tests pass. Tests cover one-target
+stun versus extra bite targets, forced attention despite a nearer hero, expiry,
+dead-wolf fallback, boss exclusion and reduced stun, plus cooldown persistence
+through recovery and reactivation at 60 seconds. Clippy and formatting pass.
+The DBC audit reports 200/432 individual talents and 81/81 milestone definitions.
+
+Native play build passed. Captures at 1280×720 and 640×720 show the full
+Intimidation description and aligned tree in a valid 33-point spec. Screenshots
+are embedded in CHANGELOG and the existing README gallery. These menu checks
+do not establish live combat or Windows gameplay acceptance.
+
+### Trained Bestial Wrath — 2026-10-26
+
+DBC capstone 1386 upgrades the existing automatic 30-point Beast Mastery window
+to 18 seconds per 30-second run-time cycle and a 2× bite multiplier. It replaces
+the original 10-second / 1.5× window; it does not stack a second Wrath bonus.
+Unleashed Fury and individual damage training remain multiplicative. The saved
+talent tree enforces its Intimidation prerequisite and 30 earlier points. Core
+execution also requires the 30-point milestone, rejects invalid run times, and
+keeps hero spells and pickup companions unchanged. No immunity is implied.
+
+Validation: 159 core and 316 data-required app tests pass. Core checks cover
+window boundaries, invalid time, rank bounds, reset, milestone gating and hero
+spell isolation; actual bite tests confirm 19.2 damage at 10/17.999 seconds,
+9.6 at 18 seconds, and 19.2 again at 30 seconds with baseline level-one stats.
+Clippy, formatting and native build pass; coverage is 201/432 individual talents
+and 81/81 automatic milestones. Native 1280×720 and 640×720 captures show the
+capstone in a valid 34-point saved spec, embedded in CHANGELOG and README.
+Live combat and Windows behavior remain separate acceptance work.
+
+### Poor Collection fast previews — 2026-10-26
+
+Collection preview requests now accept `piece = poor:<slot>` alongside the six
+legacy qualities. Poor selections resolve through the selected class's actual
+supplemental catalog; all nine visible slots are supported. Applying a legacy
+rarity clears supplemental inspection, while omitting the piece preserves the
+current inspected item. Invalid slots, unsupported rarities and use on another
+page still reject the request. Preview changes do not mutate ownership, worn
+gear, appearances or saves. Reusable wide/compact requests are checked in under
+`docs/ui-previews/collection-poor-hands-*.txt`.
+
+Validation: 317 data-required app tests pass, including all 81 Poor class/slot
+resolutions, omitted-item retention and switching back to legacy inspection.
+Clippy, formatting and native build pass. Native checks verified Poor hands,
+Epic hands, and invalid `poor:off hand` retaining both selection and window size.
+The full compact item detail is reachable by scrolling. The isolated account
+file's hash remained unchanged after quit. Wide/compact captures are embedded
+in CHANGELOG; README's Collection image is refreshed. The three-column wide
+layout follows the Collection intention; the extra Poor row and stacked compact
+layout are intentional extensions. This does not close the full page/platform
+acceptance matrix or add unimplemented Raid Epic content.
+
+### Consistent Collection item details — 2026-10-26
+
+Poor items now use the same proportional bordered item header as Common through
+Legendary: icon beside the name, quality/slot and collection status. This follows
+the Collection intention's compact header hierarchy. Sources precede equipment
+comparisons, comparisons name equip versus unequip, and appearance controls use
+a labeled section with wrapping buttons in the same order as other rarities.
+The Poor row and ordinary-enemy source text remain intentional extensions. No
+item stats, ownership, equipment actions or appearance semantics change.
+
+Validation: all 317 Survivors app tests, scoped Clippy, native play build and
+formatting pass. Native menu fixtures at 1280×720 and 640×720 show readable
+headers, sections and appearance actions. Hidden/This piece toggles update the
+look marker while preserving the equipment marker and +8 health. Screenshots
+are embedded in the changelog and the README Collection cell is refreshed.
+This is menu validation on macOS, not in-world or Windows acceptance.
+
+### Collection secondary navigation — 2026-10-26
+
+Backspace/controller west on a focused Collection item now toggles equipment
+through the same ownership checks as right-click, including Poor items. Talent
+refunds keep their existing shortcut. Purchases, navigation and appearance buttons
+cannot be activated by this secondary gesture. Appearance remains independently
+selected through the Look controls or Shift-right-click. The Collection help
+names the new shortcut. Physical-controller acceptance remains open.
+
+Native checking exposed duplicate inspection actions in the collection grid and
+equipped sidebar. Grid controls now carry a distinct navigation identity so the
+focus is restored to the grid after an equip rebuild, including the layout delay.
+A regression test covers duplicate actions, delayed layout and one-frame requests.
+
+Validation: 319 Survivors app tests, scoped Clippy, native play build, formatting
+and diff checks pass. Native macOS menu checking rejected an unowned Poor item,
+then toggled gloves off/on with Backspace: +8 health disappeared/reappeared,
+the chosen look remained selected, and the final build retained grid focus with
+the equipped sidebar duplicate present. Compact 640×720 help wraps cleanly.
+Screenshots are inline in CHANGELOG and the README Collection image is refreshed.
+No physical controller or Windows runtime claim is made by this checkpoint.
+
+### Collection inspection follows navigation — 2026-10-26
+
+Keyboard/controller focus now updates the Collection inspector for both Poor and
+standard gear. Players can read an item's bonuses, source and ownership before
+activating equip. Moving focus does not dispatch an action or write account state;
+modals still suppress navigation. The existing rebuild regression also checks
+Poor-to-standard inspection and absence of activation/refund requests.
+
+Validation: all 319 Survivors app tests pass; scoped Clippy passes after an
+expression-only match-guard cleanup; native play build and formatting pass.
+Native 1280×720 navigation showed Poor shoulders, Common shoulders, then an owned
+Poor helm with the matching descriptions, sources and controls. Equipped gloves
+and their +8 health stayed unchanged; the account file SHA-256 before launch and
+after quitting matched. Screenshots are inline in CHANGELOG and the README
+Collection image is refreshed. Physical controller and Windows acceptance remain open.
+
+### Stable starter backdrop — 2026-10-26
+
+The main-menu intention uses a warm distant mountain scene. The previous live
+orbit around the hero put nearby trees/buildings behind the interface and changed
+composition while reading. Starter/Armory now uses an original procedural sunset
+and layered mountain silhouettes, drawn in normalized UI coordinates. It is a
+stylized interpretation, not extracted art or a screenshot of an authored zone.
+The legacy body-selection screen retains its world preview; gameplay and camera
+collision behavior are unchanged. Menu visibility owns the backdrop, so it does
+not cover gameplay or level-up previews. Outdoor zone illustrations remain open.
+
+Validation: scoped Clippy, native play build, formatting and diff checks pass.
+Native macOS 1280×720 and 640×720 previews confirm proportional coverage and readable
+panels. Zone selection works; the Character portrait remains visible; switching to
+the legacy Look page restores the live world and returning restores the backdrop.
+The runtime log has no shader errors. Three screenshots accompany CHANGELOG and the
+README starter/character images are refreshed. No gameplay, Windows or full test-suite
+acceptance is claimed for this presentation-only checkpoint.
+
+### Pre-run zone briefings — 2026-10-26
+
+Each of the twelve campaign zones now has an authored title and briefing, separate
+from the map's victory text. The starter shows the title, threat and encounter
+roster for the selected zone, while preserving lock reasons and the schedule-derived
+final fight under Enter. Battleground briefings describe faction-themed survival
+assaults; Blackrock explicitly remains in preparation. Non-campaign selections no
+longer display victory text before play either. This adds presentation copy, not
+zone readiness, bosses, loot or progression changes.
+
+Validation: 159 core tests, scoped app Clippy, native play build and formatting pass.
+Native 1280×720 and 640×720 screenshots verify briefing wrapping and Duskwood lock
+messaging; no run was entered. CHANGELOG embeds all three captures and README
+refreshes the Starter gallery. Windows and gameplay acceptance remain open.
+
+### Starter campaign stage indicators — 2026-10-26
+
+The intention reference's twelve-marker zone headers now show campaign order:
+one lit marker for Elwynn through twelve for Naxxramas. A visible “Stage X of 12”
+label disambiguates order from clears, unlocks or selectable difficulty. Headers
+wrap at narrow widths and keep existing lock reasons and selected-zone briefings.
+This does not change readiness, progression requirements or encounter tuning.
+
+Native review exposed that wide starter panels had scroll overflow but no wheel
+handler components, leaving later zone rows clipped. All three wide columns now
+use the shared wheel handler and keep separate in-session offsets through page
+rebuilds. Compact starter scrolling retains its own offset. These are view offsets,
+not saved character/account changes.
+
+Validation: 319 app tests including independent scroll memory, scoped app Clippy,
+native play build and formatting pass. Native 1280/1100/640×720 checks cover stage
+marker clicks, late-zone selection without returning to the top, existing lock
+messaging and independent hero scrolling. Four screenshots are embedded in
+CHANGELOG; README Starter is refreshed. Windows acceptance remains open.
+
+### Visible starter scrollbars — 2026-10-26
+
+Wide starter columns now show fixed gold scrollbars only when their content
+exceeds the viewport. Thumb length reflects the visible fraction; dragging keeps
+the initial grab offset, and clicking the track centers the thumb there within
+scroll bounds. The ordered window-event stream preserves complete short drags
+within one frame and releases on mouse-up, focus loss or cursor exit. Existing
+wheel scrolling and independent column memory remain in use. Unchanged geometry
+and colors are not rewritten while idle. Compact mode retains its existing single
+wheel-scroll surface; a compact scrollbar and wider Armory adoption remain open.
+
+Validation: 321 app tests, scoped Clippy, native build and formatting pass. Native 1280×720
+and 1100×720 checks cover bidirectional dragging, track clicks, hidden fitted-column
+bars and independent hero scrolling. Windows and compact scrollbar acceptance
+remain open.
+Two captures are embedded in CHANGELOG and the README Starter gallery is refreshed.
+
+### Compact starter scrollbar — 2026-10-26
+
+The compact starter now uses a fixed scrollbar beside its single stacked-panel
+viewport, with a reserved gutter so it does not cover content. Wide columns keep
+independent scrollbars and offsets. Native 640×720 checks verify dragging to both
+ends, selecting Naxxramas with its existing lock message, and preserving compact
+scroll position through a 1280×720 transition and back. Scoped Clippy, native build
+and formatting pass; the unchanged input handler retains the prior 321-test
+checkpoint, without claiming a fresh test-suite run. Two screenshots are embedded
+in CHANGELOG and linked from the README gallery. Other Armory scrollbars and
+Windows acceptance remain open.
+
+### 2026-10-26 — Armory scrollbars
+
+Extended the shared framed column to attach a fixed scrollbar sibling and reserve
+a right gutter. This covers wide Collection, Drop Tables, Character and Codex.
+Compact Collection/Drop Tables/Character now share a viewport wrapper with the
+same scrollbar and retain their existing page-specific scroll positions.
+
+Native menu validation at 1280×720 and 640×720 confirms wide Collection equipment
+and compact Collection bottom reachability, compact Drop Tables detail access,
+compact Character look controls, and fitted Codex columns without unnecessary bars.
+Three inline CHANGELOG captures document the checkpoint; README links the compact
+examples. Clippy, play build (24 seconds), formatting and diff checks pass. No
+input logic changed and no app-suite rerun was needed after the prior 321-test pass.
+Wide-column offsets still reset on rebuild; full resolution/controller/Windows
+acceptance and other remaining interface requirements are not closed by this work.
+
+### 2026-10-26 — Independent Armory column positions
+
+Resolved the wide-column reset noted in the previous checkpoint. Collection (three),
+Drop Tables (four), Character (three) and Codex (two) columns restore independent
+in-session positions through the existing pre-rebuild memory system. Compact page
+offsets remain separate; existing post-layout clamping handles shorter content.
+
+322 app tests pass, including rebuilding a scrolled column without overwriting the
+compact offset. Native macOS Collection verification selected Poor gloves after
+scrolling equipment to the bottom, then switched to Drop Tables and back; the
+equipment offset survived both rebuilds. Screenshot embedded in CHANGELOG and
+README Collection refreshed. App Clippy, native build, formatting and diff checks
+pass. This is menu-state evidence, not Windows/controller or complete UI acceptance.
+
+### 2026-10-26 — Compact Codex reading layout
+
+Compared the live 640×720 Codex against the wide intention reference. The fixed
+74/26 horizontal split squeezed descriptions into a narrow sidebar. Under the
+existing 1100-logical-pixel compact threshold, Codex now uses a 62/38 vertical split,
+keeping both independently scrollable panels present. Compact detail art sits beside
+the text; wide presentation remains side-by-side. Added Codex to the responsive
+rebuild signature and allowed shared columns to shrink vertically.
+
+Native macOS checks cover Arcane Shot's legendary description, independent catalog
+dragging to the final shared rows, Eye of the Beast selection and 640→1280→640 resizing
+with selected details retained. Three inline changelog screenshots and the README
+Codex preview record this intentional responsive departure from the wide reference.
+Clippy, native build, formatting and diff checks pass. No new gameplay or discovery
+logic changed and the app suite was not rerun. Catalog expansion and full resolution,
+controller and Windows acceptance remain required.
+
+### 2026-10-26 — Holy Nova individual talent
+
+Implemented Priest Holy node 442 as an authored Survivors conversion: +5% maximum
+health healed once per successful Holy Nova cast, additive with the existing Holy
+30-point milestone and then multiplied by Spiritual Healing. The talent does not
+grant the run spell, change damage/lifesteal or multiply healing by targets hit.
+
+160 core tests and 322 app tests pass. Coverage includes rank caps, other-class and
+other-spell isolation, removing ranks, milestone stacking, empty casts and multiple
+targets through the real cast system. Native macOS 1280×720 preview confirms buying
+the talent, the persisted rank and readable supported description. Screenshot is
+embedded in CHANGELOG and README. Clippy/native build/fmt pass. The DBC audit now
+reports 202/432 individual definitions and 81/81 milestones; remaining talents and
+Windows/live balance acceptance are still open.
+
+### 2026-10-26 — Totemic Mastery reach
+
+Shaman Restoration node 582 (one rank, third row, no prerequisite in the local
+1.12.1 DBC) now extends Searing Totem attack range and Magma Totem pulse radius by
+20%. This is an explicit Survivors conversion of totem reach, not a claim to
+reproduce vanilla buff-totem behavior. It changes neither healing nor damage,
+duration, cooldown, or target count. Existing totems retain their deployment snapshot.
+
+Rules coverage checks all classes, rank capping, milestone composition, unrelated
+spells and reset. The periodic totem integration regression places two enemies at
+90%, 110% and 130% of the original distance and checks both untrained and trained
+behavior with +3 targets: Searing attacks one; Magma pulses around its single location.
+
+Validation: 161 core and 323 app tests, Clippy, native play build, formatting and
+diff checks pass. Native macOS 1280×720 preview confirms purchase, persisted rank
+and readable details. Screenshot embedded in CHANGELOG and README refreshed.
+The DBC audit reports 203/432 individual definitions and 81/81 milestones. This
+checkpoint does not establish live balance or Windows combat acceptance.
+
+### 2026-10-26 — Hero selection in fast UI previews
+
+Added optional positive saved `hero` IDs to preview requests. Selection is staged
+until hero, talent-class membership and selected-profile validation succeed, then
+applied with page/size. Omission retains manual selection; same-hero requests retain
+appearance cache and version. Class switches clear stale look caches while retaining
+map/stage. Preview selection never calls the normal saved-menu-pick writer.
+
+324 app tests pass, including staging, unknown IDs, malformed/duplicate fields,
+omission, version/cache handling and world preservation. Native macOS validation
+opened Priest/Holy Nova directly at 1280×720, rejected Shaman/Holy Nova plus a resize
+without changing the view, then switched to Shaman/Totemic Mastery at 640×720 and
+scrolled to details. No menu-pick save was created. Two inline CHANGELOG captures
+and a refreshed README compact preview record the unchanged reference-based layout.
+Clippy, native build, formatting and diff checks pass. This improves the iteration
+workflow; remaining interface, content and Windows acceptance are still open.
+
+### 2026-10-26 — Talent scrollbar
+
+Compared against the three illustrated trees plus detail column in
+`intentions/survivors_talent_tab.png`. The existing responsive wrap remains; its
+single scroll surface now has a fixed sibling scrollbar and reserved right gutter.
+The existing per-hero/spec ScrollKey remains on the viewport. Fitted pages hide
+the scrollbar; the addition makes compact overflow visible and draggable.
+
+Native macOS validation dragged to the bottom at 640×720, refunded Totemic Mastery
+without losing the lower view, and checked a fitted Priest layout at 1280×720.
+Two inline CHANGELOG screenshots and refreshed README previews record the result.
+Clippy, incremental native build (24 seconds), formatting and diff checks pass.
+No input/rules changes; app tests were not rerun. Windows/controller acceptance
+remains open. Follow-ups observed during validation: preview hero switches retain
+the previous hero's action note, and talent background tile seams remain visible
+at some fractional display sizes; both need further interface work.
+
+### 2026-10-26 — Single-surface talent artwork
+
+The previous checkpoint exposed lines where four independently scaled talent-art
+quads met. Compose their 300×331 painted rectangle before upload, discarding the
+stock 320×384 canvas padding, then scale one image in the existing proportional
+panel. A per-tree runtime cache reuses the result across page rebuilds. Original
+assets remain local; no extracted game textures are added to the repository.
+
+The compositor regression checks every output pixel, including both tile joins,
+and rejects missing, undersized or malformed decoded data. Talent-node coordinates,
+art opacity and the existing aspect ratio are unchanged.
+
+Validation: all 325 app tests, Clippy, native build, formatting and diff checks pass.
+Native macOS before/after comparison at the same wide Priest and compact Shaman
+sizes confirms the observed lines at tile boundaries are gone. Screenshots are
+embedded in CHANGELOG and the README wide talent preview is refreshed. Layout
+continues to follow the intention's illustrated panels; no new proportional change
+was made. Other classes/resolutions and Windows remain unverified. The separate
+stale preview action-note follow-up remains open.
+
+### 2026-10-26 — Preview action-message ownership
+
+Resolved the stale-note follow-up: after full request validation, changing hero or
+class clears the previous action message. Same-hero reloads retain it; rejected
+requests do not mutate it. Native macOS 1280×720 checks bought Totemic Mastery,
+reloaded Shaman, rejected Priest with the Shaman talent ID, then switched to valid
+Priest/Holy Nova. The note persisted for the first two requests and cleared only
+on the valid hero switch. Inline screenshots document both states. Clippy, native
+build, formatting and diff checks pass; no app-suite rerun for this small display
+correction. Layout, account data and gameplay rules are unchanged.
+
+### 2026-10-26 — Scoped spell-efficiency talents
+
+Efficiency (Hunter 1342, five ranks), Mental Agility (Priest 341, five ranks) and
+Frost Channeling (Mage 66, three ranks) now use the existing multiplicative spell
+cooldown path. Their descriptions explicitly label the mana-cost conversion and
+spell scope. Rank caps and identities match local DBC data. Tests cover all classes,
+reset, milestone stacking and existing spell training, with damage, targeting and
+area geometry preserved. Coverage is 206/432 individual talents and 81/81 milestones;
+226 individual talents remain without definitions.
+
+Validation: 162 core and 326 app tests, Clippy, native build, formatting and diff
+checks pass. The initial aggregate Priest check needed its expected cooldowns
+updated for Mental Agility. Native macOS 1280×720 purchases verified final ranks
+5/5, 5/5 and 3/3, saved to an isolated fixture. Three inline changelog images record
+the existing reference-based layout. Windows and live balance remain unverified.
+
+### 2026-10-26 — Inspectable ordinary-enemy drop catalog
+
+The Poor acquisition summary now leads to nine named, icon-backed rows in each
+supported starter zone. Selection uses the existing supplemental inspector, owned
+item equipment controls and independent looks. Per-slot odds derive from the shared
+2% aggregate chance divided over nine slots; scheduled encounter rows stay first.
+This extends the intention's list/detail layout to the supplemental catalog.
+
+All 326 app tests, Clippy and native build pass. The zone/layout regression now
+checks supplemental row identities and absence outside the two supported zones.
+Native macOS 1280×720 validation selected owned gloves, equipped them, confirmed
+saved state, then inspected an unowned weapon with no equip action. Compact
+640×720 scrolling and scrollbar dragging expose the new rows. CHANGELOG embeds
+both screenshots and README refreshes Drop Tables. Windows/controller and actual
+in-world drop acceptance are not established by this menu checkpoint.
+
+### 2026-10-26 — Direct drop-table preview controls
+
+Preview requests now accept `piece` on Drop Tables and an optional named `zone`
+only on that page. Names match the catalog case-insensitively; omission preserves
+manual zone selection, and malformed/duplicate/foreign-page keys reject the whole
+request. Inspecting an item does not require it to drop in the browsed zone, matching
+the normal shared inspector. Preview selection leaves gameplay map/stage unchanged.
+
+327 app tests, Clippy and native build pass. Regression coverage visits all zone
+names, Poor-to-legacy item transitions, retained zones and invalid inputs. Native
+macOS validation launched Duskwood/Poor gloves at 1280×720, rejected an unknown
+zone without resizing, then reloaded Elwynn/Common helm at 640×720 and scrolled to
+its inspector. Two inline changelog screenshots and reusable presets document the
+workflow. No layout or loot tuning change; Windows validation remains open.
+
+### 2026-10-26 — Collision-free hero ID allocation
+
+Both named creation and automatic starter creation previously trusted the saved
+`next` counter, so a missing/stale value could duplicate an existing hero ID and
+misdirect later progression or appearance updates. A shared allocator now selects
+an unused positive ID and wraps the maximum counter safely. Existing hero IDs and
+references remain unchanged; pre-existing duplicate IDs are not migrated.
+
+328 app tests, Clippy, native macOS build, formatting and diff checks pass. The new
+regression loads missing/zero/stale/maximum counters, creates both kinds of hero,
+updates the new heroes independently, then serializes/reloads and checks all four
+heroes' identities, XP and bodies. This is persistence evidence, not live UI or
+Windows acceptance; no visual change warrants a new screenshot.
+
+
+### Warlock training checkpoint — 2026-10-26
+
+Amplify Curse, Shadowburn and Improved Healthstone now have explicit Survivors
+adaptations: scoped damage increases and additive Death Coil healing. Spell acquisition
+remains separate. Rank caps, class/spell scope, milestone stacking and unchanged cast
+fields have core coverage; app parameter tests cover ranked spells. All 163 core and
+328 app tests, Clippy and the native build pass. Native menu purchases persist all
+three ranks, with inline changelog captures. Coverage is 209/432 individual talents
+and 81/81 milestones; 223 individual nodes and live balance acceptance remain open.
+
+
+### Account load protection — 2026-10-26
+
+Read/parse failures no longer produce a writable empty replacement account. The
+session preserves the original, refuses saves and run entry, and displays recovery
+instructions throughout Armory pages. Missing files retain first-run behavior.
+327 default-feature app tests, visibility-enabled Clippy and native build pass;
+regressions cover malformed text, invalid UTF-8, unreadable directory paths, missing
+files, and valid reload. Native wide/compact captures verify the notice and refused
+entry; the damaged fixture is byte-identical after shutdown. Recovery instructions
+are in SURVIVORS-DEVELOPMENT. Automatic repair, full semantic validation of legacy
+rows and Windows acceptance remain outside this checkpoint.
+
+
+### Paladin seal training — 2026-10-26
+
+Benediction and Improved Seal of Righteousness now train Judgement's cooldown and
+damage respectively, with explicit Survivors conversions. Core tests cover all
+classes, rank caps, stacking and unchanged cast fields; app tests verify rank 1/5
+spell parameters. All 164 core and 330 app tests, Clippy and native build pass.
+Native purchases persist both ranks, with inline changelog screenshots. The current
+coverage table above is refreshed from the audit: 211/432 individual talents,
+81/81 milestones. The remaining 221 individual talents, balance and Windows
+acceptance are still required; counts alone do not establish combat completion.
+
+
+### Saved hero identity validation — 2026-10-26
+
+Duplicate loaded hero IDs now fail into the existing protected recovery session,
+including same-class and cross-class duplicates. IDs are not reassigned because
+saved body/spec references cannot distinguish the original owners. The source file
+is preserved, saving and run entry are blocked, and distinct legacy IDs still load.
+330 app tests, Clippy and native build pass. New temporary-file cases verify original
+bytes and refusal behavior; existing round-trip tests cover separate heroes/specs.
+Automatic repair remains open; this is a persistence change with no new layout.
+
+
+### Imported reward accounting — 2026-10-26
+
+Loaded reset counts now respect the two-reset limit. Impossible perk subtotals
+(greater than total spent) enter protected account recovery; valid historical costs
+are not recalculated. 331 app tests, Clippy and native build pass. Tests exercise
+reset counts 0/1/2/3/255, preservation of companion investment, repeat-refund refusal,
+round trips, row ordering and original-file preservation on impossible accounting.
+This validates accounting boundaries, not authenticity of manually edited offline
+achievement records. Existing recovery UI is unchanged.
+
+
+### Inline talent comparisons — 2026-10-26
+
+Supported linear descriptions now substitute current » next contribution inline,
+remove the per-rank suffix, and use one unit. Maximum rank shows only the total.
+Authored spell scope and caveats remain intact. Ambiguous/compound effects retain
+explicit breakdowns rather than substituting an uncertain number. 165 core and
+331 app tests, Clippy and native build pass. Focus/preview regressions verify the
+new wording; native wide/compact screenshots show comparison and maximum rank,
+with purchase/save persistence confirmed. Compound formatting and Windows remain
+open. No talent values, purchase rules or tree geometry changed.
+
+
+### Browser compilation checkpoint — 2026-10-26
+
+At implementation commit `acfdae2`, the current wasm target passes
+`cargo check --target wasm32-unknown-unknown -p wenilla --no-default-features --features webgpu`.
+Five warnings remain: BodyPartsDesc, ATTACH_SLOT_NAMES, CoverInput and ground_derived
+unused imports, plus the companions Rune dead-code expectation. All seven
+`node --test web/tests/*.test.mjs` startup/journal regressions pass using bundled
+Node; system Homebrew Node cannot launch due to its missing llhttp 9.3 dylib.
+No system repair was attempted. Browser render/interaction and storage recovery
+acceptance remain unverified by these checks.
+
+The reward review also confirms a functional gap: Rune-hound is purchasable while
+its reward description says rune spawning is unavailable. Complete battleground
+rune spawning and collection, or make the unavailable purchase explicitly disabled
+until implemented; do not count its present reach helper as a functioning reward.
+
+
+### Companion pickup ownership — 2026-10-27
+
+The real collection loop now marks a pickup taken before queuing its despawn.
+Without this, the second companion could bank the same pickup while commands were
+still deferred. The ECS regression overlaps both pets with coins/wisps in both
+spawn orders and verifies one sniffer bonus, one XP award, healing exclusion and
+no repeat payout next update. All 332 app tests, Clippy and native build pass. This is accounting evidence, not live Windows companion
+navigation acceptance. Rune-hound spawning/effects remain unfinished.
+
+
+### Hero/companion collection integration — 2026-10-27
+
+A chained ECS regression now exercises companions::herd followed by collect_gems,
+matching production ordering and deferred despawn behavior. It checks both living
+and dead heroes, hero-pulled versus unclaimed coins, correct 10/11 gold ownership,
+and no duplicate payout on a second update. All 333 app tests and Clippy pass.
+Runtime code is unchanged, so the native build was not repeated. These checks do
+not replace live pickup/navigation acceptance or finish Rune-hound behavior.
+
+
+### Rune-hound purchase safeguard — 2026-10-27
+
+Until battleground runes have implemented spawning/effects, Rune-hound cannot be
+purchased or staged in a reward draft. Its card states Unavailable and preserves
+saved instincts. This is an interim safeguard, not completion of the reward.
+335 app tests, Clippy and native build pass; a funded native preview confirms
+clicking the disabled control spends nothing and creates no pending purchase.
+Inline changelog evidence is included. Rune design/spawning, live collection and
+Windows acceptance remain open.
+
+
+### Totem deployment healing integration — 2026-10-27
+
+Exercise the production cast_abilities and tick_areas systems for Searing and
+Magma Totem rather than calling the healing helper directly. The matrix covers
+Restoration points below/at/above the unlock, ranks 0/1/5/255, no targets, one or
+three targets with +target gear, cooldown rejection, a dead hero and health caps.
+A successful deployment creates one totem and heals once; a subsequent cast
+update and 25 area updates cannot repeat that healing. This supplies integration
+evidence for Restorative Totems and Purification, without changing their rules
+or claiming Windows combat or balance acceptance.
+
+Validation: all 336 app tests, app Clippy, formatting and diff checks pass.
+Runtime code is unchanged; no native rebuild or visual checkpoint is claimed.
+
+
+### Shaman survival talents — 2026-10-27
+
+Audited DBC identities/rank caps: Improved Ghost Wolf (605, two ranks) grants
+5% movement speed per rank without requiring a form; Elemental Warding (1640,
+three ranks) grants two percentage points of hero damage reduction per rank.
+These explicit Survivors conversions use the existing movement/mitigation bonus
+pipeline. Class-scoping, capped ranks, reset and inline descriptions are tested.
+
+166 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+The install audit reports 213/432 matching definitions and 81/81 milestones;
+219 individual talent definitions remain, alongside broader acceptance work.
+Native 1280×720 preview purchases reached 2/2 and 3/3 respectively and both ranks
+were written to the isolated account. CHANGELOG embeds both inline-upgrade
+screenshots. The intention's illustrated tree layout is retained; this does not
+establish live combat balance, compact layout or Windows acceptance.
+
+
+### Inline percentage-point descriptions — 2026-10-27
+
+Extend linear talent descriptions to authored percentage-point units as well as
+percent signs. Require a unique exact numeric/unit token across both notations;
+reject ambiguous matches and retain the existing compound-effect fallback.
+Use the next displayed value to select point/points, show the unit once, and
+remove the next-value arrow at the rank cap. Numeric boundaries prevent a one-point
+value from replacing the suffix of an eleven-point value. Mechanics do not change.
+
+167 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+Native 1280×720 Thundering Strikes preview shows 0 » 1 percentage point and then
+1 » 2 percentage points after purchase, with rank one saved to the isolated
+account. Both screenshots are embedded in CHANGELOG. The intention-based layout
+is retained; compound inline formatting and Windows acceptance remain open.
+
+
+### Talent value-only coloring — 2026-10-27
+
+Linear descriptions expose the exact byte range of their value/arrow/unit. The
+Armory renders that range green and the surrounding text white, copying the
+parent font into each span. Cached content avoids recreating child spans every
+frame; changing to a milestone or unsupported node removes stale spans.
+Controller and direct-preview tests cover selection, colors, font preservation,
+unchanged-span reuse and cleanup. Compound effects and milestone coloring remain
+separate follow-up work; this checkpoint does not change gameplay rules.
+
+167 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+The native visual check caught default-font inheritance, corrected before the
+final captures. Verified 1280×720 and scrolled 640×720 screenshots are embedded in
+CHANGELOG and refreshed in README. The intention's illustrated trees and separate
+details panel are retained. Windows and full interface acceptance remain open.
+
+
+### Combined damage/critical-chance descriptions — 2026-10-27
+
+The rich-description API now returns ordered value ranges. SpellDamageAndCrit
+supports exactly one percent damage token and one percentage-point critical token,
+sharing the authored rank scale. Improved Moonfire renders both current/next
+comparisons inline; maximum rank renders both totals. Duplicate or mismatched
+tokens still fall back rather than guessing. Remove the per-rank phrase before
+computing ranges so it cannot displace later highlights. The Armory uses separate
+green spans with white explanatory text and retains the shared font.
+
+167 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+Core checks cover both ranges, capped totals and ambiguity; the controller test
+covers switching from a single value to two values and cleanup on a milestone.
+Native 1280×720 and scrolled 640×720 previews verify both values before/after a
+rank-two purchase, including saved rank persistence. CHANGELOG embeds both captures
+and README previews are refreshed. Other compound effects, the remaining talent
+catalog, live balance and Windows acceptance remain unfinished.
+
+
+### Shaman Flurry — 2026-10-27
+
+Audited node 602 (five ranks) grants 5% haste per rank for three seconds after a
+positive finite direct critical from Lightning Bolt, Chain Lightning or a shock.
+Totems, Lightning Shield, periodic ticks and foreign spells cannot trigger it.
+This explicit Survivors spell-critical conversion shares the Warrior timer and
+HUD status, with class-specific eligible sources. Refresh does not stack; expiry
+removes the bonus and a dead hero cannot activate it. Existing haste rules apply
+to subsequent cast cooldowns, not cooldowns already running. No save-format change.
+Flurry's linear haste value now uses the inline-description presentation too.
+
+168 core and 336 app tests, Clippy, native build, formatting and diff checks pass.
+Core coverage includes all classes, rank caps, invalid/zero/noncritical hits,
+source exclusions and reset. The runtime cooldown/timer regression now covers
+both Warrior and Shaman, including refresh, expiry and death. The install audit
+reports 214/432 individual definitions and 81/81 milestone descriptions. Native
+1280×720 inspection and a 4→5 purchase confirm the authored rules and saved rank;
+CHANGELOG embeds the screenshot. Live combat balance, dedicated buff art, Windows
+acceptance and the remaining 218 individual talent definitions are unfinished.
+
+
+### Flurry damage-resolution integration — 2026-10-27
+
+A scheduled production apply_hits regression now covers both classes, trained and
+untrained states, eligible/foreign sources, direct critical/noncritical damage,
+periodic damage, dead heroes and dead targets. It verifies actual target health
+changes alongside activation, two same-update criticals refreshing one timer,
+and a second scheduled update not replaying consumed hits. Shaman HUD assertions
+cover the displayed haste/time and removal on expiry. This supplements the prior
+core source/rank checks and runtime cooldown/timer tests.
+
+All 337 app tests, Clippy, formatting and diff checks pass. Runtime code is
+unchanged, so no native rebuild or new visual checkpoint is claimed. These tests
+do not replace live Windows combat or balance acceptance.
+
+### 2026-10-27 — Draft implementation review
+
+Opened [PR #1](https://github.com/erjdev/azeroth-survivors-re/pull/1) against this
+repository's main branch after verifying there was no open PR and the local branch
+matched origin. The draft explicitly retains the incomplete talent/content, UI
+and Windows acceptance work; it is not a merge-readiness claim. At b4951ff, the
+wasm32 wenilla check passes (five warnings), and all 337 visibility-enabled app
+tests pass with checkout data. Existing screenshots remain current because this
+checkpoint changes no UI. GitHub CI must be assessed independently.
+
+### 2026-10-27 — Totemic Mastery deployment integration
+
+Replaced the range fixture's manually constructed totem with production
+cast_abilities deployment for a Shaman owning Searing/Magma. The test checks
+exactly one deployment, placement, source/cast identity, pulse mode, damage,
+range/radius, lifetime and consumed cooldown. It positions enemies relative to
+the deployed totem and advances time through its first attack, covering baseline,
+extended-only and unreachable distances with and without training. Extra-target
+gear cannot duplicate a totem or turn Searing into a multi-target attack; Magma
+hits both enemies inside its single area. All 337 app tests, app Clippy, formatting
+and diff checks pass. No runtime/UI change or new screenshot; this does not
+establish live Windows combat or balance acceptance.
+
+### 2026-10-27 — Raid armor identity and set integration
+
+Added 72 named Raid Epic armor variants (eight armor slots per class), reusing
+verified ordinary Epic item visuals while keeping distinct stable ownership keys.
+No raid weapon is invented. The six-stat tier budget now reaches saved equipment
+and account bonuses. Class-specific 2/4/6 thresholds are documented in
+SURVIVORS.md and applied cumulatively from distinct owned, worn raid armor only.
+Ordinary Epic replacement removes membership even when the visual is identical;
+cosmetics, duplicate ownership and legacy collection cells remain independent.
+
+The item inspector identifies Raid Epic, shows cumulative set effects, explicitly
+marks acquisition pending, and includes gained/lost set effects in equipment
+comparisons. Native 1280×720 and 640×720 synthetic Warrior checks confirm readable
+details, proper Epic color, six-to-five-to-six equip behavior (43→18→43 percent
+critical-damage bonus), and saved restoration of all six choices. Hidden helm
+appearance remains independent. CHANGELOG embeds all four captures; README
+refreshes Character. 171 core and 338 app tests, core all-target/app library Clippy,
+native build, formatting and diff checks pass. An unused Warlock test import
+exposed by the broader core lint check was removed.
+
+Next: dedicated raid Collection browsing, current set-count/active-threshold
+presentation, explicit supplemental completion rules, and verified encounter
+acquisition. No normal run can currently acquire these variants. Other class
+bodies, live combat balance, Windows and full content acceptance remain open.
+
+### 2026-10-27 — Dedicated raid Collection row
+
+Added the eight armor cells between ordinary Epic and PvP, preserving slot-column
+alignment with an inert main-hand spacer. Raid ownership has its own count out of
+eight; legacy Common–Legendary progress still counts 54 cells. All 72 raid variants
+are inspectable even without ownership, with acquisition explicitly pending.
+The inspector reads the same owned/worn count used by combat set bonuses and
+labels each cumulative threshold Active/Inactive, coloring inactive effects dimly.
+
+171 core tests and 339 app tests pass, including all-class wide/compact row
+construction and inspector thresholds at 0/1/2/3/4/5/6/8 equipped pieces while all
+cosmetics are owned. App Clippy, native build, formatting and diff checks pass.
+Native synthetic Warrior validation at 1280×720 and 640×720 checks row alignment,
+scrolling and unowned gloves without equip controls; right-click removal and
+restoration changes 6→5→6 equipped, the sixth threshold and stats together. The
+saved loadout retains six pieces. CHANGELOG embeds three captures and README
+refreshes Collection. Reference: intentions/survivors_collection_tab.png.
+
+Raid encounter acquisition and supplemental completion rewards remain open.
+No natural drop, full class/race appearance matrix, physical controller or Windows
+acceptance is claimed.
+
+### 2026-10-27 — Direct Raid Epic preview controls
+
+Collection preview requests accept `piece=raid epic:<armor slot>` for the selected
+class. Added wide/compact hands presets and documented the syntax. Unsupported
+weapons and Drop Tables requests fail atomically; ordinary Epic switching clears
+supplemental inspection. All nine classes and eight armor slots are covered.
+340 app tests, app Clippy and native build pass. Native unowned Mage inspection at
+1280×720/640×720 confirms readable details, switching and invalid-request rejection;
+the account file remains byte-identical after closing. CHANGELOG embeds both
+captures. Raid acquisition, completion rewards and Windows acceptance remain open.
+
+### 2026-10-27 — Supplemental collection reward contract
+
+Raid ownership follows general distinct-piece achievements and same-class nine-slot
+Full set rules. Eight raid armor pieces alone cannot complete Full set; a same-class
+weapon can. Legacy Legendary and 54-cell cloak completion remain independent. No
+separate raid-completion point reward is currently defined. Two account integration
+regressions cover all nine classes, every raid identity, duplicate collection,
+cosmetic choices, achievement thresholds, wrong-class weapons, and save/reload.
+All 342 app tests pass. No runtime/UI changes or new visual capture. Raid encounter
+acquisition remains the next raid-content gap; broader talents, interface, zones
+and Windows acceptance remain unfinished.
+
+### 2026-10-27 — Shaman Enhancement stat training
+
+Anticipation (601, five ranks) now grants 1% hero damage reduction per rank as an
+explicit dodge conversion. Weapon Mastery (1643, five ranks) grants 2% hero damage
+per rank including spells and totems. Both replace their generic fallback damage;
+Anticipation adds to Elemental Warding. Shared hero stats carry the effects into
+runs without altering target counts, cooldowns or spell-specific multipliers.
+Core regressions cover rank caps, class isolation, reset and stacking, with exact
+inline next-rank descriptions. 172 core and 342 app tests, core all-target Clippy,
+identity audit and native build pass. Audit now matches 216/432 individual nodes.
+Native macOS 1280×720 Weapon Mastery and 640×720 Anticipation captures confirm
+readable green values against the intentions talent-page layout; both are embedded
+in CHANGELOG. Live balance, Windows acceptance and 216 individual nodes remain open.
+
+### 2026-10-27 — Shaman saved-spec stat integration
+
+Added account-to-run regression coverage for the legal 20-point Enhancement base
+and its 29-point Anticipation/Weapon Mastery extension. The selected hero's saved
+spec supplies +8% damage and +5% reduction through Run::stats, without changing
+targets, cooldown or the existing multistrike milestone. A second same-class hero
+and foreign class cannot inherit the bonuses. Save/reload, spec switching and
+reset remove/restore the appropriate stats, while a previously captured run stays
+unchanged. This does not replace live combat or Windows acceptance. No UI change;
+the previous milestone's screenshots remain current.
+
+All 343 visibility-enabled app tests pass for this checkpoint.
+
+### 2026-10-27 — Restoration deployment cadence
+
+Improved Healing Wave (586) shortens Searing/Magma deployment cooldown by 4% per
+rank; Tidal Focus (593) shortens it by 2% per rank. Both have five ranks, multiply
+other cooldown training, and replace fallback damage. These are explicit Survivors
+healing cast-time/mana conversions: no healing spell or mana system is invented.
+The existing 10-point Restoration milestone still gates deployment healing.
+Neither talent changes healing per deployment, pulse rate, damage, duration,
+geometry or targets. Core tests cover every rank boundary, other classes/spells,
+reset and milestone thresholds. The production deployment regression now verifies
+the consumed cooldown alongside healing, no-target/dead/cooldown rejection and
+one deployment despite extra-target gear. Params coverage checks multiplication
+with Totemic Focus and other cooldown training. Identity audit matches 218/432
+individual nodes; remaining talent, live balance and Windows work stays open.
+
+173 core and 343 app tests, core/app Clippy, native build, formatting and diff checks
+pass. Native macOS 1280×720/640×720 previews confirm inline 16→20% and 8→10% values
+and readable descriptions. Both captures are embedded in CHANGELOG. Reference:
+intentions/survivors_talent_tab.png. This is not Windows or live balance acceptance.
+
+### 2026-10-27 — One-command fixture preview workflow
+
+Extended the existing isolated fixture helper with --preset and --run. Presets
+copy to a watched view.txt; direct Cargo execution uses the incremental alias and
+checkout data, clearing inherited autoplay/capture/page/preview variables. Existing
+save directories and preset references cannot be overwritten. Nonzero Cargo exits
+propagate while preserving the fixture. Five Python tests cover API and real CLI
+preparation, path spaces, source preservation, invalid requests and mocked launch
+environment/exit status. Development docs include macOS/Linux and Windows command
+forms. No UI change, new rendering evidence or Windows execution claim. Populated
+talent-build fixtures and full platform/interface acceptance remain open.
+
+### 2026-10-27 — Reproducible populated talent fixtures
+
+Added a trained profile with two independent Shaman heroes, each holding legal
+29-point Enhancement, 13-point Restoration and empty builds in complementary
+spec slots. No gear, clears or encounter history is granted. Named presets open
+Weapon Mastery at 1280×720 or Tidal Focus at 640×720 through the one-command helper.
+Account regressions verify parsing, budgets, save round-trip and reset isolation;
+a checkout-data test installs production catalog validation and checks every spec.
+Native macOS captures confirm both presets and switching the first hero between
+builds without affecting the second. CHANGELOG embeds both captures. Other classes'
+populated fixtures, purchased rewards, Windows and full acceptance remain open.
+
+All 345 app tests pass with explicit checkout data, alongside five Python fixture
+tests. No runtime code changed; the existing native build was used for captures.
+
+### 2026-10-27 — Custom Paladin milestone artwork
+
+Closed the text-only artwork gap for seven custom Paladin milestones using themed
+vanilla spell icons, resolved from the installed data rather than bundled assets.
+Exact vanilla talent-name matches retain priority. Mappings are artwork only:
+Daybreak→Holy Shock (20473), Light's Grace→Flash of Light (19750), Hallowed
+Ground→Consecration (26573), Ardent Defender→Holy Shield (20925), Hammer of the
+Righteous→Hammer of Justice (853), The Art of War→Judgement (20271), and Divine
+Storm→Seal of Righteousness (21084). These intentionally use vanilla-themed
+substitutes rather than claiming later-expansion art exists in the 1.12 install.
+The existing earned/locked dimming remains shared. The data-backed regression
+checks all seven spell identities and readable BLP files, class isolation and
+unknown-name fallback. All 346 app tests pass with explicit checkout data.
+
+Native macOS 1280×720 and 640×720 checks verify all nine icons, locked/earned
+states, alignment and Hallowed Ground icon-click inspection without spending.
+Three captures are embedded in CHANGELOG and README talent images are refreshed.
+Reference: intentions/survivors_talent_tab.png. App Clippy, native build, formatting
+and diff checks pass. Windows, full talent mechanics and broader UI acceptance
+remain incomplete.
+
+### 2026-10-27 — Milestone value highlighting
+
+Milestone details now reuse the individual-talent rich-text presentation: numeric
+values and recognized units are green, while spell names and explanatory prose
+remain white. Multiple signed values, decimal seconds, percentages, percentage
+points and target counts are handled independently. Non-numeric milestones stay
+plain white instead of coloring the entire sentence. The shared span renderer
+retains explicit fonts and clears old spans when inspection changes. Regressions
+cover representative compound descriptions, UTF-8 byte boundaries and all 81
+milestone descriptions. No milestone mechanics or unlock thresholds change.
+
+Validation: 347 app tests with checkout data, app Clippy, incremental native build,
+formatting and diff checks pass. Native macOS Paladin 1280×720 and Hunter 640×720
+captures verify inline values and wrapping; embedded in CHANGELOG. README's wide
+Talents image is refreshed. Windows and full talent acceptance remain open.
+
+### 2026-10-27 — Saved Restoration cast integration
+
+The packaged trained fixture now feeds Account → selected hero/spec → Run →
+Params in a regression test. Its 4/4/5 Restoration allocation yields the expected
+0.84 × 0.92 × 0.85 deployment cooldown factor for Searing and Magma Totems,
+with 3% maximum-health deployment healing from the 13-point tree total. Lightning
+Bolt receives neither benefit, and radius/duration remain unchanged. Coverage
+includes save/reload, empty-spec switching, returning to the trained spec, reset,
+second-hero isolation and the pre-reset run snapshot. All 348 app tests with
+checkout data, app Clippy and diff checks pass. This is cast-parameter integration
+evidence alongside the existing actual-deployment ECS tests, not new Windows
+playtest evidence or full talent completion. No rendering changes or new captures.
+
+### 2026-10-27 — Guardian Totems
+
+Vanilla node 609 (two ranks, Enhancement row 1) now has an explicit Survivors
+conversion: +10% Earth Shock shield absorption per rank, requiring the existing
+10-point Enhancement milestone. The 3%-maximum-health shield becomes 3.3%/3.6%;
+its three-second duration is unchanged. This deliberately maps defensive totems
+to the existing shield, rather than introducing unsupported totem spells.
+
+Core coverage verifies all classes, milestone boundaries, capped ranks, reset and
+unchanged other cast fields/spells. App coverage checks runtime Params and cast
+completion, repeated refresh, stronger shields, no healing and dead heroes.
+174 core tests and 349 app tests pass; core/app Clippy, incremental native build
+and formatting/diff checks pass. The checkout identity audit matches 219/432
+individual definitions (Shaman 25/46), with 81/81 milestone descriptions.
+
+Native macOS 1280×720 and 640×720 captures verify green inline rank previews,
+rank-2 spending and capped text. Both are embedded in CHANGELOG. Windows combat,
+balance and the remaining 213 individual definitions remain incomplete.
+
+### 2026-10-27 — Healing and paired-stat inline upgrades
+
+Extend the existing exact-token formatter to TotemHealing, SpiritualHealing and
+ImprovedRenew, and explicitly accept two percentage tokens for Arcane Instability
+and Force of Will. Both values expose independent green ranges; ambiguous extra
+matches still fall back rather than replacing unrelated numbers. Every rank and
+rank cap of the six affected definitions is covered, including single-unit output
+and removal of the separate summary. This closes another part of the user's inline
+upgrade requirement without changing talent effects.
+
+175 core tests, 349 app tests, core Clippy, native build, formatting and diff checks
+pass. Compared with intentions/survivors_talent_tab.png: the tree/art arrangement
+is retained, with the requested inline detail presentation. Native macOS wide Mage
+and compact Shaman captures are embedded in CHANGELOG. Other compound descriptions,
+full UI acceptance and Windows verification remain open.
+
+### 2026-10-27 — Pet, range and duration inline values
+
+Add exact-token formatting for seconds and yards, singularizing “second” only at
+one, and recognize six ranked pet contributions plus Flame Throwing. This enables
+inline previews for Improved Revive Pet, Spirit Bond, Endurance Training, Unleashed
+Fury, Ferocity, Frenzy, Hawk Eye, Flame Throwing, Entrapment and Improved Shield
+Block. Fixed proc strength/duration and boss modifiers stay untouched. Single-rank
+unlock descriptions without a per-rank token still use the existing fallback.
+
+176 core tests, 349 app tests, core Clippy, native build and formatting/diff checks
+pass. Tests cover ranks/caps, single units, fractional seconds, grammar and fixed
+numbers. Native macOS wide Frenzy and compact Improved Shield Block captures are
+embedded in CHANGELOG, retaining the intention-based illustrated tree layout.
+This changes presentation only; complex multi-scale previews and broader UI/
+Windows acceptance remain incomplete.
+
+### 2026-10-27 — Compound slow and range previews
+
+Permafrost formats its two independently scaled values (one second and three
+percentage points per rank) inside the authored scope text. Arctic Reach and Holy
+Reach accept exactly their two percentage clauses and remove both per-rank suffixes.
+All values expose separate green ranges, retain units once and omit arrows at cap.
+Regression coverage checks every rank, distinct ranges, exact wording and capped
+Permafrost behavior. Existing mechanics remain unchanged.
+
+177 core tests, 349 app tests, core Clippy, native build and formatting/diff checks
+pass. Native macOS wide Permafrost and compact Holy Reach captures verify wrapping
+and independent value coloring and are embedded in CHANGELOG. The intention-based
+tree layout is retained. Other unhandled descriptions, full talent rules, broader
+interface validation and Windows acceptance remain incomplete.
+
+### 2026-10-27 — Shaman shield and parry training
+
+Audited Shield Specialization (612, five ranks) and Parry (616, one rank) now have
+explicit Survivors rules. Shield Specialization adds 5% absorb strength per rank
+to Guardian Totems' 10% per rank. Both require the 10-point Enhancement shield;
+max training yields 4.35% maximum-health absorption for the existing three seconds.
+Superseded by the 2026-10-29 weapon-parry checkpoint above: Parry originally converted to 5% general damage reduction, adding to Anticipation and Elemental
+Warding. Neither requires an equipped shield or a separate parry simulation.
+
+The shared shield contribution was renamed ShamanShieldAbsorption; saves continue
+to store unchanged DBC node IDs. Core tests cover classes, unlock boundaries,
+ranks/caps, reset, other spell fields and additive mitigation. Runtime cast tests
+cover combined absorption, refresh without stacking, stronger shields and death.
+178 core and 349 app tests, core/app Clippy, native build and formatting/diff checks
+pass. Install audit matches 221/432 definitions, Shaman 27/46, and 81/81 milestone
+descriptions. Native macOS wide/compact captures verify inline text and Parry
+purchase, with the saved rank checked on disk. Screenshots are embedded in CHANGELOG.
+Live balance, Windows acceptance and the remaining 211 definitions remain open.
+
+### 2026-10-27 — Ancestral Healing timed armor
+
+Vanilla node 581 (three Restoration ranks) now grants 12 armor per rank for ten
+seconds after Searing/Magma deployment actually restores health. This explicitly
+converts healing criticals to effective deployment healing because these heals
+cannot critically strike. The existing Restoration milestone remains necessary
+for deployment healing; no healing is added by this talent. Repeated qualifying
+heals refresh without stacking. Regeneration, overhealing, unrelated spells and
+attacks from deployed totems do not activate or refresh it.
+
+The run stores a transient timer, the Playing vitals path advances it, stats add
+armor only while the hero is alive and the timer is active, and reactive HUD status
+shows armor and remaining time. New runs initialize it to zero. Core tests cover
+class scope/rank caps/reset and inline text. App tests cover successful and rejected
+deployments, full-health and capped healing, subsequent totem attacks, direct
+refresh/expiry/death behavior and HUD visibility. 179 core tests, 351 app tests,
+core/app Clippy, incremental native build, formatting and diff checks pass.
+
+Install audit matches 222/432 definitions (Shaman 28/46) and 81/81 milestone
+descriptions. Native macOS wide menu screenshot verifies the green rank preview
+and is embedded in CHANGELOG. This is automated combat integration plus menu
+visual evidence, not a live combat or Windows acceptance claim. Remaining talent
+rules, balance and full interface/content acceptance stay open.
+
+### 2026-10-27 — Saved raid-set combat stat integration
+
+Added account → save/reload → Run.stats coverage for all nine classes at each
+equipped count from one through six. Expected 2/4/6-piece build bonuses are
+specified independently of the production set lookup. The check covers twelve
+stat fields plus target count, cosmetic-only ownership, retained appearances after
+unequipping, and an existing run keeping its snapshot while the next run loses
+removed equipment power. All 352 Survivors app tests and app/test Clippy pass.
+This adds integration evidence without changing gameplay or visuals; raid
+acquisition, live balance and Windows scene acceptance remain open.
+
+### 2026-10-27 — Shaman Nature's Swiftness
+
+Verified DBC talent 591 (one rank) now provides a 0.85 shock cooldown multiplier,
+composing with Convection, Reverberation and the 20-point Restoration milestone.
+The individual node converts instant casting to shorter cooldowns, consistent with
+the existing Survivors milestone; it does not add an active spell. Totem deployment,
+pulse rate, healing, geometry, damage and unrelated abilities are unchanged.
+
+Core coverage checks all classes, zero/capped/imported ranks, milestone thresholds,
+reset and inline text. App coverage checks all three shocks at ranks 1 and 5 through
+cast parameters, composition with other training, and reset. 180 core tests, 352
+app tests, core/app-test Clippy and native incremental build pass. Install audit:
+223/432 individual definitions, Shaman 29/46; milestone descriptions remain 81/81.
+Native macOS 1280×720 and 640×720 previews confirm green inline values, a successful
+purchase, persisted rank 1 and readable compact wrapping against the intentions
+layout. Screenshots are embedded in CHANGELOG. Live combat balance and Windows
+acceptance remain open, along with the remaining individual talent rules.
+
+### 2026-10-27 — Collection source navigation
+
+Legacy item source rows now include a View zone drops action. It opens the source
+zone's Drop Tables, retaining the inspected piece and resetting both compact and
+wide destination scrolling. It never changes the next-run zone, equipment,
+ownership or unlock state. The destination omits a redundant shortcut to itself.
+This intentionally extends the intention screenshot's static source text.
+
+All 354 app tests pass, including source-action coverage across all 54 legacy
+item cells and navigation isolation. The final scroll-reset regression and
+app/test Clippy pass; the incremental native build passes. Native 1280×720 and
+640×720 clicks verified Elwynn navigation, item retention and compact layout.
+Three screenshots are embedded in CHANGELOG; README's Drop Tables image is
+updated. Supplemental raid acquisition and remaining page acceptance stay open.
+
+### 2026-10-27 — Ordinary-enemy gear source navigation
+
+Poor item details now expose the same direct source navigation as scheduled gear,
+using the actual POOR_DROP_ZONES list for Elwynn and Duskwood. On Drop Tables, only
+the other source zone is offered. Raid Epic details retain the unavailable-source
+message and expose no invented destination. Ownership, chances and encounter
+rules are unchanged. This completes source shortcuts for the currently obtainable
+gear catalogs; it does not complete raid acquisition or zone implementation.
+
+Validation: all 355 app tests pass, including all-class/all-slot Poor and Raid Epic
+source actions in Collection and both starter-zone Drop Tables. App/test Clippy
+and native build pass. Native wide/compact captures verify both source links;
+opening Duskwood retains the inspected Poor gloves and its progression lock.
+Three screenshots are embedded in CHANGELOG. Physical-controller and Windows
+visual acceptance remain open.
+
+
+### 2026-10-27 — Death-event chest integration evidence
+
+The loot-system regression processes eight 100-death batches, mixing normal,
+elite and elite-flagged boss deaths at pre-eligibility, spacing boundaries and
+beyond the run cap. It verifies five actual elite chest entities, eight independent
+boss chest entities, and no replay on a subsequent idle frame. All 356 app tests
+pass. This closes the gap between the pacing helper and deferred reward spawning;
+it does not verify Windows scene routing or foliage rendering. Those acceptance
+checks remain open pending the playtested build and scene reproduction.
+
+
+### 2026-10-27 — Druid root-control nodes
+
+Implemented audited Balance identities 761 (Nature's Grasp, one rank), 921
+(Improved Nature's Grasp, four ranks), and 787 (Improved Entangling Roots,
+three ranks). Survivors conversions: 15% cooldown reduction; +10% root duration
+per rank; and 3% cooldown reduction per rank respectively. Cooldown reductions
+multiply with each other and the 10-point Balance milestone. The normal boss
+30% control-duration rule remains in effect; radius and target count are unchanged.
+
+181 core and 357 app tests pass, including rank caps, milestone boundaries,
+foreign-class isolation, spec reset, inline values, and level-one/five cast
+parameters. Actual hit resolution also verifies normal/boss root duration at
+ability ranks one/five, repeated hits without stacking, preservation of a
+stronger active root, and baseline duration on subsequent hits after refunds. Core/app-test Clippy and native build pass. Native screenshots in
+CHANGELOG show wide and compact details plus a persisted rank-two purchase.
+Catalog audit: 226/432 nodes (Druid 23/47), 81/81 milestone descriptions.
+The remaining 206 nodes, live balance, and Windows combat acceptance stay open.
+
+
+### 2026-10-27 — Rogue finisher recovery
+
+Audited identities 273 (Ruthlessness, three ranks) and 281 (Relentless Strikes,
+one rank) now reduce Eviscerate, Rupture and Kidney Shot cooldowns by 4% per
+rank and 15% respectively. They multiply with existing cooldown training and
+milestones. Descriptions explicitly label combo-point/energy-return conversions;
+poison and stealth mechanics remain separate unfinished work.
+
+182 core and 357 app tests pass, including class isolation, bounded ranks,
+composition, refunds and ability-rank one/three/eight parameters. Core/app-test
+Clippy and native build pass. Wide and compact native captures in CHANGELOG
+verify inline green values; the Relentless Strikes purchase persisted to the
+fixture save. Catalog coverage is 228/432 nodes (Rogue 18/51), 81/81 milestone
+descriptions. Remaining content, live balance and Windows acceptance stay open.
+
+
+### 2026-10-27 — Single-rank inline formatting
+
+The typed numeric formatter now accepts one-rank descriptions without the
+otherwise-required "per rank" phrase. Candidate ambiguity checks remain in
+place. Regression cases cover Nature's Grasp, Nature's Swiftness, Swiftmend,
+Holy Nova and Vigor; capped text and unrelated combined-heal constants are
+preserved. 183 core tests, core Clippy and native build pass. Native wide and
+compact captures are embedded in CHANGELOG. This improves existing talent
+presentation; it does not increase the 228/432 implementation coverage.
+
+### 2026-10-27 — Kidney Shot vulnerability
+
+Improved Kidney Shot (279, three ranks) gives the target +3% damage taken per
+rank for that hit's Kidney Shot stun duration, starting after its own damage.
+An independent timer prevents Gouge or other stuns from extending the effect;
+bosses retain the 0.3 duration multiplier. Reapplication refreshes without
+stacking, periodic damage benefits, and refunds immediately remove the bonus.
+
+184 core tests and 360 app tests pass, including actual hit/tick resolution,
+normal/boss targets, spell ranks 1/5, talent rank caps, same-frame follow-ups,
+unrelated stuns, expired-state damage and refunds. The real enemy update also
+verifies independent timer expiry at 0.05/0.25/1-second steps and preservation
+with zero simulation delta. This does not constitute interactive pause acceptance.
+Core/app-test Clippy and
+native build pass. Native 1280×720 and 640×720 captures show inline values and
+a saved purchase; both are embedded in CHANGELOG. Catalog coverage is 229/432
+(Rogue 19/51). Live timing/balance and Windows combat acceptance remain open.
+
+### 2026-10-27 — Destruction control talents
+
+Aftermath (982, five ranks) rolls 2% per rank on positive Destruction hit messages,
+including area pulses, for a five-second 50% slow (25% on bosses). Pyroclasm
+(986, two ranks) rolls 13% per rank on Rain of Fire/Hellfire hits for a three-second
+stun (0.9 seconds on bosses). Both refresh without stacking and preserve stronger
+or longer existing control. Attached DoT ticks do not roll either effect.
+Chance is evaluated once per hit, independently of multistrike damage multiplication.
+
+185 core tests, 361 app tests, core/app-test Clippy and native build pass. Actual
+hit-resolution coverage checks eligible/ineligible sources, rank caps, boss
+adjustments, repeated hits, stronger control, DoT exclusion, refunds and failed
+rolls. Native 1280×720 Pyroclasm and 640×720 Aftermath captures are inline in
+CHANGELOG; a rank-one Pyroclasm purchase persists in the disposable fixture.
+Catalog audit confirms 231/432 definitions, Warlock 21/50. Intensity, Pyroclasm's
+DBC prerequisite, remains an unimplemented effect; its catalog rank requirement
+is still enforced. Live balance and Windows combat acceptance remain open.
+
+### 2026-10-27 — Intensity and ground-area timing
+
+Intensity (985, two ranks) extends Rain of Fire's active duration by 10% per rank
+as an explicit Survivors channel-resilience conversion. Other spells, pulse
+interval, damage per pulse, radius and cooldown remain unchanged. This supersedes
+the preceding checkpoint's pending Intensity effect; the DBC prerequisite remains.
+
+Ground areas now catch up all pulses due within their remaining lifetime,
+including the expiry boundary, instead of emitting at most one pulse per frame.
+Already-expired areas despawn without hitting. The initial delay and one-shot
+burst interval remain authored values. No extra AoE locations are introduced.
+
+186 core tests, 362 app tests, core/app-test Clippy and native build pass.
+The actual Rain of Fire cast/area pipeline verifies spell ranks 1/5, talent ranks
+0/1/2/255, unchanged radius/damage/cooldown, zero-delta preservation, exact pulse
+counts at 0.1/0.6/2.5/20-second steps, despawn and no later hits. Native wide and
+compact captures verify inline/capped text and a saved rank-two purchase.
+Catalog coverage: 232/432, Warlock 22/50. Other class content, live movement during
+long frames, balance and Windows combat acceptance remain open.
+
+### 2026-10-27 — Curse of Exhaustion training
+
+Curse of Exhaustion (1081, one rank) adds a 10% slow for 12 seconds to Curse of
+Agony applications. Improved Curse of Exhaustion (1082, four ranks) adds five
+percentage points per rank, requiring the base talent. This curse is capped at
+25% slow on bosses and preserves stronger/longer existing slows. Tick damage,
+application count, range, cooldown and damage duration remain unchanged; ticks
+do not refresh the slow. The active DBC prerequisite chain is preserved.
+
+187 core tests, 363 app tests, core/app-test Clippy and native build pass.
+Coverage checks class scope, missing unlock, caps, refunds, spell ranks 1/5,
+zero-direct-damage applications, real damage ticks, repeated applications and
+stronger control. Native wide/compact screenshots and saved base/improvement
+purchases are recorded in CHANGELOG. Catalog audit: 234/432 definitions,
+Warlock 24/50. Live balance and Windows combat acceptance remain open.
+
+
+### Conflagrate training — 2026-10-27
+
+DBC 968 adds 2 seconds of owned Shadowburn cooldown advancement per successful
+Immolate cast, composing with the 30-point Destruction milestone for 4 seconds.
+The burn and other cast parameters are preserved; no spell or stored charge is
+granted. Core tests cover rank caps, refund and inline units; the actual cast
+system verifies multiple targets, absent targets, unready casts, cooldown caps
+and unrelated spells. 191 core/369 app tests, core/app-test Clippy and native build
+pass. Native 1024×720 and 640×720 at 125% verify green inline values and purchased
+rank restoration after restart; screenshots are inline in CHANGELOG. Coverage is
+237/432 (Warlock 27/50). Live balance and Windows acceptance remain open.
+
+
+### Incremental browser build path — 2026-10-27
+
+`WEB_PROFILE=play scripts/web-build.sh` uses the existing incremental profile and
+skips wasm-opt/compression; release remains the distribution default. Stale
+compressed siblings are removed to prevent the local host serving an old build.
+The debug path also avoids empty-array expansion under macOS Bash 3.2.
+Four isolated build-orchestration tests cover release/ship, profile switching,
+debug symbols and invalid profiles, and are included in the host CI job.
+WebGPU `cargo check` passed at bc04604 with five existing warnings. Full wasm
+packaging/timing is unverified here (wasm-bindgen CLI is absent); no browser
+runtime or Windows CI result is claimed. GitHub reports no runs for that head.
+
+
+### 2026-10-27 — Bestial Discipline training
+
+Audited Hunter node 1390 (two ranks) shortens combat-wolf bite cooldown by 10% per
+rank, multiplying the existing 20-point milestone and dividing by Frenzy haste.
+This is an explicit pet-focus regeneration conversion; recovery, other pet bonuses,
+Hunter spells and pickup companions are unchanged. Tests cover ranks 0/1/2/255,
+thresholds 19/20, reset, other classes, spell scope and inline unit formatting.
+192 core tests, core Clippy and native build pass. Native 1024×720 at 125% verifies
+green 0→10% and 10→20% previews plus purchase persistence in spec 3 (34→35 points).
+Changelog screenshots document the actual UI. Coverage is 238/432, Hunter 29/46;
+remaining talents, live balance and Windows gameplay acceptance are still open.
+
+Bestial Discipline integration follow-up: the real wolf update and hit pipeline
+now has a regression for ranks 0/1/2/255, the 20-point milestone and active Frenzy.
+It verifies emitted damage, no early second bite, a bite after cooldown expiry,
+zero-delta cooldown preservation and unchanged recovery. All 370 app tests and
+app-test Clippy pass. Production scheduling is gated to Playing and no loading
+screen; this headless regression is not a live Windows combat acceptance claim.
+
+
+### 2026-10-27 — Cold Snap training
+
+Mage node 69 (one rank) resets cooldowns of owned Frostbolt, Frost Nova, Blizzard
+and Cone of Cold every 90 run-time seconds, first at 90 seconds. The per-run clock
+consumes at most one reset after a long frame and schedules the next boundary;
+other spells, active areas and ownership stay unchanged. Production casting's
+alive/positive-delta guard prevents reset consumption while paused or dead.
+Core tests cover timing boundaries, malformed ranks, class/spell scope and inline
+values. The real casting-system regression checks all four Frost cooldowns,
+unrelated Fireball/Frost Shock, zero-delta pause and no repeated/banked reset.
+193 core tests, 372 app tests, core/app-test Clippy and native build pass. Native
+1024×720 at 125% verifies purchase and save in spec 3 (18→19 Frost points), with
+inline screenshots in the changelog/README. Coverage is 239/432, Mage 32/49.
+Remaining talent definitions, live balance and Windows acceptance remain open.
+
+
+### 2026-10-27 — WMO reveal shader eligibility
+
+The visual probe already treated WMO buildings as scenery, but the ordinary
+model shader required a non-WMO flag and the retained shader explicitly skipped
+WORD_WMO surfaces. Removed these exclusions inside SURVIVORS_CUTAWAY only.
+The ordinary path still excludes actor lighting, clutter and UI model tiles;
+the retained path contains scenery only. Both use the existing camera-to-focus
+depth boundary, projected circle and 500 ms strength; collision is unchanged.
+The scheduled adapter regression now exercises WMO and doodad identities across
+ordinary and merged paths, including fade-out with the obstruction behind the
+hero. This is a code-level building correction, not acceptance of the reported
+Windows foliage scene. GPU building captures (front/behind, both renderer paths),
+alpha-aware foliage and the exact Windows reproduction remain outstanding.
+
+Validation: all 372 visibility-enabled Survivors app tests, app-test Clippy, native
+play build, formatting and diff checks pass on macOS. No GPU visual acceptance or
+Windows run is claimed for this checkpoint.
+
+UI preview launcher follow-up: validate/read the selected preset before creating
+the disposable account. A rejected non-talent preset with saved-spec selection
+leaves the destination absent and permits a corrected retry. All nine Python
+fixture isolation tests pass; no Rust or rendered interface change.
+
+
+### 2026-10-27 — Starter panel heading alignment
+
+Reused Collection's flexible centered section heading for starter Class, Hero,
+Equipment and Zone, matching the gold divider treatment in
+`intentions/survivors_main_menu.png`. Native 1280×720 and 640×720 previews at the
+default interface scale verify the four headings, panel wrapping and scrolling.
+Before/after and compact captures are embedded in CHANGELOG; README's starter
+image is current. Native build and app-test Clippy pass. No gameplay behavior
+changed; outdoor illustration and broader starter fidelity remain open.
+
+
+### 2026-10-27 — Improved Mend Pet
+
+Hunter talent 1385 now regenerates the living combat wolf's maximum health at
+1% per second per rank (two ranks), using game-time delta in the actual pet fight
+system. This is an explicit automatic Mend Pet conversion without dispel. Hero
+health, recovery and pickup companions are unaffected; the defeated-pet branch
+runs before regeneration. Health is capped and the paused system does not advance.
+194 core and 373 app tests pass, including rank caps/reset/class scope and actual
+pet-system healing over ten frames, zero delta, full health and defeated state.
+Core/app-test Clippy, native build, formatting and diff checks pass. Native
+1024×720 at 125% verifies the inline green upgrade and saved spec-3 purchase,
+35→36 Beast Mastery points. Three captures are embedded in CHANGELOG and README's
+latest talent image is updated. Coverage is 240/432, Hunter 30/46. Live combat
+balance and the rest of the talent catalog remain open.
+
+
+CI follow-up: the host/UI PR job now runs all nine Python fixture-isolation tests,
+including invalid-request retry and source/save preservation. The exact command
+passes locally. GitHub returned no PR-triggered workflow runs for afa9f96; the
+configured Windows check and new fixture step do not yet have verified CI results.
+
+
+### 2026-10-27 — Linked browser development package
+
+At 1c996f6 plus the early CLI-version check, the WebGPU wasm check passes with
+five existing warnings. A first linked play-profile wasm build succeeds in
+5m 05s. Installed wasm-bindgen-cli 0.2.122 under ignored tools/wasm-bindgen,
+matching Cargo.lock, and ran the real WEB_PROFILE=play packaging script through
+glue generation and asset copying into ignored web/dist. An unchanged repeat
+succeeds in 6.85s wall time, Cargo 0.30s with no crates compiled. The generated
+wenilla_bg.wasm is 91,142,068 bytes. This supersedes the missing-CLI development
+packaging blocker; release optimization/compression and browser runtime/visual
+acceptance remain open. It does not measure latency after a Rust source edit.
+The early version check rejects incompatible generators before Cargo runs; all
+six orchestration tests and shell syntax/diff checks pass, including CRLF and
+missing lockfile pins. No interface rendering changed in this checkpoint.
+
+
+### 2026-10-27 — Browser starter runtime checkpoint
+
+Served the linked WebGPU play package through checkout wenilla-host at
+127.0.0.1:8098, using only wow-data/Data. In the in-app browser at 1280×720,
+with nosound=1 and unattended=1, verified the empty starter and Character
+creation form, created Adventurer Stormwind as a Mage, selected female Human,
+reloaded the page and observed the same hero/class/body restored on the starter.
+Talents then rendered all three illustrated Mage trees and empty saved specs.
+The sampled browser error/warning logs were empty. Captures are embedded in
+CHANGELOG and the README browser gallery. Closed the temporary tab and stopped
+the loopback host; no combat run was started. This establishes basic browser
+startup/navigation/persistence on this host, not all pages, controller input,
+compact layouts, WebGL2, Windows, gameplay or long-session memory behavior.
+
+
+### Rogue Cold Blood — 2026-10-27
+
+The one-rank DBC talent 280 is an automatic next-cast bonus: +100 percentage
+points critical chance for Sinister Strike, Eviscerate, Gouge or Kidney Shot,
+including extra targets. It starts ready and recovers 180 seconds after a
+successful eligible cast, using run time. Empty target selections do not consume
+it; paused frames cannot cast or advance recovery. No banked charges, bleed or
+area critical bonus. The existing 30-point Assassination milestone independently
+keeps Eviscerate critical; Cold Blood does not replace that milestone.
+
+Core coverage checks class/rank/scope, exact recovery boundaries, invalid times,
+reset and non-banking behavior. The actual cast-system regression covers all four
+eligible attacks with two targets, empty selections, paused frames, consumption
+and recovery. UI purchase/persistence and final validation are recorded in the
+changelog milestone. Live balance remains open.
+
+Validation: 195 core and 374 app tests, core/app-test Clippy, native play build,
+formatting and diff checks pass. Definition coverage is 241/432 (Rogue 20/51).
+Native purchase saved DBC 280 rank 1 in the isolated first spec; before/after
+captures are embedded in CHANGELOG and the README talent gallery is current.
+
+
+### Shaman Elemental Mastery — 2026-10-27
+
+Implement DBC node 573 using the class-scoped next-cast critical clock shared with
+Rogue Cold Blood. Only the five Shaman direct lightning/shock casts qualify. Its
+180-second recovery starts after successful consumption; missed casts and paused
+frames preserve the charge. Extra targets and scheduled Chain Lightning bounces
+receive the critical result; Flame Shock burn damage is unchanged. No totem,
+Lightning Shield, foreign-spell or mana bonus. Keep the existing row/prerequisite
+gates and the independent Elemental milestones.
+
+Core tests cover scope, rank caps, invalid times, recovery boundaries and no banked
+charges. App regressions cover each eligible spell, empty targets, paused frames,
+consumption/recovery, Chain Lightning scheduling and Flame Shock burn payloads.
+Native purchase screenshots and final check results belong in the changelog.
+Live balance and the full content/Windows acceptance work remain open.
+
+Validation: 196 core and 375 app tests pass, as do core/app-test Clippy, native
+play build, WebGPU check (five existing warnings), formatting and diff checks.
+Native 1280×720 preview/purchase confirms 30 → 31 Elemental points and saved
+DBC 573 rank 1; changelog embeds both captures. Coverage is 242/432 definitions
+(Shaman 30/46). This does not establish browser combat or live balance.
+
+
+### Starter hero identity — 2026-10-27
+
+Compared directly with `intentions/survivors_main_menu.png`: replace the separate
+small Name action with a proportional, bordered name control beside Random.
+Selecting it opens the existing first/last-name draft with explicit Save/Cancel;
+that split editor is an intentional departure from the single reference field.
+Show race/class/sex together below it, keeping faction on the portrait badge.
+Add the runtime race atlas portrait, matched to body sex, beside a gold race
+heading and wrapping green bonus bullets. Portrait width is proportional and
+capped; the bonus column can shrink and wrap without displacing the portrait.
+
+Native 1280×720 and 640×720 checks verify direct rename (Mira → Mirabel), Cancel
+preserving the saved name, Random saving another name, switching female Mage to
+male Warrior, and compact scroll reachability. The isolated save contains the
+expected names. Native play build (34.13 sec), app-test Clippy, formatting and
+diff checks pass. Presentation-only change; no new combat test run. Three inline
+changelog captures and the README starter image document the result. Broader
+resolution/controller acceptance and outdoor illustration remain open.
+
+### Painted starter landscape — 2026-10-27
+
+Replaced the procedural starter silhouette with an embedded original landscape,
+generated with the built-in imagegen tool; provenance and exact prompt live beside
+the asset in `backdrop/ARTWORK.md`. The shader preserves proportions with centered
+cover cropping and a dark vignette. Native 1280×720/640×720 captures verify readable
+starter controls and the separate talent artwork. Native build (67 seconds),
+app-test Clippy and format checks pass; no shader errors in the preview log.
+CHANGELOG embeds all three screenshots and README shows the current starter.
+Windows/browser rendering, broader resolution acceptance and the reported world
+occlusion/navigation reproduction remain open. This is a presentation checkpoint,
+not completion of starter or gameplay acceptance.
+
+### Rogue Preparation — 2026-10-27
+
+DBC node 284 now supplies an automatic 180-second reset of owned Rogue ability
+cooldowns, first at 180 seconds. Class/rank gating, pauses, invalid elapsed time,
+missed intervals and unrelated abilities are covered by core and actual app cast
+system tests; it does not grant abilities or touch Cold Blood's recovery clock.
+197 core/376 app tests, core/app-test Clippy, native build and DBC identity audit
+pass. Definitions: 243/432, Rogue 21/51; this is not full combat acceptance.
+Native 1280×720 preview/purchase confirms inline green 0 → 1, Subtlety 20 → 21,
+unspent 10 → 9 and persisted `2:284:1`. CHANGELOG embeds both captures and README
+includes the saved purchase. Live balance, Windows acceptance and remaining
+unimplemented talents stay open.
+
+### Current WebGPU package acceptance — 2026-10-27
+
+Built and packaged code at cd44c39 with WEB_PROFILE=play: Cargo 87 seconds,
+five existing wasm warnings, wasm-bindgen succeeded. Served only checkout data
+through loopback 8098. Browser restored Adventurer Stormwind, female Human Mage,
+and rendered the new embedded landscape. Requested 1280×720/640×720 preview
+captures are in CHANGELOG. The preview tool's override/display-scale transition
+made pointer coordinates unreliable, so these sizes prove rendering only.
+After resetting the override, the actual 551×751 CSS viewport supports Talents
+navigation, scrolling to Frost and the details panel, rejection of an unavailable
+purchase, and scrolling the full green inline Cold Snap description into view.
+Sampled browser error/warning logs were empty; no combat was started. Closed the
+temporary tab and stopped the loopback host. This replaces the older linked-build
+limitation through Preparation, but gameplay, Windows, browser input at the larger
+sizes, release optimization and long-session behavior remain unverified.
+
+### Talent purchase feedback — 2026-10-27
+
+Resolved the ambiguous rejection found during browser acceptance: purchases now
+report maximum rank, no available points, a named prerequisite or exact earlier-row
+required/current totals. Catalog validation remains authoritative, with repair
+guidance for an invalid saved tree. A real-DBC regression covers all rejection
+paths, unchanged saved specs, a successful purchase/refund and legacy-point return.
+377 app tests, app-test Clippy and native build pass. Native 1280×720 captures of
+zero-budget and funded-but-row-locked cases are embedded in CHANGELOG. Browser
+revalidation of this copy change and broader interface acceptance remain open.
+
+
+### 2026-10-27 — Windows playtest acceptance tracker
+
+The four reported foliage, navigation, chest and talent-art issues are consolidated
+in [the Windows playtest tracker](WINDOWS-PLAYTEST.md), with current mechanisms,
+limits and remaining scene checks. All 385 Survivors app tests pass with local
+data; this does not close Windows or GPU scene acceptance. Existing talent
+captures are embedded in the tracker with their original dates.
+
+
+### 2026-10-27 — Starter Options backdrop continuity
+
+The shared pause root now receives the starter landscape only in Menu phase;
+Playing/Paused removes that material and retains the original translucent tint.
+Character preview still exposes its model on the menu root. The two surfaces
+reuse one cached image and unchanged materials are not dirtied each frame.
+An ECS transition regression covers character preview, menu Options, gameplay,
+pause and return to menu. All 386 app tests, app/test Clippy, native build,
+formatting and diff checks pass. Native 800×600/125% before/after captures and
+Done-to-Collection interaction are verified in CHANGELOG; README Options is
+refreshed. In-game rendering and Windows remain outside this visual checkpoint.
+
+
+### 2026-10-27 — Hunter Trueshot Aura individual node
+
+Node 1361 now adds a passive self-only 10% shot damage multiplier, using the existing
+Hunter shot group. It includes periodic damage and composes with Ranged Weapon
+Specialization, Barrage and the distinct 30-point milestone. Core tests cover rank
+clamping, foreign classes/spells, composition, refund and inline/capped wording;
+app tests exercise actual spell parameters and periodic hit payloads at ranks 1/3.
+202 core/387 app tests, both Clippy gates and native build pass. DBC coverage is
+248/432, Hunter 31/46. Native screenshots verify legal purchase with 30 earlier
+Marksmanship points and Barrage 3, then restart at 640×720 with rank 1 retained.
+All three screenshots are embedded in CHANGELOG and README Talents is refreshed.
+This remains an automatic Survivors conversion, not a party aura implementation.
+Live balance, Windows and the remaining 184 definitions are still open.
+
+
+### 2026-10-27 — Hunter save/spec integration acceptance
+
+Extended the existing Hunter milestone regression to load the real DBC validation
+rules and purchase Trueshot at its legal row/prerequisite spread. Checks cover rank
+cap rejection, multiplicative shot damage, unaffected pets/foreign spells, separate
+hero and class selection, saved active spec across both empty alternatives, refund
+and full reset across reloads, and an unchanged active-run snapshot. All 387 app
+tests, app/test Clippy, formatting and diff checks pass. This adds integration
+coverage to the preceding native screenshots; it changes no runtime UI and does
+not establish Windows or live balance acceptance.
+
+
+### 2026-10-27 — Browser build refreshed through 5a1294f
+
+Wasm WebGPU check and `WEB_PROFILE=play` packaging pass with five existing warnings;
+Cargo's linked build took 86 seconds. The loopback host used only checkout Data.
+Current browser startup and coordinate interactions verify Options from starter
+and Character management, landscape continuity, and return to the origin page
+at 1280×720. Both captures are inline in CHANGELOG. No account mutations or combat
+were needed. This supersedes the old packaged-head limitation for compilation
+and these menu paths only; full browser content/input/resolution acceptance,
+WebGL2 and Windows remain open. GitHub reports zero repository workflow runs;
+configured Windows checks and artifact upload still lack runner evidence.
+
+
+### 2026-10-27 — Priest Power Infusion
+
+Node 322 now owns a pause-safe 15-second burst with 180-second recovery, consumed
+only by a successful damaging Priest cast. Direct damage and attached periodic
+payloads retain 20%; unlocked Holy Nova healing uses the same cast multiplier.
+Owned Renew dynamically checks the active window, composing with healing ranks;
+Troll racial regeneration remains unchanged. Shields and foreign spells are
+excluded. Inner Focus and the separate Discipline milestone remain independent.
+Core timing/rank/refund/inline tests and actual cast-system tests cover initial
+failure, pause, multiple targets, expiry and recovery. Renew scope and HUD text
+have separate app regressions. All 203 core and 390 app tests, both Clippy gates and native build
+pass. DBC coverage is 249/432 (Priest 25/47). Real prerequisite purchase (Mental
+Strength 5 and 30 Discipline points), restart and full compact text are verified
+at 1280×720/640×720; all three captures are inline in CHANGELOG and README is
+refreshed. In-combat HUD rendering, live balance, Windows and 183 remaining talent
+definitions stay open. The previous browser build evidence predates this change.
+
+
+### 2026-10-27 — Power Infusion interaction boundaries
+
+The actual cast-system regression now casts Power Word: Shield during an active
+burst and while Infusion is ready: absorb and duration stay unchanged, and the
+shield neither starts nor refreshes the window. Boosted Holy Nova caps at maximum
+health and cannot heal without its separate unlock. A core sequence starts
+Infusion with Pain, consumes Inner Focus later with Smite, and verifies independent
+recovery boundaries. All 204 core and 390 app tests, both Clippy gates, formatting
+and diff checks pass. No production code or UI changes in this follow-up; the
+previous screenshots remain the relevant visual evidence.
+
+
+### Leader of the Pack checkpoint — 2026-10-27
+
+Druid node 809 now adds three percentage points of hero critical chance, with
+an explicit self-only/no-form Survivors conversion consistent with Sharpened
+Claws. It removes the node's placeholder damage and adds to existing critical
+bonuses. The 30-point Thorns healing milestone remains separate.
+Real-catalog tests cover the 30-point prerequisite build, purchase cap, saved
+rank, other-hero and spec isolation, refund, and immutable run stats. Core tests
+cover rank clamping, class scope, composition and inline preview.
+205 core / 391 app tests, both Clippy gates and native build pass; catalog
+250/432 (Druid 24/47). Native 1280×720 purchase and 640×720 saved restart screenshots
+are inline in the changelog. No Windows or live combat claim. The remaining 182
+node definitions and broader seven-phase acceptance are still required.
+
+
+### Direct Codex preview checkpoint — 2026-10-27
+
+Fast native menu previews now accept an optional `entry` selector on Codex:
+legendary ability keys or shared ring/trinket/amulet indices. All entries resolve
+through the production catalog. Omitting the selector preserves the manual
+selection; invalid, duplicate or wrong-page selectors reject the whole request.
+Reusable wide Wrath and compact ring presets are documented in
+SURVIVORS-DEVELOPMENT.md. Same-process native 1280×720 → 640×720 captures verify
+selection, artwork, description and layout. An invalid legendary request retained
+the compact ring view, and the account file was byte-identical after quit.
+This improves UI iteration; it does not close Windows or broader Codex acceptance.
+
+Verification: 393 Survivors app tests, app-test Clippy, formatting and native
+play-profile build pass. The build took 45 seconds; core rules are unchanged.
+
+
+### Periodic amulet description correctness — 2026-10-27
+
+Audit found that pure `Kind::Dot` applications and subsequent ticks never roll
+critical damage, but legendary previews advertised +15% critical damage. The
+shared effective-bonus formatter now excludes it for all six periodic spells,
+including replacement losses and duplicate selections. The existing 5% periodic
+damage increase and all gameplay/save behavior remain unchanged. Native Rupture
+Codex before/after and Rupture/Fireball/Entangling Roots choice-card captures verify
+the corrected display; screenshots are inline in the changelog. Extra targets
+remain limited by the existing single-target eligibility rule.
+
+Verification: 394 app tests, app-test Clippy, formatting and native play build
+pass. No Windows or live combat acceptance is claimed for this display correction.
+
+
+### Windows launcher status checkpoint — 2026-10-27
+
+Both checkout wrappers explicitly forward the Cargo/game process exit code;
+PowerShell previously did not. Windows CI now exercises both wrappers with a
+mock Cargo from an external working directory, paths containing spaces, three
+data-path cases and success/failure statuses. No game files or GPU are needed.
+Local Python compilation and diff validation pass; the actual execution test
+skips on macOS, where neither Windows shell is available. GitHub's repository
+Actions endpoint still reports zero runs. This is implemented CI coverage, not
+a claim of a passing Windows run; the platform gate remains open.
+
+
+### Collection content evidence — 2026-10-27
+
+The explicit-data `survivors-audit --collection` command checks all 54 primary
+cells per class for names, mapped display rows, decoded BLP icons and a
+positive-chance drop matching the actual encounter schedule. All 486 pass.
+The 153 supplemental Poor/Raid Epic identities also pass icon decoding, with
+495 unique display IDs checked in total. Supplemental source readiness is not
+implied: raid acquisition remains unimplemented. Equipment body rendering,
+world access, traversal and live acquisition remain separate acceptance items.
+Default audit still reports missing Blackrock configuration and terrain-only
+floor checks for Scarlet Monastery/Naxxramas; existing WMO evidence is separate.
+No readiness flag or player content changed.
+
+Verification: real-data Collection audit, eight existing audit-tool tests,
+audit-tool Clippy and formatting pass. Full default audit remains failing at
+the three documented location checks.
+
+
+### Raid Epic reward settlement — 2026-10-27
+
+Initial authored Survivors rule: killing the Naxxramas finale Kel'Thuzad grants
+one randomly selected Raid Epic armor slot for the active class, 12.5% each
+across eight slots. The existing legendary weapon roll remains independent;
+Keen Eye does not modify the guaranteed armor reward. This grants ownership,
+never automatically changes equipment or appearance, and duplicate pieces add
+no power. The shared direct/periodic kill path settles once per enemy.
+
+Collection links to Naxxramas and Drop Tables lists all eight class pieces,
+odds and ownership. Direct Raid Epic Drop Tables previews now support wide and
+compact reusable presets. Native 1280×720 and 640×720 captures show the source,
+readiness warning and row selection. No combat scene was automated.
+
+Naxxramas remains gated by world readiness. This implements reward settlement
+and its interface, not an accessible end-to-end raid run. World traversal,
+Windows acceptance, full catalog functionality and the rest of the seven-phase
+contract remain outstanding.
+
+Verification: 206 core / 396 app tests, app/core Clippy, formatting, native
+play build (33 seconds) and the real-data Collection audit pass.
+
+
+### Heart of the Wild checkpoint — 2026-10-27
+
+Druid node 808 now supplies 4% maximum health per rank (five ranks) through the
+shared final-health multiplier, replacing placeholder damage. Local DBC verifies
+row 5, column 1 and the three-rank Predatory Strikes prerequisite. Core coverage
+checks rank bounds, class scope, spell invariance and inline preview. Real-catalog
+account tests cover purchase cap, save/reload, other heroes, specs and refund;
+runtime stat tests cover equipment/racial/passive composition and no current-HP
+healing. Native 1280×720 purchase and 640×720 saved restart captures are inline in
+the changelog. The 20-point Feral milestone remains independent.
+
+207 core / 398 app tests, both Clippy gates, native play build (17 seconds),
+formatting and diff checks pass. Definition coverage is 251/432, Druid 25/47;
+181 node definitions and broader gameplay/platform acceptance remain open.
+
+
+### Current browser integration checkpoint — 2026-10-27
+
+WebGPU target check and linked incremental package pass through `5b41473`, with
+five existing warnings. The link took 73 seconds. Actual in-app browser clicks
+at 1280×720 reached Naxxramas, selected Helm of Wrath, and displayed its six stat
+lines, cumulative set thresholds and guaranteed finale source. The world-readiness
+warning remained visible; no raid run or narrow-browser acceptance is implied.
+The loading overlay now labels Aethus's game as inspiration, matching this
+independent implementation's README. Seven browser tests pass using the bundled
+Node runtime; Homebrew Node could not start because its llhttp dylib is missing.
+No system installation was changed. Screenshots are inline in the changelog and
+the PR description now reflects raid settlement and 251/432 talent definitions.
+The GitHub connector returned no PR-triggered workflow runs for `5b41473`; this
+limited query does not establish the state of every repository workflow.
+
+
+### Talent stat-label highlighting — 2026-10-27
+
+The typed inline talent formatter now extends each changing-value range across
+its associated stat phrase, using complete phrase boundaries and the longest
+matching label. This preserves plain description text, fixed secondary bonuses,
+rank bounds, single-unit formatting and separate damage/critical-chance ranges.
+It does not color arbitrary prose up to punctuation. Core cases cover health,
+armor, critical chance, speed, range, fixed haste/duration exclusions and word
+boundaries. The existing Bevy detail test checks green/white spans, font retention
+and unchanged child entities on repeat updates. Native health and Moonfire
+captures show the corrected phrases; no gameplay or save changes.
+
+Verification: 208 core / 398 app tests, both Clippy gates, formatting and native
+play build (16 seconds) pass. No new platform/gameplay acceptance is claimed.
+
+
+### 2026-10-27 — Rogue Endurance mobility integration
+
+DBC node 204 (Combat, two ranks) now applies 10% Sprint cooldown reduction per
+rank: 15 / 13.5 / 12 seconds. This is a scaled Survivors conversion; Evasion
+is not an owned ability. It does not grant Sprint before level five, change
+its speed/duration, or modify offensive spells. Runtime mobility and HUD consume
+the same definition. Purchase/save/spec/refund checks use the real DBC catalog;
+native menu evidence is inline in the changelog. Remaining talent definitions,
+Windows scene replay and the broader seven-phase acceptance remain open.
+
+Verification: 209 core tests, 400 app tests, both scoped Clippy checks and the
+18-second native build pass. Real-data coverage: 252/432 definitions, including
+23/51 Rogue nodes. 180 talent definitions remain unimplemented.
+
+
+### 2026-10-27 — Rogue Adrenaline Rush
+
+DBC node 205 now starts an automatic 15-second burst on a successful Rogue cast,
+with 300-second recovery from activation. New Rogue casts receive 50% shorter
+cooldowns, multiplying the existing Combat milestone and individual reductions.
+Existing cooldowns, Sprint, Cold Blood recovery and other-class abilities stay
+unchanged. This explicitly documented conversion replaces energy regeneration;
+there is no energy resource. Run time pauses freeze the window. HUD status reports
+active time; the real-data purchase/spec/refund path and native menu capture are
+part of this checkpoint. The existing 30-point milestone remains separate.
+
+Validation: 210 core / 403 app tests, both scoped Clippy checks, formatting and
+native build pass. Real-data catalog audit: 253/432 definitions (Rogue 24/51);
+179 remain. Native menu preview and purchase screenshots are in the changelog;
+these do not close live combat, balance, Windows or full interface acceptance.
+
+
+### 2026-10-27 — Preparation and Sprint integration
+
+Preparation now resets learned Sprint at its existing 180-second automatic
+interval. It does not grant mobility below level five or affect other classes.
+Active Sprint speed/duration survive the reset; Endurance still determines the
+next recharge. The runtime reset test now covers levels four/five, wrong class,
+rank caps, paused time, missed intervals and repeated updates. Description and
+mechanics documentation agree; native menu evidence is inline in the changelog.
+This integration does not close live combat or Windows scene acceptance.
+
+Verification: 210 core / 403 app tests, both scoped Clippy checks, formatting
+and native build (25 seconds) pass. Talent definitions remain 253/432.
+
+
+### 2026-10-27 — Priest Improved Fade
+
+Node 483 now reduces only Fade cooldown, 10% per rank up to two ranks. Runtime
+mobility and its HUD tooltip share the adjusted definition; escape duration,
+speed and level-five gating remain intact. Core scope/cap tests and real-DBC
+purchase/save/spec/refund tests cover the replacement of placeholder damage.
+Native purchase evidence with the green next-rank phrase is in the changelog.
+Windows, live combat and the remaining talent catalog are not closed by this check.
+
+Verification: 211 core / 405 app tests, both scoped Clippy checks, formatting
+and native build (18 seconds) pass. Real-data coverage: 254/432 definitions,
+including 26/47 Priest nodes; 178 definitions remain.
+
+
+### 2026-10-27 — Current browser integration at 9d6c0ba
+
+WebGPU target check and linked incremental package pass after the Rogue/Priest
+cooldown work. Seven browser tests and six build-script tests pass; five existing
+wasm warnings remain. Actual 1280×720 navigation verifies the empty talent page,
+Priest creation, Improved Fade's scoped green description, no-points purchase
+rejection and persisted hero restoration after reload. Captures are inline in the
+changelog and README. Draft PR validation is refreshed to 211 core / 405 app tests
+and 254/432 definitions. No PR-triggered workflow runs were returned for this head;
+Windows CI/artifacts, live gameplay and the remaining acceptance contract remain open.
+
+
+### 2026-10-27 — Blessing of Sanctuary
+
+Node 1431 now prevents 2 damage per hit after armor/general reduction, before
+shields, with a zero-damage floor. The one-rank, self-only passive conversion
+explicitly grants no block or retaliation. Core class/rank/reset checks and actual
+DBC purchase, save, spec and refund tests cover the mechanic; the hero damage test
+covers repeated hits, shield consumption, immunity and death. 212 core and 407 app
+tests pass; native build takes 20 seconds. Native preview and purchase screenshots
+at 1280×720 are embedded in the changelog and the README gallery is refreshed.
+The four Windows playtest reports remain open; this is not live combat acceptance.
+
+Core/app Clippy pass. The real-data audit now matches 255/432 talent definitions
+(Paladin 25/44); 177 remain. All 81 milestone descriptions remain matched.
+
+
+### 2026-10-27 — Priest Blessed Recovery
+
+Node 1636 replaces provisional damage with healing for 7% of health damage taken
+per rank, delivered over six active seconds. New nonlethal hits add their healing
+to the unpaid balance and restart the duration; shield absorption and immunity
+cannot add healing. Recovery never repeats paid healing, banks overheal or revives
+a dead hero. The description explicitly identifies the all-hit conversion while
+incoming critical hits are absent. The combat HUD exposes remaining recovery time.
+
+Acceptance includes capped/class-scoped rules, refresh and large-frame conservation,
+actual hero damage/regeneration, and real-DBC purchase/save/spec/refund coverage.
+Native menu evidence belongs to this checkpoint; combat HUD rendering, live balance
+and Windows scene acceptance remain separate requirements.
+
+Verified: 213 core and 409 app tests, core/app Clippy, native build (96 seconds),
+formatting and diff checks. Native 1280×720 purchase and 640×720 scrolled description
+captures are embedded in the changelog; README refreshed. Definition audit: 256/432
+(Priest 27/47), leaving 176 definitions, with all 81 milestone descriptions matched.
+
+
+### 2026-10-27 — Provisional talent upgrade readability
+
+Unimplemented individual talents retain their explicit pending notice and existing
+one-percent damage-per-rank fallback. That fallback now uses the same inline green
+current-to-next comparison as authored talents, with one percentage unit and the
+full damage phrase colored. Maximum ranks show only the current bonus. This is a
+readability correction, not additional mechanic coverage or a change to purchases.
+The existing ECS inspection regression now checks the fallback spans after moving
+from an authored talent, including color and unchanged rank.
+
+Native 1280×720 inspection and last-rank purchase confirm the green comparison,
+white pending notice, correct saved points and maximum-rank text. Captures are
+embedded in the changelog and README is refreshed. Native build: 79 seconds.
+Definition coverage stays 256/432; no pending talent is counted as implemented.
+
+409 app tests, app Clippy, formatting and diff checks pass. The existing core
+rules are unchanged; this checkpoint does not claim new gameplay acceptance.
+
+
+### 2026-10-27 — Priest Inspiration
+
+Node 361 replaces provisional damage with 8% more armor per rank for 15 seconds
+after effective Holy Nova healing. The three-rank conversion multiplies final flat
+armor, refreshes without stacking, and explicitly does not grant the spell or its
+healing. Full-health casts, regeneration and other healing do not trigger it.
+The HUD names the armor bonus and remaining duration. Acceptance includes real
+cast-system success/failure, no-target and paused frames, healing unlocks, rank
+caps, refresh/expiry/death, saved specs/refunds and scoped HUD status.
+
+Native 1280×720 captures verify the full green armor comparison, maximum-rank
+purchase and saved 14-point Holy spec. Changelog embeds both screenshots and
+README is refreshed. The native build passes in 61 seconds. These menu captures
+do not establish combat HUD rendering, live balance or Windows scene acceptance.
+
+Verified: 214 core and 413 app tests, core/app Clippy, formatting and diff checks.
+The real-data audit matches 257/432 definitions (Priest 28/47) and all 81 milestone
+descriptions; 175 individual talent definitions remain.
+
+
+### 2026-10-27 — Current browser Priest integration
+
+At d9d010a, the WebGPU target check and linked play-profile package pass, along
+with seven browser tests and six build-script tests. Five existing compile
+warnings remain. Actual UI navigation verifies saved Priest loading, Inspiration
+and Blessed Recovery green descriptions, zero-point purchase blocking, provisional
+bonus labels and 640×720 two-column reflow with the full scrolled description.
+1280×720 and 640×720 captures are embedded in the changelog and README. The browser
+reported no warnings/errors during the UI check; viewport override was restored
+and the local host stopped. This is menu evidence, not combat or Windows acceptance.
+
+### 2026-10-27 — Scoped caster accuracy conversions
+
+Shadow Focus (463), Nature’s Guidance (583) and Suppression (1005) replace
+provisional global damage with explicitly named spell bonuses. Core and app
+regressions check rank caps, direct/periodic damage, excluded spells, unchanged
+cast parameters, real-DBC purchases, persistence, spec switching and refunds.
+The catalog now matches 260/432 nodes: Priest 29/47, Shaman 31/46 and Warlock
+28/50; 172 individual definitions remain. Native 1280×720 screenshots of all
+three classes are embedded in the changelog; a Priest purchase was checked.
+This does not close the Windows scene reports in WINDOWS-PLAYTEST.md.
+
+Validation: 215 core tests, 415 app tests, core/app Clippy, native build, formatting
+and diff checks pass. Existing block-crate future-compatibility warning remains.
+
+### 2026-10-27 — Mage Combustion
+
+The final Fire node now grants an automatic critical-chance burst, starting at
+10 percentage points and adding ten per landed damaging direct Fire hit. Three
+critical hits end it; recovery is 180 seconds of active run time. Area targets
+count independently, while burns and multistrike echoes do not. Direct attacks
+retain their critical roll from casting; ground impacts use current burst state.
+The HUD exposes chance and critical-hit progress. Tree milestones remain separate.
+
+Core coverage checks rank/class/spell scope, invalid inputs, growth cap, recovery
+and absence of banked charges. App coverage exercises direct and ground hits,
+three-target casts, multistrike, unrelated spells, real-DBC purchases, saved specs,
+refunds and HUD text. Native 1280×720 captures of preview and purchase are embedded
+in the changelog. Catalog coverage is 261/432 (Mage 34/49); 171 definitions remain.
+Live balance, actual combat HUD rendering and Windows scene acceptance remain open.
+
+Validation: 216 core tests, 418 app tests, core/app Clippy, native build, formatting
+and diff checks pass. Existing block-crate future-compatibility warning remains.
+
+### 2026-10-27 — Existing-executable UI preview
+
+The fixture CLI can launch an explicit development executable without invoking
+Cargo, allowing preview startup while a separate test build holds Cargo’s lock.
+It validates the path before creating state and retains isolated accounts, watched
+requests, shell-free invocation and exit-code propagation. Missing files and
+invalid option combinations leave no fixture behind. Twelve Python tests pass on
+macOS; the existing Linux CI fixture suite includes them. Windows execution is
+not claimed. No appearance change or native rebuild was needed. This does not
+reduce Rust compilation time; shrinking the large app crate remains future work.
+
+
+### 2026-10-27 — Browser 5:4 and ultrawide evidence
+
+The current package (checkout 7aa09ef, Combustion runtime 3bc0f88) was checked at
+1280×1024 and 2560×1080. At 5:4, the starter renders, a Mage can be created using
+individual key events, three proportioned talent trees reflow above the details,
+zero points block purchase, and scrolling reaches the complete Combustion text,
+spec controls and reset. At ultrawide, a full-page capture shows all three trees
+and complete details side by side. Automated Spec 2 clicks did not establish a
+selection change at that viewport; pointer acceptance remains open rather than
+being inferred from the screenshot. Full-page capture avoids the automation's
+cropped viewport screenshots at this width.
+
+Automation text insertion of “Vale” produced truncated input; individual key
+presses produced and saved the complete name. Paste/IME behavior needs independent
+verification; no product input fix is claimed. Test heroes remain in the local
+browser validation account. Four screenshots are stored under
+images/screenshots/2026-10-27-browser-resolutions, with inline changelog evidence
+and a refreshed README gallery. Viewport override was reset and local host stopped.
+
+WebGPU check (28 seconds), linked play build (76 seconds), seven browser tests
+and six build-script tests pass. Five existing compiler warnings remain; the
+observed browser console had no warnings/errors. No runtime code changed; talent
+coverage stays 261/432 with 171 definitions remaining. Windows foliage, routing,
+chest cadence and platform-specific talent acceptance remain open.
+
+
+### 2026-10-27 — Arcane Subtlety
+
+Mage node 74 replaces provisional global damage with +5% Arcane Missiles and
+Arcane Explosion damage per rank, capped at two ranks. The description explicitly
+labels this as a Survivors resistance-penetration conversion; resistance and threat
+rolls are not simulated. The existing scoped-damage path carries the effect into
+cast parameters. Tests cover rank caps, class/spell exclusions, unchanged targeting
+and timing, real-data purchase eligibility, save round trips, spec switches and
+refunds without global damage leakage. Native 1280×720 preview and rank-one purchase
+were checked and captured inline in the changelog; the saved record is 0:74:1.
+The native play build took 19 seconds. Windows acceptance and combat balance remain
+open; this menu checkpoint does not resolve the four Windows scene reports.
+
+Validation: 216 core and 418 app tests, core/app Clippy, formatting and diff checks
+pass. The definition audit matches 262/432 nodes (Mage 35/49), leaving 170. The
+app test command took 3m06 including time waiting for a separate build lock;
+its tests ran in 1.71 seconds. Existing block-crate future-compatibility warning
+remains. Native and test builds used macOS; no new browser/Windows claim is made.
+
+
+### 2026-10-27 — Stable local and CI integration commands
+
+The canonical `survivors-test` Cargo alias selects the same package, library filter
+and visibility feature as the prior PR command; CI now calls the alias. The
+`survivors-clippy` alias uses the same library feature set. Documentation distinguishes
+this loop from no-default-feature shipping checks and explains shared build locks,
+retained Cargo variants and the independent rules cache. No cache is deleted or
+moved, and user Cargo target-directory settings remain effective.
+
+Measured on macOS after 33c0e08: warm integration build 0.47 seconds, 418 tests in
+1.67 seconds, warm Clippy 0.38 seconds, launcher-only play rebuild 3.19 seconds and subsequent no-op play build 0.34 seconds.
+These demonstrate retained engine dependencies, not a speedup for changed app
+source. Cold bootstrap, Windows timings and architectural extraction remain open.
+No UI changed; this workflow checkpoint requires no replacement screenshots.
+
+
+### 2026-10-27 — Unsupported class records preserve the save
+
+The parser previously skipped out-of-range `who` and `class` rows, accepted the
+remaining account, then allowed a subsequent save to erase the skipped records.
+Both known record types now reject unsupported class identities and use the
+existing load-failure recovery path. This preserves the original bytes, refuses
+writes and prevents entry into a run; it does not reinterpret future classes as
+existing ones. Unknown extension records and other legacy parsing rules are
+unchanged. Disk-level regression cases include a valid hero beside a future-class
+hero with talent references, an extreme numeric class and an unsupported class
+progress row. The existing missing-file and valid round-trip checks remain.
+No new UI was added; the existing recovery notice handles this failure.
+
+Validation: all 418 app tests, app Clippy, formatting and diff checks pass on
+macOS. The integration build took 2m08 and execution 1.62 seconds. No Windows or
+browser execution is claimed for this parser change.
+
+
+### 2026-10-27 — Individual Presence of Mind
+
+Mage node 86 replaces provisional global damage with a two-second advance of an
+owned Arcane Explosion cooldown after a successful Arcane Missiles cast. It adds
+to the existing 20-point milestone for four seconds total. The automatic
+instant-cast conversion is named explicitly in the description, with green inline
+seconds and no repeated unit. Rank caps, class/spell scope and milestone boundaries
+are covered in core tests. The existing cast-level Conflagrate test now also checks
+Presence of Mind across failed targeting, cooling casts, multiple targets and
+cooldown floors; the shared completion path advances once per cast, not per missile.
+Real-data purchase, persistence, spec switching and refund checks verify that a
+refund removes the individual effect while retaining the earned milestone.
+
+Native 1280×720 preview and purchase were captured and embedded in the changelog;
+the saved fixture has node 86 at rank one. Build time: 28 seconds. Live balance,
+Windows acceptance and in-map visual evidence remain separate work.
+
+Validation: 217 core tests, 419 app tests, core/app Clippy, native build, formatting
+and diff checks pass. Real-data definition coverage is 263/432 (Mage 36/49), with
+169 individual definitions remaining. Existing block-crate warning remains.
+
+
+### 2026-10-27 — Mana Shield ability, Codex and training
+
+The Mage pool now includes Mana Shield rather than mapping its talent onto an
+unrelated offensive spell. Rank-one tuning is 40 absorption, 10 seconds duration,
+18 seconds cooldown; ability ranks use the existing shield scaling and shared pool.
+Improved Mana Shield (83) grants 10% shorter cooldown per rank, capped at two, as an
+explicit mana-cost conversion. Arcane damage/critical talents do not improve it;
+Arcane Power and Arcane Instability descriptions now name that exclusion.
+
+Coverage includes class-pool membership, all-class/all-spell talent scope, rank
+caps, normal offer acquisition/upgrading, target-free shield casts, refresh without
+stacking, real damage absorption, local spell identity (1463), DBC purchase gates,
+saved specs and refunds. Mage Codex entries grow to twelve, with existing positions
+preserved; total jewelry discovery entries become 113. Native 1280×720 menu captures
+verify cards, the Codex description and purchased talent; all three are embedded
+in the changelog. Reusable card and Codex presets are in docs/ui-previews. The
+native build took 20 seconds. No attended combat, Windows or browser result is
+claimed for the new spell; shield visuals and balance remain open.
+
+Validation: 218 core tests, 422 app tests, 12 preview-launcher tests, core/app
+Clippy, formatting and diff checks pass. Talent definitions: 264/432 (Mage 37/49);
+168 remain. Existing block-crate future-compatibility warning remains.
+
+
+### 2026-10-27 — Shared shield replacement semantics
+
+Ordinary shield casts previously overwrote stronger talent shields. The shared
+refresh helper now preserves stronger active absorbs and prevents equal absorbs
+from shortening remaining duration. Expired shields are replaceable regardless of
+their stale absorption amount. Mana Shield and Power Word: Shield only cast and
+spend their full cooldown when a refresh is useful; otherwise they retry after
+0.2 seconds. Talent-granted shields use the same replacement rule while their
+triggering spell still completes normally. No absorption values stack.
+
+The cast regression covers both shield spells at multiple ability ranks, Mage
+training caps, partial consumption/refill, stronger and equal-longer shields,
+retry timing and refresh after expiry. Existing milestone tests cover preservation
+and damage handling. This does not establish live overlapping visual behavior or
+balance; no menu appearance changed and no replacement UI screenshot is needed.
+
+Validation: all 422 app tests, app Clippy, formatting and diff checks pass on
+macOS. No additional platform or rendered-combat acceptance is claimed.
+
+
+### 2026-10-27 — Preserve structurally damaged talent saves
+
+Talent-row decoding now returns an error for malformed triples, invalid hero IDs,
+missing payloads, trailing fields and more than three saved specs. References are
+resolved after all heroes load; a missing referenced hero also rejects the load.
+The existing account recovery path preserves the file and prevents saves/run
+entry, rather than writing a sanitized file that silently loses talent choices.
+Valid rows still load in either order; duplicate ranks retain their established
+normalization. Unknown nonzero talent IDs and over-cap ranks remain intact for
+catalog validation and in-app refund recovery. This supersedes the old behavior
+that skipped malformed talent entries. No UI appearance changes are included.
+
+Validation: 422 app tests pass with checkout-local data, including actual disk
+preservation and run/save refusal. Clippy then prompted a type-alias-only cleanup;
+Clippy passes after that cleanup. Formatting and diff checks pass. No new native
+menu, Windows, browser or gameplay validation is claimed for this persistence fix.
+
+
+### 2026-10-27 — Hunter Deterrence
+
+Survival node 1308 now has a functional one-rank automatic defense: 50% incoming
+damage reduction during the first ten seconds of each 180-second run-time cycle.
+The multiplier applies in the shared hero damage path before armor/reduction and
+temporary shields; it is multiplicative with those defenses. It never protects
+the combat wolf or becomes a permanent sheet bonus. Class/rank checks, finite
+time checks and fixed windows prevent foreign-class effects or banked charges.
+The HUD reports remaining active time and hides it on death or without training.
+
+219 core tests and 425 app tests pass, covering interval edges, skipped intervals,
+class/rank boundaries, shield absorption, immunity, HUD text, DBC-backed purchase,
+save round-trip, spec switching and refund. Core/app Clippy, formatting and diff
+checks pass. Native play build: 30.87 seconds. An isolated 1280×720 Hunter menu
+shows green inline 0 » 50%, purchases to rank 1/1 with one point spent, and writes
+the rank to disk. Both screenshots are inline in the changelog; README updated.
+The talent reference was inspected for the three-tree/sidebar layout.
+
+Definition coverage is 265/432 (Hunter 32/46), with 167 definitions remaining.
+This is not attended combat balance, Windows rendering or complete talent-catalog
+acceptance. The other phases and reported Windows scenes remain open.
+
+
+### 2026-10-27 — Scorpid Sting and Improved Scorpid Sting
+
+Added spell 3043 to the end of the Hunter ability pool, preserving existing amulet
+indices. Rank 1 deals 4 damage to one target within 26 yd and reduces enemy damage
+by 25% for six seconds, with a four-second cooldown. Normal upgrades and the
+legendary amulet use the existing single-target path. Shot damage/critical/cooldown
+talents and Hawk Eye include it. The Codex now has 114 entries, eight for Hunter.
+
+Node 1351 has three ranks of +20% debuff duration, multiplying spell-rank scaling
+without changing strength or damage. Local Talent.dbc places it on row 4; purchase
+validation uses 20 earlier points. Weakening refreshes retain stronger active
+reductions and do not extend them through weaker casts. Equal effects retain the
+longer duration; expired effects can be replaced normally.
+
+220 core tests, 428 app tests and 12 preview-launcher tests pass. Coverage includes
+local spell identity, real DBC purchase/save/spec/refund, normal offers/upgrades,
+trained hit effects and markers, bosses and preserving stronger reductions.
+Initial checks caught stale shot lists and a row-3 test fixture; these were fixed
+and the relevant suites rerun. Core/app Clippy, formatting and diff checks pass.
+Native play build: 23.60 seconds. Actual isolated 1280×720 cards, Codex and talent
+purchase were inspected and captured; the purchased rank is saved to disk. The
+changelog embeds all three captures and README is refreshed. Reusable card and
+Codex preview requests are included.
+
+Definition coverage is 266/432 (Hunter 33/46), leaving 166 definitions. Creature-
+specific slaying talents still need authored encounter classifications; this
+change does not substitute global damage bonuses for them. Live projectiles,
+combat balance, Windows and the other acceptance phases remain open.
+
+
+### 2026-10-27 — Hunter 800×600 / 125% native acceptance slice
+
+Checked the existing `a4d59f0` gameplay/UI source using its already-built native
+executable and a separate Hunter fixture. The screenshot is 1600×1256 including
+the macOS title bar; the content viewport is 800×600 logical pixels at Retina 2×.
+Options explicitly displays 125% interface size, with render scale 100%.
+
+The three tree images retain their proportions and talent placement. Scrolling
+to the lower panel exposes the complete Improved Scorpid Sting description, all
+three spec buttons and Reset. Switching to empty Spec 2 gives 51 unspent points;
+returning to Spec 1 restores its lower-panel scroll position, 21 spent points and
+rank 1/3. The untouched spec retains its ranks. The Codex stacks catalog/details,
+shows the complete Scorpid Sting entry, and its catalog independently scrolls to
+the last amulets and 0/114 total without moving the selected description. All
+three preview cards fit with complete green inline upgrades, including the
+hovered rank-4 card, without clipping at this resolution and scale.
+
+Five actual screenshots are embedded in the changelog; README compact links
+updated. This is visual/input evidence, not a code change or new automated test
+result. Native session exited through Quit and its launcher was restored.
+Windows, controller input, other sizes/scales and full seven-phase acceptance
+remain open. Existing 220 core / 428 app test results belong to `a4d59f0`.
+
+
+### 2026-10-27 — Trap Mastery runtime and purchase
+
+Hunter Survival node 1322 now has two functional ranks: +5% Explosive Trap
+direct/periodic damage each. The existing scoped damage pipeline multiplies
+Clever Traps; no hit/resistance rolls are added. The actual local talent data
+places it in row 3 with no prerequisite, requiring 15 earlier-tree points.
+
+Expanded scope/cap tests traverse every class ability pool, including foreign
+spells, and confirm other cast fields stay unchanged. App parameter tests cover
+damage and periodic damage; the real-catalog account test purchases both ranks,
+rejects a third, saves/reloads, switches specs and refunds with Clever Traps
+already trained. All 220 core / 428 app tests and both Clippy checks pass.
+Native play build took 16 seconds. Actual 1280×720 macOS capture verifies the
+0 » 5% preview and purchased 5 » 10% preview, 1/2 rank and 35 remaining points;
+both screenshots are embedded in the changelog. Validation app exited through
+Quit and the launcher was restored.
+
+Coverage is now 267/432 definitions (Hunter 34/46), leaving 165 definitions.
+This is not full gameplay acceptance: live trap balance, Windows reports,
+remaining talents and the other seven-phase requirements remain open.
+
+
+### 2026-10-27 — Improved Hawk proc and purchase
+
+Hunter node 1382 now has a gameplay-time proc clock wired to successful shot
+casts, subsequent cooldown snapshots and a visible HUD status. The authored
+rule is 10% proc chance, 12 seconds, and 3% haste per rank (five ranks), with
+refresh but no stacking. Volley, traps, pets and periodic ticks are excluded.
+Core checks pass (221 tests), as do 431 app tests and core/app Clippy. Actual
+cast-system tests verify failed targeting, paused frames, subsequent-cast
+cooldowns and expiry; HUD checks cover expiry/death/refund. Real-data account
+checks cover all five purchases, cap, saved specs and refunds. Native play
+build: 1m45s. An initial test-source syntax error was repaired before these
+passing checks.
+
+Native macOS 1280×720 preview and purchase show green 0 » 3% then 3 » 6%,
+rank 1/5, and 50 points remaining. Both captures are embedded in the changelog.
+The session exited through Quit and its launcher was restored. Coverage is
+268/432 definitions (Hunter 35/46), leaving 164. Live combat balance, Windows
+acceptance, remaining talents and the other seven-phase requirements stay open.
+
+
+### 2026-10-27 — Haste stat highlighting
+
+The native Improved Hawk capture exposed a missing stat-label match: only the
+percentage was green. Added the complete haste label to the shared formatter.
+Regression coverage checks first, intermediate, capped and over-cap ranks;
+only the changing percentage and haste label are highlighted, not fixed 12 sec
+or 10% proc chance. All 221 core tests and core Clippy pass. Native build took
+14 seconds; 1280×720 screenshot confirms the corrected rich text. App tests
+were not rerun for this formatting-only change; the 431-test result remains
+from fd0dbb7. The session exited through Quit and the launcher was restored.
+Full responsive/platform acceptance and remaining mechanics are still open.
+
+
+### 2026-10-27 — Starter panel bounds at 16:10
+
+Reviewed the main-menu intention and checked a separate synthetic collected
+account in the native starter at 1280×800 (2560×1656 screenshot including macOS
+title bar, Retina 2×). Reproduced the Blackrock row extending below the visible
+zone frame. Outer clipping alone was insufficient because the painted border
+is inset. Split the existing 14px total content inset into 8px frame padding
+and 6px scroll-content padding, retaining overall placement while moving the
+scroll boundary inside the decorative border. The outer frame also clips.
+
+The fixed capture shows no spill; scrolling exposes the complete Naxxramas row.
+Live resize to 640×720 retains stacked class/hero/zone panels, reaches the final
+zone and preserves fixed bottom actions. Run Options input responds with its
+existing Normal-difficulty notice; it is not a finished options dialog. The
+README starter image and inline changelog evidence are updated. The original
+failure is retained as before.png alongside fixed wide/compact captures.
+Native build (final): 22.76 sec. App Clippy, formatting and diff checks pass.
+No new gameplay tests were needed for this layout-only change; earlier test
+counts are not claimed as rerun. Validation exited through Quit and restored
+the launcher. Windows, controller input, the other resolution/page combinations,
+zone readiness and all remaining seven-phase requirements stay open.
+
+### Run Options checkpoint (2026-10-27)
+
+The starter now opens a dedicated Normal difficulty / 1× speed page. Settings
+returns to it, Done returns to the starter, and Enter cannot launch gameplay here.
+Native navigation and 1280×720 / 640×480 layouts verified; 432 app tests, 12 fixture
+tests and app Clippy pass. Faster modes remain future work.
+
+Talent readability follow-up: preserve the 300:331 artwork ratio while increasing
+tree height and icon spacing through wider wrapping columns and vertical scrolling.
+Do not compress all trees merely to fit a narrow window. Windows acceptance remains open.
+
+### Talent spacing checkpoint (2026-10-27)
+
+The short/crowded-tree follow-up now uses a native 300-unit artwork width plus
+panel padding as the preferred column size. Equal column bases keep all trees
+uniform beside the spec panel; narrower windows wrap and share vertical scrolling.
+The artwork remains 300:331. Native macOS Warrior and Paladin previews checked at
+800×600, 640×480 and 1280×720, including scrolling to the third tree and spec controls.
+Before/after evidence is inline in CHANGELOG.md. App Clippy and formatting pass;
+30-second incremental build. Windows reproduction/acceptance remains outstanding.
+
+### Complete talent stat phrases (2026-10-27)
+
+Expanded inline highlighting to complete authored stat phrases, including bleed,
+reflected and retaliation damage, shields, deployment cooldowns and effect durations.
+Vengeance now uses the inline comparison path. Representative first/capped ranks,
+compound damage/critical bonuses, word boundaries and unchanged fixed values pass
+221 core tests; native Warrior and Paladin captures are inline in the changelog.
+This is presentation evidence, not new talent mechanics or balance acceptance.
+
+
+### 2026-10-27 checkpoint — Hunter melee and Savage Strikes
+
+Added Raptor Strike and Mongoose Bite to normal Hunter acquisition/upgrade offers,
+using existing close-range melee casting and spell-specific Codex jewelry. Added
+Savage Strikes with capped, class-scoped critical chance for exactly those two
+abilities. Mongoose Bite is explicitly converted to an automatic cooldown attack.
+
+222 core tests and 435 app tests pass, including actual cast range/retry/pause,
+extra targets, scoped critical hits, saved-spec switching/refunds and real DBC
+identity checks. Core/app Clippy, formatting and native build pass (26 seconds).
+Native previews verify a legal talent purchase at 800×600 and cards/Codex at
+1280×720. Screenshots are embedded in CHANGELOG; README gallery refreshed.
+
+Audit coverage is 269/432 definitions, Hunter 36/46; 163 definitions remain.
+This is definition coverage, not full combat/balance acceptance. Windows talent
+spacing, foliage visibility, obstacle routing and chest pacing remain open as
+recorded above; no combat session was used for this checkpoint.
+
+
+### 2026-10-27 checkpoint — Wing Clip crowd control
+
+Wing Clip is now an acquired Hunter melee ability with normal upgrades and a
+spell-specific legendary Codex entry. Improved Wing Clip rolls 4% per rank on
+its direct damaging hits; roots preserve longer effects and do not mark enemies
+as frozen. Boss roots last 1.5 seconds; ordinary roots last 5 seconds. Baseline
+slow and damage remain independent. The typed cast preview exposes the trained
+chance without implying ability ranks improve it.
+
+Native talent purchase at 800×600 and trained cards at 1280×720 / 640×480 are
+captured inline in CHANGELOG and the README gallery. Compared with the talent
+intention, the smaller viewport deliberately wraps the trees while retaining
+artwork proportions and the adjacent spec/details panel. This checkpoint adds
+content to that layout, not another layout redesign.
+
+Definition coverage: 270/432, Hunter 37/46; 162 definitions remain. This does not
+close live combat balance, animation, Windows reproduction or the full seven-phase
+acceptance contract. Final validation results are recorded in CHANGELOG.
+
+
+### 2026-10-27 checkpoint — Insect Swarm talent
+
+Druid node 827 now applies a scoped 2% outgoing-damage reduction for 10 seconds
+through the production cast parameters and existing weakening priority rules.
+224 core/440 app tests and core/app Clippy pass, including actual applications,
+periodic ticks, boss behavior, rank caps and real-data purchase/spec/refund checks.
+Native build: 17 seconds. Talent purchase at 800×600 and trained cards at
+1280×720 / 640×480 have inline CHANGELOG evidence; README gallery refreshed.
+The existing reference-style tree art/spec layout is unchanged.
+
+Coverage is 271/432 definitions (Druid 26/47), leaving 161. Live balance, Windows
+acceptance and all remaining seven-phase requirements stay open.
+
+
+### Talent readability follow-up — 2026-10-27
+
+Keep the intention screenshot's tall, generously spaced talent rows at every
+supported aspect ratio. Column wrapping alone is insufficient: tree height must
+not be constrained to the background image's aspect ratio. Use a 300:420 grid
+with a 420 logical-pixel readability floor, proportional 40-pixel maximum icons,
+and shared vertical scrolling. Preserve the 300:331 artwork proportions by
+centering and clipping its sides to cover the taller grid. Connectors and rank
+labels remain anchored to the same proportional talent positions. Validate wide
+and compact windows with actual native screenshots; Windows confirmation remains
+open until the reporting player verifies the result.
+
+Verified native macOS previews at 1600×900 and 800×600, including the final
+talent rows and saved-spec controls through scrolling. Inline evidence is in the
+changelog and README gallery. 443 app tests and app Clippy pass. No gameplay
+acceptance claim; five reference-string findings still block the full gate.
+
+
+### Inline regeneration localization — 2026-10-27
+
+Card generation now receives the runtime string catalog. Renew formats its complete
+old/new numeric span through HP_TEMPLATE, retaining fractional trained values and
+one green unit. English 1280×720 native preview confirms new/ranked cards and return
+to Talents; translated value/order/color behavior is tested. 444 app tests and
+app Clippy pass. Four reference-string findings remain in equipment bonuses and
+the legacy talent-rank label; the full integration goal remains incomplete.
+
+
+### Shared equipment templates — 2026-10-27
+
+The runtime string catalog now reaches starter, Character, Collection, Drop Tables,
+cloak and set-bonus summaries, plus the legacy rank fallback. Health, armor and
+damage templates preserve signs and percentage units; translated rank templates
+can reorder their arguments. Armory refresh invalidates when the catalog changes.
+The source reference-string audit passes with no allowance changes. Native English
+Collection preview at 1280×720 confirms equipment totals, item bonuses and the
+full-loadout loss preview. Live translated-layout acceptance remains open.
+
+
+### VM boundary integration checkpoint — 2026-10-27
+
+The first post-localization full run passed formatting/workspace Clippy and
+advanced beyond reference_strings, then stopped at ui_script_wall (47 gameplay
+files; ceiling 40). Five unchanged test modules now live in dedicated test files.
+Localization is a UI feed at ui_survivors_strings.rs; the bridge is at
+ui_webbridge/ with its prior module API retained. Source audit now reports 40 game,
+100 feed, 18 probe and 20 test files, without modifying the boundary gate.
+
+446 Survivors tests, native app Clippy and WebGPU compilation pass. The five
+previous browser warnings persist. Full integration rerun is active and has passed
+workspace Clippy; no-install/player-suite outcomes and addon-corpus coverage remain
+open. This source organization change does not alter UI appearance.
+
+
+### Talent sidebar fit — 2026-10-27
+
+The previous panel bases exceeded the available default 16:9 layout width by
+less than one logical pixel, wrapping saved specs below all three trees. A small
+rounding allowance restores the reference's adjacent spec/details column without
+changing the 420-pixel grid height floor. Native 1600×900 and 800×600 previews
+verify spending, row spacing and access to saved specs; screenshots are inline in
+CHANGELOG and the README gallery. Native build passes (2m56s). The preceding full
+integration baseline and the full chain for this edit are green (31 addon-corpus
+skips per data/player stage). Windows visual acceptance remains open.
+
+### Nature's Grace — 2026-10-27
+
+Checkout-local data identifies Druid Balance node 789, one rank, spell 16880,
+triggering spell 16886. Its effect base points encode -500 ms after the DBC +1
+conversion; it has one charge and duration row 8 is 15,000 ms. These are verified
+source facts underlying the recovery conversion below.
+
+For automatic Survivors casting, a damaging Druid spell critical will grant a
+non-stacking 15-second charge. The next successful owned Wrath or Starfire cast
+will consume it and reduce that cast's subsequent recovery by 0.5 seconds, after
+ordinary cooldown modifiers and with the existing minimum recovery retained.
+Failed casts must not consume it; instant/periodic/support abilities must not
+consume it. Further qualifying criticals refresh expiry without banking charges.
+Run time governs expiry, so pausing freezes it; a new run starts without a charge.
+The tooltip must explicitly describe this recovery conversion rather than claim
+that the game now simulates cast times.
+
+Implemented and verified: capped/class-scoped rules, real cast and hit-system tests,
+no-target/expiry/zero-delta pause behavior, legal catalog purchase/spec/refund
+persistence, and a single green inline value/unit span. 226 core tests and 451
+Survivors app tests pass; app Clippy with warnings denied, formatting and catalog
+coverage pass. Native build took 1m28s. A disposable Druid preview at 1600×900
+confirms purchase (31→30 points, rank 0→1), saved rank and the full taller grid;
+1280×720 Wrath/Starfire cards retain normal uncharged upgrade values. Screenshots
+are embedded in CHANGELOG. Coverage is 272/432 (Druid 27/47), leaving 160.
+Live combat balance and Windows visual acceptance remain open. The full workspace
+chain last passed at the preceding talent-layout checkpoint; it was not rerun for
+this individual talent milestone.
+
+
+### Blade Flurry contract — 2026-10-27 (verified)
+
+Checkout-local spell 13877 (Combat node 223, row 4, one rank) supplies 20% attack
+speed, an additional nearby opponent, duration row 8 (15 sec), and 120,000 ms
+recovery. Survivors already owns a player-centered Blade Flurry area ability.
+The individual talent makes a successful owned area cast start the burst. During
+it, Sinister Strike, Eviscerate, Gouge, Kidney Shot and Blade Flurry divide newly
+started recovery by 1.2; only the four single-target melee attacks gain one target
+within unchanged reach. Rupture, Sprint, existing timers and area geometry remain
+unchanged. Repeated casts do not refresh the window; missed intervals do not bank
+charges. Run time excludes pauses, and a new run resets the clock. Preparation
+does not reset this separate burst clock. Both changing effects must appear green
+inline. Verified: 227 core and 453 app tests, Clippy with warnings denied, catalog
+audit and native build (1m30s). Cast-system tests cover empty targets, expiry,
+pause, additional melee targets and composition with Adrenaline Rush. Account
+tests cover legal purchase, save/reload, spec switching and refund. Native
+1600×900 purchase changes rank 0→1 and points 31→30; 640×720 retains two taller
+trees and the complete inspection text. Screenshots are embedded in CHANGELOG.
+Coverage is 273/432 (Rogue 25/51), leaving 159 definitions. Windows visuals and
+live balance remain open; the full workspace chain was not rerun for this slice.
+
+### Direct character-management preview — 2026-10-27
+
+`page=heroes` now accepts `category=manage` or `category=appearance`. This closes
+the manual navigation gap for inspecting hero creation on populated fixtures.
+Omission retains the previous dressed-view default; invalid/duplicate categories
+reject the complete request. Wide/compact presets and native screenshots cover
+entry at 1600×900, live resize to 640×720 and returning to appearance. No hero
+creation or save mutation is performed by the request itself. Remaining page
+controls, wider platform acceptance and the full starter objective stay open.
+
+Validation: all 454 Survivors app tests pass; app Clippy and the incremental native
+build pass. Full workspace and Windows acceptance were not rerun for this preview
+control addition.
+
+### Equipped-weapon mechanics boundary — 2026-10-27
+
+`Loadout::melee_weapon` resolves the owned, worn main hand into melee type and
+handedness. Cosmetic substitutions and hidden appearances cannot activate weapon
+talents. Ranged items, shields, empty/unowned selections and inconsistent metadata
+return no melee weapon. Both legacy and Poor gear use the same boundary. Tests
+cover replacement, ownership loss, class mismatch, overrides and all current
+legacy catalog melee entries. All 229 core tests pass. This introduces no new
+player-visible effect and does not advance talent coverage.
+
+Next integration: Warrior Two-Handed Weapon Specialization (node 136, five ranks;
+checkout Spell.dbc rows 12163/12711–12714) supplies 1–5% two-handed melee damage.
+Source descriptions explicitly restrict it to two-handed melee weapons; raw
+EffectBasePoints are 0–4, plus the effect die value. Pass the *worn* identity into
+run and selected-profile card calculations, never the rendered weapon. Apply to
+weapon attacks rather than unrelated spell/periodic damage. Required acceptance:
+legal purchase/refund and save reload, one-/two-handed and empty gear, cosmetic
+overrides, actual cast damage and green inline preview. Axe/Polearm specialization
+should share this boundary later. No node is complete merely because the metadata
+query now exists.
+
+### Two-Handed Weapon Specialization integration — 2026-10-27 (verified)
+
+Warrior node 136 now uses the shared worn-weapon query in the selected hero's
+Milestones snapshot, shared by run startup and selected-profile card previews.
+Five ranks multiply damage by 1.01–1.05 for Cleave, Heroic Strike, Whirlwind,
+Sweeping Strikes, Execute, Mortal Strike and Retaliation only with a two-handed
+melee weapon. Thunder Clap and shouts are excluded. Deep Wounds is not multiplied
+a second time; a stronger triggering hit can still produce a stronger bleed.
+The tooltip states the worn-weapon condition and uses green inline percentages.
+Verified: 230 core and 456 app tests, including purchase/save/spec/refund and
+emitted-hit damage checks. Clippy passes; incremental native build took 1m34s.
+Native 1600×900 purchase (36→35 points, rank 0→1) and green inline text are
+captured in CHANGELOG. Catalog coverage is 274/432 (Warrior 35/52), leaving 158.
+Windows visuals, live balance and full workspace acceptance remain open for this
+slice; selected-profile cards use the same account snapshot, but no separate
+visual card comparison was performed.
+
+### Selected-profile weapon card acceptance — 2026-10-27
+
+Native 1280×900 comparison uses the collected Warrior fixture, unchanged worn
+Rare two-handed sword, and legal Arms ranks. Five specialization ranks are bought
+through the production talent UI between captures. Cleave displays 20→26 before
+and 21→27.3 after; Heroic Strike 40→52.1 before and 42→54.7 after. Thunder Clap
+remains 14.3→18.6. Green inline text and shared units remain intact. This closes
+the separate visual card comparison left open in the preceding milestone. Full
+native integration now passes at code commit `1cd935a`; see the validation record.
+Windows and live balance stay open.
+
+### Next weapon-specialization batch — source audit 2026-10-27
+
+Checkout Talent.dbc and Spell.dbc resolve Warrior Axe Specialization (132;
+12700/12781/12783–12785) and Polearm Specialization (134; 12165/12830–12833) to
+1–5 percentage points of critical chance. Warrior One-Handed Weapon
+Specialization (702; 16538–16542) is 2–10% damage, not the two-handed node's
+1–5%. Scope all effects to worn weapon identity, with the same weapon attacks
+and snapshot boundary used by node 136. Preserve shared crit caps and multiplicative
+damage composition; verify unavailable gear, cosmetic swaps, refunds and saves.
+
+Catalog acceptance matters: current Warrior Poor/Common/Uncommon weapons are
+axes; Rare/Epic/PvP are two-handed swords and Legendary is Thunderfury (one-handed
+sword). No current Warrior polearm is obtainable. Implement Axe and One-Handed
+Specialization together next; Polearm also needs a verified obtainable weapon
+variant and collection/acquisition support before it can count as a finished
+player-facing choice. Do not substitute a global crit bonus to hide this gap.
+
+Native gate checkpoint: the full `scripts/check.sh` chain at `1cd935a` passed
+in 1,031 seconds, including workspace/no-install/player tests, Clippy and lints.
+The data/player stages each reported 31 missing-addon skips. Evidence and scope:
+[2026-10-27 integration](validation/2026-10-27-integration.md). This closes the
+post-snapshot native integration gap, not the broader platform/gameplay goal.
+
+### Axe / one-handed specialization checkpoint — 2026-10-27
+
+Warrior nodes 132 and 702 use the worn-weapon snapshot shared by run startup and
+selected-profile cards. Axe ranks add 1–5 percentage points of weapon-attack
+critical chance; one-handed ranks multiply weapon-attack damage by 1.02–1.10.
+Both exclude Thunder Clap, shouts and separate bleed ticks. The cast path retains
+its 100% total critical-chance cap. Rechecked checkout Spell.dbc base points
+(0–4 and 1/3/5/7/9).
+
+Verified: 230 core tests; 457 app tests including legal purchases, save/reload,
+spec switching, refunds, cosmetic isolation and actual emitted damage/critical
+rolls; all-target app Clippy. Native incremental build: 17s. Native 1600×900
+purchases show Axe 31→30 available points and One-Handed 26→25, green inline
+percentages and separate saved specs; both ranks persisted after Quit. Screenshots
+are embedded in CHANGELOG. Definitions match 276/432 selectable nodes (Warrior
+37/52); 156 still lack definitions. Full integration for this batch, Windows
+visuals, selected-profile card comparison and live balance remain open.
+
+### Next weapon proc audit — 2026-10-27
+
+Read checkout Spell.dbc using the format parser's column definitions: proc chance
+25, duration index 30, trigger spells 109–111 (not the following array).
+Warrior Sword Specialization node 123 uses spells 12281/12812–12815: proc chances
+1/2/3/4/5%, triggering spell 16459. Its description requires sword damage and an
+extra attack against the same target. Implement an actual additional hit, not a
+flat expected-value damage multiplier or another AoE cast. Current obtainable
+Rare/Epic/PvP/Legendary Warrior swords make this the next usable weapon talent.
+
+Mace node 125 has a non-linear final rank: spells 12284/12701–12704 encode
+1/2/3/4/**6**%, triggering stun 5530 (duration index 27). Do not infer 5% from
+rank count or use EffectBasePoints for a `$h` description. Maces, like polearms,
+need an obtainable Warrior gear path before the talent counts as fully usable.
+
+Implementation boundary for Sword: `abilities::apply_hits` already resolves
+pending hits, live targets, damage, procs, deaths and rewards. Extend hit provenance
+so a generated attack cannot recursively trigger itself or be confused with a
+splash copy. Preserve the originating damage/crit snapshot; explicitly decide
+and document the Survivors extra-attack damage rule before implementation, since
+there is no separate white-swing weapon damage simulation. A raw clone of `Hit`
+would incorrectly copy execute, control, DoT, splash and mark effects. Tests must
+cover matching worn swords versus cosmetic swords, rank thresholds, same-target
+only, generated-hit exclusion, dead/despawned targets, pause behavior, ordinary
+critical/mitigation/meter behavior, and exactly-once death/loot handling. Native
+purchase/save/inline screenshots remain required for the eventual milestone.
+
+### One-handed selected-profile card acceptance — 2026-10-27
+
+Native 1280×900 fixture keeps the worn Legendary one-handed sword unchanged while
+buying five node-702 ranks in the production UI. Cleave shows 20.6→26.8 before,
+22.6→29.4 after; Heroic Strike 41.2→53.5 before, 45.3→58.9 after. Thunder Clap
+remains 14.7→19.1. The 25→30 Protection point crossing separately activates the
+existing Heroic Strike milestone (two targets and 8% absorb instead of one and
+5%); this is not attributed to the weapon node. Before/after screenshots are
+inline in CHANGELOG. This closes the one-handed card comparison, while axe crit
+has emitted-hit tests and native talent text rather than a damage-card comparison.
+
+### Weapon specialization integration acceptance — 2026-10-27
+
+The full native gate chain at `ef95fac` passed in 653 seconds (10m53s), including
+player-mode tests without developer features. Data/player stages each reported
+31 missing-addon skips. This closes the full native integration item for Axe and
+One-Handed Weapon Specialization; details are in the
+[validation record](validation/2026-10-27-integration.md). Later screenshot/docs
+commit `4548ec7` leaves the tested code unchanged. Windows, live realm smoke,
+remaining talent/content work and live balance are still open.
+
+### Sword specialization checkpoint — 2026-10-27
+
+Chosen Survivors conversion: a 1–5% worn-sword proc repeats the originating
+weapon hit's direct damage snapshot and critical result against the same target.
+It carries no execute/control/DoT/splash/mark effect, uses a distinct damage-meter
+source, and cannot trigger another talent proc. Normal damage application still
+handles multistrike, leech and death/rewards. Eligibility rolls before splash
+expansion; dead/missing targets and inactive runs do not roll. The ordinary dead
+check prevents a generated hit from rewarding a target killed by the first hit.
+
+The core chance and inline definition are implemented; 231 core tests pass.
+All 459 app tests pass, including helper payload/proc exclusion, system-level
+lethal/despawn/target-isolation/pause/loot checks and legal purchase/save/refund
+with cosmetic isolation. A dead-target splash guard also prevents abandoned hits
+from harming neighbors. All-target app Clippy and the native build pass (23s). Native 1600×900 purchase
+shows points 30→29 and green chance 0→1% / 1→2%; rank one persists after Quit.
+Screenshots are inline in CHANGELOG. Definition coverage is 277/432 (Warrior
+38/52), leaving 155 undefined. Full integration, Windows visuals and live balance
+remain open for this checkpoint.
+
+### Obtainable Warrior weapon alternatives — implementation contract
+
+Audit: the current 54-slot Warrior collection and Poor weapon contain axes and
+swords, but no mace or polearm. Implementing those specializations alone would
+leave players unable to activate them. Preserve all existing collection indexes,
+ownership, drop rows and the 54-piece completion denominator.
+
+Add two supplemental Common main-hand choices: Worn Mace (entry 36, one-handed)
+and Short Spear (15810, two-handed), using the pinned factual identities recorded
+in SURVIVORS-GEAR-VISUALS. Give each its own stable weapon key rather than encoding
+it as the single `poor:warrior:main-hand` slot. Both use the existing Common
+main-hand stat bonus; the difference is weapon type and talent eligibility.
+
+Initial authored acquisition: a Warrior defeating Elwynn's scheduled Hogger
+receives one of these two alternatives, uniformly selected, alongside the
+existing independent head-piece roll. This is one guaranteed weapon roll per
+Hogger defeat, not an extra chest, ordinary-enemy reward or elite reward. Duplicates
+grant no stats or replacement reward and never change equipped gear or appearance.
+Keen Eye does not change this guaranteed roll. Other classes retain their current
+rewards. Display these rules explicitly in Collection and Drop Tables.
+
+Implementation sequence and acceptance:
+
+1. Extend validated supplemental identity lookup and enumeration without changing
+   existing Poor/Raid Epic keys. Test malformed keys, class/slot validation,
+   one-handed mace versus two-handed polearm classification and duplicate ownership.
+2. Add the pure source selector and connect it to the single enemy-death reward
+   path. Test wrong zone/name/class, non-boss, invalid rolls and both boundaries;
+   exercise actual death handling, duplicate hits and existing loot coexistence.
+3. Preserve independent equipment and cosmetic keys through save/reload. Test
+   unowned/foreign references, unchanged legacy completion, shared quality stats,
+   and worn-type snapshots for talent/card calculations. Never auto-equip a drop.
+4. Add a clearly labeled alternative-weapons row beside the established collection
+   grid. Generalize supplemental quality/color/source details, currently assuming
+   only Poor or Raid Epic. Both items must support inspect, equip, appearance,
+   comparison, and source navigation. Drop Tables must expose the same source.
+5. Extend the install audit to decode both icons and resolve their models. Capture
+   native wide/compact Collection and Character views, including independent look
+   versus equipment, and embed milestone evidence in CHANGELOG and README.
+6. Implement Mace and Polearm talents against these obtainable worn identities;
+   separately validate their actual effects. Mace's last vanilla proc rank is 6%,
+   not an inferred 5%; retain the existing spell-source audit when choosing its
+   Survivors behavior. Talent acceptance requires acquisition and saved equipment,
+   not only a synthetic weapon injected into a unit test.
+
+This section records the next implementation, not completed content. Neither
+weapon currently contributes to completed acquisition or talent coverage. Windows,
+live drop/attachment acceptance and balance remain separate from native UI tests.
+
+### Alternative weapon rules checkpoint — 2026-10-27
+
+The pure core now exposes stable `weapon:warrior:worn-mace` and
+`weapon:warrior:short-spear` identities through supplemental lookup. The source
+selector enforces Warrior, Elwynn, Hogger, boss status and valid uniform rolls;
+its source matches an actual scheduled encounter. It is not yet called by death
+settlement. Tests cover malformed keys, wrong classes/slots, duplicate ownership,
+worn one-/two-handed identity, cosmetic isolation and Common bonus selection.
+All 234 core tests and core/audit all-target Clippy pass. The collection audit
+decodes both display icons from checkout data, preserving all 486 legacy and
+153 existing supplemental mappings. Model attachments, collection controls,
+account save/reload acceptance and live reward integration remain next; no new
+UI or gameplay screenshot is claimed for this rules-only checkpoint.
+
+The preceding Sword source at `68f2a2c` also passes its full native integration
+run in 769 seconds; see the validation record. That run compiled before the new
+weapon module was connected and does not validate these later source changes.
+
+### Alternative weapon delivery and UI checkpoint — 2026-10-27
+
+The single death-settlement path now awards the class-scoped Hogger alternative
+independently after legacy loot; it does not spawn a chest or auto-equip the item.
+Direct/periodic lethal-hit tests verify one award, original head loot coexistence,
+ordinary/elite exclusion and rejection of subsequent dead-target hits. Account
+checks verify duplicate no-ops, class rejection, unchanged legacy slots, saved
+worn mace and independent spear appearance. Collection and Drop Tables share
+responsive entries, correct Common quality, source navigation and existing
+comparison/equip/appearance actions. Character's shared appearance controls now
+resolve supplemental keys to their actual slots instead of using a stale legacy
+selection; owned/unowned weapon and Poor glove regression cases cover this fix.
+
+All 462 feature-enabled app tests, all-target app Clippy, formatting and native
+build pass. Initial feature build: 2m47s; final appearance fix: 23.5s. Native
+1600×900 checks verify equip, cosmetic selection, unchanged 54/54 progress and
+source navigation. A fresh 640×720 process retains both saved choices and exposes
+complete source/detail/action text through scrolling. Human male Character
+renders both models; Worn piece changes the spear appearance back to the mace
+without changing equipment. The final save retains the mace and clears only its
+cosmetic override. Screenshots are embedded in CHANGELOG and the README gallery.
+
+Fixtures use seeded ownership; no unattended combat run was performed. Live
+acquisition/balance, Windows, other bodies/poses and full integration remain open.
+Mace and Polearm talent effects remain unimplemented; coverage remains 277/432.
+
+### Alternative weapon integration — 2026-10-27
+
+The full native gate passes at `1dbe0d7` in 930 seconds, including workspace,
+no-install and player-mode tests, formatting, Clippy and lints. Each data/player
+stage reports 31 missing-addon skips. See the integration validation record.
+Polearm node 134 is the next implementation slice; no later talent work is covered
+by this gate. Windows/live acquisition and remaining broad acceptance stay open.
+
+### Polearm Specialization implementation — 2026-10-27
+
+Node 134 now grants 1–5 percentage points of critical chance to the existing
+Warrior weapon-attack group only while a polearm is worn. The obtainable Short
+Spear supplies that identity; cosmetics do not qualify. This replaces the
+provisional damage bonus and preserves shared critical-roll caps.
+
+234 core tests and 462 feature-enabled app tests pass, including actual emitted
+hits, matching/mismatching weapons, DBC-validated purchases, saved specs, refunds
+and independent appearances. All-target app Clippy passes. Native build took 17s. At 1600×900, the purchase
+changes Arms 25→26 and the green inline value 0→1% to 1→2%; saved rank and equipped
+Short Spear are verified. Screenshots are embedded in CHANGELOG, with a reusable
+preview preset. Seeded gear/points are explicit; no unattended combat was run.
+Coverage is 278/432 (Warrior 39/52). Full integration for this source change,
+Windows and live balance remain open. Mace Specialization is still pending.
+
+### Polearm integration — 2026-10-27
+
+Full native integration passes at `42b7f3f` in 611 seconds, including player-mode
+tests. Data/player stages each report 31 missing-addon skips. This supersedes
+the pending full-gate note above; Mace source changes start after this checkpoint.
+
+### Mace Specialization implementation — 2026-10-27
+
+Checkout Spell.dbc spells 12284/12701–12704 encode proc chances 1/2/3/4/6%,
+triggering spell 5530. SpellDuration row 27 is 3000ms. Node 125 now uses that
+non-linear table for both its effect and inline upgrade description. A worn mace
+qualifies; appearance alone does not. Each original direct Warrior weapon hit
+may stun its target for 3s (bosses 0.9s, matching existing control scaling).
+Generated extra strikes, splash copies, bleed ticks, dead/missing targets and
+paused processing do not trigger it. Longer existing stuns are preserved.
+
+235 core tests, 463 final app tests and core/app all-target Clippy pass, including
+original-target/boss/longer-stun/pause/loot behavior and saved gear/spec/refund
+checks. Native 1600×900 verifies 4→6% inline chance, the 4→5 purchase (Arms 24→25),
+maximum-rank text and persisted rank with Worn Mace equipped. Seeded points/gear
+are explicit; no unattended combat was run. Build: 23.45s. Screenshots are inline
+in CHANGELOG and the reusable preview preset is included. Coverage: 279/432,
+Warrior 40/52. Full integration, Windows and live balance remain open.
+
+### Mace integration checkpoint — 2026-10-28
+
+Full `scripts/check.sh` / `scripts/gates.sh` passed for `3ed76d6` in 800 seconds
+(13m20s): formatting 6s, workspace Clippy 22s, workspace tests 423s, no-install
+tests 27s, doc links 50s, render-pass lint 1s, player-build tests 270s. Both
+data-backed test runs skipped 31 unavailable addon-corpus tests (24 vanilla,
+7 Quiver). This supersedes the pending Mace full-gate note. Windows, live balance
+and the seven-phase acceptance contract remain open.
+
+### Improved Hamstring — implementation and acceptance
+
+Checkout Talent.dbc node 129 is Arms row 5, column 2, three ranks with no explicit
+prerequisite node. Spell.dbc 12289/12668/23695 gives 5/10/15% proc chance,
+triggering 23694; SpellDuration row 28 is 5,000 ms. Those are source facts.
+
+Survivors conversion: attach the root proc to Thunder Clap, the existing Warrior
+movement-impairing attack. Its description explicitly names the conversion; the
+rules do not claim a separate Hamstring ability, rage cost or melee strike.
+Each original damaging Thunder Clap hit rolls independently for a five-second
+root (1.5 seconds for bosses), retaining longer roots and the existing slow.
+Splash copies, periodic hits and generated weapon strikes cannot roll; rooting
+does not freeze enemies or change damage, target count, area or ability ownership.
+There is no equipment requirement. Pauses suspend resolution under the existing
+Playing-state gate. Remove the generic damage placeholder for this node.
+
+Acceptance: class/rank/damage/source boundaries; unchanged cast parameters;
+inline green 10 » 15% chance and capped 15% text without duplicate units/ranks;
+ECS original versus splash victims, bosses, longer roots, dead/despawned targets,
+lethal loot-once and pause/resume; saved purchase, cap, spec switch and refunds.
+Native seeded preview: 25 prerequisite Arms points plus two Hamstring ranks,
+then buy rank three; capture available/trained and inspect persisted rank.
+Full workspace gates, Windows reproduction and live balance remain separate
+acceptance evidence; scratch core checks alone do not complete the milestone.
+
+### Improved Hamstring checkpoint — 2026-10-28
+
+Implemented the conversion above. All 236 core and 465 feature-enabled app tests
+pass, including damage/source/class/rank boundaries, original versus splash
+control, retained slow, boss/longer roots, pause, dead/despawned/lethal targets,
+one loot event and purchase/save/spec/refund behavior. Core and app all-target
+Clippy pass. Native incremental build: 24.75 seconds.
+
+The seeded 1600×900 preview verifies green inline 10 » 15% chance, purchase 2/3
+→ 3/3, points 24 → 23 and persisted `0:129:3`. The capped description shows 15%
+without an upgrade arrow. Before/available/trained captures are stored under
+`docs/images/screenshots/2026-10-28-hamstring/`, with the latter two inline in the
+changelog. Coverage audit: 280/432 overall, Warrior 41/52. This is menu and ECS
+evidence; full integration, Windows and live combat/balance remain outstanding.
+
+### Hamstring integration checkpoint — 2026-10-28
+
+Full `scripts/check.sh` / `scripts/gates.sh` passed for `f541c71` in 906 seconds
+(15m06s): formatting 7s, workspace Clippy 23s, workspace tests 495s, no-install
+tests 90s, doc links 58s, render-pass lint 1s and player-build tests 232s. Both
+data-backed runs skipped 31 unavailable addon-corpus tests (24 vanilla, 7 Quiver).
+This supersedes the pending Hamstring full-gate note. Windows, live balance and
+the overall seven-phase acceptance contract remain open.
+
+## Battle Shout implementation scope — 2026-10-28
+
+Source: checkout Talent.dbc node 154, Fury row 2 column 3, five ranks. Spell.dbc
+12318/12857/12858/12860/12861 increase Battle Shout's attack-power bonus by
+5/10/15/20/25%. Spell 6673 rank one has base points 14 + die side 1 = 15 attack
+power and duration row 4 = 120,000 ms. Survivors has no attack-power/party system.
+
+Authored Survivors rules: acquire Battle Shout from the Warrior ability pool.
+It grants +10% weapon damage for 8 seconds, with a 20-second recharge. Existing
+ability ranks scale strength (+30% of base per rank), duration (+10% of base per
+rank), and recharge (×0.93 per rank). Improved Battle Shout multiplies its strength
+by 1 + 0.05 × capped talent rank. This is a self-only percentage-damage conversion,
+not vanilla party attack power. Global damage, crit, area and extra targets do
+not amplify the buff's percentage. Booming Voice duration integration is described in the follow-up below.
+
+Self buffs resolve before offensive casts so acquisition order cannot alter
+same-frame damage. Recasts refresh without stacking. Shared scoped stats apply
+the active bonus once to Cleave, Heroic Strike, Whirlwind, Sweeping Strikes,
+Execute, Mortal Strike and Retaliation. Shouts and independent periodic/generated
+sources receive no second multiplier; derived bleed/extra-strike snapshots keep
+their existing originating-hit rules. Shared cast parameters drive weapon tooltips
+and cards as well as emitted damage. Run time controls expiry; new runs reset it.
+
+Acceptance: acquisition/class pool, rank scaling, activation without enemies,
+independent spell ordering, refresh/nonstacking, expiry/pauses/death/reset, scoped
+weapon damage, magnitude/crit isolation, talent composition, save/spec/refund,
+green inline ability/talent previews and active HUD status. Capture seeded native
+purchase and card screens for the changelog and README. Full native integration,
+Windows and live balance remain separate requirements. 241 core tests and 470 feature-enabled app tests pass, as do core/app Clippy.
+Native purchase 4→5, point deduction and saved rank verified at 1600×900;
+trained new/upgrade cards verified at 1280×720 with green inline values.
+Full integration passed in 17m38s, including player-build tests; each data/player
+stage reported 31 unavailable addon-corpus skips. Windows and live balance remain open.
+
+
+### Booming Voice duration follow-up — 2026-10-28
+
+The checkout Spell.dbc records (12321/12835–12838) give both shouts 10–50%
+area and duration increases. Preserve Demoralizing Shout's existing radius
+bonus and extend both shouts' duration by the same amount. Battle Shout remains
+self-only, with no radius or extra-target benefit. Its strength still comes from
+Improved Battle Shout; recharge remains unchanged. Other duration talents compose
+multiplicatively. Rank caps, class isolation and refunds use existing saved ranks.
+
+Acceptance: core cast composition and green inline descriptions; app cast snapshot
+and expiry at both ability ranks; native talent purchase/save and trained card
+previews. 243 core tests, 471 app tests and core/app Clippy pass. Native purchase 4→5,
+point deduction 36→35 and persisted rank verified at 1600×900; trained cards show
+12→13.2 sec at 1280×720. Incremental build 17 sec. Full integration passed in
+11m35s, including player-build tests; 31 missing-addon skips per data/player run;
+Windows and live balance remain open.
+
+### Rogue Dagger Specialization — 2026-10-28
+
+Verified from the checkout's Talent.dbc: node 182, Combat tree index 1, row 3,
+column 1, five ranks, no prerequisite beyond row points. Spell.dbc
+13706/13804–13807 grant 1–5 percentage points of dagger critical chance.
+The gear catalog includes Shadowblade, Core Hound Tooth and Death's Sting as
+daggers; Rogue weapon choices also include swords. Qualification must use the
+owned, worn main-hand identity, independently of cosmetic appearance.
+
+Implementation scope: add the critical chance to Sinister Strike, Eviscerate,
+Blade Flurry, Gouge and Kidney Shot through shared cast calculations. Rupture
+ticks, Sprint, neutral item abilities and other classes remain unchanged.
+Stack additively with existing critical bonuses, preserving the final critical
+chance cap. Keep Blade Flurry's single area and existing extra-target rules.
+Show green inline critical-chance upgrades with the worn-dagger requirement.
+
+Acceptance before claiming completion: core rank/class/weapon/effect isolation;
+account purchase, save/load, spec changes, refund and cosmetic independence;
+app cast/critical-hit behavior and preview parity; native purchase and card
+screenshots embedded in CHANGELOG and README. The implementation now passes
+245 core tests, 473 feature-enabled app tests and core/app Clippy. Native purchase
+4→5, point deduction 32→31 and saved rank verified at 1600×900; trained cards
+verified at 1280×720. Card damage remains noncritical damage; the talent adds
+critical chance, not a permanent damage multiplier. Screenshots are embedded in
+CHANGELOG and the README gallery is refreshed. Incremental build: 20 seconds.
+Definition coverage: 282/432 (Rogue 26/51). Full integration passed in 10m24s,
+including player-build tests; 31 missing-addon skips per data/player run.
+Windows visuals and live balance remain open.
+
+### Rogue Sword Specialization — 2026-10-28
+
+Checkout Talent.dbc node 242: Combat tree index 1, row 4, column 2, five ranks,
+no explicit prerequisite. Spell.dbc 13960–13964, proc-chance column 25, gives
+1/2/3/4/5%. Brutality Blade is an existing Rogue sword (Rare main-hand choice).
+
+Extend the existing same-target extra-strike mechanism to original Sinister
+Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot hits while a sword is worn.
+The generated hit copies direct damage and its critical result only; it does not
+copy area, control, marks or bleed effects and cannot trigger further procs.
+Cosmetic swords, Rupture ticks, neutral abilities and nonpositive/nonfinite damage
+do not qualify. Warrior behavior remains unchanged. This is explicitly described
+as a Survivors conversion of vanilla extra attacks.
+
+Acceptance: rank/class/weapon isolation, existing Warrior regression coverage,
+green inline proc chance, saved equipment/spec/refund behavior, lethal and missing
+targets, pause/resume, one loot award, no splash or generated-hit recursion, and
+native purchase/save screenshots. The implementation passes 247 core tests and
+474 feature-enabled app tests, including all five Rogue source attacks through
+the existing hit/loot pipeline. Core/app Clippy pass. Native final-rank purchase
+4→5, points 27→26 and persisted rank verified at 1600×900; trained cards verified
+at 1280×720. Screenshots are embedded in CHANGELOG and the README gallery is
+refreshed. Incremental build: 19 seconds. Definition coverage is 283/432
+(Rogue 27/51). Full integration passed in 11m26s, including player-build tests;
+31 missing-addon skips per data/player run. Windows and live balance remain open.
+
+Following dependencies: Rogue mace/fist talents need obtainable matching weapon
+alternatives before claiming usable completion. The pinned item-template catalog
+contains Right-Handed Brass Knuckles (15905, display 26592, inventory 21,
+class/subclass 2/13, material 1, sheath 7); validate its checkout icon and native
+attachment before selecting it. Worn Mace already has verified identity metadata,
+but its current supplemental reward is Warrior-only. Extend class-scoped inventory,
+Collection and Drop Tables together, preserving the original 54 identities and
+duplicate/no-auto-equip rules. Do not silently reuse Warrior-only reward labels.
+
+Rogue Fist node 183 spells 13707/13966–13969 grant 1–5 percentage points of
+critical chance. Rogue Mace node 184 spells 13709/13800–13803 have proc chances
+1/2/3/4/6% plus 1–5 mace skill; the skill component needs an explicit Survivors
+conversion or stated inapplicability rather than silently disappearing. Neither
+node is implemented by this audit.
+
+### Rogue alternative weapons implementation scope — 2026-10-28
+
+Add Common Worn Mace and Right-Handed Brass Knuckles as Rogue supplemental
+main-hand choices, retaining the original 54 collection identities. Use separate
+`weapon:rogue:*` ownership keys. Hogger awards one of the two with equal chance,
+alongside the existing head-piece roll; keep the Warrior reward unchanged.
+Duplicates never add power or change worn gear/appearance. Common main-hand
+bonuses remain shared rarity rules, independent of vanilla item quality.
+
+Make alternative-weapon source labels class-aware and use the actual weapon type
+for Collection labels (the existing UI labels every non-polearm as a mace).
+Expose both choices in Rogue Collection and Elwynn Drop Tables. Expand the
+collection audit across supported classes rather than auditing Warrior alone.
+
+Checkout display 5194 resolves `INV_Mace_03`, model
+`mace_1h_flanged_a_01.m2`; display 26592 resolves `INV_Gauntlets_04`, model
+`hand_1h_knuckle_a_01.m2`. Both 64×64 icons decode successfully. The pinned item
+template supplies entry/subclass metadata; native attachment fit remains unproven.
+
+An isolated core draft passes 248 tests and Clippy. Before claiming completion:
+verify account acquisition, cross-class ownership rejection, save/load, duplicate
+stability, independent worn/cosmetic choices, source-page labels and navigation,
+and native weapon attachments with inline milestone screenshots. The source
+checkout remains unchanged while Rogue Sword integration runs. This delivers
+weapon prerequisites; Rogue mace/fist talent effects are still separate work.
+
+### Rogue alternative weapons checkpoint — 2026-10-28
+
+Implemented the scope above in the shared catalog, account save/reward path,
+Collection, Drop Tables and all-class asset audit. 248 core tests and 474 app
+tests pass, including class ownership, duplicate stability, independent saved
+choices and source actions. Core/app Clippy pass. The explicit-data audit decodes
+498 unique display icons, including all four Warrior/Rogue alternative entries.
+
+Native 1600×900 human-female Rogue preview verifies fist equip, mace appearance,
+both attachments and source navigation. Saved records retain fist in
+`supplemental_worn 3 8` and mace in `supplemental_look 3 8`. Seeded ownership does
+not prove live drop acquisition. Screenshots are embedded in CHANGELOG; other
+bodies/poses, Windows and live balance remain open. Native build passed in 1m30s.
+Full integration is running; source is held stable until its terminal result.
+This closes the obtainable-weapon prerequisite; Rogue mace/fist talent effects
+remain to implement, with total talent definition coverage still 283/432.
+
+### Rogue Fist Weapon Specialization contract — 2026-10-28
+
+Talent 183 (Combat, row 4, column 3; no direct prerequisite) uses checkout spells
+13707 and 13966–13969. Their first effect has base points 0–4 and die sides 1,
+confirming +1–5 percentage points of critical chance. Apply only with a worn fist
+weapon, to the same direct attacks as Dagger Specialization: Sinister Strike,
+Eviscerate, Blade Flurry, Gouge and Kidney Shot. Exclude cosmetic selections,
+Rupture ticks and neutral items. Keep green inline rank previews and rank caps.
+
+The isolated draft passes 251 core tests, including all-class, weapon-type,
+all-ability, rank-cap, reset and non-stacking checks. Clippy passed before the
+additional non-stacking test. It is not yet applied to the
+checkout while the weapon integration gate runs. Account save/spec/refund tests
+are drafted but unrun; native purchase/save and card screenshots remain required.
+
+Rogue weapon integration completed successfully in 881 seconds (14m41s), with
+31 missing-addon skips per data/player run. Fist source changes began after this
+terminal result; the weapon gate does not cover those subsequent changes.
+
+### Rogue Fist Weapon Specialization implementation — 2026-10-28
+
+Node 183 now uses the verified +1–5% critical-chance rule for equipped fist
+weapons. The shared cast path supplies the existing critical roll; no extra hit
+or periodic damage is introduced. 251 core tests and 475 feature-enabled app
+tests pass, including non-stacking with dagger training, all-ability/class/weapon
+scope, rank caps, ranked cast parameters, critical hits, saved gear and specs,
+refunds and cosmetic isolation. Core/app Clippy and the native build pass.
+
+Native purchase at 1600×900 changes rank 4→5, Combat 24→25, unspent 27→26, and
+persists node 183 rank 5 while retaining worn fist/cosmetic mace selections.
+1280×720 card previews remain readable. Screenshots are embedded in CHANGELOG
+and presets are included. Fixture gear/points are seeded, not live acquisition.
+The DBC coverage audit reports 284/432 definitions, Rogue 28/51. Full integration
+is running; Windows and live balance remain unverified. Rogue Mace Specialization
+and its explicit weapon-skill conversion remain next.
+
+### Rogue Mace Specialization contract — 2026-10-28
+
+Checkout spells 13709/13800–13803 have proc chances 1/2/3/4/6%, triggering 5530,
+and a second skill aura (98, skill 54) with base points 0–4 plus one die. Trigger
+5530 uses duration row 27: base/max 3000ms, no per-level scaling. Preserve
+the stun table and existing 3-second control (bosses 0.9 seconds). Convert the
++1–5 mace skill into +1–5% direct damage while a mace is worn, explicitly named
+in the description because Survivors has no weapon-skill/miss roll. Apply both
+parts to Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot.
+Cosmetics do not qualify; bleed ticks, splash copies and generated extra strikes
+cannot trigger the stun. Preserve longer existing stuns and single loot settlement.
+
+An isolated core draft passes 253 tests and Clippy. Both changing values have
+separate green inline ranges (rank four: 4→6% stun chance and +4→5% direct damage).
+Account save/spec/refund and original-hit ECS tests are drafted but unrun. The
+checkout remains unchanged pending the Fist integration result. Native purchase,
+save and card evidence are required before the implementation checkpoint.
+
+Fist integration passed in 609 seconds (10m09s), with 31 missing-addon skips
+per data/player run. Mace source changes began after its terminal success.
+
+### Rogue Mace Specialization implementation — 2026-10-28
+
+Node 184 now applies its non-linear stun chance and explicit 1–5% direct-damage
+conversion with a worn mace. The original-hit settlement path supports both
+Warrior and Rogue eligibility while preserving control duration, splash isolation,
+pause behavior, dead/missing targets and one loot award. 253 core tests and 477
+app tests pass, including actual ranked critical hits, unchanged periodic damage,
+saved specs/gear, refunds and cosmetic isolation. Core/app Clippy pass.
+
+Native 1600×900 purchase changes rank 4→5, Combat 24→25 and points 27→26. Both
+inline green values update independently; the saved record retains worn mace and
+fist appearance. 1280×720 card previews show the damage conversion. Screenshots
+are embedded in CHANGELOG; fixtures use seeded ownership/points. Incremental
+build: 21 seconds. Definition coverage is 285/432 (Rogue 29/51), not complete
+combat/balance acceptance. Full integration is running; Windows and live balance
+remain open. Weapon Expertise and remaining class mechanisms are still pending.
+
+### Rogue Weapon Expertise contract — 2026-10-28
+
+Checkout spells 30919/30920 contain three skill auras (30), with base points
+2/4 plus one die for swords (43), daggers (173) and fists (162): +3/+5 skill.
+Node 1703 has two ranks in Combat row 5 and requires Blade Flurry (223).
+Use the explicit Survivors weapon-skill conversion established for Rogue mace:
++3/+5% direct damage with a worn sword, dagger or fist weapon, restricted to
+Sinister Strike, Eviscerate, Blade Flurry, Gouge and Kidney Shot. Cosmetics,
+Rupture ticks and neutral item abilities do not qualify. No new miss-roll system.
+
+The isolated core implementation passes 255 tests and Clippy, covering all
+classes, matching/nonmatching/no weapons, rank caps, unchanged cast fields and
+non-linear green inline values (0→3→5%). Save/spec/refund and actual cast tests
+must pass in the app, followed by native purchase/save/card screenshots before
+this node counts toward published implementation coverage. Main source remains
+unchanged while the mace integration gate runs; 285/432 is still the published
+coverage. Windows/live combat acceptance remains separate.
+
+Mace integration completed successfully in 687 seconds (11m27s), including
+player-build tests, with 31 missing-addon skips per data/player run. Weapon
+Expertise source integration begins after that terminal success.
+
+### Rogue Weapon Expertise implementation — 2026-10-28
+
+Node 1703 now applies +3/+5% direct damage for the documented weapon/ability
+scope. Its two rank values are highlighted inline without repeating units.
+255 core and 479 app tests pass, including all weapon identities, rank bounds,
+actual critical hit damage, unchanged periodic damage, valid saved builds,
+spec changes, refunds and independent appearances. Core/app Clippy pass.
+
+Native rank 1→2 purchase changes Combat 26→27 and unspent points 25→24; the
+saved record retains worn fist and mace appearance. Talent and card screenshots
+at 1600×900/1280×720 are embedded in CHANGELOG. Fixtures use seeded ownership
+and points, not live acquisition. Incremental build: 19 seconds. Definition
+coverage is 286/432 (Rogue 30/51); this does not prove combat/balance acceptance.
+Full integration is running. Windows, live balance and 146 talent definitions remain
+open alongside the other phase acceptance requirements.
+
+### Remaining Rogue dependencies and Seal Fate contract — 2026-10-28
+
+The current DBC-to-definition audit leaves 21 Rogue nodes. Missing poison,
+stealth/opener, off-hand and enemy-control mechanics must be implemented or given
+an explicit, meaningful Survivors conversion before their nodes count as complete.
+They cannot be completed by adding names or generic bonuses alone. The nine-slot
+gear contract still excludes an off-hand equipment slot.
+
+Seal Fate (283) is the next implementation. Checkout spells
+14186/14190/14193/14194/14195 have 20/40/60/80/100% proc chance, triggering
+14189 (effect 80, base 0 plus one die: one combo point). Survivors has no combo
+points: explicitly convert a successful critical Sinister Strike or Gouge hit
+into a chance to advance each owned Eviscerate, Rupture and Kidney Shot cooldown
+by one second. Do not grant abilities or bank recovery when already ready.
+The Cold Blood prerequisite and five-rank gate remain in force.
+
+Recovery must run once per original eligible hit after actual health removal,
+not once per multistrike echo or splash copy. Generated sword strikes, finishers,
+bleeds, failed/missing/dead targets, noncritical/zero damage and dead heroes
+cannot trigger it. Queued overkill after an earlier lethal hit must not trigger
+again. Paused systems must not consume the hit; cooldowns clamp at zero.
+
+The isolated core draft passes 257 tests and Clippy, including rank bounds,
+class/spell/critical/damage eligibility and green inline chance values. App ECS,
+save/spec/refund and native purchase/card evidence remain required. This draft
+does not change the published 286/432 coverage. Weapon Expertise integration is
+still running against unchanged main source.
+
+Weapon Expertise integration passed in 610 seconds (10m10s), including player
+tests, with 31 missing-addon skips per data/player run. Seal Fate source changes
+began after that terminal success.
+
+### Rogue Seal Fate implementation — 2026-10-28
+
+Node 283 now converts critical original Sinister Strike/Gouge hits into
+20–100% chance to advance each owned finisher cooldown by one second. The hit
+settlement list identifies originals separately from splash and generated
+strikes. Recovery runs after actual health removal; queued hits after a lethal
+hit, multistrike echoes, invalid targets, noncritical/zero damage and dead heroes
+do not produce extra recovery. Cooldowns clamp at zero; ready spells bank none.
+
+257 core and 481 app tests pass. The real hit-system regression uses guaranteed
+multistrikes, splash, two queued hits, lethal targets, pause/resume and repeated
+updates. A DBC-valid saved build covers all ranks, prerequisites, max-rank refusal,
+spec changes, refunds and hero/class isolation. Native purchase at 1600×900
+saves rank 5, changes Assassination 29→30 and unspent points 22→21. The inline
+80→100% chance and maximum-rank description are captured in CHANGELOG. Fixture
+ownership/points are seeded; runtime cooldown recovery is tested through ECS,
+not a live combat session. Native build: 42 seconds. Definition coverage is
+287/432 (Rogue 31/51); Windows, balance and remaining phase acceptance stay open.
+
+Seal Fate core/app Clippy pass. Full integration is running; the preceding
+Weapon Expertise checkpoint passed in 10m10s with 31 addon-corpus skips per
+data/player run.
+
+Seal Fate integration passed in 733 seconds (12m13s), including player tests,
+with 31 missing-addon skips per data/player run.
+
+### Backstab and dependent training contract — 2026-10-28
+
+Checkout Spell.dbc 53 explicitly requires a main-hand dagger and striking from
+behind; effects include weapon damage and one combo point. Preserve both use
+conditions in the Survivors attack. Enemy movement already preserves facing
+while stunned/rooted, allowing Gouge followed by repositioning to create a rear
+opening. Do not turn Backstab into an unconditional duplicate of Sinister Strike.
+
+Add Backstab to the Rogue ability catalog as an acquired attack, keeping Sinister
+Strike as the starter and the existing ability-slot cap. Initial authored Survivors
+values: 30 damage, 1.3 sec cooldown, 5.5 yd reach, one target before rank/gear
+modifiers. These are tuning values, not a claim to reproduce vanilla weapon DPS.
+Level-up offers and selection must require a worn dagger; cosmetic daggers do
+not qualify. The cast path must independently enforce the requirement, filter to
+rear targets within reach and avoid consuming cooldown/procs when no target is
+valid. Extra targets must each satisfy the same rear test. No additional area.
+
+Backstab's damage/range/cooldown changes belong inline in green. Acquisition,
+upgrade and Codex descriptions must clearly state the dagger/rear requirements.
+The sidebar must not imply that learning a talent grants the attack. Native
+screenshots must cover acquisition and both new talent previews/purchases;
+actual positioning and effects require ECS tests without unattended combat.
+
+Improved Backstab (202, three ranks; 13733/13865/13866) adds 10/20/30 percentage
+points of Backstab critical chance. Opportunity (261, five ranks;
+14057/14072–14075) adds 4/8/12/16/20% damage to the acquired Backstab; Garrote and
+Ambush remain unavailable and must be named as pending, not implied to exist.
+Extend Rogue spell membership and applicable existing effects: Precision,
+Deadliness, Vigor, Preparation, Adrenaline Rush, Blade Flurry, Malice, Lethality,
+Aggression, Dagger Specialization, Weapon Expertise, Cold Blood, Remorseless
+Attacks and Seal Fate. Preserve their original exclusions and recovery rules.
+Do not count either new definition before offer/cast gates, saved builds and
+native visual evidence pass. Current coverage remains 287/432.
+
+
+Backstab work in progress: catalog/offer/cast gating and both training definitions
+are implemented. The expanded core suite passes 259 tests. Actual-cast regression
+caught the shared 200 ms failed-target retry timer; rear-only attacks now retain
+immediate readiness when no eligible rear target exists. App validation is running
+with positioning/extra-target, saved-spec/refund, cosmetic weapon isolation and
+inline-card checks. Native captures and integration remain required before this
+checkpoint is counted or published as verified coverage.
+
+
+### Backstab native and rules acceptance — 2026-10-28
+
+259 core tests, 485 app tests and core/app Clippy pass. Actual casting tests cover
+front/side/rear/rotated/out-of-range targets, every additional target, dagger vs
+sword/no weapon, and preservation/consumption of Cold Blood and Remorseless.
+DBC-valid account tests cover both talent purchases, caps, save/load, independent
+specs, refunds and cosmetic dagger isolation. The cast regression found and fixed
+a 200 ms failed-target retry delay for rear-only attacks.
+
+Native 1600×900 purchase checks saved Improved Backstab 2→3 and Opportunity 4→5;
+Combat points 7→8, Subtlety 4→5 and unspent points 40→38. Acquisition and upgrade
+cards at 1280×720 and the complete 640×720 description show green inline damage,
+recovery and extra-target changes with shared units and explicit use requirements.
+Screenshots are inline in CHANGELOG; README Talents is refreshed. These use an
+isolated seeded account and menu/card previews, not unattended combat. Native
+build passed in 2m04s. The fresh DBC audit reports 289/432 (Rogue 33/51); this is
+definition coverage, not full runtime/balance acceptance. Integration pending;
+Windows and remaining seven-phase requirements remain open.
+
+
+### Next Rogue dependency — weapon poisons
+
+Checkout DBC audit: Instant Poison coating 8679 has a 20% application chance and
+triggers Nature damage 8680. Deadly Poison coating 2823 has 30% application chance;
+2818 lasts 12 seconds, ticks every 3 seconds and caps at five stacks. Improved
+Poisons (268, Assassination row 3/column 2, no prerequisite) adds 2/4/6/8/10
+percentage points. Vile Poisons (682, row 3/column 1) adds 4/8/12/16/20% poison
+damage and 8/16/24/32/40% dispel resistance in the reference. There is currently
+no player-poison path or enemy dispel behavior; do not implement these as generic
+damage/haste bonuses or claim the dispel component works.
+
+Implement acquired run-long weapon coatings with explicit card/tooltips and a
+worn Rogue melee weapon requirement. Preserve the six-ability limit and independent
+appearance semantics. One worn weapon supports one coating: picking one coating
+excludes other coating acquisition offers for that run while retaining rank upgrades.
+Document this Survivors conversion of reference duration/consumable charges; do
+not add an unrequested off-hand equipment slot. Initial damage is authored tuning;
+keep the reference application chances, Deadly timing and five-stack behavior.
+
+Roll once per original eligible direct weapon hit that removes health. Additional
+actual targets may each roll; splash copies, multistrike echoes, poison ticks,
+generated strikes and queued overkill may not. Poison cannot trigger another
+poison or consume Cold Blood/Remorseless/Seal Fate charges. Instant damage and
+Deadly ticks use their own source in the meter; keep lethal credit, leech and
+loot settlement correct. Deadly applications refresh duration and add one stack
+up to five without resetting the next tick; frame skips must preserve due ticks,
+paused time must not advance them, and expired stacks must not survive reapplication.
+The existing generic one-second Dot list cannot silently substitute for this state.
+
+Before counting either talent: test every rank and unrelated classes/attacks,
+coating offers/picks and equipment isolation, actual hit eligibility, lethal and
+paused behavior, all Deadly timing/stack boundaries, save/spec/refund behavior,
+and inline green chance/damage upgrades. Capture native coating acquisition and
+both talent purchases in wide/compact previews. Backstab integration must finish
+before changing the main source for this follow-up.
+
+Creature metadata is implemented: 267 core tests and core Clippy pass, the
+pinned catalog audit validates every annotation, and a source comparison proves
+all 504 original constructor argument lists/order unchanged. The full native
+integration gate passed in 961 seconds (16m01s), with 31 missing-addon skips
+per data/player run. Windows and live gameplay acceptance remain open;
+do not count target-specific talents yet.
+
+Reference review for the next damage step: [VMaNGOS SpellCaster.cpp](https://github.com/vmangos/core/blob/9b7fb4dfdb1d863ef93c5cf24d57aff92124f41f/src/game/Objects/SpellCaster.cpp)
+applies aura 168's creature mask to damage and aura 169 to the completed spell
+critical amount. Its attacker owns those auras; owner override scripts are a
+separate path. This does not prove that Hunter pets inherit their owner's slaying
+bonus. The autoattack path in Unit.cpp instead adds the aura amount to its 200%
+critical multiplier. Survivors uses acquired spell attacks, so document which
+path its critical bonus follows before implementation. Keep pet bites separate
+and verify them explicitly. Murder's DBC mask includes Critters; expose that
+category in its adapted description if retaining the mask.
+
+Integration sites verified in the current client: `apply_hits` builds splash
+copies and generated sword hits before iterating actual victims. Apply the
+category multiplier inside that victim loop, leaving queued `Hit.damage`
+unchanged. Instant Poison settles in that loop through a separate branch;
+generic dots and Deadly Poison settle in separate tick loops. Each needs the
+victim's category exactly once. Deep Wounds/Ignite snapshots use the original
+`Hit.damage`, so do not rewrite that shared input with target-specific damage.
+Hunter pet bites also enter the hit system: explicitly exclude their source
+from owner slaying multipliers, rather than assuming the separate pet controller
+alone prevents inheritance. Test ordinary/critical hits, matching/nonmatching
+splash neighbors, additional targets, generated hits, both poisons, ticks,
+pet bites, and lethal loot/leech accounting before enabling these definitions.
+
+### Creature-specific training — implementation and visual validation
+
+Murder, Monster Slaying and Humanoid Slaying definitions and per-victim settlement
+are implemented locally. All 269 core tests, 499 feature-enabled app tests and
+core/app Clippy pass. These cover saves/specs/refunds, critical versus ordinary
+hits, pet exclusions, splash, generated sword strikes, poisons, periodic damage
+and lethal accounting.
+Native purchases at 1600×900 verified all three final ranks. The saved Hunter
+profile has 1623/1301 at rank three (six points spent, 45 unspent); the Rogue
+profile has Murder at rank two (seven points spent, 44 unspent). Full descriptions
+fit at 640×720. Nine screenshots are inline in the changelog, with the wide
+Hunter upgrade also in README. Incremental native build: 2m38s. Fresh DBC
+definition coverage is 294/432 (Hunter 39/46, Rogue 36/51); this is not complete
+combat or balance acceptance. Full integration passed in 816 seconds (13m36s),
+with 31 missing-addon skips per data/player run. Windows and live gameplay
+acceptance remain open.
+
+
+The isolated Deadly clock prototype (`/tmp/survivors-poison-draft.rs`, not game
+source) passes four direct Rust tests: final tick/expiry/reapplication, refresh
+without tick reset and five-stack cap, frame partitions from 10 ms to 30 seconds,
+and invalid time/damage rejection. The first frame-partition test caught loss of
+the final tick with independent f32 countdowns; f64 countdowns preserve the
+four expected ticks. Revalidate these cases in the integrated hit system before
+claiming poison behavior or advancing talent coverage.
+
+
+Backstab integration passed in 1071 seconds (17m51s), including the player build
+and tests, with 31 missing-addon skips per data/player run. No Windows or live
+realm/gameplay acceptance is implied.
+
+
+### Rogue poison foundation — implementation and visual validation (2026-10-28)
+
+Instant Poison and Deadly Poison now occupy an acquired ability slot, with one
+coating per run and an equipped one-handed Rogue melee weapon requirement.
+Improved Poisons and Vile Poisons use their audited rank tables. Their cards
+show green inline damage growth; cooldown/autocast/critical labels are omitted.
+Precision, Deadliness, Malice and Vigor explicitly exclude coatings.
+
+The shared clock has final-tick, expiry, reapplication, refresh-phase, stack-cap,
+invalid-input and frame-partition coverage. Actual hit tests cover original versus
+splash/generated/multistrike hits, additional victims, new-application timing,
+pause, lethal damage, per-source meter totals, leech and single loot settlement.
+Offer tests reject a second coating and unworn weapons while retaining upgrades.
+DBC-backed account tests cover purchases, save round-trips, spec changes,
+refunds, class isolation and a cosmetic dagger with no worn weapon.
+
+265 core tests, 493 feature-enabled app tests and core/app Clippy pass. Native
+build: 2m48s. Both rank-four talents were bought to rank five at 1600×900;
+saved Assassination spend rose from 23 to 25 and unspent points fell from 28 to
+26. Full talent prose also fits at 640×720. Coating acquisition/upgrade cards
+were inspected at 1280×720 and the longer Deadly card at 640×720. Screenshots
+are inline in CHANGELOG and the README gallery. Fresh DBC definition coverage:
+291/432, Rogue 35/51. Full integration passed in 1027 seconds (17m07s), with
+31 missing-addon skips per data/player run. Windows, enemy dispels and live
+balance remain open. This does not establish complete combat acceptance.
+
+### Next shared dependency — creature-type damage training
+
+The [reproducible roster audit](audits/CREATURE-TYPES.md) now records 476 unique
+name/display pairs: 434 exact catalog matches, 18 explicit faction-boss
+archetypes, and 24 explicit legacy-appearance identities. All 504 constructors
+now carry template/type metadata through ladder generation and spawned enemy
+definitions. Existing appearances are preserved; 24 artwork mismatches remain
+for visual review. Model size and faction theme cannot determine creature type.
+
+Read-only checkout DBC audit identifies three related gaps. Hunter Monster
+Slaying (1623; Survival row 0, column 0) grants 1/2/3% damage and additional
+critical damage against Beasts, Giants and Dragonkin; spells 24293–24295 use
+masks 19 for both effects. Humanoid Slaying (1301; row 0, column 1) uses spells
+19151–19153 and mask 64, with the same ranks. Rogue Murder (274; Assassination
+row 1, column 1) grants 1/2% damage against Humanoid/Giant/Beast/Dragonkin in
+its description (14158–14159). Its raw aura mask is 211, which also includes
+bit 128; reconcile that discrepancy explicitly before treating a mask as the
+entire authored target contract.
+
+Survivors EnemyDef now has an explicit creature type and template entry as well
+as its independent display ID. The ordinary-client type resolver depends on server template/name data,
+which this serverless mode does not populate. Add explicit, verified categories
+to authored rosters; do not guess creature type from display IDs or names at
+runtime, or treat unknown creatures as eligible. Audit all roster entries and
+preserve those categories through spawning. Settle bonuses per actual victim,
+including AoE/splash and poison ticks, without double-applying them to generated
+hits or bleed snapshots. Check whether pet attacks inherit owner bonuses before
+claiming that behavior. Verify rank tables, nonmatching categories, critical
+versus ordinary damage, death/loot accounting, saves/specs/refunds, and native
+purchase text before advancing these three definitions. Finish poison integration
+before changing the main source for this follow-up.
+
+### 2026-10-29 — Druid form dependency audit
+
+[Twenty remaining Druid nodes](audits/DRUID-TALENT-DEPENDENCIES.md) now have
+checkout-data evidence, missing consumers and an implementation order. Verified
+form IDs are distinct from display IDs; Clearcasting has a 15-second proc lifetime,
+and Moonkin's installed aura differs from our existing explicit milestone
+conversion. Forms, feral attacks, art mappings and no-mana conversions remain work;
+this audit adds no gameplay behavior. Coverage remains 300/432 (Druid 27/47).
+
+
+### 2026-10-29 — Independent periodic healing foundation
+
+Rejuvenation now uses `survivors-core::healing::HealingOverTime`, with one snapshot
+and remaining lifetime per source. Same-source recasts replace unpaid healing;
+independent sources coexist, paused time pays nothing, and expired overhealing is
+not banked. Runtime tests retain the health threshold, lethal-hit boundary and
+Swiftmend interaction. This removes the shared-timer obstacle to Regrowth; its
+actual spell, critical healing, talent and visual integration remain pending.
+No talent coverage increase or new UI milestone is claimed.
+
+Validation: native incremental build passes in 1m54s; scoped formatting, Clippy
+and tests pass, including 307 core tests (31 optional-addon skips across the gate).
+Windows and attended gameplay are not validated by this checkpoint.
+
+
+### 2026-10-29 — Regrowth, its critical-healing talent and card paging
+
+Regrowth joins the Druid's acquired ability pool with direct and independent periodic
+healing, scoped Improved Regrowth ranks, fixed 150% direct healing criticals, and
+inline green upgrades. Its authored mechanics are in SURVIVORS.md; the installed
+spell/talent evidence remains in the Druid dependency audit. Headless regressions
+cover failed casts, critical chance, damage-bonus exclusion, healing caps, death,
+source refresh and Rejuvenation coexistence. Native card and talent captures are
+embedded in the changelog. Page Up/Down and Home/End keep wrapped cards reachable
+at enlarged UI scales without shrinking text; the pause overlay blocks paging.
+Windows and attended combat/balance acceptance remain open.
+
+Validation: final native incremental build passes in 59s. The required eight-package
+formatting/Clippy/test gate passes after repairing a test-only incremental cache
+affected by a full disk; 4,827 app unit tests pass, with 31 optional-addon skips
+across the gate. Native macOS screenshots verify wide and compact keyboard paging.
+The full pre-merge gates and Windows/native-wheel/attended gameplay remain open.
+
+### 2026-10-29 — Regrowth participates in existing healing builds
+
+Gift of Nature now increases both Regrowth healing portions, while Moonglow applies
+its existing recovery conversion. Shared-core grouped healing preserves the
+healing multiplier used by triggered heals; unrelated damage and spell-specific
+Rejuvenation bonuses remain excluded. Installed evidence is recorded in the Druid
+dependency audit. Definition coverage remains 301/432, Druid 28/47.
+
+Native macOS screenshots verify the Gift of Nature 4→5 rank description at
+1280×720 and Moonglow at 640×720 / 125%; build time was 16s. Core tests cover
+rank caps, class/spell exclusions and refunds; runtime tests verify actual direct
+and periodic amounts and recovery. Windows and attended combat remain open.
+
+Validation: the required eight-package formatting/Clippy/test gate passes, including
+4,828 app unit tests and 309 core tests; 31 optional-addon tests skip on this machine.
+
+### 2026-10-29 — Hemorrhage strike and physical vulnerability
+
+Implement acquired Hemorrhage, its named damage talent and a target-owned shared-core
+30-charge/15-second physical vulnerability. The audit tools now expose proc charges,
+resolving the installed `$n` token instead of guessing its value. Spell 16511 confirms
+physical school, 5-yard range, +3 damage and 30 charges; authored strike damage,
+recovery and settlement order are documented in SURVIVORS.md.
+
+Acceptance includes physical versus poison/magic classification, apply-after-strike,
+refresh without stacking, independent target state, expiry, nonpositive damage,
+bleed and pet consumption, lethal-hit exclusion, applicable weapon/poison/Seal Fate
+integration, rank boundaries and green inline cards/talent descriptions. Windows,
+attended combat and balance remain open; definition coverage is not full acceptance.
+
+Native menu acceptance: 1280×720 cards and 640×720 / 125% talent description
+fit with inline green growth. Initial build: 1m55s; final rebuild: 12s.
+Coverage: 302/432, Rogue 37/51.
+Purchase/restart and attended gameplay are not claimed by these preview captures.
+
+Final validation: required eight-package formatting/Clippy/test gate passes, including
+4,832 app unit tests and 310 core tests. Thirty-one optional-addon tests skip because
+the addon corpus is unavailable. Full pre-merge and attended gameplay gates remain open.
+
+### 2026-10-29 — Hemorrhage native saved-spec acceptance
+
+Completed actual macOS menu interactions at 1280×720 in an isolated fixture:
+purchase 0/1 → 1/1 spends one point (31 → 30); switching to empty Spec 2
+shows all 51 points; returning to Spec 1 restores its allocation. Quit/relaunch
+retains Hemorrhage 1/1 and 30 unspent points. Right-click refund restores 0/1
+and 31 points; saved account data exactly matches the original 20-point allocation
+and leaves Specs 2/3 empty. Native captures are inline in CHANGELOG and README.
+This closes the native purchase/restart slice above, not Windows or combat acceptance.
+No source changes or coverage increase; the implementation gate remains the green
+04399ff gate (4,832 app / 310 core tests). Documentation links and whitespace checked.
+
+### 2026-10-29 — Nature's Focus healing integration
+
+Checkout node 823 (17063/17065–17068) names Healing Touch, Regrowth and Tranquility
+for 14–70% pushback protection. Extend the existing authored +2%/rank healing
+conversion to Regrowth while retaining Rejuvenation. Both healing portions multiply
+Gift of Nature; crit, recovery, duration and other spells remain unchanged. No new
+definition is claimed. Acceptance: bounded ranks, class/spell scope, stacking,
+refund, real direct/periodic healing and native wide/compact inline description.
+Windows and attended combat remain open.
+
+Validation: eight-package formatting/Clippy/test gate green (31 optional-addon skips).
+Native macOS previews at 1280×720 and 640×720 / 125% show the complete inline
+8 → 10% healing change. Screenshots are embedded in CHANGELOG and README. The
+incremental play build took 15 seconds. Coverage stays 302/432 (Druid 28/47).
+
+### 2026-10-29 — Healing Touch acquisition and training
+
+Add a direct-healing ability to the Druid pool with installed spell identity 5185.
+Authored values and recovery conversions are specified in SURVIVORS.md. Wire named
+Healing Touch training and existing healing/recovery groups without removing saved
+Rejuvenation benefits. Acceptance covers automatic threshold, death, overheal,
+critical multiplier, untouched periodic sources, failed-cast RNG, talent composition,
+spell-specific exclusions, acquisition identity and native inline card/talent text.
+Windows and attended combat/balance remain separate gates; coverage is unchanged.
+
+Validation: required eight-package formatting/Clippy/test gate green, with 31
+optional-addon skips. Native macOS captures verify 1280×720 acquisition/upgrade
+cards and the rank-4 talent at 640×720 / 125%. Incremental build: 42 seconds.
+Screenshots are inline in CHANGELOG and the README. This proves preview rendering
+and automated behavior, not attended gameplay or Windows acceptance.
+
+### 2026-10-29 — Tranquility channel dependency audit
+
+[Tranquility evidence](audits/TRANQUILITY.md) distinguishes zero cast range from
+its installed 20-yard effect radius, 10-second / 2-second pulse channel, movement
+interrupt mask and five-minute category recovery. The audit CLI now exposes radii
+and channel flags. Existing damage channels and continuous healing cannot be
+silently reused as the complete spell. There is no healing-threat consumer for
+Improved Tranquility; it remains provisional. The user's movement/attack policy
+answer is pending. The audit defines lifecycle, recipient and validation work;
+no spell implementation or talent coverage increase is claimed.
+
+Audit validation: the eight-package formatting/Clippy/test gate passes (31
+optional-addon skips). Actual CLI runs verify Tranquility radius row 9 resolves
+to 20 yards and Healing Touch radius row 0 reports None. No native UI change in
+this checkpoint; prior screenshots remain the current visual evidence.
+
+### 2026-10-29 — Ghostly Strike melee defense
+
+Add acquired Ghostly Strike, named damage training and a shared-core seven-second
+dodge window. Installed 14278 confirms 125% weapon damage, 15% dodge, seven-second
+duration and 20-second recovery; authored base damage/resource conversion is in
+SURVIVORS.md. Acceptance covers ownership, positive landed damage, killing blows,
+generated-event exclusions, actual incoming avoidance, expiry, class/rank scope,
+builder integration and native card/talent descriptions. Windows, attended combat
+and balance remain open. No Tranquility policy is inferred from this work.
+
+Native previews verified 1280×720 cards and 640×720 / 125% training text with
+inline green damage and fixed white dodge values. Final incremental build: 27s.
+The definition audit reports 303/432 overall, Rogue 38/51. Definition coverage
+is not full gameplay or saved-spec acceptance; those limits remain open above.
+
+Final verification: eight-package formatting/Clippy/test gate green after poison
+eligibility and shield-preservation regression checks (31 optional-addon skips).
+The first gate also passed; the repeat validates those later test/source additions.
+
+
+### 2026-10-29 — Recent talent save acceptance
+
+Installed-data regression coverage verifies Ghostly Strike, Hemorrhage and all five
+Improved Regrowth ranks through valid purchase, save/reload, independent spec
+switching and refund, including rejection at maximum rank and denied refunds.
+Native macOS Ghostly Strike acceptance uses a valid isolated 14-point starting spec:
+purchase spends one point (37 → 36), Spec 2 stays empty, restart retains rank 1,
+and right-click refund restores rank 0 / 37 points and the original saved allocation.
+Screenshots are inline in the changelog and refreshed in the README talent gallery.
+The scoped eight-package check passes with 31 optional-addon skips. This closes the
+Ghostly Strike purchase/restart slice; Windows and attended combat remain pending.
+
+
+### 2026-10-29 — Greater Heal integration
+
+Add acquired Priest Greater Heal, Improved Healing's recovery conversion, and
+existing healing/critical/recovery talent consumers. Keep damaging Holy spell
+groups separate so Searing Light and Force of Will cannot amplify healing.
+Acceptance requires actual cast-system threshold/critical/burst consumption,
+positive critical Inspiration, independent periodic healing, scoped/bounded ranks,
+save/refund behavior, inline native cards and compact talent text. Installed and
+authored values are separate in SURVIVORS.md.
+
+Validation: the eight-package formatting/Clippy/test gate passes with 31 optional-
+addon skips. Tests cover the actual cast system, skipped-cast RNG/charge preservation,
+positive critical Inspiration, ongoing-healing independence, bounded and scoped
+training, and all three Improved Healing ranks across save/spec/refund boundaries.
+Native macOS previews verify wide cards, a valid wide talent allocation and complete
+compact inline text at 640×720 / 125%. The play build took 18 seconds. Definition
+coverage is 304/432 (Priest 31/47). Native purchase/restart remains open: the preview
+window became unavailable before that interaction. Windows and attended combat/
+balance are not established by this checkpoint. Screenshots are inline in CHANGELOG
+and the README gallery.
+
+
+### 2026-10-29 — Improved Healing native save acceptance
+
+On the verified 19677f9 native build at 1280×720, the isolated Priest profile
+purchases rank 2 → 3 (34 → 33 unspent), switches to independent empty Spec 2,
+returns to Spec 1 and retains rank 3 / 33 points after quit/relaunch. Right-click
+refund restores rank 2 / 34 points. Both saved allocations match the exact expected
+node ranks and leave the other specs empty. Actual screenshots are inline in the
+changelog and the README talent gallery. This closes the preceding native
+purchase/restart gap; Windows and attended gameplay remain open. No code change;
+the previous green scoped gate still applies. Screenshot paths and whitespace checked.
+
+
+### Experimental silhouette compositor checkpoint (2026-10-29)
+
+The opt-in actor-mask path now consumes completed scene depth after EndMainPass,
+before FFX. Ownership and depths are compared per sample before resolving coverage;
+neutral/clear masks receive no tint. Camera size, sample count, viewport, projection,
+pose and order must match. The default player path remains disabled; both filters
+are hardcoded on in this experimental stage, pending actual saved setting consumers.
+
+Metal confirms GPU compilation and draw encoding at 1×/4× MSAA, with native raw-mask
+captures embedded in CHANGELOG/README. Startup resize mismatch was skipped. The first
+4× preview was unresponsive; subsequent runs succeeded, so stability/performance must
+still be measured. This is not the full obstruction/overlap fixture or a fix acceptance
+for the reported foliage cutaway. Final native build: 53 seconds; initial new renderer
+build: 2m38s. The source-only activation regression covers disabled/inactive cleanup.
+Next: isolated wall/foliage and mixed-actor fixtures, precision/distance checks,
+independent saved enemy/friendly switches, duplicate mask draw reduction and Windows.
+
+Final eight-package formatting/Clippy/test gate passes, including the new activation
+regression (31 optional-addon skips). A disk-full test build was retried after
+removing older unlocked compiler snapshots while retaining each latest cache.
+
+### Obstruction fixture and concealment checkpoint (2026-10-29)
+
+Native noncombat 4× MSAA captures now cover clear, opaque/partial obstruction,
+scenery behind actors, synthetic alpha-cutout holes, disabled compositor and
+concealed/revealed actors. A discovered culling-order bug in production concealment
+is fixed with a schedule regression. See [the audit](audits/OCCLUDED-SILHOUETTES.md).
+Saved filters, overlap/performance and real-map/Windows acceptance remain pending;
+this does not close the foliage cutaway report or the full visibility milestone.
+
+### Saved silhouette filters checkpoint (2026-10-29)
+
+Graphics now exposes independent enemy/friendly switches, both off by default.
+Preferences are saved with the camera settings and feed extracted per-view filter
+state. Cached shader variants apply filters after nearest-actor classification;
+disabled groups remain in the mask to prevent revealing farther actors through them.
+Both-off removes the composite view and, outside diagnostics, disables the mask.
+
+Native macOS clicks verify enemy-only, both, friendly-only, restart persistence and
+Graphics reset. Labels now keep a readable width without exceeding 80% of their row;
+640×720 / 125% fits the complete panel/footer. Native Metal 4× captures show all four
+filter combinations. Tests cover old/invalid saves, all combinations, category reset,
+source-view propagation and activation without an environment flag. See the changelog
+and silhouette audit for captures. Mixed overlap, render-scale/distance/performance,
+Windows and real Elwynn/interior acceptance remain pending.
+
+
+## Healing Wave recovery training — 2026-10-29
+
+Improved Healing Wave and Tidal Focus now train their named heal, retaining the
+existing authored 4%/2%-per-rank recovery conversion and totem deployment scope.
+Both maximum ranks compose to 8.64-second base recovery. Totemic Focus and
+Restorative Totems remain totem-only. Definition coverage stays 308/432; these
+are existing definitions gaining their missing direct-heal consumer.
+
+Rank/scope, actual cast and catalog-backed save/spec/refund checks cover the
+change. Four native wide/compact tooltip captures are embedded in CHANGELOG;
+native maximum-rank purchase, one-rank refunds and restart passed in independent
+spec 2. Eight-package gate and 321 core tests pass (31 optional-addon skips).
+Windows/controller, compact purchase and attended-combat acceptance remain open.
+See [the reconciliation and reference evidence](audits/SHAMAN-HEALING-DEPENDENCIES.md#healing-wave-recovery-training--2026-10-29).
+
+
+### Collection body-art repair — 2026-10-30
+
+The [body-art audit and native comparison](audits/COLLECTION-BODY-ART.md) now
+resolve all 646 display/inventory/sex variants. Virtuous Robe's missing male lower
+sleeve uses a narrowly scoped Survivors fallback, verified in the Human male/female
+Armory previews, alone and with matching pieces. This closes that observed cuff
+defect; the full race/platform/combined-equipment visual acceptance remains open.
+
+### Collection source overview — 2026-10-30
+
+The Poor and Raid Epic overview rows now use the shared reward source zones,
+matching the intention reference's compact zone labels. Native macOS validation
+at 1280×720 and 640×720 verifies both labels and scrolling. Following the raid
+source still displays “Naxxramas world content is not ready”; this does not close
+world acceptance. Evidence: [wide](images/screenshots/2026-10-30-collection-sources/wide.png),
+[compact Poor](images/screenshots/2026-10-30-collection-sources/compact-poor.png),
+[compact Raid Epic](images/screenshots/2026-10-30-collection-sources/compact-raid.png),
+and [readiness](images/screenshots/2026-10-30-collection-sources/naxxramas-readiness.png).
+
+### Collection attachment source coverage — 2026-10-30
+
+The collection command now parses head/shoulder/held models and decodes selected
+materials as well as icons and body overlays. All eight race/two-body helmet
+suffixes are checked. The checkout passes 1,055 attachment variants, 869 unique
+models and 221 textures; shared meshes retain per-display skin validation.
+[Audit and limitations](audits/COLLECTION-BODY-ART.md#attachment-asset-coverage--2026-10-30).
+This supplies asset availability evidence for phases 2–4; native attachment fit,
+combined outfits, animations, particles and Windows remain acceptance work.
+
+### Gnome/Tauren plate appearance acceptance — 2026-10-30
+
+[Native evidence](audits/COLLECTION-BODY-ART.md#native-gnometauren-plate-checks--2026-10-30)
+adds both Gnome and Tauren bodies with Dreadnaught armor, Thunderfury look
+hide/restore and a 640×720 saved-look restart. Eight unedited captures are saved
+and representative images embedded in CHANGELOG/README. This verifies the shown
+assembly/containment and persistence cases; other outfits, races, animation,
+Windows and physical controllers remain open. No runtime change or combat claim.
+
+### Companion obstacle fetching — 2026-10-30
+
+[Runtime acceptance](audits/COMPANION-FETCHING.md) adds collision-checked local
+routes to fetch and return trips, ground-targeted hovering pickups and
+three-dimensional/line-of-sight collection. The real-system fence regression
+requires a detour, single bonus settlement and return. Phase 6's fetch behavior
+has stronger headless evidence; attended terrain, Windows and broad multi-storey
+navigation remain open. No new UI or rendered evidence is claimed.
+
+### Companion card reading widths — 2026-10-30
+
+[Native comparisons](audits/COMPANION-READABILITY.md) reproduce narrow two-column
+text strips and verify an adaptive one/two-column grid at three window sizes.
+Four screenshots and three reusable presets are retained. This improves the
+starter Rewards acceptance; purchase/scroll input was not verified in this pass
+because native automation failed to deliver it. Windows acceptance remains open.
+
+### Companion purchase follow-up — 2026-10-30
+
+[Native interaction evidence](audits/COMPANION-READABILITY.md#native-interaction-follow-up--runtime-697c174)
+now verifies pointer purchases, floating Confirm/Undo, scrolling to all looks,
+and saved training/appearance versus discarded drafts after a 640×480 restart.
+This supersedes those prior automation limitations for the exercised cases only.
+Keyboard paging, Windows, controllers and broader reward acceptance remain open.
+
+### Rewards reading-key acceptance — 2026-10-30
+
+Rewards now participates in the existing reading-key input path. The real-system
+regression and native 640×480 captures verify Page Up/Down, Home/End and category
+coverage; see [keyboard evidence](audits/COMPANION-READABILITY.md#rewards-keyboard-paging--2026-10-30).
+This closes the previously reported Rewards paging gap for the exercised native
+cases. Windows and physical-controller acceptance remain open.
+
+### Weapon-damage inputs — 2026-10-30
+
+[Source evidence](audits/PALADIN-WEAPON-TALENTS.md#weapon-damage-source-evidence--2026-10-30)
+now verifies all seven Paladin main-hand identities and a mixed-school comparison.
+Direct vanilla damage import would invert Rare/Epic progression for these items.
+A rarity-aware runtime formula and attack acquisition must be explicit before
+weapon specializations, seals, Stormstrike or Riposte are counted complete.
+This is dependency evidence only; no definition coverage or gameplay claim changes.
+
+## Paladin weapon specializations — 2026-10-30
+
+One-handed 1429 and two-handed 1410 now consume the automatic physical swing,
+with matching worn identity and 2% per-rank scaling. Holy spells remain independent.
+Native wide/compact purchase, refund, spec separation and restart are documented
+with inline screenshots in the [weapon audit](audits/PALADIN-WEAPON-TALENTS.md#weapon-specialization-implementation--2026-10-30).
+Seals and further weapon-dependent talents remain unfinished; this does not close
+attended combat, Windows or the full talent acceptance matrix.
+
+
+Paladin specialization acceptance follow-up: all 336 shared-rule tests, the full
+macOS workspace/no-install/player gate and native keyboard purchase/refund pass.
+Both data-enabled gate runs have 31 optional-addon skips. The fresh definition
+audit is 311/432 overall and 30/44 Paladin; 121 nodes remain provisional. Ten
+native captures are retained, with representative inline images in CHANGELOG and
+README. This advances phase 5 without closing its combat/platform acceptance.
+
+
+## Vengeance weapon integration — 2026-10-30
+
+[Vengeance now consumes actual automatic weapon criticals and boosts subsequent
+swings](audits/PALADIN-VENGEANCE.md), alongside its existing Holy-spell behavior.
+The original-hit/effective-damage gate excludes pets and secondary splash. Native
+wide/compact purchase, refund and restart evidence is recorded; this corrects an
+existing named node and does not increase definition coverage or close phase 5.

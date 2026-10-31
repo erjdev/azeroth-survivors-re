@@ -1,0 +1,6 @@
+# Native menu preview; use Page Up/Down or Home/End for wrapped cards.
+page = cards
+width = 640
+height = 720
+scale = 1.25
+abilities = regrowth:0, regrowth:1, regrowth:4

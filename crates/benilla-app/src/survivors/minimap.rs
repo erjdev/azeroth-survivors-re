@@ -2,8 +2,8 @@
 //! on the border's top strip, the 140-unit map in its ring with the zoom buttons, the minimize
 //! button, and `GameTime.xml`'s day clock.
 //!
-//! Bevy UI clips only to rectangles, so the round map is composited here each frame: the ADT tiles
-//! through `md5translate.trs` (north up, 533.33 yd per 256-px tile), masked by `MinimapMask.blp`,
+//! Bevy UI clips only to rectangles, so the round map is composited when its visible inputs change:
+//! outdoor ADT tiles or portal-selected WMO group tiles through `md5translate.trs` (north up, 533.33 yd per 256-px tile), masked by `MinimapMask.blp`,
 //! then the player arrow, then the red `ObjectIcons` cell per live enemy, the dot the reference
 //! draws for a tracked creature. Sizes are the engine minimap's ([`crate::minimap`]), measured
 //! against its 140.8-px blip basis.
@@ -66,14 +66,14 @@ pub(super) enum MapButton {
 }
 
 /// Decoded RGBA8 art the composite samples.
-struct Rgba {
-    w: usize,
-    h: usize,
-    px: Vec<u8>,
+pub(super) struct Rgba {
+    pub(super) w: usize,
+    pub(super) h: usize,
+    pub(super) px: Vec<u8>,
 }
 
 impl Rgba {
-    fn decode(assets: &mut WorldAssets, path: &str) -> Option<Self> {
+    pub(super) fn decode(assets: &mut WorldAssets, path: &str) -> Option<Self> {
         let (w, h, px) = assets.decode_rgba(path)?;
         Some(Self {
             w: w as usize,
@@ -83,7 +83,8 @@ impl Rgba {
     }
 
     /// Bilinear RGBA at texel-space `(x, y)`, clamped to the edge.
-    fn sample(&self, x: f32, y: f32) -> [f32; 4] {
+    #[inline]
+    pub(super) fn sample(&self, x: f32, y: f32) -> [f32; 4] {
         let x = (x - 0.5).clamp(0.0, (self.w - 1) as f32);
         let y = (y - 0.5).clamp(0.0, (self.h - 1) as f32);
         let (x0, y0) = (x as usize, y as usize);
@@ -109,6 +110,118 @@ struct Art {
     icons: Option<Rgba>,
 }
 
+/// Exact inputs to the composite; enemy ordering preserves alpha-blending order.
+#[derive(Default, PartialEq)]
+struct View {
+    dir: String,
+    indoor: Option<super::minimap_indoor::Key>,
+    zoom: usize,
+    center: Vec2,
+    yaw: f32,
+    enemies: Vec<TrackedEnemy>,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+struct TrackedEnemy {
+    offset: Vec2,
+    marked: bool,
+}
+
+impl View {
+    fn track(
+        &mut self,
+        enemies: impl Iterator<Item = (Entity, Vec3, bool)>,
+        perception: &super::perception::Perception,
+        observer: Option<Entity>,
+        now: f32,
+        radius: f32,
+    ) {
+        self.enemies.clear();
+        self.enemies
+            .extend(enemies.filter_map(|(entity, position, dead)| {
+                let off = Vec2::new(position.x, position.z) - self.center;
+                (!dead && off.length() <= radius && perception.visible(observer, entity, now))
+                    .then_some(TrackedEnemy {
+                        offset: off,
+                        marked: perception.marked(observer, entity, now),
+                    })
+            }));
+    }
+}
+
+#[cfg(test)]
+mod tracking_tests {
+    use super::*;
+    use crate::survivors::{
+        marking::Marked,
+        perception::{Concealed, Perception},
+    };
+    use bevy::ecs::system::SystemState;
+
+    #[test]
+    fn stationary_enemy_dots_update_on_reveal_expiry_replacement_and_removal() {
+        let mut world = World::new();
+        let observer = world.spawn_empty().id();
+        let other = world.spawn_empty().id();
+        let target = world.spawn(Concealed).id();
+        let mut mark = Marked::default();
+        assert!(mark.0.apply(observer, 20.0, 120.0, 0.0));
+        world.entity_mut(target).insert(mark);
+        let mut state = SystemState::<Perception>::new(&mut world);
+        let mut pending = View::default();
+        let rendered = View {
+            enemies: vec![TrackedEnemy {
+                offset: Vec2::X,
+                marked: true,
+            }],
+            ..Default::default()
+        };
+        for (who, time, expected) in [
+            (Some(observer), 0.0, true),
+            (Some(observer), 119.0, true),
+            (Some(observer), 120.0, false),
+            (Some(other), 0.0, false),
+            (None, 0.0, false),
+        ] {
+            pending.track(
+                std::iter::once((target, Vec3::X, false)),
+                &state.get(&world),
+                who,
+                time,
+                10.0,
+            );
+            assert_eq!(pending == rendered, expected);
+            assert_eq!(pending.enemies.len(), usize::from(expected));
+        }
+        world.entity_mut(target).remove::<Concealed>();
+        pending.track(
+            std::iter::once((target, Vec3::X, false)),
+            &state.get(&world),
+            None,
+            120.0,
+            10.0,
+        );
+        assert_eq!(pending.enemies[0].offset, Vec2::X);
+        assert!(!pending.enemies[0].marked);
+        pending.track(
+            std::iter::once((target, Vec3::X, true)),
+            &state.get(&world),
+            None,
+            120.0,
+            10.0,
+        );
+        assert!(pending.enemies.is_empty());
+        pending.track(
+            std::iter::once((target, Vec3::X * 11.0, false)),
+            &state.get(&world),
+            None,
+            120.0,
+            10.0,
+        );
+        assert!(pending.enemies.is_empty());
+    }
+}
+
 #[derive(Resource)]
 pub(super) struct MiniMap {
     zoom: usize,
@@ -117,8 +230,12 @@ pub(super) struct MiniMap {
     art: Option<Art>,
     /// Decoded 256² tiles by ADT index, `None` where no art was authored, for the map `dir` names.
     tiles: HashMap<(u32, u32), Option<Vec<u8>>>,
+    indoor_tiles: HashMap<String, Option<Rgba>>,
     dir: String,
     buf: Vec<u8>,
+    background: Vec<u8>,
+    rendered: Option<View>,
+    pending: View,
 }
 
 impl MiniMap {
@@ -140,8 +257,12 @@ impl MiniMap {
             image: images.add(image),
             art: None,
             tiles: HashMap::new(),
+            indoor_tiles: HashMap::new(),
             dir: String::new(),
             buf: vec![0; SIDE * SIDE * 4],
+            background: vec![0; SIDE * SIDE * 4],
+            rendered: None,
+            pending: View::default(),
         }
     }
 
@@ -360,8 +481,14 @@ pub(super) fn compose(
     catalog: Option<Res<MapCatalogRes>>,
     current: Option<Res<CurrentMap>>,
     phase: Res<State<super::Phase>>,
-    hero: Query<&Transform, With<Hero>>,
-    enemies: Query<(&Transform, &Enemy)>,
+    world: WorldPoint,
+    instances: Query<&benilla_world::wmo_portal::WmoPortalInstance>,
+    models: Res<Assets<benilla_assets::WmoModel>>,
+    server: Res<AssetServer>,
+    hero: Query<(Entity, &Transform), With<Hero>>,
+    enemies: Query<(Entity, &Transform, &Enemy)>,
+    perception: super::perception::Perception,
+    run: Res<Run>,
     mut images: ResMut<Assets<Image>>,
 ) {
     if *phase.get() == super::Phase::Menu || !map.shown {
@@ -370,13 +497,36 @@ pub(super) fn compose(
     let (Some(mut assets), Some(catalog), Some(current)) = (assets, catalog, current) else {
         return;
     };
-    let Ok(hero) = hero.single() else { return };
+    let Ok((observer, hero)) = hero.single() else {
+        return;
+    };
     let Some(dir) = catalog.0.directory(current.0).map(str::to_string) else {
         return;
     };
     let map = &mut *map;
+    let p = hero.translation;
+    let radius = map.view_radius();
+    let indoor = super::minimap_indoor::select(p, &instances, &models, &world, &server);
+    map.pending.indoor = indoor.as_ref().map(|(key, _)| key.clone());
+    map.pending.dir.clone_from(&dir);
+    map.pending.zoom = map.zoom;
+    map.pending.center = Vec2::new(p.x, p.z);
+    map.pending.yaw = hero.rotation.to_euler(EulerRot::YXZ).0;
+    map.pending.track(
+        enemies
+            .iter()
+            .map(|(entity, tf, enemy)| (entity, tf.translation, enemy.dead)),
+        &perception,
+        run.alive().then_some(observer),
+        run.elapsed,
+        radius,
+    );
+    if map.rendered.as_ref() == Some(&map.pending) {
+        return;
+    }
     if map.dir != dir {
         map.tiles.clear();
+        map.indoor_tiles.clear();
         map.dir.clone_from(&dir);
     }
     if map.art.is_none() {
@@ -397,94 +547,125 @@ pub(super) fn compose(
         });
     }
     let art = map.art.as_ref().expect("art loaded above");
-
-    // The hero in WoW coordinates; screen right is east (-y), screen down south (-x).
-    let p = hero.translation;
-    let (wx, wy) = (-p.z, -p.x);
-    let radius = map.view_radius();
     let yd_per_px = 2.0 * radius / SIDE as f32;
-
-    // The 2×2 tile window under the view: its diameter (at most 14 chunks) is under one tile.
-    let (tx0, ty0) = world_to_tile(wx + radius + 1.0, wy + radius + 1.0);
-    for ty in ty0..=ty0 + 1 {
-        for tx in tx0..=tx0 + 1 {
-            map.tiles.entry((tx, ty)).or_insert_with(|| {
-                let hash = art.translate.tile(&dir, tx, ty)?;
-                let tile = Rgba::decode(&mut assets, &format!("textures\\Minimap\\{hash}"))?;
-                (tile.w == TILE_PX && tile.h == TILE_PX).then_some(tile.px)
-            });
-        }
-    }
-    let window: [[Option<&[u8]>; 2]; 2] = [0, 1].map(|j| {
-        [0, 1].map(|i| {
-            map.tiles
-                .get(&(tx0 + i, ty0 + j))
-                .and_then(|t| t.as_deref())
-        })
-    });
-    // Window-local tile texels: x grows east from the window's west edge, y south from its north.
-    let (north, west) = tile_to_world(tx0, ty0);
-    let tex_per_yd = TILE_PX as f32 / TILE_YARDS;
-    let origin = Vec2::new((west - wy) * tex_per_yd, (north - wx) * tex_per_yd);
-    let tex_per_px = yd_per_px * tex_per_yd;
-    let texel = |x: i32, y: i32| -> [f32; 3] {
-        let (cx, cy) = (x.div_euclid(TILE_PX as i32), y.div_euclid(TILE_PX as i32));
-        if !(0..2).contains(&cx) || !(0..2).contains(&cy) {
-            return [0.0; 3];
-        }
-        match window[cy as usize][cx as usize] {
-            Some(px) => {
-                let (lx, ly) = (x.rem_euclid(TILE_PX as i32), y.rem_euclid(TILE_PX as i32));
-                let i = (ly as usize * TILE_PX + lx as usize) * 4;
-                [f32::from(px[i]), f32::from(px[i + 1]), f32::from(px[i + 2])]
-            }
-            None => [0.0; 3],
-        }
-    };
-
     let half = SIDE as f32 / 2.0;
-    let buf = &mut map.buf;
-    for v in 0..SIDE {
-        for u in 0..SIDE {
-            let o = (v * SIDE + u) * 4;
-            let mask = match &art.mask {
-                Some(m) => {
-                    let (mx, my) = (u * m.w / SIDE, v * m.h / SIDE);
-                    let i = (my * m.w + mx) * 4;
-                    m.px[i].min(m.px[i + 3])
-                }
-                None => {
-                    let d = Vec2::new(u as f32 + 0.5 - half, v as f32 + 0.5 - half).length();
-                    ((half - d).clamp(0.0, 1.0) * 255.0) as u8
-                }
-            };
-            if mask == 0 {
-                buf[o..o + 4].copy_from_slice(&[0; 4]);
-                continue;
-            }
-            let g = origin + (Vec2::new(u as f32, v as f32) + 0.5 - half) * tex_per_px - 0.5;
-            let (x0, y0) = (g.x.floor() as i32, g.y.floor() as i32);
-            let (fx, fy) = (g.x - x0 as f32, g.y - y0 as f32);
-            let (a, b, c, d) = (
-                texel(x0, y0),
-                texel(x0 + 1, y0),
-                texel(x0, y0 + 1),
-                texel(x0 + 1, y0 + 1),
-            );
-            for k in 0..3 {
-                let top = a[k] + (b[k] - a[k]) * fx;
-                let bottom = c[k] + (d[k] - c[k]) * fx;
-                buf[o + k] = (top + (bottom - top) * fy) as u8;
-            }
-            buf[o + 3] = mask;
-        }
-    }
+    let same_background = map.rendered.as_ref().is_some_and(|previous| {
+        previous.dir == map.pending.dir
+            && previous.indoor == map.pending.indoor
+            && previous.zoom == map.pending.zoom
+            && previous.center == map.pending.center
+    });
+    if !same_background {
+        let indoor_layers = indoor.map(|(key, model)| {
+            super::minimap_indoor::Layers::prepare(
+                &key,
+                model,
+                p,
+                radius,
+                &art.translate,
+                &mut map.indoor_tiles,
+                &mut assets,
+            )
+        });
 
+        // The hero in WoW coordinates; screen right is east (-y), screen down south (-x).
+        let (wx, wy) = (-p.z, -p.x);
+        let yd_per_px = 2.0 * radius / SIDE as f32;
+
+        // The 2×2 tile window under the view: its diameter (at most 14 chunks) is under one tile.
+        let (tx0, ty0) = world_to_tile(wx + radius + 1.0, wy + radius + 1.0);
+        for ty in ty0..=ty0 + 1 {
+            for tx in tx0..=tx0 + 1 {
+                map.tiles.entry((tx, ty)).or_insert_with(|| {
+                    let hash = art.translate.tile(&dir, tx, ty)?;
+                    let tile = Rgba::decode(&mut assets, &format!("textures\\Minimap\\{hash}"))?;
+                    (tile.w == TILE_PX && tile.h == TILE_PX).then_some(tile.px)
+                });
+            }
+        }
+        let window: [[Option<&[u8]>; 2]; 2] = [0, 1].map(|j| {
+            [0, 1].map(|i| {
+                map.tiles
+                    .get(&(tx0 + i, ty0 + j))
+                    .and_then(|t| t.as_deref())
+            })
+        });
+        // Window-local tile texels: x grows east from the window's west edge, y south from its north.
+        let (north, west) = tile_to_world(tx0, ty0);
+        let tex_per_yd = TILE_PX as f32 / TILE_YARDS;
+        let origin = Vec2::new((west - wy) * tex_per_yd, (north - wx) * tex_per_yd);
+        let tex_per_px = yd_per_px * tex_per_yd;
+        let texel = |x: i32, y: i32| -> [f32; 3] {
+            let (cx, cy) = (x.div_euclid(TILE_PX as i32), y.div_euclid(TILE_PX as i32));
+            if !(0..2).contains(&cx) || !(0..2).contains(&cy) {
+                return [0.0; 3];
+            }
+            match window[cy as usize][cx as usize] {
+                Some(px) => {
+                    let (lx, ly) = (x.rem_euclid(TILE_PX as i32), y.rem_euclid(TILE_PX as i32));
+                    let i = (ly as usize * TILE_PX + lx as usize) * 4;
+                    [f32::from(px[i]), f32::from(px[i + 1]), f32::from(px[i + 2])]
+                }
+                None => [0.0; 3],
+            }
+        };
+
+        let half = SIDE as f32 / 2.0;
+        let buf = &mut map.buf;
+        for v in 0..SIDE {
+            for u in 0..SIDE {
+                let o = (v * SIDE + u) * 4;
+                let mask = match &art.mask {
+                    Some(m) => {
+                        let (mx, my) = (u * m.w / SIDE, v * m.h / SIDE);
+                        let i = (my * m.w + mx) * 4;
+                        m.px[i].min(m.px[i + 3])
+                    }
+                    None => {
+                        let d = Vec2::new(u as f32 + 0.5 - half, v as f32 + 0.5 - half).length();
+                        ((half - d).clamp(0.0, 1.0) * 255.0) as u8
+                    }
+                };
+                if mask == 0 {
+                    buf[o..o + 4].copy_from_slice(&[0; 4]);
+                    continue;
+                }
+                let g = origin + (Vec2::new(u as f32, v as f32) + 0.5 - half) * tex_per_px - 0.5;
+                let (x0, y0) = (g.x.floor() as i32, g.y.floor() as i32);
+                let (fx, fy) = (g.x - x0 as f32, g.y - y0 as f32);
+                let (a, b, c, d) = (
+                    texel(x0, y0),
+                    texel(x0 + 1, y0),
+                    texel(x0, y0 + 1),
+                    texel(x0 + 1, y0 + 1),
+                );
+                for k in 0..3 {
+                    let top = a[k] + (b[k] - a[k]) * fx;
+                    let bottom = c[k] + (d[k] - c[k]) * fx;
+                    buf[o + k] = (top + (bottom - top) * fy) as u8;
+                }
+                if let Some(layers) = &indoor_layers {
+                    let offset = (Vec2::new(u as f32, v as f32) + 0.5 - half) * yd_per_px;
+                    let rgb =
+                        layers.sample(p + Vec3::new(offset.x, 0., offset.y), &map.indoor_tiles);
+                    for k in 0..3 {
+                        buf[o + k] = rgb[k] as u8;
+                    }
+                }
+                buf[o + 3] = mask;
+            }
+        }
+
+        map.background.copy_from_slice(&map.buf);
+    } else {
+        map.buf.copy_from_slice(&map.background);
+    }
+    let buf = &mut map.buf;
     let scale = SIDE as f32 / BLIP_BASIS_PX;
     let center = Vec2::splat(half);
     // The arrow turns with the hero's facing: counter-clockwise from north, as the yaw runs.
     if let Some(arrow) = &art.arrow {
-        let yaw = hero.rotation.to_euler(EulerRot::YXZ).0;
+        let yaw = map.pending.yaw;
         let (s, c) = yaw.sin_cos();
         let to_screen = |t: Vec2| Vec2::new(c * t.x + s * t.y, -s * t.x + c * t.y);
         let to_tex = |q: Vec2| Vec2::new(c * q.x - s * q.y, s * q.x + c * q.y);
@@ -504,15 +685,16 @@ pub(super) fn compose(
     if let Some(icons) = &art.icons {
         let size = DOT_PX * scale;
         let [l, r, t, b] = TRACKED_UNIT_CELL;
-        for (tf, enemy) in &enemies {
-            if enemy.dead {
-                continue;
+        for enemy in &map.pending.enemies {
+            let position = center + enemy.offset / yd_per_px;
+            if enemy.marked {
+                blit(buf, position, size * 1.8, |q| {
+                    let edge = q.x.abs() + q.y.abs();
+                    (edge >= size * 0.65 && edge <= size * 0.9)
+                        .then_some([255.0, 215.0, 70.0, 255.0])
+                });
             }
-            let off = Vec2::new(tf.translation.x - p.x, tf.translation.z - p.z);
-            if off.length() > radius {
-                continue;
-            }
-            blit(buf, center + off / yd_per_px, size, |q| {
+            blit(buf, position, size, |q| {
                 let f = q / size + 0.5;
                 let x = (l + (r - l) * f.x) * icons.w as f32;
                 let y = (t + (b - t) * f.y) * icons.h as f32;
@@ -524,6 +706,9 @@ pub(super) fn compose(
     if let Some(image) = images.get_mut(&map.image) {
         if let Some(data) = image.data.as_mut() {
             data.copy_from_slice(&map.buf);
+            // Recycle both dot buffers instead of allocating for each moving frame.
+            let previous = map.rendered.get_or_insert_with(View::default);
+            std::mem::swap(previous, &mut map.pending);
         }
     }
 }

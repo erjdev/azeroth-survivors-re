@@ -13,11 +13,10 @@ use super::super::stash::Stash;
 use super::super::{Selection, BASE_HP};
 use super::{Act, Armory, Page};
 use crate::char_select::race_name;
-use crate::glue::art::{class_tc, tc_rect, GlueArt, DIM, GOLD, NAME_EDGE};
+use crate::glue::art::{class_tc, race_tc, tc_rect, GlueArt, DIM, GOLD, NAME_EDGE};
 use crate::glue::backdrop::{backdrop_border, tiled_bg_node};
 use crate::glue::widgets::{
-    abs, glue_button, outlined_text, outlined_text_centered, overlay, GlueBtnKind, GlueText,
-    Hilight, LockHighlight,
+    outlined_text, outlined_text_centered, overlay, GlueText, Hilight, LockHighlight,
 };
 
 const FILL: Color = Color::srgba(0.05, 0.04, 0.02, 0.92);
@@ -25,6 +24,7 @@ const FRAME: Color = Color::srgb(0.78, 0.62, 0.22);
 const BONUS: Color = Color::srgb(0.45, 0.9, 0.4);
 
 pub(super) fn build(
+    strings: &crate::survivors::localization::Strings,
     ui: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
@@ -35,23 +35,258 @@ pub(super) fn build(
     stash: &Stash,
     note: &str,
     talents: Option<&benilla_formats::TalentCatalog>,
+    layout: &survivors_core::layout::Layout,
+    features: Option<&super::super::appearance::Options>,
+    talent_scroll: Vec2,
+    compact_collection: bool,
 ) {
-    header(ui, art, font);
-    tabs(ui, art, font, armory.page, account.unspent());
-    if !note.is_empty() {
+    if armory.page == Page::RunOptions {
+        header(ui, font);
+        save_warning(ui, font, account);
+        panel(ui, art, false, None, |body| {
+            heading(body, font, "Run Options");
+            line(
+                body,
+                font,
+                &format!(
+                    "Selected zone: {}",
+                    shown_zone(armory, selection)
+                        .map_or(selection.stage_def().name, |(_, zone)| zone.name)
+                ),
+                18.0,
+                GOLD,
+            );
+            heading(body, font, "Difficulty");
+            line(body, font, "Normal", 22.0, BONUS);
+            line(
+                body,
+                font,
+                "Standard enemy strength and rewards.",
+                15.0,
+                DIM,
+            );
+            heading(body, font, "Game speed");
+            line(body, font, "Normal (1×)", 22.0, BONUS);
+            line(
+                body,
+                font,
+                "Combat and run timers advance at normal speed.",
+                15.0,
+                DIM,
+            );
+            body.spawn(Node {
+                width: Val::Percent(100.0),
+                flex_wrap: FlexWrap::Wrap,
+                column_gap: Val::Px(12.0),
+                row_gap: Val::Px(8.0),
+                margin: UiRect::top(Val::Px(20.0)),
+                ..default()
+            })
+            .with_children(|row| {
+                door_button(
+                    row,
+                    font,
+                    Act::Options,
+                    "Settings",
+                    "Display, sound and controls",
+                );
+                door_button(
+                    row,
+                    font,
+                    Act::Page(Page::Door),
+                    "Done",
+                    "Return to your hero and zone",
+                );
+            });
+        });
+        return;
+    }
+    if armory.page == Page::Door {
+        header(ui, font);
+        tabs(ui, font, armory.page, account.unspent());
+    } else {
+        armory_header(ui, font, armory, account, selection);
+    }
+    save_warning(ui, font, account);
+    if !note.is_empty() && (armory.page != Page::Codex || account.recovery_notice().is_some()) {
         line(ui, font, note, 13.0, GOLD);
     }
     if armory.page == Page::Door {
-        columns(ui, art, font, armory, account, selection);
-        enter_bar(ui, art, font, armory, account, selection);
+        columns(
+            strings,
+            ui,
+            art,
+            font,
+            armory,
+            account,
+            selection,
+            compact_collection,
+        );
+        enter_bar(ui, font, armory, account, selection);
+    } else if armory.page == Page::Talents {
+        super::talent_page::build(ui, font, account, selection, talents, talent_scroll, layout);
+    } else if armory.page == Page::Rewards {
+        super::rewards_page(ui, font, armory, account);
+    } else if armory.page == Page::Achievements {
+        super::achievements(ui, font, armory, account);
+    } else if armory.page == Page::Heroes {
+        super::character::build(
+            strings,
+            ui,
+            art,
+            font,
+            armory,
+            account,
+            selection,
+            renown,
+            stash,
+            layout,
+            features,
+            compact_collection,
+        );
+    } else if armory.page == Page::Collection {
+        super::collection::build(
+            strings,
+            ui,
+            art,
+            font,
+            armory,
+            account,
+            selection,
+            layout,
+            compact_collection,
+        );
+    } else if armory.page == Page::Codex {
+        super::codex_page::build(
+            ui,
+            font,
+            armory,
+            account,
+            selection,
+            layout,
+            compact_collection,
+        );
+    } else if armory.page == Page::DropTables {
+        super::drop_page::build(
+            strings,
+            ui,
+            art,
+            font,
+            armory,
+            account,
+            selection,
+            layout,
+            compact_collection,
+        );
     } else {
-        panel(ui, art, |body| {
-            super::fill_draft(body, font, armory, account, selection, renown, stash, talents)
+        panel(ui, art, false, None, |body| {
+            super::fill_draft(
+                strings, body, font, armory, account, selection, renown, stash, talents,
+            )
         });
     }
 }
 
-fn header(ui: &mut ChildSpawnerCommands, art: &GlueArt, font: &Handle<Font>) {
+fn armory_header(
+    ui: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    armory: &Armory,
+    account: &Account,
+    selection: &Selection,
+) {
+    ui.spawn(Node {
+        width: Val::Percent(100.0),
+        flex_wrap: FlexWrap::Wrap,
+        align_items: AlignItems::Center,
+        column_gap: Val::Px(12.0),
+        row_gap: Val::Px(6.0),
+        ..default()
+    })
+    .with_children(|row| {
+        row.spawn((
+            hud::text_bundle(font, "Armory", 30.0, GOLD),
+            super::typography::DisplayHeading,
+            Node {
+                flex_basis: Val::Px(160.0),
+                flex_grow: 1.0,
+                ..default()
+            },
+        ));
+        row.spawn(Node {
+            flex_basis: Val::Px(740.0),
+            flex_grow: 4.0,
+            min_width: Val::Px(0.0),
+            ..default()
+        })
+        .with_children(|navigation| tabs(navigation, font, armory.page, account.unspent()));
+    });
+    ui.spawn(Node {
+        width: Val::Percent(100.0),
+        flex_wrap: FlexWrap::Wrap,
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::SpaceBetween,
+        column_gap: Val::Px(12.0),
+        row_gap: Val::Px(4.0),
+        margin: UiRect::bottom(Val::Px(8.0)),
+        ..default()
+    })
+    .with_children(|row| {
+        let class_index = super::picked_class(account, selection);
+        let class = &CLASSES[class_index];
+        let count = account
+            .classes
+            .get(class_index)
+            .map_or(0, |progress| campaign::owned_pieces(&progress.pieces));
+        row.spawn((
+            hud::text_bundle(font, "", 12.0, DIM),
+            Node {
+                flex_basis: Val::Px(360.0),
+                flex_grow: 1.0,
+                min_width: Val::Px(0.0),
+                ..default()
+            },
+        ))
+        .with_children(|subtitle| {
+            for (part, color) in [
+                (
+                    class.name.to_owned(),
+                    Color::srgb_u8(
+                        (class.color >> 16) as u8,
+                        (class.color >> 8) as u8,
+                        class.color as u8,
+                    ),
+                ),
+                (
+                    format!(
+                        " · Common–Legendary: {count}/{} · gear and looks are kept per class",
+                        campaign::PIECES
+                    ),
+                    DIM,
+                ),
+            ] {
+                subtitle.spawn((
+                    TextSpan::new(part),
+                    TextColor(color),
+                    TextFont {
+                        font: font.clone(),
+                        font_size: 12.0,
+                        ..default()
+                    },
+                ));
+            }
+        });
+        row.spawn(Node {
+            column_gap: Val::Px(6.0),
+            ..default()
+        })
+        .with_children(|controls| {
+            tab_button(controls, font, "Options", Act::Options, false);
+            tab_button(controls, font, "Quit", Act::Quit, false);
+        });
+    });
+}
+
+fn header(ui: &mut ChildSpawnerCommands, font: &Handle<Font>) {
     ui.spawn(Node {
         width: Val::Percent(100.0),
         height: Val::Px(40.0),
@@ -67,7 +302,7 @@ fn header(ui: &mut ChildSpawnerCommands, art: &GlueArt, font: &Handle<Font>) {
                 justify_content: JustifyContent::Center,
                 ..default()
             },
-            (),
+            super::typography::DisplayHeading,
             (),
             GlueText {
                 text: "Azeroth Survivors",
@@ -86,39 +321,13 @@ fn header(ui: &mut ChildSpawnerCommands, art: &GlueArt, font: &Handle<Font>) {
             ..default()
         })
         .with_children(|b| {
-            glue_button(
-                b,
-                art,
-                font,
-                Act::Options,
-                "Options",
-                96.0,
-                28.0,
-                GlueBtnKind::Small,
-                1.0,
-            );
-            glue_button(
-                b,
-                art,
-                font,
-                Act::Quit,
-                "Quit",
-                72.0,
-                28.0,
-                GlueBtnKind::Small,
-                1.0,
-            );
+            tab_button(b, font, "Options", Act::Options, false);
+            tab_button(b, font, "Quit", Act::Quit, false);
         });
     });
 }
 
-fn tabs(
-    ui: &mut ChildSpawnerCommands,
-    art: &GlueArt,
-    font: &Handle<Font>,
-    page: Page,
-    unspent: u32,
-) {
+fn tabs(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, page: Page, unspent: u32) {
     let rewards = format!("Rewards ({unspent})");
     let tabs = [
         ("Character", Page::Heroes),
@@ -142,98 +351,132 @@ fn tabs(
     })
     .with_children(|row| {
         for (label, tab) in tabs {
-            tab_button(row, art, font, label, Act::Page(tab), page == tab);
+            tab_button(row, font, label, Act::Page(tab), page == tab);
         }
-        glue_button(
-            row,
-            art,
-            font,
-            Act::Page(Page::Door),
-            "Done",
-            72.0,
-            28.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
+        if page != Page::Door {
+            tab_button(row, font, "Done", Act::Page(Page::Door), false);
+        }
     });
 }
 
 fn tab_button(
     row: &mut ChildSpawnerCommands,
-    art: &GlueArt,
     font: &Handle<Font>,
     label: &str,
     act: Act,
     on: bool,
 ) {
-    let width = (label.len() as f32 * 7.2 + 28.0).clamp(78.0, 168.0);
-    row.spawn(Node {
-        flex_direction: FlexDirection::Column,
-        align_items: AlignItems::Center,
-        ..default()
-    })
-    .with_children(|col| {
-        glue_button(
-            col,
-            art,
-            font,
-            act,
-            label,
-            width,
-            28.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
-        col.spawn((
-            Node {
-                width: Val::Percent(70.0),
-                height: Val::Px(2.0),
-                margin: UiRect::top(Val::Px(2.0)),
-                ..default()
-            },
-            BackgroundColor(if on { GOLD } else { Color::NONE }),
-        ));
-    });
+    super::controls::button(
+        row,
+        font,
+        label,
+        act,
+        on,
+        Node {
+            min_height: Val::Px(28.0),
+            justify_content: JustifyContent::Center,
+            max_width: Val::Percent(100.0),
+            flex_shrink: 0.0,
+            padding: UiRect::horizontal(Val::Px(10.0)),
+            ..default()
+        },
+    );
 }
 
 fn columns(
+    strings: &crate::survivors::localization::Strings,
     ui: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
     armory: &Armory,
     account: &Account,
     selection: &Selection,
+    compact: bool,
 ) {
     ui.spawn(Node {
         width: Val::Percent(100.0),
         flex_grow: 1.0,
+        flex_basis: Val::Px(0.0),
         min_height: Val::Px(0.0),
-        flex_direction: FlexDirection::Row,
-        column_gap: Val::Px(8.0),
         ..default()
     })
-    .with_children(|row| {
-        panel(row, art, |body| {
-            class_column(body, art, font, account, selection)
+    .with_children(|frame| {
+        let mut content = frame.spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            padding: UiRect::right(Val::Px(if compact { 16.0 } else { 0.0 })),
+            flex_direction: if compact {
+                FlexDirection::Column
+            } else {
+                FlexDirection::Row
+            },
+            overflow: if compact {
+                Overflow::scroll_y()
+            } else {
+                Overflow::visible()
+            },
+            row_gap: Val::Px(8.0),
+            column_gap: Val::Px(8.0),
+            ..default()
         });
-        panel(row, art, |body| {
-            hero_column(body, art, font, account, selection)
+        if compact {
+            content.insert((
+                super::collection::CollectionScroll,
+                super::collection::CompactScroll::Starter,
+                bevy::ui::RelativeCursorPosition::default(),
+                ScrollPosition(armory.starter_scroll),
+            ));
+        }
+        let viewport = content.id();
+        content.with_children(|row| {
+            panel(
+                row,
+                art,
+                compact,
+                Some((0, armory.starter_panel_scroll[0])),
+                |body| class_column(body, art, font, account, selection, compact),
+            );
+            panel(
+                row,
+                art,
+                compact,
+                Some((1, armory.starter_panel_scroll[1])),
+                |body| hero_column(strings, body, art, font, armory, account, selection),
+            );
+            panel(
+                row,
+                art,
+                compact,
+                Some((2, armory.starter_panel_scroll[2])),
+                |body| zone_column(body, font, armory, account, selection),
+            );
         });
-        panel(row, art, |body| zone_column(body, font, armory, account, selection));
+        if compact {
+            super::scrollbar::spawn(frame, viewport);
+        }
     });
 }
 
 fn panel(
     parent: &mut ChildSpawnerCommands,
     art: &GlueArt,
+    compact: bool,
+    scroll: Option<(usize, Vec2)>,
     body: impl FnOnce(&mut ChildSpawnerCommands),
 ) {
     parent
         .spawn(Node {
-            flex_grow: 1.0,
-            flex_basis: Val::Px(0.0),
-            height: Val::Percent(100.0),
+            flex_grow: if compact { 0.0 } else { 1.0 },
+            flex_shrink: 0.0,
+            flex_basis: if compact { Val::Auto } else { Val::Px(0.0) },
+            height: if compact {
+                Val::Auto
+            } else {
+                Val::Percent(100.0)
+            },
             min_height: Val::Px(0.0),
+            overflow: Overflow::clip(),
+            padding: UiRect::all(Val::Px(8.0)),
             ..default()
         })
         .with_children(|frame| {
@@ -265,17 +508,38 @@ fn panel(
                     },
                 ));
             }
-            frame
-                .spawn(Node {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    flex_direction: FlexDirection::Column,
-                    padding: UiRect::all(Val::Px(14.0)),
-                    overflow: Overflow::scroll_y(),
-                    row_gap: Val::Px(4.0),
-                    ..default()
-                })
-                .with_children(body);
+            let mut content = frame.spawn(Node {
+                width: Val::Percent(100.0),
+                height: if compact {
+                    Val::Auto
+                } else {
+                    Val::Percent(100.0)
+                },
+                flex_direction: FlexDirection::Column,
+                padding: UiRect::all(Val::Px(6.0)),
+                overflow: if compact {
+                    Overflow::visible()
+                } else {
+                    Overflow::scroll_y()
+                },
+                row_gap: Val::Px(4.0),
+                ..default()
+            });
+            if !compact {
+                content.insert((
+                    super::collection::CollectionScroll,
+                    bevy::ui::RelativeCursorPosition::default(),
+                    ScrollPosition(scroll.map_or(Vec2::ZERO, |(_, position)| position)),
+                ));
+            }
+            if let Some((index, _)) = scroll.filter(|_| !compact) {
+                content.insert(super::collection::CompactScroll::StarterPanel(index));
+            }
+            let viewport = content.id();
+            content.with_children(body);
+            if !compact {
+                super::scrollbar::spawn(frame, viewport);
+            }
         });
 }
 
@@ -285,6 +549,7 @@ fn class_column(
     font: &Handle<Font>,
     account: &Account,
     selection: &Selection,
+    compact: bool,
 ) {
     heading(body, font, "Class");
     let class_i = selection
@@ -292,17 +557,28 @@ fn class_column(
         .unwrap_or(0)
         .min(CLASSES.len().saturating_sub(1));
     body.spawn(Node {
-        width: Val::Percent(100.0),
+        width: Val::Percent(if compact { 100.0 } else { 90.0 }),
+        max_width: if compact { Val::Auto } else { Val::Px(320.0) },
+        align_self: AlignSelf::Center,
+        flex_shrink: 0.0,
         flex_direction: FlexDirection::Row,
         flex_wrap: FlexWrap::Wrap,
         justify_content: JustifyContent::Center,
         column_gap: Val::Px(6.0),
-        row_gap: Val::Px(2.0),
+        row_gap: Val::Px(if compact { 2.0 } else { 10.0 }),
         ..default()
     })
     .with_children(|grid| {
         for (i, class) in CLASSES.iter().enumerate() {
-            class_icon(grid, art, font, i, class, selection.class == Some(i));
+            class_icon(
+                grid,
+                art,
+                font,
+                i,
+                class,
+                selection.class == Some(i),
+                compact,
+            );
         }
     });
     let class = &CLASSES[class_i];
@@ -322,12 +598,7 @@ fn class_column(
     .with_children(|row| {
         stat(row, font, "Health", &class_health(class.id).to_string());
         stat(row, font, "Starts with", &super::spell_title(class.start));
-        stat(
-            row,
-            font,
-            "Zones open",
-            &format!("{open} of {}", ZONES.len()),
-        );
+        stat(row, font, "Zones open", &format!("{open}/{}", ZONES.len()));
     });
     line(body, font, "Spell pool", 12.0, GOLD);
     spell_row(body, class);
@@ -340,9 +611,15 @@ fn class_icon(
     index: usize,
     class: &ClassDef,
     on: bool,
+    compact: bool,
 ) {
     grid.spawn(Node {
-        width: Val::Px(58.0),
+        width: if compact {
+            Val::Px(58.0)
+        } else {
+            Val::Percent(30.0)
+        },
+        flex_shrink: 0.0,
         flex_direction: FlexDirection::Column,
         align_items: AlignItems::Center,
         ..default()
@@ -353,8 +630,15 @@ fn class_icon(
             Button,
             LockHighlight(on),
             Node {
-                width: Val::Px(48.0),
-                height: Val::Px(48.0),
+                width: if compact {
+                    Val::Px(48.0)
+                } else {
+                    Val::Percent(64.0)
+                },
+                min_width: Val::Px(40.0),
+                max_width: Val::Px(64.0),
+                aspect_ratio: Some(1.0),
+                flex_shrink: 0.0,
                 ..default()
             },
         ))
@@ -362,7 +646,14 @@ fn class_icon(
             if let Some(shadow) = &art.icon_shadow {
                 b.spawn((
                     ImageNode::new(shadow.clone()),
-                    abs(1.0, -6.0, -6.0, 64.0, 64.0),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        left: Val::Percent(-12.5),
+                        top: Val::Percent(-12.5),
+                        width: Val::Percent(133.33),
+                        height: Val::Percent(133.33),
+                        ..default()
+                    },
                 ));
             }
             if let Some((sheet, size)) = &art.classes {
@@ -393,7 +684,8 @@ fn class_icon(
         outlined_text_centered(
             col,
             Node {
-                width: Val::Px(58.0),
+                width: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
                 ..default()
             },
             (),
@@ -401,7 +693,7 @@ fn class_icon(
             GlueText {
                 text: class.name,
                 size: 11.0,
-                color: if on { GOLD } else { DIM },
+                color: if on { hud::rgb(class.color) } else { DIM },
                 wrap: false,
             },
             font,
@@ -410,10 +702,71 @@ fn class_icon(
     });
 }
 
+/// Decorative overlays follow the selected body and class, leaving portrait drag input intact.
+fn portrait_badges(
+    frame: &mut ChildSpawnerCommands,
+    art: &GlueArt,
+    font: &Handle<Font>,
+    class: &ClassDef,
+    race: u8,
+) {
+    let color = if matches!(race, 1 | 3 | 4 | 7) {
+        Color::srgb(0.3, 0.6, 1.0)
+    } else {
+        Color::srgb(1.0, 0.3, 0.2)
+    };
+    frame
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Percent(3.0),
+                top: Val::Percent(3.0),
+                max_width: Val::Percent(94.0),
+                padding: UiRect::axes(Val::Px(4.0), Val::Px(1.0)),
+                border: UiRect::all(Val::Px(1.0)),
+                border_radius: BorderRadius::MAX,
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.015, 0.01, 0.02, 0.95)),
+            BorderColor::all(color),
+        ))
+        .with_children(|badge| {
+            badge.spawn(hud::text_bundle(
+                font,
+                faction(race).to_uppercase(),
+                8.0,
+                color,
+            ));
+        });
+    if let (Some((sheet, size)), Some(tc)) = (&art.classes, class_tc(class.id)) {
+        frame.spawn((
+            ImageNode {
+                image: sheet.clone(),
+                rect: Some(tc_rect(*size, tc)),
+                ..default()
+            },
+            Node {
+                position_type: PositionType::Absolute,
+                right: Val::Percent(3.0),
+                bottom: Val::Percent(3.0),
+                width: Val::Percent(32.0),
+                max_width: Val::Px(40.0),
+                aspect_ratio: Some(1.0),
+                border: UiRect::all(Val::Px(1.0)),
+                border_radius: BorderRadius::MAX,
+                ..default()
+            },
+            BorderColor::all(hud::rgb(class.color)),
+        ));
+    }
+}
+
 fn hero_column(
+    strings: &crate::survivors::localization::Strings,
     body: &mut ChildSpawnerCommands,
     art: &GlueArt,
     font: &Handle<Font>,
+    armory: &Armory,
     account: &Account,
     selection: &Selection,
 ) {
@@ -428,56 +781,130 @@ fn hero_column(
         ),
         _ => ("No hero of this class".to_string(), DIM),
     };
-    body.spawn(Node {
-        width: Val::Percent(100.0),
-        flex_direction: FlexDirection::Row,
-        justify_content: JustifyContent::SpaceBetween,
-        align_items: AlignItems::Center,
-        column_gap: Val::Px(6.0),
-        ..default()
-    })
-    .with_children(|row| {
-        line(row, font, &name, 18.0, name_color);
-        glue_button(
-            row,
-            art,
-            font,
-            Act::RandomName,
-            "Random",
-            88.0,
-            26.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
-    });
     let look = selection
         .look
         .and_then(|i| selection.looks.get(i))
         .map(|&(_, race, sex)| (race, sex));
-    let look_line = match look {
-        Some((race, sex)) => format!("{} {} {}", faction(race), race_name(race), sex_name(sex)),
-        None => "No look chosen".to_string(),
-    };
     body.spawn(Node {
         width: Val::Percent(100.0),
-        flex_direction: FlexDirection::Row,
-        justify_content: JustifyContent::SpaceBetween,
         align_items: AlignItems::Center,
+        column_gap: Val::Px(8.0),
         ..default()
     })
     .with_children(|row| {
-        line(row, font, &look_line, 13.0, Color::WHITE);
-        glue_button(
-            row,
-            art,
-            font,
-            Act::Look,
-            "Look",
-            72.0,
-            26.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
+        if hero.is_some() {
+            row.spawn((
+                Node {
+                    width: Val::Percent(30.0),
+                    aspect_ratio: Some(0.75),
+                    flex_shrink: 0.0,
+                    overflow: Overflow::clip(),
+                    ..default()
+                },
+                BackgroundColor(Color::srgba(0.02, 0.01, 0.03, 0.85)),
+            ))
+            .with_children(|frame| {
+                frame.spawn((
+                    crate::portrait::survivors_pane::ModelPane,
+                    ImageNode::default(),
+                    Node {
+                        position_type: PositionType::Absolute,
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        ..default()
+                    },
+                ));
+                if let (Some(class), Some((race, _))) = (class, look) {
+                    portrait_badges(frame, art, font, class, race);
+                }
+            });
+        }
+        row.spawn(Node {
+            flex_grow: 1.0,
+            flex_basis: Val::Px(0.0),
+            min_width: Val::Px(0.0),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(6.0),
+            ..default()
+        })
+        .with_children(|details| {
+            details
+                .spawn(Node {
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Row,
+                    flex_wrap: FlexWrap::Wrap,
+                    row_gap: Val::Px(4.0),
+                    justify_content: JustifyContent::SpaceBetween,
+                    align_items: AlignItems::Center,
+                    column_gap: Val::Px(6.0),
+                    ..default()
+                })
+                .with_children(|row| {
+                    if let Some(draft) = armory
+                        .rename
+                        .as_ref()
+                        .filter(|draft| Some(draft.hero) == selection.character)
+                    {
+                        super::name_field(row, font, &draft.first, 3, armory);
+                        super::name_field(row, font, &draft.last, 4, armory);
+                        super::chip(row, font, "Save", Act::SaveName, false);
+                        super::chip(row, font, "Cancel", Act::CancelName, false);
+                        return;
+                    }
+                    if hero.is_some() {
+                        super::controls::content_button(
+                            row,
+                            Act::EditName,
+                            false,
+                            Node {
+                                flex_basis: Val::Percent(65.0),
+                                flex_grow: 1.0,
+                                min_width: Val::Px(0.0),
+                                min_height: Val::Px(36.0),
+                                padding: UiRect::axes(Val::Px(8.0), Val::Px(5.0)),
+                                ..default()
+                            },
+                            |field| {
+                                field.spawn((
+                                    hud::text_bundle(font, &name, 18.0, name_color),
+                                    Node {
+                                        max_width: Val::Percent(100.0),
+                                        ..default()
+                                    },
+                                ));
+                            },
+                        );
+                    } else {
+                        line(row, font, &name, 18.0, name_color);
+                    }
+                    tab_button(row, font, "Random", Act::RandomName, false);
+                });
+            let look_line = match look {
+                Some((race, sex)) => {
+                    format!(
+                        "{} {} · {}",
+                        race_name(race),
+                        class.map_or("", |c| c.name),
+                        sex_name(sex)
+                    )
+                }
+                None => "No look chosen".to_string(),
+            };
+            details
+                .spawn(Node {
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Row,
+                    flex_wrap: FlexWrap::Wrap,
+                    row_gap: Val::Px(4.0),
+                    justify_content: JustifyContent::SpaceBetween,
+                    align_items: AlignItems::Center,
+                    ..default()
+                })
+                .with_children(|row| {
+                    line(row, font, &look_line, 13.0, Color::WHITE);
+                    tab_button(row, font, "Look", Act::Page(Page::Heroes), false);
+                });
+        });
     });
     heading(body, font, "Equipment");
     let owned = gear_lines(body, font, account, class_i);
@@ -491,10 +918,23 @@ fn hero_column(
     );
     bar(body, owned as f32 / total as f32);
     let bonus = account.bonus_picked(class_i, selection.character);
-    line(body, font, &bonus_line(bonus), 12.0, BONUS);
-    let spent = hero
-        .map(|c| c.active_points())
-        .unwrap_or(0);
+    line(body, font, &bonus_line(strings, bonus), 12.0, BONUS);
+    let health = account
+        .milestones_picked(class_i, selection.character)
+        .health_multiplier();
+    if health > 1.0 {
+        line(
+            body,
+            font,
+            &format!(
+                "Talents: +{:.0}% total maximum health",
+                (health - 1.0) * 100.0
+            ),
+            12.0,
+            BONUS,
+        );
+    }
+    let spent = hero.map(|c| c.active_points()).unwrap_or(0);
     body.spawn(Node {
         width: Val::Percent(100.0),
         flex_direction: FlexDirection::Row,
@@ -505,7 +945,6 @@ fn hero_column(
     .with_children(|row| {
         door_button(
             row,
-            art,
             font,
             Act::Page(Page::Heroes),
             "Armory",
@@ -513,48 +952,95 @@ fn hero_column(
         );
         door_button(
             row,
-            art,
             font,
             Act::Page(Page::Talents),
             "Talents",
-            &format!("{spent} of {}", campaign::TALENT_CAP),
+            &format!("{spent}/{}", campaign::TALENT_CAP),
         );
     });
-    if let Some((race, _)) = look {
-        line(body, font, race_name(race), 14.0, GOLD);
-        line(body, font, "No permanent bonus.", 12.0, DIM);
+    if let Some((race, sex)) = look {
+        race_summary(body, art, font, race, sex);
     }
+}
+
+/// The starter reference pairs a body-matched race portrait with a compact bonus list.
+fn race_summary(
+    body: &mut ChildSpawnerCommands,
+    art: &GlueArt,
+    font: &Handle<Font>,
+    race: u8,
+    sex: u8,
+) {
+    body.spawn(Node {
+        width: Val::Percent(100.0),
+        column_gap: Val::Px(8.0),
+        margin: UiRect::top(Val::Px(6.0)),
+        align_items: AlignItems::Start,
+        ..default()
+    })
+    .with_children(|row| {
+        if let Some(((image, size), tc)) = art.races.as_ref().zip(race_tc(race, sex)) {
+            row.spawn((
+                ImageNode {
+                    image: image.clone(),
+                    rect: Some(tc_rect(*size, tc)),
+                    ..default()
+                },
+                Node {
+                    width: Val::Percent(14.0),
+                    max_width: Val::Px(40.0),
+                    aspect_ratio: Some(1.0),
+                    flex_shrink: 0.0,
+                    border: UiRect::all(Val::Px(1.0)),
+                    border_radius: BorderRadius::all(Val::Px(3.0)),
+                    ..default()
+                },
+                BorderColor::all(FRAME),
+            ));
+        }
+        row.spawn(Node {
+            flex_grow: 1.0,
+            flex_basis: Val::Px(0.0),
+            min_width: Val::Px(0.0),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(3.0),
+            ..default()
+        })
+        .with_children(|copy| {
+            line(copy, font, race_name(race), 18.0, GOLD);
+            if let Some(racials) = survivors_core::racials::description(race) {
+                for racial in racials {
+                    line(copy, font, &format!("• {racial}"), 12.0, BONUS);
+                }
+            } else {
+                line(copy, font, "Racial bonuses are not yet defined.", 12.0, DIM);
+            }
+        });
+    });
 }
 
 fn door_button(
     row: &mut ChildSpawnerCommands,
-    art: &GlueArt,
     font: &Handle<Font>,
     act: Act,
     caption: &str,
     under: &str,
 ) {
-    row.spawn(Node {
-        flex_grow: 1.0,
-        flex_direction: FlexDirection::Column,
-        align_items: AlignItems::Center,
-        row_gap: Val::Px(2.0),
-        ..default()
-    })
-    .with_children(|col| {
-        glue_button(
-            col,
-            art,
-            font,
-            act,
-            caption,
-            150.0,
-            32.0,
-            GlueBtnKind::Small,
-            1.0,
-        );
-        line(col, font, under, 11.0, DIM);
-    });
+    super::controls::action_card(
+        row,
+        font,
+        caption,
+        under,
+        act,
+        false,
+        Node {
+            flex_grow: 1.0,
+            flex_basis: Val::Px(0.0),
+            min_width: Val::Px(0.0),
+            min_height: Val::Px(48.0),
+            ..default()
+        },
+    );
 }
 
 fn shown_zone<'a>(armory: &Armory, selection: &Selection) -> Option<(usize, &'a campaign::Zone)> {
@@ -584,9 +1070,16 @@ fn zone_column(
             Node {
                 width: Val::Percent(100.0),
                 flex_direction: FlexDirection::Column,
-                padding: UiRect::axes(Val::Px(6.0), Val::Px(3.0)),
+                padding: UiRect::axes(Val::Px(6.0), Val::Px(5.0)),
+                border: UiRect::all(Val::Px(1.0)),
+                overflow: Overflow::clip(),
                 ..default()
             },
+            BorderColor::all(if on {
+                GOLD
+            } else {
+                Color::srgba(0.5, 0.4, 0.15, 0.35)
+            }),
             BackgroundColor(if on {
                 Color::srgba(0.85, 0.65, 0.2, 0.28)
             } else {
@@ -594,36 +1087,76 @@ fn zone_column(
             }),
         ))
         .with_children(|row| {
+            if let Some(map) = data::MAPS.iter().find(|m| m.name == zone.map && m.map > 1) {
+                row.spawn((
+                    super::super::zone_art::ZoneArt(map.map),
+                    ImageNode {
+                        color: Color::NONE,
+                        ..default()
+                    },
+                    Node {
+                        position_type: PositionType::Absolute,
+                        left: Val::Px(0.0),
+                        top: Val::Px(0.0),
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        ..default()
+                    },
+                    bevy::ui::FocusPolicy::Pass,
+                ));
+            }
             let color = if reason.is_some() { DIM } else { GOLD };
-            line(row, font, zone.name, 14.0, color);
+            row.spawn(Node {
+                width: Val::Percent(100.0),
+                flex_wrap: FlexWrap::Wrap,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::SpaceBetween,
+                column_gap: Val::Px(8.0),
+                row_gap: Val::Px(2.0),
+                ..default()
+            })
+            .with_children(|header| {
+                display_line(
+                    header,
+                    font,
+                    zone.name,
+                    if on { 18.0 } else { 16.0 },
+                    if on { GOLD } else { color },
+                );
+                zone_stage(header, font, index);
+            });
             if let Some(reason) = &reason {
-                line(row, font, reason, 11.0, DIM);
+                line(
+                    row,
+                    font,
+                    reason,
+                    11.0,
+                    if on {
+                        Color::srgb(0.9, 0.45, 0.35)
+                    } else {
+                        DIM
+                    },
+                );
+            }
+            if on {
+                line(row, font, zone.title, 13.0, Color::srgb(0.95, 0.55, 0.25));
+                line(row, font, zone.briefing, 12.0, Color::WHITE);
+                if zone.name != zone.map {
+                    line(row, font, zone.map, 12.0, DIM);
+                }
+                if !zone.boss.is_empty() {
+                    let elites = zone.elites.join(", ");
+                    let stakes = if elites.is_empty() {
+                        format!("{}.", zone.boss)
+                    } else {
+                        format!("{}. {elites}.", zone.boss)
+                    };
+                    line(row, font, &stakes, 11.0, DIM);
+                }
             }
         });
     }
-    if let Some((index, zone)) = shown_zone(armory, selection) {
-        line(body, font, zone.name, 16.0, GOLD);
-        if zone.name != zone.map {
-            line(body, font, zone.map, 12.0, DIM);
-        }
-        if let Some(reason) = campaign::zone_lock_reason(index, level, &clears) {
-            line(body, font, &reason, 13.0, Color::srgb(0.9, 0.45, 0.35));
-        }
-        if !zone.boss.is_empty() {
-            let elites = zone.elites.join(", ");
-            let stakes = if elites.is_empty() {
-                format!("{}.", zone.boss)
-            } else {
-                format!("{}. {elites}.", zone.boss)
-            };
-            line(body, font, &stakes, 13.0, Color::WHITE);
-        }
-        if let Some(map) = data::MAPS.iter().find(|m| m.name == zone.map) {
-            if !map.victory.is_empty() {
-                line(body, font, map.victory, 12.0, DIM);
-            }
-        }
-    } else {
+    if shown.is_none() {
         let map = selection.map_def();
         line(body, font, map.name, 16.0, GOLD);
         line(
@@ -633,69 +1166,122 @@ fn zone_column(
             12.0,
             DIM,
         );
-        if !map.victory.is_empty() {
-            line(body, font, map.victory, 12.0, Color::WHITE);
-        }
+        line(
+            body,
+            font,
+            "Survive the enemy waves and defeat the scheduled bosses.",
+            12.0,
+            Color::WHITE,
+        );
     }
 }
 
 fn enter_bar(
     ui: &mut ChildSpawnerCommands,
-    art: &GlueArt,
     font: &Handle<Font>,
     armory: &Armory,
     account: &Account,
     selection: &Selection,
 ) {
-    let (title, under) = enter_copy(armory, account, selection);
+    let (title, under, action) = if selection.character.is_none() {
+        (
+            "Create or choose a hero".into(),
+            "Keep talent progress on your named hero".into(),
+            Act::Page(super::Page::Heroes),
+        )
+    } else {
+        let (title, under) = enter_copy(armory, account, selection);
+        (title, under, Act::Enter)
+    };
     ui.spawn(Node {
         width: Val::Percent(100.0),
-        flex_direction: FlexDirection::Row,
+        flex_wrap: FlexWrap::Wrap,
         justify_content: JustifyContent::Center,
-        align_items: AlignItems::FlexStart,
+        align_items: AlignItems::Center,
         column_gap: Val::Px(12.0),
+        row_gap: Val::Px(6.0),
         margin: UiRect::top(Val::Px(8.0)),
         ..default()
     })
     .with_children(|row| {
-        row.spawn(Node {
+        super::controls::action_card(
+            row,
+            font,
+            "Run Options",
+            "Normal difficulty",
+            Act::RunOptions,
+            false,
+            Node {
+                min_height: Val::Px(48.0),
+                max_width: Val::Percent(100.0),
+                ..default()
+            },
+        );
+        super::controls::action_card(
+            row,
+            font,
+            &title,
+            &under,
+            action,
+            true,
+            Node {
+                width: Val::Percent(45.0),
+                min_width: Val::Px(260.0),
+                max_width: Val::Percent(100.0),
+                min_height: Val::Px(60.0),
+                ..default()
+            },
+        );
+    });
+}
+
+/// Campaign order, not clear progress or an independently selectable difficulty.
+fn zone_stage(row: &mut ChildSpawnerCommands, font: &Handle<Font>, index: usize) {
+    row.spawn((
+        Node {
             flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
+            align_items: AlignItems::End,
+            flex_shrink: 0.0,
+            row_gap: Val::Px(2.0),
             ..default()
-        })
-        .with_children(|col| {
-            glue_button(
-                col,
-                art,
-                font,
-                Act::RunOptions,
-                "Run Options",
-                130.0,
-                36.0,
-                GlueBtnKind::Small,
-                1.0,
-            );
-            line(col, font, "Normal difficulty", 11.0, DIM);
-        });
-        row.spawn(Node {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..default()
-        })
-        .with_children(|col| {
-            glue_button(
-                col,
-                art,
-                font,
-                Act::Enter,
-                &title,
-                280.0,
-                44.0,
-                GlueBtnKind::Normal,
-                1.0,
-            );
-            line(col, font, &under, 12.0, GOLD);
-        });
+        },
+        bevy::ui::FocusPolicy::Pass,
+    ))
+    .with_children(|stage| {
+        stage
+            .spawn(Node {
+                width: Val::Px(96.0),
+                height: Val::Px(7.0),
+                justify_content: JustifyContent::SpaceBetween,
+                ..default()
+            })
+            .with_children(|dots| {
+                for position in 0..ZONES.len() {
+                    dots.spawn((
+                        Node {
+                            width: Val::Px(6.0),
+                            height: Val::Px(6.0),
+                            border: UiRect::all(Val::Px(1.0)),
+                            border_radius: BorderRadius::MAX,
+                            ..default()
+                        },
+                        BackgroundColor(if position <= index {
+                            Color::srgb(0.95, 0.36, 0.20)
+                        } else {
+                            Color::srgb(0.10, 0.08, 0.04)
+                        }),
+                        BorderColor::all(Color::BLACK),
+                        bevy::ui::FocusPolicy::Pass,
+                    ));
+                }
+            });
+        line(
+            stage,
+            font,
+            &format!("Stage {} of {}", index + 1, ZONES.len()),
+            9.0,
+            DIM,
+        );
     });
 }
 
@@ -703,16 +1289,27 @@ fn enter_copy(armory: &Armory, account: &Account, selection: &Selection) -> (Str
     let (level, clears) = super::hero_gate(account, selection);
     if let Some((index, zone)) = shown_zone(armory, selection) {
         let under = campaign::zone_lock_reason(index, level, &clears).unwrap_or_else(|| {
-            if zone.boss.is_empty() {
-                String::new()
-            } else {
-                format!("{} is the last fight.", zone.boss)
-            }
+            let Some(map) = data::MAPS.iter().position(|map| map.name == zone.map) else {
+                return String::new();
+            };
+            let finale = super::super::encounters::finale(map);
+            let Some((_, at)) = finale.first() else {
+                return String::new();
+            };
+            let names = finale
+                .iter()
+                .map(|(enemy, _)| enemy.name)
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!("Final fight: {names} · {}:{:02}", at / 60, at % 60)
         });
         (format!("Enter {}", zone.name), under)
     } else {
         let map = selection.map_def();
-        (format!("Enter {}", map.name), map.victory.to_string())
+        (
+            format!("Enter {}", map.name),
+            "Survive the enemy waves".into(),
+        )
     }
 }
 
@@ -728,17 +1325,55 @@ fn gear_lines(
         .map(|p| p.pieces)
         .unwrap_or([0; campaign::PIECES]);
     let owned = campaign::owned_pieces(&pieces);
-    for slot in 0..campaign::GRID_SLOTS {
-        let slot_name = campaign::SLOTS[slot];
-        let (text, color) = if let Some((band, stacks)) = campaign::best_piece(&pieces, slot) {
-            let item = campaign::piece_name(class, slot, band).unwrap_or(slot_name);
-            let extra = if stacks > 1 { " +" } else { "" };
-            (format!("{slot_name} — {item}{extra}"), band_color(band))
-        } else {
-            (format!("{slot_name} — empty"), DIM)
-        };
-        line(body, font, &text, 12.0, color);
-    }
+    body.spawn(Node {
+        width: Val::Percent(100.0),
+        display: Display::Grid,
+        grid_template_columns: vec![RepeatedGridTrack::minmax(
+            GridTrackRepetition::AutoFit,
+            MinTrackSizingFunction::Px(36.0),
+            MaxTrackSizingFunction::Fraction(1.0),
+        )],
+        column_gap: Val::Px(3.0),
+        row_gap: Val::Px(5.0),
+        ..default()
+    })
+    .with_children(|row| {
+        for slot in 0..campaign::GRID_SLOTS {
+            let progress = &account.classes[class];
+            let band = progress.equipment.worn[slot].map(usize::from);
+            let piece = progress
+                .equipment
+                .worn(class, &pieces, &account.supplemental, slot);
+            row.spawn((
+                Button,
+                Act::OpenEquipment(slot),
+                super::starter_equipment::SlotInfo(format!(
+                    "{} · {}",
+                    campaign::SLOTS[slot],
+                    piece.as_ref().map_or("Empty", |piece| piece.name)
+                )),
+                Node {
+                    min_width: Val::Px(0.0),
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(2.0)),
+                    border: UiRect::all(Val::Px(1.0)),
+                    row_gap: Val::Px(3.0),
+                    ..default()
+                },
+                BorderColor::all(band.map(band_color).unwrap_or(DIM)),
+                BackgroundColor(Color::srgb(0.025, 0.02, 0.01)),
+            ))
+            .with_children(|cell| {
+                if let Some(piece) = piece {
+                    super::super::gear_icons::spawn_visual(cell, piece.visual, 30.0);
+                } else {
+                    super::starter_equipment::empty(cell, slot);
+                }
+            });
+        }
+    });
+    super::starter_equipment::detail(body, font);
     if campaign::two_handed(class) {
         line(
             body,
@@ -829,25 +1464,7 @@ fn bar(body: &mut ChildSpawnerCommands, frac: f32) {
 }
 
 fn heading(body: &mut ChildSpawnerCommands, font: &Handle<Font>, text: &str) {
-    outlined_text_centered(
-        body,
-        Node {
-            width: Val::Percent(100.0),
-            margin: UiRect::top(Val::Px(2.0)),
-            justify_content: JustifyContent::Center,
-            ..default()
-        },
-        (),
-        (),
-        GlueText {
-            text,
-            size: 15.0,
-            color: GOLD,
-            wrap: false,
-        },
-        font,
-        1.0,
-    );
+    super::typography::section(body, font, text, 18.0, GOLD);
 }
 
 fn line(body: &mut ChildSpawnerCommands, font: &Handle<Font>, text: &str, size: f32, color: Color) {
@@ -858,6 +1475,32 @@ fn line(body: &mut ChildSpawnerCommands, font: &Handle<Font>, text: &str, size: 
             ..default()
         },
         (),
+        (),
+        GlueText {
+            text,
+            size,
+            color,
+            wrap: true,
+        },
+        font,
+        1.0,
+    );
+}
+
+fn display_line(
+    body: &mut ChildSpawnerCommands,
+    font: &Handle<Font>,
+    text: &str,
+    size: f32,
+    color: Color,
+) {
+    outlined_text(
+        body,
+        Node {
+            max_width: Val::Percent(100.0),
+            ..default()
+        },
+        super::typography::DisplayHeading,
         (),
         GlueText {
             text,
@@ -922,7 +1565,7 @@ fn sex_name(sex: u8) -> &'static str {
     }
 }
 
-fn band_color(band: usize) -> Color {
+pub(super) fn band_color(band: usize) -> Color {
     match band {
         0 => Color::WHITE,
         1 => hud::rgb(0x1eff00),
@@ -933,14 +1576,35 @@ fn band_color(band: usize) -> Color {
     }
 }
 
-fn bonus_line(bonus: campaign::Bonus) -> String {
+pub(super) fn bonus_line(
+    strings: &crate::survivors::localization::Strings,
+    bonus: campaign::Bonus,
+) -> String {
     let mut parts = Vec::new();
-    let pct = |v: f32| format!("{:+.0}%", v * 100.0);
+    let pct = |v: f32| format!("{:+.1}%", v * 100.0);
+    if bonus.health.abs() > 0.01 {
+        parts.push(strings.by_key(
+            "HP_TEMPLATE",
+            "%s health",
+            &[format!("{:+.0}", bonus.health).as_str().into()],
+        ));
+    }
+    if bonus.pickup.abs() > 0.0001 {
+        parts.push(format!("{} pickup range", pct(bonus.pickup)));
+    }
     if bonus.armor.abs() > 0.01 {
-        parts.push(format!("{:+.0} armor", bonus.armor));
+        parts.push(strings.by_key(
+            "ARMOR_TEMPLATE",
+            "%s armor",
+            &[format!("{:+.0}", bonus.armor).as_str().into()],
+        ));
     }
     if bonus.might.abs() > 0.0001 {
-        parts.push(format!("{} damage", pct(bonus.might)));
+        parts.push(strings.by_key(
+            "SINGLE_DAMAGE_TEMPLATE",
+            "%s damage",
+            &[pct(bonus.might).as_str().into()],
+        ));
     }
     if bonus.crit.abs() > 0.0001 {
         parts.push(format!("{} crit", pct(bonus.crit)));
@@ -964,7 +1628,7 @@ fn bonus_line(bonus: campaign::Bonus) -> String {
         parts.push(format!("{} damage reduction", pct(bonus.reduction)));
     }
     if bonus.cooldown.abs() > 0.0001 {
-        parts.push(format!("{} cooldown", pct(bonus.cooldown)));
+        parts.push(format!("{} cooldown reduction", pct(bonus.cooldown)));
     }
     if bonus.gold.abs() > 0.0001 {
         parts.push(format!("{} gold", pct(bonus.gold)));
@@ -983,4 +1647,34 @@ fn bonus_line(bonus: campaign::Bonus) -> String {
     } else {
         parts.join("   ")
     }
+}
+
+#[cfg(test)]
+mod localization_tests;
+
+/// A write failure leaves in-memory progress intact and offers an explicit retry.
+fn save_warning(ui: &mut ChildSpawnerCommands, font: &Handle<Font>, account: &Account) {
+    let Some(notice) = account.save_notice() else {
+        return;
+    };
+    ui.spawn(Node {
+        width: Val::Percent(100.0),
+        flex_shrink: 0.0,
+        flex_wrap: FlexWrap::Wrap,
+        align_items: AlignItems::Center,
+        column_gap: Val::Px(10.0),
+        row_gap: Val::Px(4.0),
+        ..default()
+    })
+    .with_children(|row| {
+        row.spawn((
+            hud::text_bundle(font, notice, 13.0, GOLD),
+            Node {
+                flex_basis: Val::Px(260.0),
+                flex_grow: 1.0,
+                ..default()
+            },
+        ));
+        super::chip(row, font, "Retry save", Act::RetrySave, false);
+    });
 }

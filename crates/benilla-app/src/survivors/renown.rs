@@ -32,7 +32,7 @@ impl Track {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 struct ClassRenown {
     unspent: u32,
     might: u8,
@@ -54,17 +54,6 @@ impl ClassRenown {
             Track::Might => self.might = rank,
             Track::Fortitude => self.fortitude = rank,
             Track::Celerity => self.celerity = rank,
-        }
-    }
-}
-
-impl Default for ClassRenown {
-    fn default() -> Self {
-        Self {
-            unspent: 0,
-            might: 0,
-            fortitude: 0,
-            celerity: 0,
         }
     }
 }
@@ -112,23 +101,25 @@ impl Renown {
     }
 
     pub fn ranks(&self, class: usize) -> [u8; 3] {
-        self.classes.get(class).map_or([0; 3], |c| {
-            [c.might, c.fortitude, c.celerity]
-        })
+        self.classes
+            .get(class)
+            .map_or([0; 3], |c| [c.might, c.fortitude, c.celerity])
     }
 
+    #[cfg(test)]
     pub fn unspent(&self, class: usize) -> u32 {
         self.classes.get(class).map_or(0, |c| c.unspent)
     }
 
+    #[cfg(test)]
     pub fn rank(&self, class: usize, track: Track) -> u8 {
         self.classes.get(class).map_or(0, |c| c.rank(track))
     }
 
     pub fn can_spend(&self, class: usize, track: Track) -> bool {
-        self.classes.get(class).is_some_and(|c| {
-            c.rank(track) < MAX_RANK && c.unspent >= rank_cost(c.rank(track))
-        })
+        self.classes
+            .get(class)
+            .is_some_and(|c| c.rank(track) < MAX_RANK && c.unspent >= rank_cost(c.rank(track)))
     }
 
     /// Spend the next rank's price on `track`. A full rank or a short purse does nothing.
@@ -192,7 +183,9 @@ fn parse(text: &str) -> Vec<ClassRenown> {
             break;
         };
         slot += 1;
-        let mut n = line.split_whitespace().filter_map(|w| w.parse::<u32>().ok());
+        let mut n = line
+            .split_whitespace()
+            .filter_map(|w| w.parse::<u32>().ok());
         *c = ClassRenown {
             unspent: n.next().unwrap_or(0),
             might: n.next().unwrap_or(0).min(u32::from(MAX_RANK)) as u8,

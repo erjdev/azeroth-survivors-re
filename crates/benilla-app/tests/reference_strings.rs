@@ -165,9 +165,11 @@ fn no_user_facing_sentence_is_written_in_rust_when_the_reference_ships_one() {
                 taken += 1;
             }
         }
-        // Every source must contribute: the `Localize()` files wrap their assignments in a
-        // function, a shape the base tables never have.
-        assert!(taken > 0, "{file} contributed no sentences");
+        // Base tables must contribute; locale patches may legitimately be empty (enUS).
+        // Wrapped assignments are covered independently of the installed locale below.
+        if file.ends_with("Strings.lua") {
+            assert!(taken > 0, "{file} contributed no sentences");
+        }
     }
 
     let mut sources = Vec::new();
@@ -378,4 +380,15 @@ fn string_literals(body: &str) -> Vec<String> {
         }
     }
     out
+}
+
+#[test]
+fn locale_string_parser_reads_wrapped_assignments_and_accepts_empty_patches() {
+    let populated =
+        lua_table("function Localize()\n    TEST_SENTENCE = \"A localized sentence.\";\nend");
+    assert_eq!(
+        populated.get("TEST_SENTENCE").map(String::as_str),
+        Some("A localized sentence.")
+    );
+    assert!(lua_table("function Localize()\n    -- No locale overrides.\nend").is_empty());
 }

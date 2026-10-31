@@ -1,0 +1,4 @@
+# Uses the selected hero and saved spec; does not spend points.
+page = talents
+width = 640
+height = 720

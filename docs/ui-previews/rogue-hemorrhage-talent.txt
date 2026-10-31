@@ -1,0 +1,6 @@
+# Select a Rogue character for the native menu preview.
+page = talents
+width = 640
+height = 720
+scale = 1.25
+talent = 681

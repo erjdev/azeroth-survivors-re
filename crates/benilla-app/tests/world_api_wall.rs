@@ -102,6 +102,10 @@ const PUBLISHED: &[(&str, &str)] = &[
     ("doodad_anim::register_fx_uv", "record"),
     ("doodad_anim::register_tint", "record"),
     ("doodad_anim::spawn_anim_host", "record"),
+    (
+        "exterior_cull::ExteriorCullSet",
+        "docs/SURVIVORS-ENGINE-API.md",
+    ),
     ("ffx_glow::FfxBackdrop", "record"),
     ("ffx_glow::FfxGlow", "record"),
     ("ffx_glow::FfxSwitches", "record"),
@@ -151,6 +155,18 @@ const PUBLISHED: &[(&str, &str)] = &[
     ("schedule::WorldLive", "record"),
     ("schedule::WorldStage", "record"),
     ("sky_order::Rung", "wall"),
+    (
+        "survivors_visibility::SceneryCutaway",
+        "docs/SURVIVORS-ENGINE-API.md",
+    ),
+    (
+        "survivors_visibility::SceneryProbe",
+        "docs/SURVIVORS-ENGINE-API.md",
+    ),
+    (
+        "survivors_visibility::plugin",
+        "docs/SURVIVORS-ENGINE-API.md",
+    ),
     ("terrain_stream::SPAWN_XY", "wall"),
     ("terrain_stream::ViewFocus", "record"),
     ("terrain_stream::WorldLoadProgress", "wall"),
@@ -170,6 +186,7 @@ const PUBLISHED: &[(&str, &str)] = &[
     ("world_census::WorldCensus", "record"),
     ("world_map::CurrentMap", "record"),
     ("world_map::MapChange", "record"),
+    ("world_map::set_start_map", "docs/SURVIVORS-ENGINE-API.md"),
     ("world_plugins::WorldPlugins", "record"),
     ("world_point::Subject", "record"),
     ("world_point::WorldPoint", "record"),

@@ -3,18 +3,43 @@
 
 use bevy::prelude::*;
 
-use super::data::{AbilityDef, Effect, Kind};
+use super::data::{self, AbilityDef, Effect, Kind};
 use super::enemies::{self, Enemy, Loot};
 use super::hero::{self, Hero};
 use super::units::{self, flat, Fx, Marks, UnitSpec, COLOR_HEAL, COLOR_MELEE, COLOR_SPELL};
 use super::{Rng, Run, RunEntity};
 use crate::net::{FieldChanged, Guid, ObjectStore};
 
+/// Ownership is independent of the ability key or damage-meter label.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(super) enum HitOrigin {
+    #[default]
+    Hero,
+    CombatPet,
+}
+
+impl HitOrigin {
+    fn owner_talents(
+        self,
+        talents: survivors_core::talents::Milestones,
+    ) -> survivors_core::talents::Milestones {
+        match self {
+            Self::Hero => talents,
+            Self::CombatPet => Default::default(),
+        }
+    }
+}
+
 /// One blow landing on one enemy.
 #[derive(Message, Clone)]
 pub(super) struct Hit {
+    pub origin: HitOrigin,
+    /// Active-run occurrence time; None means the current settlement update.
+    pub occurred: Option<f32>,
     pub target: Entity,
     pub damage: f32,
+    /// Cast-owned damage per point of the victim's ranged attack power vulnerability.
+    pub ranged_power_scale: f32,
     pub dot: f32,
     pub dot_dur: f32,
     pub effect: Effect,
@@ -31,8 +56,11 @@ pub(super) struct Hit {
 impl Hit {
     pub fn direct(target: Entity, damage: f32, crit: bool) -> Self {
         Self {
+            origin: HitOrigin::Hero,
+            occurred: None,
             target,
             damage,
+            ranged_power_scale: 0.0,
             dot: 0.0,
             dot_dur: 0.0,
             effect: Effect::None,
@@ -45,6 +73,75 @@ impl Hit {
         }
     }
 }
+
+#[derive(Component, Default)]
+pub(super) struct FireVulnerability(pub survivors_core::scorch::FireVulnerability);
+
+impl FireVulnerability {
+    fn multiplier(
+        &self,
+        source: &str,
+        now: f32,
+        spells: Option<&crate::ui_action::Spells>,
+        reflection: u32,
+    ) -> f32 {
+        let spell = if source == "Ignite" {
+            Some(12654)
+        } else if source == "Thorns" {
+            Some(reflection)
+        } else {
+            data::ABILITIES
+                .iter()
+                .find(|def| def.key == source)
+                .map(|def| def.spell)
+        };
+        let fire = spell
+            .and_then(|id| spells.and_then(|s| s.catalog.get(id)))
+            .is_some_and(|s| s.school == 2);
+        self.0.multiplier(fire, now)
+    }
+}
+
+/// Target-owned vulnerability; removed with the victim, never attached to the caster.
+#[derive(Component, Default)]
+pub(super) struct StormstrikeVulnerability(pub survivors_core::stormstrike::Stormstrike);
+
+impl StormstrikeVulnerability {
+    fn multiplier(
+        &mut self,
+        source: &str,
+        damage: f32,
+        now: f32,
+        spells: Option<&crate::ui_action::Spells>,
+        reflection_spell: u32,
+    ) -> f32 {
+        let spell = if source == "Thorns" {
+            Some(reflection_spell)
+        } else if source == "instant_poison" {
+            // Damage spell, not the physical weapon-enchant spell shown on the card.
+            Some(8680)
+        } else if source == "deadly_poison" {
+            Some(2818)
+        } else {
+            data::ABILITIES
+                .iter()
+                .find(|def| def.key == source)
+                .map(|def| def.spell)
+        };
+        let nature = spell
+            .and_then(|id| spells.and_then(|spells| spells.catalog.get(id)))
+            .is_some_and(|spell| spell.school == 3);
+        if nature {
+            self.0.consume_nature_hit(damage, now)
+        } else {
+            1.0
+        }
+    }
+}
+
+#[path = "hemorrhage.rs"]
+mod hemorrhage;
+pub(super) use hemorrhage::HemorrhageVulnerability;
 
 /// Hits in flight, by the run time they land.
 #[derive(Resource, Default)]
@@ -84,38 +181,215 @@ struct Foe {
     e: Entity,
     pos: Vec3,
     hp: f32,
+    frozen: bool,
+    winters_chill: survivors_core::talents::WintersChill,
     dist: f32,
     radius: f32,
 }
 
 /// The numbers one cast uses, from the ability's level and the hero's stats.
-struct Params {
-    dmg: f32,
-    dot: f32,
-    count: usize,
-    radius: f32,
-    duration: f32,
-    cooldown: f32,
+pub(super) struct Params {
+    pub dmg: f32,
+    pub totem_health: f32,
+    pub ranged_power_scale: f32,
+    pub poison_chance: f32,
+    pub dodge_chance: f32,
+    pub mark_power: f32,
+    pub silence_chance: f32,
+    pub weapon_bonus: f32,
+    pub dot: f32,
+    pub count: usize,
+    pub radius: f32,
+    pub range: f32,
+    pub duration: f32,
+    pub cooldown: f32,
+    pub crit: f32,
+    pub crit_damage: f32,
+    pub shield_fraction: f32,
+    pub shield_seconds: f32,
+    pub immune_seconds: f32,
+    pub heal_fraction: f32,
+    pub blackout_chance: f32,
+    pub wing_clip_root_chance: f32,
+    pub vampiric_fraction: f32,
+    pub shadow_weaving_chance: f32,
+    pub effect: Effect,
 }
 
-fn mark_secs(def: &AbilityDef, duration: f32) -> f32 {
-    match def.effect {
-        Effect::Slow(_, t) | Effect::Weaken(_, t) => t,
-        Effect::Root(t) | Effect::Stun(t) | Effect::Fear(t) => t,
-        _ if duration > 0.0 => duration,
-        _ => 3.0,
+impl Params {
+    pub fn new(
+        o: &super::Owned,
+        stats: &super::Stats,
+        milestones: survivors_core::talents::Milestones,
+    ) -> Self {
+        let dodge_chance = if o.def.kind == Kind::Aspect {
+            milestones.monkey_dodge(
+                o.level,
+                stats
+                    .legendary
+                    .filter(|(key, _)| *key == o.def.key)
+                    .map_or(0.0, |(_, bonus)| bonus.might),
+            )
+        } else {
+            0.0
+        };
+        let mark_power = if o.def.kind == Kind::Mark {
+            milestones.hunters_mark_power(
+                o.level,
+                stats
+                    .legendary
+                    .filter(|(key, _)| *key == o.def.key)
+                    .map_or(0.0, |(_, bonus)| bonus.might),
+            )
+        } else {
+            0.0
+        };
+        let weakness_scale = o.damage_mult()
+            * (1.0
+                + stats
+                    .legendary
+                    .filter(|(key, _)| *key == o.def.key)
+                    .map_or(0.0, |(_, bonus)| bonus.might));
+        let scoped = stats.for_spell(o.def.key);
+        let stats = &scoped;
+        let effect = milestones.cast(o.def.key);
+        let mult = o.damage_mult() * stats.might * effect.damage;
+        Self {
+            dmg: o.def.damage * mult,
+            ranged_power_scale: if milestones.class == 2 {
+                super::marking::coefficient(o.def.key) * mult
+            } else {
+                0.0
+            },
+            dodge_chance,
+            mark_power,
+            silence_chance: if o.def.key == "kick" {
+                milestones.kick_silence()
+            } else if o.def.kind == Kind::Silence {
+                1.
+            } else if o.def.kind == Kind::Interrupt {
+                milestones.counterspell_silence()
+            } else {
+                0.
+            },
+            poison_chance: match o.def.kind {
+                Kind::Coating(coating) => coating.chance(milestones),
+                _ => 0.0,
+            },
+            weapon_bonus: o.def.weapon_bonus
+                * o.damage_mult()
+                * milestones.battle_shout_multiplier(),
+            dot: o.def.dot * mult,
+            count: if o.def.kind == Kind::Mark {
+                (o.def.count + super::sheet::extra_targets(Kind::Mark, o.def.count, stats.targets))
+                    as usize
+            } else if matches!(
+                o.def.kind,
+                Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+            ) {
+                0
+            } else {
+                o.count(stats) as usize + effect.extra_targets
+            },
+            totem_health: if o.def.key == "stoneclaw_totem" {
+                milestones.stoneclaw_health()
+            } else {
+                0.0
+            },
+            radius: o.radius(stats) * effect.radius,
+            range: o.def.range * effect.range + effect.range_yards,
+            duration: if matches!(o.def.key, "earthbind_totem" | "stoneclaw_totem" | "kick")
+                || matches!(
+                    o.def.kind,
+                    Kind::Interrupt
+                        | Kind::Silence
+                        | Kind::Channel
+                        | Kind::Mark
+                        | Kind::Coating(_)
+                        | Kind::Aspect
+                        | Kind::ContactAura
+                ) {
+                o.def.duration
+            } else {
+                o.duration() * effect.duration
+            },
+            effect: milestones.control(
+                o.def.key,
+                match o.def.effect {
+                    Effect::Weakness(amount, seconds) => {
+                        Effect::Weakness(amount * weakness_scale, seconds)
+                    }
+                    other => other,
+                }
+                .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
+            ),
+            cooldown: if o.def.kind == Kind::Channel {
+                (o.cooldown(stats) * effect.cooldown).max(o.def.duration)
+            } else if o.def.kind == Kind::Mark {
+                super::sheet::cooldown_time(o.def.cooldown, stats.haste, stats.cooldown)
+            } else if matches!(
+                o.def.kind,
+                Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+            ) {
+                0.0
+            } else {
+                o.cooldown(stats) * effect.cooldown
+            },
+            crit: if matches!(
+                o.def.kind,
+                Kind::Interrupt
+                    | Kind::Silence
+                    | Kind::Curse
+                    | Kind::Channel
+                    | Kind::Mark
+                    | Kind::Coating(_)
+                    | Kind::Aspect
+                    | Kind::ContactAura
+            ) {
+                0.0
+            } else {
+                (stats.crit + effect.crit).min(1.0)
+            },
+            crit_damage: if matches!(o.def.kind, Kind::Regrowth | Kind::DirectHeal) {
+                1.5
+            } else {
+                stats.crit_damage + effect.crit_damage
+            },
+            shield_fraction: effect.shield_fraction,
+            shield_seconds: effect.shield_seconds,
+            immune_seconds: effect.immune_seconds,
+            heal_fraction: effect.heal_fraction,
+            blackout_chance: milestones.blackout_chance(o.def.key, 1.0),
+            wing_clip_root_chance: milestones.wing_clip_root_chance(o.def.key, o.def.damage * mult),
+            vampiric_fraction: milestones.vampiric_healing(o.def.key, 1.0),
+            shadow_weaving_chance: milestones.shadow_weaving_chance(o.def.key, 1.0),
+        }
+    }
+}
+
+fn mark_secs(p: &Params) -> f32 {
+    let control = p.effect.duration();
+    if control > 0.0 {
+        control
+    } else if p.duration > 0.0 {
+        p.duration
+    } else {
+        3.0
     }
 }
 
 fn hit_for(def: &AbilityDef, p: &Params, target: Entity, damage: f32, crit: bool) -> Hit {
     Hit {
+        origin: HitOrigin::Hero,
+        occurred: None,
         target,
         damage,
+        ranged_power_scale: p.ranged_power_scale * if crit { p.crit_damage.max(1.0) } else { 1.0 },
         dot: p.dot,
         dot_dur: p.duration,
-        effect: def.effect,
+        effect: p.effect,
         mark: def.mark,
-        mark_dur: mark_secs(def, p.duration),
+        mark_dur: mark_secs(p),
         splash: if matches!(def.kind, Kind::Bolt | Kind::Strike) {
             p.radius
         } else {
@@ -136,8 +410,9 @@ fn schedule(
     hits: &mut MessageWriter<Hit>,
     now: f32,
     delay: f32,
-    hit: Hit,
+    mut hit: Hit,
 ) {
+    hit.occurred = Some(now + delay.max(0.0));
     if delay <= 0.0 {
         hits.write(hit);
     } else {
@@ -199,6 +474,39 @@ fn entities(foes: &[Foe]) -> Vec<Entity> {
     foes.iter().map(|f| f.e).collect()
 }
 
+/// Self buffs resolve before offensive casts, independent of acquisition order.
+fn cast_weapon_buffs(run: &mut Run, stats: &super::Stats, dt: f32) -> Vec<u32> {
+    let mut casts = Vec::new();
+    if !run.alive() || run.class.id != 1 || !dt.is_finite() || dt <= 0.0 {
+        return casts;
+    }
+    for owned in &mut run.abilities {
+        if owned.def.kind != Kind::WeaponBuff {
+            continue;
+        }
+        owned.cd -= dt;
+        if owned.cd > 0.0 {
+            continue;
+        }
+        let params = Params::new(owned, stats, run.milestones);
+        if run
+            .battle_shout
+            .refresh(params.weapon_bonus, params.duration, run.elapsed)
+        {
+            owned.cd = params.cooldown;
+            casts.push(owned.def.spell);
+        }
+    }
+    casts
+}
+
+/// Models face local -Z; only the rear half-plane qualifies, never the flank boundary.
+fn behind_target(hero: Vec3, target: &Transform) -> bool {
+    let offset = flat(hero - target.translation);
+    let forward = flat(target.rotation * Vec3::NEG_Z);
+    offset.is_finite() && forward.is_finite() && offset.dot(forward) < -0.0001
+}
+
 pub(super) fn cast_abilities(
     mut commands: Commands,
     time: Res<Time>,
@@ -206,31 +514,115 @@ pub(super) fn cast_abilities(
     mut rng: ResMut<Rng>,
     spells: Option<Res<crate::ui_action::Spells>>,
     hero: Query<(Entity, &Transform), With<Hero>>,
-    enemies: Query<(Entity, &Transform, &Enemy)>,
+    mut enemies: Query<(
+        Entity,
+        &Transform,
+        &Enemy,
+        &mut super::enemy_casting::Caster,
+    )>,
+    perception: super::perception::Perception,
+    marks: Query<(Entity, &super::marking::Marked)>,
     mut fx: Fx,
     mut pending: ResMut<PendingHits>,
+    mut channels: Option<ResMut<super::channeling::Channels>>,
+    channel_world: Option<super::Floor>,
     mut hits: MessageWriter<Hit>,
+    earthbinds: Query<Entity, With<super::earthbind::Earthbind>>,
+    stoneclaws: Query<Entity, With<super::stoneclaw::Stoneclaw>>,
 ) {
     let dt = time.delta_secs();
-    if run.dead_t.is_some() || dt <= 0.0 {
+    if !run.alive() || dt <= 0.0 {
         return;
     }
     let Ok((me, htf)) = hero.single() else { return };
     let hpos = htf.translation;
     let stats = run.stats();
     let now = run.elapsed;
+    let talents = run.milestones;
+    if run.cold_snap.trigger(talents, now) {
+        for owned in &mut run.abilities {
+            if talents.cold_snap_affects(owned.def.key) {
+                owned.cd = 0.0;
+            }
+        }
+    }
+    if run.preparation.trigger(talents, now) {
+        if run.class.id == 4 && run.level >= super::mobility::LEARN_LEVEL {
+            run.mobile.cd = 0.0;
+        }
+        for owned in &mut run.abilities {
+            if talents.preparation_affects(owned.def.key) {
+                owned.cd = 0.0;
+            }
+        }
+    }
+    for spell in cast_weapon_buffs(&mut run, &stats, dt) {
+        fx.cast(me, spell, &[me], None);
+    }
+    // Newly cast buffs also affect attacks and previews in this frame.
+    let stats = run.stats();
     let mut foes: Vec<Foe> = enemies
         .iter()
-        .filter(|(_, _, e)| !e.dead)
-        .map(|(e, tf, en)| Foe {
+        .filter(|(_, _, e, _)| !e.dead)
+        .map(|(e, tf, en, _)| Foe {
             e,
             pos: tf.translation,
             hp: en.hp,
+            frozen: en.frozen_t > 0.0,
+            winters_chill: en.winters_chill,
             dist: hero::reach(hpos, tf.translation),
             radius: en.radius,
         })
         .collect();
     foes.sort_by(|a, b| a.dist.total_cmp(&b.dist));
+    let visible: std::borrow::Cow<'_, [Foe]> = if perception.has_concealed() {
+        std::borrow::Cow::Owned(
+            foes.iter()
+                .copied()
+                .filter(|foe| perception.visible(Some(me), foe.e, now))
+                .collect(),
+        )
+    } else {
+        std::borrow::Cow::Borrowed(&foes)
+    };
+    // Survivors-authored basic physical attack: worn identity, never cosmetic gear.
+    // It is not Owned, so drafting six abilities cannot remove or upgrade it.
+    if run.class.id == 2 {
+        run.weapon_attack_cd = (run.weapon_attack_cd - dt).max(0.0);
+        if let (Some(weapon), Some(world)) = (talents.weapon, channel_world.as_ref()) {
+            if run.weapon_attack_cd <= 0.0 && world.height(hpos).is_some() {
+                let targets: Vec<_> = visible
+                    .iter()
+                    .filter(|foe| foe.hp > 0.0)
+                    .filter(|foe| hpos.distance(foe.pos) <= 3.0 + foe.radius)
+                    .filter(|foe| world.height(foe.pos).is_some())
+                    .filter(|foe| world.line_clear(hpos, foe.pos))
+                    .take(1 + stats.targets as usize)
+                    .collect();
+                if let Some(first) = targets.first() {
+                    // Equal base DPS; equipment bonuses supply rarity progression.
+                    // Raw vanilla damage/delay are not our rarity-balanced tuning.
+                    let (base, seconds) = if weapon.two_handed {
+                        (36., 3.)
+                    } else {
+                        (24., 2.)
+                    };
+                    let damage = base
+                        * stats.for_spell("Weapon Attack").might
+                        * talents.cast("Weapon Attack").damage;
+                    fx.swing(me, first.e, damage);
+                    for foe in targets {
+                        let (damage, crit) = roll(&mut rng, stats.crit, stats.crit_damage, damage);
+                        hits.write(Hit {
+                            source: "Weapon Attack",
+                            ..Hit::direct(foe.e, damage, crit)
+                        });
+                    }
+                    run.weapon_attack_cd = seconds / (1.0 + stats.haste).max(0.1);
+                }
+            }
+        }
+    }
     let speed_of = |spell: u32| {
         spells
             .as_deref()
@@ -239,36 +631,248 @@ pub(super) fn cast_abilities(
     };
 
     for i in 0..run.abilities.len() {
+        if matches!(
+            run.abilities[i].def.kind,
+            Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura
+        ) || !run.milestones.ability_unlocked(run.abilities[i].def.key)
+            || !run.abilities[i].def.usable_with(run.milestones.weapon)
+        {
+            continue;
+        }
         run.abilities[i].cd -= dt;
         if run.abilities[i].cd > 0.0 {
             continue;
         }
         let o = &run.abilities[i];
         let def = o.def;
-        let mult = o.damage_mult() * stats.might;
-        let p = Params {
-            dmg: def.damage * mult,
-            dot: def.dot * mult,
-            count: o.count(&stats) as usize,
-            radius: o.radius(&stats),
-            duration: o.duration(),
-            cooldown: o.cooldown(&stats),
-        };
+        let mut milestone = run.milestones.cast(def.key);
+        let mut p = Params::new(o, &stats, run.milestones);
+        p.cooldown /= 1.0 + run.hawk.haste(run.milestones, def.key, run.elapsed);
+        p.cooldown *= 1.0
+            - run
+                .adrenaline_rush
+                .bonus(run.milestones, def.key, run.elapsed);
+        p.cooldown /= 1.0 + run.blade_flurry.haste(run.milestones, def.key, run.elapsed);
+        p.count += run
+            .blade_flurry
+            .extra_targets(run.milestones, def.key, run.elapsed);
+        let power = 1.0 + run.arcane_power.bonus(run.milestones, def.key, run.elapsed);
+        let infusion = 1.
+            + run
+                .power_infusion
+                .bonus(run.milestones, def.key, run.elapsed);
+        if def.key == "holy_nova" {
+            milestone.heal_fraction *= infusion;
+        }
+        p.dmg *= infusion;
+        p.dot *= infusion;
+        p.dmg *= power;
+        p.dot *= power;
+        p.cooldown = run
+            .natures_grace
+            .recovery(run.milestones, def.key, run.elapsed, p.cooldown);
+        let crit_chance = (p.crit
+            + run.combustion.bonus(run.milestones, def.key, run.elapsed)
+            + run.remorseless_crit(def.key)
+            + run
+                .critical_cast
+                .bonus(run.milestones, def.key, run.elapsed))
+        .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
+            Kind::Interrupt | Kind::Silence => {
+                let Some(world) = channel_world.as_ref() else {
+                    continue;
+                };
+                let targets: Vec<_> = visible
+                    .iter()
+                    .filter(|foe| {
+                        foe.hp > 0.
+                            && hpos.distance(foe.pos) <= p.range
+                            && world.line_clear(hpos, foe.pos)
+                    })
+                    .filter(|foe| {
+                        enemies.get(foe.e).is_ok_and(|(_, _, enemy, caster)| {
+                            !enemy.boss
+                                && caster.state.active().is_some_and(|cast| {
+                                    now >= cast.started
+                                        && now < cast.finishes
+                                        && (cast.spell.interruptible || p.silence_chance > 0.)
+                                })
+                        })
+                    })
+                    .take(p.count)
+                    .map(|foe| foe.e)
+                    .collect();
+                for &target in &targets {
+                    let (_, _, _, mut caster) = enemies.get_mut(target).unwrap();
+                    let spell = caster.state.active().unwrap().spell.id;
+                    let interrupted = def.kind == Kind::Interrupt
+                        && matches!(
+                            caster.state.interrupt(now, p.duration),
+                            survivors_core::casting::Interrupt::Interrupted(_)
+                        );
+                    let silenced = p.silence_chance > 0.
+                        && (p.silence_chance >= 1. || rng.f32() < p.silence_chance)
+                        && caster.state.silence(
+                            now,
+                            if def.kind == Kind::Silence {
+                                p.duration
+                            } else {
+                                4.
+                            },
+                        );
+                    if interrupted || silenced {
+                        fx.cancel_cast(target, spell);
+                    }
+                    if silenced {
+                        fx.impact(
+                            target,
+                            if def.kind == Kind::Silence {
+                                def.spell
+                            } else {
+                                18469
+                            },
+                        );
+                    }
+                }
+                if !targets.is_empty() {
+                    fx.cast(me, def.spell, &targets, None);
+                }
+                !targets.is_empty()
+            }
+            Kind::Channel => {
+                // Optional for non-channel consumers; a channel must have world collision
+                // available before spending its cooldown or creating visual anchors.
+                let (Some(channels), Some(world)) = (channels.as_mut(), channel_world.as_ref())
+                else {
+                    continue;
+                };
+                if channels
+                    .active
+                    .iter()
+                    .any(|channel| channel.caster == me && channel.source == def.key)
+                {
+                    false
+                } else {
+                    // Filter before truncating: an obstructed nearest enemy must not hide
+                    // a farther eligible victim from this fixed-target cast.
+                    let targets: Vec<_> = visible
+                        .iter()
+                        .filter(|foe| foe.hp > 0.0 && foe.dist <= p.range + foe.radius)
+                        .filter(|foe| world.line_clear(hpos, foe.pos))
+                        .take(p.count)
+                        .map(|foe| foe.e)
+                        .collect();
+                    if let Some(clock) = survivors_core::channel::Channel::new(targets, now, 1.0, 3)
+                    {
+                        channels.active.push(super::channeling::ActiveChannel {
+                            caster: me,
+                            clock,
+                            damage: p.dmg,
+                            range: p.range,
+                            slow: 0.5,
+                            source: def.key,
+                        });
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+
+            Kind::Mark => {
+                let targets = toughest(&visible, p.range, p.count);
+                if targets.is_empty() {
+                    false
+                } else {
+                    let selected = entities(&targets);
+                    for (entity, mark) in &marks {
+                        if mark.0.caster() == Some(me) && !selected.contains(&entity) {
+                            commands.entity(entity).remove::<super::marking::Marked>();
+                        }
+                    }
+                    for &target in &selected {
+                        let mut mark = super::marking::Marked::default();
+                        if mark.0.apply(me, p.mark_power, p.duration, now) {
+                            commands.entity(target).insert(mark);
+                        }
+                    }
+                    fx.cast(me, def.spell, &selected, None);
+                    true
+                }
+            }
+            Kind::WeaponBuff | Kind::Coating(_) | Kind::Aspect | Kind::ContactAura => false, // Already resolved in the self-buff pass.
             Kind::Bolt | Kind::Strike | Kind::Melee => {
                 let reach = if def.kind == Kind::Melee {
-                    def.range + 0.5
+                    p.range + 0.5
                 } else {
-                    def.range
+                    p.range
+                };
+                let eligible_foes;
+                let visible: &[Foe] = if matches!(p.effect, Effect::Incapacitate(_)) {
+                    eligible_foes = visible
+                        .iter()
+                        .copied()
+                        .filter(|foe| {
+                            enemies
+                                .get(foe.e)
+                                .is_ok_and(|(_, _, enemy, _)| repentance_target(enemy))
+                        })
+                        .collect::<Vec<_>>();
+                    &eligible_foes
+                } else {
+                    &visible
+                };
+                let casting_foes;
+                let visible: &[Foe] = if def.key == "kick" {
+                    let Some(world) = channel_world.as_ref() else {
+                        continue;
+                    };
+                    casting_foes = visible
+                        .iter()
+                        .copied()
+                        .filter(|foe| {
+                            foe.hp > 0.
+                                && hpos.distance(foe.pos) <= p.range
+                                && world.line_clear(hpos, foe.pos)
+                                && enemies.get(foe.e).is_ok_and(|(_, _, enemy, caster)| {
+                                    !enemy.boss
+                                        && caster.state.active().is_some_and(|cast| {
+                                            now >= cast.started
+                                                && now < cast.finishes
+                                                && (cast.spell.interruptible
+                                                    || p.silence_chance > 0.)
+                                        })
+                                })
+                        })
+                        .collect::<Vec<_>>();
+                    &casting_foes
+                } else {
+                    visible
+                };
+                let rear_foes;
+                let candidates: &[Foe] = if def.requires_rear {
+                    rear_foes = visible
+                        .iter()
+                        .copied()
+                        .filter(|foe| {
+                            enemies
+                                .get(foe.e)
+                                .is_ok_and(|(_, tf, _, _)| behind_target(hpos, tf))
+                        })
+                        .collect::<Vec<_>>();
+                    &rear_foes
+                } else {
+                    visible
                 };
                 let targets = if matches!(
                     def.key,
                     "pyroblast" | "aimed_shot" | "exorcism" | "starfire"
                 ) {
-                    toughest(&foes, reach, p.count)
+                    toughest(candidates, reach, p.count)
                 } else {
-                    nearest(&foes, reach, p.count)
+                    nearest(candidates, reach, p.count)
                 };
                 if targets.is_empty() {
                     false
@@ -282,7 +886,16 @@ pub(super) fn cast_abilities(
                         fx.cast(me, def.spell, &entities(&targets), None);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
+                            p.crit_damage,
+                            p.dmg,
+                        );
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -311,7 +924,16 @@ pub(super) fn cast_abilities(
                 } else {
                     fx.cast(me, def.spell, &entities(&targets), None);
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
+                            p.crit_damage,
+                            p.dmg,
+                        );
                         let delay = if speed > 0.0 { f.dist / speed } else { 0.0 };
                         schedule(
                             &mut pending,
@@ -330,7 +952,7 @@ pub(super) fn cast_abilities(
                         .filter(|f| f.dist <= p.radius + 4.0)
                         .map(|_| hpos)
                 } else {
-                    densest(&foes, def.range, p.radius)
+                    densest(&visible, p.range, p.radius)
                 };
                 match center {
                     None => false,
@@ -359,7 +981,7 @@ pub(super) fn cast_abilities(
                             left: if burst { 1.5 } else { p.duration },
                             every: if burst { f32::INFINITY } else { 1.0 },
                             next_tick: if burst { 0.0 } else { 0.4 },
-                            effect: def.effect,
+                            effect: p.effect,
                             mark: def.mark,
                             impact: if def.overhead { def.spell } else { 0 },
                             source: def.key,
@@ -368,13 +990,13 @@ pub(super) fn cast_abilities(
                     }
                 }
             }
-            Kind::Chain => match nearest(&foes, def.range, 1).first().copied() {
+            Kind::Chain => match nearest(&visible, p.range, 1).first().copied() {
                 None => false,
                 Some(first) => {
                     let mut chain = vec![first];
                     while chain.len() < p.count + 1 {
                         let last = chain[chain.len() - 1].pos;
-                        let next = foes
+                        let next = visible
                             .iter()
                             .filter(|f| !chain.iter().any(|c| c.e == f.e))
                             .filter(|f| flat(f.pos - last).length() <= p.radius)
@@ -390,8 +1012,16 @@ pub(super) fn cast_abilities(
                     }
                     fx.cast(me, def.spell, &entities(&chain), None);
                     for (k, f) in chain.iter().enumerate() {
-                        let (dmg, crit) =
-                            roll(&mut rng, stats.crit, stats.crit_damage, p.dmg * 0.85f32.powi(k as i32));
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
+                            p.crit_damage,
+                            p.dmg * 0.85f32.powi(k as i32),
+                        );
                         schedule(
                             &mut pending,
                             &mut hits,
@@ -403,10 +1033,10 @@ pub(super) fn cast_abilities(
                     true
                 }
             },
-            Kind::Dot => {
-                let mut pool: Vec<Foe> = foes
+            Kind::Dot | Kind::Curse => {
+                let mut pool: Vec<Foe> = visible
                     .iter()
-                    .filter(|f| f.dist <= def.range)
+                    .filter(|f| f.dist <= p.range)
                     .take(p.count * 3)
                     .copied()
                     .collect();
@@ -440,7 +1070,16 @@ pub(super) fn cast_abilities(
                         fx.impact(f.e, def.spell);
                     }
                     for f in &targets {
-                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
+                            p.crit_damage,
+                            p.dmg,
+                        );
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
@@ -453,17 +1092,27 @@ pub(super) fn cast_abilities(
                 } else {
                     for f in &targets {
                         fx.impact(f.e, 403);
-                        let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, p.dmg);
+                        let (dmg, crit) = roll(
+                            &mut rng,
+                            (crit_chance
+                                + run
+                                    .milestones
+                                    .target_crit(def.key, f.frozen, f.winters_chill))
+                            .min(1.0),
+                            p.crit_damage,
+                            p.dmg,
+                        );
                         hits.write(hit_for(def, &p, f.e, dmg, crit));
                     }
                     true
                 }
             }
             Kind::Shield => {
-                run.shield = p.dmg;
-                run.shield_t = p.duration;
-                fx.cast(me, def.spell, &[me], None);
-                true
+                let refreshed = refresh_shield(&mut run, p.dmg, p.duration);
+                if refreshed {
+                    fx.cast(me, def.spell, &[me], None);
+                }
+                refreshed
             }
             Kind::Immune => {
                 if foes.first().is_some_and(|f| f.dist <= 5.0) {
@@ -485,10 +1134,53 @@ pub(super) fn cast_abilities(
                     false
                 }
             }
+            Kind::DirectHeal => {
+                p.crit = crit_chance;
+                p.dmg *= run
+                    .healing_way
+                    .multiplier(run.milestones, def.key, run.elapsed);
+                if let Some((healed, critical)) =
+                    cast_direct_heal(&mut run, &p, stats.max_hp, &mut rng)
+                {
+                    run.record_direct_healing(def.key, healed, critical);
+                    let refund_chance = run
+                        .milestones
+                        .illumination_chance(def.key, healed, critical);
+                    if refund_chance > 0. && rng.f32() < refund_chance {
+                        p.cooldown *= 0.5;
+                    }
+                    if healed > 0.
+                        && survivors_core::talents::HealingWay::chance(run.milestones, def.key) > 0.
+                    {
+                        let talents = run.milestones;
+                        let elapsed = run.elapsed;
+                        run.healing_way
+                            .record(talents, def.key, healed, elapsed, rng.f32());
+                    }
+                    fx.cast(me, def.spell, &[me], None);
+                    if healed > 0.0 {
+                        fx.number(me, healed, critical, COLOR_HEAL);
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
+            Kind::Regrowth => {
+                if let Some((healed, critical)) =
+                    cast_regrowth(&mut run, &p, stats.max_hp, &mut rng)
+                {
+                    fx.cast(me, def.spell, &[me], None);
+                    if healed > 0.0 {
+                        fx.number(me, healed, critical, COLOR_HEAL);
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
             Kind::Heal => {
-                if run.hp < stats.max_hp * 0.85 {
-                    run.heal_rate = p.dmg / p.duration.max(1.0);
-                    run.heal_t = p.duration;
+                if start_healing(&mut run, def.key, p.dmg, p.duration, stats.max_hp) {
                     fx.cast(me, def.spell, &[me], None);
                     fx.number(me, p.dmg, false, COLOR_HEAL);
                     true
@@ -496,14 +1188,59 @@ pub(super) fn cast_abilities(
                     false
                 }
             }
-            Kind::Totem => {
-                if foes
-                    .first()
-                    .is_some_and(|f| f.dist <= def.range.max(p.radius) + 6.0)
-                {
+            Kind::Totem if def.key == "earthbind_totem" => {
+                let fired = foes.first().is_some_and(|foe| foe.dist <= p.radius + 6.0)
+                    && channel_world.as_ref().is_some_and(|floor| {
+                        super::earthbind::deploy(
+                            &mut commands,
+                            &mut run,
+                            floor,
+                            hpos,
+                            p.radius,
+                            earthbinds.iter(),
+                        )
+                    });
+                if fired {
                     fx.cast(me, def.spell, &[], None);
-                    let a = rng.range(0.0, std::f32::consts::TAU);
-                    let pos = hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 2.0;
+                }
+                fired
+            }
+            Kind::Totem if def.key == "stoneclaw_totem" => {
+                let fired = foes.first().is_some_and(|foe| foe.dist <= p.radius + 6.0)
+                    && channel_world.as_ref().is_some_and(|floor| {
+                        super::stoneclaw::deploy(
+                            &mut commands,
+                            &mut run,
+                            floor,
+                            hpos,
+                            p.radius,
+                            p.totem_health,
+                            stoneclaws.iter(),
+                        )
+                    });
+                if fired {
+                    fx.cast(me, def.spell, &[], None);
+                }
+                fired
+            }
+            Kind::Totem => {
+                let at = foes
+                    .first()
+                    .filter(|f| f.dist <= p.range.max(p.radius) + 6.0)
+                    .and(channel_world.as_ref())
+                    .and_then(|floor| {
+                        let a = rng.range(0.0, std::f32::consts::TAU);
+                        let preferred = hpos + Vec3::new(a.cos(), 0.0, a.sin()) * 2.0;
+                        // Keep the nearby offset when supported; never deploy through a
+                        // wall, inside a solid body, or suspended over missing ground.
+                        [preferred, hpos].into_iter().find_map(|candidate| {
+                            let y = floor.height(candidate)?;
+                            let at = Vec3::new(candidate.x, y, candidate.z);
+                            floor.can_spawn_from(hpos, at, 0.4).then_some(at)
+                        })
+                    });
+                if let Some(pos) = at {
+                    fx.cast(me, def.spell, &[], None);
                     let serial = run.guid();
                     let totem = units::spawn_unit(
                         &mut commands,
@@ -523,7 +1260,7 @@ pub(super) fn cast_abilities(
                     commands.entity(totem).insert(Totem {
                         cast: def.totem.1,
                         damage: p.dmg,
-                        range: def.range,
+                        range: p.range,
                         radius: p.radius,
                         left: p.duration,
                         tick: 0.3,
@@ -536,7 +1273,115 @@ pub(super) fn cast_abilities(
                 }
             }
         };
-        run.abilities[i].cd = if fired { p.cooldown } else { 0.2 };
+        run.abilities[i].cd = if fired {
+            p.cooldown
+        } else if def.key == "kick"
+            || matches!(def.kind, Kind::Interrupt | Kind::Silence)
+            || def.requires_rear
+            || matches!(p.effect, Effect::Incapacitate(_))
+        {
+            // Positional openings and eligible control targets must be usable immediately.
+            0.0
+        } else {
+            0.2
+        };
+        if fired {
+            let talents = run.milestones;
+            let elapsed = run.elapsed;
+            if survivors_core::talents::HawkClock::eligible(talents, def.key) {
+                run.hawk.proc(talents, def.key, elapsed, rng.f32());
+            }
+            run.critical_cast.consume(talents, def.key, elapsed);
+            run.natures_grace.consume(talents, def.key, elapsed);
+            run.arcane_power.consume(talents, def.key, elapsed);
+            run.adrenaline_rush.consume(talents, def.key, elapsed);
+            run.blade_flurry.consume(talents, def.key, elapsed);
+            run.power_infusion.consume(talents, def.key, elapsed);
+            run.consume_remorseless(def.key);
+            let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
+            run.record_totem_healing(def.key, healed);
+            run.record_inspiration_healing(def.key, healed);
+            if healed > 0.0 {
+                fx.number(me, healed, false, COLOR_HEAL);
+            }
+            if milestone.storm_fraction > 0.0 {
+                // One hero-centered area per Judgement cast, independent of +target.
+                for hit in storm_hits(&foes, hpos, stats.area, p.dmg * milestone.storm_fraction) {
+                    fx.impact(hit.target, 2812);
+                    hits.write(hit);
+                }
+            }
+        }
+    }
+}
+
+fn storm_hits(foes: &[Foe], center: Vec3, area: f32, damage: f32) -> Vec<Hit> {
+    around(foes, center, 6.0 * area)
+        .into_iter()
+        .map(|foe| {
+            let mut hit = Hit::direct(foe.e, damage, false);
+            hit.source = "divine_storm";
+            hit.color = COLOR_SPELL;
+            hit
+        })
+        .collect()
+}
+
+/// Share one absorb pool without weakening or extending a stronger shield.
+fn refresh_shield(run: &mut Run, absorb: f32, seconds: f32) -> bool {
+    if absorb <= 0.0 {
+        return false;
+    }
+    if run.shield_t <= 0.0 || absorb > run.shield {
+        run.shield = absorb;
+        run.shield_t = seconds;
+        true
+    } else if absorb == run.shield && seconds > run.shield_t {
+        run.shield_t = seconds;
+        true
+    } else {
+        false
+    }
+}
+
+/// Once per successful cast, not once per hit or extra target.
+fn finish_milestone_cast(
+    run: &mut Run,
+    effect: survivors_core::talents::CastEffect,
+    max_hp: f32,
+) -> f32 {
+    if !run.alive() {
+        return 0.0;
+    }
+    run.immune_t = run.immune_t.max(effect.immune_seconds);
+    let healed = run.heal(max_hp * effect.heal_fraction, max_hp);
+    let absorb = max_hp * effect.shield_fraction;
+    refresh_shield(run, absorb, effect.shield_seconds);
+    if let Some((key, seconds)) = effect.cooldown_advance {
+        for owned in &mut run.abilities {
+            if owned.def.key == key {
+                owned.cd = (owned.cd - seconds).max(0.0);
+            }
+        }
+    }
+    healed
+}
+
+/// A tick can ready an owned spell, but never grant one or bank an instant-cast charge.
+fn apply_nightfall(run: &mut Run, rng: &mut Rng, source: &str, removed: f32) {
+    let chance = run.milestones.nightfall_chance(source, removed);
+    if !run.alive() || chance <= 0.0 {
+        return;
+    }
+    let Some(bolt) = run
+        .abilities
+        .iter_mut()
+        .find(|owned| owned.def.key == "shadow_bolt")
+    else {
+        return;
+    };
+    if bolt.cd > 0.0 && rng.f32() < chance {
+        bolt.cd = 0.0;
     }
 }
 
@@ -551,6 +1396,8 @@ pub(super) fn tick_areas(
     mut areas: Query<(Entity, &Transform, &mut GroundArea)>,
     mut totems: Query<(Entity, &Transform, &mut Totem), Without<GroundArea>>,
     enemies: Query<(Entity, &Transform, &Enemy), (Without<GroundArea>, Without<Totem>)>,
+    perception: super::perception::Perception,
+    heroes: Query<Entity, With<Hero>>,
     mut fx: Fx,
     mut pending: ResMut<PendingHits>,
     mut hits: MessageWriter<Hit>,
@@ -568,15 +1415,32 @@ pub(super) fn tick_areas(
             e,
             pos: tf.translation,
             hp: en.hp,
+            frozen: en.frozen_t > 0.0,
+            winters_chill: en.winters_chill,
             dist: 0.0,
             radius: en.radius,
         })
         .collect();
 
     for (e, tf, mut area) in &mut areas {
+        let stats = stats.for_spell(area.source);
+        let training = run.milestones.cast(area.source);
+        let crit_chance = (stats.crit
+            + training.crit
+            + run
+                .combustion
+                .bonus(run.milestones, area.source, run.elapsed))
+        .min(1.0);
+        let crit_damage = stats.crit_damage + training.crit_damage;
+        if area.left <= 0.0 {
+            commands.entity(e).despawn();
+            continue;
+        }
+        // Deliver all pulses due while the area was alive, even across a long frame.
+        let active_dt = dt.min(area.left);
         area.left -= dt;
-        area.next_tick -= dt;
-        if area.next_tick <= 0.0 {
+        area.next_tick -= active_dt;
+        while area.next_tick <= 0.00001 {
             area.next_tick += area.every;
             for (i, f) in around(&live, tf.translation, area.radius)
                 .into_iter()
@@ -585,10 +1449,22 @@ pub(super) fn tick_areas(
                 if area.impact != 0 && i < 12 {
                     fx.impact(f.e, area.impact);
                 }
-                let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, area.damage);
+                let (dmg, crit) = roll(
+                    &mut rng,
+                    (crit_chance
+                        + run
+                            .milestones
+                            .target_crit(area.source, f.frozen, f.winters_chill))
+                    .min(1.0),
+                    crit_damage,
+                    area.damage,
+                );
                 hits.write(Hit {
+                    origin: HitOrigin::Hero,
+                    occurred: Some(now),
                     target: f.e,
                     damage: dmg,
+                    ranged_power_scale: 0.0,
                     dot: area.dot,
                     dot_dur: area.dot_dur,
                     effect: area.effect,
@@ -607,66 +1483,237 @@ pub(super) fn tick_areas(
     }
 
     for (e, tf, mut totem) in &mut totems {
+        let stats = stats.for_spell(totem.source);
+        // Advance only through the remaining lifetime; retain fractional cadence.
+        let active_dt = dt.min(totem.left.max(0.0));
+        let was_alive = totem.left > 0.0;
         totem.left -= dt;
+        totem.tick -= active_dt;
+        while was_alive && totem.tick <= 0.00001 {
+            totem.tick += if totem.pulse { 2.0 } else { 1.0 };
+            let pos = tf.translation;
+            if totem.pulse {
+                let targets = around(&live, pos, totem.radius);
+                if targets.is_empty() {
+                    continue;
+                }
+                fx.cast(e, totem.cast, &[], None);
+                for f in &targets {
+                    let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
+                    hits.write(Hit {
+                        color: COLOR_SPELL,
+                        source: totem.source,
+                        ..Hit::direct(f.e, dmg, crit)
+                    });
+                }
+            } else {
+                let target = live
+                    .iter()
+                    .filter(|f| perception.visible(heroes.single().ok(), f.e, now))
+                    .map(|f| (flat(f.pos - pos).length(), f))
+                    .filter(|(d, _)| *d <= totem.range)
+                    .min_by(|a, b| a.0.total_cmp(&b.0));
+                let Some((dist, f)) = target else { continue };
+                fx.cast(e, totem.cast, &[f.e], None);
+                let speed = spells
+                    .as_deref()
+                    .and_then(|s| s.catalog.get(totem.cast))
+                    .map_or(0.0, |d| d.speed);
+                let delay = if speed > 0.0 { dist / speed } else { 0.0 };
+                let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
+                schedule(
+                    &mut pending,
+                    &mut hits,
+                    now,
+                    delay,
+                    Hit {
+                        color: COLOR_SPELL,
+                        source: totem.source,
+                        ..Hit::direct(f.e, dmg, crit)
+                    },
+                );
+            }
+        }
         if totem.left <= 0.0 {
             commands
                 .entity(e)
                 .remove::<Totem>()
                 .insert(benilla_world::model_fade::DespawnFade::default());
-            continue;
-        }
-        totem.tick -= dt;
-        if totem.tick > 0.0 {
-            continue;
-        }
-        let pos = tf.translation;
-        if totem.pulse {
-            let targets = around(&live, pos, totem.radius);
-            totem.tick = 2.0;
-            if targets.is_empty() {
-                continue;
-            }
-            fx.cast(e, totem.cast, &[], None);
-            for f in &targets {
-                let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
-                hits.write(Hit {
-                    color: COLOR_SPELL,
-                    source: totem.source,
-                    ..Hit::direct(f.e, dmg, crit)
-                });
-            }
-        } else {
-            totem.tick = 1.0;
-            let target = live
-                .iter()
-                .map(|f| (flat(f.pos - pos).length(), f))
-                .filter(|(d, _)| *d <= totem.range)
-                .min_by(|a, b| a.0.total_cmp(&b.0));
-            let Some((dist, f)) = target else { continue };
-            fx.cast(e, totem.cast, &[f.e], None);
-            let speed = spells
-                .as_deref()
-                .and_then(|s| s.catalog.get(totem.cast))
-                .map_or(0.0, |d| d.speed);
-            let delay = if speed > 0.0 { dist / speed } else { 0.0 };
-            let (dmg, crit) = roll(&mut rng, stats.crit, stats.crit_damage, totem.damage);
-            schedule(
-                &mut pending,
-                &mut hits,
-                now,
-                delay,
-                Hit {
-                    color: COLOR_SPELL,
-                    source: totem.source,
-                    ..Hit::direct(f.e, dmg, crit)
-                },
-            );
         }
     }
 }
 
 /// Land every hit due: damage and its number, the over-time part, crowd control, the marks, and
 /// death with its loot.
+fn refresh_deep_wounds(dots: &mut Vec<enemies::Dot>, total: f32) {
+    if total <= 0.0 {
+        return;
+    }
+    if let Some(dot) = dots
+        .iter_mut()
+        .find(|dot| dot.origin == HitOrigin::Hero && dot.source == "Deep Wounds")
+    {
+        dot.dps = dot.dps.max(total / 3.0);
+        dot.left = 3.0;
+        // Keep the next tick: repeated criticals must not postpone all bleed damage.
+    } else {
+        if dots.len() >= 6 {
+            dots.remove(0);
+        }
+        dots.push(enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
+            dps: total / 3.0,
+            left: 3.0,
+            tick: 1.0,
+            source: "Deep Wounds",
+        });
+    }
+}
+
+/// One burn per enemy; carry unpaid ticks forward without delaying the next tick.
+fn refresh_ignite(dots: &mut Vec<enemies::Dot>, added: f32) {
+    if !added.is_finite() || added <= 0.0 {
+        return;
+    }
+    if let Some(dot) = dots
+        .iter_mut()
+        .find(|dot| dot.origin == HitOrigin::Hero && dot.source == "Ignite")
+    {
+        let ticks = (dot.left - dot.tick + 0.00001).floor().max(-1.0) + 1.0;
+        let total = dot.dps * ticks + added;
+        if total.is_finite() {
+            dot.dps = total / 4.0;
+            dot.left = 4.0;
+        }
+    } else {
+        if dots.len() >= 6 {
+            dots.remove(0);
+        }
+        dots.push(enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
+            dps: added / 4.0,
+            left: 4.0,
+            tick: 1.0,
+            source: "Ignite",
+        });
+    }
+}
+
+/// Weaker debuffs cannot replace or prolong a stronger active damage reduction.
+fn refresh_weaken(en: &mut Enemy, multiplier: f32, duration: f32) {
+    if en.weaken_t <= 0.0 || multiplier < en.weaken {
+        en.weaken = multiplier;
+        en.weaken_t = duration;
+    } else if multiplier == en.weaken {
+        en.weaken_t = en.weaken_t.max(duration);
+    }
+}
+
+fn apply_freeze(en: &mut Enemy, duration: f32) {
+    let duration = if en.boss { duration * 0.3 } else { duration };
+    en.root_t = en.root_t.max(duration);
+    en.frozen_t = en.frozen_t.max(duration);
+}
+
+fn apply_blackout(en: &mut Enemy) {
+    en.stun_t = en.stun_t.max(if en.boss { 0.9 } else { 3.0 });
+}
+
+fn apply_impact(en: &mut Enemy) {
+    en.stun_t = en.stun_t.max(if en.boss { 0.3 } else { 1.0 });
+}
+
+fn apply_destruction_control(
+    en: &mut Enemy,
+    milestones: survivors_core::talents::Milestones,
+    hit: &Hit,
+    rng: &mut Rng,
+    now: f32,
+) {
+    let chance = milestones.aftermath_chance(hit.source, hit.damage);
+    if chance > 0. && rng.f32() < chance {
+        let speed = if en.boss { 0.75 } else { 0.5 };
+        en.slows
+            .apply(survivors_core::slows::Source::Aftermath, speed, 5., now);
+    }
+    let chance = milestones.pyroclasm_chance(hit.source, hit.damage);
+    if chance > 0. && rng.f32() < chance {
+        en.stun_t = en.stun_t.max(if en.boss { 0.9 } else { 3. });
+    }
+}
+
+fn apply_frostbite(en: &mut enemies::Enemy) {
+    apply_freeze(en, 5.0);
+}
+
+fn apply_secondary_control(
+    en: &mut Enemy,
+    milestones: survivors_core::talents::Milestones,
+    source: &'static str,
+    now: f32,
+) {
+    let boss = en.boss;
+    en.stun_t = en.stun_t.max(milestones.secondary_stun(source, boss));
+    en.root_t = en.root_t.max(milestones.secondary_root(source, boss));
+    if let Some((speed, duration)) = milestones
+        .secondary_slow(source, boss)
+        .filter(|_| source != "curse_of_agony")
+    {
+        en.slows.apply(
+            survivors_core::slows::Source::Secondary(source),
+            speed,
+            duration,
+            now,
+        );
+    }
+}
+
+/// A sword proc copies only the direct strike snapshot; its distinct source cannot proc again.
+fn sword_extra_hit(
+    h: &Hit,
+    talents: survivors_core::talents::Milestones,
+    roll: f32,
+) -> Option<Hit> {
+    let chance = talents.sword_extra_attack_chance(h.source, h.damage);
+    if !roll.is_finite() || !(0.0..chance).contains(&roll) {
+        return None;
+    }
+    Some(Hit {
+        occurred: h.occurred,
+        source: "sword_specialization",
+        color: h.color,
+        ..Hit::direct(h.target, h.damage, h.crit)
+    })
+}
+
+fn creature_multiplier(
+    talents: survivors_core::talents::Milestones,
+    kind: survivors_core::creature::CreatureType,
+    origin: HitOrigin,
+    critical: bool,
+) -> f32 {
+    if origin == HitOrigin::CombatPet {
+        1.0
+    } else {
+        talents.creature_damage_multiplier(kind, critical)
+    }
+}
+
+fn repentance_target(enemy: &Enemy) -> bool {
+    !enemy.dead
+        && enemy.hp > 0.0
+        && !enemy.boss
+        && enemy.def.creature_type == survivors_core::creature::CreatureType::Humanoid
+}
+
+fn wake_on_damage(enemy: &mut Enemy, marks: &mut Marks, removed: f32) {
+    if removed > 0.0 {
+        enemy.incapacitate_t = 0.0;
+        marks.remove(20066);
+    }
+}
+
+#[allow(clippy::type_complexity)]
 pub(super) fn apply_hits(
     mut commands: Commands,
     time: Res<Time>,
@@ -674,6 +1721,10 @@ pub(super) fn apply_hits(
     mut rng: ResMut<Rng>,
     mut account: ResMut<super::account::Account>,
     selection: Res<super::Selection>,
+    target_marks: Query<&super::marking::Marked>,
+    mut stormstrikes: Query<&mut StormstrikeVulnerability>,
+    spells: Option<Res<crate::ui_action::Spells>>,
+    heroes: Query<(), With<Hero>>,
     mut pending: ResMut<PendingHits>,
     mut incoming: MessageReader<Hit>,
     mut enemies: Query<(
@@ -683,6 +1734,10 @@ pub(super) fn apply_hits(
         &mut Enemy,
         &mut ObjectStore,
         &mut Marks,
+        &mut FireVulnerability,
+        &mut super::curse::CurseState,
+        &mut HemorrhageVulnerability,
+        &mut super::enemy_casting::Caster,
     )>,
     mut fx: Fx,
     mut loot: MessageWriter<Loot>,
@@ -690,48 +1745,26 @@ pub(super) fn apply_hits(
 ) {
     let dt = time.delta_secs();
     let now = run.elapsed;
-    let mut due: Vec<Hit> = incoming.read().cloned().collect();
-    pending.0.retain(|(t, h)| {
-        if *t <= now {
-            due.push(h.clone());
-            false
-        } else {
-            true
-        }
-    });
-
-    // Splash reaches the target's neighbours at seventy percent.
-    let mut all = Vec::with_capacity(due.len());
-    for h in due {
-        if h.splash > 0.0 {
-            if let Ok((_, _, center, ..)) = enemies.get(h.target) {
-                let c = center.translation;
-                for (e, _, tf, en, ..) in enemies.iter() {
-                    if e != h.target && !en.dead && flat(tf.translation - c).length() <= h.splash {
-                        all.push(Hit {
-                            target: e,
-                            damage: h.damage * 0.7,
-                            splash: 0.0,
-                            mark: 0,
-                            ..h.clone()
-                        });
-                    }
-                }
-            }
-        }
-        all.push(Hit { splash: 0.0, ..h });
-    }
+    let due = pending.drain_due(now, incoming.read().cloned());
 
     let mut kill = |commands: &mut Commands,
-                     run: &mut Run,
-                     account: &mut super::account::Account,
-                     rng: &mut Rng,
-                     e: Entity,
-                     pos: Vec3,
-                     en: &mut Enemy| {
+                    run: &mut Run,
+                    account: &mut super::account::Account,
+                    rng: &mut Rng,
+                    e: Entity,
+                    pos: Vec3,
+                    en: &mut Enemy| {
         en.dead = true;
+        en.incapacitate_t = 0.0;
+        commands.entity(e).remove::<super::marking::Marked>();
+        commands.entity(e).remove::<FireVulnerability>();
+        commands
+            .entity(e)
+            .insert(super::curse::CurseState::default());
         en.hp = 0.0;
         en.dots.clear();
+        en.poison = Default::default();
+        en.slows = Default::default();
         enemies::mark_dying(commands, e);
         loot.write(Loot {
             pos,
@@ -740,20 +1773,76 @@ pub(super) fn apply_hits(
             elite: en.elite,
         });
         run.kills += 1;
+        run.record_remorseless_kill();
+        run.record_spirit_tap_kill(rng);
+        if en.boss {
+            run.bosses_defeated = run.bosses_defeated.saturating_add(1);
+        }
         let mut dropped = false;
         if let Some(class) = selection.class {
             if let Some(zone) = super::campaign::zone_index(selection.map_def().name) {
+                let raid_slot = survivors_core::supplemental_gear::raid_drop_slot(
+                    zone,
+                    en.def.name,
+                    en.boss,
+                    0.0,
+                )
+                .and_then(|_| {
+                    survivors_core::supplemental_gear::raid_drop_slot(
+                        zone,
+                        en.def.name,
+                        en.boss,
+                        rng.f32(),
+                    )
+                });
+                let raid_item = raid_slot.and_then(|slot| account.collect_raid_drop(class, slot));
                 if let Some(row) = super::campaign::drop_for(zone, en.def.name) {
-                    let mut chance = f32::from(row.chance) / 100.0;
-                    if en.boss {
-                        chance = (chance + super::rewards::keen_drop_bonus(run.keen_eye)).min(1.0);
-                    }
+                    let chance = super::campaign::drop_chance(row.chance, en.boss, run.keen_eye);
                     if rng.f32() < chance {
-                    if let Some(item) = account.collect_drop(class, zone, en.def.name) {
+                        if let Some(item) = account.collect_drop(class, zone, en.def.name) {
+                            run.banner = Some((format!("{item} collected"), 4.0));
+                            dropped = true;
+                        }
+                    }
+                } else if let Some(slot) = survivors_core::supplemental_gear::poor_drop_slot(
+                    zone,
+                    en.boss,
+                    en.elite,
+                    rng.f32(),
+                ) {
+                    if let Some(item) = account.collect_poor_drop(class, slot) {
                         run.banner = Some((format!("{item} collected"), 4.0));
                         dropped = true;
                     }
                 }
+                // Roll after legacy loot so an added reward preserves its original RNG outcome.
+                let weapon_item = survivors_core::weapon_alternatives::drop_key(
+                    class,
+                    zone,
+                    en.def.name,
+                    en.boss,
+                    0.0,
+                )
+                .and_then(|_| {
+                    account.collect_weapon_drop(class, zone, en.def.name, en.boss, rng.f32())
+                });
+                if let Some(item) = weapon_item {
+                    let message = if dropped {
+                        format!("{item} and {}", run.banner.as_ref().unwrap().0)
+                    } else {
+                        format!("{item} collected")
+                    };
+                    run.banner = Some((message, 4.0));
+                    dropped = true;
+                }
+                if let Some(item) = raid_item {
+                    let message = if dropped {
+                        format!("Raid Epic {item} and {}", run.banner.as_ref().unwrap().0)
+                    } else {
+                        format!("Raid Epic {item} collected")
+                    };
+                    run.banner = Some((message, 4.0));
+                    dropped = true;
                 }
             }
         }
@@ -762,67 +1851,430 @@ pub(super) fn apply_hits(
         }
     };
 
-    for h in all {
-        let Ok((e, guid, tf, mut en, mut store, mut marks)) = enemies.get_mut(h.target) else {
+    // Apply new stacks after advancing existing clocks: a fresh coating must not
+    // inherit time elapsed before this frame's weapon hit.
+    let mut poison_applications = Vec::new();
+    enum Step {
+        Expand(Hit),
+        Settle(Hit, bool),
+    }
+    let mut steps: std::collections::VecDeque<_> = due.into_iter().map(Step::Expand).collect();
+    let mut expanded = Vec::new();
+    while let Some(step) = steps.pop_front() {
+        let (h, original) = match step {
+            Step::Expand(h) => {
+                if h.source == "Counterattack" && !run.alive() {
+                    continue;
+                }
+                // Earlier hits have settled before this target's eligibility and proc rolls.
+                if !enemies
+                    .get(h.target)
+                    .is_ok_and(|(_, _, _, en, ..)| !en.dead)
+                {
+                    continue;
+                }
+                // Hamstring's conversion rolls once per original Thunder Clap victim, before splash.
+                let root = if run.alive() && h.origin == HitOrigin::Hero {
+                    run.milestones.hamstring_root_chance(h.source, h.damage)
+                } else {
+                    0.0
+                };
+                if root > 0.0 && rng.f32() < root {
+                    if let Ok((_, _, _, mut en, ..)) = enemies.get_mut(h.target) {
+                        en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
+                    }
+                }
+                // Only the original weapon hit may stun; splash copies below never roll this proc.
+                let mace = if run.alive() && h.origin == HitOrigin::Hero {
+                    run.milestones.mace_stun_chance(h.source, h.damage)
+                } else {
+                    0.0
+                };
+                if mace > 0.0 && rng.f32() < mace {
+                    if let Ok((_, _, _, mut en, ..)) = enemies.get_mut(h.target) {
+                        en.stun_t = en.stun_t.max(if en.boss { 0.9 } else { 3.0 });
+                    }
+                }
+                // Only original landed hits roll. Splash copies and generated strikes never recurse.
+                let sword = if run.alive()
+                    && h.origin == HitOrigin::Hero
+                    && run.milestones.sword_extra_attack_chance(h.source, h.damage) > 0.0
+                {
+                    sword_extra_hit(&h, run.milestones, rng.f32())
+                } else {
+                    None
+                };
+                if h.splash > 0.0 {
+                    if let Ok((_, _, center, ..)) = enemies.get(h.target) {
+                        let c = center.translation;
+                        for (e, _, tf, en, ..) in enemies.iter() {
+                            if e != h.target
+                                && !en.dead
+                                && flat(tf.translation - c).length() <= h.splash
+                            {
+                                expanded.push((
+                                    Hit {
+                                        target: e,
+                                        damage: h.damage * 0.7,
+                                        ranged_power_scale: h.ranged_power_scale * 0.7,
+                                        splash: 0.0,
+                                        mark: 0,
+                                        ..h.clone()
+                                    },
+                                    false,
+                                ));
+                            }
+                        }
+                    }
+                }
+                expanded.push((Hit { splash: 0.0, ..h }, true));
+                expanded.extend(sword.map(|hit| (hit, false)));
+
+                for (hit, original) in expanded.drain(..).rev() {
+                    steps.push_front(Step::Settle(hit, original));
+                }
+                continue;
+            }
+            Step::Settle(hit, original) => (hit, original),
+        };
+        let Ok((
+            e,
+            guid,
+            tf,
+            mut en,
+            mut store,
+            mut marks,
+            mut fire,
+            mut curse,
+            mut hemorrhage,
+            mut caster,
+        )) = enemies.get_mut(h.target)
+        else {
             continue;
         };
         if en.dead {
             continue;
         }
         let stats = run.stats();
-        let mut dmg = h.damage;
+        let owner_talents = h.origin.owner_talents(run.milestones);
+        let mark_bonus = if run.alive()
+            && h.origin == HitOrigin::Hero
+            && run.class.id == 3
+            && h.damage > 0.0
+            && h.ranged_power_scale.is_finite()
+            && h.ranged_power_scale > 0.0
+            && super::marking::coefficient(h.source) > 0.0
+        {
+            target_marks
+                .get(e)
+                .ok()
+                .filter(|mark| {
+                    mark.0
+                        .caster()
+                        .is_some_and(|caster| heroes.contains(caster))
+                })
+                .map_or(0.0, |mark| mark.0.attack_power(now) * h.ranged_power_scale)
+        } else {
+            0.0
+        };
+        let impact_time = h.occurred.unwrap_or(now);
+        // A curse refresh replaces only this caster's curse, never unrelated debuffs.
+        if h.origin == HitOrigin::Hero && matches!(h.source, "curse_of_agony" | "curse_of_weakness")
+        {
+            if !original {
+                continue;
+            }
+            let accepted = if h.source == "curse_of_weakness" {
+                if let Effect::Weakness(amount, seconds) = h.effect {
+                    curse.weakness(amount, seconds, impact_time)
+                } else {
+                    false
+                }
+            } else {
+                let (speed, seconds) = run
+                    .milestones
+                    .secondary_slow(h.source, en.boss)
+                    .unwrap_or((1.0, 12.0));
+                curse.apply(speed, seconds, impact_time)
+            };
+            if !accepted {
+                continue;
+            }
+            en.dots
+                .retain(|dot| dot.origin != HitOrigin::Hero || dot.source != "curse_of_agony");
+            marks.remove(980);
+            marks.remove(702);
+        }
+
+        let mut dmg = (h.damage + mark_bonus)
+            * fire.multiplier(h.source, impact_time, spells.as_deref(), run.thorns_spell)
+            * creature_multiplier(run.milestones, en.def.creature_type, h.origin, h.crit)
+            * run
+                .milestones
+                .shadow_damage_multiplier(h.source, en.shadow_weaving)
+            * run.milestones.kidney_exposure_multiplier(en.kidney_t);
         if let Effect::Execute(threshold) = h.effect {
             if !en.boss && en.hp / en.max_hp <= threshold {
                 dmg = dmg.max(en.hp);
             }
         }
         if dmg > 0.0 {
+            if let Ok(mut vulnerability) = stormstrikes.get_mut(e) {
+                dmg *= vulnerability.multiplier(
+                    h.source,
+                    dmg,
+                    now,
+                    spells.as_deref(),
+                    run.thorns_spell,
+                );
+            }
+            dmg += hemorrhage.bonus(
+                h.source,
+                h.origin,
+                dmg,
+                impact_time,
+                spells.as_deref(),
+                run.thorns_spell,
+            );
+            if hemorrhage.0.charges(impact_time) == 0 {
+                marks.remove(16511);
+            }
             let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
             dmg *= echoes as f32;
+            let removed = dmg.min(en.hp.max(0.0));
+            // Vengeance requires an original hero critical that actually removes health.
+            if original && h.origin == HitOrigin::Hero {
+                run.record_vengeance_hit(h.source, removed, h.crit);
+            }
+            if run.alive() {
+                let talents = owner_talents;
+                let elapsed = run.elapsed;
+                run.natures_grace
+                    .hit(talents, h.source, removed, h.crit, elapsed);
+                // Settle only original critical builder hits that actually remove health.
+                let chance = if original {
+                    talents.seal_fate_chance(h.source, removed, h.crit)
+                } else {
+                    0.0
+                };
+                if chance > 0.0 && rng.f32() < chance {
+                    for ability in &mut run.abilities {
+                        if matches!(ability.def.key, "eviscerate" | "rupture" | "kidney_shot") {
+                            ability.cd = (ability.cd - 1.0).max(0.0);
+                        }
+                    }
+                }
+            }
+            if run.alive()
+                && original
+                && h.origin == HitOrigin::Hero
+                && h.source == "ghostly_strike"
+                && removed > 0.0
+            {
+                run.ghostly_strike.apply(impact_time);
+            }
+            wake_on_damage(&mut en, &mut marks, removed);
             en.hp -= dmg;
+            if run.alive()
+                && en.hp > 0.0
+                && h.origin == HitOrigin::Hero
+                && original
+                && h.source == "hemorrhage"
+                && removed > 0.0
+                && hemorrhage.0.apply(impact_time)
+            {
+                marks.add(16511, (impact_time + 15.0 - now).max(0.0));
+            }
+            if run.alive() && en.hp > 0.0 {
+                let chance = owner_talents.improved_scorch_chance(h.source, removed, original);
+                if chance > 0.0 && rng.f32() < chance {
+                    fire.0.apply(impact_time);
+                    marks.add(22959, (impact_time + 30.0 - now).max(0.0));
+                }
+            }
+            if run.alive()
+                && en.hp > 0.
+                && !en.boss
+                && original
+                && h.origin == HitOrigin::Hero
+                && h.source == "kick"
+                && removed > 0.
+            {
+                let active = caster.state.active();
+                let interrupted = matches!(
+                    caster.state.interrupt(impact_time, 5.),
+                    survivors_core::casting::Interrupt::Interrupted(_)
+                );
+                let chance = owner_talents.kick_silence();
+                let silenced = chance > 0.
+                    && (chance >= 1. || rng.f32() < chance)
+                    && caster.state.silence(impact_time, 2.);
+                if interrupted || silenced {
+                    if let Some(cast) = active {
+                        fx.cancel_cast(e, cast.spell.id);
+                    }
+                }
+                if silenced {
+                    fx.impact(e, 18425);
+                }
+            }
             run.add_damage(h.source, dmg);
             fx.number(e, dmg, h.crit, h.color);
             let heal = if let Effect::Drain(frac) = h.effect {
-                dmg * frac
+                removed * frac
             } else {
                 0.0
-            } + dmg * stats.leech;
+            } + removed * stats.leech
+                + owner_talents.vampiric_healing(h.source, removed);
             if heal > 0.0 {
-                run.hp = (run.hp + heal).min(stats.max_hp);
+                run.heal(heal, stats.max_hp);
+            }
+            if en.hp > 0.0
+                && run.alive()
+                && survivors_core::talents::Coating::eligible(
+                    owner_talents,
+                    h.source,
+                    removed,
+                    original,
+                )
+            {
+                if let Some(owned) = run
+                    .abilities
+                    .iter()
+                    .find(|o| matches!(o.def.kind, Kind::Coating(_)))
+                {
+                    let Kind::Coating(coating) = owned.def.kind else {
+                        unreachable!()
+                    };
+                    let params = Params::new(owned, &stats, run.milestones);
+                    if rng.f32() < params.poison_chance {
+                        match coating {
+                            survivors_core::talents::Coating::Instant => {
+                                let mut damage = params.dmg
+                                    * creature_multiplier(
+                                        run.milestones,
+                                        en.def.creature_type,
+                                        HitOrigin::Hero,
+                                        false,
+                                    )
+                                    * run.milestones.kidney_exposure_multiplier(en.kidney_t);
+                                if let Ok(mut vulnerability) = stormstrikes.get_mut(e) {
+                                    damage *= vulnerability.multiplier(
+                                        coating.key(),
+                                        damage,
+                                        now,
+                                        spells.as_deref(),
+                                        0,
+                                    );
+                                }
+                                let removed = damage.max(0.0).min(en.hp);
+                                wake_on_damage(&mut en, &mut marks, removed);
+                                en.hp -= removed;
+                                run.add_damage(coating.key(), removed);
+                                fx.number(e, removed, false, COLOR_SPELL);
+                                run.heal(removed * stats.leech, stats.max_hp);
+                            }
+                            survivors_core::talents::Coating::Deadly => {
+                                poison_applications.push((e, params.dmg))
+                            }
+                        }
+                    }
+                }
             }
         }
+        let talents = owner_talents;
+        let elapsed = run.elapsed;
+        run.combustion
+            .hit(talents, h.source, h.damage, h.crit, elapsed);
+        if h.origin == HitOrigin::Hero {
+            run.record_flurry_hit(h.source, h.damage, h.crit);
+        }
+        let bleed = owner_talents.critical_bleed(h.source, h.damage, h.crit);
+        refresh_deep_wounds(&mut en.dots, bleed);
+        refresh_ignite(
+            &mut en.dots,
+            owner_talents.ignite(h.source, h.damage, h.crit),
+        );
         if h.dot > 0.0 && h.dot_dur > 0.0 {
             if en.dots.len() >= 6 {
                 en.dots.remove(0);
             }
             en.dots.push(enemies::Dot {
+                origin: h.origin,
                 dps: h.dot,
                 left: h.dot_dur,
                 tick: 1.0,
                 source: h.source,
             });
         }
+        let weaving = owner_talents.shadow_weaving_chance(h.source, h.damage);
+        if weaving > 0.0 && rng.f32() < weaving {
+            en.shadow_weaving.apply();
+        }
+        let chill_chance = owner_talents.winters_chill_chance(h.source, h.damage);
+        if chill_chance > 0.0 && rng.f32() < chill_chance {
+            en.winters_chill.apply();
+        }
+        let blackout = owner_talents.blackout_chance(h.source, h.damage);
+        if blackout > 0.0 && rng.f32() < blackout {
+            apply_blackout(&mut en);
+        }
+        let impact_chance = owner_talents.impact_chance(h.source, h.damage);
+        if impact_chance > 0.0 && rng.f32() < impact_chance {
+            apply_impact(&mut en);
+        }
+        apply_destruction_control(&mut en, owner_talents, &h, &mut rng, impact_time);
+        let root_chance = owner_talents.wing_clip_root_chance(h.source, h.damage);
+        if root_chance > 0.0 && rng.f32() < root_chance {
+            en.root_t = en.root_t.max(if en.boss { 1.5 } else { 5.0 });
+        }
+        let freeze_chance = owner_talents.frostbite_chance(h.source, h.damage);
+        if freeze_chance > 0.0 && rng.f32() < freeze_chance {
+            apply_frostbite(&mut en);
+        }
         let boss = en.boss;
+        apply_secondary_control(&mut en, owner_talents, h.source, impact_time);
+        if h.source == "kidney_shot" && owner_talents.kidney_exposure_multiplier(1.0) > 1.0 {
+            if let Effect::Stun(t) = h.effect {
+                en.kidney_t = en.kidney_t.max(if boss { t * 0.3 } else { t });
+            }
+        }
         match h.effect {
             Effect::Slow(m, t) => {
                 let m = if boss { m.max(0.75) } else { m };
-                en.slow = if en.slow_t > 0.0 { en.slow.min(m) } else { m };
-                en.slow_t = en.slow_t.max(t);
+                en.slows.apply(
+                    survivors_core::slows::Source::Spell(h.source),
+                    m,
+                    t,
+                    impact_time,
+                );
             }
+            Effect::Root(t) if h.source == "frost_nova" => apply_freeze(&mut en, t),
             Effect::Root(t) => en.root_t = en.root_t.max(if boss { t * 0.3 } else { t }),
+            Effect::Incapacitate(t) if repentance_target(&en) => {
+                en.incapacitate_t = en.incapacitate_t.max(t)
+            }
             Effect::Stun(t) => en.stun_t = en.stun_t.max(if boss { t * 0.3 } else { t }),
             Effect::Fear(t) if !boss => en.fear_t = en.fear_t.max(t),
             Effect::Weaken(m, t) => {
-                en.weaken = m;
-                en.weaken_t = t;
+                refresh_weaken(&mut en, m, t);
             }
             _ => {}
         }
-        if h.mark != 0 {
+        if h.mark != 0 && (!matches!(h.effect, Effect::Incapacitate(_)) || en.incapacitate_t > 0.0)
+        {
             marks.add(h.mark, h.mark_dur);
         }
         if en.hp <= 0.0 {
-            kill(&mut commands, &mut run, &mut account, &mut rng, e, tf.translation, &mut en);
+            kill(
+                &mut commands,
+                &mut run,
+                &mut account,
+                &mut rng,
+                e,
+                tf.translation,
+                &mut en,
+            );
             units::kill_unit(&mut store);
             marks.clear();
         }
@@ -830,36 +2282,9261 @@ pub(super) fn apply_hits(
     }
 
     // The over-time ticks, once a second each.
-    for (e, guid, tf, mut en, mut store, mut marks) in &mut enemies {
-        if en.dead || en.dots.is_empty() {
+    for (e, guid, tf, mut en, mut store, mut marks, fire, _, mut hemorrhage, _) in &mut enemies {
+        if en.dead || (en.dots.is_empty() && !en.poison.active()) {
             continue;
         }
         let stats = run.stats();
         let mut dealt = 0.0;
+        let mut blackout = false;
+        let mut vampiric_heal = 0.0;
+        let initial_hp = en.hp.max(0.0);
+        let mut remaining_hp = initial_hp;
+        let mut weaving = en.shadow_weaving;
+        let kidney_multiplier = run.milestones.kidney_exposure_multiplier(en.kidney_t);
+        let creature_type = en.def.creature_type;
         for d in &mut en.dots {
-            d.left -= dt;
-            d.tick -= dt;
-            if d.tick <= 0.0 {
-                d.tick += 1.0;
+            let owner_talents = d.origin.owner_talents(run.milestones);
+            for _ in 0..d.advance(dt) {
                 let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
-                let tick = d.dps * echoes as f32;
+                let mut tick = d.dps
+                    * fire.multiplier(d.source, now, spells.as_deref(), 0)
+                    * creature_multiplier(run.milestones, creature_type, d.origin, false)
+                    * run.milestones.shadow_damage_multiplier(d.source, weaving)
+                    * kidney_multiplier;
+                if remaining_hp > 0.0 {
+                    if let Ok(mut vulnerability) = stormstrikes.get_mut(e) {
+                        tick *= vulnerability.multiplier(d.source, tick, now, spells.as_deref(), 0);
+                    }
+                }
+                if remaining_hp > 0.0 {
+                    tick += hemorrhage.bonus(d.source, d.origin, tick, now, spells.as_deref(), 0);
+                    if hemorrhage.0.charges(now) == 0 {
+                        marks.remove(16511);
+                    }
+                }
+                tick *= echoes as f32;
+                let removed = tick.max(0.0).min(remaining_hp);
+                remaining_hp = (remaining_hp - removed).max(0.0);
+                vampiric_heal += owner_talents.vampiric_healing(d.source, removed);
+                if d.origin == HitOrigin::Hero {
+                    apply_nightfall(&mut run, &mut rng, d.source, removed);
+                }
                 dealt += tick;
                 run.add_damage(d.source, tick);
+                let chance = owner_talents.shadow_weaving_chance(d.source, tick);
+                if chance > 0.0 && rng.f32() < chance {
+                    weaving.apply();
+                }
+                let chance = owner_talents.blackout_chance(d.source, tick);
+                if chance > 0.0 && rng.f32() < chance {
+                    blackout = true;
+                }
             }
+        }
+        let (ticks, poison_damage) = en.poison.advance(dt);
+        for _ in 0..ticks {
+            if remaining_hp <= 0.0 {
+                break;
+            }
+            let nature = stormstrikes.get_mut(e).map_or(1.0, |mut vulnerability| {
+                vulnerability.multiplier("deadly_poison", poison_damage, now, spells.as_deref(), 0)
+            });
+            let removed = (poison_damage
+                * nature
+                * kidney_multiplier
+                * creature_multiplier(run.milestones, creature_type, HitOrigin::Hero, false))
+            .max(0.0)
+            .min(remaining_hp);
+            remaining_hp -= removed;
+            dealt += removed;
+            run.add_damage("deadly_poison", removed);
+        }
+        en.shadow_weaving = weaving;
+        if blackout {
+            apply_blackout(&mut en);
         }
         en.dots.retain(|d| d.left > 0.0);
         if dealt > 0.0 {
+            wake_on_damage(&mut en, &mut marks, dealt);
             en.hp -= dealt;
-            if stats.leech > 0.0 {
-                run.hp = (run.hp + dealt * stats.leech).min(stats.max_hp);
+            if stats.leech > 0.0 || vampiric_heal > 0.0 {
+                run.heal(
+                    (initial_hp - remaining_hp) * stats.leech + vampiric_heal,
+                    stats.max_hp,
+                );
             }
             fx.number(e, dealt, false, COLOR_SPELL);
             if en.hp <= 0.0 {
-                kill(&mut commands, &mut run, &mut account, &mut rng, e, tf.translation, &mut en);
+                kill(
+                    &mut commands,
+                    &mut run,
+                    &mut account,
+                    &mut rng,
+                    e,
+                    tf.translation,
+                    &mut en,
+                );
                 units::kill_unit(&mut store);
                 marks.clear();
                 marks.flush(e, guid.0, &mut store, &mut fields);
             }
         }
     }
+    for (entity, damage) in poison_applications {
+        if let Ok((_, _, _, mut enemy, ..)) = enemies.get_mut(entity) {
+            if !enemy.dead {
+                enemy.poison.apply(damage);
+            }
+        }
+    }
 }
+
+#[cfg(test)]
+mod milestone_tests {
+    use super::*;
+    use crate::survivors::{campaign, data, Owned, Stats};
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn lethal_hits_cannot_be_undone_by_cast_healing_or_grant_defenses() {
+        let effect = survivors_core::talents::CastEffect {
+            heal_fraction: 1.,
+            shield_fraction: 0.1,
+            shield_seconds: 3.,
+            immune_seconds: 0.5,
+            ..Default::default()
+        };
+        for hp in [0., -1.] {
+            let mut run = Run {
+                hp,
+                ..Default::default()
+            };
+            assert_eq!(finish_milestone_cast(&mut run, effect, 160.), 0.);
+            assert_eq!(run.hp, hp);
+            assert_eq!(run.shield, 0.);
+            assert_eq!(run.immune_t, 0.);
+        }
+    }
+
+    #[test]
+    fn shield_spells_refresh_only_when_useful_and_absorb_damage() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (key, class) in [("mana_shield", 6), ("power_word_shield", 4)] {
+            for rank in [0, 1, 2, 255] {
+                for level in [1, 5] {
+                    let mut run = Run {
+                        class: &data::CLASSES[class],
+                        hp: 100.,
+                        milestones: Milestones {
+                            class,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(0, 83, rank)]),
+                        ..Default::default()
+                    };
+                    run.bonus.targets = 10;
+                    let owned = Owned {
+                        def: data::ability(key),
+                        level,
+                        cd: 0.,
+                    };
+                    let expected = Params::new(&owned, &run.stats(), run.milestones);
+                    let untrained = Params::new(
+                        &owned,
+                        &run.stats(),
+                        Milestones {
+                            class,
+                            ..Default::default()
+                        },
+                    );
+                    assert_eq!(
+                        (expected.dmg, expected.duration),
+                        (untrained.dmg, untrained.duration)
+                    );
+                    assert!(
+                        (expected.cooldown
+                            - untrained.cooldown
+                                * (1.
+                                    - if class == 6 {
+                                        0.1 * f32::from(rank.min(2))
+                                    } else {
+                                        0.
+                                    }))
+                        .abs()
+                            < 0.001
+                    );
+                    run.abilities.push(owned);
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                    let mut app = App::new();
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(42))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                    for _ in 0..2 {
+                        app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        let mut run = app.world_mut().resource_mut::<Run>();
+                        assert_eq!(
+                            (run.shield, run.shield_t),
+                            (expected.dmg, expected.duration)
+                        );
+                        assert!((run.abilities[0].cd - expected.cooldown).abs() < 0.001);
+                        let hp = run.hp;
+                        assert_eq!(hero::hurt_hero(&mut run, 5.), 0.);
+                        assert_eq!(run.hp, hp);
+                        assert!(run.shield < expected.dmg);
+                    }
+                    // Neither a stronger absorb nor an equally strong, longer-lived one is weakened.
+                    for (absorb, seconds) in [
+                        (expected.dmg * 2., 1.),
+                        (expected.dmg, expected.duration + 1.),
+                    ] {
+                        {
+                            let mut run = app.world_mut().resource_mut::<Run>();
+                            run.shield = absorb;
+                            run.shield_t = seconds;
+                            run.abilities[0].cd = 0.;
+                        }
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        let run = app.world().resource::<Run>();
+                        assert_eq!((run.shield, run.shield_t), (absorb, seconds));
+                        assert_eq!(run.abilities[0].cd, 0.2); // Retry; no full cooldown spent.
+                    }
+                    {
+                        let mut run = app.world_mut().resource_mut::<Run>();
+                        run.shield_t = 0.;
+                        run.abilities[0].cd = 0.;
+                    }
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    assert_eq!(
+                        (run.shield, run.shield_t),
+                        (expected.dmg, expected.duration)
+                    );
+                    assert!((run.abilities[0].cd - expected.cooldown).abs() < 0.001);
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn mage_nova_defenses_preserve_longer_buffs_and_absorb_real_damage() {
+        let trained = Milestones {
+            class: 6,
+            points: [0, 0, 30],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 72, 1), (2, 71, 1)]);
+        let effect = trained.cast("frost_nova");
+        let mut run = Run {
+            hp: 100.,
+            ..Default::default()
+        };
+        for _ in 0..3 {
+            finish_milestone_cast(&mut run, effect, 100.);
+        }
+        assert!((run.shield - 15.).abs() < 0.00001);
+        assert_eq!((run.shield_t, run.immune_t), (5., 0.5));
+        assert_eq!(hero::hurt_hero(&mut run, 10.), 0.);
+        assert_eq!(run.hp, 100.);
+        run.immune_t = 0.;
+        assert_eq!(hero::hurt_hero(&mut run, 10.), 0.);
+        assert!(run.shield < 15.);
+        run.shield = 30.;
+        run.shield_t = 1.;
+        run.immune_t = 2.;
+        finish_milestone_cast(&mut run, effect, 100.);
+        assert_eq!((run.shield, run.shield_t, run.immune_t), (30., 1., 2.));
+    }
+
+    #[test]
+    fn protection_healing_and_shields_apply_once_and_preserve_stronger_defenses() {
+        let mut run = Run {
+            milestones: Milestones {
+                class: 0,
+                points: [0, 0, 30],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let last_stand = run.milestones.cast("retaliation");
+        run.hp = 50.0;
+        assert_eq!(finish_milestone_cast(&mut run, last_stand, 100.0), 10.0);
+        run.hp = 99.0;
+        assert_eq!(finish_milestone_cast(&mut run, last_stand, 100.0), 1.0);
+        assert_eq!(finish_milestone_cast(&mut run, last_stand, 100.0), 0.0);
+
+        let shield_slam = run.milestones.cast("heroic_strike");
+        let mut stats = run.stats();
+        stats.targets = 10;
+        let owned = Owned {
+            def: data::ability("heroic_strike"),
+            level: 1,
+            cd: 0.0,
+        };
+        assert!(Params::new(&owned, &stats, run.milestones).count > 1);
+        finish_milestone_cast(&mut run, shield_slam, 100.0);
+        assert_eq!(run.shield, 3.0);
+        assert_eq!(run.shield_t, 3.0);
+        finish_milestone_cast(&mut run, shield_slam, 100.0);
+        assert_eq!(run.shield, 3.0, "no stacking");
+        let expected = super::super::sheet::mitigate(10.0, stats.armor, stats.reduction) - 3.0;
+        assert!((hero::hurt_hero(&mut run, 10.0) - expected).abs() < 0.00001);
+        assert_eq!(run.shield, 0.0);
+        run.shield = 20.0;
+        run.shield_t = 1.0;
+        finish_milestone_cast(&mut run, shield_slam, 100.0);
+        assert_eq!((run.shield, run.shield_t), (20.0, 1.0));
+        run.shield_t = 0.0;
+        finish_milestone_cast(&mut run, shield_slam, 100.0);
+        assert_eq!((run.shield, run.shield_t), (3.0, 3.0));
+    }
+
+    #[test]
+    fn trained_protection_absorb_refreshes_without_stacking() {
+        let mut run = Run::default();
+        let effect = Milestones {
+            class: 0,
+            points: [0, 0, 30],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 1601, 5), (2, 145, 3), (2, 148, 1)])
+        .cast("heroic_strike");
+        for _ in 0..3 {
+            finish_milestone_cast(&mut run, effect, 100.);
+            assert!((run.shield - 11.).abs() < 0.00001);
+            assert_eq!(run.shield_t, 4.5);
+        }
+        run.shield = 20.;
+        run.shield_t = 1.;
+        finish_milestone_cast(&mut run, effect, 100.);
+        assert_eq!((run.shield, run.shield_t), (20., 1.));
+    }
+
+    #[test]
+    fn fury_casts_and_damage_tradeoff_reach_combat() {
+        let mut run = Run::default();
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        run.milestones = Milestones {
+            points: [0, 30, 0],
+            ..base
+        };
+        let owned = Owned {
+            def: data::ability("retaliation"),
+            level: 1,
+            cd: 0.0,
+        };
+        let original = Params::new(&owned, &run.stats(), base);
+        let enhanced = Params::new(&owned, &run.stats(), run.milestones);
+        assert!((enhanced.dmg - original.dmg * 1.3).abs() < 0.00001);
+        assert_eq!(enhanced.duration, original.duration);
+        let effect = run.milestones.cast("execute");
+        run.hp = 50.0;
+        assert_eq!(finish_milestone_cast(&mut run, effect, 100.0), 3.0);
+        run.hp = 99.0;
+        assert_eq!(finish_milestone_cast(&mut run, effect, 100.0), 1.0);
+        assert_eq!(finish_milestone_cast(&mut run, effect, 100.0), 0.0);
+
+        run.thorns_t = 5.0;
+        run.thorns_spell = data::ability("retaliation").spell;
+        run.shield_t = 5.0;
+        run.shield = 10.0;
+        let expected =
+            super::super::sheet::mitigate(20.0 * 1.1, run.stats().armor, run.stats().reduction)
+                - 10.0;
+        assert!((hero::hurt_hero(&mut run, 20.0) - expected).abs() < 0.00001);
+        run.immune_t = 1.0;
+        assert_eq!(hero::hurt_hero(&mut run, 20.0), 0.0);
+        run.immune_t = 0.0;
+        run.thorns_t = 0.0;
+        let plain = super::super::sheet::mitigate(20.0, run.stats().armor, run.stats().reduction);
+        assert_eq!(hero::hurt_hero(&mut run, 20.0), plain);
+        run.thorns_t = 5.0;
+        run.thorns_spell = 0;
+        assert_eq!(hero::hurt_hero(&mut run, 20.0), plain);
+    }
+
+    #[test]
+    fn damage_over_time_delivers_all_ticks_across_frame_sizes() {
+        for frames in [vec![3.5], vec![1.5, 1.5], vec![0.1; 31], vec![1.0; 4]] {
+            let mut dot = enemies::Dot {
+                origin: crate::survivors::abilities::HitOrigin::Hero,
+                dps: 4.0,
+                left: 3.0,
+                tick: 1.0,
+                source: "test",
+            };
+            let ticks: u32 = frames.into_iter().map(|dt| dot.advance(dt)).sum();
+            assert_eq!(ticks, 3);
+            assert_eq!(dot.advance(10.0), 0);
+        }
+        let mut dot = enemies::Dot {
+            origin: crate::survivors::abilities::HitOrigin::Hero,
+            dps: 4.0,
+            left: 2.5,
+            tick: 1.0,
+            source: "test",
+        };
+        assert_eq!(dot.advance(5.0), 2, "no tick beyond the effect duration");
+    }
+
+    #[test]
+    fn arms_cast_milestones_compose_with_individual_training() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [30, 0, 0],
+            ..base
+        }
+        .with_ranks(&[(0, 133, 1), (0, 135, 1)]);
+        let cast = |key, milestones| {
+            Params::new(
+                &Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.0,
+                },
+                &stats,
+                milestones,
+            )
+        };
+        let sweep = cast("sweeping_strikes", trained);
+        let plain = cast("sweeping_strikes", base);
+        assert!((sweep.dmg - plain.dmg * 1.2).abs() < 0.00001);
+        assert_eq!(sweep.radius, plain.radius * 1.3);
+        assert_eq!(sweep.count, plain.count);
+        assert_eq!(
+            cast("mortal_strike", trained).dmg,
+            cast("mortal_strike", base).dmg * 1.5625
+        );
+    }
+
+    #[test]
+    fn deep_wounds_refreshes_without_stacking_or_postponing_ticks() {
+        let mut dots = Vec::new();
+        refresh_deep_wounds(&mut dots, 12.0);
+        assert_eq!(dots[0].advance(0.5), 0);
+        refresh_deep_wounds(&mut dots, 6.0);
+        assert_eq!(dots.len(), 1);
+        assert_eq!(dots[0].dps, 4.0);
+        assert_eq!(dots[0].tick, 0.5);
+        assert_eq!(dots[0].advance(0.5), 1);
+        refresh_deep_wounds(&mut dots, 24.0);
+        assert_eq!(dots[0].dps, 8.0);
+        assert_eq!(dots[0].advance(4.0), 3);
+        assert_eq!(dots[0].left, 0.0);
+        assert_eq!(dots[0].advance(1.0), 0);
+    }
+
+    #[test]
+    fn trained_warrior_bleed_delivers_its_snapshot_over_three_ticks() {
+        let talents = Milestones {
+            class: 0,
+            points: [10, 0, 0],
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 121, 3), (0, 127, 3)]);
+        let mut dots = Vec::new();
+        refresh_deep_wounds(
+            &mut dots,
+            talents.critical_bleed("heroic_strike", 100., true),
+        );
+        assert_eq!(dots.len(), 1);
+        let ticks = dots[0].advance(3.);
+        assert_eq!(ticks, 3);
+        assert!((dots[0].dps * ticks as f32 - 31.2).abs() < 0.00001);
+        assert_eq!(dots[0].advance(1.), 0);
+        assert_eq!(
+            talents.critical_bleed(dots[0].source, dots[0].dps, true),
+            0.
+        );
+    }
+
+    #[test]
+    fn talent_control_preserves_longer_effects_and_other_state() {
+        let trained = Milestones {
+            class: 2,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 1353, 1), (2, 1304, 5), (2, 1325, 1)]);
+        for boss in [false, true] {
+            let mut enemy = Enemy {
+                def: &data::roster(0).enemies[0],
+                hp: 100.,
+                max_hp: 100.,
+                speed: 3.,
+                damage: 5.,
+                radius: 0.6,
+                xp: 1,
+                boss,
+                elite: false,
+                attack_cd: 0.,
+                slows: {
+                    let mut slows = survivors_core::slows::Slows::default();
+                    slows.apply(survivors_core::slows::Source::Spell("fixture"), 0.4, 8., 0.);
+                    slows
+                },
+                root_t: 0.,
+                frozen_t: 0.,
+                winters_chill: Default::default(),
+                shadow_weaving: Default::default(),
+                kidney_t: 0.0,
+                stun_t: 0.,
+                fear_t: 0.,
+                incapacitate_t: 0.0,
+                weaken: 1.,
+                weaken_t: 0.,
+                poison: Default::default(),
+                dots: Vec::new(),
+                dead: false,
+            };
+            apply_impact(&mut enemy);
+            assert_eq!(enemy.stun_t, if boss { 0.3 } else { 1. });
+            apply_frostbite(&mut enemy);
+            assert_eq!(enemy.root_t, if boss { 1.5 } else { 5. });
+            assert_eq!(enemy.frozen_t, enemy.root_t);
+            enemy.root_t = 8.;
+            apply_frostbite(&mut enemy);
+            assert_eq!(enemy.root_t, 8.);
+            assert_eq!(enemy.frozen_t, if boss { 1.5 } else { 5. });
+            assert_eq!(
+                (enemy.slows.state(0.).0, enemy.slows.state(0.).1, enemy.hp),
+                (0.4, 8., 100.)
+            );
+            enemy.root_t = 0.;
+            enemy.frozen_t = 0.;
+            apply_secondary_control(&mut enemy, trained, "concussive_shot", 0.);
+            assert_eq!(enemy.stun_t, if boss { 0.3 } else { 1. });
+            apply_secondary_control(&mut enemy, trained, "serpent_sting", 0.);
+            assert!((enemy.stun_t - if boss { 0.45 } else { 1.5 }).abs() < 0.00001);
+            let survival = Milestones {
+                points: [0, 0, 30],
+                ..trained
+            };
+            apply_secondary_control(&mut enemy, survival, "serpent_sting", 0.);
+            assert!((enemy.stun_t - if boss { 0.75 } else { 2.5 }).abs() < 0.00001);
+            apply_secondary_control(&mut enemy, trained, "explosive_trap", 0.);
+            assert!((enemy.root_t - if boss { 0.6 } else { 2. }).abs() < 0.00001);
+            enemy.stun_t = 4.;
+            apply_impact(&mut enemy);
+            enemy.root_t = 5.;
+            for source in [
+                "concussive_shot",
+                "serpent_sting",
+                "explosive_trap",
+                "volley",
+            ] {
+                apply_secondary_control(&mut enemy, trained, source, 0.);
+            }
+            assert_eq!((enemy.stun_t, enemy.root_t), (4., 5.));
+            assert_eq!(enemy.frozen_t, 0.);
+            assert_eq!(enemy.slows.state(0.), (0.4, 8.));
+            assert_eq!(enemy.hp, 100.);
+        }
+    }
+
+    #[test]
+    fn hunter_milestones_reach_casts_without_expanding_areas() {
+        let mut stats = Run::default().stats();
+        stats.crit_damage = 2.2;
+        stats.targets = 4;
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [0, 30, 0],
+            ..base
+        }
+        .with_ranks(&[(1, 1346, 5), (1, 1349, 5), (1, 1345, 1)]);
+        for key in [
+            "arcane_shot",
+            "aimed_shot",
+            "multi_shot",
+            "volley",
+            "explosive_trap",
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            let shot = matches!(key, "arcane_shot" | "aimed_shot" | "multi_shot");
+            let cooldown = if key == "arcane_shot" {
+                0.675
+            } else if shot {
+                0.9
+            } else {
+                1.
+            };
+            assert!(
+                (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                "{key}"
+            );
+            let damage = if key == "aimed_shot" { 1.5625 } else { 1. };
+            assert!((after.dmg - before.dmg * damage).abs() < 0.0001, "{key}");
+            assert!(
+                (after.crit_damage - before.crit_damage - if shot { 0.5 } else { 0. }).abs()
+                    < 0.0001
+            );
+            assert_eq!(
+                after.count,
+                before.count + usize::from(key == "multi_shot") * 2
+            );
+            assert_eq!(after.radius, before.radius);
+            assert_eq!(after.duration, before.duration);
+        }
+    }
+
+    #[test]
+    fn hunter_survival_casts_apply_damage_and_nonstacking_defense() {
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [0, 0, 30],
+            ..base
+        }
+        .with_ranks(&[(1, 1348, 5), (2, 1306, 2), (2, 1325, 1)]);
+        let stats = Run::default().stats();
+        for level in [1, 5] {
+            for (key, multiplier) in [
+                ("serpent_sting", 1.32),
+                ("explosive_trap", 1.56),
+                ("concussive_shot", 1.),
+                ("volley", 1.),
+            ] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!(
+                    (after.dmg - before.dmg * multiplier).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(
+                    (after.count, after.radius, after.duration),
+                    (before.count, before.radius, before.duration)
+                );
+                assert_eq!(after.cooldown, before.cooldown);
+            }
+        }
+        let mut run = Run {
+            hp: 100.,
+            ..Default::default()
+        };
+        let effect = trained.cast("concussive_shot");
+        for _ in 0..4 {
+            finish_milestone_cast(&mut run, effect, 200.);
+        }
+        assert_eq!((run.shield, run.shield_t), (10., 3.));
+        run.shield = 30.;
+        run.shield_t = 2.;
+        finish_milestone_cast(&mut run, effect, 200.);
+        assert_eq!((run.shield, run.shield_t), (30., 2.));
+        assert_eq!(run.hp, 100.);
+    }
+
+    #[test]
+    fn hunter_shot_crit_bonuses_compose_with_gear_and_keep_one_volley_area() {
+        let mut stats = Run::default().stats();
+        stats.crit = 0.98;
+        stats.crit_damage = 2.2;
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(1, 1344, 5), (1, 1349, 5), (1, 1347, 3), (1, 1362, 5)]);
+        for (key, damage, chance, critical_damage) in [
+            ("multi_shot", 1.176, 1., 2.5),
+            ("serpent_sting", 1.05, 1., 2.5),
+            ("volley", 1.12, 0.98, 2.2),
+            ("explosive_trap", 1., 0.98, 2.2),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 3,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.0001, "{key}");
+            assert!((after.dot - before.dot * damage).abs() < 0.0001, "{key}");
+            assert!((after.crit - chance).abs() < 0.00001, "{key}");
+            assert!(
+                (after.crit_damage - critical_damage).abs() < 0.00001,
+                "{key}"
+            );
+            assert_eq!(after.count, before.count);
+            assert_eq!(after.radius, before.radius);
+            assert_eq!(after.duration, before.duration);
+        }
+    }
+
+    #[test]
+    fn ignite_rolls_unpaid_damage_without_stacking_or_delaying_ticks() {
+        let mage = Milestones {
+            class: 6,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 34, 5)]);
+        let mut dots = Vec::new();
+        refresh_ignite(&mut dots, mage.ignite("fireball", 100., true));
+        assert_eq!(dots.len(), 1);
+        assert_eq!(dots[0].advance(1.5), 1);
+        let paid = dots[0].dps;
+        assert!((paid - 10.).abs() < 0.0001);
+        assert_eq!(dots[0].tick, 0.5);
+        refresh_ignite(&mut dots, mage.ignite("fire_blast", 50., true));
+        assert_eq!(dots.len(), 1);
+        assert_eq!(dots[0].tick, 0.5);
+        assert!((dots[0].dps - 12.5).abs() < 0.0001); // 30 unpaid + 20 new, over four ticks.
+        assert_eq!(dots[0].advance(0.5), 1);
+        let next_paid = dots[0].dps;
+        assert_eq!(dots[0].advance(3.5), 3);
+        assert!((paid + next_paid + dots[0].dps * 3. - 60.).abs() < 0.0001);
+        assert_eq!(dots[0].advance(1.), 0);
+        assert_eq!(mage.ignite(dots[0].source, dots[0].dps, true), 0.);
+        refresh_ignite(&mut dots, f32::NAN);
+        refresh_ignite(&mut dots, 0.);
+        assert_eq!(dots[0].left, 0.);
+    }
+
+    #[test]
+    fn mage_hits_apply_trained_critical_control_and_target_range() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (source, low, high, expected, frozen, critical, chilled) in [
+            ("flamestrike", 0.10, 0.20, 20.0, false, true, false),
+            ("blizzard", 0.0, 0.04, 25.0, false, true, false),
+            ("flamestrike", 0.30, 0.40, 20.0, true, true, false),
+            ("flamestrike", 0.30, 0.40, 10.0, false, false, false),
+            ("blizzard", 0.30, 0.40, 25.0, true, true, false),
+            ("blizzard", 0.30, 0.40, 10.0, false, false, false),
+            ("blizzard", 0.06, 0.09, 25.0, false, true, true),
+            ("blizzard", 0.06, 0.09, 10.0, false, false, false),
+        ] {
+            let seed = (1..10000)
+                .find(|seed| {
+                    let value = Rng(*seed).f32();
+                    value >= low && value < high
+                })
+                .unwrap();
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.insert_resource(time)
+                .insert_resource(Run {
+                    milestones: Milestones {
+                        class: 6,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[
+                        (1, 31, 3),
+                        (1, 33, 3),
+                        (2, 73, 5),
+                        (2, 67, 5),
+                        (2, 65, 3),
+                        (2, 63, 3),
+                    ]),
+                    ..Default::default()
+                })
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            let enemy = app
+                .world_mut()
+                .spawn((
+                    Transform::default(),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 100.,
+                        max_hp: 100.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slows: Default::default(),
+                        root_t: 8.,
+                        frozen_t: if frozen { 3. } else { 0. },
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        incapacitate_t: 0.0,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        poison: Default::default(),
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ))
+                .id();
+            if chilled {
+                let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                for _ in 0..5 {
+                    en.winters_chill.apply();
+                }
+            }
+            let area_effect = {
+                let run = app.world().resource::<Run>();
+                Params::new(
+                    &super::super::Owned {
+                        def: data::ability(source),
+                        level: 1,
+                        cd: 0.,
+                    },
+                    &run.stats(),
+                    run.milestones,
+                )
+                .effect
+            };
+            app.world_mut().spawn((
+                Transform::default(),
+                GroundArea {
+                    damage: 10.,
+                    dot: 0.,
+                    dot_dur: 0.,
+                    radius: 5.,
+                    left: 3.,
+                    every: 1.,
+                    next_tick: 0.,
+                    effect: area_effect,
+                    mark: 0,
+                    impact: 0,
+                    source,
+                },
+            ));
+            app.world_mut().run_system_once(tick_areas).unwrap();
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            assert_eq!(hits.len(), 1);
+            assert_eq!(hits[0].target, enemy);
+            assert_eq!(hits[0].crit, critical, "{source}, frozen={frozen}");
+            assert_eq!(hits[0].damage, expected, "{source}");
+            assert_eq!(hits[0].splash, 0.);
+            assert_eq!(hits[0].effect, area_effect);
+            if source == "blizzard" {
+                let Effect::Slow(speed, seconds) = hits[0].effect else {
+                    panic!("missing Blizzard slow")
+                };
+                assert!((speed - 0.21).abs() < 0.00001);
+                assert!((seconds - 4.5).abs() < 0.00001);
+            }
+
+            if low == 0.06 {
+                app.world_mut()
+                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                app.world_mut()
+                    .resource_mut::<Run>()
+                    .abilities
+                    .push(super::super::Owned {
+                        def: data::ability("frostbolt"),
+                        level: 1,
+                        cd: 0.,
+                    });
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let direct: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(direct.len(), 1);
+                assert_eq!(direct[0].crit, chilled);
+                app.world_mut()
+                    .get_mut::<Enemy>(enemy)
+                    .unwrap()
+                    .winters_chill
+                    .advance(15.);
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let expired: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(expired.len(), 1);
+                assert!(!expired[0].crit);
+            }
+
+            if source == "blizzard" && low == 0.0 {
+                verify_mage_reach(&mut app, enemy);
+            }
+            if low == 0.30 {
+                app.world_mut()
+                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                app.world_mut()
+                    .resource_mut::<Run>()
+                    .abilities
+                    .push(super::super::Owned {
+                        def: data::ability("fireball"),
+                        level: 1,
+                        cd: 0.,
+                    });
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let direct: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(direct.len(), 1);
+                assert_eq!(direct[0].crit, frozen);
+                assert_eq!(direct[0].target, enemy);
+                // Once the freeze expires, a longer ordinary root must not keep Shatter active.
+                app.world_mut().get_mut::<Enemy>(enemy).unwrap().frozen_t = 0.;
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let expired: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(expired.len(), 1);
+                assert!(!expired[0].crit);
+            }
+        }
+    }
+
+    fn verify_mage_reach(app: &mut App, enemy: Entity) {
+        use bevy::ecs::system::RunSystemOnce;
+        app.world_mut()
+            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        for key in [
+            "fireball",
+            "flamestrike",
+            "frostbolt",
+            "blizzard",
+            "frost_nova",
+        ] {
+            let def = data::ability(key);
+            let distance = if def.kind == Kind::Nova {
+                def.radius
+            } else {
+                def.range
+            } + 1.;
+            app.world_mut()
+                .get_mut::<Transform>(enemy)
+                .unwrap()
+                .translation = Vec3::X * distance;
+            for trained in [false, true] {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.milestones = if trained {
+                        base.with_ranks(&[(1, 28, 2), (2, 741, 2)])
+                    } else {
+                        base
+                    };
+                    run.abilities = vec![super::super::Owned {
+                        def,
+                        level: 1,
+                        cd: 0.,
+                    }];
+                }
+                let before = app
+                    .world_mut()
+                    .query::<&GroundArea>()
+                    .iter(app.world())
+                    .count();
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                let areas: Vec<_> = app
+                    .world_mut()
+                    .query::<(&GroundArea, &Transform)>()
+                    .iter(app.world())
+                    .collect();
+                if def.kind == Kind::Ground {
+                    assert_eq!(
+                        areas.len(),
+                        before + usize::from(trained),
+                        "{key}, trained={trained}"
+                    );
+                    if trained {
+                        let matching: Vec<_> = areas
+                            .iter()
+                            .filter(|(area, tf)| area.source == key && tf.translation.x == distance)
+                            .collect();
+                        assert_eq!(matching.len(), 1, "one ground location");
+                        assert_eq!(
+                            matching[0].0.radius, def.radius,
+                            "target range must not enlarge the area"
+                        );
+                    }
+                    assert!(hits.is_empty());
+                } else {
+                    assert_eq!(hits.len(), usize::from(trained), "{key}, trained={trained}");
+                    if trained {
+                        assert_eq!(hits[0].target, enemy);
+                    }
+                }
+            }
+        }
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.milestones = Milestones {
+                class: 6,
+                points: [0, 0, 30],
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 72, 1), (2, 71, 1)]);
+            run.abilities = vec![super::super::Owned {
+                def: data::ability("frost_nova"),
+                level: 1,
+                cd: 0.,
+            }];
+        }
+        app.world_mut()
+            .get_mut::<Transform>(enemy)
+            .unwrap()
+            .translation = Vec3::X * 30.;
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        let run = app.world().resource::<Run>();
+        assert_eq!((run.shield, run.immune_t), (0., 0.));
+        app.world_mut()
+            .get_mut::<Transform>(enemy)
+            .unwrap()
+            .translation = Vec3::X * 2.;
+        app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        let run = app.world().resource::<Run>();
+        assert!((run.shield - run.stats().max_hp * 0.15).abs() < 0.0001);
+        assert_eq!((run.shield_t, run.immune_t), (5., 0.5));
+    }
+
+    #[test]
+    fn frost_slow_training_scales_control_without_extending_ground_area_lifetime() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(2, 65, 3), (2, 63, 3)]);
+        let stats = Run::default().stats();
+        for (key, speed, seconds) in [
+            ("frostbolt", 0.41, 5.75),
+            ("cone_of_cold", 0.41, 6.3),
+            ("blizzard", 0.21, 4.65),
+        ] {
+            let owned = super::super::Owned {
+                def: data::ability(key),
+                level: 2,
+                cd: 0.,
+            };
+            let a = Params::new(&owned, &stats, base);
+            let b = Params::new(&owned, &stats, trained);
+            let Effect::Slow(actual_speed, actual_seconds) = b.effect else {
+                panic!("slow lost")
+            };
+            assert!((actual_speed - speed).abs() < 0.00001, "{key}");
+            assert!((actual_seconds - seconds).abs() < 0.00001, "{key}");
+            assert_eq!(
+                (a.dmg, a.duration, a.cooldown, a.radius),
+                (b.dmg, b.duration, b.cooldown, b.radius)
+            );
+            assert_eq!(
+                hit_for(owned.def, &b, Entity::PLACEHOLDER, b.dmg, false).effect,
+                b.effect
+            );
+        }
+    }
+
+    #[test]
+    fn mage_training_reaches_cast_parameters_and_preserves_area_geometry() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (0, 76, 5),
+            (0, 80, 5),
+            (0, 81, 3),
+            (1, 26, 5),
+            (1, 1141, 2),
+            (1, 31, 3),
+            (1, 33, 3),
+            (1, 35, 5),
+            (2, 37, 5),
+            (2, 73, 5),
+            (2, 61, 3),
+            (2, 64, 3),
+        ]);
+        let mut stats = Run::default().stats();
+        stats.targets = 10;
+        for (key, damage, cooldown, crit, critical_damage) in [
+            ("arcane_missiles", 1.375, 1., 0., 0.),
+            ("arcane_explosion", 1.1, 1., 0.06, 0.),
+            ("fireball", 1.1, 0.8, 0.06, 0.),
+            ("fire_blast", 1.1, 1., 0.10, 0.),
+            ("flamestrike", 1.1, 1., 0.21, 0.),
+            ("frostbolt", 1.06, 0.8, 0., 0.5),
+            ("blizzard", 1.06, 1., 0., 0.5),
+            ("cone_of_cold", 1.378, 1., 0., 0.5),
+        ] {
+            for level in [1, 3] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.0001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - critical_damage).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.effect, before.effect);
+            }
+        }
+    }
+
+    #[test]
+    fn mage_instability_and_precision_reach_all_spell_casts() {
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 421, 3), (2, 1649, 3)]);
+        let stats = Run::default().stats();
+        for key in data::CLASSES[6]
+            .pool
+            .iter()
+            .copied()
+            .chain(["holy_shock", "consecration"])
+        {
+            let mage = data::CLASSES[6].pool.contains(&key)
+                && !matches!(key, "mana_shield" | "counterspell");
+            let elemental = mage && !matches!(key, "arcane_missiles" | "arcane_explosion");
+            let factor = if mage { 1.03 } else { 1.0 } * if elemental { 1.03 } else { 1.0 };
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * factor).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * factor).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit - before.crit - if mage { 0.03 } else { 0.0 }).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.cooldown, before.cooldown);
+                assert_eq!(after.effect, before.effect);
+            }
+        }
+    }
+
+    #[test]
+    fn remorseless_bonus_reaches_actual_casts_and_survives_failed_target_selection() {
+        next_cast_critical_bonus(3, 272, 2);
+    }
+
+    #[test]
+    fn cold_blood_reaches_actual_casts_and_survives_failed_target_selection() {
+        next_cast_critical_bonus(3, 280, 1);
+    }
+
+    #[test]
+    fn elemental_mastery_reaches_actual_casts_and_survives_failed_target_selection() {
+        next_cast_critical_bonus(5, 573, 1);
+    }
+
+    #[test]
+    fn inner_focus_reaches_direct_casts_and_survives_failed_target_selection() {
+        next_cast_critical_bonus(4, 348, 1);
+    }
+
+    #[test]
+    fn hawk_waits_for_success_and_only_hastens_subsequent_shots() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        let mut app = App::new();
+        let mut time = Time::<()>::default();
+        time.advance_by(std::time::Duration::from_secs_f32(0.1));
+        let mut run = Run {
+            class: &data::CLASSES[2],
+            milestones: Milestones {
+                class: 2,
+                points: [0, 0, 0],
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 1382, 5)]),
+            ..Default::default()
+        };
+        for key in ["arcane_shot", "explosive_trap", "fireball"] {
+            run.abilities.push(Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+        }
+        run.mobile.cd = 9.;
+        app.insert_resource(time)
+            .insert_resource(run)
+            .insert_resource(Rng(0)) // Zero roll forces a proc after a successful shot.
+            .init_resource::<PlaySeq>()
+            .init_resource::<PendingHits>()
+            .add_message::<CastEvent>()
+            .add_message::<SpellGoTargets>()
+            .add_message::<SwingMessage>()
+            .add_message::<crate::combat_text::CombatTextSpawn>()
+            .add_message::<Hit>();
+        app.world_mut()
+            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(
+            app.world()
+                .resource::<Run>()
+                .hawk
+                .remaining(app.world().resource::<Run>().milestones, 0.),
+            0.
+        );
+        app.world_mut().spawn((
+            Transform::from_xyz(1., 0., 0.),
+            Enemy {
+                def: &data::roster(0).enemies[0],
+                hp: 100.,
+                max_hp: 100.,
+                speed: 3.,
+                damage: 5.,
+                radius: 0.6,
+                xp: 1,
+                boss: false,
+                elite: false,
+                attack_cd: 0.,
+                slows: Default::default(),
+                root_t: 0.,
+                frozen_t: 0.,
+                winters_chill: Default::default(),
+                shadow_weaving: Default::default(),
+                kidney_t: 0.0,
+                stun_t: 0.,
+                fear_t: 0.,
+                incapacitate_t: 0.0,
+                weaken: 1.,
+                weaken_t: 0.,
+                poison: Default::default(),
+                dots: Vec::new(),
+                dead: false,
+            },
+        ));
+        for elapsed in [0., 1., 13.] {
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.elapsed = elapsed;
+                for owned in &mut run.abilities {
+                    owned.cd = 0.;
+                }
+            }
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app
+                .world()
+                .resource::<Run>()
+                .abilities
+                .iter()
+                .all(|o| o.cd == 0.));
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let run = app.world().resource::<Run>();
+            for owned in &run.abilities {
+                let base = Params::new(owned, &run.stats(), run.milestones);
+                let haste = if owned.def.key == "arcane_shot" && elapsed == 1. {
+                    0.15
+                } else {
+                    0.
+                };
+                assert!(
+                    (owned.cd - base.cooldown / (1. + haste)).abs() < 0.00001,
+                    "{} at {}",
+                    owned.def.key,
+                    elapsed
+                );
+            }
+            assert_eq!(run.hawk.remaining(run.milestones, elapsed), 12.);
+            assert_eq!(run.mobile.cd, 9.);
+        }
+    }
+
+    #[test]
+    fn backstab_cast_requires_dagger_and_rear_targets_without_spending_failed_casts() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        for kind in [None, Some(MeleeKind::Sword), Some(MeleeKind::Dagger)] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[3],
+                milestones: Milestones {
+                    class: 3,
+                    weapon: kind.map(|kind| MeleeWeapon {
+                        kind,
+                        two_handed: false,
+                    }),
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 280, 1), (0, 272, 2)]),
+                ..Default::default()
+            };
+            run.record_remorseless_kill();
+            run.bonus.targets = 5;
+            run.abilities.push(Owned {
+                def: data::ability("backstab"),
+                level: 1,
+                cd: 0.,
+            });
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(42))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            let mut eligible = Vec::new();
+            // Front, side and out-of-range targets cannot consume either critical charge.
+            for (position, yaw, valid) in [
+                (Vec3::new(0., 0., 1.), 0., false),
+                (Vec3::new(1., 0., 0.), 0., false),
+                (Vec3::new(0., 0., -20.), 0., false),
+                (Vec3::new(0., 0., -2.), 0., true),
+                (Vec3::new(0., 0., 2.), std::f32::consts::PI, true),
+            ] {
+                if valid && eligible.is_empty() {
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                    let run = app.world().resource::<Run>();
+                    assert!(run.abilities[0].cd <= 0.);
+                    assert_eq!(
+                        run.critical_cast
+                            .bonus(run.milestones, "backstab", run.elapsed),
+                        1.
+                    );
+                    assert_eq!(run.remorseless_until, 20.);
+                }
+                let entity = app
+                    .world_mut()
+                    .spawn((
+                        Transform::from_translation(position)
+                            .with_rotation(Quat::from_rotation_y(yaw)),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp: 100.,
+                            max_hp: 100.,
+                            speed: 3.,
+                            damage: 5.,
+                            radius: 0.6,
+                            xp: 1,
+                            boss: false,
+                            elite: false,
+                            attack_cd: 0.,
+                            slows: Default::default(),
+                            root_t: 0.,
+                            frozen_t: 0.,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.,
+                            fear_t: 0.,
+                            incapacitate_t: 0.0,
+                            weaken: 1.,
+                            weaken_t: 0.,
+                            poison: Default::default(),
+                            dots: Vec::new(),
+                            dead: false,
+                        },
+                    ))
+                    .id();
+                if valid {
+                    eligible.push(entity);
+                }
+            }
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            let run = app.world().resource::<Run>();
+            if kind == Some(MeleeKind::Dagger) {
+                assert_eq!(hits.len(), 2);
+                for hit in hits {
+                    assert!(eligible.contains(&hit.target));
+                    assert_eq!(hit.source, "backstab");
+                    assert!(hit.crit && hit.damage > 0.);
+                }
+                assert!(run.abilities[0].cd > 0.);
+                assert_eq!(
+                    run.critical_cast
+                        .bonus(run.milestones, "backstab", run.elapsed),
+                    0.
+                );
+                assert_eq!(run.remorseless_until, 0.);
+            } else {
+                assert!(hits.is_empty());
+                assert_eq!(run.abilities[0].cd, 0.);
+                assert_eq!(
+                    run.critical_cast
+                        .bonus(run.milestones, "backstab", run.elapsed),
+                    1.
+                );
+                assert_eq!(run.remorseless_until, 20.);
+            }
+        }
+    }
+
+    #[test]
+    fn weapon_training_changes_emitted_melee_hits_only() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        let sample = |kind, two_handed: bool, id, rank: u8, seed| {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                milestones: Milestones {
+                    weapon: Some(MeleeWeapon { kind, two_handed }),
+                    ..Default::default()
+                }
+                .with_ranks(&[(if id == 702 { 2 } else { 0 }, id, rank)]),
+                ..Default::default()
+            };
+            for key in [
+                "cleave",
+                "heroic_strike",
+                "whirlwind",
+                "sweeping_strikes",
+                "execute",
+                "mortal_strike",
+                "thunder_clap",
+            ] {
+                run.abilities.push(Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.,
+                });
+            }
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().spawn((
+                Transform::from_xyz(1., 0., 0.),
+                Enemy {
+                    def: &data::roster(0).enemies[0],
+                    hp: 100.,
+                    max_hp: 100.,
+                    speed: 3.,
+                    damage: 5.,
+                    radius: 0.6,
+                    xp: 1,
+                    boss: false,
+                    elite: false,
+                    attack_cd: 0.,
+                    slows: Default::default(),
+                    root_t: 0.,
+                    frozen_t: 0.,
+                    winters_chill: Default::default(),
+                    shadow_weaving: Default::default(),
+                    kidney_t: 0.0,
+                    stun_t: 0.,
+                    fear_t: 0.,
+                    incapacitate_t: 0.0,
+                    weaken: 1.,
+                    weaken_t: 0.,
+                    poison: Default::default(),
+                    dots: Vec::new(),
+                    dead: false,
+                },
+            ));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            app.world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .map(|hit| (hit.source, hit.damage))
+                .collect::<Vec<_>>()
+        };
+        for (id, two_handed, factor) in [(136, true, 1.05), (702, false, 1.10)] {
+            let baseline = sample(MeleeKind::Sword, two_handed, id, 0, 42);
+            assert!(!baseline.is_empty());
+            let trained = sample(MeleeKind::Sword, two_handed, id, 5, 42);
+            assert_eq!(sample(MeleeKind::Sword, !two_handed, id, 5, 42), baseline);
+            assert_eq!(trained.len(), baseline.len());
+            for ((source, damage), (other, plain)) in trained.into_iter().zip(baseline) {
+                assert_eq!(source, other);
+                let factor = if source == "thunder_clap" {
+                    1.0
+                } else {
+                    factor
+                };
+                assert!((damage - plain * factor).abs() < 0.0001, "{source}");
+            }
+        }
+        for (id, kind) in [(132, MeleeKind::Axe), (134, MeleeKind::Polearm)] {
+            let mut extra_crits = 0;
+            for seed in 1..=128 {
+                let baseline = sample(kind, true, id, 0, seed);
+                assert_eq!(sample(MeleeKind::Sword, true, id, 5, seed), baseline);
+                let trained = sample(kind, true, id, 5, seed);
+                assert_eq!(trained.len(), baseline.len());
+                for ((source, damage), (other, plain)) in trained.into_iter().zip(baseline) {
+                    assert_eq!(source, other);
+                    if source == "thunder_clap" {
+                        assert_eq!(damage, plain);
+                    } else {
+                        assert!(damage >= plain);
+                        extra_crits += usize::from(damage > plain);
+                    }
+                }
+            }
+            assert!(
+                extra_crits > 0,
+                "worn weapon ranks must reach the actual critical roll"
+            );
+        }
+    }
+
+    #[test]
+    fn blade_flurry_burst_adds_single_melee_targets_without_expanding_areas() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        let mut app = App::new();
+        let mut time = Time::<()>::default();
+        time.advance_by(std::time::Duration::from_secs_f32(0.1));
+        let mut run = Run {
+            class: &data::CLASSES[3],
+            milestones: Milestones {
+                class: 3,
+                points: [0, 30, 0],
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 205, 1), (1, 201, 2), (0, 382, 1), (1, 223, 1)]),
+            ..Default::default()
+        };
+        for key in [
+            "blade_flurry",
+            "sinister_strike",
+            "eviscerate",
+            "gouge",
+            "kidney_shot",
+            "rupture",
+            "fireball",
+        ] {
+            run.abilities.push(Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+        }
+        run.mobile.cd = 9.;
+        app.insert_resource(time)
+            .insert_resource(run)
+            .insert_resource(Rng(42))
+            .init_resource::<PlaySeq>()
+            .init_resource::<PendingHits>()
+            .add_message::<CastEvent>()
+            .add_message::<SpellGoTargets>()
+            .add_message::<SwingMessage>()
+            .add_message::<crate::combat_text::CombatTextSpawn>()
+            .add_message::<Hit>();
+        app.world_mut()
+            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(
+            app.world()
+                .resource::<Run>()
+                .adrenaline_rush
+                .remaining(app.world().resource::<Run>().milestones, 0.),
+            0.
+        );
+        let run = app.world().resource::<Run>();
+        assert_eq!(
+            run.blade_flurry
+                .haste(run.milestones, "sinister_strike", 0.),
+            0.,
+            "no target cannot start the burst"
+        );
+        for x in [1., 2., 3., 100.] {
+            app.world_mut().spawn((
+                Transform::from_xyz(x, 0., 0.),
+                Enemy {
+                    def: &data::roster(0).enemies[0],
+                    hp: 100.,
+                    max_hp: 100.,
+                    speed: 3.,
+                    damage: 5.,
+                    radius: 0.6,
+                    xp: 1,
+                    boss: false,
+                    elite: false,
+                    attack_cd: 0.,
+                    slows: Default::default(),
+                    root_t: 0.,
+                    frozen_t: 0.,
+                    winters_chill: Default::default(),
+                    shadow_weaving: Default::default(),
+                    kidney_t: 0.0,
+                    stun_t: 0.,
+                    fear_t: 0.,
+                    incapacitate_t: 0.0,
+                    weaken: 1.,
+                    weaken_t: 0.,
+                    poison: Default::default(),
+                    dots: Vec::new(),
+                    dead: false,
+                },
+            ));
+        }
+        for elapsed in [0., 14., 15., 119.9, 120.] {
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.elapsed = elapsed;
+                for owned in &mut run.abilities {
+                    owned.cd = 0.;
+                }
+            }
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app
+                .world()
+                .resource::<Run>()
+                .abilities
+                .iter()
+                .all(|o| o.cd == 0.));
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            let run = app.world().resource::<Run>();
+            for owned in &run.abilities {
+                let base = Params::new(owned, &run.stats(), run.milestones);
+                let factor = if owned.def.key != "fireball" && elapsed < 15. {
+                    0.5
+                } else {
+                    1.
+                };
+                let active = elapsed < 15. || elapsed >= 120.;
+                let eligible = !matches!(owned.def.key, "rupture" | "fireball");
+                let factor = factor / if active && eligible { 1.2 } else { 1. };
+                let expected_count = if owned.def.key == "blade_flurry" {
+                    3
+                } else {
+                    (base.count + usize::from(active && eligible)).min(3)
+                };
+                assert_eq!(
+                    hits.iter().filter(|h| h.source == owned.def.key).count(),
+                    expected_count,
+                    "{} targets at {}",
+                    owned.def.key,
+                    elapsed
+                );
+                assert!(
+                    (owned.cd - base.cooldown * factor).abs() < 0.00001,
+                    "{} at {}",
+                    owned.def.key,
+                    elapsed
+                );
+            }
+            assert_eq!(run.mobile.cd, 9.);
+            assert_eq!(
+                run.adrenaline_rush.remaining(run.milestones, elapsed),
+                if elapsed == 0. {
+                    15.
+                } else if elapsed == 14. {
+                    1.
+                } else {
+                    0.
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn adrenaline_rush_starts_on_success_and_snapshots_only_rogue_cast_cooldowns() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        let mut app = App::new();
+        let mut time = Time::<()>::default();
+        time.advance_by(std::time::Duration::from_secs_f32(0.1));
+        let mut run = Run {
+            class: &data::CLASSES[3],
+            milestones: Milestones {
+                class: 3,
+                points: [0, 30, 0],
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 205, 1), (1, 201, 2), (0, 382, 1)]),
+            ..Default::default()
+        };
+        for key in ["sinister_strike", "rupture", "fireball"] {
+            run.abilities.push(Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+        }
+        run.mobile.cd = 9.;
+        app.insert_resource(time)
+            .insert_resource(run)
+            .insert_resource(Rng(42))
+            .init_resource::<PlaySeq>()
+            .init_resource::<PendingHits>()
+            .add_message::<CastEvent>()
+            .add_message::<SpellGoTargets>()
+            .add_message::<SwingMessage>()
+            .add_message::<crate::combat_text::CombatTextSpawn>()
+            .add_message::<Hit>();
+        app.world_mut()
+            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(
+            app.world()
+                .resource::<Run>()
+                .adrenaline_rush
+                .remaining(app.world().resource::<Run>().milestones, 0.),
+            0.
+        );
+        app.world_mut().spawn((
+            Transform::from_xyz(1., 0., 0.),
+            Enemy {
+                def: &data::roster(0).enemies[0],
+                hp: 100.,
+                max_hp: 100.,
+                speed: 3.,
+                damage: 5.,
+                radius: 0.6,
+                xp: 1,
+                boss: false,
+                elite: false,
+                attack_cd: 0.,
+                slows: Default::default(),
+                root_t: 0.,
+                frozen_t: 0.,
+                winters_chill: Default::default(),
+                shadow_weaving: Default::default(),
+                kidney_t: 0.0,
+                stun_t: 0.,
+                fear_t: 0.,
+                incapacitate_t: 0.0,
+                weaken: 1.,
+                weaken_t: 0.,
+                poison: Default::default(),
+                dots: Vec::new(),
+                dead: false,
+            },
+        ));
+        for elapsed in [0., 14., 15., 299.9, 300.] {
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.elapsed = elapsed;
+                for owned in &mut run.abilities {
+                    owned.cd = 0.;
+                }
+            }
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app
+                .world()
+                .resource::<Run>()
+                .abilities
+                .iter()
+                .all(|o| o.cd == 0.));
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let run = app.world().resource::<Run>();
+            for owned in &run.abilities {
+                let base = Params::new(owned, &run.stats(), run.milestones);
+                let factor = if owned.def.key != "fireball" && (elapsed < 15. || elapsed >= 300.) {
+                    0.5
+                } else {
+                    1.
+                };
+                assert!(
+                    (owned.cd - base.cooldown * factor).abs() < 0.00001,
+                    "{} at {}",
+                    owned.def.key,
+                    elapsed
+                );
+            }
+            assert_eq!(run.mobile.cd, 9.);
+            assert_eq!(
+                run.adrenaline_rush.remaining(run.milestones, elapsed),
+                if elapsed == 0. || elapsed == 300. {
+                    15.
+                } else if elapsed == 14. {
+                    1.
+                } else {
+                    0.
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn natures_grace_critical_hits_charge_only_successful_casts() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (source, critical, hp, target_hp, expected) in [
+            ("moonfire", true, 100., 10000., true),
+            ("moonfire", false, 100., 10000., false),
+            ("fireball", true, 100., 10000., false),
+            ("wrath", true, 0., 10000., false),
+            ("wrath", true, 100., 0., false),
+        ] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let run = Run {
+                class: &data::CLASSES[8],
+                hp,
+                milestones: Milestones {
+                    class: 8,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 789, 1), (0, 762, 5)]),
+                abilities: vec![Owned {
+                    def: data::ability("wrath"),
+                    level: 1,
+                    cd: 0.,
+                }],
+                ..Default::default()
+            };
+            let seed = 1;
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .insert_resource(super::super::account::empty())
+                .init_resource::<super::super::Selection>()
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>()
+                .add_message::<Loot>()
+                .add_message::<FieldChanged>();
+
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            let enemy = app
+                .world_mut()
+                .spawn((
+                    Guid(1),
+                    Transform::from_xyz(1., 0., 0.),
+                    ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                    Marks::debuffs(),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 10000.,
+                        max_hp: 10000.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slows: Default::default(),
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        incapacitate_t: 0.0,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        poison: Default::default(),
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ))
+                .id();
+            app.world_mut().get_mut::<Enemy>(enemy).unwrap().hp = target_hp;
+            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                source,
+                ..Hit::direct(enemy, 10., critical)
+            });
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            let run = app.world().resource::<Run>();
+            assert_eq!(
+                run.natures_grace
+                    .reduction(run.milestones, "wrath", run.elapsed),
+                if expected { 0.5 } else { 0. }
+            );
+            if !expected {
+                continue;
+            }
+            // A paused frame cannot cast, consume the charge, or advance its timer.
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let run = app.world().resource::<Run>();
+            assert_eq!(
+                run.natures_grace
+                    .reduction(run.milestones, "wrath", run.elapsed),
+                0.5
+            );
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.world_mut()
+                .get_mut::<Transform>(enemy)
+                .unwrap()
+                .translation
+                .x = 10000.;
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let run = app.world().resource::<Run>();
+            assert_eq!(run.abilities[0].cd, 0.2);
+            assert_eq!(
+                run.natures_grace
+                    .reduction(run.milestones, "wrath", run.elapsed),
+                0.5
+            );
+            app.world_mut()
+                .get_mut::<Transform>(enemy)
+                .unwrap()
+                .translation
+                .x = 1.;
+            for key in ["moonfire", "wrath", "starfire"] {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.abilities[0] = Owned {
+                        def: data::ability(key),
+                        level: 1,
+                        cd: 0.,
+                    };
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let run = app.world().resource::<Run>();
+                let baseline =
+                    Params::new(&run.abilities[0], &run.stats(), run.milestones).cooldown;
+                let reduction = if key == "wrath" { 0.5 } else { 0. };
+                assert!(
+                    (run.abilities[0].cd - (baseline - reduction)).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(
+                    run.natures_grace
+                        .reduction(run.milestones, "wrath", run.elapsed),
+                    if key == "moonfire" { 0.5 } else { 0. }
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn combustion_reaches_direct_and_ground_fire_hits_then_recovers() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["fireball", "flamestrike", "blast_wave", "frostbolt"] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[6],
+                milestones: Milestones {
+                    class: 6,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 36, 1)]),
+                ..Default::default()
+            };
+            run.bonus.targets = 2;
+            run.bonus.multistrike = 2.;
+            run.abilities.push(super::super::Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+            let baseline = Params::new(&run.abilities[0], &run.stats(), run.milestones).crit;
+            let seed = (1..1000000)
+                .find(|seed| {
+                    let mut rng = Rng(*seed);
+                    (0..3).all(|_| {
+                        let roll = rng.f32();
+                        roll > baseline && roll < baseline + 0.1
+                    })
+                })
+                .unwrap();
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .insert_resource(super::super::account::empty())
+                .init_resource::<super::super::Selection>()
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>()
+                .add_message::<Loot>()
+                .add_message::<FieldChanged>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            {
+                let run = app.world().resource::<Run>();
+                assert_eq!(run.combustion.progress(run.milestones, 0.), None);
+            }
+            for index in 1..=3 {
+                app.world_mut().spawn((
+                    Guid(index),
+                    Transform::from_xyz(index as f32, 0., 0.),
+                    ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                    Marks::debuffs(),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 10000.,
+                        max_hp: 10000.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slows: Default::default(),
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        incapacitate_t: 0.0,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        poison: Default::default(),
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ));
+            }
+            app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            if key == "flamestrike" {
+                app.world_mut()
+                    .resource_mut::<Time>()
+                    .advance_by(std::time::Duration::from_secs_f32(0.5));
+                app.world_mut().run_system_once(tick_areas).unwrap();
+            }
+            let hits: Vec<_> = app
+                .world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .collect();
+            assert_eq!(hits.len(), 3, "{key}");
+            for hit in &hits {
+                assert_eq!(hit.crit, key != "frostbolt", "{key}");
+            }
+            // Fireball's native splash reaches all three clustered enemies on the first hit.
+            // Other tested Fire spells deliver one hit per area target without splash expansion.
+            assert_eq!(hits[0].splash > 0., key == "fireball");
+            for (index, hit) in hits.into_iter().enumerate() {
+                app.world_mut().resource_mut::<Messages<Hit>>().write(hit);
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                app.world_mut().resource_mut::<Messages<Hit>>().clear();
+                let run = app.world().resource::<Run>();
+                if key == "frostbolt" {
+                    assert_eq!(run.combustion.progress(run.milestones, 0.), None);
+                } else if index < 2 && key != "fireball" {
+                    assert_eq!(
+                        run.combustion.progress(run.milestones, 0.).unwrap().1,
+                        index as u8 + 1,
+                        "multistrike must not consume extra criticals"
+                    );
+                } else {
+                    assert_eq!(run.combustion.bonus(run.milestones, "fireball", 179.99), 0.);
+                    assert_eq!(run.combustion.bonus(run.milestones, "fireball", 180.), 0.1);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn arcane_power_reaches_cast_damage_burns_and_all_targets_without_refreshing() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in [
+            "fireball",
+            "pyroblast",
+            "frostbolt",
+            "arcane_explosion",
+            "blizzard",
+            "smite",
+        ] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[6],
+                milestones: Milestones {
+                    class: 6,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 87, 1)]),
+                ..Default::default()
+            };
+            run.bonus.targets = 1;
+            run.abilities.push(super::super::Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+            // Keep direct hits noncritical so the burst multiplier is measured exactly.
+            let seed = (1..100000)
+                .find(|seed| {
+                    let mut rng = Rng(*seed);
+                    (0..2).all(|_| {
+                        let roll = rng.f32();
+                        roll > 0.5
+                    })
+                })
+                .unwrap();
+
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            let run = app.world().resource::<Run>();
+            assert_eq!(
+                run.arcane_power.remaining(run.milestones, 0.0),
+                0.0,
+                "failed targeting cannot start the burst"
+            );
+            for x in [1., 2.] {
+                app.world_mut().spawn((
+                    Transform::from_xyz(x, 0., 0.),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 100.,
+                        max_hp: 100.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slows: Default::default(),
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        incapacitate_t: 0.0,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        poison: Default::default(),
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ));
+            }
+
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            for (elapsed, boosted) in [
+                (0.0, true),
+                (14.99, true),
+                (15.0, false),
+                (179.99, false),
+                (180.0, true),
+            ] {
+                app.world_mut().resource_mut::<Run>().elapsed = elapsed;
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(hits.len(), if key == "blizzard" { 0 } else { 2 }, "{key}");
+                let run = app.world().resource::<Run>();
+                let baseline = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+                let factor = if boosted && key != "smite" { 1.3 } else { 1.0 };
+                for hit in hits {
+                    assert!(!hit.crit);
+                    assert!(
+                        (hit.damage - baseline.dmg * factor).abs() < 0.001,
+                        "{key} at {elapsed}"
+                    );
+                    assert!(
+                        (hit.dot - baseline.dot * factor).abs() < 0.001,
+                        "{key} burn at {elapsed}"
+                    );
+                }
+                assert_eq!(run.abilities[0].cd, baseline.cooldown);
+                if key == "smite" {
+                    assert_eq!(run.arcane_power.remaining(run.milestones, elapsed), 0.0);
+                }
+                if key == "blizzard" {
+                    let world = app.world_mut();
+                    let areas: Vec<_> = world
+                        .query::<(Entity, &GroundArea)>()
+                        .iter(world)
+                        .map(|(e, area)| (e, area.damage, area.left))
+                        .collect();
+                    assert_eq!(areas.len(), 1);
+                    assert!((areas[0].1 - baseline.dmg * factor).abs() < 0.001);
+                    assert_eq!(areas[0].2, baseline.duration);
+                    world.despawn(areas[0].0);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn power_infusion_boosts_priest_casts_and_unlocked_nova_healing() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in [
+            "smite",
+            "holy_fire",
+            "mind_blast",
+            "holy_nova",
+            "shadow_word_pain",
+            "fireball",
+        ] {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[4],
+                milestones: Milestones {
+                    class: 4,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 322, 1), (1, 442, 1)]),
+                ..Default::default()
+            };
+            run.bonus.targets = 1;
+            run.abilities.push(super::super::Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+            // Keep direct hits noncritical so the burst multiplier is measured exactly.
+            let seed = (1..100000)
+                .find(|seed| {
+                    let mut rng = Rng(*seed);
+                    (0..2).all(|_| {
+                        let roll = rng.f32();
+                        roll > 0.5
+                    })
+                })
+                .unwrap();
+
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            let run = app.world().resource::<Run>();
+            assert_eq!(
+                run.power_infusion.remaining(run.milestones, 0.0),
+                0.0,
+                "failed targeting cannot start the burst"
+            );
+            for x in [1., 2.] {
+                app.world_mut().spawn((
+                    Transform::from_xyz(x, 0., 0.),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 100.,
+                        max_hp: 100.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slows: Default::default(),
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        incapacitate_t: 0.0,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        poison: Default::default(),
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ));
+            }
+
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            for (elapsed, boosted) in [
+                (0.0, true),
+                (14.99, true),
+                (15.0, false),
+                (179.99, false),
+                (180.0, true),
+            ] {
+                app.world_mut().resource_mut::<Run>().elapsed = elapsed;
+                app.world_mut().resource_mut::<Run>().hp = 20.;
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(hits.len(), 2, "{key}");
+                let run = app.world().resource::<Run>();
+                let baseline = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+                let factor = if boosted && key != "fireball" {
+                    1.2
+                } else {
+                    1.0
+                };
+                for hit in hits {
+                    assert!(!hit.crit);
+                    assert!(
+                        (hit.damage - baseline.dmg * factor).abs() < 0.001,
+                        "{key} at {elapsed}"
+                    );
+                    assert!(
+                        (hit.dot - baseline.dot * factor).abs() < 0.001,
+                        "{key} burn at {elapsed}"
+                    );
+                }
+                assert_eq!(run.abilities[0].cd, baseline.cooldown);
+                let heal = if key == "holy_nova" {
+                    run.stats().max_hp * 0.05 * factor
+                } else {
+                    0.
+                };
+                assert!(
+                    (run.hp - 20. - heal).abs() < 0.001,
+                    "{key} healing at {elapsed}"
+                );
+                if key == "fireball" {
+                    assert_eq!(run.power_infusion.remaining(run.milestones, elapsed), 0.0);
+                }
+            }
+            if key == "smite" {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.elapsed = 181.;
+                    run.abilities[0] = Owned {
+                        def: data::ability("power_word_shield"),
+                        level: 3,
+                        cd: 0.,
+                    };
+                }
+                for ready in [false, true] {
+                    if ready {
+                        let mut run = app.world_mut().resource_mut::<Run>();
+                        run.power_infusion = default();
+                        run.abilities[0].cd = 0.;
+                    }
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let shield = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+                    assert_eq!((run.shield, run.shield_t), (shield.dmg, shield.duration));
+                    assert_eq!(
+                        run.power_infusion.remaining(run.milestones, run.elapsed),
+                        if ready { 0. } else { 14. }
+                    );
+                }
+            }
+            if key == "holy_nova" {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.elapsed = 181.;
+                    run.hp = run.stats().max_hp - 0.1;
+                    run.abilities[0].cd = 0.;
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let run = app.world().resource::<Run>();
+                assert_eq!(
+                    run.hp,
+                    run.stats().max_hp,
+                    "boosted healing cannot exceed maximum health"
+                );
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.milestones = run.milestones.with_ranks(&[(0, 322, 1)]);
+                    run.hp = 20.;
+                    run.abilities[0].cd = 0.;
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                assert_eq!(
+                    app.world().resource::<Run>().hp,
+                    20.,
+                    "Infusion cannot unlock Nova healing"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn divine_favor_reaches_holy_shock_casts_and_uses_two_minute_recovery() {
+        next_cast_critical_bonus(1, 1433, 1);
+    }
+
+    fn next_cast_critical_bonus(class: usize, talent: u32, rank: u8) {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        let keys: &[&str] = if class == 1 {
+            &["holy_shock"]
+        } else if class == 3 {
+            &["sinister_strike", "eviscerate", "gouge", "kidney_shot"]
+        } else if class == 4 {
+            &["smite", "holy_fire", "holy_nova", "mind_blast"]
+        } else {
+            &[
+                "lightning_bolt",
+                "chain_lightning",
+                "earth_shock",
+                "flame_shock",
+                "frost_shock",
+            ]
+        };
+        for &key in keys {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                class: &data::CLASSES[class],
+                milestones: Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, talent, rank)]),
+                ..Default::default()
+            };
+            run.bonus.targets = 1;
+            run.abilities.push(super::super::Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.,
+            });
+            // Both target rolls lie above base crit and below the trained bonus.
+            let seed = (1..100000)
+                .find(|seed| {
+                    let mut rng = Rng(*seed);
+                    (0..2).all(|_| {
+                        let roll = rng.f32();
+                        roll > 0.10 && roll < 0.20
+                    })
+                })
+                .unwrap();
+            run.record_remorseless_kill();
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert_eq!(
+                app.world().resource::<Run>().remorseless_until,
+                if talent == 272 { 20. } else { 0. },
+                "{key}: no target"
+            );
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            if talent != 272 {
+                let run = app.world().resource::<Run>();
+                assert_eq!(
+                    run.critical_cast.bonus(run.milestones, key, run.elapsed),
+                    if class == 4 { 0.25 } else { 1.0 }
+                );
+            }
+            for x in [1., 2.] {
+                app.world_mut().spawn((
+                    Transform::from_xyz(x, 0., 0.),
+                    Enemy {
+                        def: &data::roster(0).enemies[0],
+                        hp: 100.,
+                        max_hp: 100.,
+                        speed: 3.,
+                        damage: 5.,
+                        radius: 0.6,
+                        xp: 1,
+                        boss: false,
+                        elite: false,
+                        attack_cd: 0.,
+                        slows: Default::default(),
+                        root_t: 0.,
+                        frozen_t: 0.,
+                        winters_chill: Default::default(),
+                        shadow_weaving: Default::default(),
+                        kidney_t: 0.0,
+                        stun_t: 0.,
+                        fear_t: 0.,
+                        incapacitate_t: 0.0,
+                        weaken: 1.,
+                        weaken_t: 0.,
+                        poison: Default::default(),
+                        dots: Vec::new(),
+                        dead: false,
+                    },
+                ));
+            }
+            // A paused frame with valid targets cannot spend either next-cast bonus.
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::ZERO);
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(std::time::Duration::from_secs_f32(0.1));
+            let recovery = if class == 1 { 120.0 } else { 180.0 };
+            for (elapsed, expected_crit) in [
+                (0.0, true),
+                (recovery - 0.01, false),
+                (recovery, talent != 272),
+            ] {
+                app.world_mut().resource_mut::<Run>().elapsed = elapsed;
+                app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let mut hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                let delayed = std::mem::take(&mut app.world_mut().resource_mut::<PendingHits>().0);
+                assert_eq!(delayed.len(), usize::from(key == "chain_lightning"));
+                for (due, hit) in delayed {
+                    assert!((due - elapsed - 0.08).abs() < 0.0001);
+                    hits.push(hit);
+                }
+                assert_eq!(hits.len(), 2, "{key}: extra target");
+                if matches!(key, "flame_shock" | "holy_fire") {
+                    let run = app.world().resource::<Run>();
+                    let expected_dot =
+                        Params::new(&run.abilities[0], &run.stats(), run.milestones).dot;
+                    assert!(
+                        hits.iter()
+                            .all(|hit| (hit.dot - expected_dot).abs() < 0.0001),
+                        "Next-cast critical bonus cannot multiply the attached burn"
+                    );
+                }
+                assert!(
+                    hits.iter().all(|hit| hit.crit == expected_crit),
+                    "{key}: bonus applies to entire cast exactly once"
+                );
+                assert_eq!(app.world().resource::<Run>().remorseless_until, 0.);
+            }
+        }
+    }
+
+    #[test]
+    fn remorseless_kills_refresh_expire_and_consume_only_on_eligible_casts() {
+        let mut run = Run {
+            milestones: Milestones {
+                class: 3,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 272, 2)]),
+            ..Default::default()
+        };
+        assert_eq!(run.remorseless_crit("sinister_strike"), 0.0);
+        run.record_remorseless_kill();
+        assert_eq!(run.remorseless_crit("sinister_strike"), 0.4);
+        run.elapsed = 19.9;
+        assert_eq!(run.remorseless_crit("gouge"), 0.4);
+        run.elapsed = 20.0;
+        assert_eq!(run.remorseless_crit("gouge"), 0.0);
+        run.record_remorseless_kill();
+        run.elapsed = 21.0;
+        run.record_remorseless_kill();
+        assert_eq!(run.remorseless_until, 41.0);
+        assert_eq!(run.remorseless_crit("eviscerate"), 0.4);
+        for key in ["rupture", "blade_flurry", "fireball"] {
+            assert_eq!(run.remorseless_crit(key), 0.0);
+            run.consume_remorseless(key);
+            assert_eq!(run.remorseless_crit("eviscerate"), 0.4);
+        }
+        run.consume_remorseless("kidney_shot");
+        assert_eq!(run.remorseless_crit("sinister_strike"), 0.0);
+        run.hp = 0.0;
+        run.record_remorseless_kill();
+        assert_eq!(run.remorseless_until, 0.0);
+        run.hp = 100.0;
+        run.record_remorseless_kill();
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert_eq!(run.remorseless_crit("gouge"), 0.0);
+    }
+
+    #[test]
+    fn rogue_subtlety_casts_advance_only_owned_spells_and_do_not_stack_shields() {
+        let trained = Milestones {
+            class: 3,
+            points: [0, 0, 30],
+            ..Default::default()
+        };
+        let mut run = Run::default();
+        for key in ["gouge", "eviscerate", "kidney_shot", "hammer_of_wrath"] {
+            run.abilities.push(Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 3.0,
+            });
+        }
+        let gouge = trained.cast("gouge");
+        finish_milestone_cast(&mut run, gouge, 100.0);
+        assert_eq!((run.shield, run.shield_t), (3.0, 3.0));
+        assert_eq!(
+            run.abilities.iter().map(|a| a.cd).collect::<Vec<_>>(),
+            vec![3.0, 2.0, 3.0, 3.0]
+        );
+        finish_milestone_cast(&mut run, trained.cast("kidney_shot"), 100.0);
+        assert_eq!(
+            run.abilities.iter().map(|a| a.cd).collect::<Vec<_>>(),
+            vec![1.0, 2.0, 3.0, 3.0]
+        );
+        for _ in 0..3 {
+            finish_milestone_cast(&mut run, gouge, 100.0);
+        }
+        assert_eq!(run.abilities[1].cd, 0.0);
+        assert_eq!(run.shield, 3.0);
+        run.shield = 20.0;
+        run.shield_t = 1.0;
+        finish_milestone_cast(&mut run, gouge, 100.0);
+        assert_eq!((run.shield, run.shield_t), (20.0, 1.0));
+        run.hp = 0.0;
+        finish_milestone_cast(&mut run, trained.cast("kidney_shot"), 100.0);
+        assert_eq!(
+            run.abilities[0].cd, 1.0,
+            "dead heroes receive no cast triggers"
+        );
+        run.hp = 100.0;
+        run.abilities.clear();
+        finish_milestone_cast(&mut run, gouge, 100.0);
+        assert!(
+            run.abilities.is_empty(),
+            "milestones do not grant unowned spells"
+        );
+    }
+
+    #[test]
+    fn rogue_milestones_guarantee_eviscerate_crits_and_keep_flurry_one_area() {
+        let mut stats = Run::default().stats();
+        stats.crit = 0.0;
+        stats.crit_damage = 2.2;
+        stats.targets = 10;
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let assassination = Milestones {
+            points: [30, 0, 0],
+            ..base
+        }
+        .with_ranks(&[(0, 276, 3), (0, 270, 5)]);
+        let eviscerate = Owned {
+            def: data::ability("eviscerate"),
+            level: 3,
+            cd: 0.0,
+        };
+        let p = Params::new(&eviscerate, &stats, assassination);
+        assert_eq!(p.crit, 1.0);
+        assert!((p.crit_damage - 2.4).abs() < 0.00001);
+        for seed in [1, 17, 2999] {
+            let (damage, crit) = roll(&mut Rng(seed), p.crit, p.crit_damage, p.dmg);
+            assert!(crit);
+            assert!((damage - p.dmg * 2.4).abs() < 0.001);
+        }
+        let combat = Milestones {
+            points: [0, 30, 0],
+            ..base
+        }
+        .with_ranks(&[(1, 201, 2)]);
+        for key in ["sinister_strike", "blade_flurry", "gouge", "fireball"] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 3,
+                cd: 0.0,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, combat);
+            let cooldown = match key {
+                "sinister_strike" => 0.6885,
+                "fireball" => 1.0,
+                _ => 0.85,
+            };
+            assert!((after.cooldown - before.cooldown * cooldown).abs() < 0.0001);
+            assert_eq!(after.count, before.count);
+            let radius = if key == "blade_flurry" { 1.3 } else { 1.0 };
+            assert!((after.radius - before.radius * radius).abs() < 0.0001);
+            assert_eq!(after.effect, before.effect);
+        }
+    }
+
+    #[test]
+    fn drain_leech_and_siphon_heal_only_removed_health_without_revival() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (leech, drain, multistrike) in [(0.0, 0.0, 0.0), (0.2, 0.5, 1.0)] {
+            for periodic in [false, true] {
+                for (points, rank) in [(29, 0), (29, 1), (30, 0), (30, 1), (30, 255)] {
+                    for hp in [0.0, 50.0, 99.0] {
+                        let mut app = App::new();
+                        let mut time = Time::<()>::default();
+                        time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                        let run = Run {
+                            hp,
+                            bonus: campaign::Bonus {
+                                leech,
+                                multistrike,
+                                ..Default::default()
+                            },
+                            milestones: Milestones {
+                                class: 7,
+                                points: [points, 0, 0],
+                                ..Default::default()
+                            }
+                            .with_ranks(&[(0, 1041, rank), (0, 1004, rank)]),
+                            ..Default::default()
+                        };
+                        app.insert_resource(time)
+                            .insert_resource(run)
+                            .insert_resource(Rng(0))
+                            .insert_resource(super::super::account::empty())
+                            .init_resource::<super::super::Selection>()
+                            .init_resource::<PlaySeq>()
+                            .init_resource::<PendingHits>()
+                            .add_message::<CastEvent>()
+                            .add_message::<SpellGoTargets>()
+                            .add_message::<SwingMessage>()
+                            .add_message::<crate::combat_text::CombatTextSpawn>()
+                            .add_message::<Hit>()
+                            .add_message::<Loot>()
+                            .add_message::<FieldChanged>();
+                        let enemy = app
+                            .world_mut()
+                            .spawn((
+                                Guid(123),
+                                Transform::default(),
+                                ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(
+                                    &[],
+                                )),
+                                Marks::debuffs(),
+                                Enemy {
+                                    def: &data::roster(0).enemies[0],
+                                    hp: 5.0,
+                                    max_hp: 100.0,
+                                    speed: 3.0,
+                                    damage: 1.0,
+                                    radius: 0.6,
+                                    xp: 1,
+                                    boss: false,
+                                    elite: false,
+                                    attack_cd: 0.0,
+                                    slows: Default::default(),
+                                    root_t: 0.0,
+                                    frozen_t: 0.0,
+                                    winters_chill: Default::default(),
+                                    shadow_weaving: Default::default(),
+                                    kidney_t: 0.0,
+                                    stun_t: 0.0,
+                                    fear_t: 0.0,
+                                    incapacitate_t: 0.0,
+                                    weaken: 1.0,
+                                    weaken_t: 0.0,
+                                    poison: Default::default(),
+                                    dots: if periodic {
+                                        vec![enemies::Dot {
+                                            origin: crate::survivors::abilities::HitOrigin::Hero,
+                                            dps: 10.0,
+                                            left: 3.0,
+                                            tick: 1.0,
+                                            source: "corruption",
+                                        }]
+                                    } else {
+                                        vec![]
+                                    },
+                                    dead: false,
+                                },
+                            ))
+                            .id();
+                        if !periodic {
+                            let hit = if drain > 0.0 {
+                                let run = app.world().resource::<Run>();
+                                let owned = Owned {
+                                    def: data::ability("death_coil"),
+                                    level: 5,
+                                    cd: 0.0,
+                                };
+                                let params = Params::new(&owned, &run.stats(), run.milestones);
+                                let base = Params::new(
+                                    &owned,
+                                    &run.stats(),
+                                    Milestones {
+                                        class: 7,
+                                        points: [points, 0, 0],
+                                        ..Default::default()
+                                    },
+                                );
+                                assert_eq!(
+                                    (params.dmg, params.cooldown, params.count, params.radius),
+                                    (base.dmg, base.cooldown, base.count, base.radius)
+                                );
+                                hit_for(owned.def, &params, enemy, params.dmg, false)
+                            } else {
+                                Hit {
+                                    source: "curse_of_agony",
+                                    ..Hit::direct(enemy, 10.0, false)
+                                }
+                            };
+                            app.world_mut().resource_mut::<Messages<Hit>>().write(hit);
+                        }
+                        app.world_mut().run_system_once(apply_hits).unwrap();
+                        let run = app.world().resource::<Run>();
+                        let expected = if hp == 0.0 {
+                            0.0
+                        } else {
+                            (hp + 5.0
+                                * ((if periodic || drain == 0.0 {
+                                    (if points >= 30 { 0.05 } else { 0. })
+                                        + if rank > 0 { 0.05 } else { 0. }
+                                } else {
+                                    0.0
+                                }) + run.stats().leech
+                                    + if periodic {
+                                        0.0
+                                    } else {
+                                        drain * (1.0 + 0.02 * f32::from(rank.min(5)))
+                                    }))
+                            .min(run.stats().max_hp)
+                        };
+                        assert!((run.hp - expected).abs() < 0.00001);
+                        assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                        app.world_mut().run_system_once(apply_hits).unwrap();
+                        assert!(
+                            (app.world().resource::<Run>().hp - expected).abs() < 0.00001,
+                            "dead targets cannot heal again"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn nightfall_obeys_rank_probability_ownership_and_does_not_bank_charges() {
+        let seed = (1..1000)
+            .find(|seed| {
+                let roll = Rng(*seed).f32();
+                (0.02..0.04).contains(&roll)
+            })
+            .unwrap();
+        for rank in [1, 2] {
+            let mut run = Run {
+                milestones: Milestones {
+                    class: 7,
+                    ..Default::default()
+                }
+                .with_ranks(&[(0, 1002, rank)]),
+                ..Default::default()
+            };
+            run.abilities.clear();
+            let mut rng = Rng(seed);
+            apply_nightfall(&mut run, &mut rng, "corruption", 1.);
+            assert!(run.abilities.is_empty(), "does not grant Shadow Bolt");
+            assert_eq!(rng.0, seed, "no roll without an owned spell");
+            run.abilities.push(Owned {
+                def: data::ability("shadow_bolt"),
+                level: 1,
+                cd: 0.,
+            });
+            apply_nightfall(&mut run, &mut rng, "corruption", 1.);
+            assert_eq!(rng.0, seed, "no roll or charge for a ready spell");
+            run.abilities[0].cd = 8.;
+            apply_nightfall(&mut run, &mut rng, "corruption", 0.);
+            assert_eq!(rng.0, seed, "no roll after all target health is removed");
+            assert_eq!(run.abilities[0].cd, 8.);
+            apply_nightfall(&mut run, &mut rng, "corruption", 1.);
+            assert_eq!(run.abilities[0].cd, if rank == 2 { 0. } else { 8. });
+            let mut expected_rng = Rng(seed);
+            expected_rng.f32();
+            assert_eq!(rng.0, expected_rng.0, "exactly one roll per eligible tick");
+        }
+    }
+
+    #[test]
+    fn nightfall_only_readies_owned_shadow_bolt_from_living_hero_corruption_ticks() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (periodic, source) in [
+            (false, "corruption"),
+            (true, "corruption"),
+            (true, "curse_of_agony"),
+        ] {
+            for rank in [0, 1, 2, 255] {
+                for hp in [0.0, 50.0, 99.0] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        hp,
+                        abilities: vec![
+                            Owned {
+                                def: data::ability("shadow_bolt"),
+                                level: 1,
+                                cd: 8.,
+                            },
+                            Owned {
+                                def: data::ability("immolate"),
+                                level: 1,
+                                cd: 7.,
+                            },
+                        ],
+                        milestones: Milestones {
+                            class: 7,
+                            points: [20, 0, 0],
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(0, 1002, rank)]),
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 5.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slows: Default::default(),
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                incapacitate_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                poison: Default::default(),
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source,
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source,
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let expected = if periodic && source == "corruption" && rank > 0 && hp > 0. {
+                        0.
+                    } else {
+                        8.
+                    };
+                    assert_eq!(run.abilities[0].cd, expected);
+                    assert_eq!(run.abilities[1].cd, 7.);
+                    // A later pass over the dead target cannot ready another cooldown.
+                    app.world_mut().resource_mut::<Run>().abilities[0].cd = 6.;
+                    assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert_eq!(app.world().resource::<Run>().abilities[0].cd, 6.);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn flurry_damage_resolution_excludes_ticks_dead_units_and_foreign_sources() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for (class, talent, source, eligible) in [
+            (0, 156, "cleave", true),
+            (0, 156, "lightning_bolt", false),
+            (5, 602, "lightning_bolt", true),
+            (5, 602, "flame_shock", true),
+            (5, 602, "magma_totem", false),
+            (5, 602, "cleave", false),
+        ] {
+            for rank in [0, 5] {
+                for (critical, periodic, hero_dead, target_dead) in [
+                    (true, false, false, false),
+                    (false, false, false, false),
+                    (true, true, false, false),
+                    (true, false, true, false),
+                    (true, false, false, true),
+                ] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs(1));
+                    app.insert_resource(time)
+                        .insert_resource(Run {
+                            class: &data::CLASSES[class],
+                            hp: if hero_dead { 0. } else { 100. },
+                            milestones: Milestones {
+                                class,
+                                ..Default::default()
+                            }
+                            .with_ranks(&[(1, talent, rank)]),
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
+                                        dps: 10.,
+                                        left: 3.,
+                                        tick: 1.,
+                                        source,
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: target_dead,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        // Multiple critical hits in the same update refresh one timer.
+                        for _ in 0..2 {
+                            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                                source,
+                                ..Hit::direct(enemy, 10., critical)
+                            });
+                        }
+                    }
+                    let mut schedule = Schedule::default();
+                    schedule.add_systems(apply_hits);
+                    schedule.run(app.world_mut());
+                    let triggered =
+                        rank > 0 && eligible && critical && !periodic && !hero_dead && !target_dead;
+                    assert_eq!(
+                        app.world().resource::<Run>().flurry_t,
+                        if triggered { 3. } else { 0. },
+                        "{class} {source}"
+                    );
+                    let removed = if target_dead {
+                        0.
+                    } else if periodic {
+                        10.
+                    } else {
+                        20.
+                    };
+                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().hp, 1000. - removed);
+                    if triggered {
+                        app.world_mut().resource_mut::<Run>().flurry_t = 1.;
+                    }
+                    schedule.run(app.world_mut());
+                    assert_eq!(
+                        app.world().resource::<Run>().flurry_t,
+                        if triggered { 1. } else { 0. },
+                        "old hits or ticks must not refresh"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn vampiric_embrace_heals_actual_direct_and_periodic_damage_without_reviving() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for rank in [0, 1, 2] {
+                for hp in [0.0, 50.0, 99.0] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        hp,
+                        milestones: Milestones {
+                            class: 4,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 484, 1), (2, 1638, rank)]),
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 5.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slows: Default::default(),
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                incapacitate_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                poison: Default::default(),
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source: "shadow_word_pain",
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source: "mind_blast",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let expected = if hp == 0.0 {
+                        0.0
+                    } else {
+                        (hp + 5.0 * (0.20 + 0.05 * f32::from(rank))).min(run.stats().max_hp)
+                    };
+                    assert!((run.hp - expected).abs() < 0.00001);
+                    assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert!(
+                        (app.world().resource::<Run>().hp - expected).abs() < 0.00001,
+                        "dead targets cannot heal again"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn shadow_weaving_affects_subsequent_direct_and_periodic_hits() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for rank in [0, 5] {
+                for boss in [false, true] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        milestones: Milestones {
+                            class: 4,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 461, rank)]),
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 100.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slows: Default::default(),
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                incapacitate_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                poison: Default::default(),
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source: "shadow_word_pain",
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source: "mind_blast",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().hp, 90.0);
+                    if !periodic {
+                        let mut hits = app.world_mut().resource_mut::<Messages<Hit>>();
+                        hits.clear();
+                        hits.write(Hit {
+                            source: "mind_blast",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let expected = if rank == 0 { 80.0 } else { 79.7 };
+                    assert!(
+                        (app.world().get::<Enemy>(enemy).unwrap().hp - expected).abs() < 0.00001
+                    );
+                    let marks = app.world().get::<Enemy>(enemy).unwrap().shadow_weaving;
+                    let multiplier = app
+                        .world()
+                        .resource::<Run>()
+                        .milestones
+                        .shadow_damage_multiplier("mind_blast", marks);
+                    assert!((multiplier - if rank == 0 { 1.0 } else { 1.06 }).abs() < 0.00001);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn blackout_stuns_on_direct_and_periodic_shadow_damage_without_stacking() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for rank in [0, 5] {
+                for boss in [false, true] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                    let run = Run {
+                        milestones: Milestones {
+                            class: 4,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 464, rank)]),
+                        ..Default::default()
+                    };
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>();
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 100.0,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slows: Default::default(),
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                incapacitate_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                poison: Default::default(),
+                                dots: if periodic {
+                                    vec![enemies::Dot {
+                                        origin: crate::survivors::abilities::HitOrigin::Hero,
+                                        dps: 10.0,
+                                        left: 3.0,
+                                        tick: 1.0,
+                                        source: "shadow_word_pain",
+                                    }]
+                                } else {
+                                    vec![]
+                                },
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    if !periodic {
+                        app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                            source: "mind_blast",
+                            ..Hit::direct(enemy, 10.0, false)
+                        });
+                    }
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    let expected = if rank == 0 {
+                        0.0
+                    } else if boss {
+                        0.9
+                    } else {
+                        3.0
+                    };
+                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().stun_t, expected);
+                    assert!(!app.world().get::<Enemy>(enemy).unwrap().dead);
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().stun_t = 5.0;
+                    app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                        source: "mind_blast",
+                        ..Hit::direct(enemy, 10.0, false)
+                    });
+                    app.world_mut().run_system_once(apply_hits).unwrap();
+                    assert_eq!(app.world().get::<Enemy>(enemy).unwrap().stun_t, 5.0);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn poor_gear_is_collected_from_direct_and_periodic_ordinary_kills() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for (boss, elite) in [(false, false), (true, false), (false, true)] {
+                let mut app = App::new();
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                app.insert_resource(time)
+                    .insert_resource(Run::default())
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(super::super::Selection {
+                        class: Some(0),
+                        map: data::MAPS
+                            .iter()
+                            .position(|map| map.name == "Elwynn Forest")
+                            .unwrap(),
+                        ..Default::default()
+                    })
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let enemy = app
+                    .world_mut()
+                    .spawn((
+                        Guid(123),
+                        Transform::default(),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp: 5.0,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss,
+                            elite,
+                            attack_cd: 0.0,
+                            slows: Default::default(),
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            incapacitate_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            poison: Default::default(),
+                            dots: if periodic {
+                                vec![enemies::Dot {
+                                    origin: crate::survivors::abilities::HitOrigin::Hero,
+                                    dps: 10.0,
+                                    left: 3.0,
+                                    tick: 1.0,
+                                    source: "shadow_word_pain",
+                                }]
+                            } else {
+                                vec![]
+                            },
+                            dead: false,
+                        },
+                    ))
+                    .id();
+                if !periodic {
+                    app.world_mut()
+                        .resource_mut::<Messages<Hit>>()
+                        .write(Hit::direct(enemy, 10.0, false));
+                }
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let count = usize::from(!boss && !elite);
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+                assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+            }
+        }
+    }
+
+    #[test]
+    fn raid_gear_is_collected_once_from_direct_and_periodic_finale_kills() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for (boss, elite) in [(false, false), (true, false), (false, true)] {
+                let mut app = App::new();
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                app.insert_resource(time)
+                    .insert_resource(Run::default())
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(super::super::Selection {
+                        class: Some(0),
+                        map: data::MAPS
+                            .iter()
+                            .position(|map| map.name == "Naxxramas")
+                            .unwrap(),
+                        ..Default::default()
+                    })
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let enemy = app
+                    .world_mut()
+                    .spawn((
+                        Guid(123),
+                        Transform::default(),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: data::roster(
+                                data::MAPS
+                                    .iter()
+                                    .position(|m| m.name == "Naxxramas")
+                                    .unwrap(),
+                            )
+                            .bosses
+                            .iter()
+                            .find(|b| b.name == "Kel'Thuzad")
+                            .unwrap(),
+                            hp: 5.0,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss,
+                            elite,
+                            attack_cd: 0.0,
+                            slows: Default::default(),
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            incapacitate_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            poison: Default::default(),
+                            dots: if periodic {
+                                vec![enemies::Dot {
+                                    origin: crate::survivors::abilities::HitOrigin::Hero,
+                                    dps: 10.0,
+                                    left: 3.0,
+                                    tick: 1.0,
+                                    source: "shadow_word_pain",
+                                }]
+                            } else {
+                                vec![]
+                            },
+                            dead: false,
+                        },
+                    ))
+                    .id();
+                if !periodic {
+                    app.world_mut()
+                        .resource_mut::<Messages<Hit>>()
+                        .write(Hit::direct(enemy, 10.0, false));
+                }
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let count = usize::from(boss);
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+                assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+            }
+        }
+    }
+
+    #[test]
+    fn alternative_weapon_rewards_coexist_with_legacy_loot_once_per_kill() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for (boss, elite) in [(false, false), (true, false), (false, true)] {
+                let mut app = App::new();
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                app.insert_resource(time)
+                    .insert_resource(Run::default())
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(super::super::Selection {
+                        class: Some(0),
+                        map: data::MAPS
+                            .iter()
+                            .position(|map| map.name == "Elwynn Forest")
+                            .unwrap(),
+                        ..Default::default()
+                    })
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let enemy = app
+                    .world_mut()
+                    .spawn((
+                        Guid(123),
+                        Transform::default(),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: data::roster(
+                                data::MAPS
+                                    .iter()
+                                    .position(|m| m.name == "Elwynn Forest")
+                                    .unwrap(),
+                            )
+                            .bosses
+                            .iter()
+                            .find(|b| b.name == "Hogger")
+                            .unwrap(),
+                            hp: 5.0,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss,
+                            elite,
+                            attack_cd: 0.0,
+                            slows: Default::default(),
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            incapacitate_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            poison: Default::default(),
+                            dots: if periodic {
+                                vec![enemies::Dot {
+                                    origin: crate::survivors::abilities::HitOrigin::Hero,
+                                    dps: 10.0,
+                                    left: 3.0,
+                                    tick: 1.0,
+                                    source: "shadow_word_pain",
+                                }]
+                            } else {
+                                vec![]
+                            },
+                            dead: false,
+                        },
+                    ))
+                    .id();
+                if !periodic {
+                    app.world_mut()
+                        .resource_mut::<Messages<Hit>>()
+                        .write(Hit::direct(enemy, 10.0, false));
+                }
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let count = usize::from(boss);
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+                assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                if boss {
+                    let account = app.world().resource::<super::super::account::Account>();
+                    assert!(account.supplemental.owns(0, "weapon:warrior:worn-mace"));
+                    assert_eq!(
+                        account.classes[0].pieces[0], 1,
+                        "existing Hogger head reward survives"
+                    );
+                    assert!(account.classes[0].equipment.supplemental_worn()[8].is_none());
+                    assert!(app
+                        .world()
+                        .resource::<Run>()
+                        .banner
+                        .as_ref()
+                        .unwrap()
+                        .0
+                        .contains("Worn Mace"));
+                }
+                app.world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .write(Hit::direct(enemy, 10.0, false));
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                assert_eq!(
+                    app.world()
+                        .resource::<super::super::account::Account>()
+                        .supplemental
+                        .keys()
+                        .count(),
+                    count
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+            }
+        }
+    }
+
+    #[test]
+    fn spirit_tap_procs_from_direct_and_periodic_kills_only_once_per_enemy() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for periodic in [false, true] {
+            for rank in [0, 5] {
+                let mut app = App::new();
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(1.0));
+                let run = Run {
+                    milestones: Milestones {
+                        class: 4,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(2, 465, rank)]),
+                    ..Default::default()
+                };
+                app.insert_resource(time)
+                    .insert_resource(run)
+                    .insert_resource(Rng(42))
+                    .insert_resource(super::super::account::empty())
+                    .init_resource::<super::super::Selection>()
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let enemy = app
+                    .world_mut()
+                    .spawn((
+                        Guid(123),
+                        Transform::default(),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp: 5.0,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss: false,
+                            elite: false,
+                            attack_cd: 0.0,
+                            slows: Default::default(),
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            incapacitate_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            poison: Default::default(),
+                            dots: if periodic {
+                                vec![enemies::Dot {
+                                    origin: crate::survivors::abilities::HitOrigin::Hero,
+                                    dps: 10.0,
+                                    left: 3.0,
+                                    tick: 1.0,
+                                    source: "shadow_word_pain",
+                                }]
+                            } else {
+                                vec![]
+                            },
+                            dead: false,
+                        },
+                    ))
+                    .id();
+                if !periodic {
+                    app.world_mut()
+                        .resource_mut::<Messages<Hit>>()
+                        .write(Hit::direct(enemy, 10.0, false));
+                }
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let expected = if rank == 5 { 15.0 } else { 0.0 };
+                assert_eq!(app.world().resource::<Run>().spirit_tap_t, expected);
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+                assert!(app.world().get::<Enemy>(enemy).unwrap().dead);
+                app.world_mut().resource_mut::<Run>().spirit_tap_t = 7.0;
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                assert_eq!(
+                    app.world().resource::<Run>().spirit_tap_t,
+                    7.0,
+                    "dead enemy cannot refresh"
+                );
+                assert_eq!(app.world().resource::<Run>().kills, 1);
+            }
+        }
+    }
+
+    #[test]
+    fn priest_milestones_trigger_once_per_successful_cast_and_preserve_target_rules() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for trained_nova in [false, true] {
+            for key in [
+                "holy_fire",
+                "holy_nova",
+                "psychic_scream",
+                "mind_blast",
+                "power_word_shield",
+            ] {
+                for with_targets in [false, true] {
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                    let mut run = Run {
+                        class: &data::CLASSES[4],
+                        hp: 20.0,
+                        milestones: Milestones {
+                            class: 4,
+                            points: [30; 3],
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    };
+                    if trained_nova {
+                        run.milestones = run.milestones.with_ranks(&[(1, 442, 1), (1, 404, 5)]);
+                    }
+                    let max_hp = run.stats().max_hp;
+                    run.bonus.targets = 2;
+                    run.abilities.push(Owned {
+                        def: data::ability(key),
+                        level: 1,
+                        cd: 0.0,
+                    });
+                    let advanced = if key == "power_word_shield" {
+                        "mind_blast"
+                    } else {
+                        "shadow_word_pain"
+                    };
+                    run.abilities.push(Owned {
+                        def: data::ability(advanced),
+                        level: 1,
+                        cd: 5.0,
+                    });
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(42))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0.0, air: 0.0 }));
+                    if with_targets {
+                        for x in [1.0, 2.0, 3.0] {
+                            app.world_mut().spawn((
+                                Transform::from_xyz(x, 0.0, 0.0),
+                                Enemy {
+                                    def: &data::roster(0).enemies[0],
+                                    hp: 100.0,
+                                    max_hp: 100.0,
+                                    speed: 3.0,
+                                    damage: 1.0,
+                                    radius: 0.6,
+                                    xp: 1,
+                                    boss: false,
+                                    elite: false,
+                                    attack_cd: 0.0,
+                                    slows: Default::default(),
+                                    root_t: 0.0,
+                                    frozen_t: 0.0,
+                                    winters_chill: Default::default(),
+                                    shadow_weaving: Default::default(),
+                                    kidney_t: 0.0,
+                                    stun_t: 0.0,
+                                    fear_t: 0.0,
+                                    incapacitate_t: 0.0,
+                                    weaken: 1.0,
+                                    weaken_t: 0.0,
+                                    poison: Default::default(),
+                                    dots: Vec::new(),
+                                    dead: false,
+                                },
+                            ));
+                        }
+                    }
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let success = with_targets || key == "power_word_shield";
+                    let healing = if success {
+                        match key {
+                            "holy_fire" => 0.03,
+                            "holy_nova" => {
+                                if trained_nova {
+                                    0.11
+                                } else {
+                                    0.05
+                                }
+                            }
+                            _ => 0.0,
+                        }
+                    } else {
+                        0.0
+                    };
+                    assert!(
+                        (run.hp - (20.0 + max_hp * healing)).abs() < 0.0001,
+                        "{key}: heal once"
+                    );
+                    let advance = success && matches!(key, "mind_blast" | "power_word_shield");
+                    assert!(
+                        (run.abilities[1].cd - if advance { 2.9 } else { 4.9 }).abs() < 0.0001,
+                        "{key}: advance once"
+                    );
+                    if key == "psychic_scream" {
+                        assert!(
+                            (run.shield - if success { max_hp * 0.05 } else { 0.0 }).abs() < 0.0001
+                        );
+                        assert_eq!(run.shield_t, if success { 3.0 } else { 0.0 });
+                    }
+                    if key == "power_word_shield" {
+                        assert_eq!(run.immune_t, 1.0);
+                        assert!(run.shield > 0.0);
+                    }
+                    if with_targets && matches!(key, "holy_nova" | "psychic_scream" | "mind_blast")
+                    {
+                        assert_eq!(
+                            app.world().resource::<Messages<Hit>>().len(),
+                            3,
+                            "{key}: targets hit once"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn priest_training_reaches_ranked_damage_burns_shields_and_cooldowns() {
+        let base = Milestones {
+            class: 4,
+            ..Default::default()
+        };
+        let ranks: Vec<_> = survivors_core::talents::definitions(4)
+            .iter()
+            .map(|node| (0, node.id, node.max_rank))
+            .collect();
+        let trained = base.with_ranks(&ranks);
+        let mut stats = Run::default().stats();
+        stats.haste = 0.25;
+        stats.cooldown = 0.15;
+        for (key, damage, cooldown, duration, crit) in [
+            ("smite", 1.155, 0.8, 1.0, 0.10),
+            ("holy_fire", 1.155, 0.8, 1.0, 0.10),
+            ("holy_nova", 1.05, 0.9, 1.0, 0.10),
+            ("shadow_word_pain", 1.155 * 1.1, 0.9, 1.3, 0.0),
+            ("mind_blast", 1.155 * 1.1, 0.75, 1.0, 0.05),
+            ("psychic_scream", 1.155, 0.72, 1.0, 0.05),
+            ("power_word_shield", 1.15, 0.9, 1.0, 0.0),
+            ("shadow_bolt", 1.0, 1.0, 1.0, 0.0),
+        ] {
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.0001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.0001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                    "{key}"
+                );
+                assert!(
+                    (after.duration - before.duration * duration).abs() < 0.0001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.0001, "{key}");
+                assert_eq!(after.count, before.count);
+                assert!(
+                    (after.radius - before.radius * if key == "holy_nova" { 1.2 } else { 1.0 })
+                        .abs()
+                        < 0.0001
+                );
+                let reach = if matches!(
+                    key,
+                    "smite" | "holy_fire" | "shadow_word_pain" | "mind_blast"
+                ) {
+                    1.2
+                } else {
+                    1.0
+                };
+                assert!((after.range - before.range * reach).abs() < 0.0001);
+                assert_eq!(after.effect, before.effect);
+            }
+        }
+    }
+
+    #[test]
+    fn rogue_cooldown_training_reaches_ranked_cast_parameters() {
+        let base = Milestones {
+            class: 3,
+            points: [30, 30, 30],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 277, 3), (2, 247, 2), (0, 382, 1)]);
+        let mut stats = Run::default().stats();
+        stats.haste = 0.25;
+        stats.cooldown = 0.15;
+        for (key, factor) in [
+            ("blade_flurry", 0.85 * 0.9),
+            ("gouge", 0.8 * 0.9),
+            ("kidney_shot", 0.8 * 0.9),
+            ("sinister_strike", 0.9),
+            ("eviscerate", 0.9),
+            ("rupture", 0.9),
+            ("fireball", 1.0),
+        ] {
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!(
+                    (after.cooldown - before.cooldown * factor).abs() < 0.0001,
+                    "{key} rank {level}"
+                );
+                assert_eq!(after.dmg, before.dmg);
+                assert_eq!(after.dot, before.dot);
+                assert_eq!(after.effect, before.effect);
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+            }
+        }
+    }
+
+    #[test]
+    fn rogue_weapon_expertise_reaches_ranked_hits_without_changing_periodic_damage() {
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        for kind in [
+            MeleeKind::Sword,
+            MeleeKind::Dagger,
+            MeleeKind::Fist,
+            MeleeKind::Mace,
+        ] {
+            for (rank, bonus) in [(1, 0.03), (2, 0.05)] {
+                let base = Milestones {
+                    class: 3,
+                    weapon: Some(MeleeWeapon {
+                        kind,
+                        two_handed: false,
+                    }),
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 1703, rank)]);
+                let mut stats = Run::default().stats();
+                stats.might = 1.4;
+                stats.crit = 1.0;
+                stats.targets = 4;
+                for key in [
+                    "sinister_strike",
+                    "eviscerate",
+                    "blade_flurry",
+                    "gouge",
+                    "kidney_shot",
+                    "rupture",
+                    "fireball",
+                ] {
+                    for level in [1, 3, 8] {
+                        let owned = Owned {
+                            def: data::ability(key),
+                            level,
+                            cd: 0.0,
+                        };
+                        let before = Params::new(&owned, &stats, base);
+                        let after = Params::new(&owned, &stats, trained);
+                        let multiplier =
+                            if matches!(key, "rupture" | "fireball") || kind == MeleeKind::Mace {
+                                1.0
+                            } else {
+                                1.0 + bonus
+                            };
+                        assert!(
+                            (after.dmg - before.dmg * multiplier).abs() < 0.0001,
+                            "{key} {level}"
+                        );
+                        assert_eq!(after.dot, before.dot);
+                        assert_eq!(after.crit, before.crit);
+                        assert_eq!(after.cooldown, before.cooldown);
+                        assert_eq!(after.count, before.count);
+                        assert_eq!(after.radius, before.radius);
+                        let (damage, critical) =
+                            roll(&mut Rng(17), after.crit, after.crit_damage, after.dmg);
+                        let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, critical);
+                        assert!(hit.crit);
+                        assert_eq!(hit.damage, after.dmg * after.crit_damage);
+                        assert_eq!(hit.dot, before.dot);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn rogue_mace_damage_reaches_ranked_hits_without_changing_periodic_damage() {
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        let base = Milestones {
+            class: 3,
+            weapon: Some(MeleeWeapon {
+                kind: MeleeKind::Mace,
+                two_handed: false,
+            }),
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(1, 184, 5)]);
+        let mut stats = Run::default().stats();
+        stats.might = 1.4;
+        stats.crit = 1.0;
+        stats.targets = 4;
+        for key in [
+            "sinister_strike",
+            "eviscerate",
+            "blade_flurry",
+            "gouge",
+            "kidney_shot",
+            "rupture",
+            "fireball",
+        ] {
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                let multiplier = if matches!(key, "rupture" | "fireball") {
+                    1.0
+                } else {
+                    1.05
+                };
+                assert!(
+                    (after.dmg - before.dmg * multiplier).abs() < 0.0001,
+                    "{key} {level}"
+                );
+                assert_eq!(after.dot, before.dot);
+                assert_eq!(after.crit, before.crit);
+                assert_eq!(after.cooldown, before.cooldown);
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                let (damage, critical) =
+                    roll(&mut Rng(17), after.crit, after.crit_damage, after.dmg);
+                let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, critical);
+                assert!(hit.crit);
+                assert_eq!(hit.damage, after.dmg * after.crit_damage);
+                assert_eq!(hit.dot, before.dot);
+            }
+        }
+    }
+
+    #[test]
+    fn weapon_crit_training_reaches_ranked_casts_without_changing_area_or_bleeds() {
+        use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
+        for (kind, talent) in [(MeleeKind::Dagger, 182), (MeleeKind::Fist, 183)] {
+            let base = Milestones {
+                class: 3,
+                weapon: Some(MeleeWeapon {
+                    kind,
+                    two_handed: false,
+                }),
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(1, talent, 5)]);
+            for crit in [0.2, 0.98] {
+                let mut stats = Run::default().stats();
+                stats.crit = crit;
+                stats.targets = 4;
+                for key in [
+                    "sinister_strike",
+                    "eviscerate",
+                    "blade_flurry",
+                    "gouge",
+                    "kidney_shot",
+                    "rupture",
+                    "fireball",
+                ] {
+                    for level in [1, 3, 8] {
+                        let owned = Owned {
+                            def: data::ability(key),
+                            level,
+                            cd: 0.0,
+                        };
+                        let before = Params::new(&owned, &stats, base);
+                        let after = Params::new(&owned, &stats, trained);
+                        let qualifies = !matches!(key, "rupture" | "fireball");
+                        let expected = if qualifies {
+                            (crit + 0.05).min(1.0)
+                        } else {
+                            crit
+                        };
+                        assert!((after.crit - expected).abs() < 0.00001, "{key}");
+                        assert_eq!(after.dmg, before.dmg);
+                        assert_eq!(after.dot, before.dot);
+                        assert_eq!(after.cooldown, before.cooldown);
+                        assert_eq!(after.count, before.count);
+                        assert_eq!(after.radius, before.radius);
+                        if qualifies && crit == 0.98 {
+                            let (damage, critical) =
+                                roll(&mut Rng(17), after.crit, after.crit_damage, after.dmg);
+                            let hit =
+                                hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, critical);
+                            assert!(hit.crit);
+                            assert_eq!(hit.damage, after.dmg * after.crit_damage);
+                            assert_eq!(hit.dot, before.dot);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn rogue_training_reaches_ranked_casts_and_critical_hits() {
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (0, 276, 3),
+            (0, 273, 3),
+            (0, 281, 1),
+            (0, 270, 5),
+            (0, 269, 5),
+            (1, 201, 2),
+            (1, 203, 3),
+            (1, 1122, 3),
+            (2, 1123, 3),
+            (2, 1702, 5),
+        ]);
+        let mut stats = Run::default().stats();
+        // Non-default sheet values exercise composition with equipment/progression.
+        stats.might = 1.4;
+        stats.crit = 0.98;
+        stats.crit_damage = 2.2;
+        stats.targets = 4;
+        for (key, damage, critical_damage, cooldown) in [
+            ("sinister_strike", 1.10 * 1.06, 2.5, 0.9),
+            ("eviscerate", 1.10 * 1.15 * 1.06, 2.2, 0.748),
+            ("gouge", 1.10, 2.5, 1.0),
+            ("kidney_shot", 1.10, 2.2, 0.748),
+            ("rupture", 1.10 * 1.30, 2.2, 0.748),
+            ("blade_flurry", 1.10, 2.2, 1.0),
+            ("fireball", 1.0, 2.2, 1.0),
+        ] {
+            for level in [1, 3, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                    "{key}"
+                );
+                assert!(
+                    (after.crit_damage - critical_damage).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(after.crit, if key == "fireball" { 0.98 } else { 1.0 });
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                let (damage, crit) = roll(&mut Rng(17), 1.0, after.crit_damage, after.dmg);
+                let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, damage, crit);
+                assert!(hit.crit);
+                assert!(
+                    (hit.damage - after.dmg * critical_damage).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!(
+                    hit.dot, after.dot,
+                    "critical hits do not multiply Rupture ticks"
+                );
+                assert_eq!(hit.source, key);
+                let (normal, crit) = roll(&mut Rng(17), 0.0, after.crit_damage, after.dmg);
+                assert_eq!(normal, after.dmg);
+                assert!(!crit);
+            }
+        }
+    }
+
+    #[test]
+    fn rogue_gouge_stun_and_marker_scale_together_without_changing_kidney_shot() {
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        let stats = Run::default().stats();
+        for rank in 0..=3 {
+            let trained = base.with_ranks(&[(1, 203, rank)]);
+            for level in [1, 3, 8] {
+                for (key, seconds) in [("gouge", 2.0), ("kidney_shot", 3.5)] {
+                    let owned = Owned {
+                        def: data::ability(key),
+                        level,
+                        cd: 0.0,
+                    };
+                    let after = Params::new(&owned, &stats, trained);
+                    let factor = if key == "gouge" {
+                        1.0 + 0.25 * f32::from(rank)
+                    } else {
+                        1.0
+                    };
+                    let expected = seconds * (1.0 + 0.1 * f32::from(level - 1)) * factor;
+                    let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, after.dmg, false);
+                    assert!(matches!(hit.effect, Effect::Stun(t) if (t - expected).abs() < 0.0001));
+                    assert!((hit.mark_dur - expected).abs() < 0.0001);
+                    assert_eq!(hit.splash, 0.0);
+                    assert_eq!(hit.dot, 0.0);
+                    let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    assert_eq!(reset.effect, Params::new(&owned, &stats, base).effect);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn hunter_melee_casts_require_close_targets_and_apply_scoped_crit() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["raptor_strike", "mongoose_bite", "wing_clip"] {
+            for rank in [0, 1, 2, 255] {
+                let mut app = App::new();
+                let mut time = Time::<()>::default();
+                time.advance_by(std::time::Duration::from_secs_f32(0.2));
+                let mut run = Run {
+                    class: &data::CLASSES[2],
+                    milestones: Milestones {
+                        class: 2,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(2, 1621, rank)]),
+                    ..Default::default()
+                };
+                run.bonus.targets = 1;
+                run.abilities.push(Owned {
+                    def: data::ability(key),
+                    level: 3,
+                    cd: 0.0,
+                });
+                let has_crit_bonus = rank > 0 && key != "wing_clip";
+                let bonus = if key == "wing_clip" {
+                    0.
+                } else {
+                    0.1 * f32::from(rank.min(2))
+                };
+                let base_crit = run.stats().crit;
+                let seed = (1..100000)
+                    .find(|seed| {
+                        let mut rng = Rng(*seed);
+                        (0..2).all(|_| {
+                            let value = rng.f32();
+                            value > base_crit && value < base_crit + 0.1
+                        })
+                    })
+                    .unwrap();
+                app.insert_resource(time)
+                    .insert_resource(run)
+                    .insert_resource(Rng(seed))
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>();
+                app.world_mut()
+                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                let mut foes = Vec::new();
+                for x in [10., 11., 12.] {
+                    foes.push(
+                        app.world_mut()
+                            .spawn((
+                                Transform::from_xyz(x, 0., 0.),
+                                Enemy {
+                                    def: &data::roster(0).enemies[0],
+                                    hp: 100.,
+                                    max_hp: 100.,
+                                    speed: 3.,
+                                    damage: 5.,
+                                    radius: 0.6,
+                                    xp: 1,
+                                    boss: false,
+                                    elite: false,
+                                    attack_cd: 0.,
+                                    slows: Default::default(),
+                                    root_t: 0.,
+                                    frozen_t: 0.,
+                                    winters_chill: Default::default(),
+                                    shadow_weaving: Default::default(),
+                                    kidney_t: 0.,
+                                    stun_t: 0.,
+                                    fear_t: 0.,
+                                    incapacitate_t: 0.0,
+                                    weaken: 1.,
+                                    weaken_t: 0.,
+                                    poison: Default::default(),
+                                    dots: Vec::new(),
+                                    dead: false,
+                                },
+                            ))
+                            .id(),
+                    );
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                assert_eq!(app.world().resource::<Run>().abilities[0].cd, 0.2);
+                for (entity, x) in foes.iter().zip([1., 2., 8.]) {
+                    app.world_mut()
+                        .get_mut::<Transform>(*entity)
+                        .unwrap()
+                        .translation
+                        .x = x;
+                }
+                app.world_mut()
+                    .resource_mut::<Time>()
+                    .advance_by(std::time::Duration::ZERO);
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                app.world_mut()
+                    .resource_mut::<Time>()
+                    .advance_by(std::time::Duration::from_secs_f32(0.2));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world_mut()
+                    .resource_mut::<Messages<Hit>>()
+                    .drain()
+                    .collect();
+                assert_eq!(hits.len(), 2, "extra targets stay in melee reach");
+                assert!(hits.iter().all(|hit| hit.crit == has_crit_bonus
+                    && hit.splash == 0.0
+                    && hit.source == key));
+                assert!(hits.iter().all(|hit| hit.target != foes[2]));
+                assert!(app.world().resource::<PendingHits>().0.is_empty());
+                let run = app.world().resource::<Run>();
+                let params = Params::new(&run.abilities[0], &run.stats(), run.milestones);
+                assert!((params.crit - base_crit - bonus).abs() < 0.00001);
+                assert!(hits.iter().all(|hit| (hit.damage
+                    - params.dmg
+                        * if has_crit_bonus {
+                            params.crit_damage
+                        } else {
+                            1.0
+                        })
+                .abs()
+                    < 0.0001));
+                assert!(run.abilities[0].cd > 0.0);
+            }
+        }
+    }
+
+    #[test]
+    fn hunter_training_reaches_direct_periodic_and_control_casts() {
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (1, 1341, 5),
+            (1, 1345, 1),
+            (1, 1346, 5),
+            (1, 1348, 5),
+            (2, 1306, 2),
+        ]);
+        let stats = Run::default().stats();
+        for (key, damage, cooldown) in [
+            ("aimed_shot", 1.25, 1.),
+            ("arcane_shot", 1., 0.75),
+            ("serpent_sting", 1.1, 1.),
+            ("explosive_trap", 1.3, 1.),
+            ("concussive_shot", 1., 1.),
+            ("multi_shot", 1., 1.),
+            ("volley", 1., 1.),
+        ] {
+            for level in [1, 3] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.0001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.0001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.0001,
+                    "{key}"
+                );
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+                if key == "concussive_shot" {
+                    let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, after.dmg, false);
+                    let expected = 6. * (1. + 0.1 * f32::from(level - 1));
+                    assert!(matches!(hit.effect, Effect::Slow(strength, duration)
+                        if strength == 0.5 && (duration - expected).abs() < 0.0001));
+                    assert!((hit.mark_dur - expected).abs() < 0.0001);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn control_duration_reaches_hits_and_markers_without_scaling_strength() {
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(1, 161, 5)]);
+        let stats = Run::default().stats();
+        let owned = Owned {
+            def: data::ability("demoralizing_shout"),
+            level: 3,
+            cd: 0.0,
+        };
+        let p = Params::new(&owned, &stats, trained);
+        assert!((p.effect.duration() - 9.0).abs() < 0.00001);
+        let hit = hit_for(owned.def, &p, Entity::PLACEHOLDER, p.dmg, false);
+        assert!(
+            matches!(hit.effect, Effect::Weaken(m, t) if m == 0.5 && (t - 9.0).abs() < 0.00001)
+        );
+        assert!((hit.mark_dur - 9.0).abs() < 0.00001);
+        assert_eq!(p.duration, 0.0, "no artificial area or DoT lifetime");
+        let original = Params::new(&owned, &stats, base);
+        assert_eq!(p.count, original.count);
+        assert_eq!(p.radius, original.radius);
+        for effect in [
+            Effect::Slow(0.5, 2.0),
+            Effect::Weaken(0.7, 2.0),
+            Effect::Stun(2.0),
+            Effect::Root(2.0),
+            Effect::Fear(2.0),
+        ] {
+            assert_eq!(effect.scaled_duration(1.5).duration(), 3.0);
+        }
+        for effect in [Effect::None, Effect::Drain(0.2), Effect::Execute(0.3)] {
+            assert_eq!(effect.scaled_duration(1.5), effect);
+        }
+    }
+
+    #[test]
+    fn warrior_defensive_training_composes_with_milestones_and_heal_caps() {
+        let base = Milestones {
+            class: 0,
+            points: [0, 30, 10],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(2, 147, 3), (2, 150, 2), (2, 153, 1), (1, 167, 1)]);
+        let mut run = Run::default();
+        let stats = run.stats();
+        let owned = Owned {
+            def: data::ability("retaliation"),
+            level: 4,
+            cd: 0.0,
+        };
+        let before = Params::new(&owned, &stats, base);
+        let after = Params::new(&owned, &stats, trained);
+        assert!((after.dmg - before.dmg * 1.3).abs() < 0.0001);
+        assert!((after.duration - before.duration * 1.3).abs() < 0.0001);
+        assert_eq!(after.cooldown, before.cooldown);
+        assert_eq!(after.count, before.count);
+        run.hp = 40.0;
+        let healed = finish_milestone_cast(&mut run, trained.cast("retaliation"), 100.0);
+        assert!((healed - 15.0).abs() < 0.0001);
+        let healed = finish_milestone_cast(&mut run, trained.cast("execute"), 100.0);
+        assert!((healed - 5.0).abs() < 0.0001);
+        run.hp = 99.0;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("execute"), 100.0),
+            1.0
+        );
+        assert_eq!(run.hp, 100.0);
+        assert_eq!(trained.with_ranks(&[]), base);
+    }
+
+    #[test]
+    fn warrior_shout_and_retaliation_training_compose_without_more_targets() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 0,
+            points: [0, 20, 0],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (1, 165, 1),
+            (2, 150, 2),
+            (1, 161, 5),
+            (2, 151, 3),
+            (2, 143, 2),
+        ]);
+        for level in [1, 4, 8] {
+            for key in ["retaliation", "demoralizing_shout"] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                if key == "retaliation" {
+                    assert!((after.duration - before.duration * 1.3 * 1.25).abs() < 0.0001);
+                    assert_eq!(after.cooldown, before.cooldown);
+                    assert_eq!(trained.retaliation_risk(true), 1.1);
+                    assert_eq!(trained.retaliation_risk(false), 1.0);
+                } else {
+                    assert!(
+                        (after.effect.duration() - before.effect.duration() * 1.5 * 1.3).abs()
+                            < 0.0001
+                    );
+                    assert!((after.cooldown - before.cooldown * 0.8).abs() < 0.0001);
+                    assert_eq!(
+                        trained.secondary_slow(key, false),
+                        base.secondary_slow(key, false)
+                    );
+                }
+                assert_eq!(after.dmg, before.dmg);
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.count, before.count);
+            }
+        }
+        assert_eq!(trained.with_ranks(&[]), base);
+    }
+
+    #[test]
+    fn warrior_training_reaches_casts_without_extra_area_locations() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 0,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 124, 3), (1, 166, 3), (1, 158, 5)]);
+        let cast = |key, milestones| {
+            Params::new(
+                &Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.0,
+                },
+                &stats,
+                milestones,
+            )
+        };
+        assert!(
+            (cast("heroic_strike", trained).cooldown / cast("heroic_strike", base).cooldown - 0.85)
+                .abs()
+                < 0.00001
+        );
+        assert!((cast("cleave", trained).dmg / cast("cleave", base).dmg - 1.3).abs() < 0.00001);
+        let shout = cast("demoralizing_shout", trained);
+        let original = cast("demoralizing_shout", base);
+        assert_eq!(shout.radius, original.radius * 1.5);
+        assert_eq!(shout.count, original.count);
+        assert_eq!(shout.dmg, original.dmg);
+        assert_eq!(
+            cast("holy_shock", trained).dmg,
+            cast("holy_shock", base).dmg
+        );
+    }
+
+    #[test]
+    fn warrior_strike_training_reaches_combat_and_caps_critical_chance() {
+        let mut stats = Run::default().stats();
+        stats.crit = 0.9;
+        let base = Milestones::default();
+        let trained = base.with_ranks(&[(0, 131, 2), (1, 168, 5)]);
+        for (key, crit, cooldown) in [
+            ("heroic_strike", 1.0, 1.0),
+            ("mortal_strike", 0.9, 0.75),
+            ("cleave", 0.9, 1.0),
+        ] {
+            let owned = Owned {
+                def: data::ability(key),
+                level: 4,
+                cd: 0.0,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.crit - crit).abs() < 0.00001);
+            assert!((after.cooldown - before.cooldown * cooldown).abs() < 0.00001);
+            assert_eq!(after.dmg, before.dmg);
+            assert_eq!(after.count, before.count);
+            assert_eq!(after.radius, before.radius);
+        }
+    }
+
+    #[test]
+    fn legendary_bonuses_are_cast_local_and_do_not_duplicate_areas() {
+        let mut run = Run::default();
+        run.tuning.damage = 2.0;
+        let base = run.stats();
+        let params = |key, stats: &Stats| {
+            Params::new(
+                &Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.0,
+                },
+                stats,
+                Milestones::default(),
+            )
+        };
+        let fire = params("fireball", &base);
+        let area = params("consecration", &base);
+        run.worn.equip(campaign::JewelKind::Legend("fireball"));
+        let stats = run.stats();
+        assert_eq!(stats.might, base.might);
+        assert_eq!(stats.targets, base.targets);
+        assert_eq!(stats.crit_damage, base.crit_damage);
+        let enhanced = params("fireball", &stats);
+        assert!((enhanced.dmg - fire.dmg * 1.05).abs() < 0.001);
+        assert_eq!(enhanced.count, fire.count + 1);
+        assert!((enhanced.crit_damage - fire.crit_damage - 0.15).abs() < 0.001);
+        assert_eq!(params("consecration", &stats).dmg, area.dmg);
+        run.worn.equip(campaign::JewelKind::Legend("consecration"));
+        let stats = run.stats();
+        assert_eq!(params("fireball", &stats).dmg, fire.dmg);
+        let enhanced = params("consecration", &stats);
+        assert!((enhanced.dmg - area.dmg * 1.05).abs() < 0.001);
+        assert_eq!(enhanced.count, area.count);
+        assert_eq!(enhanced.radius, area.radius);
+        // Lingering effects resolve crit bonuses by their stored source.
+        let scoped = stats.for_spell("consecration");
+        assert!((scoped.crit_damage - base.crit_damage - 0.15).abs() < 0.001);
+        assert_eq!(
+            scoped.for_spell("consecration").crit_damage,
+            scoped.crit_damage
+        );
+        assert_eq!(stats.for_spell("fireball").crit_damage, base.crit_damage);
+    }
+
+    #[test]
+    fn reach_talents_extend_cast_selection_without_expanding_area_or_bounces() {
+        let stats = Run::default().stats();
+        for (class, id, rank, key, expected) in [
+            (2, 1352, 3, "arcane_shot", 34.),
+            (2, 1352, 3, "volley", 30.),
+            (5, 1641, 2, "chain_lightning", 24.),
+            (7, 1021, 2, "corruption", 24.),
+            (7, 1021, 2, "death_coil", 26.4),
+            (7, 964, 2, "rain_of_fire", 24.),
+            (8, 764, 2, "entangling_roots", 19.2),
+            (8, 764, 2, "hurricane", 24.),
+        ] {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(0, id, rank)]);
+            for level in [1, 4, 8] {
+                let owned = Owned {
+                    def: data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.range - expected).abs() < 0.0001, "{key}");
+                assert_eq!(after.radius, before.radius);
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.dmg, before.dmg);
+                assert_eq!(after.dot, before.dot);
+                assert_eq!(after.duration, before.duration);
+                assert_eq!(after.cooldown, before.cooldown);
+                let distance = (before.range + after.range) * 0.5;
+                let foes = [Foe {
+                    e: Entity::PLACEHOLDER,
+                    pos: Vec3::X * distance,
+                    radius: 0.6,
+                    hp: 100.,
+                    frozen: false,
+                    winters_chill: Default::default(),
+                    dist: distance,
+                }];
+                assert!(nearest(&foes, before.range, 1).is_empty());
+                assert_eq!(nearest(&foes, after.range, 1).len(), 1);
+            }
+        }
+    }
+
+    #[test]
+    fn divine_shield_legendary_recharges_only_its_spell_without_stacking() {
+        let mut run = Run::default();
+        let params = |key, rank, stats: &Stats| {
+            Params::new(
+                &Owned {
+                    def: data::ability(key),
+                    level: rank,
+                    cd: 0.0,
+                },
+                stats,
+                Milestones::default(),
+            )
+        };
+        let base = run.stats();
+        for _ in 0..2 {
+            run.worn.equip(campaign::JewelKind::Legend("divine_shield"));
+            let stats = run.stats();
+            assert_eq!(stats.cooldown, base.cooldown);
+            for rank in [1, 4, 8] {
+                let before = params("divine_shield", rank, &base);
+                let after = params("divine_shield", rank, &stats);
+                assert!((after.cooldown - before.cooldown * 0.85).abs() < 0.001);
+                assert_eq!(after.duration, before.duration);
+                assert_eq!(after.count, before.count);
+            }
+            assert_eq!(
+                params("fireball", 1, &stats).cooldown,
+                params("fireball", 1, &base).cooldown
+            );
+        }
+        run.worn.equip(campaign::JewelKind::Legend("fireball"));
+        assert_eq!(
+            params("divine_shield", 1, &run.stats()).cooldown,
+            params("divine_shield", 1, &base).cooldown
+        );
+    }
+
+    #[test]
+    fn divine_storm_hits_one_hero_centered_area_even_with_extra_targets() {
+        let mut world = World::new();
+        let foes: Vec<Foe> = [2.0, 5.0, 10.0]
+            .into_iter()
+            .map(|x| Foe {
+                e: world.spawn_empty().id(),
+                pos: Vec3::X * x,
+                hp: 100.0,
+                frozen: false,
+                winters_chill: Default::default(),
+                dist: x,
+                radius: 0.5,
+            })
+            .collect();
+        let run = Run::default();
+        let mut stats = run.stats();
+        stats.targets = 10;
+        let owned = super::super::Owned {
+            def: super::super::data::ability("judgement"),
+            level: 1,
+            cd: 0.0,
+        };
+        let talents = Milestones {
+            class: 1,
+            points: [0, 0, 30],
+            ..Default::default()
+        };
+        let p = Params::new(&owned, &stats, talents);
+        let hits = storm_hits(
+            &foes,
+            Vec3::ZERO,
+            1.0,
+            p.dmg * talents.cast("judgement").storm_fraction,
+        );
+        assert_eq!(hits.len(), 2);
+        assert_eq!(hits[0].target, foes[0].e);
+        assert_eq!(hits[1].target, foes[1].e);
+        assert!(hits
+            .iter()
+            .all(|hit| hit.source == "divine_storm" && hit.splash == 0.0 && !hit.crit));
+        assert_eq!(storm_hits(&foes, Vec3::ZERO, 2.0, p.dmg).len(), 3);
+    }
+
+    #[test]
+    fn trained_healing_caps_once_per_cast_and_shield_duration_reaches_combat() {
+        let mut run = Run::default();
+        let mut stats = run.stats();
+        stats.targets = 20;
+        let base = Milestones {
+            class: 1,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[(0, 1444, 3), (0, 1443, 2), (1, 1425, 2), (1, 1421, 5)]);
+        run.hp = 50.0;
+        assert!(
+            (finish_milestone_cast(&mut run, trained.cast("holy_shock"), 100.0) - 3.0).abs()
+                < 0.001
+        );
+        let with_daybreak = Milestones {
+            points: [20, 0, 0],
+            ..trained
+        };
+        assert!(
+            (finish_milestone_cast(&mut run, with_daybreak.cast("holy_shock"), 100.0) - 6.0).abs()
+                < 0.001
+        );
+        assert!((run.hp - 59.0).abs() < 0.001);
+        assert!(
+            (finish_milestone_cast(&mut run, trained.cast("divine_shield"), 100.0) - 10.0).abs()
+                < 0.001
+        );
+        run.hp = 99.0;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("divine_shield"), 100.0),
+            1.0
+        );
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("divine_shield"), 100.0),
+            0.0
+        );
+        let shield = super::super::Owned {
+            def: super::super::data::ability("divine_shield"),
+            level: 1,
+            cd: 0.0,
+        };
+        let before = Params::new(&shield, &stats, base);
+        let after = Params::new(&shield, &stats, trained);
+        assert!((after.duration - before.duration * 1.3).abs() < 0.001);
+        assert!((after.cooldown - before.cooldown * 0.85).abs() < 0.001);
+        assert_eq!(after.dmg, before.dmg);
+        assert_eq!(trained.cast("divine_shield").extra_targets, 0);
+        assert_eq!(
+            trained.cast("holy_shock").heal_fraction,
+            base.with_ranks(&[(0, 1444, 3)])
+                .cast("holy_shock")
+                .heal_fraction
+        );
+    }
+
+    #[test]
+    fn individual_spell_training_reaches_shared_combat_parameters() {
+        let run = Run::default();
+        let stats = run.stats();
+        let base = Milestones {
+            class: 1,
+            points: [30; 3],
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (2, 1631, 2),
+            (1, 1521, 3),
+            (0, 1627, 5),
+            (0, 1435, 1),
+            (0, 1502, 1),
+        ]);
+        for (key, damage, cooldown, crit) in [
+            ("judgement", 1.0, 0.8, 0.0),
+            ("hammer_of_justice", 1.0, 0.7, 0.0),
+            ("consecration", 1.2, 1.0, 0.0),
+            ("holy_shock", 1.25, 1.0, 0.1),
+        ] {
+            let owned = super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 1,
+                cd: 0.0,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+            assert!(
+                (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                "{key}"
+            );
+            assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+            assert_eq!(after.count, before.count);
+            assert_eq!(after.radius, before.radius);
+        }
+    }
+
+    #[test]
+    fn druid_node_training_reaches_damage_retaliation_and_healing_parameters() {
+        let base = Milestones {
+            class: 8,
+            ..Default::default()
+        };
+        let ranks: Vec<_> = survivors_core::talents::definitions(8)
+            .iter()
+            .map(|node| (0, node.id, node.max_rank))
+            .collect();
+        let trained = base.with_ranks(&ranks);
+        let stats = Run::default().stats();
+        for level in [1, 5] {
+            for (key, damage, cooldown, crit, crit_damage) in [
+                ("wrath", 1.1, 0.728, 0., 0.5),
+                ("moonfire", 1.21, 0.91, 0.1, 0.5),
+                ("starfire", 1.1, 0.7735, 0., 0.5),
+                ("thorns", 1.3, 1., 0., 0.),
+                ("rejuvenation", 1.3915, 0.5917275, 0., 0.),
+                ("hurricane", 1., 1., 0., 0.),
+                ("insect_swarm", 1., 1., 0., 0.),
+                ("entangling_roots", 1., 0.7735, 0., 0.),
+                ("fireball", 1., 1., 0., 0.),
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
+                    "{key}"
+                );
+                let range_multiplier = if matches!(
+                    key,
+                    "wrath" | "moonfire" | "starfire" | "entangling_roots" | "hurricane"
+                ) {
+                    1.2
+                } else {
+                    1.0
+                };
+                assert!(
+                    (after.range - before.range * range_multiplier).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!((after.count, after.radius), (before.count, before.radius));
+                let duration_scale = if key == "entangling_roots" { 1.4 } else { 1. };
+                assert!((after.duration - before.duration * duration_scale).abs() < 0.001);
+                if let (Effect::Root(before_seconds), Effect::Root(after_seconds)) =
+                    (before.effect, after.effect)
+                {
+                    assert!((after_seconds - before_seconds * duration_scale).abs() < 0.001);
+                }
+                let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
+            }
+        }
+    }
+
+    #[test]
+    fn scorpid_hits_apply_trained_weakening_without_replacing_stronger_debuffs() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 5] {
+                for rank in [0, 1, 3, 255] {
+                    let base = Milestones {
+                        class: 2,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 1351, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let owned = Owned {
+                        def: data::ability("scorpid_sting"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let p = Params::new(&owned, &stats, trained);
+                    let expected = 6.
+                        * (1. + 0.1 * f32::from(level - 1))
+                        * (1. + 0.2 * f32::from(rank.min(3)));
+                    assert!(
+                        matches!(p.effect, Effect::Weaken(m, t) if m == 0.75 && (t - expected).abs() < 0.0001)
+                    );
+                    let hit = hit_for(owned.def, &p, enemy, p.dmg, false);
+                    assert!((hit.mark_dur - expected).abs() < 0.0001);
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 1000. - p.dmg);
+                    assert_eq!(en.weaken, 0.75);
+                    assert!((en.weaken_t - expected).abs() < 0.0001);
+                    // Recasts preserve stronger active reductions, even if their duration is shorter.
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.weaken = 0.5;
+                        en.weaken_t = 1.;
+                    }
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!((en.weaken, en.weaken_t), (0.5, 1.));
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().weaken_t = 0.;
+                    app.world_mut().write_message(hit);
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.weaken, 0.75);
+                    assert!((en.weaken_t - expected).abs() < 0.0001);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn kidney_exposure_affects_later_hits_and_ticks_without_extending_other_stuns() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 5] {
+                for rank in [0, 1, 3, 255] {
+                    let base = Milestones {
+                        class: 3,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(0, 279, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let owned = Owned {
+                        def: data::ability("kidney_shot"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let p = Params::new(&owned, &stats, trained);
+                    let expected_time = p.effect.duration() * if boss { 0.3 } else { 1. };
+                    let multiplier = 1. + 0.03 * f32::from(rank.min(3));
+                    let hit = hit_for(owned.def, &p, enemy, 10., false);
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 990., "triggering hit must not amplify itself");
+                    assert_eq!(en.kidney_t, if rank > 0 { expected_time } else { 0. });
+                    // Same-frame follow-ups see exposure; reapplication refreshes, never stacks.
+                    app.world_mut().write_message(hit);
+                    app.world_mut().write_message(Hit {
+                        source: "sinister_strike",
+                        ..Hit::direct(enemy, 10., false)
+                    });
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert!((en.hp - (990. - 20. * multiplier)).abs() < 0.0001);
+                    assert_eq!(en.kidney_t, if rank > 0 { expected_time } else { 0. });
+                    // Gouge can outlast Kidney Shot, but cannot prolong its vulnerability.
+                    app.world_mut().write_message(Hit {
+                        source: "gouge",
+                        effect: Effect::Stun(30.),
+                        ..Hit::direct(enemy, 0., false)
+                    });
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.kidney_t, if rank > 0 { expected_time } else { 0. });
+                    assert!(en.stun_t > expected_time);
+                    let hp = en.hp;
+                    app.world_mut()
+                        .get_mut::<Enemy>(enemy)
+                        .unwrap()
+                        .dots
+                        .push(enemies::Dot {
+                            origin: crate::survivors::abilities::HitOrigin::Hero,
+                            dps: 10.,
+                            left: 1.,
+                            tick: 1.,
+                            source: "rupture",
+                        });
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs(1));
+                    app.update();
+                    assert!(
+                        (app.world().get::<Enemy>(enemy).unwrap().hp - (hp - 10. * multiplier))
+                            .abs()
+                            < 0.0001
+                    );
+                    // Expiry is independent of the longer stun; a refund is immediately inert.
+                    for refund in [false, true] {
+                        app.world_mut().get_mut::<Enemy>(enemy).unwrap().kidney_t =
+                            if refund { expected_time } else { 0. };
+                        if refund {
+                            app.world_mut().resource_mut::<Run>().milestones =
+                                trained.with_ranks(&[]);
+                        }
+                        let hp = app.world().get::<Enemy>(enemy).unwrap().hp;
+                        app.world_mut()
+                            .write_message(Hit::direct(enemy, 10., false));
+                        app.update();
+                        assert!(
+                            (app.world().get::<Enemy>(enemy).unwrap().hp - (hp - 10.)).abs()
+                                < 0.0001
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn destruction_control_reaches_hits_but_not_attached_ticks() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for key in [
+                "shadow_bolt",
+                "rain_of_fire",
+                "hellfire",
+                "immolate",
+                "corruption",
+                "fireball",
+            ] {
+                for rank in [0, 1, 2, 5, 255] {
+                    let base = Milestones {
+                        class: 7,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(2, 982, rank), (2, 986, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(0))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let slow = rank > 0
+                        && matches!(
+                            key,
+                            "shadow_bolt" | "rain_of_fire" | "hellfire" | "immolate"
+                        );
+                    let stun = rank > 0 && matches!(key, "rain_of_fire" | "hellfire");
+                    let hit = Hit {
+                        source: key,
+                        ..Hit::direct(enemy, 10., false)
+                    };
+                    app.world_mut().write_message(hit.clone());
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 980.);
+                    assert_eq!(
+                        en.slows.state(0.).0,
+                        if slow {
+                            if boss {
+                                0.75
+                            } else {
+                                0.5
+                            }
+                        } else {
+                            1.
+                        }
+                    );
+                    assert_eq!(en.slows.state(0.).1, if slow { 5. } else { 0. });
+                    assert_eq!(
+                        en.stun_t,
+                        if stun {
+                            if boss {
+                                0.9
+                            } else {
+                                3.
+                            }
+                        } else {
+                            0.
+                        }
+                    );
+                    // Do not weaken or shorten control already present.
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.slows.apply(
+                            survivors_core::slows::Source::Spell("fixture"),
+                            0.2,
+                            9.,
+                            0.,
+                        );
+                        en.stun_t = 10.;
+                    }
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(
+                        (en.slows.state(0.).0, en.slows.state(0.).1, en.stun_t),
+                        (0.2, 9., 10.)
+                    );
+                    // Attached DoT ticks do not roll these procs, even with an eligible source.
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.slows = Default::default();
+                        en.stun_t = 0.;
+                        en.dots.push(enemies::Dot {
+                            origin: crate::survivors::abilities::HitOrigin::Hero,
+                            dps: 10.,
+                            left: 1.,
+                            tick: 1.,
+                            source: key,
+                        });
+                    }
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs(1));
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 960.);
+                    assert_eq!((en.slows.state(0.).1, en.stun_t), (0., 0.));
+                    app.world_mut().resource_mut::<Run>().milestones = base;
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!((en.slows.state(0.).1, en.stun_t), (0., 0.));
+                    // Failed chance rolls preserve state and perform only eligible rolls.
+                    let seed = (1..1000)
+                        .find(|seed| {
+                            let mut rng = Rng(*seed);
+                            rng.f32() > 0.1 && rng.f32() > 0.26
+                        })
+                        .unwrap();
+                    let mut rng = Rng(seed);
+                    let mut expected_rng = Rng(seed);
+                    if slow {
+                        expected_rng.f32();
+                    }
+                    if stun {
+                        expected_rng.f32();
+                    }
+                    let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                    apply_destruction_control(&mut en, trained, &hit, &mut rng, 0.);
+                    assert_eq!((en.slows.state(0.).1, en.stun_t), (0., 0.));
+                    assert_eq!(rng.0, expected_rng.0);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn intensity_reaches_spawned_rain_and_delivers_all_pulses_across_frame_sizes() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for frame_seconds in [0.1, 0.6, 2.5, 20.0] {
+            for level in [1, 5] {
+                for rank in [0, 1, 2, 255] {
+                    let base = Milestones {
+                        class: 7,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(2, 985, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                    let owned = Owned {
+                        def: data::ability("rain_of_fire"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let p = Params::new(&owned, &stats, trained);
+                    let before = Params::new(&owned, &stats, base);
+                    assert!(
+                        (p.duration - before.duration * (1. + 0.1 * f32::from(rank.min(2)))).abs()
+                            < 0.00001
+                    );
+                    assert_eq!(
+                        (p.radius, p.dmg, p.cooldown),
+                        (before.radius, before.dmg, before.cooldown)
+                    );
+                    app.world_mut().resource_mut::<Run>().abilities.push(owned);
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs_f32(0.1));
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let area_entity = app
+                        .world_mut()
+                        .query_filtered::<Entity, With<GroundArea>>()
+                        .single(app.world())
+                        .unwrap();
+                    let area = app.world().get::<GroundArea>(area_entity).unwrap();
+                    assert_eq!(
+                        (area.left, area.every, area.next_tick),
+                        (p.duration, 1., 0.4)
+                    );
+                    let expected = ((p.duration - 0.4 + 0.00001).floor() as usize) + 1;
+                    app.world_mut().insert_resource(Time::<()>::default());
+                    // No simulation time means no pulse and no loss of area lifetime.
+                    app.world_mut().run_system_once(tick_areas).unwrap();
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                    assert_eq!(
+                        app.world().get::<GroundArea>(area_entity).unwrap().left,
+                        p.duration
+                    );
+                    let mut count = 0;
+                    for _ in 0..1000 {
+                        app.world_mut()
+                            .resource_mut::<Time>()
+                            .advance_by(std::time::Duration::from_secs_f32(frame_seconds));
+                        app.world_mut().run_system_once(tick_areas).unwrap();
+                        for hit in app.world_mut().resource_mut::<Messages<Hit>>().drain() {
+                            assert_eq!(hit.target, enemy);
+                            assert_eq!(hit.source, "rain_of_fire");
+                            assert_eq!(hit.splash, 0.);
+                            assert!(
+                                (hit.damage
+                                    - p.dmg * if hit.crit { stats.crit_damage } else { 1. })
+                                .abs()
+                                    < 0.0001
+                            );
+                            count += 1;
+                        }
+                        if app.world().get::<GroundArea>(area_entity).is_none() {
+                            break;
+                        }
+                    }
+                    assert!(app.world().get::<GroundArea>(area_entity).is_none());
+                    assert_eq!(
+                        count, expected,
+                        "rank={rank}, level={level}, dt={frame_seconds}"
+                    );
+                    app.world_mut().run_system_once(tick_areas).unwrap();
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn curse_exhaustion_reaches_applications_without_tick_refresh_or_other_spell_changes() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 5] {
+                for rank in [0, 1, 4, 255] {
+                    let base = Milestones {
+                        class: 7,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(0, 1081, 1), (0, 1082, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let owned = Owned {
+                        def: data::ability("curse_of_agony"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let before = Params::new(&owned, &stats, base);
+                    let after = Params::new(&owned, &stats, trained);
+                    assert_eq!(
+                        (
+                            after.dmg,
+                            after.dot,
+                            after.duration,
+                            after.count,
+                            after.range,
+                            after.cooldown
+                        ),
+                        (
+                            before.dmg,
+                            before.dot,
+                            before.duration,
+                            before.count,
+                            before.range,
+                            before.cooldown
+                        )
+                    );
+                    let hit = hit_for(owned.def, &after, enemy, after.dmg, false);
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    let speed = 0.9 - 0.05 * f32::from(rank.min(4));
+                    assert_eq!(
+                        app.world()
+                            .get::<super::super::curse::CurseState>(enemy)
+                            .unwrap()
+                            .movement(1., 0.),
+                        if boss { speed.max(0.75) } else { speed }
+                    );
+                    assert_eq!(en.slows.state(0.), (1., 0.));
+                    assert_eq!(en.hp, 1000., "curse application has no direct damage");
+                    assert_eq!(en.dots.len(), 1);
+                    assert_eq!(
+                        (en.dots[0].dps, en.dots[0].left),
+                        (after.dot, after.duration)
+                    );
+                    // A later tick damages but must not reapply a dispelled/expired slow.
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.slows = Default::default();
+                    }
+                    *app.world_mut()
+                        .get_mut::<super::super::curse::CurseState>(enemy)
+                        .unwrap() = Default::default();
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs(1));
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.slows.state(0.), (1., 0.));
+                    assert!((en.hp - (1000. - after.dot)).abs() < 0.0001);
+                    assert_eq!(
+                        app.world()
+                            .get::<super::super::curse::CurseState>(enemy)
+                            .unwrap()
+                            .movement(1., 0.),
+                        1.
+                    );
+                    // Reapplication preserves a stronger and longer existing slow.
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.slows.apply(
+                            survivors_core::slows::Source::Spell("fixture"),
+                            0.2,
+                            20.,
+                            0.,
+                        );
+                    }
+                    app.world_mut().insert_resource(Time::<()>::default());
+                    for _ in 0..2 {
+                        app.world_mut().write_message(hit.clone());
+                    }
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.slows.state(0.), (0.2, 20.));
+                    // Unrelated spells and a base-talent refund cannot apply the slow.
+                    *app.world_mut()
+                        .get_mut::<super::super::curse::CurseState>(enemy)
+                        .unwrap() = Default::default();
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.slows = Default::default();
+                    }
+                    app.world_mut().write_message(Hit {
+                        source: "corruption",
+                        ..Hit::direct(enemy, 0., false)
+                    });
+                    app.update();
+                    assert_eq!(
+                        app.world().get::<Enemy>(enemy).unwrap().slows.state(0.).1,
+                        0.
+                    );
+                    app.world_mut().resource_mut::<Run>().milestones =
+                        base.with_ranks(&[(0, 1082, rank)]);
+                    app.world_mut().write_message(hit);
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.slows.state(0.), (1., 0.));
+                    assert_eq!(
+                        app.world()
+                            .get::<super::super::curse::CurseState>(enemy)
+                            .unwrap()
+                            .movement(1., 0.),
+                        1.
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn trained_druid_roots_reach_normal_and_boss_control_without_stacking() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 5] {
+                for rank in [0, 1, 4, 255] {
+                    let base = Milestones {
+                        class: 8,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(0, 921, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+                    let owned = Owned {
+                        def: data::ability("entangling_roots"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let original = Params::new(&owned, &stats, base);
+                    let p = Params::new(&owned, &stats, trained);
+                    let Effect::Root(original_seconds) = original.effect else {
+                        panic!("roots must carry root control")
+                    };
+                    let expected = original_seconds
+                        * (1. + 0.1 * f32::from(rank.min(4)))
+                        * if boss { 0.3 } else { 1. };
+                    let hit = hit_for(owned.def, &p, enemy, 0., false);
+                    for _ in 0..2 {
+                        app.world_mut().write_message(hit.clone());
+                    }
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert!((en.root_t - expected).abs() < 0.00001);
+                    assert_eq!((en.frozen_t, en.stun_t, en.fear_t), (0., 0., 0.));
+                    // A shorter reapplication preserves stronger control already active.
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().root_t = expected + 2.;
+                    app.world_mut().write_message(hit);
+                    app.update();
+                    assert_eq!(
+                        app.world().get::<Enemy>(enemy).unwrap().root_t,
+                        expected + 2.
+                    );
+                    // A refunded spec supplies baseline duration to subsequent hits.
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().root_t = 0.;
+                    let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    app.world_mut()
+                        .write_message(hit_for(owned.def, &reset, enemy, 0., false));
+                    app.update();
+                    let baseline = original_seconds * if boss { 0.3 } else { 1. };
+                    assert!(
+                        (app.world().get::<Enemy>(enemy).unwrap().root_t - baseline).abs()
+                            < 0.00001
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn spiritual_healing_reaches_unlocked_nova_heal_and_respects_health_caps() {
+        for points in [0, 29, 30] {
+            let trained = Milestones {
+                class: 4,
+                points: [0, points, 0],
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 404, 5)]);
+            let effect = trained.cast("holy_nova");
+            let expected = if points >= 30 { 5.5 } else { 0. };
+            let mut run = Run {
+                hp: 50.,
+                ..Default::default()
+            };
+            assert!((finish_milestone_cast(&mut run, effect, 100.) - expected).abs() < 0.00001);
+            assert!((run.hp - 50. - expected).abs() < 0.00001);
+            run.hp = 99.;
+            assert_eq!(
+                finish_milestone_cast(&mut run, effect, 100.),
+                expected.min(1.)
+            );
+            run.hp = 0.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 0.);
+            assert_eq!(run.hp, 0.);
+        }
+    }
+
+    #[test]
+    fn druid_individual_swiftmend_heals_once_without_consuming_regeneration() {
+        let mut run = Run::default();
+        for points in [0, 29, 30] {
+            let base = Milestones {
+                class: 8,
+                points: [0, 0, points],
+                ..Default::default()
+            };
+            let trained = base.with_ranks(&[(2, 831, 1), (2, 844, 1)]);
+            let effect = trained.cast("rejuvenation");
+            let expected = if points >= 30 { 10. } else { 5. };
+            run.hp = 50.;
+            run.healing.refresh("rejuvenation", 30., 10.);
+            let periodic = run.healing.clone();
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), expected);
+            assert_eq!(run.hp, 50. + expected);
+            assert_eq!(run.healing, periodic);
+            let healing = trained.with_ranks(&[(2, 844, 1), (2, 830, 3), (2, 828, 5), (2, 823, 5)]);
+            run.hp = 50.;
+            let restored = finish_milestone_cast(&mut run, healing.cast("rejuvenation"), 100.);
+            assert!((restored - expected * 1.15 * 1.1 * 1.1).abs() < 0.00001);
+            assert_eq!(run.healing, periodic);
+            run.hp = 99.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 1.);
+            run.hp = 100.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 0.);
+            run.hp = 0.;
+            assert_eq!(finish_milestone_cast(&mut run, effect, 100.), 0.);
+            assert_eq!(run.hp, 0.);
+        }
+    }
+
+    #[test]
+    fn druid_milestones_reach_casts_with_bounded_healing_and_defenses() {
+        let base = Milestones {
+            class: 8,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [30; 3],
+            ..base
+        };
+        let mut run = Run::default();
+        let stats = run.stats();
+        for (key, damage, cooldown, crit) in [
+            ("wrath", 1., 1., 0.05),
+            ("moonfire", 1.25, 1., 0.05),
+            ("starfire", 1., 1., 0.05),
+            ("hurricane", 1., 1., 0.),
+            ("insect_swarm", 1., 1., 0.),
+            ("entangling_roots", 1., 0.85, 0.),
+            ("thorns", 1., 0.85, 0.),
+            ("rejuvenation", 1.2, 0.85, 0.),
+            ("fireball", 1., 1., 0.),
+        ] {
+            let owned = super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 3,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+            assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+            assert!(
+                (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                "{key}"
+            );
+            assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+            assert_eq!(
+                (after.count, after.radius, after.duration),
+                (before.count, before.radius, before.duration)
+            );
+        }
+        run.hp = 50.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("thorns"), 100.),
+            3.
+        );
+        assert_eq!((run.hp, run.shield, run.shield_t), (53., 5., 3.));
+        finish_milestone_cast(&mut run, trained.cast("thorns"), 100.);
+        assert_eq!(run.shield, 5.);
+        run.shield = 20.;
+        run.shield_t = 8.;
+        finish_milestone_cast(&mut run, trained.cast("thorns"), 100.);
+        assert_eq!((run.shield, run.shield_t), (20., 8.));
+        run.healing.refresh("rejuvenation", 30., 10.);
+        let periodic = run.healing.clone();
+        run.hp = 50.;
+        let before_swiftmend = Milestones {
+            points: [0, 0, 29],
+            ..base
+        };
+        assert_eq!(
+            finish_milestone_cast(&mut run, before_swiftmend.cast("rejuvenation"), 100.),
+            0.
+        );
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("rejuvenation"), 100.),
+            5.
+        );
+        assert_eq!(run.healing, periodic);
+        run.hp = 99.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("rejuvenation"), 100.),
+            1.
+        );
+        run.hp = 0.;
+        run.shield = 0.;
+        run.shield_t = 0.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("rejuvenation"), 100.),
+            0.
+        );
+        finish_milestone_cast(&mut run, trained.cast("thorns"), 100.);
+        assert_eq!((run.hp, run.shield, run.shield_t), (0., 0., 0.));
+    }
+
+    #[test]
+    fn cold_snap_resets_only_owned_frost_cooldowns_once_per_interval() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for rank in [0, 1, 255] {
+            for elapsed in [89.9, 90.0, 450.0] {
+                for paused in [false, true] {
+                    let mut run = Run {
+                        class: &data::CLASSES[6],
+                        elapsed,
+                        milestones: Milestones {
+                            class: 6,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(2, 69, rank)]),
+                        ..Default::default()
+                    };
+                    for key in [
+                        "frostbolt",
+                        "frost_nova",
+                        "blizzard",
+                        "cone_of_cold",
+                        "fireball",
+                        "frost_shock",
+                    ] {
+                        run.abilities.push(Owned {
+                            def: data::ability(key),
+                            level: 1,
+                            cd: 5.0,
+                        });
+                    }
+                    let mut time = Time::<()>::default();
+                    if !paused {
+                        time.advance_by(std::time::Duration::from_millis(100));
+                    }
+                    let mut app = App::new();
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(42))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0.0, air: 0.0 }));
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    assert_eq!(run.abilities.len(), 6);
+                    for (i, owned) in run.abilities.iter().enumerate() {
+                        let expected = if paused {
+                            5.0
+                        } else if rank > 0 && elapsed >= 90.0 && i < 4 {
+                            0.2
+                        } else {
+                            4.9
+                        };
+                        assert!(
+                            (owned.cd - expected).abs() < 0.00001,
+                            "{} rank={rank} elapsed={elapsed} paused={paused}",
+                            owned.def.key
+                        );
+                    }
+                    assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                    for owned in &mut app.world_mut().resource_mut::<Run>().abilities {
+                        owned.cd = 5.0;
+                    }
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    for owned in &app.world().resource::<Run>().abilities {
+                        assert!(
+                            (owned.cd - if paused { 5.0 } else { 4.9 }).abs() < 0.00001,
+                            "reset cannot bank or repeat within an interval"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn preparation_resets_only_owned_rogue_cooldowns_once_per_interval() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (class, level) in [(3, 4), (3, 5), (0, 5)] {
+            for rank in [0, 1, 255] {
+                for elapsed in [179.9, 180.0, 900.0] {
+                    for paused in [false, true] {
+                        let mut run = Run {
+                            class: &data::CLASSES[class],
+                            level,
+                            elapsed,
+                            milestones: Milestones {
+                                class,
+                                ..Default::default()
+                            }
+                            .with_ranks(&[(2, 284, rank), (1, 204, 2)]),
+                            ..Default::default()
+                        };
+                        run.mobile.cd = 8.;
+                        run.mobile.haste = 1.8;
+                        run.mobile.haste_t = 2.;
+                        for key in [
+                            "sinister_strike",
+                            "eviscerate",
+                            "gouge",
+                            "kidney_shot",
+                            "blade_flurry",
+                            "rupture",
+                            "fireball",
+                            "frost_shock",
+                        ] {
+                            run.abilities.push(Owned {
+                                def: data::ability(key),
+                                level: 1,
+                                cd: 5.0,
+                            });
+                        }
+                        let mut time = Time::<()>::default();
+                        if !paused {
+                            time.advance_by(std::time::Duration::from_millis(100));
+                        }
+                        let mut app = App::new();
+                        app.insert_resource(time)
+                            .insert_resource(run)
+                            .insert_resource(Rng(42))
+                            .init_resource::<PlaySeq>()
+                            .init_resource::<PendingHits>()
+                            .add_message::<CastEvent>()
+                            .add_message::<SpellGoTargets>()
+                            .add_message::<SwingMessage>()
+                            .add_message::<crate::combat_text::CombatTextSpawn>()
+                            .add_message::<Hit>();
+                        app.world_mut()
+                            .spawn((Transform::default(), Hero { vy: 0.0, air: 0.0 }));
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        let run = app.world().resource::<Run>();
+                        assert_eq!(run.abilities.len(), 8);
+                        let reset =
+                            class == 3 && level >= 5 && rank > 0 && elapsed >= 180. && !paused;
+                        assert_eq!(run.mobile.cd, if reset { 0. } else { 8. });
+                        assert_eq!((run.mobile.haste, run.mobile.haste_t), (1.8, 2.));
+                        if class == 3 && level >= 5 {
+                            assert_eq!(run.mobility().unwrap().cooldown, 12.);
+                        }
+
+                        for (i, owned) in run.abilities.iter().enumerate() {
+                            let expected = if paused {
+                                5.0
+                            } else if class == 3 && rank > 0 && elapsed >= 180.0 && i < 6 {
+                                0.2
+                            } else {
+                                4.9
+                            };
+                            assert!(
+                                (owned.cd - expected).abs() < 0.00001,
+                                "{} rank={rank} elapsed={elapsed} paused={paused}",
+                                owned.def.key
+                            );
+                        }
+                        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+                        for owned in &mut app.world_mut().resource_mut::<Run>().abilities {
+                            owned.cd = 5.0;
+                        }
+                        app.world_mut().resource_mut::<Run>().mobile.cd = 8.;
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        assert_eq!(
+                            app.world().resource::<Run>().mobile.cd,
+                            8.,
+                            "no repeated Sprint reset"
+                        );
+                        for owned in &app.world().resource::<Run>().abilities {
+                            assert!(
+                                (owned.cd - if paused { 5.0 } else { 4.9 }).abs() < 0.00001,
+                                "reset cannot bank or repeat within an interval"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn trained_cooldown_advances_apply_once_only_after_a_successful_cast() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for (class, tree, id, threshold, trigger, target, unrelated) in [
+            (7, 2, 968, 30, "immolate", "shadowburn", "searing_pain"),
+            (
+                6,
+                0,
+                86,
+                20,
+                "arcane_missiles",
+                "arcane_explosion",
+                "fireball",
+            ),
+        ] {
+            for rank in [0, 1, 255] {
+                for points in [0, threshold] {
+                    for targets in [0, 3] {
+                        for cooldown in [0., 1.] {
+                            for shadowburn_cd in [0.5_f32, 5.] {
+                                let mut run = Run {
+                                    class: &data::CLASSES[class],
+                                    hp: 100.,
+                                    milestones: Milestones {
+                                        class,
+                                        points: std::array::from_fn(|index| {
+                                            if index == tree as usize {
+                                                points
+                                            } else {
+                                                0
+                                            }
+                                        }),
+                                        ..Default::default()
+                                    }
+                                    .with_ranks(&[(tree, id, rank)]),
+                                    ..Default::default()
+                                };
+                                run.bonus.targets = 2;
+                                // Visit the target first so newly readied spells wait until next update.
+                                for (key, cd) in [
+                                    (target, shadowburn_cd),
+                                    (trigger, cooldown),
+                                    (unrelated, 8.),
+                                ] {
+                                    run.abilities.push(Owned {
+                                        def: data::ability(key),
+                                        level: 1,
+                                        cd,
+                                    });
+                                }
+                                let mut time = Time::<()>::default();
+                                time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                                let mut app = App::new();
+                                app.insert_resource(time)
+                                    .insert_resource(run)
+                                    .insert_resource(Rng(42))
+                                    .init_resource::<PlaySeq>()
+                                    .init_resource::<PendingHits>()
+                                    .add_message::<CastEvent>()
+                                    .add_message::<SpellGoTargets>()
+                                    .add_message::<SwingMessage>()
+                                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                                    .add_message::<Hit>();
+                                app.world_mut()
+                                    .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                                for x in 0..targets {
+                                    app.world_mut().spawn((
+                                        Transform::from_xyz(1. + x as f32, 0., 0.),
+                                        Enemy {
+                                            def: &data::roster(0).enemies[0],
+                                            hp: 100.0,
+                                            max_hp: 100.0,
+                                            speed: 3.0,
+                                            damage: 1.0,
+                                            radius: 0.6,
+                                            xp: 1,
+                                            boss: false,
+                                            elite: false,
+                                            attack_cd: 0.0,
+                                            slows: Default::default(),
+                                            root_t: 0.0,
+                                            frozen_t: 0.0,
+                                            winters_chill: Default::default(),
+                                            shadow_weaving: Default::default(),
+                                            kidney_t: 0.0,
+                                            stun_t: 0.0,
+                                            fear_t: 0.0,
+                                            incapacitate_t: 0.0,
+                                            weaken: 1.0,
+                                            weaken_t: 0.0,
+                                            poison: Default::default(),
+                                            dots: Vec::new(),
+                                            dead: false,
+                                        },
+                                    ));
+                                }
+                                app.world_mut().run_system_once(cast_abilities).unwrap();
+                                let fired = targets > 0 && cooldown == 0.;
+                                let advance = if fired {
+                                    (if rank > 0 { 2. } else { 0. })
+                                        + if points >= threshold { 2. } else { 0. }
+                                } else {
+                                    0.
+                                };
+                                let run = app.world().resource::<Run>();
+                                assert!((run.abilities[0].cd - (shadowburn_cd - 0.1 - advance).max(0.)).abs() < 0.0001,
+                                "rank={rank}, points={points}, targets={targets}, cooldown={cooldown}");
+                                assert!((run.abilities[2].cd - 7.9).abs() < 0.0001);
+                                assert_eq!(run.abilities.len(), 3);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn warlock_milestones_reach_casts_and_bound_healing_shields_and_cooldowns() {
+        let base = Milestones {
+            class: 7,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [30; 3],
+            ..base
+        };
+        let mut run = Run::default();
+        let stats = run.stats();
+        for (key, damage, cd, crit_damage) in [
+            ("shadow_bolt", 1.375, 1., 0.2),
+            ("corruption", 1.1, 0.9, 0.),
+            ("curse_of_agony", 1.1, 1., 0.),
+            ("immolate", 1.1, 1., 0.2),
+            ("rain_of_fire", 1.1, 1., 0.2),
+            ("hellfire", 1.1, 1., 0.2),
+            ("death_coil", 1.1, 1., 0.),
+            ("shadowburn", 1.1, 1., 0.2),
+        ] {
+            let owned = super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 3,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, trained);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+            assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+            assert!(
+                (after.cooldown - before.cooldown * cd).abs() < 0.001,
+                "{key}"
+            );
+            assert!(
+                (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
+                "{key}"
+            );
+            assert_eq!(
+                (after.count, after.radius, after.duration),
+                (before.count, before.radius, before.duration)
+            );
+        }
+        run.hp = 99.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.),
+            1.
+        );
+        assert_eq!((run.hp, run.shield, run.shield_t), (100., 5., 3.));
+        finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+        assert_eq!(run.shield, 5.);
+        run.shield = 20.;
+        run.shield_t = 8.;
+        finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+        assert_eq!((run.shield, run.shield_t), (20., 8.));
+        run.abilities.clear();
+        for key in ["shadow_bolt", "shadowburn", "searing_pain"] {
+            run.abilities.push(super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 1,
+                cd: 0.5,
+            });
+        }
+        finish_milestone_cast(&mut run, trained.cast("corruption"), 100.);
+        assert_eq!((run.abilities[0].cd, run.abilities[1].cd), (0., 0.5));
+        finish_milestone_cast(&mut run, trained.cast("immolate"), 100.);
+        assert_eq!((run.abilities[1].cd, run.abilities[2].cd), (0., 0.5));
+        run.abilities.clear();
+        finish_milestone_cast(&mut run, trained.cast("immolate"), 100.);
+        assert!(run.abilities.is_empty());
+    }
+
+    #[test]
+    fn warlock_node_training_reaches_direct_and_periodic_parameters() {
+        let base = Milestones {
+            class: 7,
+            ..Default::default()
+        };
+        let ranks: Vec<_> = survivors_core::talents::definitions(7)
+            .iter()
+            .map(|node| (0, node.id, node.max_rank))
+            .collect();
+        let trained = base.with_ranks(&ranks);
+        let stats = Run::default().stats();
+        for level in [1, 5] {
+            for (key, damage, cooldown, crit, crit_damage) in [
+                ("shadow_bolt", 1.32, 0.72, 0.05, 0.5),
+                ("corruption", 1.1 * 1.1, 0.8, 0., 0.),
+                ("curse_of_agony", 1.3992 * 1.1, 1., 0., 0.),
+                ("immolate", 1.375, 0.72, 0.05, 0.5),
+                ("rain_of_fire", 1.1, 0.9, 0.05, 0.5),
+                ("hellfire", 1.1, 0.9, 0.05, 0.5),
+                ("searing_pain", 1.1, 0.9, 0.15, 0.5),
+                ("shadowburn", 1.32, 0.9, 0.05, 0.5),
+                ("death_coil", 1.1 * 1.1, 1., 0., 0.),
+                ("fireball", 1., 1., 0., 0.),
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
+                    "{key}"
+                );
+                let range_multiplier = if matches!(
+                    key,
+                    "shadow_bolt"
+                        | "corruption"
+                        | "curse_of_agony"
+                        | "immolate"
+                        | "rain_of_fire"
+                        | "searing_pain"
+                        | "shadowburn"
+                        | "death_coil"
+                ) {
+                    1.2
+                } else {
+                    1.0
+                };
+                assert!(
+                    (after.range - before.range * range_multiplier).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!(
+                    (after.count, after.radius, after.duration),
+                    (
+                        before.count,
+                        before.radius,
+                        before.duration * if key == "rain_of_fire" { 1.2 } else { 1. }
+                    )
+                );
+                assert!(
+                    (after.heal_fraction - if key == "death_coil" { 0.02 } else { 0.0 }).abs()
+                        < 0.0001
+                );
+                let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
+            }
+        }
+    }
+
+    #[test]
+    fn inspiration_requires_successful_effective_nova_healing_once_per_cast() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for rank in [0, 1, 3, 255] {
+            for nova_rank in [0, 1] {
+                for (enemy_count, initial_hp, cooldown, dt) in [
+                    (0, 20., 0., 0.1),
+                    (2, 20., 0., 0.1),
+                    (2, 0., 0., 0.1),
+                    (2, 1000., 0., 0.1),
+                    (2, 20., 5., 0.1),
+                    (2, 20., 0., 0.),
+                ] {
+                    let mut run = Run {
+                        class: &data::CLASSES[4],
+                        hp: initial_hp,
+                        milestones: Milestones {
+                            class: 4,
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(1, 361, rank), (1, 442, nova_rank)]),
+                        ..Default::default()
+                    };
+                    run.bonus.armor = 100.;
+                    run.bonus.targets = 3;
+                    let base_armor = run.stats().armor;
+                    run.hp = initial_hp.min(run.stats().max_hp);
+                    let initial_hp = run.hp;
+                    let max_hp = run.stats().max_hp;
+                    run.abilities.push(Owned {
+                        def: data::ability("holy_nova"),
+                        level: 1,
+                        cd: cooldown,
+                    });
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(dt));
+                    let mut app = App::new();
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(42))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                    for index in 0..enemy_count {
+                        app.world_mut().spawn((
+                            Transform::from_xyz(1. + index as f32, 0., 0.),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 100.,
+                                max_hp: 100.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: Vec::new(),
+                                dead: false,
+                            },
+                        ));
+                    }
+
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let run = app.world().resource::<Run>();
+                    let healed = enemy_count > 0
+                        && initial_hp > 0.
+                        && initial_hp < max_hp
+                        && cooldown == 0.
+                        && dt > 0.
+                        && nova_rank > 0;
+                    let active = healed && rank > 0;
+                    assert_eq!(run.inspiration_t, if active { 15. } else { 0. });
+                    let armor = base_armor
+                        * if active {
+                            1. + 0.08 * f32::from(rank.min(3))
+                        } else {
+                            1.
+                        };
+                    assert!((run.stats().armor - armor).abs() < 0.0001);
+                    assert_eq!(run.hp > initial_hp, healed);
+                    if active {
+                        app.world_mut().resource_mut::<Run>().inspiration_t = 7.;
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        assert_eq!(app.world().resource::<Run>().inspiration_t, 7.);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn totem_deployment_heals_once_only_after_success_and_restoration_unlock() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["searing_totem", "magma_totem"] {
+            for points in [0, 9, 10, 30] {
+                for rank in [0, 1, 5, 255] {
+                    // No enemy, successful cast, cooldown, dead hero, and healing cap.
+                    for (enemy_count, initial_hp, cooldown) in [
+                        (0, 20., 0.),
+                        (1, 20., 0.),
+                        (3, 20., 0.),
+                        (3, 20., 5.),
+                        (3, 0., 0.),
+                        (3, 159., 0.),
+                        (3, 110., 0.),
+                    ] {
+                        let mut run = Run {
+                            class: &data::CLASSES[5],
+                            hp: initial_hp,
+                            milestones: Milestones {
+                                class: 5,
+                                points: [0, 0, points],
+                                ..Default::default()
+                            }
+                            .with_ranks(&[
+                                (2, 588, rank),
+                                (2, 592, rank),
+                                (2, 586, rank),
+                                (2, 593, rank),
+                                (2, 581, rank),
+                            ]),
+                            ..Default::default()
+                        };
+                        run.bonus.targets = 3;
+                        let max_hp = run.stats().max_hp;
+                        run.hp = initial_hp.min(max_hp);
+                        let initial_hp = run.hp;
+                        run.abilities.push(Owned {
+                            def: data::ability(key),
+                            level: 1,
+                            cd: cooldown,
+                        });
+                        let r = f32::from(rank.min(5));
+                        let expected_cd = run.abilities[0].cooldown(&run.stats())
+                            * Milestones {
+                                class: 5,
+                                points: [0, 0, points],
+                                ..Default::default()
+                            }
+                            .cast(key)
+                            .cooldown
+                            * (1. - 0.04 * r)
+                            * (1. - 0.02 * r);
+                        let mut time = Time::<()>::default();
+                        time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                        let mut app = App::new();
+                        app.insert_resource(time)
+                            .insert_resource(run)
+                            .insert_resource(Rng(42))
+                            .init_resource::<PlaySeq>()
+                            .init_resource::<PendingHits>()
+                            .add_message::<CastEvent>()
+                            .add_message::<SpellGoTargets>()
+                            .add_message::<SwingMessage>()
+                            .add_message::<crate::combat_text::CombatTextSpawn>()
+                            .add_message::<Hit>();
+                        app.world_mut()
+                            .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                        for index in 0..enemy_count {
+                            app.world_mut().spawn((
+                                Transform::from_xyz(1. + index as f32, 0., 0.),
+                                Enemy {
+                                    def: &data::roster(0).enemies[0],
+                                    hp: 100.,
+                                    max_hp: 100.,
+                                    speed: 3.,
+                                    damage: 1.,
+                                    radius: 0.6,
+                                    xp: 1,
+                                    boss: false,
+                                    elite: false,
+                                    attack_cd: 0.,
+                                    slows: Default::default(),
+                                    root_t: 0.,
+                                    frozen_t: 0.,
+                                    winters_chill: Default::default(),
+                                    shadow_weaving: Default::default(),
+                                    kidney_t: 0.0,
+                                    stun_t: 0.,
+                                    fear_t: 0.,
+                                    incapacitate_t: 0.0,
+                                    weaken: 1.,
+                                    weaken_t: 0.,
+                                    poison: Default::default(),
+                                    dots: Vec::new(),
+                                    dead: false,
+                                },
+                            ));
+                        }
+                        super::fire_totem_placement_tests::support_cast_fixture(&mut app);
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        let fired = enemy_count > 0 && initial_hp > 0. && cooldown == 0.;
+                        if fired {
+                            assert!(
+                                (app.world().resource::<Run>().abilities[0].cd - expected_cd).abs()
+                                    < 0.0001
+                            );
+                        }
+                        let healing = if fired && points >= 10 {
+                            max_hp * 0.03 * (1. + 0.07 * f32::from(rank.min(5)))
+                        } else {
+                            0.
+                        };
+                        let expected_hp = (initial_hp + healing).min(max_hp);
+                        assert_eq!(
+                            app.world().resource::<Run>().ancestral_healing_t,
+                            if expected_hp > initial_hp && rank > 0 {
+                                10.
+                            } else {
+                                0.
+                            }
+                        );
+                        assert!((app.world().resource::<Run>().hp - expected_hp).abs() < 0.0001,
+                            "{key}: points={points}, rank={rank}, enemies={enemy_count}, hp={initial_hp}, cd={cooldown}");
+                        assert_eq!(
+                            app.world_mut().query::<&Totem>().iter(app.world()).count(),
+                            usize::from(fired)
+                        );
+                        // A later update and attacks must neither repeat healing nor refresh armor.
+                        let remaining = if app.world().resource::<Run>().ancestral_healing_t > 0. {
+                            4.
+                        } else {
+                            0.
+                        };
+                        app.world_mut().resource_mut::<Run>().ancestral_healing_t = remaining;
+                        app.world_mut().run_system_once(cast_abilities).unwrap();
+                        for _ in 0..25 {
+                            app.world_mut().run_system_once(tick_areas).unwrap();
+                        }
+                        assert!((app.world().resource::<Run>().hp - expected_hp).abs() < 0.0001);
+                        assert_eq!(app.world().resource::<Run>().ancestral_healing_t, remaining);
+                        assert_eq!(
+                            app.world_mut().query::<&Totem>().iter(app.world()).count(),
+                            usize::from(fired)
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn totemic_mastery_reaches_targets_only_inside_extended_distance() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        for key in ["searing_totem", "magma_totem"] {
+            for trained in [false, true] {
+                for distance_scale in [0.9, 1.1, 1.3] {
+                    let base = Milestones {
+                        class: 5,
+                        ..Default::default()
+                    };
+                    let mut run = Run {
+                        class: &data::CLASSES[5],
+                        milestones: if trained {
+                            base.with_ranks(&[(2, 582, 1)])
+                        } else {
+                            base
+                        },
+                        ..Default::default()
+                    };
+                    run.bonus.targets = 3;
+                    let owned = super::super::Owned {
+                        def: data::ability(key),
+                        level: 1,
+                        cd: 0.,
+                    };
+                    let original = Params::new(&owned, &run.stats(), base);
+                    let params = Params::new(&owned, &run.stats(), run.milestones);
+                    run.abilities.push(owned);
+                    let pulse = key == "magma_totem";
+                    let distance = if pulse {
+                        original.radius
+                    } else {
+                        original.range
+                    };
+                    let mut app = App::new();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                    app.insert_resource(time)
+                        .insert_resource(run)
+                        .insert_resource(Rng(1))
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>();
+                    app.world_mut()
+                        .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+                    for sign in [-1., 1.] {
+                        app.world_mut().spawn((
+                            Transform::from_xyz(sign * distance * distance_scale, 0., 0.),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 100.,
+                                max_hp: 100.,
+                                speed: 3.,
+                                damage: 5.,
+                                radius: 0.0,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 8.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: Vec::new(),
+                                dead: false,
+                            },
+                        ));
+                    }
+                    super::fire_totem_placement_tests::support_cast_fixture(&mut app);
+                    app.world_mut().run_system_once(cast_abilities).unwrap();
+                    let world = app.world_mut();
+                    let mut deployed = world.query::<(&Transform, &Totem)>();
+                    let (transform, totem) = deployed.single(world).unwrap();
+                    assert!((transform.translation.length() - 2.).abs() < 0.0001);
+                    assert_eq!(totem.source, key);
+                    assert_eq!(totem.cast, data::ability(key).totem.1);
+                    assert_eq!(totem.pulse, pulse);
+                    assert_eq!(
+                        (totem.damage, totem.range, totem.radius, totem.left),
+                        (params.dmg, params.range, params.radius, params.duration)
+                    );
+                    let origin = transform.translation;
+                    assert_eq!(world.resource::<Run>().abilities[0].cd, params.cooldown);
+                    // Keep attack distances exact without replacing the deployed component.
+                    for mut transform in world
+                        .query_filtered::<&mut Transform, With<Enemy>>()
+                        .iter_mut(world)
+                    {
+                        transform.translation += origin;
+                    }
+                    world
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs_f32(0.4));
+                    app.world_mut().run_system_once(tick_areas).unwrap();
+                    let reachable = distance_scale < if trained { 1.2 } else { 1. };
+                    assert_eq!(
+                        app.world().resource::<Messages<Hit>>().len(),
+                        if reachable {
+                            if pulse {
+                                2
+                            } else {
+                                1
+                            }
+                        } else {
+                            0
+                        },
+                        "{key} trained={trained} distance={distance_scale}"
+                    );
+                    assert_eq!(
+                        (params.dmg, params.duration, params.cooldown, params.count),
+                        (
+                            original.dmg,
+                            original.duration,
+                            original.cooldown,
+                            original.count
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn cost_talents_compose_with_existing_cast_cooldowns_without_changing_geometry() {
+        for (class, node, max, other, other_rank, keys, reduction) in [
+            (
+                5,
+                586,
+                5,
+                595,
+                5,
+                &["healing_wave", "searing_totem", "magma_totem"][..],
+                0.20,
+            ),
+            (
+                5,
+                593,
+                5,
+                586,
+                5,
+                &["healing_wave", "searing_totem", "magma_totem"][..],
+                0.10,
+            ),
+            (
+                2,
+                1342,
+                5,
+                1346,
+                5,
+                &[
+                    "arcane_shot",
+                    "multi_shot",
+                    "serpent_sting",
+                    "concussive_shot",
+                    "aimed_shot",
+                    "scorpid_sting",
+                ][..],
+                0.10,
+            ),
+            (
+                4,
+                341,
+                5,
+                542,
+                2,
+                &[
+                    "shadow_word_pain",
+                    "holy_nova",
+                    "psychic_scream",
+                    "power_word_shield",
+                ][..],
+                0.10,
+            ),
+            (
+                6,
+                66,
+                3,
+                37,
+                5,
+                &["frostbolt", "frost_nova", "blizzard", "cone_of_cold"][..],
+                0.15,
+            ),
+        ] {
+            let base = Milestones {
+                class,
+                points: [30; 3],
+                ..Default::default()
+            }
+            .with_ranks(&[(0, other, other_rank)]);
+            let trained = base.with_ranks(&[(0, other, other_rank), (0, node, max)]);
+            let mut run = Run::default();
+            run.bonus.targets = 2;
+            let stats = run.stats();
+            for level in [1, 5] {
+                for key in data::CLASSES[class].pool {
+                    let owned = super::super::Owned {
+                        def: data::ability(key),
+                        level,
+                        cd: 0.,
+                    };
+                    let before = Params::new(&owned, &stats, base);
+                    let after = Params::new(&owned, &stats, trained);
+                    let factor = if keys.contains(key) {
+                        1. - reduction
+                    } else {
+                        1.
+                    };
+                    assert!(
+                        (after.cooldown - before.cooldown * factor).abs() < 0.0001,
+                        "{key}"
+                    );
+                    assert_eq!(
+                        (
+                            after.dmg,
+                            after.dot,
+                            after.count,
+                            after.range,
+                            after.radius,
+                            after.duration
+                        ),
+                        (
+                            before.dmg,
+                            before.dot,
+                            before.count,
+                            before.range,
+                            before.radius,
+                            before.duration
+                        )
+                    );
+                    assert_eq!(
+                        (
+                            after.heal_fraction,
+                            after.shield_fraction,
+                            after.shield_seconds,
+                            after.immune_seconds
+                        ),
+                        (
+                            before.heal_fraction,
+                            before.shield_fraction,
+                            before.shield_seconds,
+                            before.immune_seconds
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn shaman_node_training_reaches_direct_periodic_and_totem_parameters() {
+        let base = Milestones {
+            class: 5,
+            ..Default::default()
+        };
+        let trained = base.with_ranks(&[
+            (0, 564, 5),
+            (0, 563, 5),
+            (0, 561, 3),
+            (0, 575, 5),
+            (0, 562, 5),
+            (0, 721, 5),
+            (0, 565, 1),
+            (1, 607, 3),
+            (2, 595, 5),
+            (2, 594, 5),
+            (2, 591, 1),
+        ]);
+        let stats = Run::default().stats();
+        for level in [1, 5] {
+            for (key, damage, cooldown, crit, crit_damage) in [
+                ("lightning_bolt", 1.1, 0.72, 0.10, 0.5),
+                ("chain_lightning", 1.1, 0.72, 0.10, 0.5),
+                ("earth_shock", 1.1, 0.65025, 0.05, 0.5),
+                ("flame_shock", 1.1, 0.65025, 0.05, 0.5),
+                ("frost_shock", 1.1, 0.65025, 0.05, 0.5),
+                ("searing_totem", 1.15, 0.85, 0., 0.),
+                ("magma_totem", 1.15, 0.85, 0., 0.),
+                ("lightning_shield", 1.15, 1., 0., 0.),
+                ("fireball", 1., 1., 0., 0.),
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!(
+                    (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                    "{key}"
+                );
+                assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - crit_damage).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!(
+                    (after.count, after.radius, after.range, after.duration),
+                    (before.count, before.radius, before.range, before.duration)
+                );
+                let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                assert_eq!((reset.dmg, reset.cooldown), (before.dmg, before.cooldown));
+            }
+        }
+    }
+
+    #[test]
+    fn trueshot_reaches_shots_and_periodic_hits_without_affecting_traps() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 2,
+            ..Default::default()
+        };
+        for rank in [0, 1, 255] {
+            let trained = base.with_ranks(&[(1, 1361, rank)]);
+            for key in data::CLASSES[2].pool.iter().copied().chain(["fireball"]) {
+                for level in [1, 3] {
+                    let owned = Owned {
+                        def: data::ability(key),
+                        level,
+                        cd: 0.,
+                    };
+                    let before = Params::new(&owned, &stats, base);
+                    let after = Params::new(&owned, &stats, trained);
+                    let factor = if rank > 0
+                        && matches!(
+                            key,
+                            "arcane_shot"
+                                | "multi_shot"
+                                | "serpent_sting"
+                                | "concussive_shot"
+                                | "aimed_shot"
+                                | "scorpid_sting"
+                        ) {
+                        1.10
+                    } else {
+                        1.0
+                    };
+                    assert!((after.dmg - before.dmg * factor).abs() < 0.001, "{key}");
+                    assert!((after.dot - before.dot * factor).abs() < 0.001, "{key}");
+                    assert_eq!(
+                        (
+                            after.cooldown,
+                            after.count,
+                            after.radius,
+                            after.range,
+                            after.duration,
+                            after.crit
+                        ),
+                        (
+                            before.cooldown,
+                            before.count,
+                            before.radius,
+                            before.range,
+                            before.duration,
+                            before.crit
+                        )
+                    );
+                    let hit = hit_for(owned.def, &after, Entity::PLACEHOLDER, after.dmg, false);
+                    let original =
+                        hit_for(owned.def, &before, Entity::PLACEHOLDER, before.dmg, false);
+                    assert!((hit.dot - original.dot * factor).abs() < 0.001, "{key}");
+                    let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    assert_eq!((reset.dmg, reset.dot), (before.dmg, before.dot));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn caster_accuracy_reaches_direct_and_periodic_parameters_without_other_changes() {
+        type AccuracyCase = (usize, u8, u32, u8, f32, &'static [&'static str]);
+        let cases: &[AccuracyCase] = &[
+            (2, 2, 1322, 2, 0.05, &["explosive_trap"]),
+            (6, 0, 74, 2, 0.05, &["arcane_missiles", "arcane_explosion"]),
+            (
+                4,
+                2,
+                463,
+                5,
+                0.02,
+                &["mind_blast", "mind_flay", "shadow_word_pain"],
+            ),
+            (
+                5,
+                2,
+                583,
+                3,
+                0.01,
+                &[
+                    "lightning_bolt",
+                    "chain_lightning",
+                    "earth_shock",
+                    "flame_shock",
+                    "frost_shock",
+                ],
+            ),
+            (
+                7,
+                0,
+                1005,
+                5,
+                0.02,
+                &["corruption", "curse_of_agony", "death_coil"],
+            ),
+        ];
+        let stats = Run::default().stats();
+        for &(class, tree, id, cap, per_rank, affected) in cases {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, cap, 255] {
+                let trained = base.with_ranks(&[(tree, id, rank)]);
+                for key in data::CLASSES
+                    .iter()
+                    .flat_map(|class| class.pool.iter().copied())
+                {
+                    let owned = Owned {
+                        def: data::ability(key),
+                        level: 3,
+                        cd: 0.,
+                    };
+                    let before = Params::new(&owned, &stats, base);
+                    let after = Params::new(&owned, &stats, trained);
+                    let factor = if affected.contains(&key) {
+                        1. + per_rank * f32::from(rank.min(cap))
+                    } else {
+                        1.
+                    };
+                    assert!(
+                        (after.dmg - before.dmg * factor).abs() < 0.001,
+                        "{id}/{key}"
+                    );
+                    assert!(
+                        (after.dot - before.dot * factor).abs() < 0.001,
+                        "{id}/{key}"
+                    );
+                    assert_eq!(
+                        (
+                            after.cooldown,
+                            after.count,
+                            after.radius,
+                            after.range,
+                            after.duration,
+                            after.crit
+                        ),
+                        (
+                            before.cooldown,
+                            before.count,
+                            before.radius,
+                            before.range,
+                            before.duration,
+                            before.crit
+                        )
+                    );
+                    let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    assert_eq!((reset.dmg, reset.dot), (before.dmg, before.dot));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn precision_reaches_rogue_damage_without_changing_targeting_or_timing() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 3,
+            ..Default::default()
+        };
+        for rank in [1, 5, 255] {
+            let trained = base.with_ranks(&[(1, 181, rank)]);
+            for key in super::super::data::CLASSES[3]
+                .pool
+                .iter()
+                .copied()
+                .chain(["fireball"])
+            {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level: 3,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                let multiplier = if key == "fireball" || matches!(owned.def.kind, Kind::Coating(_))
+                {
+                    1.
+                } else {
+                    1. + 0.01 * f32::from(rank.min(5))
+                };
+                assert!((after.dmg - before.dmg * multiplier).abs() < 0.001, "{key}");
+                assert_eq!(
+                    (
+                        after.cooldown,
+                        after.count,
+                        after.radius,
+                        after.range,
+                        after.duration,
+                        after.crit
+                    ),
+                    (
+                        before.cooldown,
+                        before.count,
+                        before.radius,
+                        before.range,
+                        before.duration,
+                        before.crit
+                    )
+                );
+                let reset = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                assert_eq!(reset.dmg, before.dmg);
+            }
+        }
+    }
+
+    #[test]
+    fn shaman_milestones_reach_combat_and_deployment_benefits_are_bounded() {
+        let mut run = Run::default();
+        let stats = run.stats();
+        let base = Milestones {
+            class: 5,
+            ..Default::default()
+        };
+        let elemental = Milestones {
+            points: [30, 0, 0],
+            ..base
+        };
+        let enhancement = Milestones {
+            points: [0, 30, 0],
+            ..base
+        };
+        let restoration = Milestones {
+            points: [0, 0, 30],
+            ..base
+        };
+        for (key, talents, damage, cooldown, extra) in [
+            ("chain_lightning", elemental, 1., 0.9, 0),
+            ("earth_shock", enhancement, 1.25, 1., 1),
+            ("searing_totem", enhancement, 1.2, 1., 0),
+            ("magma_totem", enhancement, 1.2, 1., 0),
+            ("lightning_shield", enhancement, 1.2, 1., 0),
+            ("flame_shock", restoration, 1., 0.85, 0),
+        ] {
+            let owned = super::super::Owned {
+                def: super::super::data::ability(key),
+                level: 3,
+                cd: 0.,
+            };
+            let before = Params::new(&owned, &stats, base);
+            let after = Params::new(&owned, &stats, talents);
+            assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+            assert!(
+                (after.cooldown - before.cooldown * cooldown).abs() < 0.001,
+                "{key}"
+            );
+            assert_eq!(after.count, before.count + extra);
+            assert_eq!(after.radius, before.radius);
+            if key == "chain_lightning" {
+                assert_eq!(after.crit, 1.);
+            }
+        }
+        run.hp = 99.;
+        run.abilities.clear();
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("magma_totem"),
+            level: 1,
+            cd: 1.,
+        });
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("earth_shock"),
+            level: 1,
+            cd: 4.,
+        });
+        assert_eq!(
+            finish_milestone_cast(&mut run, restoration.cast("searing_totem"), 100.),
+            1.
+        );
+        assert_eq!(run.hp, 100.);
+        assert_eq!(run.abilities[0].cd, 0.);
+        assert_eq!(run.abilities[1].cd, 4.);
+        run.hp = 90.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, restoration.cast("magma_totem"), 100.),
+            3.
+        );
+        let trained = restoration.with_ranks(&[(2, 588, 5), (2, 592, 5)]);
+        run.hp = 90.;
+        let healed = finish_milestone_cast(&mut run, trained.cast("magma_totem"), 100.);
+        assert!((healed - 4.05).abs() < 0.00001);
+        assert!((run.hp - 94.05).abs() < 0.00001);
+        run.hp = 99.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("searing_totem"), 100.),
+            1.
+        );
+        run.hp = 0.;
+        assert_eq!(
+            finish_milestone_cast(&mut run, trained.cast("magma_totem"), 100.),
+            0.
+        );
+        assert_eq!(run.hp, 0.);
+        run.hp = 90.;
+        assert_eq!(run.abilities.len(), 2); // Does not grant the unowned counterpart.
+        finish_milestone_cast(&mut run, enhancement.cast("earth_shock"), 100.);
+        assert_eq!((run.shield, run.shield_t), (3., 3.));
+        finish_milestone_cast(&mut run, enhancement.cast("earth_shock"), 100.);
+        assert_eq!((run.shield, run.shield_t), (3., 3.));
+        run.shield = 20.;
+        run.shield_t = 8.;
+        finish_milestone_cast(&mut run, enhancement.cast("earth_shock"), 100.);
+        assert_eq!((run.shield, run.shield_t), (20., 8.));
+    }
+
+    #[test]
+    fn soul_link_absorb_composes_and_refreshes_without_stacking() {
+        for points in [0, 29, 30] {
+            for rank in [0, 1, 255] {
+                let base = Milestones {
+                    class: 7,
+                    points: [0, points, 0],
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 1282, rank)]);
+                let expected = if points >= 30 { 5. } else { 0. } + if rank > 0 { 5. } else { 0. };
+                for level in [1, 5] {
+                    let mut run = Run {
+                        hp: 50.,
+                        milestones: trained,
+                        ..Default::default()
+                    };
+                    let owned = Owned {
+                        def: data::ability("death_coil"),
+                        level,
+                        cd: 0.,
+                    };
+                    let before = Params::new(&owned, &run.stats(), base);
+                    let after = Params::new(&owned, &run.stats(), trained);
+                    assert!((after.shield_fraction * 100. - expected).abs() < 0.00001);
+                    assert_eq!(
+                        (after.dmg, after.cooldown, after.count, after.range),
+                        (before.dmg, before.cooldown, before.count, before.range)
+                    );
+                    for _ in 0..3 {
+                        finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+                        assert!((run.shield - expected).abs() < 0.00001);
+                        assert_eq!(run.shield_t, if expected > 0. { 3. } else { 0. });
+                    }
+                    run.shield = 20.;
+                    run.shield_t = 8.;
+                    finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+                    assert_eq!((run.shield, run.shield_t), (20., 8.));
+                    run.shield = 0.;
+                    run.shield_t = 0.;
+                    run.hp = 0.;
+                    finish_milestone_cast(&mut run, trained.cast("death_coil"), 100.);
+                    assert_eq!((run.shield, run.shield_t), (0., 0.));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn guardian_totems_refresh_absorption_without_stacking_or_extending_stronger_shields() {
+        for points in [9, 10, 30] {
+            for rank in [0, 1, 2, 255] {
+                let milestones = Milestones {
+                    class: 5,
+                    points: [0, points, 0],
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 609, rank), (1, 612, rank)]);
+                let mut run = Run {
+                    hp: 50.,
+                    milestones,
+                    ..Default::default()
+                };
+                let owned = Owned {
+                    def: data::ability("earth_shock"),
+                    level: 1,
+                    cd: 0.,
+                };
+                let params = Params::new(&owned, &run.stats(), milestones);
+                let expected = if points >= 10 {
+                    3. * (1. + 0.1 * f32::from(rank.min(2)) + 0.05 * f32::from(rank.min(5)))
+                } else {
+                    0.
+                };
+                assert!((params.shield_fraction * 100. - expected).abs() < 0.00001);
+                for _ in 0..3 {
+                    finish_milestone_cast(&mut run, milestones.cast("earth_shock"), 100.);
+                    assert!((run.shield - expected).abs() < 0.00001);
+                    assert_eq!(run.shield_t, if points >= 10 { 3. } else { 0. });
+                    assert_eq!(run.hp, 50.);
+                }
+                run.shield = 20.;
+                run.shield_t = 8.;
+                finish_milestone_cast(&mut run, milestones.cast("earth_shock"), 100.);
+                assert_eq!((run.shield, run.shield_t), (20., 8.));
+                run.shield = 0.;
+                run.shield_t = 0.;
+                run.hp = 0.;
+                finish_milestone_cast(&mut run, milestones.cast("earth_shock"), 100.);
+                assert_eq!((run.shield, run.shield_t), (0., 0.));
+            }
+        }
+    }
+
+    #[test]
+    fn mage_arcane_fire_milestones_reach_cast_parameters_and_cooldown_finish() {
+        let mut run = Run::default();
+        let stats = run.stats();
+        let base = Milestones {
+            class: 6,
+            ..Default::default()
+        };
+        let trained = Milestones {
+            points: [30, 30, 0],
+            ..base
+        }
+        .with_ranks(&[(0, 81, 3), (1, 33, 3), (1, 35, 5)]);
+        for level in [1, 5] {
+            for (key, damage, crit, critical_damage) in [
+                ("arcane_missiles", 1.2, 0.05, 0.),
+                ("arcane_explosion", 1.2, 0.11, 0.),
+                ("fireball", 1.375, 0.16, 0.20),
+                ("flamestrike", 1.1, 0.16, 0.20),
+                ("frostbolt", 1., 0., 0.),
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001, "{key}");
+                assert!((after.dot - before.dot * damage).abs() < 0.001, "{key}");
+                assert!((after.crit - before.crit - crit).abs() < 0.001, "{key}");
+                assert!(
+                    (after.crit_damage - before.crit_damage - critical_damage).abs() < 0.001,
+                    "{key}"
+                );
+                assert_eq!(after.count, before.count);
+                assert_eq!(after.radius, before.radius);
+            }
+        }
+        // Presence of Mind only advances an owned Explosion, once at cast completion.
+        run.abilities.clear();
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("arcane_explosion"),
+            level: 1,
+            cd: 3.,
+        });
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("fireball"),
+            level: 1,
+            cd: 3.,
+        });
+        finish_milestone_cast(&mut run, trained.cast("arcane_missiles"), stats.max_hp);
+        assert_eq!(run.abilities[0].cd, 1.);
+        assert_eq!(run.abilities[1].cd, 3.);
+        finish_milestone_cast(&mut run, trained.cast("arcane_missiles"), stats.max_hp);
+        assert_eq!(run.abilities[0].cd, 0.);
+        run.abilities.remove(0);
+        finish_milestone_cast(&mut run, trained.cast("arcane_missiles"), stats.max_hp);
+        assert_eq!(run.abilities.len(), 1);
+        assert_eq!(run.abilities[0].cd, 3.);
+    }
+
+    #[test]
+    fn paladin_seal_training_reaches_ranked_judgement_parameters() {
+        let stats = Run::default().stats();
+        let base = Milestones {
+            class: 1,
+            points: [30; 3],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 1631, 2), (2, 1409, 1)]);
+        let trained = Milestones {
+            class: 1,
+            points: [30; 3],
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 1631, 2), (2, 1409, 1), (2, 1407, 5), (0, 1463, 5)]);
+        for level in [1, 5] {
+            for key in [
+                "judgement",
+                "holy_shock",
+                "consecration",
+                "divine_shield",
+                "smite",
+            ] {
+                let owned = super::super::Owned {
+                    def: super::super::data::ability(key),
+                    level,
+                    cd: 0.0,
+                };
+                let before = Params::new(&owned, &stats, base);
+                let after = Params::new(&owned, &stats, trained);
+                let (damage, cooldown) = if key == "judgement" {
+                    (1.15, 0.85)
+                } else {
+                    (1.0, 1.0)
+                };
+                assert!((after.dmg - before.dmg * damage).abs() < 0.001);
+                assert!((after.cooldown - before.cooldown * cooldown).abs() < 0.001);
+                assert_eq!(
+                    (
+                        after.count,
+                        after.radius,
+                        after.duration,
+                        after.heal_fraction
+                    ),
+                    (
+                        before.count,
+                        before.radius,
+                        before.duration,
+                        before.heal_fraction
+                    )
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn paladin_cast_numbers_and_once_per_cast_benefits_reach_combat() {
+        let mut run = Run::default();
+        let stats = run.stats();
+        let holy = Milestones {
+            class: 1,
+            points: [30, 0, 0],
+            ..Default::default()
+        };
+        let shock = super::super::Owned {
+            def: super::super::data::ability("holy_shock"),
+            level: 1,
+            cd: 0.0,
+        };
+        let base = Params::new(&shock, &stats, Milestones::default());
+        let trained = Params::new(&shock, &stats, holy);
+        assert!((trained.crit - base.crit - 0.2).abs() < 0.001);
+        assert!((trained.cooldown - base.cooldown * 0.8).abs() < 0.001);
+        run.hp = 80.0;
+        assert_eq!(
+            finish_milestone_cast(&mut run, holy.cast("holy_shock"), 100.0),
+            3.0
+        );
+        run.hp = 99.0;
+        assert_eq!(
+            finish_milestone_cast(&mut run, holy.cast("holy_shock"), 100.0),
+            1.0
+        );
+        assert_eq!(run.hp, 100.0);
+        run.abilities.push(super::super::Owned {
+            def: super::super::data::ability("hammer_of_wrath"),
+            level: 1,
+            cd: 0.4,
+        });
+        let ret = Milestones {
+            class: 1,
+            points: [0, 0, 30],
+            ..Default::default()
+        };
+        finish_milestone_cast(&mut run, ret.cast("judgement"), 100.0);
+        assert_eq!(run.abilities[0].cd, 0.0);
+    }
+
+    #[test]
+    fn ardent_defender_applies_after_absorption_and_preserves_immunity() {
+        let mut run = Run::default();
+        run.milestones = Milestones {
+            class: 1,
+            points: [0, 20, 0],
+            ..Default::default()
+        };
+        run.hp = run.stats().max_hp * 0.2;
+        run.shield_t = 5.0;
+        run.shield = 10.0;
+        let expected = run.milestones.incoming(
+            super::super::sheet::mitigate(30.0, run.stats().armor, run.stats().reduction) - 10.0,
+            run.hp,
+            run.stats().max_hp,
+        );
+        assert!((hero::hurt_hero(&mut run, 30.0) - expected).abs() < 0.001);
+        assert_eq!(run.shield, 0.0);
+        run.immune_t = 1.0;
+        assert_eq!(hero::hurt_hero(&mut run, 30.0), 0.0);
+    }
+    #[test]
+    fn wing_clip_hits_slow_and_roll_roots_without_freezing_or_tick_refresh() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for rank in [0, 1, 5, 255] {
+                let trained = Milestones {
+                    class: 2,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 1305, rank)]);
+                let mut app = App::new();
+                app.insert_resource(Time::<()>::default())
+                    .insert_resource(Run {
+                        milestones: trained,
+                        ..Default::default()
+                    })
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .init_resource::<super::super::Selection>()
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>()
+                    .add_systems(Update, apply_hits);
+                let enemy = app
+                    .world_mut()
+                    .spawn((
+                        Guid(123),
+                        Transform::default(),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp: 1000.,
+                            max_hp: 1000.,
+                            speed: 3.,
+                            damage: 1.,
+                            radius: 0.6,
+                            xp: 1,
+                            boss,
+                            elite: false,
+                            attack_cd: 0.,
+                            slows: Default::default(),
+                            root_t: 0.,
+                            frozen_t: 0.,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.,
+                            fear_t: 0.,
+                            incapacitate_t: 0.0,
+                            weaken: 1.,
+                            weaken_t: 0.,
+                            poison: Default::default(),
+                            dots: vec![],
+                            dead: false,
+                        },
+                    ))
+                    .id();
+
+                let owned = Owned {
+                    def: data::ability("wing_clip"),
+                    level: 1,
+                    cd: 0.,
+                };
+                let params = Params::new(&owned, &app.world().resource::<Run>().stats(), trained);
+                let hit = Hit {
+                    source: "wing_clip",
+                    effect: params.effect,
+                    ..Hit::direct(enemy, params.dmg, false)
+                };
+                app.world_mut().write_message(hit.clone());
+                app.update();
+                let en = app.world().get::<Enemy>(enemy).unwrap();
+                assert_eq!(en.hp, 995.);
+                assert_eq!(en.slows.state(0.), (if boss { 0.75 } else { 0.5 }, 5.));
+                assert_eq!(
+                    en.root_t,
+                    if rank == 0 {
+                        0.
+                    } else if boss {
+                        1.5
+                    } else {
+                        5.
+                    }
+                );
+                assert_eq!(en.frozen_t, 0.);
+                // A successful roll cannot shorten an existing root or stronger slow.
+                {
+                    let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                    en.root_t = 8.;
+                    en.slows
+                        .apply(survivors_core::slows::Source::Spell("fixture"), 0.2, 9., 0.);
+                }
+                app.world_mut().write_message(hit.clone());
+                app.update();
+                let en = app.world().get::<Enemy>(enemy).unwrap();
+                assert_eq!(
+                    (en.root_t, en.slows.state(0.).0, en.slows.state(0.).1),
+                    (8., 0.2, 9.)
+                );
+                // A failed roll still applies the spell's baseline slow.
+                let seed = (1..1000).find(|seed| Rng(*seed).f32() >= 0.2).unwrap();
+                app.world_mut().resource_mut::<Rng>().0 = seed;
+                app.world_mut().get_mut::<Enemy>(enemy).unwrap().root_t = 0.;
+                app.world_mut().write_message(hit.clone());
+                app.update();
+                assert_eq!(app.world().get::<Enemy>(enemy).unwrap().root_t, 0.);
+                // Attached ticks never roll the direct-hit talent.
+                app.world_mut().resource_mut::<Rng>().0 = 0;
+                app.world_mut()
+                    .get_mut::<Enemy>(enemy)
+                    .unwrap()
+                    .dots
+                    .push(enemies::Dot {
+                        origin: crate::survivors::abilities::HitOrigin::Hero,
+                        dps: 10.,
+                        left: 1.,
+                        tick: 1.,
+                        source: "wing_clip",
+                    });
+                app.world_mut()
+                    .resource_mut::<Time>()
+                    .advance_by(std::time::Duration::from_secs(1));
+                app.update();
+                assert_eq!(app.world().get::<Enemy>(enemy).unwrap().root_t, 0.);
+                app.world_mut().resource_mut::<Run>().milestones = Milestones {
+                    class: 2,
+                    ..Default::default()
+                };
+                app.world_mut().write_message(hit);
+                app.update();
+                assert_eq!(app.world().get::<Enemy>(enemy).unwrap().root_t, 0.);
+            }
+        }
+    }
+    #[test]
+    fn insect_swarm_training_reaches_applications_but_ticks_do_not_refresh_weakening() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for boss in [false, true] {
+            for level in [1, 8] {
+                for rank in [0, 1, 255] {
+                    let trained = Milestones {
+                        class: 8,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(2, 827, rank)]);
+                    let mut app = App::new();
+                    app.insert_resource(Time::<()>::default())
+                        .insert_resource(Run {
+                            milestones: trained,
+                            ..Default::default()
+                        })
+                        .insert_resource(Rng(1))
+                        .insert_resource(super::super::account::empty())
+                        .init_resource::<super::super::Selection>()
+                        .init_resource::<PlaySeq>()
+                        .init_resource::<PendingHits>()
+                        .add_message::<CastEvent>()
+                        .add_message::<SpellGoTargets>()
+                        .add_message::<SwingMessage>()
+                        .add_message::<crate::combat_text::CombatTextSpawn>()
+                        .add_message::<Hit>()
+                        .add_message::<Loot>()
+                        .add_message::<FieldChanged>()
+                        .add_systems(Update, apply_hits);
+                    let enemy = app
+                        .world_mut()
+                        .spawn((
+                            Guid(123),
+                            Transform::default(),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp: 1000.,
+                                max_hp: 1000.,
+                                speed: 3.,
+                                damage: 1.,
+                                radius: 0.6,
+                                xp: 1,
+                                boss,
+                                elite: false,
+                                attack_cd: 0.,
+                                slows: Default::default(),
+                                root_t: 0.,
+                                frozen_t: 0.,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.,
+                                fear_t: 0.,
+                                incapacitate_t: 0.0,
+                                weaken: 1.,
+                                weaken_t: 0.,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead: false,
+                            },
+                        ))
+                        .id();
+
+                    let owned = Owned {
+                        def: data::ability("insect_swarm"),
+                        level,
+                        cd: 0.,
+                    };
+                    let stats = app.world().resource::<Run>().stats();
+                    let p = Params::new(&owned, &stats, trained);
+                    let base = Params::new(&owned, &stats, trained.with_ranks(&[]));
+                    assert_eq!(
+                        (p.dmg, p.dot, p.duration, p.cooldown, p.count, p.range),
+                        (
+                            base.dmg,
+                            base.dot,
+                            base.duration,
+                            base.cooldown,
+                            base.count,
+                            base.range
+                        )
+                    );
+                    let hit = hit_for(owned.def, &p, enemy, p.dmg, false);
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert_eq!(en.hp, 1000.);
+                    assert_eq!(
+                        (en.weaken, en.weaken_t),
+                        if rank > 0 { (0.98, 10.) } else { (1., 0.) }
+                    );
+                    assert_eq!(en.dots.len(), 1);
+                    // Tick damage continues without reapplying or extending the penalty.
+                    app.world_mut().get_mut::<Enemy>(enemy).unwrap().weaken_t = 3.;
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::from_secs(1));
+                    app.update();
+                    let en = app.world().get::<Enemy>(enemy).unwrap();
+                    assert!(en.hp < 1000.);
+                    assert_eq!(en.weaken_t, 3.);
+                    // Scorpid Sting or other stronger reductions retain their own expiry.
+                    app.world_mut()
+                        .resource_mut::<Time>()
+                        .advance_by(std::time::Duration::ZERO);
+                    {
+                        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+                        en.weaken = 0.75;
+                        en.weaken_t = 1.;
+                    }
+                    app.world_mut().write_message(hit.clone());
+                    app.update();
+                    assert_eq!(
+                        (
+                            app.world().get::<Enemy>(enemy).unwrap().weaken,
+                            app.world().get::<Enemy>(enemy).unwrap().weaken_t
+                        ),
+                        (0.75, 1.)
+                    );
+                    if rank > 0 {
+                        app.world_mut().get_mut::<Enemy>(enemy).unwrap().weaken_t = 0.;
+                        app.world_mut().write_message(hit);
+                        app.update();
+                        assert_eq!(
+                            (
+                                app.world().get::<Enemy>(enemy).unwrap().weaken,
+                                app.world().get::<Enemy>(enemy).unwrap().weaken_t
+                            ),
+                            (0.98, 10.)
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod sword_hit_tests {
+    use super::super::data;
+    use super::*;
+    use survivors_core::{
+        gear_loadout::{MeleeKind, MeleeWeapon},
+        talents::Milestones,
+    };
+
+    #[test]
+    fn hamstring_roots_original_target_preserving_slow_without_freezing_or_splashing() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for (source, boss, prior_root, hp, dead, despawn, paused) in [
+            ("thunder_clap", false, 0.0, 100.0, false, false, false),
+            ("thunder_clap", true, 0.0, 100.0, false, false, false),
+            ("thunder_clap", false, 6.0, 100.0, false, false, false),
+            ("thunder_clap", false, 0.0, 5.0, false, false, false),
+            (
+                "sword_specialization",
+                false,
+                0.0,
+                100.0,
+                false,
+                false,
+                false,
+            ),
+            ("deep_wounds", false, 0.0, 100.0, false, false, false),
+            ("thunder_clap", false, 0.0, 100.0, true, false, false),
+            ("thunder_clap", false, 0.0, 100.0, false, true, false),
+            ("thunder_clap", false, 0.0, 100.0, false, false, true),
+        ] {
+            let mut app = App::new();
+            app.insert_resource(Time::<()>::default())
+                .insert_resource(Run {
+                    milestones: Milestones::default().with_ranks(&[(0, 129, 3)]),
+                    ..Default::default()
+                })
+                .insert_resource(Rng(0))
+                .insert_resource(super::super::account::empty())
+                .insert_resource(State::new(if paused {
+                    super::super::Phase::Paused
+                } else {
+                    super::super::Phase::Playing
+                }))
+                .init_resource::<super::super::Selection>()
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>()
+                .add_message::<Loot>()
+                .add_message::<FieldChanged>();
+            let spawn = |world: &mut World, hp, dead, x| {
+                world
+                    .spawn((
+                        Guid(123),
+                        Transform::from_xyz(x, 0.0, 0.0),
+                        ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                        Marks::debuffs(),
+                        Enemy {
+                            def: &data::roster(0).enemies[0],
+                            hp,
+                            max_hp: 100.0,
+                            speed: 3.0,
+                            damage: 1.0,
+                            radius: 0.6,
+                            xp: 1,
+                            boss: false,
+                            elite: false,
+                            attack_cd: 0.0,
+                            slows: Default::default(),
+                            root_t: 0.0,
+                            frozen_t: 0.0,
+                            winters_chill: Default::default(),
+                            shadow_weaving: Default::default(),
+                            kidney_t: 0.0,
+                            stun_t: 0.0,
+                            fear_t: 0.0,
+                            incapacitate_t: 0.0,
+                            weaken: 1.0,
+                            weaken_t: 0.0,
+                            poison: Default::default(),
+                            dots: vec![],
+                            dead,
+                        },
+                    ))
+                    .id()
+            };
+            let target = spawn(app.world_mut(), hp, dead, 0.0);
+            let neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
+            {
+                let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
+                enemy.boss = boss;
+                enemy.root_t = prior_root;
+            }
+            if despawn {
+                app.world_mut().despawn(target);
+            }
+            app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                source,
+                splash: 2.0,
+                effect: Effect::Slow(0.5, 3.0),
+                ..Hit::direct(target, 10.0, true)
+            });
+            let mut schedule = Schedule::default();
+            schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
+            schedule.run(app.world_mut());
+            if paused {
+                assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, hp);
+                assert_eq!(app.world().resource::<Run>().damage_done, 0.0);
+                app.world_mut()
+                    .insert_resource(State::new(super::super::Phase::Playing));
+                schedule.run(app.world_mut());
+            }
+            if !despawn && !dead {
+                let enemy = app.world().get::<Enemy>(target).unwrap();
+                assert_eq!(enemy.hp, (hp - 10.0_f32).max(0.0));
+                let expected = if source == "thunder_clap" {
+                    prior_root.max(if boss { 1.5 } else { 5.0 })
+                } else {
+                    prior_root
+                };
+                assert_eq!(enemy.root_t, expected);
+                assert_eq!(enemy.frozen_t, 0.0);
+                assert_eq!(enemy.stun_t, 0.0);
+                assert_eq!(
+                    enemy.slows.state(0.),
+                    if hp <= 10. {
+                        (1., 0.)
+                    } else {
+                        (if boss { 0.75 } else { 0.5 }, 3.)
+                    }
+                );
+                assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 93.0);
+                assert_eq!(app.world().resource::<Run>().kills, u32::from(hp <= 10.0));
+                assert_eq!(
+                    app.world().resource::<Messages<Loot>>().len(),
+                    usize::from(hp <= 10.0)
+                );
+            } else {
+                assert_eq!(app.world().resource::<Messages<Loot>>().len(), 0);
+                assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 100.0);
+                if !despawn {
+                    assert_eq!(app.world().get::<Enemy>(target).unwrap().root_t, prior_root);
+                }
+            }
+            assert_eq!(
+                app.world().get::<Enemy>(neighbor).unwrap().root_t,
+                0.0,
+                "splash must not root"
+            );
+            let damage = app.world().resource::<Run>().damage_done;
+            schedule.run(app.world_mut());
+            assert_eq!(
+                app.world().resource::<Run>().damage_done,
+                damage,
+                "no delayed recursion or repeat message"
+            );
+        }
+    }
+    #[test]
+    fn seal_fate_recovers_finishers_only_once_per_original_landed_builder_hit() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use crate::survivors::Owned;
+        for source in [
+            "sinister_strike",
+            "gouge",
+            "eviscerate",
+            "rupture",
+            "blade_flurry",
+            "sword_specialization",
+            "deep_wounds",
+            "fireball",
+        ] {
+            for (critical, damage, hp, dead, despawn, paused, dead_hero) in [
+                (true, 10.0, 100.0, false, false, false, false),
+                (true, 10.0, 5.0, false, false, false, false),
+                (false, 10.0, 100.0, false, false, false, false),
+                (true, 0.0, 100.0, false, false, false, false),
+                (true, 10.0, 100.0, true, false, false, false),
+                (true, 10.0, 100.0, false, true, false, false),
+                (true, 10.0, 100.0, false, false, true, false),
+                (true, 10.0, 100.0, false, false, false, true),
+            ] {
+                let mut app = App::new();
+                let mut run = Run {
+                    class: &data::CLASSES[3],
+                    milestones: Milestones {
+                        class: 3,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(0, 283, 5)]),
+                    abilities: [
+                        ("eviscerate", 5.0),
+                        ("rupture", 0.5),
+                        ("kidney_shot", 0.0),
+                        ("sinister_strike", 4.0),
+                        ("blade_flurry", 4.0),
+                        ("fireball", 4.0),
+                    ]
+                    .into_iter()
+                    .map(|(key, cd)| Owned {
+                        def: data::ability(key),
+                        level: 1,
+                        cd,
+                    })
+                    .collect(),
+                    ..Default::default()
+                };
+                run.bonus.multistrike = 2.0;
+                if dead_hero {
+                    run.hp = 0.0;
+                }
+                app.insert_resource(Time::<()>::default())
+                    .insert_resource(run)
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(State::new(if paused {
+                        super::super::Phase::Paused
+                    } else {
+                        super::super::Phase::Playing
+                    }))
+                    .init_resource::<super::super::Selection>()
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let spawn = |world: &mut World, hp, dead, x| {
+                    world
+                        .spawn((
+                            Guid(123),
+                            Transform::from_xyz(x, 0.0, 0.0),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slows: Default::default(),
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                incapacitate_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead,
+                            },
+                        ))
+                        .id()
+                };
+
+                let target = spawn(app.world_mut(), hp, dead, 0.0);
+                let _neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
+                if despawn {
+                    app.world_mut().despawn(target);
+                }
+                for _ in 0..2 {
+                    app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                        source,
+                        splash: 2.0,
+                        ..Hit::direct(target, damage, critical)
+                    });
+                }
+                let mut schedule = Schedule::default();
+                schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
+                schedule.run(app.world_mut());
+                if paused {
+                    assert_eq!(app.world().resource::<Run>().abilities[0].cd, 5.0);
+                    app.world_mut()
+                        .insert_resource(State::new(super::super::Phase::Playing));
+                    schedule.run(app.world_mut());
+                }
+                let eligible = matches!(source, "sinister_strike" | "gouge")
+                    && critical
+                    && damage > 0.0
+                    && !dead
+                    && !despawn
+                    && !dead_hero;
+                let procs = if !eligible {
+                    0.0
+                } else if hp <= 5.0 {
+                    1.0
+                } else {
+                    2.0
+                };
+                let cooldowns: Vec<_> = app
+                    .world()
+                    .resource::<Run>()
+                    .abilities
+                    .iter()
+                    .map(|a| a.cd)
+                    .collect();
+                assert_eq!(
+                    cooldowns,
+                    vec![5.0 - procs, (0.5_f32 - procs).max(0.0), 0.0, 4.0, 4.0, 4.0],
+                    "{source} {critical} {damage} {hp} {dead} {despawn} {dead_hero}"
+                );
+                schedule.run(app.world_mut());
+                assert_eq!(
+                    app.world()
+                        .resource::<Run>()
+                        .abilities
+                        .iter()
+                        .map(|a| a.cd)
+                        .collect::<Vec<_>>(),
+                    cooldowns
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn mace_proc_stuns_original_target_without_shortening_control_or_splashing() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for (class, tree, talent, attack) in [
+            (0, 0, 125, "cleave"),
+            (3, 1, 184, "sinister_strike"),
+            (3, 1, 184, "eviscerate"),
+            (3, 1, 184, "blade_flurry"),
+            (3, 1, 184, "gouge"),
+            (3, 1, 184, "kidney_shot"),
+        ] {
+            for (source, boss, prior_stun, hp, dead, despawn, paused) in [
+                ("cleave", false, 0.0, 100.0, false, false, false),
+                ("cleave", true, 0.0, 100.0, false, false, false),
+                ("cleave", false, 6.0, 100.0, false, false, false),
+                ("cleave", false, 0.0, 5.0, false, false, false),
+                (
+                    "sword_specialization",
+                    false,
+                    0.0,
+                    100.0,
+                    false,
+                    false,
+                    false,
+                ),
+                ("deep_wounds", false, 0.0, 100.0, false, false, false),
+                ("rupture", false, 0.0, 100.0, false, false, false),
+                ("cleave", false, 0.0, 100.0, true, false, false),
+                ("cleave", false, 0.0, 100.0, false, true, false),
+                ("cleave", false, 0.0, 100.0, false, false, true),
+            ] {
+                let source = if source == "cleave" { attack } else { source };
+                let mut app = App::new();
+                app.insert_resource(Time::<()>::default())
+                    .insert_resource(Run {
+                        milestones: Milestones {
+                            class,
+                            weapon: Some(MeleeWeapon {
+                                kind: MeleeKind::Mace,
+                                two_handed: false,
+                            }),
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(tree, talent, 5)]),
+                        ..Default::default()
+                    })
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(State::new(if paused {
+                        super::super::Phase::Paused
+                    } else {
+                        super::super::Phase::Playing
+                    }))
+                    .init_resource::<super::super::Selection>()
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let spawn = |world: &mut World, hp, dead, x| {
+                    world
+                        .spawn((
+                            Guid(123),
+                            Transform::from_xyz(x, 0.0, 0.0),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slows: Default::default(),
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                incapacitate_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead,
+                            },
+                        ))
+                        .id()
+                };
+                let target = spawn(app.world_mut(), hp, dead, 0.0);
+                let neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
+                {
+                    let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
+                    enemy.boss = boss;
+                    enemy.stun_t = prior_stun;
+                }
+                if despawn {
+                    app.world_mut().despawn(target);
+                }
+                app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                    source,
+                    splash: 2.0,
+                    ..Hit::direct(target, 10.0, true)
+                });
+                let mut schedule = Schedule::default();
+                schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
+                schedule.run(app.world_mut());
+                if paused {
+                    assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, hp);
+                    assert_eq!(app.world().resource::<Run>().damage_done, 0.0);
+                    app.world_mut()
+                        .insert_resource(State::new(super::super::Phase::Playing));
+                    schedule.run(app.world_mut());
+                }
+                if !despawn && !dead {
+                    let enemy = app.world().get::<Enemy>(target).unwrap();
+                    assert_eq!(enemy.hp, (hp - 10.0_f32).max(0.0));
+                    let expected = if source == attack {
+                        prior_stun.max(if boss { 0.9 } else { 3.0 })
+                    } else {
+                        prior_stun
+                    };
+                    assert_eq!(enemy.stun_t, expected);
+                    assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 93.0);
+                    assert_eq!(app.world().resource::<Run>().kills, u32::from(hp <= 10.0));
+                    assert_eq!(
+                        app.world().resource::<Messages<Loot>>().len(),
+                        usize::from(hp <= 10.0)
+                    );
+                } else {
+                    assert_eq!(app.world().resource::<Messages<Loot>>().len(), 0);
+                    assert_eq!(app.world().get::<Enemy>(neighbor).unwrap().hp, 100.0);
+                    if !despawn {
+                        assert_eq!(app.world().get::<Enemy>(target).unwrap().stun_t, prior_stun);
+                    }
+                }
+                assert_eq!(
+                    app.world().get::<Enemy>(neighbor).unwrap().stun_t,
+                    0.0,
+                    "splash must not stun"
+                );
+                let damage = app.world().resource::<Run>().damage_done;
+                schedule.run(app.world_mut());
+                assert_eq!(
+                    app.world().resource::<Run>().damage_done,
+                    damage,
+                    "no delayed recursion or repeat message"
+                );
+            }
+        }
+    }
+    #[test]
+    fn sword_proc_applies_once_to_target_and_preserves_pause_and_loot() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        for (class, tree, talent, source) in [
+            (0, 0, 123, "cleave"),
+            (3, 1, 242, "sinister_strike"),
+            (3, 1, 242, "blade_flurry"),
+            (3, 1, 242, "gouge"),
+            (3, 1, 242, "eviscerate"),
+            (3, 1, 242, "kidney_shot"),
+        ] {
+            for (hp, dead, despawn, paused) in [
+                (100.0, false, false, false),
+                (5.0, false, false, false),
+                (15.0, false, false, false),
+                (100.0, true, false, false),
+                (100.0, false, true, false),
+                (100.0, false, false, true),
+            ] {
+                let mut app = App::new();
+                app.insert_resource(Time::<()>::default())
+                    .insert_resource(Run {
+                        milestones: Milestones {
+                            class,
+                            weapon: Some(MeleeWeapon {
+                                kind: MeleeKind::Sword,
+                                two_handed: false,
+                            }),
+                            ..Default::default()
+                        }
+                        .with_ranks(&[(tree, talent, 5)]),
+                        ..Default::default()
+                    })
+                    .insert_resource(Rng(0))
+                    .insert_resource(super::super::account::empty())
+                    .insert_resource(State::new(if paused {
+                        super::super::Phase::Paused
+                    } else {
+                        super::super::Phase::Playing
+                    }))
+                    .init_resource::<super::super::Selection>()
+                    .init_resource::<PlaySeq>()
+                    .init_resource::<PendingHits>()
+                    .add_message::<CastEvent>()
+                    .add_message::<SpellGoTargets>()
+                    .add_message::<SwingMessage>()
+                    .add_message::<crate::combat_text::CombatTextSpawn>()
+                    .add_message::<Hit>()
+                    .add_message::<Loot>()
+                    .add_message::<FieldChanged>();
+                let spawn = |world: &mut World, hp, dead, x| {
+                    world
+                        .spawn((
+                            Guid(123),
+                            Transform::from_xyz(x, 0.0, 0.0),
+                            ObjectStore(benilla_protocol::messages::ObjectFields::from_pairs(&[])),
+                            Marks::debuffs(),
+                            Enemy {
+                                def: &data::roster(0).enemies[0],
+                                hp,
+                                max_hp: 100.0,
+                                speed: 3.0,
+                                damage: 1.0,
+                                radius: 0.6,
+                                xp: 1,
+                                boss: false,
+                                elite: false,
+                                attack_cd: 0.0,
+                                slows: Default::default(),
+                                root_t: 0.0,
+                                frozen_t: 0.0,
+                                winters_chill: Default::default(),
+                                shadow_weaving: Default::default(),
+                                kidney_t: 0.0,
+                                stun_t: 0.0,
+                                fear_t: 0.0,
+                                incapacitate_t: 0.0,
+                                weaken: 1.0,
+                                weaken_t: 0.0,
+                                poison: Default::default(),
+                                dots: vec![],
+                                dead,
+                            },
+                        ))
+                        .id()
+                };
+                let target = spawn(app.world_mut(), hp, dead, 0.0);
+                let neighbor = spawn(app.world_mut(), 100.0, false, 1.0);
+                if despawn {
+                    app.world_mut().despawn(target);
+                }
+                app.world_mut().resource_mut::<Messages<Hit>>().write(Hit {
+                    source,
+                    splash: 2.0,
+                    ..Hit::direct(target, 10.0, true)
+                });
+                let mut schedule = Schedule::default();
+                schedule.add_systems(apply_hits.run_if(in_state(super::super::Phase::Playing)));
+                schedule.run(app.world_mut());
+                if paused {
+                    assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, hp);
+                    assert_eq!(app.world().resource::<Run>().damage_done, 0.0);
+                    app.world_mut()
+                        .insert_resource(State::new(super::super::Phase::Playing));
+                    schedule.run(app.world_mut());
+                }
+                if !despawn && !dead {
+                    assert_eq!(
+                        app.world().get::<Enemy>(target).unwrap().hp,
+                        (hp - 20.0).max(0.0)
+                    );
+                    assert_eq!(
+                        app.world().get::<Enemy>(neighbor).unwrap().hp,
+                        93.0,
+                        "splash must not spawn another sword proc"
+                    );
+                    let run = app.world().resource::<Run>();
+                    assert_eq!(run.kills, usize::from(hp <= 20.0) as u32);
+                    let extra = run
+                        .damage_sources
+                        .iter()
+                        .find(|row| row.0 == "sword_specialization")
+                        .map_or(0.0, |row| row.1);
+                    assert_eq!(extra, if hp > 10.0 { 10.0 } else { 0.0 });
+                    assert_eq!(
+                        app.world().resource::<Messages<Loot>>().len(),
+                        usize::from(hp <= 20.0)
+                    );
+                } else {
+                    assert!(!app
+                        .world()
+                        .resource::<Run>()
+                        .damage_sources
+                        .iter()
+                        .any(|row| row.0 == "sword_specialization"));
+                    assert_eq!(app.world().resource::<Messages<Loot>>().len(), 0);
+                    assert_eq!(
+                        app.world().get::<Enemy>(neighbor).unwrap().hp,
+                        100.0,
+                        "dead or missing targets cannot splash neighbors"
+                    );
+                }
+                let damage = app.world().resource::<Run>().damage_done;
+                schedule.run(app.world_mut());
+                assert_eq!(
+                    app.world().resource::<Run>().damage_done,
+                    damage,
+                    "no delayed recursion or repeat message"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn sword_echo_copies_damage_only_and_cannot_chain() {
+        for (class, tree, talent, source) in [
+            (0, 0, 123, "execute"),
+            (3, 1, 242, "gouge"),
+            (3, 1, 242, "kidney_shot"),
+        ] {
+            let talents = Milestones {
+                class,
+                weapon: Some(MeleeWeapon {
+                    kind: MeleeKind::Sword,
+                    two_handed: class == 0,
+                }),
+                ..Default::default()
+            }
+            .with_ranks(&[(tree, talent, 5)]);
+            let mut world = World::new();
+            let target = world.spawn_empty().id();
+            let hit = Hit {
+                source,
+                damage: 123.0,
+                dot: 10.0,
+                dot_dur: 5.0,
+                effect: if class == 3 {
+                    Effect::Stun(3.5)
+                } else {
+                    Effect::Execute(0.2)
+                },
+                mark: 42,
+                mark_dur: 5.0,
+                splash: 10.0,
+                ..Hit::direct(target, 123.0, true)
+            };
+            let extra = sword_extra_hit(&hit, talents, 0.049).unwrap();
+            assert_eq!(extra.target, target);
+            assert_eq!(extra.damage, 123.0);
+            assert!(extra.crit);
+            assert!(matches!(extra.effect, Effect::None));
+            assert_eq!(
+                (extra.dot, extra.dot_dur, extra.splash, extra.mark_dur),
+                (0.0, 0.0, 0.0, 0.0)
+            );
+            assert_eq!(extra.mark, 0);
+            assert!(sword_extra_hit(&extra, talents, 0.0).is_none());
+            for roll in [0.05, 1.0, -1.0, f32::NAN, f32::INFINITY] {
+                assert!(sword_extra_hit(&hit, talents, roll).is_none());
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod battle_shout_tests {
+    use super::super::{data, Owned};
+    use super::*;
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn acquired_shout_changes_weapon_hits_independently_of_acquisition_order() {
+        use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+        use bevy::ecs::system::RunSystemOnce;
+        let sample = |shout: bool, first: bool, rank: u8| {
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            let mut run = Run {
+                milestones: Milestones::default().with_ranks(&[(1, 154, rank)]),
+                ..Default::default()
+            };
+            for key in [
+                "cleave",
+                "heroic_strike",
+                "whirlwind",
+                "sweeping_strikes",
+                "execute",
+                "mortal_strike",
+                "thunder_clap",
+            ] {
+                run.abilities.push(Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.,
+                });
+            }
+            if shout {
+                let at = if first { 0 } else { run.abilities.len() };
+                run.abilities.insert(
+                    at,
+                    Owned {
+                        def: data::ability("battle_shout"),
+                        level: 1,
+                        cd: 0.0,
+                    },
+                );
+            }
+            app.insert_resource(time)
+                .insert_resource(run)
+                .insert_resource(Rng(42))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().spawn((
+                Transform::from_xyz(1., 0., 0.),
+                Enemy {
+                    def: &data::roster(0).enemies[0],
+                    hp: 100.,
+                    max_hp: 100.,
+                    speed: 3.,
+                    damage: 5.,
+                    radius: 0.6,
+                    xp: 1,
+                    boss: false,
+                    elite: false,
+                    attack_cd: 0.,
+                    slows: Default::default(),
+                    root_t: 0.,
+                    frozen_t: 0.,
+                    winters_chill: Default::default(),
+                    shadow_weaving: Default::default(),
+                    kidney_t: 0.0,
+                    stun_t: 0.,
+                    fear_t: 0.,
+                    incapacitate_t: 0.0,
+                    weaken: 1.,
+                    weaken_t: 0.,
+                    poison: Default::default(),
+                    dots: Vec::new(),
+                    dead: false,
+                },
+            ));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            app.world_mut()
+                .resource_mut::<Messages<Hit>>()
+                .drain()
+                .map(|hit| (hit.source, hit.damage))
+                .collect::<Vec<_>>()
+        };
+
+        let base = sample(false, false, 0);
+        assert!(!base.is_empty());
+        assert_eq!(
+            sample(false, false, 5),
+            base,
+            "training alone cannot grant a buff"
+        );
+        for (rank, factor) in [(0, 1.1), (5, 1.125)] {
+            let trained = sample(true, false, rank);
+            assert_eq!(trained, sample(true, true, rank));
+            assert_eq!(trained.len(), base.len(), "the shout must not emit damage");
+            for ((source, damage), (other, plain)) in trained.iter().zip(&base) {
+                assert_eq!(source, other);
+                let factor = if *source == "thunder_clap" {
+                    1.0
+                } else {
+                    factor
+                };
+                assert!((damage - plain * factor).abs() < 0.0001, "{source}");
+            }
+        }
+    }
+
+    #[test]
+    fn buff_strength_ignores_global_damage_critical_area_and_targets() {
+        let mut run = Run::default();
+        run.bonus.might = 20.0;
+        run.bonus.crit = 0.9;
+        run.bonus.area = 5.0;
+        run.bonus.targets = 8;
+        run.milestones = Milestones::default().with_ranks(&[(1, 154, 5)]);
+        let owned = Owned {
+            def: data::ability("battle_shout"),
+            level: 1,
+            cd: 0.0,
+        };
+        let params = Params::new(&owned, &run.stats(), run.milestones);
+        assert_eq!(params.weapon_bonus, 0.125);
+        assert_eq!(params.dmg, 0.0);
+        assert_eq!(params.dot, 0.0);
+        assert_eq!(params.count, 0);
+        assert!(run
+            .battle_shout
+            .refresh(params.weapon_bonus, params.duration, run.elapsed));
+        let global = run.stats();
+        let weapon = global.for_spell("cleave");
+        assert!((weapon.might - global.might * 1.125).abs() < 0.00001);
+        assert_eq!(
+            weapon.for_spell("cleave").might,
+            weapon.might,
+            "scope cannot apply twice"
+        );
+        assert_eq!(global.for_spell("thunder_clap").might, global.might);
+        assert_eq!(
+            Params::new(&owned, &run.stats(), run.milestones).weapon_bonus,
+            0.125
+        );
+        run.hp = 0.0;
+        assert_eq!(run.stats().for_spell("cleave").might, run.stats().might);
+    }
+
+    #[test]
+    fn self_buff_cast_needs_living_hero_and_positive_time_but_no_enemy() {
+        let mut run = Run {
+            abilities: vec![Owned {
+                def: data::ability("battle_shout"),
+                level: 1,
+                cd: 0.0,
+            }],
+            ..Default::default()
+        };
+        for dt in [0.0, -1.0, f32::NAN, f32::INFINITY] {
+            let stats = run.stats();
+            assert!(cast_weapon_buffs(&mut run, &stats, dt).is_empty());
+            assert_eq!(run.abilities[0].cd, 0.0);
+        }
+        run.hp = 0.0;
+        let stats = run.stats();
+        assert!(cast_weapon_buffs(&mut run, &stats, 0.1).is_empty());
+        run.hp = 160.0;
+        let stats = run.stats();
+        assert_eq!(cast_weapon_buffs(&mut run, &stats, 0.1), vec![6673]);
+        assert_eq!(run.battle_shout.remaining(0.0), 8.0);
+        assert_eq!(run.abilities[0].cd, 20.0);
+        assert!(cast_weapon_buffs(&mut run, &stats, 0.1).is_empty());
+        assert!((run.abilities[0].cd - 19.9).abs() < 0.00001);
+        run.elapsed = 8.0;
+        assert_eq!(run.stats().for_spell("cleave").might, run.stats().might);
+        run.elapsed = 20.0;
+        run.abilities[0].cd = 0.0;
+        assert_eq!(cast_weapon_buffs(&mut run, &stats, 0.1), vec![6673]);
+        assert_eq!(run.battle_shout.remaining(20.0), 8.0);
+    }
+    #[test]
+    fn booming_voice_extends_cast_buff_and_composes_with_strength_training() {
+        for (level, expected_strength, expected_duration) in [(1, 0.125, 12.0), (2, 0.1625, 13.2)] {
+            let mut run = Run {
+                milestones: Milestones::default().with_ranks(&[(1, 158, 5), (1, 154, 5)]),
+                abilities: vec![Owned {
+                    def: data::ability("battle_shout"),
+                    level,
+                    cd: 0.0,
+                }],
+                ..Default::default()
+            };
+            let stats = run.stats();
+            let plain = Params::new(&run.abilities[0], &stats, Milestones::default());
+            let trained = Params::new(&run.abilities[0], &stats, run.milestones);
+            assert!((trained.weapon_bonus - expected_strength).abs() < 0.00001);
+            assert!((trained.duration - expected_duration).abs() < 0.00001);
+            assert_eq!(trained.cooldown, plain.cooldown);
+            assert_eq!(trained.radius, plain.radius);
+            assert_eq!(trained.count, 0);
+            assert_eq!(cast_weapon_buffs(&mut run, &stats, 0.1), vec![6673]);
+            assert!((run.battle_shout.remaining(0.0) - expected_duration).abs() < 0.00001);
+            run.elapsed = expected_duration - 0.01;
+            assert!(run.stats().for_spell("cleave").might > stats.might);
+            run.elapsed = expected_duration + 0.01;
+            assert_eq!(run.stats().for_spell("cleave").might, stats.might);
+        }
+    }
+}
+
+#[cfg(test)]
+#[path = "poison_tests.rs"]
+pub(super) mod poison_tests;
+
+#[cfg(test)]
+#[path = "creature_damage_tests.rs"]
+mod creature_damage_tests;
+
+#[cfg(test)]
+#[path = "marked_target_tests.rs"]
+mod marked_target_tests;
+
+#[cfg(test)]
+#[path = "stormstrike_tests.rs"]
+mod stormstrike_tests;
+
+#[cfg(test)]
+#[path = "scorch_tests.rs"]
+mod scorch_tests;
+
+#[cfg(test)]
+#[path = "weakness_tests.rs"]
+mod weakness_tests;
+
+#[cfg(test)]
+#[path = "slow_tests.rs"]
+mod slow_tests;
+
+#[cfg(test)]
+#[path = "pet_ownership_tests.rs"]
+mod pet_ownership_tests;
+
+/// Automatic healing snapshots a successful cast without replacing another spell's effect.
+fn start_healing(
+    run: &mut Run,
+    source: &'static str,
+    total: f32,
+    duration: f32,
+    max_hp: f32,
+) -> bool {
+    run.alive() && run.hp < max_hp * 0.85 && run.healing.refresh(source, total, duration)
+}
+
+#[cfg(test)]
+mod healing_cast_tests {
+    use super::*;
+
+    #[test]
+    fn automatic_healing_gates_before_refreshing_and_snapshots_the_cast() {
+        let mut run = Run {
+            hp: 50.,
+            ..Default::default()
+        };
+        run.healing.refresh("other_heal", 12., 6.);
+        assert!(start_healing(&mut run, "rejuvenation", 30., 10., 100.));
+        assert_eq!(run.hp, 50., "a periodic cast has no immediate payment");
+        assert_eq!(run.healing.advance(2.), 10.);
+        let before = run.healing.clone();
+        for (hp, dead) in [(85., None), (100., None), (0., None), (50., Some(0.))] {
+            run.hp = hp;
+            run.dead_t = dead;
+            assert!(!start_healing(&mut run, "rejuvenation", 60., 10., 100.));
+            assert_eq!(run.healing, before);
+        }
+        run.hp = 50.;
+        run.dead_t = None;
+        assert!(!start_healing(&mut run, "rejuvenation", 60., 0., 100.));
+        assert_eq!(run.healing, before);
+        assert!(start_healing(&mut run, "rejuvenation", 60., 10., 100.));
+        assert_eq!(run.healing.advance(20.), 68.);
+    }
+}
+
+/// The automatic cast gates on pre-heal health and snapshots periodic healing before the direct roll.
+fn cast_regrowth(run: &mut Run, p: &Params, max_hp: f32, rng: &mut Rng) -> Option<(f32, bool)> {
+    if !start_healing(run, "regrowth", p.dot * p.duration, p.duration, max_hp) {
+        return None;
+    }
+    let (amount, critical) = roll(rng, p.crit, p.crit_damage, p.dmg);
+    Some((run.heal(amount, max_hp), critical))
+}
+
+#[cfg(test)]
+#[path = "regrowth_tests.rs"]
+mod regrowth_tests;
+
+#[cfg(test)]
+#[path = "hemorrhage_tests.rs"]
+mod hemorrhage_tests;
+
+fn cast_direct_heal(run: &mut Run, p: &Params, max_hp: f32, rng: &mut Rng) -> Option<(f32, bool)> {
+    if !run.alive() || run.hp >= max_hp * 0.85 || !max_hp.is_finite() || max_hp <= 0.0 {
+        return None;
+    }
+    let (amount, critical) = roll(rng, p.crit, p.crit_damage, p.dmg);
+    Some((run.heal(amount, max_hp), critical))
+}
+
+#[cfg(test)]
+#[path = "healing_touch_tests.rs"]
+mod healing_touch_tests;
+
+#[cfg(test)]
+#[path = "ghostly_strike_tests.rs"]
+mod ghostly_strike_tests;
+
+#[cfg(test)]
+#[path = "greater_heal_tests.rs"]
+mod greater_heal_tests;
+
+#[cfg(test)]
+#[path = "repentance_tests.rs"]
+mod repentance_tests;
+
+#[cfg(test)]
+#[path = "holy_light_tests.rs"]
+mod holy_light_tests;
+
+#[cfg(test)]
+#[path = "totem_timing_tests.rs"]
+mod totem_timing_tests;
+
+#[cfg(test)]
+#[path = "earthbind_tests.rs"]
+mod earthbind_tests;
+
+#[cfg(test)]
+#[path = "stoneclaw_tests.rs"]
+mod stoneclaw_tests;
+
+#[cfg(test)]
+#[path = "fire_totem_placement_tests.rs"]
+mod fire_totem_placement_tests;
+
+#[cfg(test)]
+#[path = "weapon_attack_tests.rs"]
+mod weapon_attack_tests;
+
+#[cfg(test)]
+#[path = "enemy_casting_tests.rs"]
+mod enemy_casting_tests;
+
+#[cfg(test)]
+#[path = "sprint_tests.rs"]
+mod sprint_tests;

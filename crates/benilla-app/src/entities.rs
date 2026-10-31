@@ -2,6 +2,8 @@
 //! unit's display resolves to its M2 through the creature chain, a player's body included, a
 //! GameObject's to its model, and anything else draws as a cube.
 
+pub(crate) mod survivors_look;
+
 use std::collections::HashMap;
 
 use benilla_assets::{M2Model, WmoModel};

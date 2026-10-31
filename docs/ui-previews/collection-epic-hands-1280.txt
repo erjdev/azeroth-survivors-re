@@ -1,0 +1,5 @@
+# Inspect the current class without equipping or granting the piece.
+page = collection
+width = 1280
+height = 720
+piece = epic:hands

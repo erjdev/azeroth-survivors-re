@@ -10,9 +10,6 @@ use super::Stats;
 
 pub(super) const MAX_RELIC_RANK: u8 = 3;
 pub(super) const SEEK_COST: u32 = 75;
-/// `GameObjectDisplayInfo` 10: the wooden chest worn chests use in 1.12.
-pub(super) const CHEST_DISPLAY: u32 = 10;
-
 struct Relic {
     id: &'static str,
     name: &'static str,
@@ -21,20 +18,71 @@ struct Relic {
 }
 
 const RELICS: &[Relic] = &[
-    Relic { id: "edge", name: "Keen Edge", stat: Stat::Might, per_rank: 0.04 },
-    Relic { id: "heart", name: "Heartstone", stat: Stat::MaxHp, per_rank: 0.06 },
-    Relic { id: "boots", name: "Swift Boots", stat: Stat::Speed, per_rank: 0.03 },
-    Relic { id: "glass", name: "Hourglass", stat: Stat::Haste, per_rank: 0.02 },
-    Relic { id: "lode", name: "Lodestone", stat: Stat::Magnet, per_rank: 0.15 },
-    Relic { id: "plate", name: "Warplate", stat: Stat::Armor, per_rank: 1.5 },
-    Relic { id: "coin", name: "Lucky Coin", stat: Stat::Crit, per_rank: 0.02 },
-    Relic { id: "tome", name: "Scholar's Tome", stat: Stat::Growth, per_rank: 0.05 },
-    Relic { id: "band", name: "Ember Band", stat: Stat::Area, per_rank: 0.05 },
-    Relic { id: "wind", name: "Second Wind", stat: Stat::Regen, per_rank: 0.6 },
+    Relic {
+        id: "edge",
+        name: "Keen Edge",
+        stat: Stat::Might,
+        per_rank: 0.04,
+    },
+    Relic {
+        id: "heart",
+        name: "Heartstone",
+        stat: Stat::MaxHp,
+        per_rank: 0.06,
+    },
+    Relic {
+        id: "boots",
+        name: "Swift Boots",
+        stat: Stat::Speed,
+        per_rank: 0.03,
+    },
+    Relic {
+        id: "glass",
+        name: "Hourglass",
+        stat: Stat::Haste,
+        per_rank: 0.02,
+    },
+    Relic {
+        id: "lode",
+        name: "Lodestone",
+        stat: Stat::Magnet,
+        per_rank: 0.15,
+    },
+    Relic {
+        id: "plate",
+        name: "Warplate",
+        stat: Stat::Armor,
+        per_rank: 1.5,
+    },
+    Relic {
+        id: "coin",
+        name: "Lucky Coin",
+        stat: Stat::Crit,
+        per_rank: 0.02,
+    },
+    Relic {
+        id: "tome",
+        name: "Scholar's Tome",
+        stat: Stat::Growth,
+        per_rank: 0.05,
+    },
+    Relic {
+        id: "band",
+        name: "Ember Band",
+        stat: Stat::Area,
+        per_rank: 0.05,
+    },
+    Relic {
+        id: "wind",
+        name: "Second Wind",
+        stat: Stat::Regen,
+        per_rank: 0.6,
+    },
 ];
 
 /// What a chest pays. `roll` in `[0, 1)`: under 0.45, a relic that can still grow.
-pub(super) fn roll_chest(roll: f32, level: u32, ranks: &[u8]) -> (u32, Option<usize>) {
+#[cfg(test)]
+fn roll_chest(roll: f32, level: u32, ranks: &[u8]) -> (u32, Option<usize>) {
     let gold = 18 + level / 3;
     if roll >= 0.45 {
         return (gold + 12, None);
@@ -79,7 +127,7 @@ impl Stash {
         text.map(|t| parse(&t)).unwrap_or_else(Self::blank)
     }
 
-    fn blank() -> Self {
+    pub(super) fn blank() -> Self {
         Self {
             gold: 0,
             ranks: vec![0; RELICS.len()],
@@ -294,11 +342,7 @@ fn parse(text: &str) -> Stash {
                 }
             }
             Some("focus") => {
-                stash.focus = w
-                    .next()
-                    .and_then(|n| n.parse().ok())
-                    .unwrap_or(0)
-                    .min(2);
+                stash.focus = w.next().and_then(|n| n.parse().ok()).unwrap_or(0).min(2);
             }
             _ => {}
         }
@@ -378,7 +422,8 @@ mod tests {
 
     #[test]
     fn a_comment_does_not_hide_the_gold() {
-        let stash = parse("# gold\ngold 40\nrank edge 2\nrank boots 1\nequip edge - boots\nfocus 2\n");
+        let stash =
+            parse("# gold\ngold 40\nrank edge 2\nrank boots 1\nequip edge - boots\nfocus 2\n");
         assert_eq!(stash.gold, 40);
         assert_eq!(stash.ranks[0], 2);
         assert_eq!(stash.ranks[2], 1);

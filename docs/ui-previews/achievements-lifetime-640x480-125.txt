@@ -1,0 +1,7 @@
+# Keyboard paging: Page Down reveals Veteran and the account footer; Home returns.
+page = achievements
+category = lifetime
+width = 640
+height = 480
+scale = 1.25
+hero = 1

@@ -64,6 +64,10 @@ impl Plugin for DevProbesPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "dev")]
         {
+            #[cfg(not(target_arch = "wasm32"))]
+            if crate::survivors::active() {
+                app.add_plugins(crate::capture::survivors_tools::plugin);
+            }
             // `$WOW_CAPTURE`: one deterministic screenshot, then exit.
             if crate::run_mode::scenario_active() {
                 app.add_plugins(crate::capture::CapturePlugin);

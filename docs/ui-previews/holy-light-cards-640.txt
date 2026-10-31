@@ -1,0 +1,5 @@
+page=cards
+width=640
+height=720
+scale=1.25
+abilities=holy_light:0,holy_light:1,holy_light:5

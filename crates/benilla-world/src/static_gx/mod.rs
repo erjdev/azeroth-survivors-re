@@ -23,6 +23,9 @@ mod pick;
 mod pool;
 mod render;
 
+#[cfg(all(test, feature = "survivors-visibility"))]
+mod survivors_visibility_tests;
+
 /// The doodad spatial cell, a quarter ADT tile (133⅓ yd), as `terrain_stream::merge::CELL`.
 const CELL: f32 = 533.333_3 / 4.0;
 

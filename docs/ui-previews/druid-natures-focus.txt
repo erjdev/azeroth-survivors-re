@@ -1,0 +1,5 @@
+# Native menu preview; select a Druid character with trained ranks.
+page = talents
+width = 1280
+height = 720
+talent = 823

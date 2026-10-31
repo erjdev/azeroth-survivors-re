@@ -1,0 +1,5 @@
+# Native wide/short acceptance preset; uses the saved hero and spec.
+page = talents
+width = 1440
+height = 600
+scale = 1.0

@@ -1,0 +1,4 @@
+page = cards
+width = 1280
+height = 720
+abilities = healing_touch:0, healing_touch:1, healing_touch:4

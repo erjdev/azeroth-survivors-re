@@ -20,6 +20,8 @@ use bevy::shader::ShaderRef;
 /// Compile the four WGSL files into the binary under `embedded://benilla_assets/shaders/…`. Call
 /// after Bevy's `AssetPlugin`, whose registry this fills; [`crate::register_asset_loaders`] does.
 pub fn register_shaders(app: &mut App) {
+    #[cfg(feature = "survivors-visibility")]
+    bevy::asset::embedded_asset!(app, "shaders/survivors_cutaway.wgsl");
     bevy::asset::embedded_asset!(app, "shaders/terrain.wgsl");
     bevy::asset::embedded_asset!(app, "shaders/wow_model.wgsl");
     bevy::asset::embedded_asset!(app, "shaders/wdl.wgsl");
@@ -46,6 +48,8 @@ pub type WowModelMaterial = ExtendedMaterial<StandardMaterial, WowModelExt>;
 /// (`clutter_fade.w`) ground clutter; both fade opacity with depth-write on, as the reference does.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct WowModelKey {
+    #[cfg(feature = "survivors-visibility")]
+    actor_mask: bool,
     fade: bool,
     clutter: bool,
     /// Additive glow card (`clutter_fade.z` bit 2).
@@ -72,6 +76,8 @@ impl From<&WowModelExt> for WowModelKey {
     fn from(e: &WowModelExt) -> Self {
         let markers = e.clutter_fade.z as u32;
         Self {
+            #[cfg(feature = "survivors-visibility")]
+            actor_mask: markers & crate::survivors_mask::MARKER != 0,
             fade: e.model_flags.y > 0.5,
             clutter: e.clutter_fade.w > 0.5,
             additive: markers & 4 != 0,
@@ -139,6 +145,10 @@ impl MaterialExtension for WowModelExt {
         layout: &MeshVertexBufferLayoutRef,
         key: MaterialExtensionKey<Self>,
     ) -> Result<(), SpecializedMeshPipelineError> {
+        #[cfg(feature = "survivors-visibility")]
+        if let Some(fragment) = descriptor.fragment.as_mut() {
+            fragment.shader_defs.push("SURVIVORS_CUTAWAY".into());
+        }
         // `WOW_RIG_SKIN` skins from the shared buffer's palette. The base layout lacks our joint
         // attributes: rebuild it with Bevy's conditionals (mesh.rs, locations 0-5) plus 10/11.
         if layout.0.contains(crate::ATTRIBUTE_WOW_JOINT_INDEX) {
@@ -306,6 +316,10 @@ impl MaterialExtension for WowModelExt {
                     },
                 });
             }
+        }
+        #[cfg(feature = "survivors-visibility")]
+        if key.actor_mask {
+            crate::survivors_mask::specialize(descriptor);
         }
         Ok(())
     }
