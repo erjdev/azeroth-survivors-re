@@ -388,6 +388,7 @@ they do not stack with it. Existing tree bonuses and row/prerequisite gates rema
 | Mace Specialization (184) | 5 | 1/2/3/4/6% chance to stun for 3 sec (bosses 0.9 sec), plus +1–5% direct damage with a worn mace; explicit weapon-skill conversion |
 | Weapon Expertise (1703) | 2 | +3/+5% direct damage with a worn sword, dagger or fist weapon; explicit weapon-skill conversion; requires Blade Flurry |
 | Adrenaline Rush (205) | 1 | First successful Rogue cast starts a 15 sec burst: casts assign 50% shorter cooldowns, multiplying other bonuses. Ready at run start; 300 sec recovery. Existing cooldowns, Sprint and Cold Blood recovery unchanged; energy-regeneration conversion |
+| Improved Sprint (222) | 2 | Activating learned Sprint has 50/100% chance to remove current incoming movement slows and zero-speed roots; no future immunity or speed/duration/recovery changes |
 | Endurance (204) | 2 | Sprint cooldown reduced by 10% per rank: 15 / 13.5 / 12 sec; speed, duration and level-five unlock unchanged |
 | Improved Slice and Dice (277) | 3 | Blade Flurry: 5% shorter cooldown per rank; automatic Slice and Dice conversion |
 | Elusiveness (247) | 2 | Gouge and Kidney Shot: 10% shorter cooldown per rank; defensive cooldown conversion, no stealth required |

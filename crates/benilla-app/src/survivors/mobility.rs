@@ -218,6 +218,7 @@ pub(super) fn cast_mobility(
     selection: Res<super::Selection>,
     aim: Res<hero::AimPoint>,
     mut fx: Fx,
+    mut rng: ResMut<super::Rng>,
 ) {
     run.mobile
         .advance(time.delta_secs(), *phase.get(), loading.covering());
@@ -310,6 +311,13 @@ pub(super) fn cast_mobility(
                     en.fear_t = en.fear_t.max(def.secs);
                 }
             }
+        }
+    }
+    if run.class.id == 4 {
+        let chance = run.milestones.sprint_cleanse_chance();
+        if chance > 0. && (chance >= 1. || rng.f32() < chance) {
+            let now = run.elapsed;
+            run.incoming_slows.cleanse(now);
         }
     }
     run.mobile.cd = def.cooldown;

@@ -134,6 +134,15 @@ rank persists with 9 spent / 42 available and independent specs. Screenshots
 are inline in CHANGELOG and README. No runtime change; Windows/controller and
 attended combat remain open. This supersedes their compact pointer gap.
 
+## Improved Sprint — 2026-10-31
+
+[Node 222](audits/IMPROVED-SPRINT.md) now grants 50/100% chance to remove current
+incoming movement impairments on manual Sprint activation, without changing
+mobility timing. Shared slow state rejects delayed effects older than a cleanse.
+Native purchases/refund/restart and four wide/compact captures verify inline
+chance and persistence. Coverage is 315/432 (Rogue 40/51); remaining definitions,
+attended combat and platform acceptance stay open.
+
 ## Rogue Kick and Improved Kick — 2026-10-30
 
 [Kick and node 206](audits/ROGUE-KICK.md) now connect acquired physical damage to

@@ -741,6 +741,14 @@ impl Milestones {
         crate::stoneclaw::BASE_HEALTH * (1.0 + 0.25 * self.trained_value(TalentStat::EarthsGrasp))
     }
 
+    pub fn sprint_cleanse_chance(self) -> f32 {
+        if self.class == 3 {
+            self.trained_value(TalentStat::SprintCleanse).clamp(0., 1.)
+        } else {
+            0.
+        }
+    }
+
     pub fn kick_silence(self) -> f32 {
         if self.class == 3 {
             self.trained_value(TalentStat::KickSilence).clamp(0., 1.)
@@ -1747,6 +1755,7 @@ pub struct TalentDefinition {
 pub enum TalentStat {
     CounterspellSilence,
     KickSilence,
+    SprintCleanse,
     AbilityUnlock(&'static str),
     MonkeyDodge,
     HunterMarkPower,
@@ -2263,6 +2272,7 @@ impl TalentDefinition {
             | TalentStat::SealFate
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
+            | TalentStat::SprintCleanse
             | TalentStat::KickSilence
             | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
@@ -2528,6 +2538,7 @@ impl TalentDefinition {
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::CreatureDamage { .. } => (100.0, "% damage against matching creatures"),
             TalentStat::PoisonChance => (100.0, "% additional poison application chance"),
+            TalentStat::SprintCleanse => (100.0, "% Sprint cleanse chance"),
             TalentStat::KickSilence => (100.0, "% Kick silence chance"),
             TalentStat::CounterspellSilence => (100.0, "% Counterspell silence chance"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
@@ -3713,6 +3724,7 @@ const ROGUE_SPELLS: &[&str] = &[
 ];
 
 const ROGUE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition { id: 222, max_rank: 2, name: "Improved Sprint", description: "Activating Sprint has a 50% chance per rank to remove all current movement slows and roots. Does not prevent new effects or change Sprint speed, duration, recovery or its level 5 unlock", stat: TalentStat::SprintCleanse, per_rank: 0.5 },
     TalentDefinition { id: 206, max_rank: 2, name: "Improved Kick", description: "Acquired Kick: 50% chance per rank for an original damaging hit to silence a surviving ordinary enemy for 2 sec, independently of its interrupted school. Does not grant Kick or change its 5 sec school lockout", stat: TalentStat::KickSilence, per_rank: 0.5 },
     TalentDefinition { id: 303, max_rank: 1, name: "Ghostly Strike", description: "Ghostly Strike: +20% strike damage. A landed original hit grants 15 percentage points melee dodge for 7 sec; does not grant the spell", stat: TalentStat::SpellDamage("ghostly_strike"), per_rank: 0.20 },
     TalentDefinition { id: 681, max_rank: 1, name: "Hemorrhage", description: "Hemorrhage: +20% strike damage. Its physical vulnerability remains +3 damage for 30 charges or 15 sec; does not grant the spell", stat: TalentStat::SpellDamage("hemorrhage"), per_rank: 0.20 },
@@ -4163,6 +4175,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SealFate
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
+            | TalentStat::SprintCleanse
             | TalentStat::KickSilence
             | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
@@ -5725,6 +5738,7 @@ mod stat_talent_tests {
                     | TalentStat::SealFate
                     | TalentStat::CreatureDamage { .. }
                     | TalentStat::PoisonChance
+                    | TalentStat::SprintCleanse
                     | TalentStat::KickSilence
                     | TalentStat::CounterspellSilence
                     | TalentStat::MonkeyDodge
@@ -8327,6 +8341,36 @@ mod kick_tests {
             (1766, 15., 5., 5., 10.)
         );
         let def = talent_definition(3, 206).unwrap();
+        let (text, ranges) = def.inline_description_with_values(1).unwrap();
+        assert_eq!(&text[ranges[0].clone()], "50 » 100% chance");
+    }
+}
+
+#[cfg(test)]
+mod sprint_tests {
+    use super::*;
+    #[test]
+    fn sprint_cleanse_chance_is_class_scoped_capped_and_refundable() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, 2, 3, 255] {
+                let trained = base.with_ranks(&[(1, 222, rank)]);
+                assert_eq!(
+                    trained.sprint_cleanse_chance(),
+                    if class == 3 {
+                        f32::from(rank.min(2)) * 0.5
+                    } else {
+                        0.
+                    }
+                );
+                assert_eq!(trained.cast("sprint"), base.cast("sprint"));
+                assert_eq!(trained.with_ranks(&[]).sprint_cleanse_chance(), 0.);
+            }
+        }
+        let def = talent_definition(3, 222).unwrap();
         let (text, ranges) = def.inline_description_with_values(1).unwrap();
         assert_eq!(&text[ranges[0].clone()], "50 » 100% chance");
     }

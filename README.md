@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Improved Sprint now removes current movement impairments on its trained proc,
+with green inline chance and persisted training. [Native evidence and limits](docs/audits/IMPROVED-SPRINT.md).
+
+![Improved Sprint inline chance](docs/images/screenshots/2026-10-31-improved-sprint/rank1-wide.jpg)
+
 Rogues can acquire Kick, with separate Improved Kick silence training and green
 inline upgrades. [Native purchase/refund/restart and card evidence](docs/audits/ROGUE-KICK.md).
 

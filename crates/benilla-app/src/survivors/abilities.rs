@@ -11536,3 +11536,7 @@ mod weapon_attack_tests;
 #[cfg(test)]
 #[path = "enemy_casting_tests.rs"]
 mod enemy_casting_tests;
+
+#[cfg(test)]
+#[path = "sprint_tests.rs"]
+mod sprint_tests;

@@ -1,6 +1,6 @@
 # Current Survivors acceptance status
 
-Reviewed 2026-10-30 after Rogue Kick native validation.
+Reviewed 2026-10-31 after Improved Sprint native validation.
 This is an index into the [seven-phase contract](SURVIVORS-IMPLEMENTATION.md), not
 a replacement scope or a completion declaration. Historical checkpoints describe
 their own dates; later evidence can supersede their pending notes.
@@ -25,7 +25,7 @@ their own dates; later evidence can supersede their pending notes.
 | 2. Equipment | Selected loadouts and independent appearances persist; duplicates grant no power; malformed/legacy/save-failure cases have tests. Native purchase/appearance/restart examples exist. | Remaining platform/body cases, full-set and raid-set effects through gameplay, full gate before landing. |
 | 3. Character and Collection | Responsive production pages, owned/empty/locked states, source navigation and comparisons; latest [starter inspection acceptance](audits/STARTER-EQUIPMENT-ACCEPTANCE.md). | Remaining platform/resolution/body matrix and complete art/content correspondence, not just populated cells. |
 | 4. Twelve zones / gear | Current content audit finds names and drops for every class's 54 ordinary collection cells. | Three audit gaps below, then traversal, encounters, world identity, icons/models, raid sets and attended readiness validation. |
-| 5. Talents | 314/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 118 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
+| 5. Talents | 315/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 117 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
 | 6. Codex / achievements / rewards | Seen-item persistence, catalog counts, reward drafts/refunds and independent cosmetics implemented; responsive native examples recorded. [Companion fetch routing](audits/COMPANION-FETCHING.md) has fence/return and blocked-collection regressions; [adaptive reward cards](audits/COMPANION-READABILITY.md) have native layout, purchase/undo, keyboard paging and saved-versus-draft restart evidence. | Complete perk/companion gameplay and platform acceptance; catalog totals, settlement and persistence end to end. Placeholder achievement criteria deliberately remain unearnable. |
 | 7. Integration / visuals | Native production-page previews, including [all nine talent classes at 1440×600 / 125%](audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30), retained build caches, screenshot reporting and scoped gates; synthetic camera/silhouette evidence. | Attended game loop, real foliage/interior camera cases, Windows and physical-controller checks, full land gates and all reference-page acceptance. |
 
@@ -43,13 +43,13 @@ cargo run -p survivors-audit -- wow-data/Data
 | Warrior | 42/52 |
 | Paladin | 30/44 |
 | Hunter | 42/46 |
-| Rogue | 39/51 |
+| Rogue | 40/51 |
 | Priest | 32/47 |
 | Shaman | 33/46 |
 | Mage | 39/49 |
 | Warlock | 29/50 |
 | Druid | 28/47 |
-| Total | 314/432 |
+| Total | 315/432 |
 
 The current content audit fails with exactly these three reported gaps:
 
@@ -142,3 +142,9 @@ open; definition coverage is not full talent acceptance.
 [Acquired Kick and Improved Kick](audits/ROGUE-KICK.md) now connect physical hit
 settlement to interruption and independent silence. Native purchase/refund/restart
 and wide/compact card evidence pass; actual combat visuals and Windows remain open.
+
+## Improved Sprint follow-up — 2026-10-31
+
+[Improved Sprint](audits/IMPROVED-SPRINT.md) connects manual mobility activation
+to current incoming slow/root removal. Native purchase/refund/restart and green
+chance text pass at wide/compact sizes. Attended combat and Windows remain open.

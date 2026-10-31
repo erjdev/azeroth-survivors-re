@@ -5,6 +5,19 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-31 — Improved Sprint
+
+Sprint training now grants 50/100% chance to remove current slows and roots on
+activation. Delayed old effects cannot restore cleared impairments; new effects
+still apply. Native purchase/refund/restart and green inline chance are verified
+at wide and compact sizes. Scoped checks and native build pass (31 optional-addon
+skips). Definition coverage: 315/432; attended combat and Windows remain open.
+[Mechanics and evidence](audits/IMPROVED-SPRINT.md).
+
+![Improved Sprint training](images/screenshots/2026-10-31-improved-sprint/rank1-wide.jpg)
+
+![Compact training after restart](images/screenshots/2026-10-31-improved-sprint/restarted-compact.jpg)
+
 ## 2026-10-30 — Kick and Improved Kick
 
 Rogues can acquire Kick to damage and interrupt nearby ordinary casters. Improved

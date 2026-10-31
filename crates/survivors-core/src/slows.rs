@@ -19,7 +19,10 @@ struct Slow {
 /// so a delayed older application cannot replace a newer, already-expired effect.
 /// Storage grows only when a distinct spell/talent source first affects this target.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Slows(Vec<Slow>);
+pub struct Slows {
+    entries: Vec<Slow>,
+    cleared_at: Option<f32>,
+}
 
 impl Slows {
     pub fn apply(&mut self, source: Source, speed: f32, seconds: f32, now: f32) -> bool {
@@ -28,6 +31,7 @@ impl Slows {
             || !(0.0..=1.0).contains(&speed)
             || !now.is_finite()
             || now < 0.0
+            || self.cleared_at.is_some_and(|cleared| now < cleared)
             || !expires.is_finite()
             || expires <= now
         {
@@ -39,13 +43,28 @@ impl Slows {
             applied: now,
             expires,
         };
-        if let Some(old) = self.0.iter_mut().find(|slow| slow.source == source) {
+        if let Some(old) = self.entries.iter_mut().find(|slow| slow.source == source) {
             if now < old.applied {
                 return false;
             }
             *old = next;
         } else {
-            self.0.push(next);
+            self.entries.push(next);
+        }
+        true
+    }
+
+    /// Remove current snares and zero-speed roots without granting future immunity.
+    /// Keep a watermark for delayed applications, including previously unseen sources.
+    pub fn cleanse(&mut self, now: f32) -> bool {
+        if !now.is_finite() || now < 0.0 || self.cleared_at.is_some_and(|last| now < last) {
+            return false;
+        }
+        self.cleared_at = Some(now);
+        for slow in &mut self.entries {
+            if slow.applied <= now {
+                slow.expires = slow.expires.min(now);
+            }
         }
         true
     }
@@ -56,7 +75,7 @@ impl Slows {
         if !now.is_finite() || now < 0.0 {
             return (1.0, 0.0);
         }
-        self.0
+        self.entries
             .iter()
             .filter(|slow| now >= slow.applied && now < slow.expires && slow.speed < 1.0)
             .fold((1.0, 0.0), |(speed, left), slow| {
@@ -76,6 +95,30 @@ mod tests {
     use super::*;
     const FROST: Source = Source::Spell("frostbolt");
     const CLAP: Source = Source::Spell("thunder_clap");
+
+    #[test]
+    fn cleanse_removes_overlaps_and_roots_rejects_stale_hits_but_allows_new_effects() {
+        let mut slows = Slows::default();
+        slows.apply(FROST, 0.5, 20., 1.);
+        slows.apply(CLAP, 0.8, 30., 2.);
+        slows.apply(Source::Secondary("root"), 0., 10., 3.);
+        assert_eq!(slows.state(4.), (0., 9.));
+        assert!(slows.cleanse(4.));
+        assert_eq!(slows.state(4.), (1., 0.));
+        assert!(!slows.apply(FROST, 0.5, 20., 3.));
+        assert!(!slows.apply(Source::Aftermath, 0.5, 20., 3.));
+        let saved = slows.clone();
+        for now in [f32::NAN, f32::INFINITY, -1., 3.] {
+            assert!(!slows.cleanse(now));
+            assert_eq!(slows, saved);
+        }
+        assert!(slows.apply(FROST, 0.5, 2., 4.));
+        assert_eq!(slows.state(4.), (0.5, 2.));
+        assert_eq!(slows.state(6.), (1., 0.));
+        assert!(slows.cleanse(6.));
+        assert!(slows.apply(CLAP, 0.8, 5., 7.));
+        assert_eq!(slows.state(7.), (0.8, 5.));
+    }
 
     #[test]
     fn overlapping_strengths_expire_independently_in_both_application_orders() {
@@ -107,7 +150,7 @@ mod tests {
         for _ in 0..100 {
             slows.apply(FROST, 0.5, 2., 4.);
         }
-        assert_eq!(slows.0.len(), 2);
+        assert_eq!(slows.entries.len(), 2);
         assert_eq!(slows.state(4.), (0.5, 2.)); // A paused clock does not age state.
         assert_eq!(slows.state(6.), (0.8, 24.));
     }
