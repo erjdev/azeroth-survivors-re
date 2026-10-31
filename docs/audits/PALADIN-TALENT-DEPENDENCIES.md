@@ -147,3 +147,11 @@ Screenshots under `docs/images/screenshots/2026-10-29-illumination/`:
 `compact-purchase.png`. The prior eight-package gate remains applicable: no
 runtime code changed during acceptance. A fresh checkout-data audit reports
 28/44 Paladin definitions and 308/432 total; definitions are not combat acceptance.
+
+
+Weapon-specialization follow-up: the automatic physical swing now consumes nodes
+1429 and 1410 for matching worn one-/two-handed weapons. Actual settlement,
+account/spec/refund tests and native pointer/keyboard screenshots pass; see the
+[weapon audit](PALADIN-WEAPON-TALENTS.md#weapon-specialization-implementation--2026-10-30).
+Paladin definition coverage is now 30/44. Seals, incoming block/critical outcomes
+and the other missing consumers above remain separate work.

@@ -18,8 +18,9 @@ changing client code, and treat this file as authoritative for the fork's crates
   diagnostic-symbol workflow in `docs/SURVIVORS-DEVELOPMENT.md` instead of changing flags ad hoc.
 - Keep `docs/CHANGELOG.md` succinct: group changes by feature milestone/version, not commit.
   This user-requested Survivors changelog is an exception to the upstream no-changelog rule.
-- Store milestone screenshots in `docs/images/screenshots/<milestone>/`, link them from the
-  changelog and README, and preserve historical captures when adding a new milestone.
+- Store milestone screenshots in `docs/images/screenshots/<milestone>/` and embed
+  representative captures inline in the changelog, README and PR description. Text links
+  alone do not satisfy visual milestone reporting. Preserve historical captures.
 - After committing a coherent checkpoint on a feature branch, push that branch to `origin`
   so it can be followed and built on another computer. Do not push directly to `main` or
   force-push; report validation limits alongside the milestone.

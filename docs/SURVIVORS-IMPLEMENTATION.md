@@ -10406,3 +10406,20 @@ Direct vanilla damage import would invert Rare/Epic progression for these items.
 A rarity-aware runtime formula and attack acquisition must be explicit before
 weapon specializations, seals, Stormstrike or Riposte are counted complete.
 This is dependency evidence only; no definition coverage or gameplay claim changes.
+
+## Paladin weapon specializations — 2026-10-30
+
+One-handed 1429 and two-handed 1410 now consume the automatic physical swing,
+with matching worn identity and 2% per-rank scaling. Holy spells remain independent.
+Native wide/compact purchase, refund, spec separation and restart are documented
+with inline screenshots in the [weapon audit](audits/PALADIN-WEAPON-TALENTS.md#weapon-specialization-implementation--2026-10-30).
+Seals and further weapon-dependent talents remain unfinished; this does not close
+attended combat, Windows or the full talent acceptance matrix.
+
+
+Paladin specialization acceptance follow-up: all 336 shared-rule tests, the full
+macOS workspace/no-install/player gate and native keyboard purchase/refund pass.
+Both data-enabled gate runs have 31 optional-addon skips. The fresh definition
+audit is 311/432 overall and 30/44 Paladin; 121 nodes remain provisional. Ten
+native captures are retained, with representative inline images in CHANGELOG and
+README. This advances phase 5 without closing its combat/platform acceptance.

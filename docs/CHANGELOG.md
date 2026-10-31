@@ -5,6 +5,21 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Paladin weapon specialization
+
+One-/two-handed specialization now improves the matching worn weapon's automatic
+attack by 2% per rank, without boosting Holy spells. Basic swings also consume
+Hemorrhage's physical vulnerability correctly. Native purchase, refund, separate
+specs and restart pass; keyboard purchase/refund retains focus. Ten screenshots
+record wide/compact descriptions and interaction. Full macOS validation passes
+(31 optional-addon skips per data-enabled run); attended combat and Windows remain
+open. Named definitions now cover 311/432 talents, including 30/44 Paladin nodes.
+[Evidence and limits](audits/PALADIN-WEAPON-TALENTS.md#weapon-specialization-implementation--2026-10-30).
+
+![One-handed specialization after restart](images/screenshots/2026-10-30-paladin-weapons/one-hand-restarted.jpg)
+
+![Compact two-handed inline upgrade](images/screenshots/2026-10-30-paladin-weapons/two-hand-refund-compact.jpg)
+
 ## 2026-10-30 — Build storage recovery
 
 Cleared generated debug dependencies after loose macOS debug objects grew beyond

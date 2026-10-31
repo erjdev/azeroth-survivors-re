@@ -148,3 +148,76 @@ No new native UI screenshot is claimed for this combat-only checkpoint.
 
 The eight-package scoped formatting/Clippy/test gate passes with 31 optional-addon
 corpus skips. Logs: `/tmp/paladin-auto-{test,build,check}.log`.
+
+## Weapon specialization implementation — 2026-10-30
+
+Protection 1429 and Retribution 1410 now multiply only the Paladin's automatic
+physical Weapon Attack, by 2% per rank with five-/three-rank caps. The worn hand
+must match. Cosmetic weapons, Holy spells, bleeds, pets and other classes' attacks
+do not qualify. Hemorrhage now recognizes the authored basic swing as physical
+and consumes one charge during actual damage settlement.
+
+Shared-rule coverage checks all classes, absent/one-/two-handed weapons, rank
+caps, source exclusions, refunds and green inline ranges. Actual cast/settlement
+coverage checks damage and physical vulnerability consumption. Catalog-backed
+account coverage includes purchase caps, opposite cosmetic weapon, reload,
+independent specs and refunds. See validation results below.
+
+Native macOS evidence uses a fresh isolated collected profile with 25 prerequisite
+Protection points in Spec 1 and 20 Retribution points in Spec 2. Pointer purchase
+0→5→4 verifies one-handed training (26→21→22 unspent); Spec 2 independently goes
+0→3→2 (31→28→29 unspent). Restart retains both allocations, and returning to Spec 1
+restores 4/5. Wide 1280×720 and compact 640×720 / 125% descriptions retain green
+inline changes with a single percent unit, using the existing intention-based
+artwork and layout. Gameplay balance, attended combat, Windows and controllers
+remain open.
+
+![One-handed purchase](../images/screenshots/2026-10-30-paladin-weapons/one-hand-trained.jpg)
+
+![Compact two-handed refund](../images/screenshots/2026-10-30-paladin-weapons/two-hand-refund-compact.jpg)
+
+![Independent Protection spec after restart](../images/screenshots/2026-10-30-paladin-weapons/one-hand-restarted.jpg)
+
+![Compact Retribution rank after restart](../images/screenshots/2026-10-30-paladin-weapons/two-hand-restarted.jpg)
+
+Additional captures: [initial one-handed](../images/screenshots/2026-10-30-paladin-weapons/one-hand-untrained.jpg),
+[one-handed refund](../images/screenshots/2026-10-30-paladin-weapons/one-hand-refund.jpg),
+[initial compact two-handed](../images/screenshots/2026-10-30-paladin-weapons/two-hand-compact.jpg),
+[maximum two-handed](../images/screenshots/2026-10-30-paladin-weapons/two-hand-trained.jpg).
+
+Validation after build-cache recovery: `cargo survivors-rules` passes all 336
+shared-rule tests, including class/hand/source scope, caps and inline descriptions.
+Formatting, full-workspace Clippy and workspace tests pass with loopback
+permission (31 optional-addon skips). All 4,900 application tests pass, including
+actual damage/vulnerability settlement and catalog-backed purchase/spec/reload/
+refund; 10 application tests are ignored. The first sandboxed attempt failed only
+because it denied the mock-login listener at `127.0.0.1`. No-install tests, documentation links, render-pass lint and player-configuration
+tests also pass; the player run reports the same 31 optional-addon skips. Native screenshots above predate the
+storage-only build-profile change; they are not new captures from this rebuild.
+
+
+### Native keyboard follow-up
+
+A separate disposable copy of the trained profile verifies arrow-key navigation
+from the header into the Protection tree, automatic scrolling to its milestone,
+and back to One-Handed Weapon Specialization. With the preview inspection pin
+removed, Enter purchases rank 4→5 and Backspace refunds 5→4; focus and the green
+8 » 10% description survive both rebuilds. No pointer purchase or save editing
+supplied these rank changes. The native app closed normally and its running-app
+inventory confirmed exit before restoring the validation launcher. This is a
+1280×720 / 100% macOS check, not physical-controller or Windows acceptance.
+
+![Keyboard purchase retains talent focus](../images/screenshots/2026-10-30-paladin-weapons/keyboard-trained.jpg)
+
+![Keyboard refund restores inline upgrade](../images/screenshots/2026-10-30-paladin-weapons/keyboard-refunded.jpg)
+
+
+Final validation: `WOW_DATA="$PWD/wow-data/Data" scripts/check.sh` completes the
+full gate in 1,000 seconds with loopback permission. The native play build passed
+in 27.34 seconds before the storage-only profile adjustment, and the keyboard
+follow-up exercised that same compiled implementation. Freshly rebuilding and
+running `survivors-audit --talent-coverage` reports Paladin 30/44, total 311/432,
+and 81/81 milestone descriptions. These are definition counts, not full talent
+or gameplay acceptance. The post-validation storage check passes at 51.35 GiB of
+build output, with 1,239.54 GiB free. Logs: `/tmp/paladin-specialization-check-network.log`,
+`/tmp/paladin-specialization-rules.log`, `/tmp/paladin-specialization-coverage-fresh.log`.

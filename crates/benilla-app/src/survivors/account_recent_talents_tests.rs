@@ -19,6 +19,28 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         .unwrap();
     for (class, node, row, max_rank, key, initial) in [
         (
+            1,
+            1429,
+            5,
+            5,
+            "Weapon Attack",
+            vec![
+                (1, 1422, 5),
+                (1, 1421, 5),
+                (1, 1423, 5),
+                (1, 1629, 5),
+                (1, 1426, 5),
+            ],
+        ),
+        (
+            1,
+            1410,
+            4,
+            3,
+            "Weapon Attack",
+            vec![(2, 1401, 5), (2, 1407, 5), (2, 1403, 5), (2, 1411, 5)],
+        ),
+        (
             5,
             616,
             4,
@@ -168,12 +190,22 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         if node == 616 {
             assert!(account.collect_poor_drop(class, 8).is_some());
         }
+        if matches!(node, 1429 | 1410) {
+            account.classes[class].pieces[8] = 1;
+            account.classes[class].pieces[17] = 1;
+            let band = u8::from(node == 1410);
+            assert!(account.wear_piece(class, 8, Some(band)));
+            assert!(account.show_piece(class, 8, super::super::equipment::Look::Piece(1 - band)));
+        }
         let before = account.milestones_picked(class, Some(hero));
         for rank in 1..=max_rank {
             assert!(account.learn_talent(hero, tree, node, max_rank, row, true));
             let trained = account.milestones_picked(class, Some(hero));
             let mut expected = before.cast(key);
-            if node == 616 {
+            if matches!(node, 1429 | 1410) {
+                expected.damage *= 1. + 0.02 * f32::from(rank);
+                assert_eq!(trained.cast("judgement"), before.cast("judgement"));
+            } else if node == 616 {
                 assert_eq!(trained.melee_parry(), 0.05);
                 assert_eq!(before.melee_parry(), 0.);
             } else if node == 586 || node == 593 {

@@ -588,7 +588,9 @@ pub(super) fn cast_abilities(
                     } else {
                         (24., 2.)
                     };
-                    let damage = base * stats.for_spell("Weapon Attack").might;
+                    let damage = base
+                        * stats.for_spell("Weapon Attack").might
+                        * talents.cast("Weapon Attack").damage;
                     fx.swing(me, first.e, damage);
                     for foe in targets {
                         let (damage, crit) = roll(&mut rng, stats.crit, stats.crit_damage, damage);

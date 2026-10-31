@@ -16,7 +16,8 @@ impl HemorrhageVulnerability {
         if self.0.charges(now) == 0 {
             return 0.0;
         }
-        let physical = if (origin == HitOrigin::Hero && source == "sword_specialization")
+        let physical = if (origin == HitOrigin::Hero
+            && matches!(source, "sword_specialization" | "Weapon Attack"))
             || (origin == HitOrigin::CombatPet && source == crate::survivors::hunter_pet::SOURCE)
         {
             true // Generated weapon strikes and authored pet bites have no ability row.

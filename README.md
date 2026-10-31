@@ -17,6 +17,13 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Paladin weapon specializations now describe matching one-/two-handed automatic
+attack bonuses inline. Native purchase, refund, independent specs and restart
+checks cover wide and compact layouts.
+[Evidence and remaining limits](docs/audits/PALADIN-WEAPON-TALENTS.md#weapon-specialization-implementation--2026-10-30).
+
+![Compact Paladin specialization after refund](docs/images/screenshots/2026-10-30-paladin-weapons/two-hand-refund-compact.jpg)
+
 The native wide/short talent layout matrix now covers all nine classes at
 1440×600 / 125%. [Sixteen new class captures and remaining limits](docs/audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30).
 

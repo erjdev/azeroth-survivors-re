@@ -181,3 +181,48 @@ fn paladin_weapon_attack_extra_targets_stay_in_reach_and_haste_sets_cadence() {
     assert!((app.world().resource::<Run>().weapon_attack_cd - 2. / (1. + haste)).abs() < 0.0001);
     assert!(hits.iter().all(|hit| hit.splash == 0. && hit.dot == 0.));
 }
+
+#[test]
+fn paladin_weapon_training_reaches_actual_damage_and_physical_vulnerability() {
+    for (two_handed, id, tree, cap, base) in [(false, 1429, 1, 5, 24.), (true, 1410, 2, 3, 36.)] {
+        for rank in [0, 1, 3, 5, 255] {
+            let (mut app, _, target) = setup(two_handed);
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.milestones = run.milestones.with_ranks(&[(tree, id, rank)]);
+            }
+            app.world_mut()
+                .get_mut::<HemorrhageVulnerability>(target)
+                .unwrap()
+                .0
+                .apply(0.);
+            let stats = app.world().resource::<Run>().stats();
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits: Vec<_> = app
+                .world()
+                .resource::<Messages<Hit>>()
+                .iter_current_update_messages()
+                .cloned()
+                .collect();
+            assert_eq!(hits.len(), 1);
+            let expected = base
+                * stats.might
+                * (1. + 0.02 * f32::from(rank.min(cap)))
+                * if hits[0].crit { stats.crit_damage } else { 1. };
+            assert!((hits[0].damage - expected).abs() < 0.001);
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            assert!(
+                (1000. - app.world().get::<Enemy>(target).unwrap().hp - expected - 3.).abs()
+                    < 0.001
+            );
+            assert_eq!(
+                app.world()
+                    .get::<HemorrhageVulnerability>(target)
+                    .unwrap()
+                    .0
+                    .charges(0.),
+                29
+            );
+        }
+    }
+}

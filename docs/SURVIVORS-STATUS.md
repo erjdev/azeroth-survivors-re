@@ -1,6 +1,6 @@
 # Current Survivors acceptance status
 
-Reviewed 2026-10-30 against runtime `7d4959a` and documentation `6dcf009`.
+Reviewed 2026-10-30 after Paladin weapon-specialization validation.
 This is an index into the [seven-phase contract](SURVIVORS-IMPLEMENTATION.md), not
 a replacement scope or a completion declaration. Historical checkpoints describe
 their own dates; later evidence can supersede their pending notes.
@@ -25,7 +25,7 @@ their own dates; later evidence can supersede their pending notes.
 | 2. Equipment | Selected loadouts and independent appearances persist; duplicates grant no power; malformed/legacy/save-failure cases have tests. Native purchase/appearance/restart examples exist. | Remaining platform/body cases, full-set and raid-set effects through gameplay, full gate before landing. |
 | 3. Character and Collection | Responsive production pages, owned/empty/locked states, source navigation and comparisons; latest [starter inspection acceptance](audits/STARTER-EQUIPMENT-ACCEPTANCE.md). | Remaining platform/resolution/body matrix and complete art/content correspondence, not just populated cells. |
 | 4. Twelve zones / gear | Current content audit finds names and drops for every class's 54 ordinary collection cells. | Three audit gaps below, then traversal, encounters, world identity, icons/models, raid sets and attended readiness validation. |
-| 5. Talents | 309/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 123 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
+| 5. Talents | 311/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 121 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
 | 6. Codex / achievements / rewards | Seen-item persistence, catalog counts, reward drafts/refunds and independent cosmetics implemented; responsive native examples recorded. [Companion fetch routing](audits/COMPANION-FETCHING.md) has fence/return and blocked-collection regressions; [adaptive reward cards](audits/COMPANION-READABILITY.md) have native layout, purchase/undo, keyboard paging and saved-versus-draft restart evidence. | Complete perk/companion gameplay and platform acceptance; catalog totals, settlement and persistence end to end. Placeholder achievement criteria deliberately remain unearnable. |
 | 7. Integration / visuals | Native production-page previews, including [all nine talent classes at 1440×600 / 125%](audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30), retained build caches, screenshot reporting and scoped gates; synthetic camera/silhouette evidence. | Attended game loop, real foliage/interior camera cases, Windows and physical-controller checks, full land gates and all reference-page acceptance. |
 
@@ -41,7 +41,7 @@ cargo run -p survivors-audit -- wow-data/Data
 | Class | Matching talent definitions / selectable nodes |
 | --- | ---: |
 | Warrior | 42/52 |
-| Paladin | 28/44 |
+| Paladin | 30/44 |
 | Hunter | 42/46 |
 | Rogue | 38/51 |
 | Priest | 31/47 |
@@ -49,7 +49,7 @@ cargo run -p survivors-audit -- wow-data/Data
 | Mage | 38/49 |
 | Warlock | 29/50 |
 | Druid | 28/47 |
-| Total | 309/432 |
+| Total | 311/432 |
 
 The current content audit fails with exactly these three reported gaps:
 
@@ -107,3 +107,14 @@ profiles and checkout data, never the installed Applications game.
 The Virtuous Robe appearance checkpoint also passes the eight-package scoped
 gate (31 optional-addon skips), with native Human male/female screenshots linked
 in the body-art audit. Other body/platform cases remain open.
+
+
+Paladin weapon-specialization checkpoint: the full macOS gate passes formatting,
+workspace Clippy/tests, no-install tests, doc links, render-pass lint and player
+configuration tests. Both data-enabled runs report 31 optional-addon skips.
+The shared rules pass 336 tests. Actual swing settlement, purchased/spec-saved
+training and native wide/compact pointer plus wide keyboard evidence are recorded
+in the [weapon audit](audits/PALADIN-WEAPON-TALENTS.md#weapon-specialization-implementation--2026-10-30).
+The fresh source-data audit reports 30/44 Paladin and 311/432 total definitions;
+this does not close the remaining 121 nodes, attended combat, Windows or the
+seven-phase contract. Build output remains within the maintenance budget.

@@ -584,16 +584,18 @@ impl Milestones {
                                 weapon.kind == crate::gear_loadout::MeleeKind::Polearm
                             }
                             _ => false,
-                        }) && matches!(
-                            key,
-                            "cleave"
-                                | "heroic_strike"
-                                | "whirlwind"
-                                | "sweeping_strikes"
-                                | "execute"
-                                | "mortal_strike"
-                                | "retaliation"
-                        ) =>
+                        }) && ((self.class == 0
+                            && matches!(
+                                key,
+                                "cleave"
+                                    | "heroic_strike"
+                                    | "whirlwind"
+                                    | "sweeping_strikes"
+                                    | "execute"
+                                    | "mortal_strike"
+                                    | "retaliation"
+                            ))
+                            || (self.class == 1 && key == "Weapon Attack")) =>
                     {
                         if matches!(stat, TalentStat::AxeCrit | TalentStat::PolearmCrit) {
                             effect.crit += value;
@@ -2952,6 +2954,16 @@ pub const PALADIN_HOLY: &[&str] = &[
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1429, max_rank: 5, name: "One-Handed Weapon Specialization",
+        description: "With a worn one-handed melee weapon: +2% physical Weapon Attack damage per rank. Your automatic attack uses no ability slot. Cosmetic weapons, Holy spells, periodic damage and pets do not qualify",
+        stat: TalentStat::OneHandedDamage, per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 1410, max_rank: 3, name: "Two-Handed Weapon Specialization",
+        description: "With a worn two-handed melee weapon: +2% physical Weapon Attack damage per rank. Your automatic attack uses no ability slot. Cosmetic weapons, Holy spells, periodic damage and pets do not qualify",
+        stat: TalentStat::TwoHandedDamage, per_rank: 0.02,
+    },
     TalentDefinition {
         id: 1405, max_rank: 2, name: "Improved Retribution Aura",
         description: "Retribution Aura: +25% damage per rank. Requires acquiring the self aura during the run; does not improve Thorns or Retaliation",
@@ -8095,6 +8107,58 @@ mod healing_light_tests {
             assert_eq!(&text[spans[0].clone()], expected);
             assert!(text[spans[1].clone()].ends_with("% maximum health"));
             assert!(!text.contains("per rank"));
+        }
+    }
+}
+
+#[cfg(test)]
+mod paladin_weapon_training_tests {
+    use super::*;
+    use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+    #[test]
+    fn paladin_weapon_training_is_class_hand_and_source_scoped() {
+        for class in 0..9 {
+            for hand in [None, Some(false), Some(true)] {
+                for rank in [0, 1, 3, 5, 255] {
+                    let base = Milestones {
+                        class,
+                        weapon: hand.map(|two_handed| MeleeWeapon {
+                            kind: MeleeKind::Sword,
+                            two_handed,
+                        }),
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&[(1, 1429, rank), (2, 1410, rank)]);
+                    for key in [
+                        "Weapon Attack",
+                        "cleave",
+                        "judgement",
+                        "consecration",
+                        "holy_shock",
+                        "Thorns",
+                        "rupture",
+                    ] {
+                        let mut expected = base.cast(key);
+                        if class == 1 && key == "Weapon Attack" {
+                            if let Some(two_handed) = hand {
+                                expected.damage *=
+                                    1. + 0.02 * f32::from(rank.min(if two_handed { 3 } else { 5 }));
+                            }
+                        }
+                        assert_eq!(trained.cast(key), expected, "{class} {hand:?} {rank} {key}");
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+        }
+        for (id, rank, delta) in [(1429, 4, "8 » 10%"), (1410, 2, "4 » 6%")] {
+            let (text, ranges) = talent_definition(1, id)
+                .unwrap()
+                .inline_description_with_values(rank)
+                .unwrap();
+            assert!(ranges
+                .iter()
+                .any(|range| text[range.clone()].contains(delta)));
         }
     }
 }
