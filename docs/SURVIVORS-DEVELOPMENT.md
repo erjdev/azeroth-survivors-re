@@ -119,10 +119,13 @@ terabyte. The command never deletes files and honors `CARGO_TARGET_DIR`.
 
 To recover from the October 30 incident, `target/debug/deps` was cleared with all
 Rust builds stopped. It contains generated output, not source, saves or game data.
-The next debug/test build must recreate dependencies. Other target directories,
-including the warm play cache, were preserved. Deleting deps alone can leave
-incremental and build-script caches behind; inspect the storage report before
-removing any additional generated directory. Never clean caches while a build or
+The obsolete `target/debug/incremental` state (another 248 GiB) was also removed
+because the changed debug profile invalidates it. The next debug/test build must
+recreate dependencies. The warm play cache was preserved. Deleting deps alone
+leaves incremental and build-script caches behind; inspect the storage report
+before removing any additional generated directory. After cleanup, the storage
+check passed: 36.16 GiB of total build output and 1,255.30 GiB free on the volume.
+Never clean caches while a build or
 validation process is using them. Keep the standard aliases above and avoid
 unnecessary feature/profile variants; do not routinely wipe the warm cache.
 

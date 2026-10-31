@@ -8,7 +8,9 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 ## 2026-10-30 — Build storage recovery
 
 Cleared generated debug dependencies after loose macOS debug objects grew beyond
-1 TiB. Everyday dev/tests now omit debug symbols while retaining incremental
+1 TiB; also removed 248 GiB of obsolete debug incremental state. Remaining build
+output is 36 GiB, with 1,255 GiB free on the volume. Everyday dev/tests now omit
+debug symbols while retaining incremental
 compilation; the play cache is preserved. Added a read-only 100 GiB build-output /
 30 GiB free-space budget check and an opt-in diagnostic-symbol workflow.
 [Maintenance guide](SURVIVORS-DEVELOPMENT.md#build-storage-budget).
