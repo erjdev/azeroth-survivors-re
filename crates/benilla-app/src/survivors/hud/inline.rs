@@ -63,6 +63,33 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
     let cooldown = (a.cooldown, b.cooldown, " sec");
     let burst = def.duration <= 0.0;
     match def.kind {
+        Kind::Interrupt => {
+            prose!(
+                "Interrupt up to ",
+                (
+                    a.count as f32,
+                    b.count as f32,
+                    if b.count == 1 {
+                        " ordinary caster"
+                    } else {
+                        " ordinary casters"
+                    }
+                ),
+                " within ",
+                range,
+                ", locking their interrupted spell school for ",
+                duration,
+                ". Waits for a visible cast with clear line of sight; does not damage enemies"
+            );
+            if a.silence_chance > 0. || b.silence_chance > 0. {
+                prose!(
+                    ". Each target also has ",
+                    (a.silence_chance * 100., b.silence_chance * 100., "% chance"),
+                    " to be silenced for 4 sec"
+                );
+            }
+        }
+
         Kind::Channel => {
             prose!("Channel ", damage, " every second for ", duration, " into ", count,
                 " within ", range, ", slowing them by 50% while connected. You can move and use other abilities. Loses targets that die, become concealed, leave range or move behind solid scenery. Does not retarget or overlap itself");

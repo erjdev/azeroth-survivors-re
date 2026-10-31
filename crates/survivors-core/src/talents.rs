@@ -738,6 +738,16 @@ impl Milestones {
         crate::stoneclaw::BASE_HEALTH * (1.0 + 0.25 * self.trained_value(TalentStat::EarthsGrasp))
     }
 
+    /// Improved Counterspell changes silence chance, never interrupt lockout duration.
+    pub fn counterspell_silence(self) -> f32 {
+        if self.class == 6 {
+            self.trained_value(TalentStat::CounterspellSilence)
+                .clamp(0., 1.)
+        } else {
+            0.
+        }
+    }
+
     fn trained_value(self, stat: TalentStat) -> f32 {
         definitions(self.class)
             .iter()
@@ -1724,6 +1734,7 @@ pub struct TalentDefinition {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TalentStat {
+    CounterspellSilence,
     AbilityUnlock(&'static str),
     MonkeyDodge,
     HunterMarkPower,
@@ -2240,6 +2251,7 @@ impl TalentDefinition {
             | TalentStat::SealFate
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
+            | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
             | TalentStat::HunterMarkPower
             | TalentStat::SpellCooldown(_)
@@ -2503,6 +2515,7 @@ impl TalentDefinition {
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::CreatureDamage { .. } => (100.0, "% damage against matching creatures"),
             TalentStat::PoisonChance => (100.0, "% additional poison application chance"),
+            TalentStat::CounterspellSilence => (100.0, "% Counterspell silence chance"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
             TalentStat::MaceStun | TalentStat::RogueMace => (100.0, "% stun chance"),
             TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit | TalentStat::DaggerCrit | TalentStat::FistCrit => {
@@ -3417,6 +3430,11 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 88, max_rank: 2, name: "Improved Counterspell",
+        description: "Acquired Counterspell: 50% chance per rank to silence an ordinary casting enemy for 4 sec, independently of its interrupted school. Does not grant Counterspell or change its 10 sec school lockout",
+        stat: TalentStat::CounterspellSilence, per_rank: 0.5,
+    },
+    TalentDefinition {
         id: 25, max_rank: 3, name: "Improved Scorch",
         description: "Scorch hits have a 33–100% chance to add 3% Fire vulnerability for 30 sec, up to five stacks (15%). Refreshes all stacks after damage. Requires acquiring Scorch; excludes splash copies and periodic triggers. Other Fire damage benefits but cannot add stacks",
         stat: TalentStat::ImprovedScorch, per_rank: 1.0,
@@ -4124,6 +4142,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::SealFate
             | TalentStat::CreatureDamage { .. }
             | TalentStat::PoisonChance
+            | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
             | TalentStat::HunterMarkPower
             | TalentStat::ColdBlood
@@ -5683,6 +5702,7 @@ mod stat_talent_tests {
                     | TalentStat::SealFate
                     | TalentStat::CreatureDamage { .. }
                     | TalentStat::PoisonChance
+                    | TalentStat::CounterspellSilence
                     | TalentStat::MonkeyDodge
                     | TalentStat::HunterMarkPower
                     | TalentStat::ColdBlood
@@ -6462,7 +6482,7 @@ mod stat_talent_tests {
             let value = f32::from(rank.min(3)) * 0.01;
             for key in crate::data::CLASSES[6].pool {
                 let effect = trained.cast(key);
-                if *key == "mana_shield" {
+                if matches!(*key, "mana_shield" | "counterspell") {
                     assert_eq!(effect, CastEffect::default());
                     continue;
                 }
@@ -8167,6 +8187,62 @@ mod paladin_weapon_training_tests {
             assert!(ranges
                 .iter()
                 .any(|range| text[range.clone()].contains(delta)));
+        }
+    }
+}
+
+#[cfg(test)]
+mod counterspell_tests {
+    use super::*;
+
+    #[test]
+    fn counterspell_silence_ranks_are_scoped_capped_and_refundable() {
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            for rank in [0, 1, 2, 3, 255] {
+                let trained = base.with_ranks(&[(0, 88, rank)]);
+                assert_eq!(
+                    trained.counterspell_silence(),
+                    if class == 6 {
+                        f32::from(rank.min(2)) * 0.5
+                    } else {
+                        0.
+                    }
+                );
+                assert_eq!(trained.cast("counterspell"), base.cast("counterspell"));
+                assert_eq!(trained.with_ranks(&[]).counterspell_silence(), 0.);
+            }
+        }
+        let damage_training = Milestones {
+            class: 6,
+            points: [30, 0, 0],
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 421, 3), (0, 74, 2), (0, 76, 5)]);
+        assert_eq!(damage_training.cast("counterspell"), CastEffect::default());
+        let def = crate::data::ability("counterspell");
+        assert_eq!(
+            (def.spell, def.duration, def.range, def.cooldown),
+            (2139, 10., 30., 30.)
+        );
+        assert!(crate::data::CLASSES[6].pool.contains(&def.key));
+        assert_eq!(crate::sheet::extra_targets(def.kind, 1, 2), 2);
+    }
+
+    #[test]
+    fn counterspell_inline_training_colors_only_the_changing_chance() {
+        let def = talent_definition(6, 88).unwrap();
+        for rank in 0..=2 {
+            let (text, ranges) = def.inline_description_with_values(rank).unwrap();
+            assert_eq!(ranges.len(), 1);
+            let changed = &text[ranges[0].clone()];
+            assert!(changed.contains('%'));
+            assert!(!changed.contains("4 sec"));
+            assert!(!changed.contains("10 sec"));
+            assert!(text.contains("Does not grant"));
         }
     }
 }

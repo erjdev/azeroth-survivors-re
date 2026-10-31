@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Counterspell now supports acquired interruption and Improved Counterspell silence,
+with inline green growth and saved training. [Evidence and limits](docs/audits/COUNTERSPELL.md).
+
+![Counterspell inline upgrades](docs/images/screenshots/2026-10-30-counterspell/cards-wide.jpg)
+
 Keyboard save recovery now also passes at the minimum 640×480 window, including
 failed retry and persistence after restart. [Evidence and limits](docs/audits/SAVE-RECOVERY-KEYBOARD.md#minimum-window-follow-up--2026-10-30).
 

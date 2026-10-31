@@ -195,6 +195,7 @@ pub(super) struct Params {
     pub poison_chance: f32,
     pub dodge_chance: f32,
     pub mark_power: f32,
+    pub silence_chance: f32,
     pub weapon_bonus: f32,
     pub dot: f32,
     pub count: usize,
@@ -262,6 +263,11 @@ impl Params {
             },
             dodge_chance,
             mark_power,
+            silence_chance: if o.def.kind == Kind::Interrupt {
+                milestones.counterspell_silence()
+            } else {
+                0.
+            },
             poison_chance: match o.def.kind {
                 Kind::Coating(coating) => coating.chance(milestones),
                 _ => 0.0,
@@ -291,7 +297,8 @@ impl Params {
             duration: if matches!(o.def.key, "earthbind_totem" | "stoneclaw_totem")
                 || matches!(
                     o.def.kind,
-                    Kind::Channel
+                    Kind::Interrupt
+                        | Kind::Channel
                         | Kind::Mark
                         | Kind::Coating(_)
                         | Kind::Aspect
@@ -325,7 +332,8 @@ impl Params {
             },
             crit: if matches!(
                 o.def.kind,
-                Kind::Curse
+                Kind::Interrupt
+                    | Kind::Curse
                     | Kind::Channel
                     | Kind::Mark
                     | Kind::Coating(_)
@@ -500,7 +508,12 @@ pub(super) fn cast_abilities(
     mut rng: ResMut<Rng>,
     spells: Option<Res<crate::ui_action::Spells>>,
     hero: Query<(Entity, &Transform), With<Hero>>,
-    enemies: Query<(Entity, &Transform, &Enemy)>,
+    mut enemies: Query<(
+        Entity,
+        &Transform,
+        &Enemy,
+        &mut super::enemy_casting::Caster,
+    )>,
     perception: super::perception::Perception,
     marks: Query<(Entity, &super::marking::Marked)>,
     mut fx: Fx,
@@ -544,8 +557,8 @@ pub(super) fn cast_abilities(
     let stats = run.stats();
     let mut foes: Vec<Foe> = enemies
         .iter()
-        .filter(|(_, _, e)| !e.dead)
-        .map(|(e, tf, en)| Foe {
+        .filter(|(_, _, e, _)| !e.dead)
+        .map(|(e, tf, en, _)| Foe {
             e,
             pos: tf.translation,
             hp: en.hp,
@@ -661,6 +674,52 @@ pub(super) fn cast_abilities(
         .min(1.0);
         let speed = speed_of(def.spell);
         let fired = match def.kind {
+            Kind::Interrupt => {
+                let Some(world) = channel_world.as_ref() else {
+                    continue;
+                };
+                let targets: Vec<_> = visible
+                    .iter()
+                    .filter(|foe| {
+                        foe.hp > 0.
+                            && hpos.distance(foe.pos) <= p.range
+                            && world.line_clear(hpos, foe.pos)
+                    })
+                    .filter(|foe| {
+                        enemies.get(foe.e).is_ok_and(|(_, _, enemy, caster)| {
+                            !enemy.boss
+                                && caster.state.active().is_some_and(|cast| {
+                                    now >= cast.started
+                                        && now < cast.finishes
+                                        && (cast.spell.interruptible || p.silence_chance > 0.)
+                                })
+                        })
+                    })
+                    .take(p.count)
+                    .map(|foe| foe.e)
+                    .collect();
+                for &target in &targets {
+                    let (_, _, _, mut caster) = enemies.get_mut(target).unwrap();
+                    let spell = caster.state.active().unwrap().spell.id;
+                    let interrupted = matches!(
+                        caster.state.interrupt(now, p.duration),
+                        survivors_core::casting::Interrupt::Interrupted(_)
+                    );
+                    let silenced = p.silence_chance > 0.
+                        && (p.silence_chance >= 1. || rng.f32() < p.silence_chance)
+                        && caster.state.silence(now, 4.);
+                    if interrupted || silenced {
+                        fx.cancel_cast(target, spell);
+                    }
+                    if silenced {
+                        fx.impact(target, 18469);
+                    }
+                }
+                if !targets.is_empty() {
+                    fx.cast(me, def.spell, &targets, None);
+                }
+                !targets.is_empty()
+            }
             Kind::Channel => {
                 // Optional for non-channel consumers; a channel must have world collision
                 // available before spending its cooldown or creating visual anchors.
@@ -737,7 +796,7 @@ pub(super) fn cast_abilities(
                         .filter(|foe| {
                             enemies
                                 .get(foe.e)
-                                .is_ok_and(|(_, _, enemy)| repentance_target(enemy))
+                                .is_ok_and(|(_, _, enemy, _)| repentance_target(enemy))
                         })
                         .collect::<Vec<_>>();
                     &eligible_foes
@@ -752,7 +811,7 @@ pub(super) fn cast_abilities(
                         .filter(|foe| {
                             enemies
                                 .get(foe.e)
-                                .is_ok_and(|(_, tf, _)| behind_target(hpos, tf))
+                                .is_ok_and(|(_, tf, _, _)| behind_target(hpos, tf))
                         })
                         .collect::<Vec<_>>();
                     &rear_foes
@@ -1168,7 +1227,10 @@ pub(super) fn cast_abilities(
         };
         run.abilities[i].cd = if fired {
             p.cooldown
-        } else if def.requires_rear || matches!(p.effect, Effect::Incapacitate(_)) {
+        } else if def.kind == Kind::Interrupt
+            || def.requires_rear
+            || matches!(p.effect, Effect::Incapacitate(_))
+        {
             // Positional openings and eligible control targets must be usable immediately.
             0.0
         } else {
@@ -3310,7 +3372,8 @@ mod milestone_tests {
             .copied()
             .chain(["holy_shock", "consecration"])
         {
-            let mage = data::CLASSES[6].pool.contains(&key) && key != "mana_shield";
+            let mage = data::CLASSES[6].pool.contains(&key)
+                && !matches!(key, "mana_shield" | "counterspell");
             let elemental = mage && !matches!(key, "arcane_missiles" | "arcane_explosion");
             let factor = if mage { 1.03 } else { 1.0 } * if elemental { 1.03 } else { 1.0 };
             for level in [1, 3, 8] {

@@ -428,3 +428,34 @@ fn greater_heal_card_describes_healing_and_fixed_critical_multiplier() {
     assert!(text.contains("150%"));
     assert!(!text.contains("damage"));
 }
+
+#[test]
+fn counterspell_upgrade_uses_inline_recovery_and_target_units_without_rank_noise() {
+    let mut run = Run {
+        abilities: vec![Owned {
+            def: data::ability("counterspell"),
+            level: 1,
+            cd: 0.,
+        }],
+        ..Default::default()
+    };
+    let spans = describe(Choice::Upgrade(0), &run);
+    let text = plain(&spans);
+    assert!(text.contains("1 ordinary caster"), "{text}");
+    assert!(text.contains("10 sec"), "{text}");
+    assert!(
+        spans
+            .iter()
+            .any(|(text, color)| text == "30 » 27.9 sec" && *color == card_growth::GAIN),
+        "{spans:?}"
+    );
+    assert!(!text.contains("new rank"));
+    run.abilities[0].level = 2;
+    let spans = describe(Choice::Upgrade(0), &run);
+    assert!(
+        spans
+            .iter()
+            .any(|(text, color)| text == "1 » 2 ordinary casters" && *color == card_growth::GAIN),
+        "{spans:?}"
+    );
+}

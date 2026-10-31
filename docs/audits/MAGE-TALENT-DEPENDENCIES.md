@@ -79,3 +79,10 @@ with units once; native wide/compact screenshots belong inline in CHANGELOG.
 
 This checkpoint only reads installed rows and source. No runtime behavior,
 coverage increase, combat acceptance or new rendered screenshot is claimed.
+
+## Counterspell follow-up — 2026-10-30
+
+[Counterspell and node 88](COUNTERSPELL.md) now have acquisition, enemy-cast
+interruption and independent silence consumers, with runtime and native UI
+evidence. This supersedes their missing-consumer notes above. Fresh coverage is
+39/49 Mage and 312/432 overall; the other ten Mage definitions remain pending.

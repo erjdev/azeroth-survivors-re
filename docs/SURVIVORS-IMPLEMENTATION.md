@@ -134,6 +134,17 @@ rank persists with 9 spent / 42 available and independent specs. Screenshots
 are inline in CHANGELOG and README. No runtime change; Windows/controller and
 attended combat remain open. This supersedes their compact pointer gap.
 
+## Counterspell acquisition and training — 2026-10-30
+
+[Counterspell acceptance](audits/COUNTERSPELL.md) connects the acquired Mage ability
+and Improved Counterspell node 88 to actual enemy casting. Ten-second school
+lockout and independent four-second silence retain their installed meanings;
+automatic targeting, ordinary-enemy restriction and ability rank growth are
+explicit Survivors adaptations. Native wide/compact purchase, refund, restart
+and green inline card captures are recorded. Coverage is now 312/432 (Mage
+39/49); 120 definitions remain provisional. Attended combat, Windows and the
+remaining class consumers are still required before the talent phase closes.
+
 ## First enemy spell consumer — 2026-10-30
 
 Darkeye Bonecaster now uses its verified Frostbolt identity in the actual enemy

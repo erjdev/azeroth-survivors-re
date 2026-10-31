@@ -5,6 +5,20 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-10-30 — Counterspell and silence training
+
+Mages can acquire Counterspell; Improved Counterspell adds a separate 50/100%
+four-second silence chance. The spell waits for an eligible visible caster and
+keeps school lockout separate from silence. Green inline card/talent changes,
+purchase/refund and restart pass native wide/compact checks. Coverage reaches
+312/432 named talents. Scoped checks and native build pass (31 optional-addon
+skips). Attended combat and Windows remain open.
+[Mechanics and evidence](audits/COUNTERSPELL.md).
+
+![Counterspell inline upgrades](images/screenshots/2026-10-30-counterspell/cards-wide.jpg)
+
+![Compact talent after restart](images/screenshots/2026-10-30-counterspell/talent-restarted-compact.jpg)
+
 ## 2026-10-30 — First enemy spellcaster
 
 Darkeye Bonecaster now casts its verified Frostbolt, with interruptible windup,

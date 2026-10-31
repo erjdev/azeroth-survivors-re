@@ -38,6 +38,8 @@ impl ClassDef {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Kind {
+    /// Interrupt currently casting enemies; never emits damage or an area effect.
+    Interrupt,
     /// Fixed connected victims, one pulse per second for three seconds.
     Channel,
     /// Caster-owned ranged vulnerability and tracking; never emits a damage hit.
@@ -207,6 +209,15 @@ macro_rules! ability {
 }
 
 pub static ABILITIES: &[AbilityDef] = &[
+    ability!(
+        "counterspell",
+        2139,
+        Interrupt {
+            cooldown: 30.0,
+            range: 30.0,
+            duration: 10.0
+        }
+    ),
     // --- Mage ---
     ability!(
         "mana_shield",
@@ -1491,6 +1502,7 @@ pub static CLASSES: &[ClassDef] = &[
             "pyroblast",
             "mana_shield",
             "scorch",
+            "counterspell",
         ],
         looks: &[
             1294, 1470, 1484, 1592, 1600, 2134, 2135, 2644, 2657, 2810, 3108, 3109, 3292, 3293,

@@ -2803,7 +2803,8 @@ fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> St
     if next.count != now.count
         && matches!(
             def.kind,
-            Kind::Channel
+            Kind::Interrupt
+                | Kind::Channel
                 | Kind::Bolt
                 | Kind::Strike
                 | Kind::Melee
@@ -2857,7 +2858,8 @@ fn ability_tip(
     ];
     let range = match def.kind {
         Kind::Melee => Some("Melee Range".to_string()),
-        Kind::Mark
+        Kind::Interrupt
+        | Kind::Mark
         | Kind::Bolt
         | Kind::Strike
         | Kind::Chain
@@ -3018,7 +3020,8 @@ fn ability_tip(
     }
     if !matches!(
         def.kind,
-        Kind::Shield
+        Kind::Interrupt
+            | Kind::Shield
             | Kind::Immune
             | Kind::Heal
             | Kind::Regrowth

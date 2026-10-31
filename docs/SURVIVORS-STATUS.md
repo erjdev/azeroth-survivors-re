@@ -1,6 +1,6 @@
 # Current Survivors acceptance status
 
-Reviewed 2026-10-30 after Paladin weapon-specialization validation.
+Reviewed 2026-10-30 after Counterspell native validation.
 This is an index into the [seven-phase contract](SURVIVORS-IMPLEMENTATION.md), not
 a replacement scope or a completion declaration. Historical checkpoints describe
 their own dates; later evidence can supersede their pending notes.
@@ -25,7 +25,7 @@ their own dates; later evidence can supersede their pending notes.
 | 2. Equipment | Selected loadouts and independent appearances persist; duplicates grant no power; malformed/legacy/save-failure cases have tests. Native purchase/appearance/restart examples exist. | Remaining platform/body cases, full-set and raid-set effects through gameplay, full gate before landing. |
 | 3. Character and Collection | Responsive production pages, owned/empty/locked states, source navigation and comparisons; latest [starter inspection acceptance](audits/STARTER-EQUIPMENT-ACCEPTANCE.md). | Remaining platform/resolution/body matrix and complete art/content correspondence, not just populated cells. |
 | 4. Twelve zones / gear | Current content audit finds names and drops for every class's 54 ordinary collection cells. | Three audit gaps below, then traversal, encounters, world identity, icons/models, raid sets and attended readiness validation. |
-| 5. Talents | 311/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 121 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
+| 5. Talents | 312/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 120 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
 | 6. Codex / achievements / rewards | Seen-item persistence, catalog counts, reward drafts/refunds and independent cosmetics implemented; responsive native examples recorded. [Companion fetch routing](audits/COMPANION-FETCHING.md) has fence/return and blocked-collection regressions; [adaptive reward cards](audits/COMPANION-READABILITY.md) have native layout, purchase/undo, keyboard paging and saved-versus-draft restart evidence. | Complete perk/companion gameplay and platform acceptance; catalog totals, settlement and persistence end to end. Placeholder achievement criteria deliberately remain unearnable. |
 | 7. Integration / visuals | Native production-page previews, including [all nine talent classes at 1440×600 / 125%](audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30), retained build caches, screenshot reporting and scoped gates; synthetic camera/silhouette evidence. | Attended game loop, real foliage/interior camera cases, Windows and physical-controller checks, full land gates and all reference-page acceptance. |
 
@@ -46,10 +46,10 @@ cargo run -p survivors-audit -- wow-data/Data
 | Rogue | 38/51 |
 | Priest | 31/47 |
 | Shaman | 33/46 |
-| Mage | 38/49 |
+| Mage | 39/49 |
 | Warlock | 29/50 |
 | Druid | 28/47 |
-| Total | 311/432 |
+| Total | 312/432 |
 
 The current content audit fails with exactly these three reported gaps:
 
@@ -124,3 +124,9 @@ Vengeance follow-up: [weapon-critical activation and subsequent swing damage](au
 now accompany the existing Holy bonus. Native wide/compact purchase, refund and
 restart pass. Definition totals are unchanged; this closes a consumer gap within
 an already named node, not the remaining 121 talent definitions.
+
+## Counterspell follow-up — 2026-10-30
+
+[Acquisition, interruption and silence training](audits/COUNTERSPELL.md) now have
+runtime regressions and native wide/compact purchase, refund, restart and inline
+card evidence. Attended combat and Windows remain open.
