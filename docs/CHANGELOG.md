@@ -5,6 +5,16 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Clearcasting fires extra missiles
+
+Mage Arcane Concentration now procs extra Arcane Missiles, with a haste-reduced
+internal cooldown and no ability-slot cost. Green inline chances replace the
+provisional damage bonus. Scoped checks, native/WebGPU builds and native
+purchase/refund/spec/restart checks pass; attended combat and Windows remain open.
+[Rules and evidence](audits/MAGE-CLEARCASTING.md).
+
+![Clearcasting inline upgrade](images/screenshots/2026-11-02-clearcasting/rank-one-wide.jpg)
+
 ## 2026-11-02 — Combat-plan reconciliation
 
 Warlock, Mage, Feral and Tranquility checklists now follow the approved

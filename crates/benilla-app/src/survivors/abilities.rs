@@ -16,6 +16,8 @@ pub(super) enum HitOrigin {
     #[default]
     Hero,
     CombatPet,
+    /// Hero damage from a proc; cannot recursively trigger another Clearcasting cast.
+    TriggeredHero,
     /// Already-settled retaliation: no offensive multipliers, echoes or on-hit talents.
     Reflection,
 }
@@ -26,7 +28,7 @@ impl HitOrigin {
         talents: survivors_core::talents::Milestones,
     ) -> survivors_core::talents::Milestones {
         match self {
-            Self::Hero => talents,
+            Self::Hero | Self::TriggeredHero => talents,
             Self::CombatPet | Self::Reflection => Default::default(),
         }
     }
@@ -631,6 +633,49 @@ pub(super) fn cast_abilities(
             .and_then(|s| s.catalog.get(spell))
             .map_or(0.0, |d| d.speed)
     };
+
+    // Proc casts use the same rank/scaling, but never occupy or reset an Owned slot.
+    if run.clearcasting.take() && run.class.id == data::CLASSES[6].id && talents.class == 6 {
+        let owned = super::Owned {
+            def: data::ability("arcane_missiles"),
+            level: run
+                .abilities
+                .iter()
+                .find(|a| a.def.key == "arcane_missiles")
+                .map_or(1, |a| a.level),
+            cd: 0.0,
+        };
+        let mut p = Params::new(&owned, &stats, talents);
+        p.dmg *= 1.0 + run.arcane_power.bonus(talents, owned.def.key, now);
+        let eligible: Vec<_> = visible
+            .iter()
+            .copied()
+            .filter(|foe| foe.hp > 0.0)
+            .filter(|foe| {
+                channel_world
+                    .as_ref()
+                    .is_some_and(|world| world.line_clear(hpos, foe.pos))
+            })
+            .collect();
+        let targets = nearest(&eligible, p.range, p.count);
+        if !targets.is_empty() {
+            fx.cast(me, owned.def.spell, &entities(&targets), None);
+            for foe in targets {
+                let (damage, crit) = roll(
+                    &mut rng,
+                    (p.crit + talents.target_crit(owned.def.key, foe.frozen, foe.winters_chill))
+                        .min(1.0),
+                    p.crit_damage,
+                    p.dmg,
+                );
+                let mut hit = hit_for(owned.def, &p, foe.e, damage, crit);
+                hit.origin = HitOrigin::TriggeredHero;
+                let speed = speed_of(owned.def.spell);
+                let delay = if speed > 0.0 { foe.dist / speed } else { 0.0 };
+                schedule(&mut pending, &mut hits, now, delay, hit);
+            }
+        }
+    }
 
     for i in 0..run.abilities.len() {
         if matches!(
@@ -2052,6 +2097,20 @@ pub(super) fn apply_hits(
             let echoes = super::sheet::strike_count(stats.multistrike, rng.f32());
             dmg *= echoes as f32;
             let removed = dmg.min(en.hp.max(0.0));
+            if original && h.origin == HitOrigin::Hero && run.alive() {
+                let talents = run.milestones;
+                let now = run.elapsed;
+                if run.clearcasting.chance(talents, h.source, removed, now) > 0.0 {
+                    run.clearcasting.trigger(
+                        talents,
+                        h.source,
+                        removed,
+                        now,
+                        stats.haste,
+                        rng.f32(),
+                    );
+                }
+            }
             // Vengeance requires an original hero critical that actually removes health.
             if original && h.origin == HitOrigin::Hero {
                 run.record_vengeance_hit(h.source, removed, h.crit);
@@ -11551,3 +11610,7 @@ mod sprint_tests;
 #[cfg(test)]
 #[path = "area_range_tests.rs"]
 mod area_range_tests;
+
+#[cfg(test)]
+#[path = "clearcasting_tests.rs"]
+mod clearcasting_tests;

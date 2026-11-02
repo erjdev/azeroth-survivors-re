@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Mage Clearcasting now fires extra Arcane Missiles on its own haste-reduced
+cooldown, without taking an ability slot. [Rules and validation](docs/audits/MAGE-CLEARCASTING.md).
+
+![Clearcasting talent upgrade](docs/images/screenshots/2026-11-02-clearcasting/rank-one-wide.jpg)
+
 Known UI issue under investigation: repeated starter class reloads can hide parts
 of labels. [Reproduction and diagnostic evidence](docs/audits/STARTER-TEXT-RELOAD.md).
 No typography workaround has been shipped.

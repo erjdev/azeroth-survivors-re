@@ -1318,3 +1318,14 @@ lists the actual selected-spec kit. Level-up cards upgrade these owned spells;
 refunds affect subsequent runs. Priest's two trained grants plus Smite fill three
 starting slots; Paladin's Repentance plus Hammer of Wrath fill two. This supersedes
 the earlier random-acquisition-only rule for these three talents.
+
+
+### Mage Arcane Concentration / Clearcasting
+
+Arcane Concentration grants a 2/4/6/8/10% chance on effective original Mage spell
+hits to fire an additional Arcane Missiles cast. Its independent five-second
+internal cooldown is reduced by haste. Uses the owned Missiles rank or rank one,
+without taking a slot or resetting ordinary ability timers. Generated missiles,
+pets, splash copies and damage-over-time ticks cannot trigger it; original ground
+pulses can. No target at dispatch means no stored charge. Movement remains free.
+[Detailed rules and acceptance](audits/MAGE-CLEARCASTING.md).

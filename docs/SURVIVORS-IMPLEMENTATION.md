@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Mage Clearcasting extra casts — 2026-11-02
+
+Arcane Concentration now triggers extra Arcane Missiles with a separate
+haste-reduced cooldown, preserving six slots and ordinary ability timers.
+Shared/runtime checks, native purchase/refund/spec/restart, wide/compact captures,
+and WebGPU check pass. Attended combat and Windows remain open.
+[Mechanics and evidence](audits/MAGE-CLEARCASTING.md).
+
 ## Area-scaled targeting range — 2026-11-02
 
 Shared cast parameters now scale targeting range by area after talent bonuses,

@@ -383,3 +383,127 @@ mod mana_shield_tests {
         assert!(node.inline_description(1).unwrap().contains("10 » 20%"));
     }
 }
+
+/// A successful hit queues one immediate extra cast; no accumulated charges.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ClearcastingClock {
+    next: f32,
+    pending: bool,
+}
+
+impl ClearcastingClock {
+    pub fn chance(self, talents: Milestones, key: &str, damage: f32, now: f32) -> f32 {
+        if talents.class != 6
+            || !now.is_finite()
+            || now < 0.0
+            || now < self.next
+            || self.pending
+            || !damage.is_finite()
+            || damage <= 0.0
+            || !(MAGE_ARCANE.contains(&key)
+                || MAGE_FIRE.contains(&key)
+                || MAGE_FROST.contains(&key))
+        {
+            return 0.0;
+        }
+        talents.trained_value(TalentStat::Clearcasting)
+    }
+
+    pub fn trigger(
+        &mut self,
+        talents: Milestones,
+        key: &str,
+        damage: f32,
+        now: f32,
+        haste: f32,
+        roll: f32,
+    ) -> bool {
+        let chance = self.chance(talents, key, damage, now);
+        if chance <= 0.0
+            || !haste.is_finite()
+            || !roll.is_finite()
+            || !(0.0..1.0).contains(&roll)
+            || roll >= chance
+        {
+            return false;
+        }
+        self.next = now + 5.0 / (1.0 + haste).max(0.1);
+        self.pending = true;
+        true
+    }
+
+    /// Dispatch once on the next cast update, even if no valid target remains.
+    pub fn take(&mut self) -> bool {
+        std::mem::take(&mut self.pending)
+    }
+}
+
+#[cfg(test)]
+mod clearcasting_tests {
+    use super::*;
+    #[test]
+    fn chance_cooldown_and_single_dispatch_obey_rank_class_and_active_time() {
+        for rank in 0..=5 {
+            let talents = Milestones {
+                class: 6,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 75, rank)]);
+            let mut clock = ClearcastingClock::default();
+            assert!(
+                (clock.chance(talents, "fireball", 1.0, 0.0) - 0.02 * f32::from(rank)).abs()
+                    < 0.00001
+            );
+            assert_eq!(
+                clock.trigger(talents, "fireball", 1.0, 0.0, 1.0, 0.0),
+                rank > 0
+            );
+            assert_eq!(clock.take(), rank > 0);
+            assert!(!clock.take());
+            if rank > 0 {
+                assert!(!clock.trigger(talents, "fireball", 1.0, 2.49, 1.0, 0.0));
+                assert!(clock.trigger(talents, "arcane_missiles", 1.0, 2.5, 0.0, 0.0));
+                assert!(!clock.trigger(talents, "fireball", 1.0, 100.0, 0.0, 0.0));
+                assert!(clock.take());
+                assert!(clock.trigger(talents, "frostbolt", 1.0, 100.0, 0.0, 0.0));
+            }
+            for class in [0, 1, 2, 3, 4, 5, 7, 8] {
+                assert_eq!(
+                    ClearcastingClock::default().chance(
+                        Milestones { class, ..talents },
+                        "fireball",
+                        1.0,
+                        0.0
+                    ),
+                    0.0
+                );
+            }
+        }
+    }
+    #[test]
+    fn rejects_invalid_hits_rolls_and_times_without_spending_the_proc() {
+        let talents = Milestones {
+            class: 6,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 75, 5)]);
+        let mut clock = ClearcastingClock::default();
+        for key in ["Ignite", "Thorns", "WeaponAttack", "smite", "mana_shield"] {
+            assert!(!clock.trigger(talents, key, 1.0, 0.0, 0.0, 0.0));
+        }
+        for damage in [0.0, -1.0, f32::NAN, f32::INFINITY] {
+            assert!(!clock.trigger(talents, "fireball", damage, 0.0, 0.0, 0.0));
+        }
+        for now in [-1.0, f32::NAN, f32::INFINITY] {
+            assert!(!clock.trigger(talents, "fireball", 1.0, now, 0.0, 0.0));
+        }
+        for roll in [-1.0, 0.1, 1.0, f32::NAN, f32::INFINITY] {
+            assert!(!clock.trigger(talents, "fireball", 1.0, 0.0, 0.0, roll));
+        }
+        assert!(!clock.take());
+        assert!(clock.trigger(talents, "fireball", 1.0, 0.0, 0.0, 0.09));
+        let node = super::super::talent_definition(6, 75).unwrap();
+        assert!(node.inline_description(0).unwrap().contains("0 » 2%"));
+        assert!(!node.inline_description(5).unwrap().contains(" » "));
+    }
+}

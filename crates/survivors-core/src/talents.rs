@@ -17,7 +17,7 @@ mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::HawkClock;
 pub use hunter::{PetBonus, PetFrenzy};
-pub use mage::{ArcanePowerClock, ColdSnapClock, CombustionClock};
+pub use mage::{ArcanePowerClock, ClearcastingClock, ColdSnapClock, CombustionClock};
 pub use natures_grace::NaturesGrace;
 pub use poison::{Coating, DeadlyPoison};
 pub use rogue::{AdrenalineRushClock, BladeFlurryClock, PreparationClock};
@@ -1866,6 +1866,7 @@ pub enum TalentStat {
     ColdSnap,
     ArcanePower,
     Combustion,
+    Clearcasting,
     AdrenalineRush,
     BladeFlurry,
     ImprovedHawk,
@@ -2285,6 +2286,7 @@ impl TalentDefinition {
             | TalentStat::MeleeParry
             | TalentStat::MeleeDodge
             | TalentStat::Combustion
+            | TalentStat::Clearcasting
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
@@ -2666,6 +2668,7 @@ impl TalentDefinition {
             TalentStat::Counterattack => (1.0, " base Counterattack damage"),
             TalentStat::MeleeParry => (100.0, " percentage points melee parry"),
             TalentStat::MeleeDodge => (100.0, " percentage points melee dodge"),
+            TalentStat::Clearcasting => (100.0, "% chance per effective Mage spell hit to fire extra Arcane Missiles; 5 sec internal cooldown reduced by haste"),
             TalentStat::Combustion => (100.0, "% Fire critical chance per direct hit"),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
             TalentStat::Preparation => (1.0, " automatic Rogue reset every 180 sec"),
@@ -3540,6 +3543,11 @@ const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_co
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 75, max_rank: 5, name: "Arcane Concentration",
+        description: "Effective Mage spell hits: 2% chance per rank to fire extra Arcane Missiles. Internal cooldown: 5 sec, reduced by haste. Uses owned Missiles rank or rank 1; takes no ability slot and leaves ordinary ability timers unchanged. Ground pulses may trigger; excludes damage-over-time ticks, splash copies, pets and generated missiles; no stored charges (Survivors Clearcasting conversion)",
+        stat: TalentStat::Clearcasting, per_rank: 0.02,
+    },
+    TalentDefinition {
         id: 88, max_rank: 2, name: "Improved Counterspell",
         description: "Acquired Counterspell: 50% chance per rank to silence an ordinary casting enemy for 4 sec, independently of its interrupted school. Does not grant Counterspell or change its 10 sec school lockout",
         stat: TalentStat::CounterspellSilence, per_rank: 0.5,
@@ -4278,6 +4286,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::MeleeParry
             | TalentStat::MeleeDodge
             | TalentStat::Combustion
+            | TalentStat::Clearcasting
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
@@ -5845,6 +5854,7 @@ mod stat_talent_tests {
                     | TalentStat::MeleeParry
                     | TalentStat::MeleeDodge
                     | TalentStat::Combustion
+                    | TalentStat::Clearcasting
                     | TalentStat::ArcanePower
                     | TalentStat::PowerInfusion
                     | TalentStat::DivineFavor

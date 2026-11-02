@@ -93,3 +93,10 @@ coverage increase, combat acceptance or new rendered screenshot is claimed.
 interruption and independent silence consumers, with runtime and native UI
 evidence. This supersedes their missing-consumer notes above. Fresh coverage is
 39/49 Mage and 312/432 overall; the other ten Mage definitions remain pending.
+
+
+## Approved extra-cast implementation — 2026-11-02
+
+[Clearcasting's implementation audit](MAGE-CLEARCASTING.md) records node 75's
+extra-cast path, independent haste cooldown and provenance rules. Its acceptance
+status supersedes the pending consumer above; no other Mage gap is closed here.
