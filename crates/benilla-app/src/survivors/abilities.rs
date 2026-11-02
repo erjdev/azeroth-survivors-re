@@ -299,7 +299,7 @@ impl Params {
                 0.0
             },
             radius: o.radius(stats) * effect.radius,
-            range: o.def.range * effect.range + effect.range_yards,
+            range: (o.def.range * effect.range + effect.range_yards) * stats.area,
             duration: if matches!(o.def.key, "earthbind_totem" | "stoneclaw_totem" | "kick")
                 || matches!(
                     o.def.kind,
@@ -592,7 +592,10 @@ pub(super) fn cast_abilities(
                 let targets: Vec<_> = visible
                     .iter()
                     .filter(|foe| foe.hp > 0.0)
-                    .filter(|foe| hpos.distance(foe.pos) <= attack.reach + foe.radius)
+                    .filter(|foe| {
+                        hpos.distance(foe.pos)
+                            <= attack.reach * stats.for_spell(attack.source).area + foe.radius
+                    })
                     .filter(|foe| world.height(foe.pos).is_some())
                     .filter(|foe| world.line_clear(hpos, foe.pos))
                     .take(1 + stats.targets as usize)
@@ -11541,3 +11544,7 @@ mod enemy_casting_tests;
 #[cfg(test)]
 #[path = "sprint_tests.rs"]
 mod sprint_tests;
+
+#[cfg(test)]
+#[path = "area_range_tests.rs"]
+mod area_range_tests;

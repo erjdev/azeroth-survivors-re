@@ -495,3 +495,12 @@ fn kick_inline_growth_keeps_damage_green_and_control_durations_fixed() {
     assert_eq!(high.silence_chance, 1.);
     assert_eq!(high.count, 6);
 }
+
+#[test]
+fn area_passive_explains_range_and_radius_with_one_inline_percentage() {
+    let spans = passive(Stat::Area, 0.1, 0.2);
+    assert!(plain(&spans).contains("Increases your ability range and area radius by 10 » 20%"));
+    assert!(spans
+        .iter()
+        .any(|(text, color)| text == "10 » 20%" && *color == card_growth::GAIN));
+}

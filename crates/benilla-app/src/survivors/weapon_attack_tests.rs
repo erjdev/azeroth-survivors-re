@@ -546,3 +546,36 @@ fn feral_critical_training_changes_real_swing_rolls_without_global_spell_crit() 
         }
     }
 }
+
+#[test]
+fn area_extends_paladin_and_feral_automatic_reach() {
+    use survivors_core::talents::forms::DruidForm;
+    for form in [None, Some(DruidForm::Cat), Some(DruidForm::Bear)] {
+        for (area, distance, expected) in [(0., 4.5, false), (1., 4.5, true), (1., 7., false)] {
+            let (mut app, _, target) = match form {
+                Some(form) => feral(form),
+                None => setup(false),
+            };
+            app.world_mut().resource_mut::<Run>().bonus.area = area;
+            app.world_mut()
+                .get_mut::<Transform>(target)
+                .unwrap()
+                .translation = Vec3::X * distance;
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits: Vec<_> = app
+                .world()
+                .resource::<Messages<Hit>>()
+                .iter_current_update_messages()
+                .collect();
+            assert_eq!(
+                hits.len(),
+                usize::from(expected),
+                "form={form:?}, area={area}, distance={distance}"
+            );
+            if let Some(hit) = hits.first() {
+                assert_eq!(hit.target, target);
+                assert_eq!(hit.splash, 0.);
+            }
+        }
+    }
+}

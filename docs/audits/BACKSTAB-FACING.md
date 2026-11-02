@@ -18,8 +18,8 @@ consumes them. Existing offer, weapon and talent tests retain their coverage.
 Card tests require the dagger note and green inline growth without rear wording.
 
 This checkpoint does not claim the entire combat-policy migration is complete.
-In particular, generic ability targeting range still needs the approved area-stat
-scaling; `Params::new` currently scales radius separately from targeting range.
+Generic targeting-range scaling was still pending at this checkpoint; the
+subsequent [area/range implementation](AREA-RANGE.md) addresses it.
 
 ## Visual comparison
 

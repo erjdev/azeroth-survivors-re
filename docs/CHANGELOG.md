@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Area increases ability range
+
+Area bonuses now extend targeting range and Paladin/Cat/Bear automatic reach,
+as well as radius. Talent and spell-specific bonuses compose with the same values
+shown on cards. Amplify Magic and stat descriptions explain both effects.
+Scoped checks, native build and WebGPU check pass; wide/compact native previews
+verify the change. Windows/controller/attended combat remain open.
+[Before/after evidence](audits/AREA-RANGE.md).
+
+![Area increases range and radius](images/screenshots/2026-11-02-area-range/passive-compact.jpg)
+
 ## 2026-11-01 — Backstab without positioning
 
 Backstab now attacks targets in melee range from any direction. Its cards,

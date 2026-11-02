@@ -14,6 +14,15 @@ current enemy counts. The Armory is the account, opened before a run and closed 
 The implementation phases, architecture, validation requirements and acceptance criteria are
 in [the implementation contract](SURVIVORS-IMPLEMENTATION.md).
 
+## Ability range and area
+
+Area bonuses increase both ability targeting range and area radius. Targeting
+range includes talent percentage and flat-yard bonuses before the area multiplier.
+Spell-specific amulets apply only to their named spell. Paladin weapon attacks and
+Cat/Bear automatic attacks also scale reach; enemy hitbox allowances remain separate.
+Area does not increase target count or create additional AoE locations. Selected-build
+card values use the same calculations as casting. [Implementation evidence](audits/AREA-RANGE.md).
+
 ## What the draft already keeps
 
 These stay, and later phases read them instead of inventing a second copy.
@@ -128,7 +137,7 @@ spell behavior. The selected body's race is captured when a run starts.
 | Night Elf | Quickness: +5% movement speed; Shadowmeld: 10 percentage points damage reduction for 6 sec every 30 sec; Elune's Grace: 0.3 health/sec regeneration |
 | Undead | Unending Hunger: 0.5 health/sec regeneration; Will of the Forsaken: 5 percentage points damage reduction; Shadow Affinity: +0.10 critical damage multiplier |
 | Tauren | Endurance: +10% maximum health after flat bonuses; Thick Hide: +5 armor; Earthmother's Reach: +15% pickup radius |
-| Gnome | Expansive Mind: +10 percentage points experience; Nimble: +5% movement speed; Ingenious Design: +10 percentage points area-radius bonus |
+| Gnome | Expansive Mind: +10 percentage points experience; Nimble: +5% movement speed; Ingenious Design: +10 percentage points ability-range and area-radius bonus |
 | Troll | Berserking: +15 percentage points haste for 10 sec every 30 sec; Regeneration: 0.5 health/sec; Hunter's Instinct: +5 percentage points damage |
 
 All timed racials first activate at 30 seconds of gameplay and use half-open
@@ -1258,7 +1267,7 @@ weapon. Moonkin, Tree of Life and unshifted Druids do not gain this attack.
 
 Initial Survivors tuning (not imported vanilla weapon/resource values): Claw deals
 12 base damage every 1 second; Maul deals 30 every 2.5 seconds. Both have 3-yard
-reach plus enemy radius. Equipment damage, critical chance/damage, haste and extra
+base reach, scaled by area, plus enemy radius. Equipment damage, critical chance/damage, haste and extra
 single-target counts apply. Natural Weapons adds 2% physical Claw/Maul damage per
 rank, up to 10%; it does not increase spells, healing or pet damage. Neither attack
 uses mana, Energy or Rage. Additional feral ability/resource conversions remain

@@ -12,6 +12,13 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Area-scaled targeting range — 2026-11-02
+
+Shared cast parameters now scale targeting range by area after talent bonuses,
+and Paladin/Cat/Bear automatic attacks scale their reach. Descriptions explain
+both range and radius; target counts and hitbox allowances stay independent.
+[Evidence and scope](audits/AREA-RANGE.md).
+
 ## Backstab positional restriction removed — 2026-11-01
 
 Backstab now selects targets within melee range regardless of facing. Cards and

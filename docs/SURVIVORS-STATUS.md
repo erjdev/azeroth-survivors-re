@@ -101,6 +101,9 @@ equipment and the existing weakening-duration talent conversion remain. Riposte'
 replacement and the other approved combat-policy migrations are still open.
 Backstab’s positional gate is removed from casting and its cards/talents; the
 worn-dagger requirement remains. [Evidence](audits/BACKSTAB-FACING.md).
+Area now scales owned-ability targeting ranges and Paladin/Cat/Bear automatic
+reach, with matching descriptions and wide/compact card evidence. [Scope and
+validation limits](audits/AREA-RANGE.md).
 Ancestral Healing now grants 8/16/25% armor for 15 seconds after effective Healing
 Wave criticals, replacing its totem conversion. Automated effects/save tests and
 native wide purchase/refund plus compact restart pass; platform and attended-combat

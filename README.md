@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Area bonuses now extend ability targeting range and automatic melee reach.
+Cards show the selected build's scaled values. [Evidence](docs/audits/AREA-RANGE.md).
+
+![Area and range upgrade](docs/images/screenshots/2026-11-02-area-range/passive-compact.jpg)
+
 Backstab now works from any direction within melee range, with matching card and
 talent descriptions. [Before/after evidence](docs/audits/BACKSTAB-FACING.md).
 

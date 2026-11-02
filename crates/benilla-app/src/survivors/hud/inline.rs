@@ -565,7 +565,7 @@ fn passive(stat: Stat, a: f32, b: f32, strings: &Strings) -> Spans {
             prose!("Your abilities recharge ", percent, " faster");
         }
         Stat::Area => {
-            prose!("Increases the size of your areas of effect by ", percent);
+            prose!("Increases your ability range and area radius by ", percent);
         }
         Stat::Magnet => {
             prose!("Increases your pickup range by ", percent);

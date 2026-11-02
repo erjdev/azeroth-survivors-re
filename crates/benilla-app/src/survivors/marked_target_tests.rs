@@ -374,7 +374,7 @@ fn acquired_mark_replaces_its_own_selection_without_damage_or_stacking() {
 }
 
 #[test]
-fn mark_parameters_ignore_damage_crit_area_and_other_amulets() {
+fn mark_strength_ignores_damage_crit_area_but_area_scales_targeting_range() {
     let (mut app, _, _) = fixture("hunters_mark", 100.0);
     hunter(&mut app);
     let run = app.world().resource::<Run>();
@@ -393,7 +393,7 @@ fn mark_parameters_ignore_damage_crit_area_and_other_amulets() {
         (p.mark_power, p.dmg, p.crit, p.radius),
         (130.0, 0.0, 0.0, 0.0)
     );
-    assert_eq!((p.duration, p.range, p.count), (120.0, 100.0, 6));
+    assert_eq!((p.duration, p.range, p.count), (120.0, 5000.0, 6));
     stats.legendary = Some((
         "hunters_mark",
         crate::survivors::campaign::Bonus {

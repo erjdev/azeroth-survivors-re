@@ -125,7 +125,7 @@ pub fn description(race: u8) -> Option<[String; 3]> {
         7 => [
             "Expansive Mind: +10% experience",
             "Nimble: +5% movement speed",
-            "Ingenious Design: +10% area radius",
+            "Ingenious Design: +10% ability range and area radius",
         ],
         8 => [
             "Berserking: every 30 sec, +15% haste for 10 sec",
