@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Mage resource conversions — 2026-11-02
+
+Arcane Resilience, Meditation, Mind and Burning Soul have explicit scoped effects
+and green inline previews. Rules/runtime checks, scoped gates, native/WebGPU
+builds and native purchase/refund/spec/compact restart validation pass. Coverage
+is 44/49 Mage, 324/432 overall; Windows and attended combat remain open.
+[Rules and screenshots](audits/MAGE-RESOURCE-CONVERSIONS.md).
+
 ## Mage Clearcasting extra casts — 2026-11-02
 
 Arcane Concentration now triggers extra Arcane Missiles with a separate

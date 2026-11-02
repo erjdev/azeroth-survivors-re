@@ -1329,3 +1329,15 @@ without taking a slot or resetting ordinary ability timers. Generated missiles,
 pets, splash copies and damage-over-time ticks cannot trigger it; original ground
 pulses can. No target at dispatch means no stored charge. Movement remains free.
 [Detailed rules and acceptance](audits/MAGE-CLEARCASTING.md).
+
+
+### Mage Intellect, mana and threat conversions
+
+Arcane Resilience grants +5% Mage attack damage, without increasing armor or
+Mana Shield absorption. Arcane Meditation grants 2% shorter Mage ability
+cooldowns per rank (three ranks); Arcane Mind grants 2% per rank (five ranks).
+Burning Soul grants 5% shorter Fire ability cooldowns per rank (two ranks).
+Recovery bonuses multiply, include defensive Mage abilities where stated, and
+leave duration, pulse cadence and Clearcasting's internal cooldown unchanged.
+These effects replace each node's provisional damage bonus and introduce no
+resource pools or stationary casting. [Scope and evidence](audits/MAGE-RESOURCE-CONVERSIONS.md).

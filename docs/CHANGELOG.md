@@ -5,6 +5,16 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Mage resource-free talent upgrades
+
+Arcane Resilience now increases Mage damage; Meditation, Mind and Burning Soul
+reduce scoped ability cooldowns. Green inline previews explain each upgrade.
+Purchases, refunds, saved specs and compact restart pass alongside scoped checks
+and native/WebGPU builds. Mage coverage reaches 44/49; Windows and attended
+combat remain open. [Rules and evidence](audits/MAGE-RESOURCE-CONVERSIONS.md).
+
+![Mage cooldown upgrade](images/screenshots/2026-11-02-mage-conversions/burning-soul-wide.jpg)
+
 ## 2026-11-02 — Clearcasting fires extra missiles
 
 Mage Arcane Concentration now procs extra Arcane Missiles, with a haste-reduced

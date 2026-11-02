@@ -3540,8 +3540,59 @@ const MAGE_FIRE: &[&str] = &[
 ];
 const MAGE_FROST: &[&str] = &["frostbolt", "frost_nova", "blizzard", "cone_of_cold"];
 
+const MAGE_DAMAGE: &[&str] = &[
+    "arcane_missiles",
+    "arcane_explosion",
+    "fireball",
+    "fire_blast",
+    "scorch",
+    "flamestrike",
+    "pyroblast",
+    "blast_wave",
+    "frostbolt",
+    "frost_nova",
+    "blizzard",
+    "cone_of_cold",
+];
+const MAGE_ABILITIES: &[&str] = &[
+    "arcane_missiles",
+    "arcane_explosion",
+    "fireball",
+    "fire_blast",
+    "scorch",
+    "flamestrike",
+    "pyroblast",
+    "blast_wave",
+    "frostbolt",
+    "frost_nova",
+    "blizzard",
+    "cone_of_cold",
+    "mana_shield",
+    "counterspell",
+];
+
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 85, max_rank: 1, name: "Arcane Resilience",
+        description: "Mage attacks: +5% direct and periodic damage. Includes extra Arcane Missiles; does not increase armor or Mana Shield absorption",
+        stat: TalentStat::SpellGroupDamage(MAGE_DAMAGE), per_rank: 0.05,
+    },
+    TalentDefinition {
+        id: 1142, max_rank: 3, name: "Arcane Meditation",
+        description: "Mage abilities: 2% shorter cooldown per rank, including Mana Shield and Counterspell. Combines with other recovery bonuses; does not change damage, duration, ground pulse rate or Clearcasting's internal cooldown",
+        stat: TalentStat::SpellGroupCooldown(MAGE_ABILITIES), per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 77, max_rank: 5, name: "Arcane Mind",
+        description: "Mage abilities: 2% shorter cooldown per rank, including Mana Shield and Counterspell. Combines with Arcane Meditation and other recovery bonuses; does not change damage, duration, ground pulse rate or Clearcasting's internal cooldown",
+        stat: TalentStat::SpellGroupCooldown(MAGE_ABILITIES), per_rank: 0.02,
+    },
+    TalentDefinition {
+        id: 23, max_rank: 2, name: "Burning Soul",
+        description: "Fireball, Fire Blast, Scorch, Flamestrike, Pyroblast and Blast Wave: 5% shorter cooldown per rank. Does not change damage, burns or ground pulse rate. Attacks continue while moving",
+        stat: TalentStat::SpellGroupCooldown(MAGE_FIRE), per_rank: 0.05,
+    },
     TalentDefinition {
         id: 75, max_rank: 5, name: "Arcane Concentration",
         description: "Effective Mage spell hits: 2% chance per rank to fire extra Arcane Missiles. Internal cooldown: 5 sec, reduced by haste. Uses owned Missiles rank or rank 1; takes no ability slot and leaves ordinary ability timers unchanged. Ground pulses may trigger; excludes damage-over-time ticks, splash copies, pets and generated missiles; no stored charges (Survivors Clearcasting conversion)",

@@ -507,3 +507,109 @@ mod clearcasting_tests {
         assert!(!node.inline_description(5).unwrap().contains(" » "));
     }
 }
+
+#[cfg(test)]
+mod conversion_tests {
+    use super::super::{CastEffect, MAGE_ABILITIES, MAGE_DAMAGE};
+    use super::*;
+
+    #[test]
+    fn scopes_track_the_mage_pool_and_damage_excludes_defenses() {
+        let pool = crate::data::CLASSES[6].ability_keys();
+        assert_eq!(MAGE_ABILITIES.len(), pool.len());
+        assert!(pool.iter().all(|key| MAGE_ABILITIES.contains(key)));
+        assert_eq!(MAGE_DAMAGE.len() + 2, MAGE_ABILITIES.len());
+        for key in MAGE_ABILITIES {
+            assert_eq!(
+                MAGE_DAMAGE.contains(key),
+                !matches!(*key, "mana_shield" | "counterspell")
+            );
+        }
+    }
+
+    #[test]
+    fn conversion_ranks_change_only_their_named_effect_and_remove_provisional_damage() {
+        for (tree, id, cap, per_rank, damage) in [
+            (0, 85, 1, 0.05, true),
+            (0, 1142, 3, 0.02, false),
+            (0, 77, 5, 0.02, false),
+            (1, 23, 2, 0.05, false),
+        ] {
+            for class in 0..9 {
+                let base = Milestones {
+                    class,
+                    points: [30; 3],
+                    ..Default::default()
+                };
+                for rank in 0..=cap + 1 {
+                    let ranks = [(tree, id, rank)];
+                    let trained = base.with_ranks(&ranks);
+                    for def in crate::data::ABILITIES {
+                        let before = base.cast(def.key);
+                        let after = trained.cast(def.key);
+                        let eligible = class == 6
+                            && if damage {
+                                MAGE_DAMAGE.contains(&def.key)
+                            } else if id == 23 {
+                                MAGE_FIRE.contains(&def.key)
+                            } else {
+                                MAGE_ABILITIES.contains(&def.key)
+                            };
+                        let amount = per_rank * f32::from(rank.min(cap));
+                        let expected = if eligible && damage {
+                            CastEffect {
+                                damage: before.damage * (1.0 + amount),
+                                ..before
+                            }
+                        } else if eligible {
+                            CastEffect {
+                                cooldown: before.cooldown * (1.0 - amount),
+                                ..before
+                            }
+                        } else {
+                            before
+                        };
+                        assert_eq!(
+                            after, expected,
+                            "class={class} node={id} rank={rank} key={}",
+                            def.key
+                        );
+                    }
+                    let adjustment = super::super::stat_adjustment(class, &ranks);
+                    assert!(
+                        (adjustment.might
+                            - if class == 6 {
+                                -0.01 * f32::from(rank.min(cap))
+                            } else {
+                                0.0
+                            })
+                        .abs()
+                            < 0.00001
+                    );
+                    assert_eq!(trained.with_ranks(&[]), base);
+                }
+            }
+            let node = super::super::talent_definition(6, id).unwrap();
+            assert!(node.inline_description(0).unwrap().contains("0 » "));
+            assert!(!node.inline_description(cap).unwrap().contains(" » "));
+        }
+    }
+
+    #[test]
+    fn recovery_bonuses_compose_without_affecting_the_clearcasting_clock() {
+        let talents = Milestones {
+            class: 6,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 1142, 3), (0, 77, 5), (1, 23, 2), (0, 75, 5)]);
+        for key in MAGE_ABILITIES {
+            let expected = 0.94 * 0.90 * if MAGE_FIRE.contains(key) { 0.90 } else { 1.0 };
+            assert!((talents.cast(key).cooldown - expected).abs() < 0.00001);
+        }
+        let mut clock = ClearcastingClock::default();
+        assert!(clock.trigger(talents, "fireball", 1.0, 0.0, 0.0, 0.0));
+        assert!(clock.take());
+        assert!(!clock.trigger(talents, "fireball", 1.0, 4.99, 0.0, 0.0));
+        assert!(clock.trigger(talents, "fireball", 1.0, 5.0, 0.0, 0.0));
+    }
+}

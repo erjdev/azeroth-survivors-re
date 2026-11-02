@@ -11614,3 +11614,7 @@ mod area_range_tests;
 #[cfg(test)]
 #[path = "clearcasting_tests.rs"]
 mod clearcasting_tests;
+
+#[cfg(test)]
+#[path = "mage_conversion_tests.rs"]
+mod mage_conversion_tests;

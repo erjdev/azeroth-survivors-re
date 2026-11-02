@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Four Mage talents now convert Intellect, mana and threat mechanics into damage
+or shorter cooldowns. [Rules and validation](docs/audits/MAGE-RESOURCE-CONVERSIONS.md).
+
+![Mage inline cooldown upgrade](docs/images/screenshots/2026-11-02-mage-conversions/burning-soul-wide.jpg)
+
 Mage Clearcasting now fires extra Arcane Missiles on its own haste-reduced
 cooldown, without taking an ability slot. [Rules and validation](docs/audits/MAGE-CLEARCASTING.md).
 

@@ -100,3 +100,12 @@ evidence. This supersedes their missing-consumer notes above. Fresh coverage is
 [Clearcasting's implementation audit](MAGE-CLEARCASTING.md) records node 75's
 extra-cast path, independent haste cooldown and provenance rules. Its acceptance
 status supersedes the pending consumer above; no other Mage gap is closed here.
+
+
+## Intellect, mana and threat conversions — 2026-11-02
+
+[The resource-conversion audit](MAGE-RESOURCE-CONVERSIONS.md) tracks Arcane
+Resilience, Arcane Meditation, Arcane Mind and Burning Soul's approved damage/
+recovery replacements and acceptance. These effects do not require Intellect,
+mana or threat consumers; the remaining ward, wand and buff dependencies are
+separate work.
