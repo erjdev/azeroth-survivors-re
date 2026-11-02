@@ -443,3 +443,51 @@ fn feral_attacks_reject_hidden_distant_dead_or_occluded_targets_without_spending
         }
     }
 }
+
+#[test]
+fn predatory_strikes_recalculates_after_leveling_and_stacks_before_damage_and_haste() {
+    use survivors_core::talents::forms::DruidForm;
+    for (form, base, recovery) in [(DruidForm::Cat, 12., 1.), (DruidForm::Bear, 30., 2.5)] {
+        let (mut app, _, target) = feral(form);
+        for level in [1, 14, 60] {
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.level = level;
+                run.weapon_attack_cd = 0.;
+                run.bonus.cooldown = 0.5;
+                run.renown_celerity = 10;
+                run.milestones = run.milestones.with_ranks(&[
+                    (form.tree(), form.talent(), 1),
+                    (1, 803, 3),
+                    (0, 791, 5),
+                ]);
+            }
+            app.world_mut().get_mut::<Enemy>(target).unwrap().hp = 1000.;
+            app.world_mut().resource_mut::<Messages<Hit>>().clear();
+            let stats = app.world().resource::<Run>().stats();
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits: Vec<_> = app
+                .world()
+                .resource::<Messages<Hit>>()
+                .iter_current_update_messages()
+                .cloned()
+                .collect();
+            assert_eq!(hits.len(), 1);
+            let hit = &hits[0];
+            let expected = (base + level as f32 * 1.5 / 14. * recovery)
+                * stats.might
+                * 1.1
+                * if hit.crit { stats.crit_damage } else { 1. };
+            assert!((hit.damage - expected).abs() < 0.001);
+            assert!(
+                (app.world().resource::<Run>().weapon_attack_cd - recovery / (1. + stats.haste))
+                    .abs()
+                    < 0.00001
+            );
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            assert!(
+                (1000. - app.world().get::<Enemy>(target).unwrap().hp - expected).abs() < 0.001
+            );
+        }
+    }
+}

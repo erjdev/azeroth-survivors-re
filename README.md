@@ -19,11 +19,13 @@ The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining w
 
 Cat and Bear now attack automatically with Claw and Maul outside the six ability
 slots, while retaining the Druid spell pool. Natural Weapons improves those
-physical attacks. [Rules and validation](docs/audits/DRUID-PROGRESSION-FORMS.md#automatic-feral-attacks-and-faction-preview-follow-up--2026-11-01).
+physical attacks, and Predatory Strikes adds run-level-scaled attack power. [Rules and validation](docs/audits/DRUID-PROGRESSION-FORMS.md#automatic-feral-attacks-and-faction-preview-follow-up--2026-11-01).
 
 ![Automatic Maul alongside Wrath](docs/images/screenshots/2026-11-01-druid-form-matrix/automatic-maul-starter.png)
 
 ![Natural Weapons inline scaling](docs/images/screenshots/2026-11-01-druid-form-matrix/natural-weapons-purchase.png)
+
+![Predatory Strikes inline scaling](docs/images/screenshots/2026-11-01-predatory-strikes/rank1-wide.png)
 
 Druid specs now offer permanent, mutually exclusive Cat, Bear, Moonkin and Tree
 of Life forms, with saved choices, refunds and initial benefits.

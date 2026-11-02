@@ -74,6 +74,15 @@ pub fn can_learn_form(class: usize, ranks: &[(u8, u32, u8)], id: u32) -> bool {
 }
 
 impl super::Milestones {
+    /// Installed level-scaled attack power, scoped to the selected permanent feral form.
+    pub fn feral_attack_power(self, level: u32) -> f32 {
+        if matches!(self.druid_form(), Some(DruidForm::Cat | DruidForm::Bear)) {
+            level as f32 * self.trained_value(super::TalentStat::PredatoryStrikes)
+        } else {
+            0.
+        }
+    }
+
     pub fn druid_form(self) -> Option<DruidForm> {
         if self.class != 8 {
             return None;

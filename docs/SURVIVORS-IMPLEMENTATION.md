@@ -10591,3 +10591,10 @@ attack consumer. [Rules and native evidence](audits/DRUID-PROGRESSION-FORMS.md#a
 include compact starter presentation and faction-specific form previews. Advanced
 feral abilities, legacy no-form talent migration and attended combat/platform
 acceptance remain open; this does not close phase 5.
+
+
+Predatory Strikes now consumes current run level in the selected Cat/Bear automatic
+attack. Its explicit attack-power conversion and native purchase/refund evidence
+are in the [form audit](audits/DRUID-PROGRESSION-FORMS.md#predatory-strikes-follow-up--2026-11-01).
+This advances the feral dependency chain without closing remaining ability,
+legacy-conversion or attended combat/platform acceptance.

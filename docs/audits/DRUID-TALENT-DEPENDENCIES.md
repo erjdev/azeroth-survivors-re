@@ -14,7 +14,7 @@ Raw effect values require unit interpretation; tooltip references require their
 referenced rows. No installed Applications game is used.
 
 Later permanent-form and automatic Claw/Maul work supersedes the Moonkin and
-Natural Weapons blockers below; see the [form audit](DRUID-PROGRESSION-FORMS.md).
+Natural Weapons and Predatory Strikes blockers below; see the [form audit](DRUID-PROGRESSION-FORMS.md).
 The remaining rows still require their stated consumers or explicit conversions.
 
 ## Missing consumers at the original checkpoint

@@ -1261,3 +1261,10 @@ rank, up to 10%; it does not increase spells, healing or pet damage. Neither att
 uses mana, Energy or Rage. Additional feral ability/resource conversions remain
 separate work. Hidden, dead, out-of-reach and geometrically blocked targets cannot
 be hit; an empty attempt does not spend recovery. Pause freezes recovery.
+
+
+Predatory Strikes adds 50% of current run level as Cat/Bear attack power per rank
+(three ranks). Fourteen attack power adds one base DPS to automatic Claw/Maul,
+using un-hasted attack cadence before ordinary damage multipliers and criticals.
+It updates as the run levels up and does not affect spells, healing or other forms.
+This is authored Survivors attack-power conversion; there is no Energy/Rage cost.

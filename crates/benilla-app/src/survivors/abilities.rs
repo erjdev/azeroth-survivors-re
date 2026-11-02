@@ -587,11 +587,14 @@ pub(super) fn cast_abilities(
     } else {
         std::borrow::Cow::Borrowed(&foes)
     };
-    // Survivors-authored basic physical attack: worn identity, never cosmetic gear.
+    // Survivors-authored physical attack: worn Paladin weapon or selected feral form.
     // It is not Owned, so drafting six abilities cannot remove or upgrade it.
     if (run.class.id == 2 && talents.class == 1) || (run.class.id == 11 && talents.class == 8) {
         run.weapon_attack_cd = (run.weapon_attack_cd - dt).max(0.0);
-        if let (Some(attack), Some(world)) = (talents.basic_attack(), channel_world.as_ref()) {
+        if let (Some(attack), Some(world)) = (
+            talents.basic_attack_at_level(run.level),
+            channel_world.as_ref(),
+        ) {
             if run.weapon_attack_cd <= 0.0 && world.height(hpos).is_some() {
                 let targets: Vec<_> = visible
                     .iter()

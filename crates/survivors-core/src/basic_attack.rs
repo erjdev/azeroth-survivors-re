@@ -10,6 +10,14 @@ pub struct BasicAttack {
 }
 
 impl Milestones {
+    /// Survivors tuning: 14 attack power adds one base DPS, using un-hasted cadence.
+    pub fn basic_attack_at_level(self, level: u32) -> Option<BasicAttack> {
+        self.basic_attack().map(|mut attack| {
+            attack.damage += self.feral_attack_power(level) / 14. * attack.recovery;
+            attack
+        })
+    }
+
     /// Uses the frozen run loadout/form. Cosmetic weapons never supply attack identity.
     pub fn basic_attack(self) -> Option<BasicAttack> {
         let (source, damage, recovery) = match self.class {
@@ -40,6 +48,56 @@ impl Milestones {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn predatory_strikes_scales_run_level_and_base_cadence_only_in_feral_forms() {
+        for form in DruidForm::ALL {
+            for rank in [0, 1, 2, 3, 255] {
+                for level in [0, 1, 14, 60, 100] {
+                    let trained = Milestones {
+                        class: 8,
+                        ..Default::default()
+                    }
+                    .with_ranks(&[(form.tree(), form.talent(), 1), (1, 803, rank)]);
+                    let feral = matches!(form, DruidForm::Cat | DruidForm::Bear);
+                    let power = if feral {
+                        level as f32 * 0.5 * f32::from(rank.min(3))
+                    } else {
+                        0.
+                    };
+                    assert_eq!(trained.feral_attack_power(level), power);
+                    if let Some(attack) = trained.basic_attack_at_level(level) {
+                        assert!(
+                            (attack.damage / attack.recovery - 12. - power / 14.).abs() < 0.00001
+                        );
+                    }
+                    let untrained = trained.with_ranks(&[(form.tree(), form.talent(), 1)]);
+                    for spell in ["wrath", "moonfire", "thorns", "rejuvenation", "regrowth"] {
+                        assert_eq!(trained.cast(spell), untrained.cast(spell));
+                    }
+                    assert_eq!(untrained.feral_attack_power(level), 0.);
+                }
+            }
+        }
+        for class in 0..9 {
+            let no_form = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&[(1, 803, 3)]);
+            assert_eq!(no_form.feral_attack_power(60), 0.);
+        }
+        let definition = crate::talents::talent_definition(8, 803).unwrap();
+        let (text, spans) = definition.inline_description_with_values(1).unwrap();
+        assert!(text.contains("50 » 100%"), "{text}");
+        assert!(
+            text.contains("Each 14 attack power adds 1 base damage"),
+            "{text}"
+        );
+        assert!(spans
+            .iter()
+            .any(|span| text[span.clone()].contains("50 » 100%")));
+    }
+
     #[test]
     fn feral_attacks_require_one_matching_form_and_do_not_require_weapons() {
         let base = Milestones {

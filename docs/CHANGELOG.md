@@ -9,15 +9,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 Cat uses Claw and Bear uses Maul outside ability slots; Wrath and the spell pool
 remain available. Natural Weapons increases their physical damage by 2–10%.
+Predatory Strikes adds run-level-scaled Cat/Bear attack power.
 The starter labels the separate attack, including at 640×720 / 125%. Native
 Moonkin purchase/refund and Tauren form previews are also verified.
 [Evidence and limits](audits/DRUID-PROGRESSION-FORMS.md#automatic-feral-attacks-and-faction-preview-follow-up--2026-11-01).
-356 shared-rule tests, scoped gate and native/WebGPU builds pass (31 optional-addon
+357 shared-rule tests, scoped gate and native/WebGPU builds pass (31 optional-addon
 skips). Advanced feral abilities, legacy conversions and attended combat remain open.
 
 ![Automatic Maul alongside the spell pool](images/screenshots/2026-11-01-druid-form-matrix/automatic-maul-starter.png)
 
 ![Natural Weapons inline upgrade](images/screenshots/2026-11-01-druid-form-matrix/natural-weapons-purchase.png)
+
+![Predatory Strikes inline upgrade](images/screenshots/2026-11-01-predatory-strikes/rank1-wide.png)
 
 ## 2026-11-01 — Permanent Druid progression forms
 

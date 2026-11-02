@@ -1761,6 +1761,7 @@ pub enum TalentStat {
     AbilityUnlock(&'static str),
     MonkeyDodge,
     HunterMarkPower,
+    PredatoryStrikes,
     CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
     Health,
@@ -2280,6 +2281,7 @@ impl TalentDefinition {
             | TalentStat::KickSilence
             | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
+            | TalentStat::PredatoryStrikes
             | TalentStat::HunterMarkPower
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -2513,6 +2515,7 @@ impl TalentDefinition {
             }
             TalentStat::ElementalPrecision => (100.0, "% Fire and Frost damage"),
             TalentStat::Health => (1.0, " maximum health"),
+            TalentStat::PredatoryStrikes => (100.0, "% of run level as Cat/Bear attack power"),
             TalentStat::HunterMarkPower => (100.0, "% Hunter’s Mark ranged attack power"),
             TalentStat::MonkeyDodge => (100.0, " percentage points of Aspect of the Monkey dodge chance"),
             TalentStat::MaximumHealth => (100.0, "% maximum health"),
@@ -4189,6 +4192,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::KickSilence
             | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
+            | TalentStat::PredatoryStrikes
             | TalentStat::HunterMarkPower
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
@@ -5753,6 +5757,7 @@ mod stat_talent_tests {
                     | TalentStat::KickSilence
                     | TalentStat::CounterspellSilence
                     | TalentStat::MonkeyDodge
+                    | TalentStat::PredatoryStrikes
                     | TalentStat::HunterMarkPower
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery

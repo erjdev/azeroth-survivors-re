@@ -119,3 +119,40 @@ production menu previews, not evidence of attended combat or earned progression.
 ![Natural Weapons purchased](../images/screenshots/2026-11-01-druid-form-matrix/natural-weapons-purchase.png)
 
 ![Compact automatic-attack label](../images/screenshots/2026-11-01-druid-form-matrix/automatic-maul-compact.png)
+
+
+## Predatory Strikes follow-up — 2026-11-01
+
+Installed node 803 (spells 16972/16974/16975) grants attack power equal to
+50/100/150% of level in Cat/Bear forms. Survivors uses current **run level**,
+recalculates every automatic attack, and converts 14 attack power to one base
+DPS. The added hit damage uses the attack's un-hasted base recovery; ordinary
+power, Natural Weapons, criticals and haste then apply. This is explicit
+Survivors tuning, not imported vanilla weapon damage. No effect reaches spells,
+healing, pets, caster forms or a hero without a feral form.
+
+At rank three and run level 14, either form gains 21 attack power / 1.5 base DPS:
+Claw becomes 13.5 damage per second; Maul becomes 33.75 every 2.5 seconds before
+bonuses. Changing the saved talent rank does not alter an active run snapshot.
+
+The isolated production-menu fixture seeds Bear and 15 earlier-row Feral points.
+Native purchases move rank 0 → 1 → 2, and refund returns rank 2 → 1 and its point.
+This verifies purchases, not earned prerequisite progression. Attended combat,
+Windows and full feral ability coverage remain open.
+
+![Predatory Strikes purchased, inline scaling](../images/screenshots/2026-11-01-predatory-strikes/rank1-wide.png)
+
+![Second rank purchased](../images/screenshots/2026-11-01-predatory-strikes/rank2-wide.png)
+
+![Rank refunded and point returned](../images/screenshots/2026-11-01-predatory-strikes/refunded-wide.png)
+
+Rank one survives a clean native restart at 640×720 / 125%; its full description
+and green inline upgrade remain readable. The shared-rule suite has 357 passing
+tests, including all form/rank/level combinations, no-form exclusions, refund
+removal and unchanged spells. Native build: 23 seconds. The scoped gate passes
+with 31 optional-addon skips; WebGPU check passes with existing warnings. Fresh
+coverage is 319/432 definitions (Druid 31/47), plus three authored form nodes.
+The final focused core/runtime rerun also passes after strengthening the haste
+fixture. Build output is 46.56 GiB; warm caches retained.
+
+![Saved rank after compact restart](../images/screenshots/2026-11-01-predatory-strikes/rank1-restarted-compact.png)
