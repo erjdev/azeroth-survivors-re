@@ -528,8 +528,8 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
     if !matches!(def.kind, Kind::Aura | Kind::Orbit) && (a.cooldown - b.cooldown).abs() > 0.0001 {
         prose!(" Recharges in ", cooldown, ".");
     }
-    if def.requires_rear {
-        prose!(" Requires an equipped dagger. Only targets enemies you are behind.");
+    if def.required_weapon == Some(survivors_core::gear_loadout::MeleeKind::Dagger) {
+        prose!(" Requires an equipped dagger.");
     }
     out.0
 }

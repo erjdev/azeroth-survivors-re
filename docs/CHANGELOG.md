@@ -5,6 +5,16 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Backstab without positioning
+
+Backstab now attacks targets in melee range from any direction. Its cards,
+Improved Backstab and Opportunity no longer require attacking from behind;
+the worn-dagger requirement remains. Cast/offer/rule checks, native build and
+WebGPU check pass. Wide/compact UI captured; Windows/controller/live combat
+remain open. [Before/after evidence](audits/BACKSTAB-FACING.md).
+
+![Backstab without a rear-position requirement](images/screenshots/2026-11-01-backstab-facing/after-wide.jpg)
+
 ## 2026-11-01 — Ancestral Healing critical armor
 
 Effective Healing Wave criticals now grant 8/16/25% armor for 15 seconds,

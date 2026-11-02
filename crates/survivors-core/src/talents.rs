@@ -3831,13 +3831,13 @@ const ROGUE_TALENTS: &[TalentDefinition] = &[
     // Spell.dbc 13733/13865/13866: 10/20/30 percentage points of Backstab critical chance.
     TalentDefinition {
         id: 202, max_rank: 3, name: "Improved Backstab",
-        description: "Backstab: +10% critical chance per rank. Requires acquiring Backstab, wearing a dagger and attacking from behind; does not grant the attack",
+        description: "Backstab: +10% critical chance per rank. Requires acquiring Backstab and wearing a dagger; does not grant the attack",
         stat: TalentStat::SpellCrit("backstab"), per_rank: 0.10,
     },
     // Spell.dbc 14057/14072–14075: 4/8/12/16/20% rear-opener damage.
     TalentDefinition {
         id: 261, max_rank: 5, name: "Opportunity",
-        description: "Backstab: +4% damage per rank. Requires acquiring Backstab, wearing a dagger and attacking from behind. Garrote and Ambush are not yet available; does not grant attacks",
+        description: "Backstab: +4% damage per rank. Requires acquiring Backstab and wearing a dagger. Garrote and Ambush are not yet available; does not grant attacks",
         stat: TalentStat::SpellDamage("backstab"), per_rank: 0.04,
     },
     // Spell.dbc 14186/14190/14193–14195 proc chances 20/40/60/80/100, trigger 14189.
@@ -8093,12 +8093,16 @@ mod backstab_tests {
     #[test]
     fn backstab_requires_a_worn_dagger_and_training_only_changes_its_cast() {
         let attack = crate::data::ability("backstab");
-        assert!(attack.requires_rear);
         assert_eq!(
             (attack.damage, attack.cooldown, attack.range, attack.count),
             (30.0, 1.3, 5.5, 1)
         );
         assert!(crate::data::CLASSES[3].pool.contains(&attack.key));
+        for id in [202, 261] {
+            let description = talent_definition(3, id).unwrap().description;
+            assert!(description.contains("wearing a dagger"));
+            assert!(!description.contains("behind"));
+        }
         for kind in [
             None,
             Some(MeleeKind::Dagger),

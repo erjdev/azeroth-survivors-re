@@ -298,7 +298,7 @@ fn battle_shout_cards_show_percentage_strength_and_duration_without_damage_hits(
 }
 
 #[test]
-fn backstab_cards_explain_position_and_weapon_with_inline_damage_growth() {
+fn backstab_cards_explain_weapon_without_position_and_keep_inline_damage_growth() {
     let def = data::ability("backstab");
     let mut run = Run {
         class: &data::CLASSES[3],
@@ -313,7 +313,7 @@ fn backstab_cards_explain_position_and_weapon_with_inline_damage_growth() {
         let spans = describe(choice, &run);
         let text = plain(&spans);
         assert!(text.contains("Requires an equipped dagger."));
-        assert!(text.contains("Only targets enemies you are behind."));
+        assert!(!text.contains("behind"));
         assert!(spans.iter().any(|(value, color)| value.contains("damage")
             && value.contains('»')
             && *color == card_growth::GAIN));

@@ -12,6 +12,12 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Backstab positional restriction removed — 2026-11-01
+
+Backstab now selects targets within melee range regardless of facing. Cards and
+its two training nodes retain the dagger requirement without rear-position wording.
+The shared rear-requirement flag is removed. [Evidence and remaining policy work](audits/BACKSTAB-FACING.md).
+
 ## Ancestral Healing replacement — 2026-11-01
 
 The approved 8/16/25% armor / 15-second effective-healing-critical rule replaces
@@ -10035,6 +10041,9 @@ Seal Fate integration passed in 733 seconds (12m13s), including player tests,
 with 31 missing-addon skips per data/player run.
 
 ### Backstab and dependent training contract — 2026-10-28
+
+Historical requirement: the rear-position restriction below is superseded by the
+2026-11-01 combat policy and [implementation](audits/BACKSTAB-FACING.md).
 
 Checkout Spell.dbc 53 explicitly requires a main-hand dagger and striking from
 behind; effects include weapon damage and one combo point. Preserve both use

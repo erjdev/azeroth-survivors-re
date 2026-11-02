@@ -502,13 +502,6 @@ fn cast_weapon_buffs(run: &mut Run, stats: &super::Stats, dt: f32) -> Vec<u32> {
     casts
 }
 
-/// Models face local -Z; only the rear half-plane qualifies, never the flank boundary.
-fn behind_target(hero: Vec3, target: &Transform) -> bool {
-    let offset = flat(hero - target.translation);
-    let forward = flat(target.rotation * Vec3::NEG_Z);
-    offset.is_finite() && forward.is_finite() && offset.dot(forward) < -0.0001
-}
-
 pub(super) fn cast_abilities(
     mut commands: Commands,
     time: Res<Time>,
@@ -854,28 +847,13 @@ pub(super) fn cast_abilities(
                 } else {
                     visible
                 };
-                let rear_foes;
-                let candidates: &[Foe] = if def.requires_rear {
-                    rear_foes = visible
-                        .iter()
-                        .copied()
-                        .filter(|foe| {
-                            enemies
-                                .get(foe.e)
-                                .is_ok_and(|(_, tf, _, _)| behind_target(hpos, tf))
-                        })
-                        .collect::<Vec<_>>();
-                    &rear_foes
-                } else {
-                    visible
-                };
                 let targets = if matches!(
                     def.key,
                     "pyroblast" | "aimed_shot" | "exorcism" | "starfire"
                 ) {
-                    toughest(candidates, reach, p.count)
+                    toughest(visible, reach, p.count)
                 } else {
-                    nearest(candidates, reach, p.count)
+                    nearest(visible, reach, p.count)
                 };
                 if targets.is_empty() {
                     false
@@ -1280,10 +1258,9 @@ pub(super) fn cast_abilities(
             p.cooldown
         } else if def.key == "kick"
             || matches!(def.kind, Kind::Interrupt | Kind::Silence)
-            || def.requires_rear
             || matches!(p.effect, Effect::Incapacitate(_))
         {
-            // Positional openings and eligible control targets must be usable immediately.
+            // Eligible control targets must be usable immediately.
             0.0
         } else {
             0.2
@@ -3648,7 +3625,7 @@ mod milestone_tests {
     }
 
     #[test]
-    fn backstab_cast_requires_dagger_and_rear_targets_without_spending_failed_casts() {
+    fn backstab_cast_accepts_front_side_and_rear_targets_but_requires_dagger_and_range() {
         use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
         use bevy::ecs::system::RunSystemOnce;
         use survivors_core::gear_loadout::{MeleeKind, MeleeWeapon};
@@ -3689,11 +3666,11 @@ mod milestone_tests {
             app.world_mut()
                 .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
             let mut eligible = Vec::new();
-            // Front, side and out-of-range targets cannot consume either critical charge.
+            // An out-of-range victim cannot consume critical charges; facing is irrelevant.
             for (position, yaw, valid) in [
-                (Vec3::new(0., 0., 1.), 0., false),
-                (Vec3::new(1., 0., 0.), 0., false),
                 (Vec3::new(0., 0., -20.), 0., false),
+                (Vec3::new(0., 0., 1.), 0., true),
+                (Vec3::new(1., 0., 0.), 0., true),
                 (Vec3::new(0., 0., -2.), 0., true),
                 (Vec3::new(0., 0., 2.), std::f32::consts::PI, true),
             ] {
@@ -3701,7 +3678,7 @@ mod milestone_tests {
                     app.world_mut().run_system_once(cast_abilities).unwrap();
                     assert!(app.world().resource::<Messages<Hit>>().is_empty());
                     let run = app.world().resource::<Run>();
-                    assert!(run.abilities[0].cd <= 0.);
+                    assert!(run.abilities[0].cd < 1.3);
                     assert_eq!(
                         run.critical_cast
                             .bonus(run.milestones, "backstab", run.elapsed),
@@ -3746,6 +3723,7 @@ mod milestone_tests {
                     eligible.push(entity);
                 }
             }
+            app.world_mut().resource_mut::<Run>().abilities[0].cd = 0.;
             app.world_mut().run_system_once(cast_abilities).unwrap();
             let hits: Vec<_> = app
                 .world_mut()
@@ -3754,7 +3732,7 @@ mod milestone_tests {
                 .collect();
             let run = app.world().resource::<Run>();
             if kind == Some(MeleeKind::Dagger) {
-                assert_eq!(hits.len(), 2);
+                assert_eq!(hits.len(), 4);
                 for hit in hits {
                     assert!(eligible.contains(&hit.target));
                     assert_eq!(hit.source, "backstab");

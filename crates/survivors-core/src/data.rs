@@ -147,7 +147,6 @@ pub struct AbilityDef {
     pub spell: u32,
     pub kind: Kind,
     pub required_weapon: Option<crate::gear_loadout::MeleeKind>,
-    pub requires_rear: bool,
     /// Direct damage; per tick for areas and pulses; absorb, heal or reflect for the self kinds.
     pub damage: f32,
     /// Fractional weapon-damage bonus for WeaponBuff; independent of global damage.
@@ -188,7 +187,6 @@ const fn ab(key: &'static str, spell: u32, kind: Kind) -> AbilityDef {
         spell,
         kind,
         required_weapon: None,
-        requires_rear: false,
         damage: 0.0,
         weapon_bonus: 0.0,
         dot: 0.0,
@@ -522,8 +520,7 @@ pub static ABILITIES: &[AbilityDef] = &[
             damage: 30.0,
             cooldown: 1.3,
             range: 5.5,
-            required_weapon: Some(crate::gear_loadout::MeleeKind::Dagger),
-            requires_rear: true
+            required_weapon: Some(crate::gear_loadout::MeleeKind::Dagger)
         }
     ),
     ability!(
