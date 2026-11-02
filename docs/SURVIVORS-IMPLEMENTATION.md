@@ -10598,3 +10598,13 @@ attack. Its explicit attack-power conversion and native purchase/refund evidence
 are in the [form audit](audits/DRUID-PROGRESSION-FORMS.md#predatory-strikes-follow-up--2026-11-01).
 This advances the feral dependency chain without closing remaining ability,
 legacy-conversion or attended combat/platform acceptance.
+
+
+## Remaining feral ability integration — 2026-11-01
+
+The [installed ability/dependency audit](audits/FERAL-ABILITY-DEPENDENCIES.md)
+records form gates, triggered effects, combo/resource dependencies and the next
+implementation order. Acquisition and Energy/Rage conversion choices are pending;
+current automatic Claw/Maul and the retained spell pool stay unchanged. Extend
+form gating through drafting and runtime, not just starter presentation. No
+additional talent/ability acceptance is claimed by this evidence checkpoint.

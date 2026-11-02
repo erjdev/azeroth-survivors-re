@@ -15,6 +15,8 @@ Moonkin purchase/refund and Tauren form previews are also verified.
 [Evidence and limits](audits/DRUID-PROGRESSION-FORMS.md#automatic-feral-attacks-and-faction-preview-follow-up--2026-11-01).
 357 shared-rule tests, scoped gate and native/WebGPU builds pass (31 optional-addon
 skips). Advanced feral abilities, legacy conversions and attended combat remain open.
+The [next ability dependency audit](audits/FERAL-ABILITY-DEPENDENCIES.md) records
+form restrictions, combo/resource requirements and the integration order.
 
 ![Automatic Maul alongside the spell pool](images/screenshots/2026-11-01-druid-form-matrix/automatic-maul-starter.png)
 

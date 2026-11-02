@@ -42,6 +42,10 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
         row.speed
     );
     println!(
+        "required_form_mask={:#x} excluded_form_mask={:#x}",
+        row.stances, row.stances_not
+    );
+    println!(
         "targets={:#x} maximum_targets={} caster_aura_state={} target_aura_state={}",
         row.targets, row.max_affected_targets, row.caster_aura_state, row.target_aura_state
     );
@@ -83,6 +87,12 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, id: u32) -> Result<()> 
             row.effect_die_sides[slot], row.effect_real_points_per_level[slot], row.effect_misc_value[slot],
             row.effect_trigger_spell[slot], row.effect_amplitude[slot], row.effect_implicit_target_a[slot],
             row.effect_implicit_target_b[slot], row.effect_chain_targets[slot]);
+        println!(
+            "  points_per_combo_point={} effect_multiple_value={} damage_multiplier={}",
+            row.effect_points_per_combo_point[slot],
+            row.effect_multiple_value[slot],
+            row.damage_multiplier[slot]
+        );
         println!(
             "  radius_index={} radius={:?}",
             row.effect_radius_index[slot],
