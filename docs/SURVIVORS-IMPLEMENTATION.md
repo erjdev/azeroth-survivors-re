@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Master of Elements — 2026-11-02
+
+Node 1639 now converts Fire/Frost critical mana returns into remaining-recovery
+refunds with an independent haste-scaled cooldown. Native purchase, maximum rank,
+refund, saved-spec isolation and compact restart captures are recorded in the
+[implementation audit](audits/MAGE-MASTER-OF-ELEMENTS.md). Coverage: 45/49 Mage,
+325/432 overall. Attended combat and Windows acceptance remain open.
+
 ## Mage resource conversions — 2026-11-02
 
 Arcane Resilience, Meditation, Mind and Burning Soul have explicit scoped effects

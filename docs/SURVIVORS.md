@@ -1341,3 +1341,12 @@ Recovery bonuses multiply, include defensive Mage abilities where stated, and
 leave duration, pulse cadence and Clearcasting's internal cooldown unchanged.
 These effects replace each node's provisional damage bonus and introduce no
 resource pools or stationary casting. [Scope and evidence](audits/MAGE-RESOURCE-CONVERSIONS.md).
+
+
+### Master of Elements recovery conversion
+
+Mage Fire node 1639 refunds 10/20/30% of the triggering owned ability's remaining
+recovery after an effective original Fire/Frost critical. Its shared one-second
+internal cooldown is reduced by haste. Ground pulses may qualify; no refunds
+from DoT ticks, splash copies, pets, generated casts or already-ready abilities.
+Other ability timers remain independent. [Rules and evidence](audits/MAGE-MASTER-OF-ELEMENTS.md).

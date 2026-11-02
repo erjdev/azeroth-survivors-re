@@ -613,3 +613,112 @@ mod conversion_tests {
         assert!(clock.trigger(talents, "fireball", 1.0, 5.0, 0.0, 0.0));
     }
 }
+
+/// Survivors mana-return conversion: one recovery refund per haste-scaled interval.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct MasterOfElementsClock {
+    next: f32,
+}
+
+impl MasterOfElementsClock {
+    pub fn refund(
+        &mut self,
+        talents: Milestones,
+        key: &str,
+        damage: f32,
+        critical: bool,
+        now: f32,
+        haste: f32,
+    ) -> f32 {
+        if talents.class != 6
+            || !critical
+            || !damage.is_finite()
+            || damage <= 0.0
+            || !now.is_finite()
+            || now < 0.0
+            || now < self.next
+            || !haste.is_finite()
+            || !(MAGE_FIRE.contains(&key) || MAGE_FROST.contains(&key))
+        {
+            return 0.0;
+        }
+        let fraction = talents.trained_value(TalentStat::MasterOfElements);
+        if fraction > 0.0 {
+            self.next = now + 1.0 / (1.0 + haste).max(0.1);
+        }
+        fraction
+    }
+}
+
+#[cfg(test)]
+mod master_of_elements_tests {
+    use super::*;
+
+    #[test]
+    fn every_rank_school_and_class_obeys_the_shared_haste_deadline() {
+        for class in 0..9 {
+            for rank in 0..=4 {
+                let talents = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 1639, rank)]);
+                for ability in crate::data::ABILITIES {
+                    let mut clock = MasterOfElementsClock::default();
+                    let expected = if class == 6
+                        && (MAGE_FIRE.contains(&ability.key) || MAGE_FROST.contains(&ability.key))
+                    {
+                        rank.min(3) as f32 * 0.1
+                    } else {
+                        0.0
+                    };
+                    assert!(
+                        (clock.refund(talents, ability.key, 1.0, true, 0.0, 1.0) - expected).abs()
+                            < 0.00001
+                    );
+                    if expected > 0.0 {
+                        assert_eq!(
+                            clock.refund(talents, "frostbolt", 1.0, true, 0.49, 1.0),
+                            0.0
+                        );
+                        assert!(
+                            (clock.refund(talents, "frostbolt", 1.0, true, 0.5, 1.0) - expected)
+                                .abs()
+                                < 0.00001
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn invalid_hits_never_spend_a_refund_and_reset_is_fresh() {
+        let talents = Milestones {
+            class: 6,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 1639, 3)]);
+        let mut clock = MasterOfElementsClock::default();
+        for (damage, critical, now, haste) in [
+            (0.0, true, 0.0, 0.0),
+            (f32::NAN, true, 0.0, 0.0),
+            (1.0, false, 0.0, 0.0),
+            (1.0, true, -1.0, 0.0),
+            (1.0, true, f32::INFINITY, 0.0),
+            (1.0, true, 0.0, f32::NAN),
+        ] {
+            assert_eq!(
+                clock.refund(talents, "fireball", damage, critical, now, haste),
+                0.0
+            );
+        }
+        assert!(clock.refund(talents, "fireball", 1.0, true, 0.0, 0.0) > 0.0);
+        assert_eq!(clock.refund(talents, "fireball", 1.0, true, 0.99, 0.0), 0.0);
+        assert!(
+            MasterOfElementsClock::default().refund(talents, "fireball", 1.0, true, 0.0, 0.0) > 0.0
+        );
+        let node = super::super::talent_definition(6, 1639).unwrap();
+        assert!(node.inline_description(1).unwrap().contains("10 » 20%"));
+    }
+}

@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Master of Elements now turns Fire/Frost criticals into ability recovery refunds.
+[Rules and validation](docs/audits/MAGE-MASTER-OF-ELEMENTS.md).
+
+![Master of Elements inline upgrade](docs/images/screenshots/2026-11-02-master-elements/rank-one-wide.jpg)
+
 Four Mage talents now convert Intellect, mana and threat mechanics into damage
 or shorter cooldowns. [Rules and validation](docs/audits/MAGE-RESOURCE-CONVERSIONS.md).
 

@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Master of Elements recovery refunds
+
+Mage Fire/Frost criticals now refund part of the triggering ability's remaining
+cooldown, with a haste-scaled proc limit. Green inline upgrades replace the
+provisional damage bonus; purchase/refund/spec/restart captures are included.
+[Rules and validation limits](audits/MAGE-MASTER-OF-ELEMENTS.md).
+
+![Master of Elements recovery upgrade](images/screenshots/2026-11-02-master-elements/rank-one-wide.jpg)
+
 ## 2026-11-02 — Mage resource-free talent upgrades
 
 Arcane Resilience now increases Mage damage; Meditation, Mind and Burning Soul

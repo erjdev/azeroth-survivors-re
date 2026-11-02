@@ -109,3 +109,11 @@ Resilience, Arcane Meditation, Arcane Mind and Burning Soul's approved damage/
 recovery replacements and acceptance. These effects do not require Intellect,
 mana or threat consumers; the remaining ward, wand and buff dependencies are
 separate work.
+
+
+## Master of Elements follow-up — 2026-11-02
+
+[Node 1639](MAGE-MASTER-OF-ELEMENTS.md) now has a remaining-recovery refund
+consumer, scoped to original Fire/Frost criticals with a shared haste-scaled
+internal cooldown. The explicit time-based multi-hit policy supersedes the
+old cast-identity proposal above. Remaining Mage definitions: 78, 82, 24 and 70.

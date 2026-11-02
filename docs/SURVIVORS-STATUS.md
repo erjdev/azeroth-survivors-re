@@ -1,6 +1,6 @@
 # Current Survivors acceptance status
 
-Talent coverage refreshed 2026-11-02 after Mage damage/recovery conversions;
+Talent coverage refreshed 2026-11-02 after Master of Elements recovery conversion;
 other acceptance evidence retains its cited checkpoint dates.
 This is an index into the [seven-phase contract](SURVIVORS-IMPLEMENTATION.md), not
 a replacement scope or a completion declaration. Historical checkpoints describe
@@ -40,7 +40,7 @@ consumers, Windows and attended combat are still open.
 | 2. Equipment | Selected loadouts and independent appearances persist; duplicates grant no power; malformed/legacy/save-failure cases have tests. Native purchase/appearance/restart examples exist. | Remaining platform/body cases, full-set and raid-set effects through gameplay, full gate before landing. |
 | 3. Character and Collection | Responsive production pages, owned/empty/locked states, source navigation and comparisons; [starter inspection acceptance](audits/STARTER-EQUIPMENT-ACCEPTANCE.md) and [minimum-window creation/restart](audits/CHARACTER-CREATION-MINIMUM.md), plus [name selection and saved renames](audits/NAME-SELECTION.md) and [native clipboard editing](audits/NAME-CLIPBOARD.md), plus [keyboard caret and partial selection](audits/NAME-CARET.md) and [mouse placement/drag selection](audits/NAME-POINTER.md). | Remaining platform/resolution/body matrix, browser clipboard editing, and complete art/content correspondence, not just populated cells. |
 | 4. Twelve zones / gear | Current content audit finds names and drops for every class's 54 ordinary collection cells. | Three audit gaps below, then traversal, encounters, world identity, icons/models, raid sets and attended readiness validation. |
-| 5. Talents | 324/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 108 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
+| 5. Talents | 325/432 named definitions; all 81 milestone descriptions. Purchases/refunds/spec snapshots have regression and selected native evidence. | 107 nodes still provisional, plus actual consumers and acceptance for each implemented node. Definitions/descriptions alone are not playable completeness. |
 | 6. Codex / achievements / rewards | Seen-item persistence, catalog counts, reward drafts/refunds and independent cosmetics implemented; responsive native examples recorded, including [both perk refunds and restart preservation](audits/REWARD-RESETS.md). [Companion fetch routing](audits/COMPANION-FETCHING.md) has fence/return and blocked-collection regressions; [adaptive reward cards](audits/COMPANION-READABILITY.md) have native layout, purchase/undo, keyboard paging and saved-versus-draft restart evidence. | Complete perk/companion gameplay and platform acceptance; catalog totals, settlement and persistence end to end. Placeholder achievement criteria deliberately remain unearnable. |
 | 7. Integration / visuals | Native production-page previews, including [all nine talent classes at 1440×600 / 125%](audits/TALENTS-WIDE-SHORT.md#complete-class-layout-matrix--2026-10-30), retained build caches, screenshot reporting and scoped gates; synthetic camera/silhouette evidence. | Attended game loop, real foliage/interior camera cases, Windows and physical-controller checks, full land gates and all reference-page acceptance. |
 
@@ -61,10 +61,10 @@ cargo run -p survivors-audit -- wow-data/Data
 | Rogue | 40/51 |
 | Priest | 32/47 |
 | Shaman | 33/46 |
-| Mage | 44/49 |
+| Mage | 45/49 |
 | Warlock | 29/50 |
 | Druid | 31/47 |
-| Total | 324/432 |
+| Total | 325/432 |
 
 The current content audit fails with exactly these three reported gaps:
 
@@ -99,8 +99,8 @@ rather than a menu to handle more than three starting abilities. Runtime migrati
 and acceptance remain open; definition totals above are not policy-compliance totals.
 Mage [Clearcasting now fires extra missiles](audits/MAGE-CLEARCASTING.md).
 [Four damage/recovery conversions](audits/MAGE-RESOURCE-CONVERSIONS.md) replace
-Intellect, mana and threat dependencies. Five Mage definitions remain provisional:
-Wand Specialization, Magic Attunement, Improved Fire Ward, Master of Elements and
+Intellect, mana and threat dependencies. Four Mage definitions remain provisional:
+Wand Specialization, Magic Attunement, Improved Fire Ward and
 Frost Warding. Definition counts are not combat or platform acceptance.
 Warlock demon recovery/sacrifice details remain unspecified, not silently approved.
 Disarm's unused runtime/status/preview machinery is now removed; cosmetic enemy
@@ -190,3 +190,6 @@ and wide/compact card evidence pass; actual combat visuals and Windows remain op
 [Improved Sprint](audits/IMPROVED-SPRINT.md) connects manual mobility activation
 to current incoming slow/root removal. Native purchase/refund/restart and green
 chance text pass at wide/compact sizes. Attended combat and Windows remain open.
+
+[Master of Elements](audits/MAGE-MASTER-OF-ELEMENTS.md) now refunds remaining
+recovery on effective Fire/Frost criticals with an independent haste cooldown.

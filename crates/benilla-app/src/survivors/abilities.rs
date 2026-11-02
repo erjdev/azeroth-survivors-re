@@ -2100,6 +2100,19 @@ pub(super) fn apply_hits(
             if original && h.origin == HitOrigin::Hero && run.alive() {
                 let talents = run.milestones;
                 let now = run.elapsed;
+                if let Some(index) = run.abilities.iter().position(|ability| {
+                    ability.def.key == h.source && ability.cd.is_finite() && ability.cd > 0.0
+                }) {
+                    let fraction = run.master_of_elements.refund(
+                        talents,
+                        h.source,
+                        removed,
+                        h.crit,
+                        now,
+                        stats.haste,
+                    );
+                    run.abilities[index].cd *= 1.0 - fraction;
+                }
                 if run.clearcasting.chance(talents, h.source, removed, now) > 0.0 {
                     run.clearcasting.trigger(
                         talents,
@@ -11618,3 +11631,7 @@ mod clearcasting_tests;
 #[cfg(test)]
 #[path = "mage_conversion_tests.rs"]
 mod mage_conversion_tests;
+
+#[cfg(test)]
+#[path = "master_of_elements_tests.rs"]
+mod master_of_elements_tests;

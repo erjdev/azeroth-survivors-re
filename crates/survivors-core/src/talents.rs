@@ -17,7 +17,9 @@ mod rogue;
 pub use critical_cast::CriticalCastClock;
 pub use hunter::HawkClock;
 pub use hunter::{PetBonus, PetFrenzy};
-pub use mage::{ArcanePowerClock, ClearcastingClock, ColdSnapClock, CombustionClock};
+pub use mage::{
+    ArcanePowerClock, ClearcastingClock, ColdSnapClock, CombustionClock, MasterOfElementsClock,
+};
 pub use natures_grace::NaturesGrace;
 pub use poison::{Coating, DeadlyPoison};
 pub use rogue::{AdrenalineRushClock, BladeFlurryClock, PreparationClock};
@@ -1867,6 +1869,7 @@ pub enum TalentStat {
     ArcanePower,
     Combustion,
     Clearcasting,
+    MasterOfElements,
     AdrenalineRush,
     BladeFlurry,
     ImprovedHawk,
@@ -2286,6 +2289,7 @@ impl TalentDefinition {
             | TalentStat::MeleeParry
             | TalentStat::MeleeDodge
             | TalentStat::Combustion
+            | TalentStat::MasterOfElements
             | TalentStat::Clearcasting
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
@@ -2668,6 +2672,7 @@ impl TalentDefinition {
             TalentStat::Counterattack => (1.0, " base Counterattack damage"),
             TalentStat::MeleeParry => (100.0, " percentage points melee parry"),
             TalentStat::MeleeDodge => (100.0, " percentage points melee dodge"),
+            TalentStat::MasterOfElements => (100.0, "% of remaining ability recovery refunded on an effective Fire/Frost critical; 1 sec shared internal cooldown reduced by haste"),
             TalentStat::Clearcasting => (100.0, "% chance per effective Mage spell hit to fire extra Arcane Missiles; 5 sec internal cooldown reduced by haste"),
             TalentStat::Combustion => (100.0, "% Fire critical chance per direct hit"),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
@@ -3574,6 +3579,11 @@ const MAGE_ABILITIES: &[&str] = &[
 /// DBC identities and rank caps; tuning is an explicit Survivors adaptation.
 static MAGE_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
+        id: 1639, max_rank: 3, name: "Master of Elements",
+        description: "Effective Fire/Frost criticals refund 10% of that ability's remaining recovery per rank. Shared internal cooldown: 1 sec, reduced by haste. Ground pulses qualify; damage-over-time ticks, splash copies, pets and generated casts do not. No stored refunds",
+        stat: TalentStat::MasterOfElements, per_rank: 0.10,
+    },
+    TalentDefinition {
         id: 85, max_rank: 1, name: "Arcane Resilience",
         description: "Mage attacks: +5% direct and periodic damage. Includes extra Arcane Missiles; does not increase armor or Mana Shield absorption",
         stat: TalentStat::SpellGroupDamage(MAGE_DAMAGE), per_rank: 0.05,
@@ -4337,6 +4347,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::MeleeParry
             | TalentStat::MeleeDodge
             | TalentStat::Combustion
+            | TalentStat::MasterOfElements
             | TalentStat::Clearcasting
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
@@ -5905,6 +5916,7 @@ mod stat_talent_tests {
                     | TalentStat::MeleeParry
                     | TalentStat::MeleeDodge
                     | TalentStat::Combustion
+                    | TalentStat::MasterOfElements
                     | TalentStat::Clearcasting
                     | TalentStat::ArcanePower
                     | TalentStat::PowerInfusion
