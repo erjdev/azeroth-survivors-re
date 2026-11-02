@@ -5,10 +5,12 @@ This is an index into the [seven-phase contract](SURVIVORS-IMPLEMENTATION.md), n
 a replacement scope or a completion declaration. Historical checkpoints describe
 their own dates; later evidence can supersede their pending notes.
 
+Armory Enter shortcut leakage is [fixed and checked](audits/ARMORY-KEYBOARD-ISOLATION.md);
+Windows keyboard acceptance remains open.
+
 ## Immediate order
 
-1. Fix the reproduced Armory Enter-to-run shortcut leakage, then finish
-   starter/Armory behavior, persistence and responsive acceptance, including
+1. Finish starter/Armory behavior, persistence and responsive acceptance, including
    working talent effects. Use the [intention screenshots](intentions/) as the
    design reference and production UI previews for iteration.
 2. Resolve the outstanding gameplay choices below and implement their actual

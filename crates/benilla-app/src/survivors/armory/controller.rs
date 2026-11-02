@@ -330,7 +330,9 @@ pub(in crate::survivors) fn navigate(
                 {
                     // The shared handler filters this to talent refunds and item equip toggles.
                     focus.refund = focus.focused;
-                } else if pressed(GamepadButton::South) || (key_select && focus.focused.is_some()) {
+                } else if pressed(GamepadButton::South)
+                    || (key_select && (focus.focused.is_some() || armory.page != Page::Door))
+                {
                     // A first select establishes focus instead of firing an unseen action.
                     // Coalesced navigation and selection target the newly focused control.
                     // Consume Enter even when first establishing focus so it cannot start a run.
@@ -900,6 +902,63 @@ mod tests {
         press(&mut world, &mut schedule, GamepadButton::South);
         assert_eq!(world.resource::<ControllerFocus>().focused, None);
     }
+    #[test]
+    fn enter_without_focus_only_establishes_armory_focus_and_preserves_starter_shortcut() {
+        for page in [
+            Page::Door,
+            Page::Heroes,
+            Page::Talents,
+            Page::Rewards,
+            Page::Collection,
+            Page::Codex,
+            Page::Achievements,
+            Page::Notes,
+            Page::DropTables,
+            Page::Look,
+            Page::RunOptions,
+        ] {
+            let mut world = World::new();
+            world.init_resource::<ButtonInput<MouseButton>>();
+            world.init_resource::<ButtonInput<KeyCode>>();
+            world.insert_resource(State::new(Phase::Menu));
+            world.init_resource::<hud::PausePage>();
+            world.init_resource::<super::super::super::cards::PreviewHand>();
+            world.init_resource::<crate::loading_screen::LoadingScreen>();
+            world.init_resource::<Typing>();
+            world.init_resource::<Armory>();
+            world.resource_mut::<Armory>().open_page(page);
+            world.init_resource::<ControllerFocus>();
+            let button = world
+                .spawn((
+                    Button,
+                    Act::Tabard(0),
+                    ComputedNode {
+                        size: Vec2::splat(40.),
+                        ..default()
+                    },
+                    UiGlobalTransform::from_xy(100., 100.),
+                    InheritedVisibility::VISIBLE,
+                ))
+                .id();
+            let mut schedule = Schedule::default();
+            schedule.add_systems(navigate);
+            for press in 0..2 {
+                world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+                world
+                    .resource_mut::<ButtonInput<KeyCode>>()
+                    .press(KeyCode::Enter);
+                schedule.run(&mut world);
+                let focus = world.resource::<ControllerFocus>();
+                assert_eq!(focus.keyboard_selected, page != Page::Door);
+                assert_eq!(focus.focused, (page != Page::Door).then_some(button));
+                assert_eq!(
+                    focus.activated,
+                    (page != Page::Door && press == 1).then_some(button)
+                );
+            }
+        }
+    }
+
     #[test]
     fn coalesced_navigation_and_selection_activate_the_destination_once() {
         for keyboard in [true, false] {

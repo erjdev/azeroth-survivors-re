@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Enter now establishes keyboard focus on Armory pages without starting gameplay.
+[Keyboard regression evidence](docs/audits/ARMORY-KEYBOARD-ISOLATION.md).
+
+![Talents retains focus after Enter](docs/images/screenshots/2026-11-01-armory-keyboard/talents-initial-enter-compact.jpg)
+
 The Armory now has native Dreadnaught preview evidence for all sixteen race/body
 combinations. Race flags now preserve Troll feet and Tauren hooves beneath their
 leg armor. [Visual review and remaining limits](docs/audits/COLLECTION-BODY-ART.md#native-remaining-race-plate-matrix--2026-11-01).

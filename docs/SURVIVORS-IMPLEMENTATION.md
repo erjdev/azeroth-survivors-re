@@ -14,9 +14,10 @@ not a cumulative declaration that every earlier pending item is still open.
 Sharpened Claws and Leader of the Pack now affect automatic Cat/Bear attacks,
 with saved-rank compatibility and explicit spell/caster-form exclusion.
 [Rules and evidence](audits/DRUID-PROGRESSION-FORMS.md#feral-critical-chance-scope--2026-11-01).
-Coverage counts are unchanged. Next UI correction: prevent the menu Enter
-shortcut from starting a run from Armory pages when keyboard focus is inactive;
-this was reproduced in the talent preview and the unintended run was stopped.
+Coverage counts are unchanged. The reproduced menu Enter shortcut leak is now
+[fixed](audits/ARMORY-KEYBOARD-ISOLATION.md): all nonstarter pages block run entry,
+and initial Enter establishes focus. Native wide/compact checks and scoped
+regressions pass; Windows and attended gameplay remain open.
 
 ## Tree of Life artwork — 2026-11-01
 

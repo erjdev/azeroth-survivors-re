@@ -5,6 +5,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Armory keyboard isolation
+
+Enter now establishes focus on Armory pages before activating a control; the
+start-run shortcut is restricted to the starter. Regression coverage includes
+all ten nonstarter pages, with and without a focus resource. Native Talents
+checks pass at 1280×720 / 100% and 640×720 / 125%, including second-Enter
+navigation to Character. No gameplay was launched during this validation.
+The ten-package scoped gate (31 optional-addon skips), native build and WebGPU
+check pass. [Evidence and limits](audits/ARMORY-KEYBOARD-ISOLATION.md).
+
+![Enter focuses Character while staying on Talents](images/screenshots/2026-11-01-armory-keyboard/talents-initial-enter-compact.jpg)
+
 ## 2026-11-01 — Armory race/body preview matrix
 
 Added twelve native Dreadnaught previews, completing one-outfit evidence across
@@ -30,7 +42,7 @@ Cat/Bear attacks; saved ranks persist. Native purchases, refunds and compact
 restart are verified. [Scope and limits](audits/DRUID-PROGRESSION-FORMS.md#feral-critical-chance-scope--2026-11-01).
 357 shared-rule tests, the ten-package scoped gate (31 optional-addon skips),
 native build and WebGPU check pass. Build output: 56.10 GiB.
-An Enter shortcut leak from Armory to gameplay was found and remains queued.
+The Enter shortcut leak found here is resolved by the keyboard-isolation checkpoint above.
 
 ![Sharpened Claws inline upgrade](images/screenshots/2026-11-01-feral-critical/claws-rank2-wide.jpg)
 

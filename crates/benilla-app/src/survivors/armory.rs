@@ -254,8 +254,8 @@ impl Default for Armory {
 }
 
 impl Armory {
-    pub(super) fn is_run_options(&self) -> bool {
-        self.page == Page::RunOptions
+    pub(super) fn is_starter(&self) -> bool {
+        self.page == Page::Door
     }
 
     fn open_drop_source(&mut self, zone: usize) {

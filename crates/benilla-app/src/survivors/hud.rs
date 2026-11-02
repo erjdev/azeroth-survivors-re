@@ -1768,7 +1768,7 @@ pub(super) fn keys(
     }
     match phase.get() {
         Phase::Menu => {
-            if armory.is_run_options() {
+            if !armory.is_starter() {
                 return;
             }
             let ranks = selection.class.map(|i| renown.ranks(i)).unwrap_or([0; 3]);
@@ -3583,7 +3583,7 @@ mod settings_navigation_tests {
     use bevy::ecs::system::RunSystemOnce;
 
     #[test]
-    fn run_options_blocks_enter_until_returning_to_starter() {
+    fn every_armory_page_blocks_run_shortcut_until_returning_to_starter() {
         let mut world = World::new();
         world.insert_resource(State::new(Phase::Menu));
         world.init_resource::<NextState<Phase>>();
@@ -3611,17 +3611,38 @@ mod settings_navigation_tests {
             open: false,
             ..default()
         });
-        world
-            .resource_mut::<super::super::armory::Armory>()
-            .open_page(super::super::armory::Page::RunOptions);
-        world
-            .resource_mut::<ButtonInput<KeyCode>>()
-            .press(KeyCode::Enter);
-        world.run_system_once(keys).unwrap();
-        assert!(matches!(
-            world.resource::<NextState<Phase>>(),
-            NextState::Unchanged
-        ));
+        use super::super::armory::{controller::ControllerFocus, Page};
+        for with_focus_resource in [false, true] {
+            if with_focus_resource {
+                world.init_resource::<ControllerFocus>();
+            }
+            for page in [
+                Page::Heroes,
+                Page::Talents,
+                Page::Rewards,
+                Page::Collection,
+                Page::Codex,
+                Page::Achievements,
+                Page::Notes,
+                Page::DropTables,
+                Page::Look,
+                Page::RunOptions,
+            ] {
+                world
+                    .resource_mut::<super::super::armory::Armory>()
+                    .open_page(page);
+                world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+                world
+                    .resource_mut::<ButtonInput<KeyCode>>()
+                    .press(KeyCode::Enter);
+                world.run_system_once(keys).unwrap();
+                assert!(matches!(
+                    world.resource::<NextState<Phase>>(),
+                    NextState::Unchanged
+                ));
+                assert_eq!(world.resource::<Run>().elapsed, 0.);
+            }
+        }
         world
             .resource_mut::<super::super::armory::Armory>()
             .open_page(super::super::armory::Page::Door);

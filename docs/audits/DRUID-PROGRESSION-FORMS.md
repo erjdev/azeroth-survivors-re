@@ -193,8 +193,9 @@ before launch. Six captures preserve the green inline changes and scope text.
 During the keyboard check, Enter unexpectedly started a run from the talent
 preview. It was immediately stopped; this is not gameplay acceptance. The
 `hud::keys` menu Enter path guards run options but not every Armory page when
-keyboard focus is inactive. Fix this routing before further native keyboard
-acceptance. Attended combat, Windows and the other form conversions remain open.
+keyboard focus is inactive. The subsequent [keyboard-isolation correction](ARMORY-KEYBOARD-ISOLATION.md)
+fixes that routing and verifies wide/compact native behavior. Attended combat,
+Windows and the other form conversions remain open.
 
 ![claws rank2 wide](../images/screenshots/2026-11-01-feral-critical/claws-rank2-wide.jpg)
 
