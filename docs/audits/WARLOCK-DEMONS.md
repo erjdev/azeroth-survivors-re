@@ -6,9 +6,12 @@ reference material; it does not require reproducing rejected vanilla mechanics.
 
 Warlock has 29/50 matching talent definitions. The following twelve nodes remain
 provisional; this audit does not enable them or count them as implemented. The
-starter/ability-slot decision is pending user input: choose a combat demon before
-the run, or acquire a summon as one of the six abilities. Cosmetic pickup companions
-remain independent in either case.
+approved acquisition is a pre-run talent/menu choice, with combat demons spawning
+as additional gameplay entities outside the ability slots. Affliction and
+Destruction use the default Imp; Demonology talents unlock other or additional
+demons. State explicitly whether each talent adds or replaces a demon. Cosmetic
+pickup companions remain independent. Defeat recovery and sacrifice semantics
+remain implementation dependencies; this answer did not settle those details.
 
 ## Reproduce installed evidence
 
@@ -71,8 +74,9 @@ before rendering. Never use the installed Applications game as evidence.
 
 ## Integration work, in order
 
-1. Resolve saved pre-run choice versus acquired summon. Define stable species keys,
-   default/migration behavior, unlock rules and interaction with the six-slot limit.
+1. Implement the approved saved pre-run choice with stable species keys, default
+   Imp/migration behavior and talent unlocks. Summons consume no ability slots;
+   do not require a random summon card.
 2. Extract reusable combat-pet ownership, health, defeat and lifecycle handling
    while preserving the Hunter wolf. Enemy attention currently queries `HunterPet`
    directly; nearby attention and `PetTaunt` are not a general threat table.
@@ -80,7 +84,7 @@ before rendering. Never use the installed Applications game as evidence.
    separate from pickup-companion collection/instincts. Use the existing navigation,
    collision and line-of-sight interfaces; do not substitute wall-penetrating attacks.
 4. Implement one complete Imp slice: casted Firebolt, owner aura, reflected shield,
-   damage attribution, defeat/recovery and the chosen starter/acquisition flow.
+   damage attribution, explicit defeat/recovery behavior and the pre-run flow.
    A wolf with an Imp model does not satisfy this step.
 5. Wire Fel Stamina, Improved Imp and Improved Firebolt only once all described
    consumers exist. Implement other species and their consumers before their talents.

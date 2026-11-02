@@ -7,8 +7,8 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 ## 2026-11-02 — Combat-plan reconciliation
 
-Mage, Feral and Tranquility implementation checklists now follow the approved
-combat policy: extra-cast Clearcasting, moving independent attacks, resource-free
+Warlock, Mage, Feral and Tranquility checklists now follow the approved
+combat policy: pre-run demons, extra-cast Clearcasting, moving attacks, resource-free
 conversions and no combo/stealth prerequisites. Removed stale requests for settled
 decisions. Documentation only; runtime conversions remain unfinished.
 
