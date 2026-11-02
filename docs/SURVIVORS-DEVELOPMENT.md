@@ -551,6 +551,15 @@ WOW_DATA="$PWD/wow-data/Data" BENILLA_HOME="$PWD/target/ui-preview-state" \
 WOW_SURVIVORS_UI_PREVIEW="$PWD/target/ui-preview/view.txt" cargo survivors
 ```
 
+For a render-versus-window comparison, add
+`WOW_SURVIVORS_UI_SHOTS="$PWD/target/ui-preview/framebuffers"` to the launch
+environment. Press F12 in the native development app to save the next unused
+`ui-NNNN.png` directly from the engine framebuffer. The log records logical and
+physical dimensions and effective UI scale. This tool already ships in the dev
+build; no custom render probe or rebuild is needed. For intermittent defects,
+retain window captures before and after F12 as well: a screenshot request can
+change rendering timing. [Example and limits](audits/STARTER-TEXT-RELOAD.md#framebuffer-capture-workflow-verified--2026-11-02).
+
 Edit that file while the menu is open: for example use `page = talents` and
 `width = 1024`, `height = 768` to inspect the production talent page at 4:3.
 All three keys are required. Dimensions are logical window pixels, bounded to

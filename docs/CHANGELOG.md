@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Starter rendering diagnostics
+
+Verified ordinary class switching and the existing F12 framebuffer capture path
+on the current build; retained paired engine/window screenshots. The intermittent
+missing-text defect did not recur in this run and remains open. No renderer or
+typography change is claimed. [Evidence and next diagnostic](audits/STARTER-TEXT-RELOAD.md#framebuffer-capture-workflow-verified--2026-11-02).
+
+![Starter diagnostic window capture](images/screenshots/2026-11-02-text-framebuffer/shaman-window.jpg)
+
 ## 2026-11-02 — Master of Elements recovery refunds
 
 Mage Fire/Frost criticals now refund part of the triggering ability's remaining

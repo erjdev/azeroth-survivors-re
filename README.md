@@ -34,7 +34,10 @@ cooldown, without taking an ability slot. [Rules and validation](docs/audits/MAG
 
 Known UI issue under investigation: repeated starter class reloads can hide parts
 of labels. [Reproduction and diagnostic evidence](docs/audits/STARTER-TEXT-RELOAD.md).
-No typography workaround has been shipped.
+No typography workaround has been shipped. Current ordinary-switch and paired
+framebuffer/window checks were clean; the intermittent failure remains open.
+
+![Current starter diagnostic capture](docs/images/screenshots/2026-11-02-text-framebuffer/shaman-window.jpg)
 
 ![Starter reload defect under investigation](docs/images/screenshots/2026-11-02-text-reload/before-shaman-compact.jpg)
 

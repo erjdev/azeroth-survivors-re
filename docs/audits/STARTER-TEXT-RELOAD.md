@@ -65,3 +65,36 @@ vertex/UV/color data and batch ranges before considering a renderer change.
 Test ordinary class-button switching, then repeated compact/wide preview reloads.
 A fix must preserve reference styling and be demonstrated on the same failing
 transition plus adjacent states; restart-only captures cannot close this issue.
+
+
+## Framebuffer capture workflow verified — 2026-11-02
+
+On build `7756b8e`, ordinary Rogue → Shaman → Rogue → Shaman class-button
+switches were clean. File previews selecting Shaman/Rogue, followed by wide
+Warrior → compact Rogue → compact Shaman, also showed complete labels. The
+adjacent ordinary switch back to Rogue remained clean. These observations do
+**not** close the intermittent defect or identify a cause.
+
+The existing `WOW_SURVIVORS_UI_SHOTS` / F12 tool captures the engine framebuffer
+without a new build or extra extraction/readback systems. It successfully saved
+`ui-0000.png` for the same parked Shaman view as the window capture below.
+Both contain the complete description, Health `135`, and starting spell text.
+Because no failing state occurred, this pair cannot distinguish a render defect
+from a presentation/capture defect. The captures are successive observations,
+not a synchronized same-frame pair; compare glyph presence, not color equality.
+
+Fixture: `target/ui-fixtures/text-framebuffer-20261102/`, isolated from player
+saves. Compact logical size 640×720, physical framebuffer 1280×1440; requested
+UI preference multiplier 1.25, logged effective `UiScale` 1.171875 after fit
+scaling. Window capture includes the title bar. Wide intermediate size was
+1280×720 with multiplier 1. No code or typography changed in this checkpoint.
+The application exited and its normal validation launcher was restored.
+
+![Displayed Shaman after reload](../images/screenshots/2026-11-02-text-framebuffer/shaman-window.jpg)
+
+![Engine framebuffer for the parked Shaman view](../images/screenshots/2026-11-02-text-framebuffer/shaman-framebuffer.png)
+
+Next time the missing glyphs recur, retain a window screenshot **before** pressing
+F12, then capture the framebuffer and another window screenshot without changing
+class or viewport. This checks whether the screenshot request itself restores
+the view. A clean-only pair is not a replacement for that failing-state evidence.
