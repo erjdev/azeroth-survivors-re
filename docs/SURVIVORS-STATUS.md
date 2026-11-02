@@ -193,3 +193,10 @@ chance text pass at wide/compact sizes. Attended combat and Windows remain open.
 
 [Master of Elements](audits/MAGE-MASTER-OF-ELEMENTS.md) now refunds remaining
 recovery on effective Fire/Frost criticals with an independent haste cooldown.
+
+## Feral starting-kit checkpoint — 2026-11-02
+
+Cat and Bear grant Rake/Swipe alongside Wrath, with form-aware pools and upgrades.
+Native purchase/refund/spec/restart and compact inline-card evidence is in the
+[feral kit audit](audits/DRUID-FERAL-KIT.md). This supplies ability consumers;
+remaining feral talents and attended combat/platform acceptance stay open.

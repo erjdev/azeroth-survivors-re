@@ -1350,3 +1350,13 @@ recovery after an effective original Fire/Frost critical. Its shared one-second
 internal cooldown is reduced by haste. Ground pulses may qualify; no refunds
 from DoT ticks, splash copies, pets, generated casts or already-ready abilities.
 Other ability timers remain independent. [Rules and evidence](audits/MAGE-MASTER-OF-ELEMENTS.md).
+
+### Permanent feral starting attacks
+
+Cat Form grants Rake alongside Wrath; Bear Form grants Swipe alongside Wrath.
+Claw/Maul remain automatic outside ability slots, leaving two slotted starting
+abilities. The ordinary Druid spell pool remains available; only the matching
+form's feral attack is eligible. Rake is a normalized physical strike with a
+bleed; Swipe hits all enemies in one player-centered area. Both use independent
+recovery timers without resources, stealth, combo points or positional gates.
+See [initial tuning and acceptance](audits/DRUID-FERAL-KIT.md).

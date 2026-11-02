@@ -206,11 +206,23 @@ impl Milestones {
                 }
             }
         }
+        let feral = match self.druid_form() {
+            Some(forms::DruidForm::Cat) => Some("rake"),
+            Some(forms::DruidForm::Bear) => Some("swipe"),
+            _ => None,
+        };
+        if let Some(key) = feral {
+            if !keys.contains(&key) {
+                keys.push(key);
+            }
+        }
         keys
     }
 
     pub fn ability_unlocked(self, key: &str) -> bool {
         match key {
+            "rake" => self.druid_form() == Some(forms::DruidForm::Cat),
+            "swipe" => self.druid_form() == Some(forms::DruidForm::Bear),
             "silence" => {
                 self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("silence")) > 0.0
             }

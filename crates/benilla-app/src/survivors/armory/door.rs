@@ -620,7 +620,11 @@ fn class_column(
         );
     }
     line(body, font, "Spell pool", 12.0, GOLD);
-    spell_row(body, class);
+    spell_row(
+        body,
+        class,
+        account.milestones_picked(class_i, selection.character),
+    );
 }
 
 fn class_icon(
@@ -1407,10 +1411,14 @@ fn gear_lines(
     owned
 }
 
-fn spell_row(body: &mut ChildSpawnerCommands, class: &ClassDef) {
+fn spell_row(
+    body: &mut ChildSpawnerCommands,
+    class: &ClassDef,
+    talents: survivors_core::talents::Milestones,
+) {
     let mut keys = Vec::new();
     for key in std::iter::once(class.start).chain(class.pool.iter().copied()) {
-        if !keys.contains(&key) {
+        if talents.ability_unlocked(key) && !keys.contains(&key) {
             keys.push(key);
         }
     }

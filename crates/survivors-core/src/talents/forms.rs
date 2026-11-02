@@ -269,3 +269,51 @@ mod feline_tests {
         );
     }
 }
+
+#[cfg(test)]
+mod feral_kit_tests {
+    use super::*;
+    use crate::{data, talents::Milestones};
+
+    #[test]
+    fn forms_grant_only_their_attack_and_preserve_the_spell_pool() {
+        for class in 0..9 {
+            for form in DruidForm::ALL {
+                let trained = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&[(form.tree(), form.talent(), 1)]);
+                let kit = trained.starting_abilities(data::CLASSES[class].start);
+                for (key, required) in [("rake", DruidForm::Cat), ("swipe", DruidForm::Bear)] {
+                    let eligible = class == 8 && form == required;
+                    assert_eq!(trained.ability_unlocked(key), eligible);
+                    assert_eq!(kit.contains(&key), eligible);
+                    assert!(!trained.with_ranks(&[]).ability_unlocked(key));
+                }
+                assert!(kit.len() <= 2);
+                if class == 8 {
+                    assert!(kit.contains(&"wrath"));
+                    for key in data::CLASSES[8]
+                        .pool
+                        .iter()
+                        .filter(|k| !matches!(**k, "rake" | "swipe"))
+                    {
+                        assert!(trained.ability_unlocked(key));
+                    }
+                }
+            }
+        }
+        let conflicting = Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[
+            (1, DruidForm::Cat.talent(), 1),
+            (1, DruidForm::Bear.talent(), 1),
+        ]);
+        assert_eq!(conflicting.starting_abilities("wrath"), vec!["wrath"]);
+        assert!(!conflicting.ability_unlocked("rake"));
+        assert!(!conflicting.ability_unlocked("swipe"));
+    }
+}

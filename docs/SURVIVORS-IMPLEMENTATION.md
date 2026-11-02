@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Feral starting kits — 2026-11-02
+
+Permanent Cat/Bear now grant Rake/Swipe alongside Wrath, keeping two slotted
+starting abilities and independent automatic attacks. Eligibility follows the
+selected form across starter pools, upgrades and casting. [Acceptance evidence
+and remaining feral work](audits/DRUID-FERAL-KIT.md). No named-definition coverage
+increase is claimed.
+
 ## Master of Elements — 2026-11-02
 
 Node 1639 now converts Fire/Frost critical mana returns into remaining-recovery

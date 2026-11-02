@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Permanent Cat/Bear builds now start with Rake/Swipe alongside Wrath; automatic
+attacks remain outside slots. [Rules and validation](docs/audits/DRUID-FERAL-KIT.md).
+
+![Feral inline upgrades](docs/images/screenshots/2026-11-02-feral-kit/cards-wide.jpg)
+
 Master of Elements now turns Fire/Frost criticals into ability recovery refunds.
 [Rules and validation](docs/audits/MAGE-MASTER-OF-ELEMENTS.md).
 

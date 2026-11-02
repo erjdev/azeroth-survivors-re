@@ -1234,7 +1234,10 @@ mod monkey_tests {
 fn choices_excluding(run: &Run, rng: &mut Rng, n: usize, excluded: &[Choice]) -> Vec<Choice> {
     let mut pool: Vec<(Choice, f32)> = Vec::new();
     for (i, o) in run.abilities.iter().enumerate() {
-        if o.level < data::MAX_ABILITY_LEVEL && o.def.usable_with(run.milestones.weapon) {
+        if o.level < data::MAX_ABILITY_LEVEL
+            && o.def.usable_with(run.milestones.weapon)
+            && run.milestones.ability_unlocked(o.def.key)
+        {
             pool.push((Choice::Upgrade(i), 1.2));
         }
     }
@@ -1391,6 +1394,15 @@ pub(super) fn pick(
             return;
         }
     }
+    if let Choice::Upgrade(index) = choice {
+        if run
+            .abilities
+            .get(index)
+            .is_none_or(|owned| !run.milestones.ability_unlocked(owned.def.key))
+        {
+            return;
+        }
+    }
     match choice {
         Choice::NewAbility(def) => run.abilities.push(Owned {
             def,
@@ -1453,7 +1465,9 @@ fn trade_choices_excluding(
         .abilities
         .iter()
         .enumerate()
-        .filter(|(_, o)| o.level < data::MAX_ABILITY_LEVEL)
+        .filter(|(_, o)| {
+            o.level < data::MAX_ABILITY_LEVEL && run.milestones.ability_unlocked(o.def.key)
+        })
         .map(|(i, _)| i)
         .collect();
     let luck = super::sheet::luck_percent(run.stats().luck);
@@ -4482,5 +4496,72 @@ mod trained_starter_tests {
         assert!(!choices_for(&run, &mut rng, 100)
             .iter()
             .any(|c| matches!(c, Choice::NewAbility(_))));
+    }
+}
+
+#[cfg(test)]
+mod feral_offer_tests {
+    use super::*;
+    use survivors_core::talents::{forms::DruidForm, Milestones};
+
+    #[test]
+    fn form_eligibility_gates_acquisition_upgrades_and_forged_picks() {
+        for form in [
+            None,
+            Some(DruidForm::Cat),
+            Some(DruidForm::Bear),
+            Some(DruidForm::Moonkin),
+            Some(DruidForm::TreeOfLife),
+        ] {
+            let ranks: Vec<_> = form
+                .into_iter()
+                .map(|f| (f.tree(), f.talent(), 1))
+                .collect();
+            let mut run = Run {
+                class: &data::CLASSES[8],
+                hp: 50.0,
+                milestones: Milestones {
+                    class: 8,
+                    ..Default::default()
+                }
+                .with_ranks(&ranks),
+                ..Default::default()
+            };
+            run.abilities.clear();
+            let mut rng = Rng(1);
+            let choices = choices_for(&run, &mut rng, 1000);
+            for (key, required) in [("rake", DruidForm::Cat), ("swipe", DruidForm::Bear)] {
+                assert_eq!(
+                    choices
+                        .iter()
+                        .any(|c| matches!(c, Choice::NewAbility(d) if d.key == key)),
+                    form == Some(required)
+                );
+            }
+            run.abilities = ["rake", "swipe"]
+                .map(|key| Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 1.0,
+                })
+                .into();
+            let choices = choices_for(&run, &mut rng, 1000);
+            for (index, required) in [DruidForm::Cat, DruidForm::Bear].into_iter().enumerate() {
+                assert_eq!(
+                    choices
+                        .iter()
+                        .any(|c| matches!(c, Choice::Upgrade(i) if *i == index)),
+                    form == Some(required)
+                );
+                let mut offer = Offer {
+                    choices: vec![Choice::Upgrade(index)],
+                };
+                pick(0, &mut run, &mut offer, &mut rng, &mut NextState::default());
+                assert_eq!(
+                    run.abilities[index].level,
+                    if form == Some(required) { 2 } else { 1 }
+                );
+            }
+        }
     }
 }

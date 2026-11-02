@@ -400,7 +400,7 @@ fn hit_for(def: &AbilityDef, p: &Params, target: Entity, damage: f32, crit: bool
             0.0
         },
         crit,
-        color: if def.kind == Kind::Melee {
+        color: if def.kind == Kind::Melee || def.key == "swipe" {
             COLOR_MELEE
         } else {
             COLOR_SPELL
@@ -11635,3 +11635,7 @@ mod mage_conversion_tests;
 #[cfg(test)]
 #[path = "master_of_elements_tests.rs"]
 mod master_of_elements_tests;
+
+#[cfg(test)]
+#[path = "feral_kit_tests.rs"]
+mod feral_kit_tests;

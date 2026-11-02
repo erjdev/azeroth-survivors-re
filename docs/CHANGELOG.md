@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Permanent feral starting kits
+
+Cat starts with Wrath + Rake; Bear starts with Wrath + Swipe. Claw/Maul stay
+outside ability slots. Starter pools and upgrades follow the selected form;
+compact cards show green inline changes. Purchase/refund/spec/restart captures
+are included. [Rules and validation limits](audits/DRUID-FERAL-KIT.md).
+
+![Cat starting abilities](images/screenshots/2026-11-02-feral-kit/cat-wide.jpg)
+
 ## 2026-11-02 — Starter rendering diagnostics
 
 Verified ordinary class switching and the existing F12 framebuffer capture path

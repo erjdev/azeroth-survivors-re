@@ -113,3 +113,13 @@ The [starting-kit checkpoint](TALENT-STARTING-ABILITIES.md) implements the three
 existing explicit unlocks through that shared initialization. This supersedes
 their card-only behavior described above; new feral grants and redesign of any
 over-cap combinations remain open.
+
+## Rake/Swipe consumers — 2026-11-02
+
+The [feral starting-kit checkpoint](DRUID-FERAL-KIT.md) now grants Rake for Cat and
+Swipe for Bear alongside Wrath, through shared starting-kit initialization.
+Form eligibility applies to starter pools, upgrade selection and runtime casts.
+Rake has direct damage plus a separate bleed; Swipe uses one player-centered
+area unaffected by extra targets. Both use normalized damage and independent
+recovery. This supersedes their missing-consumer status above. Ferocity/Savage
+Fury and the remaining redesigned attacks are still pending.
