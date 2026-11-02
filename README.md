@@ -22,6 +22,12 @@ starter lists the selected build's kit. [Evidence and limits](docs/audits/TALENT
 
 ![Priest starting kit](docs/images/screenshots/2026-11-01-starting-talents/priest-compact.jpg)
 
+Paladin starter validation also covers refund, repurchase and compact restart;
+automatic weapon attacks remain separate from the starting spell slots.
+
+![Paladin starting kit after restart](docs/images/screenshots/2026-11-01-starting-talents/paladin-repurchased-restart.jpg)
+
+
 Enter now establishes keyboard focus on Armory pages without starting gameplay.
 [Keyboard regression evidence](docs/audits/ARMORY-KEYBOARD-ISOLATION.md).
 

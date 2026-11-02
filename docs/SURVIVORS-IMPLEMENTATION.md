@@ -25,7 +25,9 @@ conversion stays; Riposte still needs replacement design and implementation.
 startup at rank one, with a shared starter/runtime list, duplicate protection,
 refund/spec isolation and normal six-slot upgrade behavior. Existing combinations
 fit the three-start limit. Additional melee consumers, feral abilities and a
-over-cap build redesign remain open; the approved combat policy governs these changes. Native Priest refund/restart and wide/compact evidence are recorded.
+over-cap build redesign remain open; the approved combat policy governs these changes. Native Priest refund/restart and wide/compact evidence are recorded. Paladin
+wide/compact labels, native refund/repurchase and compact restart now also pass;
+Windows, controller and attended combat remain open.
 
 ## Permanent-form follow-up and starter-kit policy — 2026-11-01
 

@@ -14,7 +14,9 @@ remain outside slots and must expand to Warrior/Rogue and other melee builds;
 Energy/Rage cost reductions convert to recovery. [Integration plan](audits/FERAL-ABILITY-DEPENDENCIES.md).
 
 The existing Mind Flay/Silence/Repentance unlocks now [grant starting abilities](audits/TALENT-STARTING-ABILITIES.md),
-with matching starter labels. Remaining abilities and melee consumers are still open.
+with matching starter labels. Native Paladin wide/compact, refund/repurchase and
+compact restart now pass alongside Priest evidence. Remaining abilities and melee
+consumers, Windows and attended combat are still open.
 
 ## Immediate order
 

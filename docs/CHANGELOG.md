@@ -32,6 +32,14 @@ native build and WebGPU check pass. Build output: 57.05 GiB.
 
 ![Three starting abilities on the compact starter](images/screenshots/2026-11-01-starting-talents/priest-compact.jpg)
 
+Paladin follow-up: wide/compact starter labels, native Repentance refund and
+repurchase, and compact restart now pass. Automatic weapon attacks stay separate.
+Five captures document the flow; no source changes or gameplay run. Windows,
+controller and attended combat remain open.
+
+![Paladin starting kit after repurchase and restart](images/screenshots/2026-11-01-starting-talents/paladin-repurchased-restart.jpg)
+
+
 ## 2026-11-01 — Armory keyboard isolation
 
 Enter now establishes focus on Armory pages before activating a control; the
