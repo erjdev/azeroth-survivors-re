@@ -9,6 +9,13 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Tree of Life artwork — 2026-11-01
+
+[Checkout-local Ent discovery and native specimen](audits/DRUID-TALENT-DEPENDENCIES.md#tree-of-life-artwork-prerequisite--2026-11-01)
+resolve the remaining form-art prerequisite with display 864. This is an authored
+Survivors model choice. Permanent progression selection, mutual exclusion, run
+state, benefits and player presentation remain open; no gameplay completion is claimed.
+
 ## Eye for an Eye — 2026-11-01
 
 [Spell-critical retaliation](audits/EYE-FOR-AN-EYE.md) now uses effective health

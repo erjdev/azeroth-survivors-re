@@ -180,7 +180,44 @@ and validation of conflicting imported/legacy builds. Snapshot the selected form
 at run start; apply its model, equipment visibility and mechanical benefits for
 the run, and restore normal presentation on exit. Bind dependent talents and
 attacks to actual form state. Verify tree layout at compact/wide sizes, save/restart
-and actual run consumers before claiming completion. Tree of Life needs its own
-checkout-data model audit; the existing six specimens cover Cat/Bear/Moonkin only.
+and actual run consumers before claiming completion. The Tree of Life model prerequisite is now verified below; the earlier six
+specimens cover Cat/Bear/Moonkin.
 Exact benefit tuning and no-resource adaptations remain implementation work;
 vanilla mana costs or repeated-shift procs cannot be carried over unchanged.
+
+## Tree of Life artwork prerequisite — 2026-11-01
+
+The new read-only catalog search resolves model/skin fragments to installed display
+IDs without guessing IDs or consulting another application:
+
+```sh
+cargo run -p survivors-audit -- wow-data/Data --find-creature 'Creature\Ent\'
+cargo run -p survivors-audit -- wow-data/Data --creature-visuals 864
+```
+
+The installed catalog contains 22 Ent displays. Display **864** resolves to
+`Creature\Ent\Ent.mdx`, `EntSkinBrown`, scale 1. Geometry validation finds nine
+batches / 1,652 triangles; both textures decode (256×256 body, 128×128 stump).
+This is an authored Survivors choice for Tree of Life, not a claim that this
+vanilla catalog defines the later form or its talent rules.
+
+Native macOS 1280×720 specimen evidence shows a complete leafy body, textured
+limbs and glowing eyes. The settled preview reports active animation `(0, 0)`
+and visible main material at alpha 1. Hidden alternate-animation batches remain
+hidden as authored. The preview stays in Menu with no combat components, using
+an isolated account and the existing native build; the app was closed and its
+launcher restored afterward.
+
+![Tree of Life artwork candidate](../images/screenshots/2026-11-01-tree-of-life/specimen.png)
+
+This establishes model availability and native presentation only. Player-sized
+scale, movement/casting/death animation coverage, equipment hiding/restoration,
+collision/camera bounds, progression and runtime transformation still need
+implementation and acceptance. No talent coverage increase is claimed.
+
+Catalog-search CLI checks passed for path/skin queries, case-insensitive stable
+ordering, and rejected empty/whitespace/missing queries. The native specimen reused
+the existing build because this checkpoint changes only the audit CLI and docs.
+The six-package scoped formatting/Clippy/test gate passes with 31 optional-addon
+skips. Its initial sandboxed run failed only on a denied mock-network socket;
+the completed rerun with socket access passed. Build output: 42.78 GiB.

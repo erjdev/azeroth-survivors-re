@@ -5,6 +5,16 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Tree of Life artwork prerequisite
+
+Verified checkout-local Ent artwork for Restoration's planned permanent form.
+Added model/skin search to the read-only audit tool; mesh, textures and native
+animated presentation pass. The scoped gate passes (31 optional-addon skips).
+Progression choices, transformation and benefits are
+still to implement. [Evidence and limits](audits/DRUID-TALENT-DEPENDENCIES.md#tree-of-life-artwork-prerequisite--2026-11-01).
+
+![Tree of Life model specimen](images/screenshots/2026-11-01-tree-of-life/specimen.png)
+
 ## 2026-11-01 — Eye for an Eye
 
 Paladins can train spell-critical retaliation: return 15/30% of health actually

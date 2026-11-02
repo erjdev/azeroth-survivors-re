@@ -3,6 +3,42 @@ use anyhow::{bail, Context, Result};
 use benilla_formats::Chain;
 use std::collections::BTreeSet;
 
+/// Discover candidate displays from the installed catalog, without guessing IDs.
+pub fn find(chain: &mut Chain, query: &str) -> Result<()> {
+    let query = query.trim().to_ascii_lowercase();
+    if query.is_empty() {
+        bail!("creature model search requires a nonempty path or skin fragment");
+    }
+    let catalog = benilla_formats::load_creature_catalog(chain)?;
+    let mut found = Vec::new();
+    for (id, _) in catalog.display_models() {
+        let Some(model) = catalog.model(id) else {
+            continue;
+        };
+        if model.model_path.to_ascii_lowercase().contains(&query)
+            || model
+                .textures
+                .iter()
+                .flatten()
+                .any(|skin| skin.to_ascii_lowercase().contains(&query))
+        {
+            found.push((id, model));
+        }
+    }
+    found.sort_by_key(|(id, _)| *id);
+    if found.is_empty() {
+        bail!("no installed creature display matches {query:?}");
+    }
+    for (id, model) in &found {
+        println!(
+            "DISPLAY {id}: {} · scale {} · skins {:?}",
+            model.model_path, model.scale, model.textures
+        );
+    }
+    println!("{} matching displays. Catalog discovery only; use --creature-visuals to validate mesh and texture decoding.", found.len());
+    Ok(())
+}
+
 pub fn report(chain: &mut Chain, ids: &str) -> Result<()> {
     let ids: BTreeSet<u32> = ids
         .split(',')

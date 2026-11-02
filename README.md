@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Tree of Life now has a verified checkout-local artwork candidate for the planned
+permanent Druid forms. [Asset and native evidence; remaining work](docs/audits/DRUID-TALENT-DEPENDENCIES.md#tree-of-life-artwork-prerequisite--2026-11-01).
+
+![Tree of Life model specimen, no combat](docs/images/screenshots/2026-11-01-tree-of-life/specimen.png)
+
 Paladin Eye for an Eye now returns a portion of survived enemy spell-critical
 damage. [Rules, native purchase/refund/restart evidence and limits](docs/audits/EYE-FOR-AN-EYE.md).
 
