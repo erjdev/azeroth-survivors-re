@@ -10570,3 +10570,14 @@ swings](audits/PALADIN-VENGEANCE.md), alongside its existing Holy-spell behavior
 The original-hit/effective-damage gate excludes pets and secondary splash. Native
 wide/compact purchase, refund and restart evidence is recorded; this corrects an
 existing named node and does not increase definition coverage or close phase 5.
+
+
+## Permanent Druid progression forms — 2026-11-01
+
+[Form rules, initial tuning and evidence](audits/DRUID-PROGRESSION-FORMS.md) now
+cover Cat/Bear in Feral, Moonkin in Balance and Tree of Life in Restoration.
+Each spec owns one mutually exclusive choice; the run retains its start snapshot.
+Purchases, refunds, independent specs and invalid imported choices have regressions.
+Form displays replace the hero body while preserving equipment power. Feral
+attacks, migration of legacy no-form conversions and attended animation/camera/
+combat/platform acceptance remain open. This advances phase 5 without closing it.

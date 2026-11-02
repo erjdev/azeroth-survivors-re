@@ -11,7 +11,7 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, list_gaps: bool) -> Res
     let mut supported = 0;
     let mut milestones = 0;
     println!("Definition coverage only: not proof of combat, balance, saves or visual acceptance.");
-    println!("Class | Matching node definitions / selectable nodes | Milestone descriptions / 9");
+    println!("Class | Matching node definitions / installed selectable nodes | Milestone descriptions / 9");
     for (class_index, class) in data::CLASSES.iter().enumerate() {
         let tabs = (1..12)
             .map(|race| catalog.tabs_for_class(race, class.id))
@@ -46,6 +46,13 @@ pub(super) fn report(chain: &mut benilla_formats::Chain, list_gaps: bool) -> Res
             }
         }
         for effect in talents::definitions(class_index) {
+            if class_index == 8 && matches!(effect.id, 1_000_001..=1_000_003) {
+                println!(
+                    "  AUTHORED FORM: {} (outside vanilla coverage)",
+                    effect.name
+                );
+                continue;
+            }
             if !seen.contains(&effect.id) {
                 println!("MISSING NODE: {} {} {}", class.name, effect.id, effect.name);
                 invalid += 1;

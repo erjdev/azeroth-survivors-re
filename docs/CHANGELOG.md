@@ -5,6 +5,21 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Permanent Druid progression forms
+
+Cat/Bear, Moonkin and Tree of Life are permanent, mutually exclusive choices per
+saved spec, with initial stat benefits and matching hero bodies. Refunds restore
+the normal body; active runs retain their starting choice. Conflicting imports
+remain repairable and grant no talent bonuses. Form previews fit creature artwork
+with room for idle animation. [Evidence and limits](audits/DRUID-PROGRESSION-FORMS.md).
+Scoped gate, focused form/account/portrait tests and native/WebGPU builds pass
+(31 optional-addon skips). Feral attacks, legacy talent conversions and full
+combat/platform acceptance remain open.
+
+![Cat choice blocks a conflicting form](images/screenshots/2026-11-01-druid-progression/cat-exclusion.png)
+
+![Saved Tree form at 640×720 and 125%](images/screenshots/2026-11-01-druid-progression/tree-restarted-compact.png)
+
 ## 2026-11-01 — Tree of Life artwork prerequisite
 
 Verified checkout-local Ent artwork for Restoration's planned permanent form.

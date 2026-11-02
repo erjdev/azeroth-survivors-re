@@ -1,13 +1,16 @@
 //! Survivors' Bevy UI bridge to the existing full-body inspect renderer.
 use super::{BoothPanes, InspectBooth, PortraitImages, PortraitSource, INSPECT_SLOT};
+use bevy::camera::primitives::MeshAabb;
 use bevy::input::ButtonState;
 use bevy::prelude::*;
 
 use bevy::window::{PrimaryWindow, WindowEvent};
 
-type RigidAttachmentFilter = (
-    Without<super::BoothCam>,
-    Without<benilla_world::rig_palette::RigPart>,
+type PanePart = (
+    &'static Mesh3d,
+    Option<&'static bevy::camera::primitives::Aabb>,
+    &'static GlobalTransform,
+    Option<&'static benilla_world::rig_palette::RigPart>,
 );
 
 #[derive(Component)]
@@ -176,8 +179,11 @@ impl DragState {
 }
 
 /// Keep the authored body composition, backing away only when rigid equipment needs room.
-/// Skinned bounds are bind-pose bounds, so they must not determine the live body's framing.
+/// Humanoids retain their authored framing. Progression forms use their full bind-pose
+/// envelope because creature models can be much larger than the fallback humanoid rig.
 fn fit_equipment(
+    mut commands: Commands,
+    meshes: Res<Assets<Mesh>>,
     nodes: Query<(), With<ModelPane>>,
     subject: Res<ModelSubject>,
     booths: Res<super::Booths>,
@@ -185,7 +191,7 @@ fn fit_equipment(
     creatures: Option<Res<crate::entities::Creatures>>,
     entities: Query<&crate::net::NetEntity>,
     children: Query<&Children>,
-    parts: Query<(&bevy::camera::primitives::Aabb, &GlobalTransform), RigidAttachmentFilter>,
+    parts: Query<PanePart, Without<super::BoothCam>>,
     mut cameras: Query<(&super::BoothCam, &mut Transform, &mut GlobalTransform)>,
 ) {
     if nodes.is_empty() {
@@ -204,9 +210,26 @@ fn fit_equipment(
     };
     let (mut camera, projection) = super::framing::body_frame(&anchors, aspect);
     let clip = projection.get_clip_from_view();
-    let mut retreat = 0.0_f32;
+    let form = display.is_some_and(|display| {
+        survivors_core::talents::forms::DruidForm::ALL
+            .iter()
+            .any(|form| [4, 6].iter().any(|&race| form.display(race) == display))
+    });
+    let mut points = Vec::new();
     for entity in children.iter_descendants(booth.root) {
-        let Ok((bounds, world)) = parts.get(entity) else {
+        let Ok((mesh, bounds, world, skinned)) = parts.get(entity) else {
+            continue;
+        };
+        if skinned.is_some() && !form {
+            continue;
+        }
+        // Skinned booth parts disable frustum culling, so Bevy does not create their
+        // AABB. Cache a bind-pose envelope here for form framing only.
+        let Some(bounds) = bounds.copied().or_else(|| {
+            let bounds = meshes.get(&mesh.0)?.compute_aabb()?;
+            commands.entity(entity).insert(bounds);
+            Some(bounds)
+        }) else {
             continue;
         };
         for x in [-1.0, 1.0] {
@@ -214,13 +237,34 @@ fn fit_equipment(
                 for z in [-1.0, 1.0] {
                     let local = Vec3::from(bounds.center)
                         + Vec3::from(bounds.half_extents) * Vec3::new(x, y, z);
-                    let point = camera.rotation.inverse()
-                        * (world.transform_point(local) - camera.translation);
-                    retreat = retreat.max(required_retreat(point, clip));
+                    points.push(world.transform_point(local));
                 }
             }
         }
     }
+    if form && !points.is_empty() {
+        let min = points
+            .iter()
+            .copied()
+            .fold(Vec3::splat(f32::INFINITY), Vec3::min);
+        let max = points
+            .iter()
+            .copied()
+            .fold(Vec3::splat(f32::NEG_INFINITY), Vec3::max);
+        let center = (min + max) * 0.5;
+        // Creature idle poses can extend beyond the bind pose (notably Ent arms).
+        // Reserve animation room without changing the gameplay body's scale.
+        for point in &mut points {
+            *point = center + (*point - center) * 1.3;
+        }
+        camera.translation = center + camera.rotation * Vec3::Z;
+    }
+    let retreat = points.into_iter().fold(0.0_f32, |retreat, point| {
+        retreat.max(required_retreat(
+            camera.rotation.inverse() * (point - camera.translation),
+            clip,
+        ))
+    });
     camera.translation += camera.rotation * Vec3::Z * retreat;
     for (slot, mut local, mut global) in &mut cameras {
         if slot.0 == INSPECT_SLOT {

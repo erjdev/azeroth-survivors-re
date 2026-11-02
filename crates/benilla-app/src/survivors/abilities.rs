@@ -7535,6 +7535,9 @@ mod milestone_tests {
         };
         let ranks: Vec<_> = survivors_core::talents::definitions(8)
             .iter()
+            .filter(|node| {
+                survivors_core::talents::forms::DruidForm::from_talent(node.id).is_none()
+            })
             .map(|node| (0, node.id, node.max_rank))
             .collect();
         let trained = base.with_ranks(&ranks);

@@ -15,6 +15,8 @@ const DISPLAY: u16 = 131;
 pub(super) fn sync(
     selection: Res<Selection>,
     account: Res<Account>,
+    run: Res<super::Run>,
+    phase: Res<State<super::Phase>>,
     creatures: Option<Res<Creatures>>,
     bodies: Option<Res<CharCreate>>,
     mut items: ResMut<crate::items::Items>,
@@ -90,9 +92,22 @@ pub(super) fn sync(
         | u32::from(face) << 8
         | u32::from(hair_style) << 16
         | u32::from(hair_color) << 24;
+    let form = if *phase.get() == super::Phase::Menu {
+        account
+            .milestones_picked(class, selection.character)
+            .druid_form()
+    } else {
+        // The run owns its talent snapshot, including pause, level-up and death screens.
+        run.milestones.druid_form()
+    };
+    let rendered_display = form.map_or(display, |form| form.display(race));
+    if form.is_some() {
+        entries.fill(0);
+        ranged = false;
+    }
     let mut fields = vec![
         (2, 0x19),
-        (DISPLAY, display),
+        (DISPLAY, rendered_display),
         (132, display),
         (PLAYER_BYTES, bytes),
         (PLAYER_BYTES_2, u32::from(facial_hair)),
@@ -109,8 +124,8 @@ pub(super) fn sync(
         if net.kind != EntityKind::Player {
             net.kind = EntityKind::Player;
         }
-        if net.display_id != Some(display) {
-            net.display_id = Some(display);
+        if net.display_id != Some(rendered_display) {
+            net.display_id = Some(rendered_display);
         }
         if fields
             .iter()

@@ -4,6 +4,7 @@ mod aspects;
 mod avoidance;
 mod critical_cast;
 mod druid;
+pub mod forms;
 mod hunter;
 mod hunter_mark;
 mod mage;

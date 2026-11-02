@@ -1,6 +1,8 @@
 //! The account save: named characters, and the permanent progress shared by a class.
 
 mod achievement_dates;
+#[cfg(test)]
+mod forms_tests;
 
 use bevy::prelude::*;
 use std::collections::BTreeMap;
@@ -573,6 +575,10 @@ impl Account {
 
     pub(super) fn talents_valid(&self, hero: &Character) -> bool {
         hero.talent_budget_valid()
+            && survivors_core::talents::forms::valid_forms(
+                hero.class,
+                &hero.dbc[usize::from(hero.spec).min(2)],
+            )
             && self
                 .talent_rules
                 .as_ref()
@@ -703,6 +709,9 @@ impl Account {
             return false;
         };
         let spec = usize::from(c.spec).min(2);
+        if !survivors_core::talents::forms::can_learn_form(c.class, &c.dbc[spec], talent) {
+            return false;
+        }
         let rank = c.dbc[spec]
             .iter()
             .find(|entry| entry.1 == talent)

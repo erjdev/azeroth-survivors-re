@@ -17,6 +17,14 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Druid specs now offer permanent, mutually exclusive Cat, Bear, Moonkin and Tree
+of Life forms, with saved choices, refunds and initial benefits.
+[Rules, evidence and remaining work](docs/audits/DRUID-PROGRESSION-FORMS.md).
+
+![Cat progression choice and mutual exclusion](docs/images/screenshots/2026-11-01-druid-progression/cat-exclusion.png)
+
+![Tree form after restart at 640×720 and 125%](docs/images/screenshots/2026-11-01-druid-progression/tree-restarted-compact.png)
+
 Tree of Life now has a verified checkout-local artwork candidate for the planned
 permanent Druid forms. [Asset and native evidence; remaining work](docs/audits/DRUID-TALENT-DEPENDENCIES.md#tree-of-life-artwork-prerequisite--2026-11-01).
 

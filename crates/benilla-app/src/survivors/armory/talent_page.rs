@@ -646,7 +646,7 @@ pub(super) fn build(
                         let rank = hero.dbc_rank(node.id);
                         let max = node.max_rank() as u8;
                         let proposed: Vec<_> = nodes.iter().map(|other| (other.id, hero.dbc_rank(other.id).saturating_add(u8::from(other.id == node.id)))).collect();
-                        let available = unspent > 0 && super::talent_ranks_ok(nodes, &proposed);
+                        let available = unspent > 0 && super::talent_ranks_ok(nodes, &proposed) && survivors_core::talents::forms::can_learn_form(hero.class, &hero.dbc[active], node.id);
                         let dim = if rank > 0 || available { 1.0 } else { 0.4 };
                         let (x,y) = center(node);
                         // Keep icons readable while the taller grid reserves room for rank labels.

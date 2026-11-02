@@ -221,3 +221,11 @@ the existing build because this checkpoint changes only the audit CLI and docs.
 The six-package scoped formatting/Clippy/test gate passes with 31 optional-addon
 skips. Its initial sandboxed run failed only on a denied mock-network socket;
 the completed rerun with socket access passed. Build output: 42.78 GiB.
+
+## Progression implementation follow-through — 2026-11-01
+
+The [permanent-form implementation audit](DRUID-PROGRESSION-FORMS.md) tracks
+authored tree placement, initial benefits, saved-spec exclusion and runtime body
+selection. It supersedes the earlier open acquisition/lifecycle question. Feral
+attack consumers, resource conversions and full player-form acceptance remain
+open; the legacy no-form conversions are not silently removed in this pass.

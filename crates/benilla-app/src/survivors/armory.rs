@@ -1446,9 +1446,32 @@ pub(super) fn class_trees(
             break;
         }
     }
-    ids.into_iter()
+    let mut trees: Vec<_> = ids
+        .into_iter()
         .map(|(id, name)| (name, catalog.talents_in_tab(id).to_vec()))
-        .collect()
+        .collect();
+    // Survivors-owned progression nodes occupy empty vanilla cells; no installed data is modified.
+    if class_id == 11 && trees.len() == 3 {
+        for (tree, id, row, col, spell) in [
+            (1, 1_000_001, 0, 0, 768),
+            (1, 1_000_002, 0, 3, 5487),
+            (2, 1_000_003, 6, 3, 5185),
+        ] {
+            let tab = trees[tree].1.first().map_or(0, |node| node.tab);
+            trees[tree].1.push(benilla_formats::Talent {
+                id,
+                tab,
+                row,
+                col,
+                ranks: [spell, 0, 0, 0, 0],
+                prereq_talent: 0,
+                prereq_rank: 0,
+                required_spell: 0,
+                exceptional: false,
+            });
+        }
+    }
+    trees
 }
 
 fn dbc_points(hero: &super::account::Character, spec: usize) -> [u32; 3] {
@@ -1535,10 +1558,14 @@ pub(super) fn talent_details(
             effect.is_some(),
         )
     } else {
-        let name = spells
-            .as_deref()
-            .and_then(|spells| spells.catalog.get(node.spell))
-            .map(|spell| spell.name.as_str())
+        let name = survivors_core::talents::talent_definition(node.class, node.id)
+            .map(|definition| definition.name)
+            .or_else(|| {
+                spells
+                    .as_deref()
+                    .and_then(|spells| spells.catalog.get(node.spell))
+                    .map(|spell| spell.name.as_str())
+            })
             .unwrap_or("Talent");
         let definition = survivors_core::talents::talent_definition(node.class, node.id);
         (
@@ -1807,6 +1834,9 @@ fn spend_talent(
         return "That talent is not on this class".into();
     };
     let talent_name = |entry: &benilla_formats::Talent| {
+        if let Some(definition) = survivors_core::talents::talent_definition(class, entry.id) {
+            return definition.name.to_owned();
+        }
         spells
             .and_then(|spells| spells.get(entry.ranks[0]))
             .map(|spell| spell.name.clone())
@@ -1864,6 +1894,14 @@ fn spend_talent(
         return format!("{name} is already at maximum rank {}", talent.max_rank());
     }
     let character = account.character(hero).expect("selected hero exists");
+    if !survivors_core::talents::forms::can_learn_form(
+        class,
+        &character.dbc[usize::from(character.spec).min(2)],
+        talent_id,
+    ) {
+        return "Only one Druid form per spec. Refund your current form before choosing another."
+            .into();
+    }
     // Match learn_talent: legacy skeleton ranks return to the pool on the first DBC spend.
     let spent = character.dbc[usize::from(character.spec).min(2)]
         .iter()

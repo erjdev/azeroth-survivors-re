@@ -61,15 +61,20 @@ fn talent_purchase_feedback_identifies_the_blocker_without_changing_saved_ranks(
             5100,
             vec![],
             69,
-            "Talent 69 requires 10 points in earlier rows of this tree; 0 spent.",
+            "Cold Snap requires 10 points in earlier rows of this tree; 0 spent.",
         ),
         (
             5100,
             vec![(2, 37, 5)],
             69,
-            "Talent 69 requires 10 points in earlier rows of this tree; 5 spent.",
+            "Cold Snap requires 10 points in earlier rows of this tree; 5 spent.",
         ),
-        (5100, vec![], 421, "Talent 421 requires Talent 86 rank 1"),
+        (
+            5100,
+            vec![],
+            421,
+            "Arcane Instability requires Presence of Mind rank 1",
+        ),
         (
             5100,
             vec![(2, 37, 6)],
