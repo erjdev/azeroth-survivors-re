@@ -12,6 +12,13 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Disarm removal — 2026-11-01
+
+Removed the unused Survivors disarm clocks, eligibility and runtime/preview flag
+mutation. Enemy attachments remain cosmetic. The existing weakening-duration
+conversion stays; Riposte still needs replacement design and implementation.
+[Scope and evidence](audits/ENEMY-EQUIPMENT.md#disarm-removal--2026-11-01).
+
 ## Tree-granted starting kit — 2026-11-01
 
 [Mind Flay, Silence and Repentance](audits/TALENT-STARTING-ABILITIES.md) now join

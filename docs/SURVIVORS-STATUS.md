@@ -94,6 +94,9 @@ abilities, no disarm/combo/stealth/position requirements, and redesigned builds
 rather than a menu to handle more than three starting abilities. Runtime migration
 and acceptance remain open; definition totals above are not policy-compliance totals.
 Warlock demon recovery/sacrifice details remain unspecified, not silently approved.
+Disarm's unused runtime/status/preview machinery is now removed; cosmetic enemy
+equipment and the existing weakening-duration talent conversion remain. Riposte's
+replacement and the other approved combat-policy migrations are still open.
 
 Druid forms are permanent progression upgrades for the entire run: Cat and Bear
 in Feral, Moonkin in Balance, Tree of Life in Restoration. All four are mutually

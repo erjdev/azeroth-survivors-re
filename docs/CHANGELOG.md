@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Remove disarm scaffolding
+
+Removed unused disarm timers, weapon eligibility and the preview toggle. Enemy
+weapons remain cosmetic; the existing Demoralizing Shout weakening conversion
+remains. Riposte's replacement is still open. No player-facing UI changed.
+356 shared-rule tests, the ten-package scoped gate (31 optional-addon skips),
+native build and WebGPU check pass. Build output: 57.19 GiB. [Scope and historical evidence](audits/ENEMY-EQUIPMENT.md#disarm-removal--2026-11-01).
+
 ## 2026-11-01 — Combat design decisions
 
 Recorded the [approved combat policy](SURVIVORS-COMBAT-POLICY.md): normalized melee,

@@ -4,6 +4,30 @@
 supersede conflicting design requirements below. Installed-data evidence remains
 reference material; it does not require reproducing rejected vanilla mechanics.
 
+## Disarm removal — 2026-11-01
+
+The approved combat policy removes disarm entirely. Deleted the unused Survivors
+status clocks, weapon-eligibility rules, required enemy component, per-frame flag
+synchronizer and development preview toggle. Enemy equipment remains cosmetic;
+the existing all-roster spawn regression still checks its attachment data.
+Improved Disarm (stable talent ID 151) retains its existing Demoralizing Shout
+weakening-duration conversion. Riposte still needs an authored replacement and
+must not restore enemy-weapon dependencies. Stock WoW protocol/animation support
+is outside this Survivors change.
+
+The historical sections below describe superseded work. In particular,
+`WOW_SURVIVORS_EQUIPMENT_STATE` no longer has an effect; the ordinary equipment
+specimen remains available. No UI layout or talent text changed in this removal.
+
+Validation: 356 shared-rule tests and the ten-package scoped fmt/Clippy/test gate
+pass, with 31 optional-addon skips. Native build passes in 2m43s (existing linker
+warning); WebGPU check passes with six existing warnings. Build output is
+57.19 GiB. Existing all-roster equipment tests remain; deleted tests exercised
+only the removed disarm rules/synchronizer. No native UI or attended combat was
+run for this removal; Windows and replacement-talent gameplay remain open.
+
+## Historical evidence
+
 Disarm requires an explicit weapon-attack model. The current contact path treats
 every enemy contact as physical damage; creature type and appearance do not prove
 that it is a weapon attack. Riposte also needs equipped-player weapon damage.

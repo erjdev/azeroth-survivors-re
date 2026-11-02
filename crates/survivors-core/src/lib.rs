@@ -34,7 +34,6 @@ pub mod weapon_alternatives;
 
 pub mod battle_shout;
 
-pub mod disarm;
 pub mod enemy_equipment;
 #[cfg(test)]
 mod enemy_equipment_tests;
