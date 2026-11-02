@@ -9,9 +9,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 Added twelve native Dreadnaught previews, completing one-outfit evidence across
 all sixteen race/body combinations with the earlier Gnome/Tauren captures.
-Full-figure framing and armor assembly are reviewed; Troll footwear correspondence,
-other outfits, animation and Windows remain open. [Evidence and limits](audits/COLLECTION-BODY-ART.md#native-remaining-race-plate-matrix--2026-11-01).
-Documentation-only checkpoint; warm native build: 0.46 seconds, build output: 46.62 GiB.
+Full-figure framing and armor assembly are reviewed. Fixed boot textures painting
+over Troll feet and Tauren hooves using the installed race flags; lower-leg armor
+and Human boots remain intact. Other outfits, animation and Windows remain open. [Evidence and limits](audits/COLLECTION-BODY-ART.md#native-remaining-race-plate-matrix--2026-11-01).
+The initial documentation-only checkpoint reused a 0.46-second warm build.
+The footwear correction passes the ten-package scoped gate (31 optional-addon
+skips), native build and WebGPU check, plus five native previews. Build output:
+53.71 GiB. [Correction evidence](audits/COLLECTION-BODY-ART.md#barefoot-race-texture-correction--2026-11-01).
+
+![Troll feet with armored lower legs](images/screenshots/2026-11-01-barefoot/troll-male.jpg)
 
 ![Night Elf female armor preview](images/screenshots/2026-11-01-plate-matrix/night-elf-female.jpg)
 

@@ -191,7 +191,8 @@ page controls. All twelve added views contain the full figure, helmet and both
 shoulders. These are front/idle assembly and framing checks, not proof of
 clipping-free animation, every outfit, compact layouts or Windows rendering.
 
-Troll footwear remains an art-rule review item: the worn look covers the feet.
+At this checkpoint Troll footwear was an art-rule review item (resolved by the
+correction below): the worn look covered the feet.
 The additional male hidden/restored comparison verifies that hiding footwear
 reveals bare feet and restoring it restores the armor, with unchanged equipment
 bonus text. This does not establish whether the worn Troll texture/geoset matches
@@ -228,3 +229,55 @@ The preview exited and its normal launcher was restored. No combat was started.
 ![Troll male footwear hidden](../images/screenshots/2026-11-01-plate-matrix/troll-male-feet-hidden.jpg)
 
 ![Troll male footwear restored](../images/screenshots/2026-11-01-plate-matrix/troll-male-feet-restored.jpg)
+
+## Barefoot race texture correction — 2026-11-01
+
+The preceding native Troll screenshots exposed an actual compositor omission.
+Checkout `patch.MPQ`'s `ChrRaces.dbc` has nine rows, 29 fields and 116-byte
+records. Column 1 is `0x0e` for Tauren (6) and Troll (8), `0x0c` for Human,
+Orc, Dwarf, Undead and Gnome, `0x04` for Night Elf, and `0x01` for Goblin.
+Flag `0x02` is "Do Not Component Feet" in [TrinityCore's field documentation](https://trinitycore.info/files/DBC/335/chrraces).
+[WoW Model Viewer's equipment compositor](https://wowmodelviewer.github.io/wowmodelviewer/WoWItem_8cpp_source.html)
+also suppresses the foot texture when showing bare feet while retaining the
+lower-leg layer. These external implementations corroborate the flag meaning;
+the race values come from this checkout's 1.12.1 patch chain.
+
+Survivors now loads the installed flags once per skin table and filters only the
+foot tile from a flagged race's composition plan. It retains the base skin,
+all other overlays in order, and existing boot geoset selection. Equipment,
+bonuses and saved appearances do not change. The carry is gated by the existing
+Survivors feature and active mode; the normal client's composition is unchanged.
+Missing race data logs a warning and retains the previous rendering behavior.
+
+Regression checks cover installed race flags and exact preservation of every
+non-foot layer, including idempotence. Native macOS verifies the same saved Troll male worn-boot state before/after,
+both Troll bodies, both Tauren bodies, and unchanged covered boots on Human male.
+Lower-leg armor remains visible in all five new captures. The fixture remains
+`plate-matrix-20261101` with equipment `666666666` and looks `000000001`;
+no account edits were made for this follow-up. The app exited and the normal
+launcher was restored. Windows, other outfits and gameplay animation remain open.
+
+The first development launch exposed a recursive archive lock in the new loader.
+The final loader consumes startup's existing mutable chain guard; it does not
+lock again in `SkinSections::new`. The corrected native startup and all five
+preview interactions complete without a panic or race-table warning. Initial
+native rebuild: two minutes; final correction: 19.31 seconds. The linker warns
+that its unwind section exceeds compact-unwind offset capacity; the build succeeds.
+
+
+![Troll Male, race-correct footwear](../images/screenshots/2026-11-01-barefoot/troll-male.jpg)
+
+![Troll Female, race-correct footwear](../images/screenshots/2026-11-01-barefoot/troll-female.jpg)
+
+![Tauren Male, race-correct footwear](../images/screenshots/2026-11-01-barefoot/tauren-male.jpg)
+
+![Tauren Female, race-correct footwear](../images/screenshots/2026-11-01-barefoot/tauren-female.jpg)
+
+![Human Male, race-correct footwear](../images/screenshots/2026-11-01-barefoot/human-male.jpg)
+
+
+Final verification: the ten-package scoped formatting/Clippy/test gate passes,
+including both new regressions, with 31 optional addon-corpus skips. The WebGPU
+check passes with six existing warnings outside this change. Build output is
+53.71 GiB, within budget. No full workspace landing gate or Windows runtime
+acceptance is claimed.

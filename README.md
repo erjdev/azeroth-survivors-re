@@ -18,7 +18,10 @@ Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summarie
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
 The Armory now has native Dreadnaught preview evidence for all sixteen race/body
-combinations. [Visual review and remaining limits](docs/audits/COLLECTION-BODY-ART.md#native-remaining-race-plate-matrix--2026-11-01).
+combinations. Race flags now preserve Troll feet and Tauren hooves beneath their
+leg armor. [Visual review and remaining limits](docs/audits/COLLECTION-BODY-ART.md#native-remaining-race-plate-matrix--2026-11-01).
+
+![Troll feet with armored lower legs](docs/images/screenshots/2026-11-01-barefoot/troll-male.jpg)
 
 ![Night Elf female armor preview](docs/images/screenshots/2026-11-01-plate-matrix/night-elf-female.jpg)
 

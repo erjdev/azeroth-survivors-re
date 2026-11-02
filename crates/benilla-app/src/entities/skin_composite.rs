@@ -20,12 +20,29 @@ use bevy::tasks::{block_on, futures_lite::future, AsyncComputeTaskPool, Task};
 #[derive(Resource)]
 pub(super) struct SkinSections {
     pub(super) tables: CharSections,
+    #[cfg(feature = "survivors-text")]
+    pub(super) bare_foot_races: std::collections::HashSet<u8>,
     chain: Arc<Mutex<Chain>>,
 }
 
 impl SkinSections {
     pub(super) fn new(tables: CharSections, chain: Arc<Mutex<Chain>>) -> Self {
-        Self { tables, chain }
+        Self {
+            tables,
+            chain,
+            #[cfg(feature = "survivors-text")]
+            bare_foot_races: Default::default(),
+        }
+    }
+
+    #[cfg(feature = "survivors-text")]
+    pub(super) fn with_race_appearance(mut self, chain: &mut Chain) -> Self {
+        self.bare_foot_races = benilla_formats::survivors_appearance::bare_foot_races(chain)
+            .unwrap_or_else(|error| {
+                warn!("race footwear flags unavailable: {error:#}");
+                Default::default()
+            });
+        self
     }
 }
 

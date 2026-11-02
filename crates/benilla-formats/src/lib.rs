@@ -25,6 +25,7 @@ pub use install::{
     wow_data,
 };
 mod characters;
+pub mod survivors_appearance;
 pub use characters::{
     equip_blits, equip_column, equip_region_candidates, equip_tex_dir, equip_tile, forearm_dressed,
     BlitSource, CharCreateCatalog, CharSections, CharacterGeosets, CompositePlan, DialRanges,

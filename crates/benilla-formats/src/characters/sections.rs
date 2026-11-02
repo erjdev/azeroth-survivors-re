@@ -1,3 +1,5 @@
+mod survivors_appearance;
+
 use std::collections::HashMap;
 
 use anyhow::{Context, Result};

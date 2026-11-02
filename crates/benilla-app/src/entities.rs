@@ -850,7 +850,10 @@ fn setup_entities(
     }
     match CharSections::load(&mut chain) {
         Ok(sections) => {
-            commands.insert_resource(SkinSections::new(sections, world_assets.chain.clone()))
+            let sections = SkinSections::new(sections, world_assets.chain.clone());
+            #[cfg(feature = "survivors-text")]
+            let sections = sections.with_race_appearance(&mut chain);
+            commands.insert_resource(sections)
         }
         Err(e) => warn!("char sections unavailable, player bodies stay untextured: {e:#}"),
     }

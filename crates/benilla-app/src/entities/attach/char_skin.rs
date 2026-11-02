@@ -270,7 +270,7 @@ fn composite_plan(
             }
         }
     }
-    sections.tables.composite_plan(
+    let plan = sections.tables.composite_plan(
         key.race,
         key.sex,
         key.skin,
@@ -281,7 +281,14 @@ fn composite_plan(
         worn,
         key.emblem,
         key.tabard_preview,
-    )
+    )?;
+    #[cfg(feature = "survivors-text")]
+    let plan = if crate::survivors::active() && sections.bare_foot_races.contains(&key.race) {
+        plan.preserve_bare_feet()
+    } else {
+        plan
+    };
+    Some(plan)
 }
 
 /// A world body's atlas. A baked NPC skin loads as is and is never waited on (the fork at
