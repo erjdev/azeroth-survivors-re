@@ -1360,3 +1360,11 @@ form's feral attack is eligible. Rake is a normalized physical strike with a
 bleed; Swipe hits all enemies in one player-centered area. Both use independent
 recovery timers without resources, stealth, combo points or positional gates.
 See [initial tuning and acceptance](audits/DRUID-FERAL-KIT.md).
+
+### Ferocity and Savage Fury
+
+Ferocity gives Claw, Maul, Rake and Swipe 4% shorter recovery per rank (five ranks),
+multiplying haste. Savage Fury gives those attacks +10% direct and periodic damage
+per rank (two ranks). Both retain normalized damage and independent timers with
+no resources. Rake bleed duration is unchanged. The separate Feral 10-point
+Thorns milestone remains independent. [Acceptance](audits/DRUID-FERAL-TRAINING.md).

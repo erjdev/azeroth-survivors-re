@@ -96,3 +96,77 @@ fn swipe_uses_area_radius_and_never_duplicates_hits_for_extra_targets() {
         assert_eq!(app.world().resource::<Messages<Hit>>().len(), 1);
     }
 }
+
+#[test]
+fn ferocity_and_fury_affect_real_casts_bleeds_and_automatic_attacks() {
+    for (form, key, source, damage, recovery) in [
+        (DruidForm::Cat, "rake", "Claw", 12.0, 1.0),
+        (DruidForm::Bear, "swipe", "Maul", 30.0, 2.5),
+    ] {
+        for rank in [0, 1, 2, 5, 255] {
+            for automatic in [false, true] {
+                let (mut app, target) = setup(Some(form), key);
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.milestones = run.milestones.with_ranks(&[
+                        (form.tree(), form.talent(), 1),
+                        (1, 796, rank),
+                        (1, 805, rank),
+                    ]);
+                    run.renown_celerity = 10;
+                    if automatic {
+                        run.abilities.clear();
+                        run.weapon_attack_cd = 0.0;
+                    }
+                }
+                let stats = app.world().resource::<Run>().stats();
+                let fury = 1.0 + 0.10 * f32::from(rank.min(2));
+                let ferocity = 1.0 - 0.04 * f32::from(rank.min(5));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world()
+                    .resource::<Messages<Hit>>()
+                    .iter_current_update_messages()
+                    .cloned()
+                    .collect();
+                assert_eq!(hits.len(), 1);
+                let hit = &hits[0];
+                assert_eq!(hit.source, if automatic { source } else { key });
+                let base = if automatic {
+                    damage
+                } else {
+                    data::ability(key).damage
+                };
+                let expected =
+                    base * stats.might * fury * if hit.crit { stats.crit_damage } else { 1.0 };
+                assert!((hit.damage - expected).abs() < 0.001);
+                let run = app.world().resource::<Run>();
+                let actual_cd = if automatic {
+                    run.weapon_attack_cd
+                } else {
+                    run.abilities[0].cd
+                };
+                let expected_cd = if automatic {
+                    recovery * ferocity / (1.0 + stats.haste)
+                } else {
+                    super::super::sheet::cooldown_time(
+                        data::ability(key).cooldown,
+                        stats.haste,
+                        stats.cooldown,
+                    ) * ferocity
+                };
+                assert!((actual_cd - expected_cd).abs() < 0.001);
+                let before = app.world().get::<Enemy>(target).unwrap().hp;
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let enemy = app.world().get::<Enemy>(target).unwrap();
+                assert!((before - enemy.hp - expected).abs() < 0.001);
+                if !automatic && key == "rake" {
+                    assert_eq!(enemy.dots.len(), 1);
+                    assert!((enemy.dots[0].dps - 3.0 * stats.might * fury).abs() < 0.001);
+                } else {
+                    assert!(enemy.dots.is_empty());
+                }
+            }
+        }
+    }
+}

@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Feral training — 2026-11-02
+
+Ferocity and Savage Fury now have scoped runtime effects on automatic Claw/Maul
+and slotted Rake/Swipe, including bleed damage and independent recovery.
+[Acceptance and screenshots](audits/DRUID-FERAL-TRAINING.md). Druid coverage is
+33/47; overall 327/432. Remaining feral redesigns and platform/combat acceptance
+remain open.
+
 ## Feral starting kits — 2026-11-02
 
 Permanent Cat/Bear now grant Rake/Swipe alongside Wrath, keeping two slotted

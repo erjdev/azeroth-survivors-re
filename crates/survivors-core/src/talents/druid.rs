@@ -1,7 +1,10 @@
 //! Audited Druid identities with explicit Survivors conversions and permanent form scopes.
 use super::{TalentDefinition, TalentStat};
+const FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe"];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 796, max_rank: 5, name: "Ferocity", description: "Claw, Maul, Rake and Swipe: 4% shorter cooldown per rank, multiplying haste. Does not change other spells or bleed duration (Survivors Energy/Rage-cost conversion)", stat: TalentStat::SpellGroupCooldown(FERAL_ATTACKS), per_rank: 0.04 },
+    TalentDefinition { id: 805, max_rank: 2, name: "Savage Fury", description: "Claw, Maul, Rake and Swipe: +10% direct and periodic damage per rank. Multiplies other damage bonuses; does not change other spells or healing", stat: TalentStat::SpellGroupDamage(FERAL_ATTACKS), per_rank: 0.10 },
     TalentDefinition { id: 803, max_rank: 3, name: "Predatory Strikes", description: "Cat and Bear: gain attack power equal to 50% of your current run level per rank. Each 14 attack power adds 1 base damage per second to automatic Claw/Maul before damage bonuses; no effect on spells or healing (Survivors attack-power conversion)", stat: TalentStat::PredatoryStrikes, per_rank: 0.5 },
     TalentDefinition { id: 791, max_rank: 5, name: "Natural Weapons", description: "Automatic Claw and Maul: +2% physical damage per rank. Requires Cat or Bear Form; does not change spells, healing or pets (Survivors physical-attack scope)", stat: TalentStat::SpellGroupDamage(&["Claw", "Maul"]), per_rank: 0.02 },
     TalentDefinition { id: 1_000_001, max_rank: 1, name: "Cat Form", description: "+20% hero movement speed. Permanently become a Cat for the entire run, gaining automatic Claw outside the six ability slots and starting with Rake alongside Wrath; keeps your spell pool. Excludes Bear, Moonkin and Tree of Life; refund this form before choosing another (Survivors form tuning)", stat: TalentStat::Speed, per_rank: 0.20 },
@@ -76,7 +79,7 @@ pub(super) fn description(tree: usize, threshold: u32) -> Option<&'static str> {
         (0, 10) => Some("Entangling Roots: 15% shorter cooldown (Survivors automatic Nature's Grasp)"),
         (0, 20) => Some("Moonfire: +25% direct and periodic damage, multiplying individual ranks (Survivors Improved Moonfire milestone)"),
         (0, 30) => Some("Wrath, Moonfire and Starfire: +5 percentage points critical chance; periodic ticks do not crit (Survivors Moonkin Form; no form required)"),
-        (1, 10) => Some("Thorns: 15% shorter cooldown (Survivors Ferocity; feral attacks remain separate work)"),
+        (1, 10) => Some("Thorns: 15% shorter cooldown (independent Feral milestone)"),
         (1, 20) => Some("Thorns grants a non-stacking 5% maximum-health absorb for 3 seconds once per successful cast (Survivors Heart of the Wild; no form required)"),
         (1, 30) => Some("Thorns heals 3% maximum health once per successful cast, not per retaliation (Survivors Leader of the Pack; no form required)"),
         (2, 10) => Some("Rejuvenation: +20% total healing, multiplying individual healing ranks (Survivors Improved Healing Touch)"),
@@ -761,5 +764,52 @@ mod focus_tests {
             "{text}"
         );
         assert!(!spans.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod feral_training_tests {
+    use crate::{
+        data,
+        talents::{talent_definition, Milestones},
+    };
+
+    #[test]
+    fn ferocity_and_fury_scope_clamp_and_refund_without_changing_other_casts() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 796, rank), (1, 805, rank)]);
+                for key in
+                    data::ABILITIES
+                        .iter()
+                        .map(|d| d.key)
+                        .chain(["Claw", "Maul", "Weapon Attack"])
+                {
+                    let mut expected = base.cast(key);
+                    if class == 8 && ["Claw", "Maul", "rake", "swipe"].contains(&key) {
+                        expected.cooldown *= 1.0 - 0.04 * f32::from(rank.min(5));
+                        expected.damage *= 1.0 + 0.10 * f32::from(rank.min(2));
+                    }
+                    assert_eq!(
+                        trained.cast(key),
+                        expected,
+                        "class={class} rank={rank} key={key}"
+                    );
+                    assert_eq!(trained.with_ranks(&[]).cast(key), base.cast(key));
+                }
+            }
+        }
+        for (id, delta) in [(796, "4 » 8%"), (805, "10 » 20%")] {
+            let (text, spans) = talent_definition(8, id)
+                .unwrap()
+                .inline_description_with_values(1)
+                .unwrap();
+            assert!(text.contains(delta), "{text}");
+            assert!(spans.iter().any(|span| text[span.clone()].contains('»')));
+        }
     }
 }

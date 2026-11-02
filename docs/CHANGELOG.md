@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Feral recovery and damage training
+
+Ferocity now speeds Claw/Maul/Rake/Swipe; Savage Fury strengthens their damage,
+including Rake's bleed. Green inline upgrades, refunds, separate specs and
+compact restart are verified. Druid definitions reach 33/47.
+[Rules and validation limits](audits/DRUID-FERAL-TRAINING.md).
+
+![Savage Fury inline upgrade](images/screenshots/2026-11-02-feral-training/savage-fury-wide.jpg)
+
 ## 2026-11-02 — Permanent feral starting kits
 
 Cat starts with Wrath + Rake; Bear starts with Wrath + Swipe. Claw/Maul stay

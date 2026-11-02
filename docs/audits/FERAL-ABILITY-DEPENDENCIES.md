@@ -123,3 +123,10 @@ Rake has direct damage plus a separate bleed; Swipe uses one player-centered
 area unaffected by extra targets. Both use normalized damage and independent
 recovery. This supersedes their missing-consumer status above. Ferocity/Savage
 Fury and the remaining redesigned attacks are still pending.
+
+## Ferocity/Savage Fury consumers — 2026-11-02
+
+Both nodes now have [scoped runtime effects and visual acceptance](DRUID-FERAL-TRAINING.md)
+on Claw, Maul, Rake and Swipe. This supersedes their pending status above. Other
+feral talents and redesigns remain unfinished; existing explicitly automatic-only
+talents are not silently expanded by this checkpoint.

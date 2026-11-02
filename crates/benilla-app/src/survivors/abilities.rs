@@ -622,7 +622,8 @@ pub(super) fn cast_abilities(
                             ..Hit::direct(foe.e, damage, crit)
                         });
                     }
-                    run.weapon_attack_cd = attack.recovery / (1.0 + stats.haste).max(0.1);
+                    run.weapon_attack_cd =
+                        attack.recovery * effect.cooldown / (1.0 + stats.haste).max(0.1);
                 }
             }
         }
