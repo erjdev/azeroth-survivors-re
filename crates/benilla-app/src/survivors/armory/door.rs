@@ -122,7 +122,7 @@ pub(super) fn build(
             selection,
             compact_collection,
         );
-        enter_bar(ui, font, armory, account, selection);
+        enter_bar(ui, font, armory, account, selection, compact_collection);
     } else if armory.page == Page::Talents {
         super::talent_page::build(ui, font, account, selection, talents, talent_scroll, layout);
     } else if armory.page == Page::Rewards {
@@ -1201,6 +1201,7 @@ fn enter_bar(
     armory: &Armory,
     account: &Account,
     selection: &Selection,
+    compact: bool,
 ) {
     let (title, under, action) = if selection.character.is_none() {
         (
@@ -1213,10 +1214,12 @@ fn enter_bar(
         (title, under, Act::Enter)
     };
     ui.spawn(Node {
-        width: Val::Percent(100.0),
-        flex_wrap: FlexWrap::Wrap,
-        justify_content: JustifyContent::Center,
+        display: Display::Grid,
+        width: Val::Percent(if compact { 100.0 } else { 65.0 }),
+        align_self: AlignSelf::Center,
+        grid_template_columns: vec![GridTrack::auto(), GridTrack::flex(1.0)],
         align_items: AlignItems::Center,
+        flex_shrink: 0.0,
         column_gap: Val::Px(12.0),
         row_gap: Val::Px(6.0),
         margin: UiRect::top(Val::Px(8.0)),
@@ -1244,8 +1247,7 @@ fn enter_bar(
             action,
             true,
             Node {
-                width: Val::Percent(45.0),
-                min_width: Val::Px(260.0),
+                min_width: Val::Px(0.0),
                 max_width: Val::Percent(100.0),
                 min_height: Val::Px(60.0),
                 ..default()

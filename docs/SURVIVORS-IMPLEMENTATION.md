@@ -12,6 +12,13 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Responsive starter footer — 2026-11-01
+
+A two-column footer fixes excessive compact Enter-button height while preserving
+content wrapping and the wide three-panel layout. Native checks cover compact,
+minimum-window, wide and long-zone labels; Windows/controller/localization remain
+open. [Evidence](audits/STARTER-FOOTER.md).
+
 ## Disarm removal — 2026-11-01
 
 Removed the unused Survivors disarm clocks, eligibility and runtime/preview flag

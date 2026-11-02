@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+The responsive starter footer keeps the main action compact, leaving more room
+for class and character information. [Native size checks](docs/audits/STARTER-FOOTER.md).
+
+![Compact starter footer](docs/images/screenshots/2026-11-01-starter-footer/after-compact.jpg)
+
 Trained Mind Flay, Silence and Repentance now become starting abilities, and the
 starter lists the selected build's kit. [Evidence and limits](docs/audits/TALENT-STARTING-ABILITIES.md).
 

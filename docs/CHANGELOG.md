@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Compact starter footer
+
+The Enter button now fits its content instead of consuming excessive vertical
+space. Responsive columns keep Run Options alongside it and reveal more starter
+content. Native compact, minimum-window, wide and long-zone-label checks pass.
+Scoped gate (31 optional-addon skips), native build and WebGPU check pass;
+build output is 57.29 GiB. Windows/controller/localized labels remain open.
+[Evidence and limits](audits/STARTER-FOOTER.md).
+
+![Compact starter with a shorter footer](images/screenshots/2026-11-01-starter-footer/after-compact.jpg)
+
 ## 2026-11-01 — Remove disarm scaffolding
 
 Removed unused disarm timers, weapon eligibility and the preview toggle. Enemy
