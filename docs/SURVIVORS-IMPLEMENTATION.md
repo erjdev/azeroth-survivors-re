@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Feral physical integration — 2026-11-02
+
+Natural Weapons, Sharpened Claws and Leader of the Pack now cover Rake/Swipe as
+well as Claw/Maul. [Runtime and native acceptance](audits/DRUID-FERAL-PHYSICAL.md)
+includes damage stacking, critical rolls, noncritical bleeds and saved specs.
+Predatory Strikes and remaining feral redesigns still need work; coverage counts
+are unchanged.
+
 ## Feral training — 2026-11-02
 
 Ferocity and Savage Fury now have scoped runtime effects on automatic Claw/Maul

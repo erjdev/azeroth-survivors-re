@@ -130,3 +130,10 @@ Both nodes now have [scoped runtime effects and visual acceptance](DRUID-FERAL-T
 on Claw, Maul, Rake and Swipe. This supersedes their pending status above. Other
 feral talents and redesigns remain unfinished; existing explicitly automatic-only
 talents are not silently expanded by this checkpoint.
+
+## Physical talent scope — 2026-11-02
+
+[Physical integration](DRUID-FERAL-PHYSICAL.md) extends Natural Weapons, Sharpened
+Claws and Leader of the Pack to Rake/Swipe, superseding their automatic-only
+scope in earlier checkpoints. Predatory Strikes remains automatic-only. Other
+feral redesigns and attended combat/platform validation remain open.

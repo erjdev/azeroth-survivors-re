@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Physical damage and critical talents now cover Rake/Swipe alongside Claw/Maul.
+[Rules and validation](docs/audits/DRUID-FERAL-PHYSICAL.md).
+
+![Expanded feral critical upgrade](docs/images/screenshots/2026-11-02-feral-physical/claws-wide.jpg)
+
 Ferocity and Savage Fury now improve the four feral attacks, with green inline
 recovery/damage previews. [Rules and validation](docs/audits/DRUID-FERAL-TRAINING.md).
 

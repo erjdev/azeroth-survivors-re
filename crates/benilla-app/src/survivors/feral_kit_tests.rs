@@ -170,3 +170,60 @@ fn ferocity_and_fury_affect_real_casts_bleeds_and_automatic_attacks() {
         }
     }
 }
+
+#[test]
+fn physical_training_scales_feral_casts_and_criticals_without_critical_bleeds() {
+    for (form, key) in [(DruidForm::Cat, "rake"), (DruidForm::Bear, "swipe")] {
+        for (claws, leader, bonus) in [(0, 0, 0.0), (3, 0, 0.06), (0, 1, 0.03), (3, 1, 0.09)] {
+            for margin in [0.01, 0.04, 0.075, 0.10] {
+                let (mut app, target) = setup(Some(form), key);
+                let base_crit = app.world().resource::<Run>().stats().crit;
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.milestones = run.milestones.with_ranks(&[
+                        (form.tree(), form.talent(), 1),
+                        (0, 791, 5),
+                        (1, 805, 2),
+                        (1, 798, claws),
+                        (1, 809, leader),
+                    ]);
+                }
+                let stats = app.world().resource::<Run>().stats();
+                assert_eq!(stats.crit, base_crit);
+                let (seed, sample) = (1..100_000)
+                    .find_map(|seed| {
+                        let sample = Rng(seed).f32();
+                        ((sample - base_crit - margin).abs() < 0.001).then_some((seed, sample))
+                    })
+                    .unwrap();
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world()
+                    .resource::<Messages<Hit>>()
+                    .iter_current_update_messages()
+                    .cloned()
+                    .collect();
+                assert_eq!(hits.len(), 1);
+                let hit = &hits[0];
+                assert_eq!(hit.crit, sample < base_crit + bonus);
+                let expected = data::ability(key).damage
+                    * stats.might
+                    * 1.1
+                    * 1.2
+                    * if hit.crit { stats.crit_damage } else { 1.0 };
+                assert!((hit.damage - expected).abs() < 0.001);
+                let before = app.world().get::<Enemy>(target).unwrap().hp;
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let enemy = app.world().get::<Enemy>(target).unwrap();
+                assert!((before - enemy.hp - expected).abs() < 0.001);
+                if key == "rake" {
+                    assert_eq!(enemy.dots.len(), 1);
+                    assert!((enemy.dots[0].dps - 3.0 * stats.might * 1.1 * 1.2).abs() < 0.001);
+                } else {
+                    assert!(enemy.dots.is_empty());
+                }
+            }
+        }
+    }
+}

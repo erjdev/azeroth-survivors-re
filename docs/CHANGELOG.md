@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Physical talents cover feral abilities
+
+Natural Weapons, Sharpened Claws and Leader of the Pack now benefit Rake/Swipe
+as well as automatic attacks. Bleeds gain physical damage but cannot crit.
+Green inline descriptions, refunds, saved specs and compact restart are verified.
+[Rules and validation limits](audits/DRUID-FERAL-PHYSICAL.md).
+
+![Expanded physical talent upgrade](images/screenshots/2026-11-02-feral-physical/claws-wide.jpg)
+
 ## 2026-11-02 — Feral recovery and damage training
 
 Ferocity now speeds Claw/Maul/Rake/Swipe; Savage Fury strengthens their damage,

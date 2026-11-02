@@ -1368,3 +1368,12 @@ multiplying haste. Savage Fury gives those attacks +10% direct and periodic dama
 per rank (two ranks). Both retain normalized damage and independent timers with
 no resources. Rake bleed duration is unchanged. The separate Feral 10-point
 Thorns milestone remains independent. [Acceptance](audits/DRUID-FERAL-TRAINING.md).
+
+### Feral physical damage and critical training
+
+Natural Weapons applies +2% direct and periodic damage per rank to Claw, Maul,
+Rake and Swipe, multiplying Savage Fury. Sharpened Claws (+2 critical percentage
+points per rank) and Leader of the Pack (+3 points) affect all four direct attacks
+in Cat/Bear forms. Bleeds remain noncritical; other spells, healing and pets are
+excluded. This supersedes their earlier automatic-only scope. Predatory Strikes
+remains automatic-only. [Acceptance](audits/DRUID-FERAL-PHYSICAL.md).

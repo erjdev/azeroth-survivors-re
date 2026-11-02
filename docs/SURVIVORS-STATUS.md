@@ -207,3 +207,10 @@ Ferocity and Savage Fury now apply to all four existing feral attacks. Native
 purchase/refund/spec/restart evidence and runtime tests are recorded in the
 [feral training audit](audits/DRUID-FERAL-TRAINING.md). Named coverage grows by two;
 remaining physical talent scope and redesigned feral abilities still need work.
+
+## Feral physical integration — 2026-11-02
+
+Three existing talents now affect Rake/Swipe as well as automatic attacks;
+[tests and native evidence](audits/DRUID-FERAL-PHYSICAL.md) cover damage stacking,
+critical rolls, refunds and saved specs. Predatory Strikes remains automatic-only.
+No definition-count increase; remaining class and platform acceptance stays open.
