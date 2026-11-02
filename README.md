@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Warrior, Rogue and Shaman now have normalized automatic weapon attacks outside
+ability slots, alongside Paladin. [Scope and remaining talent work](docs/audits/MELEE-AUTOMATIC-ATTACKS.md).
+
+![Melee automatic attack on the starter](docs/images/screenshots/2026-11-02-melee-autos/warrior-wide.jpg)
+
 Area bonuses now extend ability targeting range and automatic melee reach.
 Cards show the selected build's scaled values. [Evidence](docs/audits/AREA-RANGE.md).
 

@@ -27,24 +27,31 @@ fn setup(two_handed: bool) -> (App, Entity, Entity) {
 }
 
 #[test]
-fn paladin_weapon_attack_without_slots_settles_and_obeys_cadence() {
-    for (two_handed, base, seconds) in [(false, 24., 2.), (true, 36., 3.)] {
-        let (mut app, _, target) = setup(two_handed);
-        let expected = base * app.world().resource::<Run>().stats().might;
-        app.world_mut().run_system_once(cast_abilities).unwrap();
-        assert_eq!(app.world().resource::<Run>().weapon_attack_cd, seconds);
-        assert!(app.world().resource::<Run>().abilities.is_empty());
-        app.world_mut().run_system_once(apply_hits).unwrap();
-        let damage = 1000. - app.world().get::<Enemy>(target).unwrap().hp;
-        // The fixture RNG may crit; verify settlement against the recorded real hit.
-        assert!(damage >= expected && damage <= expected * 2.01);
-        assert_eq!(
-            app.world().resource::<Run>().damage_sources[0].0,
-            "Weapon Attack"
-        );
-        app.world_mut().resource_mut::<Messages<Hit>>().clear();
-        app.world_mut().run_system_once(cast_abilities).unwrap();
-        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+fn melee_class_weapon_attack_without_slots_settles_and_obeys_cadence() {
+    for class in [0, 1, 3, 5] {
+        for (two_handed, base, seconds) in [(false, 24., 2.), (true, 36., 3.)] {
+            let (mut app, _, target) = setup(two_handed);
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.class = &data::CLASSES[class];
+                run.milestones.class = class;
+            }
+            let expected = base * app.world().resource::<Run>().stats().might;
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert_eq!(app.world().resource::<Run>().weapon_attack_cd, seconds);
+            assert!(app.world().resource::<Run>().abilities.is_empty());
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            let damage = 1000. - app.world().get::<Enemy>(target).unwrap().hp;
+            // The fixture RNG may crit; verify settlement against the recorded real hit.
+            assert!(damage >= expected && damage <= expected * 2.01);
+            assert_eq!(
+                app.world().resource::<Run>().damage_sources[0].0,
+                "Weapon Attack"
+            );
+            app.world_mut().resource_mut::<Messages<Hit>>().clear();
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+        }
     }
 }
 

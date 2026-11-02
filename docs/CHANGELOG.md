@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Melee automatic attacks
+
+Warrior, Rogue and Shaman now join Paladin with normalized weapon attacks outside
+all six slots. Percentage gear scales damage; worn weapon type sets the authored
+cadence. Starter labels distinguish these attacks from starting spells.
+357 rule tests, scoped checks (31 optional-addon skips), native build and WebGPU
+check pass. Wide/compact previews captured; weapon-talent integration and attended
+Windows combat remain open. [Scope and evidence](audits/MELEE-AUTOMATIC-ATTACKS.md).
+
+![Warrior automatic attack outside ability slots](images/screenshots/2026-11-02-melee-autos/warrior-wide.jpg)
+
 ## 2026-11-02 — Area increases ability range
 
 Area bonuses now extend targeting range and Paladin/Cat/Bear automatic reach,

@@ -21,7 +21,7 @@ impl Milestones {
     /// Uses the frozen run loadout/form. Cosmetic weapons never supply attack identity.
     pub fn basic_attack(self) -> Option<BasicAttack> {
         let (source, damage, recovery) = match self.class {
-            1 => {
+            0 | 1 | 3 | 5 => {
                 let weapon = self.weapon?;
                 if weapon.two_handed {
                     ("Weapon Attack", 36., 3.)
@@ -48,6 +48,46 @@ impl Milestones {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn weapon_classes_share_normalized_damage_without_using_slots() {
+        use crate::gear_loadout::{MeleeKind, MeleeWeapon};
+        for class in 0..9 {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            assert_eq!(base.basic_attack(), None);
+            for kind in [
+                MeleeKind::Axe,
+                MeleeKind::Mace,
+                MeleeKind::Sword,
+                MeleeKind::Polearm,
+                MeleeKind::Staff,
+                MeleeKind::Fist,
+                MeleeKind::Dagger,
+            ] {
+                for two_handed in [false, true] {
+                    let talents = Milestones {
+                        weapon: Some(MeleeWeapon { kind, two_handed }),
+                        ..base
+                    };
+                    let attack = talents.basic_attack_at_level(60);
+                    assert_eq!(attack.is_some(), matches!(class, 0 | 1 | 3 | 5));
+                    if let Some(attack) = attack {
+                        assert_eq!(attack.source, "Weapon Attack");
+                        assert_eq!(attack.damage / attack.recovery, 12.);
+                        assert_eq!(attack.damage, if two_handed { 36. } else { 24. });
+                        assert_eq!(attack.reach, 3.);
+                    }
+                    assert_eq!(
+                        talents.starting_abilities("wrath"),
+                        base.starting_abilities("wrath")
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn predatory_strikes_scales_run_level_and_base_cadence_only_in_feral_forms() {
         for form in DruidForm::ALL {

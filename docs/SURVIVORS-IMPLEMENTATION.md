@@ -10684,3 +10684,15 @@ implementation order. Acquisition and Energy/Rage conversion choices are pending
 current automatic Claw/Maul and the retained spell pool stay unchanged. Extend
 form gating through drafting and runtime, not just starter presentation. No
 additional talent/ability acceptance is claimed by this evidence checkpoint.
+
+## Melee automatic-attack foundation — 2026-11-02
+
+Warrior, Rogue and Shaman join Paladin on the normalized, worn-weapon automatic
+attack path outside all six slots. Cat/Bear remain weapon-independent. Starter
+labels consume the same class/loadout rule. [Scope and remaining talent integration](audits/MELEE-AUTOMATIC-ATTACKS.md)
+explicitly separate attack eligibility from the outstanding weapon-proc audit;
+this does not complete class talents or the overall acceptance contract.
+
+Preview follow-up: hot-switching compact Rogue → Shaman in the file-driven starter
+preview left some text missing until restart. Investigate text invalidation;
+the fresh-launch capture is not proof that hot reload is correct.

@@ -580,9 +580,12 @@ pub(super) fn cast_abilities(
     } else {
         std::borrow::Cow::Borrowed(&foes)
     };
-    // Survivors-authored physical attack: worn Paladin weapon or selected feral form.
+    // Survivors-authored physical attack: worn melee-class weapon or selected feral form.
     // It is not Owned, so drafting six abilities cannot remove or upgrade it.
-    if (run.class.id == 2 && talents.class == 1) || (run.class.id == 11 && talents.class == 8) {
+    if data::CLASSES
+        .get(talents.class)
+        .is_some_and(|class| class.id == run.class.id)
+    {
         run.weapon_attack_cd = (run.weapon_attack_cd - dt).max(0.0);
         if let (Some(attack), Some(world)) = (
             talents.basic_attack_at_level(run.level),
