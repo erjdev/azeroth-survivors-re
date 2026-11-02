@@ -9,6 +9,15 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Tree-granted starting kit — 2026-11-01
+
+[Mind Flay, Silence and Repentance](audits/TALENT-STARTING-ABILITIES.md) now join
+startup at rank one, with a shared starter/runtime list, duplicate protection,
+refund/spec isolation and normal six-slot upgrade behavior. Existing combinations
+fit the three-start limit. Additional melee consumers, feral abilities and a
+future over-cap choice policy remain open; no bulk recommendations are assumed
+approved. Native Priest refund/restart and wide/compact evidence are recorded.
+
 ## Permanent-form follow-up and starter-kit policy — 2026-11-01
 
 [Feline Swiftness](audits/FELINE-SWIFTNESS.md) now has Cat-only outdoor speed

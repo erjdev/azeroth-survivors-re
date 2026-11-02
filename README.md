@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Trained Mind Flay, Silence and Repentance now become starting abilities, and the
+starter lists the selected build's kit. [Evidence and limits](docs/audits/TALENT-STARTING-ABILITIES.md).
+
+![Priest starting kit](docs/images/screenshots/2026-11-01-starting-talents/priest-compact.jpg)
+
 Enter now establishes keyboard focus on Armory pages without starting gameplay.
 [Keyboard regression evidence](docs/audits/ARMORY-KEYBOARD-ISOLATION.md).
 

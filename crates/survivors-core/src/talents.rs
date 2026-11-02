@@ -191,6 +191,22 @@ impl Milestones {
         self
     }
 
+    /// Tree-granted starting spells augment the class default; automatic melee is separate.
+    /// Catalog tests enforce the three-slot starting limit before new unlocks can ship.
+    pub fn starting_abilities(self, default: &'static str) -> Vec<&'static str> {
+        let mut keys = vec![default];
+        for (index, node) in definitions(self.class).iter().enumerate() {
+            if self.training[index] > 0 {
+                if let TalentStat::AbilityUnlock(key) = node.stat {
+                    if !keys.contains(&key) {
+                        keys.push(key);
+                    }
+                }
+            }
+        }
+        keys
+    }
+
     pub fn ability_unlocked(self, key: &str) -> bool {
         match key {
             "silence" => {
@@ -2477,9 +2493,9 @@ impl TalentDefinition {
         }
         if matches!(self.stat, TalentStat::AbilityUnlock(_)) {
             return if rank == 0 {
-                format!("Unlock {} for acquisition", self.name)
+                format!("Unlock {} as a starting ability", self.name)
             } else {
-                format!("{} available for acquisition", self.name)
+                format!("{} included in starting abilities", self.name)
             };
         }
         let rank = rank.min(self.max_rank);
@@ -3058,7 +3074,7 @@ pub const PALADIN_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 1441, max_rank: 1, name: "Repentance",
-        description: "Unlocks Repentance in ability choices. Acquire it during the run to incapacitate nearby non-boss humanoids until damaged. Does not occupy an ability slot until acquired (Survivors automatic-cast conversion)",
+        description: "Start each run with rank-one Repentance in an ability slot alongside your class default. Automatically incapacitates nearby non-boss humanoids until damaged; level-up cards can upgrade it",
         stat: TalentStat::AbilityUnlock("repentance"), per_rank: 1.0,
     },
     TalentDefinition {
@@ -3982,7 +3998,7 @@ const PRIEST_SHADOW: &[&str] = &[
 const PRIEST_TALENTS: &[TalentDefinition] = &[
     TalentDefinition {
         id: 541, max_rank: 1, name: "Silence",
-        description: "Unlocks Silence in ability choices. Acquire it during the run to silence ordinary casting enemies for 5 sec. Waits for a visible cast with clear line of sight. Does not occupy an ability slot until acquired or prevent melee attacks",
+        description: "Start each run with rank-one Silence in an ability slot alongside your class default. Silences ordinary casting enemies for 5 sec; waits for a visible cast with clear line of sight. Does not prevent melee attacks; level-up cards can upgrade it",
         stat: TalentStat::AbilityUnlock("silence"), per_rank: 1.0,
     },
     TalentDefinition {
@@ -3992,7 +4008,7 @@ const PRIEST_TALENTS: &[TalentDefinition] = &[
     },
     TalentDefinition {
         id: 501, max_rank: 1, name: "Mind Flay",
-        description: "Unlocks Mind Flay in ability choices. Acquire it during the run to channel Shadow damage and slow connected enemies. Does not occupy an ability slot until acquired",
+        description: "Start each run with rank-one Mind Flay in an ability slot alongside your class default. Channels Shadow damage and slows connected enemies; level-up cards can upgrade it",
         stat: TalentStat::AbilityUnlock("mind_flay"), per_rank: 1.0,
     },
     TalentDefinition {
@@ -5054,7 +5070,7 @@ mod stat_talent_tests {
         for node in (0..9).flat_map(definitions) {
             if let Some(text) = node.inline_description(0) {
                 if matches!(node.stat, TalentStat::AbilityUnlock(_)) {
-                    assert!(text.starts_with("Unlocks "));
+                    assert!(text.starts_with("Start each run with "));
                     let (rich, ranges) = node.inline_description_with_values(0).unwrap();
                     assert_eq!(&rich[ranges[0].clone()], node.name);
                     continue;
@@ -5142,7 +5158,7 @@ mod stat_talent_tests {
                 assert!(node.rank_preview(0).starts_with("Unlock "));
                 assert!(node
                     .rank_preview(node.max_rank)
-                    .contains("available for acquisition"));
+                    .contains("included in starting abilities"));
             } else {
                 assert!(node.rank_preview(0).contains("next rank"));
             }
@@ -8430,5 +8446,63 @@ mod sprint_tests {
         let def = talent_definition(3, 222).unwrap();
         let (text, ranges) = def.inline_description_with_values(1).unwrap();
         assert_eq!(&text[ranges[0].clone()], "50 » 100% chance");
+    }
+}
+
+#[cfg(test)]
+mod starting_ability_tests {
+    use super::*;
+
+    #[test]
+    fn learned_starting_kit_is_class_scoped_unique_and_at_most_three_slots() {
+        let foreign = [(2, 541, 1), (2, 501, 1), (2, 1441, 1)];
+        for (class, definition) in crate::data::CLASSES.iter().enumerate() {
+            let base = Milestones {
+                class,
+                ..Default::default()
+            };
+            assert_eq!(
+                base.starting_abilities(definition.start),
+                vec![definition.start]
+            );
+            let trained = base.with_ranks(&foreign);
+            let kit = trained.starting_abilities(definition.start);
+            assert_eq!(
+                kit.len(),
+                match class {
+                    1 => 2,
+                    4 => 3,
+                    _ => 1,
+                }
+            );
+            assert!(kit.iter().enumerate().all(|(i, k)| !kit[..i].contains(k)));
+            for key in &kit {
+                assert!(trained.ability_unlocked(key));
+            }
+            assert_eq!(
+                trained.with_ranks(&[]).starting_abilities(definition.start),
+                vec![definition.start]
+            );
+            let all: Vec<_> = definitions(class)
+                .iter()
+                .map(|d| (0, d.id, d.max_rank))
+                .collect();
+            assert!(
+                base.with_ranks(&all)
+                    .starting_abilities(definition.start)
+                    .len()
+                    <= 3,
+                "new talent grants require an explicit starting-kit choice policy"
+            );
+        }
+        let priest = Milestones {
+            class: 4,
+            ..Default::default()
+        }
+        .with_ranks(&foreign);
+        assert_eq!(
+            priest.starting_abilities("silence"),
+            vec!["silence", "mind_flay"]
+        );
     }
 }

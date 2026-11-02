@@ -104,3 +104,8 @@ Tests must cover every startup route, no talent, both Priest unlocks, Paladin,
 refund/spec switching, immutable active runs, the three-start cap and six-slot
 acquisition ceiling. Starter labels and green descriptions must show the actual
 kit; old text claiming only future card eligibility must be replaced.
+
+The [starting-kit checkpoint](TALENT-STARTING-ABILITIES.md) implements the three
+existing explicit unlocks through that shared initialization. This supersedes
+their card-only behavior described above; new feral grants and any over-cap kit
+selection remain open.

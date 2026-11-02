@@ -13,6 +13,9 @@ at most three slotted abilities initially and six total. Automatic melee attacks
 remain outside slots and must expand to Warrior/Rogue and other melee builds;
 Energy/Rage cost reductions convert to recovery. [Integration plan](audits/FERAL-ABILITY-DEPENDENCIES.md).
 
+The existing Mind Flay/Silence/Repentance unlocks now [grant starting abilities](audits/TALENT-STARTING-ABILITIES.md),
+with matching starter labels. Remaining abilities and melee consumers are still open.
+
 ## Immediate order
 
 1. Finish starter/Armory behavior, persistence and responsive acceptance, including

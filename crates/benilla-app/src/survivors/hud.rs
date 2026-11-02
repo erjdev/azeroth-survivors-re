@@ -4441,3 +4441,42 @@ mod silence_tests {
         assert!(!coating_available(&run, def));
     }
 }
+
+#[cfg(test)]
+mod trained_starter_tests {
+    use super::*;
+    #[test]
+    fn trained_starters_offer_upgrades_and_preserve_six_slot_limit() {
+        let talents = survivors_core::talents::Milestones {
+            class: 4,
+            ..Default::default()
+        }
+        .with_ranks(&[(2, 541, 1), (2, 501, 1)]);
+        let mut run = Run {
+            class: &data::CLASSES[4],
+            ..Default::default()
+        };
+        run.finish_start(Default::default(), talents);
+        let mut rng = Rng(42);
+        let choices = choices_for(&run, &mut rng, 100);
+        for (index, owned) in run.abilities.iter().enumerate() {
+            assert!(choices
+                .iter()
+                .any(|c| matches!(c, Choice::Upgrade(i) if *i == index)));
+            assert!(!choices
+                .iter()
+                .any(|c| matches!(c, Choice::NewAbility(d) if d.key == owned.def.key)));
+        }
+        for key in ["shadow_word_pain", "holy_fire", "mind_blast"] {
+            run.abilities.push(Owned {
+                def: data::ability(key),
+                level: 1,
+                cd: 0.5,
+            });
+        }
+        assert_eq!(run.abilities.len(), data::MAX_ABILITIES);
+        assert!(!choices_for(&run, &mut rng, 100)
+            .iter()
+            .any(|c| matches!(c, Choice::NewAbility(_))));
+    }
+}

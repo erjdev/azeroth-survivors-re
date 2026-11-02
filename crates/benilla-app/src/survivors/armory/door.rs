@@ -597,7 +597,14 @@ fn class_column(
     })
     .with_children(|row| {
         stat(row, font, "Health", &class_health(class.id).to_string());
-        stat(row, font, "Starts with", &super::spell_title(class.start));
+        let starting = account
+            .milestones_picked(class_i, selection.character)
+            .starting_abilities(class.start)
+            .into_iter()
+            .map(super::spell_title)
+            .collect::<Vec<_>>()
+            .join(" · ");
+        stat(row, font, "Starts with", &starting);
         stat(row, font, "Zones open", &format!("{open}/{}", ZONES.len()));
     });
     if let Some(attack) = account

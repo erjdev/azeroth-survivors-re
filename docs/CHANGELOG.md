@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Talents grant starting abilities
+
+Trained Mind Flay, Silence and Repentance now join the starting kit at rank one,
+using normal slots. The starter lists the actual kit; level-up cards upgrade
+those spells. Native Priest checks cover wide/compact layout, refund and restart.
+360 shared-rule tests, scoped gate (31 optional-addon skips), final Clippy,
+native build and WebGPU check pass. Build output: 57.05 GiB.
+[Evidence and limits](audits/TALENT-STARTING-ABILITIES.md).
+
+![Three starting abilities on the compact starter](images/screenshots/2026-11-01-starting-talents/priest-compact.jpg)
+
 ## 2026-11-01 — Armory keyboard isolation
 
 Enter now establishes focus on Armory pages before activating a control; the

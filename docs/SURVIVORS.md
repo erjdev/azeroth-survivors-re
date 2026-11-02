@@ -1297,3 +1297,12 @@ melee dodge indoors or outdoors. Movement multiplies other speed bonuses and
 uses the body position's WMO/terrain indoor classification. Saved ranks persist;
 no-form, Bear, Moonkin and Tree builds receive neither effect. This supersedes
 the temporary unconditional +5/10% speed conversion. See [evidence](audits/FELINE-SWIFTNESS.md).
+
+### Existing talent starter grants
+
+Training Mind Flay, Silence or Repentance grants the corresponding rank-one spell
+at run start alongside the class default, using a normal ability slot. The starter
+lists the actual selected-spec kit. Level-up cards upgrade these owned spells;
+refunds affect subsequent runs. Priest's two trained grants plus Smite fill three
+starting slots; Paladin's Repentance plus Hammer of Wrath fill two. This supersedes
+the earlier random-acquisition-only rule for these three talents.

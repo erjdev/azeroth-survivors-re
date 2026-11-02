@@ -740,6 +740,23 @@ impl Run {
     ) {
         self.apply_perks(perks);
         self.milestones = milestones;
+        for key in milestones
+            .starting_abilities(self.class.start)
+            .into_iter()
+            .filter(|_| {
+                data::CLASSES
+                    .get(milestones.class)
+                    .is_some_and(|class| class.id == self.class.id)
+            })
+        {
+            if !self.abilities.iter().any(|owned| owned.def.key == key) {
+                self.abilities.push(Owned {
+                    def: data::ability(key),
+                    level: 1,
+                    cd: 0.5,
+                });
+            }
+        }
         self.hp = self.stats().max_hp;
     }
 
@@ -1316,5 +1333,73 @@ mod power_infusion_tests {
         assert_eq!(run.stats().regen, without_renew);
         run.milestones = run.milestones.with_ranks(&[(1, 406, 3), (1, 404, 5)]);
         assert_eq!(run.passive_value(renew, 3), normal);
+    }
+}
+
+#[cfg(test)]
+mod starting_ability_tests {
+    use super::*;
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn startup_grants_trained_spells_once_at_rank_one_and_keeps_snapshots_independent() {
+        for (class, ranks, expected) in [
+            (4, vec![], vec!["smite"]),
+            (4, vec![(2, 501, 1)], vec!["smite", "mind_flay"]),
+            (4, vec![(2, 541, 1)], vec!["smite", "silence"]),
+            (
+                4,
+                vec![(2, 541, 1), (2, 501, 1)],
+                vec!["smite", "silence", "mind_flay"],
+            ),
+            (1, vec![(2, 1441, 1)], vec!["hammer_of_wrath", "repentance"]),
+        ] {
+            let mut run = Run {
+                class: &data::CLASSES[class],
+                ..Default::default()
+            };
+            let talents = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&ranks);
+            run.finish_start(Default::default(), talents);
+            let keys = |r: &Run| r.abilities.iter().map(|o| o.def.key).collect::<Vec<_>>();
+            assert_eq!(keys(&run), expected);
+            assert!(run.abilities.iter().all(|o| o.level == 1 && o.cd == 0.5));
+            run.finish_start(Default::default(), talents);
+            assert_eq!(
+                keys(&run),
+                expected,
+                "startup must not duplicate owned spells"
+            );
+            let mut refunded = Run {
+                class: run.class,
+                ..Default::default()
+            };
+            refunded.finish_start(Default::default(), talents.with_ranks(&[]));
+            assert_eq!(keys(&refunded), vec![run.class.start]);
+            assert_eq!(
+                keys(&run),
+                expected,
+                "next spec does not mutate the existing run"
+            );
+        }
+        let mut wrong = Run {
+            class: &data::CLASSES[1],
+            ..Default::default()
+        };
+        wrong.finish_start(
+            Default::default(),
+            Milestones {
+                class: 4,
+                ..Default::default()
+            }
+            .with_ranks(&[(2, 541, 1)]),
+        );
+        assert!(
+            wrong.abilities.is_empty(),
+            "foreign class snapshot cannot grant spells"
+        );
     }
 }
