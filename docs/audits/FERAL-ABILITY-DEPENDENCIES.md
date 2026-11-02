@@ -33,12 +33,12 @@ Dire Bear; 0x91 includes all three. Survivors has one permanent Bear choice.
 | Rake 1822 | Cat | Direct damage, nine-second bleed with three-second ticks, one combo point. Direct and periodic components need consistent physical provenance and separate critical handling. |
 | Shred 5221 | Cat | Behind-target restriction, weapon-relative damage and one combo point. Tooltip literal bonus and raw effect values differ; do not infer the full damage formula from one number. |
 | Bash 5211 | Bear | Two-second stun, 60-second category recovery. Needs ordinary/boss control rules and interrupt policy. |
-| Pounce 9005 → 9007 | Cat | Prowling and behind-target restrictions; two-second stun, triggered bleed, one combo point. Must inspect the triggered row and supply a real Prowl lifecycle. |
+| Pounce 9005 → 9007 | Cat | Prowling and behind-target restrictions; two-second stun, triggered bleed, one combo point. Redesign as an ordinary range-gated stun/bleed; no Prowl, positioning or combo prerequisite. |
 | Ferocious Bite 22568 | Cat | Combo-point damage, extra-Energy conversion and attack-power scaling. Raw combo coefficient 36 and damage-multiplier field 1 are insufficient to reproduce the complete server formula. |
 | Demoralizing Roar 99 | Bear | Ten-yard area, 30-second attack-power reduction. Needs outgoing melee-damage conversion and strongest-effect/refresh semantics. |
-| Enrage 5229 | Bear | Ten-second Rage generation, 60-second recovery and form-specific base-armor penalty. Needs an explicit resource-free conversion or a resource system. |
-| Prowl 5215 | Cat | Persistent concealment with movement penalty. Needs approach/exit behavior, opener consumption and attack interaction. |
-| Faerie Fire (Feral) 16857 | Cat/Bear | 30-yard range, six-second category recovery, 40-second armor reduction and suppression of stealth/invisibility. Needs shared debuff identity, physical mitigation and perception integration. |
+| Enrage 5229 | Bear | Ten-second Rage generation, 60-second recovery and form-specific base-armor penalty. Use an authored recovery benefit; do not add a resource system. |
+| Prowl 5215 | Cat | Persistent concealment with movement penalty. Rejected for Survivors: replace dependent talent benefits without implementing concealment. |
+| Faerie Fire (Feral) 16857 | Cat/Bear | 30-yard range, six-second category recovery, 40-second armor reduction and suppression of stealth/invisibility. Needs shared debuff identity and physical mitigation; player stealth is not a prerequisite. |
 
 Raw Rage cost fields use different units from displayed Rage. Preserve that
 separation when interpreting Ferocity's two cost-modifier effects. Installed
@@ -63,16 +63,16 @@ recovery, category recovery and global recovery are separate fields; a zero
 3. Implement Rake/Swipe and their physical hit/bleed semantics, then fully scope
    Ferocity and Savage Fury. Natural Weapons and Predatory Strikes must explicitly
    include or exclude new attacks; do not silently extend automatic-only wording.
-4. Implement target-owned combo accounting or an approved explicit conversion
-   before Shred/Bite/Blood Frenzy. Existing Rogue talents use recovery conversions;
-   there is no existing generic combo-point store to reuse.
-5. Implement Prowl/opener lifecycle before Pounce/Feral Instinct; Bash/Pounce must
-   both exist before claiming Brutal Impact complete. Charge additionally needs
-   collision-safe displacement and a real interrupt consumer.
-6. Implement Roar, Enrage and Faerie Fire with their complete debuff/resource
-   behavior, then their dependent talents. Current enemy concealment can be
-   overridden by an observer-owned Hunter's Mark; this is not yet generic
-   Faerie Fire suppression. Scenery visibility is a separate concern.
+4. Redesign Shred/Bite/Blood Frenzy without combo points or positional checks.
+   Use normalized physical damage and authored recovery/proc effects; document
+   the replacement rather than implementing a combo-point store.
+5. Redesign Pounce/Feral Instinct without Prowl or opener state. Bash/Pounce must
+   have actual stun consumers before claiming Brutal Impact complete. Charge
+   additionally needs collision-safe displacement and an interrupt consumer.
+6. Implement Roar, Enrage and Faerie Fire with their debuff/recovery behavior,
+   then dependent talents. Threat becomes recovery or damage percentage;
+   Energy/Rage becomes recovery reduction. Do not add resource or player-stealth
+   systems to satisfy installed reference text.
 7. Verify core formulas, real ECS casts/settlement, card exclusion and inline
    upgrades, native wide/compact purchase/refund/restart, then attended gameplay
    and Windows. Keep definition coverage distinct from this acceptance matrix.
@@ -101,8 +101,8 @@ nodes. A Priest with both fits three slotted starting abilities; Paladin has two
 slotted abilities plus its previously approved separate weapon attack. Preserve
 rank-one cooldown initialization and prevent duplicate grants, invalid-class
 imports or accidental modifications to an active run. If later tree combinations
-exceed the starting limit, provide an explicit starter-kit choice/replacement
-policy rather than silently dropping learned abilities in catalog order.
+exceed the starting limit, redesign grants to replace or augment existing abilities.
+Do not add an overflow choice menu or silently drop grants in catalog order.
 
 Tests must cover every startup route, no talent, both Priest unlocks, Paladin,
 refund/spec switching, immutable active runs, the three-start cap and six-slot
@@ -111,5 +111,5 @@ kit; old text claiming only future card eligibility must be replaced.
 
 The [starting-kit checkpoint](TALENT-STARTING-ABILITIES.md) implements the three
 existing explicit unlocks through that shared initialization. This supersedes
-their card-only behavior described above; new feral grants and any over-cap kit
-selection remain open.
+their card-only behavior described above; new feral grants and redesign of any
+over-cap combinations remain open.

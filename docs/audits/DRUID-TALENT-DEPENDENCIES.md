@@ -1,5 +1,11 @@
 # Druid talent dependencies — 2026-10-29
 
+**Policy update:** The installed-mechanic rows below are historical evidence, not
+requirements to build combo points, stealth, resource pools or temporary forms.
+[Approved combat rules](../SURVIVORS-COMBAT-POLICY.md) and the
+[current feral integration plan](FERAL-ABILITY-DEPENDENCIES.md#integration-order)
+govern remaining work. Permanent forms and independent moving attacks are settled.
+
 The initial checkout-data audit found 27/47 matching Druid definitions. Regrowth
 and node 825 now have runtime consumers; nineteen nodes below remain provisional.
 Coverage at that checkpoint was 28/47 Druid and 309/432 overall. Installed reference rules and

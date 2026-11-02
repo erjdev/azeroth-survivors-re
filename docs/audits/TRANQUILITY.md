@@ -52,13 +52,14 @@ spell's threat by 50/100%; it does not increase healing in the installed data.
 - Enemy targeting is hero/nearby-pet/taunt based (`enemies.rs`), with bosses keeping
   hero pressure. There is no healing-generated threat ledger for node 842 to reduce.
 
-## Required next decisions and implementation
+## Approved policy and remaining implementation
 
-The movement/attack policy is awaiting the user's answer: allow movement and
-other automatic attacks, or cancel on movement and suspend attacks while
-channeling. Do not silently choose that gameplay tradeoff from the stock mask.
+The approved policy allows movement and all other automatic attacks throughout
+channeling. Each ability keeps its own timer; movement must not cancel healing.
+Convert Improved Tranquility's threat benefit to recovery reduction or damage
+percentage, with documented tuning; do not introduce a healing-threat ledger.
 
-Once settled, implement a healing-channel state using the shared pulse clock,
+Implement a healing-channel state using the shared pulse clock,
 with cast-snapshotted per-pulse healing, one active instance and no immediate heal.
 Specify authored amount, recovery, duration/rank scaling and recipients separately
 from installed values. Extra-target bonuses must never duplicate an area at multiple

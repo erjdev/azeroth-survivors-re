@@ -5,6 +5,13 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Combat-plan reconciliation
+
+Mage, Feral and Tranquility implementation checklists now follow the approved
+combat policy: extra-cast Clearcasting, moving independent attacks, resource-free
+conversions and no combo/stealth prerequisites. Removed stale requests for settled
+decisions. Documentation only; runtime conversions remain unfinished.
+
 ## 2026-11-02 — Starter reload investigation
 
 Captured the missing-text defect on repeated class switches and narrowed the
