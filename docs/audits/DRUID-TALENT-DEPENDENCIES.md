@@ -164,7 +164,23 @@ No combat was started; the app was closed and its temporary launcher restored.
 
 This clears the base model/skin discovery prerequisite. Form acquisition and
 selection, non-vanilla race policy, equipment hide/restore, player scale/collision,
-camera bounds, attack consumers and Windows acceptance remain open. The user has
-been asked whether forms are selected on the starter, acquired as run cards, or
-manually switched during play; that decision has not been inferred from the
-model evidence. No talent definition coverage changes in this checkpoint.
+camera bounds, attack consumers and Windows acceptance remain open. The acquisition decision is now resolved below; the earlier model evidence
+did not establish it. No talent definition coverage changes in this checkpoint.
+
+## Approved form lifecycle — 2026-11-01
+
+User decision: forms are permanent progression upgrades, active throughout each
+run. Cat and Bear belong to Feral; Moonkin belongs to Balance; Restoration gets
+Tree of Life. Selecting any one excludes all other forms in the same build.
+Forms are not temporary abilities or run-card pickups.
+
+Implementation must cover visible talent-tree choices and benefits, purchase
+exclusion with a clear reason, refunds and independent saved specs, persistence,
+and validation of conflicting imported/legacy builds. Snapshot the selected form
+at run start; apply its model, equipment visibility and mechanical benefits for
+the run, and restore normal presentation on exit. Bind dependent talents and
+attacks to actual form state. Verify tree layout at compact/wide sizes, save/restart
+and actual run consumers before claiming completion. Tree of Life needs its own
+checkout-data model audit; the existing six specimens cover Cat/Bear/Moonkin only.
+Exact benefit tuning and no-resource adaptations remain implementation work;
+vanilla mana costs or repeated-shift procs cannot be carried over unchanged.

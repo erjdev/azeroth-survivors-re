@@ -16,6 +16,8 @@ pub(super) enum HitOrigin {
     #[default]
     Hero,
     CombatPet,
+    /// Already-settled retaliation: no offensive multipliers, echoes or on-hit talents.
+    Reflection,
 }
 
 impl HitOrigin {
@@ -25,7 +27,7 @@ impl HitOrigin {
     ) -> survivors_core::talents::Milestones {
         match self {
             Self::Hero => talents,
-            Self::CombatPet => Default::default(),
+            Self::CombatPet | Self::Reflection => Default::default(),
         }
     }
 }
@@ -1953,6 +1955,31 @@ pub(super) fn apply_hits(
             continue;
         };
         if en.dead {
+            continue;
+        }
+        if h.origin == HitOrigin::Reflection {
+            if !run.alive() || !h.damage.is_finite() || h.damage <= 0. {
+                continue;
+            }
+            let removed = h.damage.min(en.hp.max(0.));
+            wake_on_damage(&mut en, &mut marks, removed);
+            en.hp -= removed;
+            run.add_damage(h.source, removed);
+            fx.number(e, removed, false, h.color);
+            if en.hp <= 0. {
+                kill(
+                    &mut commands,
+                    &mut run,
+                    &mut account,
+                    &mut rng,
+                    e,
+                    tf.translation,
+                    &mut en,
+                );
+                units::kill_unit(&mut store);
+                marks.clear();
+            }
+            marks.flush(e, guid.0, &mut store, &mut fields);
             continue;
         }
         let stats = run.stats();

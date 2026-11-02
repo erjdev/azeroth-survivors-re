@@ -650,9 +650,9 @@ pub(super) fn move_enemies(
         if completed {
             // Survivors tuning uses the roster's scaled damage, not raw vanilla damage.
             // Spell damage ignores physical-only Curse of Weakness and melee reflection.
-            let raw = e.damage * 3.0 * e.weaken;
+            let (raw, critical) =
+                super::enemy_casting::frostbolt_damage(e.damage * 3.0 * e.weaken, rng.f32());
             let taken;
-            let mut critical = false;
             if let Some((entity, _)) = stoneclaw_target {
                 let (_, _, mut totem, mut store) = stoneclaws.get_mut(entity).unwrap();
                 taken = totem.life.hurt(raw, run.elapsed);
@@ -681,10 +681,12 @@ pub(super) fn move_enemies(
                     super::enemy_casting::FROSTBOLT.id,
                     super::enemy_casting::FROSTBOLT.school,
                     raw,
-                    false,
+                    critical,
                 );
                 taken = strike.outcome.health_removed();
-                critical = strike.critical;
+                if let Some(hit) = super::defense::eye_for_an_eye(&run, strike) {
+                    hits.write(hit);
+                }
                 debug_assert_eq!(
                     (strike.attacker, strike.spell),
                     (ent, super::enemy_casting::FROSTBOLT.id)

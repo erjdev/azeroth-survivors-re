@@ -5,6 +5,8 @@ use bevy::ecs::system::RunSystemOnce;
 
 fn setup() -> (App, Entity, Entity) {
     let (mut app, hero, enemy) = super::earthbind_tests::setup(true);
+    // Preserve ordinary-hit fixtures; critical tests choose their own settlement seed.
+    app.insert_resource(Rng(42));
     let def = (0..data::MAPS.len())
         .flat_map(|map| data::roster(map).enemies.iter())
         .find(|def| def.template_entry == 1522)
@@ -765,4 +767,95 @@ fn kick_splash_does_not_copy_interrupt_or_silence() {
         .state
         .active()
         .is_some());
+}
+
+#[test]
+fn eye_for_an_eye_returns_only_survived_critical_health_loss_without_attack_procs() {
+    for (rank, critical, shield, immune, lethal) in [
+        (0, true, 0., false, false),
+        (1, true, 0., false, false),
+        (2, true, 0., false, false),
+        (2, false, 0., false, false),
+        (2, true, 10., false, false),
+        (2, true, 50., false, false),
+        (2, true, 0., true, false),
+        (2, true, 0., false, true),
+    ] {
+        let (mut app, _, enemy) = setup();
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.class = &data::CLASSES[1];
+            run.milestones = survivors_core::talents::Milestones {
+                class: 1,
+                ..default()
+            }
+            .with_ranks(&[(2, 1632, rank), (2, 1402, 5)]);
+            run.hp = if lethal { 20. } else { 1000. };
+            run.bonus.health = 1000.;
+            run.bonus.multistrike = 5.;
+            run.bonus.leech = 1.;
+            run.bonus.might = 5.;
+            run.shield = shield;
+            run.shield_t = 10.;
+            run.immune_t = if immune { 10. } else { 0. };
+        }
+        tick(&mut app, 0.);
+        // This caster has no in-range melee or other RNG before spell settlement.
+        let seed = (1..1000)
+            .find(|seed| (Rng(*seed).f32() < 0.05) == critical)
+            .unwrap();
+        app.insert_resource(Rng(seed));
+        tick(&mut app, 3.);
+        let hp = app.world().resource::<Run>().hp;
+        let returned = if critical && rank > 0 && !immune && !lethal {
+            (45.0f32 - shield).max(0.) * f32::from(rank) * 0.15
+        } else {
+            0.
+        };
+        let enemy_hp = app.world().get::<Enemy>(enemy).unwrap().hp;
+        let messages = app.world().resource::<Messages<Hit>>();
+        if returned > 0. {
+            let mut reader = messages.get_cursor();
+            let hits: Vec<_> = reader.read(messages).collect();
+            assert_eq!(hits.len(), 1);
+            assert_eq!(hits[0].target, enemy);
+            assert_eq!(hits[0].origin, HitOrigin::Reflection);
+            assert!((hits[0].damage - returned).abs() < 0.001);
+            assert!(!hits[0].crit);
+        } else {
+            assert!(messages.is_empty());
+        }
+        app.world_mut().run_system_once(apply_hits).unwrap();
+        assert!(
+            (app.world().get::<Enemy>(enemy).unwrap().hp - (enemy_hp - returned)).abs() < 0.001
+        );
+        assert_eq!(
+            app.world().resource::<Run>().hp,
+            hp,
+            "reflection must not leech"
+        );
+        // Reading the same message stream again must not repeat retaliation.
+        app.world_mut().resource_mut::<Messages<Hit>>().clear();
+        app.world_mut().run_system_once(apply_hits).unwrap();
+        assert!(
+            (app.world().get::<Enemy>(enemy).unwrap().hp - (enemy_hp - returned)).abs() < 0.001
+        );
+    }
+}
+
+#[test]
+fn frostbolt_critical_boundary_is_authored_and_finite() {
+    for (roll, critical) in [
+        (0., true),
+        (0.0499, true),
+        (0.05, false),
+        (0.99, false),
+        (-1., false),
+        (f32::NAN, false),
+    ] {
+        assert_eq!(
+            enemy_casting::frostbolt_damage(30., roll),
+            (if critical { 45. } else { 30. }, critical)
+        );
+    }
 }

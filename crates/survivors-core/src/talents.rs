@@ -20,6 +20,7 @@ pub use mage::{ArcanePowerClock, ColdSnapClock, CombustionClock};
 pub use natures_grace::NaturesGrace;
 pub use poison::{Coating, DeadlyPoison};
 pub use rogue::{AdrenalineRushClock, BladeFlurryClock, PreparationClock};
+mod eye_for_an_eye;
 mod healing_way;
 mod illumination;
 mod shaman;
@@ -1800,6 +1801,7 @@ pub enum TalentStat {
     InspirationArmor,
     FlurryHaste,
     Vengeance,
+    EyeForAnEye,
     Remorseless,
     SealFate,
     ColdBlood,
@@ -2207,6 +2209,7 @@ impl TalentDefinition {
             | TalentStat::ElementalMastery
             | TalentStat::InnerFocus
             | TalentStat::ImprovedHawk
+            | TalentStat::EyeForAnEye
             | TalentStat::Vengeance
             | TalentStat::AdrenalineRush
             | TalentStat::BladeFlurry
@@ -2621,6 +2624,7 @@ impl TalentDefinition {
             TalentStat::Remorseless => (100.0, "% next-attack critical chance after a kill"),
             TalentStat::SealFate => (100.0, "% finisher recovery chance on a builder critical hit"),
             TalentStat::FlurryHaste => (100.0, "% haste while Flurry is active"),
+            TalentStat::EyeForAnEye => (100.0, "% incoming spell-critical health damage returned"),
             TalentStat::Vengeance => (100.0, "% Paladin weapon and Holy damage while Vengeance is active"),
             TalentStat::InspirationArmor => (100.0, "% armor after Holy Nova healing"),
             TalentStat::BlessedRecovery => (100.0, "% health damage restored over 6 sec"),
@@ -2992,6 +2996,11 @@ pub const PALADIN_HOLY: &[&str] = &[
 ];
 
 pub const PALADIN_TALENTS: &[TalentDefinition] = &[
+    TalentDefinition {
+        id: 1632, max_rank: 2, name: "Eye for an Eye",
+        description: "Return 15% per rank of health lost to an enemy spell critical to its caster, capped at 50% of your maximum health. Requires surviving the hit. Absorbed damage, pet damage and melee hits do not qualify; returned damage cannot crit, multistrike, lifesteal or trigger attack talents",
+        stat: TalentStat::EyeForAnEye, per_rank: 0.15,
+    },
     TalentDefinition {
         id: 1429, max_rank: 5, name: "One-Handed Weapon Specialization",
         description: "With a worn one-handed melee weapon: +2% physical Weapon Attack damage per rank. Your automatic attack uses no ability slot. Cosmetic weapons, Holy spells, periodic damage and pets do not qualify",
@@ -4194,6 +4203,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
             | TalentStat::FlurryHaste
+            | TalentStat::EyeForAnEye
             | TalentStat::Vengeance
             | TalentStat::CriticalBleed
             | TalentStat::CriticalBurn
@@ -5757,6 +5767,7 @@ mod stat_talent_tests {
                     | TalentStat::PowerInfusion
                     | TalentStat::DivineFavor
                     | TalentStat::FlurryHaste
+                    | TalentStat::EyeForAnEye
                     | TalentStat::Vengeance
                     | TalentStat::CriticalBleed
                     | TalentStat::CriticalBurn

@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Paladin Eye for an Eye now returns a portion of survived enemy spell-critical
+damage. [Rules, native purchase/refund/restart evidence and limits](docs/audits/EYE-FOR-AN-EYE.md).
+
+![Eye for an Eye inline upgrade](docs/images/screenshots/2026-10-31-eye-for-an-eye/rank1-wide.png)
+
 Hero names also support clicking to place the caret and dragging to select text.
 [Pointer editing evidence and limits](docs/audits/NAME-POINTER.md).
 

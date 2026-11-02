@@ -176,6 +176,25 @@ pub(super) fn spell(
     }
 }
 
+/// Only effective, survived hero spell-critical damage returns to the actual caster.
+pub(super) fn eye_for_an_eye(run: &Run, strike: SpellStrike) -> Option<super::abilities::Hit> {
+    if !run.alive() {
+        return None;
+    }
+    let damage = run.milestones.eye_for_an_eye(
+        strike.outcome.health_removed(),
+        run.stats().max_hp,
+        strike.critical,
+    );
+    (damage > 0.).then(|| super::abilities::Hit {
+        origin: super::abilities::HitOrigin::Reflection,
+        occurred: Some(run.elapsed),
+        source: "Eye for an Eye",
+        color: super::units::COLOR_SPELL,
+        ..super::abilities::Hit::direct(strike.attacker, damage, false)
+    })
+}
+
 fn hurt_kind(run: &mut Run, raw: f32, physical: bool) -> Outcome {
     if !raw.is_finite() || raw <= 0.0 {
         return Outcome::Invalid;

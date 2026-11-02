@@ -5,6 +5,23 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Eye for an Eye
+
+Paladins can train spell-critical retaliation: return 15/30% of health actually
+lost, capped at half maximum health, without offensive procs or lifesteal. The
+existing enemy Frostbolt now has an authored 5% critical chance and 1.5× damage.
+Two shared-rule tests, 20 enemy-casting tests, scoped gate and native/WebGPU
+builds pass (31 optional-addon skips). Native purchase, refund and compact restart
+are verified; attended combat and Windows remain open. [Evidence](audits/EYE-FOR-AN-EYE.md).
+
+Recorded the approved Druid direction: permanent run-long progression forms,
+with Cat/Bear, Moonkin and Tree of Life mutually exclusive per build. Implementation
+remains queued in the plan.
+
+![Green inline return percentage](images/screenshots/2026-10-31-eye-for-an-eye/rank1-wide.png)
+
+![Saved refunded rank at 640×720 and 125%](images/screenshots/2026-10-31-eye-for-an-eye/rank1-restarted-compact.png)
+
 ## 2026-10-31 — Mouse editing for hero names
 
 Click inside a name to place its caret; drag in either direction to select letters.

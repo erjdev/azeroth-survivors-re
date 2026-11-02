@@ -12,6 +12,12 @@ pub(super) const RANGE: f32 = 40.;
 pub(super) const SLOW: survivors_core::slows::Source =
     survivors_core::slows::Source::Spell("enemy_frostbolt");
 
+/// Authored Survivors tuning for this roster spell; not inferred from its DBC damage.
+pub(super) fn frostbolt_damage(base: f32, roll: f32) -> (f32, bool) {
+    let critical = roll.is_finite() && (0.0..0.05).contains(&roll);
+    (base * if critical { 1.5 } else { 1.0 }, critical)
+}
+
 #[derive(Component, Default)]
 pub(super) struct Caster {
     pub state: Casting<Entity>,

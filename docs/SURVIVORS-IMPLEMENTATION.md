@@ -9,6 +9,24 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Eye for an Eye — 2026-11-01
+
+[Spell-critical retaliation](audits/EYE-FOR-AN-EYE.md) now uses effective health
+loss and separate provenance to prevent offensive proc chains. Existing enemy
+Frostbolt uses an authored 5% critical chance / 1.5× multiplier. Shared/runtime
+tests, scoped gate, native/WebGPU checks and native purchase/refund/compact restart
+pass. Coverage is 316/432 definitions (Paladin 31/44); attended combat and remaining
+platform acceptance stay open.
+
+## Druid progression forms — 2026-11-01
+
+Approved: permanent, run-long forms bought through progression. Feral offers
+mutually exclusive Cat/Bear; Balance offers Moonkin; Restoration offers Tree of
+Life. All four exclude one another within a build. Implement purchase/refund/spec
+persistence, run snapshots, form visuals and actual benefits according to the
+[Druid acceptance checklist](audits/DRUID-TALENT-DEPENDENCIES.md#approved-form-lifecycle--2026-11-01).
+This replaces the earlier unanswered acquisition question; implementation remains open.
+
 ## Pointer name editing — 2026-10-31
 
 [Mouse caret placement and drag selection](audits/NAME-POINTER.md) now use the
