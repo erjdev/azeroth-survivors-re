@@ -227,3 +227,42 @@ fn physical_training_scales_feral_casts_and_criticals_without_critical_bleeds() 
         }
     }
 }
+
+#[test]
+fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_attacks() {
+    for &key in data::CLASSES[8].pool {
+        for level in [1, 8] {
+            let form = if key == "swipe" {
+                DruidForm::Bear
+            } else {
+                DruidForm::Cat
+            };
+            let (mut app, _) = setup(Some(form), key);
+            let base_cooldown;
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.abilities[0].level = level;
+                run.renown_celerity = 10;
+                run.bonus.cooldown = 0.2;
+                base_cooldown =
+                    Params::new(&run.abilities[0], &run.stats(), run.milestones).cooldown;
+                run.milestones = run.milestones.with_ranks(&[
+                    (form.tree(), form.talent(), 1),
+                    (2, 841, 5),
+                    (2, 829, 3),
+                ]);
+            }
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let factor = match key {
+                "rejuvenation" | "regrowth" | "healing_touch" => 0.9 * 0.94,
+                "rake" | "swipe" => 1.0,
+                _ => 0.94,
+            };
+            assert!(
+                (app.world().resource::<Run>().abilities[0].cd - base_cooldown * factor).abs()
+                    < 0.001,
+                "{key}/{level}"
+            );
+        }
+    }
+}

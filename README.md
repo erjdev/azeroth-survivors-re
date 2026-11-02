@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Druid Subtlety and Reflection now improve healing/caster recovery, with scoped
+green inline previews. [Rules and validation](docs/audits/DRUID-RECOVERY.md).
+
+![Druid recovery upgrade](docs/images/screenshots/2026-11-02-druid-recovery/reflection-wide.jpg)
+
 Physical damage and critical talents now cover Rake/Swipe alongside Claw/Maul.
 [Rules and validation](docs/audits/DRUID-FERAL-PHYSICAL.md).
 

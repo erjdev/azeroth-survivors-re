@@ -1377,3 +1377,10 @@ points per rank) and Leader of the Pack (+3 points) affect all four direct attac
 in Cat/Bear forms. Bleeds remain noncritical; other spells, healing and pets are
 excluded. This supersedes their earlier automatic-only scope. Predatory Strikes
 remains automatic-only. [Acceptance](audits/DRUID-FERAL-PHYSICAL.md).
+
+### Druid resource-free recovery — 2026-11-02
+
+Subtlety: 2% shorter Rejuvenation/Regrowth/Healing Touch cooldown per rank, five
+ranks; no incoming-damage reduction. Reflection: 2% shorter Druid caster/healing
+cooldowns per rank, three ranks; excludes Rake/Swipe/Claw/Maul. Both multiply
+other recovery bonuses. [Spell scope and acceptance](audits/DRUID-RECOVERY.md).

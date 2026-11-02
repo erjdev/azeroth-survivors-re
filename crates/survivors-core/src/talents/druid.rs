@@ -1,8 +1,22 @@
 //! Audited Druid identities with explicit Survivors conversions and permanent form scopes.
 use super::{TalentDefinition, TalentStat};
+const CASTER_SPELLS: &[&str] = &[
+    "wrath",
+    "moonfire",
+    "starfire",
+    "hurricane",
+    "insect_swarm",
+    "entangling_roots",
+    "thorns",
+    "rejuvenation",
+    "regrowth",
+    "healing_touch",
+];
+const HEALING_SPELLS: &[&str] = &["rejuvenation", "regrowth", "healing_touch"];
 const FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe"];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 829, max_rank: 3, name: "Reflection", description: "Druid caster and healing spells: 2% shorter cooldown per rank, multiplying other recovery bonuses. Excludes Rake, Swipe, Claw and Maul (Survivors mana-regeneration conversion)", stat: TalentStat::SpellGroupCooldown(CASTER_SPELLS), per_rank: 0.02 },
     TalentDefinition { id: 796, max_rank: 5, name: "Ferocity", description: "Claw, Maul, Rake and Swipe: 4% shorter cooldown per rank, multiplying haste. Does not change other spells or bleed duration (Survivors Energy/Rage-cost conversion)", stat: TalentStat::SpellGroupCooldown(FERAL_ATTACKS), per_rank: 0.04 },
     TalentDefinition { id: 805, max_rank: 2, name: "Savage Fury", description: "Claw, Maul, Rake and Swipe: +10% direct and periodic damage per rank. Multiplies other damage bonuses; does not change other spells or healing", stat: TalentStat::SpellGroupDamage(FERAL_ATTACKS), per_rank: 0.10 },
     TalentDefinition { id: 803, max_rank: 3, name: "Predatory Strikes", description: "Cat and Bear: gain attack power equal to 50% of your current run level per rank. Each 14 attack power adds 1 base damage per second to automatic Claw/Maul before damage bonuses; no effect on spells or healing (Survivors attack-power conversion)", stat: TalentStat::PredatoryStrikes, per_rank: 0.5 },
@@ -37,7 +51,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 821, max_rank: 5, name: "Improved Mark of the Wild", description: "+4 hero armor per rank (Survivors permanent Mark of the Wild conversion)", stat: TalentStat::Armor, per_rank: 4.0 },
     TalentDefinition { id: 824, max_rank: 5, name: "Improved Healing Touch", description: "Rejuvenation and Healing Touch: 3% shorter cooldown per rank (Survivors Healing Touch cast-time conversion)", stat: TalentStat::SpellGroupCooldown(&["rejuvenation", "healing_touch"]), per_rank: 0.03 },
     TalentDefinition { id: 823, max_rank: 5, name: "Nature's Focus", description: "Rejuvenation, Regrowth and Healing Touch: +2% direct and periodic healing per rank, multiplying Gift of Nature. Does not change critical chance or recovery (Survivors healing reliability conversion; no spell pushback)", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.02 },
-    TalentDefinition { id: 841, max_rank: 5, name: "Subtlety", description: "+1 percentage point hero damage reduction per rank (Survivors threat-reduction conversion)", stat: TalentStat::Reduction, per_rank: 0.01 },
+    TalentDefinition { id: 841, max_rank: 5, name: "Subtlety", description: "Rejuvenation, Regrowth and Healing Touch: 2% shorter cooldown per rank, multiplying other recovery bonuses. Does not reduce incoming damage (Survivors healing-threat conversion)", stat: TalentStat::SpellGroupCooldown(HEALING_SPELLS), per_rank: 0.02 },
     TalentDefinition { id: 843, max_rank: 5, name: "Tranquil Spirit", description: "Rejuvenation and Healing Touch: 2% shorter cooldown per rank (Survivors healing mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(&["rejuvenation", "healing_touch"]), per_rank: 0.02 },
  ];
 pub(super) fn apply_milestones(points: [u32; 3], key: &str, effect: &mut super::CastEffect) {
@@ -142,6 +156,13 @@ mod tests {
                     0.,
                 ),
             ] {
+                let cooldown = cooldown
+                    * (1. - 0.02 * short)
+                    * if key == "rejuvenation" {
+                        1. - 0.02 * r
+                    } else {
+                        1.
+                    };
                 let e = trained.cast(key);
                 assert!((e.damage - damage).abs() < 0.00001, "{key}");
                 assert!((e.cooldown - cooldown).abs() < 0.00001, "{key}");
@@ -161,27 +182,32 @@ mod tests {
                 } else {
                     1.
                 };
-                assert_eq!(
-                    trained.cast(key),
-                    CastEffect {
-                        range,
-                        cooldown: if key == "entangling_roots" {
-                            (1. - 0.15 * f32::from(rank.min(1))) * (1. - 0.03 * short)
-                        } else {
-                            1.
-                        },
-                        duration: if key == "entangling_roots" {
-                            1. + 0.10 * f32::from(rank.min(4))
-                        } else {
-                            1.
-                        },
-                        ..Default::default()
-                    }
-                );
+                let mut expected = CastEffect {
+                    range,
+                    cooldown: (if key == "entangling_roots" {
+                        (1. - 0.15 * f32::from(rank.min(1))) * (1. - 0.03 * short)
+                    } else {
+                        1.
+                    }) * if key != "fireball" {
+                        1. - 0.02 * short
+                    } else {
+                        1.
+                    },
+                    duration: if key == "entangling_roots" {
+                        1. + 0.10 * f32::from(rank.min(4))
+                    } else {
+                        1.
+                    },
+                    ..Default::default()
+                };
+                let actual = trained.cast(key);
+                assert!((actual.cooldown - expected.cooldown).abs() < 0.00001);
+                expected.cooldown = actual.cooldown;
+                assert_eq!(actual, expected);
             }
             let bonus = stat_adjustment(8, &ranks);
             assert_eq!(bonus.armor, 12. * r);
-            assert!((bonus.reduction - 0.01 * r).abs() < 0.00001);
+            assert_eq!(bonus.reduction, 0.0);
             assert_eq!(
                 bonus.speed, 0.,
                 "Feline Swiftness requires Cat and outdoor context"
@@ -859,5 +885,71 @@ mod natural_weapons_scope_tests {
             .unwrap();
         assert!(text.contains("8 » 10% direct and periodic physical damage"));
         assert!(spans.iter().any(|span| text[span.clone()].contains('»')));
+    }
+}
+
+#[cfg(test)]
+mod restoration_recovery_tests {
+    use crate::{
+        data,
+        talents::{stat_adjustment, talent_definition, Milestones},
+    };
+
+    #[test]
+    fn recovery_conversions_are_scoped_capped_and_refundable_without_defense() {
+        for class in 0..9 {
+            for rank in [0, 1, 3, 5, 255] {
+                let ranks = [(2, 841, rank), (2, 829, rank)];
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&ranks);
+                for key in
+                    data::ABILITIES
+                        .iter()
+                        .map(|d| d.key)
+                        .chain(["Claw", "Maul", "Weapon Attack"])
+                {
+                    let mut expected = base.cast(key);
+                    if class == 8 {
+                        if super::CASTER_SPELLS.contains(&key) {
+                            expected.cooldown *= 1.0 - 0.02 * f32::from(rank.min(3));
+                        }
+                        if super::HEALING_SPELLS.contains(&key) {
+                            expected.cooldown *= 1.0 - 0.02 * f32::from(rank.min(5));
+                        }
+                    }
+                    assert_eq!(trained.cast(key), expected, "{class}/{rank}/{key}");
+                    assert_eq!(trained.with_ranks(&[]).cast(key), base.cast(key));
+                }
+                assert_eq!(stat_adjustment(class, &ranks).reduction, 0.0);
+            }
+        }
+        let base = Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 783, 3), (2, 824, 5), (2, 843, 5)]);
+        let trained = base.with_ranks(&[
+            (0, 783, 3),
+            (2, 824, 5),
+            (2, 843, 5),
+            (2, 841, 5),
+            (2, 829, 3),
+        ]);
+        for key in super::HEALING_SPELLS {
+            assert!(
+                (trained.cast(key).cooldown - base.cast(key).cooldown * 0.9 * 0.94).abs() < 0.00001
+            );
+        }
+        for id in [841, 829] {
+            let (text, spans) = talent_definition(8, id)
+                .unwrap()
+                .inline_description_with_values(1)
+                .unwrap();
+            assert!(text.contains("2 » 4% shorter cooldown"));
+            assert!(spans.iter().any(|span| text[span.clone()].contains('»')));
+        }
     }
 }

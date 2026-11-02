@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Druid recovery — 2026-11-02
+
+Subtlety converts healing threat to healing recovery; Reflection converts mana
+regeneration to caster/healing recovery. [Scopes and acceptance](audits/DRUID-RECOVERY.md)
+include exclusions for feral attacks, multiplicative stacking and saved specs.
+Definition coverage reaches Druid 34/47 and overall 328/432. Remaining talent
+consumers, platform/combat acceptance and the full landing gate remain open.
+
 ## Feral physical integration — 2026-11-02
 
 Natural Weapons, Sharpened Claws and Leader of the Pack now cover Rake/Swipe as

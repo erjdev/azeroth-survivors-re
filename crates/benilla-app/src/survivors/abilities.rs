@@ -7601,14 +7601,14 @@ mod milestone_tests {
         let stats = Run::default().stats();
         for level in [1, 5] {
             for (key, damage, cooldown, crit, crit_damage) in [
-                ("wrath", 1.1, 0.728, 0., 0.5),
-                ("moonfire", 1.21, 0.91, 0.1, 0.5),
-                ("starfire", 1.1, 0.7735, 0., 0.5),
-                ("thorns", 1.3, 1., 0., 0.),
-                ("rejuvenation", 1.3915, 0.5917275, 0., 0.),
-                ("hurricane", 1., 1., 0., 0.),
-                ("insect_swarm", 1., 1., 0., 0.),
-                ("entangling_roots", 1., 0.7735, 0., 0.),
+                ("wrath", 1.1, 0.728 * 0.94, 0., 0.5),
+                ("moonfire", 1.21, 0.91 * 0.94, 0.1, 0.5),
+                ("starfire", 1.1, 0.7735 * 0.94, 0., 0.5),
+                ("thorns", 1.3, 0.94, 0., 0.),
+                ("rejuvenation", 1.3915, 0.5917275 * 0.9 * 0.94, 0., 0.),
+                ("hurricane", 1., 0.94, 0., 0.),
+                ("insect_swarm", 1., 0.94, 0., 0.),
+                ("entangling_roots", 1., 0.7735 * 0.94, 0., 0.),
                 ("fireball", 1., 1., 0., 0.),
             ] {
                 let owned = super::super::Owned {

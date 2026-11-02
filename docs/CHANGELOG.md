@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Druid healing and caster recovery
+
+Subtlety and Reflection now reduce scoped spell cooldowns, replacing threat/mana
+mechanics. Green inline previews, refunds, separate specs and compact restart are
+verified. [Rules and validation limits](audits/DRUID-RECOVERY.md).
+
+![Reflection inline recovery upgrade](images/screenshots/2026-11-02-druid-recovery/reflection-wide.jpg)
+
 ## 2026-11-02 — Physical talents cover feral abilities
 
 Natural Weapons, Sharpened Claws and Leader of the Pack now benefit Rake/Swipe
