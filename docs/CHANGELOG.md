@@ -5,6 +5,18 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Armory race/body preview matrix
+
+Added twelve native Dreadnaught previews, completing one-outfit evidence across
+all sixteen race/body combinations with the earlier Gnome/Tauren captures.
+Full-figure framing and armor assembly are reviewed; Troll footwear correspondence,
+other outfits, animation and Windows remain open. [Evidence and limits](audits/COLLECTION-BODY-ART.md#native-remaining-race-plate-matrix--2026-11-01).
+Documentation-only checkpoint; warm native build: 0.46 seconds, build output: 46.62 GiB.
+
+![Night Elf female armor preview](images/screenshots/2026-11-01-plate-matrix/night-elf-female.jpg)
+
+![Orc male armor preview](images/screenshots/2026-11-01-plate-matrix/orc-male.jpg)
+
 ## 2026-11-01 — Automatic feral attacks
 
 Cat uses Claw and Bear uses Maul outside ability slots; Wrath and the spell pool

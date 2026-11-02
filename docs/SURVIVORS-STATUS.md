@@ -63,7 +63,10 @@ Virtuous Robe’s absent male lower sleeve; Human male/female previews are verif
 This does not establish the full race/platform/equipment appearance matrix.
 Attachment source assets now also pass 1,055 variants across 869 models and 221
 textures, including all race/body helmet suffixes. This checks geometry and
-material availability; rendered attachment alignment remains unverified.
+material availability. Native Dreadnaught captures now cover all sixteen race/body
+combinations for front/idle framing and visible assembly. Troll footwear
+correspondence, other outfits/angles/animations and Windows remain open; see the
+[rendered matrix](audits/COLLECTION-BODY-ART.md#native-remaining-race-plate-matrix--2026-11-01).
 
 These results do not imply every other zone is ready. ADT checks cannot prove WMO
 interior support, traversability or encounters. All nine classes report zero

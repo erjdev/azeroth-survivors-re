@@ -174,3 +174,57 @@ other race/body combinations and combat animation remain open.
 ![Tauren male, full outfit](../images/screenshots/2026-10-30-plate-bodies/tauren-male.png)
 
 ![Tauren male, compact restart](../images/screenshots/2026-10-30-plate-bodies/tauren-male-restarted-compact.png)
+
+## Native remaining-race plate matrix — 2026-11-01
+
+Native macOS menu captures at `b3bdd4b` add Human, Dwarf, Night Elf, Orc,
+Undead and Troll, male and female, at 1280×720 / 100%. Together with the
+Gnome/Tauren checkpoint above, all sixteen race/body combinations now have
+Dreadnaught outfit evidence. The intention reference remains
+`docs/intentions/survivors_character_tab.png`: appearance/equipment at left,
+hero in the center, features and independent looks at right.
+
+The isolated `collected` fixture uses hero 1 and equipment row
+`equipment 0 666666666 000000001`: full Dreadnaught with Thunderfury equipped
+but its appearance hidden to expose the torso. Race/body changes use the native
+page controls. All twelve added views contain the full figure, helmet and both
+shoulders. These are front/idle assembly and framing checks, not proof of
+clipping-free animation, every outfit, compact layouts or Windows rendering.
+
+Troll footwear remains an art-rule review item: the worn look covers the feet.
+The additional male hidden/restored comparison verifies that hiding footwear
+reveals bare feet and restoring it restores the armor, with unchanged equipment
+bonus text. This does not establish whether the worn Troll texture/geoset matches
+vanilla's race-specific footwear rules; do not mark that correspondence accepted.
+
+No production source changed. The warm native build completed in 0.46 seconds;
+prior code gates remain applicable. Generated output is 46.62 GiB, within budget.
+The preview exited and its normal launcher was restored. No combat was started.
+
+![Human male, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/human-male.jpg)
+
+![Human female, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/human-female.jpg)
+
+![Dwarf male, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/dwarf-male.jpg)
+
+![Dwarf female, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/dwarf-female.jpg)
+
+![Night Elf male, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/night-elf-male.jpg)
+
+![Night Elf female, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/night-elf-female.jpg)
+
+![Orc male, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/orc-male.jpg)
+
+![Orc female, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/orc-female.jpg)
+
+![Undead male, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/undead-male.jpg)
+
+![Undead female, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/undead-female.jpg)
+
+![Troll male, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/troll-male.jpg)
+
+![Troll female, Dreadnaught](../images/screenshots/2026-11-01-plate-matrix/troll-female.jpg)
+
+![Troll male footwear hidden](../images/screenshots/2026-11-01-plate-matrix/troll-male-feet-hidden.jpg)
+
+![Troll male footwear restored](../images/screenshots/2026-11-01-plate-matrix/troll-male-feet-restored.jpg)
