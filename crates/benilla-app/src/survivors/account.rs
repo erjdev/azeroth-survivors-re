@@ -5078,7 +5078,7 @@ mod tests {
     }
 
     #[test]
-    fn leader_of_the_pack_purchase_save_specs_and_refund_reach_run_stats() {
+    fn leader_of_the_pack_purchase_save_specs_and_refund_reach_scoped_attack_crit() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();
         let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
@@ -5098,6 +5098,7 @@ mod tests {
             .unwrap();
         character.talent_xp = 5100;
         character.dbc[0] = vec![
+            (1, 1_000_001, 1),
             (1, 796, 5),
             (1, 795, 5),
             (1, 799, 5),
@@ -5109,38 +5110,65 @@ mod tests {
         ];
         assert!(account.talents_valid(account.character(hero).unwrap()));
         let before = account.bonus(8, hero);
+        let before_talents = account.milestones_picked(8, Some(hero));
         let other_before = account.bonus(8, other);
         assert!(account.learn_talent(hero, 1, 809, 1, 6, true));
         assert!(!account.learn_talent(hero, 1, 809, 1, 6, true));
         assert!(account.talents_valid(account.character(hero).unwrap()));
         let after = account.bonus(8, hero);
-        assert!((after.crit - before.crit - 0.03).abs() < 0.00001);
+        assert_eq!(after.crit, before.crit);
         assert!((after.might - before.might).abs() < 0.00001);
         assert_eq!(account.bonus(8, other).crit, other_before.crit);
         let snapshot = super::super::Run {
             class: &data::CLASSES[8],
             bonus: after,
+            milestones: account.milestones_picked(8, Some(hero)),
             ..Default::default()
         };
         let baseline = super::super::Run {
             class: &data::CLASSES[8],
             bonus: before,
+            milestones: before_talents,
             ..Default::default()
         };
-        assert!((snapshot.stats().crit - baseline.stats().crit - 0.03).abs() < 0.00001);
+        assert_eq!(snapshot.stats().crit, baseline.stats().crit);
+        assert!(
+            (snapshot.milestones.cast("Claw").crit - baseline.milestones.cast("Claw").crit - 0.03)
+                .abs()
+                < 0.00001
+        );
+        assert_eq!(
+            snapshot.milestones.cast("wrath").crit,
+            baseline.milestones.cast("wrath").crit
+        );
         let mut loaded = parse(&encode(&account)).unwrap();
         loaded.talent_rules = Some(rules);
         assert_eq!(loaded.bonus(8, hero).crit, after.crit);
+        assert!((loaded.milestones_picked(8, Some(hero)).cast("Claw").crit - 0.09).abs() < 0.00001);
         for spec in [1, 2] {
             loaded.select_spec(hero, spec);
             assert_eq!(loaded.bonus(8, hero).crit, other_before.crit);
+            assert_eq!(
+                loaded.milestones_picked(8, Some(hero)).cast("Claw").crit,
+                0.
+            );
         }
         loaded.select_spec(hero, 0);
         assert_eq!(loaded.bonus(8, hero).crit, after.crit);
+        assert!((loaded.milestones_picked(8, Some(hero)).cast("Claw").crit - 0.09).abs() < 0.00001);
         assert!(loaded.unlearn_talent(hero, 809, true));
         assert_eq!(loaded.bonus(8, hero).crit, before.crit);
         assert!(!loaded.unlearn_talent(hero, 809, true));
-        assert_eq!(snapshot.bonus.crit, after.crit);
+        assert_eq!(
+            loaded.milestones_picked(8, Some(hero)).cast("Claw").crit,
+            before_talents.cast("Claw").crit
+        );
+        assert!(loaded.unlearn_talent(hero, 1_000_001, true));
+        assert_eq!(
+            loaded.milestones_picked(8, Some(hero)).cast("Claw").crit,
+            0.
+        );
+        assert!((snapshot.milestones.cast("Claw").crit - 0.09).abs() < 0.00001);
     }
 
     #[test]

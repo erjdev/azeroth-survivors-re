@@ -611,6 +611,14 @@ impl Milestones {
                     TalentStat::SpellGroupDamage(spells) if spells.contains(&key) => {
                         effect.damage *= 1.0 + value;
                     }
+                    TalentStat::FeralAttackCrit
+                        if matches!(
+                            self.druid_form(),
+                            Some(forms::DruidForm::Cat | forms::DruidForm::Bear)
+                        ) && matches!(key, "Claw" | "Maul") =>
+                    {
+                        effect.crit += value;
+                    }
                     TalentStat::SpellGroupCrit(spells) if spells.contains(&key) => {
                         effect.crit += value
                     }
@@ -1762,6 +1770,7 @@ pub enum TalentStat {
     MonkeyDodge,
     HunterMarkPower,
     PredatoryStrikes,
+    FeralAttackCrit,
     CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
     Health,
@@ -2282,6 +2291,7 @@ impl TalentDefinition {
             | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
             | TalentStat::PredatoryStrikes
+            | TalentStat::FeralAttackCrit
             | TalentStat::HunterMarkPower
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -2550,7 +2560,7 @@ impl TalentDefinition {
             TalentStat::CounterspellSilence => (100.0, "% Counterspell silence chance"),
             TalentStat::SwordExtraAttack => (100.0, "% chance of an extra strike"),
             TalentStat::MaceStun | TalentStat::RogueMace => (100.0, "% stun chance"),
-            TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit | TalentStat::DaggerCrit | TalentStat::FistCrit => {
+            TalentStat::FeralAttackCrit | TalentStat::Crit | TalentStat::SpellCrit(_) | TalentStat::SpellGroupCrit(_) | TalentStat::AxeCrit | TalentStat::PolearmCrit | TalentStat::DaggerCrit | TalentStat::FistCrit => {
                 (100.0, "% critical chance")
             }
             TalentStat::CritDamage | TalentStat::SpellGroupCritDamage(_) => {
@@ -4193,6 +4203,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::CounterspellSilence
             | TalentStat::MonkeyDodge
             | TalentStat::PredatoryStrikes
+            | TalentStat::FeralAttackCrit
             | TalentStat::HunterMarkPower
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
@@ -5047,7 +5058,7 @@ mod stat_talent_tests {
         assert_eq!(crit.inline_description(1).unwrap(), "+1 » 2 percentage points hero critical chance, including spells and totems (Survivors conversion)");
         assert_eq!(crit.inline_description(255).unwrap(), "+5 percentage points hero critical chance, including spells and totems (Survivors conversion)");
         let claws = talent_definition(8, 798).unwrap();
-        assert_eq!(claws.inline_description(1).unwrap(), "+2 » 4 percentage points hero critical chance (Survivors conversion; no form required)");
+        assert_eq!(claws.inline_description(1).unwrap(), "Cat and Bear automatic Claw/Maul: +2 » 4 percentage points critical chance. No effect on spells, healing, pets or other forms");
         let mut ambiguous = *crit;
         ambiguous.description = "1% damage and 1 percentage point critical chance per rank";
         assert!(ambiguous.inline_description(0).is_none());
@@ -5758,6 +5769,7 @@ mod stat_talent_tests {
                     | TalentStat::CounterspellSilence
                     | TalentStat::MonkeyDodge
                     | TalentStat::PredatoryStrikes
+                    | TalentStat::FeralAttackCrit
                     | TalentStat::HunterMarkPower
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
@@ -7021,7 +7033,7 @@ mod inline_stat_label_tests {
         for (class, id, expected) in [
             (8, 808, "+0 » 4% maximum health"),
             (8, 794, "+0 » 8 hero armor"),
-            (8, 798, "+0 » 2 percentage points hero critical chance"),
+            (8, 798, "+0 » 2 percentage points critical chance"),
             (8, 807, "+0 » 5% hero movement speed"),
             (2, 1352, "+0 » 2 yd targeting range"),
             (2, 1382, "+0 » 3% haste"),

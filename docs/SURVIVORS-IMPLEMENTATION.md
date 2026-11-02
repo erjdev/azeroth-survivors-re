@@ -9,6 +9,15 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Feral critical scope and keyboard follow-up — 2026-11-01
+
+Sharpened Claws and Leader of the Pack now affect automatic Cat/Bear attacks,
+with saved-rank compatibility and explicit spell/caster-form exclusion.
+[Rules and evidence](audits/DRUID-PROGRESSION-FORMS.md#feral-critical-chance-scope--2026-11-01).
+Coverage counts are unchanged. Next UI correction: prevent the menu Enter
+shortcut from starting a run from Armory pages when keyboard focus is inactive;
+this was reproduced in the talent preview and the unintended run was stopped.
+
 ## Tree of Life artwork — 2026-11-01
 
 [Checkout-local Ent discovery and native specimen](audits/DRUID-TALENT-DEPENDENCIES.md#tree-of-life-artwork-prerequisite--2026-11-01)

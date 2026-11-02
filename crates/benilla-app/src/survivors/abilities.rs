@@ -610,7 +610,12 @@ pub(super) fn cast_abilities(
                         attack.damage * stats.for_spell(attack.source).might * effect.damage;
                     fx.swing(me, first.e, damage);
                     for foe in targets {
-                        let (damage, crit) = roll(&mut rng, stats.crit, stats.crit_damage, damage);
+                        let (damage, crit) = roll(
+                            &mut rng,
+                            stats.crit + effect.crit,
+                            stats.crit_damage,
+                            damage,
+                        );
                         hits.write(Hit {
                             source: attack.source,
                             ..Hit::direct(foe.e, damage, crit)

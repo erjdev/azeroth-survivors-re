@@ -1268,3 +1268,13 @@ Predatory Strikes adds 50% of current run level as Cat/Bear attack power per ran
 using un-hasted attack cadence before ordinary damage multipliers and criticals.
 It updates as the run levels up and does not affect spells, healing or other forms.
 This is authored Survivors attack-power conversion; there is no Energy/Rage cost.
+
+### Feral critical training
+
+Sharpened Claws adds 2/4/6 percentage points to automatic Claw/Maul critical
+chance in permanent Cat/Bear Form. Leader of the Pack adds 3 points to those
+attacks (self-only Survivors conversion). Both add to equipment/global critical
+chance at the attack roll, never to spell/healing critical chance. Other forms
+and humanoid builds gain neither bonus. Existing ranks remain saved and freely
+refundable; this replaces their earlier no-form global-critical conversion.
+The Feral 30-point Thorns-healing milestone remains independent.

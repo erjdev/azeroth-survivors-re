@@ -491,3 +491,58 @@ fn predatory_strikes_recalculates_after_leveling_and_stacks_before_damage_and_ha
         }
     }
 }
+
+#[test]
+fn feral_critical_training_changes_real_swing_rolls_without_global_spell_crit() {
+    use survivors_core::talents::forms::DruidForm;
+    for form in [DruidForm::Cat, DruidForm::Bear] {
+        for (claws, leader, bonus) in [(0, 0, 0.), (3, 0, 0.06), (0, 1, 0.03), (3, 1, 0.09)] {
+            for margin in [0.01, 0.04, 0.075, 0.10] {
+                let (mut app, _, target) = feral(form);
+                let base_crit = app.world().resource::<Run>().stats().crit;
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.milestones = run.milestones.with_ranks(&[
+                        (form.tree(), form.talent(), 1),
+                        (1, 798, claws),
+                        (1, 809, leader),
+                    ]);
+                }
+                let stats = app.world().resource::<Run>().stats();
+                assert_eq!(
+                    stats.crit, base_crit,
+                    "talents must not modify global spell crit"
+                );
+                let (seed, sample) = (1..100_000)
+                    .find_map(|seed| {
+                        let sample = Rng(seed).f32();
+                        ((sample - (base_crit + margin)).abs() < 0.001).then_some((seed, sample))
+                    })
+                    .expect("deterministic roll near the tested threshold");
+                app.world_mut().insert_resource(Rng(seed));
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world()
+                    .resource::<Messages<Hit>>()
+                    .iter_current_update_messages()
+                    .cloned()
+                    .collect();
+                assert_eq!(hits.len(), 1);
+                let hit = &hits[0];
+                assert_eq!(
+                    hit.crit,
+                    sample < base_crit + bonus,
+                    "{form:?}, {claws}/{leader}, roll {sample}"
+                );
+                let base_damage = if form == DruidForm::Cat { 12. } else { 30. };
+                let expected =
+                    base_damage * stats.might * if hit.crit { stats.crit_damage } else { 1. };
+                assert!((hit.damage - expected).abs() < 0.001);
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                assert!(
+                    (1000. - app.world().get::<Enemy>(target).unwrap().hp - expected).abs() < 0.001
+                );
+            }
+        }
+    }
+}

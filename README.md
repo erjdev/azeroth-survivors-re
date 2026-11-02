@@ -25,6 +25,11 @@ leg armor. [Visual review and remaining limits](docs/audits/COLLECTION-BODY-ART.
 
 ![Night Elf female armor preview](docs/images/screenshots/2026-11-01-plate-matrix/night-elf-female.jpg)
 
+Sharpened Claws and Leader of the Pack now increase automatic Cat/Bear attack
+critical chance without boosting spells or caster forms. [Rules and evidence](docs/audits/DRUID-PROGRESSION-FORMS.md#feral-critical-chance-scope--2026-11-01).
+
+![Feral critical training after restart](docs/images/screenshots/2026-11-01-feral-critical/claws-restarted-compact.jpg)
+
 Cat and Bear now attack automatically with Claw and Maul outside the six ability
 slots, while retaining the Druid spell pool. Natural Weapons improves those
 physical attacks, and Predatory Strikes adds run-level-scaled attack power. [Rules and validation](docs/audits/DRUID-PROGRESSION-FORMS.md#automatic-feral-attacks-and-faction-preview-follow-up--2026-11-01).

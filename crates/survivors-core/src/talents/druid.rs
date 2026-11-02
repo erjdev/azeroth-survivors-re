@@ -1,4 +1,4 @@
-//! Audited Druid identities; conversions are explicit until forms and feral attacks exist.
+//! Audited Druid identities with explicit Survivors conversions and permanent form scopes.
 use super::{TalentDefinition, TalentStat};
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
@@ -12,7 +12,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 789, max_rank: 1, name: "Nature's Grace", description: "Damaging Druid spell criticals grant one refreshing 15 sec charge: the next successful Wrath or Starfire has 0.5 sec shorter recovery, after other cooldown modifiers. Failed casts and instant spells do not consume it (Survivors cast-time conversion)", stat: TalentStat::NaturesGrace, per_rank: 0.5 },
     TalentDefinition { id: 827, max_rank: 1, name: "Insect Swarm", description: "Insect Swarm applies +2% reduced outgoing damage to affected enemies for 10 sec, including bosses. Stronger reductions take priority. Damage, cooldown and targeting are unchanged; does not grant the spell (Survivors hit-chance conversion)", stat: TalentStat::InsectSwarmWeakening, per_rank: 0.02 },
     TalentDefinition { id: 808, max_rank: 5, name: "Heart of the Wild", description: "+4% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health (Survivors stamina conversion; no form required)", stat: TalentStat::MaximumHealth, per_rank: 0.04 },
-    TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "+3 percentage points hero critical chance, adding to Sharpened Claws and equipped bonuses (Survivors self-only conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.03 },
+    TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "Cat and Bear automatic Claw/Maul: +3 percentage points critical chance, adding to Sharpened Claws and equipment. No effect on spells, healing, pets or other forms (Survivors self-only aura conversion)", stat: TalentStat::FeralAttackCrit, per_rank: 0.03 },
     TalentDefinition { id: 761, max_rank: 1, name: "Nature's Grasp", description: "Entangling Roots: 15% shorter cooldown, multiplying Improved Entangling Roots and the 10-point Balance milestone (Survivors automatic defensive-root conversion)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.15 },
     TalentDefinition { id: 921, max_rank: 4, name: "Improved Nature's Grasp", description: "Entangling Roots: +10% root duration per rank; bosses retain 30% duration (Survivors automatic-root reliability conversion)", stat: TalentStat::SpellDuration("entangling_roots"), per_rank: 0.10 },
     TalentDefinition { id: 787, max_rank: 3, name: "Improved Entangling Roots", description: "Entangling Roots: 3% shorter cooldown per rank, multiplying Nature's Grasp and the 10-point Balance milestone (Survivors cast reliability conversion; no spell pushback)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.03 },
@@ -28,7 +28,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 790, max_rank: 5, name: "Moonfury", description: "Wrath, Moonfire and Starfire: +2% direct and periodic damage per rank", stat: TalentStat::SpellGroupDamage(BALANCE), per_rank: 0.02 },
     TalentDefinition { id: 794, max_rank: 5, name: "Thick Hide", description: "+8 hero armor per rank (Survivors conversion)", stat: TalentStat::Armor, per_rank: 8.0 },
     TalentDefinition { id: 807, max_rank: 2, name: "Feline Swiftness", description: "+5% hero movement speed per rank (Survivors conversion; no form required)", stat: TalentStat::Speed, per_rank: 0.05 },
-    TalentDefinition { id: 798, max_rank: 3, name: "Sharpened Claws", description: "+2 percentage points hero critical chance per rank (Survivors conversion; no form required)", stat: TalentStat::Crit, per_rank: 0.02 },
+    TalentDefinition { id: 798, max_rank: 3, name: "Sharpened Claws", description: "Cat and Bear automatic Claw/Maul: +2 percentage points critical chance per rank. No effect on spells, healing, pets or other forms", stat: TalentStat::FeralAttackCrit, per_rank: 0.02 },
     TalentDefinition { id: 830, max_rank: 3, name: "Improved Rejuvenation", description: "Rejuvenation: +5% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.05 },
     TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation, Regrowth and Healing Touch: +2% healing per rank, including direct and periodic healing. Does not change critical chance, duration or damage", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.02 },
     TalentDefinition { id: 821, max_rank: 5, name: "Improved Mark of the Wild", description: "+4 hero armor per rank (Survivors permanent Mark of the Wild conversion)", stat: TalentStat::Armor, per_rank: 4.0 },
@@ -180,7 +180,7 @@ mod tests {
             assert_eq!(bonus.armor, 12. * r);
             assert!((bonus.reduction - 0.01 * r).abs() < 0.00001);
             assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
-            assert!((bonus.crit - 0.02 * short - 0.03 * f32::from(rank.min(1))).abs() < 0.00001);
+            assert_eq!(bonus.crit, 0.0);
             assert_eq!(trained.with_ranks(&[]), base);
         }
     }
@@ -456,26 +456,86 @@ mod root_training_tests {
 }
 
 #[cfg(test)]
-mod leader_tests {
-    use super::super::{stat_adjustment, talent_definition};
+mod feral_crit_tests {
+    use crate::talents::{forms::DruidForm, stat_adjustment, talent_definition, Milestones};
 
     #[test]
-    fn leader_adds_to_claws_caps_and_removes_its_placeholder_damage() {
-        for rank in [0, 1, 255] {
-            let base = stat_adjustment(8, &[(1, 798, 3)]);
-            let trained = stat_adjustment(8, &[(1, 798, 3), (1, 809, rank)]);
-            let effective = f32::from(rank.min(1));
-            assert!((trained.crit - base.crit - 0.03 * effective).abs() < 0.00001);
-            assert!((trained.might - base.might + 0.01 * effective).abs() < 0.00001);
-            assert_eq!(stat_adjustment(0, &[(1, 809, rank)]).crit, 0.0);
+    fn feral_crit_stacks_caps_refunds_and_never_leaks_to_spells_or_other_forms() {
+        for form in [
+            None,
+            Some(DruidForm::Cat),
+            Some(DruidForm::Bear),
+            Some(DruidForm::Moonkin),
+            Some(DruidForm::TreeOfLife),
+        ] {
+            for claws in [0, 1, 3, 255] {
+                for leader in [0, 1, 255] {
+                    let mut ranks = vec![(1, 798, claws), (1, 809, leader)];
+                    if let Some(form) = form {
+                        ranks.push((form.tree(), form.talent(), 1));
+                    }
+                    let base = Milestones {
+                        class: 8,
+                        ..Default::default()
+                    };
+                    let trained = base.with_ranks(&ranks);
+                    let expected = if matches!(form, Some(DruidForm::Cat | DruidForm::Bear)) {
+                        0.02 * f32::from(claws.min(3)) + 0.03 * f32::from(leader.min(1))
+                    } else {
+                        0.
+                    };
+                    for key in ["Claw", "Maul"] {
+                        assert!((trained.cast(key).crit - expected).abs() < 0.00001);
+                    }
+                    assert_eq!(stat_adjustment(8, &ranks).crit, 0.);
+                    let form_only: Vec<_> = ranks
+                        .iter()
+                        .copied()
+                        .filter(|(_, id, _)| *id != 798 && *id != 809)
+                        .collect();
+                    for key in [
+                        "wrath",
+                        "moonfire",
+                        "starfire",
+                        "regrowth",
+                        "rejuvenation",
+                        "thorns",
+                        "Weapon Attack",
+                    ] {
+                        assert_eq!(
+                            trained.cast(key),
+                            base.with_ranks(&form_only).cast(key),
+                            "{key}"
+                        );
+                    }
+                    assert_eq!(trained.with_ranks(&[]), base);
+                    for class in 0..8 {
+                        assert_eq!(
+                            Milestones {
+                                class,
+                                ..Default::default()
+                            }
+                            .with_ranks(&ranks)
+                            .cast("Claw")
+                            .crit,
+                            0.
+                        );
+                    }
+                }
+            }
         }
-        assert_eq!(stat_adjustment(8, &[]).crit, 0.0);
-        let node = talent_definition(8, 809).unwrap();
-        assert!(node
-            .inline_description(0)
-            .unwrap()
-            .starts_with("+0 » 3 percentage points hero critical chance"));
-        assert!(!node.inline_description(1).unwrap().contains(" » "));
+        for (id, rank, delta) in [
+            (798, 2, "4 » 6 percentage points"),
+            (809, 0, "0 » 3 percentage points"),
+        ] {
+            let (text, spans) = talent_definition(8, id)
+                .unwrap()
+                .inline_description_with_values(rank)
+                .unwrap();
+            assert!(text.contains(delta), "{text}");
+            assert!(spans.iter().any(|span| text[span.clone()].contains('»')));
+            assert!(text.contains("Cat and Bear automatic Claw/Maul"));
+        }
     }
 }
 

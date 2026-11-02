@@ -156,3 +156,61 @@ The final focused core/runtime rerun also passes after strengthening the haste
 fixture. Build output is 46.56 GiB; warm caches retained.
 
 ![Saved rank after compact restart](../images/screenshots/2026-11-01-predatory-strikes/rank1-restarted-compact.png)
+
+## Feral critical-chance scope — 2026-11-01
+
+Sharpened Claws (798) now gives automatic Cat/Bear Claw/Maul +2/4/6 percentage
+points critical chance. Leader of the Pack (809) adds 3 points to the same attacks.
+They add to equipment/global critical chance when rolling the swing, without
+modifying the global spell/healing stat. Humanoid, Moonkin and Tree of Life do
+not receive either bonus. Leader remains an explicit self-only Survivors aura
+conversion; party sharing and future feral abilities are not claimed implemented.
+
+This replaces the earlier temporary no-form/global-critical conversions. Saved
+node IDs and ranks are unchanged: existing specs retain their point investment,
+but now need Cat/Bear to gain these bonuses. Normal free refunds remain available.
+Active runs retain their starting milestone snapshot. The separate authored
+30-point Thorns-healing milestone is unchanged. Feline Swiftness, Heart of the
+Wild and other legacy form conversions remain separate work.
+
+Evidence comes from checkout `--talent-evidence 798`, `--talent-evidence 809` and
+`--spell-evidence 24932`: installed Claws ranks are 2/4/6 points and the Leader
+aura is 3 points with Cat/Bear form mask `0x91`. The scoped automatic-attack
+application is Survivors' current physical-attack mapping, not a general vanilla
+party aura implementation.
+
+Shared tests cover all four forms/no form, ranks/caps, stacking, refunds, wrong
+classes and spell isolation. A real ECS attack test fixes RNG samples around the
+critical thresholds for both attacks, each talent separately and together, then
+checks actual damage settlement. The account regression covers purchase, save,
+spec isolation, refund, form removal and immutable run snapshots.
+
+Native macOS pointer checks verify Claws 2→3→2, Leader 0→1→0→1 and both saved
+ranks after restart at 640×720 / 125%. Wide captures use 1280×720 / 100% and
+`target/ui-fixtures/feral-critical-20261101`; prerequisites were seeded only
+before launch. Six captures preserve the green inline changes and scope text.
+
+During the keyboard check, Enter unexpectedly started a run from the talent
+preview. It was immediately stopped; this is not gameplay acceptance. The
+`hud::keys` menu Enter path guards run options but not every Armory page when
+keyboard focus is inactive. Fix this routing before further native keyboard
+acceptance. Attended combat, Windows and the other form conversions remain open.
+
+![claws rank2 wide](../images/screenshots/2026-11-01-feral-critical/claws-rank2-wide.jpg)
+
+![claws rank3 wide](../images/screenshots/2026-11-01-feral-critical/claws-rank3-wide.jpg)
+
+![leader rank0 wide](../images/screenshots/2026-11-01-feral-critical/leader-rank0-wide.jpg)
+
+![leader rank1 wide](../images/screenshots/2026-11-01-feral-critical/leader-rank1-wide.jpg)
+
+![leader restarted compact](../images/screenshots/2026-11-01-feral-critical/leader-restarted-compact.jpg)
+
+![claws restarted compact](../images/screenshots/2026-11-01-feral-critical/claws-restarted-compact.jpg)
+
+Final verification: all 357 shared-rule tests and the ten-package scoped
+formatting/Clippy/test gate pass (31 optional-addon corpus skips). The native
+build takes 23.13 seconds; WebGPU check passes with existing warnings. The native
+linker again reports unwind-table size. Build output is 56.10 GiB. The normal
+launcher is restored. Definition coverage remains 319/432 plus three authored
+forms; this corrects two existing consumers rather than completing new nodes.

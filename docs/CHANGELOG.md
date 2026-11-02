@@ -25,6 +25,18 @@ skips), native build and WebGPU check, plus five native previews. Build output:
 
 ## 2026-11-01 — Automatic feral attacks
 
+Sharpened Claws and Leader of the Pack now add critical chance only to automatic
+Cat/Bear attacks; saved ranks persist. Native purchases, refunds and compact
+restart are verified. [Scope and limits](audits/DRUID-PROGRESSION-FORMS.md#feral-critical-chance-scope--2026-11-01).
+357 shared-rule tests, the ten-package scoped gate (31 optional-addon skips),
+native build and WebGPU check pass. Build output: 56.10 GiB.
+An Enter shortcut leak from Armory to gameplay was found and remains queued.
+
+![Sharpened Claws inline upgrade](images/screenshots/2026-11-01-feral-critical/claws-rank2-wide.jpg)
+
+![Leader of the Pack after compact restart](images/screenshots/2026-11-01-feral-critical/leader-restarted-compact.jpg)
+
+
 Cat uses Claw and Bear uses Maul outside ability slots; Wrath and the spell pool
 remain available. Natural Weapons increases their physical damage by 2–10%.
 Predatory Strikes adds run-level-scaled Cat/Bear attack power.
