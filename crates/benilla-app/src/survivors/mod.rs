@@ -803,6 +803,15 @@ impl Run {
         if source == "greater_heal" && critical {
             self.apply_inspiration(healed);
         }
+        if source == "healing_wave"
+            && critical
+            && self.alive()
+            && healed.is_finite()
+            && healed > 0.
+            && self.milestones.ancestral_healing_armor(true) > 0.
+        {
+            self.ancestral_healing_t = 15.;
+        }
     }
 
     pub(super) fn record_inspiration_healing(&mut self, source: &str, healed: f32) {
@@ -818,17 +827,6 @@ impl Run {
             && self.milestones.inspiration_multiplier(true) > 1.
         {
             self.inspiration_t = 15.;
-        }
-    }
-
-    pub(super) fn record_totem_healing(&mut self, source: &str, healed: f32) {
-        if self.alive()
-            && healed.is_finite()
-            && healed > 0.
-            && matches!(source, "searing_totem" | "magma_totem")
-            && self.milestones.ancestral_healing_armor(true) > 0.
-        {
-            self.ancestral_healing_t = 10.;
         }
     }
 
@@ -916,11 +914,12 @@ impl Run {
         apply_sheet(&mut s, self.bonus);
         apply_sheet(&mut s, self.worn.bonus());
         s.haste += self.milestones.flurry_haste(self.flurry_t > 0.0);
-        s.armor += self
-            .milestones
-            .ancestral_healing_armor(self.alive() && self.ancestral_healing_t > 0.);
         let racial = survivors_core::racials::effects(self.race, self.elapsed);
         apply_sheet(&mut s, racial.bonus);
+        s.armor *= 1.0
+            + self
+                .milestones
+                .ancestral_healing_armor(self.alive() && self.ancestral_healing_t > 0.);
         s.armor *= self
             .milestones
             .inspiration_multiplier(self.alive() && self.inspiration_t > 0.);

@@ -1302,7 +1302,6 @@ pub(super) fn cast_abilities(
             run.power_infusion.consume(talents, def.key, elapsed);
             run.consume_remorseless(def.key);
             let healed = finish_milestone_cast(&mut run, milestone, stats.max_hp);
-            run.record_totem_healing(def.key, healed);
             run.record_inspiration_healing(def.key, healed);
             if healed > 0.0 {
                 fx.number(me, healed, false, COLOR_HEAL);
@@ -9292,14 +9291,7 @@ mod milestone_tests {
                             0.
                         };
                         let expected_hp = (initial_hp + healing).min(max_hp);
-                        assert_eq!(
-                            app.world().resource::<Run>().ancestral_healing_t,
-                            if expected_hp > initial_hp && rank > 0 {
-                                10.
-                            } else {
-                                0.
-                            }
-                        );
+                        assert_eq!(app.world().resource::<Run>().ancestral_healing_t, 0.);
                         assert!((app.world().resource::<Run>().hp - expected_hp).abs() < 0.0001,
                             "{key}: points={points}, rank={rank}, enemies={enemy_count}, hp={initial_hp}, cd={cooldown}");
                         assert_eq!(

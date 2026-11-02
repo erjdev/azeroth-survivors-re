@@ -12,6 +12,13 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Ancestral Healing replacement — 2026-11-01
+
+The approved 8/16/25% armor / 15-second effective-healing-critical rule replaces
+the old totem flat-armor conversion. Healing Wave is the supported source. Runtime,
+save/refund and green inline text tests pass; native wide purchase/refund and
+compact restart pass. [Evidence and remaining platform/combat checks](audits/SHAMAN-HEALING-DEPENDENCIES.md#ancestral-healing--approved-replacement-2026-11-01).
+
 ## Responsive starter footer — 2026-11-01
 
 A two-column footer fixes excessive compact Enter-button height while preserving
@@ -386,8 +393,8 @@ and attended combat remain unverified. Compact pointer purchases/refunds now pas
 for these three nodes; see the healing audit’s compact acceptance checkpoint.
 Incremental build: 16s.
 Older totem-only cast-time/critical conversions still require reconciliation.
-Ancestral Healing’s replacement-versus-preservation choice is awaiting the user;
-its audited original trigger is 8/16/25% armor for 15 seconds after healing crits.
+Ancestral Healing’s approved replacement is now implemented: 8/16/25% armor
+for 15 seconds after effective Healing Wave criticals; see the healing audit.
 The eight-package formatting/Clippy/test gate passes (31 optional-addon skips).
 
 ## Illumination — 2026-10-29
@@ -7878,6 +7885,9 @@ purchase, with the saved rank checked on disk. Screenshots are embedded in CHANG
 Live balance, Windows acceptance and the remaining 211 definitions remain open.
 
 ### 2026-10-27 — Ancestral Healing timed armor
+
+Historical conversion; superseded by the approved critical-heal percentage effect
+on 2026-11-01. See [current healing audit](audits/SHAMAN-HEALING-DEPENDENCIES.md).
 
 Vanilla node 581 (three Restoration ranks) now grants 12 armor per rank for ten
 seconds after Searing/Magma deployment actually restores health. This explicitly

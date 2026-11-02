@@ -832,7 +832,7 @@ mod reactive_talent_tests {
     }
 
     #[test]
-    fn ancestral_healing_requires_effective_totem_healing_and_expires() {
+    fn ancestral_healing_requires_effective_critical_healing_and_expires() {
         let mut run = Run {
             hp: 50.,
             milestones: survivors_core::talents::Milestones {
@@ -842,29 +842,32 @@ mod reactive_talent_tests {
             .with_ranks(&[(2, 581, 3)]),
             ..Default::default()
         };
+        run.bonus.armor = 80.;
         let base = run.stats().armor;
         for (source, amount) in [
             ("renew", 10.),
             ("searing_totem", 0.),
             ("magma_totem", f32::NAN),
         ] {
-            run.record_totem_healing(source, amount);
+            run.record_direct_healing(source, amount, true);
             assert_eq!(run.ancestral_healing_t, 0.);
         }
-        run.record_totem_healing("searing_totem", 1.);
-        assert_eq!(run.stats().armor, base + 36.);
+        run.record_direct_healing("healing_wave", 1., false);
+        assert_eq!(run.ancestral_healing_t, 0.);
+        run.record_direct_healing("healing_wave", 1., true);
+        assert_eq!(run.stats().armor, base * 1.25);
         advance_buffs(&mut run, 6.);
-        assert_eq!(run.ancestral_healing_t, 4.);
-        run.record_totem_healing("magma_totem", 2.);
-        assert_eq!(run.ancestral_healing_t, 10.);
-        assert_eq!(run.stats().armor, base + 36.);
-        advance_buffs(&mut run, 11.);
+        assert_eq!(run.ancestral_healing_t, 9.);
+        run.record_direct_healing("healing_wave", 2., true);
+        assert_eq!(run.ancestral_healing_t, 15.);
+        assert_eq!(run.stats().armor, base * 1.25);
+        advance_buffs(&mut run, 16.);
         assert_eq!(run.stats().armor, base);
-        run.record_totem_healing("searing_totem", 1.);
+        run.record_direct_healing("healing_wave", 1., true);
         run.hp = 0.;
         assert_eq!(run.stats().armor, base);
         run.ancestral_healing_t = 0.;
-        run.record_totem_healing("searing_totem", 1.);
+        run.record_direct_healing("healing_wave", 1., true);
         assert_eq!(run.ancestral_healing_t, 0.);
     }
 

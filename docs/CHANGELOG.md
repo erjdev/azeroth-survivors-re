@@ -5,6 +5,17 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Ancestral Healing critical armor
+
+Effective Healing Wave criticals now grant 8/16/25% armor for 15 seconds,
+refreshing without stacking. This replaces the old flat-armor totem trigger.
+Green inline previews and HUD status show the percentage effect. Native purchases,
+refund and compact restart pass, alongside scoped tests, native build and WebGPU
+check. Windows/controller/attended combat remain open.
+[Evidence](audits/SHAMAN-HEALING-DEPENDENCIES.md#ancestral-healing--approved-replacement-2026-11-01).
+
+![Ancestral Healing after refund and restart](images/screenshots/2026-11-01-ancestral-healing/restart-compact.jpg)
+
 ## 2026-11-01 — Compact starter footer
 
 The Enter button now fits its content instead of consuming excessive vertical

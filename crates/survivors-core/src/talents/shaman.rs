@@ -29,7 +29,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 583, max_rank: 3, name: "Nature's Guidance", description: "Lightning Bolt, Chain Lightning and shocks: +1% direct and periodic damage per rank. Excludes totems, Lightning Shield and other-class abilities (Survivors hit-chance conversion)", stat: TalentStat::SpellGroupDamage(CASTS), per_rank: 0.01 },
     TalentDefinition { id: 573, max_rank: 1, name: "Elemental Mastery", description: "Automatically adds +100% critical chance to the next successful Lightning Bolt, Chain Lightning or shock cast, including extra targets. Ready at run start; recovers 180 sec after use. Pauses stop recovery. Excludes totems, Lightning Shield and periodic ticks (Survivors automatic conversion).", stat: TalentStat::ElementalMastery, per_rank: 1.0 },
     TalentDefinition { id: 591, max_rank: 1, name: "Nature's Swiftness", description: "Earth, Flame and Frost Shock: 15% shorter cooldown per rank, multiplying Convection, Reverberation and the 20-point Restoration milestone. Totem deployment, pulse rate and healing are unchanged (Survivors instant-cast conversion)", stat: TalentStat::SpellGroupCooldown(SHOCKS), per_rank: 0.15 },
-    TalentDefinition { id: 581, max_rank: 3, name: "Ancestral Healing", description: "When Searing or Magma Totem deployment restores health: +12 armor per rank for 10 sec. Refreshes without stacking; excludes overhealing, regeneration and totem attacks (Survivors healing-critical conversion)", stat: TalentStat::AncestralHealingArmor, per_rank: 12.0 },
+    TalentDefinition { id: 581, max_rank: 3, name: "Ancestral Healing", description: "Effective Healing Wave criticals grant +8/16/25% armor for 15 sec. Refreshes without stacking; excludes overhealing, regeneration and totem healing", stat: TalentStat::AncestralHealingArmor, per_rank: 1.0 },
     TalentDefinition { id: 612, max_rank: 5, name: "Shield Specialization", description: "Earth Shock: +5% shield absorption per rank, adding to Guardian Totems. Requires the 10-point Enhancement shield milestone; no equipped shield required (Survivors block conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.05 },
     TalentDefinition { id: 616, max_rank: 1, name: "Parry", description: "With a worn melee weapon: +5 percentage points melee parry chance per rank (Survivors chance). Avoids a contact attack before shields or health; cosmetic weapons and non-contact damage do not qualify", stat: TalentStat::MeleeParry, per_rank: 0.05 },
     TalentDefinition { id: 609, max_rank: 2, name: "Guardian Totems", description: "Earth Shock: +10% shield absorption per rank. Requires the 10-point Enhancement shield milestone; shield duration and damage are unchanged (Survivors defensive-totem conversion)", stat: TalentStat::ShamanShieldAbsorption, per_rank: 0.10 },
@@ -501,7 +501,7 @@ mod ancestral_healing_tests {
                 assert_eq!(
                     trained.ancestral_healing_armor(true),
                     if class == 5 {
-                        12. * f32::from(rank.min(3))
+                        f32::from(super::ancestral_healing_percent(rank)) / 100.
                     } else {
                         0.
                     }
@@ -509,11 +509,19 @@ mod ancestral_healing_tests {
                 assert_eq!(trained.with_ranks(&[]).ancestral_healing_armor(true), 0.);
             }
         }
-        assert!(talent_definition(5, 581)
-            .unwrap()
-            .inline_description(1)
-            .unwrap()
-            .contains("+12 » 24 armor"));
+        let node = talent_definition(5, 581).unwrap();
+        for (rank, expected) in [
+            (0, "+0 » 8% armor"),
+            (1, "+8 » 16% armor"),
+            (2, "+16 » 25% armor"),
+            (3, "+25% armor"),
+        ] {
+            let (text, ranges) = node.inline_description_with_values(rank).unwrap();
+            assert!(text.contains(expected));
+            assert!(ranges.iter().any(|range| &text[range.clone()] == expected));
+            assert!(node.rank_preview(rank).contains(expected));
+            assert!(text.contains("15 sec"));
+        }
     }
 }
 
@@ -696,4 +704,9 @@ mod earths_grasp_tests {
         assert!(text.starts_with("Stoneclaw Totem: +50% health. Earthbind Totem: +20% radius."));
         assert!(!text.contains('»'));
     }
+}
+
+/// Approved armor percentages are nonlinear at the third rank.
+pub(super) fn ancestral_healing_percent(rank: u8) -> u8 {
+    [0, 8, 16, 25][usize::from(rank.min(3))]
 }

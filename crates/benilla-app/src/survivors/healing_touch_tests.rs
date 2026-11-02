@@ -133,3 +133,77 @@ fn healing_wave_is_acquired_and_keeps_totem_only_training_separate() {
     assert!((upgraded.dmg - 52.).abs() < 0.0001);
     assert!(upgraded.cooldown < base.cooldown);
 }
+
+#[test]
+fn healing_wave_criticals_refresh_ancestral_armor_without_totem_or_overheal_triggers() {
+    use crate::creature_anim::{CastEvent, PlaySeq, SpellGoTargets, SwingMessage};
+    use bevy::ecs::system::RunSystemOnce;
+    for rank in 0..=3 {
+        for critical in [false, true] {
+            let mut run = Run {
+                class: &data::CLASSES[5],
+                milestones: Milestones {
+                    class: 5,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 581, rank)]),
+                ..Default::default()
+            };
+            run.bonus.armor = 80.;
+            run.bonus.crit = 0.5;
+            run.hp = run.stats().max_hp;
+            let base_armor = run.stats().armor;
+            run.abilities.push(Owned {
+                def: data::ability("healing_wave"),
+                level: 1,
+                cd: 0.,
+            });
+            let chance = Params::new(&run.abilities[0], &run.stats(), run.milestones).crit;
+            let seed = (1..10000)
+                .find(|seed| (Rng(*seed).f32() < chance) == critical)
+                .unwrap();
+            let mut app = App::new();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.insert_resource(run)
+                .insert_resource(time)
+                .insert_resource(Rng(seed))
+                .init_resource::<PlaySeq>()
+                .init_resource::<PendingHits>()
+                .add_message::<CastEvent>()
+                .add_message::<SpellGoTargets>()
+                .add_message::<SwingMessage>()
+                .add_message::<crate::combat_text::CombatTextSpawn>()
+                .add_message::<Hit>();
+            app.world_mut()
+                .spawn((Transform::default(), Hero { vy: 0., air: 0. }));
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert_eq!(app.world().resource::<Run>().ancestral_healing_t, 0.);
+            assert_eq!(app.world().resource::<Rng>().0, seed);
+            for remaining in [0., 4.] {
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    run.hp = 1.;
+                    run.abilities[0].cd = 0.;
+                    run.ancestral_healing_t = remaining;
+                }
+                app.world_mut().resource_mut::<Rng>().0 = seed;
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let run = app.world().resource::<Run>();
+                assert!(run.hp > 1.);
+                let active = critical && rank > 0;
+                assert_eq!(
+                    run.ancestral_healing_t,
+                    if active { 15. } else { remaining }
+                );
+                let bonus = if rank > 0 && (active || remaining > 0.) {
+                    [0., 0.08, 0.16, 0.25][usize::from(rank)]
+                } else {
+                    0.
+                };
+                assert!((run.stats().armor - base_armor * (1. + bonus)).abs() < 0.0001);
+                assert!(app.world().resource::<Messages<Hit>>().is_empty());
+            }
+        }
+    }
+}

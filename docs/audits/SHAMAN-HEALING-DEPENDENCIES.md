@@ -68,8 +68,8 @@ Native tooltip captures cover both nodes at 1280×720 and 640×720 / 125% UI siz
 A native purchase attempt returned `noWindowsAvailable`; the same app still
 rendered correctly, but no purchase acceptance is claimed. Windows, controller
 and attended combat remain open. Incremental native build: 16 seconds.
-Improved Healing Wave, Tidal Focus and Ancestral Healing still retain their older
-explicit totem conversions and require separate reconciliation.
+At this checkpoint, Improved Healing Wave, Tidal Focus and Ancestral Healing still
+used older totem conversions. Subsequent reconciliation is recorded below.
 
 Final verification: all 321 core tests and the eight-package scoped gate pass;
 31 optional-addon tests skip because their corpus is unavailable. Earlier runs
@@ -96,15 +96,38 @@ Windows, physical controller, compact purchase of these nodes and attended comba
 remain open. No runtime source changed; the preceding green eight-package gate
 and 321 core tests remain applicable.
 
-## Ancestral Healing decision pending
+## Ancestral Healing — approved replacement, 2026-11-01
 
-Raw node 581 references triggers 16177, 16236 and 16237. Their aura 101 values
-are 8/16/25% armor and all last 15 seconds. The current authored conversion grants
-12/24/36 flat armor for 10 seconds after effective Searing/Magma deployment
-healing, without a critical roll. The new Healing Wave critical-event producer
-makes the original trigger implementable. The user has been asked whether to
-replace the old conversion, retain both effects or keep the existing behavior.
-Do not treat that question as approval; the implementation remains unchanged.
+Raw node 581 references triggers 16177, 16236 and 16237: 8/16/25% armor
+for 15 seconds. The approved replacement now triggers on effective Healing Wave
+criticals, refreshes without stacking, and multiplies armor after equipment and
+racial bonuses. It replaces the former 12/24/36 flat armor after totem healing;
+existing saved ranks keep their IDs and acquire the revised effect.
+
+Noncritical healing, overhealing, regeneration and totem healing cannot trigger
+or refresh it. The timer advances with active gameplay, and dead heroes receive
+no armor bonus. The tooltip scopes the currently supported heal explicitly and
+shows green inline 0→8→16→25% values; the HUD reports percentage armor and time.
+
+Core tests cover all ranks, class scope, caps, refunds and green inline ranges.
+Actual cast tests cover critical/noncritical healing, full health, refresh and
+no damage events. Timer tests cover expiry/death; real totem deployment tests
+prove removal of the old trigger. Catalog-backed account tests cover purchases,
+saved specs, reload and refund.
+
+Native macOS acceptance: 1280×720 / 100% purchase 0→1→2→3, right-click refund
+3→2, then 640×720 / 125% display and application restart retaining 2/3. Saved
+spec 1 is `2:586:5,2:593:5,2:581:2`; specs 2 and 3 remain empty. The fixture
+was seeded before launch; purchases/refund used the production UI and no save
+edits occurred before restart. Windows, controller, compact purchase and attended
+combat remain unverified.
+
+The ten-package formatting/Clippy/test gate passes (31 optional-addon skips).
+Native incremental build: 27.06 seconds; WebGPU check: 8.19 seconds with six
+existing warnings. Native linking retains the existing unwind-size warning.
+
+![Wide maximum rank](../images/screenshots/2026-11-01-ancestral-healing/maximum-wide.jpg)
+![Compact refunded rank after restart](../images/screenshots/2026-11-01-ancestral-healing/restart-compact.jpg)
 
 
 ## Healing Wave recovery training — 2026-10-29
@@ -138,7 +161,7 @@ The eight-package formatting/Clippy/test gate passes, with 31 optional-addon ski
 all 321 core tests pass. Earlier runs exposed obsolete spell-scope and green-label
 expectations. The shared label parser now colors “shorter recovery” with its value,
 including Nature's Grace. Incremental native build: 16.57 seconds.
-Ancestral Healing still awaits the separate policy decision above.
+Ancestral Healing was subsequently replaced under the approved policy above.
 
 ## Compact pointer acceptance — 2026-10-29
 

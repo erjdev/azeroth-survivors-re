@@ -2039,7 +2039,8 @@ fn reactive_buff_status(run: &Run) -> String {
         .ancestral_healing_armor(run.ancestral_healing_t > 0.);
     if ancestral > 0. {
         active.push(format!(
-            "Ancestral Healing +{ancestral:.0} armor ({:.0}s)",
+            "Ancestral Healing +{:.0}% armor ({:.0}s)",
+            ancestral * 100.,
             run.ancestral_healing_t.ceil()
         ));
     }
@@ -3776,7 +3777,7 @@ mod ancestral_status_tests {
         };
         assert_eq!(
             reactive_buff_status(&run),
-            "Ancestral Healing +24 armor (10s)"
+            "Ancestral Healing +16% armor (10s)"
         );
         run.ancestral_healing_t = 0.;
         assert_eq!(reactive_buff_status(&run), "");

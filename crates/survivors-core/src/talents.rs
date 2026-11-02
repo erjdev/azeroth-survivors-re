@@ -756,7 +756,9 @@ impl Milestones {
 
     pub fn ancestral_healing_armor(self, active: bool) -> f32 {
         if self.class == 5 && active {
-            self.trained_value(TalentStat::AncestralHealingArmor)
+            f32::from(shaman::ancestral_healing_percent(
+                self.trained_value(TalentStat::AncestralHealingArmor) as u8,
+            )) / 100.
         } else {
             0.
         }
@@ -2021,6 +2023,23 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::AncestralHealingArmor {
+            let rank = rank.min(self.max_rank);
+            let current = shaman::ancestral_healing_percent(rank);
+            let next = shaman::ancestral_healing_percent(rank.saturating_add(1));
+            let value = if rank == self.max_rank {
+                format!("+{current}% armor")
+            } else {
+                format!("+{current} » {next}% armor")
+            };
+            let (prefix, suffix) = self.description.split_once("+8/16/25% armor")?;
+            let start = prefix.len();
+            let end = start + value.len();
+            return Some((
+                format!("{prefix}{value}{suffix}"),
+                std::iter::once(start..end).collect(),
+            ));
+        }
         if self.stat == TalentStat::FelineSwiftness {
             let rank = rank.min(self.max_rank);
             let next = rank.saturating_add(1).min(self.max_rank);
@@ -2462,6 +2481,7 @@ impl TalentDefinition {
                 | TalentStat::HealingWay
                 | TalentStat::EarthsGrasp
                 | TalentStat::FelineSwiftness
+                | TalentStat::AncestralHealingArmor
         ) {
             let suffix = if rank >= self.max_rank {
                 " (maximum rank)"
@@ -2612,7 +2632,7 @@ impl TalentDefinition {
             TalentStat::SpellGroupRangeYards(_) => (1.0, " yd targeting range"),
             TalentStat::SpiritTap => (100.0, "% chance on kill"),
             TalentStat::ImprovedRenew => (100.0, "% Renew regeneration"),
-            TalentStat::AncestralHealingArmor => (1.0, " armor after effective totem healing"),
+            TalentStat::AncestralHealingArmor => (100.0, "% armor after effective critical healing"),
             TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
             TalentStat::EarthsGrasp | TalentStat::FelineSwiftness => return self.inline_description(rank).unwrap(),

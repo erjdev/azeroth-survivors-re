@@ -99,6 +99,10 @@ Warlock demon recovery/sacrifice details remain unspecified, not silently approv
 Disarm's unused runtime/status/preview machinery is now removed; cosmetic enemy
 equipment and the existing weakening-duration talent conversion remain. Riposte's
 replacement and the other approved combat-policy migrations are still open.
+Ancestral Healing now grants 8/16/25% armor for 15 seconds after effective Healing
+Wave criticals, replacing its totem conversion. Automated effects/save tests and
+native wide purchase/refund plus compact restart pass; platform and attended-combat
+limits remain in the [healing audit](audits/SHAMAN-HEALING-DEPENDENCIES.md).
 
 Druid forms are permanent progression upgrades for the entire run: Cat and Bear
 in Feral, Moonkin in Balance, Tree of Life in Restoration. All four are mutually

@@ -18,6 +18,7 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
         .clone()
         .unwrap();
     for (class, node, row, max_rank, key, initial) in [
+        (5, 581, 1, 3, "healing_wave", vec![(2, 586, 5), (2, 593, 5)]),
         (
             3,
             222,
@@ -290,6 +291,12 @@ fn recent_training_purchases_survive_specs_reload_and_refund_without_granting_ot
                     trained.illumination_chance(key, 1., true),
                     0.2 * f32::from(rank)
                 );
+            } else if node == 581 {
+                assert_eq!(
+                    trained.ancestral_healing_armor(true),
+                    [0., 0.08, 0.16, 0.25][usize::from(rank)]
+                );
+                assert_eq!(trained.ancestral_healing_armor(false), 0.);
             } else if node == 1648 {
                 let expected_chance = [0., 0.33, 0.66, 1.][usize::from(rank)];
                 assert_eq!(
