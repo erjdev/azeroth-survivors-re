@@ -17,6 +17,12 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Known UI issue under investigation: repeated starter class reloads can hide parts
+of labels. [Reproduction and diagnostic evidence](docs/audits/STARTER-TEXT-RELOAD.md).
+No typography workaround has been shipped.
+
+![Starter reload defect under investigation](docs/images/screenshots/2026-11-02-text-reload/before-shaman-compact.jpg)
+
 Warrior, Rogue and Shaman now have normalized automatic weapon attacks outside
 ability slots, alongside Paladin. [Scope and remaining talent work](docs/audits/MELEE-AUTOMATIC-ATTACKS.md).
 

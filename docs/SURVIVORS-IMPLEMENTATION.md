@@ -10696,3 +10696,11 @@ this does not complete class talents or the overall acceptance contract.
 Preview follow-up: hot-switching compact Rogue → Shaman in the file-driven starter
 preview left some text missing until restart. Investigate text invalidation;
 the fresh-launch capture is not proof that hot reload is correct.
+
+
+## Starter reload diagnostic evidence — 2026-11-02
+
+[Reproduction and rejected fixes](audits/STARTER-TEXT-RELOAD.md) now isolate the
+missing-label issue beyond source strings/layout and record CPU/GPU atlas evidence.
+It remains open; outline/shadow simplifications were reverted. Next inspect UI
+extraction/batching and ordinary class-button switches before changing the renderer.

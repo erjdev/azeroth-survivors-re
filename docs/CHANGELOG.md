@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-02 — Starter reload investigation
+
+Captured the missing-text defect on repeated class switches and narrowed the
+investigation to rendering after layout. Outline/shadow replacements did not
+reliably fix it and were reverted. Production behavior is unchanged; the issue
+remains open. [Reproduction and evidence](audits/STARTER-TEXT-RELOAD.md).
+
+![Open starter text-reload defect](images/screenshots/2026-11-02-text-reload/before-shaman-compact.jpg)
+
 ## 2026-11-02 — Melee automatic attacks
 
 Warrior, Rogue and Shaman now join Paladin with normalized weapon attacks outside
