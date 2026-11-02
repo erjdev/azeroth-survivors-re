@@ -27,7 +27,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 783, max_rank: 3, name: "Moonglow", description: "Wrath, Moonfire, Starfire, Rejuvenation, Regrowth and Healing Touch: 3% shorter cooldown per rank (Survivors mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(&["wrath", "moonfire", "starfire", "rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.03 },
     TalentDefinition { id: 790, max_rank: 5, name: "Moonfury", description: "Wrath, Moonfire and Starfire: +2% direct and periodic damage per rank", stat: TalentStat::SpellGroupDamage(BALANCE), per_rank: 0.02 },
     TalentDefinition { id: 794, max_rank: 5, name: "Thick Hide", description: "+8 hero armor per rank (Survivors conversion)", stat: TalentStat::Armor, per_rank: 8.0 },
-    TalentDefinition { id: 807, max_rank: 2, name: "Feline Swiftness", description: "+5% hero movement speed per rank (Survivors conversion; no form required)", stat: TalentStat::Speed, per_rank: 0.05 },
+    TalentDefinition { id: 807, max_rank: 2, name: "Feline Swiftness", description: "Cat Form only: +15% outdoor movement speed and +2 percentage points melee dodge chance per rank. Dodge works indoors too; movement multiplies other speed bonuses", stat: TalentStat::FelineSwiftness, per_rank: 0.15 },
     TalentDefinition { id: 798, max_rank: 3, name: "Sharpened Claws", description: "Cat and Bear automatic Claw/Maul: +2 percentage points critical chance per rank. No effect on spells, healing, pets or other forms", stat: TalentStat::FeralAttackCrit, per_rank: 0.02 },
     TalentDefinition { id: 830, max_rank: 3, name: "Improved Rejuvenation", description: "Rejuvenation: +5% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.05 },
     TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation, Regrowth and Healing Touch: +2% healing per rank, including direct and periodic healing. Does not change critical chance, duration or damage", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.02 },
@@ -179,7 +179,10 @@ mod tests {
             let bonus = stat_adjustment(8, &ranks);
             assert_eq!(bonus.armor, 12. * r);
             assert!((bonus.reduction - 0.01 * r).abs() < 0.00001);
-            assert!((bonus.speed - 0.05 * f32::from(rank.min(2))).abs() < 0.00001);
+            assert_eq!(
+                bonus.speed, 0.,
+                "Feline Swiftness requires Cat and outdoor context"
+            );
             assert_eq!(bonus.crit, 0.0);
             assert_eq!(trained.with_ranks(&[]), base);
         }

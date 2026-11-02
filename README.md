@@ -35,6 +35,11 @@ critical chance without boosting spells or caster forms. [Rules and evidence](do
 
 ![Feral critical training after restart](docs/images/screenshots/2026-11-01-feral-critical/claws-restarted-compact.jpg)
 
+Feline Swiftness now scopes outdoor speed and melee dodge to Cat Form.
+[Rules, native screenshots and limits](docs/audits/FELINE-SWIFTNESS.md).
+
+![Feline Swiftness inline upgrades](docs/images/screenshots/2026-11-01-feline-swiftness/rank1-restarted-compact.jpg)
+
 Cat and Bear now attack automatically with Claw and Maul outside the six ability
 slots, while retaining the Druid spell pool. Natural Weapons improves those
 physical attacks, and Predatory Strikes adds run-level-scaled attack power. [Rules and validation](docs/audits/DRUID-PROGRESSION-FORMS.md#automatic-feral-attacks-and-faction-preview-follow-up--2026-11-01).

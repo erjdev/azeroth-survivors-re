@@ -74,6 +74,24 @@ pub fn can_learn_form(class: usize, ranks: &[(u8, u32, u8)], id: u32) -> bool {
 }
 
 impl super::Milestones {
+    /// Spell.dbc 17002/24866: Cat-only outdoor speed; caller supplies body environment.
+    pub fn feline_movement_multiplier(self, indoors: bool) -> f32 {
+        if !indoors && self.druid_form() == Some(DruidForm::Cat) {
+            1. + self.trained_value(super::TalentStat::FelineSwiftness)
+        } else {
+            1.
+        }
+    }
+
+    /// Spell.dbc 24867/24864: two/four points of dodge, also while indoors.
+    pub fn feline_dodge(self) -> f32 {
+        if self.druid_form() == Some(DruidForm::Cat) {
+            self.trained_value(super::TalentStat::FelineSwiftness) * (2. / 15.)
+        } else {
+            0.
+        }
+    }
+
     /// Installed level-scaled attack power, scoped to the selected permanent feral form.
     pub fn feral_attack_power(self, level: u32) -> f32 {
         if matches!(self.druid_form(), Some(DruidForm::Cat | DruidForm::Bear)) {
@@ -176,5 +194,78 @@ mod tests {
         }
         assert!(valid_forms(8, &[]));
         assert!(can_learn_form(8, &[], DruidForm::Cat.talent()));
+    }
+}
+
+#[cfg(test)]
+mod feline_tests {
+    use super::*;
+    use crate::talents::{stat_adjustment, talent_definition, Milestones};
+
+    #[test]
+    fn feline_benefits_require_cat_and_speed_also_requires_outdoors() {
+        for class in 0..9 {
+            for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
+                for rank in [0, 1, 2, 3, 255] {
+                    let mut ranks = vec![(1, 807, rank)];
+                    if let Some(form) = form {
+                        ranks.push((form.tree(), form.talent(), 1));
+                    }
+                    let m = Milestones {
+                        class,
+                        ..Default::default()
+                    }
+                    .with_ranks(&ranks);
+                    let active = class == 8 && form == Some(DruidForm::Cat);
+                    let rank = f32::from(rank.min(2));
+                    assert!(
+                        (m.feline_movement_multiplier(false)
+                            - if active { 1. + rank * 0.15 } else { 1. })
+                        .abs()
+                            < 1e-6
+                    );
+                    assert_eq!(m.feline_movement_multiplier(true), 1.);
+                    assert!((m.melee_dodge() - if active { rank * 0.02 } else { 0. }).abs() < 1e-6);
+                    assert_eq!(m.with_ranks(&[]).melee_dodge(), 0.);
+                    assert_eq!(m.with_ranks(&[]).feline_movement_multiplier(false), 1.);
+                    // No unconditional speed or defensive stat leaks out of the talent.
+                    let bonus = stat_adjustment(class, &[(1, 807, rank as u8)]);
+                    assert_eq!((bonus.speed, bonus.armor, bonus.reduction), (0., 0., 0.));
+                }
+            }
+        }
+        let conflict = Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[
+            (1, 807, 2),
+            (1, DruidForm::Cat.talent(), 1),
+            (1, DruidForm::Bear.talent(), 1),
+        ]);
+        assert_eq!(conflict.feline_movement_multiplier(false), 1.);
+        assert_eq!(conflict.melee_dodge(), 0.);
+    }
+
+    #[test]
+    fn feline_inline_upgrade_colors_both_changes_with_one_unit_each() {
+        let node = talent_definition(8, 807).unwrap();
+        for rank in [0, 1, 2, 255] {
+            let (text, spans) = node.inline_description_with_values(rank).unwrap();
+            assert_eq!(spans.len(), 2);
+            assert_eq!(text.matches(" » ").count(), if rank < 2 { 2 } else { 0 });
+            assert_eq!(text.matches("% movement speed").count(), 1);
+            assert_eq!(
+                text.matches("percentage points melee dodge chance").count(),
+                1
+            );
+            assert!(text.contains("outdoors"));
+        }
+        let (text, spans) = node.inline_description_with_values(1).unwrap();
+        assert_eq!(&text[spans[0].clone()], "+15 » 30% movement speed");
+        assert_eq!(
+            &text[spans[1].clone()],
+            "+2 » 4 percentage points melee dodge chance"
+        );
     }
 }

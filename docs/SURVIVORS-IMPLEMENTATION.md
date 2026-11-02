@@ -9,6 +9,19 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Permanent-form follow-up and starter-kit policy — 2026-11-01
+
+[Feline Swiftness](audits/FELINE-SWIFTNESS.md) now has Cat-only outdoor speed
+and melee dodge consumers, with rank persistence and inline previews. Live
+traversal/combat and Windows remain open; definition counts are unchanged.
+
+Tree-learned abilities must replace or augment the starting kit, at most three
+by default and six maximum. Energy/Rage cost reductions become recovery reductions.
+Implement the [revised ability integration order](audits/FERAL-ABILITY-DEPENDENCIES.md)
+next. Automatic melee attacks stay outside slots, including the pending Warrior,
+Rogue and melee-focused Shaman extensions; the starting-three cap applies to
+slotted abilities under that interpretation.
+
 ## Feral critical scope and keyboard follow-up — 2026-11-01
 
 Sharpened Claws and Leader of the Pack now affect automatic Cat/Bear attacks,

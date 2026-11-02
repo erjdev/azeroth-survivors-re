@@ -11,7 +11,7 @@ impl Milestones {
     }
 
     pub fn melee_dodge(self) -> f32 {
-        self.trained_value(TalentStat::MeleeDodge)
+        self.trained_value(TalentStat::MeleeDodge) + self.feline_dodge()
     }
 }
 

@@ -37,6 +37,19 @@ skips), native build and WebGPU check, plus five native previews. Build output:
 
 ## 2026-11-01 — Automatic feral attacks
 
+Feline Swiftness now grants Cat-only outdoor speed (+15/30%) and melee dodge
+(+2/4 points), replacing its unconditional speed bonus. Native purchase/refund
+and compact restart show both values inline. 359 shared-rule tests, the final
+ten-package scoped gate (31 optional-addon skips), native build and WebGPU check
+pass. Build output: 56.67 GiB. [Evidence and remaining validation](audits/FELINE-SWIFTNESS.md).
+The starter-kit plan now records tree-granted replacement/addition, at most three
+starting slotted abilities and six maximum, with Energy/Rage costs converted to
+recovery. Automatic attacks stay outside slots; Warrior/Rogue and other melee
+builds need the same treatment.
+
+![Feline Swiftness after compact restart](images/screenshots/2026-11-01-feline-swiftness/rank1-restarted-compact.jpg)
+
+
 Sharpened Claws and Leader of the Pack now add critical chance only to automatic
 Cat/Bear attacks; saved ranks persist. Native purchases, refunds and compact
 restart are verified. [Scope and limits](audits/DRUID-PROGRESSION-FORMS.md#feral-critical-chance-scope--2026-11-01).

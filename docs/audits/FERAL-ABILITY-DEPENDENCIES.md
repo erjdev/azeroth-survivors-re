@@ -43,10 +43,15 @@ recovery, category recovery and global recovery are separate fields; a zero
 
 ## Integration order
 
-1. Resolve acquisition and resource handling. Questions are pending: compatible
-   form abilities in the existing six-slot level-up pool versus additional
-   automatic attacks; recovery reductions versus introducing Energy/Rage. The
-   approved automatic Claw/Maul and retained spell pool remain the current rules.
+1. Implement the approved starter-kit policy (2026-11-01): tree-learned abilities
+   replace the class default or augment the starting kit; at most three abilities
+   by default and six maximum. Do not treat tree learning as merely enabling a
+   future random card. Energy/Rage cost reductions become recovery reductions;
+   no resource pools are planned. Automatic Claw/Maul remain outside slots under
+   the earlier explicit decision. The follow-up confirms automatic melee attacks
+   stay outside the six slots and should extend to Warrior/Rogue and other melee
+   builds. Treat the three-starting cap as slotted abilities; add and validate
+   the corresponding weapon consumers, including melee-focused Shaman.
 2. Add form eligibility centrally to card generation, starter pool presentation,
    saved run setup and runtime cast validation. Test all four forms, no form,
    conflicting imports, six occupied slots and persistence. Preserve existing
@@ -76,3 +81,26 @@ workspace formatting pass. The rebuilt tool was run against all listed spells,
 including Pounce's triggered bleed; Cat/Bear masks and Bite's combo coefficient
 were observed directly. This does not require a native gameplay build or new UI
 capture because it changes read-only evidence output and planning only.
+
+## Starter-kit integration points verified — 2026-11-01
+
+`hud::start_run` currently adds only `class.start`. `Run::finish_start` receives
+the selected immutable talent snapshot afterward, making it the shared point
+for applying tree-granted starter abilities across mouse, keyboard and production
+preview setup. `armory::preview::selected_run` already calls both in that order.
+Do not implement a separate preview-only kit.
+
+The current explicit `AbilityUnlock` consumers are Priest Mind Flay/Silence and
+Paladin Repentance. They presently gate random card acquisition, so the newly
+approved policy requires migrating these existing talents as well as new feral
+nodes. A Priest with both fits three slotted starting abilities; Paladin has two
+slotted abilities plus its previously approved separate weapon attack. Preserve
+rank-one cooldown initialization and prevent duplicate grants, invalid-class
+imports or accidental modifications to an active run. If later tree combinations
+exceed the starting limit, provide an explicit starter-kit choice/replacement
+policy rather than silently dropping learned abilities in catalog order.
+
+Tests must cover every startup route, no talent, both Priest unlocks, Paladin,
+refund/spec switching, immutable active runs, the three-start cap and six-slot
+acquisition ceiling. Starter labels and green descriptions must show the actual
+kit; old text claiming only future card eligibility must be replaced.

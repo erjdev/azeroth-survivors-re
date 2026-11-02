@@ -815,3 +815,58 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod feline_tests {
+    use super::*;
+    use survivors_core::talents::{forms::DruidForm, Milestones};
+
+    #[test]
+    fn cat_dodge_uses_contact_table_before_shields_and_form_refund_removes_it() {
+        let attacker = Entity::from_bits(42);
+        for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
+            for rank in 0..=2 {
+                let mut ranks = vec![(1, 807, rank)];
+                if let Some(form) = form {
+                    ranks.push((form.tree(), form.talent(), 1));
+                }
+                let setup = || Run {
+                    class: &super::super::data::CLASSES[8],
+                    milestones: Milestones {
+                        class: 8,
+                        ..Default::default()
+                    }
+                    .with_ranks(&ranks),
+                    hp: 100.,
+                    shield: 10.,
+                    shield_t: 10.,
+                    ..Default::default()
+                };
+                let chance = if form == Some(DruidForm::Cat) {
+                    f32::from(rank) * 0.02
+                } else {
+                    0.
+                };
+                for roll in [0., 0.0199, 0.0201, 0.0399, 0.0401] {
+                    let mut run = setup();
+                    let outcome = contact(&mut run, attacker, 20., || roll).outcome;
+                    assert_eq!(outcome == Outcome::Dodged, roll < chance);
+                    if roll < chance {
+                        assert_eq!((run.hp, run.shield), (100., 10.));
+                    } else {
+                        assert!(matches!(outcome, Outcome::Landed { .. }));
+                    }
+                }
+                let mut run = setup();
+                run.milestones = run.milestones.with_ranks(&[(1, 807, rank)]);
+                assert!(matches!(
+                    contact(&mut run, attacker, 20., || panic!(
+                        "form removed: no dodge roll"
+                    ))
+                    .outcome,
+                    Outcome::Landed { .. }
+                ));
+            }
+        }
+    }
+}

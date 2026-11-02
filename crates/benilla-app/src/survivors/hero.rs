@@ -203,6 +203,7 @@ pub(super) fn drive_hero(
     controller: Res<super::controller_input::ControllerInput>,
     loading: Res<crate::loading_screen::LoadingScreen>,
     world: super::Floor,
+    environment: benilla_world::world_point::WorldPoint,
     auto: Option<Res<super::auto::Auto>>,
     mut player: ResMut<crate::player::Player>,
     mut hero: Query<(&mut Transform, &mut MovementState, &mut Hero)>,
@@ -261,7 +262,15 @@ pub(super) fn drive_hero(
             if dir != Vec3::ZERO && dt > 0.0 {
                 let strength = dir.length().min(1.0);
                 let dir = dir.normalize();
+                // Test the body position, not camera occlusion or the map's dungeon label.
+                let feline = run.milestones.feline_movement_multiplier(false);
+                let feline = if feline > 1. && environment.indoors_at(pos) {
+                    1.
+                } else {
+                    feline
+                };
                 let speed = run.stats().speed
+                    * feline
                     * run.haste_mult()
                     * strength
                     * run.incoming_slows.state(run.elapsed).0;

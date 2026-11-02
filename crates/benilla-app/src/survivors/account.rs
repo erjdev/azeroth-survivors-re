@@ -5078,6 +5078,55 @@ mod tests {
     }
 
     #[test]
+    fn feline_purchase_save_spec_refund_and_form_removal_preserve_run_snapshot() {
+        let data = benilla_formats::wow_data_or_skip!();
+        let mut chain = benilla_formats::Chain::open(&data).unwrap();
+        let catalog = benilla_formats::load_talent_catalog(&mut chain).unwrap();
+        let mut app = App::new();
+        app.insert_resource(empty())
+            .insert_resource(crate::ui_talent::Talents { catalog })
+            .add_systems(PreUpdate, super::super::talent_validation::load_rules);
+        app.update();
+        let mut account = app.world_mut().remove_resource::<Account>().unwrap();
+        let rules = account.talent_rules.clone().unwrap();
+        let hero = account.ensure(8);
+        let character = account
+            .characters
+            .iter_mut()
+            .find(|c| c.id == hero)
+            .unwrap();
+        character.talent_xp = 5100;
+        character.dbc[0] = vec![(1, 1_000_001, 1), (1, 796, 5), (1, 795, 5)];
+        assert!(account.talents_valid(account.character(hero).unwrap()));
+        let speed = account.bonus(8, hero).speed;
+        for _ in 0..2 {
+            assert!(account.learn_talent(hero, 1, 807, 2, 2, true));
+        }
+        assert!(!account.learn_talent(hero, 1, 807, 2, 2, true));
+        assert_eq!(account.bonus(8, hero).speed, speed);
+        let snapshot = account.milestones_picked(8, Some(hero));
+        let mut loaded = parse(&encode(&account)).unwrap();
+        loaded.talent_rules = Some(rules);
+        assert_eq!(loaded.milestones_picked(8, Some(hero)), snapshot);
+        assert!((snapshot.feline_movement_multiplier(false) - 1.3).abs() < 1e-6);
+        assert!((snapshot.melee_dodge() - 0.04).abs() < 1e-6);
+        loaded.select_spec(hero, 1);
+        assert_eq!(loaded.milestones_picked(8, Some(hero)).melee_dodge(), 0.);
+        loaded.select_spec(hero, 0);
+        assert!(loaded.unlearn_talent(hero, 807, true));
+        assert!((loaded.milestones_picked(8, Some(hero)).melee_dodge() - 0.02).abs() < 1e-6);
+        assert!(loaded.unlearn_talent(hero, 1_000_001, true));
+        assert_eq!(loaded.milestones_picked(8, Some(hero)).melee_dodge(), 0.);
+        assert_eq!(
+            loaded
+                .milestones_picked(8, Some(hero))
+                .feline_movement_multiplier(false),
+            1.
+        );
+        assert!((snapshot.melee_dodge() - 0.04).abs() < 1e-6);
+    }
+
+    #[test]
     fn leader_of_the_pack_purchase_save_specs_and_refund_reach_scoped_attack_crit() {
         let data = benilla_formats::wow_data_or_skip!();
         let mut chain = benilla_formats::Chain::open(&data).unwrap();

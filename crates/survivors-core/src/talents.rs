@@ -1771,6 +1771,7 @@ pub enum TalentStat {
     HunterMarkPower,
     PredatoryStrikes,
     FeralAttackCrit,
+    FelineSwiftness,
     CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
     Health,
@@ -2004,6 +2005,27 @@ impl TalentDefinition {
         &self,
         rank: u8,
     ) -> Option<(String, Vec<std::ops::Range<usize>>)> {
+        if self.stat == TalentStat::FelineSwiftness {
+            let rank = rank.min(self.max_rank);
+            let next = rank.saturating_add(1).min(self.max_rank);
+            let value = |scale: u8, unit: &str| {
+                if rank == next {
+                    format!("{}{unit}", rank * scale)
+                } else {
+                    format!("{} » {}{unit}", rank * scale, next * scale)
+                }
+            };
+            let mut text = "Cat Form only: +".to_owned();
+            let start = text.len() - 1;
+            text.push_str(&value(15, "% movement speed"));
+            let speed = start..text.len();
+            text.push_str(" outdoors, and +");
+            let start = text.len() - 1;
+            text.push_str(&value(2, " percentage points melee dodge chance"));
+            let dodge = start..text.len();
+            text.push_str(" indoors or outdoors. Movement multiplies other speed bonuses; no effect in other forms");
+            return Some((text, vec![speed, dodge]));
+        }
         if self.stat == TalentStat::EarthsGrasp {
             let rank = rank.min(self.max_rank);
             let next = rank.saturating_add(1).min(self.max_rank);
@@ -2292,6 +2314,7 @@ impl TalentDefinition {
             | TalentStat::MonkeyDodge
             | TalentStat::PredatoryStrikes
             | TalentStat::FeralAttackCrit
+            | TalentStat::FelineSwiftness
             | TalentStat::HunterMarkPower
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_)
@@ -2419,7 +2442,10 @@ impl TalentDefinition {
     pub fn rank_preview(&self, rank: u8) -> String {
         if matches!(
             self.stat,
-            TalentStat::HealingLight | TalentStat::HealingWay | TalentStat::EarthsGrasp
+            TalentStat::HealingLight
+                | TalentStat::HealingWay
+                | TalentStat::EarthsGrasp
+                | TalentStat::FelineSwiftness
         ) {
             let suffix = if rank >= self.max_rank {
                 " (maximum rank)"
@@ -2573,7 +2599,7 @@ impl TalentDefinition {
             TalentStat::AncestralHealingArmor => (1.0, " armor after effective totem healing"),
             TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
-            TalentStat::EarthsGrasp => return self.inline_description(rank).unwrap(),
+            TalentStat::EarthsGrasp | TalentStat::FelineSwiftness => return self.inline_description(rank).unwrap(),
             TalentStat::Purification => (100.0, "% Healing Wave and totem deployment healing"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::Illumination => (100.0, "% critical-heal recovery refund chance"),
@@ -4204,6 +4230,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::MonkeyDodge
             | TalentStat::PredatoryStrikes
             | TalentStat::FeralAttackCrit
+            | TalentStat::FelineSwiftness
             | TalentStat::HunterMarkPower
             | TalentStat::ColdBlood
             | TalentStat::ElementalMastery
@@ -5770,6 +5797,7 @@ mod stat_talent_tests {
                     | TalentStat::MonkeyDodge
                     | TalentStat::PredatoryStrikes
                     | TalentStat::FeralAttackCrit
+                    | TalentStat::FelineSwiftness
                     | TalentStat::HunterMarkPower
                     | TalentStat::ColdBlood
                     | TalentStat::ElementalMastery
@@ -7034,7 +7062,7 @@ mod inline_stat_label_tests {
             (8, 808, "+0 » 4% maximum health"),
             (8, 794, "+0 » 8 hero armor"),
             (8, 798, "+0 » 2 percentage points critical chance"),
-            (8, 807, "+0 » 5% hero movement speed"),
+            (8, 807, "+0 » 15% movement speed"),
             (2, 1352, "+0 » 2 yd targeting range"),
             (2, 1382, "+0 » 3% haste"),
             (0, 127, "+0 » 10% bleed damage"),

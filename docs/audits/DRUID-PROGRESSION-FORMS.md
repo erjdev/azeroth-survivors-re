@@ -170,8 +170,9 @@ This replaces the earlier temporary no-form/global-critical conversions. Saved
 node IDs and ranks are unchanged: existing specs retain their point investment,
 but now need Cat/Bear to gain these bonuses. Normal free refunds remain available.
 Active runs retain their starting milestone snapshot. The separate authored
-30-point Thorns-healing milestone is unchanged. Feline Swiftness, Heart of the
-Wild and other legacy form conversions remain separate work.
+30-point Thorns-healing milestone is unchanged. [Feline Swiftness](FELINE-SWIFTNESS.md)
+has subsequently been scoped to Cat; Heart of the Wild and other legacy form
+conversions remain separate work.
 
 Evidence comes from checkout `--talent-evidence 798`, `--talent-evidence 809` and
 `--spell-evidence 24932`: installed Claws ranks are 2/4/6 points and the Leader

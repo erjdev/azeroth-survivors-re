@@ -1278,3 +1278,22 @@ chance at the attack roll, never to spell/healing critical chance. Other forms
 and humanoid builds gain neither bonus. Existing ranks remain saved and freely
 refundable; this replaces their earlier no-form global-critical conversion.
 The Feral 30-point Thorns-healing milestone remains independent.
+
+### Tree-granted starting abilities — 2026-11-01 decision
+
+Tree-learned abilities replace the class default or augment its starting kit.
+No class should start with more than three slotted abilities; six slotted abilities
+is the overall maximum. Automatic melee attacks remain outside those slots.
+Apply this consistently to Warrior, Rogue, Paladin, feral Druid and melee-focused
+Shaman builds; the latter extensions still need implementation. The three-starting
+cap is interpreted as slotted abilities, consistent with the user’s clarification
+that automatic attacks do not consume the six slots. Energy/Rage cost talents convert to recovery reductions,
+keeping Survivors resource-free. This policy still needs starter/runtime integration.
+
+### Feline Swiftness permanent-form scope
+
+Node 807 grants Cat-only +15/30% movement outdoors and +2/4 percentage points
+melee dodge indoors or outdoors. Movement multiplies other speed bonuses and
+uses the body position's WMO/terrain indoor classification. Saved ranks persist;
+no-form, Bear, Moonkin and Tree builds receive neither effect. This supersedes
+the temporary unconditional +5/10% speed conversion. See [evidence](audits/FELINE-SWIFTNESS.md).

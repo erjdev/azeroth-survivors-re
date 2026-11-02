@@ -8,6 +8,11 @@ their own dates; later evidence can supersede their pending notes.
 Armory Enter shortcut leakage is [fixed and checked](audits/ARMORY-KEYBOARD-ISOLATION.md);
 Windows keyboard acceptance remains open.
 
+The updated starter policy grants tree abilities through replacement/addition,
+at most three slotted abilities initially and six total. Automatic melee attacks
+remain outside slots and must expand to Warrior/Rogue and other melee builds;
+Energy/Rage cost reductions convert to recovery. [Integration plan](audits/FERAL-ABILITY-DEPENDENCIES.md).
+
 ## Immediate order
 
 1. Finish starter/Armory behavior, persistence and responsive acceptance, including
@@ -89,7 +94,6 @@ approved conversion for one spell does not authorize applying it to all others.
 | Ancestral Healing: replace, combine with, or retain the existing authored armor effect | [Shaman critical-heal armor behavior](audits/SHAMAN-HEALING-DEPENDENCIES.md). |
 | Stormstrike weapon-damage input | [Shaman melee attack and vulnerability application](audits/SHAMAN-MELEE-DEPENDENCIES.md). |
 | Disarmed enemies stop weapon attacks or retain an unarmed attack | [Enemy equipment and disarm consumers](audits/ENEMY-EQUIPMENT.md). |
-| Additional feral ability acquisition and Energy/Rage conversion | [Ability dependencies and integration order](audits/FERAL-ABILITY-DEPENDENCIES.md). |
 | Tranquility movement and attack handling | [Channel lifecycle and healing](audits/TRANQUILITY.md). |
 
 Druid forms are permanent progression upgrades for the entire run: Cat and Bear
