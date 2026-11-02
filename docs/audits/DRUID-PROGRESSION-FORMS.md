@@ -74,3 +74,48 @@ combat and Windows remain acceptance work; no full form/combat acceptance claim.
 ![Tree form, wide starter](../images/screenshots/2026-11-01-druid-progression/tree-starter-wide.png)
 
 ![Saved Cat spec after final framing changes](../images/screenshots/2026-11-01-druid-progression/cat-framed-wide.png)
+
+
+## Automatic feral attacks and faction preview follow-up — 2026-11-01
+
+The user approved automatic Cat/Bear attacks outside the six slots while keeping
+the spell pool. Shared-core attack descriptors now feed the existing physical
+auto-attack pipeline. Claw (12 damage / 1 sec) and Maul (30 / 2.5 sec) use authored
+initial tuning at equal base DPS; Natural Weapons adds 2% damage per rank.
+The starter names the automatic attack separately from the starting spell and pool.
+Six slots, pause, invalid targets, geometry, physical vulnerability and damage
+settlement are covered by integration regressions. All three new feral integration
+tests and the existing Paladin attack regressions pass. All 356 shared-rule tests
+pass. The six-package scoped gate is green, with 31 optional-addon skips. The
+native build finished in 1m33s and the WebGPU check passes (existing warnings).
+Fresh coverage is 318/432, including Druid 30/47, plus the three authored form
+nodes. Build output is 46.65 GiB with 1243 GiB free; no caches were deleted.
+
+Before that implementation, the production UI on `a7b4e45` verified Moonkin purchase
+for Night Elf and Tauren, Night Elf refund restoring the humanoid body, and Tauren
+Cat/Bear saved-spec body replacement. Fixture prerequisites were seeded; Moonkin
+purchases and refund used UI input. Captures use 1280×720 / 100% and the disposable
+`target/ui-fixtures/druid-form-matrix-20261101` account. Combat was not started.
+
+![Moonkin purchased through the talent page](../images/screenshots/2026-11-01-druid-form-matrix/moonkin-purchase.png)
+
+![Night Elf Moonkin](../images/screenshots/2026-11-01-druid-form-matrix/night-elf-moonkin.png)
+
+![Refund restores humanoid body](../images/screenshots/2026-11-01-druid-form-matrix/moonkin-refunded.png)
+
+![Tauren Moonkin](../images/screenshots/2026-11-01-druid-form-matrix/tauren-moonkin.png)
+
+![Tauren Cat](../images/screenshots/2026-11-01-druid-form-matrix/tauren-cat.png)
+
+![Tauren Bear](../images/screenshots/2026-11-01-druid-form-matrix/tauren-bear.png)
+
+The new native build also verifies Natural Weapons purchase with green inline
+2 » 4% scaling, and the separate automatic Maul label beside the unchanged Wrath
+starter. The label remains visible at 640×720 with 125% scaling. These are
+production menu previews, not evidence of attended combat or earned progression.
+
+![Automatic Maul and retained spell pool](../images/screenshots/2026-11-01-druid-form-matrix/automatic-maul-starter.png)
+
+![Natural Weapons purchased](../images/screenshots/2026-11-01-druid-form-matrix/natural-weapons-purchase.png)
+
+![Compact automatic-attack label](../images/screenshots/2026-11-01-druid-form-matrix/automatic-maul-compact.png)

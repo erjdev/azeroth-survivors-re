@@ -10581,3 +10581,13 @@ Purchases, refunds, independent specs and invalid imported choices have regressi
 Form displays replace the hero body while preserving equipment power. Feral
 attacks, migration of legacy no-form conversions and attended animation/camera/
 combat/platform acceptance remain open. This advances phase 5 without closing it.
+
+
+## Automatic feral attacks — 2026-11-01
+
+The approved Cat/Bear direction is implemented: automatic Claw/Maul outside six
+slots, preserving Wrath and the spell pool. Natural Weapons now has a physical
+attack consumer. [Rules and native evidence](audits/DRUID-PROGRESSION-FORMS.md#automatic-feral-attacks-and-faction-preview-follow-up--2026-11-01)
+include compact starter presentation and faction-specific form previews. Advanced
+feral abilities, legacy no-form talent migration and attended combat/platform
+acceptance remain open; this does not close phase 5.

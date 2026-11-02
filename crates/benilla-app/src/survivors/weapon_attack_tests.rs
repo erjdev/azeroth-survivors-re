@@ -294,3 +294,152 @@ fn vengeance_rejects_pet_noncritical_and_ineffective_weapon_hits() {
         assert_eq!(app.world().resource::<Run>().vengeance_t, 0., "case {case}");
     }
 }
+
+fn feral(form: survivors_core::talents::forms::DruidForm) -> (App, Entity, Entity) {
+    let (mut app, hero, target) = setup(false);
+    {
+        let mut run = app.world_mut().resource_mut::<Run>();
+        run.class = &data::CLASSES[8];
+        run.milestones = survivors_core::talents::Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[(form.tree(), form.talent(), 1)]);
+    }
+    (app, hero, target)
+}
+
+#[test]
+fn feral_automatic_attacks_settle_physical_damage_and_natural_weapons_without_worn_weapons() {
+    use survivors_core::talents::forms::DruidForm;
+    for (form, source, base, recovery) in [
+        (DruidForm::Cat, "Claw", 12., 1.),
+        (DruidForm::Bear, "Maul", 30., 2.5),
+    ] {
+        for rank in [0, 1, 5, 255] {
+            let (mut app, _, target) = feral(form);
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.milestones = run
+                    .milestones
+                    .with_ranks(&[(form.tree(), form.talent(), 1), (0, 791, rank)]);
+            }
+            app.world_mut()
+                .get_mut::<HemorrhageVulnerability>(target)
+                .unwrap()
+                .0
+                .apply(0.);
+            let stats = app.world().resource::<Run>().stats();
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits: Vec<_> = app
+                .world()
+                .resource::<Messages<Hit>>()
+                .iter_current_update_messages()
+                .cloned()
+                .collect();
+            assert_eq!(hits.len(), 1);
+            let hit = &hits[0];
+            assert_eq!(hit.source, source);
+            assert_eq!(hit.origin, HitOrigin::Hero);
+            assert_eq!((hit.dot, hit.splash), (0., 0.));
+            let expected = base
+                * stats.might
+                * (1. + 0.02 * f32::from(rank.min(5)))
+                * if hit.crit { stats.crit_damage } else { 1. };
+            assert!((hit.damage - expected).abs() < 0.001);
+            assert_eq!(app.world().resource::<Run>().weapon_attack_cd, recovery);
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            assert!(
+                (1000. - app.world().get::<Enemy>(target).unwrap().hp - expected - 3.).abs()
+                    < 0.001
+            );
+            assert_eq!(app.world().resource::<Run>().damage_sources[0].0, source);
+            app.world_mut().resource_mut::<Messages<Hit>>().clear();
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(app.world().resource::<Messages<Hit>>().is_empty());
+        }
+    }
+}
+
+#[test]
+fn feral_attacks_preserve_spell_slots_and_pause_and_reject_caster_forms() {
+    use survivors_core::talents::forms::DruidForm;
+    for form in DruidForm::ALL {
+        let (mut app, _, _) = feral(form);
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.abilities = (0..6)
+                .map(|_| crate::survivors::Owned {
+                    def: data::ability("wrath"),
+                    level: 1,
+                    cd: 100.,
+                })
+                .collect();
+            run.weapon_attack_cd = 0.5;
+        }
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::ZERO);
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(app.world().resource::<Run>().weapon_attack_cd, 0.5);
+        assert!(app.world().resource::<Messages<Hit>>().is_empty());
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(std::time::Duration::from_secs(1));
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(app.world().resource::<Run>().abilities.len(), 6);
+        assert!(app
+            .world()
+            .resource::<Run>()
+            .abilities
+            .iter()
+            .all(|owned| owned.def.key == "wrath"));
+        assert_eq!(
+            app.world().resource::<Messages<Hit>>().len(),
+            usize::from(matches!(form, DruidForm::Cat | DruidForm::Bear))
+        );
+    }
+}
+
+#[test]
+fn feral_attacks_reject_hidden_distant_dead_or_occluded_targets_without_spending_recovery() {
+    use avian3d::prelude::*;
+    use survivors_core::talents::forms::DruidForm;
+    for form in [DruidForm::Cat, DruidForm::Bear] {
+        for case in 0..5 {
+            let (mut app, _, target) = feral(form);
+            match case {
+                0 => {
+                    app.world_mut()
+                        .entity_mut(target)
+                        .insert(super::super::perception::Concealed);
+                }
+                1 => {
+                    app.world_mut()
+                        .get_mut::<Transform>(target)
+                        .unwrap()
+                        .translation = Vec3::X * 10.
+                }
+                2 => app.world_mut().get_mut::<Enemy>(target).unwrap().dead = true,
+                3 => app.world_mut().resource_mut::<Run>().hp = 0.,
+                _ => {
+                    app.world_mut().spawn((
+                        RigidBody::Static,
+                        Collider::cuboid(0.2, 5., 5.),
+                        Transform::from_xyz(1., 1., 0.),
+                    ));
+                    app.update();
+                    let mut time = Time::<()>::default();
+                    time.advance_by(std::time::Duration::from_secs_f32(0.1));
+                    app.insert_resource(time);
+                }
+            }
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            assert!(
+                app.world().resource::<Messages<Hit>>().is_empty(),
+                "{form:?} case {case}"
+            );
+            assert_eq!(app.world().resource::<Run>().weapon_attack_cd, 0.);
+        }
+    }
+}

@@ -49,3 +49,5 @@ pub mod earthbind;
 pub mod ghostly_strike;
 pub mod hemorrhage;
 pub mod stoneclaw;
+
+pub mod basic_attack;

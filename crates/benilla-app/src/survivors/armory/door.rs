@@ -600,6 +600,18 @@ fn class_column(
         stat(row, font, "Starts with", &super::spell_title(class.start));
         stat(row, font, "Zones open", &format!("{open}/{}", ZONES.len()));
     });
+    if let Some(attack) = account
+        .milestones_picked(class_i, selection.character)
+        .basic_attack()
+    {
+        line(
+            body,
+            font,
+            &format!("Automatic {} · outside ability slots", attack.source),
+            12.0,
+            GOLD,
+        );
+    }
     line(body, font, "Spell pool", 12.0, GOLD);
     spell_row(body, class);
 }

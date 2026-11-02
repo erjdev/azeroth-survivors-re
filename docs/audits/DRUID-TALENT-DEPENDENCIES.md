@@ -2,7 +2,7 @@
 
 The initial checkout-data audit found 27/47 matching Druid definitions. Regrowth
 and node 825 now have runtime consumers; nineteen nodes below remain provisional.
-Current coverage is 28/47 Druid and 309/432 overall. Installed reference rules and
+Coverage at that checkpoint was 28/47 Druid and 309/432 overall. Installed reference rules and
 Survivors conversions remain distinct.
 
 ## Reproduce
@@ -13,7 +13,11 @@ Run `cargo run -p survivors-audit -- wow-data/Data --talent-gaps`, then
 Raw effect values require unit interpretation; tooltip references require their
 referenced rows. No installed Applications game is used.
 
-## Missing consumers
+Later permanent-form and automatic Claw/Maul work supersedes the Moonkin and
+Natural Weapons blockers below; see the [form audit](DRUID-PROGRESSION-FORMS.md).
+The remaining rows still require their stated consumers or explicit conversions.
+
+## Missing consumers at the original checkpoint
 
 | Node | Installed rule | Required implementation |
 | --- | --- | --- |

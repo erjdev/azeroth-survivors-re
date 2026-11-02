@@ -589,38 +589,31 @@ pub(super) fn cast_abilities(
     };
     // Survivors-authored basic physical attack: worn identity, never cosmetic gear.
     // It is not Owned, so drafting six abilities cannot remove or upgrade it.
-    if run.class.id == 2 {
+    if (run.class.id == 2 && talents.class == 1) || (run.class.id == 11 && talents.class == 8) {
         run.weapon_attack_cd = (run.weapon_attack_cd - dt).max(0.0);
-        if let (Some(weapon), Some(world)) = (talents.weapon, channel_world.as_ref()) {
+        if let (Some(attack), Some(world)) = (talents.basic_attack(), channel_world.as_ref()) {
             if run.weapon_attack_cd <= 0.0 && world.height(hpos).is_some() {
                 let targets: Vec<_> = visible
                     .iter()
                     .filter(|foe| foe.hp > 0.0)
-                    .filter(|foe| hpos.distance(foe.pos) <= 3.0 + foe.radius)
+                    .filter(|foe| hpos.distance(foe.pos) <= attack.reach + foe.radius)
                     .filter(|foe| world.height(foe.pos).is_some())
                     .filter(|foe| world.line_clear(hpos, foe.pos))
                     .take(1 + stats.targets as usize)
                     .collect();
                 if let Some(first) = targets.first() {
-                    // Equal base DPS; equipment bonuses supply rarity progression.
-                    // Raw vanilla damage/delay are not our rarity-balanced tuning.
-                    let (base, seconds) = if weapon.two_handed {
-                        (36., 3.)
-                    } else {
-                        (24., 2.)
-                    };
-                    let damage = base
-                        * stats.for_spell("Weapon Attack").might
-                        * talents.cast("Weapon Attack").damage;
+                    let effect = talents.cast(attack.source);
+                    let damage =
+                        attack.damage * stats.for_spell(attack.source).might * effect.damage;
                     fx.swing(me, first.e, damage);
                     for foe in targets {
                         let (damage, crit) = roll(&mut rng, stats.crit, stats.crit_damage, damage);
                         hits.write(Hit {
-                            source: "Weapon Attack",
+                            source: attack.source,
                             ..Hit::direct(foe.e, damage, crit)
                         });
                     }
-                    run.weapon_attack_cd = seconds / (1.0 + stats.haste).max(0.1);
+                    run.weapon_attack_cd = attack.recovery / (1.0 + stats.haste).max(0.1);
                 }
             }
         }

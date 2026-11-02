@@ -1244,3 +1244,20 @@ Ordinary enemies can attack a closer, visible Earthbind within four yards. Pet
 attention takes precedence; bosses retain the hero target. Destruction stops
 pulses without hurting the hero. This local-attention rule does not implement
 Stoneclaw threat or enable Earth's Grasp, which still needs both named consumers.
+
+
+### Permanent feral automatic attacks — 2026-11-01
+
+Approved behavior: permanent Cat and Bear builds keep Wrath and the normal spell
+pool, and gain a physical automatic attack outside the six acquired ability slots.
+Cat uses Claw; Bear uses Maul. These require the run's selected form, not a worn
+weapon. Moonkin, Tree of Life and unshifted Druids do not gain this attack.
+
+Initial Survivors tuning (not imported vanilla weapon/resource values): Claw deals
+12 base damage every 1 second; Maul deals 30 every 2.5 seconds. Both have 3-yard
+reach plus enemy radius. Equipment damage, critical chance/damage, haste and extra
+single-target counts apply. Natural Weapons adds 2% physical Claw/Maul damage per
+rank, up to 10%; it does not increase spells, healing or pet damage. Neither attack
+uses mana, Energy or Rage. Additional feral ability/resource conversions remain
+separate work. Hidden, dead, out-of-reach and geometrically blocked targets cannot
+be hit; an empty attempt does not spend recovery. Pause freezes recovery.
