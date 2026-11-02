@@ -21,8 +21,8 @@ with matching starter labels. Remaining abilities and melee consumers are still 
 1. Finish starter/Armory behavior, persistence and responsive acceptance, including
    working talent effects. Use the [intention screenshots](intentions/) as the
    design reference and production UI previews for iteration.
-2. Resolve the outstanding gameplay choices below and implement their actual
-   consumers before counting associated talents as complete.
+2. Implement the approved combat policy below and its actual consumers before
+   counting associated talents as complete.
 3. Complete remaining world/content and integration acceptance without bypassing
    readiness locks. Further zone expansion follows the interface pass.
 4. Review and merge the current PR only when its acceptance boundary is satisfied.
@@ -85,19 +85,15 @@ interior support, traversability or encounters. All nine classes report zero
 unnamed cells and zero cells without drops; this does not verify every icon,
 appearance, creature identity, set bonus or reward delivery.
 
-## Unanswered gameplay choices
+## Approved gameplay policy
 
-These are pending design decisions already raised in the conversation. An
-approved conversion for one spell does not authorize applying it to all others.
-
-| Choice | Work it governs |
-| --- | --- |
-| Warlock demon selection before a run versus a summon ability slot | [Demon acquisition and dependent talents](audits/WARLOCK-DEMONS.md). |
-| Clearcasting's proposed next-damaging-spell recovery refund | [Mage proc/consumption integration](audits/MAGE-TALENT-DEPENDENCIES.md); keep the 15-second one-use window. |
-| Ancestral Healing: replace, combine with, or retain the existing authored armor effect | [Shaman critical-heal armor behavior](audits/SHAMAN-HEALING-DEPENDENCIES.md). |
-| Stormstrike weapon-damage input | [Shaman melee attack and vulnerability application](audits/SHAMAN-MELEE-DEPENDENCIES.md). |
-| Disarmed enemies stop weapon attacks or retain an unarmed attack | [Enemy equipment and disarm consumers](audits/ENEMY-EQUIPMENT.md). |
-| Tranquility movement and attack handling | [Channel lifecycle and healing](audits/TRANQUILITY.md). |
+The [2026-11-01 combat policy](SURVIVORS-COMBAT-POLICY.md) resolves the bulk
+mechanics questions and supersedes the earlier six pending choices. It requires
+normalized melee, an extra Arcane Missiles Clearcasting proc, moving independent
+abilities, no disarm/combo/stealth/position requirements, and redesigned builds
+rather than a menu to handle more than three starting abilities. Runtime migration
+and acceptance remain open; definition totals above are not policy-compliance totals.
+Warlock demon recovery/sacrifice details remain unspecified, not silently approved.
 
 Druid forms are permanent progression upgrades for the entire run: Cat and Bear
 in Feral, Moonkin in Balance, Tree of Life in Restoration. All four are mutually

@@ -1,5 +1,9 @@
 # Tranquility implementation evidence
 
+**Policy update:** [Approved combat rules](../SURVIVORS-COMBAT-POLICY.md)
+supersede conflicting design requirements below. Installed-data evidence remains
+reference material; it does not require reproducing rejected vanilla mechanics.
+
 This is an implementation dependency audit, not a completed spell. Inspect only
 this checkout's `wow-data/Data`; no installed Applications game is used.
 

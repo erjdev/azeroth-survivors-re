@@ -1,5 +1,9 @@
 # Remaining Mage talent dependencies
 
+**Policy update:** [Approved combat rules](../SURVIVORS-COMBAT-POLICY.md)
+supersede conflicting design requirements below. Installed-data evidence remains
+reference material; it does not require reproducing rejected vanilla mechanics.
+
 Evidence: this checkout's `wow-data/Data`, read using `survivors-audit
 --talent-evidence NODE` for the eleven nodes below and `--spell-evidence ID`
 for their prerequisite spells. Raw installed rows establish reference mechanics,

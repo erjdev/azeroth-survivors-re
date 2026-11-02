@@ -1,5 +1,8 @@
 # Survivors implementation contract
 
+Current governing mechanics: [approved combat policy, 2026-11-01](SURVIVORS-COMBAT-POLICY.md).
+This supersedes conflicting historical proposals below; runtime adaptation remains work.
+
 This plan implements [the Armory specification](SURVIVORS.md) and its
 [intention images](intentions/). It is a work breakdown and acceptance contract, not a
 replacement design or a claim that the illustrated game already exists. Git records
@@ -15,8 +18,7 @@ not a cumulative declaration that every earlier pending item is still open.
 startup at rank one, with a shared starter/runtime list, duplicate protection,
 refund/spec isolation and normal six-slot upgrade behavior. Existing combinations
 fit the three-start limit. Additional melee consumers, feral abilities and a
-future over-cap choice policy remain open; no bulk recommendations are assumed
-approved. Native Priest refund/restart and wide/compact evidence are recorded.
+over-cap build redesign remain open; the approved combat policy governs these changes. Native Priest refund/restart and wide/compact evidence are recorded.
 
 ## Permanent-form follow-up and starter-kit policy — 2026-11-01
 

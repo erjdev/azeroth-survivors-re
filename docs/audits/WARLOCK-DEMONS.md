@@ -1,5 +1,9 @@
 # Warlock demon implementation contract — 2026-10-29
 
+**Policy update:** [Approved combat rules](../SURVIVORS-COMBAT-POLICY.md)
+supersede conflicting design requirements below. Installed-data evidence remains
+reference material; it does not require reproducing rejected vanilla mechanics.
+
 Warlock has 29/50 matching talent definitions. The following twelve nodes remain
 provisional; this audit does not enable them or count them as implemented. The
 starter/ability-slot decision is pending user input: choose a combat demon before

@@ -1,5 +1,8 @@
 # Survivors — the Armory
 
+Current governing mechanics: [approved combat policy, 2026-11-01](SURVIVORS-COMBAT-POLICY.md).
+This supersedes conflicting historical proposals below; runtime adaptation remains work.
+
 The pictures in `docs/intentions/` are the long-term game. The first draft proved the rules
 and stored them. It did not become that game. A player still lands on the glue character
 screen with a text panel over it. This file is the spec for what replaces that, and the

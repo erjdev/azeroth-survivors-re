@@ -1,5 +1,9 @@
 # Enemy equipment evidence — 2026-10-29
 
+**Policy update:** [Approved combat rules](../SURVIVORS-COMBAT-POLICY.md)
+supersede conflicting design requirements below. Installed-data evidence remains
+reference material; it does not require reproducing rejected vanilla mechanics.
+
 Disarm requires an explicit weapon-attack model. The current contact path treats
 every enemy contact as physical damage; creature type and appearance do not prove
 that it is a weapon attack. Riposte also needs equipped-player weapon damage.

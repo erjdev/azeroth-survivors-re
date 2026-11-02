@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-01 — Combat design decisions
+
+Recorded the [approved combat policy](SURVIVORS-COMBAT-POLICY.md): normalized melee,
+independent moving abilities, talent-selected demons, Clearcasting bonus missiles,
+and simpler resource/control mechanics. Builds must fit three starting abilities;
+combo points, stealth, positional attacks and disarm are excluded. Planning only;
+runtime migration and visual milestones follow implementation.
+
 ## 2026-11-01 — Talents grant starting abilities
 
 Trained Mind Flay, Silence and Repentance now join the starting kit at rank one,

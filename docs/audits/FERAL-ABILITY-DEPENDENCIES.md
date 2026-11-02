@@ -1,5 +1,9 @@
 # Feral ability dependencies — 2026-11-01
 
+**Policy update:** [Approved combat rules](../SURVIVORS-COMBAT-POLICY.md)
+supersede conflicting design requirements below. Installed-data evidence remains
+reference material; it does not require reproducing rejected vanilla mechanics.
+
 Permanent Cat/Bear forms, automatic Claw/Maul, Natural Weapons and Predatory
 Strikes are implemented; see [form evidence](DRUID-PROGRESSION-FORMS.md).
 The next work must supply actual abilities and their consumers before claiming

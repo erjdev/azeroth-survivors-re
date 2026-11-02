@@ -1,5 +1,9 @@
 # Shaman melee dependencies — 2026-10-28
 
+**Policy update:** [Approved combat rules](../SURVIVORS-COMBAT-POLICY.md)
+supersede conflicting design requirements below. Installed-data evidence remains
+reference material; it does not require reproducing rejected vanilla mechanics.
+
 The installed catalog still reports 31/46 Shaman definitions (296/432 overall).
 Elemental Devastation cannot be represented by unconditional critical chance:
 the current Shaman pool contains only lightning, shocks, totems and a shield.

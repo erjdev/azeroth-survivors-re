@@ -1,5 +1,9 @@
 # Shaman healing dependencies
 
+**Policy update:** [Approved combat rules](../SURVIVORS-COMBAT-POLICY.md)
+supersede conflicting design requirements below. Installed-data evidence remains
+reference material; it does not require reproducing rejected vanilla mechanics.
+
 Evidence read from this checkout's `wow-data/Data` with `survivors-audit`:
 `--talent-evidence 1648`, `--spell-evidence 29203`, `--spell-evidence 331`.
 The binary's coverage summary is stale; these raw DBC rows remain evidence of
