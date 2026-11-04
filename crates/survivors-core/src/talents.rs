@@ -222,7 +222,9 @@ impl Milestones {
 
     pub fn ability_unlocked(self, key: &str) -> bool {
         match key {
-            "rake" | "shred" | "pounce" => self.druid_form() == Some(forms::DruidForm::Cat),
+            "rake" | "shred" | "ferocious_bite" | "pounce" => {
+                self.druid_form() == Some(forms::DruidForm::Cat)
+            }
             "swipe" | "bash" => self.druid_form() == Some(forms::DruidForm::Bear),
             "silence" => {
                 self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("silence")) > 0.0
@@ -646,7 +648,10 @@ impl Milestones {
                         if matches!(
                             self.druid_form(),
                             Some(forms::DruidForm::Cat | forms::DruidForm::Bear)
-                        ) && matches!(key, "Claw" | "Maul" | "rake" | "swipe" | "shred") =>
+                        ) && matches!(
+                            key,
+                            "Claw" | "Maul" | "rake" | "swipe" | "shred" | "ferocious_bite"
+                        ) =>
                     {
                         effect.crit += value;
                     }
@@ -679,7 +684,14 @@ impl Milestones {
                             Some(forms::DruidForm::Cat | forms::DruidForm::Bear)
                         ) && matches!(
                             key,
-                            "Claw" | "Maul" | "rake" | "swipe" | "shred" | "bash" | "pounce"
+                            "Claw"
+                                | "Maul"
+                                | "rake"
+                                | "swipe"
+                                | "shred"
+                                | "ferocious_bite"
+                                | "bash"
+                                | "pounce"
                         ) =>
                     {
                         effect.cooldown *= 1.0 - value;
@@ -5253,7 +5265,7 @@ mod stat_talent_tests {
         assert_eq!(crit.inline_description(1).unwrap(), "+1 » 2 percentage points hero critical chance, including spells and totems (Survivors conversion)");
         assert_eq!(crit.inline_description(255).unwrap(), "+5 percentage points hero critical chance, including spells and totems (Survivors conversion)");
         let claws = talent_definition(8, 798).unwrap();
-        assert_eq!(claws.inline_description(1).unwrap(), "Cat and Bear Claw, Maul, Rake, Swipe and Shred: +2 » 4 percentage points critical chance. Bleeds cannot critically strike; no effect on other spells, healing, pets or other forms");
+        assert_eq!(claws.inline_description(1).unwrap(), "Cat and Bear Claw, Maul, Rake, Swipe, Shred and Ferocious Bite: +2 » 4 percentage points critical chance. Bleeds cannot critically strike; no effect on other spells, healing, pets or other forms");
         let mut ambiguous = *crit;
         ambiguous.description = "1% damage and 1 percentage point critical chance per rank";
         assert!(ambiguous.inline_description(0).is_none());

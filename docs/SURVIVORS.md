@@ -1,5 +1,12 @@
 # Survivors — the Armory
 
+## Ferocious Bite — 2026-11-04
+
+Cat builds can acquire normalized Ferocious Bite without combo points, resources
+or positioning. Physical/critical/recovery training and Omen apply; the starter
+kit stays unchanged. [Rules and acceptance](audits/DRUID-FEROCIOUS-BITE.md).
+Feral Aggression still needs Demoralizing Roar and both scoped talent effects.
+
 ## Blood Frenzy — 2026-11-04
 
 Cat Claw/Rake/Shred criticals can refund their own remaining recovery, replacing

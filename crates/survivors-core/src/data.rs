@@ -1124,6 +1124,15 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "ferocious_bite",
+        22568,
+        Melee {
+            damage: 48.0,
+            cooldown: 8.0,
+            range: 5.0
+        }
+    ),
+    ability!(
         "shred",
         5221,
         Melee {
@@ -1629,6 +1638,7 @@ pub static CLASSES: &[ClassDef] = &[
             "rake",
             "swipe",
             "shred",
+            "ferocious_bite",
             "bash",
             "pounce",
             "wrath",

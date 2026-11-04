@@ -294,11 +294,12 @@ mod feral_kit_tests {
                 assert!(kit.len() <= 2);
                 if class == 8 {
                     assert!(kit.contains(&"wrath"));
-                    for key in data::CLASSES[8]
-                        .pool
-                        .iter()
-                        .filter(|k| !matches!(**k, "rake" | "swipe" | "shred" | "bash" | "pounce"))
-                    {
+                    for key in data::CLASSES[8].pool.iter().filter(|k| {
+                        !matches!(
+                            **k,
+                            "rake" | "swipe" | "shred" | "ferocious_bite" | "bash" | "pounce"
+                        )
+                    }) {
                         assert!(trained.ability_unlocked(key));
                     }
                 }

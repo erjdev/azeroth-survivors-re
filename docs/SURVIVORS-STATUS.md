@@ -255,3 +255,7 @@ captured. Feral Charge's separate activation choice remains pending.
 [Blood Frenzy](audits/DRUID-BLOOD-FRENZY.md) converts Cat Claw/Rake/Shred
 criticals into source-specific recovery without combo points. Wide and compact
 native captures verify purchase/refund, independent specs and saved restart.
+
+[Ferocious Bite](audits/DRUID-FEROCIOUS-BITE.md) supplies the Cat attack foundation
+for Feral Aggression without combo points. The talent remains provisional pending
+Demoralizing Roar and both scoped effects; definition coverage is unchanged.

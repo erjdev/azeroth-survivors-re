@@ -45,6 +45,7 @@ fn forms_gate_actual_casts_and_rake_settles_a_separate_noncritical_bleed() {
             ("rake", DruidForm::Cat),
             ("swipe", DruidForm::Bear),
             ("shred", DruidForm::Cat),
+            ("ferocious_bite", DruidForm::Cat),
         ] {
             let (mut app, target) = setup(form, key);
             app.world_mut().run_system_once(cast_abilities).unwrap();
@@ -181,6 +182,7 @@ fn physical_training_scales_feral_casts_and_criticals_without_critical_bleeds() 
         (DruidForm::Cat, "rake"),
         (DruidForm::Bear, "swipe"),
         (DruidForm::Cat, "shred"),
+        (DruidForm::Cat, "ferocious_bite"),
     ] {
         for (claws, leader, bonus) in [(0, 0, 0.0), (3, 0, 0.06), (0, 1, 0.03), (3, 1, 0.09)] {
             for margin in [0.01, 0.04, 0.075, 0.10] {
@@ -218,7 +220,11 @@ fn physical_training_scales_feral_casts_and_criticals_without_critical_bleeds() 
                 let expected = data::ability(key).damage
                     * stats.might
                     * 1.1
-                    * if key == "shred" { 1.0 } else { 1.2 }
+                    * if matches!(key, "shred" | "ferocious_bite") {
+                        1.0
+                    } else {
+                        1.2
+                    }
                     * if hit.crit { stats.crit_damage } else { 1.0 };
                 assert!((hit.damage - expected).abs() < 0.001);
                 let before = app.world().get::<Enemy>(target).unwrap().hp;
@@ -263,7 +269,7 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
             app.world_mut().run_system_once(cast_abilities).unwrap();
             let factor = match key {
                 "rejuvenation" | "regrowth" | "healing_touch" | "tranquility" => 0.9 * 0.94,
-                "rake" | "swipe" | "shred" | "bash" | "pounce" => 1.0,
+                "rake" | "swipe" | "shred" | "ferocious_bite" | "bash" | "pounce" => 1.0,
                 _ => 0.94,
             };
             let expected = if key == "tranquility" {
@@ -282,7 +288,14 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
 #[test]
 fn permanent_form_recovery_reaches_independent_spell_and_automatic_timers() {
     for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
-        for key in ["wrath", "rejuvenation", "rake", "swipe", "shred"] {
+        for key in [
+            "wrath",
+            "rejuvenation",
+            "rake",
+            "swipe",
+            "shred",
+            "ferocious_bite",
+        ] {
             let (mut app, _) = setup(form, key);
             if !app
                 .world()
@@ -309,7 +322,7 @@ fn permanent_form_recovery_reaches_independent_spell_and_automatic_timers() {
             let run = app.world().resource::<Run>();
             let mut factor = if form.is_some() { 0.94 } else { 1.0 };
             if matches!(form, Some(DruidForm::Cat | DruidForm::Bear))
-                && matches!(key, "rake" | "swipe" | "shred")
+                && matches!(key, "rake" | "swipe" | "shred" | "ferocious_bite")
             {
                 factor *= 0.85 * 0.9;
             }
@@ -415,6 +428,38 @@ fn bash_and_pounce_settle_control_without_direct_damage_and_keep_bleed_separate(
                     assert!(enemy.dots.is_empty());
                 }
             }
+        }
+    }
+}
+
+#[test]
+fn bite_needs_no_setup_points_or_facing_and_area_extends_melee_reach() {
+    for (x, area, should_hit) in [
+        (3., 0., true),
+        (-3., 0., true),
+        (8., 0., false),
+        (8., 1., true),
+    ] {
+        let (mut app, target) = setup(Some(DruidForm::Cat), "ferocious_bite");
+        let automatic_after_tick = 100. - app.world().resource::<Time>().delta_secs();
+        app.world_mut()
+            .get_mut::<Transform>(target)
+            .unwrap()
+            .translation = Vec3::X * x;
+        app.world_mut().resource_mut::<Run>().bonus.area = area;
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        let hits = app.world().resource::<Messages<Hit>>();
+        assert_eq!(hits.len(), usize::from(should_hit));
+        if should_hit {
+            let hit = hits.iter_current_update_messages().next().unwrap();
+            assert_eq!(hit.source, "ferocious_bite");
+            assert_eq!(hit.color, COLOR_MELEE);
+            assert_eq!(hit.dot, 0.);
+            assert!(hit.damage > 0.);
+            assert_eq!(
+                app.world().resource::<Run>().weapon_attack_cd,
+                automatic_after_tick
+            );
         }
     }
 }

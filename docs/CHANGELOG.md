@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-04 — Ferocious Bite
+
+Cat builds can acquire a normalized melee Bite without combo points or positioning.
+Existing physical, critical and recovery talents apply; starting slots are unchanged.
+Wide and compact cards show inline damage/recovery upgrades.
+[Rules and limits](audits/DRUID-FEROCIOUS-BITE.md).
+
+![Ferocious Bite upgrade](images/screenshots/2026-11-04-ferocious-bite/upgrade-wide.jpg)
+
 ## 2026-11-04 — Blood Frenzy recovery
 
 Cat criticals can shorten Claw, Rake or Shred recovery without combo points.

@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Cat builds can acquire Ferocious Bite without combo points or positional requirements.
+[Rules and validation](docs/audits/DRUID-FEROCIOUS-BITE.md).
+
+![Ferocious Bite upgrade](docs/images/screenshots/2026-11-04-ferocious-bite/upgrade-wide.jpg)
+
 Blood Frenzy now converts Cat criticals into attack recovery without combo points.
 [Rules and validation](docs/audits/DRUID-BLOOD-FRENZY.md).
 
