@@ -1,5 +1,12 @@
 # Survivors — the Armory
 
+## Feral control — 2026-11-04
+
+Bear Bash and Cat Pounce are acquired melee controls; Brutal Impact adds stun time
+without extending Pounce's bleed or changing starting kits. Recovery remains
+independent and resource-free. [Rules and acceptance](audits/DRUID-FERAL-CONTROL.md).
+
+
 Current governing mechanics: [approved combat policy, 2026-11-01](SURVIVORS-COMBAT-POLICY.md).
 This supersedes conflicting historical proposals below; runtime adaptation remains work.
 

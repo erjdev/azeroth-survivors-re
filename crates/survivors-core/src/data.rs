@@ -1104,6 +1104,26 @@ pub static ABILITIES: &[AbilityDef] = &[
     // --- Druid ---
     // Survivors feral attacks use normalized damage and no resource/position prerequisites.
     ability!(
+        "bash",
+        5211,
+        Melee {
+            cooldown: 15.0,
+            range: 5.0,
+            effect: Effect::Stun(2.0)
+        }
+    ),
+    ability!(
+        "pounce",
+        9005,
+        Melee {
+            dot: 5.0,
+            duration: 18.0,
+            cooldown: 12.0,
+            range: 5.0,
+            effect: Effect::Stun(2.0)
+        }
+    ),
+    ability!(
         "shred",
         5221,
         Melee {
@@ -1609,6 +1629,8 @@ pub static CLASSES: &[ClassDef] = &[
             "rake",
             "swipe",
             "shred",
+            "bash",
+            "pounce",
             "wrath",
             "moonfire",
             "starfire",

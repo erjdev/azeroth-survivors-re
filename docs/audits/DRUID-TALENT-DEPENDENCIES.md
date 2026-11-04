@@ -11,10 +11,10 @@ and node 825 now have runtime consumers; nineteen nodes below remain provisional
 Coverage at that checkpoint was 28/47 Druid and 309/432 overall. Installed reference rules and
 Survivors conversions remain distinct.
 
-## Current remaining dependencies — 2026-11-03
+## Current remaining dependencies — 2026-11-04
 
-The fresh installed-data audit reports **40/47 Druid definitions**, leaving these
-7 nodes: Feral Aggression, Brutal Impact, Feral
+The fresh installed-data audit reports **41/47 Druid definitions**, leaving these
+6 nodes: Feral Aggression, Feral
 Charge, Blood Frenzy, Primal Fury, Faerie Fire (Feral) and
 Improved Enrage. The table below preserves the original reference evidence;
 it is not the current list of missing implementations.
@@ -27,9 +27,9 @@ consumer for Improved Tranquility and the scoped Restoration talents.
 [physical talent scope](DRUID-FERAL-PHYSICAL.md) supersede their historical blockers.
 
 Next implementation groups should preserve the approved resource-free policy:
-melee-triggered Omen with a visible independent proc; form-gated recovery
-conversions for threat/resources; and remaining feral attacks/control with shared
-starter-kit accounting. Do not add combo points, stealth or positional conditions.
+Feral Charge movement/control, Roar and Faerie Fire debuffs, and replacements for
+Blood Frenzy, Primal Fury and Enrage resources. Omen and persistent feral recovery
+now have consumers; retain shared starter-kit accounting for remaining grants. Do not add combo points, stealth or positional conditions.
 New tree-granted attacks must replace or augment a starter where necessary to
 keep every build within three slotted starting abilities and six during a run.
 Exact proc tuning remains authored Survivors balance, distinct from installed data.
@@ -281,3 +281,8 @@ Clearcasting resource-discount dependency.
 
 [Shred integration](DRUID-SHRED.md) supplies Cat-only acquisition and scoped
 Improved Shred recovery, without position, combo or Energy requirements.
+
+[Bash/Pounce](DRUID-FERAL-CONTROL.md) now provide actual form-gated control
+consumers for Brutal Impact. Its additive stun bonus leaves Pounce's periodic
+damage duration unchanged. Historical resource/position requirements above do
+not apply to the Survivors abilities.

@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-04 — Feral control and Brutal Impact
+
+Bear builds can acquire Bash; Cat builds can acquire Pounce with a separate bleed.
+Brutal Impact extends their stuns. Cards show inline stun, bleed and recovery
+upgrades without a misleading zero-damage strike. [Rules and limits](audits/DRUID-FERAL-CONTROL.md).
+
+![Bash and Pounce upgrades](images/screenshots/2026-11-04-feral-control/cards-wide.jpg)
+
 ## 2026-11-04 — Cat Shred and recovery training
 
 Cat builds can acquire Shred without positioning or combo requirements. Improved

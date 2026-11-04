@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Bear Bash and Cat Pounce now provide form-specific control, with Brutal Impact
+stun training and inline upgrades. [Rules and validation](docs/audits/DRUID-FERAL-CONTROL.md).
+
+![Feral control upgrades](docs/images/screenshots/2026-11-04-feral-control/cards-wide.jpg)
+
 Cat builds can now acquire Shred, with scoped physical talents and green inline
 upgrades. [Rules and validation](docs/audits/DRUID-SHRED.md).
 

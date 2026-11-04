@@ -240,7 +240,7 @@ fn physical_training_scales_feral_casts_and_criticals_without_critical_bleeds() 
 fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_attacks() {
     for &key in data::CLASSES[8].pool {
         for level in [1, 8] {
-            let form = if key == "swipe" {
+            let form = if matches!(key, "swipe" | "bash") {
                 DruidForm::Bear
             } else {
                 DruidForm::Cat
@@ -263,7 +263,7 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
             app.world_mut().run_system_once(cast_abilities).unwrap();
             let factor = match key {
                 "rejuvenation" | "regrowth" | "healing_touch" | "tranquility" => 0.9 * 0.94,
-                "rake" | "swipe" | "shred" => 1.0,
+                "rake" | "swipe" | "shred" | "bash" | "pounce" => 1.0,
                 _ => 0.94,
             };
             let expected = if key == "tranquility" {
@@ -363,6 +363,58 @@ fn shred_has_no_positional_requirement_and_uses_range_and_recovery_bonuses() {
             assert_eq!(hit.color, COLOR_MELEE);
             assert_eq!(hit.dot, 0.);
             assert!((app.world().resource::<Run>().abilities[0].cd - expected).abs() < 0.001);
+        }
+    }
+}
+
+#[test]
+fn bash_and_pounce_settle_control_without_direct_damage_and_keep_bleed_separate() {
+    for (key, required) in [("bash", DruidForm::Bear), ("pounce", DruidForm::Cat)] {
+        for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
+            for boss in [false, true] {
+                let (mut app, target) = setup(form, key);
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    let mut ranks: Vec<_> = form
+                        .into_iter()
+                        .map(|f| (f.tree(), f.talent(), 1))
+                        .collect();
+                    ranks.push((1, 797, 2));
+                    run.milestones = run.milestones.with_ranks(&ranks);
+                    run.abilities[0].level = 3;
+                }
+                app.world_mut().get_mut::<Enemy>(target).unwrap().boss = boss;
+                let before = app.world().get::<Enemy>(target).unwrap().hp;
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits: Vec<_> = app
+                    .world()
+                    .resource::<Messages<Hit>>()
+                    .iter_current_update_messages()
+                    .cloned()
+                    .collect();
+                assert_eq!(hits.len(), usize::from(form == Some(required)));
+                if hits.is_empty() {
+                    continue;
+                }
+                assert_eq!(hits[0].damage, 0.);
+                assert_eq!(hits[0].effect, Effect::Stun(3.4));
+                let dot = hits[0].dot;
+                let duration = hits[0].dot_dur;
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                let enemy = app.world().get::<Enemy>(target).unwrap();
+                assert_eq!(enemy.hp, before);
+                assert!((enemy.stun_t - 3.4 * if boss { 0.3 } else { 1. }).abs() < 0.001);
+                if key == "pounce" {
+                    assert!(dot > 0.);
+                    assert_eq!(enemy.dots.len(), 1);
+                    assert_eq!(enemy.dots[0].dps, dot);
+                    // Settlement also advances periodic effects by this fixture frame.
+                    assert!((enemy.dots[0].left - (duration - 0.1)).abs() < 0.001);
+                    assert!((duration - 21.6).abs() < 0.001);
+                } else {
+                    assert!(enemy.dots.is_empty());
+                }
+            }
         }
     }
 }

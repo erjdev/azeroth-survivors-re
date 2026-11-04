@@ -182,7 +182,10 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                     }
                 );
             }
-            prose!(" within ", range, " for ", damage);
+            prose!(" within ", range);
+            if a.dmg > 0.0 || b.dmg > 0.0 {
+                prose!(" for ", damage);
+            }
             if def.key == "ghostly_strike" {
                 prose!(". A landed original hit grants 15 percentage points melee dodge for 7 sec; repeated hits refresh without stacking");
             }

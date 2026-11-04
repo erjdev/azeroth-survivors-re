@@ -222,8 +222,8 @@ impl Milestones {
 
     pub fn ability_unlocked(self, key: &str) -> bool {
         match key {
-            "rake" | "shred" => self.druid_form() == Some(forms::DruidForm::Cat),
-            "swipe" => self.druid_form() == Some(forms::DruidForm::Bear),
+            "rake" | "shred" | "pounce" => self.druid_form() == Some(forms::DruidForm::Cat),
+            "swipe" | "bash" => self.druid_form() == Some(forms::DruidForm::Bear),
             "silence" => {
                 self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("silence")) > 0.0
             }
@@ -677,7 +677,10 @@ impl Milestones {
                         if matches!(
                             self.druid_form(),
                             Some(forms::DruidForm::Cat | forms::DruidForm::Bear)
-                        ) && matches!(key, "Claw" | "Maul" | "rake" | "swipe" | "shred") =>
+                        ) && matches!(
+                            key,
+                            "Claw" | "Maul" | "rake" | "swipe" | "shred" | "bash" | "pounce"
+                        ) =>
                     {
                         effect.cooldown *= 1.0 - value;
                     }
@@ -1248,6 +1251,11 @@ impl Milestones {
     /// These percentage-point reductions preserve the existing baseline Blizzard slow.
     pub fn control(self, key: &str, effect: crate::data::Effect) -> crate::data::Effect {
         use crate::data::Effect;
+        if self.class == 8 && matches!(key, "bash" | "pounce") {
+            if let Effect::Stun(seconds) = effect {
+                return Effect::Stun(seconds + self.trained_value(TalentStat::FeralStunDuration));
+            }
+        }
         if self.class == 7 && key == "curse_of_weakness" {
             if let Effect::Weakness(amount, seconds) = effect {
                 let bonus =
@@ -1841,6 +1849,7 @@ pub enum TalentStat {
     BattleShoutPower,
     BoomingVoice,
     InsectSwarmWeakening,
+    FeralStunDuration,
     NaturesGrace,
     Impact,
     Blackout,
@@ -2304,6 +2313,7 @@ impl TalentDefinition {
             | TalentStat::PresenceOfMind
             | TalentStat::SpellShieldDuration(_)
             | TalentStat::SecondaryRootDuration(_)
+            | TalentStat::FeralStunDuration
             | TalentStat::SecondaryStunDuration(_)
             | TalentStat::SecondarySlowDuration(_)
             | TalentStat::SpellImmune(_) => (1.0, "time"),
@@ -2720,6 +2730,7 @@ impl TalentDefinition {
             TalentStat::PetSpeed => (100.0, "% combat wolf movement speed"),
             TalentStat::Nightfall => (100.0, "% chance per Corruption tick"),
             TalentStat::SiphonLife => (100.0, "% Corruption and Curse of Agony damage healed"),
+            TalentStat::FeralStunDuration => (1.0, " sec added Bash and Pounce stun duration"),
             TalentStat::InsectSwarmWeakening => {
                 (100.0, "% reduced outgoing enemy damage from Insect Swarm")
             }
@@ -4358,6 +4369,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::BoomingVoice
             | TalentStat::HamstringRoot
             | TalentStat::WingClipRoot
+            | TalentStat::FeralStunDuration
             | TalentStat::InsectSwarmWeakening
             | TalentStat::CurseExhaustion
             | TalentStat::ImprovedCurseExhaustion
@@ -5930,6 +5942,7 @@ mod stat_talent_tests {
                     | TalentStat::BoomingVoice
                     | TalentStat::HamstringRoot
                     | TalentStat::WingClipRoot
+                    | TalentStat::FeralStunDuration
                     | TalentStat::InsectSwarmWeakening
                     | TalentStat::CurseExhaustion
                     | TalentStat::ImprovedCurseExhaustion

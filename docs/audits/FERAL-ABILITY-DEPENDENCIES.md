@@ -145,3 +145,11 @@ normalized physical settlement and recovery without positional/combo/resources.
 Broad physical, critical, feral recovery and Omen scopes now include Shred; narrow
 Ferocity/Savage Fury stay on their four named attacks. This supersedes Shred’s
 missing-consumer status above. Remaining attacks/control/procs remain open.
+
+## Bash/Pounce consumers — 2026-11-04
+
+[Form-specific control](DRUID-FERAL-CONTROL.md) now supplies acquired Bear Bash
+and Cat Pounce, with separate Pounce bleed and additive Brutal Impact stun time.
+Their ordinary/boss settlement, form gating and native inline upgrade/purchase/
+refund/restart evidence supersede the missing-consumer entries above. Feral
+Charge and the remaining debuff/resource replacements still require implementation.
