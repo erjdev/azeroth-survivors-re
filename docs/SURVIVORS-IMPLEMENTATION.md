@@ -1,5 +1,14 @@
 # Survivors implementation contract
 
+## Demoralizing Roar — 2026-11-04
+
+Bear builds can acquire a non-damaging area Roar with independent melee-contact
+reduction. Ferocity and feral recovery training apply; curses and magic damage
+keep their existing paths. Native wide/compact card captures are retained.
+[Implementation and validation status](audits/DRUID-DEMORALIZING-ROAR.md).
+Feral Aggression's two effects remain the next dependency; no coverage increase
+is claimed by this ability integration.
+
 ## Ferocious Bite — 2026-11-04
 
 Cat builds can acquire normalized Ferocious Bite without combo points, resources

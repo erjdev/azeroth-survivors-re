@@ -859,3 +859,116 @@ fn frostbolt_critical_boundary_is_authored_and_finite() {
         );
     }
 }
+
+#[test]
+fn roar_changes_physical_contact_after_curse_but_never_frostbolt() {
+    for reduction in [0., 0.2, 0.28] {
+        let (mut app, _, enemy) = setup();
+        if reduction > 0. {
+            assert!(app
+                .world_mut()
+                .get_mut::<crate::survivors::roar::Roar>(enemy)
+                .unwrap()
+                .0
+                .apply(reduction, 10., 0.));
+        }
+        tick(&mut app, 0.);
+        tick(&mut app, 3.);
+        assert_eq!(app.world().resource::<Run>().hp, 970.);
+
+        let (mut app, _, enemy) = super::earthbind_tests::setup(true);
+        app.insert_resource(Rng(42));
+        app.world_mut()
+            .get_mut::<Transform>(enemy)
+            .unwrap()
+            .translation = Vec3::X * 0.5;
+        {
+            let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+            en.damage = 100.;
+            en.attack_cd = 0.;
+            en.weaken = 0.5;
+            en.weaken_t = 20.;
+        }
+        app.world_mut()
+            .get_mut::<crate::survivors::curse::CurseState>(enemy)
+            .unwrap()
+            .weakness(10., 20., 0.);
+        if reduction > 0. {
+            app.world_mut()
+                .get_mut::<crate::survivors::roar::Roar>(enemy)
+                .unwrap()
+                .0
+                .apply(reduction, 10., 0.);
+        }
+        let expected;
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.hp = 1000.;
+            let mut comparison = Run {
+                class: run.class,
+                milestones: run.milestones,
+                bonus: run.bonus,
+                hp: 1000.,
+                ..Default::default()
+            };
+            expected = crate::survivors::defense::contact(
+                &mut comparison,
+                enemy,
+                45. * (1. - reduction),
+                || 0.99,
+            )
+            .outcome
+            .health_removed();
+        }
+        tick(&mut app, 1.);
+        assert!((1000. - app.world().resource::<Run>().hp - expected).abs() < 0.001);
+        assert_eq!(
+            app.world()
+                .get::<crate::survivors::curse::CurseState>(enemy)
+                .unwrap()
+                .outgoing(100., true, 1.),
+            90.
+        );
+    }
+}
+
+#[test]
+fn roar_reduces_physical_contacts_on_combat_pets() {
+    use crate::survivors::hunter_pet::HunterPet;
+    let (mut app, hero, enemy) = super::earthbind_tests::setup(true);
+    let mut pet = HunterPet::default();
+    pet.vitality = survivors_core::combat_pet::Vitality::new(100., 10.);
+    let pet_entity = app
+        .world_mut()
+        .spawn((
+            pet,
+            Transform::from_xyz(4.5, 0., 0.),
+            crate::net::ObjectStore::default(),
+        ))
+        .id();
+    app.world_mut()
+        .get_mut::<Transform>(hero)
+        .unwrap()
+        .translation = Vec3::X * 20.;
+    {
+        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+        en.damage = 10.;
+        en.attack_cd = 0.;
+    }
+    app.world_mut()
+        .get_mut::<crate::survivors::roar::Roar>(enemy)
+        .unwrap()
+        .0
+        .apply(0.2, 10., 0.);
+    let before = app.world().resource::<Run>().hp;
+    tick(&mut app, 1.);
+    assert_eq!(
+        app.world()
+            .get::<HunterPet>(pet_entity)
+            .unwrap()
+            .vitality
+            .hp,
+        92.
+    );
+    assert_eq!(app.world().resource::<Run>().hp, before);
+}

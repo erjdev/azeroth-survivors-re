@@ -49,6 +49,7 @@ mod navigation;
 mod notes;
 mod perception;
 mod renown;
+mod roar;
 mod spawn;
 mod stash;
 mod stoneclaw;

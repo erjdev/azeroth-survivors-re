@@ -297,7 +297,13 @@ mod feral_kit_tests {
                     for key in data::CLASSES[8].pool.iter().filter(|k| {
                         !matches!(
                             **k,
-                            "rake" | "swipe" | "shred" | "ferocious_bite" | "bash" | "pounce"
+                            "rake"
+                                | "swipe"
+                                | "shred"
+                                | "ferocious_bite"
+                                | "bash"
+                                | "pounce"
+                                | "demoralizing_roar"
                         )
                     }) {
                         assert!(trained.ability_unlocked(key));

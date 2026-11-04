@@ -196,6 +196,9 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 prose!(", and everything within ", radius, " of the hit");
             }
         }
+        Kind::Nova if a.dmg == 0. && b.dmg == 0. => {
+            prose!("Affects every enemy within ", radius, " of you");
+        }
         Kind::Nova => {
             prose!(
                 "Deals ",
@@ -432,6 +435,20 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 " for ",
                 effect_time,
                 ". Replaces your other curse on each affected enemy; preserves unrelated debuffs"
+            );
+        }
+        Effect::MeleeWeaken(reduction, _) => {
+            let next = if let Effect::MeleeWeaken(next, _) = b.effect {
+                next
+            } else {
+                reduction
+            };
+            prose!(
+                ", reducing their melee damage by ",
+                (reduction * 100., next * 100., "%"),
+                " for ",
+                effect_time,
+                ". Preserves curses and spell damage"
             );
         }
         Effect::Weaken(m, _) => {

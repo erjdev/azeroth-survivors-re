@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-04 — Demoralizing Roar
+
+Bear builds gain an acquired melee-defense Roar with independent debuff timing.
+Ferocity includes its recovery; cards show inline area, duration and recovery
+upgrades without zero-damage text. Native wide/compact captures and runtime
+contact, magic-isolation and obstruction checks pass. [Evidence and limits](audits/DRUID-DEMORALIZING-ROAR.md).
+
+![Demoralizing Roar upgrade](images/screenshots/2026-11-04-demoralizing-roar/upgrade-wide.jpg)
+
 ## 2026-11-04 — Ferocious Bite
 
 Cat builds can acquire a normalized melee Bite without combo points or positioning.

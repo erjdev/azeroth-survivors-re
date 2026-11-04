@@ -951,6 +951,14 @@ pub(super) fn cast_abilities(
             }
             Kind::Nova | Kind::Cone => {
                 let mut targets = around(&foes, hpos, p.radius);
+                if def.key == "demoralizing_roar" {
+                    targets.retain(|foe| {
+                        perception.visible(Some(me), foe.e, now)
+                            && channel_world
+                                .as_ref()
+                                .is_some_and(|world| world.line_clear(hpos, foe.pos))
+                    });
+                }
                 if def.kind == Kind::Cone {
                     if let Some(first) = targets.first().copied() {
                         let aim = flat(first.pos - hpos).normalize_or_zero();
@@ -1785,6 +1793,7 @@ pub(super) fn apply_hits(
         &mut FireVulnerability,
         &mut super::curse::CurseState,
         &mut HemorrhageVulnerability,
+        &mut super::roar::Roar,
         &mut super::enemy_casting::Caster,
     )>,
     mut fx: Fx,
@@ -1995,6 +2004,7 @@ pub(super) fn apply_hits(
             mut fire,
             mut curse,
             mut hemorrhage,
+            mut roar,
             mut caster,
         )) = enemies.get_mut(h.target)
         else {
@@ -2392,6 +2402,9 @@ pub(super) fn apply_hits(
             }
             Effect::Stun(t) => en.stun_t = en.stun_t.max(if boss { t * 0.3 } else { t }),
             Effect::Fear(t) if !boss => en.fear_t = en.fear_t.max(t),
+            Effect::MeleeWeaken(reduction, seconds) => {
+                roar.0.apply(reduction, seconds, impact_time);
+            }
             Effect::Weaken(m, t) => {
                 refresh_weaken(&mut en, m, t);
             }
@@ -2418,7 +2431,7 @@ pub(super) fn apply_hits(
     }
 
     // The over-time ticks, once a second each.
-    for (e, guid, tf, mut en, mut store, mut marks, fire, _, mut hemorrhage, _) in &mut enemies {
+    for (e, guid, tf, mut en, mut store, mut marks, fire, _, mut hemorrhage, _, _) in &mut enemies {
         if en.dead || (en.dots.is_empty() && !en.poison.active()) {
             continue;
         }

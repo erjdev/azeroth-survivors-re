@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Bear builds can now acquire Demoralizing Roar for melee-only defense.
+[Current evidence and remaining checks](docs/audits/DRUID-DEMORALIZING-ROAR.md).
+
+![Demoralizing Roar upgrade](docs/images/screenshots/2026-11-04-demoralizing-roar/upgrade-wide.jpg)
+
 Cat builds can acquire Ferocious Bite without combo points or positional requirements.
 [Rules and validation](docs/audits/DRUID-FEROCIOUS-BITE.md).
 

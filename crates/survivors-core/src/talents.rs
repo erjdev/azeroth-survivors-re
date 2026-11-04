@@ -225,7 +225,9 @@ impl Milestones {
             "rake" | "shred" | "ferocious_bite" | "pounce" => {
                 self.druid_form() == Some(forms::DruidForm::Cat)
             }
-            "swipe" | "bash" => self.druid_form() == Some(forms::DruidForm::Bear),
+            "swipe" | "bash" | "demoralizing_roar" => {
+                self.druid_form() == Some(forms::DruidForm::Bear)
+            }
             "silence" => {
                 self.class == 4 && self.trained_value(TalentStat::AbilityUnlock("silence")) > 0.0
             }
@@ -692,6 +694,7 @@ impl Milestones {
                                 | "ferocious_bite"
                                 | "bash"
                                 | "pounce"
+                                | "demoralizing_roar"
                         ) =>
                     {
                         effect.cooldown *= 1.0 - value;

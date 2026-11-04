@@ -108,6 +108,8 @@ pub enum Effect {
     Fear(f32),
     /// Outgoing damage multiplier for seconds.
     Weaken(f32, f32),
+    /// Independent fractional physical-contact reduction for seconds.
+    MeleeWeaken(f32, f32),
     /// Flat physical outgoing damage reduction for seconds.
     Weakness(f32, f32),
     /// Heal the hero by this fraction of damage dealt.
@@ -121,6 +123,7 @@ impl Effect {
         match self {
             Self::Slow(_, t)
             | Self::Weaken(_, t)
+            | Self::MeleeWeaken(_, t)
             | Self::Weakness(_, t)
             | Self::Root(t)
             | Self::Incapacitate(t)
@@ -134,6 +137,7 @@ impl Effect {
         match self {
             Self::Slow(m, t) => Self::Slow(m, t * multiplier),
             Self::Weaken(m, t) => Self::Weaken(m, t * multiplier),
+            Self::MeleeWeaken(m, t) => Self::MeleeWeaken(m, t * multiplier),
             Self::Weakness(m, t) => Self::Weakness(m, t * multiplier),
             Self::Root(t) => Self::Root(t * multiplier),
             Self::Incapacitate(t) => Self::Incapacitate(t * multiplier),
@@ -1124,6 +1128,16 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "demoralizing_roar",
+        99,
+        Nova {
+            cooldown: 12.0,
+            radius: 10.0,
+            effect: Effect::MeleeWeaken(0.2, 10.0),
+            mark: 99
+        }
+    ),
+    ability!(
         "ferocious_bite",
         22568,
         Melee {
@@ -1639,6 +1653,7 @@ pub static CLASSES: &[ClassDef] = &[
             "swipe",
             "shred",
             "ferocious_bite",
+            "demoralizing_roar",
             "bash",
             "pounce",
             "wrath",

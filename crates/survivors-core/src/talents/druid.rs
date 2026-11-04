@@ -15,6 +15,7 @@ const CASTER_SPELLS: &[&str] = &[
 ];
 const HEALING_SPELLS: &[&str] = &["rejuvenation", "regrowth", "healing_touch", "tranquility"];
 const FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe"];
+const FEROCITY_ABILITIES: &[&str] = &["Claw", "Maul", "rake", "swipe", "demoralizing_roar"];
 const DIRECT_FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe", "shred", "ferocious_bite"];
 const ALL_FERAL_ATTACKS: &[&str] = &[
     "Claw",
@@ -33,12 +34,12 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 797, max_rank: 2, name: "Brutal Impact", description: "Bash and Pounce: +0.5 sec stun duration per rank, added after ability rank scaling. Does not extend Pounce's bleed or grant either ability; Bash requires Bear and Pounce requires Cat", stat: TalentStat::FeralStunDuration, per_rank: 0.5 },
     TalentDefinition { id: 802, max_rank: 2, name: "Improved Shred", description: "Shred: 10% shorter cooldown per rank, multiplying haste and other recovery bonuses. Does not grant the spell; requires Cat for Shred (Survivors Energy-cost conversion)", stat: TalentStat::SpellCooldown("shred"), per_rank: 0.10 },
     TalentDefinition { id: 788, max_rank: 1, name: "Omen of Clarity", description: "Effective Claw, Maul, Rake, Swipe, Shred and Ferocious Bite hits: 10% chance to fire extra Wrath. Internal cooldown: 5 sec, reduced by haste. Uses owned Wrath rank or rank 1; takes no slot and leaves normal attack timers unchanged. Excludes bleeds, pets, splash copies and generated hits; no stored charges (Survivors Clearcasting conversion)", stat: TalentStat::OmenOfClarity, per_rank: 0.10 },
-    TalentDefinition { id: 799, max_rank: 5, name: "Feral Instinct", description: "While Cat or Bear is selected: Claw, Maul, Rake, Swipe, Shred, Ferocious Bite, Bash and Pounce have 3% shorter cooldown per rank, multiplying other recovery bonuses. No benefit to caster spells or other forms (Survivors threat and stealth conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.03 },
-    TalentDefinition { id: 822, max_rank: 5, name: "Furor", description: "While Cat or Bear is selected: Claw, Maul, Rake, Swipe, Shred, Ferocious Bite, Bash and Pounce have 2% shorter cooldown per rank, multiplying other recovery bonuses. Active throughout the run; no benefit to caster spells or other forms (Survivors Rage/Energy conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.02 },
+    TalentDefinition { id: 799, max_rank: 5, name: "Feral Instinct", description: "While Cat or Bear is selected: Claw, Maul, Rake, Swipe, Shred, Ferocious Bite, Bash, Pounce and Demoralizing Roar have 3% shorter cooldown per rank, multiplying other recovery bonuses. No benefit to caster spells or other forms (Survivors threat and stealth conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.03 },
+    TalentDefinition { id: 822, max_rank: 5, name: "Furor", description: "While Cat or Bear is selected: Claw, Maul, Rake, Swipe, Shred, Ferocious Bite, Bash, Pounce and Demoralizing Roar have 2% shorter cooldown per rank, multiplying other recovery bonuses. Active throughout the run; no benefit to caster spells or other forms (Survivors Rage/Energy conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.02 },
     TalentDefinition { id: 842, max_rank: 2, name: "Improved Tranquility", description: "Tranquility: 10% shorter cooldown per rank, multiplying other recovery bonuses. Does not grant the spell or change its five healing pulses (Survivors healing-threat conversion)", stat: TalentStat::SpellCooldown("tranquility"), per_rank: 0.10 },
     TalentDefinition { id: 781, max_rank: 3, name: "Natural Shapeshifter", description: "While a permanent Cat, Bear, Moonkin or Tree of Life form is selected: Druid abilities and automatic Claw/Maul have 2% shorter cooldown per rank, multiplying other recovery bonuses. No benefit without a form (Survivors shapeshifting mana-cost conversion)", stat: TalentStat::FormCooldown, per_rank: 0.02 },
     TalentDefinition { id: 829, max_rank: 3, name: "Reflection", description: "Druid caster and healing spells: 2% shorter cooldown per rank, multiplying other recovery bonuses. Excludes Rake, Swipe, Claw and Maul (Survivors mana-regeneration conversion)", stat: TalentStat::SpellGroupCooldown(CASTER_SPELLS), per_rank: 0.02 },
-    TalentDefinition { id: 796, max_rank: 5, name: "Ferocity", description: "Claw, Maul, Rake and Swipe: 4% shorter cooldown per rank, multiplying haste. Does not change other spells or bleed duration (Survivors Energy/Rage-cost conversion)", stat: TalentStat::SpellGroupCooldown(FERAL_ATTACKS), per_rank: 0.04 },
+    TalentDefinition { id: 796, max_rank: 5, name: "Ferocity", description: "Claw, Maul, Rake, Swipe and Demoralizing Roar: 4% shorter cooldown per rank, multiplying haste. Does not change other spells or bleed duration (Survivors Energy/Rage-cost conversion)", stat: TalentStat::SpellGroupCooldown(FEROCITY_ABILITIES), per_rank: 0.04 },
     TalentDefinition { id: 805, max_rank: 2, name: "Savage Fury", description: "Claw, Maul, Rake and Swipe: +10% direct and periodic damage per rank. Multiplies other damage bonuses; does not change other spells or healing", stat: TalentStat::SpellGroupDamage(FERAL_ATTACKS), per_rank: 0.10 },
     TalentDefinition { id: 803, max_rank: 3, name: "Predatory Strikes", description: "Cat and Bear: gain attack power equal to 50% of your current run level per rank. Each 14 attack power adds 1 base damage per second to automatic Claw/Maul before damage bonuses; no effect on spells or healing (Survivors attack-power conversion)", stat: TalentStat::PredatoryStrikes, per_rank: 0.5 },
     TalentDefinition { id: 791, max_rank: 5, name: "Natural Weapons", description: "Claw, Maul, Rake, Swipe, Shred, Ferocious Bite, Bash and Pounce: +2% direct and periodic physical damage per rank. Multiplies Savage Fury; does not change other spells, healing or pets", stat: TalentStat::SpellGroupDamage(ALL_FERAL_ATTACKS), per_rank: 0.02 },
@@ -841,6 +842,9 @@ mod feral_training_tests {
                         expected.cooldown *= 1.0 - 0.04 * f32::from(rank.min(5));
                         expected.damage *= 1.0 + 0.10 * f32::from(rank.min(2));
                     }
+                    if class == 8 && key == "demoralizing_roar" {
+                        expected.cooldown *= 1.0 - 0.04 * f32::from(rank.min(5));
+                    }
                     assert_eq!(
                         trained.cast(key),
                         expected,
@@ -1090,6 +1094,7 @@ mod feral_recovery_tests {
                                     | "ferocious_bite"
                                     | "bash"
                                     | "pounce"
+                                    | "demoralizing_roar"
                             )
                         {
                             let r = f32::from(rank.min(5));

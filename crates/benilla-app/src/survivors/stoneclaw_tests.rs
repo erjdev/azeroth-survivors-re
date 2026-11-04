@@ -320,3 +320,44 @@ fn stoneclaw_retains_distant_captives_until_expiry_then_recycles() {
         0.
     );
 }
+
+#[test]
+fn roar_reduces_redirected_totem_contacts_without_touching_hero_health() {
+    let (mut app, hero, enemy) = setup(true);
+    let totem = deployed(&mut app);
+    app.world_mut()
+        .get_mut::<Transform>(hero)
+        .unwrap()
+        .translation = Vec3::X * 3.;
+    app.world_mut()
+        .get_mut::<Transform>(enemy)
+        .unwrap()
+        .translation = Vec3::X * 0.5;
+    {
+        let mut en = app.world_mut().get_mut::<Enemy>(enemy).unwrap();
+        en.damage = 10.;
+        en.attack_cd = 0.;
+    }
+    app.world_mut()
+        .get_mut::<crate::survivors::roar::Roar>(enemy)
+        .unwrap()
+        .0
+        .apply(0.2, 10., 0.);
+    let before = app
+        .world()
+        .get::<stoneclaw::Stoneclaw>(totem)
+        .unwrap()
+        .life
+        .health();
+    let hero_before = app.world().resource::<Run>().hp;
+    move_once(&mut app);
+    assert_eq!(
+        app.world()
+            .get::<stoneclaw::Stoneclaw>(totem)
+            .unwrap()
+            .life
+            .health(),
+        before - 8.
+    );
+    assert_eq!(app.world().resource::<Run>().hp, hero_before);
+}

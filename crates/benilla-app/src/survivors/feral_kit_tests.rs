@@ -246,7 +246,7 @@ fn physical_training_scales_feral_casts_and_criticals_without_critical_bleeds() 
 fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_attacks() {
     for &key in data::CLASSES[8].pool {
         for level in [1, 8] {
-            let form = if matches!(key, "swipe" | "bash") {
+            let form = if matches!(key, "swipe" | "bash" | "demoralizing_roar") {
                 DruidForm::Bear
             } else {
                 DruidForm::Cat
@@ -269,7 +269,8 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
             app.world_mut().run_system_once(cast_abilities).unwrap();
             let factor = match key {
                 "rejuvenation" | "regrowth" | "healing_touch" | "tranquility" => 0.9 * 0.94,
-                "rake" | "swipe" | "shred" | "ferocious_bite" | "bash" | "pounce" => 1.0,
+                "rake" | "swipe" | "shred" | "ferocious_bite" | "bash" | "pounce"
+                | "demoralizing_roar" => 1.0,
                 _ => 0.94,
             };
             let expected = if key == "tranquility" {
@@ -460,6 +461,86 @@ fn bite_needs_no_setup_points_or_facing_and_area_extends_melee_reach() {
                 app.world().resource::<Run>().weapon_attack_cd,
                 automatic_after_tick
             );
+        }
+    }
+}
+
+#[test]
+fn roar_is_bear_only_and_settles_without_damage_or_replacing_other_debuffs() {
+    for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
+        for boss in [false, true] {
+            let (mut app, target) = setup(form, "demoralizing_roar");
+            let before;
+            {
+                let mut enemy = app.world_mut().get_mut::<Enemy>(target).unwrap();
+                enemy.boss = boss;
+                enemy.weaken = 0.5;
+                enemy.weaken_t = 20.;
+                before = enemy.hp;
+            }
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let hits = app.world().resource::<Messages<Hit>>();
+            assert_eq!(hits.len(), usize::from(form == Some(DruidForm::Bear)));
+            if form != Some(DruidForm::Bear) {
+                continue;
+            }
+            let hit = hits.iter_current_update_messages().next().unwrap();
+            assert_eq!((hit.damage, hit.dot), (0., 0.));
+            assert!(matches!(hit.effect, Effect::MeleeWeaken(n, t) if n == 0.2 && t == 10.));
+            app.world_mut().run_system_once(apply_hits).unwrap();
+            assert_eq!(app.world().get::<Enemy>(target).unwrap().hp, before);
+            assert_eq!(app.world().get::<Enemy>(target).unwrap().weaken, 0.5);
+            assert_eq!(
+                app.world()
+                    .get::<crate::survivors::roar::Roar>(target)
+                    .unwrap()
+                    .0
+                    .melee_multiplier(1.),
+                0.8
+            );
+        }
+    }
+}
+
+#[test]
+fn roar_uses_one_area_and_waits_for_clear_line_of_sight() {
+    use avian3d::prelude::{Collider, RigidBody};
+    for (distance, area, wall, expected) in [
+        (3., 0., false, 1),
+        (15., 0., false, 0),
+        (15., 1., false, 1),
+        (3., 0., true, 0),
+    ] {
+        let (mut app, target) = setup(Some(DruidForm::Bear), "demoralizing_roar");
+        app.world_mut()
+            .get_mut::<Transform>(target)
+            .unwrap()
+            .translation = Vec3::X * distance;
+        if wall {
+            app.world_mut().spawn((
+                RigidBody::Static,
+                Collider::cuboid(0.5, 6., 6.),
+                Transform::from_xyz(1.5, 2., 0.),
+            ));
+            app.update();
+            let mut time = Time::<()>::default();
+            time.advance_by(std::time::Duration::from_secs_f32(0.1));
+            app.insert_resource(time);
+        }
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.bonus.area = area;
+            run.bonus.targets = 20;
+        }
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        assert_eq!(
+            app.world().resource::<Messages<Hit>>().len(),
+            expected,
+            "{distance}/{area}/{wall}"
+        );
+        if expected == 0 {
+            // Shared empty-target retry, rather than spending the full Roar recovery.
+            assert_eq!(app.world().resource::<Run>().abilities[0].cd, 0.2);
         }
     }
 }

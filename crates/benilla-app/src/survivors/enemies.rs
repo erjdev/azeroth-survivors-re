@@ -20,6 +20,7 @@ use crate::net::{FieldChanged, Guid, ObjectStore};
     super::abilities::FireVulnerability,
     super::abilities::HemorrhageVulnerability,
     super::curse::CurseState,
+    super::roar::Roar,
     super::enemy_casting::Caster
 )]
 pub(super) struct Enemy {
@@ -377,6 +378,7 @@ pub(super) fn move_enemies(
             &mut MovementState,
             Option<&super::hunter_pet::PetTaunt>,
             &super::curse::CurseState,
+            &super::roar::Roar,
             &mut super::enemy_casting::Caster,
         ),
         Without<Hero>,
@@ -432,7 +434,7 @@ pub(super) fn move_enemies(
         return;
     }
     let Ok((hero_e, htf)) = hero.single() else {
-        for (ent, _, _, mut mv, _, _, mut caster) in &mut enemies {
+        for (ent, _, _, mut mv, _, _, _, mut caster) in &mut enemies {
             if let Some(cast) = caster.state.active() {
                 fx.cancel_cast(ent, cast.spell.id);
                 caster.state.cancel();
@@ -449,8 +451,8 @@ pub(super) fn move_enemies(
     const CELL: f32 = 3.0;
     let bodies: Vec<(Entity, Vec3, f32)> = enemies
         .iter()
-        .filter(|(_, _, e, _, _, _, _)| !e.dead)
-        .map(|(ent, tf, e, _, _, _, _)| (ent, tf.translation, e.radius))
+        .filter(|(_, _, e, ..)| !e.dead)
+        .map(|(ent, tf, e, ..)| (ent, tf.translation, e.radius))
         .collect();
     navigation.advance(dt, selection.map, &bodies, |from, to, radius| {
         let map = selection.map_def();
@@ -493,7 +495,7 @@ pub(super) fn move_enemies(
         push.insert(ent, acc);
     }
 
-    for (ent, mut tf, mut e, mut mv, taunt, curse, mut caster) in &mut enemies {
+    for (ent, mut tf, mut e, mut mv, taunt, curse, roar, mut caster) in &mut enemies {
         let e = &mut *e;
         if e.dead {
             if let Some(cast) = caster.state.active() {
@@ -782,7 +784,9 @@ pub(super) fn move_enemies(
             && !hero_down
         {
             e.attack_cd = if e.boss { 1.0 } else { 1.3 };
-            let raw = curse.outgoing(e.damage, true, run.elapsed) * e.weaken;
+            let raw = curse.outgoing(e.damage, true, run.elapsed)
+                * e.weaken
+                * roar.0.melee_multiplier(run.elapsed);
             let (taken, avoided) = if let Some((entity, _)) = stoneclaw_target {
                 let (_, _, mut totem, mut store) = stoneclaws.get_mut(entity).unwrap();
                 let taken = totem.life.hurt(raw, run.elapsed);

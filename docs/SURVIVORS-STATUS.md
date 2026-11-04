@@ -259,3 +259,7 @@ native captures verify purchase/refund, independent specs and saved restart.
 [Ferocious Bite](audits/DRUID-FEROCIOUS-BITE.md) supplies the Cat attack foundation
 for Feral Aggression without combo points. The talent remains provisional pending
 Demoralizing Roar and both scoped effects; definition coverage is unchanged.
+
+[Demoralizing Roar](audits/DRUID-DEMORALIZING-ROAR.md) has a local Bear-only
+implementation, native card captures and a passing final scoped gate;
+Feral Aggression still needs both scoped effects. Definition coverage is unchanged.
