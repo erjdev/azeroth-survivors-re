@@ -1,5 +1,13 @@
 # Survivors — the Armory
 
+## Feral Aggression — 2026-11-04
+
+Five ranks now strengthen Roar by 8% and Bite damage by 3% per rank, without
+adding starting abilities. Both changes appear inline in green. Core/runtime,
+purchase/refund/spec/restart and wide/compact checks pass; definition coverage
+is now Druid 44/47 and overall 338/432. [Evidence and remaining limits](audits/DRUID-FERAL-AGGRESSION.md).
+
+
 ## Demoralizing Roar — 2026-11-04
 
 Bear builds can acquire a non-damaging area Roar with independent melee-contact

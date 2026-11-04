@@ -680,6 +680,9 @@ impl Milestones {
                     {
                         effect.damage *= 1.0 + value
                     }
+                    TalentStat::FeralAggression if key == "ferocious_bite" => {
+                        effect.damage *= 1.0 + value * 0.03;
+                    }
                     TalentStat::FeralCooldown
                         if matches!(
                             self.druid_form(),
@@ -1266,6 +1269,14 @@ impl Milestones {
     /// These percentage-point reductions preserve the existing baseline Blizzard slow.
     pub fn control(self, key: &str, effect: crate::data::Effect) -> crate::data::Effect {
         use crate::data::Effect;
+        if self.class == 8 && key == "demoralizing_roar" {
+            if let Effect::MeleeWeaken(reduction, seconds) = effect {
+                return Effect::MeleeWeaken(
+                    reduction * (1.0 + self.trained_value(TalentStat::FeralAggression) * 0.08),
+                    seconds,
+                );
+            }
+        }
         if self.class == 8 && matches!(key, "bash" | "pounce") {
             if let Effect::Stun(seconds) = effect {
                 return Effect::Stun(seconds + self.trained_value(TalentStat::FeralStunDuration));
@@ -1845,6 +1856,7 @@ pub enum TalentStat {
     FeralAttackCrit,
     FormCooldown,
     FeralCooldown,
+    FeralAggression,
     FelineSwiftness,
     CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
@@ -2101,6 +2113,27 @@ impl TalentDefinition {
                 format!("{prefix}{value}{suffix}"),
                 std::iter::once(start..end).collect(),
             ));
+        }
+        if self.stat == TalentStat::FeralAggression {
+            let rank = rank.min(self.max_rank);
+            let next = rank.saturating_add(1).min(self.max_rank);
+            let value = |scale: u8, unit: &str| {
+                if rank == next {
+                    format!("{}{unit}", rank * scale)
+                } else {
+                    format!("{} » {}{unit}", rank * scale, next * scale)
+                }
+            };
+            let mut text = "Demoralizing Roar: +".to_owned();
+            let start = text.len() - 1;
+            text.push_str(&value(8, "% reduction strength"));
+            let first = start..text.len();
+            text.push_str(". Ferocious Bite: +");
+            let start = text.len() - 1;
+            text.push_str(&value(3, "% damage"));
+            let second = start..text.len();
+            text.push_str(". Multiplies existing effects; does not grant either ability. Roar requires Bear; Bite requires Cat");
+            return Some((text, vec![first, second]));
         }
         if self.stat == TalentStat::FelineSwiftness {
             let rank = rank.min(self.max_rank);
@@ -2419,6 +2452,7 @@ impl TalentDefinition {
             | TalentStat::FeralAttackCrit
             | TalentStat::FormCooldown
             | TalentStat::FeralCooldown
+            | TalentStat::FeralAggression
             | TalentStat::FelineSwiftness
             | TalentStat::HunterMarkPower
             | TalentStat::SpellCooldown(_)
@@ -2550,6 +2584,7 @@ impl TalentDefinition {
             TalentStat::HealingLight
                 | TalentStat::HealingWay
                 | TalentStat::EarthsGrasp
+                | TalentStat::FeralAggression
                 | TalentStat::FelineSwiftness
                 | TalentStat::AncestralHealingArmor
         ) {
@@ -2707,7 +2742,8 @@ impl TalentDefinition {
             TalentStat::AncestralHealingArmor => (100.0, "% armor after effective critical healing"),
             TalentStat::ShamanShieldAbsorption => (100.0, "% Earth Shock shield absorption"),
             TalentStat::TotemicMastery => (100.0, "% Searing range and Magma radius"),
-            TalentStat::EarthsGrasp | TalentStat::FelineSwiftness => return self.inline_description(rank).unwrap(),
+            TalentStat::EarthsGrasp | TalentStat::FeralAggression
+            | TalentStat::FelineSwiftness => return self.inline_description(rank).unwrap(),
             TalentStat::Purification => (100.0, "% Healing Wave and totem deployment healing"),
             TalentStat::TotemHealing => (100.0, "% totem deployment healing"),
             TalentStat::Illumination => (100.0, "% critical-heal recovery refund chance"),
@@ -4408,6 +4444,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::FeralAttackCrit
             | TalentStat::FormCooldown
             | TalentStat::FeralCooldown
+            | TalentStat::FeralAggression
             | TalentStat::FelineSwiftness
             | TalentStat::HunterMarkPower
             | TalentStat::ColdBlood
@@ -5983,6 +6020,7 @@ mod stat_talent_tests {
                     | TalentStat::FeralAttackCrit
                     | TalentStat::FormCooldown
                     | TalentStat::FeralCooldown
+                    | TalentStat::FeralAggression
                     | TalentStat::FelineSwiftness
                     | TalentStat::HunterMarkPower
                     | TalentStat::ColdBlood

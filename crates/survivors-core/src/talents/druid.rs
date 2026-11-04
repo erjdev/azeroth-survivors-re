@@ -29,6 +29,7 @@ const ALL_FERAL_ATTACKS: &[&str] = &[
 ];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 795, max_rank: 5, name: "Feral Aggression", description: "Demoralizing Roar: +8% reduction strength per rank. Ferocious Bite: +3% damage per rank. Multiplies existing effects; does not grant either ability. Roar requires Bear; Bite requires Cat", stat: TalentStat::FeralAggression, per_rank: 1.0 },
     TalentDefinition { id: 800, max_rank: 2, name: "Blood Frenzy", description: "While Cat is selected: effective Claw, Rake and Shred criticals have 50% chance per rank to recover 0.5 sec of that attack's remaining cooldown. Shared internal cooldown: 1 sec, reduced by haste. Excludes bleeds, pets, splash copies and generated hits; no stored refunds or combo points", stat: TalentStat::BloodFrenzy, per_rank: 0.5 },
     TalentDefinition { id: 801, max_rank: 2, name: "Primal Fury", description: "While Bear is selected: effective Maul and Swipe criticals have 50% chance per rank to recover 0.5 sec of that attack's remaining cooldown. Shared internal cooldown: 1 sec, reduced by haste. Excludes periodic damage, pets, splash copies and generated hits; no stored refunds (Survivors Rage conversion)", stat: TalentStat::PrimalFury, per_rank: 0.5 },
     TalentDefinition { id: 797, max_rank: 2, name: "Brutal Impact", description: "Bash and Pounce: +0.5 sec stun duration per rank, added after ability rank scaling. Does not extend Pounce's bleed or grant either ability; Bash requires Bear and Pounce requires Cat", stat: TalentStat::FeralStunDuration, per_rank: 0.5 },
@@ -1553,5 +1554,92 @@ mod bite_tests {
             };
             assert!((talents.cast("ferocious_bite").crit - expected_crit).abs() < 0.00001);
         }
+    }
+}
+
+#[cfg(test)]
+mod feral_aggression_tests {
+    use crate::{
+        data::{self, Effect},
+        talents::{talent_definition, Milestones},
+    };
+
+    #[test]
+    fn aggression_scopes_both_bonuses_caps_ranks_and_refunds_without_grants() {
+        for class in 0..9 {
+            for rank in [0, 1, 2, 3, 4, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(1, 795, rank)]);
+                let ranks = if class == 8 {
+                    f32::from(rank.min(5))
+                } else {
+                    0.
+                };
+                for def in data::ABILITIES {
+                    let mut expected = base.cast(def.key);
+                    if def.key == "ferocious_bite" {
+                        expected.damage *= 1. + ranks * 0.03;
+                    }
+                    assert_eq!(
+                        trained.cast(def.key),
+                        expected,
+                        "{class}/{rank}/{}",
+                        def.key
+                    );
+                    let effect = Effect::MeleeWeaken(0.2, 11.);
+                    let expected = if def.key == "demoralizing_roar" {
+                        Effect::MeleeWeaken(0.2 * (1. + ranks * 0.08), 11.)
+                    } else {
+                        effect
+                    };
+                    assert_eq!(trained.control(def.key, effect), expected);
+                    assert_eq!(trained.with_ranks(&[]).cast(def.key), base.cast(def.key));
+                    assert_eq!(
+                        trained.with_ranks(&[]).control(def.key, effect),
+                        base.control(def.key, effect)
+                    );
+                    assert_eq!(
+                        trained.ability_unlocked(def.key),
+                        base.ability_unlocked(def.key)
+                    );
+                }
+                assert_eq!(
+                    trained.starting_abilities(data::CLASSES[class].start),
+                    base.starting_abilities(data::CLASSES[class].start)
+                );
+            }
+        }
+        let trained = Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, 795, 5), (0, 791, 5)]);
+        assert!((trained.cast("ferocious_bite").damage - 1.265).abs() < 0.00001);
+        assert!(
+            matches!(trained.control("demoralizing_roar", Effect::MeleeWeaken(0.2, 10.)), Effect::MeleeWeaken(n, 10.) if (n - 0.28).abs() < 0.00001)
+        );
+    }
+
+    #[test]
+    fn aggression_highlights_both_independent_values_without_repeating_units() {
+        let node = talent_definition(8, 795).unwrap();
+        for rank in 0..=5 {
+            let (text, spans) = node.inline_description_with_values(rank).unwrap();
+            assert_eq!(spans.len(), 2);
+            let values: Vec<_> = spans.into_iter().map(|s| text[s].to_owned()).collect();
+            let expected = if rank < 5 {
+                vec![
+                    format!("+{} » {}% reduction strength", rank * 8, (rank + 1) * 8),
+                    format!("+{} » {}% damage", rank * 3, (rank + 1) * 3),
+                ]
+            } else {
+                vec!["+40% reduction strength".into(), "+15% damage".into()]
+            };
+            assert_eq!(values, expected);
+        }
+        assert_eq!(node.inline_description(255), node.inline_description(5));
     }
 }

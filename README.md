@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Feral Aggression now strengthens Roar and Bite, with separate green inline upgrades.
+Purchase/refund/spec/restart checks pass at wide and compact sizes.
+
+![Feral Aggression inline upgrade](docs/images/screenshots/2026-11-04-feral-aggression/upgrade-wide.jpg)
+
 Bear builds can now acquire Demoralizing Roar for melee-only defense.
 [Current evidence and remaining checks](docs/audits/DRUID-DEMORALIZING-ROAR.md).
 

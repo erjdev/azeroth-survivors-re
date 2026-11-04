@@ -544,3 +544,45 @@ fn roar_uses_one_area_and_waits_for_clear_line_of_sight() {
         }
     }
 }
+
+#[test]
+fn feral_aggression_reaches_bite_hits_and_roar_settlement_at_every_rank() {
+    for rank in 0..=5 {
+        for (form, key) in [
+            (DruidForm::Cat, "ferocious_bite"),
+            (DruidForm::Bear, "demoralizing_roar"),
+        ] {
+            let mut damages = Vec::new();
+            for trained in [false, true] {
+                let (mut app, target) = setup(Some(form), key);
+                let mut ranks = vec![(form.tree(), form.talent(), 1)];
+                if trained {
+                    ranks.push((1, 795, rank));
+                }
+                app.world_mut().resource_mut::<Run>().milestones =
+                    app.world().resource::<Run>().milestones.with_ranks(&ranks);
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let hits = app.world().resource::<Messages<Hit>>();
+                assert_eq!(hits.len(), 1);
+                damages.push(hits.iter_current_update_messages().next().unwrap().damage);
+                app.world_mut().run_system_once(apply_hits).unwrap();
+                if key == "demoralizing_roar" {
+                    let expected =
+                        1. - 0.2 * (1. + if trained { f32::from(rank) * 0.08 } else { 0. });
+                    let actual = app
+                        .world()
+                        .get::<crate::survivors::roar::Roar>(target)
+                        .unwrap()
+                        .0
+                        .melee_multiplier(1.);
+                    assert!((actual - expected).abs() < 0.00001);
+                }
+            }
+            if key == "ferocious_bite" {
+                assert!((damages[1] - damages[0] * (1. + f32::from(rank) * 0.03)).abs() < 0.001);
+            } else {
+                assert_eq!(damages, vec![0., 0.]);
+            }
+        }
+    }
+}

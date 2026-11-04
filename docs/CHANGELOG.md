@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-04 — Feral Aggression
+
+Feral training now strengthens Roar and Ferocious Bite independently, with both
+upgrades inline in green. Purchase, refund, spec switching and compact restart
+checks pass alongside the scoped gate and native/WebGPU builds.
+[Evidence and limits](audits/DRUID-FERAL-AGGRESSION.md).
+
+![Feral Aggression inline upgrade](images/screenshots/2026-11-04-feral-aggression/upgrade-wide.jpg)
+
 ## 2026-11-04 — Demoralizing Roar
 
 Bear builds gain an acquired melee-defense Roar with independent debuff timing.
