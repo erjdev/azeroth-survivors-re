@@ -5,6 +5,8 @@
 Bear Bash and Cat Pounce are acquired melee controls; Brutal Impact adds stun time
 without extending Pounce's bleed or changing starting kits. Recovery remains
 independent and resource-free. [Rules and acceptance](audits/DRUID-FERAL-CONTROL.md).
+[Feral Charge preparation](audits/DRUID-FERAL-CHARGE.md) records the next movement/
+control dependency and pending activation choice; it remains unimplemented.
 
 
 Current governing mechanics: [approved combat policy, 2026-11-01](SURVIVORS-COMBAT-POLICY.md).

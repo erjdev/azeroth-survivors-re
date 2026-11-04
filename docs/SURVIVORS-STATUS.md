@@ -241,3 +241,8 @@ including physical talent scope and saved compact restart.
 form-gated acquisition, zero-direct-damage stun settlement and separate bleed
 state. Wide/compact inline cards and talent purchase/refund/restart evidence are
 recorded; attended acquisition/combat and Windows remain open.
+
+[Feral Charge preparation](audits/DRUID-FERAL-CHARGE.md) identifies the manual
+mobility and slotted alternatives. The player-input choice is pending; node 804
+is not counted implemented. Collision-path verification does not replace native
+UI or attended combat acceptance for the eventual ability.

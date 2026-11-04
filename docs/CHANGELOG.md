@@ -13,6 +13,10 @@ upgrades without a misleading zero-damage strike. [Rules and limits](audits/DRUI
 
 ![Bash and Pounce upgrades](images/screenshots/2026-11-04-feral-control/cards-wide.jpg)
 
+Follow-up: verified the shared charge movement path against clear ground, visible
+low fences, walls and missing floor. [Feral Charge integration](audits/DRUID-FERAL-CHARGE.md)
+remains pending the activation choice; no new gameplay or UI is claimed.
+
 ## 2026-11-04 — Cat Shred and recovery training
 
 Cat builds can acquire Shred without positioning or combo requirements. Improved

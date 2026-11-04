@@ -286,3 +286,7 @@ Improved Shred recovery, without position, combo or Energy requirements.
 consumers for Brutal Impact. Its additive stun bonus leaves Pounce's periodic
 damage duration unchanged. Historical resource/position requirements above do
 not apply to the Survivors abilities.
+
+[Feral Charge's dependency audit](DRUID-FERAL-CHARGE.md) now separates body
+collision from visibility, root from interruption, and the existing manual
+mobility path from the pending input choice. Node 804 remains provisional.
