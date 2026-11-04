@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-04 — Primal Fury recovery
+
+Bear criticals can now shorten Maul or Swipe recovery, replacing Rage generation.
+A haste-scaled internal cooldown prevents crowd-hit bursts. Green inline chance
+upgrades, purchase/refund, separate specs and compact restart are verified.
+[Rules and limits](audits/DRUID-PRIMAL-FURY.md).
+
+![Primal Fury inline upgrade](images/screenshots/2026-11-04-primal-fury/upgrade-wide.jpg)
+
 ## 2026-11-04 — Feral control and Brutal Impact
 
 Bear builds can acquire Bash; Cat builds can acquire Pounce with a separate bleed.

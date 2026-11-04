@@ -1,5 +1,12 @@
 # Survivors implementation contract
 
+## Primal Fury — 2026-11-04
+
+Bear Maul/Swipe criticals can refund their own remaining recovery, replacing
+Rage generation. A shared haste-scaled internal cooldown prevents crowd-hit
+bursts; no new slot or stored refund is added. [Rules and acceptance](audits/DRUID-PRIMAL-FURY.md).
+
+
 ## Feral control — 2026-11-04
 
 Bear Bash and Cat Pounce are acquired melee controls; Brutal Impact adds stun time

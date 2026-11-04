@@ -2131,6 +2131,38 @@ pub(super) fn apply_hits(
                     );
                     run.abilities[index].cd *= 1.0 - fraction;
                 }
+                let critical_damage = if h.crit { removed } else { 0.0 };
+                let recovery = if h.source == "Maul" {
+                    run.weapon_attack_cd
+                } else {
+                    run.abilities
+                        .iter()
+                        .find(|a| a.def.key == h.source)
+                        .map_or(0., |a| a.cd)
+                };
+                if recovery.is_finite()
+                    && recovery > 0.
+                    && run
+                        .primal_fury
+                        .chance(talents, h.source, critical_damage, now)
+                        > 0.
+                {
+                    let seconds = run.primal_fury.refund(
+                        talents,
+                        h.source,
+                        critical_damage,
+                        now,
+                        stats.haste,
+                        rng.f32(),
+                    );
+                    if h.source == "Maul" {
+                        run.weapon_attack_cd = (run.weapon_attack_cd - seconds).max(0.);
+                    } else if let Some(ability) =
+                        run.abilities.iter_mut().find(|a| a.def.key == h.source)
+                    {
+                        ability.cd = (ability.cd - seconds).max(0.);
+                    }
+                }
                 if run.omen.chance(talents, h.source, removed, now) > 0.0 {
                     run.omen
                         .trigger(talents, h.source, removed, now, stats.haste, rng.f32());
@@ -11665,3 +11697,7 @@ mod feral_kit_tests;
 #[cfg(test)]
 #[path = "omen_tests.rs"]
 mod omen_tests;
+
+#[cfg(test)]
+#[path = "primal_fury_tests.rs"]
+mod primal_fury_tests;
