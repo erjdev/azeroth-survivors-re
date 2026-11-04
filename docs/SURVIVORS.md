@@ -1384,3 +1384,11 @@ Subtlety: 2% shorter Rejuvenation/Regrowth/Healing Touch cooldown per rank, five
 ranks; no incoming-damage reduction. Reflection: 2% shorter Druid caster/healing
 cooldowns per rank, three ranks; excludes Rake/Swipe/Claw/Maul. Both multiply
 other recovery bonuses. [Spell scope and acceptance](audits/DRUID-RECOVERY.md).
+
+## Natural Shapeshifter conversion — 2026-11-03
+
+Node 781 grants 2% shorter Druid ability and automatic Claw/Maul cooldowns per
+rank (three ranks), active only with a permanent form selected. It multiplies
+other recovery bonuses. This replaces its missing shapeshifting-mana consumer
+under the approved permanent-form/resource-free policy.
+[Rules and acceptance](audits/DRUID-NATURAL-SHAPESHIFTER.md).

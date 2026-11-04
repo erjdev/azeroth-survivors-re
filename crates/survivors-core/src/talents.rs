@@ -672,6 +672,14 @@ impl Milestones {
                     {
                         effect.damage *= 1.0 + value
                     }
+                    TalentStat::FormCooldown
+                        if self.druid_form().is_some()
+                            && (crate::data::CLASSES[8].pool.contains(&key)
+                                || key == crate::data::CLASSES[8].start
+                                || matches!(key, "Claw" | "Maul")) =>
+                    {
+                        effect.cooldown *= 1.0 - value;
+                    }
                     TalentStat::SpellGroupCooldown(spells) if spells.contains(&key) => {
                         effect.cooldown *= 1.0 - value
                     }
@@ -1803,6 +1811,7 @@ pub enum TalentStat {
     HunterMarkPower,
     PredatoryStrikes,
     FeralAttackCrit,
+    FormCooldown,
     FelineSwiftness,
     CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
@@ -2367,6 +2376,7 @@ impl TalentDefinition {
             | TalentStat::MonkeyDodge
             | TalentStat::PredatoryStrikes
             | TalentStat::FeralAttackCrit
+            | TalentStat::FormCooldown
             | TalentStat::FelineSwiftness
             | TalentStat::HunterMarkPower
             | TalentStat::SpellCooldown(_)
@@ -2631,6 +2641,7 @@ impl TalentDefinition {
                 (100.0, "% damage")
             }
             TalentStat::Cooldown
+            | TalentStat::FormCooldown
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::CreatureDamage { .. } => (100.0, "% damage against matching creatures"),
@@ -4347,6 +4358,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::MonkeyDodge
             | TalentStat::PredatoryStrikes
             | TalentStat::FeralAttackCrit
+            | TalentStat::FormCooldown
             | TalentStat::FelineSwiftness
             | TalentStat::HunterMarkPower
             | TalentStat::ColdBlood
@@ -5916,6 +5928,7 @@ mod stat_talent_tests {
                     | TalentStat::MonkeyDodge
                     | TalentStat::PredatoryStrikes
                     | TalentStat::FeralAttackCrit
+                    | TalentStat::FormCooldown
                     | TalentStat::FelineSwiftness
                     | TalentStat::HunterMarkPower
                     | TalentStat::ColdBlood

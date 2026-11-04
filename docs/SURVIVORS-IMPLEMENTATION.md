@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Permanent-form recovery — 2026-11-03
+
+Natural Shapeshifter now has a form-gated recovery consumer across Druid abilities
+and automatic attacks. [Acceptance and captures](audits/DRUID-NATURAL-SHAPESHIFTER.md)
+cover scope, stacking, refunds and saved-spec restart. Coverage is Druid 35/47,
+overall 329/432. Remaining ability dependencies and platform/combat acceptance
+remain open.
+
 ## Druid recovery — 2026-11-02
 
 Subtlety converts healing threat to healing recovery; Reflection converts mana

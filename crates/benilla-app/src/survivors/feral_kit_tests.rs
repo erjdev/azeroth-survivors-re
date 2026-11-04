@@ -266,3 +266,50 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
         }
     }
 }
+
+#[test]
+fn natural_shapeshifter_reaches_independent_spell_and_automatic_timers() {
+    for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
+        for key in ["wrath", "rejuvenation", "rake", "swipe"] {
+            let (mut app, _) = setup(form, key);
+            if !app
+                .world()
+                .resource::<Run>()
+                .milestones
+                .ability_unlocked(key)
+            {
+                continue;
+            }
+            let baseline;
+            {
+                let mut run = app.world_mut().resource_mut::<Run>();
+                run.renown_celerity = 10;
+                run.bonus.cooldown = 0.2;
+                baseline = Params::new(&run.abilities[0], &run.stats(), run.milestones).cooldown;
+                let mut ranks = vec![(0, 781, 3)];
+                if let Some(f) = form {
+                    ranks.push((f.tree(), f.talent(), 1));
+                }
+                run.milestones = run.milestones.with_ranks(&ranks);
+                run.weapon_attack_cd = 0.0;
+            }
+            app.world_mut().run_system_once(cast_abilities).unwrap();
+            let run = app.world().resource::<Run>();
+            let factor = if form.is_some() { 0.94 } else { 1.0 };
+            assert!(
+                (run.abilities[0].cd - baseline * factor).abs() < 0.001,
+                "{form:?}/{key}"
+            );
+            if let Some(f @ (DruidForm::Cat | DruidForm::Bear)) = form {
+                let recovery = if f == DruidForm::Cat { 1.0 } else { 2.5 };
+                assert!(
+                    (run.weapon_attack_cd - recovery * 0.94 / (1.0 + run.stats().haste).max(0.1))
+                        .abs()
+                        < 0.001
+                );
+            } else {
+                assert_eq!(run.weapon_attack_cd, 0.0);
+            }
+        }
+    }
+}

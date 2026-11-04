@@ -239,3 +239,11 @@ authored tree placement, initial benefits, saved-spec exclusion and runtime body
 selection. It supersedes the earlier open acquisition/lifecycle question. Feral
 attack consumers, resource conversions and full player-form acceptance remain
 open; the legacy no-form conversions are not silently removed in this pass.
+
+## Natural Shapeshifter conversion — 2026-11-03
+
+Node 781 grants 2% shorter Druid ability and automatic Claw/Maul cooldowns per
+rank (three ranks), active only with a permanent form selected. It multiplies
+other recovery bonuses. This replaces its missing shapeshifting-mana consumer
+under the approved permanent-form/resource-free policy.
+[Rules and acceptance](DRUID-NATURAL-SHAPESHIFTER.md).

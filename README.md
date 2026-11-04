@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Natural Shapeshifter now improves recovery while a permanent form is selected.
+[Rules and validation](docs/audits/DRUID-NATURAL-SHAPESHIFTER.md).
+
+![Permanent-form recovery upgrade](docs/images/screenshots/2026-11-02-natural-shapeshifter/rank-one-wide.jpg)
+
 Druid Subtlety and Reflection now improve healing/caster recovery, with scoped
 green inline previews. [Rules and validation](docs/audits/DRUID-RECOVERY.md).
 

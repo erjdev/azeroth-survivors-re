@@ -317,3 +317,66 @@ mod feral_kit_tests {
         assert!(!conflicting.ability_unlocked("swipe"));
     }
 }
+
+#[cfg(test)]
+mod recovery_tests {
+    use super::*;
+    use crate::{
+        data,
+        talents::{talent_definition, Milestones},
+    };
+
+    #[test]
+    fn form_recovery_is_scoped_capped_refundable_and_multiplies_other_training() {
+        for class in 0..9 {
+            for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
+                for rank in [0, 1, 3, 255] {
+                    let mut ranks = vec![(0, 781, rank), (2, 829, 3), (1, 796, 5)];
+                    if let Some(form) = form {
+                        ranks.push((form.tree(), form.talent(), 1));
+                    }
+                    let trained = Milestones {
+                        class,
+                        ..Default::default()
+                    }
+                    .with_ranks(&ranks);
+                    ranks.retain(|r| r.1 != 781);
+                    let base = trained.with_ranks(&ranks);
+                    for key in data::ABILITIES.iter().map(|a| a.key).chain([
+                        "Claw",
+                        "Maul",
+                        "Weapon Attack",
+                    ]) {
+                        let mut expected = base.cast(key);
+                        if class == 8
+                            && form.is_some()
+                            && (data::CLASSES[8].ability_keys().contains(&key)
+                                || matches!(key, "Claw" | "Maul"))
+                        {
+                            expected.cooldown *= 1.0 - 0.02 * f32::from(rank.min(3));
+                        }
+                        let actual = trained.cast(key);
+                        assert!(
+                            (actual.cooldown - expected.cooldown).abs() < 0.00001,
+                            "{class}/{form:?}/{rank}/{key}"
+                        );
+                        expected.cooldown = actual.cooldown;
+                        assert_eq!(actual, expected);
+                    }
+                    ranks.retain(|r| DruidForm::from_talent(r.1).is_none());
+                    ranks.push((0, 781, rank));
+                    assert_eq!(
+                        trained.with_ranks(&ranks).cast("Claw").cooldown,
+                        base.with_ranks(&[(1, 796, 5)]).cast("Claw").cooldown
+                    );
+                }
+            }
+        }
+        let (text, spans) = talent_definition(8, 781)
+            .unwrap()
+            .inline_description_with_values(1)
+            .unwrap();
+        assert!(text.contains("2 » 4% shorter cooldown"));
+        assert!(spans.iter().any(|s| text[s.clone()].contains('»')));
+    }
+}

@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-03 — Permanent-form recovery training
+
+Natural Shapeshifter now speeds Druid abilities and automatic attacks while a
+permanent form is selected. Purchase/refund, form removal, separate specs and
+compact restart are verified. [Rules and limits](audits/DRUID-NATURAL-SHAPESHIFTER.md).
+
+![Form recovery upgrade](images/screenshots/2026-11-02-natural-shapeshifter/rank-one-wide.jpg)
+
 ## 2026-11-02 — Druid healing and caster recovery
 
 Subtlety and Reflection now reduce scoped spell cooldowns, replacing threat/mana
