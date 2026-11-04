@@ -19,7 +19,8 @@ pulses, following the caster while movement and other attacks continue. Improved
 Tranquility converts threat into scoped recovery. Existing healing/caster talent
 scopes include it where appropriate. [Rules, evidence and remaining acceptance](audits/DRUID-TRANQUILITY.md)
 cover moving recipients, concurrent attacks, caps, saved specs and compact UI.
-Attended effects, obstructed line-of-sight, Windows and balance remain open.
+Synthetic obstruction changes, caster removal and actual menu reset now pass.
+Attended effects, real-world obstruction cases, Windows and balance remain open.
 This supersedes the foundation checkpoint's pending gameplay integration.
 
 ## Tranquility healing foundation — 2026-11-03

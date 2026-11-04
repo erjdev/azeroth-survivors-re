@@ -11,6 +11,29 @@ and node 825 now have runtime consumers; nineteen nodes below remain provisional
 Coverage at that checkpoint was 28/47 Druid and 309/432 overall. Installed reference rules and
 Survivors conversions remain distinct.
 
+## Current remaining dependencies — 2026-11-03
+
+The fresh installed-data audit reports **36/47 Druid definitions**, leaving these
+11 nodes: Omen of Clarity, Feral Aggression, Feral Instinct, Brutal Impact, Feral
+Charge, Improved Shred, Blood Frenzy, Primal Fury, Faerie Fire (Feral), Furor and
+Improved Enrage. The table below preserves the original reference evidence;
+it is not the current list of missing implementations.
+
+[Tranquility](DRUID-TRANQUILITY.md) now supplies the moving periodic-healing
+consumer for Improved Tranquility and the scoped Restoration talents.
+[Recovery conversions](DRUID-RECOVERY.md),
+[permanent-form recovery](DRUID-NATURAL-SHAPESHIFTER.md),
+[feral kits](DRUID-FERAL-KIT.md), [feral training](DRUID-FERAL-TRAINING.md) and
+[physical talent scope](DRUID-FERAL-PHYSICAL.md) supersede their historical blockers.
+
+Next implementation groups should preserve the approved resource-free policy:
+melee-triggered Omen with a visible independent proc; form-gated recovery
+conversions for threat/resources; and remaining feral attacks/control with shared
+starter-kit accounting. Do not add combo points, stealth or positional conditions.
+New tree-granted attacks must replace or augment a starter where necessary to
+keep every build within three slotted starting abilities and six during a run.
+Exact proc tuning remains authored Survivors balance, distinct from installed data.
+
 ## Reproduce
 
 Run `cargo run -p survivors-audit -- wow-data/Data --talent-gaps`, then

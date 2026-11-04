@@ -75,8 +75,8 @@ Wrath, moving recipient eligibility, unchanged-time pause behavior, early recast
 rejection, overhealing, dead-pet exclusion and caster defeat. Native play build
 and WebGPU check pass (six existing WebGPU warnings).
 
-Remaining acceptance: attended in-world particle appearance, an obstructed
-line-of-sight fixture, Windows/controller behavior and balance. This is the
+Remaining acceptance: attended in-world particle appearance and real-world
+obstruction cases, Windows/controller behavior and balance. This is the
 single-player recipient implementation, not multiplayer party healing. Acquisition
 uses the normal Druid pool; screenshots verify an upgrade card, not a played
 new-spell acquisition. Full landing validation and the overall talent phase remain
@@ -88,3 +88,21 @@ milestone descriptions. This measures definitions, not complete gameplay accepta
 Final integration gate: ten-package scoped format/Clippy/tests pass, with 31
 optional addon-corpus tests skipped. Build storage is 61.15 GiB, within budget.
 The full landing gate remains separate.
+
+## Obstruction and teardown acceptance — 2026-11-03
+
+Two additional runtime regressions use the production pulse system and world
+collision queries. A solid wall excludes one living pet while an unobstructed pet
+and the caster heal. Removing the wall with unchanged simulation time pays
+nothing; the next pulse heals only its ordinary amount, without banking blocked
+pulses. Restoring the wall blocks later payments, and the channel still expires.
+A separate test removes the caster before settlement, then exercises the actual
+menu run-reset system: pending pulses disappear and cannot heal a subsequent run.
+
+These are deterministic collision/lifecycle checks, not attended world visuals.
+No interface or rendering change is made; the existing milestone captures above
+remain the visual evidence. Druid definition coverage is unchanged.
+
+Follow-up gate: scoped formatting, Clippy and tests pass with the same 31 optional
+addon-corpus skips. Storage is 61.27 GiB. Production code and UI are unchanged,
+so the preceding native/WebGPU builds and captures remain applicable.

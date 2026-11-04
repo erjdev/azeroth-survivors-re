@@ -224,5 +224,5 @@ Natural Shapeshifter now supplies form-gated cooldown reduction, with
 
 Tranquility now has moving area pulses and scoped Restoration talent integration.
 [Runtime checks, saved-spec verification and screenshots](audits/DRUID-TRANQUILITY.md)
-cover the implementation; attended effects, obstructed line-of-sight, Windows and
-balance acceptance remain open.
+cover the implementation; synthetic obstruction and teardown checks pass; attended effects, real-world
+obstruction cases, Windows and balance acceptance remain open.

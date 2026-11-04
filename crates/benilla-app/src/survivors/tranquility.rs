@@ -85,6 +85,129 @@ mod tests {
     use bevy::ecs::system::RunSystemOnce;
 
     #[test]
+    fn each_pulse_rechecks_obstructions_without_banking_blocked_healing() {
+        use avian3d::prelude::*;
+        let (mut app, hero, _) = abilities::earthbind_tests::setup(true);
+        let mut recipients = Vec::new();
+        for x in [-5., 5.] {
+            let mut pet = HunterPet::default();
+            pet.vitality = survivors_core::combat_pet::Vitality::new(100., 10.);
+            pet.vitality.hp = 10.;
+            recipients.push(
+                app.world_mut()
+                    .spawn((pet, Transform::from_xyz(x, 0., 0.)))
+                    .id(),
+            );
+        }
+        let wall = app
+            .world_mut()
+            .spawn((
+                RigidBody::Static,
+                Collider::cuboid(0.4, 6., 10.),
+                Transform::from_xyz(2.5, 3., 0.),
+            ))
+            .id();
+        app.update();
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.hp = 10.;
+            run.tranquility = Active::new(hero, 0., 60., 20.);
+            run.elapsed = 4.;
+        }
+        app.world_mut().run_system_once(tick).unwrap();
+        assert_eq!(app.world().resource::<Run>().hp, 34.);
+        for (pet, expected) in [(recipients[0], 34.), (recipients[1], 10.)] {
+            assert_eq!(
+                app.world().get::<HunterPet>(pet).unwrap().vitality.hp,
+                expected
+            );
+        }
+        app.world_mut().despawn(wall);
+        app.update();
+        // Removing an obstruction while simulation time is unchanged cannot pay a missed pulse.
+        app.world_mut().run_system_once(tick).unwrap();
+        assert_eq!(
+            app.world()
+                .get::<HunterPet>(recipients[1])
+                .unwrap()
+                .vitality
+                .hp,
+            10.
+        );
+        app.world_mut().resource_mut::<Run>().elapsed = 6.;
+        app.world_mut().run_system_once(tick).unwrap();
+        assert_eq!(
+            app.world()
+                .get::<HunterPet>(recipients[1])
+                .unwrap()
+                .vitality
+                .hp,
+            22.
+        );
+        app.world_mut().spawn((
+            RigidBody::Static,
+            Collider::cuboid(0.4, 6., 10.),
+            Transform::from_xyz(2.5, 3., 0.),
+        ));
+        app.update();
+        app.world_mut().resource_mut::<Run>().elapsed = 10.;
+        app.world_mut().run_system_once(tick).unwrap();
+        assert_eq!(
+            app.world()
+                .get::<HunterPet>(recipients[1])
+                .unwrap()
+                .vitality
+                .hp,
+            22.
+        );
+        assert_eq!(
+            app.world()
+                .get::<HunterPet>(recipients[0])
+                .unwrap()
+                .vitality
+                .hp,
+            70.
+        );
+        assert!(app.world().resource::<Run>().tranquility.is_none());
+    }
+
+    #[test]
+    fn losing_the_caster_or_resetting_the_run_discards_pending_pulses() {
+        let (mut app, hero, _) = abilities::earthbind_tests::setup(true);
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.hp = 10.;
+            run.tranquility = Active::new(hero, 0., 60., 20.);
+            run.elapsed = 10.;
+        }
+        app.world_mut().despawn(hero);
+        app.world_mut().run_system_once(tick).unwrap();
+        assert_eq!(app.world().resource::<Run>().hp, 10.);
+        assert!(app.world().resource::<Run>().tranquility.is_none());
+
+        let hero = app
+            .world_mut()
+            .spawn((
+                Hero { vy: 0., air: 0. },
+                Transform::default(),
+                crate::survivors::RunEntity,
+            ))
+            .id();
+        app.world_mut().resource_mut::<Run>().tranquility = Active::new(hero, 10., 60., 20.);
+        app.init_resource::<crate::survivors::channeling::Channels>();
+        app.init_resource::<crate::survivors::enemies::Spawner>();
+        app.world_mut()
+            .run_system_once(crate::survivors::reset_run)
+            .unwrap();
+        assert!(app.world().get_entity(hero).is_err());
+        assert!(app.world().resource::<Run>().tranquility.is_none());
+        app.world_mut().resource_mut::<Run>().hp = 10.;
+        app.world_mut().resource_mut::<Run>().elapsed = 100.;
+        app.world_mut().run_system_once(tick).unwrap();
+        assert_eq!(app.world().resource::<Run>().hp, 10.);
+    }
+
+    #[test]
     fn actual_cast_pulses_follow_the_caster_and_never_revive_or_bank_healing() {
         let (mut app, hero, _) = abilities::earthbind_tests::setup(true);
         let mut companion = HunterPet::default();
