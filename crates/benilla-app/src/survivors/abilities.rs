@@ -2132,7 +2132,7 @@ pub(super) fn apply_hits(
                     run.abilities[index].cd *= 1.0 - fraction;
                 }
                 let critical_damage = if h.crit { removed } else { 0.0 };
-                let recovery = if h.source == "Maul" {
+                let recovery = if matches!(h.source, "Maul" | "Claw") {
                     run.weapon_attack_cd
                 } else {
                     run.abilities
@@ -2143,11 +2143,11 @@ pub(super) fn apply_hits(
                 if recovery.is_finite()
                     && recovery > 0.
                     && run
-                        .primal_fury
+                        .feral_critical
                         .chance(talents, h.source, critical_damage, now)
                         > 0.
                 {
-                    let seconds = run.primal_fury.refund(
+                    let seconds = run.feral_critical.refund(
                         talents,
                         h.source,
                         critical_damage,
@@ -2155,7 +2155,7 @@ pub(super) fn apply_hits(
                         stats.haste,
                         rng.f32(),
                     );
-                    if h.source == "Maul" {
+                    if matches!(h.source, "Maul" | "Claw") {
                         run.weapon_attack_cd = (run.weapon_attack_cd - seconds).max(0.);
                     } else if let Some(ability) =
                         run.abilities.iter_mut().find(|a| a.def.key == h.source)

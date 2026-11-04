@@ -1,5 +1,11 @@
 # Survivors — the Armory
 
+## Blood Frenzy — 2026-11-04
+
+Cat Claw/Rake/Shred criticals can refund their own remaining recovery, replacing
+combo-point generation. A shared haste-scaled internal cooldown prevents repeated
+refunds; no new ability or slot is added. [Rules and acceptance](audits/DRUID-BLOOD-FRENZY.md).
+
 ## Primal Fury — 2026-11-04
 
 Bear Maul/Swipe criticals can refund their own remaining recovery, replacing

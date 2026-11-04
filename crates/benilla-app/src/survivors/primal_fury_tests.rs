@@ -108,3 +108,64 @@ fn zero_recovery_never_banks_fury_and_refunds_clamp_at_ready() {
     land(&mut app, target, "Maul", HitOrigin::Hero, 10., true);
     assert_eq!(app.world().resource::<Run>().weapon_attack_cd, 1.5);
 }
+
+fn cat_setup() -> (App, Entity) {
+    let (mut app, target) = setup();
+    let mut run = app.world_mut().resource_mut::<Run>();
+    run.milestones = Milestones {
+        class: 8,
+        ..Default::default()
+    }
+    .with_ranks(&[(1, DruidForm::Cat.talent(), 1), (1, 800, 2)]);
+    run.abilities[0].def = data::ability("rake");
+    run.abilities[2].def = data::ability("shred");
+    (app, target)
+}
+
+#[test]
+fn cat_criticals_recover_only_the_source_with_a_shared_hasted_clock() {
+    let (mut app, target) = cat_setup();
+    land(&mut app, target, "Claw", HitOrigin::Hero, 10., true);
+    assert_eq!(app.world().resource::<Run>().weapon_attack_cd, 1.5);
+    land(&mut app, target, "rake", HitOrigin::Hero, 10., true);
+    assert_eq!(app.world().resource::<Run>().abilities[0].cd, 5.);
+    let ready = 1. / (1. + app.world().resource::<Run>().stats().haste);
+    app.world_mut().resource_mut::<Run>().elapsed = ready;
+    land(&mut app, target, "rake", HitOrigin::Hero, 10., true);
+    app.world_mut().resource_mut::<Run>().elapsed = ready * 2.;
+    land(&mut app, target, "shred", HitOrigin::Hero, 10., true);
+    let run = app.world().resource::<Run>();
+    assert_eq!(
+        run.abilities.iter().map(|a| a.cd).collect::<Vec<_>>(),
+        [4.5, 5., 4.5]
+    );
+    assert_eq!(run.weapon_attack_cd, 1.5);
+}
+
+#[test]
+fn cat_recovery_excludes_generated_hits_and_never_banks_a_refund() {
+    for (source, origin, damage, critical) in [
+        ("Claw", HitOrigin::Hero, 10., false),
+        ("Claw", HitOrigin::Hero, 0., true),
+        ("rake", HitOrigin::CombatPet, 10., true),
+        ("rake", HitOrigin::TriggeredHero, 10., true),
+        ("shred", HitOrigin::Reflection, 10., true),
+        ("wrath", HitOrigin::Hero, 10., true),
+        ("Maul", HitOrigin::Hero, 10., true),
+    ] {
+        let (mut app, target) = cat_setup();
+        land(&mut app, target, source, origin, damage, critical);
+        assert_eq!(app.world().resource::<Run>().weapon_attack_cd, 2.);
+        assert!(app
+            .world()
+            .resource::<Run>()
+            .abilities
+            .iter()
+            .all(|a| a.cd == 5.));
+        app.world_mut().resource_mut::<Run>().weapon_attack_cd = 0.;
+        land(&mut app, target, "Claw", HitOrigin::Hero, 10., true);
+        app.world_mut().resource_mut::<Run>().weapon_attack_cd = 0.2;
+        land(&mut app, target, "Claw", HitOrigin::Hero, 10., true);
+        assert_eq!(app.world().resource::<Run>().weapon_attack_cd, 0.);
+    }
+}

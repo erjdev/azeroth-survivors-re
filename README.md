@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Blood Frenzy now converts Cat criticals into attack recovery without combo points.
+[Rules and validation](docs/audits/DRUID-BLOOD-FRENZY.md).
+
+![Blood Frenzy upgrade](docs/images/screenshots/2026-11-04-blood-frenzy/upgrade-wide.jpg)
+
 Primal Fury now converts Bear criticals into attack recovery, with green inline
 chance upgrades. [Rules and validation](docs/audits/DRUID-PRIMAL-FURY.md).
 

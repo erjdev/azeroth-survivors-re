@@ -19,6 +19,7 @@ const DIRECT_FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe", "shred"
 const ALL_FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe", "shred", "bash", "pounce"];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 800, max_rank: 2, name: "Blood Frenzy", description: "While Cat is selected: effective Claw, Rake and Shred criticals have 50% chance per rank to recover 0.5 sec of that attack's remaining cooldown. Shared internal cooldown: 1 sec, reduced by haste. Excludes bleeds, pets, splash copies and generated hits; no stored refunds or combo points", stat: TalentStat::BloodFrenzy, per_rank: 0.5 },
     TalentDefinition { id: 801, max_rank: 2, name: "Primal Fury", description: "While Bear is selected: effective Maul and Swipe criticals have 50% chance per rank to recover 0.5 sec of that attack's remaining cooldown. Shared internal cooldown: 1 sec, reduced by haste. Excludes periodic damage, pets, splash copies and generated hits; no stored refunds (Survivors Rage conversion)", stat: TalentStat::PrimalFury, per_rank: 0.5 },
     TalentDefinition { id: 797, max_rank: 2, name: "Brutal Impact", description: "Bash and Pounce: +0.5 sec stun duration per rank, added after ability rank scaling. Does not extend Pounce's bleed or grant either ability; Bash requires Bear and Pounce requires Cat", stat: TalentStat::FeralStunDuration, per_rank: 0.5 },
     TalentDefinition { id: 802, max_rank: 2, name: "Improved Shred", description: "Shred: 10% shorter cooldown per rank, multiplying haste and other recovery bonuses. Does not grant the spell; requires Cat for Shred (Survivors Energy-cost conversion)", stat: TalentStat::SpellCooldown("shred"), per_rank: 0.10 },
@@ -1290,13 +1291,13 @@ mod feral_control_tests {
     }
 }
 
-/// Bear criticals convert Rage into immediate recovery, never stored charges.
+/// Permanent feral criticals grant immediate recovery, never resources or stored charges.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct PrimalFuryClock {
+pub struct FeralCriticalClock {
     next: f32,
 }
 
-impl PrimalFuryClock {
+impl FeralCriticalClock {
     /// The caller supplies health actually removed by an original critical hit.
     pub fn chance(
         self,
@@ -1306,8 +1307,6 @@ impl PrimalFuryClock {
         now: f32,
     ) -> f32 {
         if talents.class != 8
-            || talents.druid_form() != Some(super::forms::DruidForm::Bear)
-            || !matches!(source, "Maul" | "swipe")
             || !critical_damage.is_finite()
             || critical_damage <= 0.
             || !now.is_finite()
@@ -1316,7 +1315,15 @@ impl PrimalFuryClock {
         {
             return 0.;
         }
-        talents.trained_value(TalentStat::PrimalFury)
+        use super::forms::DruidForm;
+        let stat = match talents.druid_form() {
+            Some(DruidForm::Bear) if matches!(source, "Maul" | "swipe") => TalentStat::PrimalFury,
+            Some(DruidForm::Cat) if matches!(source, "Claw" | "rake" | "shred") => {
+                TalentStat::BloodFrenzy
+            }
+            _ => return 0.,
+        };
+        talents.trained_value(stat)
     }
 
     /// Call only while the source attack has recovery left to reduce.
@@ -1364,7 +1371,7 @@ mod primal_fury_tests {
                 for source in ["Maul", "swipe", "Claw", "rake", "bash", "pounce", "wrath"] {
                     let eligible = form == DruidForm::Bear && matches!(source, "Maul" | "swipe");
                     assert_eq!(
-                        PrimalFuryClock::default().chance(talents, source, 1., 0.),
+                        FeralCriticalClock::default().chance(talents, source, 1., 0.),
                         if eligible {
                             0.5 * f32::from(rank.min(2))
                         } else {
@@ -1375,7 +1382,7 @@ mod primal_fury_tests {
             }
         }
         let talents = talents(DruidForm::Bear, 2);
-        let mut clock = PrimalFuryClock::default();
+        let mut clock = FeralCriticalClock::default();
         assert_eq!(clock.refund(talents, "Maul", 1., 0., 1., 0.9), 0.5);
         assert_eq!(clock.refund(talents, "swipe", 1., 0., 1., 0.), 0.);
         assert_eq!(clock.refund(talents, "swipe", 1., 0.49, 1., 0.), 0.);
@@ -1388,7 +1395,7 @@ mod primal_fury_tests {
     #[test]
     fn invalid_hits_failed_rolls_and_foreign_classes_do_not_spend_fury() {
         let talents = talents(DruidForm::Bear, 1);
-        let mut clock = PrimalFuryClock::default();
+        let mut clock = FeralCriticalClock::default();
         for damage in [0., -1., f32::NAN, f32::INFINITY] {
             assert_eq!(clock.refund(talents, "Maul", damage, 0., 0., 0.), 0.);
         }
@@ -1407,7 +1414,7 @@ mod primal_fury_tests {
             }
             .with_ranks(&[(1, 1_000_002, 1), (1, 801, 2)]);
             assert_eq!(
-                PrimalFuryClock::default().chance(foreign, "Maul", 1., 0.),
+                FeralCriticalClock::default().chance(foreign, "Maul", 1., 0.),
                 0.
             );
         }
@@ -1418,5 +1425,54 @@ mod primal_fury_tests {
         assert!(text.contains("50 » 100% chance"), "{text}");
         assert!(spans.iter().any(|span| text[span.clone()].contains('»')));
         assert!(text.contains("0.5 sec"));
+    }
+}
+
+#[cfg(test)]
+mod blood_frenzy_tests {
+    use super::*;
+    use crate::talents::{forms::DruidForm, Milestones};
+
+    #[test]
+    fn cat_criticals_require_the_selected_form_and_share_recovery() {
+        for form in DruidForm::ALL {
+            for rank in [0, 1, 2, 255] {
+                let talents = Milestones {
+                    class: 8,
+                    ..Default::default()
+                }
+                .with_ranks(&[(form.tree(), form.talent(), 1), (1, 800, rank)]);
+                for source in ["Claw", "rake", "shred", "Maul", "swipe", "pounce", "wrath"] {
+                    let expected =
+                        if form == DruidForm::Cat && matches!(source, "Claw" | "rake" | "shred") {
+                            0.5 * f32::from(rank.min(2))
+                        } else {
+                            0.
+                        };
+                    assert_eq!(
+                        FeralCriticalClock::default().chance(talents, source, 1., 0.),
+                        expected
+                    );
+                }
+            }
+        }
+        let talents = Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[(1, DruidForm::Cat.talent(), 1), (1, 800, 1)]);
+        let mut clock = FeralCriticalClock::default();
+        assert_eq!(clock.refund(talents, "Claw", 1., 0., 1., 0.5), 0.);
+        assert_eq!(clock.refund(talents, "Claw", 1., 0., 1., 0.49), 0.5);
+        assert_eq!(clock.refund(talents, "rake", 1., 0.49, 1., 0.), 0.);
+        assert_eq!(clock.refund(talents, "shred", 1., 0.5, 1., 0.), 0.5);
+        assert_eq!(clock.refund(talents, "rake", 1., 100., 0., 0.), 0.5);
+        assert_eq!(clock.refund(talents, "Claw", 1., 100., 0., 0.), 0.);
+        let (text, spans) = crate::talents::talent_definition(8, 800)
+            .unwrap()
+            .inline_description_with_values(1)
+            .unwrap();
+        assert!(text.contains("50 » 100% chance"), "{text}");
+        assert!(spans.iter().any(|span| text[span.clone()].contains('»')));
     }
 }

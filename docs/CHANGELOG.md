@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-04 — Blood Frenzy recovery
+
+Cat criticals can shorten Claw, Rake or Shred recovery without combo points.
+Green inline chance upgrades, purchase/refund, separate specs and compact restart
+are verified. [Rules and limits](audits/DRUID-BLOOD-FRENZY.md).
+
+![Blood Frenzy inline upgrade](images/screenshots/2026-11-04-blood-frenzy/upgrade-wide.jpg)
+
 ## 2026-11-04 — Primal Fury recovery
 
 Bear criticals can now shorten Maul or Swipe recovery, replacing Rage generation.

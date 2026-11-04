@@ -4,7 +4,7 @@ mod aspects;
 mod avoidance;
 mod critical_cast;
 mod druid;
-pub use druid::{OmenClock, PrimalFuryClock};
+pub use druid::{FeralCriticalClock, OmenClock};
 pub mod forms;
 mod hunter;
 mod hunter_mark;
@@ -1911,6 +1911,7 @@ pub enum TalentStat {
     Clearcasting,
     OmenOfClarity,
     PrimalFury,
+    BloodFrenzy,
     MasterOfElements,
     AdrenalineRush,
     BladeFlurry,
@@ -2334,6 +2335,7 @@ impl TalentDefinition {
             | TalentStat::Combustion
             | TalentStat::MasterOfElements
             | TalentStat::Clearcasting
+            | TalentStat::BloodFrenzy
             | TalentStat::PrimalFury
             | TalentStat::OmenOfClarity
             | TalentStat::ArcanePower
@@ -2722,6 +2724,7 @@ impl TalentDefinition {
             TalentStat::MeleeParry => (100.0, " percentage points melee parry"),
             TalentStat::MeleeDodge => (100.0, " percentage points melee dodge"),
             TalentStat::MasterOfElements => (100.0, "% of remaining ability recovery refunded on an effective Fire/Frost critical; 1 sec shared internal cooldown reduced by haste"),
+            TalentStat::BloodFrenzy => (100.0, "% chance per effective Cat melee critical to recover 0.5 sec of that attack; 1 sec internal cooldown reduced by haste"),
             TalentStat::PrimalFury => (100.0, "% chance per effective Bear melee critical to recover 0.5 sec of that attack; 1 sec internal cooldown reduced by haste"),
             TalentStat::OmenOfClarity => (100.0, "% chance per effective feral attack to fire extra Wrath; 5 sec internal cooldown reduced by haste"),
             TalentStat::Clearcasting => (100.0, "% chance per effective Mage spell hit to fire extra Arcane Missiles; 5 sec internal cooldown reduced by haste"),
@@ -4404,6 +4407,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Combustion
             | TalentStat::MasterOfElements
             | TalentStat::Clearcasting
+            | TalentStat::BloodFrenzy
             | TalentStat::PrimalFury
             | TalentStat::OmenOfClarity
             | TalentStat::ArcanePower
@@ -5978,6 +5982,7 @@ mod stat_talent_tests {
                     | TalentStat::Combustion
                     | TalentStat::MasterOfElements
                     | TalentStat::Clearcasting
+                    | TalentStat::BloodFrenzy
                     | TalentStat::PrimalFury
                     | TalentStat::OmenOfClarity
                     | TalentStat::ArcanePower
