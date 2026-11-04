@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Omen of Clarity — 2026-11-03
+
+Omen now converts effective feral hits into one independent extra Wrath, with
+haste-scaled recovery and explicit triggered-hit attribution. It preserves normal
+slot/rank/timer behavior and never banks a cast after target loss.
+[Rules and acceptance](audits/DRUID-OMEN.md) document authored tuning, saved specs
+and responsive talent text. Attended effects, balance and platforms remain open.
+
 ## Permanent feral recovery — 2026-11-03
 
 Feral Instinct and Furor now supply form-gated Claw/Maul/Rake/Swipe cooldown

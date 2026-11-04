@@ -4,6 +4,7 @@ mod aspects;
 mod avoidance;
 mod critical_cast;
 mod druid;
+pub use druid::OmenClock;
 pub mod forms;
 mod hunter;
 mod hunter_mark;
@@ -1899,6 +1900,7 @@ pub enum TalentStat {
     ArcanePower,
     Combustion,
     Clearcasting,
+    OmenOfClarity,
     MasterOfElements,
     AdrenalineRush,
     BladeFlurry,
@@ -2321,6 +2323,7 @@ impl TalentDefinition {
             | TalentStat::Combustion
             | TalentStat::MasterOfElements
             | TalentStat::Clearcasting
+            | TalentStat::OmenOfClarity
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
@@ -2707,6 +2710,7 @@ impl TalentDefinition {
             TalentStat::MeleeParry => (100.0, " percentage points melee parry"),
             TalentStat::MeleeDodge => (100.0, " percentage points melee dodge"),
             TalentStat::MasterOfElements => (100.0, "% of remaining ability recovery refunded on an effective Fire/Frost critical; 1 sec shared internal cooldown reduced by haste"),
+            TalentStat::OmenOfClarity => (100.0, "% chance per effective feral attack to fire extra Wrath; 5 sec internal cooldown reduced by haste"),
             TalentStat::Clearcasting => (100.0, "% chance per effective Mage spell hit to fire extra Arcane Missiles; 5 sec internal cooldown reduced by haste"),
             TalentStat::Combustion => (100.0, "% Fire critical chance per direct hit"),
             TalentStat::ArcanePower => (100.0, "% Mage damage during Arcane Power"),
@@ -4385,6 +4389,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::Combustion
             | TalentStat::MasterOfElements
             | TalentStat::Clearcasting
+            | TalentStat::OmenOfClarity
             | TalentStat::ArcanePower
             | TalentStat::PowerInfusion
             | TalentStat::DivineFavor
@@ -5956,6 +5961,7 @@ mod stat_talent_tests {
                     | TalentStat::Combustion
                     | TalentStat::MasterOfElements
                     | TalentStat::Clearcasting
+                    | TalentStat::OmenOfClarity
                     | TalentStat::ArcanePower
                     | TalentStat::PowerInfusion
                     | TalentStat::DivineFavor

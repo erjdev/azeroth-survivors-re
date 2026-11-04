@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-03 — Omen’s extra Wrath
+
+Feral hits can now trigger an extra Wrath with a haste-scaled internal cooldown.
+The proc takes no slot and cannot trigger itself. Green inline talent text,
+purchase/refund, independent specs and compact restart are verified.
+[Rules and limits](audits/DRUID-OMEN.md).
+
+![Omen of Clarity upgrade](images/screenshots/2026-11-03-omen/upgrade-wide.jpg)
+
 ## 2026-11-03 — Permanent feral recovery
 
 Feral Instinct and Furor now speed Cat/Bear attacks, replacing threat/stealth and

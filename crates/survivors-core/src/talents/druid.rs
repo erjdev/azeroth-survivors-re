@@ -17,6 +17,7 @@ const HEALING_SPELLS: &[&str] = &["rejuvenation", "regrowth", "healing_touch", "
 const FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe"];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 788, max_rank: 1, name: "Omen of Clarity", description: "Effective Claw, Maul, Rake and Swipe hits: 10% chance to fire extra Wrath. Internal cooldown: 5 sec, reduced by haste. Uses owned Wrath rank or rank 1; takes no slot and leaves normal attack timers unchanged. Excludes bleeds, pets, splash copies and generated hits; no stored charges (Survivors Clearcasting conversion)", stat: TalentStat::OmenOfClarity, per_rank: 0.10 },
     TalentDefinition { id: 799, max_rank: 5, name: "Feral Instinct", description: "While Cat or Bear is selected: Claw, Maul, Rake and Swipe have 3% shorter cooldown per rank, multiplying other recovery bonuses. No benefit to caster spells or other forms (Survivors threat and stealth conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.03 },
     TalentDefinition { id: 822, max_rank: 5, name: "Furor", description: "While Cat or Bear is selected: Claw, Maul, Rake and Swipe have 2% shorter cooldown per rank, multiplying other recovery bonuses. Active throughout the run; no benefit to caster spells or other forms (Survivors Rage/Energy conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.02 },
     TalentDefinition { id: 842, max_rank: 2, name: "Improved Tranquility", description: "Tranquility: 10% shorter cooldown per rank, multiplying other recovery bonuses. Does not grant the spell or change its five healing pulses (Survivors healing-threat conversion)", stat: TalentStat::SpellCooldown("tranquility"), per_rank: 0.10 },
@@ -1084,5 +1085,107 @@ mod feral_recovery_tests {
                 .unwrap()
                 .contains(text));
         }
+    }
+}
+
+/// Resource-free Omen: one extra Wrath, with an independent haste-scaled cooldown.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct OmenClock {
+    next: f32,
+    pending: bool,
+}
+
+impl OmenClock {
+    pub fn chance(self, talents: super::Milestones, key: &str, damage: f32, now: f32) -> f32 {
+        if talents.class != 8
+            || !now.is_finite()
+            || now < 0.
+            || now < self.next
+            || self.pending
+            || !damage.is_finite()
+            || damage <= 0.
+            || !FERAL_ATTACKS.contains(&key)
+        {
+            return 0.;
+        }
+        talents.trained_value(TalentStat::OmenOfClarity)
+    }
+
+    pub fn trigger(
+        &mut self,
+        talents: super::Milestones,
+        key: &str,
+        damage: f32,
+        now: f32,
+        haste: f32,
+        roll: f32,
+    ) -> bool {
+        let chance = self.chance(talents, key, damage, now);
+        if chance <= 0.
+            || !haste.is_finite()
+            || !roll.is_finite()
+            || !(0.0..1.0).contains(&roll)
+            || roll >= chance
+        {
+            return false;
+        }
+        self.next = now + 5. / (1. + haste).max(0.1);
+        self.pending = true;
+        true
+    }
+
+    /// Dispatch once at the next active cast update; target loss never banks a charge.
+    pub fn take(&mut self) -> bool {
+        std::mem::take(&mut self.pending)
+    }
+}
+
+#[cfg(test)]
+mod omen_tests {
+    use super::*;
+    use crate::talents::Milestones;
+
+    #[test]
+    fn omen_is_scoped_and_has_a_haste_scaled_nonbanking_clock() {
+        for class in 0..9 {
+            let talents = Milestones {
+                class,
+                ..Default::default()
+            }
+            .with_ranks(&[(0, 788, 255)]);
+            for key in ["Claw", "Maul", "rake", "swipe", "wrath", "unknown"] {
+                assert_eq!(
+                    OmenClock::default().chance(talents, key, 1., 0.),
+                    if class == 8 && FERAL_ATTACKS.contains(&key) {
+                        0.1
+                    } else {
+                        0.
+                    }
+                );
+            }
+        }
+        let talents = Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[(0, 788, 1)]);
+        let mut clock = OmenClock::default();
+        assert!(!clock.trigger(talents, "Claw", 1., 0., 1., 0.1));
+        assert!(clock.trigger(talents, "Claw", 1., 0., 1., 0.));
+        assert_eq!(clock.chance(talents, "Claw", 1., 100.), 0.);
+        assert!(clock.take());
+        assert!(!clock.take());
+        assert_eq!(clock.chance(talents, "Claw", 1., 2.49), 0.);
+        assert_eq!(clock.chance(talents, "Claw", 1., 2.5), 0.1);
+        for (damage, now, haste, roll) in [
+            (0., 3., 0., 0.),
+            (f32::NAN, 3., 0., 0.),
+            (1., f32::NAN, 0., 0.),
+            (1., 3., f32::NAN, 0.),
+            (1., 3., 0., f32::NAN),
+        ] {
+            assert!(!clock.trigger(talents, "Claw", damage, now, haste, roll));
+        }
+        assert_eq!(clock.chance(talents.with_ranks(&[]), "Claw", 1., 3.), 0.);
     }
 }

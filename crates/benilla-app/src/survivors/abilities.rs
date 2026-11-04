@@ -16,7 +16,7 @@ pub(super) enum HitOrigin {
     #[default]
     Hero,
     CombatPet,
-    /// Hero damage from a proc; cannot recursively trigger another Clearcasting cast.
+    /// Hero damage from a proc; cannot recursively trigger another Clearcasting/Omen cast.
     TriggeredHero,
     /// Already-settled retaliation: no offensive multipliers, echoes or on-hit talents.
     Reflection,
@@ -638,13 +638,19 @@ pub(super) fn cast_abilities(
     };
 
     // Proc casts use the same rank/scaling, but never occupy or reset an Owned slot.
-    if run.clearcasting.take() && run.class.id == data::CLASSES[6].id && talents.class == 6 {
+    for (triggered, class, key) in [
+        (run.clearcasting.take(), 6, "arcane_missiles"),
+        (run.omen.take(), 8, "wrath"),
+    ] {
+        if !triggered || run.class.id != data::CLASSES[class].id || talents.class != class {
+            continue;
+        }
         let owned = super::Owned {
-            def: data::ability("arcane_missiles"),
+            def: data::ability(key),
             level: run
                 .abilities
                 .iter()
-                .find(|a| a.def.key == "arcane_missiles")
+                .find(|a| a.def.key == key)
                 .map_or(1, |a| a.level),
             cd: 0.0,
         };
@@ -2124,6 +2130,10 @@ pub(super) fn apply_hits(
                         stats.haste,
                     );
                     run.abilities[index].cd *= 1.0 - fraction;
+                }
+                if run.omen.chance(talents, h.source, removed, now) > 0.0 {
+                    run.omen
+                        .trigger(talents, h.source, removed, now, stats.haste, rng.f32());
                 }
                 if run.clearcasting.chance(talents, h.source, removed, now) > 0.0 {
                     run.clearcasting.trigger(
@@ -11651,3 +11661,7 @@ mod master_of_elements_tests;
 #[cfg(test)]
 #[path = "feral_kit_tests.rs"]
 mod feral_kit_tests;
+
+#[cfg(test)]
+#[path = "omen_tests.rs"]
+mod omen_tests;

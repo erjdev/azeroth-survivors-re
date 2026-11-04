@@ -13,8 +13,8 @@ Survivors conversions remain distinct.
 
 ## Current remaining dependencies — 2026-11-03
 
-The fresh installed-data audit reports **38/47 Druid definitions**, leaving these
-9 nodes: Omen of Clarity, Feral Aggression, Brutal Impact, Feral
+The fresh installed-data audit reports **39/47 Druid definitions**, leaving these
+8 nodes: Feral Aggression, Brutal Impact, Feral
 Charge, Improved Shred, Blood Frenzy, Primal Fury, Faerie Fire (Feral) and
 Improved Enrage. The table below preserves the original reference evidence;
 it is not the current list of missing implementations.
@@ -274,3 +274,7 @@ under the approved permanent-form/resource-free policy.
 [Feral Instinct and Furor](DRUID-FERAL-RECOVERY.md) now have permanent Cat/Bear
 recovery consumers, superseding their historical missing threat/stealth/resource
 requirements. Remaining feral attacks and proc conversions still need implementation.
+
+[Omen of Clarity](DRUID-OMEN.md) now has effective-hit attribution, a haste-scaled
+clock and a slotless extra Wrath consumer. It supersedes the historical
+Clearcasting resource-discount dependency.
